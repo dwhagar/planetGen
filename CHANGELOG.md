@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4211] - 2026-11-15
+
+**Headline:** A star system with hundreds of bodies no longer runs out of recursion when its planets are given life.
+
+### Fixed
+
+- GEN.1734: the trial copy of a planet that the life pass makes (`life._trial_copy`) deep-copied the moons the planet was born with (`_born_moons`), and each body holds the siblings of its host, so one copy walked every body of the system in a single chain: a planetary nebula's system of a few hundred bodies raised `RecursionError` (`test_census_component_wholesphere` on main). A list, set or dict that holds bodies is now shared with the copy, like `moons` and the star already were; one with no body in it is still copied. No generated value changes.
+
 ## [8.0.4210] - 2026-11-15
 
 **Headline:** The light-through-ice module spells "center" the American way again, which clears the spelling test on main.
