@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4219] - 2026-11-15
+
+**Headline:** The habitability browser tests have a new seeded system again, after the star redraw of Train 30.
+
+### Fixed
+- `tests/habitability_site.py`: `HABITABLE_SEED` is 65 (it was 64). After GEN.1623 and the star table fix redrew every star, seed 64's system held eleven gas dwarfs and two rated bodies, so all eight tests of `test_habitability_end_to_end_browser.py` stopped at setup; seed 65 holds fourteen rated planets and moons and the browser tests of that fixture (habitability, galaxy outlines, score filters, map icons) pass.
+
 ## [8.0.4218] - 2026-11-15
 
 **Headline:** The stage memory log test reads the figures the way the log now writes them.
