@@ -13054,6 +13054,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 04 (after GEN.1723 lands; same law). Prerequisites: GEN.1723. Related: GEN.1721, GEN.1722, GEN.1707.
   Filed by the TODO thread.
 
+- [ ] **GEN.1730 Real-depth desert seas: halite-saturated salt sea instead of a seep brine, on every galaxy (measure first)**
+  Class M tiers thread finding, 11:00 PM EST 2026-11-14 (report /mnt/project-files/reports/class-m-tiers-build/meter-gen1721-slice2-prototype-2026-11-14.md). `hydrosphere.BRINE_MAX_WATER_FRACTION` (2e-5 of the planet mass) turns every surface sea under that share into a chloride "brine seep" with water activity 0.30 to 0.65. On 400 Sun-like systems under Abundant that covers real seas: 5 to 20 percent water cover from about 1e-5 of the mass is a sea hundreds of metres deep, and 31 of 44 such desert worlds hold no life because the life law's solvent term is near zero under about 0.6. The same salt in more water stops at rock-salt saturation, water activity about 0.75, where salt-loving oxygen-making algae (Dunaliella) live; 0.30 to 0.65 is calcium or magnesium chloride or perchlorate strength. Work: measure first, then decide on physics whether a sea of real depth should be halite-saturated rather than a seep brine, on every galaxy including Science (minimal sourced change; register any stand-in in GEN.725). GEN.1721 slice 2 already does this for the tier presets only (`hydrosphere.salts_concentrated`, registry row 6.289:AT7); fold that preset switch into the general law if this item lands. Bears on class H and GEN.1729.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 04 (after GEN.1723; same life and water laws as GEN.1729). Prerequisites: GEN.1721 slice 2. Related: GEN.1729, GEN.1723, GEN.1721, GEN.1706.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
