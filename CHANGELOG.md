@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4279] - 2026-11-15
+
+**Headline:** Moon generation stops a full disk at the call's own rejection limit, the same limit the too-large moons use.
+
+### Changed
+
+- GEN.1599: `physics/planets.generate_moons` counted the disk-full rejections against the module's `MOON_REJECTION_LIMIT` and the too-large ones against the call's `rejection_limit`. Both now stop at the call's `rejection_limit`. Nothing stored changes: a disk exists only round a giant, whose limit is the same number. A test pins the one limit.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4278] - 2026-11-15
 
 **Headline:** A job-engine unit that is stopped part way and run again starts after the pieces it finished, and gives the result an undisturbed unit gives.
