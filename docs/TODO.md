@@ -12997,6 +12997,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 13. Prerequisites: none. Related: OPS.218, OPS.225, OPS.219.
   Filed by the TODO thread.
 
+- [ ] **GEN.1735 Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place)**
+  Lane 03, 4:39 AM EST 2026-11-15: GEN.1728 (PR #6596) adds physics/ice_growth.py (lid_of) with nothing reading it yet; GEN.1723's refuge term (surface_refuge.under_ice_light_share) reads only the fixed ice shell of an ice-covered ocean, not a lake or a seasonal lid. Wire lid_of into the refuge term for every surface-water place (mean temperature, year swing, absorbed flux), replacing the fixed shell thickness. This item is the wiring-guard owner of ice_growth.py and registry rows IG2 to IG8.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (after GEN.1733; same refuge law as GEN.1723). Prerequisites: GEN.1728. Related: GEN.1723, GEN.1727, GEN.1729.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
