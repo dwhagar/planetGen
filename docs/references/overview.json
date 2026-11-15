@@ -6,9 +6,9 @@
   "papers": {
     "books": 31,
     "datasets": 26,
-    "entries": 5185,
+    "entries": 5187,
     "with_arxiv": 1533,
-    "with_doi": 4947,
+    "with_doi": 4949,
     "without_doi": 238
   },
   "stand_ins": {
