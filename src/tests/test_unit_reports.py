@@ -87,16 +87,17 @@ def test_a_stage_of_one_unit_moves_a_bar_from_the_units_reports_and_fills_it_whe
 
 
 @pytest.mark.db
-def test_the_clearing_units_say_their_phase_and_report_the_steps(mysql_config, monkeypatch):
+def test_the_clearing_units_say_their_phase_and_report_the_pieces(mysql_config, monkeypatch):
     lines = []
     monkeypatch.setattr(log, "normal", lines.append)
     params = {"database": _database(mysql_config)}
-    steps = {"empty_phenomenon_scatter_unit": store.CLEAR_PHENOMENON_SCATTER_STEPS, "clear_bright_stars_unit": store.CLEAR_BRIGHT_STARS_STEPS}
-    for name, extra in (("empty_phenomenon_scatter_unit", {}), ("drop_phenomenon_indexes_unit", {}), ("clear_bright_stars_unit", {"clear": "all"})):
+    totals = {"empty-phenomenon-scatter": 1 + len(store.clear_phenomenon_scatter_plan()), "drop-phenomenon-indexes": len(store.PHENOMENON_SCATTER_INDEXES),
+              "clear-bright-stars": 1 + len(store.clear_bright_stars_plan())}
+    for kind, extra in (("empty-phenomenon-scatter", {}), ("drop-phenomenon-indexes", {}), ("clear-bright-stars", {"clear": "all"})):
         reports = []
-        getattr(run_plan, name)(dict(params, **extra), lambda done, total: reports.append((done, total)))
-        total = steps.get(name, 1 + len(store.PHENOMENON_SCATTER_INDEXES))
-        assert reports and reports[-1] == (total, total) and reports[0] == (0, total), name       # one step to a statement (OPS.200)
+        commands.run_alone(kind, dict(params, **extra), lambda done, total: reports.append((done, total)))
+        total = totals[kind]
+        assert reports and reports[-1] == (total, total) and reports[0] == (0, total), kind       # one piece to a statement (OPS.196, OPS.200)
     assert len(lines) >= 3 and all(" elapsed)." in line for line in lines)
 
 

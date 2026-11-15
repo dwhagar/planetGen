@@ -115,6 +115,8 @@ EXEMPT = {
     "generate_system_download": "A file download",
     "admin_queue_run": "A run's detail, reached from the queue",
     "admin_queue_log": "A run's raw log",
+    "admin_queue_jobs": "A run's jobs, reached from the run",
+    "admin_queue_job": "One job of a run, reached from the run's jobs",
     "admin_queue_confirm": "A confirmation step, reached from the queue",
     "admin_queue_action": "A POST",
     "admin_backup": "One backup's detail, reached from Settings backups",
