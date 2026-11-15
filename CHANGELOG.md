@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4283] - 2026-11-15
+
+**Headline:** A unit run again after a passing failure goes on after the pieces it finished, and a test now proves it.
+
+### Changed
+- `commands.py` says that `pieces(args, cursor)` takes the ledger cursor, not 0.
+- `test_failure_kinds.py` fails a piece at the start, middle and end, and checks each finished piece is done once and the result is whole.
+
+generation-output: unchanged
+
 ## [8.0.4282] - 2026-11-15
 
 **Headline:** a planet that kept no envelope now carries the same private attributes as one that did, so a rogue and a bound planet of one mass have the same attributes again.
