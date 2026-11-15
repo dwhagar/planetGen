@@ -56,6 +56,12 @@ def _ledger_usable(conn, run_id):
         control.close()
 
 
+def _names_no_database(conn, run_id):
+    """Whether the run says it touches no database: every step has `database` in its parameters, as `None` (`generate system --output`); a step with no `database` at all is a run begun by hand or a test."""
+    params = [item.get("params") or {} for item in runrecord.read_steps(conn, run_id)]
+    return bool(params) and all("database" in each and not each["database"] for each in params)
+
+
 def ledgered(conn, run_id):
     """
     Whether the run's plan is rows of the job ledger. It is when the control database is there and has the ledger's tables; otherwise (OPS.263, TEST.769: the update's math check runs before the migration that
@@ -64,7 +70,7 @@ def ledgered(conn, run_id):
     key = runrecord.run_key(run_id)
     found = conn.hget(key, LEDGER_FIELD)
     if found is None:
-        conn.hsetnx(key, LEDGER_FIELD, "1" if _ledger_usable(conn, run_id) else "0")
+        conn.hsetnx(key, LEDGER_FIELD, "1" if not _names_no_database(conn, run_id) and _ledger_usable(conn, run_id) else "0")
         found = conn.hget(key, LEDGER_FIELD)
     return runrecord._s(found) == "1"
 

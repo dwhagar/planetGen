@@ -184,6 +184,12 @@ def _check_plan_kept_in_the_record(monkeypatch, steps):
     assert planrows.RELEASE in planrows.ended(conn, run_id, 0)
 
 
+def test_a_run_that_names_no_database_opens_no_ledger_connection(monkeypatch):
+    """TEST.769: a run whose every step says `database: None` never opens the control database."""
+    monkeypatch.setattr(planrows, "control_connection", lambda *args: pytest.fail("a run with no database opened the ledger"))
+    _check_plan_kept_in_the_record(monkeypatch, [commands.Step("a", "first", "A", {"x": 1, "database": None})])
+
+
 def test_a_run_with_no_control_database_keeps_its_plan_in_its_record_and_writes_no_ledger_row(monkeypatch):
     """TEST.769: `system --output` touches no database; its plan, cut, end marks and rows answer as the ledger's do."""
     _no_ledger(monkeypatch, OSError("no control database"))
