@@ -330,6 +330,10 @@ TABLES = {
         "id": ("job_id",),
         "index": ("attempt",),
     },
+    "engine_piece_results": {
+        "id": ("job_id",),
+        "index": ("piece_index",),
+    },
     "facilities": {
         "id": (
             "id", "star_system_id", "star_id", "planet_id", "moon_id", "asteroid_belt_id", "asteroid_field_id",
