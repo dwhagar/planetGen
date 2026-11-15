@@ -17,7 +17,7 @@ GEN.967, which replaces the design defaults of `magnetism` with these.
    holds for Earth and every dynamo that is dipolar as Earth is; a slower one has its moment times `f_dip` over Earth's. With the power held at its
    Earth value `Ro_l` is `0.09 (P_rot / 24 h)^1.23`: the exponent `1.23` is `3 * 0.41`.
 3. **Lifetime.** The dynamo runs while the power is above zero (`lifetime`): the core's own history says when it started and when it stopped.
-4. **Giants.** The metallic region of a giant is driven by a share of the heat the planet radiates (`GIANT_POWER_SHARE`, stand-in DY2).
+4. **Giants.** The metallic region of a giant is driven by a share of the heat the planet radiates (`GIANT_POWER_SHARE`, stand-in 6.30 DY2).
 
 Every number that is not a published value is a stand-in in the gap registry (docs/design/research/gap-filling-plan.md section 6.30).
 """

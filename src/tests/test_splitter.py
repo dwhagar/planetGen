@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from planetgen.queue import breakpoints as bp, commands, runrecord, splitprofile, splitter
+from planetgen.queue import breakpoints as bp, commands, planrows, runrecord, splitprofile, splitter
 from planetgen.queue.splitprofile import Reading
 
 ROOMY = splitter.Resources(available_mb=64000, cores=8, workers=8)
@@ -212,7 +212,7 @@ def test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it(conn, 
     step = commands.Step("probe", "probe", "A probe", {})
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("probe", "A probe", units=1)], steps=[step.as_dict()])
     assert wrapper._open(conn, run_id, 0) == 3
-    plan = runrecord.read_plan(conn, run_id, 0)
+    plan = planrows.read_plan(conn, run_id, 0)
     assert plan["split"]["by"] == "profile" and plan["split"]["cuts"][:2] == [63, 126] and plan["detail"] == {"x": 1}
     assert "Split of probe changed" in runrecord.log_text(conn, run_id)
     assert queued

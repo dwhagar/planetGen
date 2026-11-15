@@ -40,7 +40,7 @@ the size digit."""
 
 
 RING_RADIUS_AU = 50.0
-"""float: The radius, AU, of the ring an `annulus` field was made as (the belt of the star that exploded, the design's 50 AU belt); a `ball` starts from a point. [Stand-in HF1, tier T6, tweak level L1.]"""
+"""float: The radius, AU, of the ring an `annulus` field was made as (the belt of the star that exploded, the design's 50 AU belt); a `ball` starts from a point. [Stand-in 6.202 HF1, tier T6, tweak L1.]"""
 
 
 def radius_ly_at(age_yr, rms_speed_kms, shape="ball"):

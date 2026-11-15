@@ -51,7 +51,7 @@ SOLAR_MASS_KM = _msun_to_kg(constants.G) / constants.SPEED_OF_LIGHT_M_S ** 2 / 1
 """float: The length G M / c^2 of a solar mass, km (1.4766)."""
 
 CRUST_CORE_DENSITY_FM3 = 0.08
-"""float: The baryon density, fm^-3, at the bottom of the crust. [Stand-in, GEN.725 NS1: the tables do not mark the
+"""float: The baryon density, fm^-3, at the bottom of the crust. [Stand-in 6.32 NS1, tier T2, tweak L0: the tables do not mark the
 transition; 0.07 to 0.10 is the range of the compressible-liquid-drop and RMF calculations, [R2834: Table 1] and
 their references.]"""
 

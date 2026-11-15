@@ -94,11 +94,17 @@ class Refuge:
         area (float): The share of the world's surface that is wet and lit, weighed by each place's production against an ocean's (`production_share`); 0 for an open sea
             (its source is the ocean's own).
         temperature_k (float or None): The mean temperature of the wet lit steps, K, weighed by area; `None` for none.
+        plants (float): The share of the world's surface that rooted land plants hold wet and lit (GEN.1729): the groundwater-fed places once the life has reached the
+            rooted stage (`ROOTED`), on the land, each weighed by the share of the year it is wet and lit against Earth's lit half (production in proportion to the time, with no cover factor: a
+            plant stand fills its wet land, as an ocean fills its sea; Earth's land is wet the whole year); 0 before that stage and for a world with no water table the roots reach.
+        plants_cover (float): The part of `area` that those same places make under the cover law of `production_share` (what `plants` replaces in the oxygen source).
     """
 
     hours: float
     area: float
     temperature_k: float | None
+    plants: float = 0.0
+    plants_cover: float = 0.0
 
 
 NONE = Refuge(0.0, 0.0, None)
@@ -146,23 +152,24 @@ def refuge_of(values):
     lit = DEFAULT_LIT_SHARE if lit is None else min(max(float(lit), 0.0), 1.0)
     liquid = (temperature >= LIQUID_MIN_K) & (temperature <= LIQUID_MAX_K)
     melting = (temperature >= MELT_K) & (temperature <= LIQUID_MAX_K)
-    sources = []        # (share of each cell that is wet, the steps it is wet at)
+    sources = []        # (share of each cell that is wet, the steps it is wet at, whether rooted plants stand on it)
     if state == "brine seep":
-        sources.append((np.full(ice.shape, float(values.get("ocean_fraction") or values.get("ground_ocean_fraction") or 0.0)), liquid))
+        sources.append((np.full(ice.shape, float(values.get("ocean_fraction") or values.get("ground_ocean_fraction") or 0.0)), liquid, False))
     elif state == "ice-covered ocean":
-        sources.append((np.ones(ice.shape), melting))
+        sources.append((np.ones(ice.shape), melting, False))
     elif state == "ice":
-        sources.append((ice, melting))
+        sources.append((ice, melting, False))
     rooted = values.get("native_life") in ROOTED
+    land = 1.0 - min(max(float(values.get("ocean_fraction") or 0.0), 0.0), 1.0)         # the share of each cell that is land, where the roots stand (GEN.1729)
     if aquifer:
         share, scale = (ROOT_SEEP_SHARE, ROOT_DEPTH_KM) if rooted else (SEEP_LAND_SHARE, SEEP_DEPTH_KM)
         seeps = share * math.exp(-(values.get("aquifer_depth_km") or 0.0) / scale)
         if seeps > 1.0e-6:
-            sources.append((seeps * (1.0 - ice), liquid))
+            sources.append((seeps * (1.0 - ice), liquid, rooted))
     cells = temperature_coverage._cell_weights(series)
     rate = np.clip((temperature - RATE_ZERO_K) / (RATE_FULL_K - RATE_ZERO_K), 0.0, 1.0)         # LA1b: the oxygen makers slow from 263 K to none at 253 K
-    most, area, warm, weight = 0.0, 0.0, 0.0, 0.0
-    for share, wet in sources:
+    most, area, warm, weight, plants, plants_cover = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+    for share, wet, standing in sources:
         wet_steps = wet.sum(axis=2)
         hours = wet_steps / steps * YEAR_HOURS * lit
         has = (share > 0.0) & (hours >= MIN_HOURS_YR)
@@ -170,7 +177,11 @@ def refuge_of(values):
             continue
         most = max(most, float(hours[has].max()))
         effective = (wet * rate).sum(axis=2) / steps * YEAR_HOURS * lit
-        area += float((cells * np.where(has, _hours_array(effective) * share, 0.0)).sum())
+        made = float((cells * np.where(has, _hours_array(effective) * share, 0.0)).sum())
+        area += made
+        if standing:        # rooted plants stand on the places the roots reach (GEN.1729): production goes with the time they are wet and lit, not with the cover law
+            plants += float((cells * np.where(has, np.minimum(effective / YEAR_HOURS / DEFAULT_LIT_SHARE, 1.0) * share * land, 0.0)).sum())
+            plants_cover += made
         mean_wet = np.where(wet_steps > 0, (temperature * wet).sum(axis=2) / np.maximum(wet_steps, 1), 0.0)
         place = cells * np.where(has, share * wet_steps / steps, 0.0)
         warm += float((place * mean_wet).sum())
@@ -184,7 +195,7 @@ def refuge_of(values):
         weight += produce
     if most < MIN_HOURS_YR:
         return NONE
-    return Refuge(most, area, warm / weight if weight > 0.0 else None)
+    return Refuge(most, area, warm / weight if weight > 0.0 else None, plants, plants_cover)
 
 
 def under_ice_light_share(values):

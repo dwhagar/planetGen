@@ -30,7 +30,7 @@ from planetgen.physics import dust_model
 from planetgen.web.lib import skypack
 
 MAX_SPRITES = 600
-"""int: The most sprites a sky sends, the widest first (stand-in SKV2: the browser draws a quad each)."""
+"""int: The most sprites a sky sends, the widest first (stand-in 6.179 6.179a SKV2: the browser draws a quad each)."""
 
 
 _bands = sky_band.MemoryBandStore()

@@ -25,7 +25,7 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | D | Small airless world | pressure under 10 Pa, round, and under 0.1 Earth masses (GEN.1160) |
 | S | Airless super-Earth | pressure under 10 Pa and 1.5 Earth masses or more |
 | C | Dead world | pressure under 10 Pa and 0.1 Earth masses or more |
-| A | Volcanic world | sulfur dioxide 3 percent of the air or more |
+| A | Volcanic world | sulfur dioxide 3 percent of the air or more, and an interior heat flow (with the tide's) of at least the middle of the ground's volcanism floor, so that rock melts (GEN.1617) |
 | T | Gas dwarf (terrestrial kind) | hydrogen 30 percent of the air or more and under 10 Earth masses (GEN.1142; the same T as the giant row) |
 | N | Hot dense world | pressure of 10 bar or more, 400 K or more, hydrogen under 30 percent of the air (GEN.1142) |
 | V | High-gravity world | gravity of 2 g or more (GEN.1136; 1.25 g before) |
@@ -43,9 +43,9 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | H | Desert world | some water, but under 20 percent of the surface (GEN.1142), at a mean 275 to 315 K: M's floor up to the old ceiling; a world with no water at all is not H (GEN.1342) |
 | M | Temperate world | the rest (air, liquid water 20 to 95 percent); M, H, O, P and R reach 2 g, V's line (GEN.1306, registry AW3; 1.25 g before); M, H, O, P and R judge oxygen (16 to 35.5 kPa) and carbon dioxide (under 1 kPa) by pressure, not share (GEN.1321, registry OP1) |
 | R | Hothouse world | M's too hot (GEN.1221): mean 312 to 345 K, hottest region 315 K or more, coldest 295 K or more, wet bulb 31 C or more, liquid water phase, and the oxygen, air, gravity and carbon dioxide ranges of M |
-| U | Methane-ethane world | methane-ethane liquid stable at the pressure and temperature (91 to 130 K, 50 to 500 kPa), methane 1 percent or more of the air, 0.05 to 2 g (GEN.1221) |
-| Y | Sulfuric acid world | sulfuric acid liquid stable at the pressure and temperature (300 to 350 K), pressure 3 kPa or more, sulfur dioxide 3 percent or more of the air, 0.5 to 2 g (GEN.1221) Fringe physics (GEN.1562): the support in the literature [R0043, R0232] is for warm, water-depleted, sulfur-rich worlds with acid pools or ionic liquid, not for acid oceans; the name stays, the physics is T8 |
-| X | Ammonia-water world | no air; a liquid cover of 20 percent or more, ammonia 10 percent or more of the water's mass, 190 to 240 K, 0.05 to 2 g (GEN.1258) |
+| U | Methane-ethane world | methane-ethane liquid stable at the pressure and temperature (91 to 130 K, 50 to 500 kPa), methane 1 percent or more of the air, 0.05 to 2 g (GEN.1221), and stored seas of methane or ethane over half a percent of the surface or more (GEN.1617, a third of Titan's cover) |
+| Y | Sulfuric acid world | sulfuric acid liquid stable at the pressure and temperature (300 to 350 K), pressure 3 kPa or more, 0.5 to 2 g (GEN.1221), and liquid acid stored at the ground (the acid medium's pool, GEN.1617; it replaces the sulfur dioxide 3 percent the class asked before the medium was stored) Fringe physics (GEN.1562): the support in the literature [R0043, R0232] is for warm, water-depleted, sulfur-rich worlds with acid pools or ionic liquid, not for acid oceans; the name stays, the physics is T8 |
+| X | Ammonia-water world | no air; a liquid cover of 20 percent or more, ammonia 10 percent or more of the water's mass, an ocean that stores its ammonia (GEN.1617), 190 to 240 K, 0.05 to 2 g (GEN.1258) |
 
 The table is in the order of the file. The order no longer decides anything (the best fit does; a tie goes to the class with more conditions, then to the letter), and R, U, X, Y and Z, which the rule file did not have when this table was written, are listed after M with their conditions as `planet_class_fit.json` holds them. Each row carries a one-sentence reading and its `basis` ("design: ..."). A number the file marks design is a planetGen default, refitted when the compositions land; none is a measured constant and none is read from the Solar System.
 

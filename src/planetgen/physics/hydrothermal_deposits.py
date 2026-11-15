@@ -51,25 +51,25 @@ SEDEX_MIN_SULFUR = 0.3
 SEDEX_MIN_AGE_GY = 0.5
 EPITHERMAL_MIN_MAGMA_RATIO = 0.2
 ROLL_FRONT_MIN_O2_PA = 1000.0
-"""Stand-in HT2, tier T7, L3: the thinnest crust that holds a porphyry stock and a collision belt, the coldest ridge that drives a hydrothermal cell, the least sulfur for a brine to reduce sulfate,
+"""Stand-in 6.224 HT2, tier T7, L3: the thinnest crust that holds a porphyry stock and a collision belt, the coldest ridge that drives a hydrothermal cell, the least sulfur for a brine to reduce sulfate,
 the youngest age with basin sediment, the least volcanism for a shallow system and the least oxygen for an oxidizing groundwater."""
 HEAT_RATIO_CAP = 3.0
 MAGMA_RATIO_CAP = 3.0
-"""float: The ceilings on the heat-flow and volcanism factors of the opportunity, so a very hot body does not multiply the count without bound. Stand-in HT3, tier T7, L3."""
+"""float: The ceilings on the heat-flow and volcanism factors of the opportunity, so a very hot body does not multiply the count without bound. Stand-in 6.224 HT3, tier T7, L3."""
 
 CRUST_PPM = {"Cu": 60.0e-6, "Zn": 70.0e-6, "Au": 4.0e-9}
-"""dict: The Earth's continental crust mean (mass fraction) of copper, zinc and gold, the references the star's ratios scale. Stand-in HT4, tier T4 (recalled), L0."""
+"""dict: The Earth's continental crust mean (mass fraction) of copper, zinc and gold, the references the star's ratios scale. Stand-in 6.224 HT4, tier T4 (recalled), L0."""
 CONCENTRATION = {"Cu": 140.0, "Zn": 750.0, "Au": 2300.0, "U": 740.0}
-"""dict: The factor by which the process concentrates the crustal mean into ore (the design file's, recalled). Stand-in HT4."""
+"""dict: The factor by which the process concentrates the crustal mean into ore (the design file's, recalled). Stand-in 6.224 HT4."""
 U_CRUST_OVER_BULK = 80.0
 U3O8_PER_U = 1.1792
-"""float: The crust's uranium over the bulk silicate's (an incompatible element, the crust holds about 80 times the mantle's mean) and the U3O8 mass per unit mass of uranium. Stand-in HT5, tier T6, L2 (the Earth's 1.7 ppm over 0.02 ppm)."""
+"""float: The crust's uranium over the bulk silicate's (an incompatible element, the crust holds about 80 times the mantle's mean) and the U3O8 mass per unit mass of uranium. Stand-in 6.224 HT5, tier T6, L2 (the Earth's 1.7 ppm over 0.02 ppm)."""
 
 WINDOWS = {PORPHYRY: (0.5, 1.0), VMS: (0.3, 1.0), SEDEX: (0.3, 1.0), OROGENIC: (0.3, 1.0), EPITHERMAL: (0.9, 1.0), ROLL_FRONT: (0.6, 1.0)}
-"""dict: The share of the body's age in which each type formed and survived. Stand-in HT6, tier T7, L3."""
+"""dict: The share of the body's age in which each type formed and survived. Stand-in 6.224 HT6, tier T7, L3."""
 
 PORPHYRY_DEPOSITS, VMS_DEPOSITS, SEDEX_DEPOSITS, OROGENIC_DEPOSITS, EPITHERMAL_DEPOSITS, ROLL_FRONT_DEPOSITS = 30.0, 100.0, 80.0, 100.0, 150.0, 120.0
-"""Stand-in HT7, tier T7, L3: the deposits of an Earth-like body over a window of the reference length (the count the Earth's known deposits suggest, recalled)."""
+"""Stand-in 6.224 HT7, tier T7, L3: the deposits of an Earth-like body over a window of the reference length (the count the Earth's known deposits suggest, recalled)."""
 
 
 class State(NamedTuple):

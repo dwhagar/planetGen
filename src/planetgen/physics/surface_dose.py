@@ -165,7 +165,7 @@ def _is_element(name):
 
 def stopping_mixture(columns, rows, atomic_numbers=None):
     """The `{row: mass fraction}` of a mixture of gas columns for Bragg's rule in `proton_range` (`rows`, the rows the range table holds, of which the elements count): an
-    element the table does not hold takes the row of the nearest atomic number, the lighter on a tie, and deuterium takes hydrogen (stand-in SD2)."""
+    element the table does not hold takes the row of the nearest atomic number, the lighter on a tie, and deuterium takes hydrogen (stand-in 6.223 SD2)."""
     symbols = [row for row in rows if _is_element(row)]
     by_z = {elements.element(symbol).z: symbol for symbol in symbols}
     mix = {}

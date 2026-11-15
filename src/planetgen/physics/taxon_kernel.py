@@ -37,37 +37,37 @@ AMMONIA_LINE_K = condensate_shares.ICE_CONDENSATION_K["NH3"]
 
 PRIMITIVE_BELOW_K = 166.0
 """float: The temperature below which a body that accreted water stays primitive (the taxon P, ice and organics kept) and above which it is altered to the hydrated
-carbonaceous taxa; fitted so the C to P change of Table 6 falls at its zones (x about 1.2). [Stand-in TK2, tier T6, tweak L3.]"""
+carbonaceous taxa; fitted so the C to P change of Table 6 falls at its zones (x about 1.2). [Stand-in 6.41 TK2, tier T6, tweak L3.]"""
 
 WIDTH_LN_T = 0.05
 """float: The width of each change in the logarithm of the disk temperature (a width of 5 percent in temperature, 10 percent in distance), the softness of a line given a
-disk that is not a single-temperature blackbody. [Stand-in TK2, tier T6, tweak L3.]"""
+disk that is not a single-temperature blackbody. [Stand-in 6.41 TK2, tier T6, tweak L3.]"""
 
 IMPLANT_FRACTION = 0.08
-"""float: The share of the mass of each family that giant-planet scattering has moved to its neighbour families. [Stand-in TK3, tier T6, tweak L2.]"""
+"""float: The share of the mass of each family that giant-planet scattering has moved to its neighbour families. [Stand-in 6.41 TK3, tier T6, tweak L2.]"""
 
 ALUMINIUM_MASS_FRACTION = 0.0100
-"""float: Aluminium in a dry chondritic body, mass fraction (CI 0.0086 to H chondrite 0.0113, recalled). [Stand-in TK4, tier T4, tweak L0.]"""
+"""float: Aluminium in a dry chondritic body, mass fraction (CI 0.0086 to H chondrite 0.0113, recalled). [Stand-in 6.41 TK4, tier T5, tweak L0.]"""
 
 MELT_ENERGY_J_PER_KG = 1.2e6
 """float: The heat that brings a chondritic body from 150 K to its solidus and melts a fifth of it: 900 J/kg/K times 1250 K and 0.2 times 4e5 J/kg of fusion
-(textbook values; order of magnitude). [Stand-in TK4, tier T5, tweak L0.]"""
+(textbook values; order of magnitude). [Stand-in 6.41 TK4, tier T5, tweak L0.]"""
 
 ACCRETION_SPREAD_MYR = 3.0
 """float: The spread of the accretion times of the planetesimals of one zone, after the isotope formed: the irons of the Solar System accreted under 0.5 Myr and the
-chondrites over 2 Myr (recalled); 3 Myr sits inside the 1.8 to 4 Myr of [R2677] and gives the melted share of 0.54 at the Solar System's ratio. [Stand-in TK5, tier T4, tweak L2.]"""
+chondrites over 2 Myr (recalled); 3 Myr sits inside the 1.8 to 4 Myr of [R2677] and gives the melted share of 0.54 at the Solar System's ratio. [Stand-in 6.41 TK5, tier T3, tweak L2.]"""
 
 ALUMINIUM_26_MEAN_LIFE_MYR = 1.035
 """float: The mean life of aluminium-26 in Myr (`birth_radioisotopes.MEAN_LIFE_YR`)."""
 
 DRY_SPLIT = {"S": 0.85, "K": 0.10, "L": 0.05}
-"""dict: The undifferentiated dry bodies by taxon (ordinary against CO and CV chondrite analogues). [Stand-in TK6, tier T9, tweak L4.]"""
+"""dict: The undifferentiated dry bodies by taxon (ordinary against CO and CV chondrite analogues). [Stand-in 6.41 TK6, tier T9, tweak L4.]"""
 
 IGNEOUS_SPLIT = {"M": 0.25, "A": 0.65, "V": 0.10}
-"""dict: A melted body's mass by taxon: the core (the metal share of a chondrite, 0.2 to 0.3), the mantle and the crust (a tenth by partial melting). [Stand-in TK6, tier T6, tweak L0.]"""
+"""dict: A melted body's mass by taxon: the core (the metal share of a chondrite, 0.2 to 0.3), the mantle and the crust (a tenth by partial melting). [Stand-in 6.41 TK6, tier T9, tweak L4.]"""
 
 HYDRATED_SPLIT = {"C": 0.85, "B": 0.15}
-"""dict: The hydrated carbonaceous taxa by letter (the C to B proportion of the middle and outer belt). [Stand-in TK6, tier T9, tweak L4.]"""
+"""dict: The hydrated carbonaceous taxa by letter (the C to B proportion of the middle and outer belt). [Stand-in 6.41 TK6, tier T9, tweak L4.]"""
 
 FAMILIES = ("dry", "hydrated", "primitive", "ice-rich")
 TAXA = ("E", "C", "B", "S", "A", "L", "K", "V", "P", "M", "D")

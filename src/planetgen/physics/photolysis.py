@@ -153,7 +153,7 @@ def blended_spectral_ratio(formula, teff_k, chromospheric_share=0.0):
     The rate per unit far-ultraviolet flux relative to the Sun's for a star whose 91.2 to 200 nm light is `chromospheric_share` chromosphere and the rest
     photosphere (GEN.982): the chromosphere's lines are the Sun's own spectrum (ratio 1) and the photosphere's tail is the blackbody template of its
     temperature (`spectral_ratio`), so a cool active star is not given the templates' small CO, N2 and CH4 rates for light that is Lyman alpha.
-    [Stand-in, tier educated guess from physics, tweak L0: the weighting by the power share is the simplest blend; the cross sections are not weighed band by band.]
+    [Stand-in 6.33 SL5, tier T6, tweak L0: the weighting by the power share is the simplest blend; the cross sections are not weighed band by band.]
     """
     if not 0.0 <= chromospheric_share <= 1.0:
         raise ValueError("a share is between 0 and 1")

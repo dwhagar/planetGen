@@ -26380,6 +26380,31 @@
       "kind": "paper",
       "label": "Maykut and Untersteiner 1971",
       "title": "Some results from a time-dependent thermodynamic model of sea ice"
+    },
+    "R5283": {
+      "kind": "paper",
+      "label": "Lenton et al. 2016",
+      "title": "Earliest land plants created modern levels of atmospheric oxygen"
+    },
+    "R5284": {
+      "kind": "paper",
+      "label": "Galy et al. 2015",
+      "title": "Global carbon export from the terrestrial biosphere controlled by erosion"
+    },
+    "R5285": {
+      "kind": "paper",
+      "label": "Burdige 2005",
+      "title": "Burial of terrestrial organic matter in marine sediments: A re‐assessment"
+    },
+    "R5286": {
+      "kind": "paper",
+      "label": "Knittel and Boetius 2009",
+      "title": "Anaerobic Oxidation of Methane: Progress with an Unknown Process"
+    },
+    "R5287": {
+      "kind": "paper",
+      "label": "Tian et al. 2020",
+      "title": "A comprehensive quantification of global nitrous oxide sources and sinks"
     }
   }
 }

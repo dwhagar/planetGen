@@ -47,7 +47,7 @@ ANCHORS_MYR = {
 }
 """dict: The age, Myr, at which a star of this mass (solar masses) falls below the X-ray saturation threshold, for the slow (5th percentile), medium
 (50th) and fast (95th percentile) rotators, read off Fig. 10 of [R2183] (the fast value at 0.1 solar masses is read by eye where the
-curve runs under the medium one). [Stand-in RS1, tier T3, tweak L0.]"""
+curve runs under the medium one). [Stand-in 6.39 RS1, tier T3, tweak L0.]"""
 
 _MASSES = sorted(ANCHORS_MYR)
 

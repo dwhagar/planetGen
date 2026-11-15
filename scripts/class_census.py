@@ -63,7 +63,9 @@ planet_class class_match runner_up_class runner_up_match class_variant life_clas
 temp_hottest_k temp_coldest_k temp_livable_share surface_dose_msv_yr born_beyond_snow_line formation_distance_au hill_radius ocean_depth_km ocean_ph
 relative_humidity cloud_cover tau_cloud tau_haze tau_dust groundwater aquifer_depth_km ground_type lid_regime life_system_age_gyr tier_air tier_pressure tier_temperature tier_water tier_radiation tier
 xuv_flux_earth uv_surface_index sky_suns days_per_year solar_day_hours water_activity porosity crust_thickness_km core_h_fraction
-phi4 mantle_redox ring_kind ring_mass_kg magnetic_moment_a_m2 dipole_class""".split()
+phi4 mantle_redox ring_kind ring_mass_kg magnetic_moment_a_m2 dipole_class
+surface_liquid surface_liquid_fraction surface_liquid_depth_km surface_liquid_2 surface_liquid_2_fraction surface_liquid_acid_wt surface_liquid_acid_layer
+surface_liquid_ammonia_wt surface_liquid_methane_mol surface_liquid_ethane_mol surface_liquid_nitrogen_mol""".split()
 SUN_TYPES = ("F7V", "F9V", "G0V", "G2V", "G4V", "G6V", "G8V", "K0V", "K1V", "K2V")
 """tuple: The star types of the `sunlike` sample, in rotation (the set of reports/class-m-blue-levers-2026-11-14.md)."""
 

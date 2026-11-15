@@ -101,20 +101,20 @@ events of 10 pfu or more that `datasets.noaa_proton_events` reads (the 255-event
 `test_the_typed_counts_are_the_counts_of_the_downloaded_list` holds these numbers to the file). Source tier T1 (the list is NOAA's; the counts are computed)."""
 TAIL_ANCHOR_PFU = 1.2e5
 """float: The peak flux above 10 MeV, pfu, paired with an annual fluence above 30 MeV of 1e10 cm-2 (`TAIL_ANCHOR_RATE_PER_YEAR`); the pairing is
-McCracken's for the Carrington event, recalled (reports/best-guess-standins-2026-10-24.md section 17). [Stand-in SE4, tier T3, tweak level L1.]"""
+McCracken's for the Carrington event, recalled (reports/best-guess-standins-2026-10-24.md section 17). [Stand-in 6.47 SE4, tier T3, tweak L1.]"""
 TAIL_ANCHOR_RATE_PER_YEAR = 0.0077
 """float: The events a year with an annual fluence above 30 MeV of 1e10 cm-2: four in the 600 years of annual 10Be data, 0.0077 (+0.0073, -0.0045,
 90 percent) with Poisson errors ([R4475], section 4, READ). Nothing above 2e10 in 600 years (median 0.0012 a year,
 one-sided 90 percent under 0.0027) and nothing above 5e10 in 11 400 years; the Carrington event itself is not supported by the isotope data.
-[Stand-in SE4, tier T1, tweak level L0.]"""
+[Stand-in 6.47 SE4, tier T3, tweak L1.]"""
 EXTREME_SLOPE = 4.0
 """float: The cumulative power-law slope of the events past `TAIL_ANCHOR_PFU`: [R4475] fit the tail above 7e9 cm-2 by
-p proportional to F30^-4 (an exponential fits as well; section 4, READ). [Stand-in SE4, tier T1, tweak level L1.]"""
+p proportional to F30^-4 (an exponential fits as well; section 4, READ). [Stand-in 6.47 SE4, tier T3, tweak L1.]"""
 TAIL_SLOPE = math.log(NOAA_CUMULATIVE_COUNTS[-1][1] / NOAA_YEARS / TAIL_ANCHOR_RATE_PER_YEAR) / math.log(
     TAIL_ANCHOR_PFU / NOAA_CUMULATIVE_COUNTS[-1][0])
 """float: The cumulative slope of the number of events from 10 000 pfu to `TAIL_ANCHOR_PFU`, about 1.34: the straight line in log-log between the
 last NOAA node (9 events in 42 years) and the isotope-record rate at the anchor [R4475]. Replaces the 1.9 of GEN.747, which was
-fitted to one Carrington-class event in 500 years. [Stand-in SE4, tier T3, tweak level L1.]"""
+fitted to one Carrington-class event in 500 years. [Stand-in 6.47 SE4, tier T3, tweak L1.]"""
 
 BFO_DEPTH_G_CM2 = 5.0
 """float: The depth of water at which the dose is taken, g/cm2: the blood-forming organs (NASA's standard 5 cm; recalled). Source tier T3."""

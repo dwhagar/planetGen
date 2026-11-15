@@ -28,24 +28,24 @@ CARBIDE_IDS = (MOISSANITE, COHENITE)
 
 CRUST_REFERENCE_KM = 35.0
 EARTH_CORE_MASS_FRACTION = 0.325
-"""float: The Earth's continental crust thickness (km) and core mass fraction, the references the counts scale from. Stand-in CH1, tier T4 (recalled), L0."""
+"""float: The Earth's continental crust thickness (km) and core mass fraction, the references the counts scale from. Stand-in 6.235 CH1, tier T4 (recalled), L0."""
 
 CARBON_SATURATED_C_WT = 4.3
 COHENITE_C_WT = 6.69
 COHENITE_GRADE_FLOOR = 0.30
 """float: Carbon (percent by mass) in iron saturated at the iron-carbon eutectic, carbon in Fe3C (percent, 12.011 / 179.55), and the lowest Fe3C share of the metal drawn. The first is the textbook
-eutectic (recalled), the second is stoichiometry, the floor a design edge. Stand-in CH2, tier T4, L2."""
+eutectic (recalled), the second is stoichiometry, the floor a design edge. Stand-in 6.235 CH2, tier T4, L2."""
 
 MOISSANITE_DEPOSITS = 40.0
 COHENITE_DEPOSITS = 20.0
 MOISSANITE_MEDIAN_KG = 1.0e12
 COHENITE_MEDIAN_KG = 1.0e11
 SPREAD = 1.5
-"""Stand-in CH3, tier T7, L3: the deposits over a window of the reference length on a carbon-rich body of the Earth's size, their median ore (kg) and the lognormal spread. No carbon-rich body has a
+"""Stand-in 6.235 CH3, tier T7, L3: the deposits over a window of the reference length on a carbon-rich body of the Earth's size, their median ore (kg) and the lognormal spread. No carbon-rich body has a
 surveyed endowment; the numbers are set beside the other types' (sedimentary_deposits.TYPES)."""
 
 WINDOWS = {MOISSANITE: (0.0, 1.0), COHENITE: (0.2, 1.0)}
-"""dict: The share of the body's age in which each formed: the carbon rock condensed with the body; the metal separated and was carbon-saturated later. Stand-in CH3."""
+"""dict: The share of the body's age in which each formed: the carbon rock condensed with the body; the metal separated and was carbon-saturated later. Stand-in 6.235 CH3."""
 
 SIC_GRADE = (1.0 / (1.0 + bulk_draw.RANGES["graphite_over_rock"][1]), 1.0 / (1.0 + bulk_draw.RANGES["graphite_over_rock"][0]))
 """tuple: The SiC share of the carbon rock at the two ends of the graphite range the bulk draw takes (0.714 to 0.952)."""

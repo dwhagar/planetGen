@@ -55,6 +55,19 @@ GASES = tuple(atmosphere.SPECIES)
 """tuple: The gases whose partial pressure a body stores (`share_<gas>` quantities)."""
 
 
+LIQUID_WORDS = {
+    "sea_methane_ethane": "seas of liquid methane or ethane cover at least half a percent of the surface",
+    "acid_pool": "liquid sulfuric acid lies at the ground",
+    "ammonia_ocean": "the ocean's liquid holds ammonia",
+    "volcanic_heat": "the interior's heat is enough to melt rock and resurface the ground",
+}
+"""dict: A yes-or-no condition of the liquid classes (U, Y, X) and the volcanic class (A) in plain words (GEN.1617)."""
+
+LIQUID_CLASS_FIELDS = ("surface_liquid", "surface_liquid_fraction", "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer",
+                 "internal_heat_flux_w_m2", "tidal_flux_w_m2")
+"""tuple: The stored fields beside the water ones that `class_domains.derived` reads for the liquid and volcanism conditions of classes U, Y, A and X (GEN.1617)."""
+
+
 class ClassError(ValueError):
     """A body that cannot be classified (a quantity the rules read is missing) or a rule file that is refused."""
 
@@ -81,6 +94,8 @@ def values_from_body(body):
         "ice_mass_fraction": getattr(body, "ice_mass_fraction", None),
         "surface_liquid_ammonia_wt": getattr(body, "surface_liquid_ammonia_wt", None),
     }
+    for field in LIQUID_CLASS_FIELDS:         # GEN.1617: the liquids a body holds at its surface, which classes U, Y and X test, and the heat that classes A tests
+        values[field] = getattr(body, field, None)
     for number in range(1, BAND_COUNT + 1):         # the seven latitude bands (GEN.1108), which the regional, day and night temperatures of a class read (GEN.1221)
         for field in ("mean_k", "swing_k"):
             values[f"band{number}_{field}"] = getattr(body, f"band{number}_{field}", None)
@@ -306,6 +321,8 @@ def condition_words(condition, measure=None):
         parts.append(f"{label} below {number(condition['lt'])}")
     if "equals" in condition and name.startswith("phase_") and condition["equals"] == 1.0:
         parts.append(f"the {name[len('phase_'):].replace('_', '-')} family's liquid is a liquid at the surface temperature and pressure")
+    elif "equals" in condition and name in LIQUID_WORDS and condition["equals"] == 1.0:
+        parts.append(LIQUID_WORDS[name])
     elif "equals" in condition and name == "groundwater_present" and condition["equals"] == 1.0:
         parts.append("liquid water under a dry surface, or a water table under the land of a world with a small sea")
     elif "equals" in condition:

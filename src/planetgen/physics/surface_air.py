@@ -60,7 +60,7 @@ _kg_to_mearth = unit_registry.converter("kg", "Mearth")
 
 MOIST_LIMIT_K = 375.0
 """float: The hottest surface of a body with water that gets less than its runaway greenhouse flux (GEN.1329), K: the surface of the radiative-convective model's
-saturated clear-sky air at its last solution before the runaway (374.6 K at 330 W/m2, GEN.1194, stand-in SV1). Past it a steam air radiates more than such a body
+saturated clear-sky air at its last solution before the runaway (374.6 K at 330 W/m2, GEN.1194, stand-in 6.204 SV1). Past it a steam air radiates more than such a body
 absorbs, so the fixed point does not hold the state; it is the guard that keeps the transient steps of the fixed point (a dense, hydrogen-rich first mixture the
 table warms to 1,000 K) from carrying the ocean past the critical point of water, where `freeze_out` puts all of it in the air."""
 
@@ -1141,7 +1141,7 @@ def cloud_law_of(body, starlight_w_m2, star_distance_au):
     """
     The cloud terms (`cloud_albedo.CloudLaw`, GEN.974) of a body that has the ice law (the caller leaves the others, a giant and a body with no surface water, without). The deck needs the
     body locked 1:1 to its star; the spin is drawn after the air, so the lock is the estimate of `cloud_albedo.tidally_locked` for a planet and true for a moon (a moon's tide is
-    its planet's, and nearly every moon is locked; stand-in CA5).
+    its planet's, and nearly every moon is locked; stand-in 6.199 CA5).
     """
     star = getattr(body, "star", None)
     if getattr(body, "is_moon", False):

@@ -23,7 +23,7 @@ The capacity of each zone is one number, `CAPACITY_WT_PERCENT` (stand-ins MR1 to
 so there is none here, and a hot or cold mantle of the same minerals stores the same.
 
 The carbon of a mantle is in carbonates in an oxidized mantle and in diamond or graphite in a reduced one; `carbon_form` splits them at `CARBON_REDOX_DIW`,
-about 3 log units over the iron-wuestite buffer, where diamond and carbonate meet at 15 to 45 GPa (stand-in MR4).
+about 3 log units over the iron-wuestite buffer, where diamond and carbonate meet at 15 to 45 GPa (stand-in 6.219 MR4).
 
 Use:
 

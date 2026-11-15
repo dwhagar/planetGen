@@ -18,12 +18,12 @@ star's [Fe/H], each shared between the two processes by the r-fraction of the Su
 Eu, Th and U are `stellar_abundances.birth_radiogenic`'s and are not repeated here.
 
 **The rock and the metal** (`bulk_ppm`). A refractory element goes into the planet with the rock, so its mass is the star's element-to-magnesium ratio times the magnesium of the rock
-(`ROCK_MG_MASS_FRACTION`, stand-in HE3); it is then shared between the silicate and the metal core by its metal-silicate partition coefficient `D` (`PARTITION`, rows HE4 to HE7):
+(`ROCK_MG_MASS_FRACTION`, stand-in 6.274 HE3); it is then shared between the silicate and the metal core by its metal-silicate partition coefficient `D` (`PARTITION`, rows HE4 to HE7):
 
     share in the core = D f_metal / (D f_metal + f_rock)        (equilibrium at the core-forming conditions, all the metal and all the rock in contact)
 
 so the platinum-group metals and gold (D of hundreds) are nearly all in the core and the rare earths and the large-ion lithophiles (D far under one) stay in the mantle. Lead is moderately
-siderophile and is not depleted by its volatility here (stand-in HE7: a hot rocky planet that lost its lead is not told apart). The late accretion that restores a mantle's platinum-group
+siderophile and is not depleted by its volatility here (stand-in 6.274 HE7: a hot rocky planet that lost its lead is not told apart). The late accretion that restores a mantle's platinum-group
 metals (`late_accretion`) is not added: the mantle value is the equilibrium one.
 
 Stand-ins are HE1 to HE7 of section 6.274 of `docs/design/research/gap-filling-plan.md`.
@@ -54,7 +54,7 @@ the 1,000 that leaves the Earth's mantle 0.3 percent of the chondritic ratio (tw
 one, T5, L0, HE6); lead is weakly siderophile (3, T4, L0, HE7)."""
 
 ROCK_MG_MASS_FRACTION = 0.222
-"""float: The magnesium mass fraction of the silicate (rock) of a body: the bulk silicate Earth's, 22.2 percent [[R3417] via the research note; second hand]. Stand-in HE3, tier T3, tweak L0."""
+"""float: The magnesium mass fraction of the silicate (rock) of a body: the bulk silicate Earth's, 22.2 percent [[R3417] via the research note; second hand]. Stand-in 6.274 HE3, tier T3, tweak L0."""
 
 _ATOMIC_WEIGHT = {symbol: elements.element(symbol).atomic_weight for symbol in ELEMENTS}
 

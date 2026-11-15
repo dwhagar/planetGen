@@ -46,22 +46,22 @@ _kg_to_msun = units.converter("kg", "Msun")
 _mearth_to_kg = units.converter("Mearth", "kg")
 
 L1_MASS_KG = 1.0e19
-"""float: Every body above this mass is its own stored object (about 200 km across for rock). [Stand-in BR17, tier T9, tweak L0.]"""
+"""float: Every body above this mass is its own stored object (about 200 km across for rock). [Stand-in 6.95 BR17, tier T9, tweak L0.]"""
 
 LEDGER_COVERAGE = 0.9
-"""float: The share of the belt's mass the stored bodies must hold; the heaviest bodies below the cut are added until they do. [Stand-in BR18, tier T9, tweak L0.]"""
+"""float: The share of the belt's mass the stored bodies must hold; the heaviest bodies below the cut are added until they do. [Stand-in 6.95 BR18, tier T9, tweak L0.]"""
 
 LEDGER_MAX_BODIES = 300
-"""int: The most bodies stored for one belt. [Stand-in BR18, tier T9, tweak L0.]"""
+"""int: The most bodies stored for one belt. [Stand-in 6.95 BR18, tier T9, tweak L0.]"""
 
 LEDGER_MAX_SHARE = 0.95
-"""float: The most of the belt's mass the stored bodies may hold; if a draw puts more in them they are scaled down together, so the rest of the belt keeps at least `1 - this`. [Stand-in BR21, tier T9, tweak L0.]"""
+"""float: The most of the belt's mass the stored bodies may hold; if a draw puts more in them they are scaled down together, so the rest of the belt keeps at least `1 - this`. [Stand-in 6.95 BR21, tier T9, tweak L0.]"""
 
 SOLVE_TOLERANCE = 1.0e-3
-"""float: The relative width of the bracket on `Dc` at which `solve_belt` stops. [Stand-in BR21, tier T9, tweak L0.]"""
+"""float: The relative width of the bracket on `Dc` at which `solve_belt` stops. [Stand-in 6.95 BR21, tier T9, tweak L0.]"""
 
 SOLVE_MIN_KM = 1.0e-3
-"""float: The lower end of the bracket on `Dc` of `solve_belt`, far below any belt's largest body. [Stand-in BR21, tier T9, tweak L0.]"""
+"""float: The lower end of the bracket on `Dc` of `solve_belt`, far below any belt's largest body. [Stand-in 6.95 BR21, tier T9, tweak L0.]"""
 
 
 @dataclass(frozen=True)
@@ -88,12 +88,12 @@ class SizeLaw:
 
 ICY_LAW = SizeLaw(breaks_km=(121.0,), exponents=(1.0, 4.35), density_kg_m3=1000.0)
 """SizeLaw: The hot Kuiper belt's: bright-end slope alpha1 = 0.87 (q = 5 alpha = 4.35) and faint-end slope near 0.2 (q = 1.0), break H_B = 7.7, which is 121 km across for an albedo of 0.10 and 1 g/cm3
-([R1439], READ; the albedo is an assumption, 99 to 192 km across 0.04 to 0.15). [Stand-in BR19, tier T1, tweak L1.]"""
+([R1439], READ; the albedo is an assumption, 99 to 192 km across 0.04 to 0.15). [Stand-in 6.95 BR19, tier T1, tweak L1.]"""
 
 ROCKY_LAW = SizeLaw(breaks_km=(5.0, 200.0), exponents=(1.3, 3.0, 4.0), density_kg_m3=belt_mass.GRAIN_DENSITY_KG_M3)
 """SizeLaw: The rocky belt's: cumulative q = 1.3 below 5 km and 3.0 from 5 km up ([R2108], astro-ph/0105511, READ: differential indices 2.3 and 4, measured over 0.4 to 5 km and 5 to 40 km), and a
 steeper q = 4 above a break at 200 km, a stand-in (a stretch of q = 3 holds equal mass in every doubling of size, so the law must steepen somewhere; the break is chosen so that a belt of the main belt's mass has
-some tens of bodies above 1e19 kg). [Stand-in BR20, tier T9, tweak L3.]"""
+some tens of bodies above 1e19 kg). [Stand-in 6.95 BR20, tier T9, tweak L3.]"""
 
 
 @lru_cache(maxsize=None)

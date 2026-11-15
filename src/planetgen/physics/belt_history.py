@@ -32,16 +32,16 @@ from planetgen.physics import constants
 from planetgen.util.checks import finite_domain
 
 SURFACE_DENSITY_SLOPE = 1.5
-"""float: The belt's solids go as `a^-slope` (the minimum-mass nebula, as `scatter.DISK_SLOPE`), so the mass between two distances goes as `a^(2 - slope)`. [Stand-in BHS2, tier T6, tweak L1.]"""
+"""float: The belt's solids go as `a^-slope` (the minimum-mass nebula, as `scatter.DISK_SLOPE`), so the mass between two distances goes as `a^(2 - slope)`. [Stand-in 6.117 BHS2, tier T6, tweak L1.]"""
 
 MASS_LOSS_SCATTER_SHARE = 0.5
-"""float: The share of a belt thrown inward by the sudden mass loss of the star, per unit fraction of the star's mass lost, if giants remain. [Stand-in BHS3, tier T9, tweak L3.]"""
+"""float: The share of a belt thrown inward by the sudden mass loss of the star, per unit fraction of the star's mass lost, if giants remain. [Stand-in 6.117 BHS3, tier T9, tweak L3.]"""
 
 DELIVERY_MYR = 100.0
-"""float: How long the scattered rock takes to fall on the white dwarf ([R2415]'s cooling ages are 20 to 200 Myr; the middle in the log). [Stand-in BHS4, tier T6, tweak L1.]"""
+"""float: How long the scattered rock takes to fall on the white dwarf ([R2415]'s cooling ages are 20 to 200 Myr; the middle in the log). [Stand-in 6.117 BHS4, tier T6, tweak L1.]"""
 
 MIN_POLLUTION_RATE_G_S = 1.0e5
-"""float: The lowest accretion rate seen on a polluted white dwarf ([R2415], READ: a few 1e5 to a few 1e8 g/s). [Stand-in BHS5, tier T2, tweak L0.]"""
+"""float: The lowest accretion rate seen on a polluted white dwarf ([R2415], READ: a few 1e5 to a few 1e8 g/s). [Stand-in 6.117 BHS5, tier T2, tweak L0.]"""
 
 _SECONDS_PER_MYR = constants.SECONDS_PER_MYR
 

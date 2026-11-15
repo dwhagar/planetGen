@@ -61,9 +61,9 @@ ROW_FIELDS = ("deposit_type", "status", "endowment_kg", "grade", "key_element", 
 
 # --- the derived fields (ORE1 to ORE3) ------------------------------------------------------------------------------
 CRUST_KM_MOBILE, CRUST_KM_STAGNANT = 17.0, 22.0
-"""float: `D_lid`, km: the mean crust of an Earth-gravity body at the reference mantle temperature (a mobile lid's thin oceanic crust and thick continents, 17 km; a stagnant lid's one thick plate, 22 km). Stand-in ORE1, tier T6, L3: two values fitted by eye to the Earth (about 17 km area-weighted), Mars (50 km) and Venus (30 km) recalled."""
+"""float: `D_lid`, km: the mean crust of an Earth-gravity body at the reference mantle temperature (a mobile lid's thin oceanic crust and thick continents, 17 km; a stagnant lid's one thick plate, 22 km). Stand-in 6.227 ORE1, tier T6, L3: two values fitted by eye to the Earth (about 17 km area-weighted), Mars (50 km) and Venus (30 km) recalled."""
 REFERENCE_MANTLE_K = 2200.0
-"""float: The mantle temperature (K) of the interior model for an Earth-mass body at 4.5 Gyr (the middle of the draws, 1960 to 2760 K). Stand-in ORE1."""
+"""float: The mantle temperature (K) of the interior model for an Earth-mass body at 4.5 Gyr (the middle of the draws, 1960 to 2760 K). Stand-in 6.227 ORE1."""
 MIN_GRAVITY_G = 0.05
 CRUST_KM_RANGE = (3.0, 150.0)
 """tuple: The thinnest and thickest crust (km) the law returns (the law stays monotone inside it)."""
@@ -73,21 +73,21 @@ CRATON_MIN_AGE_GY = 2.0
 CRATON_AGE_FULL_GY = 4.5
 CRATON_SHARE = 0.3
 CRATON_SCATTER = (0.5, 1.5)
-"""Stand-in ORE2, tier T7, L3: the design's 'a DESIGN fraction around 0.3 for an Earth-like body', scaled by age, with the draw's scatter."""
+"""Stand-in 6.227 ORE2, tier T7, L3: the design's 'a DESIGN fraction around 0.3 for an Earth-like body', scaled by age, with the draw's scatter."""
 
 SULFUR_PRIMORDIAL, SULFUR_SEDIMENTARY = 0.15, 0.65
 SULFUR_AGE_GY = 2.0
-"""Stand-in ORE3, tier T7, L3: the primordial and sedimentary parts of the sulfur index (they sum to 0.8 for an Earth-like body) and the time sedimentary sulfide takes to build."""
+"""Stand-in 6.227 ORE3, tier T7, L3: the primordial and sedimentary parts of the sulfur index (they sum to 0.8 for an Earth-like body) and the time sedimentary sulfide takes to build."""
 LIQUID_WATER_STATES = ("surface ocean", "ice-covered ocean", "hycean", "brine seep")
 """tuple: The stored hydrosphere states (`hydrosphere.HYDROSPHERE_STATES`) in which liquid water stands, for the index's wetness."""
 
 # --- the opportunity and the gates (ORE4) ---------------------------------------------------------------------------
 MAGMA_REFERENCE_KG = 1.5e24
-"""float: The mantle mass an Earth-like body has processed through melting by 4.5 Gyr (about 0.28 of its 5e24 kg mantle). Stand-in ORE4, tier T7, L2."""
+"""float: The mantle mass an Earth-like body has processed through melting by 4.5 Gyr (about 0.28 of its 5e24 kg mantle). Stand-in 6.227 ORE4, tier T7, L2."""
 MAGMA_MIN_RATIO = 0.05
-"""float: The least processed mantle (over `MAGMA_REFERENCE_KG`) that gives a large magma volume; a body under about 0.07 Earth masses is below it, a Mars-mass one above. Stand-in ORE4, tier T7, L3."""
+"""float: The least processed mantle (over `MAGMA_REFERENCE_KG`) that gives a large magma volume; a body under about 0.07 Earth masses is below it, a Mars-mass one above. Stand-in 6.227 ORE4, tier T7, L3."""
 SULFUR_GATE = 0.3
-"""float: The least sulfur index of the Ni-Cu-PGE type (design: 'sulfur index high'). Stand-in ORE4, L3."""
+"""float: The least sulfur index of the Ni-Cu-PGE type (design: 'sulfur index high'). Stand-in 6.227 ORE4, L3."""
 CONCENTRATING_REDOX = {NICKEL_COPPER_PGE: ("reduced", "intermediate"), CHROMITITE: ("reduced", "intermediate"), IRON_TITANIUM_VANADIUM: ("reduced", "intermediate", "oxidized")}
 """dict: The mantle redox classes (`mantle_redox`) that admit each type: sulfide and chromite in a reduced or moderate mantle, the Fe-Ti oxide in any."""
 

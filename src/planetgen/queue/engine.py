@@ -73,8 +73,7 @@ class Context:
     def config(self):
         """The `MySQLConfig` the unit's arguments name (`args["database"]`, as `wrapper.database_args` writes it; the password is this process's settings')."""
         from planetgen.db import store
-        named = self.args["database"]
-        return store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
+        return store.MySQLConfig.from_args(self.args["database"])
 
     @property
     def db(self):

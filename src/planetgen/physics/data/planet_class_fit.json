@@ -100,9 +100,13 @@
         {
           "quantity": "share_so2",
           "min": 0.03
+        },
+        {
+          "quantity": "volcanic_heat",
+          "equals": 1.0
         }
       ],
-      "note": "sulfur dioxide 3 percent or more of the air"
+      "note": "sulfur dioxide 3 percent or more of the air, from a body whose interior heat (with the tide's) melts rock (GEN.1617: at least the middle of the volcanism floor of the ground, `surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2`)"
     },
     {
       "letter": "T",
@@ -910,9 +914,13 @@
         {
           "quantity": "gravity_g",
           "lt": 2.0
+        },
+        {
+          "quantity": "sea_methane_ethane",
+          "equals": 1.0
         }
       ],
-      "note": "the Titan family (GEN.1221, Boss confirmed U): methane-ethane liquid at the pressure, 91 to 130 K, 50 to 500 kPa, methane in the air"
+      "note": "the Titan family (GEN.1221, Boss confirmed U): methane-ethane liquid at the pressure, 91 to 130 K, 50 to 500 kPa, methane in the air, and the body stores seas of methane or ethane over half a percent of its surface or more (GEN.1617, `class_domains.SEA_COVER_MIN`: a third of Titan's 1.6 percent)"
     },
     {
       "letter": "Y",
@@ -937,10 +945,6 @@
           "min": 3000.0
         },
         {
-          "quantity": "share_so2",
-          "min": 0.03
-        },
-        {
           "quantity": "share_h2",
           "lt": 0.3
         },
@@ -951,9 +955,13 @@
         {
           "quantity": "gravity_g",
           "lt": 2.0
+        },
+        {
+          "quantity": "acid_pool",
+          "equals": 1.0
         }
       ],
-      "note": "the sulfuric acid family (GEN.1221, Boss confirmed Y, a Demon world): acid liquid at the pressure, 300 to 350 K, a sulfur air (sulfur dioxide 3 percent or more) until the acid medium is stored"
+      "note": "the sulfuric acid family (GEN.1221, Boss confirmed Y, a Demon world): acid liquid at the pressure, 300 to 350 K, and the body stores liquid acid at its ground (GEN.1617: the acid medium's pool, `surface_liquid_acid_layer`; the sulfur dioxide share it needed before the medium was stored is no longer asked)"
     },
     {
       "letter": "X",
@@ -984,9 +992,13 @@
         {
           "quantity": "gravity_g",
           "lt": 2.0
+        },
+        {
+          "quantity": "ammonia_ocean",
+          "equals": 1.0
         }
       ],
-      "note": "the ammonia-water family (GEN.1258, Boss confirmed X): a liquid cover of 20 percent or more (an icy moon's ocean lies under its lid, so the surface phase gate is not applied), ammonia at least 10 percent of the water's mass (life class 8), the ideal band 190 to 240 K of the families report; a body with no air (an icy moon under its ice lid)"
+      "note": "the ammonia-water family (GEN.1258, Boss confirmed X): a liquid cover of 20 percent or more (an icy moon's ocean lies under its lid, so the surface phase gate is not applied), ammonia at least 10 percent of the water's mass (life class 8), the ideal band 190 to 240 K of the families report; a body with no air (an icy moon under its ice lid); the ammonia is the stored one of a liquid ocean (GEN.1617: `surface_liquid_ammonia_wt`, not the body's bulk ice)"
     }
   ],
   "domains_note": "GEN.1221: the table is read as a class-by-domain matrix (`physics/class_domains.py`): each quantity belongs to one domain (structure, gravity, thermal, air_amount, air_chemistry, water, and the regional, day, night, wet_bulb and phase cells of a family), a class with no condition in a domain has the full range there, and `weights` tilt the six main domains in the overall score. The oxygen-water family (M, R, P, O, H) has the ranges of reports/class-families-and-positions-design-2026-10-31.md section 3; the families with their own liquid (U methane-ethane, Y sulfuric acid) are gated by `phase_<family>` (`physics/phase_gate.py`); Z is the hot thin-air world (GEN.1211). The ammonia-water family (X) waits for a stored ammonia-water fraction.",

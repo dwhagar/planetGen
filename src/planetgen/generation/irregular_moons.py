@@ -30,14 +30,14 @@ from planetgen.util import draw
 
 RESERVOIR_BINARY_FRACTION = 0.3
 """float: The share of the planetesimals of the reservoir that are binaries, which decides the chance of a capture by exchange (`irregular_population.exchange_chance`). About a third of the cold classical Kuiper Belt objects are
-binaries (recalled, not read). [Stand-in IW2, tier T3, tweak level L1.]"""
+binaries (recalled, not read). [Stand-in 6.191 IW2, tier T3, tweak L1.]"""
 ENCOUNTER_REACH_AU = 3.0
 """float: How far from a planet's orbit a belt's nearest edge may lie and still give the planet bodies, AU, at a planet with Jupiter's Hill radius (the 3 AU encounter sphere of NDD14's `f_3AU`); it scales with the
-planet's Hill radius (`irregular_population.REFERENCE_HILL_AU`). [Stand-in CD2, tier T2, tweak level L1.]"""
+planet's Hill radius (`irregular_population.REFERENCE_HILL_AU`). [Stand-in 6.194 CD2, tier T2, tweak L1.]"""
 ORBIT_TRIES = 400
-"""int: How many orbits are drawn for one stored body before it is given up as lost (the pool counts bodies that stayed, so a body is drawn again until its orbit stays). [Stand-in IW3, tier T6, tweak level L0.]"""
+"""int: How many orbits are drawn for one stored body before it is given up as lost (the pool counts bodies that stayed, so a body is drawn again until its orbit stays). [Stand-in 6.191 IW3, tier T6, tweak L0.]"""
 COMPOSITION_MASS_CAP_KG = compaction.TAPER_END_KG * 0.999
-"""float: The heaviest mass the composition rows reach (`captured_composition.compose` stops at `compaction.TAPER_END_KG`); a heavier body (an exchange capture of a Triton) has the composition of this mass. [Stand-in IW4, tier T6, tweak level L2.]"""
+"""float: The heaviest mass the composition rows reach (`captured_composition.compose` stops at `compaction.TAPER_END_KG`); a heavier body (an exchange capture of a Triton) has the composition of this mass. [Stand-in 6.191 IW4, tier T6, tweak L2.]"""
 
 
 MOON_KEYS = ("rank", "window", "mass_kg", "radius_km", "density_kg_m3", "taxon", "source_distance_au", "ice_loss", "rock", "metal", "water", "ice",

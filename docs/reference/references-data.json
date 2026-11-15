@@ -110551,6 +110551,25 @@
    "volume": "110",
    "year": 2005
   },
+  "10.1029/2004gb002368": {
+   "authors": [
+    [
+     "Burdige",
+     "D. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2004gb002368",
+   "editors": [],
+   "journal": "Global Biogeochemical Cycles",
+   "page": "2004GB002368",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Burial of terrestrial organic matter in marine sediments: A re‐assessment",
+   "type": "journal-article",
+   "volume": "19",
+   "year": 2005
+  },
   "10.1029/2004gc000907": {
    "authors": [
     [
@@ -122992,6 +123011,33 @@
    "volume": "514",
    "year": 2014
   },
+  "10.1038/nature14400": {
+   "authors": [
+    [
+     "Galy",
+     "V."
+    ],
+    [
+     "Peucker-Ehrenbrink",
+     "B."
+    ],
+    [
+     "Eglinton",
+     "T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/nature14400",
+   "editors": [],
+   "journal": "Nature",
+   "page": "204",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Global carbon export from the terrestrial biosphere controlled by erosion",
+   "type": "journal-article",
+   "volume": "521",
+   "year": 2015
+  },
   "10.1038/nature14476": {
    "authors": [
     [
@@ -129409,6 +129455,249 @@
    "title": "A giant planet candidate transiting a white dwarf",
    "type": "journal-article",
    "volume": "585",
+   "year": 2020
+  },
+  "10.1038/s41586-020-2780-0": {
+   "authors": [
+    [
+     "Tian",
+     "H."
+    ],
+    [
+     "Xu",
+     "R."
+    ],
+    [
+     "Canadell",
+     "J. G."
+    ],
+    [
+     "Thompson",
+     "R. L."
+    ],
+    [
+     "Winiwarter",
+     "W."
+    ],
+    [
+     "Suntharalingam",
+     "P."
+    ],
+    [
+     "Davidson",
+     "E. A."
+    ],
+    [
+     "Ciais",
+     "P."
+    ],
+    [
+     "Jackson",
+     "R. B."
+    ],
+    [
+     "Janssens-Maenhout",
+     "G."
+    ],
+    [
+     "Prather",
+     "M. J."
+    ],
+    [
+     "Regnier",
+     "P."
+    ],
+    [
+     "Pan",
+     "N."
+    ],
+    [
+     "Pan",
+     "S."
+    ],
+    [
+     "Peters",
+     "G. P."
+    ],
+    [
+     "Shi",
+     "H."
+    ],
+    [
+     "Tubiello",
+     "F. N."
+    ],
+    [
+     "Zaehle",
+     "S."
+    ],
+    [
+     "Zhou",
+     "F."
+    ],
+    [
+     "Arneth",
+     "A."
+    ],
+    [
+     "Battaglia",
+     "G."
+    ],
+    [
+     "Berthet",
+     "S."
+    ],
+    [
+     "Bopp",
+     "L."
+    ],
+    [
+     "Bouwman",
+     "A. F."
+    ],
+    [
+     "Buitenhuis",
+     "E. T."
+    ],
+    [
+     "Chang",
+     "J."
+    ],
+    [
+     "Chipperfield",
+     "M. P."
+    ],
+    [
+     "Dangal",
+     "S. R. S."
+    ],
+    [
+     "Dlugokencky",
+     "E."
+    ],
+    [
+     "Elkins",
+     "J. W."
+    ],
+    [
+     "Eyre",
+     "B. D."
+    ],
+    [
+     "Fu",
+     "B."
+    ],
+    [
+     "Hall",
+     "B."
+    ],
+    [
+     "Ito",
+     "A."
+    ],
+    [
+     "Joos",
+     "F."
+    ],
+    [
+     "Krummel",
+     "P. B."
+    ],
+    [
+     "Landolfi",
+     "A."
+    ],
+    [
+     "Laruelle",
+     "G. G."
+    ],
+    [
+     "Lauerwald",
+     "R."
+    ],
+    [
+     "Li",
+     "W."
+    ],
+    [
+     "Lienert",
+     "S."
+    ],
+    [
+     "Maavara",
+     "T."
+    ],
+    [
+     "MacLeod",
+     "M."
+    ],
+    [
+     "Millet",
+     "D. B."
+    ],
+    [
+     "Olin",
+     "S."
+    ],
+    [
+     "Patra",
+     "P. K."
+    ],
+    [
+     "Prinn",
+     "R. G."
+    ],
+    [
+     "Raymond",
+     "P. A."
+    ],
+    [
+     "Ruiz",
+     "D. J."
+    ],
+    [
+     "van der Werf",
+     "G. R."
+    ],
+    [
+     "Vuichard",
+     "N."
+    ],
+    [
+     "Wang",
+     "J."
+    ],
+    [
+     "Weiss",
+     "R. F."
+    ],
+    [
+     "Wells",
+     "K. C."
+    ],
+    [
+     "Wilson",
+     "C."
+    ],
+    [
+     "Yang",
+     "J."
+    ],
+    [
+     "Yao",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41586-020-2780-0",
+   "editors": [],
+   "journal": "Nature",
+   "page": "248",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A comprehensive quantification of global nitrous oxide sources and sinks",
+   "type": "journal-article",
+   "volume": "586",
    "year": 2020
   },
   "10.1038/s41586-021-03869-6": {
@@ -152692,6 +152981,49 @@
    "type": "journal-article",
    "volume": "112",
    "year": 2015
+  },
+  "10.1073/pnas.1604787113": {
+   "authors": [
+    [
+     "Lenton",
+     "T. M."
+    ],
+    [
+     "Dahl",
+     "T. W."
+    ],
+    [
+     "Daines",
+     "S. J."
+    ],
+    [
+     "Mills",
+     "B. J. W."
+    ],
+    [
+     "Ozaki",
+     "K."
+    ],
+    [
+     "Saltzman",
+     "M. R."
+    ],
+    [
+     "Porada",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1073/pnas.1604787113",
+   "editors": [],
+   "journal": "PNAS",
+   "page": "9704",
+   "publisher": "National Academy of Sciences",
+   "src": "crossref",
+   "title": "Earliest land plants created modern levels of atmospheric oxygen",
+   "type": "journal-article",
+   "volume": "113",
+   "year": 2016
   },
   "10.1073/pnas.1700527114": {
    "authors": [
@@ -239833,6 +240165,29 @@
    "volume": "36",
    "year": 2008
   },
+  "10.1146/annurev.micro.61.080706.093130": {
+   "authors": [
+    [
+     "Knittel",
+     "K."
+    ],
+    [
+     "Boetius",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev.micro.61.080706.093130",
+   "editors": [],
+   "journal": "Annu. Rev. Microbiol.",
+   "page": "311",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Anaerobic Oxidation of Methane: Progress with an Unknown Process",
+   "type": "journal-article",
+   "volume": "63",
+   "year": 2009
+  },
   "10.1146/annurev.ms.04.080174.001351": {
    "authors": [
     [
@@ -285607,7 +285962,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5280,
+ "id_next": 5288,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286834,6 +287189,7 @@
   "10.1029/2003je002058": "R0809",
   "10.1029/2003je002099": "R4376",
   "10.1029/2003je002209": "R0394",
+  "10.1029/2004gb002368": "R5285",
   "10.1029/2004gc000907": "R2691",
   "10.1029/2004gl019918": "R2124",
   "10.1029/2004ja010946": "R4476",
@@ -287203,6 +287559,7 @@
   "10.1038/nature13481": "R2068",
   "10.1038/nature13632": "R3831",
   "10.1038/nature13849": "R2346",
+  "10.1038/nature14400": "R5284",
   "10.1038/nature14476": "R1773",
   "10.1038/nature15707": "R0386",
   "10.1038/nature15733": "R4647",
@@ -287300,6 +287657,7 @@
   "10.1038/s41586-020-2642-9": "R4611",
   "10.1038/s41586-020-2649-2": "R1823",
   "10.1038/s41586-020-2713-y": "R4494",
+  "10.1038/s41586-020-2780-0": "R5287",
   "10.1038/s41586-021-03869-6": "R0415",
   "10.1038/s41586-021-03912-6": "R2701",
   "10.1038/s41586-021-04095-w": "R3161",
@@ -287781,6 +288139,7 @@
   "10.1073/pnas.1316708111": "R5148",
   "10.1073/pnas.1406545111": "R2688",
   "10.1073/pnas.1500954112": "R0357",
+  "10.1073/pnas.1604787113": "R5283",
   "10.1073/pnas.1700527114": "R2007",
   "10.1073/pnas.1721296115": "R2488",
   "10.1073/pnas.1812905116": "R4880",
@@ -289861,6 +290220,7 @@
   "10.1146/annurev.earth.34.031405.125211": "R5159",
   "10.1146/annurev.earth.36.031207.124214": "R0165",
   "10.1146/annurev.earth.36.031207.124322": "R1465",
+  "10.1146/annurev.micro.61.080706.093130": "R5286",
   "10.1146/annurev.ms.04.080174.001351": "R1394",
   "10.1152/jappl.1985.58.2.564": "R2989",
   "10.1152/jappl.1994.76.3.1113": "R0021",

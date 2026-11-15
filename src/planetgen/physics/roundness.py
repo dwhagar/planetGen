@@ -81,7 +81,7 @@ ROUND_RATIO = 1.0
 MATERIALS = ("ice", "rock", "metal")
 
 GRAIN_DENSITIES_KG_M3 = {"ice": 920.0, "rock": 3000.0, "metal": 7800.0}
-"""dict: The density of each material without voids, kg/m3, for the volume shares of a mix (water ice 917, a typical silicate grain, iron). [Stand-in RN6, tier T2, tweak L0.]"""
+"""dict: The density of each material without voids, kg/m3, for the volume shares of a mix (water ice 917, a typical silicate grain, iron). [Stand-in 6.126 RN6, tier T2, tweak L0.]"""
 
 
 class RoundnessError(ValueError):
@@ -230,7 +230,7 @@ TEMPERATURE_RULES = {
     "olivine-creep-law": _olivine_creep_law,
 }
 """dict: Rules for the strength of a material that took its shape at a temperature, each `(table, the material's block of the file, default_strength_pa, temperature_k)` -> Pa. `temperature_k` of
-None is the default strength. [Stand-in RN7 for ice, tier T5, tweak L1; RN11 for rock, tier T2, tweak L0.]"""
+None is the default strength. [Stand-in 6.126 RN7 for ice, tier T5, tweak L1; RN11 for rock, tier T2, tweak L0.]"""
 
 
 def _material_strength_pa(table, name, temperature_k):
@@ -261,7 +261,7 @@ def _exp_volume(table, ice_fraction, metal_fraction, temperature_k, ice_factor=1
 
 
 MIXING_RULES = {"exp-volume": _exp_volume}
-"""dict: Rules for the strength of a mix of materials, each `(table, ice_fraction, metal_fraction, temperature_k, ice_factor)` -> Pa. The strength research adds a rule here and names it in the file. [Stand-in RN3, tier T6, tweak L3.]"""
+"""dict: Rules for the strength of a mix of materials, each `(table, ice_fraction, metal_fraction, temperature_k, ice_factor)` -> Pa. The strength research adds a rule here and names it in the file. [Stand-in 6.126 RN3, tier T6, tweak L3.]"""
 
 POROSITY_RULES = {
     "none": lambda table, strength, porosity: strength,
@@ -280,7 +280,7 @@ def _porosity_factor(table, porosity):
 
 
 POROSITY_FLOOR = 0.1
-"""float: The least `1 - phi / phi*` the `power` porosity rule uses, so a body at or past the law's solid limit keeps `0.1^1.67` (2 percent) of its strength. [Stand-in RN12, tier T9, tweak L3: the data stop at 50 percent porosity.]"""
+"""float: The least `1 - phi / phi*` the `power` porosity rule uses, so a body at or past the law's solid limit keeps `0.1^1.67` (2 percent) of its strength. [Stand-in 6.126 RN12, tier T3, tweak L1: the data stop at 50 percent porosity.]"""
 
 
 def _mohr_coulomb(table):
@@ -294,7 +294,7 @@ def _mohr_coulomb(table):
 
 
 RUBBLE_RULES = {"mohr-coulomb": _mohr_coulomb}
-"""dict: Rules for the strength of a pile of rubble, each `(table)` -> `(b, a)` for a failure stress of `b + a G rho^2 R^2` Pa. [Stand-in RN8 (friction angle, cohesion) and RN9 (hot strength).]"""
+"""dict: Rules for the strength of a pile of rubble, each `(table)` -> `(b, a)` for a failure stress of `b + a G rho^2 R^2` Pa. [Stand-in 6.126 RN8 (friction angle, cohesion) and RN9 (hot strength).]"""
 
 
 def _read_table(path=DATA_FILE):
@@ -306,19 +306,19 @@ TABLE = _read_table()
 """StrengthTable: The strengths and rules in use (`data/roundness_strengths.json`). Rows RN1 to RN7 of the stand-in registry."""
 
 SPHERICITY_FACTOR = TABLE.sphericity_factor
-"""float: The longest axis of a body counted round is at most this times its mean radius ([R2703] 10 percent bump; their Eq. 9). [Stand-in RN1, tier T1, tweak L0.]"""
+"""float: The longest axis of a body counted round is at most this times its mean radius ([R2703] 10 percent bump; their Eq. 9). [Stand-in 6.126 RN1, tier T1, tweak L0.]"""
 
 _BUMP_COEFFICIENT = stress_coefficient(SPHERICITY_FACTOR)
 """float: `K` of the table's sphericity: the stress of a bump is `K G rho^2 R^2`."""
 
 ICE_STRENGTH_PA = TABLE.strengths_pa["ice"]
-"""float: The default yield strength of ice at the scale of a body, Pa (1 MPa, the creep strength of pure ice near 158 K; the Lineweaver and Norman fit is 0.4 to 3 MPa). [Stand-in RN2, tier T2, tweak L1.]"""
+"""float: The default yield strength of ice at the scale of a body, Pa (1 MPa, the creep strength of pure ice near 158 K; the Lineweaver and Norman fit is 0.4 to 3 MPa). [Stand-in 6.126 RN2, tier T2, tweak L1.]"""
 
 ROCK_STRENGTH_PA = TABLE.strengths_pa["rock"]
-"""float: The yield strength of rock when the shape was set, Pa (16.5 MPa), from a round radius of 300 km at 2500 kg/m3. [Stand-in RN2, tier T1, tweak L0.]"""
+"""float: The yield strength of rock when the shape was set, Pa (16.5 MPa), from a round radius of 300 km at 2500 kg/m3. [Stand-in 6.126 RN2, tier T2, tweak L1.]"""
 
 METAL_STRENGTH_PA = TABLE.strengths_pa["metal"]
-"""float: The yield strength of iron and nickel metal at the scale of a body, Pa (100 MPa; range 50 to 250). [Stand-in RN4, tier T2, tweak L1.]"""
+"""float: The yield strength of iron and nickel metal at the scale of a body, Pa (100 MPa; range 50 to 250). [Stand-in 6.126 RN4, tier T2, tweak L1.]"""
 
 
 def _span(draw, low, mid, high):
@@ -355,10 +355,10 @@ def ice_strength_pa(temperature_k=None, draw=None):
 
 
 ROCK_CREEP_COLUMNS = TABLE.temperature["rock"]["columns"]
-"""list: The two flow-law columns for dry olivine dislocation creep ([R1956, R2451] re-fit), `log10_a`, `n` and `e_kj_mol` each, between which a body's quantile `draw` sits. [Stand-in RN11, tier T2, tweak L0.]"""
+"""list: The two flow-law columns for dry olivine dislocation creep ([R1956, R2451] re-fit), `log10_a`, `n` and `e_kj_mol` each, between which a body's quantile `draw` sits. [Stand-in 6.126 RN11, tier T2, tweak L0.]"""
 
 RANGES_PA = TABLE.ranges_pa
-"""dict: The range each material's strength is drawn from, `(low, high)` Pa: ice 0.4 to 3 MPa, rock 4 to 30, metal 50 to 250. The quantile `draw` of a body sits log-linearly in it with the stand-in strength at 0.5. [Stand-in RN10, tier T4, tweak L0.]"""
+"""dict: The range each material's strength is drawn from, `(low, high)` Pa: ice 0.4 to 3 MPa, rock 4 to 30, metal 50 to 250. The quantile `draw` of a body sits log-linearly in it with the stand-in strength at 0.5. [Stand-in 6.126 RN10, tier T4, tweak L0.]"""
 
 
 def _share(value, name):
