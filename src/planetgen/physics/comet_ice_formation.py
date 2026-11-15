@@ -47,14 +47,14 @@ MEDIAN_CO_OVER_H2O = comet_species.CO_OVER_H2O_MEDIAN
 """float: CO / H2O of the median comet (row k5), the warm end of the position."""
 
 COLD_CO_OVER_H2O = 0.2
-"""float: CO / H2O of Hale-Bopp (about 0.2, 'notably high CO', Biver and others 1997; recalled, not opened), the cold end of the position. [Stand-in CY1, tier T0, tweak L1.]"""
+"""float: CO / H2O of Hale-Bopp (about 0.2, 'notably high CO', Biver and others 1997; recalled, not opened), the cold end of the position. [Stand-in 6.59 CY1, tier T2, tweak L1.]"""
 
 RESIDUAL_DEX = {"N2": 0.05, "Ar": 0.4}
 """dict: The width, in decades, of what the temperature does not explain: N2 per CO of C/2016 R2 (0.06 to 0.09, a range of 0.18 dex, over the square root of 12) and the argon of 67P over its season
 (1.4 decades, over the square root of 12). [Stand-ins CY2, tier T2, tweak L1.]"""
 
 NOBLE_TIE_DEX = 0.15
-"""float: The width, in decades, of krypton and xenon about argon: the laboratory's fractionation of at most 40 percent (Ligterink and others 2024). [Stand-in CY2, tier T2, tweak L1.]"""
+"""float: The width, in decades, of krypton and xenon about argon: the laboratory's fractionation of at most 40 percent (Ligterink and others 2024). [Stand-in 6.59 CY2, tier T6, tweak L1.]"""
 
 LATENT_SPECIES = ("N2", "Ar", "Kr", "Xe")
 """tuple: The species the temperature drives."""

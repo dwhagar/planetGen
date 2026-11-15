@@ -204,13 +204,13 @@ def loglog(x, *anchors):
 
 
 REGIME_EDGE_METALLICITY = 1.0
-"""float: The metals, times the reference, of the gas the hot-giant regime edges are computed for (rows h1 to h3; the anchors they replace were computed at solar metals). [Stand-in RD7, tier T5, tweak L0.]"""
+"""float: The metals, times the reference, of the gas the hot-giant regime edges are computed for (rows h1 to h3; the anchors they replace were computed at solar metals). [Stand-in 6.40 RD7, tier T5, tweak L0.]"""
 
 REGIME_EDGE_C_TO_O = 0.55
-"""float: The carbon to oxygen ratio of the gas the hot-giant regime edges are computed for (the anchors they replace were computed at C/O 0.55). [Stand-in RD7, tier T5, tweak L0.]"""
+"""float: The carbon to oxygen ratio of the gas the hot-giant regime edges are computed for (the anchors they replace were computed at C/O 0.55). [Stand-in 6.40 RD7, tier T5, tweak L0.]"""
 
 REGIME_EDGE_WATER_SHARE = 0.9
-"""float: The share of the water left at the temperature that edges the thermally dissociated regime (a tenth destroyed; row h3). [Stand-in RD7, tier T5, tweak L0.]"""
+"""float: The share of the water left at the temperature that edges the thermally dissociated regime (a tenth destroyed; row h3). [Stand-in 6.40 RD7, tier T5, tweak L0.]"""
 
 
 @functools.lru_cache(maxsize=256)

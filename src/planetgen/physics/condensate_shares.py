@@ -36,15 +36,15 @@ from planetgen.util.checks import finite_domain
 
 ICE_CONDENSATION_K = {"H2O": 182.0, "NH3": 131.0, "CH4": 41.0}
 """dict: The temperature (K) below which each ice condenses, complete equilibrium at 10^-4 bar, Solar System composition ([R2726: Table 10]: water ice 182, ammonia hydrate 131, pure methane ice 41; the methane clathrate at 78 K takes about 9 percent of the carbon
-and is left out). [Stand-in CS1, tier T1, tweak L0.]"""
+and is left out). [Stand-in 6.35 CS1, tier T1, tweak L0.]"""
 
 TABLE_11_MASS_PERCENT = {"rock": 0.489, "H2O": 0.571, "NH3": 0.097, "CH4": 0.330}
 """dict: The mass each condensate makes, in percent of the nebula, for the Solar System composition ([R2726: Table 11]; rock is
-the silicates and oxides 0.303 plus metal and FeS 0.186). [Stand-in CS2, tier T1, tweak L0.]"""
+the silicates and oxides 0.303 plus metal and FeS 0.186). [Stand-in 6.35 CS2, tier T1, tweak L0.]"""
 
 ROCK_OXYGEN_SHARE = 0.2275
 """float: The share of the Sun's oxygen that is bound in rock before water ice condenses ([R2726: Table 11] note: 22.75 percent);
-the rest becomes water. [Stand-in CS3, tier T1, tweak L0.]"""
+the rest becomes water. [Stand-in 6.35 CS3, tier T1, tweak L0.]"""
 
 ROCK = "rock"
 ICES = tuple(ICE_CONDENSATION_K)

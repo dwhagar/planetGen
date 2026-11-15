@@ -40,61 +40,61 @@ MYR_YR = 1.0e6
 PEBBLE_FLUX_EARTH_MASSES_PER_YR = 9.5e-5
 """float: The mass flux of pebbles through a Sun-like disk at 1 Myr, Earth masses per year, for solids over gas `REFERENCE_SOLIDS_OVER_GAS`. The flux follows `(Z / 0.01)^(5/3)` and
 `(t / 1 Myr)^(-1/3)` (`PEBBLE_FLUX_Z_EXPONENT`, `PEBBLE_FLUX_AGE_EXPONENT`), and the disk's mass (`disk_mass_scale`) in the place of the paper's star-mass term, so that the disk's
-mass cancels in the enrichment ratio (design note 2.1). The form and number are [R5211: Eq. 14] (9.5e-5 Earth masses per year for beta 500 g/cm2, Z0 0.01, a Sun-like star at 10^6 yr). [Stand-in DE1, tier T1, tweak L0.]"""
+mass cancels in the enrichment ratio (design note 2.1). The form and number are [R5211: Eq. 14] (9.5e-5 Earth masses per year for beta 500 g/cm2, Z0 0.01, a Sun-like star at 10^6 yr). [Stand-in 6.242 DE1, tier T1, tweak L0.]"""
 
 PEBBLE_FLUX_Z_EXPONENT = 5.0 / 3.0
-"""float: The power of the disk's solids over gas in the pebble flux ([R5211: Eq. 14]). [Stand-in DE1, tier T1, tweak L0.]"""
+"""float: The power of the disk's solids over gas in the pebble flux ([R5211: Eq. 14]). [Stand-in 6.242 DE1, tier T1, tweak L0.]"""
 
 PEBBLE_FLUX_AGE_EXPONENT = -1.0 / 3.0
-"""float: The power of the age in the pebble flux ([R5211: Eq. 14]). [Stand-in DE1, tier T1, tweak L0.]"""
+"""float: The power of the age in the pebble flux ([R5211: Eq. 14]). [Stand-in 6.242 DE1, tier T1, tweak L0.]"""
 
 REFERENCE_SOLIDS_OVER_GAS = 0.01
-"""float: The solids over gas the flux of `PEBBLE_FLUX_EARTH_MASSES_PER_YR` is for ([R5211: Sec. 2.3]). [Stand-in DE1, tier T1, tweak L0.]"""
+"""float: The solids over gas the flux of `PEBBLE_FLUX_EARTH_MASSES_PER_YR` is for ([R5211: Sec. 2.3]). [Stand-in 6.242 DE1, tier T1, tweak L0.]"""
 
 FRONT_AU_AT_1_MYR = 122.0
 """float: The distance the dust-growth front has reached at 1 Myr around a Sun-like star, AU: `r_g = 122 AU x (t / 1 Myr)^(2/3) x (M / Msun)^(1/3)` ([R5211: Eq. 10]; the number follows from a growth
-efficiency of 0.05 (the sticking efficiency 0.5 over the ISM grain growth ratio of 10) and a solids over gas of 0.01). [Stand-in DE2, tier T1, tweak L0.]"""
+efficiency of 0.05 (the sticking efficiency 0.5 over the ISM grain growth ratio of 10) and a solids over gas of 0.01). [Stand-in 6.242 DE2, tier T1, tweak L0.]"""
 
 FRONT_AGE_EXPONENT = 2.0 / 3.0
-"""float: The power of the age in the front's distance ([R5211: Eq. 10]). [Stand-in DE2, tier T1, tweak L0.]"""
+"""float: The power of the age in the front's distance ([R5211: Eq. 10]). [Stand-in 6.242 DE2, tier T1, tweak L0.]"""
 
 FRONT_MASS_EXPONENT = 1.0 / 3.0
-"""float: The power of the star's mass in the front's distance ([R5211: Eq. 10]). [Stand-in DE2, tier T1, tweak L0.]"""
+"""float: The power of the star's mass in the front's distance ([R5211: Eq. 10]). [Stand-in 6.242 DE2, tier T1, tweak L0.]"""
 
 DISK_MASS_SOLAR = 0.05
 """float: The mass of a Sun-like star's disk at its birth, solar masses (scaled by `disk_mass_scale` for other stars). Standard disk theory; the number is chosen so the accretion rate at 1 to
-2 Myr is the observed 1e-8 solar masses per year. [Stand-in DE4, tier T6, tweak L0.]"""
+2 Myr is the observed 1e-8 solar masses per year. [Stand-in 6.242 DE4, tier T6, tweak L0.]"""
 
 VISCOUS_TIME_MYR = 0.5
-"""float: The viscous time of the disk, Myr: `Mdot_g = Mdot_0 x (1 + t / t_nu)^(-3/2)` with `Mdot_0 = Md_0 / (2 t_nu)`. [Stand-in DE4, tier T6, tweak L0.]"""
+"""float: The viscous time of the disk, Myr: `Mdot_g = Mdot_0 x (1 + t / t_nu)^(-3/2)` with `Mdot_0 = Md_0 / (2 t_nu)`. [Stand-in 6.242 DE4, tier T6, tweak L0.]"""
 
 VISCOUS_GAS_EXPONENT = -1.5
-"""float: The power of `(1 + t / t_nu)` in the gas flux (a viscosity linear in the radius). [Stand-in DE4, tier T6, tweak L0.]"""
+"""float: The power of `(1 + t / t_nu)` in the gas flux (a viscosity linear in the radius). [Stand-in 6.242 DE4, tier T6, tweak L0.]"""
 
 ALPHA = 1.0e-3
-"""float: The turbulence parameter of the disk, which sets the viscosity and so the speed of the gas (`drift_speed_au_per_myr`), hence the time it takes between two places. [Stand-in DE5, tier T6, tweak L0.]"""
+"""float: The turbulence parameter of the disk, which sets the viscosity and so the speed of the gas (`drift_speed_au_per_myr`), hence the time it takes between two places. [Stand-in 6.242 DE5, tier T5, tweak L0.]"""
 
 MEAN_MOLECULAR_WEIGHT = 2.3
-"""float: The mean mass of a gas particle of the disk (molecular hydrogen with helium), in hydrogen masses; it sets the sound speed of the viscosity. [Stand-in DE5, tier Confident Unverified, tweak L0.]"""
+"""float: The mean mass of a gas particle of the disk (molecular hydrogen with helium), in hydrogen masses; it sets the sound speed of the viscosity. [Stand-in 6.242 DE5, tier T5, tweak L0.]"""
 
 COLD_FINGER_LEAK = 0.9
 """float: The share of the vapor at a line that goes back out and freezes again just outside it; the ice there is enriched by `1 / (1 - leak)` and the net flux inward does not change
-([R5209] abstract: the local vapor is enhanced by more than an order of magnitude). Reported by `cold_finger_enrichment`; nothing reads it yet. [Stand-in DE6, tier T6, tweak L0.]"""
+([R5209] abstract: the local vapor is enhanced by more than an order of magnitude). Reported by `cold_finger_enrichment`; nothing reads it yet. [Stand-in 6.242 DE6, tier T6, tweak L0.]"""
 
 CRITICAL_CORE_EARTH = 15.0
 """float: The core mass at which a giant starts to gather gas, Earth masses (the critical core, 10 to 20), the mass the pebbles must build before the gas is gathered. My derivation to avoid a new
-draw. [Stand-in DE9, tier T6, tweak L0.]"""
+draw. [Stand-in 6.242 DE9, tier T6, tweak L0.]"""
 
 CORE_EFFICIENCY_AT_REFERENCE = 0.034
 """float: The share of the pebbles that drift past a core that it accretes, for a core of 1 Earth mass at 10 AU in pebbles of Stokes number 0.1: `f = 0.034 (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2)`
-([R5211: Eq. 33], the Hill-sphere accretion of Eq. 28; capped at 1). [Stand-in DE12, tier T1, tweak L0.]"""
+([R5211: Eq. 33], the Hill-sphere accretion of Eq. 28; capped at 1). [Stand-in 6.242 DE12, tier T1, tweak L0.]"""
 
 CORE_EFFICIENCY_AU = 10.0
-"""float: The distance the efficiency `CORE_EFFICIENCY_AT_REFERENCE` is given at, AU ([R5211: Eq. 33]). [Stand-in DE12, tier T1, tweak L0.]"""
+"""float: The distance the efficiency `CORE_EFFICIENCY_AT_REFERENCE` is given at, AU ([R5211: Eq. 33]). [Stand-in 6.242 DE12, tier T1, tweak L0.]"""
 
 CORE_SEED_EARTH = 1.0e-3
 """float: The mass of the seed core pebble accretion grows from, Earth masses ([R5211] section 3.3: a seed of 10^-3 Earth masses). Its third root is small against the critical core's, so the age hardly
-depends on it. [Stand-in DE12, tier T1, tweak L0.]"""
+depends on it. [Stand-in 6.242 DE12, tier T1, tweak L0.]"""
 
 INTEGRATION_INTERVALS = 32
 """int: The intervals of the Simpson rule that averages the ratio over a lag window (in the age to the 2/3, where the ratio is smooth)."""
@@ -158,7 +158,7 @@ def pebble_taper(age_myr, snow_line_au, mass_solar=1.0):
     """
     The share of the pebble flux left once the dust-growth front is at `front_au(age_myr)`: `exp(-front / edge)` (GEN.1514). The front reaches dust that sits in the gas disk's
     exponential outer cut-off, so the flux falls as the surface density of the gas does at the front's place; the cut-off radius is the disk's edge (`edge_au`). 1 for a young front,
-    `exp(-1)` = 0.37 when the front reaches the edge (0.2 Myr for the Sun, edge 41 AU), 0.002 by the end of the disk's life. [Stand-in DE3, tier T6, tweak L0.]
+    `exp(-1)` = 0.37 when the front reaches the edge (0.2 Myr for the Sun, edge 41 AU), 0.002 by the end of the disk's life. [Stand-in 6.242 DE3, tier T6, tweak L0.]
     """
     return math.exp(-front_au(age_myr, mass_solar) / edge_au(snow_line_au))
 
@@ -199,7 +199,7 @@ def viscosity_at_1_au_au2_per_myr(snow_line_au, mass_solar=1.0):
     """
     The viscosity of the disk's gas at 1 AU, AU^2 per Myr (GEN.1515): `nu = alpha c_s^2 / Omega` with the sound speed from the disk's temperature there (`LINES_K["H2O"]` at the snow line, falling as the
     square root of the distance, the law `place_au` uses) and the orbital frequency of the star's mass. Hotter gas (a brighter star, a farther snow line) is more viscous; a heavier star makes `Omega` larger
-    and the gas slower. With the temperature falling as `r^-1/2`, `nu` rises in proportion to `r`. [Stand-in DE5, tier Confident Unverified, tweak L0.]
+    and the gas slower. With the temperature falling as `r^-1/2`, `nu` rises in proportion to `r`. [Stand-in 6.242 DE5, tier T5, tweak L0.]
     """
     if not snow_line_au > 0.0 or not mass_solar > 0.0:
         raise ValueError("the snow line and the mass must be positive")
@@ -213,7 +213,7 @@ def viscosity_at_1_au_au2_per_myr(snow_line_au, mass_solar=1.0):
 def drift_speed_au_per_myr(snow_line_au, mass_solar=1.0):
     """
     The speed at which a steady disk carries its gas inward, AU per Myr (GEN.1515): `v = 3 nu / (2 r)` (steady accretion), the same at every distance because `nu` rises in proportion to `r`, so
-    `1.5 x` the viscosity at 1 AU over 1 AU. About 10.5 AU per Myr for the Sun (snow line 2.3 AU) at `ALPHA = 1e-3`, 8.8 for a 0.5 solar mass star (snow line 0.8 AU), 13 for 1.4 solar masses: a lag of 0.095, 0.113 and 0.077 Myr per AU (the fixed 0.05 it replaces was half the steady-disk speed's lag). [Stand-in DE5, tier Confident Unverified, tweak L0.]
+    `1.5 x` the viscosity at 1 AU over 1 AU. About 10.5 AU per Myr for the Sun (snow line 2.3 AU) at `ALPHA = 1e-3`, 8.8 for a 0.5 solar mass star (snow line 0.8 AU), 13 for 1.4 solar masses: a lag of 0.095, 0.113 and 0.077 Myr per AU (the fixed 0.05 it replaces was half the steady-disk speed's lag). [Stand-in 6.242 DE5, tier T5, tweak L0.]
     """
     return 1.5 * viscosity_at_1_au_au2_per_myr(snow_line_au, mass_solar)
 

@@ -4,7 +4,7 @@
 The Gaia DR3 stars within 25 parsecs (GEN.1534): 5,323 sources with a parallax over 40 milliarcseconds measured to better than 10 sigma, each with its position, parallax, proper motion,
 G magnitude and BP-RP colour. Gaia is complete to the faintest M dwarfs at this distance, which the HYG catalogue (`hyg_stars`: incomplete, and mixing wide pairs) is not, so it is the
 sample the spacing of stars is read from: how near a system's nearest neighbour is (`nearest_neighbour_distances_pc`). The galaxy's random placement keeps two systems apart by a share of
-their galactic Hill radii (`tuning.SECTOR_HILL_SEPARATION_SHARE`, stand-in SEP1), and this is the statistic that share is fitted to (`scripts/fit_sector_separation.py`,
+their galactic Hill radii (`tuning.SECTOR_HILL_SEPARATION_SHARE`, stand-in 6.192 SEP1), and this is the statistic that share is fitted to (`scripts/fit_sector_separation.py`,
 `tests/test_sector_separation_fit.py`). Nothing in the generator reads the data: it is a fit target and a test oracle, so its dataset is `required` False, as HYG's is.
 
 The file is the result of one query of the Gaia archive's TAP service (`QUERY`), sorted by `source_id` so that the same query returns the same bytes (Gaia DR3 does not change). The data are

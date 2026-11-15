@@ -33,11 +33,11 @@ import math
 from planetgen.physics import constants
 
 KAPPA_THERMAL_M2_KG = 1.0e-3
-"""float: The constant thermal (infrared) opacity, m2/kg (Guillot's 1e-2 cm2/g for HD 209458 b). Stand-in HGP1, tier T2, tweak L0."""
+"""float: The constant thermal (infrared) opacity, m2/kg (Guillot's 1e-2 cm2/g for HD 209458 b). Stand-in 6.288 HGP1, tier T2, tweak L0."""
 
 GAMMA_AT_2000_K = 0.6
 """float: The visible-to-thermal opacity ratio at an irradiation temperature of 2,000 K; `gamma` follows `GAMMA_AT_2000_K * sqrt(T_irr / 2000 K)` (Guillot's
-`kappa_v = 6e-3 sqrt(T_irr / 2000 K)` cm2/g over `kappa_th` = 1e-2 cm2/g). Stand-in HGP2, tier T2, tweak L0."""
+`kappa_v = 6e-3 sqrt(T_irr / 2000 K)` cm2/g over `kappa_th` = 1e-2 cm2/g). Stand-in 6.288 HGP2, tier T2, tweak L0."""
 
 HEAT_REDISTRIBUTION = 0.25
 """float: `f`, the share of the starlight spread over the planet: 1 for the substellar point, 1/2 for the dayside, 1/4 for the whole globe (Guillot's `f`; a physical definition, registry section 6.288)."""

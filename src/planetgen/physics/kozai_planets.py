@@ -32,7 +32,7 @@ from planetgen.physics import unit_registry as units
 _kg_to_msun = units.converter("kg", "Msun")
 
 SIBLING_MASS_RATIO = 1.0
-"""float: An outer sibling counts as a perturber only when it is at least this many times the planet's mass (a heavier outer body; a lighter one is a test particle's equal and quenches rather than pumps). [Stand-in KZP2, tier "educated guess from physics", tweak L1.]"""
+"""float: An outer sibling counts as a perturber only when it is at least this many times the planet's mass (a heavier outer body; a lighter one is a test particle's equal and quenches rather than pumps). [Stand-in 6.284 KZP2, tier T6, tweak L1.]"""
 
 
 @dataclass(frozen=True)

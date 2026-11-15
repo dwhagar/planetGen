@@ -26,13 +26,13 @@ Region = collections.namedtuple("Region", ("point", "mass", "libration_amplitude
 to the secondary's plane."""
 
 LIBRATION_SIGMA_DEG = trojans.NUMBERS["libration_sigma_deg"]["value"]
-"""float: The Rayleigh scale of the libration amplitude, degrees. [Stand-in TJ9, tier T4, tweak L4.]"""
+"""float: The Rayleigh scale of the libration amplitude, degrees. [Stand-in 6.121 TJ9, tier T2, tweak L2.]"""
 
 ECC_SIGMA = trojans.NUMBERS["swarm_ecc_sigma"]["value"]
-"""float: The Rayleigh scale of a region's mean eccentricity. [Stand-in TJ10, tier T4, tweak L4.]"""
+"""float: The Rayleigh scale of a region's mean eccentricity. [Stand-in 6.121 TJ10, tier T2, tweak L1.]"""
 
 INCLINATION_SIGMA_DEG = trojans.NUMBERS["swarm_inclination_sigma_deg"]["value"]
-"""float: The Rayleigh scale of a region's mean inclination, degrees. [Stand-in TJ11, tier T4, tweak L4.]"""
+"""float: The Rayleigh scale of a region's mean inclination, degrees. [Stand-in 6.121 TJ11, tier T2, tweak L1.]"""
 
 
 def truncated_rayleigh(u, sigma, limit):

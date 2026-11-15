@@ -47,7 +47,7 @@ EARTH_CORE_FRACTION = 0.325
 
 EARTH_ROCK_FEO = 0.0805
 """float: The FeO mass fraction of the Earth's bulk silicate (McDonough and Sun 1995: 8.05 percent; the [R4608] concordance has 8.1), the FeO at which
-`EARTH_CORE_SHARE` was measured. [Stand-in MO3, with `VALENCE`.]"""
+`EARTH_CORE_SHARE` was measured. [Stand-in 6.216 MO3, with `VALENCE`.]"""
 
 VALENCE = {"Ti": 0, "Cr": 2, "Mn": 2, "Ni": 2, "P": 5, "Na": 0, "K": 0}
 """dict: The valence n of the oxide each element makes, which sets how D falls as the mantle's FeO rises: D goes as FeO^(-n/2) (the exchange of a metal atom for n/2 oxygen).

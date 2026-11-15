@@ -13,14 +13,14 @@ observer's position.
 
 * `density` is the galaxy's own stellar density in units of the real local one (`galaxy.density.total_density_array`), so
   the band follows the model galaxy's disk, bulge, arms and halo; `j0` (`LOCAL_V_LUMINOSITY_DENSITY`) is the V light of
-  a unit of it, 0.044 L_V,sun per cubic parsec (stand-in SKB1).
+  a unit of it, 0.044 L_V,sun per cubic parsec (stand-in 6.174 SKB1).
 * `A_V(s)` is the dust of the smooth disk (`physics.sky_photometry.dust_av_per_pc`, VIEW.20), summed along the same ray
   (the midpoint rule, half a step into the step it dims). Galactic dust only: the dust of nebulae stays with VIEW.13.
 * **The subtraction of the resolved stars** is `f_faint(s)`: the share of the V light of a stellar population that comes
   from stars too faint to reach the limiting magnitude `m_lim` at the distance `s`, behind the dust of the ray. A star of
   absolute V magnitude `M` looks like `M + 5 log10(s / 10 pc) + A_V(s)`, so the stars that are NOT drawn are those fainter
   than `M_cut(s) = m_lim - 5 log10(s / 10 pc) - A_V(s)`, and `f_faint` is `faint_share(M_cut)` of the table
-  `FAINT_LIGHT_TABLE` (stand-in SKB2). The band therefore adds to the drawn stars without counting them twice: a brighter
+  `FAINT_LIGHT_TABLE` (stand-in 6.174 SKB2). The band therefore adds to the drawn stars without counting them twice: a brighter
   limit (a lower `m_lim`, as on a phone) draws fewer stars and leaves more light in the glow.
 * **Steps** are spaced as the square of a uniform fraction (fine near the observer, where the dust and the faint-star
   cut change fastest, and coarse far away where the density is smooth), `STEPS` of them out to `MAX_DISTANCE_PC`.
@@ -65,7 +65,7 @@ DEFAULT_LIMITING_MAGNITUDE = 7.5
 
 LOCAL_V_LUMINOSITY_DENSITY = 0.044
 """float: The V-band luminosity density (L_V,sun per cubic parsec) at a relative density of 1: sky-view.md 3.1, from the 3,081
-HYG stars within 25 pc (the literature is about 0.05). Stand-in SKB1."""
+HYG stars within 25 pc (the literature is about 0.05). Stand-in 6.174 SKB1."""
 
 SB_ZERO_POINT = -0.19
 """float: The constant of the surface brightness in mag/arcsec^2 for a flux in L_V,sun/pc^2 (sky-view.md 3.1)."""
@@ -81,7 +81,7 @@ FAINT_LIGHT_TABLE = (
 )
 """tuple: `(M_cut, share)`: the share of the V light of the stars near the Sun that comes from stars fainter than absolute
 V magnitude `M_cut`. The middle three rows are sky-view.md 3.1 (stars dimmer than 1, 10 and 100 L_sun carry 7, 35 and 81
-percent of the local V light, from HYG within 25 pc); the ends are invented (stand-in SKB2)."""
+percent of the local V light, from HYG within 25 pc); the ends are invented (stand-in 6.174 SKB2)."""
 
 MODEL_VERSION = 1
 """int: Raised when the arithmetic of the band changes, so old cached images miss."""
@@ -93,7 +93,7 @@ EQUIRECT_WIDTH, EQUIRECT_HEIGHT = 256, 128
 """int: The size of the equirectangular glow image the System View samples (the contract of `skyband.js`)."""
 
 TINT_TEMPERATURE_K = 4500.0
-"""float: The temperature of the blackbody whose colour tints the glow (stand-in GLW1): the unresolved light is mostly K and M dwarfs and the cool
+"""float: The temperature of the blackbody whose colour tints the glow (stand-in 6.174 GLW1): the unresolved light is mostly K and M dwarfs and the cool
 giants of the bulge."""
 
 

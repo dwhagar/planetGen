@@ -16,7 +16,7 @@ derives the shape from the disk instead, from the snow lines and the carbon and 
 3. **What a warm body keeps.** Above its line a molecule is not frozen but can be trapped in water ice: Oberg et al. cite [R1336] that it is hard to trap more than
    5 to 10 percent of the CO (`TRAPPED_FRACTION`); the same fraction is taken for CO2, which sublimes warmer.
 4. **Where bodies formed.** A solids surface density that goes as `1 / r` puts equal masses of planetesimals in equal intervals of `ln r`, and `zone_shares` gives the share
-   of a formation range in each of the four zones on that rule (the rule is a choice: [Stand-in CI5, tier T6, tweak L1]).
+   of a formation range in each of the four zones on that rule (the rule is a choice: [Stand-in 6.46 CI5, tier T6, tweak L1]).
 
 Tests against measurement (never inputs): 2I/Borisov had CO/H2O of 130 to 155 percent ([R0439], READ), which is the CO zone's 167 percent for a
 Sun-like carbon and oxygen to within 30 percent; the Solar System's median comet (CO2/H2O 10.9, CO/H2O 2.5 percent, `comet_population`) falls between the CO2 zone and the
@@ -37,25 +37,25 @@ from planetgen.util.checks import finite_domain
 
 ICE_LINES_K = {"H2O": 135.0, "CO2": 47.0, "CO": 20.0}
 """dict: The evaporation temperature of each ice at midplane densities ([R3322: Table 1], the adopted values; the ranges are 120-150, 42-52
-and 18-22 K). [Stand-in CI1, tier T2, tweak L0.]"""
+and 18-22 K). [Stand-in 6.46 CI1, tier T2, tweak L0.]"""
 
 DISK_T0_K = 200.0
 DISK_INDEX = 0.62
-"""float: The temperature at 1 AU and the power-law index of the average protoplanetary disk round a Sun-like star ([R0115], as Oberg et al. use them). [Stand-in CI1, tier T2, tweak L0.]"""
+"""float: The temperature at 1 AU and the power-law index of the average protoplanetary disk round a Sun-like star ([R0115], as Oberg et al. use them). [Stand-in 6.46 CI1, tier T2, tweak L0.]"""
 
 LUMINOSITY_EXPONENT = 0.25
-"""float: The disk temperature goes as the star's luminosity to this power (radiative equilibrium: T goes as L^(1/4)). [Stand-in CI2, tier T5, tweak L0.]"""
+"""float: The disk temperature goes as the star's luminosity to this power (radiative equilibrium: T goes as L^(1/4)). [Stand-in 6.46 CI2, tier T5, tweak L0.]"""
 
 SOLAR_LUMINOSITY_W = constants.SOLAR_LUMINOSITY
 """float: The luminosity the disk profile is for (the IAU nominal solar luminosity of `constants`)."""
 
 NEBULA_PER_1E4_H = {"H2O": 0.9, "CO2": 0.3, "CO": 1.5}
 """dict: The molecules of each carrier per 10^4 hydrogen atoms in the midplane of a typical disk ([R3322: Table 1]: nO of H2O 0.9, of CO2 0.6 (two atoms: 0.3 molecules), of CO 1.5; from
-[R3574]). [Stand-in CI3, tier T2, tweak L0.]"""
+[R3574]). [Stand-in 6.46 CI3, tier T2, tweak L0.]"""
 
 TRAPPED_FRACTION = 0.075
 """float: The share of the CO (and CO2) above its snow line that is trapped in water ice and so in the body ([R1336]: at most 5 to 10 percent of the CO, as Oberg et al. cite it;
-2ND-HAND). The CO2 value is the same by assumption. [Stand-in CI4, tier T2, tweak L1.]"""
+2ND-HAND). The CO2 value is the same by assumption. [Stand-in 6.46 CI4, tier T2, tweak L1.]"""
 
 ZONES = ("dry", "water", "carbon dioxide", "carbon monoxide")
 

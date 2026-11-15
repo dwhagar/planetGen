@@ -40,7 +40,7 @@ _yr_to_h = units.converter("yr", "h")
 
 BAND_COUNT = constants.BAND_COUNT
 BAND_WIDTH_DEG = 90.0 / 3.5
-"""float: The width of each band in latitude, degrees: the equator band is this wide centered on the equator and each of the three on a side is this wide. [Stand-in LB1, tier T9, tweak L0.]"""
+"""float: The width of each band in latitude, degrees: the equator band is this wide centered on the equator and each of the three on a side is this wide. [Stand-in 6.123 LB1, tier T9, tweak L0.]"""
 
 NAMES = ("north_polar", "north_middle", "north_tropic", "equator", "south_tropic", "south_middle", "south_polar")
 """tuple: The bands from the north pole to the south pole."""

@@ -528,7 +528,7 @@ def losses(architecture):
     for distance, mass in lost.small:
         # An embryo left below the planet minimum sits where the planets' resonances pump it, not only inside a chaotic zone: the 3:1 mean-motion resonance (period
         # ratio 3, semi-major axis ratio 3^(2/3)) of the outermost planet and of the innermost lies at the edge of what the system stirs, so the stretch between
-        # those edges holds the embryo in reach of the strongest scatterer (GEN.1299, stand-in SM1 in section 6.113).
+        # those edges holds the embryo in reach of the strongest scatterer (GEN.1299, stand-in 6.195 SM1 in section 6.113).
         reach = list(architecture.planets) if span and span[0] <= distance <= span[1] and mass >= _ROGUE_MIN_KG else []
         if not reach:
             free_count, free_mass = free_count + 1, free_mass + mass

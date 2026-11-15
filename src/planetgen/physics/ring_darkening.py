@@ -45,16 +45,16 @@ from planetgen.util import detmath
 from planetgen.util.checks import finite_domain
 
 CLEAN_ICE_ALBEDO = 0.9
-"""float: The reflectance of a ring of clean water-ice grains (the geometric albedo of fresh ice, 0.9 to 1 in the visible). [Stand-in RGD1, tier T6, tweak L3.]"""
+"""float: The reflectance of a ring of clean water-ice grains (the geometric albedo of fresh ice, 0.9 to 1 in the visible). [Stand-in 6.148 RGD1, tier T6, tweak L3.]"""
 DARK_ALBEDO = 0.04
-"""float: The reflectance of a ring of dark material only (Uranus's and Neptune's rings, 0.03 to 0.05, recalled, 2ND-HAND). [Stand-in RGD2, tier T4, tweak L0.]"""
+"""float: The reflectance of a ring of dark material only (Uranus's and Neptune's rings, 0.03 to 0.05, recalled, 2ND-HAND). [Stand-in 6.148 RGD2, tier T4, tweak L0.]"""
 HALF_DARKENING_SHARE = 0.04
 """float: The dark share at which the ring is half way between clean ice and dark (an intimate mixture of ice and dark grains is half as bright at a few percent dark
-material; [R0814], recalled). Tuned so that Saturn's A and B rings (1 to 10 percent dark) come out at 0.3 to 0.8 and the C ring (about 30 percent) at 0.1. [Stand-in RGD1, tier T6, tweak L3.]"""
+material; [R0814], recalled). Tuned so that Saturn's A and B rings (1 to 10 percent dark) come out at 0.3 to 0.8 and the C ring (about 30 percent) at 0.1. [Stand-in 6.148 RGD1, tier T6, tweak L3.]"""
 
 SATURN_POLLUTION_FLUX_KG_M2_S = 4.5e-17
 """float: The mass of non-icy micrometeoroids that falls on Saturn's rings per m2 and second, of order 1e-17 to 1e-16 (recalled, 2ND-HAND; the value that
-gives Saturn's rings the non-icy 0.1 to 2 percent they show within a few hundred million years). [Stand-in RGD3, tier T3, tweak L0.]"""
+gives Saturn's rings the non-icy 0.1 to 2 percent they show within a few hundred million years). [Stand-in 6.148 RGD3, tier T3, tweak L0.]"""
 REFERENCE_DISTANCE_AU = 9.58
 """float: Saturn's distance from the Sun, where `SATURN_POLLUTION_FLUX_KG_M2_S` holds."""
 REFERENCE_PLANET_MASS_KG = 5.683e26
@@ -63,9 +63,9 @@ REFERENCE_RING_RADIUS_KM = 1.0e5
 """float: A radius in Saturn's rings (the B ring is at 92 000 to 118 000 km), for the focusing of the reference flux."""
 FLUX_DISTANCE_EXPONENT = -1.3
 """float: How the interplanetary dust flux falls with distance from the star: the density of the dust falls as r^-1.3 (recalled; beyond Saturn it is
-poorly measured). [Stand-in RGD4, tier T6, tweak L0.]"""
+poorly measured). [Stand-in 6.148 RGD4, tier T6, tweak L0.]"""
 DUST_SPEED_AT_INFINITY_KMS = 5.0
-"""float: The speed of the dust before the planet's pull is added (a few km/s for the dust of the outer Solar System). [Stand-in RGD4, tier T6, tweak L0.]"""
+"""float: The speed of the dust before the planet's pull is added (a few km/s for the dust of the outer Solar System). [Stand-in 6.148 RGD4, tier T6, tweak L0.]"""
 
 _G = physical_constants.G
 _YEAR_S = physical_constants.SECONDS_PER_YEAR

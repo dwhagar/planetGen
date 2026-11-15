@@ -37,7 +37,7 @@ from planetgen.physics import condensate_shares, constants as physical_constants
 from planetgen.util.checks import finite_domain
 
 NOBLE_LOG_EPS = {"Kr": 3.12, "Xe": 2.22}
-"""dict: The Sun's photospheric log eps (H = 12) of krypton and xenon ([R0168: Table 2]; argon is in `tuning.STELLAR_SOLAR_LOG_EPS`). [Stand-in DSC1, tier T1, tweak L0.]"""
+"""dict: The Sun's photospheric log eps (H = 12) of krypton and xenon ([R0168: Table 2]; argon is in `tuning.STELLAR_SOLAR_LOG_EPS`). [Stand-in 6.213 DSC1, tier T1, tweak L0.]"""
 
 LINES_K = {
     "H2O": condensate_shares.ICE_CONDENSATION_K["H2O"],
@@ -53,22 +53,21 @@ LINES_K = {
 }
 """dict: The temperature (K) below which each ice freezes, warmest first. Water, ammonia and methane are the repo's equilibrium values at 10^-4 bar; the noble-gas
 clathrates are [R2726: Table 8] (Xe 69, Kr 53, Ar 48); CO 20 and CO2 47 are [R3322: Table 1] (CO2 42 to 52 K there, 70 K in other disks); N2 22 K is recalled
-([R3321] section 1.2 puts CH4, CO and N2 near 20 to 40 K) and H2S 80 K is recalled (ice sublimates near 50 to 90 K by the matrix). [Stand-in DSC2, tier T1 for the read
-lines and T3 for N2 and H2S, tweak L0.]"""
+([R3321] section 1.2 puts CH4, CO and N2 near 20 to 40 K) and H2S 80 K is recalled (ice sublimates near 50 to 90 K by the matrix). [Stand-in 6.213 DSC2, tier T1, tweak L0.]"""
 
 REFRACTORY_LINE_K = 500.0
-"""float: The temperature below which the refractory carbon is a grain ([R3322: Table 1] adopt more than 150 K and 500 K in the model). [Stand-in DSC3, tier T2, tweak L0.]"""
+"""float: The temperature below which the refractory carbon is a grain ([R3322: Table 1] adopt more than 150 K and 500 K in the model). [Stand-in 6.213 DSC3, tier T2, tweak L1.]"""
 
 REFRACTORY_CARBON_SHARE = 0.5
 """float: The share of the carbon that is refractory grains: about half ([R3321] section 1.2, from the interstellar medium; [R3322: Table 1] has 0.6 of 2.4 of the carbon
-they account for in the disk). [Stand-in DSC3, tier T2, tweak L1.]"""
+they account for in the disk). [Stand-in 6.213 DSC3, tier T2, tweak L1.]"""
 
 CO_PER_CO2 = 1.5 / 0.3
-"""float: The CO over the CO2 of the volatile carbon that is not methane ([R3322: Table 1], CO 1.5 and CO2 0.3 molecules per 10^4 hydrogen). [Stand-in DSC3, tier T2, tweak L0.]"""
+"""float: The CO over the CO2 of the volatile carbon that is not methane ([R3322: Table 1], CO 1.5 and CO2 0.3 molecules per 10^4 hydrogen). [Stand-in 6.213 DSC3, tier T2, tweak L1.]"""
 
 CH4_SHARE_OF_VOLATILE_CARBON = 0.34 / (0.34 + 3.1 + 4.7)
 """float: The methane share of the volatile carbon: comet 67P's CH4 over CH4 plus CO plus CO2, 0.34, 3.1 and 4.7 percent of the water ([R3835: Table 2]), 4.2 percent.
-One comet, taken for the disk's methane. [Stand-in DSC4, tier T3, tweak L1.]"""
+One comet, taken for the disk's methane. [Stand-in 6.213 DSC4, tier T3, tweak L1.]"""
 
 NITROGEN_AS_N2 = 0.6
 NITROGEN_AS_SALTS = 0.1
@@ -77,7 +76,7 @@ salts hold a minority ([R3321], citing the Rosetta result second-hand; the split
 
 SULFUR_AS_H2S = 0.3
 """float: The share of the sulfur that is H2S ice: 67P's H2S is 1.1 percent of the water ([R3835: Table 2]) against 3.5 percent for all the sulfur over the water (S 0.13 over the
-3.8 oxygen the rock leaves). The rest is troilite in the rock. [Stand-in DSC6, tier T3, tweak L2.]"""
+3.8 oxygen the rock leaves). The rest is troilite in the rock. [Stand-in 6.213 DSC6, tier T3, tweak L2.]"""
 
 RECIPE_C_OVER_O_CENTER = 0.57
 """float: The center of the core of the giant recipe's C/O row `f7` (0.57, the median of LExACoM's 69 retrieved giants, pinned by tests/test_atmosphere_recipes.py)."""
@@ -118,17 +117,17 @@ def recipe_c_over_o_median():
 
 RECIPE_C_OVER_O_MEDIAN = recipe_c_over_o_median()
 """float: The median of the drawn `f7`, 0.477: the drawn `f7` over this is the spread of a giant's C/O around its disk's value, which the disk alone (one place, one star) does not give, without
-moving the center (GEN.1363 part C, stand-in DSC7, tier T3, tweak L2; the center was 0.57 before GEN.1471)."""
+moving the center (GEN.1363 part C, stand-in 6.213 DSC7, tier T3, tweak L2; the center was 0.57 before GEN.1471)."""
 
 RECIPE_C_OVER_O_SPREAD_EXPONENT = 0.5
 """float: The power of that ratio that multiplies the disk's C/O. The recipe's spread (the history of what a giant swallowed) and the disk's own (the star's C/O, the place of formation)
-overlap, and the full ratio counted both (GEN.1471: 16 percent of the giants under 0.35 against the retrieved 17 with the half power; the full power puts 20 to 26 under it at the same median). [Stand-in DSC8, tier T6, tweak L2.]"""
+overlap, and the full ratio counted both (GEN.1471: 16 percent of the giants under 0.35 against the retrieved 17 with the half power; the full power puts 20 to 26 under it at the same median). [Stand-in 6.213 DSC8, tier T6, tweak L2.]"""
 
 ENVELOPE_METAL_SHARE = 0.06
 """float: The share of a giant's bulk heavy-element enrichment (`f5`, the planet's whole heavy-element mass over its star's, [R4352]) that its envelope carries when its C/O is set. The bulk
 metallicity is an upper limit on the atmosphere's ([R4350: Abstract]) and the water of gas giants is substellar ([R4663: Abstract]); the whole bulk enrichment, 18 times the star's for the
 median giant, is 90 percent solids whose C/O is 0.44 whatever their amount. At 0.06 (a median envelope enrichment of 1.1) the generated median is 0.57 and 16 percent of the giants sit under 0.35,
-the LExACoM figures (0.57 and 17). [Stand-in DSC9, tier T6, tweak L2.]"""
+the LExACoM figures (0.57 and 17). [Stand-in 6.213 DSC9, tier T6, tweak L2.]"""
 
 MOLAR_MASS = {"H2O": 18.015, "NH3": 17.031, "NH4": 17.031, "H2S": 34.08, "Xe": 131.29, "Kr": 83.80, "Ar": 39.948, "CO2": 44.009, "CH4": 16.043, "N2": 28.014,
               "CO": 28.010, "C": 12.011}
@@ -237,7 +236,7 @@ def condensed(temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, n
 
 
 PROVENANCE_SAMPLES = 64
-"""int: The annuli (equal in distance) `provenance_condensed` averages the frozen species over, between a giant's place and the disk's edge. [Stand-in PRV1, tier T5, tweak L0.]"""
+"""int: The annuli (equal in distance) `provenance_condensed` averages the frozen species over, between a giant's place and the disk's edge. [Stand-in 6.242 PRV1, tier T5, tweak L0.]"""
 
 
 def provenance_condensed(temperature_k, edge_temperature_k, carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):

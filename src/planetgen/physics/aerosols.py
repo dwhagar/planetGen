@@ -90,12 +90,12 @@ HAZE_THICK_CH4_CO2 = 0.2
 HAZE_ONSET_FLUX_CM2_S = 1.0e11
 """float: The methane source flux at which a haze starts to form, molecules per cm2 per s ([R0156] section 4.1: "the CH4 flux needed to initiate haze formation ranges between about 1-3x10^11
 molecules/cm2/s", and the abiotic flux of 1.3e9 "will not form a haze in our model even at a pCO2 level four orders of magnitude smaller"; GEN.1695). The low end of the range; second
-hand, not opened beyond the quoted lines. [Stand-in, tier confident unverified, tweak L0.]"""
+hand, not opened beyond the quoted lines. [Stand-in 6.33 HZ4, tier T2, tweak L0.]"""
 HAZE_FULL_FLUX_CM2_S = 3.0e11
-"""float: The methane source flux at which the haze is fully made, molecules per cm2 per s: the high end of the same range ([R0156] section 4.1). [Stand-in, tier confident unverified, tweak L0.]"""
+"""float: The methane source flux at which the haze is fully made, molecules per cm2 per s: the high end of the same range ([R0156] section 4.1). [Stand-in 6.33 HZ4, tier T2, tweak L0.]"""
 METHANE_LIFETIME_YR = 1.0e4
 """float: The photochemical lifetime of methane in an anoxic air, years ([R5250]: about 10^4 years; a biogenic source of 0.1 to 1 times today's holds 100 to 1,000 ppmv). The star's
-ultraviolet is not in it (no law of the lifetime in the star's flux was found). [Stand-in, tier confident unverified, tweak L0.]"""
+ultraviolet is not in it (no law of the lifetime in the star's flux was found). [Stand-in 6.33 HZ5, tier T2, tweak L0.]"""
 HAZE_H2_CUT = 0.1
 """float: The share of the production left in hydrogen-rich air ([R1097], about a tenth)."""
 HAZE_H2_FRACTION = 0.3
@@ -105,11 +105,10 @@ HAZE_KZZ_RANGE_M2_S = (1e2, 1e6)
 """tuple: K_zz, 1e6 to 1e10 cm2/s ([R1512]: 1e6 to 1e8; [R0027]: 1e8 to 1e10)."""
 HAZE_MONOMER_RADIUS_UM = (0.03, 0.1)
 """tuple: The radius of the monomers a haze grain is an aggregate of, micron: Titan's are about 0.05 (Huygens [R4392, R4394], second hand through the Arney
-et al. 2016 haze model, which takes 0.05 for the monomers of an Archean haze), and the lab tholin monomers are 0.03 to 0.1. [Stand-in, tier confident
-unverified, tweak L1: the span is the sourced values' spread.]"""
+et al. 2016 haze model, which takes 0.05 for the monomers of an Archean haze), and the lab tholin monomers are 0.03 to 0.1. [Stand-in 6.33 HZ1, tier T3, tweak L1: the span is the sourced values' spread.]"""
 HAZE_FRACTAL_DIMENSION = 2.0
 """float: The fractal dimension of a haze aggregate: grown by cluster-cluster coagulation they have 1.8 to 2.2 (Titan's haze aggregates, about 2: [R4392, R4394],
-both second hand). [Stand-in, tier confident unverified, tweak L1.]"""
+both second hand). [Stand-in 6.33 HZ2, tier T3, tweak L1.]"""
 HAZE_GRAIN_MAX_M = 1.0e-3
 """float: The largest aggregate `haze_grain` looks for, m (a numerical bound: a grain this size falls out of any air in a day)."""
 HAZE_DENSITY_KG_M3 = 1000.0

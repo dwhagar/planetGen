@@ -20,7 +20,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.radiation_field.companion_share | by design | the companions' light over the host's at a body, the number the geometry tests and the before-and-after census read (GEN.1445) |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.physics.disk_drift.cold_finger_enrichment | by design | the rise of the ice-to-rock ratio just outside a line when part of the vapor goes back out (design note 2.4): reported and read by the tests, not by the generator (GEN.1473) |
-| row | 6.242:DE4 | by design | the viscous gas flux constants of the water drift model; the disc mass cancels in the enrichment ratio the generator reads, so the constants are kept for the tests and the note (GEN.1473) |
 | function | planetgen.physics.eclipses.orbiting_the_star | by design | the mean share of a star's light a sibling planet inside the observer's orbit covers: read by the tests and the census, and by the effect ledger when it keeps the light eclipsed by planets (GEN.1465); only a close pair's eclipses are applied to the light (GEN.1484) |
 | function | planetgen.physics.eclipses.orbiting_the_observer | by design | the same for a moon in front of a star for its planet: read by the tests and the census, and by the effect ledger (GEN.1465); a moon of a circumbinary planet reads its planet's light without the pair's factor (GEN.1484) |
 | function | planetgen.physics.venus_spin.retrograde_possible | by design | whether a thick-air planet has a retrograde state at all (the closed-form test of the paper); the tests read it, the W2 effect reads the end state itself |
@@ -235,3 +234,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.298:IG6 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
 | row | 6.298:IG7 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
 | row | 6.298:IG8 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
+| row | 6.212:DP3 | by design | `magnetic_geometry.OFFSET_CLASS_RP`, a documentary constant: the offset class is drawn by kind (`OFFSET_KINDS`), the 0.15 radii is the limit the sheet text and the source state, and no code reads the constant (GEN.1632 found it) |
+| row | 6.296:SA2 | by design | `starlight_aloft.COVERED_BELOW_CM1`, read inside the module only in the text of the covered range, which `line_opacity.EDGES_CM1` sets; the row names the number the tables stop at (GEN.1632 found it) |
+| row | 6.6c:IR18 | by design | `greenhouse_table.FITTED_UP_TO_K`, a documentary constant: the table is no longer clamped there (GEN.1580), so the 4,000 K is the edge of the fit the row describes and nothing reads it (GEN.1632 found it) |

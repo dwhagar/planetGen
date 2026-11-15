@@ -15,12 +15,12 @@ bodies (the Moon, Mars and the Earth). This module carries the physics those thr
    rides up with the melt and is the share at the surface, where the ocean meets the gas. [Stand-ins MR3, MR4.]
 3. **What the ferric share says about the oxygen.** 4 FeO + O2 = 2 Fe2O3 puts the oxygen fugacity as the fourth power of the ratio Fe3+/Fe2+, so dIW (log10 of the fugacity above
    the iron-wuestite buffer, the scale of [R1951]) is `4 log10(Fe3+/Fe2+) + 5.62`. The 5.62 is read off the pairs of [R1951] for the Earth's ocean: Fe3+/FeT 0.034 gives
-   dIW -0.2 and 0.103 gives +1.8, the 4 log10 relation reproduces both to 0.06. The buffer's own temperature term is not in it (the surface temperature is one value). [Stand-in MR5.]
+   dIW -0.2 and 0.103 gives +1.8, the 4 log10 relation reproduces both to 0.06. The buffer's own temperature term is not in it (the surface temperature is one value). [Stand-in 6.57 MR5, tier T5, tweak L1.]
 4. **The spread.** The ferric share at the reference pressure is a range of the literature (0.034 to 0.103) and the power is a bracket (0.5 to 1.0); both are uniform, their log
-   spreads add in quadrature, and `diw_sigma` carries that as the standard deviation of the draw. [Stand-in MR6.]
+   spreads add in quadrature, and `diw_sigma` carries that as the standard deviation of the draw. [Stand-in 6.57 MR6, tier T5, tweak L0.]
 
 `later_mantle_diw` is the later upper mantle's value: the magma-ocean surface of the body (at most that of one Earth mass: nothing in the sources lets the later mantle rise
-beyond) plus an oxidation increment that grows with the mass. [Stand-in MR7.]
+beyond) plus an oxidation increment that grows with the mass. [Stand-in 6.57 MR7, tier T7, tweak L2.]
 
 Tests against measurement (never inputs, `tests/test_magma_ocean_redox.py`): the magma-ocean surface of the Moon, Mars and the Earth from [R1951] (-2.2 to -1.5, -1.4 to
 +0.2 and -1.2 to +1.8) and [R1075] (the base pressures 5, 14 and 55 GPa; the surface values IW-2, IW-0.3 and IW+2), each inside the model's one-sigma band.
@@ -37,40 +37,40 @@ from planetgen.util import detmath
 from planetgen.util.checks import finite_domain
 
 BASE_PRESSURE_1_EARTH_GPA = 55.0
-"""float: The pressure at the base of a magma ocean on a body of one Earth mass ([R1075]: 55 GPa; [R1951] puts it at 28 to 53). [Stand-in MR1, tier T7, tweak L2.]"""
+"""float: The pressure at the base of a magma ocean on a body of one Earth mass ([R1075]: 55 GPa; [R1951] puts it at 28 to 53). [Stand-in 6.57 MR1, tier T7, tweak L2.]"""
 
 BASE_PRESSURE_EXPONENT = 0.55
 """float: The base pressure goes as the mass to this power: through the three base pressures of [R1075] (5, 14 and 55 GPa at 0.0123, 0.107 and 1 Earth masses) it gives 4.9
-and 16.1 GPa at the first two. The scaling is inferred from three bodies and not from an interior model. [Stand-in MR2, tier T7, tweak L2.]"""
+and 16.1 GPa at the first two. The scaling is inferred from three bodies and not from an interior model. [Stand-in 6.57 MR2, tier T7, tweak L2.]"""
 
 CALCULATION_LIMIT_GPA = 140.0
 """float: The pressure up to which the first-principles equation of state is computed ([R1075]: up to 140 GPa); the base pressure is held here above 5.4 Earth masses.
-[Stand-in MR1, tier T7, tweak L0.]"""
+[Stand-in 6.57 MR1, tier T7, tweak L2.]"""
 
 FE3_FRACTION_AT_1_EARTH_BASE = 0.068
-"""float: Fe3+/FeT at the surface of an ocean whose base is at `BASE_PRESSURE_1_EARTH_GPA`: the middle of the 0.034 to 0.103 that [R1951] gives for the Earth. [Stand-in MR3, tier T3, tweak L1.]"""
+"""float: Fe3+/FeT at the surface of an ocean whose base is at `BASE_PRESSURE_1_EARTH_GPA`: the middle of the 0.034 to 0.103 that [R1951] gives for the Earth. [Stand-in 6.57 MR3, tier T3, tweak L1.]"""
 
 FE3_FRACTION_RANGE = (0.034, 0.103)
 """tuple: The range of `FE3_FRACTION_AT_1_EARTH_BASE` ([R1951], section 6.3), uniform: the source of the width."""
 
 FE3_PRESSURE_EXPONENT = 0.75
-"""float: Fe3+/Fe2+ goes as the base pressure to this power: the middle of 0.5 ([R1951]'s slope) and 1.0, which brackets Deng's 0.88 (a factor of two from 55 to 25 GPa). [Stand-in MR4, tier T3, tweak L1.]"""
+"""float: Fe3+/Fe2+ goes as the base pressure to this power: the middle of 0.5 ([R1951]'s slope) and 1.0, which brackets Deng's 0.88 (a factor of two from 55 to 25 GPa). [Stand-in 6.57 MR4, tier T3, tweak L1.]"""
 
 FE3_EXPONENT_BRACKET = (0.5, 1.0)
 """tuple: The bracket of `FE3_PRESSURE_EXPONENT`, uniform: the second source of the width."""
 
 DIW_PER_LOG_FE3_RATIO = 4.0
-"""float: dIW changes by four per decade of Fe3+/Fe2+ (4 FeO + O2 = 2 Fe2O3: fO2 goes as the fourth power of the ratio). [Stand-in MR5, tier T5, tweak L0.]"""
+"""float: dIW changes by four per decade of Fe3+/Fe2+ (4 FeO + O2 = 2 Fe2O3: fO2 goes as the fourth power of the ratio). [Stand-in 6.57 MR5, tier T5, tweak L1.]"""
 
 DIW_AT_UNIT_FE3_RATIO = 5.62
-"""float: dIW at Fe3+/Fe2+ = 1: read off the pairs of [R1951] for a magma-ocean surface (0.034 gives -0.2, 0.103 gives +1.8). [Stand-in MR5, tier T3, tweak L1.]"""
+"""float: dIW at Fe3+/Fe2+ = 1: read off the pairs of [R1951] for a magma-ocean surface (0.034 gives -0.2, 0.103 gives +1.8). [Stand-in 6.57 MR5, tier T5, tweak L1.]"""
 
 OXIDATION_INCREMENT = (1.2, 2.4)
 """tuple: How far the later upper mantle sits above the magma-ocean surface of its body, log10 units: 1.2 for a body of 0.1 Earth masses or less, 2.4 at one Earth mass and above, a
-straight line in the log of the mass between (the sources give a gap of 0 to 3 that grows with mass, [R1951] section 4 and [R1075]). [Stand-in MR7, tier T7, tweak L2.]"""
+straight line in the log of the mass between (the sources give a gap of 0 to 3 that grows with mass, [R1951] section 4 and [R1075]). [Stand-in 6.57 MR7, tier T7, tweak L2.]"""
 
 LATER_MANTLE_SIGMA = 1.0
-"""float: The width of the later mantle's value (the half-range of the published later-mantle values is about 1). [Stand-in MR7, tier T7, tweak L2.]"""
+"""float: The width of the later mantle's value (the half-range of the published later-mantle values is about 1). [Stand-in 6.57 MR7, tier T7, tweak L2.]"""
 
 
 @finite_domain()
