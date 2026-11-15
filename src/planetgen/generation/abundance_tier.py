@@ -27,7 +27,7 @@ A tier turns five dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`
    one in front): the part of the planets the water dial reaches that take the dry class (`dry` of `physics.delivered_water`, the water of
    a desert world) and not Earth's (`low`). It splits the water dial's one draw and makes none of its own; the rest, the larger part, take
    Earth's class. A desert world's water is drawn inside `tuning.ABUNDANCE_DESERT_WATER_RANGE`, the part of the dry class that leaves a few small
-   seas, and its small salt sea counts as a living sea for the oxygen its life makes (`desert_sea`; `biogenic_oxygen.productivity`).
+   seas, and its small sea is an ordinary salt sea, not the concentrated brine of a seep (`desert_sea`; `hydrosphere.salts_concentrated`).
 5. `quiet_share` (GEN.1721; Boss, 9:43 PM EST 2026-11-14: "tweak the volcanic activity a bit"): the share of candidates whose interior is quiet, so
    that its volcanic gases take `tuning.ABUNDANCE_QUIET_SINK_FACTOR` of the oxygen a body of the same heat loses (`quiet_interior`;
    `biogenic_oxygen.reductant_flux`). One draw per candidate, made once when the planet is first drawn.
@@ -109,7 +109,7 @@ def dry_part(body):
 
 
 def desert_sea(body):
-    """Whether `body` is a desert world a tier made (its water class was dialed to the dry one: `body._water_dialed`, set by `bulk_draw` under a tier only), whose small salt sea counts as a living sea (GEN.1721)."""
+    """Whether `body` is a desert world a tier made (its water class was dialed to the dry one: `body._water_dialed`, set by `bulk_draw` under a tier only), whose small sea is an ordinary salt sea, not a brine seep (GEN.1721; `hydrosphere.salts_concentrated`)."""
     return getattr(body, "_water_dialed", None) == "dry"
 
 

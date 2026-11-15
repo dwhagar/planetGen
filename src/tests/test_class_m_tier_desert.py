@@ -1,7 +1,7 @@
 # tests/test_class_m_tier_desert.py
 
 """
-GEN.1721, second slice: under a Class M abundance tier a desert world's small salt sea counts as a living sea for the oxygen its life makes, and a share of the candidates has a
+GEN.1721, second slice: under a Class M abundance tier a desert world's small sea is an ordinary salt sea (a living sea for the oxygen its life makes) and not a brine seep, and a share of the candidates has a
 quiet interior whose volcanic gases take a third of the oxygen. `science` changes nothing: no draw, no field on the body, the same source and sink.
 """
 
@@ -14,6 +14,7 @@ from planetgen.generation import abundance_tier
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.physics import biogenic_oxygen as bo
+from planetgen.physics import hydrosphere
 from planetgen.util import draw
 from tests.class_support import draw_planet
 
@@ -37,18 +38,25 @@ def test_a_quiet_interior_takes_a_third_of_the_oxygen_and_any_other_body_takes_w
     assert bo.reductant_flux(_world(_quiet_interior=False), AREA_M2) == plain
 
 
-def test_the_small_salt_sea_of_a_tiers_desert_world_is_a_living_sea_of_its_own_area_and_no_other_seep_is():
-    assert bo.productivity(_world(), AREA_M2) == 0.0                                    # a seep nobody dialed: as before
-    assert bo.productivity(_world(_water_dialed="low"), AREA_M2) == 0.0                 # Earth's class dialed, and a seep all the same: as before
-    desert = bo.productivity(_world(_water_dialed="dry"), AREA_M2)
+def test_the_small_sea_of_a_tiers_desert_world_is_an_ordinary_sea_and_every_other_small_sea_is_a_brine():
+    little = hydrosphere.BRINE_MAX_WATER_FRACTION / 2.0
+    assert hydrosphere.salts_concentrated(SimpleNamespace(), little)                            # so little water, nobody dialed: a brine, as before
+    assert hydrosphere.salts_concentrated(SimpleNamespace(_water_dialed="low"), little)         # Earth's class dialed, and so little all the same: as before
+    assert not hydrosphere.salts_concentrated(SimpleNamespace(_water_dialed="dry"), little)     # the desert world of a tier
+    assert not hydrosphere.salts_concentrated(SimpleNamespace(), hydrosphere.BRINE_MAX_WATER_FRACTION * 2.0)
+    assert hydrosphere.ocean_class(SimpleNamespace(), 0.0, little, 0.15) == "chloride brine"
+    assert hydrosphere.ocean_class(SimpleNamespace(_water_dialed="dry", mantle_redox=None), 0.0, little, 0.15) == "neutral"
+
+
+def test_a_small_sea_makes_its_areas_share_of_an_oceans_oxygen_and_a_seep_makes_none():
     sea = bo.productivity(_world(hydrosphere="surface ocean"), AREA_M2)
-    assert desert == sea == pytest.approx(bo.EARTH_BURIAL_MOL_YR * 0.15 / bo.EARTH_OCEAN_FRACTION, rel=0.02)
-    assert bo.productivity(_world(_water_dialed="dry", hydrosphere="dry"), AREA_M2) == 0.0          # a desert world with no sea at all makes none
-    assert bo.productivity(_world(_water_dialed="dry", ocean_fraction=0.0), AREA_M2) == 0.0
+    assert sea == pytest.approx(bo.EARTH_BURIAL_MOL_YR * 0.15 / bo.EARTH_OCEAN_FRACTION, rel=0.02)
+    assert bo.productivity(_world(), AREA_M2) == 0.0                                    # a brine seep, dialed or not, is no living sea
+    assert bo.productivity(_world(_water_dialed="dry"), AREA_M2) == 0.0
 
 
 def test_with_a_quiet_interior_a_warm_desert_sea_out_produces_its_volcanoes_and_without_one_it_does_not():
-    warm = dict(_water_dialed="dry", surface_temperature=300.0)
+    warm = dict(hydrosphere="surface ocean", surface_temperature=300.0)
     source = bo.productivity(_world(**warm), AREA_M2)
     assert bo.reductant_flux(_world(**warm), AREA_M2) < source * 1.2          # Earth's volcanoes take about what a 15 percent sea makes
     assert bo.reductant_flux(_world(_quiet_interior=True, **warm), AREA_M2) < 0.5 * source

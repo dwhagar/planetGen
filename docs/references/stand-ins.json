@@ -65909,11 +65909,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, biogenic_oxygen.productivity): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small salt sea (a brine seep) counts as a sunlit sea of its own area for the oxygen its life makes"
+              "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, hydrosphere.salts_concentrated): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small sea is taken as an ordinary salt sea (surface ocean, water activity 0.97 to 0.99), not the concentrated brine (brine seep, 0.30 to 0.65) so little water makes on any other world"
             ],
             [
               "The range it moves in",
-              "range inside the dry class (1e-6 to 2.5e-4); the sea's production 0.1 (the refuge cover of RW3) to 1 of an open sea's"
+              "range inside the dry class (1e-6 to 2.5e-4); the sea between an ordinary one and one saturated with rock salt (water activity about 0.75, where salt-loving oxygen-making algae still live)"
             ],
             [
               "Where it holds",
@@ -65925,11 +65925,11 @@
             ],
             [
               "What replaces it",
-              "land plants in the oxygen law (GEN.1729) and a measured production of hypersaline seas"
+              "land plants in the oxygen law (GEN.1729) and a salt balance for small seas (salt supplied by weathering against the water that holds it)"
             ],
             [
               "Evidence",
-              "needed output: Boss, card \"Choose how desert worlds get breathable air\", 9:49 PM EST 2026-11-14 (both, small seas first); on 400 Sun-like systems the water of 5 to 20 percent cover lies at 3e-6 to 5e-5 of the mass and every such sea is a brine seep with no oxygen source (reports/class-m-tiers-build/meter-gen1721-dry-part-2026-11-14.md)"
+              "needed output: Boss, card \"Choose how desert worlds get breathable air\", 9:49 PM EST 2026-11-14 (both, small seas first); on 400 Sun-like systems the water of 5 to 20 percent cover lies at 3e-6 to 5e-5 of the mass, every such sea is a brine seep with no oxygen source (reports/class-m-tiers-build/meter-gen1721-dry-part-2026-11-14.md), and with the brine left as it is 31 of 44 desert worlds hold no life at all (water activity under 0.6; reports/class-m-tiers-build/meter-gen1721-slice2-prototype-2026-11-14.md)"
             ]
           ],
           "id": "AT7",
@@ -65940,7 +65940,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, biogenic_oxygen.productivity): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small salt sea (a brine seep) counts as a sunlit sea of its own area for the oxygen its life makes"
+          "what": "tuning.ABUNDANCE_DESERT_WATER_RANGE (4e-6 to 3e-5 of the mass) and the desert sea rule (abundance_tier.desert_sea, hydrosphere.salts_concentrated): a desert world a tier made draws its water in the part of the dry class that leaves a few small seas, and its small sea is taken as an ordinary salt sea (surface ocean, water activity 0.97 to 0.99), not the concentrated brine (brine seep, 0.30 to 0.65) so little water makes on any other world"
         }
       ],
       "slug": "6-289-stand-ins-of-the-class-m-abundance-tiers-gen-1704",
