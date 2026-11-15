@@ -41,6 +41,7 @@ from dataclasses import dataclass, field
 from planetgen.galaxy.version_key import version_key as current_version_key
 from planetgen.generation import object_timing
 from planetgen.util import log
+from planetgen.util.format import format_bytes, format_duration_seconds
 
 MIN_DENSITY = 0.01
 """float: The bottom edge of bucket 0; anything sparser counts as 0."""
@@ -515,7 +516,7 @@ def database_disk(galaxy_conn, mysql_host, database=None):
         try:
             usage = shutil.disk_usage(datadir)
             disk = DiskSpace(datadir, usage.total, usage.free, mount=_mount_point(datadir))
-            log.debug(f"Database disk: {disk.where()}, {usage.free} of {usage.total} bytes free.")
+            log.debug(f"Database disk: {disk.where()}, {format_bytes(usage.free)} of {format_bytes(usage.total)} free.")
             return disk
         except OSError as exc:
             log.debug(f"Database disk: can't read {datadir} ({exc}).")
@@ -591,9 +592,9 @@ def time_text(seconds, measured=True):
     """A time worked out from the server's recorded speed as one figure, or, from the default speed (PERF.184), as the
     range it lies within with the words "not timed yet" (PERF.199: never "a guess")."""
     if measured or seconds is None:
-        return format_duration(seconds)
+        return format_duration_seconds(seconds)
     low, high = seconds * UNMEASURED_LOW_FACTOR, seconds * UNMEASURED_HIGH_FACTOR
-    return f"{format_duration(low)} to {format_duration(high)} (not timed yet on this server)"
+    return f"{format_duration_seconds(low)} to {format_duration_seconds(high)} (not timed yet on this server)"
 
 
 UNMEASURED_LOW_FACTOR = 0.4
@@ -722,35 +723,6 @@ def check_disk(result, disk):
             f"{format_bytes(result.bytes + MIN_FREE_BYTES - disk.free_bytes)} more free space, or fewer sectors."
         )
     return result.refusal
-
-
-def format_bytes(count):
-    """`"1.4 GB"`, `"820 MB"`, `"12 KB"` (powers of 1000)."""
-    count = float(count or 0)
-    if not math.isfinite(count):
-        return "more than any disk holds"
-    for unit, scale in (("TB", 1e12), ("GB", 1e9), ("MB", 1e6), ("KB", 1e3)):
-        if count >= scale:
-            value = count / scale
-            return f"{value:.1f} {unit}" if value < 10 else f"{value:,.0f} {unit}"
-    return f"{int(count)} bytes"
-
-
-def format_duration(seconds):
-    """`"3 days 4 h"`, `"2 h 05 m"`, `"4 m 10 s"`, `"12 s"`."""
-    if seconds is not None and not math.isfinite(seconds):
-        return "longer than anyone will wait"
-    seconds = max(int(round(seconds or 0)), 0)
-    days, rest = divmod(seconds, 86400)
-    hours, rest = divmod(rest, 3600)
-    minutes, secs = divmod(rest, 60)
-    if days:
-        return f"{days} day{'s' if days != 1 else ''} {hours} h"
-    if hours:
-        return f"{hours} h {minutes:02d} m"
-    if minutes:
-        return f"{minutes} m {secs:02d} s"
-    return f"{secs} s"
 
 
 # ---------------------------------------------------------------------

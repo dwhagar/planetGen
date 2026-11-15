@@ -24,7 +24,7 @@
     {{ csrf_field() }}
     <input type="hidden" name="kind" value="{{ image.kind }}">
     <div class="search-field">
-      <label for="file-{{ image.kind }}">New file ({{ image.formats | map('upper') | join(' or ') }}, up to {{ data.max_bytes // 1024 }} KB)</label>
+      <label for="file-{{ image.kind }}">New file ({{ image.formats | map('upper') | join(' or ') }}, up to {{ bytes_text(data.max_bytes) }})</label>
       <input type="file" id="file-{{ image.kind }}" name="file" accept="{% for f in image.formats %}.{{ f }}{% if not loop.last %},{% endif %}{% endfor %}" required>
     </div>
     <button type="submit" class="btn">Upload</button>

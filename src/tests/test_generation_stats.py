@@ -18,9 +18,9 @@ from planetgen.generation import run_common
 from planetgen.generation import run_galaxy
 from planetgen.db import store
 from planetgen.generation import stats as generationStats
+from planetgen.util.format import format_bytes, format_duration_seconds
 from planetgen.generation.stats import (
-    Bucket, DiskSpace, GenerationStats, bucket_bounds, bucket_index, check_disk, estimate, format_bytes,
-    format_duration,
+    Bucket, DiskSpace, GenerationStats, bucket_bounds, bucket_index, check_disk, estimate,
 )
 from tests import first_fill
 from tests.test_galaxy_gen import _all_sectors, _charted_sectors, _mysql_argv, _plan_wide_galaxy, _run_cli
@@ -136,8 +136,8 @@ def test_more_than_a_quarter_of_the_disk_is_refused():
 def test_leaving_less_than_5_gb_free_is_refused():
     result = _sized(2 * GB)
     refusal = check_disk(result, DiskSpace("/var/lib/mysql", 100 * GB, 6 * GB))
-    assert refusal.startswith("Refused") and "5.0 GB" in refusal
-    assert "1.0 GB more free space" in refusal
+    assert refusal.startswith("Refused") and "5 GB" in refusal
+    assert "1 GB more free space" in refusal
 
 
 def test_an_unmeasurable_disk_refuses_nothing():
@@ -146,17 +146,18 @@ def test_an_unmeasurable_disk_refuses_nothing():
 
 
 @pytest.mark.parametrize("count, text", [
-    (0, "0 bytes"), (999, "999 bytes"), (1500, "1.5 KB"), (12_000_000, "12 MB"), (2.5e9, "2.5 GB"), (3e12, "3.0 TB"),
+    (0, "0 B"), (999, "999 B"), (1500, "1.5 kB"), (12_000_000, "12 MB"), (2.5e9, "2.5 GB"), (3e12, "3 TB"),
 ])
-def test_format_bytes(count, text):
+def test_the_size_estimates_read_on_the_units_codes_bytes_ladder(count, text):
+    """UX.318: the disk-space messages use `format_bytes` from the units code (the information ladder), not a formatter of their own."""
     assert format_bytes(count) == text
 
 
 @pytest.mark.parametrize("seconds, text", [
-    (0, "0 s"), (12, "12 s"), (250, "4 m 10 s"), (7500, "2 h 05 m"), (90000, "1 day 1 h"), (3 * 86400, "3 days 0 h"),
+    (0, "0 s"), (12, "12 s"), (250, "4.17 minutes"), (7500, "2.08 hours"), (90000, "1.04 days"), (3 * 86400, "3 days"),
 ])
-def test_format_duration(seconds, text):
-    assert format_duration(seconds) == text
+def test_the_time_estimates_read_on_the_units_codes_time_ladder(seconds, text):
+    assert format_duration_seconds(seconds) == text
 
 
 # ---------------------------------------------------------------------------
@@ -316,7 +317,7 @@ def test_a_run_the_disk_cant_hold_is_refused_before_anything_is_written_under_st
         _run_cli(FIRST_THREE + ["--yes", "--strict"] + _mysql_argv(mysql_config))
     assert exit_info.value.code == 1
     assert _all_sectors(mysql_config) == []
-    assert "at least 5.0 GB must stay free" in capsys.readouterr().out
+    assert "at least 5 GB must stay free" in capsys.readouterr().out
 
 
 def test_a_run_the_disk_cant_hold_warns_and_goes_ahead(mysql_config, monkeypatch, capsys):
@@ -327,7 +328,7 @@ def test_a_run_the_disk_cant_hold_warns_and_goes_ahead(mysql_config, monkeypatch
     _run_cli(FIRST_THREE + ["--yes"] + _mysql_argv(mysql_config))
     assert len(_charted_sectors(mysql_config)) == 3
     out = capsys.readouterr().out
-    assert "WARNING:" in out and "at least 5.0 GB must stay free" in out
+    assert "WARNING:" in out and "at least 5 GB must stay free" in out
 
 
 def test_estimate_only_reports_a_refusal(mysql_config, monkeypatch, capsys):
@@ -399,8 +400,7 @@ def test_absurd_densities_stay_finite():
     result = generationStats.estimate([(float("inf"), float("inf"))], stats, "galaxy")
     assert result.systems == generationStats.MAX_SYSTEMS_PER_SECTOR
     assert math.isfinite(result.seconds) and result.bytes > 0
-    assert generationStats.format_bytes(float("inf")) == "more than any disk holds"
-    assert generationStats.format_duration(float("inf")) == "longer than anyone will wait"
+    assert format_bytes(float("inf")) and format_duration_seconds(float("inf"))  # never raise on an infinite estimate
 
 
 def test_a_sector_that_made_nothing_is_not_recorded(monkeypatch):

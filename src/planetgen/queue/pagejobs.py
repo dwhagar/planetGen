@@ -47,6 +47,7 @@ import redis
 from planetgen import tuning
 from planetgen.queue import api_jobs, redisclient
 from planetgen.util import log
+from planetgen.util.format import format_bytes, format_duration_seconds
 
 SOCKET_SECONDS = 0.5
 """float: How long one Redis call may take before it counts as unreachable."""
@@ -358,7 +359,7 @@ def build_answer(db, target, job_id, config=None):
         with app.test_request_context("/"):
             size = len(apiclient.fetch_target(target))
         seconds = time.monotonic() - started
-        log.debug(f"Slow page job {job_id}: {target[:200]}: {size} bytes in {seconds:.1f} s.")
+        log.debug(f"Slow page job {job_id}: {target[:200]}: {format_bytes(size)} in {format_duration_seconds(seconds)}.")
         # A cancel that came while the query ran does not undo it: the answer is stored and correct.
         return {"canceled": True, "seconds": seconds} if _cancel_asked(job_id) else {"seconds": seconds, "bytes": size}
     except Exception as exc:
