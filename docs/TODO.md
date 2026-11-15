@@ -13053,6 +13053,7 @@ clears each one.
   Boss, 8:39 PM EST on 2026-11-14 (Class M tiers thread): "With the addition that...  For science we're tweaking the minimal amount that is a reasonable, educated, guess for how life could really evolve and how a planet could really do it, the idea is that this is filling that knowledge gap that we don't know how Earth formed". So on Science the rule goes only as far as real oxygenic life is known to go (sourced limits of temperature, water activity and light), registered as an educated guess from physics, not from needed output; anything past those limits is preset-only (GEN.1721).
   Lane 21 (8:40 PM EST): the gate cannot change alone: in physics/biogenic_oxygen.py the source S is 0 unless the hydrosphere is in LIVING_HYDROSPHERES and otherwise scales with the ocean share, and the store B and GEN.1707's plateau read the same S. So the same change adds a refuge term in S (production per lit area of liquid water, sourced, from GEN.1722's research). One item, one epoch. The Class M tiers thread runs the before and after Science census on Lane 21's branch.
   GEN.1722 research done (Lane 03, 8:55 PM EST, /mnt/project-files/reports/life-refuges-research-gen1722-2026-11-14.md): presence rule well supported: liquid water at the lit surface for 75 h a year or more, 252 to 346 K local, light floor 0.04 umol photons m-2 s-1; registry rows RW1 to RW3 proposed (add them in this PR). Production per lit area has no direct source: built from turnover and cover, educated guess at tweak L2. Refuge oxygen is small beside Earth's reductant flux, so it only tips worlds whose ocean source is just under it; it will not fix the dry class H census (19 of 19 fail oxygen).
+  Boss, 9:17 PM EST on 2026-11-14, after the GEN.1724 report: "Implment it, make it happen" (GEN.1724, /mnt/project-files/reports/life-adaptations-climate-2026-11-14.md): fold the report's recommendations into this item: lit water under thin ice counts as surface water at reduced light, the refuge limits from the report, and deep-root groundwater access. The light through ice and snow uses GEN.1726 when it lands; until then a registered stand-in.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 04 (holds the oxygen law and GEN.1722; the Class M tiers thread measures). Prerequisites: none. Related: GEN.1721, GEN.1722, GEN.1707, GEN.1699, GEN.1720.
   Filed by the TODO thread.
 
@@ -13068,7 +13069,18 @@ clears each one.
 
 - [ ] **GEN.1725 A data table of adaptations for all life types (cold, heat, dry, low light and ice-cover traits) extending the GEN.876 life traits, widening the GEN.1723 refuge gate where sourced; not built until Boss says**
   From GEN.1724 (research thread, 9:13 PM EST on 2026-11-14): extends docs/design/habitability/adaptation-traits.md. Design and build wait for Boss's word. Stand-ins the report proposes are registered in GEN.725 by this item's PR (no separate registry item).
-  Version 8.1. Owner (TODO, 2026-11-14): unassigned until Boss says (proposed: Lane 04, after GEN.1723). Prerequisites: GEN.1724, GEN.1723. Related: GEN.876, GEN.725.
+  Boss, 9:17 PM EST on 2026-11-14, after the GEN.1724 report: "Implment it, make it happen". Released for build, second priority behind the queue rework. Build the table data and traits now; the part that widens the class 1 gate lands on top of GEN.1723 (same file, physics/data/life_classes.json), after it merges. Report /mnt/project-files/reports/life-adaptations-climate-2026-11-14.md.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 03 (released by Boss 9:17 PM EST; gate widening after GEN.1723 merges). Prerequisites: GEN.1724, GEN.1723. Related: GEN.876, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1726 A sourced law for light through ice and snow (transmission by thickness, grain and impurity) for the refuge gate and lit water under thin ice**
+  From GEN.1724 (/mnt/project-files/reports/life-adaptations-climate-2026-11-14.md), released by Boss 9:17 PM EST on 2026-11-14 ("Implment it, make it happen"). Do: research and register the law (sources per the source rules), then build it as a function GEN.1723 and GEN.1725 read.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: none. Related: GEN.1723, GEN.1725, GEN.1724.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1727 Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit**
+  From GEN.1724 (/mnt/project-files/reports/life-adaptations-climate-2026-11-14.md): the figure is quoted second-hand. Do: read it from the paper or a verified second-hand citation (reports/secondhand-citations-2026-10-24.md if the paper is out of reach) and correct the report and the registry row.
+  Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1724, GEN.1723.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
