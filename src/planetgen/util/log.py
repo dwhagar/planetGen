@@ -153,6 +153,8 @@ defaults to the running script's file name."""
 
 _debug_log_handler = None
 _relay_handler = None
+_capture_handlers = []
+"""list: The handlers of the `captured` blocks that are open (OPS.223); each keeps the debug detail on while it is."""
 _console_debug = False
 _tracing = False
 _root_stderr_handler = None
@@ -1090,7 +1092,7 @@ def untraced():
 def _sync_tracing():
     """Starts tracing random draws while anything records debug detail, and stops when nothing does."""
     global _tracing
-    _tracing = _debug_log_handler is not None or _console_debug or _relay_handler is not None
+    _tracing = _debug_log_handler is not None or _console_debug or _relay_handler is not None or bool(_capture_handlers)
     _trace_random(_tracing)
     _trace_branches(_tracing and area_enabled("branch"))
     if _tracing:
@@ -1468,6 +1470,52 @@ def relayed(conn, key, areas=""):
         _relay_handler = before[3]
         _areas, _areas_spec = before[0], before[1]
         _logger.setLevel(before[2])
+        _sync_tracing()
+
+
+class _CaptureFilter(logging.Filter):
+    """The area filter of a `captured` file: its own, so what the run asked of the others (`--debug-areas`) does not narrow it. Every debug area but `branch` passes."""
+
+    def filter(self, record):
+        area = getattr(record, "area", None)
+        if area is None:
+            area = record.area = _area_of(record)
+        return record.levelno != logging.DEBUG or area in DEFAULT_AREAS
+
+
+_capture_filter = _CaptureFilter()
+
+
+@contextmanager
+def captured(path, rotate=None, header=None):
+    """
+    Everything this process logs at DEBUG, in every area but `branch`, goes to the file `path` while the block runs, whatever the process's own debug settings are (OPS.223, the
+    debug log of a restarted unit): in the debug form (`_DEBUG_LOG_FORMAT`), with `header` (a text, any number of lines) first. `rotate`, `(bytes, copies)`, bounds the file. A file that
+    cannot be opened is said in a warning and the block runs without it. Yields the path, or `None` when there is no file.
+    """
+    try:
+        handler = file_handler(path, "debug", level=logging.DEBUG, create_mode=0o660, rotate=rotate)
+    except (OSError, TypeError, ValueError) as exc:
+        warning(f"Cannot write the debug file {path} ({exc}); the work goes on without it.")
+        yield None
+        return
+    handler.addFilter(_origin_filter)
+    handler.addFilter(_capture_filter)
+    if header and handler.stream is not None:
+        handler.stream.write(header.rstrip("\n") + "\n")
+        handler.flush()
+    level = _logger.level
+    _capture_handlers.append(handler)
+    _logger.addHandler(handler)
+    _logger.setLevel(logging.DEBUG)
+    _sync_tracing()
+    try:
+        yield path
+    finally:
+        _logger.removeHandler(handler)
+        handler.close()
+        _capture_handlers.remove(handler)
+        _logger.setLevel(level)
         _sync_tracing()
 
 

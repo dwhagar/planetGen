@@ -170,6 +170,7 @@ class Stuck:
         reason = f"unit {unit} is {verdict.state}: {verdict.reason}"
         stack = self._dump(raw) if verdict.state != "dead" or alive(raw.get("pid"), raw.get("host")) else "(no stack: the process is gone)"
         self._stop_quietly(unit)
+        self._end_attempt(unit, reason, stack)
         if attempts >= 1:
             self._fail(unit, reason, record.get("dump", ""), stack, now)
             return
@@ -178,6 +179,17 @@ class Stuck:
         runrecord.log(self.conn, self.run_id, f"{reason}; its stack is below, it is being stopped and will be queued again once\n{stack}", "warning", "unit-stuck",
                       stage=self.stage, unit=unit)
         self._to_error_log(f"run {self.run_id} stage {self.stage}: {reason}; stopped, to be queued again once\n{stack}", unit)
+
+    def _end_attempt(self, unit, reason, stack):
+        """OPS.223: the stopped attempt's row in the ledger ends `stuck`, with why and the stack the horse wrote (kept in a file the row names). A horse that is stopped cannot write its own end."""
+        from planetgen.queue import attempts as ledger_attempts, units
+        try:
+            job = self._job(unit)
+            if job is not None:
+                ledger_attempts.close_lost(self.conn, self.run_id, units.row_of(job), "stuck", error_kind="stuck", error_text=reason, stack_text=stack)
+        except Exception as exc:  # noqa: BLE001 -- the ledger's history never stops the follower
+            from planetgen.util import log
+            log.swallowed("queue/unitstuck", "_end_attempt", exc)
 
     def _follow_stop(self, unit, record, now):
         job = self._job(unit)

@@ -315,3 +315,43 @@ def test_a_subcommand_takes_debug_after_its_name(monkeypatch):
     assert parser.parse_args(["take", "--debug"]).debug is True
     assert parser.parse_args(["take"]).debug is False
     assert backup.main is not None
+
+
+# --- OPS.223: `captured`, the debug file of a restarted unit ----------------------------------------------------------------------------------------
+
+
+def test_captured_writes_every_debug_area_to_its_file_while_the_block_runs_and_nothing_after(tmp_path):
+    from planetgen.util import log
+
+    path = tmp_path / "attempt.log"
+    log.debug("before the block", area="queue")
+    with log.captured(str(path), header="=== a header\nsecond line") as written:
+        assert written == str(path) and log.debug_log_active()
+        log.debug("a decision", area="decision")
+        log.trace("a statement", area="sql")
+        log.trace("a branch", area="branch")
+        log.normal("an ordinary line")
+    log.debug("after the block", area="queue")
+    text = path.read_text()
+    assert text.startswith("=== a header\nsecond line\n")
+    assert "a decision" in text and "a statement" in text and "an ordinary line" in text
+    assert "a branch" not in text, "the branch area has to be asked for"
+    assert "before the block" not in text and "after the block" not in text
+    assert not log.debug_log_active() or log._console_debug or log._debug_log_handler is not None, "tracing is back to what it was"
+
+
+def test_captured_is_bounded_by_its_rotation(tmp_path):
+    from planetgen.util import log
+
+    path = tmp_path / "bounded.log"
+    with log.captured(str(path), rotate=(2000, 1)):
+        for number in range(200):
+            log.debug(f"line {number} " + "x" * 80, area="queue")
+    assert path.stat().st_size <= 2200 and (tmp_path / "bounded.log.1").exists() and not (tmp_path / "bounded.log.2").exists()
+
+
+def test_captured_with_a_file_that_cannot_be_opened_runs_the_block_without_it(tmp_path):
+    from planetgen.util import log
+
+    with log.captured(str(tmp_path / "missing-folder" / "x.log")) as written:
+        assert written is None
