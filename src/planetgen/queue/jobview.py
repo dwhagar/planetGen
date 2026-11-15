@@ -100,7 +100,12 @@ def _needs_text(control, run, stage, needs):
     """What a waiting job's `needs` still lack, in words, or `None` when everything it needs is done."""
     lacking = []
     for need in needs or []:
-        if need == "units":
+        if str(need).startswith(planrows.AFTER):
+            before = str(need)[len(planrows.AFTER):]
+            row = control.execute("SELECT state FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, before, planrows.RELEASE)).fetchone()
+            if row is None or row["state"] != "done":
+                lacking.append(f"stage `{before}` to end")
+        elif need == "units":
             left = control.execute("SELECT COUNT(*) AS n FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key <> '' AND state <> 'done'", (run, stage)).fetchone()["n"]
             if left:
                 total = control.execute("SELECT COUNT(*) AS n FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key <> ''", (run, stage)).fetchone()["n"]
