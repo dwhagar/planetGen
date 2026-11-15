@@ -168,7 +168,7 @@ def draw_inclination_deg(origin):
 # ---------------------------------------------------------------------------------------------------------------------
 # The disk system
 
-JUPITER_MASS_KG = 1.89813e27
+JUPITER_MASS_KG = constants.JUPITER_MASS_TO_KG
 JUPITER_RADIUS_KM = 71492.0
 DISK_LIFETIME_MYR = (1.0, 10.0)
 """tuple: The disk lifetime, log-uniform (Sasaki used 5 Myr as the reference)."""

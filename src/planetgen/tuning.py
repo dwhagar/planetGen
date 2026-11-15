@@ -3065,8 +3065,8 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 ROGUE_PLANET_MASS_BIN_EDGES_EARTH = {
     "terrestrial": (0.1, 2.0),
     "sub-neptune": (2.0, 20.0),
-    "saturn": (20.0, 317.8),
-    "jupiter": (317.8, _boundaries.jupiter("deuterium_burning_limit") * 317.8),
+    "saturn": (20.0, _physical_constants.JUPITER_MASS_EARTH),
+    "jupiter": (_physical_constants.JUPITER_MASS_EARTH, _boundaries.jupiter("deuterium_burning_limit") * _physical_constants.JUPITER_MASS_EARTH),
 }
 """dict: bin name -> `(min_mass_earth, max_mass_earth)`, the classes of a rogue planet's mass."""
 
