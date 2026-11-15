@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4211] - 2026-11-15
+
+**Headline:** A star system with hundreds of bodies no longer runs out of recursion when its planets are given life.
+
+### Fixed
+
+- GEN.1734: the trial copy of a planet that the life pass makes (`life._trial_copy`) deep-copied the moons the planet was born with (`_born_moons`), and each body holds the siblings of its host, so one copy walked every body of the system in a single chain: a planetary nebula's system of a few hundred bodies raised `RecursionError` (`test_census_component_wholesphere` on main). A list, set or dict that holds bodies is now shared with the copy, like `moons` and the star already were; one with no body in it is still copied. No generated value changes.
+
+## [8.0.4210] - 2026-11-15
+
+**Headline:** The light-through-ice module spells "center" the American way again, which clears the spelling test on main.
+
+### Fixed
+- `physics/ice_light.py` (GEN.1726): "centre" in the comment of `ALBEDO_BARE` is "center"; `test_american_spelling::test_no_british_word_is_left_in_the_tree` passes.
+
+## [8.0.4209] - 2026-11-15
+
+**Headline:** A belt that is copied or sent to another process before its members were read now carries them.
+
+### Changed
+- GEN.1610 (bug): a belt draws its members on first use around the star it was built for, and that star is held apart from the belt in a weak map (`belt._STARS`) that a copy or a pickle does not carry, so a copied belt whose members had never been read returned none. `AsteroidBelt.__getstate__` draws the members first. No stored value changes: a belt that is stored has had its members drawn. `tests/test_belt_copy.py` pins `copy.copy`, `copy.deepcopy` and a pickle round trip (red before, green after).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4208] - 2026-11-15
+
+**Headline:** A galaxy stage of sectors now says what each sector cost on a line of its own: its address, systems, planets, time and the memory the worker held.
+
+### Changed
+- **One timing line for each sector of a stage of 2,000 sectors or fewer (PERF.270).** The starting sector and the neighborhood stage of a New galaxy run had no per-sector line in the run log (each sector's own line was in the debug log), so when Stage 5 took 21,919 s for 109 sectors there was nothing to say which sectors took the time. The line reads `Sector [designation] shell S band B wedge W: 37 systems, 452 planets in 14.2 minutes, the worker at 2,181 MB.`, and the stage's opening line says so. A stage of more than 2,000 sectors keeps the line in the debug log, with the ticker carrying its progress. No generator output changes.
+
+generation-output: unchanged
+
+## [8.0.4207] - 2026-11-15
+
+**Headline:** The queue's quiet-stage line and the splitter's reason write their times and memory through the shared formatter.
+
+### Fixed
+- The "no unit has finished for ..." line and the splitter's reason line spell durations and memory with `format_duration_seconds` and `format_megabytes` (UX.318), so the hand-formatted-units test passes again. The run-record test and the stall-words test expect the same words (1.49 GB, 35 minutes, 1.17 hours).
+
+## [8.0.4206] - 2026-11-15
+
+**Headline:** The habitability browser tests have a seeded system that holds rated planets and moons again.
+
+### Fixed
+- TEST.754: `HABITABLE_SEED` in `tests/habitability_site.py` is 59 (it was 64). After the recent trains seed 64's system held three rated moons and no rated planet, so `test_the_lists_draw_each_bodys_stored_rating_as_the_symbol_of_its_tier[planet-planets]` failed ("the seeded system has no habitable planet"). Seed 59 holds five rated planets and nine rated moons; the 48 tests of the habitability, galaxy outlines, score filter and map icon browser files pass.
+
 ## [8.0.4205] - 2026-11-15
 
 **Headline:** The engine tables are named in the column unit and prose-column lists.

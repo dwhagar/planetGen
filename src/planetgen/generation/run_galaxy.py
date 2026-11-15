@@ -26,7 +26,7 @@ from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, sky_tier_ledger, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
-from planetgen.queue import commands, engine, wrapper
+from planetgen.queue import commands, engine, units as queueUnits, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.util.ticker import Ticker
@@ -1801,7 +1801,7 @@ def generate_sectors_do(unit_args, piece, ctx):
     same at any worker count.
 
     Returns:
-        dict: What the sector reported: `address`, `sector_id`, `name`, `systems`, `stars`, `density`, `phenomena`, `summary` (`sector_generation_summary_lines`), `seconds` and `suffix`.
+        dict: What the sector reported: `address`, `sector_id`, `name`, `systems`, `stars`, `planets`, `density`, `phenomena`, `summary` (`sector_generation_summary_lines`), `memory_mb` (what the worker holds, MB), `seconds` and `suffix`.
     """
     args = _sector_args_of(unit_args)
     edge_pc = unit_args["edge_pc"]
@@ -1815,6 +1815,7 @@ def generate_sectors_do(unit_args, piece, ctx):
         "address": list(address), "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
         "stars": run_sector.sector_star_count(sector), "density": run_common._sector_density(sector_args),
         "phenomena": len(sector.phenomena), "summary": run_sector.sector_generation_summary_lines(sector, sector_args),
+        "planets": run_sector.sector_planet_count(sector), "memory_mb": queueUnits.resident_mb(),
         "seconds": time.monotonic() - started, "suffix": piece["suffix"]}
 
 
@@ -1823,6 +1824,16 @@ def generate_sectors_gather(unit_args, results, ctx):
     The unit's result: `pid` (this process: a unit run by the process that started the run has counted its sectors there already) and `sectors`, what each sector reported, in order.
     """
     return {"sectors": results, "pid": os.getpid()}
+
+
+SECTOR_TIMING_LINES_MAX = 2000
+"""int: A stage of this many sectors or fewer says each sector's time on its own line in the run log (PERF.270); a bigger one keeps the line in the debug log, as its ticker carries the progress."""
+
+
+def timing_line(saved, address):
+    """The line that says what one sector cost (PERF.270): its designation, systems, planets, the worked seconds and what the worker held, so a stage that ran long says which sectors took the time."""
+    return (f"Sector [{provisional_sector_designation(*address)}] {_format_address(address)}: {saved['systems']:,} systems, {saved.get('planets', 0):,} planets in "
+            f"{format_duration_seconds(saved['seconds'])}, the worker at {saved.get('memory_mb', 0.0):,.0f} MB.")
 
 
 def _log_saved(saved, address, suffix=""):
@@ -1877,6 +1888,7 @@ class SectorsFollower(followed.Follower):
         self.announce, self.finish = announce or _log_saved, finish
         self.reported = []
         self.generated = 0
+        self.timed = False      # whether each sector says its time on a line of its own (`SECTOR_TIMING_LINES_MAX`); known when the plan says how many sectors
         self._ticker = Ticker(self.label)       # replaced with a total when the plan says how many
         self.bar = None
         self.items = []
@@ -1894,9 +1906,11 @@ class SectorsFollower(followed.Follower):
         sectors = plan["detail"]["sectors"]
         if plan["detail"].get("warning"):
             log.warning(plan["detail"]["warning"])
+        self.timed = not self.collect and sectors <= SECTOR_TIMING_LINES_MAX
         if not self.collect:
             log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); progress is said every "
-                       f"{format_duration_seconds(program_constants.PROGRESS_LOG_SECONDS)} and each sector's own line is in the debug log.")
+                       f"{format_duration_seconds(program_constants.PROGRESS_LOG_SECONDS)} and "
+                       + ("each sector says its time on a line of its own." if self.timed else "each sector's own line is in the debug log."))
         self._ticker = Ticker(self.label, total=sectors or None)
         if self.bar_description is not None:
             self.bar = self.hold(run_common.sector_bar(self.progress, self.args, self.bar_description, sectors))
@@ -1914,6 +1928,8 @@ class SectorsFollower(followed.Follower):
                 self.reported.append(saved)
             else:
                 self.announce(saved, address, saved.get("suffix") or self.suffixes.get(address, ""))
+                if self.timed:
+                    log.normal(timing_line(saved, address))
                 self._ticker.tick(self.generated)
 
     def on_done(self, conclusion):
