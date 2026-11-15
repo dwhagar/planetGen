@@ -73,7 +73,8 @@ def worlds():
 
 
 def test_earth_numbers_balance_at_the_oxygen_of_earths_air():
-    assert bo.WEATHERING_PER_YR * bo.EARTH_O2_MOL == pytest.approx(bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR)
+    assert bo.EARTH_SURPLUS_MOL_YR == pytest.approx(bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR)
+    assert bo.balance_pa(bo.EARTH_SURPLUS_MOL_YR, bo.EARTH_AREA_M2) == pytest.approx(bo.EARTH_O2_PA)
     # GEN.1463: the store is the surplus summed over the 0.714 Gyr after the biomarkers (2.7 Ga) with the reductant at 2.2 times its present value falling to 1.9 times (the model's heat
     # history of an Earth-mass body, whose heat now is 0.76 of the 44 TW Earth gives off), so the delay at today's reductant is 0.3 to 1 Gyr of the published bracket and shorter than it was when R was held at today's value
     now_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR) / 1e9
@@ -360,3 +361,28 @@ def test_air_with_no_gas_over_its_saturation_pressure_is_left_as_it_is():
     frozen = bo.freeze_out_at(body, air, 288.0)
     for formula, pascal in air.items():
         assert frozen[formula] == pytest.approx(pascal, rel=1e-6)
+
+
+def test_the_balance_pressure_goes_with_the_surplus_per_area_to_the_power_one_over_the_exponent_and_not_with_the_gravity():
+    """GEN.1733: weathering follows the oxygen's partial pressure, so a world's balance depends on its surplus per area and not on how heavy it is."""
+    exponent, earth = bo.OXIDATIVE_WEATHERING_EXPONENT, bo.EARTH_SURPLUS_MOL_YR
+    assert bo.balance_pa(0.0, bo.EARTH_AREA_M2) == 0.0 and bo.balance_pa(-1.0, bo.EARTH_AREA_M2) == 0.0
+    assert bo.balance_pa(0.7 * earth, bo.EARTH_AREA_M2) == pytest.approx(bo.EARTH_O2_PA * 0.7 ** (1.0 / exponent))
+    assert bo.balance_pa(4.0 * earth, 4.0 * bo.EARTH_AREA_M2) == pytest.approx(bo.EARTH_O2_PA)          # a larger world with the same surplus per area: the same pressure
+    low, high = bo.OXIDATIVE_WEATHERING_EXPONENT_RANGE
+    assert low <= exponent <= high
+
+
+def test_a_heavy_world_with_earths_balance_holds_the_same_oxygen_pressure_and_not_a_pressure_that_goes_with_its_gravity(monkeypatch):
+    """The mole form of the sink gave 1.5 times the pressure at 1.5 g (GEN.1733 measured 46 of 64 oxygen-making worlds pinned at the fire limit, all but 4 of them over 1.2 g)."""
+    surplus_per_area = 0.8 * bo.EARTH_SURPLUS_MOL_YR / bo.EARTH_AREA_M2
+    pressures = []
+    for gravity in (0.6, 1.0, 1.5, 2.5):
+        body = _Body(gravity=gravity)
+        area = bo.area_m2(body)
+        monkeypatch.setattr(bo, "productivity", lambda b, a, s=surplus_per_area: s * a + 0.0)
+        monkeypatch.setattr(bo, "reductant_flux", lambda b, a: 0.0)
+        monkeypatch.setattr(bo, "air_moles", lambda b, a=area, g=gravity: {"N2": 1.0e5 * a / (g * 9.80665 * 0.028)})
+        pressures.append(bo.profile_of(body).steady_pa)
+    assert pressures[1] == pytest.approx(bo.EARTH_O2_PA * 0.8 ** (1.0 / bo.OXIDATIVE_WEATHERING_EXPONENT), rel=0.05)
+    assert all(pressure == pytest.approx(pressures[1], rel=0.06) for pressure in pressures), pressures

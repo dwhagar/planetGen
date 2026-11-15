@@ -27,11 +27,17 @@ planets (`physics.rogue_surface`) use the functions here.
    lid is ice (917 kg/m3) and is compared with the column by mass; its base
    melts at 273.15 K less 0.0074 K per bar of ice above it. A body whose
    surface water is under `BRINE_MAX_WATER_FRACTION` has its salts
-   concentrated: the base melts at the drawn eutectic of a perchlorate brine
-   (`clathrate_brine.draw_brine`, 198 to 236 K, GEN.762) and the brine ocean
-   keeps that salt's water activity. A liquid surface whose ocean class is the
-   chloride brine is a `brine seep`, not a `surface ocean` (GEN.908): so little
-   water that its salts fix its chemistry, often under no air at all.
+   concentrated (GEN.1730): the water holds Earth's salt per planet mass or
+   more, so it is saturated with rock salt, a halite-saturated sea with the
+   water activity of that solution (`NACL_SATURATION_ACTIVITY`, 0.753) that
+   melts at the sodium chloride eutectic (`NACL_EUTECTIC_K`, 252 K). Colder
+   than that only the deliquescent salts hold the liquid: the base melts at the
+   drawn eutectic of a perchlorate brine (`clathrate_brine.draw_brine`, 198 to
+   236 K, GEN.762) and the brine ocean keeps that salt's water activity. A
+   liquid surface whose ocean class is the chloride brine is a `brine seep`,
+   not a `surface ocean` (GEN.908), when it is a perchlorate brine or under
+   `SEA_MIN_DEPTH_KM` of liquid: a puddle whose salts fix its chemistry, often
+   under no air at all. A halite sea deeper than that is a `surface ocean`.
 4. **The compressed column and high-pressure ice (GEN.461).** The water over
    the covered area is integrated from the surface down with its density
    rising with the pressure (`water_layer.column`: 746 km deep at 11 GPa for
@@ -43,7 +49,8 @@ planets (`physics.rogue_surface`) use the functions here.
    ice-sealed: no contact with rock. The depths are the real, compressed
    kilometres, not water-equivalent.
 5. **Ocean class** (section 5.4), by rule, first match: ice-sealed;
-   chloride brine (surface water under 2e-5 of the mass); acid sulfate
+   chloride brine (surface water under 2e-5 of the mass, saturated with rock
+   salt at 0.753 where it is liquid above 252 K, GEN.1730); acid sulfate
    (oxidized mantle and SO2 over 1 percent of SO2 + CO2); soda (reduced
    or intermediate mantle, CO2 over 10 kPa, ocean over 90 percent of the
    surface); neutral. Each draws its pH and water activity; the ocean's phosphate
@@ -57,7 +64,6 @@ The ranges are design defaults, not fits.
 import math
 
 from planetgen import tuning
-from planetgen.generation import abundance_tier
 from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, mantle_reservoirs, planet_type, runaway_history, saturation, unit_registry, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
@@ -107,6 +113,17 @@ continental crust ([R0914]: two levels, relief as 1 / g; Guimond et al.: contine
 The four heights and spreads are stand-ins tuned only so that Earth's 2.7 km water layer covers 0.71 of the surface (L2). Stand-in row HY2."""
 
 BRINE_MAX_WATER_FRACTION = 2e-5
+"""float: Surface water under this fraction of the planet's mass holds Earth's salt (8.2e-6 of the planet's mass, 4.9e19 kg in the ocean of 6e24 kg) at or over the saturation of rock salt
+(26.4 percent of the solution by mass; Earth's 8.2e-6 x 0.736 / 0.264 = 2.3e-5), so its salts are concentrated (GEN.1730; stand-in row HY4). Stand-in tier T3, tweak level L0."""
+NACL_SATURATION_ACTIVITY = 0.753
+"""float: The water activity of a sodium chloride solution saturated at 25 C (753 per mille, the deliquescence humidity of the salt). A halite-saturated sea has this activity ([R5164] gives about 0.75 for the
+brine of the gypsum-halite assemblage); a sea with a lower activity holds other salts (chlorides of calcium and magnesium, perchlorates) and has no sodium chloride equivalent. Registry row HY5, tier T1, tweak level L0."""
+NACL_EUTECTIC_K = 251.85
+"""float: The eutectic of the sodium chloride and water system, K (minus 21.3 C, [R4397]): the coldest a halite-saturated sea is liquid. Under it only the deliquescent salts
+(`clathrate_brine.draw_brine`) hold a liquid. Registry row HY5, tier T1, tweak level L0."""
+SEA_MIN_DEPTH_KM = 0.01
+"""float: The least liquid depth of a halite-saturated sea that is a `surface ocean` and not a `brine seep`, km: ten metres, a shallow lake and not a puddle (GEN.1730). Stand-in row HY6, tier T9
+(a needed output: the line between a lake the sea laws apply to and a seep they leave out), tweak level L3."""
 ACID_SO2_SHARE = 0.01
 SODA_MIN_CO2_KPA = 10.0
 SODA_MIN_OCEAN_FRACTION = 0.9
@@ -273,17 +290,21 @@ def surface_water_fraction(water_mass_fraction, mass_kg, radius_m, rock_fraction
     return max(water_mass_fraction / buffer, water_mass_fraction - mantle_max_water_fraction(mass_kg, radius_m, rock_fraction))
 
 
-def salts_concentrated(body, surface_fraction):
-    """Whether so little water lies at the surface that its salts fix its chemistry (rules 3 and 5). Never on a desert world that a Class M abundance tier
-    made (`abundance_tier.desert_sea`, GEN.1721; no body on `science`): its small sea is taken as an ordinary salt sea (stand-in row 6.289:AT7)."""
-    return surface_fraction < BRINE_MAX_WATER_FRACTION and not abundance_tier.desert_sea(body)
+def salts_concentrated(surface_fraction):
+    """Whether so little water lies at the surface that it holds Earth's salt at or over the saturation of rock salt, so its salts fix its chemistry (rules 3 and 5; GEN.1730)."""
+    return surface_fraction < BRINE_MAX_WATER_FRACTION
+
+
+def halite_sea(surface_fraction, temperature_k):
+    """Whether a sea of `surface_fraction` of the planet's mass at `temperature_k` is saturated with rock salt and liquid at that temperature (GEN.1730): concentrated salts, warmer than the sodium chloride eutectic."""
+    return salts_concentrated(surface_fraction) and temperature_k >= NACL_EUTECTIC_K
 
 
 def ocean_class(body, hp_ice_km, surface_fraction, covered):
     """Rule 5's class for a liquid ocean."""
     if hp_ice_km > 0:
         return "ice-sealed"
-    if salts_concentrated(body, surface_fraction):
+    if salts_concentrated(surface_fraction):
         return "chloride brine"
     so2 = atmosphere.partial_kpa(body, "so2")
     co2 = atmosphere.partial_kpa(body, "co2")
@@ -384,8 +405,10 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
     else:
         flux = internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0)  # GEN.737: the tide stored with the heat model (GEN.700: the heat an ice-covered ocean's life can use)
         melting_k = WATER_MELTING_K
-        if salts_concentrated(body, surface_w):
-            salt, melting_k = clathrate_brine.draw_brine()  # GEN.762: little water, so the salts are concentrated and the ice melts at their eutectic
+        if halite_sea(surface_w, temperature):
+            melting_k = NACL_EUTECTIC_K     # GEN.1730: saturated with rock salt, the ice melts at its eutectic
+        elif salts_concentrated(surface_w):
+            salt, melting_k = clathrate_brine.draw_brine()  # GEN.762: colder than that only the deliquescent salts hold a liquid, and the ice melts at their eutectic
         shell = pressure_melted_shell_km(max(flux, 1e-6), max(temperature, 1.0), gravity, melting_k)
         column = water_layer.column(body.mass, body.radius, water_kg, covered=covered, shell_km=shell,
                                     bottom_temperature_k=melting_k, pressure_pa=pressure)
@@ -408,12 +431,15 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
     if not liquid_km:
         return surface_w
     kind = ocean_class(body, hp_km, surface_w, covered)
-    if kind == "chloride brine" and state == "surface ocean":
+    halite = kind == "chloride brine" and halite_sea(surface_w, temperature)
+    if kind == "chloride brine" and state == "surface ocean" and not (halite and liquid_km >= SEA_MIN_DEPTH_KM):
         body.hydrosphere = BRINE_SEEP
     (ph_lo, ph_hi), (aw_lo, aw_hi) = OCEAN_CHEMISTRY[kind]
     body.ocean_class = kind
     body.ocean_ph = draw.uniform(ph_lo, ph_hi)
     body.water_activity = draw.uniform(aw_lo, aw_hi)
-    if kind == "chloride brine" and salt is not None and clathrate_brine.water_activity(salt) is not None:
+    if halite:
+        body.water_activity = NACL_SATURATION_ACTIVITY  # GEN.1730: the activity of the saturated solution, not a draw
+    elif kind == "chloride brine" and salt is not None and clathrate_brine.water_activity(salt) is not None:
         body.water_activity = clathrate_brine.water_activity(salt)  # GEN.762: the drawn salt's own figure
     return surface_w

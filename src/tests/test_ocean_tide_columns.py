@@ -11,7 +11,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from planetgen.physics import constants, ocean_tides, spin
+from planetgen.physics import constants, ocean_tides, spin, tide_sources
 
 EARTH_KG, EARTH_KM = 5.972e24, 6371.0
 MOON_KG, MOON_AU = 7.342e22, 384400.0 / 149597870.7
@@ -115,11 +115,13 @@ def test_a_finished_system_has_the_tide_of_its_final_water():
     for seed in range(7100, 7160):                # the first seed of the run that makes an ice-covered ocean; a change to the water moves which one it is
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
-        for planet in system.all_planets:
-            if planet.body_type == "a":
-                continue
+        planets = [obj for obj in system.all_planets if obj.body_type != "a"]
+        for planet in planets:
+            siblings = [other for other in planets if other is not planet and other.star is planet.star]
             for body, parent in [(planet, None)] + [(moon, planet) for moon in planet.moons]:
-                assert {name: getattr(body, name) for name in ocean_tides.FIELDS} == ocean_tides.compute(body, parent)
+                sources = tide_sources.sources_of(body, parent, siblings)       # the pulls the system's own tide pass counted (GEN.1446)
+                extra = tide_sources.raisers_of(sources, tide_sources.counted_by_ocean_tides(body, parent))
+                assert {name: getattr(body, name) for name in ocean_tides.FIELDS} == ocean_tides.compute(body, parent, extra)
                 checked += body.hydrosphere == "ice-covered ocean"
         if checked:
             break
