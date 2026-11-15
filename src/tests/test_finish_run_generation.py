@@ -126,7 +126,7 @@ def _sectors_then_tail(config, stops=None, tmp_path=None):
 
 @pytest.mark.parametrize("stage, stops", [
     ("Sector paths", (sector_paths, "settle_sectors")),
-    ("Population pass", (model, "run_population")),
+    ("Population pass", (model, "do_population_piece")),
 ])
 def test_a_run_of_the_stages_after_the_sectors_stopped_in_a_stage_is_carried_on_to_the_uninterrupted_galaxy(
         mysql_config, second_mysql_config, tmp_path, conn, stage, stops):

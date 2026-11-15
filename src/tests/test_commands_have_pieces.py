@@ -11,8 +11,6 @@ NOT_YET = {
     # OPS.202: galaxy and sectors
     **dict.fromkeys(("scatter-backfill", "refresh-run-blocks", "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "settle-sector-paths",
                      "generate-unplaced-sector", "generate-system"), "OPS.202"),
-    # OPS.203: population
-    **dict.fromkeys(("run-population", "run-territories"), "OPS.203"),
     # OPS.206: reset
     "reset-galaxy": "OPS.206",
 }
@@ -37,4 +35,4 @@ def test_the_list_names_only_registered_commands():
 def test_the_commands_converted_so_far_are_the_skeleton_the_lights_and_the_warm_up():
     assert {kind for kind, spec in commands.REGISTRY.items() if spec.pieces is not None} >= {
         "plan-skeleton", "finish-phenomena", "refresh-block-lights", "warm-cluster-field", "warm-object-index", "warm-galaxy-map", "warm-galaxy-nodes", "warm-galaxy-deep-nodes",
-        "warm-lists", "warm-sectors", "warm-systems", "warm-phenomena", "warm-search", "end-map-rebuild-maintenance"}
+        "warm-lists", "warm-sectors", "warm-systems", "warm-phenomena", "warm-search", "end-map-rebuild-maintenance", "run-population", "run-territories"}

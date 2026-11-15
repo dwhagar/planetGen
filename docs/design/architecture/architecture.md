@@ -795,7 +795,7 @@ flowchart TD
     PopCLI["planetgen population<br/>run_population"] --> Pass["population.run_population"]
     After["planetgen galaxy<br/>run_population_stage"] --> Pass
     Inst["install.sh / update.sh<br/>offer_population_pass"] -.-> PopCLI
-    Pass --> Scan["scan_life_worlds<br/>planets past the watermark,<br/>parse_timeline, has_civilization"]
+    Pass --> Scan["scan pieces<br/>planets past the watermark,<br/>parse_timeline, has_civilization"]
     Scan --> Civ["refresh_civilizations<br/>era_for_age, found or dissolve polities,<br/>reach_ly"]
     Civ --> Terr["refresh_territories<br/>store.sectors_reached_by,<br/>add_claims (strongest claim wins)"]
     Scan --> PT[("species,<br/>population_state")]
@@ -803,7 +803,7 @@ flowchart TD
     Terr --> SO[("system_owners")]
 ```
 
-`scan_life_worlds` reads the planets past a stored watermark
+The scan pieces (`_scan_batch`, one batch of planet ids each) read the planets past a stored watermark
 (`population_state`), so a rerun only looks at new planets. It parses each
 life world's evolution text (`parse_timeline`), seeds its draws from the
 planet id, names the species and, for a civilization, draws an age and an
@@ -812,7 +812,7 @@ polity per spacefaring species and sets its reach from its age.
 `refresh_territories` rebuilds `system_owners` from scratch: each polity
 claims the systems in the sectors its reach touches, a claim's strength is
 reach over distance, and the strongest claim on a system wins (ties go to
-the lower polity id). `planetgen population` runs the scan and the polities and `--rescan` forgets everything and starts over; `refresh_territories` is `planetgen territories` (PERF.125).
+the lower polity id). `planetgen population` runs the scan and the polities and `--rescan` forgets everything and starts over; `refresh_territories` is `planetgen territories` (PERF.125). Both passes are pieces the job engine runs (OPS.203, `population.model.population_pieces` and `territories_pieces`): the pass lock, the scan a batch a piece, the drop, the dating, the technology rows and the counts; the model commits nothing and the engine commits after each piece (`ctx.commit()`).
 
 ## Flow 2: storing and migrating the database
 
