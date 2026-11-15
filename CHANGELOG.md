@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4227] - 2026-11-15
+
+**Headline:** A run is started by the supervisor, not by the process that asks for it.
+
+### Changed
+- **OPS.211, output unchanged.** `planetgen generate`, the Generate page and the API no longer take the machine themselves. A run leaves its ask on Redis (a place in the waiting line for a run that waits, a request of its own for a check or maintenance run, which is refused at once with the holder named when the machine is taken) and the supervisor's `RunStarts` duty starts it: the first of the line when the machine is free. The process that asked follows the run it was given (`runrecord.start_run(owner=...)` names it), so a run is never started by a process that is gone a moment later. `runline.start_when_free` carries the ask and waits for the supervisor's answer (`runline.verdict`); when no supervisor answers within a minute it fails naming the supervisor (`runline.NotStarted`) instead of waiting for ever.
+- **OPS.253, output unchanged.** The first time the supervisor finds a live run whose starter's sign of life is gone, it says so once, in the run's own log and in its acts on the Queue page: "The run's starter stopped by <time>; the supervisor carries the run on."
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4226] - 2026-11-15
 
 **Headline:** A run goes on when the process that started it is gone, and a stage that finished but never advanced is ended by the supervisor.
