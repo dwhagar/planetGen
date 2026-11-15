@@ -12901,6 +12901,82 @@
           "fields": [
             [
               "What it is",
+              "biogenic_oxygen.OXIDATIVE_WEATHERING_EXPONENT 1.0 (linear, the top of the range; the COPSE square root 0.5 gave a window of the habitable classes too narrow, 7 oxygen-making sea worlds inside 16 to 35.4 kPa of 60 against 24 at 1.0 on 400 Abundant systems) and OXIDATIVE_WEATHERING_EXPONENT_RANGE (0.5, 1.0): the oxidative weathering of old organic carbon and pyrite goes with the oxygen's partial pressure to this power, so the balance pressure is Earth's times the surplus per area over Earth's to the power 1 / 1.0 (GEN.1733)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 (square root) to 1 (linear); some hold there is no dependence"
+            ],
+            [
+              "Where it holds",
+              "worlds with oxygenic life that have spent the store"
+            ],
+            [
+              "What would show it wrong",
+              "a measured pO2 dependence of the oxidative weathering of old organic carbon (kerogen or pyrite) over a range of pO2, or a model with a feedback that holds the pressure near Earth's whatever the surplus"
+            ],
+            [
+              "What replaces it",
+              "a sourced weathering rate law of the rock at the oxygen of a world (kerogen kinetics by temperature and pO2)"
+            ],
+            [
+              "Evidence",
+              "READ ([R5280] equation 21: a weak square-root dependency taken from [R5282], pyrite linear, with a linear form used before and any dependency disputed; [R5281] full text: a dependency of pO2 to the 0.5 fits their results, consistent with coal oxidation kinetics); two models and a dispute, so it is tier 3"
+            ]
+          ],
+          "id": "BO13",
+          "key": "6.21:BO13",
+          "kind": "P",
+          "slug": "6-21-bo13",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "biogenic_oxygen.OXIDATIVE_WEATHERING_EXPONENT 1.0 (linear, the top of the range; the COPSE square root 0.5 gave a window of the habitable classes too narrow, 7 oxygen-making sea worlds inside 16 to 35.4 kPa of 60 against 24 at 1.0 on 400 Abundant systems) and OXIDATIVE_WEATHERING_EXPONENT_RANGE (0.5, 1.0): the oxidative weathering of old organic carbon and pyrite goes with the oxygen's partial pressure to this power, so the balance pressure is Earth's times the surplus per area over Earth's to the power 1 / 1.0 (GEN.1733)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.EARTH_O2_PA 21.2e3: the oxygen partial pressure of Earth's air, the point balance_pa scales the weathering from"
+            ],
+            [
+              "The range it moves in",
+              "20.9 to 21.3 kPa"
+            ],
+            [
+              "Where it holds",
+              "the oxygen balance"
+            ],
+            [
+              "What would show it wrong",
+              "test_biogenic_oxygen.test_earth_numbers_balance_at_the_oxygen_of_earths_air"
+            ],
+            [
+              "What replaces it",
+              "the same"
+            ],
+            [
+              "Evidence",
+              "READ (20.95 percent of the 101.325 kPa of the standard atmosphere, measured)"
+            ]
+          ],
+          "id": "BO14",
+          "key": "6.21:BO14",
+          "kind": "P",
+          "slug": "6-21-bo14",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "biogenic_oxygen.EARTH_O2_PA 21.2e3: the oxygen partial pressure of Earth's air, the point balance_pa scales the weathering from"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "biogenic_oxygen.LAND_SHARE_OF_BURIAL 0.27 and LAND_SHARE_OF_BURIAL_RANGE (0.20, 0.33): land plants carry this share of Earth's organic carbon burial, so a world with no wide sea but wet land that roots reach (the rooted stage of surface_refuge) makes this share of Earth's source per Earth's 0.29 of land under plants, in place of the cover law (GEN.1729)"
             ],
             [
