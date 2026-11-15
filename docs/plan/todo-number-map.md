@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.319 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1733 |
+| GEN | GEN.1734 |
 | PERF | PERF.273 |
 | DB | DB.131 |
 | API | API.51 |
@@ -4047,6 +4047,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1730 | Real-depth desert seas: halite-saturated salt sea instead of a seep brine, on every galaxy (measure first) | GEN.1721 | open |
 | GEN.1731 | Warm Earth-shaped worlds (289 to 306 K) lose nearly all CO2 to weathering on the tier presets: decision on the warm side | GEN.1720 | open |
 | GEN.1732 | Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change | none | open |
+| GEN.1733 | Oxygen on oxygen-rich worlds piles at the 35.5 kPa class limit instead of spreading near Earth's 21 kPa: measure the oxygen law's ceiling | GEN.1723 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4880,9 +4881,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | open |
 | TEST.752 | (bug) scripts/earth_analog.py moves only planet.distance per trial, but the air is keyed on formation_distance_au (GEN.1547), so every trial shares one air draw; its baseline is stale | none | done, PR #6568 (8:51 PM EST 11-14) |
 | TEST.753 | (bug) tests/data/civilized_pins.json went stale at epoch 150 (pins 432 and 516 no longer hold a civilization), so tests needing two or more civilized systems hunt for new ones for tens of minutes; test_the_pinned_civilized_seeds_still_qualify checks only the first pin | none | done, PR #6586 (10:02 PM EST 11-14) |
-| TEST.754 | (bug) test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main: its seeded system has no habitable planet | none | open |
-| TEST.755 | (bug) test_hand_formatted_units red on main: queue/units.py line 714 and queue/splitter.py format units by hand | none | open |
-| TEST.756 | (bug) test_run_record: a stage's finish line says "1487 MB" where the test expects "1.49 GB" | none | open |
+| TEST.754 | (bug) test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main: its seeded system has no habitable planet | none | done, PR #6611 (2:11 AM EST 11-15) |
+| TEST.755 | (bug) test_hand_formatted_units red on main: queue/units.py line 714 and queue/splitter.py format units by hand | none | done, PR #6613 (2:18 AM EST 11-15) |
+| TEST.756 | (bug) test_run_record: a stage's finish line says "1487 MB" where the test expects "1.49 GB" | none | done, PR #6613 (2:18 AM EST 11-15) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

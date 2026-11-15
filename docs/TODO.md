@@ -13079,19 +13079,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
   Filed by the TODO thread.
 
-- [ ] **TEST.754 (bug) test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main: its seeded system has no habitable planet**
-  Train Manager, 1:50 AM EST 2026-11-15 (Train 30 round 2): src/tests/test_habitability_end_to_end_browser.py::test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main alone; Lane 03 found the seeded system has no habitable planet at line 119. Fix the seed choice the way PR 6605 did for HABITABLE_SEED (pick by what the test needs, not a fixed seed that generation changes can empty), no skip.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: TEST.737, TEST.740.
-  Filed by the TODO thread.
-
-- [ ] **TEST.755 (bug) test_hand_formatted_units red on main: queue/units.py line 714 and queue/splitter.py format units by hand**
-  Lane 12's gate of PR #6571, 2:03 AM EST 2026-11-15, checked on main. test_hand_formatted_units fails on main dc5567f47 for queue/units.py (line 714, " h ") and queue/splitter.py: UX.318 (PR #6574) requires planetgen.util.format helpers (format_duration_seconds and kin). Use the helpers; no allow-list entry.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318.
-  Filed by the TODO thread.
-
-- [ ] **TEST.756 (bug) test_run_record: a stage's finish line says "1487 MB" where the test expects "1.49 GB"**
-  Lane 12's gate of PR #6571, 2:03 AM EST 2026-11-15, checked on main. test_run_record::test_a_stage_keeps_the_largest_worker_memory_and_its_finish_line_says_it fails on main dc5567f47 ("1.49 GB" expected, "1487 MB" written). Decide which side follows the shared size formatter of UX.318 and make the other agree; no skip.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: UX.318.
+- [ ] **GEN.1733 Oxygen on oxygen-rich worlds piles at the 35.5 kPa class limit instead of spreading near Earth's 21 kPa: measure the oxygen law's ceiling**
+  Class M tiers thread, 2:27 AM EST 2026-11-15 (meter rows /mnt/project-files/reports/class-m-tiers-build/meter-gen1720-cycle-dial-04c9b239-abundant-400.jsonl.gz, Abundant, 400 Sun-like systems on PR #6601): on 6 of the 7 oxygen-rich worlds in the right CO2 band, oxygen sits at 35.5 to 35.7 kPa, at or a hair over the 35.5 kPa limit of the five habitable classes, so they pass only by the class rules' tolerance and none sits near Earth's 21 kPa. Measure first why the oxygen law's balance lands on that value (a cap, a fire limit or a sink that does not bite), then fix on physics, every galaxy.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (after GEN.1723; same law as GEN.1729). Prerequisites: GEN.1723. Related: GEN.1729, GEN.1720, GEN.1706.
   Filed by the TODO thread.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
