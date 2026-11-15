@@ -4643,6 +4643,9 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     since_ejection_gy                DOUBLE,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
     ejection_speed_kms               DOUBLE,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
     rogue_note                       TEXT,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    pair_event_index                 INT,  -- v260 (GEN.332): the event index (same donor) of the companion it left its donor bound to, NULL for a rogue that left alone, each of the two rows naming the other
+    pair_separation_au               DOUBLE,  -- v260 (GEN.332): the distance to its companion, AU (the circular orbit of the pair), NULL without one
+    pair_period_yr                   DOUBLE,  -- v260 (GEN.332): the period of the pair round each other, years, NULL without a companion
 
     UNIQUE KEY uq_rogue_planets_uid (uid),
     UNIQUE KEY uq_rogue_planets_donor_event (donor_uid, event_index),  -- v207 (GEN.1111): a donor's rogues are replaced, never duplicated

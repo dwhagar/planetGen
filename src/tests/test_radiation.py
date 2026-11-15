@@ -525,3 +525,29 @@ def test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultravio
     assert quiet[0] is False and flared[0] is True
     assert flared[1] == pytest.approx(quiet[1] * rad.OZONE_LOSS_REMAINING)
     assert flared[2] > quiet[2]
+
+
+# --- GEN.444: the shield of a mixed air ----------------------------------------------------------------------------------------------------------------------------
+
+
+def _air_body(partials):
+    return types.SimpleNamespace(**{atmosphere.GAS_FIELD: partials})
+
+
+def test_an_earth_air_shields_as_the_air_row_does():
+    column, stopping = rad.shielding_of_air(_air_body({"N2": 78084.0, "O2": 20946.0, "Ar": 934.0}), 1033.0)
+    assert column == pytest.approx(1033.0, rel=1e-6)
+    for depth in (22.5, 100.0, 1033.0):
+        assert rad.proton_cutoff_gv(depth, stopping) == pytest.approx(rad.proton_cutoff_gv(depth), rel=0.005)
+
+
+def test_a_carbon_dioxide_air_counts_a_little_thicker_and_a_hydrogen_air_much_thicker_per_gram():
+    co2, _ = rad.shielding_of_air(_air_body({"CO2": 95000.0, "N2": 3000.0}), 100.0)
+    h2, _ = rad.shielding_of_air(_air_body({"H2": 95000.0, "He": 5000.0}), 100.0)
+    assert 100.8 < co2 < 101.8
+    assert 150.0 < h2 < 175.0
+    assert rad.gcr_dose_msv_yr(h2) < rad.gcr_dose_msv_yr(100.0)       # more air-equivalent grams, less dose
+
+
+def test_an_airless_body_has_no_shield_and_keeps_the_air_row():
+    assert rad.shielding_of_air(_air_body({}), 0.0) == (0.0, "air")

@@ -6,7 +6,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
-from planetgen.physics import atmosphere, bulk_composition, constants, envelope_share, gases, planet_type
+from planetgen.physics import atmosphere, bulk_composition, composition_text, constants, envelope_share, gases, planet_type
 from tests import class_support
 
 
@@ -41,6 +41,24 @@ def test_a_hydrogen_air_is_an_envelope_of_the_air_mass_over_the_body_mass():
     envelope_share.fill(body)
     assert body.envelope_mass_fraction == pytest.approx(share)
     assert planet_type.planet_type(body) == ("transitional" if share >= planet_type.TERRESTRIAL_MAX_ENVELOPE else "terrestrial")
+
+
+def test_the_phrase_follows_the_shares_the_air_moved_off_a_level_s_edge():
+    """GEN.430: a water share of exactly 0.2 (a belt member's) is 'a large share'; the air takes a sliver of it, so the phrase must be re-written, not left stale."""
+    body = Body(mass_earth=4.0, radius_km=11000.0, pressure_pa=5.0e9)
+    setattr(body, atmosphere.GAS_FIELD, _hydrogen_air(5.0e9))
+    body.metal_mass_fraction, body.rock_mass_fraction, body.water_mass_fraction = 0.0, 0.8, 0.2
+    body.composition = "mostly silicate rock, with a large share of water"
+    envelope_share.fill(body)
+    assert body.water_mass_fraction < 0.2
+    assert body.composition == composition_text.text(body) and "moderate share of water" in body.composition
+
+
+def test_a_body_with_no_phrase_is_given_none_by_the_air():
+    body = Body(mass_earth=4.0, radius_km=11000.0, pressure_pa=5.0e9)
+    setattr(body, atmosphere.GAS_FIELD, _hydrogen_air(5.0e9))
+    envelope_share.fill(body)
+    assert not hasattr(body, "composition")
 
 
 def test_the_five_fractions_still_add_up_to_one():
