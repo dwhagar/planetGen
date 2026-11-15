@@ -744,6 +744,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | Lane 03, 2026-11-15 |
 | OPS.262 | Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget | OPS.196 | Lane 16, 2026-11-15 |
 | GEN.1748 | Nebular hydrogen envelopes for bodies under 1 Earth mass (Young et al. 2023): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state | GEN.1741 | Lane 04, 2026-11-15 |
+| GEN.1749 | (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant) | none | Lane 04, 2026-11-15 |
 | TEST.768 | (bug) test_constants_completeness is red on main: new constants in galaxy/nebula_*, ice_growth, starlight_aloft, run_galaxy and bright_stars have no registry row, tag or place in the constants module | none | Lane 14, 2026-11-15 |
 | TEST.769 | (bug) Six test_web_generate system-page tests are red on main | none | Lane 14, 2026-11-15 |
 | TEST.770 | (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216 | none | Lane 14, 2026-11-15 |
