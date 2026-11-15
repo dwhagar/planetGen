@@ -178,7 +178,7 @@ def test_a_v238_galaxy_gets_the_parts_table_empty_and_a_second_run_changes_nothi
 
 
 def test_a_luminosity_fill_keeps_the_parts_current_so_the_stage_rolls_them(conn, mysql_config):
-    from planetgen.generation import run_plan
+    from planetgen.queue import commands
     stars, points = _rows()
     kind_at, mass_at = store.PHENOMENON_SCATTER_COLUMNS.index("kind"), store.PHENOMENON_SCATTER_COLUMNS.index("mass_solar")
     points = [row[:kind_at] + ("hypervelocity-star",) + row[kind_at + 1:mass_at] + (2.0,) + row[mass_at + 1:-1] + (None,) for row in points]      # scattered before the map luminosity existed: a mass, no value
@@ -186,7 +186,7 @@ def test_a_luminosity_fill_keeps_the_parts_current_so_the_stage_rolls_them(conn,
     conn.commit()
     ids = conn.execute("SELECT MIN(id) AS low, MAX(id) AS high FROM phenomenon_scatter").fetchone()
     params = {"low": ids["low"], "high": ids["high"], "database": {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}}
-    result = run_plan.fill_map_luminosity_unit(params, lambda *a, **k: None)
+    result = commands.run_alone("fill-map-luminosity", params)
     assert result["filled"] == len(points)
     conn.commit()      # a new snapshot: the unit committed on a connection of its own
     assert block_lights.parts_current(conn)
