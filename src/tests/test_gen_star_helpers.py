@@ -14,7 +14,7 @@ import random
 
 import pytest
 
-from planetgen.generation import star_population
+from planetgen.generation import forced_star, star_population
 from planetgen.physics import alpha_tracks, constants, imf, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
@@ -484,7 +484,8 @@ def test_hot_white_dwarf_central_stars_are_the_models_hot_white_dwarfs(star_type
 
 def test_hot_white_dwarf_temperature_follows_the_subclass():
     assert make_star("O3VII").temperature > make_star("O9VII").temperature >= make_star("B0VII").temperature
-    assert make_star("B0VII").temperature >= constants.TEMP_RANGES["B"][1] * 0.9
+    # a B0 white dwarf is any of the 28,900 to 31,900 K the subclass spans (which one the draw gives moves with every change to the star draws, GEN.1623), so the floor is the subclass's own, not the top of the letter
+    assert make_star("B0VII").temperature >= forced_star.target_temperature_k("B", 0) * 0.9
 
 
 def test_cool_white_dwarfs_keep_their_own_mass_and_temperature_ranges():
