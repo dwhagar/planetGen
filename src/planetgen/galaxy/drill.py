@@ -230,6 +230,16 @@ def stage_parent(block):
     return None if block[0] == STAGE_TOP else drill_parent(block)
 
 
+STORED_LEVELS = DRILL_LEVELS[:-1]
+"""tuple: The levels the block tables store (`db.block_stats`, `db.block_lights`): every block size above a sector."""
+
+
+def chain_blocks(address):
+    """The blocks above the sector `(shell, band, wedge)`, one per stored level (`STORED_LEVELS`), coarsest first."""
+    shell, band, wedge = address
+    return drill_chain_of(shell, band, wedge)[:len(STORED_LEVELS)]
+
+
 def drill_chain_of(shell, band, wedge):
     """
     Sector `(shell, band, wedge)`'s blocks from the root: `[level 177147, 59049,

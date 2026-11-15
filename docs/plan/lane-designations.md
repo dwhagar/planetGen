@@ -2,28 +2,28 @@
 
 Boss (5:31 PM EST on 2026-11-07): every active thread carries a number and its job. Docs, items and labels say "Lane NN" (for example "Lane 11"); the thread title carries the same number and job. Numbers are stable and are never reused. This page maps the numbers to the old names, so history stays traceable: older text in the design notes, reports, memory and pull requests still uses the old names.
 
-Numbering: 0x runs the system, 1x is core generation and product families, 2x is composition and physics lanes.
+Numbering (Boss, 8:46 and 8:48 PM EST on 2026-11-14): 00 is TODO; 01 to 08 are the generator lanes (lock items that ride generator trains), 01 being Train Manager; 12 and up are non-lock lanes (job engine, tests, gate, storage, admin). Before that date the scheme was 0x system, 1x core, 2x composition; text written before 9:00 PM EST on 2026-11-14 uses the old numbers.
 
 ## Active lanes
 
-| Lane | Job | Old name | Notes |
+| Lane | Job | Number before 2026-11-14 | Old name |
 |---|---|---|---|
-| 01 | TODO: items, issues, docs, merges | TODO | files and retires items, merges non-failing pull requests |
-| 02 | Train Manager: merge trains | Train Manager (was Bug 2) | builds and merges the trains |
-| 03 | Gate: run gates, fix reds | Gate 1 | started 2026-11-07, runs gate shards and fixes reds for lane 02 |
-| 04 | Bugs and test health | Bug 1 | the current Bug 1 thread (an older Bug 1 thread ran in October 2026 and is retired) |
-| 05 | Bugs and test health, second lane | none (new 2026-11-08) | Boss, 8:10 PM EST on 2026-11-07: a second bug lane to assist lane 04 with the 8.1 bug-hunt queue (GEN.1390, TEST.695 and their splits) |
-| 06 | Gate shards and red fixes, second gate lane | none (new 2026-11-08) | Boss, 8:14 PM EST on 2026-11-07: a second gate lane to help with train 17 (PR 5626), beside lane 03 |
-| 07 | Dev: builds ahead of trains | none (new 2026-11-11) | Boss, 6:24 PM EST on 2026-11-11: predictive building; stacked branches for blocked items whose owner lane has not started them, never merged before their base lands, no epoch or migration number claimed; rule in lanes.md |
-| 11 | Oddities, census, ore design | Core 1 | |
-| 12 | Storage, remnants, volatility law | Core 2 | |
-| 13 | Galaxy and admin | Core 3 | |
-| 14 | Atmosphere classes and sweeps | Core 4 | |
-| 15 | Air, climate and performance | Core 5 | |
-| 21 | Planet composition chain | Planets 1 | |
-| 22 | Belts, small bodies, mineral rows | Aux 5 | the current Aux 5 thread (an older Aux 5 ran in October 2026 and is retired) |
-| 23 | Tides, spin, moons | Tides 1 | |
-| 24 | Materials | none yet | reserved for the real-material items that wait on their prerequisites (GEN.1377, GEN.1378, GEN.1381 to GEN.1383, TEST.686; GEN.1380 is with lane 22) |
+| 00 | TODO: items, issues, docs, merges | 01 | TODO |
+| 01 | Train Manager: merge trains | 02 | Train Manager (was Bug 2) |
+| 02 | Air and climate | 15 | Core 5 |
+| 03 | Atmosphere classes and sweeps | 14 | Core 4 |
+| 04 | Planet composition chain | 21 | Planets 1 |
+| 05 | Oddities, census, ore design | 11 | Core 1 |
+| 06 | Belts, small bodies, mineral rows | 22 | Aux 5 |
+| 07 | Tides, spin, moons | 23 | Tides 1 |
+| 08 | Materials (reserved) | 24 | none |
+| 12 | Gate: run gates, fix reds | 03 | Gate 1 |
+| 13 | Job engine (was Gate 2) | 06 | none (new 2026-11-08) |
+| 14 | Bugs 2: bugs and test health | 05 | none (new 2026-11-08) |
+| 15 | Storage and volatility | 12 | Core 2 |
+| 16 | Galaxy and admin | 13 | Core 3 |
+
+Closed 2026-11-14: old 04 (Bugs and test health, Bug 1) and old 07 (Dev, builds ahead of trains); their open items went to Lane 14. Numbers 09 to 11 are unused.
 
 ## Retired lanes (no number; the old names stay)
 

@@ -62,10 +62,6 @@ class SpriteObjects(NamedTuple):
     age_years: np.ndarray
 
 
-def _number(value, empty=math.nan):
-    return empty if value is None else float(value)
-
-
 def empty():
     """A `SpriteObjects` of no rows."""
     return SpriteObjects(np.empty(0, dtype=object), np.empty(0, dtype=np.int64), np.empty(0, dtype=object), np.empty((0, 3)), np.empty(0),
@@ -81,10 +77,10 @@ def _rows(conn, kind, center, radius_pc, runs):
         if detmath.dist(center, point) > radius_pc:
             continue
         family = row["family"] if kind == NEBULA else ("plerion" if row["morphology"] == "plerion" else "supernova-remnant")
-        found.append((kind, int(row["id"]), family, point, _number(row["epoch_unix"]),
-                      (_number(row["velocity_x_kms"]), _number(row["velocity_y_kms"]), _number(row["velocity_z_kms"])),
-                      float(row["radius_ly"]), _number(row["density_cm3"]), _number(row["extinction_av"], 0.0),
-                      _number(row["age_years"]) if kind == REMNANT else math.nan))
+        found.append((kind, int(row["id"]), family, point, detmath.float_or(row["epoch_unix"]),
+                      (detmath.float_or(row["velocity_x_kms"]), detmath.float_or(row["velocity_y_kms"]), detmath.float_or(row["velocity_z_kms"])),
+                      float(row["radius_ly"]), detmath.float_or(row["density_cm3"]), detmath.float_or(row["extinction_av"], 0.0),
+                      detmath.float_or(row["age_years"]) if kind == REMNANT else math.nan))
     return found
 
 
