@@ -138,3 +138,4 @@ Commit each file came from:
 - v256: after DB.124's migration 0256 (small body makeup), before DB.75 body_numbers table (0257) (made the same way)
 - v257: after DB.75a's migration 0257 (body_numbers table), before GEN.332 slice C asteroid_belts.host_node_id column (0258) (main's schema.sql with its comment and blank lines removed)
 - v258: after GEN.332 slice C's migration (asteroid_belts.host_node_id column, numbered 0258 when the train renumbers it), before GEN.1433 flavor_key columns (0259) (train 27's schema.sql with its comment and blank lines removed)
+- v259: after GEN.1433's migration 0259 (flavor_key columns), before GEN.332 slice D's rogue_planets pair columns (0260) (train 27's schema.sql with its comment and blank lines removed)

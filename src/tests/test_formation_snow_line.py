@@ -77,7 +77,7 @@ def test_a_generated_white_dwarf_stores_the_line_of_its_progenitors_disk():
 # --- GEN.1678: the water line ---------------------------------------------------------------------------------------------------------------
 
 PAPER_TABLE_1 = {1.0: (3.3, 1.6), 0.8: (2.6, 1.2), 0.6: (1.9, 0.9), 0.4: (1.2, 0.6), 0.2: (0.5, 0.2)}
-"""dict: Mulders et al. 2015 ([R3193]) Table 1, the one-sigma middle snow line (au) with small (570 cm2/g) and large (20 cm2/g) grains, by stellar mass."""
+"""dict: [R3193, R3196] Table 1, the one-sigma middle snow line (au) with small (570 cm2/g) and large (20 cm2/g) grains, by stellar mass."""
 
 
 def test_the_viscous_line_is_the_papers_at_both_grain_sizes():

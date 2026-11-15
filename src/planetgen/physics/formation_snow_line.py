@@ -14,7 +14,7 @@ light and an M dwarf's several times its main-sequence light; an evolved star's 
 blackbody line of that luminosity and `draw_formation_snow_line_au` puts the star's own scatter on it (`formation.draw_snow_line_au`).
 
 The water line (GEN.1678). The luminosity line is the same position at every stellar mass in units of the habitable zone, so a habitable-zone planet drew the same water class round a
-0.2 solar-mass star as round the Sun; the formation papers find the opposite (Mulders 2015 [R3193], Raymond 2007 [R3683]: low-mass stars give dry habitable-zone planets), because a disk's ice line
+0.2 solar-mass star as round the Sun; the formation papers find the opposite ([R3193] [R3193, R3683] [R3683]: low-mass stars give dry habitable-zone planets), because a disk's ice line
 is set by viscous heating and moves with the accretion rate, which falls steeply with the star's mass. `viscous_snow_line_au` is that line (Eq. 2 and 4 of [R3193], `tuning.VISCOUS_DISK_*`);
 `water_snow_line_au` is the line the delivered water of a rocky body (`delivered_water`, the atmosphere recipes b1 to b4) is read against: the star's own drawn line (its scatter kept) moved by the
 ratio of the viscous line to the luminosity line of its initial mass. Everything else (the planet chain, the belts, where a body is icy) still reads the luminosity line.
@@ -25,7 +25,7 @@ from planetgen.physics import birth_luminosity, constants, formation, mass_loss
 from planetgen.util import detmath
 
 LUPUS_LOWEST_MASS_SOL = 0.03
-"""float: The lowest stellar mass, in suns, the accretion-rate law was fitted to ([R3193] Eq. 3: 0.03 to 1.0); a lighter star is read at this mass."""
+"""float: The lowest stellar mass, in suns, the accretion-rate law was fitted to ([R3193: Eq. 3]: 0.03 to 1.0); a lighter star is read at this mass."""
 
 
 def formation_luminosity_sol(initial_mass_sol, fe_h):
@@ -58,7 +58,7 @@ def draw_for_star(star, stream=None):
 
 def viscous_snow_line_au(initial_mass_sol, opacity_cm2_g=None):
     """
-    The viscous-disk snow line, in AU, of a star of this initial mass ([R3193] Eq. 2 with the accretion rate of Eq. 4 at `tuning.VISCOUS_DISK_AGE_MYR`):
+    The viscous-disk snow line, in AU, of a star of this initial mass ([R3193: Eq. 2] with the accretion rate of Eq. 4 at `tuning.VISCOUS_DISK_AGE_MYR`):
     R = 2.1 au (M / Msun)^(1/3) (Mdot / 1e-8)^(4/9) (kappa / 770)^(2/9) (f / 100)^(-2/9) (alpha / 0.01)^(-2/9) (T_ice / 160 K)^(-10/9). Above 1 solar mass the accretion law is taken past
     where it was fitted (Lupus, 0.03 to 1.0), a stand-in extension. `opacity_cm2_g` is `tuning.VISCOUS_DISK_OPACITY_CM2_G` unless given.
     """

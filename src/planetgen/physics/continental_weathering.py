@@ -7,8 +7,8 @@ The carbon balance of a world with land and an ocean: continental silicate weath
 Volcanoes give CO2; two sinks take it back; the air holds the pressure at which they balance (`surface_pressure.balance_root_bar`). This
 module is the balance of a body with land and an ocean that is not sealed (`waterworld_carbon.sink_kind`).
 
-* *Land.* The weathering law of Graham and Pierrehumbert 2020 [R1660: Eqs. 24, 40 to 44, Table 1], the form of Maher and Chamberlain 2014 that
-  adds to the kinetic rate of the Walker law (Walker, Hays and Kasting 1981; Lehmer et al. 2020 [R2628]) the three limits that a rate has
+* *Land.* The weathering law of [R1660] [R1660: Eqs. 24, 40 to 44, Table 1], the form of [R5255] that
+  adds to the kinetic rate of the Walker law ([R2628, R4596] [R2628]) the three limits that a rate has
   on real ground. Per unit of land
 
       w = alpha / { [k_ref exp((T - T_ref) / T_e) (p / p_ref)^beta]^-1 + m A t_s + alpha [q Lambda p^n]^-1 }.
@@ -20,8 +20,8 @@ module is the balance of a body with land and an ocean that is not sealed (`wate
   latent heat allows (Eqs. 41 to 44). On a hot world that limit, not the Clausius-Clapeyron rise, sets the rain, and so the weathering.
 * *Seafloor.* The dissolution of basalt in the pore water of the ocean floor (`waterworld_carbon.seafloor_rate_over_modern`, [R2489]),
   at the modern share of the volcanoes' CO2 (`waterworld_carbon.SEAFLOOR_SHARE_OF_OUTGASSING`, 0.45 / 6.6). Its limit is the supply of
-  fresh crust, which is the spreading term `(q / q_E)^beta` already in that law (Chambers 2020 [R5254]: "limited by the supply of fresh
-  oceanic crust, and proportional to the seafloor spreading rate"; Hoening, Tosi and Spohn 2019 give no further cap).
+  fresh crust, which is the spreading term `(q / q_E)^beta` already in that law ([R5250] [R5254]: "limited by the supply of fresh
+  oceanic crust, and proportional to the seafloor spreading rate"; [R5260] give no further cap).
 * *The balance.* In units of the modern outgassing, with `s` the seafloor share,
 
       (1 - s) (land / land_E) w_rel(p, T) + s r_sea(p, T, q) = (q / q_E)^m,
@@ -44,58 +44,58 @@ import math
 from planetgen.physics import surface_pressure, waterworld_carbon
 from planetgen.physics.mixture_base import bracket
 
-# --- Graham and Pierrehumbert 2020, Table 1 (read) -----------------------------------------------------------------------------------
+# --- [R1660: Table 1] (read) -----------------------------------------------------------------------------------
 
 THERMODYNAMIC_CONSTANT_MOL_M3 = 1.4
 """float: `Lambda`, the dissolved load the runoff holds at one bar of CO2, mol per cubic metre (1.4e-3 mol per litre, Table 1; READ, tier 1)."""
 
 THERMODYNAMIC_EXPONENT = 0.316
-"""float: `n` of the equilibrium concentration `C_eq = Lambda p^n` (Table 1; READ, tier 1)."""
+"""float: `n` of the equilibrium concentration `C_eq = Lambda p^n` ([R1660: Table 1]; read, tier T1)."""
 
 ALPHA = 3.39e5
-"""float: `alpha` of the thermodynamic limit, which includes the clay-precipitation factor (Table 1; READ, tier 1)."""
+"""float: `alpha` of the thermodynamic limit, which includes the clay-precipitation factor ([R1660: Table 1]; read, tier T1)."""
 
 SOIL_AGE_YR = 1.0e5
-"""float: `t_s`, the age of the soil of the supply limit, years (Table 1; READ, tier 1)."""
+"""float: `t_s`, the age of the soil of the supply limit, years ([R1660: Table 1]; read, tier T1)."""
 
 MOLAR_MASS_KG_MOL = 0.27
-"""float: `m`, the molar mass of the dissolving rock, kg per mol (Table 1; READ, tier 1)."""
+"""float: `m`, the molar mass of the dissolving rock, kg per mol ([R1660: Table 1]; read, tier T1)."""
 
 SPECIFIC_AREA_M2_KG = 100.0
-"""float: `A`, the specific surface area of the weathering grains, square metres per kg (Table 1; READ, tier 1)."""
+"""float: `A`, the specific surface area of the weathering grains, square metres per kg ([R1660: Table 1]; read, tier T1)."""
 
 KINETIC_RATE_REF = 8.7e-6
-"""float: `k_eff,ref`, the kinetic rate at the reference temperature and pressure, mol per square metre per year (Table 1; READ, tier 1)."""
+"""float: `k_eff,ref`, the kinetic rate at the reference temperature and pressure, mol per square metre per year ([R1660: Table 1]; read, tier T1)."""
 
 KINETIC_PCO2_EXPONENT = 0.2
-"""float: `beta`, the exponent of the CO2 pressure in the kinetic rate (Table 1; READ, tier 1; the paper finds it and `T_e` hardly matter)."""
+"""float: `beta`, the exponent of the CO2 pressure in the kinetic rate ([R1660: Table 1]; read, tier T1; the paper finds it and `T_e` hardly matter)."""
 
 KINETIC_T_E_K = 11.1
-"""float: `T_e`, the e-folding temperature of the kinetic rate, K (Table 1; READ, tier 1)."""
+"""float: `T_e`, the e-folding temperature of the kinetic rate, K ([R1660: Table 1]; read, tier T1)."""
 
 RUNOFF_SHARE = 0.2
-"""float: `Gamma`, the share of the precipitation that runs off (Table 1; READ, tier 1)."""
+"""float: `Gamma`, the share of the precipitation that runs off ([R1660: Table 1]; read, tier T1)."""
 
 PRECIPITATION_PER_K = 0.03
-"""float: `epsilon`, the rise of precipitation per K (Table 1; READ, tier 1)."""
+"""float: `epsilon`, the rise of precipitation per K ([R1660: Table 1]; read, tier T1)."""
 
 PRECIPITATION_REF_M_YR = 0.99
-"""float: `p_ref`, the precipitation at the reference temperature, metres per year (Table 1; READ, tier 1)."""
+"""float: `p_ref`, the precipitation at the reference temperature, metres per year ([R1660: Table 1]; read, tier T1)."""
 
 REFERENCE_K = 288.0
-"""float: `T_ref` of the paper's Table 1, K."""
+"""float: `T_ref` of the paper's Table 1 [R1660], K."""
 
 REFERENCE_PCO2_BAR = 280.0e-6
-"""float: `pCO2_ref` of the paper's Table 1, bar."""
+"""float: `pCO2_ref` of the paper's Table 1 [R1660], bar."""
 
 LATENT_COEFFICIENT_J_M3 = 1.918e9
-"""float: The latent heat of the energy limit, `L(T) = 1.918e9 (T / (T - 33.91))^2` joules per cubic metre of liquid water (Eq. 44; READ, tier 1)."""
+"""float: The latent heat of the energy limit, `L(T) = 1.918e9 (T / (T - 33.91))^2` joules per cubic metre of liquid water ([R1660: Eq. 44]; read, tier T1)."""
 
 LATENT_OFFSET_K = 33.91
-"""float: The offset of the same fit, K."""
+"""float: The offset of the same fit ([R1660: Eq. 44]), K."""
 
 SECONDS_PER_YEAR = 3.15576e7
-"""float: The Julian year, to turn the energy limit's metres per second into metres per year."""
+"""float: The Julian year (defined: 365.25 days), to turn the energy limit's metres per second into metres per year."""
 
 EARTH_ABSORBED_FLUX_W_M2 = 238.0
 """float: The starlight the Earth's surface absorbs, `S (1 - a) / 4` for 1360 W per square metre and a Bond albedo of 0.3: the reference of the Earth identity."""

@@ -116,7 +116,13 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
         # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
         # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
         factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo_kept, starlight_w_m2)
-        factor = air.greenhouse_factor if factor is None else max(factor, 0.0)
+        if factor is not None and factor < 0.0:
+            # Train 28 gate (test_sweep_atmosphere, system47/Ilrukbatus IV): the haze of a deep envelope keeps the 1 bar level 0.26 percent colder than its albedo alone gives. The greenhouse quantity is not
+            # negative, and clipping it to zero left the stored temperature off the formula on the stored albedo and greenhouse; the balance is kept in the albedo instead
+            albedo_kept = climate_draws.albedo_for_temperature(air.temperature_k, starlight_w_m2)
+            factor = 0.0
+        else:
+            factor = air.greenhouse_factor if factor is None else factor
     return FinalAir(air=air, temperature_k=air.temperature_k, albedo=albedo_kept, greenhouse_factor=factor, pressure_pa=air.pressure_pa,
                     molar_density_kg_mol=air.state.mean_molar_mass_kg_mol, density_kg_m3=air.state.density_kg_m3, scale_height_km=_m_to_km(air.state.scale_height_m),
                     partials_pa=air.partials_pa)

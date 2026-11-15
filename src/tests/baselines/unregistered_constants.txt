@@ -442,10 +442,10 @@ planetgen.physics.activity:HOT_STAR_LOG_N33
 planetgen.physics.activity:MEDIAN_PERCENTILE
 planetgen.physics.activity:SN_MAX_BOOST
 planetgen.physics.activity:SN_RATE_AT_SUN_PER_GYR
-planetgen.physics.activity:SUN_TEMPERATURE_K
 planetgen.physics.activity:SN_SCALE_LENGTH_PC
 planetgen.physics.activity:SUN_GALACTIC_RADIUS_PC
 planetgen.physics.activity:SUN_LOGG
+planetgen.physics.activity:SUN_TEMPERATURE_K
 planetgen.physics.activity:XUV_EDGE_EV
 planetgen.physics.adaptation_traits:GRADES
 planetgen.physics.aerosols:CLOUD_COVER_RANGE
