@@ -74,8 +74,10 @@ def _load():
     for cls in classes:
         if not cls.when:
             raise FitError(f"class {cls.letter} ({cls.kind}) has no conditions of its own")
-        if (cls.kind == planet_classes.GIANT) != (cls.air is None):
-            raise FitError(f"class {cls.letter} ({cls.kind}): the air gate is null for giants and true or false for terrestrial bodies")
+        if cls.kind == planet_classes.GIANT and cls.air is not None:
+            raise FitError(f"class {cls.letter} ({cls.kind}): the air gate is null for giants")
+        if cls.air not in (None, True, False):
+            raise FitError(f"class {cls.letter} ({cls.kind}): the air gate is true, false or null (a class that holds with or without an air, GEN.1737)")
         for condition in cls.when:
             keys = set(condition) - {"quantity", "min", "lt", "equals"}
             if keys or len(condition) != 2:
@@ -197,7 +199,7 @@ def match(cls, found, relax=()):
 
 
 def passes_gates(cls, found):
-    """Whether the body is of the class's kind and, for a terrestrial class, on the right side of the air gate."""
+    """Whether the body is of the class's kind and, for a terrestrial class with an air gate, on the right side of it (a class with a null gate, X, holds with or without an air)."""
     if cls.kind != found["body_type"]:
         return False
     if cls.air is None:

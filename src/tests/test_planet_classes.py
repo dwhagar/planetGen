@@ -378,3 +378,13 @@ def test_class_x_has_no_surface_temperature_band_gen1737():
     for surface_k in (30.0, 100.0, 300.0):
         assert pc.classify(dict(x, surface_temperature_k=surface_k, **{f"band{n}_mean_k": surface_k for n in range(1, pc.BAND_COUNT + 1)})) == "X"
     assert pc.classify(dict(x, surface_liquid_ammonia_wt=5.0)) != "X"          # 5 percent of the liquid is 5.3 percent of the water: under the 10 percent floor
+
+
+def test_class_x_holds_with_or_without_an_air_gen1737():
+    """GEN.1737 (Boss, 1:03 PM EST 2026-11-15): the ocean under the lid does not care what lies above it, so class X has no air gate (a null gate holds on either side of it)."""
+    x_row = [c for c in cf.CLASSES if c.letter == "X" and c.kind == "t"][0]
+    assert x_row.air is None
+    x = CASES["X"]
+    thin = dict(x, atmospheric_pressure_pa=20000.0, **{atmosphere.GAS_FIELD: {"N2": 20000.0}})
+    thick = dict(x, atmospheric_pressure_pa=300000.0, **{atmosphere.GAS_FIELD: {"N2": 300000.0}})
+    assert pc.classify(x) == pc.classify(thin) == pc.classify(thick) == "X"
