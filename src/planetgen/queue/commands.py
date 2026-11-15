@@ -32,6 +32,10 @@ SPLIT_SUGGESTED = "suggested"
 """str: The split flag of a command whose output depends on the cut, and the default: the engine uses the command's suggested split exactly."""
 
 
+ONE_UNIT = ("planetgen.queue.breakpoints", "whole_job")
+"""tuple: The `breaks` of a command whose stage is one unit by nature (OPS.196: it was the `whole` flag): one item and no cut (`breakpoints.whole_job`), so the suggested split is the only split."""
+
+
 @dataclass(frozen=True)
 class CommandSpec:
     """
