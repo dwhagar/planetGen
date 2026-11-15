@@ -67,67 +67,67 @@ short-lived isotope the star's birth gas held (a tracer: its `fraction` is the s
 
 # --- the laws (stand-ins IS1 to IS8) -------------------------------------------------------------------------------------
 PRIMORDIAL_D_H = 2.527e-5
-"""float: The primordial deuterium over hydrogen by number [R5173]. [Stand-in ISO1, tier T1, tweak L0.]"""
+"""float: The primordial deuterium over hydrogen by number [R5173]. [Stand-in 6.236 ISO1, tier T1, tweak L0.]"""
 
 PROTOSOLAR_D_H = 2.1e-5
-"""float: The deuterium over hydrogen of the Sun's birth gas, used only to set `ASTRATION` ([R5176: Sec. 4.2], quoting the Jovian and solar-wind values). [Stand-in ISO2, tier T2, tweak L0.]"""
+"""float: The deuterium over hydrogen of the Sun's birth gas, used only to set `ASTRATION` ([R5176: Sec. 4.2], quoting the Jovian and solar-wind values). [Stand-in 6.236 ISO2, tier T5, tweak L1.]"""
 
 ASTRATION = math.log(PRIMORDIAL_D_H / PROTOSOLAR_D_H)
-"""float: The fall of ln D/H from the primordial value to the Sun's birth gas, at the Sun's metallicity; the fall is taken proportional to the metals, `ASTRATION * 10^[Fe/H]` (stars burn deuterium as they make metals). [Stand-in ISO2, tier T5, tweak L1.]"""
+"""float: The fall of ln D/H from the primordial value to the Sun's birth gas, at the Sun's metallicity; the fall is taken proportional to the metals, `ASTRATION * 10^[Fe/H]` (stars burn deuterium as they make metals). [Stand-in 6.236 ISO2, tier T5, tweak L1.]"""
 
 ICE_REFERENCE_K = 182.0
-"""float: The temperature of the snow line's water, the highest the enrichment of an ice is taken at (a warmer body took its ice from there). [Stand-in ISO3, tier T1, tweak L0.]"""
+"""float: The temperature of the snow line's water, the highest the enrichment of an ice is taken at (a warmer body took its ice from there). [Stand-in 6.236 ISO3, tier T5, tweak L2.]"""
 
 COLD_ICE_K = 30.0
-"""float: The temperature of the cold calibration point, comet 67P's water (the CO2 and CH4 line zone, below which the forward H3+ + HD reaction wins, [R5176]). [Stand-in ISO3, tier T2, tweak L0.]"""
+"""float: The temperature of the cold calibration point, comet 67P's water (the CO2 and CH4 line zone, below which the forward H3+ + HD reaction wins, [R5176]). [Stand-in 6.236 ISO3, tier T5, tweak L2.]"""
 
 FLOOR_ICE_K = 20.0
-"""float: The coldest temperature the law is read at: below it the enrichment would run past the calibration. [Stand-in ISO4, tier T4, tweak L3.]"""
+"""float: The coldest temperature the law is read at: below it the enrichment would run past the calibration. [Stand-in 6.236 ISO4, tier T4, tweak L3.]"""
 
 OCEAN_D_H = 1.56e-4
-"""float: The deuterium over hydrogen of ocean water (VSMOW, [R5176: Sec. 1.2]), the enrichment at `ICE_REFERENCE_K`. [Stand-in ISO3, tier T1, tweak L0.]"""
+"""float: The deuterium over hydrogen of ocean water (VSMOW, [R5176: Sec. 1.2]), the enrichment at `ICE_REFERENCE_K`. [Stand-in 6.236 ISO3, tier T5, tweak L2.]"""
 
 COMET_D_H = 5.3e-4
-"""float: The deuterium over hydrogen of the water of a Jupiter-family comet ((5.3 +- 0.7)e-4, [R0088], quoted in [R5175]), the enrichment at `COLD_ICE_K`. [Stand-in ISO3, tier T1, tweak L0.]"""
+"""float: The deuterium over hydrogen of the water of a Jupiter-family comet ((5.3 +- 0.7)e-4, [R0088], quoted in [R5175]), the enrichment at `COLD_ICE_K`. [Stand-in 6.236 ISO3, tier T5, tweak L2.]"""
 
 D_H_ENRICHMENT_REFERENCE = OCEAN_D_H / PROTOSOLAR_D_H
 D_H_ENRICHMENT_COLD = COMET_D_H / PROTOSOLAR_D_H
 D_H_T0_K = math.log(D_H_ENRICHMENT_COLD / D_H_ENRICHMENT_REFERENCE) / (1.0 / COLD_ICE_K - 1.0 / ICE_REFERENCE_K)
-"""float: The temperature scale of the deuterium enrichment of ice, K (about 44): the law is fitted to the two published points, so it is tuned to published statistics. [Stand-in ISO3, tier T5, tweak L2.]"""
+"""float: The temperature scale of the deuterium enrichment of ice, K (about 44): the law is fitted to the two published points, so it is tuned to published statistics. [Stand-in 6.236 ISO3, tier T5, tweak L2.]"""
 
 D_H_SCATTER_LN = 0.3
-"""float: The log-normal scatter of one body's ice D/H about the law (comets span a factor of about 2 to 3 around their mean, [R5175]). [Stand-in ISO4, tier T4, tweak L3.]"""
+"""float: The log-normal scatter of one body's ice D/H about the law (comets span a factor of about 2 to 3 around their mean, [R5175]). [Stand-in 6.236 ISO4, tier T4, tweak L3.]"""
 
 CARBON_GRADIENT = (6.21, 18.71)
-"""tuple: 12C/13C against galactocentric distance in kpc, `(slope, intercept)` ([R5177: equation 5], fitted to CN, CO and H2CO). [Stand-in ISO5, tier T1, tweak L0.]"""
+"""tuple: 12C/13C against galactocentric distance in kpc, `(slope, intercept)` ([R5177: equation 5], fitted to CN, CO and H2CO). [Stand-in 6.236 ISO5, tier T6, tweak L0.]"""
 
 NITROGEN_GRADIENT = (21.1, 123.8)
-"""tuple: 14N/15N against galactocentric distance in kpc ([R5179], equation 2 of [R5174]). [Stand-in ISO5, tier T1, tweak L0.]"""
+"""tuple: 14N/15N against galactocentric distance in kpc ([R5179], equation 2 of [R5174]). [Stand-in 6.236 ISO5, tier T6, tweak L0.]"""
 
 CARBON_RATIOS = (68.0, 89.0)
-"""tuple: `(local interstellar now, Solar System birth)` 12C/13C ([R5177: Abstract]). The star's age moves the ratio between them. [Stand-in ISO5, tier T1, tweak L0.]"""
+"""tuple: `(local interstellar now, Solar System birth)` 12C/13C ([R5177: Abstract]). The star's age moves the ratio between them. [Stand-in 6.236 ISO5, tier T6, tweak L0.]"""
 
 NITROGEN_RATIOS = (400.0, 441.0)
-"""tuple: `(local interstellar now, protosolar)` 14N/15N ([R5174: Abstract and Sec. 3.3]; the solar wind). [Stand-in ISO5, tier T1, tweak L0.]"""
+"""tuple: `(local interstellar now, protosolar)` 14N/15N ([R5174: Abstract and Sec. 3.3]; the solar wind). [Stand-in 6.236 ISO5, tier T6, tweak L0.]"""
 
 SOLAR_GALACTOCENTRIC_KPC = 7.9
-"""float: The Sun's distance from the Galactic center, kpc [R5177], where the two gradients read the local interstellar ratios. [Stand-in ISO5, tier T1, tweak L0.]"""
+"""float: The Sun's distance from the Galactic center, kpc [R5177], where the two gradients read the local interstellar ratios. [Stand-in 6.236 ISO5, tier T6, tweak L0.]"""
 
 GALACTOCENTRIC_RANGE_KPC = (2.0, 20.0)
-"""tuple: The range the gradients are read in (the data of [R5177] reach from 2 to 12 kpc; the inner and outer Galaxy past it hold no data). [Stand-in ISO4, tier T4, tweak L3.]"""
+"""tuple: The range the gradients are read in (the data of [R5177] reach from 2 to 12 kpc; the inner and outer Galaxy past it hold no data). [Stand-in 6.236 ISO4, tier T4, tweak L3.]"""
 
 NITROGEN_ENRICHMENT_REFERENCE = 441.0 / 274.0
 NITROGEN_ENRICHMENT_COLD = 441.0 / 140.0
-"""float: 15N enrichment of the solids over the protosolar gas at `ICE_REFERENCE_K` (the terrestrial 14N/15N, 274 from the table's IUPAC mix) and at `COLD_ICE_K` (about 140 in the comets, 'very constant', [R5175]). [Stand-in ISO6, tier T2, tweak L0.]"""
+"""float: 15N enrichment of the solids over the protosolar gas at `ICE_REFERENCE_K` (the terrestrial 14N/15N, 274 from the table's IUPAC mix) and at `COLD_ICE_K` (about 140 in the comets, 'very constant', [R5175]). [Stand-in 6.236 ISO6, tier T5, tweak L2.]"""
 
 N_T0_K = math.log(NITROGEN_ENRICHMENT_COLD / NITROGEN_ENRICHMENT_REFERENCE) / (1.0 / COLD_ICE_K - 1.0 / ICE_REFERENCE_K)
-"""float: The temperature scale of the 15N enrichment, K (about 24), fitted to the two points above. [Stand-in ISO6, tier T5, tweak L2.]"""
+"""float: The temperature scale of the 15N enrichment, K (about 24), fitted to the two points above. [Stand-in 6.236 ISO6, tier T5, tweak L2.]"""
 
 ARGON_36_OVER_38 = 5.501
-"""float: The primordial 36Ar/38Ar, the solar wind's ([R5178: Abstract], 5.501 +- 0.005). [Stand-in ISO7, tier T1, tweak L0.]"""
+"""float: The primordial 36Ar/38Ar, the solar wind's ([R5178: Abstract], 5.501 +- 0.005). [Stand-in 6.236 ISO7, tier T1, tweak L0.]"""
 
 ARGON_40_SHARE_MAX = 0.9996
-"""float: The most of an argon inventory that 40Ar can be, leaving the primordial share a gas always holds. [Stand-in ISO8, tier T4, tweak L3.]"""
+"""float: The most of an argon inventory that 40Ar can be, leaving the primordial share a gas always holds. [Stand-in 6.236 ISO8, tier T4, tweak L3.]"""
 
 ARGON_MOLAR_KG = 0.039948
 """float: The molar mass of argon, kg/mol (`elements` for the natural mix; written as the number the column of moles needs)."""
@@ -137,66 +137,66 @@ EXTINCT_ISOTOPES = {"Al-26": ("Al", "Al-27", "Al26"), "Fe-60": ("Fe", "Fe-56", "
 
 ESS_INITIAL_RATIO = {"Mn-53": 7.0e-6, "I-129": 1.28e-4, "Pu-244": 7.0e-3}
 """dict: The ratios the early Solar System held at the formation of its first solids: 53Mn/55Mn (7 +- 1)e-6, 129I/127I (1.28 +- 0.03)e-4, 244Pu/238U (7 +- 1)e-3 ([R2768: Table 2], 2 sigma, statistical only).
-[Stand-in ISO10, tier T1, tweak L0.]"""
+[Stand-in 6.236 ISO10, tier T1, tweak L0.]"""
 
 EXTINCT_MEAN_OVER_ESS = 0.1
 """float: The mean ratio of a short-lived isotope in the gas of a star's galaxy over the early Solar System's, for 53Mn, 129I and 244Pu, which no gamma-ray line measures. The interstellar 26Al/27Al is 3 to 25 times
 under the Solar System's ([R2768: Sec. 3.2]) and the birth-ratio sampling of `birth_radioisotopes` puts the Solar System's value in the upper tail of the draw for a mean a tenth of it; the same tenth is taken
-for the others, whose draw then spreads by the recurrence of the events that make them. [Stand-in ISO11, tier T6, tweak L1.]"""
+for the others, whose draw then spreads by the recurrence of the events that make them. [Stand-in 6.236 ISO11, tier T6, tweak L1.]"""
 
 COMET_ICE_K = COLD_ICE_K
 """float: The temperature a comet's ice formed at, K: comets form at the same distance in units of the star's snow line for every star, so at the temperature the cold calibration point has (comet 67P's, 30 K) whatever
-the star's luminosity. [Stand-in ISO17, tier T6, tweak L1.]"""
+the star's luminosity. [Stand-in 6.236 ISO17, tier T6, tweak L1.]"""
 
 COSMOGENIC_RATE_EARTH = {"H-3": 0.345, "C-14": 1.6}
 """dict: The global mean production of each isotope in the Earth's atmosphere, atoms per cm2 per second, at a moderate solar activity (modulation potential 650 MV): tritium 0.345 ([R5204: Sec. 3, Table 1]; 0.32
 in [R5204] for [R5206]), radiocarbon 1.6 ([R5203: Table 1, quoted]; 2.36e26 atoms a year at 802 MV, about 1.5, [R5203: Sec. 3.2]; 1.6 to 2, [R5205: Sec. 2], quoting [R5207]).
-[Stand-in ISO12 (14C, tier T2, tweak L0) and ISO13 (3H, tier T1, tweak L0).]"""
+[Stand-in 6.236 ISO12 (14C, tier T2, tweak L0) and ISO13 (3H, tier T1, tweak L0).]"""
 
 EARTH_COLUMN_G_CM2 = 1033.0
-"""float: The mass of the Earth's air over a square centimeter at sea level, g/cm2 ([R5203: Eq. 6]). [Stand-in ISO13, tier T1, tweak L0.]"""
+"""float: The mass of the Earth's air over a square centimeter at sea level, g/cm2 ([R5203: Eq. 6]). [Stand-in 6.236 ISO13, tier T1, tweak L0.]"""
 
 ATTENUATION_G_CM2 = 150.0
 """float: The depth of air in which the nucleon cascade of a cosmic ray is mostly absorbed, g/cm2 (the Regener-Pfotzer maximum of tritium lies at about 40 g/cm2, [R5204: Sec. 3], and the cascade is spent
-within a few hundred); a column of mass X catches the share `1 - exp(-X / 150)` of the cascade, over the Earth's. [Stand-in ISO14, tier T5, tweak L0.]"""
+within a few hundred); a column of mass X catches the share `1 - exp(-X / 150)` of the cascade, over the Earth's. [Stand-in 6.236 ISO14, tier T5, tweak L0.]"""
 
 EARTH_TARGETS_PER_G = {"N": 3.22e22, "O": 8.67e21}
-"""dict: Atoms of the two spallation targets in a gram of the Earth's air ([R5204: Eq. 4], kappa_N and kappa_O). [Stand-in ISO13, tier T1, tweak L0.]"""
+"""dict: Atoms of the two spallation targets in a gram of the Earth's air ([R5204: Eq. 4], kappa_N and kappa_O). [Stand-in 6.236 ISO13, tier T1, tweak L0.]"""
 
 EARTH_DIPOLE_A_M2 = 7.8e22
-"""float: The Earth's dipole moment, A m2 ([R5203: Sec. 3.2]). [Stand-in ISO13, tier T1, tweak L0.]"""
+"""float: The Earth's dipole moment, A m2 ([R5203: Sec. 3.2]). [Stand-in 6.236 ISO13, tier T1, tweak L0.]"""
 
 NO_FIELD_FACTOR = 0.72 / 0.345
 """float: How many times the Earth's global production a body with no field gets: the polar caps of the Earth (60 to 90 degrees), where no cutoff stops a particle, over the global mean, for tritium at 650 MV
-([R5204: Table 1], 0.72 and 0.345). [Stand-in ISO15, tier T1, tweak L0.]"""
+([R5204: Table 1], 0.72 and 0.345). [Stand-in 6.236 ISO15, tier T1, tweak L0.]"""
 
 OCEAN_CARBON_OVER_AIR = 54.0
 """float: The carbon of the air and the surface ocean together over that of the air alone, for a body with a surface ocean: the Earth's 41 000 Gt of exchangeable carbon (air, ocean, soil, biosphere) over its 760 Gt
-of air, taken for every ocean world. [Stand-in ISO16, tier T6, tweak L3.]"""
+of air, taken for every ocean world. [Stand-in 6.236 ISO16, tier T6, tweak L3.]"""
 
 COSMOGENIC_RATE_EARTH.update({"Be-10": 0.029, "Al-26": 1280.0 / constants.SECONDS_PER_YEAR})
 """dict: Adds the global mean production in the Earth's air of 10Be, 0.029 atoms/cm2/s (modern dipole, 650 MV; [R5203: Table 1]), and of 26Al, 1280 atoms/cm2/a ([R5215: Table 3], about 4.1e-5 per second, from the
-spallation of argon). The 10Be/26Al production ratio of the air is 2.3e-3 for 26Al over 10Be in the model of [R5215: Table 2]; this rate over the 10Be one is 1.4e-3, the measured atmospheric ratio being 1.9e-3 ([R5215: Sec. 3]). [Stand-in ISO29 (10Be, tier T1, tweak L0) and ISO30 (26Al, tier T2, tweak L0).]"""
+spallation of argon). The 10Be/26Al production ratio of the air is 2.3e-3 for 26Al over 10Be in the model of [R5215: Table 2]; this rate over the 10Be one is 1.4e-3, the measured atmospheric ratio being 1.9e-3 ([R5215: Sec. 3]). [Stand-in 6.236 ISO29 (10Be, tier T1, tweak L0) and ISO30 (26Al, tier T2, tweak L0).]"""
 
 EARTH_TARGETS_PER_G["Ar"] = 1.94e20
-"""float: Atoms of argon in a gram of the Earth's air, the target of 26Al (1.288 percent of the air's mass is argon, 39.948 g/mol). [Stand-in ISO30, tier T2, tweak L0.]"""
+"""float: Atoms of argon in a gram of the Earth's air, the target of 26Al (1.288 percent of the air's mass is argon, 39.948 g/mol). [Stand-in 6.236 ISO30, tier T2, tweak L0.]"""
 
 ROCK_ATTENUATION_G_CM2 = 160.0
-"""float: The attenuation length of the nucleon cascade in rock, g/cm2 (about 160 g/cm2 in the exposure-dating texts, recalled and read on a course text; no registry entry); the same length is the depth of the surface layer whose beryllium and aluminium the isotopes mix into, so the layer's mean concentration is the surface one. [Stand-in ISO31, tier T2, tweak L0.]"""
+"""float: The attenuation length of the nucleon cascade in rock, g/cm2 (about 160 g/cm2 in the exposure-dating texts, recalled and read on a course text; no registry entry); the same length is the depth of the surface layer whose beryllium and aluminium the isotopes mix into, so the layer's mean concentration is the surface one. [Stand-in 6.236 ISO31, tier T2, tweak L0.]"""
 
 LUNAR_BE10_ATOMS_PER_G = 1.05e10
 """float: The 10Be of a surface rock of a body with no air and no field at saturation, atoms per gram: the 9.6 to 11.2 dpm/kg measured in the lunar basalt 74275 ([R5216]; 10 dpm/kg, i.e. 1.05e10 atoms/g at the half-life of
-1.386 Myr). The Moon has no field, so this is the no-air, no-field anchor of the cascade at the surface. [Stand-in ISO32, tier T2, tweak L0.]"""
+1.386 Myr). The Moon has no field, so this is the no-air, no-field anchor of the cascade at the surface. [Stand-in 6.236 ISO32, tier T2, tweak L0.]"""
 
 ROCK_AL26_OVER_BE10_PRODUCTION = 6.75
 """float: How many 26Al atoms a rock surface makes for each 10Be, the production ratio of quartz at the surface of the Earth (6.75, the standard value of the exposure-dating literature, recalled from the
-reviews, not opened). The saturated concentration ratio follows with the half-lives. [Stand-in ISO33, tier T3, tweak L0.]"""
+reviews, not opened). The saturated concentration ratio follows with the half-lives. [Stand-in 6.236 ISO33, tier T3, tweak L0.]"""
 
 REGOLITH_BERYLLIUM_G_G = 1.5e-6
-"""float: The beryllium of the surface rock, grams per gram (the continental crust's 1.9 to 2.8 ppm, a mafic rock's about 1), taken for every rocky body. [Stand-in ISO34, tier T4, tweak L0.]"""
+"""float: The beryllium of the surface rock, grams per gram (the continental crust's 1.9 to 2.8 ppm, a mafic rock's about 1), taken for every rocky body. [Stand-in 6.236 ISO34, tier T4, tweak L0.]"""
 
 DEFAULT_ROCK_AL2O3 = 0.15
-"""float: The Al2O3 mass fraction of the surface rock of a body that stores none (the continental crust's, about 15 percent). [Stand-in ISO34, tier T4, tweak L0.]"""
+"""float: The Al2O3 mass fraction of the surface rock of a body that stores none (the continental crust's, about 15 percent). [Stand-in 6.236 ISO34, tier T4, tweak L0.]"""
 
 
 RADIOACTIVE_PARENTS = {"K": ("K-39", "K-40", "K-41"), "U": ("U-238", "U-235")}
@@ -204,7 +204,7 @@ RADIOACTIVE_PARENTS = {"K": ("K-39", "K-40", "K-41"), "U": ("U-238", "U-235")}
 
 SOLID_ICES = {"ice_co2_mass_fraction": "CO2", "ice_ch4_mass_fraction": "CH4", "ice_nh3_mass_fraction": "NH3", "ice_n2_mass_fraction": "N2", "ice_so2_mass_fraction": "SO2",
               "ice_co_mass_fraction": "CO", "ice_hcn_mass_fraction": "HCN", "ice_other_mass_fraction": "CH2O"}
-"""dict: The ice columns of a body and the formula taken for each (`CH2O` for the organics and the rest, a stand-in for their H, C and O). [Stand-in ISO8, tier T4, tweak L3.]"""
+"""dict: The ice columns of a body and the formula taken for each (`CH2O` for the organics and the rest, a stand-in for their H, C and O). [Stand-in 6.236 ISO8, tier T4, tweak L3.]"""
 
 ROCK_OXIDE_ELEMENTS = {"rock_na2o_fraction": "Na", "rock_k2o_fraction": "K", "rock_tio2_fraction": "Ti", "rock_cr2o3_fraction": "Cr", "rock_mno_fraction": "Mn", "rock_nio_fraction": "Ni",
                        "rock_p2o5_fraction": "P"}
@@ -630,18 +630,18 @@ SMALL_BODY_KINDS = ("belt", "belt_member", "comet", "interstellar_comet", "aster
 """tuple: The kinds of small body `small_body_record` takes (GEN.1487): the belt and its members, a comet, an interstellar comet, an interstellar field and its members."""
 
 ICE_BUDGET_MARGIN_K = 0.1
-"""float: How far below the water line (K) the ice budget of a small body formed at the line is read: water condenses below the line only. [Stand-in ISO19, tier T6, tweak L0.]"""
+"""float: How far below the water line (K) the ice budget of a small body formed at the line is read: water condenses below the line only. [Stand-in 6.236 ISO19, tier T6, tweak L0.]"""
 
 SMALL_BODY_ICE_COLUMNS = {"NH3": "ice_nh3_mass_fraction", "CO2": "ice_co2_mass_fraction", "CH4": "ice_ch4_mass_fraction", "N2": "ice_n2_mass_fraction", "CO": "ice_co_mass_fraction"}
 """dict: The ices of the disk budget (`disk_condensation.masses_percent`) a small body's record follows beside its water, and the column of a planet's ice each one is read into. The ammonium salts, H2S and the noble
-gases that the budget freezes are left out of the elements a small body holds. [Stand-in ISO18, tier T6, tweak L0.]"""
+gases that the budget freezes are left out of the elements a small body holds. [Stand-in 6.236 ISO18, tier T6, tweak L0.]"""
 
 
 def small_body_temperature_k(kind, snow_line_au=None, distance_km=None):
     """
     The temperature the ice of a small body formed at, K: a belt's (and its members') at its distance (`condensate_shares.ICE_CONDENSATION_K` water at the star's snow line, falling as the square root of the distance,
     held inside the ice law's range; the snow line when the belt stores none), a comet's at `COMET_ICE_K`, an interstellar comet's too (a planetesimal thrown out of a disk, as a comet is), an interstellar field's
-    the snow line's. [Stand-in ISO20, tier T6, tweak L0.]
+    the snow line's. [Stand-in 6.236 ISO20, tier T6, tweak L0.]
     """
     if kind in ("comet", "interstellar_comet"):
         return COMET_ICE_K
@@ -652,7 +652,7 @@ def small_body_temperature_k(kind, snow_line_au=None, distance_km=None):
 
 
 def galactic_gas_metallicity(galactic_radius_pc):
-    """The [Fe/H] taken for a small body that has no star (an interstellar comet or field): the gas of the galaxy at the radius it is at (`nebula_composition.gas_gradient_oh`, [O/H] standing for [Fe/H]). [Stand-in ISO20, tier T6, tweak L0.]"""
+    """The [Fe/H] taken for a small body that has no star (an interstellar comet or field): the gas of the galaxy at the radius it is at (`nebula_composition.gas_gradient_oh`, [O/H] standing for [Fe/H]). [Stand-in 6.236 ISO20, tier T6, tweak L0.]"""
     return nebula_composition.gas_gradient_oh(float(galactic_radius_pc))
 
 
@@ -693,10 +693,10 @@ def small_body_record(kind, metallicity_fe_h, age_gy, ice_mass_fraction, distanc
 
 
 SURFACE_D_H = 1.0e-10
-"""float: The deuterium over hydrogen left at the surface of a star that has passed its protostar stage, 1e-10: deuterium burns above about 1e6 K and a convective young star mixes its whole envelope through that, so the surface keeps almost none (the Sun's is below any measure). [Stand-in ISO21, tier T5, tweak L4.]"""
+"""float: The deuterium over hydrogen left at the surface of a star that has passed its protostar stage, 1e-10: deuterium burns above about 1e6 K and a convective young star mixes its whole envelope through that, so the surface keeps almost none (the Sun's is below any measure). [Stand-in 6.236 ISO21, tier T5, tweak L4.]"""
 
 DREDGED_C12_OVER_C13 = 20.0
-"""float: The 12C/13C at the surface of a red giant after the first dredge-up, 20: the CN cycle of the dredged layers turns the 12C there into 13C, and giants of 1 to 3 solar masses are seen at 15 to 30. [Stand-in ISO22, tier T3, tweak L1.]"""
+"""float: The 12C/13C at the surface of a red giant after the first dredge-up, 20: the CN cycle of the dredged layers turns the 12C there into 13C, and giants of 1 to 3 solar masses are seen at 15 to 30. [Stand-in 6.236 ISO22, tier T3, tweak L1.]"""
 
 SURFACE_NATURAL_ONLY = ("other metals",)
 """tuple: The entries of a star's element mass fractions that are not one element and so have no isotopes."""
@@ -734,30 +734,30 @@ def star_surface_record(surface_elements, metallicity_fe_h, age_gy, deuterium_bu
 
 
 MANTLE_DELTA_D = -0.080
-"""float: How far the deuterium over hydrogen of the water in a rocky body's mantle lies from its surface water's, as a fraction: -80 per mil, the mantle's value against seawater [R5214: Sec. 4], as the heavy isotope stays with the water that left. [Stand-in ISO23, tier T2, tweak L0.]"""
+"""float: How far the deuterium over hydrogen of the water in a rocky body's mantle lies from its surface water's, as a fraction: -80 per mil, the mantle's value against seawater [R5214: Sec. 4], as the heavy isotope stays with the water that left. [Stand-in 6.236 ISO23, tier T2, tweak L0.]"""
 
 MANTLE_DELTA_N15 = -0.005
-"""float: How far the 15N/14N of a rocky body's mantle nitrogen lies from its air's, as a fraction: -5 per mil, the MORB source against air ([R5214]; the mantle's estimates run from -5 to +3 per mil, and [R2923] gives -5 to -30 per mil). [Stand-in ISO24, tier T3, tweak L0.]"""
+"""float: How far the 15N/14N of a rocky body's mantle nitrogen lies from its air's, as a fraction: -5 per mil, the MORB source against air ([R5214]; the mantle's estimates run from -5 to +3 per mil, and [R2923] gives -5 to -30 per mil). [Stand-in 6.236 ISO24, tier T3, tweak L0.]"""
 
 MANTLE_DELTA_C13 = 0.003
-"""float: How far the 13C/12C of a rocky body's mantle carbon lies from its air's, as a fraction: the mantle's -5 per mil against the air's -8 per mil is +3 per mil [R5214: Sec. 4]. [Stand-in ISO25, tier T3, tweak L0.]"""
+"""float: How far the 13C/12C of a rocky body's mantle carbon lies from its air's, as a fraction: the mantle's -5 per mil against the air's -8 per mil is +3 per mil [R5214: Sec. 4]. [Stand-in 6.236 ISO25, tier T3, tweak L0.]"""
 
 MANTLE_XE_129_OVER_130 = 7.9
-"""float: The 129Xe/130Xe of the Earth's upper-mantle gas, 7.9 ([R5214], MORB and well gases). [Stand-in ISO26, tier T3, tweak L0.]"""
+"""float: The 129Xe/130Xe of the Earth's upper-mantle gas, 7.9 ([R5214], MORB and well gases). [Stand-in 6.236 ISO26, tier T3, tweak L0.]"""
 
 SOLAR_XE_129_OVER_130 = 6.286
-"""float: The 129Xe/130Xe of the solar gas the radiogenic excess is counted from, 6.286 (the solar value of the lunar-sample work, recalled, not opened). The excess of another body's mantle is the Earth's times the body's birth 129I/127I over the early Solar System's (`ESS_INITIAL_RATIO`), the closure time (40 to 50 Myr, [R2923]) and the iodine over xenon of the mantle being the Earth's. [Stand-in ISO27 (the solar value, tier T4, tweak L0) and ISO28 (the scaling, tier T5, tweak L1).]"""
+"""float: The 129Xe/130Xe of the solar gas the radiogenic excess is counted from, 6.286 (the solar value of the lunar-sample work, recalled, not opened). The excess of another body's mantle is the Earth's times the body's birth 129I/127I over the early Solar System's (`ESS_INITIAL_RATIO`), the closure time (40 to 50 Myr, [R2923]) and the iodine over xenon of the mantle being the Earth's. [Stand-in 6.236 ISO27 (the solar value, tier T4, tweak L0) and ISO28 (the scaling, tier T5, tweak L1).]"""
 
 SOLAR_XE_136_OVER_130 = 1.797
-"""float: The 136Xe/130Xe of the solar gas the fission excess is counted from: the solar wind's 0.2985 over 0.1661 for 136Xe/132Xe and 130Xe/132Xe ([R5219: Table 3]; the ratio is their quotient). [Stand-in ISO35, tier T1, tweak L0.]"""
+"""float: The 136Xe/130Xe of the solar gas the fission excess is counted from: the solar wind's 0.2985 over 0.1661 for 136Xe/132Xe and 130Xe/132Xe ([R5219: Table 3]; the ratio is their quotient). [Stand-in 6.236 ISO35, tier T1, tweak L0.]"""
 
 MANTLE_XE_136_OVER_130 = 2.478
 """float: The 136Xe/130Xe of the Earth's upper-mantle gas: the mean of the two segments of the Southwest Indian Ridge, 2.554 and 2.402 (136Xe/132Xe over 130Xe/132Xe of the sources corrected for air, [R5219: Table 2]). The excess over
-`SOLAR_XE_136_OVER_130` is 0.68. [Stand-in ISO36, tier T2, tweak L0.]"""
+`SOLAR_XE_136_OVER_130` is 0.68. [Stand-in 6.236 ISO36, tier T2, tweak L0.]"""
 
 PU_SHARE_OF_FISSION_XE136 = 0.28
 """float: The share of the mantle's fission 136Xe that 244Pu made (the rest is 238U's): 0.28 (+0.11, -0.10) for the ridge basalts ([R5219: Sec. 4.2]; its other sections give 0.31 and 0.36 by the choice of primordial end member), read from a model
-summary of the paper. [Stand-in ISO37, tier T3, tweak L0.]"""
+summary of the paper. [Stand-in 6.236 ISO37, tier T3, tweak L0.]"""
 
 MANTLE_SHEET_KEYS = tuple(f"isotope_mantle_{short}" for short in ("D/H", "13C/12C", "15N/14N", "129Xe/130Xe", "136Xe/130Xe"))
 """tuple: The keys of the lines `mantle_sheet_rows` gives."""
@@ -768,7 +768,7 @@ def mantle_sheet_rows(rows):
     The derived lines for the mantle of a rocky body (GEN.1490), `[(key, label, text, ratio)]`, from its stored record `rows` (`{"isotope", "fraction", "initial_ratio"}` mappings): the ratios of the water, nitrogen
     and carbon in the mantle, which differ from the body's own by the fractionation of degassing and of the ocean's making (`MANTLE_DELTA_D`, `MANTLE_DELTA_N15`, `MANTLE_DELTA_C13`), and the 129Xe/130Xe of its
     gas, the solar value plus the 129Xe that the decay of 129I made (the Earth's excess times the body's birth ratio of 129I over the early Solar System's), and its 136Xe/130Xe, the solar value plus the Earth's fission excess of which
-    the 244Pu share scales with the body's birth ratio of 244Pu over the early Solar System's and the 238U share stays the Earth's (GEN.1507; the 238U part is the Earth's for every body. [Stand-in ISO38, tier T6, tweak L0.]). Empty for a body with no rock (no Mg in the record).
+    the 244Pu share scales with the body's birth ratio of 244Pu over the early Solar System's and the 238U share stays the Earth's (GEN.1507; the 238U part is the Earth's for every body. [Stand-in 6.236 ISO38, tier T6, tweak L0.]). Empty for a body with no rock (no Mg in the record).
     """
     fractions = {row["isotope"]: row["fraction"] for row in rows or ()}
     if "Mg-24" not in fractions:

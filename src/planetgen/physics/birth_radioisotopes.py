@@ -41,28 +41,28 @@ from planetgen.util.checks import finite_domain
 
 MEAN_LIFE_YR = {"Al26": 1.035e6, "Fe60": 3.78e6, "Mn53": 5.40e6, "I129": 22.6e6, "Pu244": 115.0e6}
 """dict: The mean life of each isotope, years ([R2768: Table 1]: 26Al half-life 0.717 Myr, mean life 1.035; 60Fe 2.62 and 3.78; [R2768: Table 2] 53Mn 3.74 and 5.40, 129I 15.7 and 22.6,
-244Pu 80.0 and 115). [Stand-in BR1, tier T1, tweak L0.]"""
+244Pu 80.0 and 115). [Stand-in 6.38 BR1, tier T1, tweak L0.]"""
 
 ATOMIC_MASS = {"Al26": 26.0, "Al27": 27.0, "Fe60": 60.0, "Fe56": 56.0}
 """dict: Mass numbers used to turn a mass ratio into a number ratio."""
 
 GALAXY_AL26_MASS_SOLAR = 2.0
 """float: The mass of 26Al in the Galaxy, solar masses ([R1110] section 2.4: 1.7 to 3 from the 1809 keV line, with 30 percent from the
-assumed source distribution; [R2689]: 2.0). [Stand-in BR2, tier T1, tweak L0.]"""
+assumed source distribution; [R2689]: 2.0). [Stand-in 6.38 BR2, tier T1, tweak L0.]"""
 
 FE60_AL26_FLUX_RATIO = 0.15
 """float: The gamma-ray line flux ratio 60Fe over 26Al of the Galaxy ([R1110], 60Fe section; the ratio of the yields by number once
-converted). [Stand-in BR2, tier T1, tweak L0.]"""
+converted). [Stand-in 6.38 BR2, tier T1, tweak L0.]"""
 
 GALAXY_STAR_FORMATION_SOLAR_MASSES_PER_YR = 1.65
-"""float: The Galaxy's star formation rate, solar masses a year ([R2680, R2681]: 1.65 +- 0.19). [Stand-in BR3, tier T1, tweak L0.]"""
+"""float: The Galaxy's star formation rate, solar masses a year ([R2680, R2681]: 1.65 +- 0.19). [Stand-in 6.38 BR3, tier T1, tweak L0.]"""
 
 RECURRENCE_RANGE_YR = (5.0e6, 1.0e7)
-"""tuple: The recurrence time between core-collapse additions to a region's gas, years ([R2768], section 3.4: 5 to 10 Myr; 2ND-HAND). A star draws one value log-uniformly. [Stand-in BR4, tier T2, tweak L0.]"""
+"""tuple: The recurrence time between core-collapse additions to a region's gas, years ([R2768], section 3.4: 5 to 10 Myr; 2ND-HAND). A star draws one value log-uniformly. [Stand-in 6.38 BR4, tier T2, tweak L0.]"""
 
 EVENT_YIELD_SIGMA_LN = 1.0
 """float: The log-normal spread of the yield of one addition about the mean yield, the richness of the cluster that made it (tuned so the
-Solar System ratio lies in the upper tail of the distribution; the mean of the factor is held at 1). [Stand-in BR5, tier T6, tweak L2.]"""
+Solar System ratio lies in the upper tail of the distribution; the mean of the factor is held at 1). [Stand-in 6.38 BR5, tier T6, tweak L2.]"""
 
 WINDOW_MEAN_LIVES = 12.0
 """float: How far back the events are summed, in mean lives (a contribution beyond is under 1e-5 of its first value)."""

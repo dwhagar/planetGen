@@ -66,8 +66,8 @@ def test_the_rows_the_wiring_register_names_show_their_item_in_the_list():
     assert unread, "the wiring register names no registry row"
     for key, item in unread.items():
         section, fill_id = key.split(":")
-        line = next(line for line in listed.splitlines() if line.startswith(f"| {fill_id} |"))
-        assert [cell.strip() for cell in line.strip("|").split("|")][-2] == item, key
+        shown = {[cell.strip() for cell in line.strip("|").split("|")][-2] for line in listed.splitlines() if line.startswith(f"| {fill_id} |")}
+        assert item in shown, key  # an id is used by several sections: one of its rows shows the item
     assert builder.UNREAD_COLUMN in listed
 
 

@@ -16,7 +16,7 @@ range where two sources are in question (report `reports/gen1021-comet-species-s
    `ar_over_c`, those of OCS and SO2 with `s_over_c`; all three are 1 for a host of solar composition. `nebular_per_co` gives the nebular amount
    of a species per CO, from the proto-solar abundances (`tuning.STELLAR_SOLAR_LOG_EPS`) and the carbon in CO, a share of 0.52 (the 1.5 per 10^4
    hydrogen of [R3322], `comet_ice_budget.NEBULA_PER_1E4_H`, over the proto-solar 2.9 per 10^4).
-3. **The water.** CO / H2O is the median of the population of comets (row k5: 10^-1.602, `CO_OVER_H2O_MEDIAN`). [Stand-in CK4, tier T3, tweak L2.]
+3. **The water.** CO / H2O is the median of the population of comets (row k5: 10^-1.602, `CO_OVER_H2O_MEDIAN`). [Stand-in 6.59 CK4, tier T3, tweak L2.]
 
 Tests against measurement (never inputs): 67P's own value lies inside every bracket, Hale-Bopp's argon per water and C/2016 R2's N2 per CO lie
 inside, a host with twice the nitrogen per carbon doubles the ends of N2, and the sulfur species never pass the sulfur there is.
@@ -31,7 +31,7 @@ from planetgen import tuning
 from planetgen.physics import comet_ice_budget
 
 CO_OVER_H2O_MEDIAN = 10.0 ** -1.602
-"""float: The median CO / H2O of the comets of the population (row k5, [R3782] database, per-comet medians). [Stand-in CK4, tier T3, tweak L2.]"""
+"""float: The median CO / H2O of the comets of the population (row k5, [R3782] database, per-comet medians). [Stand-in 6.59 CK4, tier T3, tweak L2.]"""
 
 SPECIES = ("N2", "Ar", "OCS", "SO2", "O2", "Kr", "Xe")
 """tuple: The species of row k7 that sit between the comets measured."""
@@ -41,25 +41,25 @@ SPECIES = ("N2", "Ar", "OCS", "SO2", "O2", "Kr", "Xe")
 # ---------------------------------------------------------------------
 
 N2_OVER_CO = (0.0287, 0.09)
-"""tuple: N2 per CO of the two comets with the widest range: 67P (best measurement, Rubin and others 2020, read in the GEN.1021 report) and C/2016 R2 (Q(N2)/Q(CO) about 0.09, [R0109] Anderson and others 2022; 0.06 and 0.08 in [R0836]). [Stand-in CB1, tier T3, tweak L0.]"""
+"""tuple: N2 per CO of the two comets with the widest range: 67P (best measurement, Rubin and others 2020, read in the GEN.1021 report) and C/2016 R2 (Q(N2)/Q(CO) about 0.09, [R0109] Anderson and others 2022; 0.06 and 0.08 in [R0836]). [Stand-in 6.59 CB1, tier T3, tweak L0.]"""
 
 AR_OVER_H2O = (5.8e-6, 8.7e-3)
-"""tuple: Ar per H2O of the two comets: 67P ([R3835] Rubin and others 2019 table) and Hale-Bopp (Ar/O 0.0058 with Q(O) = 1.5 Q(H2O), [R4215] Stern and others 2000; a coma, not a nucleus). [Stand-in CB1.]"""
+"""tuple: Ar per H2O of the two comets: 67P ([R3835] Rubin and others 2019 table) and Hale-Bopp (Ar/O 0.0058 with Q(O) = 1.5 Q(H2O), [R4215] Stern and others 2000; a coma, not a nucleus). [Stand-in 6.59 CB1, tier T3, tweak L0.]"""
 
 OCS_OVER_H2O = (5e-4, 4e-3)
-"""tuple: OCS per H2O, the range of the comets measured (0.05 to 0.40 percent; Table 7 of the 46P paper, A&A 648, A49, no comet named; the 67P value 0.07 percent lies inside). [Stand-in CB1.]"""
+"""tuple: OCS per H2O, the range of the comets measured (0.05 to 0.40 percent; Table 7 of the 46P paper, A&A 648, A49, no comet named; the 67P value 0.07 percent lies inside). [Stand-in 6.59 CB1, tier T3, tweak L0.]"""
 
 SO2_OVER_H2O = (3e-4, 2.3e-3)
-"""tuple: SO2 per H2O, the range of the comets measured (0.03 to 0.23 percent; the same table; the 67P value 0.127 percent lies inside). [Stand-in CB1.]"""
+"""tuple: SO2 per H2O, the range of the comets measured (0.03 to 0.23 percent; the same table; the 67P value 0.127 percent lies inside). [Stand-in 6.59 CB1, tier T3, tweak L0.]"""
 
 O2_OVER_H2O = (3.7e-2 - 1.7e-2, 3.8e-2 + 0.85e-2)
-"""tuple: O2 per H2O from the lower end of Halley's value (3.7 +/- 1.7 percent, [R3836] Rubin and others 2015) to the upper end of 67P's (3.80 +/- 0.85 percent, [R0386] Bieler and others 2015). [Stand-in CB1.]"""
+"""tuple: O2 per H2O from the lower end of Halley's value (3.7 +/- 1.7 percent, [R3836] Rubin and others 2015) to the upper end of 67P's (3.80 +/- 0.85 percent, [R0386] Bieler and others 2015). [Stand-in 6.59 CB1, tier T3, tweak L0.]"""
 
 KR_OVER_AR = 0.089
-"""float: Kr per Ar of 67P ([R3834] Rubin and others 2018, 0.089 +/- 0.021), applied to the brackets of argon: krypton follows argon. Only one comet has measured it. [Stand-in CB2, tier T2, tweak L1.]"""
+"""float: Kr per Ar of 67P ([R3834] Rubin and others 2018, 0.089 +/- 0.021), applied to the brackets of argon: krypton follows argon. Only one comet has measured it. [Stand-in 6.59 CB2, tier T2, tweak L1.]"""
 
 XE_OVER_KR = 0.269
-"""float: Xe per Kr of 67P ([R3834], 0.269 +/- 0.064), applied the same way. [Stand-in CB2.]"""
+"""float: Xe per Kr of 67P ([R3834], 0.269 +/- 0.064), applied the same way. [Stand-in 6.59 CB2, tier T2, tweak L1.]"""
 
 _HOST_RATIO = {"N2": "n_over_c", "Ar": "ar_over_c", "Kr": "ar_over_c", "Xe": "ar_over_c", "OCS": "s_over_c", "SO2": "s_over_c"}
 """dict: Which host ratio over the proto-solar one scales a species' bracket; O2 has none."""

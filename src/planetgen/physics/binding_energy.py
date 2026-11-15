@@ -46,16 +46,16 @@ INFINITE = -1.0
 """float: What a black hole stores for its binding energy: -1, meaning infinite (Boss, 8:45 PM EDT 2026-10-30). Never a real energy, which is always above zero."""
 
 FULLY_CONVECTIVE_MASS_SOLAR = 0.35
-"""float: A star lighter than this is convective throughout (index 3/2); a heavier one has a radiative core (index 3). [Stand-in BE1, tier T2, tweak L0.]"""
+"""float: A star lighter than this is convective throughout (index 3/2); a heavier one has a radiative core (index 3). [Stand-in 6.126 BE1, tier T2, tweak L0.]"""
 
 POLYTROPE_INDEX_GAS_GIANT = 1.0
-"""float: The polytrope index of a gas giant (the one `giant_interior` and the central pressure formula use). [Stand-in BE2, tier T1, tweak L0.]"""
+"""float: The polytrope index of a gas giant (the one `giant_interior` and the central pressure formula use). [Stand-in 6.126 BE2, tier T1, tweak L0.]"""
 
 POLYTROPE_INDEX_CONVECTIVE = 1.5
-"""float: The index of a fully convective star, a brown dwarf and a white dwarf (Lane-Emden n = 3/2). [Stand-in BE3, tier T1, tweak L0.]"""
+"""float: The index of a fully convective star, a brown dwarf and a white dwarf (Lane-Emden n = 3/2). [Stand-in 6.126 BE3, tier T1, tweak L0.]"""
 
 POLYTROPE_INDEX_RADIATIVE = 3.0
-"""float: The index of a star with a radiative core (the Eddington standard model). [Stand-in BE4, tier T2, tweak L1.]"""
+"""float: The index of a star with a radiative core (the Eddington standard model). [Stand-in 6.126 BE4, tier T2, tweak L1.]"""
 
 UNIFORM_FACTOR = 0.6
 """float: The structure factor of a uniform sphere, 3/5."""

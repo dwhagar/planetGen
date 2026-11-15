@@ -27,11 +27,11 @@ from planetgen.util.checks import finite_domain
 
 LIMIT_MASS_SOLAR = 0.07
 """float: The hydrogen-burning limit of the table's solar-metallicity models ([R0254], section 3.3: M = 0.07 solar masses,
-Teff about 2900 K at 1 Myr and 2950 K at 10 Myr). [Stand-in SC1 of GEN.494, tier T1, tweak L0.]"""
+Teff about 2900 K at 1 Myr and 2950 K at 10 Myr). [Stand-in 6.6 SC1 of GEN.494, tier T1, tweak L0.]"""
 
 HOTTEST_K = 2950.0
 """float: The highest temperature the limit mass reaches at any age: 2946 K at 10 Myr on the table, 2950 K as the paper rounds it. The
-young late-M-like brown dwarf row ends here instead of the 2800 K of the rogue-body clip. [Stand-in SC2 of GEN.494, tier T1, tweak L0.]"""
+young late-M-like brown dwarf row ends here instead of the 2800 K of the rogue-body clip. [Stand-in 6.6 SC2 of GEN.494, tier T1, tweak L0.]"""
 
 
 @finite_domain()

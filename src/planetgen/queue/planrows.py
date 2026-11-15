@@ -14,6 +14,10 @@ marks itself done, in one transaction, and everything that wants to know what a 
 * **The run.** A run's rows hang on an `engine_runs` row, made by the first cut and named in the run record's `engine_run` field.
 
 The ledger lives in the control database, found from the database the run's steps name (`wrapper.expected_seconds` reads the same one).
+
+* **A run that says it names no database** (every step has `database: None`: `generate system --output`, which touches none, TEST.769) has no ledger to write to. Its plan is kept in the run's own Redis record, which every process of the run
+  shares, behind the same functions: `record_plan`, `record_cut`, `read_plan`, `ended` and `mark_ended` choose the store once, by `ledgered`, and give the same answers; its units have no row
+  (`record_cut` returns `None` for each), so no attempt of theirs is written (`attempts.begin` takes `None`).
 """
 
 import json
@@ -30,6 +34,25 @@ They are rows of the stage with no item key, as the opening is. The command of t
 OPS.260), else the role's name; `release` is always `release`."""
 
 
+def ledgered(conn, run_id):
+    """
+    Whether the run's plan is rows of the job ledger. It is, unless the run says it touches no database: every step has `database` in its parameters, as `None` (`system --output`). A step with
+    no `database` at all is a run begun by hand or a test, which keeps the ledger on the configured server as it always has. A run that says it names none keeps its plan in its Redis record.
+    """
+    params = [item.get("params") or {} for item in runrecord.read_steps(conn, run_id)]
+    return not (params and all("database" in each and not each["database"] for each in params))
+
+
+def _kept(conn, run_id, field, value=None):
+    """Reads (`value` is `None`) or writes the Redis field `field` of the run's record that holds a ledgerless run's plan."""
+    key = runrecord.run_key(run_id)
+    if value is None:
+        found = conn.hget(key, field)
+        return None if found is None else json.loads(runrecord._s(found))
+    conn.hset(key, field, json.dumps(value))
+    return value
+
+
 def end_rows(kind):
     """`{role: the command of its row}` for the end jobs of a stage of `kind` (`None`: a run whose kind is not known has the roles' own names)."""
     from planetgen.queue import commands
@@ -40,6 +63,9 @@ def _kind_of(conn, run_id, index):
     """The command of stage `index` of the run, from the steps its record holds (`None` for a run begun by hand, which holds none)."""
     key = _stage_key(conn, run_id, index)
     return next((item["kind"] for item in runrecord.read_steps(conn, run_id) if item["key"] == key), None)
+
+AFTER = "after:"
+"""str: What a `needs` entry of a stage's `open` row starts with when it names a stage: `after:<stage key>` is met when that stage's `release` row is done."""
 
 ENGINE_RUN_FIELD = "engine_run"
 """str: The field of the run record that holds the run's `engine_runs` id."""
@@ -62,7 +88,8 @@ def _galaxy_name(conn, run_id):
     for item in runrecord.read_steps(conn, run_id):
         named = (item.get("params") or {}).get("database")
         if named:
-            return named.get("database")
+            from planetgen.db import store
+            return store.MySQLConfig.from_args(named).database
     return None
 
 
@@ -88,6 +115,35 @@ def _stage_key(conn, run_id, index):
     return runrecord._s(runrecord.declared_stages(conn, run_id)[index]["key"])
 
 
+def record_plan(conn, run_id, steps):
+    """
+    Writes the whole run as rows when it starts (OPS.238, the stored plan): one `open` row for each step, waiting, which `needs` the stages it comes after (`after:<stage key>`: the step before it, and
+    the earlier steps that make what it needs, `needs.required_stage_keys`) and `makes` the artifacts its command makes (`needs.makes_of`). The cut of a stage (`record_cut`) later fills the
+    row in and marks it done, so a run's order can be read from the rows before its first stage opens. A plan that was written already is left as it is.
+
+    Args:
+        steps (list[commands.Step]): The run's steps, in order, as `wrapper.run` has them.
+    """
+    from planetgen.queue import needs
+    if not ledgered(conn, run_id):
+        return          # a run with no database keeps no rows; its plan is read from its steps
+    control = control_connection(conn, run_id)
+    try:
+        run = engine_run(conn, run_id, control)
+        jobs = []
+        for index, step in enumerate(steps):
+            earlier = ([steps[index - 1].key] if index else []) + needs.required_stage_keys(steps, index)
+            jobs.append({"stage": step.key, "command": OPEN, "arguments": {"index": index, "kind": step.kind, "label": step.label, "planned": True},
+                         "needs": [AFTER + key for key in dict.fromkeys(earlier)], "makes": list(needs.makes_of(step.kind))})
+        ledger.add_jobs(control, run, jobs)
+        control.commit()
+    except Exception:
+        control.rollback()
+        raise
+    finally:
+        control.close()
+
+
 def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
     """
     Writes the cut of stage `index` as rows, in one transaction, and returns the unit rows' ids in unit order.
@@ -102,6 +158,8 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
     A stage already cut (its `open` row is done) is not cut again: the rows it has are returned, whatever this call was given.
     """
     stage = _stage_key(conn, run_id, index)
+    if not ledgered(conn, run_id):
+        return _cut_kept(conn, run_id, index, kind, units, cost, plan_detail, split)
     control = control_connection(conn, run_id)
     try:
         run = engine_run(conn, run_id, control)
@@ -115,7 +173,8 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
                             + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}
                                for number, (args, unit_cost) in enumerate(units)]
                             + _end_jobs(stage, kind))
-            control.execute("UPDATE engine_jobs SET state = 'done', updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, OPEN))
+            control.execute("UPDATE engine_jobs SET state = 'done', arguments = ?, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''",
+                            (ledger._text({"index": index, "plan": summary}), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
             control.commit()
         except Exception:
             control.rollback()
@@ -123,6 +182,18 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
         return unit_rows(control, run, stage)
     finally:
         control.close()
+
+
+def _cut_kept(conn, run_id, index, kind, units, cost, plan_detail, split):
+    """`record_cut` of a run with no ledger: the plan summary is kept in the run's record, once (a stage already cut is not cut again), and the units have no rows."""
+    field = f"plan:{index}"
+    kept = _kept(conn, run_id, field)
+    if kept is None:
+        kept = {"kind": kind, "units": len(units), "cost": cost, "detail": plan_detail}
+        if split is not None:
+            kept["split"] = split
+        _kept(conn, run_id, field, kept)
+    return [None] * kept["units"]
 
 
 def _end_jobs(stage, kind):
@@ -146,6 +217,11 @@ def read_plan(conn, run_id, index):
     keep = (runrecord.PREFIX, run_id, index)
     if keep in _PLANS:
         return _PLANS[keep]
+    if not ledgered(conn, run_id):
+        kept = _kept(conn, run_id, f"plan:{index}")
+        if kept is not None:
+            _PLANS[keep] = kept
+        return kept
     found = conn.hget(runrecord.run_key(run_id), ENGINE_RUN_FIELD)
     if not found or index >= len(runrecord.declared_stages(conn, run_id)):
         return None
@@ -162,6 +238,8 @@ def read_plan(conn, run_id, index):
 
 def ended(conn, run_id, index):
     """The end jobs of stage `index` that are done (roles of `END_ROLES`, a set): what the end of a stage has got through. Empty for a stage with no rows."""
+    if not ledgered(conn, run_id):
+        return set(_kept(conn, run_id, f"ended:{index}") or ())
     found = conn.hget(runrecord.run_key(run_id), ENGINE_RUN_FIELD)
     if not found or index >= len(runrecord.declared_stages(conn, run_id)):
         return set()
@@ -181,6 +259,9 @@ def mark_ended(conn, run_id, index, role):
     Marks end job `role` (`CONCLUDE`, `FINISH` or `RELEASE`) of stage `index` done (idempotent; it commits). The stage's end rows are made first when its cut did not (a run begun by hand, whose stages nobody cut: the rows the
     cut writes, added the same way, so a cut that comes later finds them).
     """
+    if not ledgered(conn, run_id):
+        _kept(conn, run_id, f"ended:{index}", sorted(set(_kept(conn, run_id, f"ended:{index}") or ()) | {role}))
+        return
     control = control_connection(conn, run_id)
     try:
         run, stage = engine_run(conn, run_id, control), _stage_key(conn, run_id, index)

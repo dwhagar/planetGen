@@ -256,8 +256,7 @@
     <p>The last run, <strong>{{ finish.title }}</strong>, stopped in <strong>{{ finish.stopped_in }}</strong>. It records the
     galaxy and the PlanetGen build it worked on, and this carries it on only while both are still the ones it started
     on. The stages it finished are kept
-    {%- if finish.carried %} ({{ finish.carried|join(", ") }}){% endif %}; the stage that stopped runs again from its start,
-    skipping what it already saved, and so do the stages after it
+    {%- if finish.carried %} ({{ finish.carried|join(", ") }}){% endif %}; the stage that stopped carries on from what the run's records say is done (a finished unit is not done again, a unit that stopped starts after the pieces it finished), and so do the stages after it
     {%- if finish.again|length > 1 %} ({{ finish.again|join(", ") }}){% endif %}. The finished galaxy is the one an
     uninterrupted run makes.</p>
     {%- endif %}

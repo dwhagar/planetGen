@@ -33,6 +33,9 @@ from dataclasses import dataclass
 import numpy as np
 
 from planetgen.physics import activity, constants
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 ORBIT_SAMPLES = 96
 """int: The points in mean anomaly the source's orbit is averaged on (design: the average is smooth, 96 points are exact to 1e-6 for e below 0.9)."""
@@ -203,7 +206,7 @@ def xuv_emitters(host, distance_au):
         star = companion.star
         if getattr(star, "l_xuv_w", None) is None or not getattr(star, "luminosity", None) or not getattr(star, "mass", None):
             continue
-        found.append((star.mass / constants.SOLAR_MASS_TO_KG, star.luminosity, getattr(star, "log_lx_lbol", None),
+        found.append((_kg_to_msun(star.mass), star.luminosity, getattr(star, "log_lx_lbol", None),
                       mean_inverse_square(distance_au, companion.axis_au, companion.eccentricity), star.l_xuv_w))
     return found
 

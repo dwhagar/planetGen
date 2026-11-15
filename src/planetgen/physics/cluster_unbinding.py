@@ -121,13 +121,13 @@ DISK_LIFETIME_MYR = 3.0
 """float: When the planets exist: the end of the disk (`scatter.DISK_LIFETIME_YR`, 3 Myr); the cluster's encounters before then meet a disk, not planets."""
 
 HISTORY_PIECES = 8
-"""int: How many equal pieces the cluster's life is cut into, each held at its mid-point's density and speed (stand-in CU4)."""
+"""int: How many equal pieces the cluster's life is cut into, each held at its mid-point's density and speed (stand-in 6.113 CU4)."""
 
 VIRIAL_OVER_HALF_MASS = 1.30
-"""float: A Plummer sphere's virial radius over its half-mass radius, `16 / (3 pi) / 1.305` (stand-in CU5)."""
+"""float: A Plummer sphere's virial radius over its half-mass radius, `16 / (3 pi) / 1.305` (stand-in 6.113 CU5)."""
 
 UNBINDING_KICK_OVER_CIRCULAR = math.sqrt(2.0) - 1.0
-"""float: The speed a planet unbound by an encounter leaves its star with, over its circular speed there: the impulse that just lifts it to the escape speed `sqrt(2)` times the circular one (stand-in CU6)."""
+"""float: The speed a planet unbound by an encounter leaves its star with, over its circular speed there: the impulse that just lifts it to the escape speed `sqrt(2)` times the circular one (stand-in 6.113 CU6)."""
 
 
 def virial_dispersion_km_s(cluster_mass_msun, half_mass_radius_pc):

@@ -26,7 +26,7 @@ dust of nebulae stay with VIEW.11 and VIEW.8 in 9.1, which can reuse these funct
     correction falls by 7.5 magnitudes a decade of temperature in the limit. The step from the fit's last value is
     `-2.5 log10[(T^4 expm1(x)) / (T0^4 expm1(x0))]` with `x = c2 / (550 nm T)` (7.2 magnitudes a decade from 50,000 K, 7.5
     at a million K). A hot white dwarf, a Wolf-Rayet star or a stripped helium star is faint in V for its
-    luminosity. Stand-in SKP3.
+    luminosity. Stand-in 6.171 SKP3.
 * **Galactic dust** (`galactic_extinction_av`): the smooth dust disk of [R1158],
   `rho(R, z) = rho_sun exp(-(R - R_sun) / h_R) sech^2(z / h_z(R))`, an exponential disk of scale length
   `h_R` = 2.26 kpc, a sech^2 layer whose scale height is 134 pc inside 4.4 kpc and rises 14.8 pc per kpc beyond (188 pc at

@@ -39,13 +39,13 @@ _kg_to_msun = units.converter("kg", "Msun")
 _mearth_to_kg = units.converter("Mearth", "kg")
 
 GRAIN_DENSITY_KG_M3 = 2700.0
-"""float: The planetesimals' bulk density in Wyatt et al.'s model (their section 2.3, the nominal 2700 kg/m^3). [Stand-in BM1, tier T1, tweak L0.]"""
+"""float: The planetesimals' bulk density in Wyatt et al.'s model (their section 2.3, the nominal 2700 kg/m^3). [Stand-in 6.43 BM1, tier T1, tweak L0.]"""
 
 STRENGTH_FLOOR_J_PER_KG = 200.0
-"""float: The disruption threshold of the km-size planetesimals Wyatt et al. take as nominal (their Fig. 2), a floor under the gravity-bound threshold. [Stand-in BM1, tier T1, tweak L0.]"""
+"""float: The disruption threshold of the km-size planetesimals Wyatt et al. take as nominal (their Fig. 2), a floor under the gravity-bound threshold. [Stand-in 6.43 BM1, tier T1, tweak L0.]"""
 
 DENSE_FACTOR = 3.0
-"""float: A belt with this many times the reference mass per area is called dense and one with its inverse sparse; between them it is typical. [Stand-in BM2, tier T9, tweak L4.]"""
+"""float: A belt with this many times the reference mass per area is called dense and one with its inverse sparse; between them it is typical. [Stand-in 6.43 BM2, tier T9, tweak L4.]"""
 
 _Q = 11.0 / 6.0
 _SQRT_COEFFICIENT = (12.0 * _Q - 20.0) / (18.0 - 9.0 * _Q)     # 2 / 1.5 for the size law q = 11/6

@@ -349,8 +349,8 @@ def run_system(args):
         log.error(f"{conflict[:1].upper()}{conflict[1:]}")
         raise SystemExit(1)
 
-    mysql_config = store.mysql_config_from_args(args)
-    args.database = wrapper.database_args(mysql_config)
+    # With `--output` the run names no database: it touches none, and its plan is kept in its Redis record (`planrows.ledgered`).
+    args.database = None if args.output else wrapper.database_args(store.mysql_config_from_args(args))
     args.run_seed = draw.getrandbits(128)
     follower = SystemFollower(args)
     try:
@@ -378,6 +378,7 @@ def run_system(args):
             log.normal(f"Wrote system '{result['name']}' to {args.output} (not saved to the database).")
         return
     run_common.RUN_COUNTS["systems"] += 1
+    mysql_config = store.mysql_config_from_args(args)
     log.normal(f"Saved system '{result['name']}' to the database (star_system_id={result['star_system_id']}, "
                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 

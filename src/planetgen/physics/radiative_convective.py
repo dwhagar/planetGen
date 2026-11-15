@@ -412,7 +412,7 @@ class Column:
         return depth, water
 
     def cloud_share(self, surface_temperature):
-        """The share of the clear-sky outgoing flux the cloud keeps in (stand-in IR12): `CLOUD_LONGWAVE_SHARE` at the humidity of the Earth, in proportion to the
+        """The share of the clear-sky outgoing flux the cloud keeps in (stand-in 6.6b IR12): `CLOUD_LONGWAVE_SHARE` at the humidity of the Earth, in proportion to the
         surface humidity, nil where the air holds no water vapor (and nil in a `clear_sky` column, the air of the published runaway limits)."""
         if self.water_surface <= 0.0 or self.clear_sky:
             return 0.0
@@ -653,7 +653,7 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
             cloud base temperature and its top.
         saturated (bool): Hold the relative humidity at the surface's value up the whole troposphere (to the cold trap) instead of Manabe and
             Wetherald's, which falls to nothing aloft: the saturated air the published runaway limits are worked for (Simpson's limit as given in [R1608], Nakajima and
-            others 1992, Kasting's work [R2275], Goldblatt and others 2013 [R1607], Kopparapu and others 2013 [R2447]). Stand-in IR17.
+            others 1992, Kasting's work [R2275], Goldblatt and others 2013 [R1607], Kopparapu and others 2013 [R2447]). Stand-in 6.6b IR17.
         clear_sky (bool): Leave out the longwave effect of the cloud (`CLOUD_LONGWAVE_SHARE`, IR12): the clear-sky outgoing flux those limits are.
 
     Returns:

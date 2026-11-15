@@ -34,22 +34,22 @@ from planetgen.physics.constants import EARTH_MASS_TO_KG, G
 JUPITER_MASS_KG = moon_composition.JUPITER_MASS_KG
 
 PLANET_MOON_MIN_MASS_KG = 0.1 * EARTH_MASS_TO_KG
-"""float: The lightest moon that counts as a moon of planet size: a tenth of an Earth mass (Mars is 0.107). [Stand-in PSM1, tier "from needed output", tweak L0.]"""
+"""float: The lightest moon that counts as a moon of planet size: a tenth of an Earth mass (Mars is 0.107). [Stand-in 6.276 PSM1, tier T9, tweak L0.]"""
 
 DISK_TOTAL_RATIO_MAX = moon_composition.total_moon_mass_ratio(moon_composition.ALPHA_OVER_F[1])
-"""float: The most the moons of one circumplanetary disk can hold of their parent: Canup and Ward's total at the top of the alpha/f range, 6.4e-4 ([R0643: Eq. 4.15]). [Stand-in PSM2, tier T1, tweak L0.]"""
+"""float: The most the moons of one circumplanetary disk can hold of their parent: Canup and Ward's total at the top of the alpha/f range, 6.4e-4 ([R0643: Eq. 4.15]). [Stand-in 6.276 PSM2, tier T1, tweak L0.]"""
 
 CAPTURE_CHANCE = 1.0 / 70.0
 """float: The share of giants that hold a moon of planet size from exchange capture: one candidate, Kepler-1708 b-i, in the 70 cool giants of the survey [R2365]. A candidate, not a confirmed moon, and
-the survey found no more, so this is a loose upper figure. [Stand-in PSM3, tier "marginal unverified", tweak L2.]"""
+the survey found no more, so this is a loose upper figure. [Stand-in 6.276 PSM3, tier T3, tweak L2.]"""
 
 EXCHANGE_ENCOUNTER_HILL_FRACTION = 19.1 / 261.0
 """float: The closest approach of the binary to the parent (`b` of Eq. 1 to 3 of [R5229]) in the parent's Hill radius: the 19.1 Jupiter radii of the worked case of Kepler-1625 b (10 Jupiter masses at 0.87 au round 1.079 solar masses, a Hill
-radius of 261 Jupiter radii). One encounter distance for every parent, since the paper gives one case. [Stand-in PSM4, tier "educated guess from physics", tweak L1, replaces the L3 cap `EXCHANGE_MAX_RATIO` of GEN.1157.]"""
+radius of 261 Jupiter radii). One encounter distance for every parent, since the paper gives one case. [Stand-in 6.276 PSM4, tier T6, tweak L1, replaces the L3 cap `EXCHANGE_MAX_RATIO` of GEN.1157.]"""
 
 EXCHANGE_V_INFINITY_FRACTION = 1.0
 """float: The speed of the binary relative to the parent at infinity (`v_inf` of Eq. 2 of [R5229]) in the parent's speed round its star: [R5229] tests 1 to 30 km/s for Kepler-1625 b, 30 km/s being its Keplerian speed, the hardest case
-(a faster encounter needs a heavier partner), so the bound it gives is the careful end. [Stand-in PSM5, tier "educated guess from physics", tweak L0.]"""
+(a faster encounter needs a heavier partner), so the bound it gives is the careful end. [Stand-in 6.276 PSM5, tier T6, tweak L0.]"""
 
 APOAPSIS_HILL_FRACTION = 0.5
 """float: The widest apoapsis a captured moon keeps, in the parent's Hill radius: [R5229] (Eq. 3) takes a stable orbit as one whose apoapsis is under half the Hill radius, the same share `moon_orbit_bounds_km` gives the moons. [Derived, tier T3.]"""

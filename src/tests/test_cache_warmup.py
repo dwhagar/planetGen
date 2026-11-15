@@ -15,6 +15,7 @@ import time
 import types
 import uuid
 
+import pymysql
 import pytest
 
 from planetgen.admin import maintenance
@@ -32,6 +33,7 @@ from planetgen.queue import allowlist, commands, redisclient, redisqueue, runrec
 from planetgen.web import warmup
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient, tilecache
+from tests import conftest, dbpool
 from tests.publicids import pid
 from tests.test_api import _place_sector, seeded_sector  # noqa: F401 -- the fixture
 
@@ -256,7 +258,7 @@ def test_an_object_family_is_cut_into_slices_that_warm_every_object_once_and_non
     assert sum(result["warmed"] for result in results) == sum(args["count"] for args in slices)
     assert sum(result["left_out"] for result in results) == 0
     spec = commands.spec(kind)
-    assert not spec.whole and 0 < spec.unit_seconds <= 300
+    assert not spec.one_unit and 0 < spec.unit_seconds <= 300
     assert spec.unit_seconds >= warmup.OBJECT_SECONDS * 250      # the declared longest is for the real slice size
 
 
@@ -821,8 +823,19 @@ def state_file(tmp_path, monkeypatch):
     return path
 
 
+@pytest.fixture(scope="module", autouse=False)
+def named_x():
+    """A unit takes its attempt in the galaxy (OPS.219, `attempts.begin`), so the database "x" of the warm-up tests is a real one with the schema, empty (TEST.771)."""
+    server = conftest._test_server_kwargs()
+    with pymysql.connect(**server) as admin:
+        admin.cursor().execute("CREATE DATABASE IF NOT EXISTS `x`")
+    store.get_connection(store.MySQLConfig(database="x", **server)).close()
+    yield
+    dbpool.drop_database(server, "x")
+
+
 @pytest.fixture
-def script(monkeypatch, redis_server):
+def script(monkeypatch, redis_server, named_x):
     """`planetgen warm` with the site's database named and the families that succeed or fail as told."""
     class Plan:
         failing = {}

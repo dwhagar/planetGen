@@ -30,13 +30,13 @@ from planetgen.physics import belt_ledger, belt_mass, constants, field_mass, fie
 from planetgen.util import draw
 
 BELT_LIMITS_AU = (0.6 * RING_RADIUS_AU, 1.4 * RING_RADIUS_AU)
-"""tuple: The stretch the belt a progenitor kept lies in, AU: 30 to 70 about the ring (`asteroid_field.RING_RADIUS_AU`, the design's 50 AU belt of an A to B star; the width of a Kuiper-type belt). [Stand-in HF1, tier T6, tweak level L1.]"""
+"""tuple: The stretch the belt a progenitor kept lies in, AU: 30 to 70 about the ring (`asteroid_field.RING_RADIUS_AU`, the design's 50 AU belt of an A to B star; the width of a Kuiper-type belt). [Stand-in 6.202 HF1, tier T6, tweak L1.]"""
 SHAPE = "annulus"
 """str: What a hosted field was made as: a ring at the radius of the progenitor's belt (`BELT_LIMITS_AU` middle)."""
 ORIGIN = "unbound belt"
 """str: What a hosted field's origin is: the belt a supernova's progenitor kept, unbound by the mass the explosion removed."""
 NEUTRON_STAR_SHARE_OF_CORES = 1.0 - tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE
-"""float: The share of the cores of core-collapse remnants that are neutron stars, for a remnant that shows no core (the share of the visible ones: `tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE`). [Stand-in HF2, tier T9, tweak level L1.]"""
+"""float: The share of the cores of core-collapse remnants that are neutron stars, for a remnant that shows no core (the share of the visible ones: `tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE`). [Stand-in 6.202 HF2, tier T9, tweak L1.]"""
 
 HostedField = collections.namedtuple("HostedField", ("field", "mass", "speed_ms", "belt_radius_m"))
 """namedtuple: A hosted field: the `AsteroidField`, its `field_mass.FieldMass`, the speed the belt left at and the radius it started from."""

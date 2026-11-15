@@ -589,7 +589,7 @@ one 7.5 observer cell 2,500 pc from the center, one worker: 1,826 s against 398 
 SKY_PARTS = 16
 """int: How many units the sky draw of a backfill stage is cut into (OPS.253), whatever the worker count (the plan of a stage is the same at any): each draws its share of the rows of every sphere
 (`sky_charting.chart_part`). More shares than workers, so the workers that finish early take another, and few enough that the walk each makes of a sphere's rows (every share looks at them all) stays small
-beside the draw."""
+beside the draw. (a setting of the run, defined by the work and the log it writes, not by physics)"""
 
 
 def _sky_units(params, centers):
@@ -1622,8 +1622,8 @@ def _sector_args_json(args):
 
 def _sector_args_of(unit_args):
     """The namespace a unit generates with: the run's arguments and the database the unit names, the password
-    from this process's settings (`store.MySQLConfig`)."""
-    named = unit_args["database"]
+    from this process's settings (`store.MySQLConfig`). A unit that names none (`system --output`, which touches no database) leaves the connection fields unset."""
+    named = unit_args["database"] or {"host": None, "port": None, "user": None, "database": None}
     return argparse.Namespace(**unit_args["args"], mysql_host=named["host"], mysql_port=named["port"],
                               mysql_user=named["user"], mysql_password=None, mysql_database=named["database"])
 
@@ -1788,8 +1788,6 @@ def expand_generate_sectors(params):
     for start in range(0, count, size):
         chunk = items[3 * start:3 * (start + size)]
         unit = {"database": params["database"], "args": params["args"], "edge_pc": params["edge_pc"], "items": chunk}
-        if params.get("again"):
-            unit["again"] = True
         if suffixes:
             unit["suffixes"] = suffixes[start:start + size]
         weights = None if weights_of is None else weights_of[start:start + size]
@@ -1865,7 +1863,7 @@ def generate_sectors_gather(unit_args, results, ctx):
 
 
 SECTOR_TIMING_LINES_MAX = 2000
-"""int: A stage of this many sectors or fewer says each sector's time on its own line in the run log (PERF.270); a bigger one keeps the line in the debug log, as its ticker carries the progress."""
+"""int: A stage of this many sectors or fewer says each sector's time on its own line in the run log (PERF.270); a bigger one keeps the line in the debug log, as its ticker carries the progress. (a setting of the run, defined by the work and the log it writes, not by physics)"""
 
 
 def timing_line(saved, address):

@@ -1,19 +1,19 @@
 {
- "version": 1,
+ "version": 2,
  "title": "The life gas ledger",
- "description": "What each life class puts into the air and takes out of it, and how much (GEN.891, GEN.857, GEN.858, GEN.859; docs/design/habitability/life-classes.md sections 4 and 6; research: reports/non-oxygen-life-byproducts-2026-10-28.md). Rows are keyed by life class number. Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it. The methane flux of a class is its fuel supply (a share of Earth's, physics/life_supply.py) times the area over Earth's times the flux Earth's supply would give; the air holds the flux times the methane's lifetime, up to a cap, and the carbon comes from the air's own carbon dioxide.",
+ "description": "What each life class puts into the air and takes out of it, and how much (GEN.891, GEN.857, GEN.858, GEN.859; docs/design/habitability/life-classes.md sections 4 and 6; research: reports/non-oxygen-life-byproducts-2026-10-28.md). Rows are keyed by life class number. Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it. The methane flux of a class is its fuel supply (a share of Earth's, physics/life_supply.py) times the area over Earth's times the flux Earth's supply would give; the air holds the flux times the methane's lifetime, up to a cap, and the carbon comes from the air's own carbon dioxide. Every class variant also lists its balanced reactions under `reactions` (GEN.1743; research reports/ledger-rates-gen1742-2026-11-15.md): what it takes and gives off, the energy it runs on, what limits its flux and whether it changes the air; a reaction must balance every element and the charge (species are written with their charge after a caret, `SO4^2-`).",
  "numbers": {
   "earth_donor_methane_tmol_yr": {
    "value": 10.0,
    "tier": "T3",
    "tweak": "L2",
-   "basis": "The methane, Tmol a year, that the anoxygenic communities of an Earth-sized world give when its donor supply is Earth's: photoferrotrophs on 80 Tmol of Fe2+ a year fix 20 Tmol of carbon and the food web returns 0.5 methane per carbon, 10 Tmol ([R3394, R3395], read; 0.37e11 molecules/cm2/s), inside the 9 to 67 Tmol of [R2336] (read)"
+   "basis": "The methane, Tmol a year, that the anoxygenic communities of an Earth-sized world give when its donor supply is Earth's: photoferrotrophs on 80 Tmol of Fe2+ a year fix 20 Tmol of carbon and the food web returns 0.5 methane per carbon, 10 Tmol ([R3393], read; 0.37e11 molecules/cm2/s), inside the 9 to 67 Tmol of [R2336] (read)"
   },
   "earth_h2_tmol_yr": {
    "value": 2.3,
    "tier": "T3",
    "tweak": "L2",
-   "basis": "The hydrogen, Tmol a year, an Earth-sized world's hydrogenotrophs have when its hydrogen supply is Earth's: Earth's outgassing of 1.7 to 2.9 Tmol a year ([R3394, R3395], read); four hydrogen make one methane, so the methane is a quarter of it"
+   "basis": "The hydrogen, Tmol a year, an Earth-sized world's hydrogenotrophs have when its hydrogen supply is Earth's: Earth's outgassing of 1.7 to 2.9 Tmol a year ([R3393], read); four hydrogen make one methane, so the methane is a quarter of it"
   },
   "h2_per_methane": {
    "value": 4.0,
@@ -80,6 +80,54 @@
    "tier": "T1",
    "tweak": "L0",
    "basis": "C2H2 + 3 H2 -> 2 CH4: the cold hydrogenators of Class 7 make two methane from the three hydrogen they take (stoichiometry); the carbon comes from the haze acetylene, not from the air's gases, which the air does not store"
+  },
+  "earth_nitrogen_fixed_tmol_yr": {
+   "value": 15.7,
+   "tier": "T2",
+   "tweak": "L0",
+   "basis": "Earth's natural nitrogen fixation, Tmol N a year: about 220 Tg N (100 on land, 120 in the sea, Galloway as summarised in Steffen et al., read second-hand) over 14 g/mol (reports/ledger-rates-gen1742-2026-11-15.md section 2.1)"
+  },
+  "n2o_per_nitrogen_fixed": {
+   "value": 0.044,
+   "tier": "T6",
+   "tweak": "L0",
+   "basis": "The nitrous oxide nitrogen that leaks from nitrifiers and denitrifiers per nitrogen fixed: natural N2O 17.0 Tg N a year less 7.3 from people ([R5287], read) over about 220 Tg N fixed; two read numbers carried to other worlds by inference (GEN.1742 section 2.4)"
+  },
+  "n2o_lifetime_yr": {
+   "value": 109.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "basis": "The life of nitrous oxide in the air, years (IPCC AR6, recalled; photolysis sets it with or without oxygen)"
+  },
+  "oxic_methane_lifetime_yr": {
+   "value": 8.4,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The life of methane in an oxygenated air, years: IPCC TAR WG1 Table 4.2 note (read), 1,745 ppb, 2.78 Tg/ppb and a loss of 576 Tg a year"
+  },
+  "soil_methane_sink_share": {
+   "value": 0.052,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The share of an oxygenated air's methane loss that soil methane eaters take: 30 of 576 Tg a year (IPCC TAR WG1 Table 4.2, read); the rest is hydroxyl (506) and the stratosphere (40)"
+  },
+  "seafloor_methane_eaten_share": {
+   "value": 0.9,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The share of the methane made under the seafloor that methane eaters take before it reaches the water above, once the sea holds sulfate: more than 90 percent ([R5286], read); the sea gives under 2 percent of the world's methane to the air"
+  },
+  "co_deposition_life_cm_s": {
+   "value": 0.00012,
+   "tier": "T2",
+   "tweak": "L0",
+   "basis": "The deposition velocity of carbon monoxide into a sea with CO-eating life, cm/s ([R2336] as quoted and used in [R4729], read)"
+  },
+  "co_deposition_abiotic_cm_s": {
+   "value": 1e-08,
+   "tier": "T2",
+   "tweak": "L0",
+   "basis": "The deposition velocity of carbon monoxide into a sea with no CO-eating life, cm/s ([R2336] as quoted in [R4729], read)"
   }
  },
  "classes": {
@@ -101,7 +149,7 @@
    "note": "Carbon is fixed with H2, Fe2+ or H2S for electrons; the food web makes the methane, donor-limited at 1e-4 to 1e-2 of today's biosphere. Never any oxygen.",
    "tier": "T3",
    "tweak": "L2",
-   "basis": "The byproducts report section 4 ([R2336]; [R3394, R3395]; [R0693])"
+   "basis": "The byproducts report section 4 [R0693, R2336, R3393]"
   },
   "3": {
    "name": "Hydrogen eaters",
@@ -181,6 +229,447 @@
    "products": {
     "H2S": {"gas": "SO2", "per": "sulfur_dioxide_per_h2s"}
    }
+  }
+ },
+ "reactions": {
+  "oxygenic_photosynthesis": {
+   "name": "Oxygenic photosynthesis",
+   "classes": ["1a", "1b", "1c"],
+   "takes": {"CO2": 1, "H2O": 1},
+   "gives": {"CH2O": 1, "O2": 1},
+   "energy": "light",
+   "flux": "burial",
+   "air": true,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Water split by light, carbon dioxide made into organic carbon; only the carbon buried leaves oxygen and takes carbon dioxide from the air for good (physics/biogenic_oxygen.py, GEN.855); stoichiometry: the balanced equation fixes every ratio"
+  },
+  "aerobic_respiration": {
+   "name": "Aerobic respiration",
+   "classes": ["1a", "1b", "1c", "4a"],
+   "takes": {"CH2O": 1, "O2": 1},
+   "gives": {"CO2": 1, "H2O": 1},
+   "energy": "chemical",
+   "flux": "recycled",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The eaters of the producers' carbon return what the producers made; the net of the two is the burial, so the air sees only the burial row; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "food_web_methane": {
+   "name": "Fermentation to methane",
+   "classes": ["1a", "1b", "1c", "2"],
+   "takes": {"CH2O": 2},
+   "gives": {"CH4": 1, "CO2": 1},
+   "energy": "chemical",
+   "flux": "food",
+   "air": true,
+   "uses": ["methane_per_buried_carbon"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "2 CH2O -> CH4 + CO2: organic carbon fermented with no oxidant left ends half as methane (`methane_per_buried_carbon`); the classes' methane rows give the flux; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "nitrogen_fixation": {
+   "name": "Nitrogen fixation",
+   "classes": ["1a", "1b", "1c", "2"],
+   "takes": {"N2": 2, "CH2O": 3, "H2O": 3},
+   "gives": {"NH3": 4, "CO2": 3},
+   "energy": "chemical",
+   "flux": "food",
+   "air": false,
+   "uses": ["earth_nitrogen_fixed_tmol_yr"],
+   "tier": "T2",
+   "tweak": "L0",
+   "basis": "Nitrogenase, with the electrons of organic carbon; Earth's natural fixation about 220 Tg N a year (`earth_nitrogen_fixed_tmol_yr`); denitrification returns it, so the nitrogen of the air changes only by the organic nitrogen buried (reports/ledger-rates-gen1742-2026-11-15.md section 2.1); stoichiometry: the balanced equation fixes every ratio"
+  },
+  "photoferrotrophy": {
+   "name": "Iron-using anoxygenic photosynthesis",
+   "classes": ["2"],
+   "takes": {"Fe^2+": 4, "CO2": 1, "H2O": 11},
+   "gives": {"CH2O": 1, "Fe(OH)3": 4, "H^+": 8},
+   "energy": "light",
+   "flux": "donor_supply",
+   "air": true,
+   "uses": ["earth_donor_methane_tmol_yr"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "4 Fe2+ + CO2 + 11 H2O -> CH2O + 4 Fe(OH)3 + 8 H+ ([R3393], read); the donor supply is Earth's 80 Tmol of Fe2+ a year [R3393]. The Fe(III) buried is oxidant that is not oxygen; its buried share has no source yet, so the air history does not use it (GEN.1742 section 2.2)"
+  },
+  "sulfide_to_sulfur": {
+   "name": "Sulfide-using anoxygenic photosynthesis (to sulfur)",
+   "classes": ["2"],
+   "takes": {"H2S": 2, "CO2": 1},
+   "gives": {"CH2O": 1, "S": 2, "H2O": 1},
+   "energy": "light",
+   "flux": "air_stock",
+   "air": true,
+   "uses": ["h2s_max_share"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Green and purple sulfur bacteria; draws the air's hydrogen sulfide to its cap (`h2s_max_share`); stoichiometry: the balanced equation fixes every ratio"
+  },
+  "sulfide_to_sulfate": {
+   "name": "Sulfide-using anoxygenic photosynthesis (to sulfate)",
+   "classes": ["2"],
+   "takes": {"H2S": 1, "CO2": 2, "H2O": 2},
+   "gives": {"CH2O": 2, "SO4^2-": 1, "H^+": 2},
+   "energy": "light",
+   "flux": "air_stock",
+   "air": true,
+   "uses": ["h2s_max_share"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The same eaters taking the sulfide on to sulfate; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "hydrogen_photosynthesis": {
+   "name": "Hydrogen-using anoxygenic photosynthesis",
+   "classes": ["2"],
+   "takes": {"H2": 2, "CO2": 1},
+   "gives": {"CH2O": 1, "H2O": 1},
+   "energy": "light",
+   "flux": "air_stock",
+   "air": true,
+   "uses": ["hydrogen_max_share"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Draws the air's hydrogen to its cap (`hydrogen_max_share`, [R0693]); stoichiometry: the balanced equation fixes every ratio"
+  },
+  "hydrogenotrophic_methanogenesis": {
+   "name": "Methane from hydrogen",
+   "classes": ["3a", "3b", "6", "8"],
+   "takes": {"CO2": 1, "H2": 4},
+   "gives": {"CH4": 1, "H2O": 2},
+   "energy": "chemical",
+   "flux": "h2_supply",
+   "air": true,
+   "uses": ["h2_per_methane", "earth_h2_tmol_yr", "hydrogen_max_share"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Methanogens run to about 30 kJ/mol and turn more than 95 percent of the hydrogen that reaches them into methane ([R4729], read); Earth's hydrogen supply 2.3 Tmol a year (`earth_h2_tmol_yr`); stoichiometry: the balanced equation fixes every ratio"
+  },
+  "hydrogen_acetogenesis": {
+   "name": "Acetate from hydrogen",
+   "classes": ["3a", "3b"],
+   "takes": {"CO2": 2, "H2": 4},
+   "gives": {"CH3COOH": 1, "H2O": 2},
+   "energy": "chemical",
+   "flux": "h2_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Acetogens share the hydrogen supply with the methanogens; the acetate is split to methane (acetoclastic_methanogenesis), so the net is the methane row's; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "acetoclastic_methanogenesis": {
+   "name": "Methane from acetate",
+   "classes": ["3a", "3b"],
+   "takes": {"CH3COOH": 1},
+   "gives": {"CH4": 1, "CO2": 1},
+   "energy": "chemical",
+   "flux": "food",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Acetate splitters; inside the methane rows' flux; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "carbon_monoxide_acetogenesis": {
+   "name": "Acetate from carbon monoxide",
+   "classes": ["3a"],
+   "takes": {"CO": 4, "H2O": 2},
+   "gives": {"CO2": 2, "CH3COOH": 1},
+   "energy": "chemical",
+   "flux": "deposition",
+   "air": true,
+   "uses": ["co_deposition_life_cm_s", "co_deposition_abiotic_cm_s"],
+   "tier": "T2",
+   "tweak": "L0",
+   "basis": "CO eaters are the main carbon monoxide sink of an anoxic air: a deposition velocity of 1.2e-4 cm/s into a sea with them against 1e-8 cm/s without ([R2336] as quoted in [R4729], read); the acetate goes on to methane (GEN.1742 section 2.3)"
+  },
+  "hydrogenotrophic_sulfate_reduction": {
+   "name": "Sulfide from sulfate and hydrogen",
+   "classes": ["3b"],
+   "takes": {"SO4^2-": 1, "H2": 4, "H^+": 2},
+   "gives": {"H2S": 1, "H2O": 4},
+   "energy": "chemical",
+   "flux": "sea_sulfate",
+   "air": true,
+   "uses": ["h2s_max_share"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Sulfate reducers on radiolytic hydrogen; the sulfate is the sea's (little in an anoxic sea), the hydrogen sulfide is held under `h2s_max_share`; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "anaerobic_methane_oxidation": {
+   "name": "Methane eaten with sulfate",
+   "classes": ["3b"],
+   "takes": {"CH4": 1, "SO4^2-": 1},
+   "gives": {"HCO3^-": 1, "HS^-": 1, "H2O": 1},
+   "energy": "chemical",
+   "flux": "sea_sulfate",
+   "air": true,
+   "uses": ["seafloor_methane_eaten_share"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Archaea with sulfate reducers eat more than 90 percent of the methane made under the seafloor once the sea holds sulfate ([R5286], read; `seafloor_methane_eaten_share`); the sink that helped end the Archean methane air [R5250]; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "aerobic_sulfide_oxidation": {
+   "name": "Sulfide eaten with oxygen",
+   "classes": ["4a"],
+   "takes": {"H2S": 1, "O2": 2},
+   "gives": {"SO4^2-": 1, "H^+": 2},
+   "energy": "chemical",
+   "flux": "air_stock",
+   "air": true,
+   "uses": ["h2s_max_share"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Draws hydrogen sulfide to `h2s_max_share`; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "aerobic_iron_oxidation": {
+   "name": "Iron eaten with oxygen",
+   "classes": ["4a"],
+   "takes": {"Fe^2+": 4, "O2": 1, "H2O": 10},
+   "gives": {"Fe(OH)3": 4, "H^+": 8},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Uses oxygen the producers made; inside the oxygen law's reductant sink (physics/biogenic_oxygen.py); stoichiometry: the balanced equation fixes every ratio"
+  },
+  "nitrification": {
+   "name": "Ammonium eaten with oxygen",
+   "classes": ["4a"],
+   "takes": {"NH4^+": 1, "O2": 2},
+   "gives": {"NO3^-": 1, "H^+": 2, "H2O": 1},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Ammonium to nitrate; the nitrate is the oxidant of 4b; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "nitrification_nitrous_oxide": {
+   "name": "Nitrous oxide from nitrification",
+   "classes": ["4a"],
+   "takes": {"NH4^+": 2, "O2": 2},
+   "gives": {"N2O": 1, "H2O": 3, "H^+": 2},
+   "energy": "chemical",
+   "flux": "food",
+   "air": true,
+   "uses": ["n2o_per_nitrogen_fixed", "n2o_lifetime_yr"],
+   "tier": "T6",
+   "tweak": "L0",
+   "basis": "The leak of nitrifiers and denitrifiers together: 0.044 of the nitrogen fixed leaves as N2O (natural 9.7 Tg N a year of about 220 fixed, GEN.1742 section 2.4); lives `n2o_lifetime_yr` in the air"
+  },
+  "aerobic_methane_oxidation": {
+   "name": "Methane eaten with oxygen",
+   "classes": ["4a"],
+   "takes": {"CH4": 1, "O2": 2},
+   "gives": {"CO2": 1, "H2O": 2},
+   "energy": "chemical",
+   "flux": "air_stock",
+   "air": true,
+   "uses": ["soil_methane_sink_share", "oxic_methane_lifetime_yr"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Soil methane eaters take 30 of the 576 Tg a year an oxygenated air loses (IPCC TAR WG1 Table 4.2, read; `soil_methane_sink_share`); the rest is the air's chemistry, a life of 8.4 years (`oxic_methane_lifetime_yr`); stoichiometry: the balanced equation fixes every ratio"
+  },
+  "denitrification": {
+   "name": "Organic carbon eaten with nitrate",
+   "classes": ["4b"],
+   "takes": {"CH2O": 5, "NO3^-": 4, "H^+": 4},
+   "gives": {"N2": 2, "CO2": 5, "H2O": 7},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Returns the nitrogen fixed to the air; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "denitrification_nitrous_oxide": {
+   "name": "Nitrous oxide from denitrification",
+   "classes": ["4b"],
+   "takes": {"CH2O": 2, "NO3^-": 2, "H^+": 2},
+   "gives": {"N2O": 1, "CO2": 2, "H2O": 3},
+   "energy": "chemical",
+   "flux": "food",
+   "air": true,
+   "uses": ["n2o_per_nitrogen_fixed", "n2o_lifetime_yr"],
+   "tier": "T6",
+   "tweak": "L0",
+   "basis": "As nitrification_nitrous_oxide: the two leaks share one yield"
+  },
+  "nitrate_sulfide_oxidation": {
+   "name": "Sulfide eaten with nitrate",
+   "classes": ["4b"],
+   "takes": {"H2S": 5, "NO3^-": 8},
+   "gives": {"SO4^2-": 5, "N2": 4, "H2O": 4, "H^+": 2},
+   "energy": "chemical",
+   "flux": "air_stock",
+   "air": true,
+   "uses": ["h2s_max_share"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Draws hydrogen sulfide to `h2s_max_share`; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "nitrate_iron_oxidation": {
+   "name": "Iron eaten with nitrate",
+   "classes": ["4b"],
+   "takes": {"Fe^2+": 10, "NO3^-": 2, "H2O": 24},
+   "gives": {"Fe(OH)3": 10, "N2": 1, "H^+": 18},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "stoichiometry: the balanced equation fixes every ratio"
+  },
+  "nitrate_ammonium_oxidation": {
+   "name": "Ammonium eaten with nitrate",
+   "classes": ["4b"],
+   "takes": {"NH4^+": 5, "NO3^-": 3},
+   "gives": {"N2": 4, "H2O": 9, "H^+": 2},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "stoichiometry: the balanced equation fixes every ratio"
+  },
+  "nitrate_methane_oxidation": {
+   "name": "Methane eaten with nitrate",
+   "classes": ["4b"],
+   "takes": {"CH4": 5, "NO3^-": 8, "H^+": 8},
+   "gives": {"CO2": 5, "N2": 4, "H2O": 14},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "stoichiometry: the balanced equation fixes every ratio"
+  },
+  "perchlorate_sulfide_oxidation": {
+   "name": "Sulfide eaten with perchlorate",
+   "classes": ["4c"],
+   "takes": {"ClO4^-": 1, "H2S": 1},
+   "gives": {"Cl^-": 1, "SO4^2-": 1, "H^+": 2},
+   "energy": "chemical",
+   "flux": "air_stock",
+   "air": true,
+   "uses": ["h2s_max_share"],
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "Draws hydrogen sulfide to `h2s_max_share`; stoichiometry: the balanced equation fixes every ratio"
+  },
+  "perchlorate_iron_oxidation": {
+   "name": "Iron eaten with perchlorate",
+   "classes": ["4c"],
+   "takes": {"Fe^2+": 8, "ClO4^-": 1, "H2O": 20},
+   "gives": {"Fe(OH)3": 8, "Cl^-": 1, "H^+": 16},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "stoichiometry: the balanced equation fixes every ratio"
+  },
+  "perchlorate_ammonium_oxidation": {
+   "name": "Ammonium eaten with perchlorate",
+   "classes": ["4c"],
+   "takes": {"ClO4^-": 3, "NH4^+": 8},
+   "gives": {"Cl^-": 3, "N2": 4, "H2O": 12, "H^+": 8},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "stoichiometry: the balanced equation fixes every ratio"
+  },
+  "perchlorate_methane_oxidation": {
+   "name": "Methane eaten with perchlorate",
+   "classes": ["4c"],
+   "takes": {"CH4": 1, "ClO4^-": 1},
+   "gives": {"CO2": 1, "Cl^-": 1, "H2O": 2},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "stoichiometry: the balanced equation fixes every ratio"
+  },
+  "chlorite_dismutation": {
+   "name": "Oxygen from chlorite",
+   "classes": ["4c"],
+   "takes": {"ClO2^-": 1},
+   "gives": {"Cl^-": 1, "O2": 1},
+   "energy": "chemical",
+   "flux": "recycled",
+   "air": false,
+   "tier": "T5",
+   "tweak": "L0",
+   "basis": "The perchlorate eaters' own oxygen, used again inside the cell: none reaches the air (GEN.1742 section 2.4); stoichiometry: the balanced equation fixes every ratio"
+  },
+  "acid_sulfide_oxidation": {
+   "name": "Sulfide eaten with sulfuric acid",
+   "classes": ["5a", "5b", "9"],
+   "takes": {"H2S": 1, "H2SO4": 3},
+   "gives": {"SO2": 4, "H2O": 4},
+   "energy": "chemical",
+   "flux": "air_stock",
+   "air": true,
+   "uses": ["sulfur_dioxide_per_h2s", "h2s_max_share"],
+   "tier": "T8",
+   "tweak": "L0",
+   "basis": "The acid's own sulfur came from the air's sulfur dioxide, so over the cycle the air gains one SO2 for each H2S (`sulfur_dioxide_per_h2s`); speculative chemistry, the reaction itself balanced"
+  },
+  "acid_sulfur_comproportionation": {
+   "name": "Sulfur from sulfide and sulfuric acid",
+   "classes": ["5a", "5b", "9"],
+   "takes": {"H2S": 1, "H2SO4": 1},
+   "gives": {"S": 1, "SO2": 1, "H2O": 2},
+   "energy": "chemical",
+   "flux": "air_stock",
+   "air": false,
+   "uses": ["h2s_max_share"],
+   "tier": "T8",
+   "tweak": "L0",
+   "basis": "The elemental sulfur the acid eaters leave; speculative chemistry, the reaction itself balanced"
+  },
+  "acid_carbon_oxidation": {
+   "name": "Organic carbon eaten with sulfuric acid",
+   "classes": ["5a", "5b", "9"],
+   "takes": {"CH2O": 1, "H2SO4": 2},
+   "gives": {"CO2": 1, "SO2": 2, "H2O": 3},
+   "energy": "chemical",
+   "flux": "recycled",
+   "air": false,
+   "tier": "T8",
+   "tweak": "L0",
+   "basis": "The acid eaters' food; a cycle with the acid's remaking; speculative chemistry, the reaction itself balanced"
+  },
+  "acetylene_hydrogenation": {
+   "name": "Methane from acetylene",
+   "classes": ["7"],
+   "takes": {"C2H2": 1, "H2": 3},
+   "gives": {"CH4": 2},
+   "energy": "chemical",
+   "flux": "air_stock",
+   "air": true,
+   "uses": ["methane_per_h2_hydrogenated", "hydrogen_max_share"],
+   "tier": "T8",
+   "tweak": "L0",
+   "basis": "The Titan hydrogen and acetylene anomalies are a lead, not a detection; the acetylene is not an air gas the air stores (`methane_per_h2_hydrogenated`); stoichiometry: the balanced equation fixes every ratio"
+  },
+  "anaerobic_ammonium_oxidation": {
+   "name": "Nitrogen from ammonium and nitrite",
+   "classes": ["8"],
+   "takes": {"NH4^+": 1, "NO2^-": 1},
+   "gives": {"N2": 1, "H2O": 2},
+   "energy": "chemical",
+   "flux": "oxidant_supply",
+   "air": false,
+   "tier": "T7",
+   "tweak": "L0",
+   "basis": "Anammox; the nitrite of a cold ammonia-water world is a guess (lightning and photochemistry), so the air history takes no flux from it until the ammonia cap of GEN.1732 is decided; stoichiometry: the balanced equation fixes every ratio"
   }
  }
 }

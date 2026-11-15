@@ -21,7 +21,7 @@ from tests.test_api import _place_sector
 def test_the_three_commands_are_one_unit_registered_kinds():
     for kind in ("reset-galaxy", "check-math", "check-datasets"):
         spec = commands.spec(kind)
-        assert spec.whole and not spec.inline, kind
+        assert spec.one_unit and not spec.inline, kind
         expansion = commands.expand_function(kind)({"database": {"database": "x"}})
         assert len(expansion.units) == 1
 
@@ -32,7 +32,7 @@ def test_reset_galaxy_wipes_the_content_tables_alone(mysql_config):
     result = commands.run_alone("reset-galaxy", {"database": wrapper.database_args(mysql_config)},
                                 lambda done, total: reported.append((done, total)))
     assert result["database"] == mysql_config.database and result["tables"] > 10
-    assert reported[-1] == (result["tables"], result["tables"])
+    assert reported[-1] == (result["tables"] + 1, result["tables"] + 1)      # a piece to a table and one to tidy after (OPS.196)
     conn = reset_cli.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"] == 0

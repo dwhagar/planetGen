@@ -25,18 +25,17 @@ from planetgen.physics import radiation_field
 
 TRUNCATION_OF_ROCHE_LOBE = 0.733
 """float: The share of the host's Roche lobe at periastron where a circumstellar disk ends (disks of binaries truncate at about 0.7 of the Roche lobe in simulations of the disk's tidal
-cut-off, read second-hand). [Stand-in DT1, tier Marginal unverified, tweak L0.]"""
+cut-off, read second-hand). [Stand-in 6.250 DT1, tier T3, tweak L0.]"""
 
 
 CLOSE_COMPANION_AXIS_AU = 47.0
 """float: A companion inside this separation hastens the dispersal of the gas of the disk ([R5220], AJ 152, 8: inside a_cut = 47 +59/-23 AU the planet occurrence of binaries is 0.34 of that of wider
-binaries and single stars; [R5225], ApJ 745, 19: for binaries closer than 40 AU, about two thirds lose their disk within 1 Myr). Both read second-hand (the abstracts). [Stand-in CD1, tier Confident
-unverified, tweak L0.]"""
+binaries and single stars; [R5225], ApJ 745, 19: for binaries closer than 40 AU, about two thirds lose their disk within 1 Myr). Both read second-hand (the abstracts). [Stand-in 6.264 CD1, tier T2, tweak L0.]"""
 
 CLOSE_COMPANION_GAS_SHARE = 0.34
 """float: The share of the stars with a companion inside `CLOSE_COMPANION_AXIS_AU` whose disk keeps its gas long enough for a core to find it: one less the two thirds of close binaries whose disks go within 1 Myr
 [R5225], which is also the planet occurrence ratio S_bin = 0.34 +0.14/-0.15 of [R5220]. It multiplies the chance a core past the critical mass finds gas (`planet_mass.gas_outcome`), so a star's
-rocky planets are unchanged and about two thirds of the giants of such a star are not made. [Stand-in CD2, tier Confident unverified, tweak L0.]"""
+rocky planets are unchanged and about two thirds of the giants of such a star are not made. [Stand-in 6.264 CD2, tier T2, tweak L0.]"""
 
 
 def star_companion_axis_au(star):

@@ -28,22 +28,22 @@ IN_DISK = ("cold_classical", "hot_classical", "resonant", "scattered_disk", "cen
 """tuple: The scatter populations whose bodies stay in the disk and so can be stored members."""
 
 COLD_STIRRING = 0.25
-"""float: The cold classical members' eccentricity and inclination over the belt's rms (a cold disk stirred only by its own bodies). [Stand-in BPO1, tier Confident educated guess from inferred physics, tweak L4.]"""
+"""float: The cold classical members' eccentricity and inclination over the belt's rms (a cold disk stirred only by its own bodies). [Stand-in 6.185 BPO1, tier T9, tweak L4.]"""
 
 RESONANT_E_RANGE = (0.05, 0.35)
-"""tuple: The eccentricity a body held in a resonance is drawn from, uniform. [Stand-in BPO2, tier Marginal educated guess from inferred physics, tweak L4.]"""
+"""tuple: The eccentricity a body held in a resonance is drawn from, uniform. [Stand-in 6.185 BPO2, tier T9, tweak L4.]"""
 
 CENTAUR_PERIHELION_OVER_GIANT = (0.5, 1.0)
-"""tuple: The perihelion of a body crossing the giant's orbit, over the giant's distance, uniform. [Stand-in BPO3, tier Marginal educated guess from inferred physics, tweak L4.]"""
+"""tuple: The perihelion of a body crossing the giant's orbit, over the giant's distance, uniform. [Stand-in 6.185 BPO3, tier T9, tweak L4.]"""
 
 DETACHED_PERIHELION_OVER_INNER_EDGE = (1.0, 1.6)
-"""tuple: The perihelion of a body lifted out of the giant's reach, over the belt's inner edge, uniform. [Stand-in BPO4, tier Marginal educated guess from inferred physics, tweak L4.]"""
+"""tuple: The perihelion of a body lifted out of the giant's reach, over the belt's inner edge, uniform. [Stand-in 6.185 BPO4, tier T9, tweak L4.]"""
 
 DETACHED_MIN_A_OVER_Q = 1.05
-"""float: A detached body's semi-major axis is at least this many times its perihelion (a detached orbit is an eccentric one, not a circle). [Stand-in BPO5, tier T9, tweak L0.]"""
+"""float: A detached body's semi-major axis is at least this many times its perihelion (a detached orbit is an eccentric one, not a circle). [Stand-in 6.185 BPO5, tier T9, tweak L0.]"""
 
 E_MAX_BOUND = 0.9
-"""float: The largest eccentricity of a scattered, crossing or detached body (a larger one has its perihelion inside the star's room). [Stand-in BPO6, tier T9, tweak L0.]"""
+"""float: The largest eccentricity of a scattered, crossing or detached body (a larger one has its perihelion inside the star's room). [Stand-in 6.185 BPO6, tier T9, tweak L0.]"""
 
 
 def member_weights(shares):

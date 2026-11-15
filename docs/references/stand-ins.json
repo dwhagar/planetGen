@@ -2697,7 +2697,7 @@
             ],
             [
               "What it is",
-              "the three pre-main-sequence constants fitted to it and the nine brown dwarf radius points of tuning.BROWN_DWARF_TRACKS"
+              "the three pre-main-sequence constants fitted to it and the nine brown dwarf radius points once kept as the table BROWN_DWARF_TRACKS of tuning"
             ],
             [
               "What replaces it",
@@ -2720,7 +2720,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "the three pre-main-sequence constants fitted to it and the nine brown dwarf radius points of tuning.BROWN_DWARF_TRACKS"
+          "what": "the three pre-main-sequence constants fitted to it and the nine brown dwarf radius points once kept as the table BROWN_DWARF_TRACKS of tuning"
         },
         {
           "burn_down": null,
@@ -7745,7 +7745,7 @@
             ],
             [
               "What it is",
-              "orbit_elements.GIANT_TIDAL_Q, GIANT_TIDAL_LOVE_NUMBER_K2"
+              "tidal_heating.GIANT_TIDAL_Q, GIANT_K2"
             ],
             [
               "The range it moves in",
@@ -7768,7 +7768,7 @@
           "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "orbit_elements.GIANT_TIDAL_Q, GIANT_TIDAL_LOVE_NUMBER_K2"
+          "what": "tidal_heating.GIANT_TIDAL_Q, GIANT_K2"
         },
         {
           "burn_down": null,
@@ -12085,6 +12085,44 @@
           "what": "life_ledger.json numbers (GEN.891, GEN.857, GEN.859): Earth's methane from the donor food web 10 Tmol/yr (inside the published 9 to 67), Earth's hydrogen 2.3 Tmol/yr with 4 H2 per CH4, 0.5 CH4 per buried carbon, the life of methane in an oxygen-free air 30,000 yr, the methane cap 3.5 percent of molecules, 10 percent of the carbon dioxide kept, the oxygen limit 0.001 and the hydrogen floor 1e-4 of molecules, the 1 percent rise that counts as a change"
         },
         {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_ledger.json reaction numbers (GEN.1743, research GEN.1742): Earth's natural nitrogen fixation 15.7 Tmol N/yr (about 220 Tg N), the N2O leak 0.044 of the nitrogen fixed and its life 109 yr, the life of methane in an oxygenated air 8.4 yr and the soil eaters' share of its loss 0.052, the share of seafloor methane eaten once the sea holds sulfate 0.9, the deposition velocity of carbon monoxide into a sea with CO eaters 1.2e-4 cm/s and without 1e-8 cm/s; and the 35 balanced reactions of the class variants (reactions, stoichiometry, T1 L0, except the acid classes T8 and the anammox of Class 8 T7)"
+            ],
+            [
+              "The range it moves in",
+              "fixation 150 to 300 Tg N/yr; the N2O leak 0.03 to 0.07; the N2O life 100 to 120 yr; methane life 7 to 10 yr; the soil share 0.03 to 0.07; the eaten share 0.9 to 0.99; the deposition velocities a factor of 3"
+            ],
+            [
+              "Where it holds",
+              "the air history of GEN.1745 (the present air does not read them)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured N2O or CO of a world whose life class is known, or a published Archean CO sink that differs by more than a factor of 10"
+            ],
+            [
+              "What replaces it",
+              "the air history's own photochemistry of CO, CH4 and N2O"
+            ],
+            [
+              "Evidence",
+              "each number carries its tier and tweak in the file; READ (IPCC TAR WG1 Table 4.2; [R2336, R5286, R5287] as quoted in [R4729]); the N2O leak is two read numbers carried to other worlds (T6), the N2O life recalled (T2); reports/ledger-rates-gen1742-2026-11-15.md"
+            ]
+          ],
+          "id": "LF73",
+          "key": "6.19:LF73",
+          "kind": "P",
+          "slug": "6-19-lf73",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_ledger.json reaction numbers (GEN.1743, research GEN.1742): Earth's natural nitrogen fixation 15.7 Tmol N/yr (about 220 Tg N), the N2O leak 0.044 of the nitrogen fixed and its life 109 yr, the life of methane in an oxygenated air 8.4 yr and the soil eaters' share of its loss 0.052, the share of seafloor methane eaten once the sea holds sulfate 0.9, the deposition velocity of carbon monoxide into a sea with CO eaters 1.2e-4 cm/s and without 1e-8 cm/s; and the 35 balanced reactions of the class variants (reactions, stoichiometry, T1 L0, except the acid classes T8 and the anammox of Class 8 T7)"
+        },
+        {
           "burn_down": [
             "no data",
             "-",
@@ -12857,6 +12895,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "biogenic_oxygen.SECOND_RISE_RATIO 3: the oxygen rises a second time to the balance level once R is under S / 3 (GEN.1707)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.LAND_SHARE_OF_BURIAL 0.27 and LAND_SHARE_OF_BURIAL_RANGE (0.20, 0.33): land plants carry this share of Earth's organic carbon burial, so a world with no wide sea but wet land that roots reach (the rooted stage of surface_refuge) makes this share of Earth's source per Earth's 0.29 of land under plants, in place of the cover law (GEN.1729)"
+            ],
+            [
+              "The range it moves in",
+              "0.20 to 0.33 (plants add 25 percent at C/P 1000 to 50 percent at C/P 2000 to the burial without them)"
+            ],
+            [
+              "Where it holds",
+              "worlds with no wide sea whose life has reached mosses and the first land plants"
+            ],
+            [
+              "What would show it wrong",
+              "a measured land share of organic carbon burial outside 0.20 to 0.33, or an oxygen model in which plants add much more or less to the burial"
+            ],
+            [
+              "What replaces it",
+              "the land and marine burial from a sourced budget (the flux of [R5284] and the terrestrial share of burial of [R5285], not read)"
+            ],
+            [
+              "Evidence",
+              "READ ([R5283] full text: land plants raise total organic carbon burial by about 25 percent with C/P 1000 and about 50 percent with C/P 2000, oxygen reaching present levels by 420 to 400 Ma); one model, so it is tier 3"
+            ]
+          ],
+          "id": "BO15",
+          "key": "6.21:BO15",
+          "kind": "P",
+          "slug": "6-21-bo15",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "biogenic_oxygen.LAND_SHARE_OF_BURIAL 0.27 and LAND_SHARE_OF_BURIAL_RANGE (0.20, 0.33): land plants carry this share of Earth's organic carbon burial, so a world with no wide sea but wet land that roots reach (the rooted stage of surface_refuge) makes this share of Earth's source per Earth's 0.29 of land under plants, in place of the cover law (GEN.1729)"
         },
         {
           "burn_down": null,
@@ -13647,7 +13723,7 @@
           "fields": [
             [
               "What it is",
-              "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5246] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
+              "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5246] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing the old flat cap of 2000 K in surface_air, GEN.1580)"
             ],
             [
               "The range it moves in",
@@ -13678,7 +13754,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5246] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
+          "what": "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5246] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing the old flat cap of 2000 K in surface_air, GEN.1580)"
         },
         {
           "burn_down": null,
@@ -21745,7 +21821,7 @@
           "fields": [
             [
               "What it is",
-              "multistar.EXTENT_AXIS_FACTOR 2.5 and multistar.PERICENTRE_EXTENT_FACTOR 2.0, how many summed radii a pair's axis and its pericentre must clear"
+              "multistar.EXTENT_AXIS_FACTOR 2.5 and multistar.PERICENTER_EXTENT_FACTOR 2.0, how many summed radii a pair's axis and its pericentre must clear"
             ],
             [
               "The range it moves in",
@@ -21776,7 +21852,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "multistar.EXTENT_AXIS_FACTOR 2.5 and multistar.PERICENTRE_EXTENT_FACTOR 2.0, how many summed radii a pair's axis and its pericentre must clear"
+          "what": "multistar.EXTENT_AXIS_FACTOR 2.5 and multistar.PERICENTER_EXTENT_FACTOR 2.0, how many summed radii a pair's axis and its pericentre must clear"
         },
         {
           "burn_down": null,
@@ -24768,15 +24844,53 @@
               "needed output: the temperature at a fixed age must not jump across a table edge; the blend is the simplest continuous join of the two tracks the table holds"
             ]
           ],
-          "id": "LM6",
-          "key": "6.66:LM6",
+          "id": "LM5",
+          "key": "6.66:LM5",
           "kind": "P",
-          "slug": "6-66-lm6",
+          "slug": "6-66-lm5",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
           "unread": null,
           "what": "baraffe_isochrones.cooling_track: between the lightest mass of the table of a track's last age and the next heavier mass the table keeps longer, the continuation past that age goes straight in mass from the t^-0.32 power law to the heavier mass's own change since that age (GEN.1137; 0.0699 solar masses at 5 Gy was 1220 K beside 1627 K at 0.07, now 1620 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between); above 0.8 the model's own Kelvin-Helmholtz time scaled to the 0.8 value"
+            ],
+            [
+              "The range it moves in",
+              "the 2 or 10 percent criterion (402 Myr at 0.1 solar masses against 554 at 2 percent); the luminosity criterion (0.05 dex) gives nearly the same times"
+            ],
+            [
+              "Where it holds",
+              "pre-main-sequence stars of every mass; solar metallicity only"
+            ],
+            [
+              "What would show it wrong",
+              "a measured age of the main sequence for stars of 0.1 to 0.5 solar masses"
+            ],
+            [
+              "What replaces it",
+              "tracks for other metallicities"
+            ],
+            [
+              "Evidence",
+              "READ (Sources 2, gen1169 report, BHAC15_tracks+structure): GEN.1174 (Boss, 5:25 AM EDT 2026-10-31: both times, class by radius): a star is pre-main-sequence until its radius has settled; MIST's nuclear arrival (GEN.947) is kept as nuclear_arrival_yr and is 3 to 4 times longer for 0.1 to 0.3 solar masses; above 0.8 solar masses the radius of the track passes through a minimum and the criterion stops meaning the same thing"
+            ]
+          ],
+          "id": "LM6",
+          "key": "6.66:LM6",
+          "kind": "D",
+          "slug": "6-66-lm6",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between); above 0.8 the model's own Kelvin-Helmholtz time scaled to the 0.8 value"
         }
       ],
       "slug": "6-66-stand-ins-of-the-low-mass-main-sequence-and-the-star-brown-dwarf-boundary",
@@ -25645,6 +25759,348 @@
           "tweak": "L2",
           "unread": null,
           "what": "surface_liquid_world.SURFACE_SHARE_OF_ICE 1.3e-3 (3e-4 before the two-level cover law of GEN.1147): the share of a body's ice of a volatile that lies on its surface as the liquid, spread over the surface like water"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_liquid_world.LAVA_OF_GROUND: a surface at or over the liquidus of its ground's rock is molten all over (ultramafic ground to komatiite, felsic to rhyolite, the rest to basalt; over the peridotite liquidus a magma ocean)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a mean surface temperature in a lava window"
+            ],
+            [
+              "What would show it wrong",
+              "a body with a molten mean surface that the rule leaves solid, or the reverse"
+            ],
+            [
+              "What replaces it",
+              "a mixed-ground melt fraction curve (the solidus to liquidus interval) with a partial cover"
+            ],
+            [
+              "Evidence",
+              "design (the liquidus of the dominant rock stands for the whole surface; the cover is 1)"
+            ]
+          ],
+          "id": "LQ12",
+          "key": "6.69:LQ12",
+          "kind": "P",
+          "slug": "6-69-lq12",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_liquid_world.LAVA_OF_GROUND: a surface at or over the liquidus of its ground's rock is molten all over (ultramafic ground to komatiite, felsic to rhyolite, the rest to basalt; over the peridotite liquidus a magma ocean)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_liquid_world.LAVA_MIN_PRESSURE_PA 1e5: a lava surface holds in its own vapour, so its window is checked at no less than one bar; its depth is not known"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a molten surface with a thin or no air"
+            ],
+            [
+              "What would show it wrong",
+              "a lava world with the surface liquid stored as none because of a missing air"
+            ],
+            [
+              "What replaces it",
+              "the vapour pressure of the melt (mixture_lava) in place of the floor"
+            ],
+            [
+              "Evidence",
+              "design (the floor is argued; the depth is left NULL)"
+            ]
+          ],
+          "id": "LQ13",
+          "key": "6.69:LQ13",
+          "kind": "P",
+          "slug": "6-69-lq13",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_liquid_world.LAVA_MIN_PRESSURE_PA 1e5: a lava surface holds in its own vapour, so its window is checked at no less than one bar; its depth is not known"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_liquid_world._sea: the liquid that condenses out of an air over saturation lies at (p - p_sat) / g kg per square metre, spread by the water hypsometry"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an air whose volatile stands over its saturation pressure"
+            ],
+            [
+              "What would show it wrong",
+              "a condensing sea whose mass differs from the excess column by more than 30 percent"
+            ],
+            [
+              "What replaces it",
+              "a rainout and surface-reservoir model of the volatile"
+            ],
+            [
+              "Evidence",
+              "COMPUTED (the column mass of the excess partial pressure)"
+            ]
+          ],
+          "id": "LQ14",
+          "key": "6.69:LQ14",
+          "kind": "D",
+          "slug": "6-69-lq14",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_liquid_world._sea: the liquid that condenses out of an air over saturation lies at (p - p_sat) / g kg per square metre, spread by the water hypsometry"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_liquid_world.AMMONIA_WATER_MASS_PERCENT 32 and AMMONIA_WATER_LIQUID: ammonia ice and water together make the ammonia-water eutectic, of which a body holds at most the ammonia over 0.32 or its water, whichever is less"
+            ],
+            [
+              "The range it moves in",
+              "28 to 36 wt percent"
+            ],
+            [
+              "Where it holds",
+              "bodies with ammonia ice and water at 176 to 270 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ammonia-water eutectic outside 28 to 36 wt percent"
+            ],
+            [
+              "What replaces it",
+              "the liquidus share by temperature of GEN.1225 (the sea's strength follows the temperature, not the eutectic)"
+            ],
+            [
+              "Evidence",
+              "[R2248] eutectic 176 K at 32 wt percent, recalled; the table row of surface_liquids.json"
+            ]
+          ],
+          "id": "LQ15",
+          "key": "6.69:LQ15",
+          "kind": "P",
+          "slug": "6-69-lq15",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_liquid_world.AMMONIA_WATER_MASS_PERCENT 32 and AMMONIA_WATER_LIQUID: ammonia ice and water together make the ammonia-water eutectic, of which a body holds at most the ammonia over 0.32 or its water, whichever is less"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_liquid_world._liquid_concentration: the ammonia of an ice-covered ocean's water layer sits in the liquid that is left under the ice shell that froze out of it, so the liquid holds (liquid + shell) / liquid times the bulk ammonia share of the water (held at the eutectic LQ15); the high-pressure ice below keeps its own ammonia in hydrates (counting it in raised 75 of 76 ammonia oceans of 180 seeds to the eutectic, so it is left out)"
+            ],
+            [
+              "The range it moves in",
+              "factor 1 (no shell) to the eutectic"
+            ],
+            [
+              "Where it holds",
+              "an ice-covered ocean with ice that holds ammonia"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ammonia share of an icy moon's ocean that is not between the bulk share and the eutectic once the shell is counted in"
+            ],
+            [
+              "What replaces it",
+              "a freezing-path model of an ammonia-water ocean with its hydrates (GEN.1563 follow-up)"
+            ],
+            [
+              "Evidence",
+              "the way Titan's and Enceladus's oceans are thought to reach tens of percent, as recalled; measured on 180 seeds: bodies at or over 0.1 of the water 2 of 76, now 18 of 76"
+            ]
+          ],
+          "id": "LQ16",
+          "key": "6.69:LQ16",
+          "kind": "P",
+          "slug": "6-69-lq16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_liquid_world._liquid_concentration: the ammonia of an ice-covered ocean's water layer sits in the liquid that is left under the ice shell that froze out of it, so the liquid holds (liquid + shell) / liquid times the bulk ammonia share of the water (held at the eutectic LQ15); the high-pressure ice below keeps its own ammonia in hydrates (counting it in raised 75 of 76 ammonia oceans of 180 seeds to the eutectic, so it is left out)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nitrogen_ice.TRAPPING_EFFICIENCY_RANGE 0.001 to 0.013: the share of the solar N2 ceiling (0.107 of the water's mass) that cold ice keeps, drawn log-uniform per body that formed colder than N2 condenses"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1.4e-3 of the water mass"
+            ],
+            [
+              "Where it holds",
+              "icy bodies whose formation zone is under 28.7 K"
+            ],
+            [
+              "What would show it wrong",
+              "N2 ice outside 1e-4 to 1.4e-3 of the water on a cold body; the 67P coma and bulk N2/CO disagree five-fold"
+            ],
+            [
+              "What replaces it",
+              "the amorphous-ice and clathrate trapping law of a nitrogen-bearing gas"
+            ],
+            [
+              "Evidence",
+              "[R3835: Table 2] 67P bulk 1.4e-3, [R1599] Pluto cometary model 1.2e-4 to 7.8e-4"
+            ]
+          ],
+          "id": "GN1",
+          "key": "6.69:GN1",
+          "kind": "P",
+          "slug": "6-69-gn1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nitrogen_ice.TRAPPING_EFFICIENCY_RANGE 0.001 to 0.013: the share of the solar N2 ceiling (0.107 of the water's mass) that cold ice keeps, drawn log-uniform per body that formed colder than N2 condenses"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nitrogen_ice.condensation_temperature_k: N2 condenses where its beta-N2 saturation pressure [R1445] equals the disk's N2 partial pressure (N/H of the Sun [R0169], all as N2) times DISK_PRESSURE_PA 10 Pa (1e-4 bar, the pressure of condensate_shares); 28.7 K. Retention of N2 by a small warm body is not modelled"
+            ],
+            [
+              "The range it moves in",
+              "22 to 30 K across disk pressures 1e-8 to 1e-3 bar"
+            ],
+            [
+              "Where it holds",
+              "the formation zone of an icy body"
+            ],
+            [
+              "What would show it wrong",
+              "a disk model whose N2 line lies outside 22 to 30 K; a body that keeps N2 and formed warmer"
+            ],
+            [
+              "What replaces it",
+              "a disk pressure and temperature profile; a retention law from the Jeans parameter (GEN.1225)"
+            ],
+            [
+              "Evidence",
+              "COMPUTED (the beta-N2 curve, N/H = 6.76e-5)"
+            ]
+          ],
+          "id": "GN2",
+          "key": "6.69:GN2",
+          "kind": "D",
+          "slug": "6-69-gn2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nitrogen_ice.condensation_temperature_k: N2 condenses where its beta-N2 saturation pressure [R1445] equals the disk's N2 partial pressure (N/H of the Sun [R0169], all as N2) times DISK_PRESSURE_PA 10 Pa (1e-4 bar, the pressure of condensate_shares); 28.7 K. Retention of N2 by a small warm body is not modelled"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_species.ethane_share_of_other: the ethane among the ices with no column of their own, at the comet medians (0.37 of 3.23 percent of the water for ethane, methanol, formaldehyde and hydrogen sulfide): the ethane a sea can draw on"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "a body with ice in ice_other_mass_fraction"
+            ],
+            [
+              "What would show it wrong",
+              "an ethane sea on a body whose drawn comet ethane is far from the median"
+            ],
+            [
+              "What replaces it",
+              "a stored ethane column (GEN.1218b)"
+            ],
+            [
+              "Evidence",
+              "the comet volatile medians of comet_population"
+            ]
+          ],
+          "id": "GN3",
+          "key": "6.69:GN3",
+          "kind": "P",
+          "slug": "6-69-gn3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ice_species.ethane_share_of_other: the ethane among the ices with no column of their own, at the comet medians (0.37 of 3.23 percent of the water for ethane, methanol, formaldehyde and hydrogen sulfide): the ethane a sea can draw on"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_liquid_world.OSMOTIC_COEFFICIENT 0.93: the osmotic coefficient of sodium chloride (0.93 to 0.90 at 0.1 to 1 mol/kg), turning a water sea's stored water activity into the salt that makes it, ln a_w = -2 M_w phi m; a sea under the activity of saturated sodium chloride (0.753) holds other salts and stores none"
+            ],
+            [
+              "The range it moves in",
+              "0.90 to 0.93"
+            ],
+            [
+              "Where it holds",
+              "a water sea with a stored water activity"
+            ],
+            [
+              "What would show it wrong",
+              "a salt for seawater (a_w 0.981) outside 3 to 4 percent"
+            ],
+            [
+              "What replaces it",
+              "a salt model by ocean class (GEN.1218b follow-up)"
+            ],
+            [
+              "Evidence",
+              "COMPUTED (the NaCl solution law; 3.5 percent at a_w 0.981)"
+            ]
+          ],
+          "id": "GN4",
+          "key": "6.69:GN4",
+          "kind": "D",
+          "slug": "6-69-gn4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_liquid_world.OSMOTIC_COEFFICIENT 0.93: the osmotic coefficient of sodium chloride (0.93 to 0.90 at 0.1 to 1 mol/kg), turning a water sea's stored water activity into the salt that makes it, ln a_w = -2 M_w phi m; a sea under the activity of saturated sodium chloride (0.753) holds other salts and stores none"
         }
       ],
       "slug": "6-69-stand-ins-of-the-surface-liquids",
@@ -41290,7 +41746,7 @@
           "key": "6.192:SEP1",
           "kind": "P",
           "slug": "6-192-sep1",
-          "tier": "T1 (the Gaia DR3 nearest-neighbour distribution), T9 (the form: a share of the Hill spheres kept clear)",
+          "tier": "T1 (the Gaia DR3 nearest-neighbor distribution), T9 (the form: a share of the Hill spheres kept clear)",
           "tier_code": "T1",
           "tweak": "L2",
           "unread": null,
@@ -42457,7 +42913,7 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is super_puff.MAX_MASS_EARTH, row PF1)"
+              "envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is super_puff.START_MAX_MASS_EARTH, row PF1)"
             ],
             [
               "The range it moves in",
@@ -42488,7 +42944,7 @@
           "tier_code": "T4",
           "tweak": "L0",
           "unread": null,
-          "what": "envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is super_puff.MAX_MASS_EARTH, row PF1)"
+          "what": "envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is super_puff.START_MAX_MASS_EARTH, row PF1)"
         }
       ],
       "slug": "6-206-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",
@@ -58933,7 +59389,7 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+              "disk_drift.DISK_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
             ],
             [
               "The range it moves in",
@@ -58963,8 +59419,8 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "by design",
-          "what": "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+          "unread": null,
+          "what": "disk_drift.DISK_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
         },
         {
           "burn_down": null,
@@ -64545,6 +65001,234 @@
           "tweak": "L0",
           "unread": null,
           "what": "StarSystem.ORBIT_NORMAL_FRACTION 0.1: the plane a companion star moves in about the host is the normal of the cross product of its places now and a tenth of its period later"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.FOSSIL_FACTOR_RANGE (22.7, 94.2): the observed J2 over the hydrostatic one of a cold rocky body that has despun, drawn log-uniform (GEN.1536)"
+            ],
+            [
+              "The range it moves in",
+              "22.7 to 94.2 (Moon to Mercury; Venus 86)"
+            ],
+            [
+              "Where it holds",
+              "a cold rocky planet locked or resonant with its star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured J2 of a despun rocky body outside the bracket (an exoplanet's, or Mars-sized Moon-like bodies)"
+            ],
+            [
+              "What replaces it",
+              "a frozen-spin history of the body: the spin at which its lithosphere stopped following the tide, from its heat flux and despin time"
+            ],
+            [
+              "Evidence",
+              "READ: the Moon's 203.8e-6 over 8.968e-6, Mercury's 50.3e-6 over 0.534e-6 and Venus's 4.46e-6 over 0.0516e-6, Table 2 of [R5243]; three bodies, so the spread inside the bracket is the stand-in"
+            ]
+          ],
+          "id": "OB9",
+          "key": "6.271:OB9",
+          "kind": "P",
+          "slug": "6-271-ob9",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cassini_state.FOSSIL_FACTOR_RANGE (22.7, 94.2): the observed J2 over the hydrostatic one of a cold rocky body that has despun, drawn log-uniform (GEN.1536)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.FOSSIL_C22_OVER_J2 0.133 and HYDROSTATIC_C22_OVER_J2 0.3: the share of C22 in J2 of a fossil and of a hydrostatic figure"
+            ],
+            [
+              "The range it moves in",
+              "fossil 0.110 to 0.161; hydrostatic 3/10"
+            ],
+            [
+              "Where it holds",
+              "a locked or resonant planet"
+            ],
+            [
+              "What would show it wrong",
+              "a fossil figure outside 0.11 to 0.16"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "the Moon's 22.4/203.8, Mercury's 8.1/50.3 ([R5243: Table 2]) and the 10/3 of a synchronous hydrostatic body [R5243]"
+            ]
+          ],
+          "id": "OB10",
+          "key": "6.271:OB10",
+          "kind": "P",
+          "slug": "6-271-ob10",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cassini_state.FOSSIL_C22_OVER_J2 0.133 and HYDROSTATIC_C22_OVER_J2 0.3: the share of C22 in J2 of a fossil and of a hydrostatic figure"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.RELAXED_HEAT_FLUX_W_M2 0.5: the heat flow above which a rocky body's interior keeps the figure of its spin (GEN.1536)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 1 W/m2"
+            ],
+            [
+              "Where it holds",
+              "a rocky locked or resonant planet"
+            ],
+            [
+              "What would show it wrong",
+              "a hot rocky body with a fossil figure or a cold one with a hydrostatic figure"
+            ],
+            [
+              "What replaces it",
+              "a relaxation time of the body (Maxwell time against the despin time)"
+            ],
+            [
+              "Evidence",
+              "Io (about 2.5 W/m2) keeps the hydrostatic figure (observed over hydrostatic 1.01, [R5243: Table 2]); Venus and Mercury (under 0.1) are fossil; an icy body is always relaxed (Europa, Ganymede, Titan, Rhea, Callisto all 0.95 to 1.02)"
+            ]
+          ],
+          "id": "OB11",
+          "key": "6.271:OB11",
+          "kind": "P",
+          "slug": "6-271-ob11",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cassini_state.RELAXED_HEAT_FLUX_W_M2 0.5: the heat flow above which a rocky body's interior keeps the figure of its spin (GEN.1536)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.precession_rad_yr and tilt_deg: V = (n/c) [J2 (1-e^2)^(-3/2) + 2 C22 (7/2 e - 123/16 e^3)] and eps = sqrt(sum (i_k abs(s_k) / (V + abs(s_k)))^2) over the nodal modes, the tilt at most the orbit's inclination"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a locked or resonant planet; the C22 term only for a resonance above 1:1"
+            ],
+            [
+              "What would show it wrong",
+              "Mercury's tilt from its MESSENGER figure outside 2.04 arcmin by more than 0.6"
+            ],
+            [
+              "What replaces it",
+              "the exact (not small-angle) state and a Cassini state 2"
+            ],
+            [
+              "Evidence",
+              "[R5242: Eq. 1]; Mercury's figure with its 8.6 degrees and its node's regression gives 2.4 arcmin against the 2.04 measured"
+            ]
+          ],
+          "id": "OB12",
+          "key": "6.271:OB12",
+          "kind": "P",
+          "slug": "6-271-ob12",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cassini_state.precession_rad_yr and tilt_deg: V = (n/c) [J2 (1-e^2)^(-3/2) + 2 C22 (7/2 e - 123/16 e^3)] and eps = sqrt(sum (i_k abs(s_k) / (V + abs(s_k)))^2) over the nodal modes, the tilt at most the orbit's inclination"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.moon_regression_rad_yr: abs(s) = (3/2) n J2p (Rp/a)^2 + (3/4) n_p^2 / n, the regression of a moon's node from its planet's bulge and the star (GEN.1556), the planet's J2p the fluid figure of its spin"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a moon locked to its planet"
+            ],
+            [
+              "What would show it wrong",
+              "the nodal period of a measured moon outside 10 percent of the formula (the Moon: 17.8 years against 18.6)"
+            ],
+            [
+              "What replaces it",
+              "a numerical Laplace-Lagrange run of the moons with the planet's measured field"
+            ],
+            [
+              "Evidence",
+              "the Moon's node period, 18.6 years, and Europa's about 30 years follow within 5 percent; Jupiter's fluid J2 is 0.0228 against the measured 0.0147 (Darwin-Radau overstates a giant's figure), which the tilt tolerates"
+            ]
+          ],
+          "id": "OB13",
+          "key": "6.271:OB13",
+          "kind": "P",
+          "slug": "6-271-ob13",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cassini_state.moon_regression_rad_yr: abs(s) = (3/2) n J2p (Rp/a)^2 + (3/4) n_p^2 / n, the regression of a moon's node from its planet's bulge and the star (GEN.1556), the planet's J2p the fluid figure of its spin"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.locked_moon_tilt_deg: the inclination of a moon's orbit to its planet's equator is taken as its inclination to its Laplace plane, and the Cassini state is the first (small-angle) one (GEN.1556)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a moon inside its planet's Laplace radius"
+            ],
+            [
+              "What would show it wrong",
+              "a moon outside the Laplace radius whose plane is the planet's orbit plane (the Moon is tilted 5.1 degrees to the ecliptic, 18 to 28 to the equator)"
+            ],
+            [
+              "What replaces it",
+              "the Laplace plane of each moon from a_L = (J2p Rp^2 a_p^3 M_p / M_star)^(1/5) and the Cassini state 2 of the Moon"
+            ],
+            [
+              "Evidence",
+              "the Galilean moons come out at 0.01 to 0.14 degrees (Io under 0.04, Europa 0.1 measured) and the Moon at 3.7 to 4.7 against the 6.7 of its state 2"
+            ]
+          ],
+          "id": "OB14",
+          "key": "6.271:OB14",
+          "kind": "P",
+          "slug": "6-271-ob14",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cassini_state.locked_moon_tilt_deg: the inclination of a moon's orbit to its planet's equator is taken as its inclination to its Laplace plane, and the Cassini state is the first (small-angle) one (GEN.1556)"
         }
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
@@ -67643,6 +68327,3568 @@
       ],
       "slug": "6-298-stand-ins-of-the-growth-of-ice-and-snow-on-a-world-s-water-gen-1728",
       "title": "Stand-ins of the growth of ice and snow on a world's water (GEN.1728)"
+    },
+    {
+      "key": "6.6a",
+      "number": "6.6a",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in",
+              "the cooling age starts at the sequences' first model (about 100,000 K); the time from the end of the asymptotic branch to there is not counted"
+            ],
+            [
+              "What replaces it",
+              "a pre-white-dwarf track (GEN.741)"
+            ]
+          ],
+          "id": "WD1",
+          "key": "6.6a:WD1",
+          "kind": "T",
+          "slug": "6-6a-wd1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "WD1: the cooling age starts at the sequences' first model (about 100,000 K); the time from the end of the asymptotic branch to there is not counted"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in",
+              "a white dwarf older than a sequence's last model (about 1,500 K) is held at that model"
+            ],
+            [
+              "What replaces it",
+              "a model of the cool end below 1,500 K"
+            ]
+          ],
+          "id": "WD2",
+          "key": "6.6a:WD2",
+          "kind": "P",
+          "slug": "6-6a-wd2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "WD2: a white dwarf older than a sequence's last model (about 1,500 K) is held at that model"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in",
+              "a white dwarf above 1.30 solar masses (an oxygen-neon core) reads the 1.30 carbon-oxygen sequence"
+            ],
+            [
+              "What replaces it",
+              "oxygen-neon sequences (GEN.743)"
+            ]
+          ],
+          "id": "WD3",
+          "key": "6.6a:WD3",
+          "kind": "P",
+          "slug": "6-6a-wd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "WD3: a white dwarf above 1.30 solar masses (an oxygen-neon core) reads the 1.30 carbon-oxygen sequence"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in",
+              "0.80 of white dwarfs have a hydrogen atmosphere (tuning.STELLAR_WD_DA_SHARE), whatever the temperature"
+            ],
+            [
+              "What replaces it",
+              "BC19, the share against effective temperature"
+            ]
+          ],
+          "id": "WD4",
+          "key": "6.6a:WD4",
+          "kind": "P",
+          "slug": "6-6a-wd4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "WD4: 0.80 of white dwarfs have a hydrogen atmosphere (tuning.STELLAR_WD_DA_SHARE), whatever the temperature"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in",
+              "the Mestel power law (tuning.WD_COOLING_*), taken only when the run disregards missing data"
+            ],
+            [
+              "What replaces it",
+              "none: the sequence download is required"
+            ]
+          ],
+          "id": "WD5",
+          "key": "6.6a:WD5",
+          "kind": "T",
+          "slug": "6-6a-wd5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "WD5: the Mestel power law (tuning.WD_COOLING_*), taken only when the run disregards missing data"
+        }
+      ],
+      "slug": "6-6a-stand-ins-of-the-white-dwarf-cooling-gen-742",
+      "title": "Stand-ins of the white-dwarf cooling (GEN.742)"
+    },
+    {
+      "key": "6.6b",
+      "number": "6.6b",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the plateau of a band of a gas with no k-table: STANDIN_KAPPA0_M2_KG 1e3 m2/kg (\"ir\" gases), STANDIN_WEAK_KAPPA0_M2_KG 10, STANDIN_GENERIC_BAND_CM1 600 to 1500 cm-1 for a gas with no listed band; wings STANDIN_WING_E_FOLD_CM1 10 cm-1 (T6, L1: from the logarithm of the CO2 forcing law, [R0620]); hot bands x1e-6 and Fermi dyads x1e-5 (T7, L1)"
+            ],
+            [
+              "What replaces it",
+              "a k-table for each further gas (NH3, SO2, H2S, CO and HCN are tabled since GEN.852; ExoMol has more)"
+            ]
+          ],
+          "id": "IR1",
+          "key": "6.6b:IR1",
+          "kind": "P",
+          "slug": "6-6b-ir1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "IR1: the plateau of a band of a gas with no k-table: STANDIN_KAPPA0_M2_KG 1e3 m2/kg (\"ir\" gases), STANDIN_WEAK_KAPPA0_M2_KG 10, STANDIN_GENERIC_BAND_CM1 600 to 1500 cm-1 for a gas with no listed band; wings STANDIN_WING_E_FOLD_CM1 10 cm-1 (T6, L1: from the logarithm of the CO2 forcing law, [R0620]); hot bands x1e-6 and Fermi dyads x1e-5 (T7, L1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the far wing of a gas with no table: STANDIN_GENERIC_WING_M2_KG 1e-4 m2/kg (gas flagged \"ir\") and STANDIN_WEAK_WING_M2_KG 1e-5 (flagged \"weak\"), reach STANDIN_WING_REACH_CM1 600 cm-1 at 1 bar growing with the pressure. The CO entry (1e-5, T5, [R2435]) went when CO got a table (GEN.852)"
+            ],
+            [
+              "What replaces it",
+              "the same k-tables"
+            ]
+          ],
+          "id": "IR2",
+          "key": "6.6b:IR2",
+          "kind": "P",
+          "slug": "6-6b-ir2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR2: the far wing of a gas with no table: STANDIN_GENERIC_WING_M2_KG 1e-4 m2/kg (gas flagged \"ir\") and STANDIN_WEAK_WING_M2_KG 1e-5 (flagged \"weak\"), reach STANDIN_WING_REACH_CM1 600 cm-1 at 1 bar growing with the pressure. The CO entry (1e-5, T5, [R2435]) went when CO got a table (GEN.852)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the water vapour continuum: eight nodes of MT_CKD 4.3 (WATER_CONTINUUM, computed in part 03 section 3.2 from the AER file at 296 K), interpolated in ln sigma between 200 and 3600 cm-1, zero outside"
+            ],
+            [
+              "What replaces it",
+              "the MT_CKD file at full resolution"
+            ]
+          ],
+          "id": "IR4",
+          "key": "6.6b:IR4",
+          "kind": "D",
+          "slug": "6-6b-ir4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR4: the water vapour continuum: eight nodes of MT_CKD 4.3 (WATER_CONTINUUM, computed in part 03 section 3.2 from the AER file at 296 K), interpolated in ln sigma between 200 and 3600 cm-1, zero outside"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the 0 to 200 cm-1 band takes the first band's distribution (the tables start at 50 micron)"
+            ],
+            [
+              "What replaces it",
+              "a far-infrared table"
+            ]
+          ],
+          "id": "IR5",
+          "key": "6.6b:IR5",
+          "kind": "P",
+          "slug": "6-6b-ir5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "IR5: the 0 to 200 cm-1 band takes the first band's distribution (the tables start at 50 micron)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "a CIA band covered by under half of its width in a file is zero, and values beyond the measured temperatures are held at the nearest one; pairs with no file (CH4-CH4, most noble-gas pairs, every pair with water) are zero"
+            ],
+            [
+              "What replaces it",
+              "further HITRAN pairs; the water pair continuum"
+            ]
+          ],
+          "id": "IR6",
+          "key": "6.6b:IR6",
+          "kind": "T",
+          "slug": "6-6b-ir6",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR6: a CIA band covered by under half of its width in a file is zero, and values beyond the measured temperatures are held at the nearest one; pairs with no file (CH4-CH4, most noble-gas pairs, every pair with water) are zero"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the water vapour profile: Manabe and Wetherald's (1967) relative humidity (HUMIDITY_TOP 0.02) with the surface humidity the mixture's own, no vapour above the cold trap, at most half the layer (MAX_WATER_FRACTION, T7)"
+            ],
+            [
+              "What replaces it",
+              "a computed humidity (moist convection with a mixing parameterisation)"
+            ]
+          ],
+          "id": "IR7",
+          "key": "6.6b:IR7",
+          "kind": "T",
+          "slug": "6-6b-ir7",
+          "tier": "T1 on Earth, T6 elsewhere",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR7: the water vapour profile: Manabe and Wetherald's (1967) relative humidity (HUMIDITY_TOP 0.02) with the surface humidity the mixture's own, no vapour above the cold trap, at most half the layer (MAX_WATER_FRACTION, T7)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the sunlight a haze takes aloft: a Gaussian of width SUNLIGHT_WIDTH_LN_P 1.0 in ln P. The share and the pressure are inputs of the caller (Titan: 60 percent at 30 mbar in the check, [R2999]); the fixed point supplies them from the aerosol model since GEN.851 (IR10)"
+            ],
+            [
+              "What replaces it",
+              "none: the caller's inputs"
+            ]
+          ],
+          "id": "IR8",
+          "key": "6.6b:IR8",
+          "kind": "P",
+          "slug": "6-6b-ir8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR8: the sunlight a haze takes aloft: a Gaussian of width SUNLIGHT_WIDTH_LN_P 1.0 in ln P. The share and the pressure are inputs of the caller (Titan: 60 percent at 30 mbar in the check, [R2999]); the fixed point supplies them from the aerosol model since GEN.851 (IR10)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the heat capacity of a gas with no NASA Glenn fit (mixture.cp_over_r_without_fit, used by radiative_convective._cp_over_r and mixture.heat_capacity_ratio, GEN.852, TEST.604): the gas table's values at 100, 300 and 1000 K interpolated and held at the ends (T6, so low above 1000 K for a polyatomic gas); a gas with none takes a rigid-rotor count of its atoms, 5/2, 7/2 and 4 + (3N - 6)/2 in units of R (T7). Only the dry adiabat reads it, in proportion to the gas's share of the air"
+            ],
+            [
+              "What replaces it",
+              "a NASA fit or a JANAF table for each further gas"
+            ]
+          ],
+          "id": "IR9",
+          "key": "6.6b:IR9",
+          "kind": "P",
+          "slug": "6-6b-ir9",
+          "tier": "T6 to T7",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR9: the heat capacity of a gas with no NASA Glenn fit (mixture.cp_over_r_without_fit, used by radiative_convective._cp_over_r and mixture.heat_capacity_ratio, GEN.852, TEST.604): the gas table's values at 100, 300 and 1000 K interpolated and held at the ends (T6, so low above 1000 K for a polyatomic gas); a gas with none takes a rigid-rotor count of its atoms, 5/2, 7/2 and 4 + (3N - 6)/2 in units of R (T7). Only the dry adiabat reads it, in proportion to the gas's share of the air"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the tropopause is a model level: LAYERS 40 on a log-pressure grid up to TOP_FRACTION 1e-4 of the surface pressure, so the reported tropopause pressure moves in steps of about 26 percent. Nothing outside the module reads it; the surface temperature of an Earth-like air moves by under 0.1 K when the level steps (test_radiative_convective_real)"
+            ],
+            [
+              "What replaces it",
+              "a sub-layer tropopause from the lapse rate, or more layers if a reader needs it"
+            ]
+          ],
+          "id": "IR10",
+          "key": "6.6b:IR10",
+          "kind": "T",
+          "slug": "6-6b-ir10",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR10: the tropopause is a model level: LAYERS 40 on a log-pressure grid up to TOP_FRACTION 1e-4 of the surface pressure, so the reported tropopause pressure moves in steps of about 26 percent. Nothing outside the module reads it; the surface temperature of an Earth-like air moves by under 0.1 K when the level steps (test_radiative_convective_real)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the fitted greenhouse table (physics/greenhouse_table.py, physics/data/greenhouse_table.json): a network of the 16 features of an air (GEN.850) fitted to the model's surface temperature on the airs the generator makes, perturbed copies, designed families and (GEN.1304) 10,000 temperate wet airs with their vapor free, refitted from the previous file with the hot airs and the airs the tests check held at their old answers; its error is the file's own stated validation, the table is refused when the datasets it was fitted to change, and an air outside the fitted range is held at the range's edge"
+            ],
+            [
+              "What replaces it",
+              "the model itself, if it becomes fast enough to call at generation"
+            ]
+          ],
+          "id": "IR11",
+          "key": "6.6b:IR11",
+          "kind": "D",
+          "slug": "6-6b-ir11",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR11: the fitted greenhouse table (physics/greenhouse_table.py, physics/data/greenhouse_table.json): a network of the 16 features of an air (GEN.850) fitted to the model's surface temperature on the airs the generator makes, perturbed copies, designed families and (GEN.1304) 10,000 temperate wet airs with their vapor free, refitted from the previous file with the hot airs and the airs the tests check held at their old answers; its error is the file's own stated validation, the table is refused when the datasets it was fitted to change, and an air outside the fitted range is held at the range's edge"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the cloud's longwave share is fitted to the Earth's cloud effect at its surface humidity; no measured cloud longwave effect of another air exists to replace it"
+          ],
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the cloud's longwave effect: the sky sends out (1 - CLOUD_LONGWAVE_SHARE) * clear-sky flux, CLOUD_LONGWAVE_SHARE 0.13 at the Earth's surface humidity EARTH_HUMIDITY 0.77, in proportion to the surface humidity (to 1.3 times at most), nil without water vapour. CERES EBAF gives 26.5 of 266 W/m2 (0.10), which leaves the Earth twin of the fixed point at 284.6 K, the clear-sky model's own bias; 0.13 puts it at 287.9 K, the measured 288 K"
+            ],
+            [
+              "What replaces it",
+              "a cloud model (condensate path from the saturation excess, particle size, cloud top)"
+            ]
+          ],
+          "id": "IR12",
+          "key": "6.6b:IR12",
+          "kind": "P",
+          "slug": "6-6b-ir12",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "IR12: the cloud's longwave effect: the sky sends out (1 - CLOUD_LONGWAVE_SHARE) * clear-sky flux, CLOUD_LONGWAVE_SHARE 0.13 at the Earth's surface humidity EARTH_HUMIDITY 0.77, in proportion to the surface humidity (to 1.3 times at most), nil without water vapour. CERES EBAF gives 26.5 of 266 W/m2 (0.10), which leaves the Earth twin of the fixed point at 284.6 K, the clear-sky model's own bias; 0.13 puts it at 287.9 K, the measured 288 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the share of the sunlight a haze takes aloft (aerosols.haze_absorbed_share): the tholin absorption at each wavelength (the optics' own law) over the star's blackbody from 200 to 3000 nm, on a slant path of HAZE_AIR_MASS 2 (the sphere-averaged secant), capped at HAZE_SHARE_CAP 0.95; the level is where half of the share is taken from the top, in the haze's mass profile (haze_fall)"
+            ],
+            [
+              "What replaces it",
+              "a radiative-transfer solution of the haze and the air together, with the haze's scattering"
+            ]
+          ],
+          "id": "IR13",
+          "key": "6.6b:IR13",
+          "kind": "P",
+          "slug": "6-6b-ir13",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR13: the share of the sunlight a haze takes aloft (aerosols.haze_absorbed_share): the tholin absorption at each wavelength (the optics' own law) over the star's blackbody from 200 to 3000 nm, on a slant path of HAZE_AIR_MASS 2 (the sphere-averaged secant), capped at HAZE_SHARE_CAP 0.95; the level is where half of the share is taken from the top, in the haze's mass profile (haze_fall)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the adiabat of an air with no water but some methane (GEN.1030): methane is the condensable, at the mole fraction of the surface (the deep abundance held up the column, no depletion by cloud), saturating on saturation's curve for CH4 from 30 K to METHANE_TABLE_TOP_K 188 K, with the latent heat from its slope (Clausius and Clapeyron); the other gases are the background. The adiabat is the same moist pseudo-adiabat as water's, so no new law"
+            ],
+            [
+              "What replaces it",
+              "the cloud-base mixing ratio and the depletion above it ([R2699] and 1992 for Uranus and Neptune), which a cloud model would give"
+            ]
+          ],
+          "id": "IR14",
+          "key": "6.6b:IR14",
+          "kind": "P",
+          "slug": "6-6b-ir14",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR14: the adiabat of an air with no water but some methane (GEN.1030): methane is the condensable, at the mole fraction of the surface (the deep abundance held up the column, no depletion by cloud), saturating on saturation's curve for CH4 from 30 K to METHANE_TABLE_TOP_K 188 K, with the latent heat from its slope (Clausius and Clapeyron); the other gases are the background. The adiabat is the same moist pseudo-adiabat as water's, so no new law"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the heat capacity of molecular hydrogen below EQUILIBRIUM_HYDROGEN_BELOW_K 200 K (GEN.1030): ortho and para forms in equilibrium, from the rotational levels of H2_ROTATION_TEMPERATURE_K 87.55 K (B 60.853 cm-1, [R1926]) and the nuclear spin weights 1 and 3; it joins the NASA fit at 200 K. The equilibrium (a catalysed troposphere) is the assumption: with no conversion the cold heat capacity would be that of normal hydrogen, 2.5 to 2.7 R at 60 to 100 K"
+            ],
+            [
+              "What replaces it",
+              "the observed lapse rates of Uranus and Neptune in the 0.1 to 1 bar layer, which sit between the two cases"
+            ]
+          ],
+          "id": "IR15",
+          "key": "6.6b:IR15",
+          "kind": "D",
+          "slug": "6-6b-ir15",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR15: the heat capacity of molecular hydrogen below EQUILIBRIUM_HYDROGEN_BELOW_K 200 K (GEN.1030): ortho and para forms in equilibrium, from the rotational levels of H2_ROTATION_TEMPERATURE_K 87.55 K (B 60.853 cm-1, [R1926]) and the nuclear spin weights 1 and 3; it joins the NASA fit at 200 K. The equilibrium (a catalysed troposphere) is the assumption: with no conversion the cold heat capacity would be that of normal hydrogen, 2.5 to 2.7 R at 60 to 100 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "what stands in (constant)",
+              "the saturated troposphere of the runaway-greenhouse limits (radiative_convective.solve(saturated=True, clear_sky=True), GEN.1194): the relative humidity held at the surface value up to the cold trap and no cloud longwave effect, the air Simpson's limit as given in [R1608], Nakajima and others (1992), Kasting's work [R2275], Goldblatt and others (2013) [R1607] and Kopparapu and others (2013) [R2447] work their limits for (282, 291 and 310 W/m2 of outgoing flux); the generator's own air keeps the Manabe and Wetherald profile (IR7) and the cloud share (IR12)"
+            ],
+            [
+              "What replaces it",
+              "a computed humidity (a 3D model's, which puts the limit at 1.1 times the present flux or more)"
+            ]
+          ],
+          "id": "IR17",
+          "key": "6.6b:IR17",
+          "kind": "P",
+          "slug": "6-6b-ir17",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "IR17: the saturated troposphere of the runaway-greenhouse limits (radiative_convective.solve(saturated=True, clear_sky=True), GEN.1194): the relative humidity held at the surface value up to the cold trap and no cloud longwave effect, the air Simpson's limit as given in [R1608], Nakajima and others (1992), Kasting's work [R2275], Goldblatt and others (2013) [R1607] and Kopparapu and others (2013) [R2447] work their limits for (282, 291 and 310 W/m2 of outgoing flux); the generator's own air keeps the Manabe and Wetherald profile (IR7) and the cloud share (IR12)"
+        }
+      ],
+      "slug": "6-6b-stand-ins-of-the-infrared-opacity-the-radiative-convective-column-and-its-fitted-table-gen-715-gen-717-gen-718-gen-850-gen-851",
+      "title": "Stand-ins of the infrared opacity, the radiative-convective column and its fitted table (GEN.715, GEN.717, GEN.718, GEN.850, GEN.851)"
+    },
+    {
+      "key": "6.6c",
+      "number": "6.6c",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "greenhouse_table._deep_air_rise (above the table's top pressure, 1e8 Pa, ln(T_s / T_e) rises by (1 - 1/gamma) ln(P / P_top): the adiabat from a radiating level that does not move with the surface pressure)"
+            ],
+            [
+              "The range it moves in",
+              "kappa 0.15 to 0.30 for steam and carbon dioxide"
+            ],
+            [
+              "Where it holds",
+              "airs over 1000 bar (steam worlds past the runaway limit, GEN.1238)"
+            ],
+            [
+              "What would show it wrong",
+              "tests/test_greenhouse_table.py::test_an_air_thicker_than_the_table_was_fitted_on_keeps_its_top_value_and_then_rises_by_the_adiabat; a radiative-convective run of a 1e4 bar steam air that stands far from the adiabat"
+            ],
+            [
+              "What replaces it",
+              "radiative_convective.warming run above 1000 bar with high-pressure k-tables (the k-tables stop at 100 bar)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: a convective air is as warm as its adiabat takes it from a radiating level whose pressure the opacity sets (the table's own gamma); not fitted to the model, which does not converge above 1e8 Pa"
+            ]
+          ],
+          "id": "IR16",
+          "key": "6.6c:IR16",
+          "kind": "P",
+          "slug": "6-6c-ir16",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "greenhouse_table._deep_air_rise (above the table's top pressure, 1e8 Pa, ln(T_s / T_e) rises by (1 - 1/gamma) ln(P / P_top): the adiabat from a radiating level that does not move with the surface pressure)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "greenhouse_table.FITTED_UP_TO_K 4000 is no longer a clamp (GEN.1580): above the fit's 4,000 K the table gives T_e exp(ratio) of the same log ratio, an extrapolation of the fit; the surface stops at the ionization ceiling (CC7)"
+            ],
+            [
+              "The range it moves in",
+              "the ratio above 4,000 K a factor 0.7 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "bodies the table puts above 4,000 K (18 of 88 hot solves of the 80-system sweep, to 5,900 K)"
+            ],
+            [
+              "What would show it wrong",
+              "test_greenhouse_table::test_an_input_outside_the_fitted_range_is_held_at_its_edge_and_stays_finite; a radiative-convective solution above 4,000 K that disagrees with the extrapolated ratio"
+            ],
+            [
+              "What replaces it",
+              "a radiative-convective model with high-temperature line opacity"
+            ],
+            [
+              "Evidence",
+              "DESIGN (no model of this repository reaches there; the ratio does not depend on the surface temperature)"
+            ]
+          ],
+          "id": "IR18",
+          "key": "6.6c:IR18",
+          "kind": "P",
+          "slug": "6-6c-ir18",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": "by design",
+          "what": "greenhouse_table.FITTED_UP_TO_K 4000 is no longer a clamp (GEN.1580): above the fit's 4,000 K the table gives T_e exp(ratio) of the same log ratio, an extrapolation of the fit; the surface stops at the ionization ceiling (CC7)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the fit has no samples of a minor gas between absent and about 1e-5, so the thin-gas scaling is hand-chosen against the sweep; a refit on airs with minor gases replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
+            ],
+            [
+              "The range it moves in",
+              "3e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "any air with a gas other than those five under a part in a thousand (HCN, NH3, SO2, CO, H2, He, PH3, HCl, NO, N2O, O3 and the noble gases)"
+            ],
+            [
+              "What would show it wrong",
+              "tests/test_greenhouse_table.py::test_a_trace_gas_moves_the_temperature_by_its_share_of_its_full_effect_and_none_at_zero; a radiative-convective run of Earth's air with 10 ppm of HCN or 0.1 Pa of ozone that gives more than a kelvin"
+            ],
+            [
+              "What replaces it",
+              "a refit of the table on airs with minor gases from 1e-9 to 1e-2 (scripts/fit_greenhouse_table.py), after which the network reads the traces itself"
+            ],
+            [
+              "Evidence",
+              "hand-chosen against the sweep of 11-12 (L3): the fit has no samples between absent and about 1e-5, and a gas at 10 ppm moved Earth's air by 76 K (HCN) or 10 K (ozone at 10 ppb), where the physics gives a fraction of a kelvin to a few; the linear scaling is the thin-gas limit and underestimates a strong absorber near the edge"
+            ]
+          ],
+          "id": "IR19",
+          "key": "6.6c:IR19",
+          "kind": "P",
+          "slug": "6-6c-ir19",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L3",
+          "unread": null,
+          "what": "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
+        }
+      ],
+      "slug": "6-6c-stand-ins-of-the-greenhouse-table-above-and-below-what-it-was-fitted-on-gen-1238-gen-1580-gen-1588",
+      "title": "Stand-ins of the greenhouse table above and below what it was fitted on (GEN.1238, GEN.1580, GEN.1588)"
+    },
+    {
+      "key": "6.123",
+      "number": "6.123",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "latitude_bands.BAND_WIDTH_DEG 90 over 3.5 (25.7 degrees): the equator band is this wide centred on the equator and each of the three bands on a side is this wide, the last taking its pole"
+            ],
+            [
+              "The range it moves in",
+              "20 to 35 degrees (seven bands must still tile 180 degrees)"
+            ],
+            [
+              "Where it holds",
+              "every rocky body with a temperature and a spin"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable (a way of cutting the sphere into seven; Boss asked for the equator, three above, three below, the poles inside the outermost band)"
+            ],
+            [
+              "What replaces it",
+              "a width that follows the circulation cells of the body (a Hadley cell edge from the rotation rate)"
+            ],
+            [
+              "Evidence",
+              "needed output (Boss, 4:52 PM EDT 2026-10-30)"
+            ]
+          ],
+          "id": "LB1",
+          "key": "6.123:LB1",
+          "kind": "P",
+          "slug": "6-123-lb1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "latitude_bands.BAND_WIDTH_DEG 90 over 3.5 (25.7 degrees): the equator band is this wide centred on the equator and each of the three bands on a side is this wide, the last taking its pole"
+        }
+      ],
+      "slug": "6-123-stand-ins-of-the-seven-latitude-bands-gen-1108",
+      "title": "Stand-ins of the seven latitude bands (GEN.1108)"
+    },
+    {
+      "key": "6.173",
+      "number": "6.173",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_sprites.EM_PER_RAYLEIGH 2.75: emission measure (cm^-6 pc) per Rayleigh of hydrogen-alpha at 10,000 K"
+            ],
+            [
+              "The range it moves in",
+              "2.2 to 3.3"
+            ],
+            [
+              "Where it holds",
+              "ionised gas at 8,000 to 12,000 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured relation at other temperatures"
+            ],
+            [
+              "What replaces it",
+              "the temperature-dependent relation"
+            ],
+            [
+              "Evidence",
+              "the standard relation, recalled"
+            ]
+          ],
+          "id": "NS1",
+          "key": "6.173:NS1",
+          "kind": "P",
+          "slug": "6-173-ns1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_sprites.EM_PER_RAYLEIGH 2.75: emission measure (cm^-6 pc) per Rayleigh of hydrogen-alpha at 10,000 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_sprites.V_ZERO_FLUX_ERG_CM2_S_A 3.63e-9 and V_EFFECTIVE_WIDTH_A 880: the V zero point and band width"
+            ],
+            [
+              "The range it moves in",
+              "3.5e-9 to 3.7e-9, 800 to 900"
+            ],
+            [
+              "Where it holds",
+              "the V band"
+            ],
+            [
+              "What would show it wrong",
+              "a photometric reference"
+            ],
+            [
+              "What replaces it",
+              "the photometry library (VIEW.20)"
+            ],
+            [
+              "Evidence",
+              "recalled"
+            ]
+          ],
+          "id": "NS2",
+          "key": "6.173:NS2",
+          "kind": "P",
+          "slug": "6-173-ns2",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_sprites.V_ZERO_FLUX_ERG_CM2_S_A 3.63e-9 and V_EFFECTIVE_WIDTH_A 880: the V zero point and band width"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the share of the hydrogen-alpha line the V filter passes is recalled from the filter's red edge; a filter curve read from its table replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "nebula_sprites.HALPHA_V_TRANSMISSION 0.4: the share of a hydrogen-alpha line the V filter passes"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "an emission nebula seen in V"
+            ],
+            [
+              "What would show it wrong",
+              "a filter curve at 6563 angstroms"
+            ],
+            [
+              "What replaces it",
+              "the V filter curve"
+            ],
+            [
+              "Evidence",
+              "recalled; the filter's red edge"
+            ]
+          ],
+          "id": "NS3",
+          "key": "6.173:NS3",
+          "kind": "P",
+          "slug": "6-173-ns3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "nebula_sprites.HALPHA_V_TRANSMISSION 0.4: the share of a hydrogen-alpha line the V filter passes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_sprites.SHELL_COMPRESSION 4 and SHELL_THICKNESS_OVER_RADIUS 1/12: a strong shock's density over the ambient and the Sedov-Taylor shell's thickness"
+            ],
+            [
+              "The range it moves in",
+              "3 to 4, 0.05 to 0.15"
+            ],
+            [
+              "Where it holds",
+              "a remnant in the Sedov-Taylor phase"
+            ],
+            [
+              "What would show it wrong",
+              "a measured shell"
+            ],
+            [
+              "What replaces it",
+              "a shell model by remnant class"
+            ],
+            [
+              "Evidence",
+              "strong-shock limit for gamma = 5/3; the shell thickness recalled"
+            ]
+          ],
+          "id": "NS4",
+          "key": "6.173:NS4",
+          "kind": "P",
+          "slug": "6-173-ns4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_sprites.SHELL_COMPRESSION 4 and SHELL_THICKNESS_OVER_RADIUS 1/12: a strong shock's density over the ambient and the Sedov-Taylor shell's thickness"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the shell's hydrogen-alpha share is hand-set to the brightness of measured shells; a measured shell table replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "nebula_sprites.SHELL_HALPHA_SHARE 0.5: the share of a photoionised gas's hydrogen-alpha that a shocked shell of the same emission measure gives"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 2"
+            ],
+            [
+              "Where it holds",
+              "optical shell remnants"
+            ],
+            [
+              "What would show it wrong",
+              "an optical remnant brightness"
+            ],
+            [
+              "What replaces it",
+              "a remnant optical model"
+            ],
+            [
+              "Evidence",
+              "tuned so a 1 cm^-3, 50 ly shell is 1 to 10 Rayleighs, the order of the dim optical remnants (recalled, not looked up)"
+            ]
+          ],
+          "id": "NS5",
+          "key": "6.173:NS5",
+          "kind": "P",
+          "slug": "6-173-ns5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "nebula_sprites.SHELL_HALPHA_SHARE 0.5: the share of a photoionised gas's hydrogen-alpha that a shocked shell of the same emission measure gives"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_sprites.REFLECTION_ALBEDO 0.5: the albedo of interstellar grains in V"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "reflection nebulae"
+            ],
+            [
+              "What would show it wrong",
+              "a measured albedo"
+            ],
+            [
+              "What replaces it",
+              "the grain model of the reflection nebulae"
+            ],
+            [
+              "Evidence",
+              "recalled"
+            ]
+          ],
+          "id": "NS6",
+          "key": "6.173:NS6",
+          "kind": "P",
+          "slug": "6-173-ns6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_sprites.REFLECTION_ALBEDO 0.5: the albedo of interstellar grains in V"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the central star of a reflection nebula is set so a 10 light-year nebula is near 22 to 23 magnitudes (recalled); a catalog of reflection nebulae replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "nebula_sprites.REFLECTION_CENTRAL_ABSOLUTE_V -3: the absolute V magnitude of the star that lights a reflection nebula"
+            ],
+            [
+              "The range it moves in",
+              "-5 to 0"
+            ],
+            [
+              "Where it holds",
+              "class F"
+            ],
+            [
+              "What would show it wrong",
+              "a stored central star"
+            ],
+            [
+              "What replaces it",
+              "the nebula's stored host star"
+            ],
+            [
+              "Evidence",
+              "set so a 10 ly reflection nebula is near 22 to 23, the order of the bright ones (recalled)"
+            ]
+          ],
+          "id": "NS7",
+          "key": "6.173:NS7",
+          "kind": "P",
+          "slug": "6-173-ns7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "nebula_sprites.REFLECTION_CENTRAL_ABSOLUTE_V -3: the absolute V magnitude of the star that lights a reflection nebula"
+        }
+      ],
+      "slug": "6-173-stand-ins-of-the-sprites-of-nebulae-and-remnants-in-the-sky-of-a-system-view-28",
+      "title": "Stand-ins of the sprites of nebulae and remnants in the sky of a system (VIEW.28)"
+    },
+    {
+      "key": "6.169",
+      "number": "6.169",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the share is the generator's own count (0.857 of 727 life worlds), not an observation; no count of living classes on real worlds exists"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "prevalence_life_expectations.json two_or_more_classes: min 0.6, max 1.0, the share of life worlds with two or more living classes"
+            ],
+            [
+              "The range it moves in",
+              "min 0.4 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "life worlds of the default systems at the generator epoch of 131"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of the coexistence of chemoautotrophic and photosynthetic communities on a world, or a census at another epoch that moves the share outside the band with no change to the life rules"
+            ],
+            [
+              "What replaces it",
+              "a band from the coexistence of metabolisms in the geological record and in extremophile surveys, once the life classes are tied to those"
+            ],
+            [
+              "Evidence",
+              "measured 0.857 of 727 life worlds in 400 default systems at 5:53 PM EDT 11-4 (3a lives on 83 percent of them, 4b on 77 percent)"
+            ]
+          ],
+          "id": "LC1",
+          "key": "6.169:LC1",
+          "kind": "B",
+          "slug": "6-169-lc1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "prevalence_life_expectations.json two_or_more_classes: min 0.6, max 1.0, the share of life worlds with two or more living classes"
+        }
+      ],
+      "slug": "6-169-stand-ins-of-the-life-census-band-for-several-living-classes-test-435",
+      "title": "Stand-ins of the life census band for several living classes (TEST.435)"
+    },
+    {
+      "key": "6.167",
+      "number": "6.167",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_giant_heat.STRATIFIED_SHARE 0.5: the chance an ice giant keeps a stable compositional gradient; one of the two measured ice giants has one, so the rule of succession gives (1 + 1) / (2 + 2)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "ice giants of 5 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a census of exoplanet ice-giant luminosities (or a model of which interiors the formation and the impacts leave) that gives a share outside 0.2 to 0.8"
+            ],
+            [
+              "What replaces it",
+              "a formation and impact model of the layered interior: the share from the impact history (giant_tilt: a head-on mixing impact against an oblique one, [R5118])"
+            ],
+            [
+              "Evidence",
+              "2 measured cases ([R5115: Table 2]); the cause read in [R5117, R5119, R5120]"
+            ]
+          ],
+          "id": "IGH1",
+          "key": "6.167:IGH1",
+          "kind": "P",
+          "slug": "6-167-igh1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ice_giant_heat.STRATIFIED_SHARE 0.5: the chance an ice giant keeps a stable compositional gradient; one of the two measured ice giants has one, so the rule of succession gives (1 + 1) / (2 + 2)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_giant_heat.SUPPRESSION_RANGE (0.03, 0.30): the share of the law's flux a layered ice giant radiates, log-uniform; Uranus's 0.042 (+0.047, -0.042) W/m2 is 0.13 of the 0.32 the law gives at its mass, and 0 to 0.28 inside its error"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "layered ice giants of 5 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured layered ice giant radiating under 0.01 or over 0.5 of the law"
+            ],
+            [
+              "What replaces it",
+              "thermal evolution models of layered ice giants by mass and age [R5117, R5120] that give the share of the law as a function of the gradient"
+            ],
+            [
+              "Evidence",
+              "READ ([R5115: Table 2], Voyager values of [R5116]); the range is widened to the error bar's top, L1"
+            ]
+          ],
+          "id": "IGH2",
+          "key": "6.167:IGH2",
+          "kind": "B",
+          "slug": "6-167-igh2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ice_giant_heat.SUPPRESSION_RANGE (0.03, 0.30): the share of the law's flux a layered ice giant radiates, log-uniform; Uranus's 0.042 (+0.047, -0.042) W/m2 is 0.13 of the 0.32 the law gives at its mass, and 0 to 0.28 inside its error"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the layered share is one number for the life of the giant (mass-only, no age law): a gradient that stays stable for billions of years leaves the outer cooling at a fixed fraction of the adiabatic rate [R5117]"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "giants of a few to 15 Gyr"
+            ],
+            [
+              "What would show it wrong",
+              "a model that gives the share falling or rising with age by more than a factor of 2 over 1 to 10 Gyr"
+            ],
+            [
+              "What replaces it",
+              "the thermal evolution tracks of layered giants"
+            ],
+            [
+              "Evidence",
+              "[R5117, R5120] read as abstracts; the age law is argued, not derived"
+            ]
+          ],
+          "id": "IGH3",
+          "key": "6.167:IGH3",
+          "kind": "P",
+          "slug": "6-167-igh3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the layered share is one number for the life of the giant (mass-only, no age law): a gradient that stays stable for billions of years leaves the outer cooling at a fixed fraction of the adiabatic rate [R5117]"
+        }
+      ],
+      "slug": "6-167-stand-ins-of-the-spread-of-ice-giant-internal-heat-gen-1033",
+      "title": "Stand-ins of the spread of ice-giant internal heat (GEN.1033)"
+    },
+    {
+      "key": "6.168",
+      "number": "6.168",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_share.HYDROGEN_RICH_SHARE 0.3: an air with at least this share of its pressure as hydrogen is a hydrogen-rich air whose whole mass is an envelope; a smaller share is a secondary air with no envelope"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5 (the range of row CL1)"
+            ],
+            [
+              "Where it holds",
+              "rocky planets and moons with an air"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of sub-Neptunes whose air holds less than 30 percent hydrogen and that carry a primordial envelope, or one whose hydrogen-dominated air is secondary"
+            ],
+            [
+              "What replaces it",
+              "the mass of each gas of the air read as primordial (hydrogen and helium at the star's ratio) or secondary (outgassed), from the formation and the loss of the body"
+            ],
+            [
+              "Evidence",
+              "the same line as the class T rule (CL1, GEN.1143: 47 of 229 N bodies are hydrogen-rich under 15 Earth masses); Boss, 1:56 PM EDT 2026-10-31: store the true air share, not a class-based stand-in"
+            ]
+          ],
+          "id": "ES1",
+          "key": "6.168:ES1",
+          "kind": "P",
+          "slug": "6-168-es1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "envelope_share.HYDROGEN_RICH_SHARE 0.3: an air with at least this share of its pressure as hydrogen is a hydrogen-rich air whose whole mass is an envelope; a smaller share is a secondary air with no envelope"
+        }
+      ],
+      "slug": "6-168-stand-ins-of-the-envelope-share-of-every-body-gen-1226",
+      "title": "Stand-ins of the envelope share of every body (GEN.1226)"
+    },
+    {
+      "key": "6.233",
+      "number": "6.233",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_condensation.SNOW_LINE_SOLID_JUMP 1.967 (computed for the Sun, snow_line_solid_jump: the solids standing at the middle of the water and ammonia lines, 156.5 K, over the rock)"
+            ],
+            [
+              "The range it moves in",
+              "none (the budget's own: DSC1 to DSC6)"
+            ],
+            [
+              "Where it holds",
+              "the solid density beyond a snow line, in a Sun-like disk"
+            ],
+            [
+              "What would show it wrong",
+              "a measured jump of the solids across a snow line"
+            ],
+            [
+              "What replaces it",
+              "a disk chemistry and pebble-flux model (GEN.509)"
+            ],
+            [
+              "Evidence",
+              "the budget of part A (DSC rows); the water ice alone gave 2.17 ([R2726: Table 11]), the classical minimum-mass nebula 4.3 [R1854]; the dwarf planets of the Kuiper belt hold 0.7 rock by mass [R0269, R0552], above the 0.51 the jump leaves, as a body can lose ice and cannot gain it"
+            ]
+          ],
+          "id": "SSJ1",
+          "key": "6.233:SSJ1",
+          "kind": "D",
+          "slug": "6-233-ssj1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_condensation.SNOW_LINE_SOLID_JUMP 1.967 (computed for the Sun, snow_line_solid_jump: the solids standing at the middle of the water and ammonia lines, 156.5 K, over the rock)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "divisor of the jump: the rock alone (1.967), not the rock and the carbon grains (1.52)"
+            ],
+            [
+              "The range it moves in",
+              "rock alone or rock and grains: 1.52 to 1.97"
+            ],
+            [
+              "Where it holds",
+              "the minimum-mass nebula's rock normalization of 7.0 g/cm^2"
+            ],
+            [
+              "What would show it wrong",
+              "a rock normalization that holds the carbon grains"
+            ],
+            [
+              "What replaces it",
+              "a solids model of the inner disk"
+            ],
+            [
+              "Evidence",
+              "the normalization is the silicates and metal that [R1854] counts, tuned with PA1 without the grains, so the jump is the ratio to that rock; chosen by Lane 11 with Lane 14, GEN.1396"
+            ]
+          ],
+          "id": "SSJ2",
+          "key": "6.233:SSJ2",
+          "kind": "P",
+          "slug": "6-233-ssj2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "divisor of the jump: the rock alone (1.967), not the rock and the carbon grains (1.52)"
+        }
+      ],
+      "slug": "6-233-stand-ins-of-the-jump-of-the-solids-at-the-snow-line-gen-1396",
+      "title": "Stand-ins of the jump of the solids at the snow line (GEN.1396)"
+    },
+    {
+      "key": "6.209",
+      "number": "6.209",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_air.SLIDING_WINDOW 12, SLIDING_MIN_SWING_K 1.0 and SLIDING_ITERATE_SHARE 0.5: an unsettled fixed point whose last twelve answers swing by over 1 K while its iterate moves by under half that swing stores the mean of the answers (the time average of a switch), with the greenhouse factor taken from it"
+            ],
+            [
+              "The range it moves in",
+              "window 6 to 24 steps (whole cycles of 2, 3, 4, 6); swing 0.5 to 5 K; share 0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "unsettled airs of rocky bodies and moons"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_air_knee; an unsettled air whose stored temperature is further from a fine scan's balance than its swing"
+            ],
+            [
+              "What replaces it",
+              "a fixed point that keeps the haze or ocean switch as a state (partial cover) and so has a fixed point"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the Filippov value of a switch, the time average of the two states, is the state the physical system keeps at a jump of its map; not fitted"
+            ]
+          ],
+          "id": "SL1",
+          "key": "6.209:SL1",
+          "kind": "P",
+          "slug": "6-209-sl1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_air.SLIDING_WINDOW 12, SLIDING_MIN_SWING_K 1.0 and SLIDING_ITERATE_SHARE 0.5: an unsettled fixed point whose last twelve answers swing by over 1 K while its iterate moves by under half that swing stores the mean of the answers (the time average of a switch), with the greenhouse factor taken from it"
+        }
+      ],
+      "slug": "6-209-stand-in-of-the-knee-of-an-air-that-does-not-settle-gen-1344",
+      "title": "Stand-in of the knee of an air that does not settle (GEN.1344)"
+    },
+    {
+      "key": "6.212",
+      "number": "6.212",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnetic_geometry.DIPOLE_DOMINATED_SHARE 0.5: a dynamo whose dipole holds at least half its field has an axial dipole, a lower share a multipolar one with an isotropic axis (the same cut magnetism.generate_field uses for the class multipolar)"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "rocky and giant dynamos with a stored dipole share"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dipole tilt that does not rise as the dipole share falls"
+            ],
+            [
+              "What replaces it",
+              "a dynamo-simulation law of tilt against the dipole share and the Rossby number of the shell [R0784]"
+            ],
+            [
+              "Evidence",
+              "[R0784] gives the dipole share against the local Rossby number, not a tilt law; the cut is the class cut"
+            ]
+          ],
+          "id": "DP1",
+          "key": "6.212:DP1",
+          "kind": "B",
+          "slug": "6-212-dp1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "magnetic_geometry.DIPOLE_DOMINATED_SHARE 0.5: a dynamo whose dipole holds at least half its field has an axial dipole, a lower share a multipolar one with an isotropic axis (the same cut magnetism.generate_field uses for the class multipolar)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnetic_geometry.AXIAL_TILT_SIGMA_DEG 6: the Rayleigh scale of the tilt of an axial dipole from the spin axis, degrees"
+            ],
+            [
+              "The range it moves in",
+              "4 to 10"
+            ],
+            [
+              "Where it holds",
+              "planets and moons with a dipole-dominated dynamo and gas giants"
+            ],
+            [
+              "What would show it wrong",
+              "a population of measured exoplanet or moon dipoles whose tilts are not Rayleigh with a median near 7 degrees"
+            ],
+            [
+              "What replaces it",
+              "tilts from dynamo simulations by shell geometry, rotation and heat flux"
+            ],
+            [
+              "Evidence",
+              "RECALLED: Earth 11, Jupiter 9.6, Ganymede 4, Mercury under 3, Saturn under 0.1 degrees; the scale puts all five inside the draw (a median of 7 degrees)"
+            ]
+          ],
+          "id": "DP2",
+          "key": "6.212:DP2",
+          "kind": "P",
+          "slug": "6-212-dp2",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "magnetic_geometry.AXIAL_TILT_SIGMA_DEG 6: the Rayleigh scale of the tilt of an axial dipole from the spin axis, degrees"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnetic_geometry.OFFSET_CLASS_RP 0.15: the dipole's offset, in radii, over which the class is offset"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "any body with a dipole"
+            ],
+            [
+              "What would show it wrong",
+              "a body with a measured offset on the other side of the line from its class"
+            ],
+            [
+              "What replaces it",
+              "an offset in radii drawn by dynamo geometry"
+            ],
+            [
+              "Evidence",
+              "RECALLED: Earth 0.07, Jupiter 0.1, Mercury 0.19, Uranus 0.3, Neptune 0.55 radii [R4196]"
+            ]
+          ],
+          "id": "DP3",
+          "key": "6.212:DP3",
+          "kind": "P",
+          "slug": "6-212-dp3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": "by design",
+          "what": "magnetic_geometry.OFFSET_CLASS_RP 0.15: the dipole's offset, in radii, over which the class is offset"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnetic_geometry.ALIGNMENT_TIMESCALE_YR 7e6: the e-folding time of the alignment of a neutron star's magnetic axis with its spin, tan(alpha) falling as exp(-t / tau); a recycled millisecond pulsar is isotropic"
+            ],
+            [
+              "The range it moves in",
+              "3e6 to 3e7 years"
+            ],
+            [
+              "Where it holds",
+              "neutron stars; the age is the star's age"
+            ],
+            [
+              "What would show it wrong",
+              "a pulsar population whose inclination does not fall with age, or whose millisecond pulsars are aligned"
+            ],
+            [
+              "What replaces it",
+              "an alignment law that depends on the field and the spin period"
+            ],
+            [
+              "Evidence",
+              "RECALLED from [R5143] (an alignment time of the order of 10 million years); the recycled case is a stand-in with no source of its own"
+            ]
+          ],
+          "id": "DP4",
+          "key": "6.212:DP4",
+          "kind": "T",
+          "slug": "6-212-dp4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "magnetic_geometry.ALIGNMENT_TIMESCALE_YR 7e6: the e-folding time of the alignment of a neutron star's magnetic axis with its spin, tan(alpha) falling as exp(-t / tau); a recycled millisecond pulsar is isotropic"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnetic_geometry.B_SUN_POLAR_GAUSS 1.5: the Sun's polar dipole field, gauss, the anchor of the Rossby trend"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "cool dwarfs with a convective envelope"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mean polar dipole of the Sun outside the bracket"
+            ],
+            [
+              "What replaces it",
+              "the large-scale field of each dwarf from a dynamo model"
+            ],
+            [
+              "Evidence",
+              "RECALLED: the Sun's polar field is 1 to 3 gauss over the cycle"
+            ]
+          ],
+          "id": "DP5",
+          "key": "6.212:DP5",
+          "kind": "P",
+          "slug": "6-212-dp5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "magnetic_geometry.B_SUN_POLAR_GAUSS 1.5: the Sun's polar dipole field, gauss, the anchor of the Rossby trend"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnetic_geometry.ROSSBY_SLOPE -1.40: the large-scale field of a cool dwarf falls as the Rossby number to this power"
+            ],
+            [
+              "The range it moves in",
+              "-1.54 to -1.26"
+            ],
+            [
+              "Where it holds",
+              "cool dwarfs from about 0.1 to 2 Rossby numbers, held to M dwarfs [R5144]"
+            ],
+            [
+              "What would show it wrong",
+              "a sample of spectropolarimetric dipoles with a different slope"
+            ],
+            [
+              "What replaces it",
+              "the saturation of the large-scale field below a Rossby number of 0.1"
+            ],
+            [
+              "Evidence",
+              "[R4544]: slope -1.40 +/- 0.14 of the mean unsigned large-scale field against the Rossby number"
+            ]
+          ],
+          "id": "DP6",
+          "key": "6.212:DP6",
+          "kind": "D",
+          "slug": "6-212-dp6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "magnetic_geometry.ROSSBY_SLOPE -1.40: the large-scale field of a cool dwarf falls as the Rossby number to this power"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnetic_geometry.FIELD_SCATTER_DEX 0.35 and MAX_FIELD_GAUSS 5000: the scatter of a cool dwarf's dipole field about the Rossby trend and the cap"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5 dex; 2000 to 8000 gauss"
+            ],
+            [
+              "Where it holds",
+              "cool dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dipole over the cap, or a scatter of the sample outside the bracket"
+            ],
+            [
+              "What replaces it",
+              "a scatter by stellar mass and a measured saturation"
+            ],
+            [
+              "Evidence",
+              "RECALLED: the dipole fields of the M dwarfs reach 1 to 2 kG [R5144]"
+            ]
+          ],
+          "id": "DP7",
+          "key": "6.212:DP7",
+          "kind": "P",
+          "slug": "6-212-dp7",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "magnetic_geometry.FIELD_SCATTER_DEX 0.35 and MAX_FIELD_GAUSS 5000: the scatter of a cool dwarf's dipole field about the Rossby trend and the cap"
+        }
+      ],
+      "slug": "6-212-stand-ins-of-the-direction-of-a-magnetic-dipole-and-the-surface-field-of-a-star-gen-1350",
+      "title": "Stand-ins of the direction of a magnetic dipole and the surface field of a star (GEN.1350)"
+    },
+    {
+      "key": "6.218",
+      "number": "6.218",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "core_composition.METAL_X_FE 0.85: the mole fraction of Fe in the metal the silicate equilibrates with, in delta_IW = 2 log10(x_FeO / x_Fe) (the reaction Fe + 1/2 O2 = FeO)"
+            ],
+            [
+              "The range it moves in",
+              "0.7 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a metal core"
+            ],
+            [
+              "What would show it wrong",
+              "a core-formation experiment whose FeO and metal Fe give another IW"
+            ],
+            [
+              "What replaces it",
+              "the activity of Fe in the alloy from its Ni, S, Si, O"
+            ],
+            [
+              "Evidence",
+              "derived from the iron-wustite reaction; the 0.85 is a stand-in for an Fe-Ni-light alloy (Earth's core is 0.84 of the model's seven elements)"
+            ]
+          ],
+          "id": "CX1",
+          "key": "6.218:CX1",
+          "kind": "P",
+          "slug": "6-218-cx1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "core_composition.METAL_X_FE 0.85: the mole fraction of Fe in the metal the silicate equilibrates with, in delta_IW = 2 log10(x_FeO / x_Fe) (the reaction Fe + 1/2 O2 = FeO)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the exponent is hand-tuned so a 20 GPa core keeps about half the oxygen of an Earth-pressure one; the law is qualitative, a measured partition of O and Si into iron replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "core_composition.PRESSURE_EXPONENT 0.3 and PRESSURE_FACTOR_LIMITS (0.5, 2): the oxygen and silicon shares scale as the base-of-mantle pressure over the anchor's to this power, kept between 0.5 and 2"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies, base-of-mantle pressures from about 5 to 1000 GPa"
+            ],
+            [
+              "What would show it wrong",
+              "a measured partition of O or Si into iron against pressure that is flat or falls"
+            ],
+            [
+              "What replaces it",
+              "a fit of the O and Si metal-silicate partition against P and T"
+            ],
+            [
+              "Evidence",
+              "O and Si dissolve more in iron at high pressure and temperature (qualitative; the exponent is hand-tuned so a 20 GPa core keeps about half the oxygen of an Earth-pressure one)"
+            ]
+          ],
+          "id": "CX2",
+          "key": "6.218:CX2",
+          "kind": "P",
+          "slug": "6-218-cx2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "core_composition.PRESSURE_EXPONENT 0.3 and PRESSURE_FACTOR_LIMITS (0.5, 2): the oxygen and silicon shares scale as the base-of-mantle pressure over the anchor's to this power, kept between 0.5 and 2"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "core_composition.CONCENTRATION 6 and ALPHA_FLOOR 0.02: the Dirichlet scatter of the five light elements about their means"
+            ],
+            [
+              "The range it moves in",
+              "3 to 12"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a population of cores whose Si or O shares scatter outside the bracket"
+            ],
+            [
+              "What replaces it",
+              "the scatter of the shares from a sample of core models"
+            ],
+            [
+              "Evidence",
+              "the 15 core models averaged by [R4608] (read) spread Si 1.85 to 7.35 and O 0.8 to 6 wt percent about 4.96 and 2.66; the concentration puts the spread of the silicon share at 0.15 to 0.85 of a mean 0.48"
+            ]
+          ],
+          "id": "CX3",
+          "key": "6.218:CX3",
+          "kind": "P",
+          "slug": "6-218-cx3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "core_composition.CONCENTRATION 6 and ALPHA_FLOOR 0.02: the Dirichlet scatter of the five light elements about their means"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "core_composition.SOLID_TO_LIQUID {S 0.02, Si 0.67, O 0.02, C 0.5, H 0.3}: the mass concentration of each light element in the solid inner core over that in the liquid"
+            ],
+            [
+              "The range it moves in",
+              "S and O 0 to 0.1; Si 0.56 to 0.80; C 0.2 to 0.8; H 0.1 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "iron cores freezing from the inside out"
+            ],
+            [
+              "What would show it wrong",
+              "an inner-core density or composition measurement that puts S or O in the solid at the liquid's level"
+            ],
+            [
+              "What replaces it",
+              "partition coefficients from the same experiments for each element at core pressure"
+            ],
+            [
+              "Evidence",
+              "Si READ second-hand: a liquid/solid partition coefficient of 1.5 +- 0.3 used by [R5148] (T2 for that element); O READ: highly incompatible in solid iron ([R5148], no number); S READ qualitatively: its solubility in solid iron is low at the pressures of Mercury's core ([R5149], read); C, H RECALLED, not opened [R1950, R5148] also reads the outer core 5 to 10 percent and the inner core 2 to 3 percent light, and finds 3.7 O and 1.9 Si wt percent as its best outer-core fit"
+            ]
+          ],
+          "id": "CX4",
+          "key": "6.218:CX4",
+          "kind": "P",
+          "slug": "6-218-cx4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "core_composition.SOLID_TO_LIQUID {S 0.02, Si 0.67, O 0.02, C 0.5, H 0.3}: the mass concentration of each light element in the solid inner core over that in the liquid"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "core_composition.LIQUIDUS_DEPRESSION_K 3700 and LIQUIDUS_FACTOR_LIMITS (0.7, 1.15): K the freezing point falls at the inner core boundary (5,400 K) for a mole fraction of 1 of light elements the liquid keeps over the solid; the liquidus is core_heat's (Earth's, an alloy's) times the factor, 1 for the Earth's mix"
+            ],
+            [
+              "The range it moves in",
+              "2000 to 6000 K; limits 0.6 to 1.3 (the upper one is pure iron's liquidus over the alloy's, 6,200 K over 5,400 K at 330 GPa, recalled)"
+            ],
+            [
+              "Where it holds",
+              "iron cores with an inner core"
+            ],
+            [
+              "What would show it wrong",
+              "an inner core boundary temperature for a second body, or a Fe-S melting curve at core pressure that is not lowered in proportion"
+            ],
+            [
+              "What replaces it",
+              "an alloy liquidus by composition and pressure from melting experiments and ab initio work"
+            ],
+            [
+              "Evidence",
+              "RECALLED, not opened (a paper read for the purpose states only that the eutectic is below 1,200 K at 6 to 12 GPa, [R5150], consistent with a fall with pressure): the Fe-FeS eutectic is 988 C (1,261 K) at 1 bar against iron's 1,811 K and holds 31 wt percent S (about 0.44 mole fraction), a fall of 550 K or 1,250 K per mole fraction, scaled by the temperature to the inner core boundary (test_the_fe_fes_eutectic_depression_is_within_a_third_of_the_one_at_one_bar)"
+            ]
+          ],
+          "id": "CX5",
+          "key": "6.218:CX5",
+          "kind": "P",
+          "slug": "6-218-cx5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "core_composition.LIQUIDUS_DEPRESSION_K 3700 and LIQUIDUS_FACTOR_LIMITS (0.7, 1.15): K the freezing point falls at the inner core boundary (5,400 K) for a mole fraction of 1 of light elements the liquid keeps over the solid; the liquidus is core_heat's (Earth's, an alloy's) times the factor, 1 for the Earth's mix"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "core_composition.ENERGY_FACTOR_LIMITS (0, 4) and core_heat.Stepper.gravitational_j_kg: the compositional energy per kilogram of inner core frozen is CC6's value times the light mass left in the liquid per kilogram frozen over the Earth's (not scaled by the core's size: scaling by G M / R, which is the physical expectation, stopped the dynamo of about 80 percent of the small bodies in the census and is left for a re-tune of the dynamo thresholds)"
+            ],
+            [
+              "The range it moves in",
+              "factor limit 2 to 8"
+            ],
+            [
+              "Where it holds",
+              "iron cores with an inner core"
+            ],
+            [
+              "What would show it wrong",
+              "a dynamo history of a second body that needs another compositional energy"
+            ],
+            [
+              "What replaces it",
+              "the buoyancy flux of the light elements from the density of each and the inner core's growth"
+            ],
+            [
+              "Evidence",
+              "the compositional energy scales with the mass of light elements rejected; the Earth's value is CC6; the size scaling is the follow-up"
+            ]
+          ],
+          "id": "CX6",
+          "key": "6.218:CX6",
+          "kind": "P",
+          "slug": "6-218-cx6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "core_composition.ENERGY_FACTOR_LIMITS (0, 4) and core_heat.Stepper.gravitational_j_kg: the compositional energy per kilogram of inner core frozen is CC6's value times the light mass left in the liquid per kilogram frozen over the Earth's (not scaled by the core's size: scaling by G M / R, which is the physical expectation, stopped the dynamo of about 80 percent of the small bodies in the census and is left for a re-tune of the dynamo thresholds)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "Mercury's core shares follow ranges with no consensus [R5147] and are hand-set; a measured Mercury core replaces them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "core_composition.MERCURY_SHARES, ANCHORS' pressures (Mercury 40, Earth 136, Mars 20 GPa) and EARTH_ROCK, MARS_ROCK (FeO 0.081 and 0.18, Al2O3 0.045 and 0.036, Mg/Si 1.24 and 1.17): the mean shares of S, Si, O, C and H of a Mercury-like core and the pressures and rock of the anchors that place Earth and Mars on the redox scale"
+            ],
+            [
+              "The range it moves in",
+              "Mercury shares +-0.1 each; the pressures +-30 percent"
+            ],
+            [
+              "Where it holds",
+              "the anchors only; between them the shares are interpolated on delta_IW"
+            ],
+            [
+              "What would show it wrong",
+              "a core model of any of the three bodies on another redox"
+            ],
+            [
+              "What replaces it",
+              "the shares from a thermodynamic metal-silicate partition model (GEN.1364 follow-up)"
+            ],
+            [
+              "Evidence",
+              "the Earth and Mars shares are READ [R4608, R4833]; Mercury's shares follow the ranges read in [R5147] (Si 5 to 25 wt percent, C 1 to 4, S at most 1.5 to 2; no consensus) and are hand-set; the Earth anchor pressure is READ as 135 GPa [R5149]; Mercury's core holds 5 to 16 wt percent Si in the Fe-Si model, and the Si trades against S at 2.0 to 2.3 wt percent Si per wt percent S ([R5149], read), which the Mercury shares stay inside; the other anchor pressures and the bulk silicate FeO, Al2O3 and Mg/Si are RECALLED"
+            ]
+          ],
+          "id": "CX7",
+          "key": "6.218:CX7",
+          "kind": "P",
+          "slug": "6-218-cx7",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L3",
+          "unread": null,
+          "what": "core_composition.MERCURY_SHARES, ANCHORS' pressures (Mercury 40, Earth 136, Mars 20 GPa) and EARTH_ROCK, MARS_ROCK (FeO 0.081 and 0.18, Al2O3 0.045 and 0.036, Mg/Si 1.24 and 1.17): the mean shares of S, Si, O, C and H of a Mercury-like core and the pressures and rock of the anchors that place Earth and Mars on the redox scale"
+        }
+      ],
+      "slug": "6-218-stand-ins-of-what-a-metal-core-is-made-of-gen-1364",
+      "title": "Stand-ins of what a metal core is made of (GEN.1364)"
+    },
+    {
+      "key": "6.208",
+      "number": "6.208",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ENERGY_LIMITED_EFFICIENCY 0.15: the share of the absorbed XUV that drives hydrogen away in the water-loss history, the value the atmosphere escape model uses"
+            ],
+            [
+              "The range it moves in",
+              "0.1 [R2769, R4637] to 0.15 ([R2512]: 0.10 to 0.20); the full published spread is about 0.01 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with surface water past the runaway greenhouse limit, hydrogen-rich steam escaping at the energy limit"
+            ],
+            [
+              "What would show it wrong",
+              "test_runaway_history::test_the_water_loss_efficiency_is_the_atmosphere_escape_efficiency; a measured water loss of a planet near the limit"
+            ],
+            [
+              "What replaces it",
+              "a hydrodynamic escape model with a real efficiency by star, mass and XUV (GEN.511)"
+            ],
+            [
+              "Evidence",
+              "READ [R2512, R2769, R4637]; Boss's choice of 2026-11-07 inside the range; replaces his 10-23 DESIGN value 0.01"
+            ]
+          ],
+          "id": "ER1",
+          "key": "6.208:ER1",
+          "kind": "P",
+          "slug": "6-208-er1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.ENERGY_LIMITED_EFFICIENCY 0.15: the share of the absorbed XUV that drives hydrogen away in the water-loss history, the value the atmosphere escape model uses"
+        }
+      ],
+      "slug": "6-208-stand-in-of-the-energy-limited-efficiency-of-the-water-loss-history-gen-1346",
+      "title": "Stand-in of the energy-limited efficiency of the water-loss history (GEN.1346)"
+    },
+    {
+      "key": "6.232",
+      "number": "6.232",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "neutron_star_crust.PASTA lower_fraction_of_saturation 0.2 and saturation_density_fm3 0.165: the density where the pasta starts, 0.2 of the normal nuclear density"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "neutron stars with a crust"
+            ],
+            [
+              "What would show it wrong",
+              "a computed crust whose nuclei stay spherical above 0.3 of the normal nuclear density"
+            ],
+            [
+              "What replaces it",
+              "an equation of state with the pasta computed in it"
+            ],
+            [
+              "Evidence",
+              "the review [R5167] (read): the pasta lies at 0.2 to 0.5 of the normal nuclear density; the upper end is cut at the crust-core boundary of NS1 (0.08 nucleons per fm^3, 0.48 of the normal density), so the layer ends at the bottom of the crust table"
+            ]
+          ],
+          "id": "PS1",
+          "key": "6.232:PS1",
+          "kind": "P",
+          "slug": "6-232-ps1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "neutron_star_crust.PASTA lower_fraction_of_saturation 0.2 and saturation_density_fm3 0.165: the density where the pasta starts, 0.2 of the normal nuclear density"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "neutron_star_crust.PASTA thickness_m 100.0: the thickness of the layer"
+            ],
+            [
+              "The range it moves in",
+              "10 to 300 m"
+            ],
+            [
+              "Where it holds",
+              "neutron stars of 1.4 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a computed crust with a pasta layer thicker than 300 m or thinner than 10 m"
+            ],
+            [
+              "What replaces it",
+              "a crust model of each star's mass and radius"
+            ],
+            [
+              "Evidence",
+              "the review [R5167] (read): the pasta lies in the bottom layer of the crust, about 100 m thick; one figure, not scaled to the star"
+            ]
+          ],
+          "id": "PS2",
+          "key": "6.232:PS2",
+          "kind": "P",
+          "slug": "6-232-ps2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "neutron_star_crust.PASTA thickness_m 100.0: the thickness of the layer"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "neutron_star_crust.PASTA crust_mass_share_at_most 0.5: the largest share of the crust's mass the pasta may hold"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "neutron stars with a crust"
+            ],
+            [
+              "What would show it wrong",
+              "a computed crust whose pasta holds more than half its mass"
+            ],
+            [
+              "What replaces it",
+              "a crust model of each star"
+            ],
+            [
+              "Evidence",
+              "the review [R5167] (read): the pasta may hold half the mass of the crust; an upper limit, shown as \"up to\""
+            ]
+          ],
+          "id": "PS3",
+          "key": "6.232:PS3",
+          "kind": "P",
+          "slug": "6-232-ps3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "neutron_star_crust.PASTA crust_mass_share_at_most 0.5: the largest share of the crust's mass the pasta may hold"
+        }
+      ],
+      "slug": "6-232-stand-ins-of-the-nuclear-pasta-layer-of-a-neutron-star-gen-1427",
+      "title": "Stand-ins of the nuclear pasta layer of a neutron star (GEN.1427)"
+    },
+    {
+      "key": "6.282",
+      "number": "6.282",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "hand-set from a sweep of the solve at four temperatures and pressures; no measured limit of the oxygen a hot deep air holds exists"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "gas_equilibrium.MAX_HELD_O2_SHARE 0.9: the most of the total pressure a held oxygen fugacity may be, applied by the rocky air (mixture_rocky; a lava gas raises its pressure instead, GEN.1513) and only to a solve that did not settle at the value the buffer asked for (a solve that settles keeps its value, so no air that worked moves); the result carries the value asked for in clamped_o2_log_fugacity and one normal log line says so"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 0.98 (the solver settles at 0.98 of 3,982 K and 9,255 bar, and not at 0.98 of 4,225 K and 7,572 bar)"
+            ],
+            [
+              "Where it holds",
+              "an ideal gas, a held oxygen fugacity over 0.9 of the pressure, 3,900 to 9,300 bar and 3,980 to 4,900 K"
+            ],
+            [
+              "What would show it wrong",
+              "a real-gas equilibrium (fugacity coefficients of the species) that settles with the fugacity the buffer asks for"
+            ],
+            [
+              "What replaces it",
+              "the real-gas fugacity coefficients of the species (Peng-Robinson with critical constants; the 34 species that have them in gases.py), a finding for GEN.1613's own item"
+            ],
+            [
+              "Evidence",
+              "hand-set from a sweep of the solve at four temperatures and pressures; the buffer's value is oxygen_fugacity.log_fo2(redox, T) on the [R1951] iron-wustite buffer"
+            ]
+          ],
+          "id": "HO1",
+          "key": "6.282:HO1",
+          "kind": "B",
+          "slug": "6-282-ho1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L3",
+          "unread": null,
+          "what": "gas_equilibrium.MAX_HELD_O2_SHARE 0.9: the most of the total pressure a held oxygen fugacity may be, applied by the rocky air (mixture_rocky; a lava gas raises its pressure instead, GEN.1513) and only to a solve that did not settle at the value the buffer asked for (a solve that settles keeps its value, so no air that worked moves); the result carries the value asked for in clamped_o2_log_fugacity and one normal log line says so"
+        }
+      ],
+      "slug": "6-282-stand-in-of-the-oxygen-a-mantle-can-hold-in-a-deep-hot-air-gen-1613",
+      "title": "Stand-in of the oxygen a mantle can hold in a deep hot air (GEN.1613)"
+    },
+    {
+      "key": "6.272",
+      "number": "6.272",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_clock.clock_lag_fraction: the weak-field sum G m / (R c^2) + sum 3 G M_h / (2 r_h c^2) over the hosts a body circles (its star, or its planet then the planet's star), circular orbits, the velocities of a nest added in quadrature"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "bodies far from the strong-field limit, a surface clock"
+            ],
+            [
+              "What would show it wrong",
+              "a clock whose measured lag differs from the sum by 1e-3 of itself (GPS clocks agree to 1e-4 of the Earth's)"
+            ],
+            [
+              "What replaces it",
+              "the same sum with the true anomaly of an eccentric orbit, the companion star of a close pair and the galaxy's field added as hosts"
+            ],
+            [
+              "Evidence",
+              "derived: the Earth lags 0.489 s a year behind a distant clock, 0.022 s of it from its own surface; the Sun's surface 67 s a year; a white dwarf of 0.6 solar masses and 6000 km 4.7e3 s a year"
+            ]
+          ],
+          "id": "SK1",
+          "key": "6.272:SK1",
+          "kind": "P",
+          "slug": "6-272-sk1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky_clock.clock_lag_fraction: the weak-field sum G m / (R c^2) + sum 3 G M_h / (2 r_h c^2) over the hosts a body circles (its star, or its planet then the planet's star), circular orbits, the velocities of a nest added in quadrature"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_clock.touching_share: the share of crossings that touch the star is (2/pi) asin(reach / beta_max) with the arcsine height of EC2, so the mean interval between eclipses is the synodic period over it; the longest eclipse is the central crossing 2 reach / omega; circular orbits and a point observer (EC1)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "moons and inner planets whose orbit is much smaller than the observer's distance from the star"
+            ],
+            [
+              "What would show it wrong",
+              "an eclipse calendar of a real world that differs by a third (Venus: one transit in 81 years against the real 61, the Moon-Sun: 1.2 years for a point on the Earth's orbit)"
+            ],
+            [
+              "What replaces it",
+              "the true anomalies and the node and apse phases of the two orbits, and an observer on a rotating surface"
+            ],
+            [
+              "Evidence",
+              "derived: the Moon eclipses the Sun for up to 2.1 h, annular at best (94 percent); Venus crosses it for up to 8.2 h; the transit rate eclipses.transit_rate is 3.9 arc minutes an hour for Venus (it had left out the turn of the direction to the star, a factor of 2.6 off in orbiting_the_star)"
+            ]
+          ],
+          "id": "SK2",
+          "key": "6.272:SK2",
+          "kind": "P",
+          "slug": "6-272-sk2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky_clock.touching_share: the share of crossings that touch the star is (2/pi) asin(reach / beta_max) with the arcsine height of EC2, so the mean interval between eclipses is the synodic period over it; the longest eclipse is the central crossing 2 reach / omega; circular orbits and a point observer (EC1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_clock.focal_distance_m: the vacuum weak-field focus R^2 c^2 / (4 G M) of the light that grazes the surface, for a body larger than four Schwarzschild radii"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a star or a white dwarf, a vacuum around it"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Sun focus that differs by more than the corona's 18 percent"
+            ],
+            [
+              "What replaces it",
+              "the focus of the plasma lens (the corona refracts the light too, about 650 AU for the Sun)"
+            ],
+            [
+              "Evidence",
+              "derived: 548 AU for the Sun, 0.07 AU for a 0.6 solar mass white dwarf"
+            ]
+          ],
+          "id": "SK3",
+          "key": "6.272:SK3",
+          "kind": "P",
+          "slug": "6-272-sk3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky_clock.focal_distance_m: the vacuum weak-field focus R^2 c^2 / (4 G M) of the light that grazes the surface, for a body larger than four Schwarzschild radii"
+        }
+      ],
+      "slug": "6-272-stand-ins-of-the-clock-the-calendar-of-eclipses-and-the-lens-of-a-body-gen-1434",
+      "title": "Stand-ins of the clock, the calendar of eclipses and the lens of a body (GEN.1434)"
+    },
+    {
+      "key": "6.280",
+      "number": "6.280",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_size_rows.width_deg: the angular diameter 2 asin(R / d) of a disk of radius R at distance d, with a planet's star at the circle that gives the planet the same mean light (orbit_elements.flux_distance_au, a (1 - e^2)^(1/4)) and a moon's star at its planet's; a moon's planet at the moon's orbit"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a spherical star or planet and a point observer on the surface at the sub-body point"
+            ],
+            [
+              "What would show it wrong",
+              "a world whose measured sun, or whose planet seen from the moon, differs from the formula by a few percent (the Sun from the Earth is 0.533 degrees mean, 0.527 to 0.543 over the year)"
+            ],
+            [
+              "What replaces it",
+              "the width at the true anomaly of the body (the row keeps the mean-light distance), and a star's limb darkening and oblateness"
+            ],
+            [
+              "Evidence",
+              "derived: the Sun from the Earth 0.533 degrees, from Mercury 1.4, from Neptune 0.018; the Earth from the Moon 1.9 degrees (3.7 times the Moon's width from the Earth); a white dwarf of 6000 km radius from 0.01 AU 0.46 degrees"
+            ]
+          ],
+          "id": "SZ1",
+          "key": "6.280:SZ1",
+          "kind": "P",
+          "slug": "6-280-sz1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky_size_rows.width_deg: the angular diameter 2 asin(R / d) of a disk of radius R at distance d, with a planet's star at the circle that gives the planet the same mean light (orbit_elements.flux_distance_au, a (1 - e^2)^(1/4)) and a moon's star at its planet's; a moon's planet at the moon's orbit"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_size_rows.MAX_OTHER_ROWS 4: the most other suns a sheet lists, the brightest; which sources show at all is the SKY1 threshold of sky_view"
+            ],
+            [
+              "The range it moves in",
+              "1 to 8"
+            ],
+            [
+              "Where it holds",
+              "a system with four or fewer other sources that give light to the body"
+            ],
+            [
+              "What would show it wrong",
+              "a multiple system whose fifth source gives the body more than a tenth of its light"
+            ],
+            [
+              "What replaces it",
+              "a row for every source the light field holds"
+            ],
+            [
+              "Evidence",
+              "the sheet of a quadruple or quintuple system carries three or four extra rows"
+            ]
+          ],
+          "id": "SZ2",
+          "key": "6.280:SZ2",
+          "kind": "B",
+          "slug": "6-280-sz2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky_size_rows.MAX_OTHER_ROWS 4: the most other suns a sheet lists, the brightest; which sources show at all is the SKY1 threshold of sky_view"
+        }
+      ],
+      "slug": "6-280-stand-ins-of-how-wide-the-sources-look-in-a-body-s-sky-gen-1434",
+      "title": "Stand-ins of how wide the sources look in a body's sky (GEN.1434)"
+    },
+    {
+      "key": "6.281",
+      "number": "6.281",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nitrogen_budget.D_N_REDUCED 1 at dIW -4 and D_N_OXIDISED 39 at dIW -1 (20 GPa, 3000 K), held between 1 and D_N_MAX 265 (5 GPa at 2000 K): the metal/silicate partition coefficient of nitrogen, log-linear in the redox"
+            ],
+            [
+              "The range it moves in",
+              "1 to 100 (Johansen and others 2023 range), 10 to 31 measured (Suer and others 2023)"
+            ],
+            [
+              "Where it holds",
+              "every rocky body with a core and a magma-ocean redox"
+            ],
+            [
+              "What would show it wrong",
+              "a measured D_N at dIW -2 and 20 GPa outside 3 to 40, or a core nitrogen that disagrees with Johnson and Goldblatt's 180 to 300 x 1e18 kg"
+            ],
+            [
+              "What replaces it",
+              "a D_N law fitted on pressure, temperature and redox together (Grewal and others 2019 style)"
+            ],
+            [
+              "Evidence",
+              "Suer and others 2023, Front. Earth Sci. 11:1159412, Table 1 (a review of the experiments); [R2171] K_D 20 +/- 10 measured, 1.8 thermodynamic"
+            ]
+          ],
+          "id": "NB1",
+          "key": "6.281:NB1",
+          "kind": "P",
+          "slug": "6-281-nb1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nitrogen_budget.D_N_REDUCED 1 at dIW -4 and D_N_OXIDISED 39 at dIW -1 (20 GPa, 3000 K), held between 1 and D_N_MAX 265 (5 GPa at 2000 K): the metal/silicate partition coefficient of nitrogen, log-linear in the redox"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nitrogen_budget.CORE_FORMATION_OFFSET -2.5 and REFERENCE_DIW 0.5: the metal separated 2.5 log units below the magma-ocean surface redox a1, and the Earth-mass mean a1 is the reference at which the inventory bracket already holds the Earth's partition"
+            ],
+            [
+              "The range it moves in",
+              "offset -1.5 to -3.5"
+            ],
+            [
+              "Where it holds",
+              "the redox ladder of the recipes"
+            ],
+            [
+              "What would show it wrong",
+              "a core-formation redox of the Earth's mass analog outside IW-3 to IW-1"
+            ],
+            [
+              "What replaces it",
+              "a redox history of the magma ocean that carries the core-formation redox itself"
+            ],
+            [
+              "Evidence",
+              "the a1 row of the recipes (Earth surface IW+0.5 [R4154], core formation about IW-2)"
+            ]
+          ],
+          "id": "NB2",
+          "key": "6.281:NB2",
+          "kind": "P",
+          "slug": "6-281-nb2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "nitrogen_budget.CORE_FORMATION_OFFSET -2.5 and REFERENCE_DIW 0.5: the metal separated 2.5 log units below the magma-ocean surface redox a1, and the Earth-mass mean a1 is the reference at which the inventory bracket already holds the Earth's partition"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.DEGAS_EFFICIENCY_N (0.3, 0.55, log): the share of the degassed nitrogen that stays gas"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "the nitrogen of every rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth twin whose nitrogen air is not 60 to 100 kPa at the bracket middles"
+            ],
+            [
+              "What replaces it",
+              "a nitrogen solubility law (Libourel and others 2003 [R2675]; Grewal and others 2020 [R1684]) with the redox of the melt"
+            ],
+            [
+              "Evidence",
+              "[R2171: Table 4]: 4 of 21 to 35 x 1e18 kg of the bulk silicate Earth's nitrogen is in the air (11 to 19 percent) over the carbon-calibrated 0.36"
+            ]
+          ],
+          "id": "NB3",
+          "key": "6.281:NB3",
+          "kind": "P",
+          "slug": "6-281-nb3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_pressure.DEGAS_EFFICIENCY_N (0.3, 0.55, log): the share of the degassed nitrogen that stays gas"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_rocky.INVENTORY[\"nitrogen_per_carbon\"] (0.012, 0.23, log): the delivered nitrogen per carbon atom, the lowest measured ratio (Kargel and Lewis 0.013) at the low end, the CI chondrites' 0.059 near the log-middle, Venus' air 0.074"
+            ],
+            [
+              "The range it moves in",
+              "0.008 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "the nitrogen of every rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "a measured delivered ratio outside the bracket"
+            ],
+            [
+              "What replaces it",
+              "a delivered-volatile table with its own nitrogen column"
+            ],
+            [
+              "Evidence",
+              "[R0357: Table S1] (BSE 1/49, CI 1/17, Venus 1/13.5, Mars 1/18), [R2171] BSE nitrogen 17 to 31 x 1e18 kg"
+            ]
+          ],
+          "id": "NB4",
+          "key": "6.281:NB4",
+          "kind": "P",
+          "slug": "6-281-nb4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L2",
+          "unread": null,
+          "what": "mixture_rocky.INVENTORY[\"nitrogen_per_carbon\"] (0.012, 0.23, log): the delivered nitrogen per carbon atom, the lowest measured ratio (Kargel and Lewis 0.013) at the low end, the CI chondrites' 0.059 near the log-middle, Venus' air 0.074"
+        }
+      ],
+      "slug": "6-281-stand-ins-of-the-nitrogen-the-metal-and-the-melt-keep-gen-1584",
+      "title": "Stand-ins of the nitrogen the metal and the melt keep (GEN.1584)"
+    },
+    {
+      "key": "6.274",
+      "number": "6.274",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_HEAVY_R_FRACTION: the r-process share of each element's solar abundance (Sr 0.11, Y 0.08, Zr 0.18, Ba 0.15, La 0.25, Ce 0.18, Pr 0.49, Nd 0.42, Sm 0.67, Gd 0.85, Tb 0.93, Dy 0.88, Ho 0.92, Er 0.83, Tm 0.83, Yb 0.68, Lu 0.79, Os 0.91, Ir 0.99, Pt 0.95, Au 0.94, Pb 0.19), recalled from Table 10 of [R5228] and its quotations"
+            ],
+            [
+              "The range it moves in",
+              "each 0.05 either way"
+            ],
+            [
+              "Where it holds",
+              "the mix of the r and s scales of every heavy element"
+            ],
+            [
+              "What would show it wrong",
+              "the table read in the paper, which differs from a value by more than 0.1"
+            ],
+            [
+              "What replaces it",
+              "the printed Table 10 (flagged for upgrade if Boss supplies it)"
+            ],
+            [
+              "Evidence",
+              "the research note (real-material-data-1 section 4) gives Eu 0.97, Ba 0.15, La 0.25, Au 0.9, Pb 0.2, which these agree with"
+            ]
+          ],
+          "id": "HE1",
+          "key": "6.274:HE1",
+          "kind": "P",
+          "slug": "6-274-he1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STELLAR_HEAVY_R_FRACTION: the r-process share of each element's solar abundance (Sr 0.11, Y 0.08, Zr 0.18, Ba 0.15, La 0.25, Ce 0.18, Pr 0.49, Nd 0.42, Sm 0.67, Gd 0.85, Tb 0.93, Dy 0.88, Ho 0.92, Er 0.83, Tm 0.83, Yb 0.68, Lu 0.79, Os 0.91, Ir 0.99, Pt 0.95, Au 0.94, Pb 0.19), recalled from Table 10 of [R5228] and its quotations"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_S_PROCESS_XFE (+0.030, -0.076, sigma 0.149): [s/Fe] taken from the [R0535] fit of [Y/Fe] against [Fe/H], used for every s-process element"
+            ],
+            [
+              "The range it moves in",
+              "slope +-0.05, sigma 0.1 to 0.25"
+            ],
+            [
+              "Where it holds",
+              "the s share of every heavy element"
+            ],
+            [
+              "What would show it wrong",
+              "a barium or lead trend that departs from yttrium's by more than 0.15 dex at some [Fe/H]"
+            ],
+            [
+              "What replaces it",
+              "a [Ba/Fe] trend and a branch split"
+            ],
+            [
+              "Evidence",
+              "research/real-material-data-1 section 1.2 (fit to the repo's 1,615 dwarfs)"
+            ]
+          ],
+          "id": "HE2",
+          "key": "6.274:HE2",
+          "kind": "P",
+          "slug": "6-274-he2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.STELLAR_S_PROCESS_XFE (+0.030, -0.076, sigma 0.149): [s/Fe] taken from the [R0535] fit of [Y/Fe] against [Fe/H], used for every s-process element"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "heavy_elements.ROCK_MG_MASS_FRACTION 0.222: the magnesium mass fraction of the silicate of a body, the bulk silicate Earth's ([R3417], second hand), with which the star's element-to-magnesium ratio sets a refractory element's mass"
+            ],
+            [
+              "The range it moves in",
+              "0.18 to 0.25"
+            ],
+            [
+              "Where it holds",
+              "every heavy element's mass"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose silicate is far from the bulk silicate Earth's magnesium (a metal-rich mantle)"
+            ],
+            [
+              "What replaces it",
+              "the body's own magnesium from its stored composition"
+            ],
+            [
+              "Evidence",
+              "the reference the radiogenic module also scales (RADIOGENIC_SILICATE_MASS_FRACTION)"
+            ]
+          ],
+          "id": "HE3",
+          "key": "6.274:HE3",
+          "kind": "P",
+          "slug": "6-274-he3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "heavy_elements.ROCK_MG_MASS_FRACTION 0.222: the magnesium mass fraction of the silicate of a body, the bulk silicate Earth's ([R3417], second hand), with which the star's element-to-magnesium ratio sets a refractory element's mass"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "heavy_elements.PARTITION platinum group 1000: the metal-silicate partition coefficient that leaves a 0.325 metal body's mantle about 0.3 percent of the chondritic ratio; equilibrium only, no late accretion"
+            ],
+            [
+              "The range it moves in",
+              "300 to 1e4"
+            ],
+            [
+              "Where it holds",
+              "Os, Ir, Pt in the rock and the core"
+            ],
+            [
+              "What would show it wrong",
+              "a late-accreted mantle whose platinum group exceeds the equilibrium one"
+            ],
+            [
+              "What replaces it",
+              "late_accretion added to the mantle"
+            ],
+            [
+              "Evidence",
+              "tuned to the depletion of the bulk silicate Earth, the one body known; the elements share D"
+            ]
+          ],
+          "id": "HE4",
+          "key": "6.274:HE4",
+          "kind": "P",
+          "slug": "6-274-he4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "heavy_elements.PARTITION platinum group 1000: the metal-silicate partition coefficient that leaves a 0.325 metal body's mantle about 0.3 percent of the chondritic ratio; equilibrium only, no late accretion"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "heavy_elements.PARTITION gold 1000: as HE4, gold taking the platinum group's value"
+            ],
+            [
+              "The range it moves in",
+              "300 to 1e4"
+            ],
+            [
+              "Where it holds",
+              "Au in the rock and the core"
+            ],
+            [
+              "What would show it wrong",
+              "gold sulfide-rich cores that hold less"
+            ],
+            [
+              "What replaces it",
+              "a sulfur-dependent D"
+            ],
+            [
+              "Evidence",
+              "as HE4"
+            ]
+          ],
+          "id": "HE5",
+          "key": "6.274:HE5",
+          "kind": "P",
+          "slug": "6-274-he5",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "heavy_elements.PARTITION gold 1000: as HE4, gold taking the platinum group's value"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "heavy_elements.PARTITION rare earths 0.005 and large-ion lithophiles 0.001: lithophile, almost nothing in the metal"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "La to Lu, Sr, Y, Zr, Ba in the core"
+            ],
+            [
+              "What would show it wrong",
+              "an oxygen-rich core that holds rare earths"
+            ],
+            [
+              "What replaces it",
+              "experimental D at core pressure"
+            ],
+            [
+              "Evidence",
+              "all of them lithophile in every experiment read"
+            ]
+          ],
+          "id": "HE6",
+          "key": "6.274:HE6",
+          "kind": "P",
+          "slug": "6-274-he6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "heavy_elements.PARTITION rare earths 0.005 and large-ion lithophiles 0.001: lithophile, almost nothing in the metal"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "heavy_elements.PARTITION lead 3: moderately siderophile; no volatile depletion is applied (a body that lost its lead keeps it here)"
+            ],
+            [
+              "The range it moves in",
+              "1 to 30"
+            ],
+            [
+              "Where it holds",
+              "Pb in the rock and the core"
+            ],
+            [
+              "What would show it wrong",
+              "a hot rocky planet whose lead the depletion law removes"
+            ],
+            [
+              "What replaces it",
+              "volatile_depletion applied to lead"
+            ],
+            [
+              "Evidence",
+              "reported by the sheet only through the sums; Pb is not a sheet row yet"
+            ]
+          ],
+          "id": "HE7",
+          "key": "6.274:HE7",
+          "kind": "P",
+          "slug": "6-274-he7",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "heavy_elements.PARTITION lead 3: moderately siderophile; no volatile depletion is applied (a body that lost its lead keeps it here)"
+        }
+      ],
+      "slug": "6-274-stand-ins-of-the-heavy-elements-of-a-star-and-the-metal-silicate-split-of-a-body-gen-1371",
+      "title": "Stand-ins of the heavy elements of a star and the metal-silicate split of a body (GEN.1371)"
+    },
+    {
+      "key": "6.285",
+      "number": "6.285",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation S2 (form log-fit): ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T, 312 to 925 K, 8.8 percent at worst"
+            ],
+            [
+              "The range it moves in",
+              "the three coefficients (a fit to the gas table, no free choice)"
+            ],
+            [
+              "Where it holds",
+              "sulfur vapor over condensed sulfur, hot rocky and giant atmospheres"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapor pressure of sulfur that differs by more than the 8.8 percent over the window"
+            ],
+            [
+              "What replaces it",
+              "a measured or critically evaluated curve for S2 and S8 over liquid sulfur"
+            ],
+            [
+              "Evidence",
+              "COMPUTED (the gas table section 6.3, T6: equilibrium of condensed and gas phases from NASA polynomials; 406, 504, 605, 763 and 882 K at 1 mPa, 1 Pa, 100 Pa, 10 kPa and 100 kPa; test_saturation::test_the_held_back_sulfur_curve_reproduces_the_gas_tables_rows)"
+            ]
+          ],
+          "id": "SV1",
+          "key": "6.285:SV1",
+          "kind": "P",
+          "slug": "6-285-sv1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation S2 (form log-fit): ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T, 312 to 925 K, 8.8 percent at worst"
+        }
+      ],
+      "slug": "6-285-stand-ins-of-the-sulfur-vapor-curve-gen-1564",
+      "title": "Stand-ins of the sulfur vapor curve (GEN.1564)"
+    },
+    {
+      "key": "6.295",
+      "number": "6.295",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isochrones.surface_change_dex: the change of the surface's [Fe/H] is the change of its metals-to-hydrogen ratio (log10((1 - h1 - he3 - he4) / h1) against the birth composition), not of its iron alone"
+            ],
+            [
+              "The range it moves in",
+              "the iron falls 0.006 dex more than the metals together at 1 solar mass and 4.6 Gy (0.069 dex against 0.062), so a star read this way is born 0.006 dex too poor in [Fe/H], about 1 percent in luminosity"
+            ],
+            [
+              "Where it holds",
+              "main-sequence stars of 0.1 to 2 solar masses; isochrones.DIFFUSION_MASS_LIMIT_SOL 2.0 (a star above it is read at its [Fe/H] as it is: the grid's change there is under 0.005 dex, mixing and winds, not diffusion), a limit of 1.5 to 3 changes a star of 1.5 to 2 solar masses by under 0.02 dex"
+            ],
+            [
+              "What would show it wrong",
+              "the surface iron of the grid's tracks (log_surf_z and surface_fe56 of the EEP files, which the setup does not keep) differing from the metals together by more than 0.02 dex at any mass up to 1.3 solar masses"
+            ],
+            [
+              "What replaces it",
+              "the surface iron itself, from the full isochrones or the EEP tracks, kept in place of the hydrogen and helium"
+            ],
+            [
+              "Evidence",
+              "read first-hand from the MIST EEP track of 1.0 solar mass at [Fe/H] 0 [R0773, R1150]: surface iron-56 1.58e-3 at 20 Myr, 1.41e-3 at 4.58 Gy (0.0506 dex down); log Z at the surface 0.0451 down; hydrogen 0.7154 to 0.7466 (0.0187 dex up)"
+            ]
+          ],
+          "id": "SD1",
+          "key": "6.295:SD1",
+          "kind": "P",
+          "slug": "6-295-sd1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isochrones.surface_change_dex: the change of the surface's [Fe/H] is the change of its metals-to-hydrogen ratio (log10((1 - h1 - he3 - he4) / h1) against the birth composition), not of its iron alone"
+        }
+      ],
+      "slug": "6-295-stand-ins-of-the-surface-fe-h-of-a-star-against-its-birth-value-gen-1623",
+      "title": "Stand-ins of the surface [Fe/H] of a star against its birth value (GEN.1623)"
+    },
+    {
+      "key": "6.296",
+      "number": "6.296",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "starlight_aloft.SLANT 2.0: the beam crosses the air at a cosine of one half, the global mean of the flux a sphere absorbs"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 2.5 moves the share taken aloft by under 0.03"
+            ],
+            [
+              "Where it holds",
+              "every air of a body with no ground"
+            ],
+            [
+              "What would show it wrong",
+              "a 3D or a two-stream shortwave calculation of a metal-rich envelope taking a share more than 0.1 different"
+            ],
+            [
+              "What replaces it",
+              "a shortwave two-stream solution with the star's own spectrum"
+            ],
+            [
+              "Evidence",
+              "none: a one-dimensional model's usual fixed angle"
+            ]
+          ],
+          "id": "SA1",
+          "key": "6.296:SA1",
+          "kind": "P",
+          "slug": "6-296-sa1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "starlight_aloft.SLANT 2.0: the beam crosses the air at a cosine of one half, the global mean of the flux a sphere absorbs"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "starlight_aloft.COVERED_BELOW_CM1 12,000: the starlight shortward of 0.83 micron (the visible and the ultraviolet, about 60 percent of a Sun's) reaches the reference level; the tables stop there"
+            ],
+            [
+              "The range it moves in",
+              "the share taken aloft is then at most the star's share in the bands (about 0.39 for a Sun, 0.8 for an M dwarf)"
+            ],
+            [
+              "Where it holds",
+              "air with the visible bands of methane and ammonia and the Rayleigh scattering of hydrogen not taking the light (a thin hydrogen air)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sub-Neptune or giant spectrum showing the visible light taken above 1 bar"
+            ],
+            [
+              "What replaces it",
+              "k-tables of the visible and Rayleigh scattering"
+            ],
+            [
+              "Evidence",
+              "the 1 bar level of the giants of the Solar System (Jupiter 165 K observed, the table 150 K) is not moved by it (Lane 02's check, GEN.1716)"
+            ]
+          ],
+          "id": "SA2",
+          "key": "6.296:SA2",
+          "kind": "P",
+          "slug": "6-296-sa2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": "by design",
+          "what": "starlight_aloft.COVERED_BELOW_CM1 12,000: the starlight shortward of 0.83 micron (the visible and the ultraviolet, about 60 percent of a Sun's) reaches the reference level; the tables stop there"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "starlight_aloft.MAX_SHARE 0.9: the most the gases take aloft; the model needs a share under 1 and the table was fitted up to 0.9"
+            ],
+            [
+              "The range it moves in",
+              "none inside the range the air reaches (0.39 for a Sun's near infrared)"
+            ],
+            [
+              "Where it holds",
+              "stars cooler than about 3,000 K whose near infrared is over 0.9 of their light"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose share would pass it"
+            ],
+            [
+              "What replaces it",
+              "a table fitted to a higher share"
+            ],
+            [
+              "Evidence",
+              "none"
+            ]
+          ],
+          "id": "SA3",
+          "key": "6.296:SA3",
+          "kind": "P",
+          "slug": "6-296-sa3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "starlight_aloft.MAX_SHARE 0.9: the most the gases take aloft; the model needs a share under 1 and the table was fitted up to 0.9"
+        }
+      ],
+      "slug": "6-296-stand-ins-of-the-starlight-an-air-takes-before-its-reference-level-gen-1717",
+      "title": "Stand-ins of the starlight an air takes before its reference level (GEN.1717)"
+    },
+    {
+      "key": "6.124a",
+      "number": "6.124a",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC 2.6 with the line tau = 1.033 R - 1.267 Gy [R5095]: every galaxy takes the Milky Way's infall time scale at the same radius in scale lengths (the mass enters through the factor of row GI3)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "spiral discs of the generator"
+            ],
+            [
+              "What would show it wrong",
+              "a measured infall or star formation history of a galaxy of another size or mass that is not the Milky Way's in scale lengths (downsizing: lighter discs form later)"
+            ],
+            [
+              "What replaces it",
+              "an infall time scale that depends on the galaxy's mass and size (the halo's accretion time, or a sourced fit across masses)"
+            ],
+            [
+              "Evidence",
+              "test_disk_history::test_the_infall_time_scale_is_the_milky_ways_line_between_its_two_models_limits"
+            ]
+          ],
+          "id": "GI1",
+          "key": "6.124a:GI1",
+          "kind": "P",
+          "slug": "6-124a-gi1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC 2.6 with the line tau = 1.033 R - 1.267 Gy [R5095]: every galaxy takes the Milky Way's infall time scale at the same radius in scale lengths (the mass enters through the factor of row GI3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.DISK_INFALL_MIN_GY 2.0 and DISK_INFALL_MAX_GY 8.0: the stops of the infall line, the shortest and longest time scale of [R5094]"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3 Gy inside, 8 to 13 Gy outside ([R5095] has 13 Gy at 14 kpc)"
+            ],
+            [
+              "Where it holds",
+              "rings inside 1.2 kpc and beyond 9 kpc"
+            ],
+            [
+              "What would show it wrong",
+              "a model of the Milky Way's outer disc that needs a time scale over 8 Gy to keep its measured gas and star formation"
+            ],
+            [
+              "What replaces it",
+              "the radial profile of [R5094] (its figure gives the shape, the text only the ends)"
+            ],
+            [
+              "Evidence",
+              "test_disk_history::test_the_infall_time_scale_is_the_milky_ways_line_between_its_two_models_limits"
+            ]
+          ],
+          "id": "GI2",
+          "key": "6.124a:GI2",
+          "kind": "P",
+          "slug": "6-124a-gi2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.DISK_INFALL_MIN_GY 2.0 and DISK_INFALL_MAX_GY 8.0: the stops of the infall line, the shortest and longest time scale of [R5094]"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORE_GAS_INFLOW_TIME_GY 0.6: the time the bar takes to carry its gap's gas to the centre, tuned so the Milky Way shape's central molecular zone inflow is the measured 0.8 solar masses a year"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1.0 Gy (the simulations behind it remove the gas on 1 Gyr timescales)"
+            ],
+            [
+              "Where it holds",
+              "barred spirals"
+            ],
+            [
+              "What would show it wrong",
+              "a measured inflow to the central molecular zone more than a factor of 2 from 0.8 for a galaxy of the Milky Way's gap gas"
+            ],
+            [
+              "What replaces it",
+              "a bar inflow rate from the bar's torque and the gas in the gap"
+            ],
+            [
+              "Evidence",
+              "mathcheck galaxy_core_gas_inflow and galaxy_core_star_formation_rate"
+            ]
+          ],
+          "id": "CG1",
+          "key": "6.124a:CG1",
+          "kind": "P",
+          "slug": "6-124a-cg1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.CORE_GAS_INFLOW_TIME_GY 0.6: the time the bar takes to carry its gap's gas to the centre, tuned so the Milky Way shape's central molecular zone inflow is the measured 0.8 solar masses a year"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.DISK_INFALL_MASS_TERM_PER_GY 0.4 with DISK_INFALL_REFERENCE_SPEED_KMS 220 and DISK_INFALL_REFERENCE_MASS_SOLAR 5e10: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per gigayear, V = 220 (M / 5e10)^(1/3) km/s ([R5121]: equation 21 as read from the text, [R5122]: the rising, flat and falling shapes)"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.5 per gigayear (the exponent is quoted as 0.4)"
+            ],
+            [
+              "Where it holds",
+              "spiral discs of the generator"
+            ],
+            [
+              "What would show it wrong",
+              "a measured star formation history of a disc of 1e10 or 2e11 solar masses that is not rising or falling the way [R5122] has"
+            ],
+            [
+              "What replaces it",
+              "the figure of equation 21 and a measured speed to mass relation of the generator's own galaxies"
+            ],
+            [
+              "Evidence",
+              "test_disk_history::test_a_disc_slower_than_the_milky_ways_is_fed_ever_more_slowly_and_a_faster_one_the_other_way"
+            ]
+          ],
+          "id": "GI3",
+          "key": "6.124a:GI3",
+          "kind": "P",
+          "slug": "6-124a-gi3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.DISK_INFALL_MASS_TERM_PER_GY 0.4 with DISK_INFALL_REFERENCE_SPEED_KMS 220 and DISK_INFALL_REFERENCE_MASS_SOLAR 5e10: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per gigayear, V = 220 (M / 5e10)^(1/3) km/s ([R5121]: equation 21 as read from the text, [R5122]: the rising, flat and falling shapes)"
+        }
+      ],
+      "slug": "6-124a-stand-ins-of-the-disk-infall-of-the-thin-disk-gen-1230-gen-1242",
+      "title": "Stand-ins of the disk infall of the thin disk (GEN.1230, GEN.1242)"
+    },
+    {
+      "key": "6.179a",
+      "number": "6.179a",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "a display limit chosen so a sprite narrower than a few pixels is left to the glow band; no measurement stands behind it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sky_sprites.MIN_ANGULAR_RADIUS_RAD 0.002: a sprite narrower than this (radius, 0.115 degrees, a quarter of the Moon's width) is not sent"
+            ],
+            [
+              "The range it moves in",
+              "0.0005 to 0.01"
+            ],
+            [
+              "Where it holds",
+              "the System View's field of view of 60 degrees or more on a 1,000 pixel canvas, where 0.002 rad is a 2 pixel disc"
+            ],
+            [
+              "What would show it wrong",
+              "a sprite under the limit that a viewer finds missing, or a view zoomed in far enough to resolve it"
+            ],
+            [
+              "What replaces it",
+              "the width a pixel of the finest view shows"
+            ],
+            [
+              "Evidence",
+              "needed output: a sprite narrower than a few pixels is a point of light at the surface brightness limit, and the glow band carries it"
+            ]
+          ],
+          "id": "SPR1",
+          "key": "6.179a:SPR1",
+          "kind": "P",
+          "slug": "6-179a-spr1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sky_sprites.MIN_ANGULAR_RADIUS_RAD 0.002: a sprite narrower than this (radius, 0.115 degrees, a quarter of the Moon's width) is not sent"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "a display limit chosen so faint dark clouds are not drawn; no measurement stands behind it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sky_sprites.MIN_EXTINCTION_MAG 0.02: a cloud with no light of its own is sent only if it dims what lies behind it by at least this (the browser draws none under it, skysprites.js MIN_EXTINCTION)"
+            ],
+            [
+              "The range it moves in",
+              "0.005 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "a dark or diffuse cloud of the stored classes"
+            ],
+            [
+              "What would show it wrong",
+              "a dimming that a viewer sees as a hole in the star field"
+            ],
+            [
+              "What replaces it",
+              "the dimming a pixel of the finest view can show against the stars"
+            ],
+            [
+              "Evidence",
+              "needed output: 0.02 magnitude is under the 1/512 step of the packed magnitude"
+            ]
+          ],
+          "id": "SPR2",
+          "key": "6.179a:SPR2",
+          "kind": "P",
+          "slug": "6-179a-spr2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sky_sprites.MIN_EXTINCTION_MAG 0.02: a cloud with no light of its own is sent only if it dims what lies behind it by at least this (the browser draws none under it, skysprites.js MIN_EXTINCTION)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "a search distance chosen for the cost of the sky route; no measurement stands behind it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sky_sprites.SEARCH_RADIUS_PC 10,000: how far from the observer the stored nebulae and remnants are looked for"
+            ],
+            [
+              "The range it moves in",
+              "2,000 to 40,000"
+            ],
+            [
+              "Where it holds",
+              "a galaxy with a few thousand placed nebulae and remnants"
+            ],
+            [
+              "What would show it wrong",
+              "a nebula wider than SPR1 beyond the radius (a 200 ly nebula is wider than SPR1 out to 25 kpc)"
+            ],
+            [
+              "What replaces it",
+              "the farthest distance a sprite of the stored sizes reaches SPR1, per row"
+            ],
+            [
+              "Evidence",
+              "needed output: bounds the sphere query; the angular cut of SPR1 does the rest"
+            ]
+          ],
+          "id": "SPR3",
+          "key": "6.179a:SPR3",
+          "kind": "P",
+          "slug": "6-179a-spr3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sky_sprites.SEARCH_RADIUS_PC 10,000: how far from the observer the stored nebulae and remnants are looked for"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the faintest and brightest limiting magnitude are chosen for the cost of the star count (2.5 to 3 times a magnitude); no measurement stands behind them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skypack.MIN_LIMIT 2.0 and MAX_LIMIT 9.0: the faintest and the brightest limiting magnitude the route takes"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3 and 8 to 10"
+            ],
+            [
+              "Where it holds",
+              "the stored stars and the sky tiers (6.176), which stop at 9; a sky of 25,000 stars at 7.5"
+            ],
+            [
+              "What would show it wrong",
+              "a sky that a viewer asks for past 9"
+            ],
+            [
+              "What replaces it",
+              "the deepest magnitude the tiers build"
+            ],
+            [
+              "Evidence",
+              "needed output: the star count grows 2.5 to 3 times a magnitude, so a 10 sky is 700,000 stars"
+            ]
+          ],
+          "id": "SKV1",
+          "key": "6.179a:SKV1",
+          "kind": "P",
+          "slug": "6-179a-skv1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skypack.MIN_LIMIT 2.0 and MAX_LIMIT 9.0: the faintest and the brightest limiting magnitude the route takes"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the most sprites a sky sends is chosen for the cost of the route; no measurement stands behind it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "system_sky.MAX_SPRITES 600: the most sprites a sky sends, the widest first"
+            ],
+            [
+              "The range it moves in",
+              "100 to 5,000"
+            ],
+            [
+              "Where it holds",
+              "the System View, which draws a quad for each"
+            ],
+            [
+              "What would show it wrong",
+              "a galaxy that stores more sprites than this wider than SPR1"
+            ],
+            [
+              "What replaces it",
+              "a count set by the page's frame time"
+            ],
+            [
+              "Evidence",
+              "needed output: the Galaxy Map's own cap on its nebula groups is 600 (MAP.176)"
+            ]
+          ],
+          "id": "SKV2",
+          "key": "6.179a:SKV2",
+          "kind": "P",
+          "slug": "6-179a-skv2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "system_sky.MAX_SPRITES 600: the most sprites a sky sends, the widest first"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the cell count past which a sphere is coarsened is chosen for the cost of the route; no measurement stands behind it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sky_sphere.MAX_LEVEL_CELLS 200000: a sphere that touches more sectors than this has its cell levels left unlisted (CellLevels.truncated), and its complete_above_sol is the galaxy scatter's level, what an untouched sector guarantees"
+            ],
+            [
+              "The range it moves in",
+              "1e4 to 1e7"
+            ],
+            [
+              "Where it holds",
+              "a sphere of a few hundred parsecs (3 parsec edge); a sky out to 40 kpc touches 1e13 sectors"
+            ],
+            [
+              "What would show it wrong",
+              "a galaxy whose every sector in a sphere that big has been drawn (not a state any plan reaches)"
+            ],
+            [
+              "What replaces it",
+              "the sky tiers (VIEW.25) recording the spheres they drew, not their cells"
+            ],
+            [
+              "Evidence",
+              "needed output: listing the sectors of a 40 kpc sphere is not possible, and nearly all are untouched"
+            ]
+          ],
+          "id": "SKV3",
+          "key": "6.179a:SKV3",
+          "kind": "P",
+          "slug": "6-179a-skv3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sky_sphere.MAX_LEVEL_CELLS 200000: a sphere that touches more sectors than this has its cell levels left unlisted (CellLevels.truncated), and its complete_above_sol is the galaxy scatter's level, what an untouched sector guarantees"
+        }
+      ],
+      "slug": "6-179a-stand-ins-of-the-sky-route-of-a-system-view-31",
+      "title": "Stand-ins of the sky route of a system (VIEW.31)"
+    },
+    {
+      "key": "6.299",
+      "number": "6.299",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the share of a cold body's surface that seas of methane or ethane must cover to be class U (a third of Titan's cover, 0.005) is a reader's word \"seas\", not a measurement; the lake counts of Titan are the only data, and a survey of methane worlds with their sea cover replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "class_domains.SEA_COVER_MIN 0.005: the share of the surface that seas of methane or ethane must cover for class U, a third of Titan's cover"
+            ],
+            [
+              "The range it moves in",
+              "0.002 to 0.016"
+            ],
+            [
+              "Where it holds",
+              "a cold body under a thick air with methane"
+            ],
+            [
+              "What would show it wrong",
+              "a body with lakes and seas of methane that covers less than a third of Titan's cover and is called a methane-ethane world by readers, or a Titan-like body below it that the table of seas calls dry"
+            ],
+            [
+              "What replaces it",
+              "the share a reader's word \"seas\" means, from lake counts"
+            ],
+            [
+              "Evidence",
+              "[R1857]: lakes and seas cover 1.6 percent of Titan; surface_liquid_world.SURFACE_SHARE_OF_ICE (LQ11) is tuned to it"
+            ]
+          ],
+          "id": "CL1",
+          "key": "6.299:CL1",
+          "kind": "P",
+          "slug": "6-299-cl1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "class_domains.SEA_COVER_MIN 0.005: the share of the surface that seas of methane or ethane must cover for class U, a third of Titan's cover"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2 (about 3.2e-4 W per m2, the geometric middle of the 1e-4 to 1e-3 range of the ground's volcanism floor) as the least interior heat flow, with the tide's, for class A"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-3"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with an interior heat flow"
+            ],
+            [
+              "What would show it wrong",
+              "a body of less heat flow than that whose air is 3 percent sulfur dioxide from volcanoes"
+            ],
+            [
+              "What replaces it",
+              "the volcanism floor drawn by the ground (E 3.2 rule 4) for the body"
+            ],
+            [
+              "Evidence",
+              "the existing floor of the ground, reused; no new number"
+            ]
+          ],
+          "id": "CL2",
+          "key": "6.299:CL2",
+          "kind": "P",
+          "slug": "6-299-cl2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_composition.VOLCANISM_FLOOR_MIDDLE_W_M2 (about 3.2e-4 W per m2, the geometric middle of the 1e-4 to 1e-3 range of the ground's volcanism floor) as the least interior heat flow, with the tide's, for class A"
+        }
+      ],
+      "slug": "6-299-stand-ins-of-the-liquid-and-volcano-conditions-of-classes-u-y-a-and-x-gen-1617",
+      "title": "Stand-ins of the liquid and volcano conditions of classes U, Y, A and X (GEN.1617)"
+    },
+    {
+      "key": "6.301",
+      "number": "6.301",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.advance and standing_from_inventory: a source S against a loss k N leaves N(t) = N e^(-k t) + (S / k)(1 - e^(-k t)), S / k when the age is over a few lives, and never more than the inventory"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any gas whose loss is first order in its amount"
+            ],
+            [
+              "What would show it wrong",
+              "an air whose ammonia or methane stands over the source over the rate at a measured loss"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the solution of the linear balance; the rates are GEN.496's own"
+            ]
+          ],
+          "id": "PC1",
+          "key": "6.301:PC1",
+          "kind": "D",
+          "slug": "6-301-pc1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "photochemical_loss.advance and standing_from_inventory: a source S against a loss k N leaves N(t) = N e^(-k t) + (S / k)(1 - e^(-k t)), S / k when the age is over a few lives, and never more than the inventory"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.standing_from_inventory: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time"
+            ],
+            [
+              "The range it moves in",
+              "the inventory over the age is the mean supply; the heat that drives the volcanoes was 2 to 10 times higher when the body was young (interior_heat.heat_at), which moves the standing amount by the same ratio at the age of the loss"
+            ],
+            [
+              "Where it holds",
+              "a body whose air gas stands for the life of the star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured standing amount of ammonia or methane on a world whose supply history is known and differs by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the history's own supply at each step (GEN.1745)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the mean of the supply is what a constant source gives"
+            ]
+          ],
+          "id": "PC2",
+          "key": "6.301:PC2",
+          "kind": "P",
+          "slug": "6-301-pc2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "photochemical_loss.standing_from_inventory: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.light_limit: the light breaks no more than the column of one optical depth times the rate (photolysis.photon_limited_flux_mol_m2_s, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes"
+            ],
+            [
+              "The range it moves in",
+              "the column within a factor of 2 (row SL6)"
+            ],
+            [
+              "Where it holds",
+              "NH3 and CH4 in a thick air"
+            ],
+            [
+              "What would show it wrong",
+              "a modelled methane photolysis rate of Titan's air more than a factor of 3 off the column's"
+            ],
+            [
+              "What replaces it",
+              "a photochemical column model with the cross sections by wavelength"
+            ],
+            [
+              "Evidence",
+              "row SL6; [R2026] table 6"
+            ]
+          ],
+          "id": "PC3",
+          "key": "6.301:PC3",
+          "kind": "B",
+          "slug": "6-301-pc3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "photochemical_loss.light_limit: the light breaks no more than the column of one optical depth times the rate (photolysis.photon_limited_flux_mol_m2_s, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photochemical_loss.LOST_TO: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes)"
+            ],
+            [
+              "The range it moves in",
+              "the carbon may stay as CO or organics for a time in an air with no oxygen; every mole as CO2 is the long-run state"
+            ],
+            [
+              "Where it holds",
+              "an air with water and the escape of hydrogen of thermosphere"
+            ],
+            [
+              "What would show it wrong",
+              "a measured air at a world with the ultraviolet and water where the products are other than N2 and CO2"
+            ],
+            [
+              "What replaces it",
+              "the hydrogen escape and the photochemical network of the history's step"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics ([R0692], Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2)"
+            ]
+          ],
+          "id": "PC4",
+          "key": "6.301:PC4",
+          "kind": "P",
+          "slug": "6-301-pc4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": "GEN.1745",
+          "what": "photochemical_loss.LOST_TO: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes)"
+        }
+      ],
+      "slug": "6-301-stand-ins-of-the-photochemical-loss-of-ammonia-and-methane-gen-1732",
+      "title": "Stand-ins of the photochemical loss of ammonia and methane (GEN.1732)"
     }
   ]
 }

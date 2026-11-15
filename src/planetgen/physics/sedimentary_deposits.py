@@ -46,35 +46,35 @@ EARTH_LAND_FRACTION = 0.29
 """float: The Earth's mantle FeO (mass fraction of the rock), ocean share and land share: the references the opportunities scale from."""
 
 BIF_SPAN_GY = 1.2
-"""float: How long the iron formations are laid after the first oxygenic photosynthesis, Gyr, before the deep ocean is oxic (the Earth: 3.0 to 1.85 Ga). Stand-in SD1, tier T6, L3."""
+"""float: How long the iron formations are laid after the first oxygenic photosynthesis, Gyr, before the deep ocean is oxic (the Earth: 3.0 to 1.85 Ga). Stand-in 6.223 SD1, tier T6, L3."""
 BIF_DEPOSITS = 12.0
 BIF_FE_PER_FEO = 0.7773
 BIF_CRUST_OVER_BULK = 0.9
 BIF_CONCENTRATION = 11.0
-"""Stand-in SD2, tier T6, L3: the count of formations on an Earth-like ocean, and the design's Fe concentration factor 11 on the crust's Fe (0.9 of the bulk silicate's) to cap the grade."""
+"""Stand-in 6.223 SD2, tier T6, L3: the count of formations on an Earth-like ocean, and the design's Fe concentration factor 11 on the crust's Fe (0.9 of the bulk silicate's) to cap the grade."""
 PHOSPHORITE_LAG_GY = 0.5
 PHOSPHORITE_MIN_UMOL_L = 1.0
 PHOSPHORITE_DEPOSITS = 25.0
 PHOSPHORITE_CONCENTRATION = 200.0
-"""Stand-in SD3, tier T6, L3: the delay of productive upwelling after the first photosynthesis, the least ocean phosphate, the deposits of an Earth-like ocean, and the factor from the crust's P2O5 to the ore's."""
+"""Stand-in 6.223 SD3, tier T6, L3: the delay of productive upwelling after the first photosynthesis, the least ocean phosphate, the deposits of an Earth-like ocean, and the factor from the crust's P2O5 to the ore's."""
 EVAPORITE_DEPOSITS = 40.0
 EVAPORITE_MIN_TEMPERATURE_K = 270.0
 EVAPORITE_WINDOW = (0.2, 1.0)
-"""Stand-in SD4, tier T6, L3: the basins of an Earth-like land, the coldest mean temperature at which a basin dries, and the share of the body's age in which evaporites formed."""
+"""Stand-in 6.223 SD4, tier T6, L3: the basins of an Earth-like land, the coldest mean temperature at which a basin dries, and the share of the body's age in which evaporites formed."""
 LIMESTONE_DEPOSITS = 120.0
 LIMESTONE_MIN_CO2_PA = 1.0
 LIMESTONE_BIOTIC_BOOST = 2.0
-"""Stand-in SD5, tier T7, L3: the shelf deposits of an Earth-like ocean, the least carbon dioxide in the air, and the boost once complex cells (calcifiers) exist."""
+"""Stand-in 6.223 SD5, tier T7, L3: the shelf deposits of an Earth-like ocean, the least carbon dioxide in the air, and the boost once complex cells (calcifiers) exist."""
 CHERT_DEPOSITS = 60.0
-"""Stand-in SD6, tier T7, L3: the chert beds of an Earth-like ocean once siliceous life exists."""
+"""Stand-in 6.223 SD6, tier T7, L3: the chert beds of an Earth-like ocean once siliceous life exists."""
 COAL_MIN_FLORA = 3
 COAL_DEPOSITS = 80.0
-"""Stand-in SD7, tier T7, L3: the least `life_flora` score (0 to 9) that makes peat swamps, and the coal fields of an Earth-like land."""
+"""Stand-in 6.223 SD7, tier T7, L3: the least `life_flora` score (0 to 9) that makes peat swamps, and the coal fields of an Earth-like land."""
 KEROGEN_LAG_GY = 0.3
 KEROGEN_DEPOSITS = 60.0
-"""Stand-in SD8, tier T7, L3: the delay of organic-rich mud after the first photosynthesis and the source-rock basins of an Earth-like ocean."""
+"""Stand-in 6.223 SD8, tier T7, L3: the delay of organic-rich mud after the first photosynthesis and the source-rock basins of an Earth-like ocean."""
 REFERENCE_WINDOW_GY = 2.0
-"""float: The window length (Gyr) at which a type's `deposits` count applies in full; a shorter window scales it down, a longer one is capped at it. Stand-in SD9, tier T7, L3."""
+"""float: The window length (Gyr) at which a type's `deposits` count applies in full; a shorter window scales it down, a longer one is capped at it. Stand-in 6.223 SD9, tier T7, L3."""
 
 SEDIMENTARY_IDS = (BIF, PHOSPHORITE, EVAPORITE, LIMESTONE, CHERT, COAL, KEROGEN)
 """tuple: The ids this module stores in `ore_deposits.ATTRIBUTE` (the magmatic ids stay as the ore pass made them)."""

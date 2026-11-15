@@ -17,15 +17,15 @@ changes nothing a world stores; the wiring is GEN.1051.
    [R2201] found 0.03 bar with a grey gas (the 0.1 bar figure is Wordsworth's own).
 2. **Night-side temperature** (`night_side_temperature_k`). The thin-air radiative result of the same paper (Eq. 10, 25): the
    night side receives the share `tau / (2 - tau)` of a quarter of the absorbed flux, `tau = kappa p / (g cos(alpha))`,
-   kappa 5e-5 m2/kg, cos(alpha) 0.5, no warmer than the planet's own equilibrium temperature from tau of 1 up [stand-in NC3].
+   kappa 5e-5 m2/kg, cos(alpha) 0.5, no warmer than the planet's own equilibrium temperature from tau of 1 up [stand-in 6.75 NEB3].
 3. **What is left** (`residual_pressure_pa`). Under the critical pressure the loss feeds on itself (less gas, a colder night side,
    a lower vapor pressure), so the air does not settle part way; what stays is at most the vapor pressure at the night side's
    temperature (`physics/saturation.py`), a tiny share. Because the grey estimate of 2 puts the night side warmer than the 3D runs do,
    the CO2 case scales the night side's temperature by the one factor that makes the fit's critical pressure the point where
-   the balance first loses gas, so the two agree at the threshold [stand-in NC4].
+   the balance first loses gas, so the two agree at the threshold [stand-in 6.75 NEB4].
 4. **Other gases** (`collapse` with another formula). The paper leaves N2 and CO to later work. For those the critical
    pressure is where the same balance first loses gas (no scaling): N2 freezes at 126 K and under, so it holds at any pressure on a
-   world at Earth's flux and collapses on a much colder one [stand-in NC5].
+   world at Earth's flux and collapses on a much colder one [stand-in 6.75 NEB5].
 
 Tests against measurement (never inputs, `tests/test_nightside_collapse.py`): the fit at Earth's flux is 0.14 bar, 0.1 bar of CO2
 loses almost all of it, 1 bar of CO2 or air keeps it, a Mars-like 600 Pa of CO2 on a locked world loses almost all of it.
@@ -49,10 +49,10 @@ SOLAR_CONSTANT_W_M2 = 1366.0
 
 FIT_FLUX_RANGE_W_M2 = (0.2 * SOLAR_CONSTANT_W_M2, 3.0 * SOLAR_CONSTANT_W_M2)
 """tuple: The stellar flux range of the paper's runs, 273.2 to 4098 W/m2 (Table 1: 0.2 to 3.0 times 1366). The fit is held at either
-end outside it and the result is marked extrapolated. [Stand-in NC1, tier T1, tweak L0.]"""
+end outside it and the result is marked extrapolated. [Stand-in 6.75 NEB1, tier T1, tweak L0.]"""
 
 FIT_ALBEDO = 0.2
-"""float: The surface albedo of every run behind the fit (Table 1). [Stand-in NC1.]"""
+"""float: The surface albedo of every run behind the fit (Table 1). [Stand-in 6.75 NEB1, tier T1, tweak L0.]"""
 
 FIT_COEFFICIENTS = {
     1.0: (-0.84e-10, 0.73e-6, -0.0022, 6.01),
@@ -60,21 +60,21 @@ FIT_COEFFICIENTS = {
 }
 """dict: Earth masses -> `(c1, c2, c3, c4)` of `log10(p_crit / 1 Pa) = c1 F^3 + c2 F^2 + c3 F + c4` with F in W/m2 (Wordsworth
 2015, Table 2, the units of F being the figure's axis; the Earth-flux, one-Earth-mass value comes out at 0.14 bar as the abstract says).
-Between one and ten Earth masses the coefficients are linear in the log of the mass and held outside. [Stand-in NC1, tier T1,
-tweak L0; the interpolation is NC2, tier T7, tweak L1.]"""
+Between one and ten Earth masses the coefficients are linear in the log of the mass and held outside. [Stand-in 6.75 NEB1, tier T1,
+tweak L0; the interpolation is NEB2, tier T7, tweak L1.]"""
 
 KAPPA_M2_KG = 5.0e-5
-"""float: The grey absorption coefficient of the paper's thin-air estimate, m2/kg (Eq. 10). [Stand-in NC3, tier T1, tweak L0.]"""
+"""float: The grey absorption coefficient of the paper's thin-air estimate, m2/kg (Eq. 10). [Stand-in 6.75 NEB3, tier T1, tweak L0.]"""
 
 COS_ALPHA = 0.5
-"""float: The mean slant of the paper's two-stream estimate (Eq. 10). [Stand-in NC3.]"""
+"""float: The mean slant of the paper's two-stream estimate (Eq. 10). [Stand-in 6.75 NEB3, tier T1, tweak L0.]"""
 
 PRESSURE_FLOOR_PA = 1.0e-12
 """float: The residual below which the gas is counted as all frozen (a vapor pressure of a ten-trillionth of a bar is none)."""
 
 COLLAPSED_BELOW_RETAINED = 0.5
 """float: A world that keeps under this share of its gas is `collapsed`; the share itself is the number a caller should use.
-[Stand-in NC6, tier T9, tweak L0.]"""
+[Stand-in 6.75 NEB6, tier T9, tweak L0.]"""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -177,7 +177,7 @@ def _balance_critical_pa(formula, gravity_ms2, flux_w_m2, albedo, scale, top_pa=
 
 
 def _calibration(gravity_ms2, flux_w_m2, albedo, critical_pa):
-    """The factor on the grey night-side temperature that makes the balance first lose CO2 at the fit's `critical_pa`. [Stand-in NC4, tier T9, tweak L2.]"""
+    """The factor on the grey night-side temperature that makes the balance first lose CO2 at the fit's `critical_pa`. [Stand-in 6.75 NEB4, tier T9, tweak L2.]"""
     cold = saturation.condensation_temperature_k("CO2", critical_pa)
     night = night_side_temperature_k(critical_pa, gravity_ms2, flux_w_m2, albedo)
     if cold is None or night <= 0.0:

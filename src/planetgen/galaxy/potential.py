@@ -56,7 +56,7 @@ BLACK_HOLE_SOFTENING_PC = 1.0
 HERNQUIST_COMPONENTS = {"bulge": "scale_x_pc", "halo": "break_pc", "nuclear_cluster": "scale_pc"}
 """dict: The components of the density model a Hernquist sphere stands for, and the parameter of each that is its scale radius (stand-ins GP2 and GP3)."""
 DISK_COMPONENTS = ("thin_disk", "thick_disk", "nuclear_disk")
-"""tuple: The components a Miyamoto-Nagai disk stands for, with `a` the component's `scale_length_pc` and `b` its `scale_height_pc` (stand-in GP1)."""
+"""tuple: The components a Miyamoto-Nagai disk stands for, with `a` the component's `scale_length_pc` and `b` its `scale_height_pc` (stand-in 6.157 GP1)."""
 
 Hernquist = collections.namedtuple("Hernquist", ("name", "mass_solar", "scale_pc"))
 Disk = collections.namedtuple("Disk", ("name", "mass_solar", "scale_length_pc", "scale_height_pc"))

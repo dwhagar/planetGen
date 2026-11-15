@@ -34,20 +34,31 @@ class Attempt:
         self.control, self.row, self.number, self.config = control, row, number, config
         self._cpu_at_start = usage.cpu_seconds()
 
-    def commit(self, galaxy, cursor_key=None, done=False):
+    def commit(self, galaxy, cursor_key=None, done=False, results=()):
         """
         Fences the commit `galaxy` (a connection to the unit's database) is about to make, then makes it: the unit's row is updated `WHERE attempt = mine` (with the place reached and, for the last
-        commit, the done time) in the transaction that holds the data.
+        commit, the done time) in the transaction that holds the data. `results` are the `(piece_index, result)` pairs of the pieces finished since the last checkpoint, stored in the same
+        transaction (OPS.219).
 
         Raises:
             Replaced: The row is another attempt's; the transaction is rolled back.
         """
         try:
-            ledger.commit_item(galaxy, self.row, self.number, cursor_key=cursor_key, done=done)
+            ledger.commit_item(galaxy, self.row, self.number, cursor_key=cursor_key, done=done, results=results)
         except Replaced:
             galaxy.rollback()
             raise
         galaxy.commit()
+
+    def resume_point(self):
+        """Where this attempt starts (OPS.219): `(cursor, results)`, the pieces the unit's earlier attempts finished and what they returned (`ledger.resume_point`); `(0, [])` for a unit with no database."""
+        if self.config is None:
+            return 0, []
+        galaxy = store.get_connection(self.config)
+        try:
+            return ledger.resume_point(galaxy, self.row, self.number)
+        finally:
+            galaxy.close()
 
     def finish(self):
         """The done mark of a unit whose commits were not fenced one by one: opens the unit's database, sets the row done where the attempt is still mine, commits."""

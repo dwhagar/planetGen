@@ -6,6 +6,7 @@ import pytest
 
 from planetgen.queue import memorygate, profileclaim, redisqueue, runrecord
 from planetgen.queue.memorygate import Host
+from planetgen.util.format import format_megabytes
 
 HOST = (16000.0, 8, 146)
 OTHER = (32000.0, 16, 146)
@@ -95,6 +96,6 @@ def test_a_profile_that_cannot_be_read_gives_the_typed_claim(conn):
 def test_every_change_is_logged_and_kept_for_the_queue_page(conn, caplog):
     caplog.set_level(logging.INFO, logger="planetgen")
     profileclaim.claim(conn, "unit:x", 1000.0, token="r1", read_rows=history(*[800.0] * 30))
-    assert "claim of unit:x was 1,000 MB, now 880 MB" in caplog.text and "30 samples" in caplog.text
+    assert f"claim of unit:x was {format_megabytes(1000.0)}, now {format_megabytes(880.0)}" in caplog.text and "30 samples" in caplog.text
     (change,) = profileclaim.changes(conn)
     assert (change["kind"], change["old"], change["new"], change["source"], change["samples"]) == ("unit:x", 1000.0, pytest.approx(880.0), "own", 30)

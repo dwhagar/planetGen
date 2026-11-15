@@ -16,7 +16,7 @@ The comet table has no N2, so no body held nitrogen ice and no Triton-like nitro
    (`TRAPPING_EFFICIENCY_RANGE`), drawn log-uniform per body.
 
 Limits. Retention is not modelled (a small body at 20 to 50 K loses N2; the sources give the regime and no radius cutoff), so every body that forms cold keeps its N2
-(stand-in GN3). The two N2 to CO ratios of 67P (the coma value against the bulk) disagree five-fold; the range spans both.
+(stand-in 6.69 GN3). The two N2 to CO ratios of 67P (the coma value against the bulk) disagree five-fold; the range spans both.
 """
 
 import math
@@ -30,13 +30,13 @@ DISK_N2_PER_H2 = 10.0 ** (SOLAR_LOG_EPSILON_N - 12.0)
 """float: N2 molecules per H2 molecule of the disk gas with all the nitrogen as N2: N2 / H2 = (N / 2) / (H / 2) = N / H, 6.76e-5."""
 
 DISK_PRESSURE_PA = 10.0
-"""float: The disk's total pressure, 1e-4 bar (the pressure of the equilibrium condensation of `condensate_shares`). Stand-in GN2."""
+"""float: The disk's total pressure, 1e-4 bar (the pressure of the equilibrium condensation of `condensate_shares`). Stand-in 6.69 GN2."""
 
 SOLAR_N2_PER_WATER = 0.107
 """float: The mass of N2 over the mass of water if all the Sun's nitrogen is N2 and the oxygen the rock leaves is water (GEN.1225 section 3.4). Source tier T3, tweak level L0."""
 
 TRAPPING_EFFICIENCY_RANGE = (0.001, 0.013)
-"""tuple: The share of the solar ceiling that cold ice keeps, from 67P and the Pluto cometary model: 1e-4 to 1.4e-3 of the water mass. Stand-in GN1."""
+"""tuple: The share of the solar ceiling that cold ice keeps, from 67P and the Pluto cometary model: 1e-4 to 1.4e-3 of the water mass. Stand-in 6.69 GN1."""
 
 
 def condensation_temperature_k():

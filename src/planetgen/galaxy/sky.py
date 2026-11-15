@@ -15,8 +15,8 @@ Per star, in this order:
 1. **Its velocity.** A star with no stored velocity (a scatter star that is not built yet) gets the stand-in `unbuilt_velocity_kms`: the
    circular speed of the galaxy at its place, turned counterclockwise about the galactic pole, plus a velocity dispersion drawn from the star's own
    key (`draw.Stream` seeded by the galaxy key and the star's uid, so the same star always gets the same velocity; GEN.339's
-   dispersion should key on the scatter seed so the fill agrees later). Stand-in SKC1.
-   A star with no stored epoch (an unbuilt bright star) has its position taken to hold at the sky's time (stand-in SKC2), so it is not moved, only seen back by its light time.
+   dispersion should key on the scatter seed so the fill agrees later). Stand-in 6.175 SKC1.
+   A star with no stored epoch (an unbuilt bright star) has its position taken to hold at the sky's time (stand-in 6.175 SKC2), so it is not moved, only seen back by its light time.
 2. **Where it appears.** `light_travel.retarded_offsets` on arrays: the star is moved from its own epoch to the sky's time on a straight line,
    and seen where it was when its light left it. The observer's own epoch is brought to each star's the same way.
 3. **Whether it was there.** `light_travel.seen_age`: a star whose light left before it formed is left out (counted in the report). A star whose
@@ -49,7 +49,7 @@ DEFAULT_LIMIT = 7.5
 """float: The limiting magnitude of the drawn stars when the caller gives none (the setting's default, Boss 5:29 PM EST on 2026-11-04)."""
 
 DISPERSION_KMS = (35.0, 25.0, 20.0)
-"""tuple: The velocity dispersion `(radial, tangential, vertical)`, km/s, of a star with no stored velocity (stand-in SKC1)."""
+"""tuple: The velocity dispersion `(radial, tangential, vertical)`, km/s, of a star with no stored velocity (stand-in 6.175 SKC1)."""
 
 COLOUR_TABLE_K = (1500.0, 60000.0)
 COLOUR_TABLE_ROWS = 512

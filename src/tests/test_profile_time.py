@@ -27,8 +27,26 @@ def rows(*seconds, shape=HOST):
 
 
 def test_it_is_the_median_of_this_machines_units_and_nothing_with_too_few(conn):
-    assert profiletime.unit_seconds(conn, "link", token="r1", read_rows=rows(10.0, 12.0)) is None
-    assert profiletime.unit_seconds(conn, "link", token="r1", read_rows=rows(10.0, 12.0, 90.0)) == 12.0
+    assert profiletime.unit_seconds(conn, "link", token="r1", read_rows=rows(10.0, 12.0), now=1000.0) is None
+    later = 1000.0 + profiletime.NO_FIGURE_RECHECK_SECONDS
+    assert profiletime.unit_seconds(conn, "link", token="r1", read_rows=rows(10.0, 12.0, 90.0), now=later) == 12.0
+
+
+def test_a_kind_with_too_few_samples_is_read_once_a_while_and_not_once_a_beat(conn):
+    """PERF.269: the supervisor's watch asks every beat; each unanswered ask read the profile table through a new control connection (457 in a 130 s run, 10 of the 14 s of it making the SSL context)."""
+    reads = []
+
+    def counted(kind):
+        reads.append(kind)
+        return rows(10.0, 12.0)(kind)
+
+    for beat in range(100):
+        assert profiletime.item_seconds(conn, "link", token="r1", read_rows=counted, now=1000.0 + 0.3 * beat) is None
+    assert len(reads) == 1
+    assert profiletime.item_seconds(conn, "link", token="r1", read_rows=counted, now=1000.0 + profiletime.NO_FIGURE_RECHECK_SECONDS + 1.0) is None
+    assert len(reads) == 2
+    assert profiletime.item_seconds(conn, "link", token="r2", read_rows=counted, now=1031.0) is None        # a new run asks again at once
+    assert len(reads) == 3
 
 
 def test_it_moves_a_quarter_a_run_and_is_held_for_the_run(conn):

@@ -42,10 +42,10 @@ _mearth_to_kg = unit_registry.converter("Mearth", "kg")
 _msun_to_kg = unit_registry.converter("Msun", "kg")
 
 MIN_FIELD_MASS_EARTH = 1.0e-9
-"""float: The least mass, Earth masses, a field can hold and be kept: the belts' line (`generation.belt_birth.MIN_PRESENT_MASS_EARTH`, GEN.1156), warm dust a survey could see. [Stand-in FM1, tier T9, tweak L3.]"""
+"""float: The least mass, Earth masses, a field can hold and be kept: the belts' line (`generation.belt_birth.MIN_PRESENT_MASS_EARTH`, GEN.1156), warm dust a survey could see. [Stand-in 6.161 FM1, tier T9, tweak L3.]"""
 
 COLLISION_LAW = belt_ledger.ROCKY_LAW
-"""SizeLaw: The size law of the rubble of a collision: the rocky main-belt law, until a largest-fragment reading replaces it. [Stand-in FM2, tier T9, tweak L4.]"""
+"""SizeLaw: The size law of the rubble of a collision: the rocky main-belt law, until a largest-fragment reading replaces it. [Stand-in 6.161 FM2, tier T9, tweak L4.]"""
 
 ORIGINS = ("unbound-belt", "collision")
 """tuple: What made a field (`FieldMass.origin`)."""

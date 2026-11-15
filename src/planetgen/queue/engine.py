@@ -17,12 +17,17 @@ A command that declares `pieces` and `do` (`commands.CommandSpec`) does not writ
   for and closed by the engine), `ctx.commit()`, `ctx.sql(statement, label)` (`queue/longsql.py`) and the second-level count, `ctx.step(name, total)` and `ctx.advance(n)` (OPS.192: a bar under the unit's own on the pages). A converted command commits only through `ctx.commit()`: where the cursor is stored with the
   data (OPS.219) that call is the one place that writes it, and a direct `.commit()` would be a second path.
 
-**The cursor is in the contract and not stored yet.** Every unit starts at cursor 0. Storing it, so a retry or a resume starts after the last committed piece, waits for the ledger (OPS.219);
-until then `ctx.commit()` stores no cursor; with a unit that has a ledger row it is the fence (OPS.217: `attempts.Attempt.commit`), without one a plain commit.
+**Checkpoints (OPS.219).** A command that `resumes` (`commands.CommandSpec`) starts after the pieces an earlier attempt of the unit finished. `ctx.commit()` is the one place the cursor is written: with a unit that
+has a ledger row it is the fence (OPS.217: `attempts.Attempt.commit`) and the same statement stores the number of pieces finished and, in the same transaction, what the newly finished ones returned
+(`ledger.commit_item`), so the data, the cursor and the results land together or not at all. After every piece the engine checkpoints (`Context.checkpoint`), so the cursor is never behind data a piece left for the engine to commit. A unit run again reads its cursor and results
+(`attempts.Attempt.resume_point`), asks `pieces(args, cursor)` for the rest and gathers the stored results with the new ones, so its result is the one an undisturbed unit gives. A piece's result goes through
+JSON before the unit keeps it, so a resumed unit and an undisturbed one hand `gather` the same kinds of value. A command that does not `resume` always starts at 0 and stores no cursor. A unit with no
+ledger row (a command run alone, a test's own stage) starts at 0 and commits plainly.
 
 **A command without `pieces` runs as it always has** (`commands.unit_function`) until the item of its family converts it. Nothing here changes what a command computes.
 """
 
+import json
 import math
 import time
 
@@ -70,6 +75,10 @@ class Context:
         self.redis, self.run_id, self.stage, self.unit, self.job = redis, run_id, stage, unit, job
         self.clock = clock
         self.attempt = attempt
+        self.done = cursor                  # the pieces finished, those an earlier attempt did included (OPS.219)
+        self.results = []                   # what every finished piece returned, in order; `None` for a piece that returned nothing
+        self._stored = cursor               # how many of them the ledger holds
+        self._resumes = False
         self.halt = halt
         self._closers = []
         self.state = {}                 # what the pieces of this unit hand to each other: they run in one process, in order, so a piece may leave what the next reads
@@ -83,8 +92,7 @@ class Context:
     def config(self):
         """The `MySQLConfig` the unit's arguments name (`args["database"]`, as `wrapper.database_args` writes it; the password is this process's settings')."""
         from planetgen.db import store
-        named = self.args["database"]
-        return store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
+        return store.MySQLConfig.from_args(self.args["database"])
 
     @property
     def db(self):
@@ -112,9 +120,44 @@ class Context:
         if self._db is None:
             return
         if self.attempt is not None and self.attempt.config is not None:
-            self.attempt.commit(self._db)
+            if self._resumes:
+                pending = [(index, result) for index, result in enumerate(self.results[self._stored:], self._stored) if result is not None]
+                self.attempt.commit(self._db, cursor_key=str(self.done), results=pending)
+                self._stored = self.done
+            else:
+                self.attempt.commit(self._db)
         else:
             self._db.commit()
+
+    def commit_piece(self, result=None):
+        """
+        Commits the piece in hand as finished (OPS.222), for a piece whose own commit must be the one that counts it: its data, the cursor past it and `result` land in one fenced transaction, so a
+        unit stopped after it starts at the piece that follows and one stopped before it does this piece again. A piece that would write twice if it ran twice (rows added to a total, rows inserted
+        with no key to refuse them) commits so. `result` is what the piece returns (the engine stores it here and not again). Without a database, an attempt or `resumes` it is a plain `commit()`.
+        """
+        if self._db is None:
+            return
+        if self._resumes and self.attempt is not None and self.attempt.config is not None:
+            number = len(self.results)          # the place of the piece in hand: the pieces before it, an earlier attempt's included, are `results`
+            pending = [(index, stored) for index, stored in enumerate(self.results[self._stored:], self._stored) if stored is not None]
+            stored = json.loads(json.dumps(result))
+            if stored is not None:
+                pending.append((number, stored))
+            self.attempt.commit(self._db, cursor_key=str(number + 1), results=pending)
+            self._stored = number + 1
+        else:
+            self.commit()
+
+    def checkpoint(self):
+        """
+        After every piece (OPS.219): stores the number of pieces finished and what the new ones returned, with a commit of anything the piece left uncommitted, fenced like any `commit()`. A unit that does
+        not `resumes`, or has no ledger row, stores nothing. A piece that wrote through a connection of its own has committed that before this runs, so a unit stopped between the two does the one piece
+        again: a resumable command's pieces are safe to run again from their start (`commands.CommandSpec`).
+        """
+        if not self._resumes or self.attempt is None or self.attempt.config is None:
+            return
+        self.db         # the unit's connection, opened here for a piece that wrote through its own
+        self.commit()
 
     def sql(self, statement, label, params=()):
         """One long statement with its label and start time in the beat (`longsql.run`); returns the cursor."""
@@ -216,20 +259,25 @@ def run(kind, args, report, *, redis=None, run_id=None, stage=None, unit=None, j
     if spec.pieces is None:
         return commands.unit_function(kind)(args, report)
     pieces_of, do, gather = commands.pieces_function(kind), commands.do_function(kind), commands.gather_function(kind)
-    cursor = 0              # OPS.219 stores it; until then a unit always starts at the beginning
+    resumes = spec.resumes and attempt is not None
+    cursor, before = attempt.resume_point() if resumes else (0, [])
     ctx = Context(kind, args, report, redis=redis, run_id=run_id, stage=stage, unit=unit, job=job, cursor=cursor, clock=clock, attempt=attempt, halt=halt)
+    ctx._resumes = resumes
+    ctx.results = list(before)
     try:
         pieces = list(pieces_of(args, cursor))
         weights = [weight_of(piece) for piece in pieces]
-        done = cursor * (sum(weights) / len(weights)) if weights else float(cursor)      # the cursor counts pieces: the ones before it weigh what the rest weigh on average
-        total = done + sum(weights)
-        report(done, total)
-        results = []
-        for piece, weight in zip(pieces, weights):
+        weight_done = cursor * (sum(weights) / len(weights)) if weights else float(cursor)      # the cursor counts pieces: the ones before it weigh what the rest weigh on average (PERF.268)
+        total = weight_done + sum(weights)
+        report(weight_done, total)
+        for done, (piece, weight) in enumerate(zip(pieces, weights), cursor + 1):
             ctx.between()
-            results.append(do(args, piece, ctx))
-            done += weight
-            report(done, total)
-        return results if gather is None else gather(args, results, ctx)
+            result = do(args, piece, ctx)
+            ctx.results.append(json.loads(json.dumps(result)) if spec.resumes else result)
+            ctx.done = done
+            ctx.checkpoint()
+            weight_done += weight
+            report(weight_done, total)
+        return ctx.results if gather is None else gather(args, ctx.results, ctx)
     finally:
         ctx.close()

@@ -14,7 +14,7 @@ A pure module: a `giant_interior.GiantInterior`, the body's radius, the heat it 
 2. **The region.** Its outer radius is the top of that layer, its inner radius the bottom, its mass the layer's, its density the mass over the shell's
    volume. They are the numbers `dynamo.field` takes (the buoyancy-flux scaling of [R3355] and the Rossby number that gates the
    dipole).
-3. **The power.** `dynamo.giant_power_w` of the heat the giant radiates from its own interior (the stand-in DY2).
+3. **The power.** `dynamo.giant_power_w` of the heat the giant radiates from its own interior (the stand-in 6.30 DY2).
 
 The radii of the layers are the structure's (`giant_structure`, GEN.733): an ice giant's layers carry radii only once that is wired, and a body
 whose conducting layer has none (the radii it is born with, the whole body) has no region here.

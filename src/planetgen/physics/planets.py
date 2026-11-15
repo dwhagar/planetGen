@@ -274,6 +274,8 @@ def generate_planet_properties(planet, zone_override=None):
     # in place -- and the class, which is derived once the body is finished (`apply_class`).
     planet._bare_core = None             # a new draw has no envelope yet (`apply_envelope`, GEN.1323)
     planet._captured_envelope = 0.0
+    planet._envelope_helium_y = None     # TEST.761: the helium share a hydrogen-first loss left and the radius an obliquity tide gave (`apply_envelope`): a body is made with both, so a planet that kept no
+    planet._tidal_radius_km = None       # envelope has the attributes of one that did, and a body drawn again in place carries nothing of its last draw
     planet.atmosphere = None
     planet.atm_density = None
     planet.atm_molar_density = None
@@ -764,7 +766,7 @@ def apply_finished_body_oddities(planet):
 LATE_ACCRETION_GATE = 0.5
 """float: The air is not made again for a new late accretion when it moves the carbon and the nitrogen the late accretion left by less than this share of what the volcanoes gave. The share is how far the
 inventory moves, not how far the air does (a carbonate sink holds the carbon of a wet world whatever is added): in 246 planets of 240 seeds 201 are identical to the full replay, 13 differ by more than 1 percent
-(the worst by a branch of a bistable climate, 99 percent in pressure), and the pass costs 8.8 percent of generation against 18 for every planet; at gate 1.0 a 30-seed trial had a worst of 29 percent. [Stand-in LA3, tier Marginal educated guess from physics, tweak L3.]"""
+(the worst by a branch of a bistable climate, 99 percent in pressure), and the pass costs 8.8 percent of generation against 18 for every planet; at gate 1.0 a 30-seed trial had a worst of 29 percent. [Stand-in 6.255 LA3, tier T6, tweak L3.]"""
 
 
 def remake_air(planet, late_accreted_percent, gate=LATE_ACCRETION_GATE):
@@ -1800,7 +1802,7 @@ def generate_moons(planet, moon_count=None, bare=False):
             if span_low >= span_high:    # the disk has no room left past the last moon
                 draw.redrawn("moon.disk_full")
                 rejected += 1
-                if rejected >= MOON_REJECTION_LIMIT:
+                if rejected >= rejection_limit:      # GEN.1599: the one limit of this call (a disk exists only round a giant, which has no impact moons, so it is MOON_REJECTION_LIMIT here)
                     break
                 continue
         moon_distance_km = math.exp(draw.uniform(math.log(span_low), math.log(span_high)))
