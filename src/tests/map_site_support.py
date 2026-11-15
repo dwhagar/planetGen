@@ -253,6 +253,7 @@ def nebula_regions_of(block, field=None, limit=600):
         listed.append({
             "key": format_drill_key(child), "count": len(members), "volume_pc3": total, "center": center,
             "radius_pc": max(math.dist(center, [n[axis] for axis in "xyz"]) + n["radius_pc"] for n in members),
+            "cover": 0.03 + 0.001 * min(len(members), 70),    # MAP.429: a stored share of the block, at or over the map's floor (3 percent), rising with the members
             "shares": shares, "class": max(letters, key=letters.get)})
     listed.sort(key=lambda region: (-region["volume_pc3"], region["key"]))
     return listed[:limit]
