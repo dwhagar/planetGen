@@ -2,6 +2,128 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4174] - 2026-11-14
+
+**Headline:** a wiped galaxy no longer shows a clear of the bright stars, and the scatter's limits are a stage of their own.
+
+### Fixed
+
+- OPS.257: the recording of the star scatter's limits (floor, mass limit, seed) is its own short stage, "Store the star scatter's limits", that always runs before the backfill; the clear of the earlier bright stars is left out of the plan, like the phenomena and nebula clears, when nothing is stored to clear.
+
+## [8.0.4173] - 2026-11-14
+
+**Headline:** A rocky planet under a deep envelope whose haze keeps its 1 bar level colder than its albedo alone gives now stores a temperature that matches its stored albedo and greenhouse quantity.
+
+### Changed
+- **The balance of a hazy envelope is kept in the albedo (Train 28 sweep).** The solver found a negative greenhouse quantity for a body whose haze takes more sunlight from the ground than its greenhouse returns (the anti-greenhouse of Titan); the stored quantity is never negative, and `air_final` clipped it to 0.0, which left the stored temperature up to 0.26 percent off the formula on the stored albedo and greenhouse (one body of the sweep: 180.77 K against 181.25 K). The greenhouse quantity stays 0.0 and the Bond albedo carries the balance (`climate_draws.albedo_for_temperature`: `1 - A = 4 sigma T^4 / S`), so the temperature does not move and the pair reproduces it. Only a giant or envelope body whose temperature is below its airless one changes (its albedo rises, 0.3383 to 0.3453 for the body found); nothing else does.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4172] - 2026-11-14
+
+**Headline:** a world's cosmic-ray and stellar-particle dose now follows the gases of its own air, not an air of Earth's make-up.
+
+### Changed
+- The dose a body takes under its air (`radiation.generate_dose`, GEN.444) counted every atmosphere as Earth air of the same mass. It now counts each gas by its own nuclear interaction length, worked from its elements (`1 / lambda = sum w / lambda_i`, the Particle Data Group's element lengths, which the rule reproduces for CO2, water, methane, ammonia and dry air to 0.2 percent), so a CO2 air shields 1.3 percent more per gram, a hydrogen air counts 1.7 times thicker per gram of column and a sulfur dioxide air 0.9 times; and a stellar proton is stopped by Bragg's rule over the same elements (`surface_dose.stopping_mixture`, `proton_range.energy_mev`). The reference is the rule's own dry air, so an N2 and O2 sky changes by under 0.5 percent. The mixed column that was written and read by nothing (`surface_dose.effective_air_column_g_cm2`) is now what the dose reads. Stand-ins SHL1 and SHL2 in section 6.291.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4171] - 2026-11-14
+
+**Headline:** A rocky body's composition phrase still names the level of each material after its air takes a sliver of the solids, so a share on a level's edge is not left one level too high.
+
+### Changed
+- **`envelope_share.fill` writes the composition phrase again after it scales the solids (GEN.430).** The phrase states the stored shares (`tests/audit/sweep_bulk.py` rule `text-materials`), but the air's share comes out of the solids after the phrase was made, so a body whose water share sat exactly on a level's edge kept "a large share of water" while its stored share was 0.19999999682. A promoted belt member (GEN.1510) takes the belt's round shares (0.8 rock, 0.2 water), so one of the 24 sweep systems (`system24/Eghintis ABC VI`) failed. Only a body that already holds a phrase gets it rewritten; the phrase changes only where the scaling crosses a level's edge.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4170] - 2026-11-14
+
+**Headline:** A rogue planet thrown out of a young system may now leave bound to a companion, at the share seen in young clusters, and its page names the distance and the period of the pair.
+
+### Added
+
+- **Rogue planets that stay a pair (GEN.332, slice D).** Free-floating planetary-mass objects are seen in pairs: about 9 percent of the systems of free planets in the Trapezium sample are bound, 28 to 384 AU apart (`physics/rogue_pairs.py`, [R3467], read second hand). The pair does not last, so the share falls by a factor of 50 in every 10 Myr after the ejection (Portegies [R5262], second hand): the rogues of a young donor may have a companion, a rogue thrown out a hundred million years ago or more never does. `rogue_yield.bind_pairs` decides it from the donor's own stream (the donor's rogues stay a function of the donor alone): a body not yet taken is a pair with the chance of its age, its companion is the next body the donor ejected from the same star by the same cause, which leaves with the same moment and kick and lands with it. The separation is log-uniform in the observed range and held inside what the galaxy's tide leaves a pair, the period is Kepler's third law on a circular orbit (no source gives an eccentricity for wide young pairs). The rogue's note says it left bound to a companion, and the rogue planet page and sheet give the distance to it and the period.
+- **Storage.** Migration 0260 (schema v260) adds `rogue_planets.pair_event_index` (the companion's event index, the link both rows carry), `pair_separation_au` and `pair_period_yr`, all NULL for a rogue that left alone and for every row made before v260.
+- Stand-ins RPP1 to RPP6 in section 6.290 of the gap-filling plan and the list of every stand-in (GEN.725): the share (tier T3, tweak L1), the survival (T3, L0), the separation range (T3, L0), the tidal limit (T5, L0), the circular orbit (T7, L1) and the pairing by order (T6, L1).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4169] - 2026-11-14
+
+**Headline:** The other climate of a world that can be warm or frozen is found again, so the oddity of the other branch comes back to about its rate before Train 27.
+
+### Changed
+- **W20 looks for the other branch from several starts (GEN.1715).** Since Train 27 the first air of a body with the ice law starts warm (GEN.1696), so the oddity of the other branch had to find the snowball from one start of 200 K, and the air solve ends on a branch by its path as much as by its start: a 200 K start found it in 1 of 200 test keys where 11 had it before. The second solve now starts from `COLD_STARTS_K` (200, 150, 220 and 260 K) in turn for a warm first answer, or from `WARM_STARTS_K` (320, 280 and 340 K) for a cold one, and keeps the first answer 20 K and 0.1 of albedo from the first. Only a world that rolls W20 pays for the extra solves (at most three more). Bodies that carry W20 change; nothing else does.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4168] - 2026-11-14
+
+**Headline:** A world's second climate branch now holds the same volatile inventory as its first, as GEN.1646 meant.
+
+### Fixed
+
+- GEN.1646: the two branches of a bistable world (oddity W20) repeated the design constants and the late accretion but not the volatile inventory, in 6 of 11 branch worlds on main: the recipe rows (the c-after row is "after cooling" for a warm ocean world and a fallback row for a frozen one) draw a different number of values on each branch, and the inventory constants (water, carbon dioxide, nitrogen, sulfur, chlorine) are drawn after them from the same stream, so they shifted. The recipe now draws in a stream of its own (one value taken from the mixture stream for its seed), so what follows it is the same draw on both branches. Every mixture draw after the recipe moves.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4167] - 2026-11-14
+
+**Headline:** The database checks, the math check and the data check now run on the engine's loop, so each shows how many tables, keys, sectors, systems or checks it has done of how many it has.
+
+### Changed
+
+- OPS.204: the eleven `check-*` commands of `db/check.py`, `check-math` and `check-datasets` move from their own unit functions to `pieces` and `do` (OPS.191). `check-tables` and `check-tables-extended` do one table a piece, `check-orphans` one foreign key a piece and then the two pointer tables, `check-ids` one `id_blocks` table, `check-values` one table of the value rules, `check-counts` the sectors' stats and then the galaxy's stored counts, `check-version-keys` a run of 2,000 sectors, `check-storage` one sector, `check-systems` one star system, `check-object-index` one kind of object, `check-revision` the version records and then the models, `check-math` one check, `check-datasets` one dataset. Each unit's result is the same `CheckResult` (or `lines` and `absent`, or `failed` and `report`) as before, made by the command's `gather` from what its pieces found; a check whose database query is refused still ends as "could not check", never as damage, and still opens its connection without `ensure_schema`, so a check never mends the schema it is looking at. The systems check records its speed for the next estimate (`deep_estimate`) from the seconds its pieces took, as its own bar did. What a person sees: the bar of a check counts real things instead of one step, a cancel or a pause lands between two pieces, and the long checks (storage, systems, orphans, tables) no longer look like one silent step. The old `check_*_unit` functions, `check_*(ctx)`, `run_check`, `_unit` and the systems check's own bar are deleted.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4166] - 2026-11-14
+
+**Headline:** The habitability re-score and the effect ledger refill now run on the engine's loop, one system a piece, so their bars count systems and a cancel or a pause lands between two systems.
+
+### Changed
+
+- OPS.201: `rescore-habitability` and `refill-effect-ledger` move from their own unit functions to `pieces` and `do` (OPS.191): `rescore_habitability_pieces` and `refill_effect_ledger_pieces` list the systems of the unit's id range that are stale (every system with `all`), and `rescore_habitability_piece` and `refill_effect_ledger_piece` do one system each, in its own transaction at READ COMMITTED, committed through `ctx.commit()`. The unit's result is the same dict as before (`updated`, `ids`, `systems`, from `stale_systems_result`). What changes for a person: the unit's bar counts systems (it used to move every hundred), a cancel is honoured after the system in hand instead of after the whole range, and a run stopped in the middle keeps the systems it finished, which the next run skips because their stamps are current. A deadlock or lock wait timeout (PERF.228) now starts one system over instead of the whole range. The old unit functions are deleted, with the free-text line the unit wrote in step with its own count; the line naming the range stays until the second level of the beat (OPS.192) takes it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4165] - 2026-11-14
+
+**Headline:** every way a generation job starts now takes the 30-day job limit.
+
+### Fixed
+
+- OPS.255: OPS.255: every command of the generator in a Generate job (finish the last run, sector, system, warm, check-db, backfill and the rest, not only galaxy, plan and run-job) takes the 30-day RQ ceiling, so no way of starting a run on the queue is ended by a clock of a smaller galaxy's recorded time.
+
+## [8.0.4164] - 2026-11-14
+
+**Headline:** a galaxy run that starts with a database wipe no longer clears scatters that hold nothing.
+
+### Changed
+
+- OPS.257: A galaxy run that starts with a database wipe no longer clears the scatters: a clearing stage whose target holds nothing (the phenomena and the nebula field) is left out of the plan and listed as skipped, by every route (the web's New galaxy, the CLI scatter and galaxy, run-job). The bright-star clear stays, since it stores the scatter's limits, and finds nothing to clear in a few reads.
+
+## [8.0.4163] - 2026-11-14
+
+**Headline:** A command can now hand the queue its pieces and let the engine run the loop, so the count, the stop and the pause between two pieces are the same for every command that does.
+
+### Changed
+
+- OPS.191: `commands.CommandSpec` gains `pieces(params, cursor)` (the list of the pieces of one unit after a cursor) and `do(params, piece, ctx)` (one piece), and `gather(params, results)` for a unit whose result is not the list of its pieces' results. The new `queue/engine.py` runs the loop for such a command: it writes pieces done of pieces in all into the unit's beat before the first piece and after each, ends the unit between two pieces when the run is canceled or ended (`units._do_unit` leaves such a unit undone and says so in the debug log), and holds it between two pieces while the queues are paused, shown on the Queue page as waiting on `pause` (a solo hold lets its own unit through). Every piece is handed `ctx`: the unit's database connection (opened on first use, closed by the engine), `ctx.commit()`, `ctx.sql(statement, label)` (OPS.195's `longsql.run`) and `ctx.moving()`. A converted command commits only through `ctx.commit()`, a plain commit until the ledger stores the cursor (OPS.219).
+- No command is converted yet: each runs as before until the item of its family lands. `commands.run_alone` goes through the engine, which runs a command with its own `unit` function exactly as it did.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4162] - 2026-11-14
 
 **Headline:** The three spreads of a trojan swarm now come from the Jupiter and Neptune Trojans, and a tadpole orbit is no longer cut at the wrong angle; nothing in the generator draws a swarm yet.

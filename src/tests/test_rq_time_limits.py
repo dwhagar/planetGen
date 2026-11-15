@@ -213,20 +213,52 @@ def test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorde
         redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server)).delete(delete_jobs=True)
 
 
-@pytest.mark.parametrize("command, limit", [
-    (["galaxy"], jobs.JOB_CEILING_SECONDS), (["plan"], jobs.JOB_CEILING_SECONDS), (["run-job", json.dumps([{"command": "plan", "argv": []}, {"command": "galaxy", "argv": []}])], jobs.JOB_CEILING_SECONDS),
-    (["check-db"], jobs.JOB_FLOOR_SECONDS)])
-def test_a_job_that_runs_on_the_queue_is_never_ended_by_a_clock_of_a_smaller_galaxy_s_recorded_time(jobs_root, redis_server, limits, monkeypatch, command, limit):
-    """OPS.255: a New galaxy run could lose its starter when RQ's limit (ten times an estimate recorded on a smaller galaxy) ended the job and the runner stopped its step; a job with a run on the queue
-    takes the ceiling, since the run's watch judges its units by their progress. A job with no run on the queue keeps the limit its recorded time gives."""
-    monkeypatch.setattr(job_runner, "expected_seconds", lambda job: 60.0)
-    steps = [{"label": "x", "argv": [sys.executable, *jobs.GENERATE_COMMAND, *command]}]
-    job_id = jobs.start_job("galaxy", "Timed", steps, root=jobs_root)
+GENERATOR_COMMANDS = (["galaxy"], ["plan"], ["sectors"], ["sector"], ["finish-run"], ["warm"], ["check-db"], ["backfill"],
+                      ["run-job", json.dumps([{"command": "plan", "argv": []}, {"command": "galaxy", "argv": []}])])
+"""tuple: Command lines of the generator that a Generate page job, a retry, a finish and a waiting job can hold."""
+
+
+def _limits_of_jobs(jobs_root, redis_server, limits, steps, **start):
+    job_id = jobs.start_job("galaxy", "Timed", steps, root=jobs_root, **start)
     try:
-        assert [(name, timeout) for name, _func, timeout in limits] == [(jobs.QUEUE_PREFIX + job_id, limit)]
+        return [(name, timeout) for name, _func, timeout in limits]
     finally:
         jobs.release_lock(job_id)
         redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server)).delete(delete_jobs=True)
+
+
+@pytest.mark.parametrize("command", GENERATOR_COMMANDS, ids=lambda command: command[0])
+def test_a_job_that_runs_on_the_queue_is_never_ended_by_a_clock_of_a_smaller_galaxy_s_recorded_time(jobs_root, redis_server, limits, monkeypatch, command):
+    """OPS.255: a New galaxy run could lose its starter when RQ's limit (ten times an estimate recorded on a smaller galaxy) ended the job and the runner stopped its step; a job with a command of the generator
+    takes the ceiling whatever the command is, since the run's watch judges its units by their progress."""
+    monkeypatch.setattr(job_runner, "expected_seconds", lambda job: 60.0)
+    steps = [{"label": "x", "argv": [sys.executable, *jobs.GENERATE_COMMAND, *command]}]
+    assert [timeout for _name, timeout in _limits_of_jobs(jobs_root, redis_server, limits, steps)] == [jobs.JOB_CEILING_SECONDS]
+
+
+def test_a_job_with_no_command_of_the_generator_keeps_the_limit_its_recorded_time_gives(jobs_root, redis_server, limits, monkeypatch):
+    monkeypatch.setattr(job_runner, "expected_seconds", lambda job: 60.0)
+    steps = [{"label": "x", "argv": [sys.executable, *jobs.RESET_COMMAND]}]
+    assert [timeout for _name, timeout in _limits_of_jobs(jobs_root, redis_server, limits, steps)] == [jobs.JOB_FLOOR_SECONDS]
+
+
+def test_every_way_a_generate_job_starts_gets_the_same_limit(jobs_root, redis_server, limits, monkeypatch):
+    """The Generate page's job (`submit`, which starts it) and the one that waited in the list for the job before it (`promote_queued`) both go through `start_job`: the ceiling, either way."""
+    monkeypatch.setattr(job_runner, "expected_seconds", lambda job: 60.0)
+    steps = [{"label": "x", "argv": [sys.executable, *jobs.GENERATE_COMMAND, "galaxy"]}]
+    first = jobs.submit("galaxy", "First", steps, root=jobs_root)
+    second = jobs.submit("galaxy", "Second", steps, root=jobs_root)          # the first holds the lock: this one waits in the list
+    started = None
+    try:
+        assert second.job_id is None and [timeout for _name, _func, timeout in limits] == [jobs.JOB_CEILING_SECONDS]
+        jobs.release_lock(first.job_id)
+        started = jobs.promote_queued(jobs_root, force=True)
+        assert started is not None and [timeout for _name, _func, timeout in limits] == [jobs.JOB_CEILING_SECONDS] * 2
+    finally:
+        for name in (first.job_id, started):
+            if name:
+                jobs.release_lock(name)
+                redisqueue.queue(jobs.QUEUE_PREFIX + name, redisqueue.connect(redis_server)).delete(delete_jobs=True)
 
 
 def test_a_jobs_expected_seconds_are_the_sum_of_what_its_steps_took_before(monkeypatch, tmp_path):

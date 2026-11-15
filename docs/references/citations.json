@@ -26278,6 +26278,21 @@
       "kind": "paper",
       "label": "Höning et al. 2019",
       "title": "Carbon cycling and interior evolution of water-covered plate tectonics and stagnant-lid planets"
+    },
+    "R5261": {
+      "kind": "paper",
+      "label": "Luhman 2024",
+      "title": "Candidates for Substellar Members of the Orion Nebula Cluster from JWST/NIRCam ∗"
+    },
+    "R5262": {
+      "kind": "paper",
+      "label": "Portegies Zwart and Hochart 2024",
+      "title": "The origin and evolution of wide Jupiter mass binary objects in young stellar clusters"
+    },
+    "R5263": {
+      "kind": "paper",
+      "label": "Parker et al. 2025",
+      "title": "Can planet-planet binaries survive in star-forming regions?"
     }
   }
 }
