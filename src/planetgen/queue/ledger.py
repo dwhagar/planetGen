@@ -17,6 +17,9 @@ both build on, so the column names live in one place.
 * **The fence.** `commit_item` is what a job calls in the same transaction as its data: it updates its `engine_items` row `WHERE attempt = mine`. No row
   touched means another attempt took the job: the caller rolls back and stops (`Replaced`). With `done=True` it sets the done time, so the data and the mark
   commit together.
+* **The checkpoint (OPS.219).** `commit_item` given `cursor` and `results` also stores, in the same transaction, the number of pieces the unit has finished (`cursor_key`) and what the newly
+  finished ones returned (`engine_piece_results`, one row for each piece that returned something). `begin_attempt` keeps both for a job run again, so `resume_point` hands the engine
+  the cursor and the results to start from.
 * **The writer.** `Writer` runs ledger calls on its own thread and connection, so the supervisor's loop never waits on MySQL.
 """
 
@@ -117,7 +120,7 @@ def begin_attempt(conn, job_id, galaxy_conn=None, pid=None):
     conn.commit()
     if galaxy_conn is not None:
         galaxy_conn.execute("INSERT INTO engine_items (job_id, attempt, updated_at) VALUES (?, ?, NOW(6))"
-                            " ON DUPLICATE KEY UPDATE attempt = VALUES(attempt), cursor_key = NULL, done_at = NULL, updated_at = NOW(6)", (job_id, attempt))
+                            " ON DUPLICATE KEY UPDATE attempt = VALUES(attempt), done_at = NULL, updated_at = NOW(6)", (job_id, attempt))     # the cursor and the stored results stay: a job run again starts after them (OPS.219)
         galaxy_conn.commit()
     return attempt
 
@@ -158,24 +161,44 @@ def _clip(text):
     return text if text is None or len(text) <= ERROR_TEXT_CHARS else text[:ERROR_TEXT_CHARS] + f"... ({len(text)} characters)"
 
 
-def commit_item(galaxy_conn, job_id, attempt, cursor_key=None, done=False):
+def commit_item(galaxy_conn, job_id, attempt, cursor_key=None, done=False, results=()):
     """
     The fence. Called in the same transaction as the job's data: updates the job's `engine_items` row `WHERE attempt = mine`, with the place reached
     (`cursor_key`) and, for the last commit, the done time. Raises `Replaced` when the row is not this attempt's; the caller rolls back and stops. Does not commit.
+
+    Args:
+        results: `(piece_index, result)` pairs of the pieces finished since the last checkpoint, stored in `engine_piece_results` once the fence has held (OPS.219).
     """
     touched = galaxy_conn.execute("UPDATE engine_items SET cursor_key = COALESCE(?, cursor_key), done_at = IF(?, NOW(6), done_at), updated_at = NOW(6)"
                                   " WHERE job_id = ? AND attempt = ?", (cursor_key, 1 if done else 0, job_id, attempt)).rowcount
-    if touched:
-        return
-    row = galaxy_conn.execute("SELECT attempt FROM engine_items WHERE job_id = ? FOR UPDATE", (job_id,)).fetchone()     # an update that changed nothing still held the attempt
-    if row is None or row["attempt"] != attempt:
-        raise Replaced(f"Job {job_id} attempt {attempt} was replaced" + (f" by attempt {row['attempt']}." if row else " (it has no row)."))
+    if not touched:
+        row = galaxy_conn.execute("SELECT attempt FROM engine_items WHERE job_id = ? FOR UPDATE", (job_id,)).fetchone()     # an update that changed nothing still held the attempt
+        if row is None or row["attempt"] != attempt:
+            raise Replaced(f"Job {job_id} attempt {attempt} was replaced" + (f" by attempt {row['attempt']}." if row else " (it has no row)."))
+    for index, result in results:
+        galaxy_conn.execute("INSERT INTO engine_piece_results (job_id, piece_index, result) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE result = VALUES(result)",
+                            (job_id, index, json.dumps(result, sort_keys=True, separators=(",", ":"))))
 
 
 def item_state(galaxy_conn, job_id):
     """`{"attempt", "cursor_key", "done"}` of the job's `engine_items` row, or `None` for a job with no row: what the supervisor reads to learn a job is done."""
     row = galaxy_conn.execute("SELECT attempt, cursor_key, done_at FROM engine_items WHERE job_id = ?", (job_id,)).fetchone()
     return None if row is None else {"attempt": row["attempt"], "cursor_key": row["cursor_key"], "done": row["done_at"] is not None}
+
+
+def resume_point(galaxy_conn, job_id, attempt):
+    """
+    Where a job run again starts (OPS.219): `(cursor, results)`, the number of pieces its earlier attempts finished and a list of what they returned, `None` for a piece that returned nothing. `(0, [])`
+    for a job that has never stored a checkpoint, or whose row is another attempt's.
+    """
+    row = galaxy_conn.execute("SELECT attempt, cursor_key FROM engine_items WHERE job_id = ?", (job_id,)).fetchone()
+    if row is None or row["attempt"] != attempt or not row["cursor_key"] or not str(row["cursor_key"]).isdigit():
+        return 0, []
+    cursor = int(row["cursor_key"])
+    results = [None] * cursor
+    for stored in galaxy_conn.execute("SELECT piece_index, result FROM engine_piece_results WHERE job_id = ? AND piece_index < ?", (job_id, cursor)).fetchall():
+        results[stored["piece_index"]] = json.loads(stored["result"])
+    return cursor, results
 
 
 class Writer:

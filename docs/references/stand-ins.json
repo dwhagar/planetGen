@@ -67687,7 +67687,11 @@
       "number": "6.299",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the share of a cold body's surface that seas of methane or ethane must cover to be class U (a third of Titan's cover, 0.005) is a reader's word \"seas\", not a measurement; the lake counts of Titan are the only data, and a survey of methane worlds with their sea cover replaces it"
+          ],
           "fields": [
             [
               "What it is",

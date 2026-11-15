@@ -39,6 +39,9 @@ from dataclasses import dataclass
 
 from planetgen.physics import constants, rings, secular_chain, spin, stability
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 KOZAI_COS2_LIMIT = stability.KOZAI_WINDOW_COS2
 """float: The window: `cos^2 i < 3/5`."""
@@ -239,7 +242,7 @@ SECULAR_RATE_UNIT_PER_S = 1.0 / constants.SECONDS_PER_YEAR
 
 
 def _mass_solar(kg):
-    return kg / constants.SOLAR_MASS_TO_KG
+    return _kg_to_msun(kg)
 
 
 def oblateness_precession_rad_yr(planet, moon_axis_au):

@@ -66,7 +66,7 @@ from planetgen.queue import commands, longsql, redisqueue, runrecord, units, wra
 from planetgen.util import log, process
 from planetgen.util.format import counted
 
-_EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters", "engine_items"}       # engine_items: the reset is itself a job, and wiping its own fence row would end it "replaced" (OPS.217)
+_EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters", "engine_items", "engine_piece_results"}       # engine_items: the reset is itself a job, and wiping its own fence row would end it "replaced" (OPS.217); engine_piece_results goes with its row
 """set: Real tables that exist in every fresh database but hold
 bookkeeping, not galaxy content -- never truncated (`id_blocks`: see this
 module's docstring, DB.3; `id_counters`, DB.20: a number is never given twice). `sector_objects` (a
@@ -173,6 +173,41 @@ class Wiped(namedtuple("Wiped", "tables with_rows exact_rows estimated_rows")):
         return f"Wiped {tables} from '{database}' ({held}, {removed})."
 
 
+class _Tally:
+    """What a wipe has counted so far, table by table: `with_rows`, `exact_rows` and `estimated_rows` as `Wiped` has them."""
+
+    def __init__(self):
+        self.with_rows = self.exact_rows = self.estimated_rows = 0
+
+
+def _wipe_table(conn, config, table, facts, number, tally):
+    """
+    Wipes one table of a wipe (OPS.196: the piece of `reset-galaxy`; `wipe` loops over the same): counts what it holds into `tally` and truncates it as one long statement named for the beat, `number`
+    of `len(facts)`; a table with no row and an id counter never used has nothing to clear (OPS.254). `FOREIGN_KEY_CHECKS` must be off on `conn` (`_foreign_keys_off`).
+    """
+    held, exact = _rows_held(conn, table, facts[table][0])
+    tally.with_rows += 1 if held else 0
+    if exact:
+        tally.exact_rows += held
+    else:
+        tally.estimated_rows += held
+    if held or facts[table][1]:
+        longsql.run(conn, f"TRUNCATE TABLE {table}", f"Emptying {table} ({held:,}{'' if exact else ' or so'} rows), table {number} of {len(facts)}", config=config)
+
+
+def _tidy_after_wipe(conn, config):
+    """What a wipe does when every table is truncated: foreign keys on again, every cache of the old galaxy stale (PERF.38), the id blocks this process holds dropped, and the pages and the page cache told (UX.161)."""
+    conn.execute("SET FOREIGN_KEY_CHECKS = 1")
+    note_sector_deleted(conn)  # PERF.38: every cache of the old galaxy is stale
+    conn.commit()
+    # This process starts fresh blocks (past every old one, since
+    # id_blocks is kept); not needed for safety, just tidy.
+    forget_id_blocks(config._key())
+    # The pages read the empty galaxy at once, not at the page cache's next look at the content stamp (UX.161).
+    dataversion.record(config.database, "everything")
+    _purge_page_cache(config.database)
+
+
 def wipe(config, report=None):
     """
     Truncates every content table in `config.database` and tidies after it: every cache of the old galaxy is stale
@@ -189,33 +224,17 @@ def wipe(config, report=None):
     conn = get_connection(config)
     try:
         facts = _table_facts(conn, config.database)
-        estimates = {name: found[0] for name, found in facts.items()}
-        tables = list(estimates)
-        exact_rows = estimated_rows = with_rows = 0
+        tally = _Tally()
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
         try:
-            for number, table in enumerate(tables, start=1):
-                held, exact = _rows_held(conn, table, estimates[table])
-                with_rows += 1 if held else 0
-                if exact:
-                    exact_rows += held
-                else:
-                    estimated_rows += held
-                if held or facts[table][1]:         # OPS.254: a table with no row and an id counter never used has nothing to clear
-                    longsql.run(conn, f"TRUNCATE TABLE {table}", f"Emptying {table} ({held:,}{'' if exact else ' or so'} rows), table {number} of {len(tables)}", config=config)
+            for number, table in enumerate(facts, start=1):
+                _wipe_table(conn, config, table, facts, number, tally)
                 if report is not None:
-                    report(number, len(tables))
+                    report(number, len(facts))
         finally:
             conn.execute("SET FOREIGN_KEY_CHECKS = 1")
-        note_sector_deleted(conn)  # PERF.38: every cache of the old galaxy is stale
-        conn.commit()
-        # This process starts fresh blocks (past every old one, since
-        # id_blocks is kept); not needed for safety, just tidy.
-        forget_id_blocks(config._key())
-        # The pages read the empty galaxy at once, not at the page cache's next look at the content stamp (UX.161).
-        dataversion.record(config.database, "everything")
-        _purge_page_cache(config.database)
-        return Wiped(tables, with_rows, exact_rows, estimated_rows)
+        _tidy_after_wipe(conn, config)
+        return Wiped(list(facts), tally.with_rows, tally.exact_rows, tally.estimated_rows)
     finally:
         conn.close()
 
@@ -225,23 +244,50 @@ def expand_reset_galaxy(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-def reset_galaxy_unit(params, report):
-    """
-    The `reset-galaxy` command (PERF.119): wipes every content table of the database the params name (`wipe`). It asks
-    nothing: the typed confirmation belongs to whoever builds the run (`reset_database`, the Generate page).
+TIDY_PIECE = "Tidying after the wipe"
+"""str: The last piece of the `reset-galaxy` unit, after one piece to a table."""
 
-    Args:
-        params (dict): `database` (`wrapper.database_args`).
-        report (callable): `report(done, total)`, a table at a time.
 
-    Returns:
-        dict: `database` and `tables`, how many were wiped.
-    """
+def reset_galaxy_pieces(params, cursor):
+    """The pieces of the `reset-galaxy` unit (OPS.196, the table at a time of PERF.119 and OPS.206): one to every table to wipe, as the database lists them now, and `TIDY_PIECE`."""
     from planetgen.generation import run_plan
     config = run_plan._mysql_config_of(params)
-    wiped = wipe(config, report)
-    return {"database": config.database, "tables": len(wiped.tables), "with_rows": wiped.with_rows,
-            "exact_rows": wiped.exact_rows, "estimated_rows": wiped.estimated_rows}
+    conn = get_connection(config)
+    try:
+        return list(_table_facts(conn, config.database)) + [TIDY_PIECE]
+    finally:
+        conn.close()
+
+
+def _wipe_facts(ctx):
+    """The facts of the tables the unit wipes and what it has counted, read once for the unit and on the connection that wipes (`FOREIGN_KEY_CHECKS` off for it, until `TIDY_PIECE`)."""
+    def make():
+        facts = _table_facts(ctx.db, ctx.config.database)
+        ctx.db.execute("SET FOREIGN_KEY_CHECKS = 0")
+        return facts
+
+    return ctx.kept("facts", make), ctx.kept("tally", _Tally)
+
+
+def reset_galaxy_do(params, piece, ctx):
+    """
+    One piece of the `reset-galaxy` command (PERF.119; pieces, OPS.196): wipes the table the piece names, or tidies after the last of them. It asks nothing: the typed confirmation belongs to whoever
+    builds the run (`reset_database`, the Generate page).
+    """
+    facts, tally = _wipe_facts(ctx)
+    if piece == TIDY_PIECE:
+        ctx.phase(piece)
+        _tidy_after_wipe(ctx.db, ctx.config)
+        return
+    if piece in facts:         # a table the database no longer has when its piece comes has nothing to wipe
+        _wipe_table(ctx.db, ctx.config, piece, facts, list(facts).index(piece) + 1, tally)
+
+
+def reset_galaxy_gather(params, results, ctx):
+    """The `reset-galaxy` command's result: `database`, `tables` (how many were wiped), `with_rows`, `exact_rows` and `estimated_rows` as `Wiped` has them."""
+    facts, tally = _wipe_facts(ctx)
+    return {"database": ctx.config.database, "tables": len(facts), "with_rows": tally.with_rows,
+            "exact_rows": tally.exact_rows, "estimated_rows": tally.estimated_rows}
 
 
 def reset_database(config, dry_run=False, assume_yes=False):

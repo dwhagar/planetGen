@@ -274,6 +274,8 @@ def generate_planet_properties(planet, zone_override=None):
     # in place -- and the class, which is derived once the body is finished (`apply_class`).
     planet._bare_core = None             # a new draw has no envelope yet (`apply_envelope`, GEN.1323)
     planet._captured_envelope = 0.0
+    planet._envelope_helium_y = None     # TEST.761: the helium share a hydrogen-first loss left and the radius an obliquity tide gave (`apply_envelope`): a body is made with both, so a planet that kept no
+    planet._tidal_radius_km = None       # envelope has the attributes of one that did, and a body drawn again in place carries nothing of its last draw
     planet.atmosphere = None
     planet.atm_density = None
     planet.atm_molar_density = None
@@ -1800,7 +1802,7 @@ def generate_moons(planet, moon_count=None, bare=False):
             if span_low >= span_high:    # the disk has no room left past the last moon
                 draw.redrawn("moon.disk_full")
                 rejected += 1
-                if rejected >= MOON_REJECTION_LIMIT:
+                if rejected >= rejection_limit:      # GEN.1599: the one limit of this call (a disk exists only round a giant, which has no impact moons, so it is MOON_REJECTION_LIMIT here)
                     break
                 continue
         moon_distance_km = math.exp(draw.uniform(math.log(span_low), math.log(span_high)))

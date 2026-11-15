@@ -27,6 +27,9 @@ from dataclasses import dataclass
 
 from planetgen.physics import constants, kozai_bodies, rings, secular_chain, stability
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 SIBLING_MASS_RATIO = 1.0
 """float: An outer sibling counts as a perturber only when it is at least this many times the planet's mass (a heavier outer body; a lighter one is a test particle's equal and quenches rather than pumps). [Stand-in KZP2, tier "educated guess from physics", tweak L1.]"""
@@ -79,7 +82,7 @@ class PlanetKozai:
 
 
 def _mass_solar(kg):
-    return kg / constants.SOLAR_MASS_TO_KG
+    return _kg_to_msun(kg)
 
 
 def sibling_perturbers(planets, index):
