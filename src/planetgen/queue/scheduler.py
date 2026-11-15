@@ -212,7 +212,7 @@ class Scheduler:
         since = mine.since if mine is not None else now - waited
         ticket = Ticket(name, claim, since, pid, _here())
         conn.hset(memorygate._key("tickets"), name, json.dumps({
-            "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "solo": claim.solo, "since": since, "pid": pid,
+            "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "tokens": list(claim.tokens), "since": since, "pid": pid,
             "host": ticket.host, "expires": now + TICKET_SECONDS}))
         others = [other for other in waiting if other.name != name]
         if not others:
