@@ -3,6 +3,8 @@
 """The three datasets of GEN.548 read through their functions, on fixtures the tests build offline: a small MIST
 archive, a white-dwarf sequence archive and an equation-of-state and outer-crust set. No test reaches the network."""
 
+import math
+
 import numpy as np
 import pytest
 
@@ -27,7 +29,7 @@ def mist(monkeypatch):
 def test_the_derived_file_keeps_only_main_sequence_rows(mist, cache):
     assert not (cache / "isochrones" / isochrones.ARCHIVE).exists()
     with np.load(cache / "isochrones" / isochrones.DERIVED) as data:
-        assert list(data["fe_h"]) == [-1.0, 0.0] and data["rows_0"].shape == (120, 6)
+        assert list(data["fe_h"]) == [-1.0, 0.0] and data["rows_0"].shape == (120, 7)
         assert data["rows_0"][:, 1].max() <= 10 ** ((10 - 8.0) / 2.5) + 1e-3
 
 
@@ -39,6 +41,27 @@ def test_a_main_sequence_point_interpolates_in_mass_age_and_metallicity(mist):
     assert isochrones.main_sequence_point(0.5, 1.0, -0.5)[0] == pytest.approx(4 * np.log10(0.5) - 0.05, abs=0.02)
     between = isochrones.main_sequence_point(0.5, 0.5, 0.0)
     assert between is not None and between[0] == pytest.approx(4 * np.log10(0.5), abs=0.02)
+
+
+def test_a_star_with_no_diffusion_in_its_surface_is_read_at_the_fe_h_it_has(mist):
+    """GEN.1623: the fixture's surface keeps its birth hydrogen and helium, so its surface change is 0 and the birth [Fe/H] is the surface one."""
+    assert isochrones.initial_fe_h(0.5, 1.0, -0.5) == pytest.approx(-0.5, abs=1e-6)
+    assert isochrones.initial_fe_h(0.5, 1.0, 0.2) == pytest.approx(0.2, abs=1e-6)
+
+
+def test_a_star_is_read_at_the_birth_fe_h_that_gives_its_surface_value(mist, monkeypatch):
+    """GEN.1623: with a surface that has lost 0.05 dex of its metals the star whose surface is at -0.5 is the grid's -0.45 star, read at its age and mass."""
+    monkeypatch.setattr(isochrones._Isochrone, "surface_change", lambda self, mass, log_age: -0.05)
+    assert isochrones.initial_fe_h(0.5, 1.0, -0.5) == pytest.approx(-0.45, abs=1e-9)
+
+
+def test_the_surface_change_is_what_the_hydrogen_and_helium_leave_for_the_metals():
+    """GEN.1623: a surface that lost a tenth of its metals to the interior (and gained the hydrogen they left) has a metals-to-hydrogen ratio 0.0466 dex lower."""
+    y, z = 0.27, 0.014
+    assert isochrones.surface_change_dex(y, z, 1.0 - y - z, 0.0, y) == pytest.approx(0.0, abs=1e-12)
+    assert isochrones.surface_change_dex(y, z, 1.0 - y - 0.9 * z, 0.0, y) == pytest.approx(math.log10(0.9 * (1.0 - y - z) / (1.0 - y - 0.9 * z)), abs=1e-12)
+    assert isochrones.surface_change_dex(y, z, 1.0 - y - 0.9 * z, 0.0, y) == pytest.approx(-0.0466, abs=1e-4)
+    assert isochrones.surface_change_dex(y, z, 0.0, 0.0, 0.0) == 0.0     # a row with no surface abundances
 
 
 def test_a_star_that_left_the_main_sequence_or_is_outside_the_ages_gets_none(mist):
