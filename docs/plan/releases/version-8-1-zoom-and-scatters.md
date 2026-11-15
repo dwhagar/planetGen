@@ -741,6 +741,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1736 | (bug) Class M's 2 Pa CO2 floor is not rechecked after the CO2 rebalance (seed 30143: class M at 1.4 Pa) | none | Lane 02, 2026-11-15 |
 | GEN.1737 | (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems) | GEN.1617 | Lane 03, 2026-11-15 |
 | GEN.1738 | (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip | none | Lane 04, 2026-11-15 |
+| GEN.1739 | Research: a time-stepped air history for rocky worlds (hydrogen envelope to class M), life ages with mass extinctions and climate swings, a consumes and gives-off ledger for every life class, and the air history stored in the database | none | research thread, 2026-11-15 |
 | TEST.761 | (bug) test_rogue_planet_parity: 4 cases fail on main, private attributes _envelope_helium_y and _tidal_radius_km set on one side only | none | Lane 14, 2026-11-15 |
 | TEST.762 | (bug) test_mass_conversions::test_no_new_hand_written_mass_conversion fails on main: 18 files over their allowance | none | Lane 14, 2026-11-15 |
 | TEST.764 | (bug) test_profile_claim: the queue page log test expects "1,000 MB" where the log now says "1 GB" | none | Lane 14, 2026-11-15 |

@@ -12877,6 +12877,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04. Prerequisites: none. Related: GEN.1717.
   Filed by the TODO thread.
 
+- [ ] **GEN.1739 Research: a time-stepped air history for rocky worlds (hydrogen envelope to class M), life ages with mass extinctions and climate swings, a consumes and gives-off ledger for every life class, and the air history stored in the database**
+  Boss, 10:42 AM EST 2026-11-15: research thread "Design planet air history simulation". Research and proposal only, nothing built until Boss picks an option; the build items get their own numbers from the TODO thread then. Coordinate with Lane 02 (GEN.1732) and Lane 03 so open air and life items are not stepped on.
+  Version 8.1 (research). Owner (TODO, 2026-11-15): the research thread "Design planet air history simulation". Prerequisites: none. Related: GEN.1729, GEN.1732, GEN.1723, GEN.1465.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
