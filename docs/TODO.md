@@ -13079,6 +13079,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
   Filed by the TODO thread.
 
+- [ ] **TEST.754 (bug) test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main: its seeded system has no habitable planet**
+  Train Manager, 1:50 AM EST 2026-11-15 (Train 30 round 2): src/tests/test_habitability_end_to_end_browser.py::test_the_lists_draw_each_bodys_stored_rating[planet-planets] fails on main alone; Lane 03 found the seeded system has no habitable planet at line 119. Fix the seed choice the way PR 6605 did for HABITABLE_SEED (pick by what the test needs, not a fixed seed that generation changes can empty), no skip.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: TEST.737, TEST.740.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
