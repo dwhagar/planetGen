@@ -2555,13 +2555,11 @@ class StarSystem:
     @staticmethod
     def _settle_body(obj, refinish=True):
         """The settle pass for one planet and its moons (`_settle_to_final_age`; and, for a belt member made a planet, `_settle_promoted`): the giant sized again, the tides of the orbit, the envelope, the oddities of a resonant chain and the end stages of a rocky body made again."""
-        if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
-            log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr.")
         for body in (obj, *obj.moons):
             if planetPhysics.settle_orbit(body):
                 log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr.")
-        # the tides above can move a giant's eccentricity, and with it the mean light its radius was sized on (`orbit_elements.flux_distance_au`): size it again
-        # on the final orbit (a giant the tables moved by under `SETTLE_TOLERANCE` is left as it is)
+        # the tides above can move a giant's eccentricity, and with it the mean light its radius is sized on (`orbit_elements.flux_distance_au`): size it once,
+        # on the final orbit (GEN.1659; a giant the tables move by under `SETTLE_TOLERANCE` is left as it is)
         if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
             log.debug(f"{obj.name}: settled again to {obj.radius:.0f} km on its final orbit.")
         if planetPhysics.settle_envelope(obj):
