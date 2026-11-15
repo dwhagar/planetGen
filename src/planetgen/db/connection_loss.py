@@ -19,6 +19,7 @@ The status is read the way `stats.server_info` reads it: an account that cannot 
 """
 
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 _STATUS = ("Uptime", "Aborted_clients", "Aborted_connects")
 """tuple: The `SHOW GLOBAL STATUS` counters the verdict reads."""
@@ -52,16 +53,16 @@ def verdict(before, after, idle_s, passed_s):
     if before.get("uptime") is None or after.get("uptime") is None:
         return "cannot tell why: this MySQL account cannot read the server status"
     if after["uptime"] < before["uptime"] or after["uptime"] + RESTART_SLACK_S < before["uptime"] + passed_s:
-        return (f"MySQL was restarted: its uptime is {after['uptime']:,} s now and was {before['uptime']:,} s {passed_s:,.0f} s ago "
+        return (f"MySQL was restarted: its uptime is {format_duration_seconds(after['uptime'])} now and was {format_duration_seconds(before['uptime'])} {format_duration_seconds(passed_s)} ago "
                 "(look in `journalctl -u mysql` and `dmesg | grep -i -E 'oom|killed process'` for the time)")
     timeout = after.get("wait_timeout")
     if timeout is not None and idle_s >= timeout:
-        return f"idle timeout: no batch had finished for {idle_s:,.0f} s and the server's wait_timeout is {timeout:,} s"
+        return f"idle timeout: no batch had finished for {format_duration_seconds(idle_s)} and the server's wait_timeout is {format_duration_seconds(timeout)}"
     grown = (after.get("aborted_clients") or 0) - (before.get("aborted_clients") or 0)
     if grown > 0:
-        return (f"the server aborted the client ({grown:,} aborted clients since the unit began): a read or write timeout (net_read_timeout {after.get('net_read_timeout')} s, "
-                f"net_write_timeout {after.get('net_write_timeout')} s) or a packet over max_allowed_packet ({after.get('max_allowed_packet')} bytes)")
-    return (f"the same server (uptime {after['uptime']:,} s) and a connection idle for {idle_s:,.0f} s under a wait_timeout of {timeout} s: "
+        return (f"the server aborted the client ({grown:,} aborted clients since the unit began): a read or write timeout (net_read_timeout {format_duration_seconds(after.get('net_read_timeout'))}, "
+                f"net_write_timeout {format_duration_seconds(after.get('net_write_timeout'))}) or a packet over max_allowed_packet ({after.get('max_allowed_packet')} bytes)")
+    return (f"the same server (uptime {format_duration_seconds(after['uptime'])}) and a connection idle for {format_duration_seconds(idle_s)} under a wait_timeout of {format_duration_seconds(timeout)}: "
             "something between the job and MySQL closed the socket (a KILL, a firewall or a proxy)")
 
 
@@ -77,7 +78,7 @@ def describe(after):
     """What `facts` read after a loss, in one sentence, for a place that has no earlier `facts` to compare with (OPS.171): a small uptime says the server restarted."""
     if after.get("uptime") is None:
         return "cannot tell why: this MySQL account cannot read the server status"
-    return (f"the server's uptime is {after['uptime']:,} s (a small figure means it restarted), its wait_timeout {after.get('wait_timeout')} s, "
+    return (f"the server's uptime is {format_duration_seconds(after['uptime'])} (a small figure means it restarted), its wait_timeout {format_duration_seconds(after.get('wait_timeout'))}, "
             f"{after.get('aborted_clients')} clients aborted so far and max_allowed_packet {after.get('max_allowed_packet')} bytes")
 
 

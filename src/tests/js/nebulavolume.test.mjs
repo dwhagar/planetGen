@@ -185,3 +185,35 @@ test("a single nebula is its own key, has no node block, and shows at the weight
   const found = V.wanted([source], [0, 0, 0], 800);
   assert.equal(found.length, 1, "it is asked for like any source once wide enough");
 });
+
+// --- MAP.430: the far-zoom gas lanes ---------------------------------------------------------------------------------------------------------
+
+test("the lanes' source has the key gas, no block and no reach, so no node's nebula is ever mistaken for it and wanted never picks it", () => {
+  const source = V.lanesSource();
+  assert.equal(source.key, V.LANES_KEY);
+  assert.equal(V.LANES_KEY, "gas");
+  assert.equal(source.lanes, true);
+  assert.equal(source.block, null);
+  assert.deepEqual(V.wanted([source], [0, 0, 0], 1000, null), []);
+  assert.equal(V.singleIdOf(source.key), null);
+  assert.equal(V.sphereOf(source.key), null);
+});
+
+test("a lane splat shows in full while it is small on the screen and is gone by the second fade width, falling smoothly between", () => {
+  const [from, to] = V.LANES_FADE_PX;
+  assert.equal(V.lanesFade(0), 1);
+  assert.equal(V.lanesFade(from), 1);
+  assert.equal(V.lanesFade(to), 0);
+  assert.equal(V.lanesFade(10 * to), 0);
+  let last = 1;
+  for (let px = from; px <= to; px += (to - from) / 20) {
+    const value = V.lanesFade(px);
+    assert.ok(value <= last + 1e-12, "never rises as the splat grows");
+    last = value;
+  }
+  assert.ok(Math.abs(V.lanesFade((from + to) / 2) - 0.5) < 1e-9, "the middle is half");
+});
+
+test("the lanes are dim: one point at full strength adds under half the soft cap, so the splats overlapping it (a few, softly weighted) stay under it", () => {
+  assert.ok(V.LANES_ALPHA > 0 && V.LANES_ALPHA * 255 * V.POINT_ALPHA < V.CAP / 2, "a dense lane adds under the cap");
+});

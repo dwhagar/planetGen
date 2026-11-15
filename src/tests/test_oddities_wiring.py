@@ -561,7 +561,7 @@ def test_the_other_branch_is_the_same_world_with_the_same_inventory_and_draws():
     assert second.temperature_k != first.temperature_k      # a different branch of the same world
 
 
-def _w20_with_stubbed_solves(answers):
+def _w20_with_stubbed_solves(answers, steam=False):
     """GEN.1715: W20 on a real planet whose first air is set to a warm answer (300 K, 0.30 of albedo), with `surface_air.solve` stubbed to give `answers[start] = (temperature_k, albedo)`
     (a start not in the dict gives the first answer again); returns `(result, starts tried, the body)`."""
     import dataclasses
@@ -584,7 +584,7 @@ def _w20_with_stubbed_solves(answers):
     setting, _start, solved = calls[0]
     first = dataclasses.replace(solved, temperature_k=300.0, albedo=0.30)
     air_branches.clear(planet)
-    setattr(planet, air_branches.CONTEXT_ATTRIBUTE, air_branches.Context(setting, first, 320.0, 0.0, 1.2, 0.3))
+    setattr(planet, air_branches.CONTEXT_ATTRIBUTE, air_branches.Context(setting, first, steam, 0.0, 1.2, 0.3))
     tried = []
 
     def stub(setting_, start):
@@ -609,6 +609,24 @@ def test_the_other_branch_declines_when_no_start_ends_on_a_distinct_answer():
     result, tried, planet = _w20_with_stubbed_solves({260.0: (290.0, 0.31)})        # 10 K and 0.01 of albedo away is the same branch
     assert result is False and tried == list(air_branches.COLD_STARTS_K)
     assert getattr(planet, air_branches.CHOICE_ATTRIBUTE, None) is None
+
+
+def test_a_world_past_its_runaway_limit_is_not_offered_the_cool_air_as_another_branch():
+    """GEN.1716: past the runaway limit no ocean can stand (`air_final.past_runaway_with_water`); a cold start that finds a cool air there found the greenhouse table's missing limit, not a branch."""
+    result, tried, planet = _w20_with_stubbed_solves({200.0: (205.0, 0.62)}, steam=True)
+    assert result is False and tried == []
+    assert getattr(planet, air_branches.CHOICE_ATTRIBUTE, None) is None
+
+
+def test_the_branch_a_body_is_stored_on_is_named_by_physics_and_not_by_a_number():
+    """GEN.1716: steam past the runaway limit, the warm side for the ice law (GEN.1696), the airless temperature for any other body; a hotter airless temperature is kept."""
+    from planetgen import tuning
+
+    assert air_branches.formation_start_k(250.0, steam=True, ice_law=True) == tuning.RUNAWAY_START_TEMPERATURE_K
+    assert air_branches.formation_start_k(2000.0, steam=True, ice_law=False) == 2000.0
+    assert air_branches.formation_start_k(250.0, steam=False, ice_law=True) == air_branches.WARM_START_K
+    assert air_branches.formation_start_k(400.0, steam=False, ice_law=True) == 400.0
+    assert air_branches.formation_start_k(250.0, steam=False, ice_law=False) == 250.0
 
 
 def test_a_world_with_no_second_branch_is_not_named_for_one():

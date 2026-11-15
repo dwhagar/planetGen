@@ -940,9 +940,9 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 - **`engine_runs`**, **`engine_jobs`**, **`engine_attempts`** (v23, OPS.215) — the job engine's ledger (`planetgen/queue/ledger.py`,
   `docs/design/operations/job-engine.md`); nothing reads or writes them until the supervisor (OPS.207) and the plan-as-rows item (OPS.221) are merged.
   `engine_runs`: one row per run, with `kind`, `galaxy` (the database it writes to, NULL for none), `state` (`waiting`, `running`, `held`, `done`,
-  `cancelled`), `held_reason`, `created_at`, `started_at` and `finished_at`. `engine_jobs`: one row per job (`run_id`, `stage`, `command`, `item_key` ('' for
+  `canceled`), `held_reason`, `created_at`, `started_at` and `finished_at`. `engine_jobs`: one row per job (`run_id`, `stage`, `command`, `item_key` ('' for
   a whole stage; the three are unique within a run, so a plan added twice is the same plan), `arguments`, `needs` and `makes` as JSON text, `job_class`,
-  `claim_mb`, `tokens`, `state` (`waiting`, `ready`, `running`, `done`, `failed`, `cancelled`), `attempt` (the newest attempt's number), `not_before`, `waited`
+  `claim_mb`, `tokens`, `state` (`waiting`, `ready`, `running`, `done`, `failed`, `canceled`), `attempt` (the newest attempt's number), `not_before`, `waited`
   (the last reason it was not started), `created_at` and `updated_at`). `engine_attempts`: one row per attempt (`job_id`, `attempt`, `pid`, `started_at`,
   `ended_at`, `outcome` (`running`, `done`, `failed`, `killed_memory`, `timed_out`, `stuck`, `replaced`, `lost`), `peak_mb`, `cpu_seconds`, `error_kind`,
   `error_text`, `stack_file`). Jobs go with their run and attempts with their job (`ON DELETE CASCADE`). The galaxy's half is `engine_items`.

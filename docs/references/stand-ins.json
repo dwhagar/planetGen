@@ -40865,6 +40865,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "class W, the Frozen world (planet_class_fit.json, W: temperature_k min 233.15 and lt 273.15, gravity under 2 g, hydrogen under 30 percent, sulfur dioxide under 3 percent): -40 C and freezing, the lines of GEN.1142 classes E and P, so a cold air world that class P does not hold has a class; P (240 to 270 K, oxygen, near-standard air, a melting region) wins a full tie by holding more conditions, E keeps everything under 233.15 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class Q, the Hot world (planet_class_fit.json, Q: gravity_g 0.5 to 2, temperature_k min 400, pressure_pa 10 kPa to 10 bar, hydrogen under 30 percent): the edges are the ones its neighbours already have (the 10 kPa top of Z, the 10 bar floor and 400 K of N, the 0.5 g floor of F and Z, the 2 g floor of V), so a hot world with a moderate air has a class and N keeps its meaning (GEN.1618, Boss)"
+            ],
+            [
+              "The range it moves in",
+              "none (the edges of Z, N, F and V)"
+            ],
+            [
+              "Where it holds",
+              "worlds of 400 K and up with 10 kPa to 10 bar of air at 0.5 to 2 g"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep with a hot body of this air whose best class is not Q"
+            ],
+            [
+              "What replaces it",
+              "the edges of Z, N and V once they are fitted"
+            ],
+            [
+              "Evidence",
+              "the class sweep of GEN.1618 (G 7 of 26 and F 2 of 49 stored bodies at match 0, hotter than 400 K)"
+            ]
+          ],
+          "id": "AW9",
+          "key": "6.198:AW9",
+          "kind": "P",
+          "slug": "6-198-aw9",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class Q, the Hot world (planet_class_fit.json, Q: gravity_g 0.5 to 2, temperature_k min 400, pressure_pa 10 kPa to 10 bar, hydrogen under 30 percent): the edges are the ones its neighbours already have (the 10 kPa top of Z, the 10 bar floor and 400 K of N, the 0.5 g floor of F and Z, the 2 g floor of V), so a hot world with a moderate air has a class and N keeps its meaning (GEN.1618, Boss)"
         }
       ],
       "slug": "6-198-stand-ins-of-the-heavy-oxygen-worlds-and-the-thin-oxygen-worlds",
@@ -65657,7 +65695,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ABUNDANCE_TIER_DIALS water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is drawn as Earth's (low of delivered_water) and not from the Bern law at their formation distance"
+              "tuning.ABUNDANCE_TIER_DIALS water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is given by the tier (Earth's, low of delivered_water, or the dry one for the part of AT5) and not drawn from the Bern law at their formation distance"
             ],
             [
               "The range it moves in",
@@ -65688,7 +65726,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "tuning.ABUNDANCE_TIER_DIALS water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is drawn as Earth's (low of delivered_water) and not from the Bern law at their formation distance"
+          "what": "tuning.ABUNDANCE_TIER_DIALS water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is given by the tier (Earth's, low of delivered_water, or the dry one for the part of AT5) and not drawn from the Bern law at their formation distance"
         },
         {
           "burn_down": [
@@ -65761,7 +65799,7 @@
             ],
             [
               "Evidence",
-              "needed output: the two top targets (1 in 30, 1 in 10) are past what the water and envelope dials reach by the report's estimate"
+              "needed output: the two top targets (1 in 37, 1 in 10) are past what the water and envelope dials reach by the report's estimate"
             ]
           ],
           "id": "AT3",
@@ -65783,7 +65821,7 @@
           "fields": [
             [
               "What it is",
-              "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 1,000; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy"
+              "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy"
             ],
             [
               "The range it moves in",
@@ -65803,7 +65841,7 @@
             ],
             [
               "Evidence",
-              "Boss, card \"Set the target Class M rate of each tier\", 11:19 PM EST 2026-11-13"
+              "Boss, card \"Set the target Class M rate of each tier\", 11:19 PM EST 2026-11-13 (1,000, 100, 30, 10); replaced by Boss, 9:28 and 9:30 PM EST 2026-11-14: Sparse 1 in 500, Abundant 1 in 10, the rest split logarithmically"
             ]
           ],
           "id": "AT4",
@@ -65814,7 +65852,49 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": "GEN.1706",
-          "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 1,000; Scattered 100; Plentiful 30; Abundant 10 Sun-like systems per Class M world): what the dial values are calibrated to; never enforced on a galaxy"
+          "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey says how often a rocky planet in the habitable zone is drier than Earth; the part is the galaxy maker's choice (Boss, 8:24 PM EST 2026-11-14), calibrated by the meter's family table (GEN.1706)"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.ABUNDANCE_TIER_DIALS dry part (0.2 on every tier but Science): the part of the planets the water dial reaches that take the dry water class (dry of delivered_water, under 0.025 percent of the mass: a desert world) and not Earth's"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.5 (Earth's class stays the larger part, so the temperate world stays in front)"
+            ],
+            [
+              "Where it holds",
+              "as AT1"
+            ],
+            [
+              "What would show it wrong",
+              "the meter's family table (scripts/class_m_meter.py) reading more Class H worlds than Class M, or none, under a tier whose other family dials are set"
+            ],
+            [
+              "What replaces it",
+              "a formation law that gives the share of habitable-zone planets drier than Earth"
+            ],
+            [
+              "Evidence",
+              "needed output: Boss, 8:24 PM EST 2026-11-14 (classes H, O, P and R beside M, M in front); on 800 Sun-like systems the laws gave 19 desert-shaped planets beside 3 temperate-shaped ones and no Class H (reports/train28-census-2026-11-14/five-classes-800.md); a dry planet is Class H only with groundwater and oxygen, which this dial does not give"
+            ]
+          ],
+          "id": "AT5",
+          "key": "6.289:AT5",
+          "kind": "P",
+          "slug": "6-289-at5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "tuning.ABUNDANCE_TIER_DIALS dry part (0.2 on every tier but Science): the part of the planets the water dial reaches that take the dry water class (dry of delivered_water, under 0.025 percent of the mass: a desert world) and not Earth's"
         }
       ],
       "slug": "6-289-stand-ins-of-the-class-m-abundance-tiers-gen-1704",
@@ -66265,6 +66345,242 @@
       ],
       "slug": "6-292-stand-ins-of-the-shielding-of-a-mixed-air-gen-444",
       "title": "Stand-ins of the shielding of a mixed air (GEN.444)"
+    },
+    {
+      "key": "6.293",
+      "number": "6.293",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.K_ICE_PER_M sea ice 1.26 per metre and K_ICE_RANGE_PER_M 0.8 to 1.5: the attenuation of photosynthetic light by sea ice"
+            ],
+            [
+              "The range it moves in",
+              "0.8 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "ice of a salty ocean, photosynthetic light of a Sun-like star"
+            ],
+            [
+              "What would show it wrong",
+              "an under-ice light profile whose k is outside 0.8 to 1.5 for first-year or Antarctic sea ice"
+            ],
+            [
+              "What replaces it",
+              "a spectral law (ice absorption by wavelength) once a cool or hot star is the case"
+            ],
+            [
+              "Evidence",
+              "[R5264] measured 1.26 +- 0.13 under Antarctic pack ice; [R5267] median 0.8 at 600 nm for bare ice and 0.6 for ponded ice, against the older 1.5"
+            ]
+          ],
+          "id": "IL1",
+          "key": "6.293:IL1",
+          "kind": "B",
+          "slug": "6-293-il1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.K_ICE_PER_M sea ice 1.26 per metre and K_ICE_RANGE_PER_M 0.8 to 1.5: the attenuation of photosynthetic light by sea ice"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.K_ICE_PER_M fresh lake ice 0.32 per metre and K_ICE_RANGE_PER_M 0.2 to 0.32"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.32"
+            ],
+            [
+              "Where it holds",
+              "clear ice of a fresh lake or a fresh-water ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a thick perennial lake whose measured k is outside 0.2 to 0.35"
+            ],
+            [
+              "What replaces it",
+              "the same spectral law"
+            ],
+            [
+              "Evidence",
+              "[R5265] Lake A 0.32; the 0.2 end is the Antarctic perennial lake ice value cited there"
+            ]
+          ],
+          "id": "IL2",
+          "key": "6.293:IL2",
+          "kind": "B",
+          "slug": "6-293-il2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.K_ICE_PER_M fresh lake ice 0.32 per metre and K_ICE_RANGE_PER_M 0.2 to 0.32"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.K_SNOW_PER_M 30 per metre and K_SNOW_RANGE_PER_M 10 to 100: the attenuation of photosynthetic light by snow"
+            ],
+            [
+              "The range it moves in",
+              "10 to 100"
+            ],
+            [
+              "Where it holds",
+              "dry or wind-packed snow of grain size 0.1 to 1 mm"
+            ],
+            [
+              "What would show it wrong",
+              "snow of a measured k outside 10 to 100 over a metre"
+            ],
+            [
+              "What replaces it",
+              "a grain-size and density law for snow"
+            ],
+            [
+              "Evidence",
+              "[R5264] measured 31.8 +- 0.7 and expected 10 to 100; [R5265] one wind-packed layer 2.1; [R5268] temperate snow 3 to 30 per metre"
+            ]
+          ],
+          "id": "IL3",
+          "key": "6.293:IL3",
+          "kind": "B",
+          "slug": "6-293-il3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.K_SNOW_PER_M 30 per metre and K_SNOW_RANGE_PER_M 10 to 100: the attenuation of photosynthetic light by snow"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.ALBEDO_BARE (sea 0.6, lake 0.84), ALBEDO_SNOW 0.9 and their ranges: the albedo of the top surface to photosynthetic light"
+            ],
+            [
+              "The range it moves in",
+              "sea 0.5 to 0.7; lake 0.7 to 0.9; snow 0.8 to 0.97"
+            ],
+            [
+              "Where it holds",
+              "the surface of cold bare ice or snow"
+            ],
+            [
+              "What would show it wrong",
+              "a surface albedo of cold ice or snow outside these ranges"
+            ],
+            [
+              "What replaces it",
+              "the generator's own ice albedo to photosynthetic light, if one is made"
+            ],
+            [
+              "Evidence",
+              "[R5266] bare ice 0.5 to 0.7 and snow-covered 0.6 to 0.8; [R5265] 0.84 candled lake ice, 0.97 snow; [R5264] 0.8 to 0.97; the lake range is the stand-in's own (one measurement)"
+            ]
+          ],
+          "id": "IL4",
+          "key": "6.293:IL4",
+          "kind": "B",
+          "slug": "6-293-il4",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.ALBEDO_BARE (sea 0.6, lake 0.84), ALBEDO_SNOW 0.9 and their ranges: the albedo of the top surface to photosynthetic light"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.ALBEDO_MELTING 0.4 (0.2 to 0.6): the albedo of melting bare ice"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "ice at the melting point"
+            ],
+            [
+              "What would show it wrong",
+              "a melting ice surface of albedo outside 0.2 to 0.6"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R5266] 0.78, 0.60, 0.44 and 0.20 as the ice warms and melts"
+            ]
+          ],
+          "id": "IL5",
+          "key": "6.293:IL5",
+          "kind": "B",
+          "slug": "6-293-il5",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1723",
+          "what": "ice_light.ALBEDO_MELTING 0.4 (0.2 to 0.6): the albedo of melting bare ice"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_light.SNOW_COVER_DEPTH_M 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.1 m"
+            ],
+            [
+              "Where it holds",
+              "a snow layer of 1 to 30 cm over ice"
+            ],
+            [
+              "What would show it wrong",
+              "a measurement of the albedo of a few cm of snow over ice that differs by more than 0.1 from this blend"
+            ],
+            [
+              "What replaces it",
+              "a measured albedo by snow depth"
+            ],
+            [
+              "Evidence",
+              "no source for the form; 10 cm of temperate snow let 5 percent of the visible light through [R5268], which the same 10 cm makes snow-bright"
+            ]
+          ],
+          "id": "IL6",
+          "key": "6.293:IL6",
+          "kind": "P",
+          "slug": "6-293-il6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": "GEN.1723",
+          "what": "ice_light.SNOW_COVER_DEPTH_M 0.03 m: the e-folding depth over which a layer of snow takes over the albedo from the ice under it (95 percent at 10 cm)"
+        }
+      ],
+      "slug": "6-293-stand-ins-of-the-light-through-ice-and-snow-gen-1726",
+      "title": "Stand-ins of the light through ice and snow (GEN.1726)"
     }
   ]
 }

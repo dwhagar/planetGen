@@ -22,6 +22,7 @@ import time
 
 from planetgen.queue import memorygate, profileclaim
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 
 def _key():
@@ -90,7 +91,7 @@ def unit_seconds(conn, command, token=None, typed_seconds=None, read_rows=None, 
         figure = wanted if previous is None else min(max(wanted, previous * (1.0 - profileclaim.MAX_MOVE)), previous * (1.0 + profileclaim.MAX_MOVE))
         conn.hset(_key(), field, json.dumps({"token": token, "figure": figure}))
         if previous is None or abs(figure - previous) >= (0.05 if column == "seconds" else 1e-6):
-            reason = f"median of {details['samples']} samples ({details['source']})" + ("" if abs(figure - wanted) <= 0.01 * wanted else f", limited to 25 percent a run from {previous:.4g} s")
+            reason = f"median of {details['samples']} samples ({details['source']})" + ("" if abs(figure - wanted) <= 0.01 * wanted else f", limited to 25 percent a run from {format_duration_seconds(previous)}")
             profileclaim.log_change(conn, "expected unit seconds" if column == "seconds" else "expected seconds per item", kind, previous, figure, reason, now=now, **details)
         return figure
     except Exception as exc:        # noqa: BLE001 -- an expectation is never worth a run

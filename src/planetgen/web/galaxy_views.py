@@ -28,7 +28,7 @@ from planetgen.util.checks import finite_float
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc
 from planetgen.web.lib import tilepack
-from planetgen.galaxy.drill import parse_node_key
+from planetgen.galaxy.drill import LANES_KEY, parse_node_key
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.web.lib import tileprefetch
 from planetgen.web.lib import tilecache
@@ -320,13 +320,15 @@ def galaxy_nodes():
 @page_limit("galaxy_tiles")
 def galaxy_nebula_volume():
     """
-    The points that draw the nebulae of one node of the Galaxy Map (MAP.365): `?key=<m.shell.band.wedge>`. The packed bytes
+    The points that draw the nebulae of one node of the Galaxy Map (MAP.365): `?key=<m.shell.band.wedge>`, or `?key=gas` for the far-zoom gas lanes
+    of the whole galaxy (MAP.430). The packed bytes
     (`static/nebulavolume.js` reads them), as the API sampled them from the model's density. A malformed key is a 400 and an API
     failure a 502, both as `{"error": ...}` JSON.
     """
     key = request.args.get("key") or ""
     try:
-        parse_node_key(key)
+        if key != LANES_KEY:      # MAP.430: the far-zoom gas lanes are asked for as the key "gas"
+            parse_node_key(key)
     except ValueError as exc:
         return _json_error(str(exc), 400)
     try:

@@ -406,6 +406,10 @@ def parse_drill_key(key):
     return DrillBlock(m, shell, band, wedge)
 
 
+LANES_KEY = "gas"
+"""str: The key under which the map asks the nebula-volume route for the far-zoom gas lanes of the whole galaxy (MAP.430), which is no node's key."""
+
+
 def parse_node_key(key):
     """
     A node key `m.shell.band.wedge` of any level of the ladder, a sector (`1.shell.band.wedge`) included: what the

@@ -61,7 +61,11 @@ def group_volume(conn, key, model=None):
 
     Raises:
         ValueError: On a malformed key.
+
+    The key `nebula_volume.LANES_KEY` is not a block: it asks for the far-zoom gas lanes of the whole galaxy (`gas_lanes_volume`, MAP.430).
     """
+    if key == nebula_volume.LANES_KEY:
+        return gas_lanes_volume(conn, model)
     block = parse_node_key(key)
     skeleton = query.get_galaxy_shape(conn)
     nebulae = [] if skeleton is None or skeleton.galaxy_seed is None else block_nebulae(conn, block, skeleton.edge_pc)
@@ -76,6 +80,31 @@ def group_volume(conn, key, model=None):
 
     volume = nebula_volume.sample_group(
         nebulae, inside_block(block, skeleton.edge_pc), density, model.FORM_LEVEL, model.MAX_DETAIL, nebula_blocks.FAMILIES)
+    return nebula_volume.pack(volume)
+
+
+def gas_lanes_volume(conn, model=None):
+    """
+    The packed points (`nebula_volume.pack`) of the far-zoom gas lanes (MAP.430): the model's gas of the whole galaxy plane, sampled on a coarse lattice
+    (`nebula_volume.sample_lanes`) from the density every nebula contour reads (`nebula_density.lane_density`), in the dark family's colour. The map holds it
+    at galaxy scale and fades it as the camera comes in and the nodes' volumes (`group_volume`) take over. Nothing is stored.
+
+    Args:
+        conn: An open, read-only connection.
+        model (module, optional): Where the density is read: `lane_density` (default `galaxy.nebula_density`).
+
+    Returns:
+        bytes: The packed volume; header-only for a galaxy that has never been planned.
+    """
+    skeleton = query.get_galaxy_shape(conn)
+    if skeleton is None or skeleton.galaxy_seed is None:
+        return _empty()
+    if model is None:
+        from planetgen.galaxy import nebula_density as model
+    seed, shape = skeleton.galaxy_seed, skeleton.shape
+    volume = nebula_volume.sample_lanes(
+        lambda points: model.lane_density(seed, shape, points), nebula_volume.LANES_EXTENT_SCALE_LENGTHS * shape.disk_scale_length_pc,
+        nebula_blocks.FAMILIES.index("dark"))
     return nebula_volume.pack(volume)
 
 

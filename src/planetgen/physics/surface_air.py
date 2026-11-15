@@ -28,8 +28,9 @@ The step is damped, in the logarithm of the pressure and in the temperature, and
 the start, and the mixture is replayed from the same seed at every step: the regimes of the recipe are drawn again at each step's
 temperature (they depend on it), and kept from the `FREEZE_AFTER` th step on so that a regime on the edge of its gate cannot flip the
 solution back and forth. A giant, a brown dwarf and an envelope have no surface: their reference level is `REFERENCE_PRESSURE_BAR`,
-and the mixture there is drawn from the layer temperature of the body, not from the temperature the step solves, so one step is the
-solution. The vapor over a melt or an ice sets its own pressure.
+and the mixture there is drawn from the layer temperature of the body, not from the temperature the step solves, so the pressure is the
+reference one at every step; the temperature is a fixed point like a rocky body's, because the haze the step's greenhouse is made under is the haze of
+the temperature the step starts from (GEN.1716: one step stored a temperature that depended on where the solve began, 28 K at the median of 59 giants). The vapor over a melt or an ice sets its own pressure.
 
 What it does not do: the magma-ocean epoch, the water the impacts brought (the hydrosphere's draw holds the body's water once, GEN.819), non-thermal escape of the heavy gases (the retention rows stand in), the seafloor
 weathering of an ocean world, a tectonic switch of the heat loss, the helium-rain share of a giant's own heat (GEN.810: its temperature at the reference
@@ -38,6 +39,8 @@ level radiates the absorbed starlight and the cooling-law heat of `giant_draw.ow
 
 import math
 from dataclasses import dataclass, field, replace
+
+from scipy.optimize import brentq
 
 from planetgen.physics import (
     ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, continental_weathering, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
@@ -89,6 +92,34 @@ MAX_OCEAN_FLIPS = 4
 on the edge of its liquid range has no state that is both (an ocean weathers the CO2 away and freezes; the ice leaves the CO2 to
 build up and thaws), so it is solved as one that keeps its ocean: the weathering law is continuous in the temperature (Lehmer et al.
 2020), and its own temperature dependence takes the weathering away where it is cold."""
+
+ROOT_AFTER = 12
+"""int: From this step on, an air whose temperature swings across its iterate (`_swings`) is solved by a root find of the temperature (`seek_root`, GEN.1718) and not by the damped step."""
+
+SWING_STEPS = 8
+"""int: The last steps of the temperature residual read for a swing (`_swings`)."""
+
+SWING_MIN_K = 1.0
+"""float: The median size of the residual of a swing, K, above which the temperature is swinging and not settling (ten times `TOLERANCE_K`)."""
+
+ROOT_EVERY = 3
+"""int: A swinging air looks for its bracket every this many steps (a bracket needs two starts the step answered on opposite sides, close together)."""
+
+ROOT_TRIES = 8
+"""int: The most times a solve looks for the root of the temperature."""
+
+ROOT_WIDENING_K = (0.5, 2.0, 8.0, 32.0)
+"""tuple: The half widths, K, of the brackets tried around the last iterate when the starts the fixed point has seen do not bracket the root (the air has changed since: the escape of the light gases is in it)."""
+
+ROOT_XTOL_K = 1.0e-4
+"""float: How close the root find brackets the temperature, K. The step map is as steep as 400 K per K at a carbon switch (GEN.1718), so a residual of `TOLERANCE_K` wants the iterate to 3e-4 K."""
+
+ROOT_RESIDUAL_K = 1.0
+"""float: The residual, K, the root find accepts at a bracket it has closed to `ROOT_XTOL_K`. The step has steps in it where a threshold of the draw is crossed (a mixture switches, a hydrate holds), sub-K at the largest measured (0.6 K at key 20, GEN.1718);
+no temperature is its own answer closer than the step itself, so the root is that temperature. A jump of tens of K, or a pressure that is not its own answer, is not a root."""
+
+ROOT_MAX_ITER = 60
+"""int: The most iterations of the root find (each is two steps: the pressure follows the temperature)."""
 
 MAX_GAIN = 20.0
 """float: The most an extrapolated step may exceed the damped one (`_step`)."""
@@ -305,6 +336,8 @@ class Air:
         late_state: The state of the ambient stream where the late accretion's draws began (`late_accretion_moves` draws them again).
         degassed (dict): The carbon and nitrogen the last step's volcanoes gave the surface, atoms per 100 g of mantle: the scale `late` is small or large against.
         ceiling_k (float or None): The hottest surface this air may have, K: the half-ionization temperature of its main gas at its pressure (`ionization.ceiling_k`, GEN.1580); `None` for no air.
+        jump (bool): The step map jumps across the iterate (the answers on one side of a temperature are warmer than it, on the other cooler, with nothing between: no steady state, GEN.1718); the air is the one the formation
+            branch approaches from, the one just above the jump (the body cooled from its formation), and `temperature_k` is that temperature.
         entry_state: The state of the ambient stream when `solve` began, before it drew the design constants, the seed and the late accretion. Solving again from it with another start temperature (`air_branches.other_branch`, GEN.1646) repeats every draw, so the second climate branch of a world holds the same inventory as the first.
     """
 
@@ -328,6 +361,7 @@ class Air:
     degassed: dict = field(default_factory=dict)
     late_state: object = None
     ceiling_k: object = None
+    jump: bool = False
 
     @property
     def at_ceiling(self):
@@ -531,6 +565,24 @@ def _step(damping, residual, history):
     if not 0.7 <= (1.0 - q_before) / (1.0 - q) <= 1.4:
         return plain
     return plain * min(MAX_GAIN, 1.0 / (1.0 - q))
+
+
+def _swings(residuals):
+    """Whether the last `SWING_STEPS` residuals of the temperature have both signs, each at least twice, and are not small (the iterate goes round the fixed point, whatever the period; a creep has one sign and a settling is small)."""
+    last = residuals[-SWING_STEPS:]
+    if len(last) < SWING_STEPS:
+        return False
+    positive = sum(1 for r in last if r > 0.0)
+    return 2 <= positive <= len(last) - 2 and sorted(abs(r) for r in last)[len(last) // 2] > SWING_MIN_K
+
+
+def _copy_state(state):
+    """A copy of what the steps leave to the next (`solve`'s `st`), so a step can be run without moving it."""
+    return {**state, "sink_record": dict(state["sink_record"])}
+
+
+class _NoRoot(Exception):
+    """The root find of the temperature has nothing to bracket, or a step of it ended the air (airless, or the equilibrium stalled)."""
 
 
 def sliding_temperature(window, last_k):
@@ -742,7 +794,6 @@ def solve(setting, start_temperature_k):
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = continental_weathering.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
-    oxidized_share = UNKNOWN_OXIDIZED_SHARE
     water_world = water_world_of(setting, design)
     skin_m = bracket(design, "hydrate_skin_m", (*clathrate_brine.HYDRATE_SKIN_RANGE_M, "log"))
     seed = draw.getrandbits(64)
@@ -752,67 +803,61 @@ def solve(setting, start_temperature_k):
 
     temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, start_temperature_k)
     ln_pressure = math.log(REFERENCE_PRESSURE_BAR * 1.0e5 if setting.giant else FIRST_PRESSURE_PA)
-    recipe_subject = None
     last = None
     water_moles = setting.water_kg / gases.gas("H2O").molar_mass
     ice_moles = {formula: kg / gases.gas(formula).molar_mass for formula, kg in (setting.ice_kg or {}).items()}      # GEN.1675
-    reservoir_left = water_moles
     damping = [DAMPING, DAMPING]
     previous_residual = (0.0, 0.0)
     history = [[], []]
-    flips, last_ocean, cycling = 0, False, False
     stalls = 0
     gave_up = False
-    sink_record = {}        # the carbon sink of the latest step (`CarbonSink`), for the life stage's second balance (GEN.1309 A)
     window = []             # (temperature the step started from, temperature it found) of the last steps, for the chatter of an unsettled fixed point (GEN.1344)
     held_cool = water_moles > 0.0 and not setting.steam_possible and not setting.giant        # GEN.1329: no steam under the runaway limit
-    escape_bar = None       # the pressure the light-gas escape compares its loss to: set once the air has settled without it
-    step, step_limit = 0, MAX_STEPS
-    while step < step_limit:
-        step += 1
+    ROOT_STEP = MAX_STEPS + ESCAPE_MIN_STEPS + 10        # a step number no step of the loop has (`evaluate` reads 1 and `FREEZE_AFTER` as the first and the freezing step)
+    st = {"reservoir_left": water_moles, "flips": 0, "last_ocean": False, "cycling": False, "oxidized_share": UNKNOWN_OXIDIZED_SHARE, "recipe_subject": None,
+          "escape_bar": None, "sink_record": {}}
+    """dict: What one step leaves to the next besides the temperature and the pressure it ends on (the water left over the ground, the flips of the ocean, the recipe kept from
+    `FREEZE_AFTER`, the share of the sulfur that is oxidized, the escape pressure, and the carbon sink of the latest step for the life stage's second balance, GEN.1309 A), so a step can be
+    run from a copy of it (GEN.1718)."""
+    def evaluate(temperature, ln_pressure, step, st, last):
+        """One step of the fixed point from `temperature` and `ln_pressure`, with what the steps before left in `st` (which it updates): `("air", air)` when the air ends here (airless),
+        `("stalled", None)` when the equilibrium of the gas stalls, and `("stepped", (mixture, partials, pressure, temperature, warming, condensed_kg, ocean, haze, albedo, ceiling_k, subject))`."""
         pressure = math.exp(ln_pressure)
-        if cycling:
+        if st['cycling']:
             ocean = True
         else:
-            ocean = (not setting.giant) and reservoir_left > 0.0 and (step == 1 and setting.ocean_cover > 0.0
+            ocean = (not setting.giant) and st['reservoir_left'] > 0.0 and (step == 1 and setting.ocean_cover > 0.0
                                                                        or liquid_ocean(setting.ocean_cover, temperature, pressure))
-            flips += ocean != last_ocean and step > 1
-            last_ocean = ocean
-            cycling = flips >= MAX_OCEAN_FLIPS
-            ocean = ocean or cycling
-        weathers = _weathers(setting, reservoir_left, temperature)
+            st['flips'] += ocean != st['last_ocean'] and step > 1
+            st['last_ocean'] = ocean
+            st['cycling'] = st['flips'] >= MAX_OCEAN_FLIPS
+            ocean = ocean or st['cycling']
+        weathers = _weathers(setting, st['reservoir_left'], temperature)
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
+        sink_record = st['sink_record']
         sink_record.pop("sink", None)        # GEN.1594: the record is the latest step's; a step that does not weather leaves none, not an earlier step's
-        shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidized_share), ocean, weathers, temperature,
+        shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, st['oxidized_share']), ocean, weathers, temperature,
                          water_world, late, sink_record)
         try:
             with _draw_stream(seed):
-                mixture = mixture_draw.draw_mixture(subject, recipe_subject=recipe_subject, supply=shares, escape=escape_bar is not None,
-                                                    escape_column_bar=escape_bar)
+                mixture = mixture_draw.draw_mixture(subject, recipe_subject=st['recipe_subject'], supply=shares, escape=st['escape_bar'] is not None,
+                                                    escape_column_bar=st['escape_bar'])
         except gas_equilibrium.EquilibriumError:
             if last is None:
                 raise
             if pressure <= VACUUM_PRESSURE_PA:
-                return _airless(setting, last[0], step, design, ocean)
+                return "air", _airless(setting, last[0], step, design, ocean)
             # The equilibrium of the gas can stall at a pressure and temperature the fixed point only passed through: step back to the
             # middle of the way to the last good air and try there, a few times, before calling it a fault.
-            stalls += 1
-            if stalls > MAX_EQUILIBRIUM_STALLS:
-                # GEN.1580: with no 2,000 K cap a runaway steam or carbon dioxide air goes on to 4,000 K and thousands of bar, where the ideal-gas equilibrium stops
-                # converging (4 of 62 census systems: 3,900 to 9,300 bar above 3,980 K). The air keeps the last one the equilibrium solved and does not settle.
-                gave_up = True
-                break
-            ln_pressure = 0.5 * (ln_pressure + math.log(last[2]))
-            temperature = 0.5 * (temperature + last[3])
-            continue
+            return "stalled", None
         if step == FREEZE_AFTER:
-            recipe_subject = subject
+            st['recipe_subject'] = subject
         family = mixture.family
         if mixture.mole_fractions:
-            oxidized_share = sulfur_balance.oxidized_share_of(mixture.mole_fractions)
+            st['oxidized_share'] = sulfur_balance.oxidized_share_of(mixture.mole_fractions)
         ices = _ices_at(ice_moles, temperature)       # GEN.1675: the surface ices solid at this temperature stand in contact with the air
         if family == "coma" or ((family == "airless" or not mixture.mole_fractions) and not ices):
-            return _airless(setting, mixture, step, design, ocean)
+            return "air", _airless(setting, mixture, step, design, ocean)
 
         condensed_kg = {}
         if family in GIANT_FAMILIES:
@@ -826,7 +871,7 @@ def solve(setting, start_temperature_k):
             reservoirs = {"H2O": (RELATIVE_HUMIDITY, water_moles)} if water_moles > 0.0 else {}
             reservoirs.update({formula: (ICE_HUMIDITY, count) for formula, count in ices.items()})
             left, condensed, remaining = freeze_out(moles, setting.gravity_m_s2, setting.area_m2, temperature, reservoirs or None)
-            reservoir_left = remaining.get("H2O", 0.0)
+            st['reservoir_left'] = remaining.get("H2O", 0.0)
             if ocean:
                 left, dissolved = _dissolve_sulfur(left, temperature, setting)
                 for formula, moles_ in dissolved.items():
@@ -846,7 +891,7 @@ def solve(setting, start_temperature_k):
         partials = {f: p for f, p in partials.items() if p >= floor and p > 0.0}
         new_pressure = math.fsum(partials.values())
         if new_pressure <= 0.0:
-            return _airless(setting, mixture, step, design, ocean)
+            return "air", _airless(setting, mixture, step, design, ocean)
 
         haze = aerosols.NO_HAZE if setting.haze_draws is None else aerosols.haze_of(partials, setting.gravity_m_s2, temperature, setting.haze_draws,
                                                                                   setting.star_temperature_k, setting.far_uv)
@@ -861,21 +906,133 @@ def solve(setting, start_temperature_k):
         new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), ceiling_of_step)
         if held_cool:
             new_temperature = min(new_temperature, MOIST_LIMIT_K)
+        return "stepped", (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze, albedo_of_step, ceiling_of_step, subject)
+
+    def seek_root(last, st_start, visited, center):
+        """
+        The temperature at which the step finds the temperature it started from, with the pressure following the temperature (GEN.1718: the step map is smooth but as steep as 400 K per K at a carbon
+        switch, and its pressure is a function of the temperature, so the damped step of two variables swings across the fixed point where one variable and a bracket find it). `brentq` on
+        `found - started` between the closest two recent starts that the step answered on opposite sides (`visited`), every candidate run from a copy of the state the steps left (`st_start`).
+
+        Returns:
+            tuple or None: `(record, ln pressure the record started from, state, jump, temperature)`; `jump` when the bracket closes with no root (the answers cross the iterate with nothing between),
+            or the root has a pressure that is not its own answer (the pressure has two branches there), and then the record and the temperature are those just above the jump, which the formation branch (cooled from the warm or steam start) approaches from. `None` when there is no bracket.
+        """
+        cache = {}
+
+        def run(temperature):
+            if temperature not in cache:
+                guess = min(visited, key=lambda point: abs(point[0] - temperature))[3]
+                first = _copy_state(st_start)
+                outcome, record = evaluate(temperature, guess, ROOT_STEP, first, last)
+                if outcome != "stepped":
+                    raise _NoRoot()
+                ln_in = math.log(record[2])
+                state = _copy_state(st_start)
+                outcome, record = evaluate(temperature, ln_in, ROOT_STEP, state, last)
+                if outcome != "stepped":
+                    raise _NoRoot()
+                cache[temperature] = (record, ln_in, state)
+            return cache[temperature][0][3] - temperature
+
+        try:
+            recent = visited[-2 * SWING_STEPS:]
+            pairs = [(abs(a[0] - b[0]), min(a[0], b[0]), max(a[0], b[0])) for a in recent for b in recent if (a[2] - a[0]) * (b[2] - b[0]) < 0.0]
+            if not pairs:
+                return None
+            _width, cold, hot = min(pairs)        # the closest two starts of the swing that were answered on opposite sides
+            if cold == hot or run(cold) * run(hot) > 0.0:
+                for half in ROOT_WIDENING_K:       # the map has moved since (the escape is in the air now): look around the last iterate
+                    cold, hot = center - half, center + half
+                    if run(cold) * run(hot) <= 0.0:
+                        break
+                else:
+                    return None
+            root = brentq(run, cold, hot, xtol=ROOT_XTOL_K, rtol=1.0e-12, maxiter=ROOT_MAX_ITER)
+            if abs(run(root)) <= ROOT_RESIDUAL_K:
+                record, ln_in, state = cache[root]
+                if abs(math.log(record[2]) - ln_in) < TOLERANCE_LN_P:
+                    return record, ln_in, state, False, root
+            above = root + 10.0 * ROOT_XTOL_K
+            run(above)
+            record, ln_in, state = cache[above]
+            return record, ln_in, state, True, above
+        except (_NoRoot, ValueError, RuntimeError):
+            return None
+
+    visited = []            # (temperature a step started from, its ln pressure, temperature it found, ln pressure it found) of the steps made under the frozen recipe, for `seek_root`
+    jump_found = None        # (record, ln pressure, state, True, temperature) of a bracket that closes with no steady state (`seek_root`), kept for an air that does not settle
+    rooted = False
+    rooted_air = False       # a root find settled the air at some step
+    root_here = False        # the root find settled the air at this step: its residual is the step's own sub-K steps (`ROOT_RESIDUAL_K`), not `TOLERANCE_K`
+    root_tries = 0
+    step, step_limit = 0, MAX_STEPS
+    while step < step_limit:
+        step += 1
+        root_here = False
+        outcome, record = evaluate(temperature, ln_pressure, step, st, last)
+        if outcome == "air":
+            return record
+        if outcome == "stalled":
+            # The equilibrium of the gas can stall at a pressure and temperature the fixed point only passed through: step back to the
+            # middle of the way to the last good air and try there, a few times, before calling it a fault.
+            stalls += 1
+            if stalls > MAX_EQUILIBRIUM_STALLS:
+                # GEN.1580: with no 2,000 K cap a runaway steam or carbon dioxide air goes on to 4,000 K and thousands of bar, where the ideal-gas equilibrium stops
+                # converging (4 of 62 census systems: 3,900 to 9,300 bar above 3,980 K). The air keeps the last one the equilibrium solved and does not settle.
+                gave_up = True
+                break
+            ln_pressure = 0.5 * (ln_pressure + math.log(last[2]))
+            temperature = 0.5 * (temperature + last[3])
+            continue
+        mixture, partials, new_pressure, new_temperature = record[:4]
+        if step >= FREEZE_AFTER:        # an earlier step was made under a recipe that has changed since
+            visited.append((temperature, ln_pressure, new_temperature, math.log(new_pressure)))
+        if (not setting.giant and not rooted and step >= ROOT_AFTER and step % ROOT_EVERY == 0 and root_tries < ROOT_TRIES
+                and _swings(history[1] + [new_temperature - temperature])):
+            root_tries += 1
+            found = seek_root(last, st, visited, temperature)
+            if found is not None and found[3]:
+                jump_found = found        # no steady state here: kept, and used only if the damped step does not settle the air by the end
+            elif found is not None:
+                record, ln_pressure, st, _jump, temperature = found
+                mixture, partials, new_pressure, new_temperature = record[:4]
+                rooted_air = True
+                rooted = True
+                root_here = True
+        family = mixture.family
+        subject = record[10]
+        ocean = record[6]
         change_p = abs(math.log(new_pressure) - ln_pressure)
         change_t = abs(new_temperature - temperature)
         window.append((temperature, new_temperature))
         del window[:-SLIDING_WINDOW]
-        last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze, albedo_of_step, ceiling_of_step)
-        if setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K):
-            if setting.giant or escape_bar is not None or family not in mixture_escape.FAMILIES:
+        last = record
+        if (change_t < TOLERANCE_K or root_here) and (setting.giant or change_p < TOLERANCE_LN_P):        # GEN.1716: a giant's pressure is the reference one, its temperature settles like a rocky body's
+            if setting.giant or st['escape_bar'] is not None or family not in mixture_escape.FAMILIES:
                 break
             # The air has settled without the escape. The loss acts on the air that stands, so it is compared to this pressure (the pressure of a step
             # that has lost its share already would lose it again at every step, and the first steps' reducing mixtures, which the settled air does not
             # keep, would take the whole air); the fixed point goes on with the loss in it.
-            escape_bar = new_pressure / 1.0e5
+            st['escape_bar'] = new_pressure / 1.0e5
             step_limit = max(step_limit, step + ESCAPE_MIN_STEPS)       # GEN.1594: an air that settles without the escape on its last allowed step still gets the pass that has it in
             ln_pressure, temperature = math.log(new_pressure), new_temperature
             damping, previous_residual, history = [DAMPING, DAMPING], (0.0, 0.0), [[], []]
+            if rooted_air:
+                # GEN.1718: the fixed point of an air the damped step swings across is unstable under that step, which would leave it at once; the air with the escape in it is found by the root find too
+                found = seek_root(last, st, visited, temperature)
+                if found is not None and found[3]:
+                    jump_found = found
+                elif found is not None:
+                    record, ln_pressure, st, _jump, temperature = found
+                    mixture, partials, new_pressure, new_temperature = record[:4]
+                    subject, ocean, last = record[10], record[6], record
+                    change_p, change_t = abs(math.log(new_pressure) - ln_pressure), abs(new_temperature - temperature)
+                    root_here = True
+                    break
+            else:
+                visited.clear()        # the escape changes the air, so what was seen of the map before it is of another map
+                rooted = False
             continue
         residual = (math.log(new_pressure) - ln_pressure, new_temperature - temperature)
         damping = [_damped(d, r, q, tolerance) for d, r, q, tolerance in zip(damping, residual, previous_residual,
@@ -890,19 +1047,26 @@ def solve(setting, start_temperature_k):
         else:
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
-    mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean, haze, albedo_of_step, ceiling_k = last
+    jumped = False
+    if jump_found is not None and not gave_up and not setting.giant and not (change_p < TOLERANCE_LN_P and (change_t < TOLERANCE_K or root_here)):
+        # GEN.1718: the air does not settle and the answers cross its iterate with no steady state between them. It is stored by a stated rule: the air just above the jump, the side the
+        # formation branch (cooled from the warm or steam start) approaches from, and `Air.jump` says so
+        last, st, jumped, jump_k = jump_found[0], jump_found[2], True, jump_found[4]
+    mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean, haze, albedo_of_step, ceiling_k, subject = last
     if not setting.giant and pressure <= VACUUM_PRESSURE_PA:
         # A settled air under the vacuum floor is an exosphere (a trace of sulfur vapor over a cold body, 1.3 mPa on a 120 K one): the
         # floor the equilibrium stall applies above applies to the air that settles too, so a body never stores an air it calls thin.
         return _airless(setting, mixture, step, design, ocean)
-    converged = not gave_up and (setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K))
+    converged = not gave_up and not jumped and (change_t < TOLERANCE_K or root_here) and (setting.giant or change_p < TOLERANCE_LN_P)
     knee = False
-    if not converged:
+    if jumped:
+        temperature_k, knee = jump_k, True
+    elif not converged:
         temperature_k, knee = sliding_temperature(window, temperature_k)
     state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     return Air(mixture=mixture, partials_pa=partials, pressure_pa=pressure, temperature_k=temperature_k, warming=warming, state=state,
                condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step,
-               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, co2_sink=sink_record.get("sink"), late=late, degassed=sink_record.get("degassed", {}), late_state=late_state, ceiling_k=ceiling_k, entry_state=entry_state)
+               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, jump=jumped, co2_sink=st['sink_record'].get("sink"), late=late, degassed=st['sink_record'].get("degassed", {}), late_state=late_state, ceiling_k=ceiling_k, entry_state=entry_state)
 
 
 def _retention_cap_pa(mixture, subject):
