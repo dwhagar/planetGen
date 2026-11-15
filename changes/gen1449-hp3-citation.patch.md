@@ -1,4 +1,4 @@
-**Headline:** The reference list now includes Borderies and Goldreich (1984), so the capture probability row of the moon resonances cites it by its reference ID.
+**Headline:** The reference list now includes the capture-probability paper [R5288], so the capture probability row of the moon resonances cites it by its reference ID.
 
 ### Changed
 
