@@ -38,7 +38,7 @@ def run(job, link):
         raise
     except Exception:  # noqa: BLE001 -- a unit's failure is the run's failure, as RQ's `on_failure` made it
         exc_type, exc_value, tb = sys.exc_info()
-        units.fail_unit(conn, run_id, stage, unit, kind, job.get("retries_left"), exc_type, exc_value, tb)
+        units.fail_unit(conn, run_id, stage, unit, kind, job.get("retries_left"), exc_type, exc_value, tb, row=job.get("row"))
         link.send({"event": "failed", "error": f"{exc_type.__name__}: {exc_value}"[:500]})
         return template.EXIT_FAILED
     if link.gone:

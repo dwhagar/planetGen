@@ -149,7 +149,7 @@ def test_a_unit_found_done_has_its_result_and_a_repeated_unit_counts_once(monkey
     assert runrecord.read_run(conn, run_id)["stages"][0]["done"] == 2
 
 
-def test_a_failing_unit_fails_the_run_and_the_starter_says_so(monkeypatch, conn):
+def test_a_failing_unit_holds_the_run_and_the_starter_says_so(monkeypatch, conn):
     def handler(args, report):
         if args["n"] == 2:
             raise ValueError("no stars here")
@@ -161,7 +161,7 @@ def test_a_failing_unit_fails_the_run_and_the_starter_says_so(monkeypatch, conn)
         wrapper.run("T", [_step(4)], lambda index, plan: None, lambda index, unit, result: stopped.append(unit))
     run_id = runrecord.recent_runs(conn)[0]
     run = runrecord.read_run(conn, run_id)
-    assert run["state"] == "failed" and "no stars here" in run["error"]
+    assert run["state"] == "held" and "no stars here" in run["error"], "OPS.221: a unit that fails for good holds the run for a person; the starter does not end it"
     assert runrecord.active_run(conn) is None
 
 
