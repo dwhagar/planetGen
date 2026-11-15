@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4191] - 2026-11-15
+
+**Headline:** The reference list no longer redirects the ids R5253 and R5254 to other papers, so citations to them point at the right sources.
+
+### Fixed
+- Two old aliases (R5253 to R5248, R5254 to R5250) were left from the days the papers shared ids; they are removed and the citation list is rebuilt, which clears the citations-links test.
+
+generation-output: unchanged
+
 ## [8.0.4190] - 2026-11-15
 
 **Headline:** the stage that stores the star scatter's limits has its memory figure like every other command.
