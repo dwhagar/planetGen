@@ -47,7 +47,7 @@ def test_the_flux_is_held_at_the_dividing_line_where_the_measured_winds_turn_wea
 
 
 def test_an_m_dwarfs_wind_is_a_measured_mass_loss_per_area_and_not_stronger_than_proxima_centauris_limit():
-    """It was 2.8 times the Sun's for an M5 dwarf; [R5296] puts Proxima Centauri (M5.5) under 0.2 of it."""
+    """It was 2.8 times the Sun's for an M5 dwarf; [R5302] puts Proxima Centauri (M5.5) under 0.2 of it."""
     loss, speed = _wind(0.15, 0.003, 0.2, "M5V", log_lx_lbol=-3.0)
     assert loss / SUN_LOSS_KG_S == pytest.approx(tuning.M_DWARF_WIND_PER_AREA_SOLAR * 0.2 ** 2, rel=0.01)
     assert loss / SUN_LOSS_KG_S < 0.2

@@ -59605,7 +59605,7 @@
             ],
             [
               "The range it moves in",
-              "1.29 +- 0.16 [R5297]; 1.34 +- 0.18 [R5298]"
+              "1.29 +- 0.16 [R5303]; 1.34 +- 0.18 [R5304]"
             ],
             [
               "Where it holds",
@@ -59613,7 +59613,7 @@
             ],
             [
               "What would show it wrong",
-              "a measured wind of an A to K dwarf (Lyman-alpha astrosphere, [R5297]) off the law by over an order of magnitude at a flux below the dividing line"
+              "a measured wind of an A to K dwarf (Lyman-alpha astrosphere, [R5303]) off the law by over an order of magnitude at a flux below the dividing line"
             ],
             [
               "What replaces it",
@@ -59621,7 +59621,7 @@
             ],
             [
               "Evidence",
-              "the fit of [R5297] to the measured GK dwarfs; the Sun's mass loss 2e-14 solar masses a year, its X-ray luminosity 1.4e27 erg/s today (constants.SOLAR_X_RAY_LUMINOSITY_W)"
+              "the fit of [R5303] to the measured GK dwarfs; the Sun's mass loss 2e-14 solar masses a year, its X-ray luminosity 1.4e27 erg/s today (constants.SOLAR_X_RAY_LUMINOSITY_W)"
             ]
           ],
           "id": "WN5",
@@ -59643,7 +59643,7 @@
             ],
             [
               "The range it moves in",
-              "log flux 6.0 [R5297]"
+              "log flux 6.0 [R5303]"
             ],
             [
               "Where it holds",
@@ -59655,11 +59655,11 @@
             ],
             [
               "What replaces it",
-              "no cap, the law of WN5 running over the whole range; or [R5296]'s weaker line (it says the dividing line is weakened by the M dwarfs)"
+              "no cap, the law of WN5 running over the whole range; or [R5302]'s weaker line (it says the dividing line is weakened by the M dwarfs)"
             ],
             [
               "Evidence",
-              "the dividing line of [R5297], which the new M dwarf measurements weaken [R5296]"
+              "the dividing line of [R5303], which the new M dwarf measurements weaken [R5302]"
             ]
           ],
           "id": "WN6",
@@ -59677,7 +59677,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.M_DWARF_WIND_PER_AREA_SOLAR 3.3: an M dwarf's mass loss is 3.3 times the Sun's per unit surface area, whatever its X-ray flux, so an M5 dwarf (0.2 solar radii) has 0.13 of the Sun's wind (Proxima Centauri's limit is 0.2); the speed is the Sun's 400 km/s scaled by the escape speed [R5296]"
+              "tuning.M_DWARF_WIND_PER_AREA_SOLAR 3.3: an M dwarf's mass loss is 3.3 times the Sun's per unit surface area, whatever its X-ray flux, so an M5 dwarf (0.2 solar radii) has 0.13 of the Sun's wind (Proxima Centauri's limit is 0.2); the speed is the Sun's 400 km/s scaled by the escape speed [R5302]"
             ],
             [
               "The range it moves in",
@@ -59689,15 +59689,15 @@
             ],
             [
               "What would show it wrong",
-              "a measured M dwarf wind per area that the generated dwarfs miss by over a factor of 30 (the scatter at one flux is two orders of magnitude, [R5296])"
+              "a measured M dwarf wind per area that the generated dwarfs miss by over a factor of 30 (the scatter at one flux is two orders of magnitude, [R5302])"
             ],
             [
               "What replaces it",
-              "a draw of the scatter on a stream of the star; or [R5296]'s M-dwarf slope 0.77 with a fitted normalisation"
+              "a draw of the scatter on a stream of the star; or [R5302]'s M-dwarf slope 0.77 with a fitted normalisation"
             ],
             [
               "Evidence",
-              "the median of the six single M dwarfs of [R5296: Table 3] that have a value (GJ 436 0.37, GJ 205 0.86, GJ 887 2.3, GJ 173 4.3, EV Lac 9.8, YZ CMi 275: mass loss over the squared radius, solar units), read in the report of a reader of the paper"
+              "the median of the six single M dwarfs of [R5302: Table 3] that have a value (GJ 436 0.37, GJ 205 0.86, GJ 887 2.3, GJ 173 4.3, EV Lac 9.8, YZ CMi 275: mass loss over the squared radius, solar units), read in the report of a reader of the paper"
             ]
           ],
           "id": "WN7",
@@ -59708,7 +59708,7 @@
           "tier_code": "T2",
           "tweak": "L2",
           "unread": null,
-          "what": "tuning.M_DWARF_WIND_PER_AREA_SOLAR 3.3: an M dwarf's mass loss is 3.3 times the Sun's per unit surface area, whatever its X-ray flux, so an M5 dwarf (0.2 solar radii) has 0.13 of the Sun's wind (Proxima Centauri's limit is 0.2); the speed is the Sun's 400 km/s scaled by the escape speed [R5296]"
+          "what": "tuning.M_DWARF_WIND_PER_AREA_SOLAR 3.3: an M dwarf's mass loss is 3.3 times the Sun's per unit surface area, whatever its X-ray flux, so an M5 dwarf (0.2 solar radii) has 0.13 of the Sun's wind (Proxima Centauri's limit is 0.2); the speed is the Sun's 400 km/s scaled by the escape speed [R5302]"
         },
         {
           "burn_down": null,

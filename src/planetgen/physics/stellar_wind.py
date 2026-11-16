@@ -22,9 +22,9 @@ _msun_to_kg = units.converter("Msun", "kg")
 def coronal_mass_loss_solar(radius_sol, lum_sol, log_lx_lbol, spectral_class):
     """
     The mass loss, in the Sun's, of a cool dwarf's coronal wind (GEN.1625). An A to K star's is its surface area times its X-ray flux over the Sun's to
-    `tuning.CORONAL_WIND_X_RAY_EXPONENT` (1.29 [R5297], 1.34 [R5298]), the flux no more than `tuning.CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S` (the dividing line at
-    which the winds of more active stars turn weak [R5297]). An M dwarf's is `tuning.M_DWARF_WIND_PER_AREA_SOLAR` times its surface area: the measured winds
-    of M dwarfs do not follow their X-ray flux (two orders of magnitude of scatter at a flux, [R5296]).
+    `tuning.CORONAL_WIND_X_RAY_EXPONENT` (1.29 [R5303], 1.34 [R5304]), the flux no more than `tuning.CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S` (the dividing line at
+    which the winds of more active stars turn weak [R5303]). An M dwarf's is `tuning.M_DWARF_WIND_PER_AREA_SOLAR` times its surface area: the measured winds
+    of M dwarfs do not follow their X-ray flux (two orders of magnitude of scatter at a flux, [R5302]).
 
     Raises:
         ValueError: An A to K star without `log_lx_lbol`.
@@ -105,7 +105,7 @@ def wind(mass, luminosity, radius_km, star_type, yerkes_class, log_lx_lbol=None)
     else:
         mass_loss_rate_smyr = constants.SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR * coronal_mass_loss_solar(
             radius_sol, lum_sol, log_lx_lbol, spectral_class)
-        # The wind speed of the lower main sequence is near the surface escape speed [R5296], here the Sun's 400 km/s scaled by the escape speed.
+        # The wind speed of the lower main sequence is near the surface escape speed [R5302], here the Sun's 400 km/s scaled by the escape speed.
         wind_velocity = constants.SOLAR_WIND_VELOCITY * (escape_velocity / constants.SOLAR_ESCAPE_VELOCITY)
 
     # --- 3. Convert and Calculate Final Radius ---

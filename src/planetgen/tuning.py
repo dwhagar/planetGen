@@ -725,9 +725,9 @@ HOT_O_SUBCLASS_TEMPERATURES_K = {0: 60000.0, 1: 55000.0, 2: 50000.0}
 # sequence (95 percent within 0.23), so 0.3 labels the first and not the second.
 SUBDWARF_LUMINOSITY_DEFICIT_DEX = 0.3
 # The coronal wind of a cool dwarf (GEN.1625, `physics.stellar_wind.coronal_mass_loss_solar`). The mass loss of an A to K dwarf per unit surface area rises with its
-# X-ray surface flux to the 1.29 power [R5297] (1.34 +- 0.18 in [R5298]; the fit holds below an X-ray flux of 1e6 erg/cm^2/s, the "dividing line"
-# above which the winds measured are weak [R5297]), so the flux is held at the line. The measured winds of M dwarfs do not follow their flux (two orders of
-# magnitude of scatter at one flux, [R5296]); their mass loss per unit area, in the Sun's, is the median of the six single M dwarfs of its Table 3 that have
+# X-ray surface flux to the 1.29 power [R5303] (1.34 +- 0.18 in [R5304]; the fit holds below an X-ray flux of 1e6 erg/cm^2/s, the "dividing line"
+# above which the winds measured are weak [R5303]), so the flux is held at the line. The measured winds of M dwarfs do not follow their flux (two orders of
+# magnitude of scatter at one flux, [R5302]); their mass loss per unit area, in the Sun's, is the median of the six single M dwarfs of its Table 3 that have
 # a value (0.37, 0.86, 2.3, 4.3, 9.8 and 275 from GJ 436, GJ 205, GJ 887, GJ 173, EV Lac and YZ CMi: mass loss over the squared radius).
 CORONAL_WIND_X_RAY_EXPONENT = 1.29
 CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S = 1.0e6
