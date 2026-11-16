@@ -605,6 +605,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.300", "6.300 Stand-ins of the planet's Hill sphere against the bodies besides its host and of the moons' resonances (GEN.1449)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.303", "6.303 Stand-ins of the shape of a star's own comets (GEN.595)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
 

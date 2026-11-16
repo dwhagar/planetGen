@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1865 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1873 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1838 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1846 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 215 | 22 | 12 | 1 | 0 | 250 |
-| T2 | 170 | 71 | 3 | 1 | 0 | 245 |
+| T2 | 171 | 72 | 3 | 1 | 0 | 247 |
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
-| T4 | 90 | 16 | 8 | 22 | 13 | 149 |
+| T4 | 90 | 16 | 8 | 24 | 13 | 151 |
 | T5 | 108 | 29 | 8 | 2 | 1 | 148 |
-| T6 | 238 | 127 | 34 | 79 | 4 | 482 |
+| T6 | 238 | 127 | 34 | 81 | 4 | 484 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 52 | 20 | 6 | 106 | 41 | 225 |
-| All | 1069 | 383 | 94 | 259 | 60 | 1865 |
+| T9 | 52 | 20 | 6 | 108 | 41 | 227 |
+| All | 1070 | 384 | 94 | 265 | 60 | 1873 |
 
 ## How the labels were given
 
@@ -3308,3 +3308,16 @@ The tier says how good the source of a number is; the **evidence status** says w
 | HP3 | P | T7 | L1 | `moon_resonances.CAPTURE_OFFSET` 0.002 and capture with certainty: a pair of moons whose period ratio fell through 2:1, 3:2 or 4:3 on the way out (born above it, ended below it) is held at `p/q (1 + 0.002)`; no escape by eccentricity or inclination, no second-order resonance | 0.001 to 0.02 | the regular moons of a planet whose tide drives them out | a measured moon pair that converged through a first-order resonance and passed it (Uranus' Miranda and the inclination escape; the Mimas and Tethys 4:2 is second order) | the capture probability of the adiabatic theory against the migration rate and the eccentricity [R5288] | derived: the Galilean pairs sit within 0.001 of 2:1, Enceladus and Dione within 0.003; the census of 314 moon pairs gave 9 percent that swept a resonance | predicted only | - | - |
 | HP4 | P | T6 | L1 | `moon_resonances.capture` shares the pair's orbital angular momentum `sum m sqrt(a)` (the integrator's finals) by the resonance condition `sqrt(a_k) = K_k sqrt(a_0)`; a pair that would hold the inner moon inside its birth orbit is not captured | none | pairs whose outer moon is lighter than the inner one by a factor of 10 or more | an integration of the pair's migration (`moon_orbits` with the pull of the moons) that ends at a different place | the migration of a captured pair integrated with the planet's tide, the planet's spin following | derived: the planet's spin keeps the torque the integrator gave it because the moons' total angular momentum is kept | predicted only | - | - |
 | HP5 | P | T7 | L0 | `resonant_chains.pair_forced_eccentricities`: every moon pair within 5 percent of a first-order ratio is forced to the Lithwick, Xie and Wu eccentricity, two bodies being enough, and a moon keeps the larger of its own and the forced one (the resonance renews it against the tide: `settle_orbit` keeps it) | none | first-order pairs outside the resonance's width | a near-resonant moon pair whose measured forced eccentricity differs by more than a factor of 3 (Io 0.0041, Europa 0.0094) | the libration amplitude inside the resonance's width and the planet's flattening in the detuning | derived: Io 0.0051, Europa 0.0082, Ganymede 0.0007 from the Galilean masses and periods; the 33 percent of the census pairs that sit near a ratio mostly get under 0.003 | predicted only | - | - |
+
+## 6.303 Stand-ins of the shape of a star's own comets (GEN.595)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CMT1 | P | T2 | L0 | `tuning.COMET_PERIOD_CLASSES` period cuts 20 and 200 years between the Jupiter family, Halley-type and long-period comets (the dynamical classes of Levison 1996, recalled, not opened) | none: class definitions | star-bound comets of a one solar mass star (GEN.1612 scales the window with the star's mass) | a comet classification that cuts the families at other periods | the Tisserand parameter of the star's own giants, which already decides the Jupiter family where a giant exists (CT1 to CT4) | `test_comet_period_class` holds the draw inside each family's window | predicted only | - | - |
+| CMT2 | P | T4 | L3 | `tuning.COMET_PERIOD_CLASSES` outer ends: the Jupiter family's shortest period 3.3 years and the long-period comets' longest 4,000,000 years (aphelion about 5e4 AU for a solar mass star) | short end 2 to 5 years; long end 2e6 to 1.1e7 years (the tidal edge of a cloud, about 1e5 AU) | star-bound comets | a census of a system's comets with periods outside the window in numbers | the cloud's own outer edge from the star's mass and the galactic tide (GEN.1466) | design: the short end is the shortest period the Solar System shows, a Solar System number kept only because nothing derived replaces it; the long end is a round number inside the tidal edge | predicted only | - | - |
+| CMT3 | P | T4 | L3 | `tuning.COMET_PERIOD_CLASSES` eccentricity ranges 0.2 to 0.75 (Jupiter family), 0.5 to 0.97 (Halley-type) and 0.9 to 0.999 (long-period) | each end within 0.1 (the long-period top within 0.001 of 1) | star-bound comets | an orbit catalogue whose family eccentricities lie outside the ranges | the eccentricity a giant's scattering gives (the Tisserand redraw) | design: the ends keep each family inside its period window for the perihelion range of CMT6; no source read | predicted only | - | - |
+| CMT4 | P | T2 | L1 | `tuning.COMET_PERIOD_CLASSES` inclination caps 30 degrees (Jupiter family), 180 (Halley-type) and 180 (long-period) | Jupiter family 20 to 40 degrees | star-bound comets | a Jupiter family whose inclinations are not mostly under 30 degrees, or a long-period family that is not isotropic | the inclination a giant's scattering and the outer disk's plane give | Oort 1950 (an isotropic cloud) and Levison and Duncan 1997 (low inclination of the Jupiter family), both recalled, not opened | predicted only | - | - |
+| CMT5 | P | T9 | L3 | `tuning.COMET_PERIOD_CLASSES` weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family | each 0.1 to 0.6 | stars that hold comets | a comet census of a system with the shares of its outer belt, giants and cloud | a supply from the reservoirs: the outer belt's mass for the Jupiter family, the cloud for the other two, through the giants' scattering | the code's own comment says it is not a population estimate; chosen so the three families are all common | predicted only | - | - |
+| CMT6 | P | T6 | L3 | `tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM` (0.5, 20) drawn uniform in diameter | lower end 0.2 to 1 km; upper end 15 to 60 km | star-bound comet nuclei | a measured nucleus size distribution of a star's comets (the cumulative number of nuclei falls steeply with diameter, with an index of about 1.9 for the Jupiter family, recalled, not opened; a uniform draw has index 0) | a truncated power law in diameter with the published cumulative index, its upper end from the belt's largest body | Lamy et al. 2004 (nuclei of 1 to 10 km typical, as the comment in `tuning.py` quotes it), second-hand; the draw's shape is a stand-in | predicted only | - | - |
+| CMT7 | P | T6 | L3 | `tuning.COMET_PERIHELION_DISTANCE_RANGE_AU` (0.05, 5.0) drawn uniform in perihelion | lower end 0.01 to 0.1 AU; upper end 3 to 10 AU | star-bound comets | a comet catalogue whose perihelia are not flat in distance inside the range after the survey bias is removed | the star's radius and tidal limit for the lower end and the activity threshold (CA1) for the upper | physics: for a near-parabolic orbit q = L^2 / (2 G M), and an isotropic cloud that fills its loss cone is flat in L^2, so flat in q; the two ends are hand set | predicted only | - | - |
+| CMT8 | P | T9 | L3 | `tuning.SYSTEM_COMET_CHANCE` 0.3 and `SYSTEM_COMET_COUNT_RANGE` (1, 3): the share of stars that hold comets and how many of the few the generator models each holds | chance 0.1 to 1; count 1 to 5 | every star's own comets | a star with an outer belt or a cloud that shows no comets, or a comet census per star that is far from this rate | comets present wherever the system has an outer belt, a cloud or a giant, from the supply of CMT5's replacement | design: the code's comment ("most real stars aren't known to host an observed comet population") is an observation limit, not a rate | predicted only | - | - |
