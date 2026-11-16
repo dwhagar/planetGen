@@ -169,8 +169,8 @@ def made_artifacts(control, galaxy, run=None):
 
 def record_plan(conn, run_id, steps):
     """
-    Writes the whole run as rows when it starts (OPS.238, the stored plan): one `open` row for each step, waiting, which `needs` the stages it comes after (`after:<stage key>`: the step before it, and
-    the earlier steps that make what it needs, `needs.required_stage_keys`) and `makes` the artifacts its command makes (`needs.makes_of`). The cut of a stage (`record_cut`) later fills the
+    Writes the whole run as rows when it starts (OPS.238, the stored plan): one `open` row for each step, waiting, which `needs` the stages it comes after (`after:<stage key>`: the earlier steps it may not overlap with, `touches.plan_edges` (the step before it, until `independence.json`
+    lists a pair), and the earlier steps that make what it needs, `needs.required_stage_keys`) and `makes` the artifacts its command makes (`needs.makes_of`). The cut of a stage (`record_cut`) later fills the
     row in and marks it done, so a run's order can be read from the rows before its first stage opens. A plan that was written already is left as it is.
 
     Args:
@@ -179,7 +179,7 @@ def record_plan(conn, run_id, steps):
     Returns:
         dict: `{step key: [artifacts]}` for the steps that need what no earlier step makes and the galaxy's rows do not say exists (`needs.unmet` against `made_artifacts`); each such row also says so in its `unmet`.
     """
-    from planetgen.queue import needs
+    from planetgen.queue import needs, touches
     if not ledgered(conn, run_id):
         return {}       # a run with no ledger keeps no rows (and so no unmet needs to say); its plan is read from its steps
     control = control_connection(conn, run_id)
@@ -189,8 +189,9 @@ def record_plan(conn, run_id, steps):
         for step, artifact in needs.unmet(steps, made_artifacts(control, _galaxy_name(conn, run_id), run)):
             lacking.setdefault(step.key, []).append(artifact)
         jobs = []
+        waits = touches.plan_edges([step.kind for step in steps])
         for index, step in enumerate(steps):
-            earlier = ([steps[index - 1].key] if index else []) + needs.required_stage_keys(steps, index)
+            earlier = [steps[place].key for place in waits[index]] + needs.required_stage_keys(steps, index)
             extra = {"unmet": lacking[step.key]} if step.key in lacking else {}
             jobs.append({"stage": step.key, "command": OPEN, "arguments": {"index": index, "kind": step.kind, "label": step.label, "planned": True, **extra},
                          "needs": [AFTER + key for key in dict.fromkeys(earlier)], "makes": list(needs.makes_of(step.kind))})

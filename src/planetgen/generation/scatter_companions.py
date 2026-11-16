@@ -293,6 +293,43 @@ def write_committed(conn, write, rows, epoch_unix, label="Scatter write"):
     return contention.run_with_retries(conn, attempt, gate="scatter-ids", label=label)
 
 
+_ONCE = {"insert_bright_stars": ("bright_stars", star_trees, _STAR_COLUMN["seed"]),
+         "insert_phenomenon_scatter": ("phenomenon_scatter", phenomenon_trees, _PHENOMENON_COLUMN["seed"])}
+"""dict: What `write_once` needs of each writer, by its function name: the table, the rows' member trees and the seed's place in a row."""
+
+
+def _landed(conn, table, row, seed_index):
+    """Whether a row of `table` at the row's cell holds the row's seed (the seed is a draw of 63 bits, the cell is the table's address index)."""
+    return conn.execute(f"SELECT 1 AS found FROM {table} WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND seed = ? LIMIT 1",
+                        (*row[:3], row[seed_index])).fetchone() is not None
+
+
+def write_once(conn, write, rows, epoch_unix, label="Scatter write"):
+    """
+    `write_committed` for a piece that may run again (OPS.264): a batch that an earlier try of the piece already wrote is not written a second time. A piece commits its batches one by one and the
+    engine marks the piece done after the last, so a unit run again after a stop or a lost connection draws the same rows (each piece has its own random stream) and would write every batch it
+    reached again, under new Object IDs, with nothing to refuse them. A batch is one transaction, so its first row and its last are both in the table or neither is; the check is two reads
+    by the cell's index.
+
+    Returns:
+        Written: What the batch wrote; for a batch found written, its rows and the systems among them (`star_trees` or `phenomenon_trees`, drawn from the seeds as the write drew them).
+
+    Raises:
+        RuntimeError: One of the two rows is in the table and the other is not (the batch was not written whole, or the seed repeats).
+    """
+    once = _ONCE.get(getattr(write, "__name__", ""))
+    if once is None or not rows:
+        return write_committed(conn, write, rows, epoch_unix, label)
+    table, trees_of, seed_index = once
+    conn.commit()           # a connection that just read has a transaction open: the check must see what the earlier try committed
+    found = [_landed(conn, table, row, seed_index) for row in (rows[0], rows[-1])]
+    if all(found):
+        return Written(len(rows), len(trees_of(rows)))
+    if any(found):
+        raise RuntimeError(f"{label}: a batch of {len(rows):,} rows is in {table} in part (its first row is {'there' if found[0] else 'not there'} and its last {'there' if found[1] else 'not there'})")
+    return write_committed(conn, write, rows, epoch_unix, label)
+
+
 def insert_phenomenon_scatter(conn, rows, epoch_unix=None, batch_size=5000):
     """
     `store.insert_phenomenon_scatter` that also draws and stores the members of the rows that have them

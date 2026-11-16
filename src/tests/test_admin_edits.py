@@ -240,7 +240,7 @@ def test_delete_phenomenon(admin, mysql_config):
     printed = pid("nebula", nebula_id, mysql_config)
     assert admin.delete(f"/api/phenomena/nebula/{printed}").status_code == 200
     assert _rows(mysql_config, "SELECT id FROM nebulae") == []
-    assert admin.delete(f"/api/phenomena/nebula/{printed}").status_code == 404
+    assert admin.delete(f"/api/phenomena/nebula/{printed}").status_code == 410, "a deleted object's ID is kept (GEN.1141): it answers Gone, not Not Found"
     assert admin.delete("/api/phenomena/teapot/1").status_code == 404
 
 

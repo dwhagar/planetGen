@@ -9890,7 +9890,7 @@ def _assign_system_uids(conn, system_ids):
                            for n, row in enumerate(rows)], touch=True)  # these tables have no `modified_at`
 
 
-def save_system(star_system: StarSystem, system_config: SystemConfig, config=None) -> int:
+def save_system(star_system: StarSystem, system_config: SystemConfig, config=None, also=None) -> int:
     """
     Opens the database and persists a single, standalone `StarSystem` (no
     sector -- `sector_id`/`position` are left `None`) in one transaction.
@@ -9904,6 +9904,8 @@ def save_system(star_system: StarSystem, system_config: SystemConfig, config=Non
         system_config (SystemConfig): The config it was generated from.
         config (MySQLConfig, optional): Connection parameters. Defaults
                                         to `DEFAULT_MYSQL_CONFIG`.
+        also (callable, optional): `also(conn, system_id)`, run in the save's transaction once the rows are written, so what it writes commits with them or not at all
+            (OPS.264: a piece's cursor, `engine.Context.commit_piece_in`). It runs again when the save is retried.
 
     Returns:
         int: The new `star_systems.id`.
@@ -9912,6 +9914,8 @@ def save_system(star_system: StarSystem, system_config: SystemConfig, config=Non
     def insert(conn):
         system_id = insert_star_system(conn, star_system, system_config)
         assign_uids(conn, system_ids=[system_id])
+        if also is not None:
+            also(conn, system_id)
         return system_id
 
     return _save_with_retries(config, names, insert)
@@ -9945,7 +9949,7 @@ def _neighbor_lock_name(conn):
 
 
 def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_neighbors=True, progress=None,
-                run_id=None) -> int:
+                run_id=None, also=None) -> int:
     """
     Opens the database and persists a full `SpaceSector` to it in one
     transaction.
@@ -9971,6 +9975,8 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_nei
             each system and phenomenon is inserted, how far the save has
             got (PERF.50); it restarts at 0 when a save is retried.
         run_id (int, optional): The `generation_runs.id` of the run saving the sector (see `insert_sector`).
+        also (callable, optional): `also(conn, sector_id)`, run in the save's transaction once the sector is written, so what it writes commits with it or not at all
+            (OPS.264: a piece's cursor, `engine.Context.commit_piece_in`). It runs again when the save is retried.
 
     Returns:
         int: The new `sectors.id`.
@@ -9979,8 +9985,11 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_nei
         conn.save_progress = progress
         if progress is not None:
             progress.update(completed=0)
-        return insert_sector(conn, sector, galaxy_position=galaxy_position, link_neighbors=link_neighbors,
-                             run_id=run_id)
+        sector_id = insert_sector(conn, sector, galaxy_position=galaxy_position, link_neighbors=link_neighbors,
+                                  run_id=run_id)
+        if also is not None:
+            also(conn, sector_id)
+        return sector_id
 
     return _save_with_retries(config, _sector_names(sector), insert)
 

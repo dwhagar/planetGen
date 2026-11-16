@@ -1244,7 +1244,7 @@ def test_nav_route_shows_hop_and_total_times_and_takes_a_stay(client, fake):
     html = client.get("/nav?from=system:1001&to=system:1002&stay=30").get_data(as_text=True)
     assert ("get_nav", "test_db", "system:1001", "system:1002", 30.0) in fake.calls or \
         any(call[0] == "get_nav" and call[-1] == 30.0 for call in fake.calls)
-    assert 'value="30"' in html and "30 minutes" in html
+    assert 'value="30"' in html and "30m at each of the" in html
     html = client.get("/nav?from=system:1001&to=system:1002&stay=-5").get_data(as_text=True)
     assert "must be a number of minutes" in html
 
