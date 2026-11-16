@@ -11975,6 +11975,21 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Lock-free. Prerequisites: none. Related: TEST.417, PERF.274.
   Filed by the TODO thread.
 
+- [ ] **GEN.1770 (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red)**
+  Lane 07, 1:35 PM EST 2026-11-16 (PR 6903): seed 0 has a 0.0031 Earth-mass body with Urey 1,798; 71 of 167 such bodies over 12 seeds had Urey over 1.5. Under the critical Rayleigh number the boundary layer grew past the mantle and the flux fell to 0. Do: the flux is never under conduction through the sphere, 5 k (Tm - Ts) / R. No body over 0.005 Earth masses changes; Urey over 1.5 goes from 71 to 0. Changes output for bodies under 0.005 Earth masses: lock item.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: none. Related: GEN.1510, GEN.1760.
+  Filed by the TODO thread.
+
+- [ ] **TEST.784 (bug) test_earth_analog::test_the_stored_baseline_is_well_formed_and_its_first_trials_redraw_the_same is red on main: a stored trial redraws hydrology 'brine seep' where the baseline says 'surface ocean'**
+  Lane 07, 1:35 PM EST 2026-11-16: red on main, not from PR 6903. Do: find which merge moved the draw (a generation change the baseline was not refreshed for, or a real regression in hydrology), and either refresh the baseline with the reason in the PR or fix the regression.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Lock-free unless the cause is in generation. Prerequisites: none. Related: GEN.1579, GEN.1754.
+  Filed by the TODO thread.
+
+- [ ] **TEST.785 (bug) test_envelope_dial::test_at_share_one_no_candidate_keeps_an_envelope_and_the_others_are_not_made_late_cores is red on main: a candidate planet that moved into the ecosphere after the late-core draw keeps its envelope**
+  Lane 04, 1:36 PM EST 2026-11-16 (red on main 87eaa93d2d): the dial reaches candidates only at the late-core draw, so a planet moved into the ecosphere afterwards is not reached (the same gap the GEN.1706 calibration note names). Do: decide whether the dial acts on moved planets (fix generation: lock) or the test should count only planets in the zone at the draw (fix the test), and fix the wrong side.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: none. Related: GEN.1706, GEN.1710, GEN.1711.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
   Boss, 11:17 to 11:19 PM EST on 2026-11-13 (the Class M tier card, "Build now, calibrate after fixes"). Do: after GEN.1694 to GEN.1698 merge, set each tier's dial values from the GEN.1705 meter; first-pass values are registered as stand-ins in GEN.725 with tier and tweak level. Measured by the Class M thread on PR 6469 (2026-11-14): first-pass tier rates per 1,000 Sun-like systems are 0, 0, 2.5, 5.0 and 12.5 against targets none, 1, 10, 33 and 100; the water dial at share 1 reaches about 46 percent of final-zone candidates (icy-origin ones and planets moved into the ecosphere after their body is drawn are not reached), so calibration must decide whether the dials also act on moved planets.
   Boss, 9:28 PM EST on 2026-11-14: "increase sparse to be 1 in 500, and crawl up from there"; 9:30 PM EST: "So let's say 1 in 10 for top end, split the rest logarithmically from Sparse to Abundrant". New tier targets (in PR 6575, GEN.1721 slice 1): Sparse 1 in 500, Scattered 1 in 135, Plentiful 1 in 37, Abundant 1 in 10 Sun-like systems (were 1,000, 100, 30, 10). Calibrate to these against the Science baseline of 1 in 2,800 (95 percent 0.1 to 2.0 per 1,000; census /mnt/project-files/reports/train28-census-2026-11-14/five-classes-2800.md). Blocked in practice by GEN.1720.
