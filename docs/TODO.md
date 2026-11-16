@@ -11701,14 +11701,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 16. Prerequisites: OPS.169. Related: OPS.169.
   Filed by the TODO thread.
 
-- [ ] **TEST.730 Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s)**
-  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A2). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
-  Filed by the TODO thread.
-
 - [ ] **TEST.737 Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row D). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 15 (moved from the old Lane 03, now Gate, which had not started it). Prerequisites: none. Related: TEST.261.
   Filed by the TODO thread.
 
 - [ ] **OPS.177 A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else**
