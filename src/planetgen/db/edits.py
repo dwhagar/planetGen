@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import fingerprint, fingerprint_tree, kind_tables, object_rows, storage_checksum, store, system_summary
+from planetgen.db import designation_rows, fingerprint, fingerprint_tree, kind_tables, object_rows, storage_checksum, store, system_summary
 from planetgen.galaxy import object_uid as objectUid
 from planetgen.physics import effect_ledger, insolation, unit_registry as units
 
@@ -103,7 +103,13 @@ def _save_moons(conn, system_id, star_id, planet):
 
 
 def _delete_missing(conn, table, column, owner_id, kept_ids):
-    """Deletes `table`'s rows under `owner_id` whose ids aren't kept."""
+    """Deletes `table`'s rows under `owner_id` whose ids aren't kept. Each keeps its ID and is answered as deleted afterwards (`designation_rows.tombstone_tree`, GEN.1141)."""
+    if kept_ids:
+        gone = conn.execute(f"SELECT id FROM {table} WHERE {column} = ? AND id NOT IN ({', '.join('?' * len(kept_ids))})", (owner_id, *kept_ids)).fetchall()
+    else:
+        gone = conn.execute(f"SELECT id FROM {table} WHERE {column} = ?", (owner_id,)).fetchall()
+    for row in gone:
+        designation_rows.tombstone_tree(conn, table, row["id"])
     if kept_ids:
         marks = ", ".join("?" * len(kept_ids))
         conn.execute(f"DELETE FROM {table} WHERE {column} = ? AND id NOT IN ({marks})", (owner_id, *kept_ids))
@@ -335,6 +341,7 @@ def delete_phenomenon(conn, phenomenon_type, phenomenon_id):
     if row.get("star_id") is not None:
         raise EditError("this is the star of a star system; delete the system instead")
     table = PHENOMENON_TABLES[phenomenon_type]
+    designation_rows.tombstone(conn, table, phenomenon_id)      # GEN.1141: its ID stays reserved and a link to it answers 410
     conn.execute("DELETE FROM nearest_systems WHERE object_table = ? AND object_id = ?", (table, phenomenon_id))
     forget_ledger_rows(conn, table, "id = ?", (phenomenon_id,))
     conn.execute(f"DELETE FROM {table} WHERE id = ?", (phenomenon_id,))

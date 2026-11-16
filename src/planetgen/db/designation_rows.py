@@ -225,6 +225,63 @@ def member_now(conn, text):
     return designations.resolve_member(text, parent, current_uid)
 
 
+_DELETED_WITH = {"planets": ("moons", "planet_id")}
+"""dict: A table whose rows take other rows with them when deleted and that `tombstone_tree` follows: the moons of a planet."""
+
+
+def tombstone(conn, table, row_id):
+    """
+    Records that one object is being deleted (GEN.1141, invariant 7 of the design): its current ID is written as a retired one with the reason `deleted`, which reserves it for
+    ever so it is never issued again, its current name is kept the same way, and every row of `designations` that names the object is stamped with `gone_epoch`, so a link
+    to it answers 410 with its history and not 404. Called in the deleter's transaction before the row goes; an object with no ID yet (one made by an edit and not numbered)
+    has no ID to keep, and one already tombstoned is left as it is.
+
+    Args:
+        conn (Connection): Open; one transaction of the caller's.
+        table (str): One of `UID_TABLES`.
+        row_id (int): The object's `id`.
+
+    Returns:
+        bool: Whether the object existed and was recorded.
+    """
+    _check_table(table, UID_TABLES, "an ID")
+    columns = "uid, name" if table in NAMED_TABLES else "uid"
+    row = conn.execute(f"SELECT {columns} FROM {table} WHERE id = ?", (row_id,)).fetchone()
+    if row is None:
+        return False
+    epoch = generator_epoch.generator_epoch()
+    if conn.execute("SELECT 1 FROM designations WHERE object_kind = ? AND object_row_id = ? AND gone_epoch IS NOT NULL LIMIT 1", (table, row_id)).fetchone() is not None:
+        return False
+    if row["uid"] is not None:
+        conn.execute(
+            "INSERT INTO designations (designation_kind, designation_uid, object_kind, object_row_id, valid_from_epoch, retired_epoch, reason)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (designations.KIND_UID, bytes(row["uid"]), table, row_id, _valid_from(conn, designations.KIND_UID, table, row_id), epoch, "deleted"))
+    if table in NAMED_TABLES and row["name"]:
+        retire_name(conn, table, row_id, row["name"], "deleted")
+    conn.execute("UPDATE designations SET gone_epoch = ? WHERE object_kind = ? AND object_row_id = ?", (epoch, table, row_id))
+    return True
+
+
+def tombstone_tree(conn, table, row_id):
+    """
+    `tombstone` for an object and everything its deletion takes with it: the stored bodies that hold an ID under a system's or a free planet's (`body_rows`), and the moons of a planet.
+    The bodies are recorded first.
+
+    Returns:
+        int: The objects recorded.
+    """
+    count = 0
+    if table in _SYSTEM_PARENTS:
+        for body_table, body_id, _uid in body_rows(conn, table, row_id):
+            count += tombstone(conn, body_table, body_id)
+    elif table in _DELETED_WITH:
+        child_table, column = _DELETED_WITH[table]
+        for child in conn.execute(f"SELECT id FROM {child_table} WHERE {column} = ? ORDER BY id", (row_id,)).fetchall():
+            count += tombstone(conn, child_table, child["id"])
+    return count + tombstone(conn, table, row_id)
+
+
 def renumber(conn, table, row_id, new_uid, reason):
     """
     Gives one object a new ID. The old ID is kept and reserved for ever; the object's row and its `object_index` row take the new one, and so do
