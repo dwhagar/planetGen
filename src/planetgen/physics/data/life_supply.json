@@ -3,12 +3,6 @@
  "title": "The life supply rules",
  "description": "How much of the fuel and the oxidant a chemical life class eats a world supplies (GEN.887, docs/design/habitability/life-classes.md 8.3). Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it. A supply is a share of what Earth gives (1 is Earth's), worked out from the columns a body stores, so it is never stored itself and an edit of the body moves it with the rest.",
  "numbers": {
-  "earth_heat_flux_w_m2": {
-   "value": 0.087,
-   "tier": "T3",
-   "tweak": "L0",
-   "basis": "Earth's mean surface heat flow, 0.087 W/m2 ([R1015], recalled): the heat a supply of 1 stands for"
-  },
   "heat_share_max": {
    "value": 10.0,
    "tier": "T9",
