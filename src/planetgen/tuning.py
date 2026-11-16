@@ -179,8 +179,9 @@ SCULPT_AGE_YR = 1.0e9
 INNER_SYSTEM_FRACTION_MASSES = (0.15, 0.6, 1.0, 1.4)
 INNER_SYSTEM_FRACTION_SHARES = (0.85, 0.75, 0.30, 0.30)
 # How many planets it starts with before the thinning: 1 + a Poisson draw of this mean. A planetGen stand-in (tier T6, tweak L3), tuned so the
-# survivors average 3.0 per Sun-like system and 2.8 per M dwarf [R4812, R4898].
-INNER_INITIAL_COUNT_EXTRA = 5.619
+# survivors average 3.0 per Sun-like system and 2.8 per M dwarf [R4812, R4898]. GEN.1709: 9.0 (5.619 before), as the chain now ends at the snow line or 400 days and the wider
+# first period (below) puts more of its oligarchs past that end.
+INNER_INITIAL_COUNT_EXTRA = 9.0
 # The spread of that mean between systems (the width in ln of a log-normal factor), so the counts are broader than a Poisson: the survey's
 # many single transiting planets need systems that start with few. A planetGen stand-in (tier T6, tweak L3), tuned to the transit multiplicity.
 INNER_COUNT_SIGMA_LN = 0.8
@@ -207,6 +208,12 @@ INNER_OUTWARD_MASS_DEX_PER_PLANET = 0.04
 # ([R3621], read), and the spread of one pair about its system's. A stand-in (tier T6, tweak L3).
 INNER_SEPARATION_MEDIAN = 5.983
 INNER_SPACING_SIGMA_LN = 0.25
+# The period of the first planet of an inner system, days: log-normal about this median with this width in dex (GEN.1709). The occurrence of small planets
+# is flat per logarithm of period from 8 to 128 days ([R2020], Hsu et al. 2019 Table 2, read), so the first planet of the Kepler-like systems sits anywhere in
+# that range and its neighbours follow outward at the spacing above; a first planet at 5 days with a width of 0.2 dex put every inner planet inside 30 days. A planetGen
+# stand-in (tier T6, tweak L2: tuned to that flat shape and to the planets inside 400 days per star), registry row PA19.
+INNER_FIRST_PERIOD_MEDIAN_DAYS = 25.0
+INNER_FIRST_PERIOD_SIGMA_DEX = 0.7
 # The inner system ends at this period (days); the outer chain starts this many times beyond it (as a period) or past the last inner planet (as a distance).
 INNER_SYSTEM_PERIOD_LIMIT_DAYS = 400.0
 OUTER_CHAIN_START_RATIO = 1.3
