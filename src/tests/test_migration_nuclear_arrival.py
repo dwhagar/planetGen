@@ -16,33 +16,10 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import pre_main_sequence
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 
 COLUMN = "nuclear_arrival_age_gy"
-
-
-def _types(conn, table):
-    return {row["COLUMN_NAME"]: row["DATA_TYPE"] for row in conn.execute(
-        "SELECT COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", (table,)).fetchall()}
-
-
-def test_a_v196_galaxy_gets_the_column_empty(mysql_config):
-    load_old_schema(mysql_config, 194)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("stars", "bright_stars"):
-            assert COLUMN not in _types(conn, table)
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("stars", "bright_stars"):
-            assert _types(conn, table)[COLUMN] == "double", table
-    finally:
-        conn.close()
 
 
 def _pre_main_sequence_params(mass_sol=0.2, age_gy=0.05):

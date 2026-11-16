@@ -800,7 +800,7 @@ TABLES = {
     "body_history": {
         "id": ("star_system_id", "body_id"),
         "key": ("body_type",),
-        "frac": ("birth_eccentricity", "capture_draw_1", "capture_draw_2"),
+        "frac": ("birth_eccentricity", "capture_draw_1", "capture_draw_2", "held_eccentricity", "forced_eccentricity"),
         "deg": ("birth_obliquity_deg",),
         "rad_s": ("birth_spin_rate",),
         "au": ("formation_distance_au", "birth_distance_au"),
@@ -933,7 +933,7 @@ TABLES = {
         ),
         "K": ("temperature_k",),
         "W": ("luminosity_w", "l_xuv_w"),
-        "Gyr": ("age_gy", "lifespan_gy", "galactic_orbital_period_gy", "nuclear_arrival_age_gy"),
+        "Gyr": ("age_gy", "lifespan_gy", "galactic_orbital_period_gy", "nuclear_arrival_age_gy", "phase_end_age_gy"),
         "deg": ("galactic_orbital_phase_deg", "axial_tilt_deg"),
         "yr": ("galactic_min_update_interval_years", "decay_age_yr"),
         "h": ("rotation_period_hours",),
@@ -949,7 +949,7 @@ TABLES = {
         "au": ("offset_x_au", "offset_y_au", "offset_z_au", "disk_inner_au", "disk_outer_au"),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix",),
-        "Msun": ("disk_mass_solar",),
+        "Msun": ("disk_mass_solar", "initial_mass_sol"),
         "g_cm3": ("density_g_cm3",),
     },
     "supernova_remnants": {

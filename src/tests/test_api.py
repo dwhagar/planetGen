@@ -2050,7 +2050,9 @@ def test_update_and_delete_system(admin_client):
 
     response = admin_client.delete(f"/api/systems/{pid('system', system_id)}")
     assert response.status_code == 200
-    assert admin_client.get(f"/api/systems/{pid('system', system_id)}").status_code == 404
+    gone = admin_client.get(f"/api/systems/{pid('system', system_id)}")
+    assert gone.status_code == 410, "a deleted system's ID is kept (GEN.1141): it answers Gone, not Not Found"
+    assert admin_client.get("/api/systems/999999").status_code == 404      # one nobody ever had is still a 404
 
 
 def _save_wide_binary_with_moons(mysql_config):

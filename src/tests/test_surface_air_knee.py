@@ -53,6 +53,6 @@ def test_a_planet_whose_greenhouse_answers_alternate_stores_the_knee_and_a_facto
     assert planet.atmospheric_pressure > 0.0
     assert planet.surface_temperature == pytest.approx(250.0, abs=10.0)          # the mean of 320 and 180, not the last answer
     # the stored factor and albedo make the stored temperature (GEN.412): T = T_e (1 + G)^(1/4)
-    star_flux = planet.star.luminosity / (4.0 * math.pi * (planet._star_distance_au * 1.495978707e11) ** 2)
+    star_flux = planet.star.luminosity / (4.0 * math.pi * (planet.build.star_distance_au * 1.495978707e11) ** 2)
     equilibrium = (star_flux * (1.0 - planet.bond_albedo) / (4.0 * 5.670374419e-8)) ** 0.25
     assert planet.surface_temperature == pytest.approx(equilibrium * (1.0 + planet.greenhouse_factor) ** 0.25, rel=1e-6)

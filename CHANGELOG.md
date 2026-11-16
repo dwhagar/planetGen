@@ -2,6 +2,333 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4396] - 2026-11-16
+
+**Headline:** The pinned civilized test systems hold a civilization again, so the population tests no longer hunt for one.
+
+### Fixed
+- **`test_the_pinned_civilized_seeds_still_qualify` was red on main.** Draw shifts since the last refresh left none of the four pinned candidates (112, 135, 172, 242) with a technological civilization, so the population tests fell back to hunting random systems. The pins are now candidates 5 and 39, found by scanning candidates; the civilization rate is unchanged at about 1.6 percent (2 of 124 scanned now, 4 of the first 243 when the old pins were found).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4395] - 2026-11-16
+
+**Headline:** The belt overlap test now checks the belt's inner edge, the way the spacing pass measures it.
+
+### Fixed
+- TEST.782: `test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt` expected the pushed belt's centre to land at the outer edge of the belt inside it plus the separation. Since GEN.1592 a belt is measured and pushed by its inner edge (`shift_belt` moves the centre and both edges together), so the inner edge lands exactly there and the centre sits half a width further out (2.45 AU for a 0.4 AU belt past 2.25). The test now asserts the inner edge, the kept width and the centre; the generator is unchanged.
+
+generation-output: none
+
+## [8.0.4394] - 2026-11-16
+
+**Headline:** An old brown dwarf of the lightest masses is about one Jupiter radius across, not the 1.5 to 1.7 it kept from its youth, and it is no longer up to 2.4 times too bright.
+
+### Fixed
+
+- GEN.1624: the BHAC15 table loses the lightest brown dwarfs while they are still young and large (13 Jupiter masses after 0.01 Gy), and `baraffe_isochrones.cooling_track` held their last radius for ever, so a 13 Jupiter mass body stayed at 1.7 Jupiter radii at 10 Gy and its luminosity (`R^2 Teff^4`) ran up to 2.4 times high. Past the age the table loses a mass its radius now shrinks as the radius of the lightest mass the table still holds does (an old brown dwarf's radius is nearly the same at every mass, 0.09 solar radii), joined to the next heavier mass's own change as before so the track still has no jump in mass (GEN.1137). A 13 Jupiter mass body at 10 Gy is 0.91 Jupiter radii. Stand-in LM4 now says so.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4393] - 2026-11-16
+
+**Headline:** A comet's period now lies in the period range of its own family.
+
+### Fixed
+- GEN.1612: the comet draw never read its family's period range, so 37 percent of elliptical comets (47 percent of the Jupiter-family, 37 percent of the Halley-type) had a period outside it. The eccentricity is now drawn from the part of the family's range that gives a period in the family's range at the comet's perihelion, and a perihelion that cannot give one is drawn again; a comet whose star's ceiling leaves no such orbit is named for the family whose range holds its period (`period_class_of`, which extends GEN.1608 from the 200-year line to every family). Over 1 500 comets none is now outside, and the families come out at their table weights (0.50, 0.31 and 0.19 of 0.5, 0.3 and 0.2, where the long-period family had been 0.14).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4392] - 2026-11-16
+
+**Headline:** The star property sheet says why it does not show the two columns DB.133 added to the stars table.
+
+### Fixed
+
+- `describe/sheet.py`: `NOT_SHOWN["star"]` gains `initial_mass_sol` and `phase_end_age_gy` with their reasons, so `tests/test_property_sheet.py` finds every column of `stars` shown or excused (a fix for Train 39).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4391] - 2026-11-16
+
+**Headline:** A restored planet or moon keeps the eccentricity a resonance holds it on, and a restored star keeps the mass it was born with and the age its phase ends, so a body or system that is settled or edited again starts from what it was made with.
+
+### Added
+
+- DB.132: `body_history` gains `held_eccentricity` (`_resonance_e`, the floor `settle_orbit` keeps under the tide: a planet of a resonant chain, a moon of a first-order pair or held in the evection resonance) and `forced_eccentricity` (the eccentricity a chain forces on a planet, `oddity_quantities["forced_eccentricity"]`). `body_history.attach` gives them back to a restored body, so the tide of a restored planet settled again cannot wear it below its floor.
+- DB.133: `stars` gains `initial_mass_sol` (the birth mass the population model gave the star) and `phase_end_age_gy` (the age its drawn phase ends; NULL beside a birth mass reads back as infinite, a white dwarf's). A restored star keeps what `remnant_orbits` (the orbits a white dwarf's planets formed on, the engulfment radius) and `place_terms.born_mass_solar` (the companion floor) read.
+- Migration 0268 adds the four columns; a galaxy made earlier has NULL in them, which reads as "not kept" and nothing is backfilled. The columns are left out of the fingerprint.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4390] - 2026-11-16
+
+**Headline:** The CHECK-constraint test knows the shape of the two eccentricity columns DB.132 added to body_history, so it breaks and sees refused a bad value for each.
+
+### Fixed
+
+- `tests/test_db_check_constraints.py`: `_breaking_value` reads `(a is null) or ((a >= 0) and (a < 1))` (`held_eccentricity`, `forced_eccentricity`) and breaks it with 1.0, which the CHECK must refuse (a fix for Train 39).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4389] - 2026-11-16
+
+**Headline:** The air history now gives the surface temperature of a world's air at every step from the star's light and the interior's heat of that age, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 1b: `air_history.run(body, cuts, air_input)` with the input of the body's final air solve gives each step a surface temperature. `aged_setting` is the air solver's input at an age (the star's light and the interior's heat of the age); the steps where the light or the heat has moved by 3 or 25 percent are solved in full from the draws the final air began with (at most 12), and the steps between are read between their two anchors in the starlight absorbed. Reuse: `surface_air.solve` and `Setting`, `runaway_history.light_at`, `interior_heat.heat_at` and `released_by`, `Air.entry_state`. Nothing in the generator reads it yet.
+
+## [8.0.4388] - 2026-11-16
+
+**Headline:** The test that built 12 real large systems to check the sector separation law is retired, about 1,100 s off a full run.
+
+### Removed
+
+- `tests/test_bughunt_sector_placement.py` (3 tests, 1,147 s recorded): it built a pool of real large systems to check that placed pairs keep the Hill-sphere separation, that a full sector raises, and that an explicit position skips the check. The law reads only a body's Hill sphere, and `tests/test_fuzz_sector_placement.py` tests the first two with random Hill sizes (`test_random_placement_stays_inside_and_separated`, `test_full_sector_raises_after_bounded_attempts_not_hang`).
+
+### Added
+
+- `test_explicit_positions_skip_the_separation_check_as_documented` in `tests/test_fuzz_sector_placement.py`: the third retired check, which the fuzz file did not make (two systems given overlapping explicit positions are both kept), with stand-in systems instead of real ones.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4387] - 2026-11-16
+
+**Headline:** two more tests that pinned a seed for a rare case now search seeds for it, so a change to what the seeds draw stops breaking them.
+
+### Changed
+
+- TEST.714: `test_circumbinary_light` pinned run seed 100039 for a close pair with planets and `test_refinish_rocky` pinned seed 38 for a moon the planet's history had replaced, and both would break whenever a train moved the draws. The first finds its pair with `first_seed_with` (the bounded search of `tests/fuzz_support.py`) over 200 seeds and says so when none has one; the second sweeps 12 seeds and checks every moon of every one, which holds for the replaced moons too. The two `pytest.skip` lines of the same file ("no moon in the draw", "no giant in the draws") became searches that fail with the number of seeds tried, so a case that vanished is a finding, not a skipped test.
+
+generation-output: unchanged
+
+## [8.0.4386] - 2026-11-16
+
+**Headline:** The tests of one-off data rewrites in migrations Boss's server has already run are retired, with the old schemas they loaded.
+
+### Removed
+
+- The old-schema run of every data-backfill migration test in 23 `tests/test_migration_*.py` files and the same kind of test in `test_system_interests.py` (v164 to v175, 7 tests) and `test_life_row_text.py` (v155) (snow_line, brine_seep, star_members, star_count, habitable_worlds, parent_link, albedo_greenhouse, block_ladder_root, block_lights, life_scores, giant_interiors, gas_tables, planet_rings, region_stats, stage_epochs, sector_mass, life_classes, american_spelling, charted_designation, dust_species, isotope_record, generator_epoch_record, sector_sort_keys): the row rewrite, the "a second run changes nothing" repeat and the CHECK read on a migrated database. All of those migrations are at or below 0235 and ran on Boss's server when it updated (it is a test server, wiped when stalled, and carries no backward compatibility); the end shape is proved by `tests/test_db_old_schemas.py`.
+- 11 of those files had no other test and are deleted; the others keep their round trips and their checks on a new database (`test_a_planet_cannot_hold_two_layers_at_one_index_or_an_unknown_kind`, `test_a_ring_kind_the_check_does_not_know_is_refused`, `test_a_stale_stage_is_found_by_its_own_epochs` and the rest). `test_migration_helpers.py` stays. The helpers other tests import (`ADDRESS`, `CENTER_PC`, `_make_species`, `_system`) stay.
+- 14 old-schema fixtures nothing loads by number any more (v132, v133, v134, v139, v146, v160, v167, v174, v178, v180, v210, v221, v231, v234), and the duration line of the deleted `test_migration_region_stats.py` in `scripts/data/gate_durations.json`.
+
+generation-output: unchanged
+generation-affects: none
+
+A `downgrade_to(config, N)` call loads the same stored schema as `load_old_schema`; TEST.729's check had not counted those callers, so it removed fixtures these tests still loaded and they went red on main. This PR retires those tests (they are data-backfill tests of migrations 0165 to 0176 and 0156, all run on Boss's server) and every fixture number a test still loads is present.
+
+## [8.0.4385] - 2026-11-16
+
+**Headline:** the API test for deleting a system expects what the API answers, a 410 for the deleted system's ID.
+
+### Fixed
+
+- TEST.781: `test_update_and_delete_system` expected a 404 for a system after `DELETE /api/systems/<id>`. Since GEN.1141 a deleted object's ID is kept (a tombstone), so the API answers 410 Gone for it (`designation-history.md` invariant 7; `api/ids`, `test_api_retired_ids`, `test_admin_edits` say the same). The API was right and the test was left from before; it now expects the 410 and keeps the 404 for an ID nobody ever had.
+
+generation-output: unchanged
+
+## [8.0.4384] - 2026-11-16
+
+**Headline:** the API's routes answer their 404s and 400s through `ApiError` and share one paging helper, with the same response bodies.
+
+### Changed
+
+- API.48: thirty routes built their own `jsonify({"error": ...}), 404` (or 400); they raise `ApiError` now, whose handler writes the same `{"error": message}` body and status. The two jump-by-value lists (uncharted systems, phenomena) shared the past-the-end answer and the `after` cursor parsing; both are one helper each (`_past_end_page`, `_after_number`), and `facility_list` reads its integer filters through `_int_arg` (same wording, blank means none) instead of a local function. Response bodies and statuses are unchanged.
+
+generation-output: unchanged
+
+## [8.0.4383] - 2026-11-16
+
+**Headline:** 28 migration tests that only checked a column was added are retired, and the 14 stored old schemas they alone loaded go with them.
+
+### Removed
+
+- The `downgrade_to(N)` or `load_old_schema(N)` then migrate test of 28 `tests/test_migration_*.py` files (ozone_column, survival_equipment, regional_temperature, aerosols, radiogenic_content, bulk_composition, water_base_pressure, moon_tidal_flux, interior_heat, aquifers, rogue_habitability, surface_composition, atmosphere_colour, lid_regime, day_night_shares, rogue_rings, ice_species, phenomenon_sort_indexes, surface_liquid, ocean_tides, ring_age, dose_belt, surface_liquid_solutes, nuclear_arrival, surface_liquid_mix, temperature_swings, temperature_coverage, moon_origin). Each asserted only that a column exists, has a type or reads NULL after the migration. `tests/test_db_old_schemas.py` compares the shape (type, nullability, default, index, keys) of the baseline and the newest three old schemas migrated with a new database, and `tests/test_db_column_round_trip.py` (TEST.11) proves every column is stored and read.
+- 12 of those files had no other test and are deleted. Each other file keeps its save-and-load round trip, and `test_a_stopped_run_can_be_started_again` stays in survival_equipment and regional_temperature (it proves a half-applied migration finishes, which is not a shape check).
+- `test_migration_snow_line.py` is not in this set: its v131 test computes backfilled values, so it goes with TEST.733.
+- 14 old-schema fixtures nothing loads by number any more (v137, v152, v168, v169, v177, v179, v185, v187, v189, v190, v194, v196, v204, v216).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4382] - 2026-11-16
+
+**Headline:** The old-schema shape test starts from the baseline and the newest three stored schemas instead of all 137, about 1,350 s less on a full run.
+
+### Changed
+
+- `tests/test_db_old_schemas.py`: `test_old_schema_migrates_to_the_fresh_shape` runs for the baseline (v130) and the `NEWEST` (3) versions before the current one (`checked_versions()`), not for every stored schema. The run from the baseline passes through every revision and the fixtures hold schema only, so the start points between add nothing; the newest revisions are the ones Boss's server has not run, so they are also started from the schema just before each. The fixture-presence test now asks for those four.
+- `tests/fixtures/old_schemas/`: the 84 fixtures no test loads by number are removed with their README lines (the 53 that remain are the baseline, the newest three, and the ones `test_downgrade_to` and the `test_migration_*` files still load; they go with those tests under TEST.731 and TEST.733).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4381] - 2026-11-16
+
+**Headline:** the system scene and the pages that show a planet's air colour work again after the build record change.
+
+### Fixed
+
+- GEN.1651 follow-up: a planet restored for display is a plain namespace of its columns with no `build`, and the readers that take any object (`body_radiation._star_distance_au`, reached through the scene's air colour, and sixteen more in `physics/`) read `body.build.<field>` and raised `AttributeError`. They read `record_of(body)` now: the body's record, or an empty one for an object that built nothing, so they give what the old `getattr(body, "_x", None)` gave. Passes that write a field still use the real record of a real body.
+
+generation-output: unchanged
+
+## [8.0.4380] - 2026-11-16
+
+**Headline:** The test runner ends the supervisor a test leaves behind, as it does the workers, so a check run in the next test is no longer served by it.
+
+### Fixed
+
+- `tests/stray_workers.py` ends `planetgen.cli.supervisor` processes on a private test Redis database with the workers (`parse`, `strays`, `reap_database`, `reap_all`). A supervisor stays up for its five idle minutes after the test that started it, and `queue_command_env` ended only workers, so `test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_told_to` failed on main whenever an earlier test on the same Redis database had started one.
+- `tests/test_stray_workers.py` and `tests/test_queue_command_env.py` prove it for supervisors.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4379] - 2026-11-16
+
+**Headline:** The comet shape stand-ins now have their burn-down lines and no author-year names.
+
+### Fixed
+- GEN.595: the registry rows CMT2, CMT3, CMT5, CMT6, CMT7 and CMT8 (tweak level L3) now have lines in the burn-down register, three of them naming GEN.1765 as the item that replaces them, and the source names written without a reference id are dropped from section 6.303, so `test_every_hand_tuned_row_has_a_line` and `test_citations_outside_the_registry` pass again. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4378] - 2026-11-16
+
+**Headline:** the plan timing test reads the durations the table prints, so it is green again.
+
+### Fixed
+
+- TEST.774: `test_the_plan_says_where_its_time_went_step_by_step` parsed the plan's timing table as plain seconds, and the table prints durations in the clock form (`1h 23m 45s`, `850 ms`) since UX.319. The test now reads each row and the named total through a small helper that is the inverse of `format_duration_seconds`, with a tolerance of half a second per whole-second row. All the checks stay (sorted, at least eight rows, the sum equals the named total, the steps named).
+
+generation-output: unchanged
+
+## [8.0.4377] - 2026-11-16
+
+**Headline:** the twenty private attributes a build stashed on each body are now one `BuildRecord` on the body (`body.build`), so a reader finds them by name and a restored body reads the same defaults a new one does.
+
+### Changed
+
+- GEN.1651: the numbers a pass leaves for a later pass of the same body (the birth spin and eccentricity, the draws and the light an air began with, the capture of an envelope, the carbon sink, the moons a planet was born with and the rest) were set as private attributes (`_birth_spin`, `_air_replay`, `_late_core` and seventeen more) and read back with `getattr(body, "_x", None)`. They are the fields of `planetgen.generation.build_record.BuildRecord`, one per body, each with a default; `Planet`, `life._trial_copy`, `copy` and pickling carry the record as they carried the attributes (a pickle leaves the carbon sink out, a copy keeps it). Nothing is stored differently and nothing draws a random number.
+- The generator battery's digest moves because it walks each body's attributes and the record is one more; the body values on fixed seeds are identical (seeds 0 to 13, compared field by field before and after).
+
+generation-output: unchanged
+
+## [8.0.4376] - 2026-11-16
+
+**Headline:** The hand-set shape of a star's own comets is registered with a tier and a tweak level.
+
+### Changed
+- GEN.595: the period cuts, outer period ends, eccentricity ranges, inclination caps and family weights of `COMET_PERIOD_CLASSES`, the nucleus diameter range, the perihelion range, the chance a star holds comets and how many are now rows CMT1 to CMT8 of the stand-in registry (section 6.303), each with its tier, tweak level, knobs, falsifier and the data that would replace it, and tagged in `tuning.py`. Only the parabolic share was registered before (AUD20). The period cuts and the flat perihelion are derived from the dynamical class definitions and from a loss cone; the rest are named as hand set, with a derived draw (a power-law nucleus size, a supply from the outer belt) left as its own item. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4375] - 2026-11-16
+
+**Headline:** Two unused belt functions are removed.
+
+### Changed
+- GEN.1764: `belt_origin.destroyed_planet` (with its `destroyed-planet` cause, its retained-share constant and its origin text) and `clearance_ledger.log_uniform_quantile` (with `restricted_quantile`) had no caller: the generator models no event that destroys a planet and leaves rubble, and no placer reads the clearance ledger's spans yet. Both are deleted with their wiring register lines and registry row BG10; the ledger tests draw from the spans with a helper of their own. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4374] - 2026-11-16
+
+**Headline:** warming the map no longer goes quiet for a minute while it counts how much disk the tile cache uses, and it counts less often.
+
+### Fixed
+
+- PERF.274: `cache_is_full` walked every folder of the tile cache before each chunk of nodes. On a cold disk with 181,000 files that walk alone took 58 s of silence. The walk now tells the unit beat at each folder it enters (`tilecache.ON_DIRECTORY`, set by the warm-up to `unitbeat.moving`), and a walk that took at least a second is trusted for ten times as long as it took before the next one. Small caches are still read fresh every time, so what the cache says when it is nearly full is unchanged.
+
+## [8.0.4373] - 2026-11-16
+
+**Headline:** A water-rich planet whose surface is too warm for ice now has its orbit worn down by the rock mantle's tide, not by an ice shell's at 100 K, so warm water worlds on close orbits no longer keep an eccentric orbit nothing wears down.
+
+### Changed
+- GEN.1760: `settle_orbit` runs before a body built bare has its air, so its surface temperature is unknown and `interior_heat.icy_shell_top_k` reads the cold fallback (100 K): every body with 1 percent water or more was worn down as an ice shell, including a warm water world that has no shell (GEN.1756). `planets.settle_warm_icy_orbit` now takes the tides of the orbit again once the air has given the surface, for a body that `interior_heat.icy_regime` calls `ROCK`, and `refinish_rocky` makes the air again where the eccentricity moved. It reuses `settle_orbit` and the chooser of GEN.1759; the eccentricity only falls.
+- A water-rich body too warm for ice now has the rock mantle's tide in its heat (`interior_heat.heat_at`, `update_heat`, `eccentricity_tide_w`; `interior_heat.is_ice_bound`), where GEN.1759 left it out until its orbit was circularised.
+- Measured on the same 300 seeds before and after: 35 warm water-rich bodies; the eccentricity of 10 of them fell (largest 0.256 to 0.000 at 0.024 AU; 0.141 to 0.007 at 0.031 AU; 0.049 to 0.006 at 0.076 AU); no other body's eccentricity changed; the surface temperature of one moved by more than 1 K (448 to 444 K). Five of the 35 have a tide of over 1 W/m2, from the tide of a close moon, as 16 of 413 ordinary rocky planets do.
+- Not changed: the air of a body is still solved with the heat read when its surface is unknown (a shell's), as before; only the heat stored afterwards carries the rock tide.
+- Generation output changes: the orbit (and what follows it) and the stored tidal heat of water-rich planets with a surface over the melting point of ice.
+
+## [8.0.4372] - 2026-11-16
+
+**Headline:** A test now picks a body's tide the way the generator does after GEN.1760, so it no longer expects a warm water body to have none.
+
+### Changed
+- GEN.1760 follow-up: `test_radiogenic` rebuilt the heat of a stored body with no tide for any icy body (`tidal_heating.is_icy`); the generator now leaves the tide out only for an ice-bound one (`interior_heat.is_ice_bound`), so a warm water body carries the rock mantle's tide. The test reads the same chooser. No generated value changes.
+
+## [8.0.4371] - 2026-11-16
+
+**Headline:** A belt's largest body now matches the largest body in its member list.
+
+### Changed
+- GEN.1605: a belt's "largest body" was the size law's heaviest body at the law's density, while its member list sized the same body at its own taxon's density, so the two differed by up to 15 percent in belts that gave no planets. Every belt with members now reports the largest member it holds (promoted belts already did, GEN.1561). The belt's mass and density already follow the star's final age (GEN.1546) and are unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4370] - 2026-11-16
+
+**Headline:** A body with an ocean that gets less than its runaway flux is no longer held under one fixed 375 K: the hottest surface it can hold is read from its own air, so thick carbon dioxide airs may be hot and class N, and thin nitrogen airs are held near 315 K.
+
+### Changed
+
+- GEN.1579 (every galaxy; no epoch, a lock item): `surface_air.MOIST_LIMIT_K` (375 K) is gone, with no replacement constant. The steam limit of GEN.1329 (a body under its runaway flux holds no steam) now holds the surface under `moist_limit.limit_k(partials, gravity)`, the temperature where the infrared flux to space of the air's saturated clear-sky column over an ocean (the radiative-convective model with `saturated=True, clear_sky=True`, stand-in IR17) stops rising with the surface: its relative slope first falls under 0.1 percent per K (`moist_limit.SLOPE_FLOOR_PER_K`). The flux is read from `physics/data/moist_limit_table.json`, 3,150 model points on a grid of surface temperature (260 to 600 K), non-condensing gas (0 to 100 bar), carbon dioxide (0 to 300 bar) and gravity (0.5 to 2 g), by interpolation in the logarithm of the pressures and the gravity; `scripts/build_moist_limit_table.py` builds it (about 1.5 hours on three cores with the k-tables) and `moist_limit.table()` refuses a file built from other k-tables, as the greenhouse table does. Ceilings (9.81 m/s2): 1 bar of nitrogen 314 K, 1 bar of nitrogen with 1 bar of carbon dioxide 399 K, 10 bar of carbon dioxide 464 K, 100 bar of carbon dioxide 600 K (the top of the grid, under the 647 K critical point of water); gas other than carbon dioxide and water counts as nitrogen. Registry rows ML1 (new, tier T5, tweak L0) and SV1 (reworded) in `research/gap-filling-plan.md` 6.204; the table's flat top is the model's 315 to 335 W/m2, not the 282 W/m2 of the line-by-line limit, so its temperatures are the model's, not a source value.
+- Before and after, 80 systems (40 G2V, 20 M3V, 20 K1V; 1,359 bodies; seeds 3000 to 3039, 4000 to 4019, 5000 to 5019), the same code but this change: 4 bodies stood at exactly 375 K. Three move to class N (G to N at 600 K and 523 bar, G to N at 489 K and 178 bar, A to N at 600 K and 7,825 bar: with the cap off its 5,300 bar of carbon dioxide and 2,300 bar of carbonyl sulfide come out of the rock and the greenhouse asks for 1,481 K) and one (G, 7.6 bar) falls to X at 222 K and 2.5 bar. Four others changed by their own draws or a branch: X to N at 597 K and 82 bar, and three small shifts (W to W, E to W). 1,351 of 1,359 bodies are unchanged.
+- Cost: the share of air bodies whose answer depends on the start of the solve (`tests/test_surface_air_start_independence.py`, starts of 120, 300 and 600 K, 40 G2V systems) rises from 6 of 55 (11 percent) to 17 of 54 (31 percent): a thick-air body now keeps a hot branch (400 to 600 K) beside its cold one where the 375 K cut it off. The generation stays a function of the setting (one production start); the test bound `MAX_BISTABLE_SHARE` goes from 0.15 to 0.40 with the two measures in its note.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4369] - 2026-11-16
+
+**Headline:** The belt sheet shows the mass its star threw inward only for belts of a white dwarf's system.
+
+### Changed
+- GEN.1231: the "Mass its star's mass loss threw inward" row applied to every belt, but only the belts of a white dwarf's system store it, so the sheet fill check failed whenever its sample held another belt. The row now applies only where the belt stores it.
+
+## [8.0.4368] - 2026-11-16
+
+**Headline:** The belt mass module imports on its own again.
+
+### Fixed
+- GEN.1633: `physics/belt_mass.py` failed to import in a fresh interpreter (a circular import through `collision_outcome`, `planets`, `generation/irregular_moons`, `irregular_population` and `belt_ledger`). `physics/planets.py` now imports `irregular_moons` where it uses it, and `tests/test_physics_imports_alone.py` covers `belt_mass` and the four modules of the cycle. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4367] - 2026-11-16
+
+**Headline:** An asteroid belt's page lists the planets it made, and the designation of a belt body that became a planet leads to that planet.
+
+### Added
+- **The belt's information page has a "Bodies made planets" section (GEN.1511).** It lists the heaviest round bodies of the belt that GEN.1510 made planets, each with its name (a link to its own page), its designation in the belt, class, mass, diameter and distance; `GET /api/objects/<ref>/belt-page` has the same list as `planets`. Their mass is not in the belt's totals.
+- **The old designation still works.** `/object/belt:<ID>/member/<rank>` of a body made a planet goes to that planet's page; `GET /api/objects/<ref>/belt-members/<rank>` answers `promoted` with the planet's reference.
+- **A planet made from a belt names it.** Its property sheet has a "Made from a belt" row with the belt and the designation the body had there.
+- **The system scene names the belt.** `GET /api/systems/<id>/scene` gives a planet made from a belt `made_from_belt` (the belt's `ref`, and the `rank` and `designation` of the body there); no other planet has the key.
+- **A census of belt bodies made planets** (`tests/audit/belt_promotion_census.py`): planets by class and by star class, per belt, the generation time, and the rules of the promotion checked over a sample of systems.
+generation-output: none
+
+## [8.0.4366] - 2026-11-16
+
+**Headline:** The test that every generated number has a database column now covers belts, comets, rogue planets, interstellar comets, asteroid fields, black holes and neutron stars, and every private attribute says why it is not kept.
+
+### Added
+
+- DB.134: `tests/test_stored_outputs.py` (DB.101) checks the public attributes of a generated asteroid belt, comet, rogue planet, interstellar comet, asteroid field, black hole and neutron star against the fields that write and load their rows (`KIND_HOMES` names where an attribute is kept or why it is not), and every private (underscore) attribute of a generated body, star or object against `PRIVATE_HOMES`: working state says why it is not a stored output, and the numbers that are stored (the birth numbers, the held eccentricity) name their columns. A new private attribute fails the test until it has a line. `tilt_chaotic` of `oddity_quantities` stays unstored and says why (a gate read when oddities W6 and W61 are drawn; the oddity ids and the tilt are stored).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4365] - 2026-11-16
 
 **Headline:** the first sector a new version of the generator fills no longer stands for minutes with nothing moving: building the bright-star sampling tables now shows progress.

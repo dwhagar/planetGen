@@ -414,6 +414,8 @@ stars -- one row per single star, two rows (primary/secondary) per binary. Never
 | `parent_id` | BIGINT UNSIGNED | NULL | v140 (DB.73) |
 | `density_g_cm3` | DOUBLE | NULL | v200 (GEN.1162): the mean density, g/cm3 |
 | `binding_energy_j` | DOUBLE | NULL | v200 (GEN.1162): the energy that assembling it releases, J (-1 for a black hole: infinite) |
+| `initial_mass_sol` | DOUBLE | NULL | v268 (DB.133): the mass the population model gave the star at birth, solar masses, NULL for a star the model did not make |
+| `phase_end_age_gy` | DOUBLE | NULL | v268 (DB.133): the age the star leaves the phase it was drawn in, Gyr, NULL beside a birth mass means it never does (a white dwarf) |
 | `FULLTEXT` | KEY | NULL |  |
 
 ## `planets`
@@ -2658,11 +2660,13 @@ v259 (GEN.1433): `asteroid_belts` gain `flavor_key` (VARCHAR(32), NULL): the id 
 | `formation_distance_au` | DOUBLE | NULL |  |
 | `birth_distance_au` | DOUBLE | NULL |  |
 | `born_index` | SMALLINT UNSIGNED | NULL |  |
+| `held_eccentricity` | DOUBLE | NULL |  |
+| `forced_eccentricity` | DOUBLE | NULL |  |
 | `formula_version` | TINYINT UNSIGNED | NOT NULL |  |
 
 ## `lost_moons`
 
-v266 (GEN.1753): `body_history` gains `formation_distance_au` (where the body formed, which keys its end-stage draw streams), `birth_distance_au` (the orbit a moon was born on) and `born_index` (its place in its planet's born moons); `lost_moons` keeps the moons a planet was born with that its history took away, as the four numbers the history reads (`mass_kg`, `birth_distance_au`, `density_kg_m3`, `retrograde`) and their place in the born list (`born_index`), so the history of a restored planet runs again from what it started with. `planet_id` is the planet's `planets.id`. A galaxy made earlier has NULL and no rows.
+v268 (DB.132, DB.133): `body_history` gains `held_eccentricity` (the eccentricity a resonance holds a planet or moon on, `_resonance_e`, the floor `settle_orbit` keeps under the tide) and `forced_eccentricity` (the eccentricity the planets of a resonant chain force on a planet, a quantity of oddity W5); `stars` gains `initial_mass_sol` (the birth mass the population model gave the star) and `phase_end_age_gy` (the age it leaves its drawn phase; NULL beside a birth mass is infinite). A galaxy made earlier has NULL in all four, which reads as 'not kept'. v266 (GEN.1753): `body_history` gains `formation_distance_au` (where the body formed, which keys its end-stage draw streams), `birth_distance_au` (the orbit a moon was born on) and `born_index` (its place in its planet's born moons); `lost_moons` keeps the moons a planet was born with that its history took away, as the four numbers the history reads (`mass_kg`, `birth_distance_au`, `density_kg_m3`, `retrograde`) and their place in the born list (`born_index`), so the history of a restored planet runs again from what it started with. `planet_id` is the planet's `planets.id`. A galaxy made earlier has NULL and no rows.
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|

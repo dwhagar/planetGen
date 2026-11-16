@@ -66,7 +66,7 @@ def system_rows(seed):
     rows = []
     if len(system.stars) == 1:
         for body, twin in zip(system.all_planets, full.all_planets):
-            percent = getattr(body, "_late_accreted_percent", None)
+            percent = body.build.late_accreted_percent
             if body.body_type != "t" or body.is_moon or percent is None or not body.mass:
                 continue
             mass_earth = body.mass / EARTH_KG

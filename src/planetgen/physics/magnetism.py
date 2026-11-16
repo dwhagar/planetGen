@@ -52,6 +52,7 @@ section 3.5 (design defaults):
 Earth's) or multipolar (the dipole's share under 0.5).
 """
 
+from planetgen.generation.build_record import record_of
 import cmath
 import math
 
@@ -230,7 +231,7 @@ def generate_field(body, core=None):
         body.dipole_class = "strong"
     else:
         body.dipole_class = "earth-like"
-    distance = getattr(body, "_star_distance_au", None)
+    distance = record_of(body).star_distance_au
     body.magnetopause_rp = magnetopause_rp(body, distance) if distance else None
 
 
@@ -311,7 +312,7 @@ def generate_stellar_induction(planet):
     if planet.body_type == "g":
         return
     planet.induced_moment_a_m2 = 0.0
-    distance = getattr(planet, "_star_distance_au", None)
+    distance = record_of(planet).star_distance_au
     period = getattr(planet, "period", None)
     if not distance or not period:
         return
@@ -432,7 +433,7 @@ def update_exposure(body, star_distance_au):
     irradiation index and, once the field is drawn, the magnetopause.
     `star_distance_au` is the body's distance from its star (a moon's
     planet's)."""
-    body._star_distance_au = star_distance_au
+    body.build.star_distance_au = star_distance_au
     star = body.star
     body.xuv_flux_earth = _with_companions(activity.xuv_flux_earth(star, star_distance_au), star, star_distance_au, "xuv_flux_earth")
     body.xuv_exposure_index = _with_companions(activity.exposure_index(star, star_distance_au), star, star_distance_au, "exposure_index")

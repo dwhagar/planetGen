@@ -130,12 +130,12 @@ def test_a_rogue_planet_keeps_the_whole_envelope_it_started_with(host_star, mass
         with draw.bound(f"valley-sweep:rogue:{mass_earth}:{seed}"):
             rogue = starless_host.build_ejected_planet(cfg, star, 4.5, mass_earth * EARTH, formation_au=0.3 + 0.08 * seed, moon_count=0)
         assert rogue.body_type == "t"
-        if rogue._captured_envelope:
+        if rogue.build.captured_envelope:
             kept.append(rogue)
-            start = rogue._captured_envelope
+            start = rogue.build.captured_envelope
             assert rogue.envelope_mass_fraction == pytest.approx(start)      # no light, no loss: what it started with
             assert 0.0 < start <= envelope_capture.MAX_START + 1e-9
-            assert rogue.radius > rogue._bare_core["radius"] * 1.15
+            assert rogue.radius > rogue.build.bare_core["radius"] * 1.15
             assert planet_type.planet_type(rogue) in (planet_type.TRANSITIONAL, planet_type.TERRESTRIAL)
             assert planet_classes.classify(rogue) == rogue.planet_class
             if rogue.envelope_mass_fraction >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
@@ -148,4 +148,4 @@ def test_a_rogue_planet_outside_the_mass_range_has_no_envelope(host_star):
     for mass_earth in (0.4, 0.8):
         with draw.bound(f"valley-sweep:rogue-light:{mass_earth}"):
             rogue = starless_host.build_ejected_planet(cfg, star, 4.5, mass_earth * EARTH, formation_au=2.0, moon_count=0)
-        assert not rogue._captured_envelope
+        assert not rogue.build.captured_envelope

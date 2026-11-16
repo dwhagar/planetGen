@@ -1,16 +1,19 @@
 # tests/stray_workers.py
 
 """
-Queue workers a test run left behind (TEST.393).
+Queue workers and supervisors a test run left behind (TEST.393).
 
-A test that starts real workers (`workers.ensure_workers`, `redisqueue.start_detached`) starts them in a session of their
+A test that starts real workers (`workers.ensure_workers`, `redisqueue.start_detached`) or a supervisor (`supervisor.ensure_started`, which every check run and every
+submit starts when none answers) starts them in a session of their
 own so that they outlive the process that started them; one that is stopped part way (a test past its time limit, a
 phase the runner stopped, a pytest worker that was killed) never reaches the code that tells them to stop, and each keeps
 its memory (about 300 MB with its horse) until it has been idle for `workers.IDLE_SECONDS`, which it never is while
 it holds a unit of a database that has been dropped. Fifty of them filled a 16 GB machine and MySQL was killed.
 
 Every test worker's Redis is a database of its own, 1 to 15 (`private_redis`), and a real worker is started with
-`--url` naming it, so a worker whose `--url` names one of those databases is a test's, never the machine's. The
+`--url` naming it, so a worker or supervisor whose `--url` names one of those databases is a test's, never the machine's. A supervisor outlives its test the same way (it ends
+after `supervisor.IDLE_SECONDS`, five minutes) and carries the environment of the test that started it, so a later test on the same database that met it had its check run served by a process of another test
+(`test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_told_to` failed that way): it is ended with the workers. The
 conftest ends its own xdist worker's strays when its session ends, and `scripts/test.py` ends and reports all of them
 after a run.
 """
@@ -23,6 +26,12 @@ from urllib.parse import urlsplit
 
 WORKER_COMMAND = "planetgen.cli.worker"
 """str: What every planetgen worker process has in its command line (`planetgen.queue.workers.WORKER_COMMAND`)."""
+
+SUPERVISOR_COMMAND = "planetgen.cli.supervisor"
+"""str: What every planetgen supervisor process has in its command line (`planetgen.queue.supervisor.supervisor_argv`)."""
+
+COMMANDS = (WORKER_COMMAND, SUPERVISOR_COMMAND)
+"""tuple: The processes a test leaves behind that this module ends."""
 
 TEST_DATABASES = range(1, 16)
 """range: The Redis databases the test workers use (`private_redis.url_for_worker`); the machine's own is 0."""
@@ -52,7 +61,7 @@ def database_of(args):
 
 def parse(text):
     """
-    The worker processes in `text` (`listing()`'s output) that lead a session of their own, as dicts with `pid`, `seconds`
+    The worker and supervisor processes in `text` (`listing()`'s output) that lead a session of their own, as dicts with `pid`, `seconds`
     (how long it has run) and `database` (the Redis database its `--url` names, `None` for none). A work horse is a fork
     of its worker in the worker's session, so ending the worker's group ends it; it is not listed again.
     """
@@ -62,14 +71,14 @@ def parse(text):
         if len(parts) < 4 or not all(part.isdigit() for part in parts[:3]):
             continue
         pid, group, seconds, args = int(parts[0]), int(parts[1]), int(parts[2]), parts[3]
-        if pid == group and WORKER_COMMAND in args and "pytest" not in args:
+        if pid == group and any(command in args for command in COMMANDS) and "pytest" not in args:
             found.append({"pid": pid, "seconds": seconds, "database": database_of(args)})
     return found
 
 
 def strays(text=None, databases=None, older_than=0):
     """
-    The test workers in `text` (default: the process list now): those whose `--url` names one of `databases` (default
+    The test workers and supervisors in `text` (default: the process list now): those whose `--url` names one of `databases` (default
     `TEST_DATABASES`) and that have run `older_than` seconds or more.
     """
     databases = TEST_DATABASES if databases is None else databases
@@ -116,7 +125,7 @@ def _exists(pid):
 
 
 def reap_database(url):
-    """Ends the workers whose `--url` names the database of the Redis `url`, and returns how many there were."""
+    """Ends the workers and supervisors whose `--url` names the database of the Redis `url`, and returns how many there were."""
     path = urlsplit(url).path.strip("/")
     if not path.isdigit() or int(path) not in TEST_DATABASES:
         return 0
@@ -124,7 +133,7 @@ def reap_database(url):
 
 
 def reap_all():
-    """Ends every test worker still running and returns the workers it found (each a dict, see `parse`)."""
+    """Ends every test worker and supervisor still running and returns what it found (each a dict, see `parse`)."""
     found = strays()
     reap(found)
     return found

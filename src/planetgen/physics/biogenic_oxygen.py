@@ -40,13 +40,14 @@ weathering), the hydrogen escape that adds oxygen, the phosphorus feedback and, 
 change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak already stands for; a world with no wide sea has them from the rooted stage on, GEN.1729, in `refuge_productivity`).
 """
 
+from planetgen.generation.build_record import record_of
 import collections
 import math
 from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import abundance_tier
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, habitability_world, mixture, mixture_oxygen, stellar_spectrum, surface_air, surface_refuge
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, habitability_world, mixture, mixture_oxygen, stellar_spectrum, surface_air, surface_pressure, surface_refuge
 from planetgen.util import log
 
 EARTH_O2_PA = 21.2e3
@@ -65,11 +66,12 @@ world with no wide sea, since `EARTH_BURIAL_MOL_YR` of a sea world already has t
 LAND_SHARE_OF_BURIAL_RANGE = (0.20, 0.33)
 """tuple: The range of `LAND_SHARE_OF_BURIAL` ([R5283]: 25 percent at C/P 1000 to 50 percent at C/P 2000 over the burial without plants). [BO15, T3, L0.]"""
 
-EARTH_STORE_MOL = 4.0e21
+EARTH_STORE_MOL = 2.4e21
 """float: The oxygen the ocean's iron and the crust's sulfides and iron take before the air holds any, mol (`B`), chosen so that the first
 oxygen follows the first photosynthesis by 0.7 Gyr when `S` is Earth's and `R` is Earth's at that age, from the model's own heat history of an
 Earth-mass body (GEN.1463: 2.2 times today's heat when the biomarkers appear, 2.7 Ga, falling to 1.9 times at the rise; it was 5e21 while `R` was held
-at today's value), the Great Oxidation coming some 0.3 to 1 Gyr after oxygenic photosynthesis began. T3, L1."""
+at today's value, and 4e21 while an Earth-mass body's heat now read 0.76 of `EARTH_HEAT_W`, before GEN.1762 made that the model's own Earth twin: the body's heat now is 1.07 of it),
+the Great Oxidation coming some 0.3 to 1 Gyr after oxygenic photosynthesis began. T3, L1."""
 
 RISE_STEP_GYR = 0.25
 """float: The step, Gyr, of the integral of the surplus `S - R(age)` in `rise_age_gyr`; the heat flow it reads changes by under 10 percent over a step after the first Gyr."""
@@ -78,8 +80,9 @@ EARTH_AREA_M2 = 4.0 * math.pi * constants.EARTH_RADIUS_M ** 2
 EARTH_OCEAN_FRACTION = 0.71
 EARTH_LAND_FRACTION = 1.0 - EARTH_OCEAN_FRACTION
 """float: The share of Earth's surface that is land, 0.29 (the land the plants' share of the burial is over; with the ocean's 0.71 it makes the surface)."""
-EARTH_HEAT_W = 4.4e13
-"""float: Earth's own heat flow now, W (44 TW)."""
+EARTH_HEAT_W = surface_pressure.HEAT_FLUX_EARTH_W_M2 * EARTH_AREA_M2
+"""float: The heat flow of the model's Earth twin, W: the one Earth heat-flow reference (`surface_pressure.HEAT_FLUX_EARTH_W_M2`, 0.0614 W/m2, registry row AM33; GEN.1636, GEN.1762) over Earth's area, 31 TW. The measured Earth gives off 44 TW
+(0.087 W/m2); the interior model's Earth twin gives 0.0614 because its stagnant lid loses heat less freely than a mobile lid, so a body is read against the model's own Earth (an Earth twin makes Earth's reductant flux, not 0.7 of it)."""
 
 EARTH_MANTLE_DELTA_IW = 3.5
 """float: The redox of Earth's upper mantle now, log10 units above the iron-wustite buffer (the scale `oxygen_fugacity` gives `mantle_delta_iw`)."""
@@ -222,7 +225,7 @@ def active_light_ratio(body, band=PAR_BAND):
     star = getattr(body, "star", None)
     luminosity = getattr(star, "luminosity", None)
     temperature = getattr(star, "temperature", None)
-    distance = getattr(body, "_star_distance_au", None) or getattr(body, "distance", None)
+    distance = record_of(body).star_distance_au or getattr(body, "distance", None)
     if not luminosity or not temperature or not distance:
         return 0.0
     here = stellar_spectrum.bolometric_flux_w_m2(luminosity, distance) * float(stellar_spectrum.blackbody_fraction(*band.nm, temperature)) * band.efficiency
@@ -478,7 +481,7 @@ def apply(body, target_mol):
         return False
     burnt["O2"] = wanted
     air = partials_pa(body, burnt)
-    cap = getattr(body, "_retention_cap_pa", None)
+    cap = record_of(body).retention_cap_pa
     total = sum(air.values())
     if cap is not None and total > cap:        # GEN.1340: the air is held to the pressure its retention regime keeps (as the pressure stage holds it), oxygen and all
         air = {formula: pascal * cap / total for formula, pascal in air.items()}
@@ -502,13 +505,13 @@ def rebalance_co2(body):
     Returns:
         bool: Whether the air changed.
     """
-    sink = getattr(body, "_co2_sink", None)
+    sink = record_of(body).co2_sink
     if sink is None or not sink.solved_bar > 0.0:
         return False
     air = dict(atmosphere.gas_partials_pa(body))
     base = air.get("CO2", 0.0)
     current = base
-    cap = getattr(body, "_retention_cap_pa", None)
+    cap = record_of(body).retention_cap_pa
     room = float("inf") if cap is None else max(cap - sum(pascal for formula, pascal in air.items() if formula != "CO2"), 0.0)   # the retention regime's cap holds the whole air: the carbon dioxide takes what room the other gases (the oxygen among them, set by their own balance) leave
 
     started = (body.surface_temperature, getattr(body, "greenhouse_factor", None))

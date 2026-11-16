@@ -13,7 +13,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability
 from planetgen.util import draw, generator_epoch as generatorEpoch
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -111,28 +110,3 @@ def test_the_line_is_where_green_begins():
     floor = habitability.POTENTIALLY_HABITABLE_MIN_SCORE
     assert habitability.tier(floor) in habitability.POTENTIALLY_HABITABLE_TIERS
     assert habitability.tier(floor - 1e-9) not in habitability.POTENTIALLY_HABITABLE_TIERS
-
-
-def test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        _sector_id, expected = _fill_one_sector(conn)
-    finally:
-        conn.close()
-    # make it a v138 galaxy again: the columns gone, the rows kept
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("DELETE FROM galaxy_block_stats WHERE m > 65535")      # a block of an older galaxy never held more (MAP.258, v146)
-        conn.commit()
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 138)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert conn.execute("SELECT habitable_worlds FROM sector_stats").fetchone()["habitable_worlds"] == expected
-        totals = conn.execute("SELECT habitable_worlds FROM galaxy_block_stats").fetchall()
-        assert totals and all(row["habitable_worlds"] == expected for row in totals)
-        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
-    finally:
-        conn.close()

@@ -31,6 +31,7 @@ body's origin (`origin_of`: formed beyond its star's snow line or not) and its s
 The draw order is the order above; it is part of the generator epoch.
 """
 
+from planetgen.generation.build_record import record_of
 import dataclasses
 import functools
 import math
@@ -448,7 +449,7 @@ def _nebular_water(body, mass_earth):
     star = getattr(body, "star", None)
     star_mass = getattr(star, "mass", None)
     distance = _formation_distance_au(body)
-    if (getattr(body, "is_moon", False) or getattr(body, "_late_core", False) or not star_mass or distance is None
+    if (getattr(body, "is_moon", False) or record_of(body).late_core or not star_mass or distance is None
             or not getattr(body, "mass", None) or not envelope_capture.in_range(mass_earth)):
         return 0.0
     return envelope_capture.nebular_water_fraction(envelope_capture.start_of(body.mass, distance, star_mass), host_ratios(star).y_envelope)

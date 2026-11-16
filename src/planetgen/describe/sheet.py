@@ -26,7 +26,7 @@ from planetgen.db import column_units, models
 from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, model, sky_size_rows
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.galaxy import scales
+from planetgen.galaxy import object_uid, scales
 from planetgen.physics import (adaptation_traits, planet_classes, agb_carbon, belt_history, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
                                life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
@@ -651,6 +651,8 @@ NOT_SHOWN = {
         "slot": "the star's slot in its system; bookkeeping",
         "flags": "bit flags the generator keeps; each one is shown by the row it stands for",
         "cluster_id": "the cluster it belongs to, shown by the Location block",
+        "initial_mass_sol": "the mass the population model gave the star at birth (DB.133), kept so a restored star starts from it; the mass it has now is shown",
+        "phase_end_age_gy": "the age the star leaves the phase it was drawn in (DB.133), kept so a restored star starts from it; the age and the class it has now are shown",
         **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "spin_axis_x", "spin_axis_y",
                    "spin_axis_z", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), _VECTORS),
     },
@@ -1089,6 +1091,8 @@ _COMET_RULES = [
 _BELT_RULES = [
     (("history_text",), lambda klass, row: row is None or row.get("history_text") is not None,
      "only a belt the star's evolution acted on (the giant branch engulfed part of it, or the mass loss threw some of it inward) has a history to tell; a belt it left alone has none"),
+    (("thrown_inward_kg",), lambda klass, row: row is None or row.get("thrown_inward_kg") is not None,
+     "only a belt of a white dwarf's system has a mass its star's mass loss threw inward (GEN.1231); the belt of a star that has not lost its envelope has none to count"),
 ]
 
 _ROGUE_RULES = [
@@ -1404,7 +1408,7 @@ PRESSURE_KEYS = ("atmospheric_pressure_pa", "surface_pressure_pa")
 
 EXTRA_COLUMNS = {
     # table -> the columns the sheet reads beyond its specs' (the row providers below read them)
-    "planets": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k"),      # GEN.1108: the table of the bands; the range on the mean temperature row
+    "planets": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k", "star_system_id", "star_id", "belt_order", "belt_rank"),      # GEN.1108: the table of the bands; the range on the mean temperature row. GEN.1511: the belt a promoted planet came from
     "moons": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k"),
     "asteroid_belts": ("star_system_id", "star_id", "ice_mass_fraction", "distance_km", "formation_snow_line_au"),      # GEN.1420, GEN.1487: the isotope lines of the ices
     "comets": ("star_system_id", "star_id", "ice_mass_fraction", "perihelion_distance_km"),
@@ -1461,6 +1465,20 @@ def _influx_provider(conn, kind, object_id, row):
         yield "dust", _sheet_row(influx_row.INFLUX_KEY, "Belt dust and comets reaching it, a year", [model.qty("mass", arriving, "kg")], raw=arriving)
 
 
+BELT_ORIGIN_KEY = "belt_origin"
+
+
+def _belt_origin_provider(conn, kind, object_id, row):
+    """GEN.1511: the belt a planet was made from (GEN.1510) and its rank there, the parent a promoted planet keeps. The belt is the `belt_order`-th of its star's belts, as `query` counts them."""
+    if row["belt_rank"] is None or row["belt_order"] is None:
+        return
+    belts = conn.execute("SELECT uid FROM asteroid_belts WHERE star_system_id = ? AND star_id <=> ? ORDER BY orbital_index, id", (row["star_system_id"], row["star_id"])).fetchall()
+    if row["belt_order"] >= len(belts) or belts[row["belt_order"]]["uid"] is None:
+        return
+    belt_id = object_uid.from_bytes(belts[row["belt_order"]]["uid"])
+    yield "identity", _sheet_row(BELT_ORIGIN_KEY, "Made from a belt", [f"Belt {object_uid.format_id(belt_id)}, where it was body {object_uid.designation(belt_id, row['belt_rank'])}"])
+
+
 def _star_identity_provider(conn, kind, object_id, row):
     variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
                                    None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"]))
@@ -1500,6 +1518,7 @@ ROW_PROVIDERS = (
     (lambda kind: kind == "moon", _eclipse_provider),
     (lambda kind: True, _module_rows_provider),
     (lambda kind: kind == "planet", _influx_provider),
+    (lambda kind: kind == "planet", _belt_origin_provider),
     (lambda kind: kind == "star", _star_identity_provider),
     (lambda kind: kind == "star", _star_composition_provider),
 )

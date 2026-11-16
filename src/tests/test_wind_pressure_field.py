@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 from planetgen.physics import constants, magnetism, radiation_belts, radiation_field as rf
+from planetgen.generation.build_record import BuildRecord
 
 
 def sun(**extra):
@@ -57,7 +58,7 @@ def test_the_magnetopause_of_a_planet_shrinks_with_a_companion_and_is_unchanged_
 def test_the_belts_of_a_planet_read_the_winds_of_every_star():
     host = with_companion(sun(), sun(), 3.0)
     lone = SimpleNamespace(magnetic_moment_a_m2=magnetism.EARTH_MOMENT_A_M2, radius=constants.EARTH_RADIUS_KM, mass=5.97e24, rotation_period_hours=24.0, star=sun(),
-                           _star_distance_au=1.0)
+                           build=BuildRecord(star_distance_au=1.0))
     pair = SimpleNamespace(**{**vars(lone), "star": host})
     outer = lambda body: radiation_belts.belts_of_body(body)[1].outer_l
     assert outer(pair) < outer(lone)

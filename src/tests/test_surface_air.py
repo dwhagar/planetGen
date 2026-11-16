@@ -348,7 +348,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
         haze = aerosols.haze_of(air, gravity, body.surface_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
-                                body.star.temperature, aerosols.far_uv_of(body.star, body._star_distance_au))
+                                body.star.temperature, aerosols.far_uv_of(body.star, body.build.star_distance_au))
         if not planet_type.has_ground(body):
             # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
             # the air it has is warmed under the starlight and its own heat together
@@ -507,7 +507,7 @@ def test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_na
     """GEN.1580: the surface stops where the main gas of the air is half ionized (`ionization.ceiling_k`), a limit no generated body should reach: the test suite makes
     a body there an error (`PLANETGEN_CEILING_IS_ERROR`, checked first), and in a run it is one normal-log line with the body, the uncapped value, the ceiling and the air.
     The ceiling is the guard of a body that can hold steam; the Earth-like body of the sample is under its runaway limit (GEN.1329 holds such a body under
-    `MOIST_LIMIT_K`), so the test declares it past the limit."""
+    the moist limit of its air, `moist_limit.limit_k`), so the test declares it past the limit."""
     import dataclasses
     import logging
 
@@ -688,7 +688,7 @@ def test_an_air_that_settles_without_the_escape_on_its_last_allowed_step_still_g
 def test_the_carbon_sink_of_an_air_is_the_last_steps_and_none_when_the_last_step_does_not_weather(monkeypatch):
     """GEN.1594: the record was only written on steps that weather, so an air whose last step did not kept an earlier step's sink for the life stage to balance against."""
     planet = _earth_like_planet(3)
-    assert getattr(planet, "_co2_sink", None) is not None            # the Earth-like air weathers
+    assert planet.build.co2_sink is not None            # the Earth-like air weathers
     calls = []
     real = sa._weathers
 
@@ -699,7 +699,7 @@ def test_the_carbon_sink_of_an_air_is_the_last_steps_and_none_when_the_last_step
     monkeypatch.setattr(sa, "_weathers", first_only)
     again = _earth_like_planet(3)
     assert len(calls) > 1
-    assert getattr(again, "_co2_sink", None) is None
+    assert again.build.co2_sink is None
 
 
 # --- the late accretion in the supply (GEN.819) -------------------------------------------------------------------------------

@@ -8,20 +8,31 @@ Today a world's air is solved once, at its star's present age (`air_final.make`)
 greenhouse, the reductants that hold the oxygen back) are each read once, at that age. The history of a world's air is those laws read at a series of ages instead of once. This module is the first
 part of it: the **step schedule** (`schedule`) and the **clocks** every step reads (`Step`, `run`): the star's light, the heat the interior gives off, the reductant sink of the oxygen law over its
 source, and the water lost so far. They are the existing laws, evaluated at the age of the step: `runaway_history.light_at` and `loss_kg` (with their trace), `interior_heat.heat_at`,
-`biogenic_oxygen.reductant_history_factor` and `profile_of`. Nothing is drawn and nothing is stored; nothing in the generator reads this module yet (the later slices of GEN.1745 feed the final
+`biogenic_oxygen.reductant_history_factor` and `profile_of`. Nothing is drawn from the ambient stream and nothing is stored; nothing in the generator reads this module yet (the later slices of GEN.1745 feed the final
 solve from it), so the output of a run is the one it was.
 
 **The steps.** Logarithmic from `FIRST_STEP_GYR` (10 kyr) to `LOG_UNTIL_GYR` (1 Gyr), `LOG_STEPS_PER_DECADE` to the decade, then every `MAX_STEP_GYR` (the step the oxygen law's own integral takes,
 `biogenic_oxygen.RISE_STEP_GYR`: the heat flow it reads changes by under 10 percent over a step after the first Gyr), cut at every age the caller names (the ages of the life stages and of the oxygen
 rise) and ending at the star's age. These are numerical settings, not physical values.
 
+**The temperature path (slice 1b).** `run(body, cuts, air_input)` with `air_input = (setting, start_k, entry_state)` of the body's final air solve (`air_final.make`) gives each step the surface
+temperature of the body's air at that age. `aged_setting` is the solver input the body had at that age (the star's light and the interior's heat of the age, the rest the final one); the steps where the light or the
+heat has moved by `ANCHOR_LIGHT_STEP` or `ANCHOR_HEAT_STEP` since the last one are solved in full (`_anchor_indices`, at most `MAX_ANCHORS`: a full solve is 60 to 600 ms), from the draws the final air began with
+(`surface_air.Air.entry_state`), and the steps between are read on the line between their two anchors in the starlight absorbed. Against a full solve at every step on generated worlds the temperature is within
+about 1 K on average and 5 K at most over the range where it matters for the air (100 Myr on, under 400 K), and up to 20 K in the first 100 Myr (a steam or magma ocean air, which the later slices give their own law) and across an
+ice-albedo branch (`reports/gen1745-slice1b-measure-2026-11-16.md`).
+
 **The oxygen law's label** of a step (`oxygen_law`): `"none"` while the reductant sink `R(t)` is above the source `S` (no free oxygen can stand), `"rise"` once it is under `S` (the store the first
 oxygen goes to can fill, `biogenic_oxygen.rise_age_gyr`), `"balance"` once it is under `S / SECOND_RISE_RATIO` (the second rise, GEN.1707); `None` for a body whose life makes no oxygen.
 """
 
+import dataclasses
+import math
 from dataclasses import dataclass
 
-from planetgen.physics import biogenic_oxygen, interior_heat, runaway_history
+from planetgen.generation.build_record import record_of
+from planetgen.physics import biogenic_oxygen, constants, interior_heat, runaway_history, surface_air
+from planetgen.util import draw
 
 FIRST_STEP_GYR = 1.0e-5
 """float: The age, Gyr, of the first step of a history (10 kyr: the start of the air as the body left its disk; a numerical setting). (a numerical setting of the history's steps, defined by the integration: GEN.1739)"""
@@ -33,6 +44,12 @@ MAX_STEP_GYR = biogenic_oxygen.RISE_STEP_GYR
 """float: The longest step, Gyr, after `LOG_UNTIL_GYR`: the step of the oxygen law's own integral (GEN.1463)."""
 SAME_AGE_GYR = 1.0e-9
 """float: Two ages closer than this, Gyr, are one step. (a numerical setting of the history's steps, defined by the integration: GEN.1739)"""
+ANCHOR_LIGHT_STEP = 0.03
+"""float: A step is solved in full (an anchor) once the starlight its air absorbs has changed by this share since the last anchor; the temperature moves by a few kelvin over it. (a numerical setting of the history's steps, defined by the integration: GEN.1739)"""
+ANCHOR_HEAT_STEP = 0.25
+"""float: ... or the interior's heat flow has changed by this share since the last anchor. (a numerical setting of the history's steps, defined by the integration: GEN.1739)"""
+MAX_ANCHORS = 12
+"""int: The most full air solves of one history, the first and the last included (a full solve is 60 to 600 ms; the cost guard of GEN.1745). (a numerical setting of the history's steps, defined by the integration: GEN.1739)"""
 
 NO_OXYGEN, RISE, BALANCE = "none", "rise", "balance"
 OXYGEN_LAWS = (NO_OXYGEN, RISE, BALANCE)
@@ -52,6 +69,8 @@ class Step:
         reductant_ratio (float): `R(t) / R(now)` of the oxygen law (`biogenic_oxygen.reductant_history_factor`); 1 for a body with no thermal history.
         water_lost_kg (float): The water the body had lost to the runaway greenhouse by that age (`runaway_history.loss_kg`'s trace); 0 for a body that lost none.
         oxygen_law (str or None): The label of the oxygen law at that age (`OXYGEN_LAWS`); `None` when the body's oxygenic source is nothing.
+        temperature_k (float or None): The surface temperature of the body's air at that age, K (`temperatures`); `None` when the run was given no air to solve.
+        anchor (bool): Whether `temperature_k` is a full air solve at that age (else it is read between the two anchors round it).
     """
 
     age_gyr: float
@@ -61,6 +80,8 @@ class Step:
     reductant_ratio: float
     water_lost_kg: float
     oxygen_law: str | None
+    temperature_k: float | None = None
+    anchor: bool = False
 
 
 def schedule(age_gyr, cuts=()):
@@ -111,10 +132,91 @@ def _water_lost_at(trace, age_gyr):
     return lost
 
 
-def run(body, cuts=()):
+def aged_setting(setting, body, age_gyr):
+    """
+    The solver input (`surface_air.Setting`) of `body` as it was at `age_gyr`: the same body, the starlight of the star's luminosity at that age (`runaway_history.light_at`; the albedo law and the
+    clouds act on it as before) and the heat of the interior at that age (`interior_heat.heat_at`: the heat released, the flow, and the heat released by the sealing time or the age if younger). Everything else
+    (the water, the delivered volatiles, the haze and far-ultraviolet draws) is the final one, which slice 2 of GEN.1745 replaces with the history's own stores. `None` for a body or star the clocks do not cover.
+    """
+    star = getattr(body, "star", None)
+    light = runaway_history.light_at(star, age_gyr)
+    heat = interior_heat.heat_at(body, age_gyr)
+    distance_au = record_of(body).star_distance_au or body.distance
+    if light is None or heat is None or not distance_au or not setting.starlight_w_m2:
+        return None
+    flux = light[0] / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2)
+    scale = flux / setting.starlight_w_m2
+    return dataclasses.replace(setting, age_gy=age_gyr, released_j=heat.released_j, heat_flux_w_m2=heat.flux_w_m2,
+                               released_at_seal_j=interior_heat.released_by(body, min(age_gyr, 0.5)),
+                               starlight_w_m2=setting.starlight_w_m2 * scale, absorbed_flux_w_m2=setting.absorbed_flux_w_m2 * scale)
+
+
+def _anchor_indices(steps, scale_of, heat_of):
+    """The indices of the steps solved in full: the first step with a light and a heat, the last, and each step where the light or the heat has moved by `ANCHOR_*_STEP` since the last one (at most `MAX_ANCHORS`: the ones left out are the ones
+    nearest their neighbours)."""
+    chosen = [0]
+    for index in range(1, len(steps) - 1):
+        last = chosen[-1]
+        light_moved = abs(scale_of[index] / scale_of[last] - 1.0) if scale_of[last] else 1.0
+        heat_moved = abs(heat_of[index] / heat_of[last] - 1.0) if heat_of[last] else 1.0
+        if light_moved > ANCHOR_LIGHT_STEP or heat_moved > ANCHOR_HEAT_STEP:
+            chosen.append(index)
+    chosen.append(len(steps) - 1)
+    while len(chosen) > MAX_ANCHORS:
+        gaps = [(max(abs(math.log(max(scale_of[chosen[k + 1]], 1e-30) / max(scale_of[chosen[k - 1]], 1e-30))),
+                     abs(math.log(max(heat_of[chosen[k + 1]], 1e-30) / max(heat_of[chosen[k - 1]], 1e-30)))), k) for k in range(1, len(chosen) - 1)]
+        del chosen[min(gaps)[1]]
+    return chosen
+
+
+def _solved_temperature(setting, start_k, entry_state):
+    """The surface temperature of `setting` solved in full from the draws the final air began with (`surface_air.Air.entry_state`), or `None` when the solve gives no air."""
+    stream = draw.Stream(0)
+    stream.setstate(entry_state)
+    with draw.bound(stream):
+        air = surface_air.solve(setting, start_k)
+    return None if air is None else air.temperature_k
+
+
+def temperatures(body, steps, air_input):
+    """
+    `steps` with the surface temperature of the body's air at each age: a full `surface_air.solve` at the anchors (`_anchor_indices`) and, between two anchors, the temperature read on the line between them in the
+    starlight the body takes in (the one quantity of the aged setting that moves the temperature a step moves; the age when two anchors have the same light). `air_input` is `(setting, start_k, entry_state)` of the final
+    solve of the body (`air_final.make`). Steps with no clocks (no star light or heat), and every step when an anchor gives no air, keep `temperature_k` `None`. Each solve reads its draws from `entry_state`, so every
+    anchor is the air the body has now, solved under the light and heat of its age.
+    """
+    setting, start_k, entry_state = air_input
+    aged = [aged_setting(setting, body, step.age_gyr) for step in steps]
+    if not steps or any(item is None for item in aged):
+        return list(steps)
+    scale_of = [item.absorbed_flux_w_m2 for item in aged]
+    heat_of = [item.heat_flux_w_m2 for item in aged]
+    anchors = _anchor_indices(steps, scale_of, heat_of)
+    solved = {}
+    for index in anchors:
+        temperature = _solved_temperature(aged[index], start_k, entry_state)
+        if temperature is None:
+            return list(steps)
+        solved[index] = temperature
+    result = []
+    for index, step in enumerate(steps):
+        if index in solved:
+            result.append(dataclasses.replace(step, temperature_k=solved[index], anchor=True))
+            continue
+        below = max(k for k in anchors if k < index)
+        above = min(k for k in anchors if k > index)
+        span = scale_of[above] - scale_of[below]
+        share = (scale_of[index] - scale_of[below]) / span if span else (math.log(step.age_gyr / steps[below].age_gyr) / math.log(steps[above].age_gyr / steps[below].age_gyr))
+        share = min(max(share, 0.0), 1.0)
+        result.append(dataclasses.replace(step, temperature_k=solved[below] + share * (solved[above] - solved[below])))
+    return result
+
+
+def run(body, cuts=(), air_input=None):
     """
     The steps of the history of a rocky `body` (`schedule` of its star's age, with the ages in `cuts` added): at each, the star's light, the interior's heat, the oxygen law's reductant ratio and
-    label and the water lost. Reads the stored body and draws nothing. Empty for a body with no star or no star age.
+    label and the water lost. With `air_input` (`(setting, start_k, entry_state)` of the body's final air solve, `temperatures`) each step also has the surface temperature of its air. Reads the stored body and draws
+    nothing from the ambient stream. Empty for a body with no star or no star age.
     """
     star = getattr(body, "star", None)
     star_age = getattr(star, "age", None)
@@ -123,7 +225,7 @@ def run(body, cuts=()):
     heat_now = interior_heat.heat_at(body, star_age)
     flux_now = None if heat_now is None else heat_now.own_flux_w_m2
     trace = []
-    distance_au = getattr(body, "_star_distance_au", None) or body.distance
+    distance_au = record_of(body).star_distance_au or body.distance
     mass_kg, radius_km = getattr(body, "mass", None), getattr(body, "radius", None)
     if distance_au and mass_kg and radius_km:
         runaway_history.loss_kg(star, distance_au, mass_kg, radius_km, trace=trace)
@@ -141,4 +243,4 @@ def run(body, cuts=()):
                           reductant_ratio=ratio,
                           water_lost_kg=_water_lost_at(trace, age),
                           oxygen_law=_oxygen_law(profile, ratio)))
-    return steps
+    return temperatures(body, steps, air_input) if air_input is not None else steps

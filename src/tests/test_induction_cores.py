@@ -11,6 +11,7 @@ import types
 import pytest
 
 from planetgen.physics import core_heat, magnetism
+from planetgen.generation.build_record import BuildRecord
 
 
 def _core(radius_m=3.48e6):
@@ -70,7 +71,7 @@ def test_a_moons_core_adds_to_its_oceans_moment(monkeypatch):
 
 def _planet(hydrosphere="dry", period_hours=24.0):
     star = types.SimpleNamespace(rotation_period_hours=600.0, pulsar_type=None, radius=None, luminosity=None, log_lx_lbol=None)
-    return types.SimpleNamespace(body_type="t", is_moon=False, star=star, _star_distance_au=1.0, period=1.0, rotation_period_hours=period_hours,
+    return types.SimpleNamespace(body_type="t", is_moon=False, star=star, build=BuildRecord(star_distance_au=1.0), period=1.0, rotation_period_hours=period_hours,
                                  radius=6371.0, hydrosphere=hydrosphere, ocean_depth_km=3.7, ice_shell_km=0.0, ocean_class="neutral",
                                  induced_moment_a_m2=None)
 
@@ -89,7 +90,7 @@ def test_a_stronger_wind_gives_a_larger_moment(monkeypatch):
     from planetgen.physics import interior_heat
     monkeypatch.setattr(interior_heat, "core_of", lambda body: _core())
     near, far = _planet(), _planet()
-    near._star_distance_au, far._star_distance_au = 0.1, 2.0
+    near.build.star_distance_au, far.build.star_distance_au = 0.1, 2.0
     for planet in (near, far):
         magnetism.generate_stellar_induction(planet)
     assert near.induced_moment_a_m2 == pytest.approx(far.induced_moment_a_m2 * (2.0 / 0.1), rel=1e-6)      # B goes as the root of the pressure: 1 / r

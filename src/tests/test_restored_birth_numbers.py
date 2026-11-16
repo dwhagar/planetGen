@@ -8,6 +8,8 @@ moons the planet's history took away (`physics/body_history.py`, `physics/moon_h
 
 import pytest
 
+from planetgen.generation.build_record import HasBuildRecord
+
 from planetgen.db import edits, store
 from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
@@ -38,7 +40,7 @@ def _system_with_a_lost_moon():
     for seed in range(60):
         system, cfg = _make(seed)
         for planet in _rocks_and_giants(system):
-            born = getattr(planet, "_born_moons", None) or ()
+            born = planet.build.born_moons or ()
             if any(not any(moon is kept for kept in planet.moons) for moon in born):
                 return seed, system, cfg
     pytest.fail("no system with a lost moon in 60 seeds")
@@ -65,22 +67,24 @@ def test_a_lost_moon_stand_in_gives_the_four_numbers_the_history_reads():
 
 
 def test_restore_born_puts_the_moons_it_has_and_the_lost_ones_in_the_order_they_were_born():
-    class Planet:
-        _birth_spin = (1.0e-4, 20.0, (0.1, 0.2))
+    class Planet(HasBuildRecord):
+        def __init__(self):
+            self.build.birth_spin = (1.0e-4, 20.0, (0.1, 0.2))
 
     planet = Planet()
     first, last = _Moon(1.0e21, 300.0, 0.001, 0.0015), _Moon(3.0e21, 500.0, 0.004, 0.0041)
     planet.moons = [first, last]
     lost = [{"born_index": 1, "mass_kg": 2.0e21, "birth_distance_au": 0.002, "density_kg_m3": 3000.0, "retrograde": 0}]
     assert moon_history.restore_born(planet, [(0, first), (2, last)], lost) is True
-    assert [type(m).__name__ for m in planet._born_moons] == ["_Moon", "LostMoon", "_Moon"]
-    assert planet._born_moons[0] is first and planet._born_moons[2] is last
-    assert planet._born_moons[1]._birth_distance_au == 0.002
+    assert [type(m).__name__ for m in planet.build.born_moons] == ["_Moon", "LostMoon", "_Moon"]
+    assert planet.build.born_moons[0] is first and planet.build.born_moons[2] is last
+    assert planet.build.born_moons[1]._birth_distance_au == 0.002
 
 
 def _two_moons():
-    class Planet:
-        _birth_spin = (1.0e-4, 20.0, (0.1, 0.2))
+    class Planet(HasBuildRecord):
+        def __init__(self):
+            self.build.birth_spin = (1.0e-4, 20.0, (0.1, 0.2))
 
     planet = Planet()
     planet.moons = [_Moon(1.0e21, 300.0, 0.001, 0.0015), _Moon(1.0e21, 300.0, 0.003, 0.0035)]
@@ -90,17 +94,17 @@ def _two_moons():
 def test_restore_born_sets_nothing_for_a_moon_with_no_stored_place_a_planet_saved_before_the_lost_moons_were_kept():
     planet = _two_moons()
     assert moon_history.restore_born(planet, [(0, planet.moons[0])], []) is False
-    assert not hasattr(planet, "_born_moons")
+    assert planet.build.born_moons is None
 
 
 def test_restore_born_sets_nothing_when_the_places_have_a_gap_the_rows_do_not_tell_the_whole_story():
     planet = _two_moons()
     assert moon_history.restore_born(planet, [(0, planet.moons[0]), (2, planet.moons[1])], []) is False
-    assert not hasattr(planet, "_born_moons")
+    assert planet.build.born_moons is None
 
 
 def test_a_planet_with_no_birth_spin_gets_no_born_list():
-    class Planet:
+    class Planet(HasBuildRecord):
         moons = []
 
     assert moon_history.restore_born(Planet(), [], [{"born_index": 0, "mass_kg": 1.0e21, "birth_distance_au": 0.002, "density_kg_m3": 3000.0, "retrograde": 0}]) is False
@@ -118,12 +122,12 @@ def test_a_saved_system_keeps_where_each_body_formed_and_the_moons_its_history_l
     finally:
         conn.close()
     made = {planet.name: planet for planet in _rocks_and_giants(system)}
-    assert stored == sum(len([m for m in getattr(p, "_born_moons", None) or () if not any(m is k for k in p.moons)]) for p in made.values())
+    assert stored == sum(len([m for m in p.build.born_moons or () if not any(m is k for k in p.moons)]) for p in made.values())
     assert stored >= 1
     for again in _rocks_and_giants(loaded):
         original = made[again.name]
         assert again.formation_distance_au == original.formation_distance_au
-        born, restored = getattr(original, "_born_moons", None), getattr(again, "_born_moons", None)
+        born, restored = original.build.born_moons, again.build.born_moons
         if born:
             assert restored is not None and len(restored) == len(born)
             for was, now in zip(born, restored):
@@ -152,8 +156,8 @@ def test_a_moved_restored_system_comes_out_as_the_generated_one_when_nothing_but
         for name in [name for name in vars(x) if name not in vars(y)]:
             delattr(x, name)
     for x, y in zip(_rocks_and_giants(twin), _rocks_and_giants(loaded)):
-        if hasattr(y, "_born_moons"):
-            x._born_moons = list(y._born_moons)
+        if y.build.born_moons is not None:
+            x.build.born_moons = list(y.build.born_moons)
     for system in (twin, loaded):
         for planet in _rocks_and_giants(system):
             planet.distance *= 1.15

@@ -129,8 +129,8 @@ def _system(seed):
     return StarSystem(system_config=SystemConfig())
 
 
-_STAR_ROW_ONLY = {"state", "decay_age_yr"}
-"""set: Columns the star row holds that `Star.to_dict()` does not carry: they are derived from the star by `stellar_state.set_state` (GEN.785, GEN.786), not serialised with it."""
+_STAR_ROW_ONLY = {"state", "decay_age_yr", "initial_mass_sol", "phase_end_age_gy"}
+"""set: Columns the star row holds that `Star.to_dict()` does not carry: the state and decay age are derived from the star by `stellar_state.set_state` (GEN.785, GEN.786), not serialised with it; the birth mass and the end of the drawn phase are the model's draws, kept in the row for a restored star (DB.133)."""
 
 
 @_pytest.mark.parametrize("seed", [1, 2, 3])

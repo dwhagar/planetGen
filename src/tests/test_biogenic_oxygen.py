@@ -11,6 +11,7 @@ from planetgen.generation import evolution, life
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import atmosphere, biogenic_oxygen as bo, constants, gases, habitability_world, life_air, life_classes, surface_refuge
+from planetgen.generation.build_record import BuildRecord, HasBuildRecord
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -76,11 +77,19 @@ def test_earth_numbers_balance_at_the_oxygen_of_earths_air():
     assert bo.EARTH_SURPLUS_MOL_YR == pytest.approx(bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR)
     assert bo.balance_pa(bo.EARTH_SURPLUS_MOL_YR, bo.EARTH_AREA_M2) == pytest.approx(bo.EARTH_O2_PA)
     # GEN.1463: the store is the surplus summed over the 0.714 Gyr after the biomarkers (2.7 Ga) with the reductant at 2.2 times its present value falling to 1.9 times (the model's heat
-    # history of an Earth-mass body, whose heat now is 0.76 of the 44 TW Earth gives off), so the delay at today's reductant is 0.3 to 1 Gyr of the published bracket and shorter than it was when R was held at today's value
+    # history of an Earth-mass body, whose heat now is 1.07 of the model's Earth twin, `EARTH_HEAT_W`, GEN.1762), so the delay at today's reductant is 0.3 to 1 Gyr of the published bracket and shorter than it was when R was held at today's value
     now_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR) / 1e9
-    then_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - 2.2 * 0.76 * bo.EARTH_REDUCTANT_MOL_YR) / 1e9
+    then_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - 2.2 * 1.07 * bo.EARTH_REDUCTANT_MOL_YR) / 1e9
     assert 0.3 < now_delay < 1.0
     assert then_delay == pytest.approx(0.714, abs=0.12)
+
+
+def test_the_earth_twins_heat_is_the_one_reference_of_the_reductant_flux():
+    # GEN.1762: R is Earth's times the heat over the model's Earth twin's (`surface_pressure.HEAT_FLUX_EARTH_W_M2`, row AM33), not over the measured 44 TW: no fourth Earth heat constant
+    from planetgen.physics import surface_pressure
+    assert bo.EARTH_HEAT_W == pytest.approx(surface_pressure.HEAT_FLUX_EARTH_W_M2 * bo.EARTH_AREA_M2)
+    twin = SimpleNamespace(internal_heat_flux_w_m2=surface_pressure.HEAT_FLUX_EARTH_W_M2, tidal_flux_w_m2=0.0, mantle_delta_iw=bo.EARTH_MANTLE_DELTA_IW)
+    assert bo.reductant_flux(twin, bo.EARTH_AREA_M2) == pytest.approx(bo.EARTH_REDUCTANT_MOL_YR, rel=1e-6)
 
 
 def test_a_more_reduced_mantle_puts_out_more_reductants_inside_the_range():
@@ -106,7 +115,7 @@ def test_burning_takes_the_oxygen_the_reduced_gases_want_and_leaves_their_oxides
     assert set(burnt) == {"N2", "CO2", "O2"} and burnt["CO2"] == pytest.approx(2.0) and burnt["O2"] == 0.5
 
 
-class _Body:
+class _Body(HasBuildRecord):
     """A bare body for the fire limit: Earth's radius and gravity unless given."""
 
     def __init__(self, gravity=1.0, radius=6371.0):
@@ -150,7 +159,7 @@ def _air_after_apply(monkeypatch, partials, cap, target_mol):
     monkeypatch.setattr(bo, "store_air", lambda body, air: stored.update(air))
     body = _Body()
     setattr(body, atmosphere.GAS_FIELD, dict(partials))
-    body._retention_cap_pa = cap
+    body.build.retention_cap_pa = cap
     return body, stored, bo.apply(body, target_mol)
 
 
@@ -287,7 +296,7 @@ def _fake_air(monkeypatch, body, partials, greenhouse_k_per_kpa=None):
 
 
 def test_a_world_with_no_carbon_sink_is_left_as_it_is(monkeypatch):
-    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=285.0, _co2_sink=None)
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=285.0, build=BuildRecord(co2_sink=None))
     _fake_air(monkeypatch, body, body.air)
     assert bo.rebalance_co2(body) is False and body.air["CO2"] == 100.0
 
@@ -295,7 +304,7 @@ def test_a_world_with_no_carbon_sink_is_left_as_it_is(monkeypatch):
 def test_the_co2_follows_the_sink_to_the_temperature_the_oxygen_rise_left(monkeypatch):
     """The air was solved at 300 K with 100 Pa of CO2; the rise left it at 280 K, where the sink holds four times as much. With no greenhouse from the CO2 the
     fixed point is the sink's answer at 280 K: 100 + (400 - 100) Pa."""
-    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=280.0, _co2_sink=_Sink())
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=280.0, build=BuildRecord(co2_sink=_Sink()))
     _fake_air(monkeypatch, body, body.air)
     assert bo.rebalance_co2(body) is True
     assert body.air["CO2"] == pytest.approx(400.0, rel=0.03)
@@ -304,7 +313,7 @@ def test_the_co2_follows_the_sink_to_the_temperature_the_oxygen_rise_left(monkey
 
 def test_the_co2_and_the_temperature_settle_against_each_other(monkeypatch):
     """With a greenhouse (20 K per kPa of CO2) the warmer air holds less: the pair settles where the CO2 is what the sink holds at the temperature that CO2 gives."""
-    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=280.0, _co2_sink=_Sink())
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=280.0, build=BuildRecord(co2_sink=_Sink()))
     _fake_air(monkeypatch, body, body.air, greenhouse_k_per_kpa=20.0)
     bo.rebalance_co2(body)
     held = _Sink.kept_at(body.surface_temperature) * 1.0e5 - _Sink.solved_bar * 1.0e5 + 100.0
@@ -313,14 +322,14 @@ def test_the_co2_and_the_temperature_settle_against_each_other(monkeypatch):
 
 
 def test_a_warmer_air_drives_the_co2_down_to_nothing_not_below(monkeypatch):
-    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=340.0, _co2_sink=_Sink())
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=340.0, build=BuildRecord(co2_sink=_Sink()))
     _fake_air(monkeypatch, body, body.air)
     bo.rebalance_co2(body)
     assert 0.0 <= body.air.get("CO2", 0.0) < 100.0
 
 
 def test_the_sink_of_a_generated_world_gives_the_pressure_it_solved_at_the_temperature_it_solved_at(worlds):
-    sinks = [planet._co2_sink for planet in worlds if getattr(planet, "_co2_sink", None) is not None]
+    sinks = [planet.build.co2_sink for planet in worlds if planet.build.co2_sink is not None]
     assert sinks, "no generated world kept a carbon sink"
     for sink in sinks:
         assert sink.kept_at(sink.solved_temperature_k) == pytest.approx(sink.solved_bar, rel=1e-9)
@@ -328,7 +337,7 @@ def test_the_sink_of_a_generated_world_gives_the_pressure_it_solved_at_the_tempe
 
 def test_the_carbon_dioxide_takes_only_the_room_the_retention_cap_leaves(monkeypatch):
     """A 10 kPa cap on an air of 6.5 kPa of oxygen and nitrogen: the sink asks for far more CO2, but the oxygen is not squeezed out; the CO2 stops at the cap."""
-    body = SimpleNamespace(air={"N2": 1000.0, "O2": 6500.0, "CO2": 100.0}, surface_temperature=250.0, _co2_sink=_Sink(), _retention_cap_pa=10000.0)
+    body = SimpleNamespace(air={"N2": 1000.0, "O2": 6500.0, "CO2": 100.0}, surface_temperature=250.0, build=BuildRecord(co2_sink=_Sink(), retention_cap_pa=10000.0), )
     _fake_air(monkeypatch, body, body.air)
     bo.rebalance_co2(body)
     assert body.air["O2"] == 6500.0 and body.air["N2"] == 1000.0
@@ -366,7 +375,7 @@ def test_air_with_no_gas_over_its_saturation_pressure_is_left_as_it_is():
 def _lit_sea_world(temperature_k, luminosity_w=None):
     """A sea world of Earth's size and warmth under a star of `temperature_k` that gives Earth's bolometric flux at one AU (so only the colour differs)."""
     star = SimpleNamespace(luminosity=luminosity_w or constants.SOLAR_LUMINOSITY, temperature=temperature_k)
-    return SimpleNamespace(star=star, distance=1.0, hydrosphere="surface ocean", ocean_fraction=0.71, surface_temperature=288.0, radius=6371.0, gravity=1.0)
+    return SimpleNamespace(star=star, distance=1.0, hydrosphere="surface ocean", ocean_fraction=0.71, surface_temperature=288.0, radius=6371.0, gravity=1.0, build=BuildRecord())
 
 
 def test_each_oxygenic_class_eats_the_light_of_its_own_band_and_the_sun_gives_class_1a_earths_own():

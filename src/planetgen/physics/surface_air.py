@@ -37,6 +37,7 @@ weathering of an ocean world, a tectonic switch of the heat loss, the helium-rai
 level radiates the absorbed starlight and the cooling-law heat of `giant_draw.own_flux_w_m2`, GEN.816).
 """
 
+from planetgen.generation.build_record import record_of
 import math
 from dataclasses import dataclass, field, replace
 
@@ -44,7 +45,7 @@ from scipy.optimize import brentq
 
 from planetgen.physics import (
     ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, continental_weathering, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
-    mixture_escape, mixture_rocky,
+    mixture_escape, mixture_rocky, moist_limit,
     mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, starlight_aloft, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
 from planetgen import tuning
@@ -57,12 +58,6 @@ from planetgen.util import draw
 _kg_to_mearth = unit_registry.converter("kg", "Mearth")
 
 # --- numerical ----------------------------------------------------------------------------------------------------------------
-
-MOIST_LIMIT_K = 375.0
-"""float: The hottest surface of a body with water that gets less than its runaway greenhouse flux (GEN.1329), K: the surface of the radiative-convective model's
-saturated clear-sky air at its last solution before the runaway (374.6 K at 330 W/m2, GEN.1194, stand-in 6.204 SV1). Past it a steam air radiates more than such a body
-absorbs, so the fixed point does not hold the state; it is the guard that keeps the transient steps of the fixed point (a dense, hydrogen-rich first mixture the
-table warms to 1,000 K) from carrying the ocean past the critical point of water, where `freeze_out` puts all of it in the air."""
 
 MAX_STEPS = 60
 """int: The most steps of the fixed point. A body that has not settled by then keeps its last step and says so (`Air.converged`)."""
@@ -259,7 +254,7 @@ class Setting:
         cycle_share (float): The share of bodies of its kind whose carbon-cycle constants a Class M abundance tier draws from the part of their ranges nearest the Earth's balance (`abundance_tier.cycle_share`, GEN.1720); 0 outside a tier.
         steam_possible (bool): Whether the body can hold its water as steam: its effective flux (the starlight and its own heat) is past the runaway
             greenhouse limit (`orbits.runaway_greenhouse_flux`, GEN.1329). Under the limit a hot steam air radiates the steam limit of about 280 W/m2, more
-            than the body absorbs, and cools, so a body with water is held under `MOIST_LIMIT_K`. True for a setting built by hand, as it was before GEN.1329.
+            than the body absorbs, and cools, so a body with water is held under the moist limit of its air (`moist_limit.limit_k`, GEN.1579). True for a setting built by hand, as it was before GEN.1329.
     """
 
     gravity_m_s2: float
@@ -927,8 +922,8 @@ def solve(setting, start_temperature_k):
         # GEN.1580: the surface stops where the air's main gas is half ionized at its pressure (`ionization.ceiling_k`), a limit no generated body should reach
         ceiling_of_step = ionization.ceiling_k(partials, new_pressure)
         new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), ceiling_of_step)
-        if held_cool:
-            new_temperature = min(new_temperature, MOIST_LIMIT_K)
+        if held_cool:       # GEN.1579: the hottest surface a moist state of this air can have, not one number for every air
+            new_temperature = min(new_temperature, moist_limit.limit_k(partials, setting.gravity_m_s2))
         return "stepped", (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze, albedo_of_step, ceiling_of_step, subject)
 
     def seek_root(last, st_start, visited, center):
@@ -1233,5 +1228,5 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         far_uv=aerosols.far_uv_of(star, star_distance_au),
         starlight_w_m2=starlight_w_m2, albedo_law=ice_law,
         cloud_law=None if ice_law is None else cloud_law_of(body, starlight_w_m2, star_distance_au),
-        late_accreted_percent=getattr(body, "_late_accreted_percent", None),
+        late_accreted_percent=record_of(body).late_accreted_percent,
         ice_kg=None if giant else surface_ice_kg(body), cycle_share=abundance_tier.cycle_share(body))

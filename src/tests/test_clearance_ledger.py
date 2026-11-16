@@ -40,29 +40,37 @@ def test_subtract_intersect_contains_and_nearest():
     assert spans.subtract(0, 20) == ledger.SpanSet()
 
 
+def _log_uniform_quantile(u, spans):
+    """The `u` quantile of a law uniform in the logarithm of the distance, cut to `spans` (the exact conditional law, one draw, no retry), or None where the spans hold none of it.
+    Production code has no placer that reads the ledger yet (GEN.1764 removed the unread function it had), so the tests draw from the spans this way."""
+    spans = spans.intersect(1e-300, math.inf)
+    weights = [(math.log(span.high) - math.log(span.low), span) for span in spans]
+    total = sum(weight for weight, _span in weights if weight > 0.0)
+    if not total > 0.0:
+        return None
+    target = min(max(u, 0.0), 1.0) * total
+    base = 0.0
+    for weight, span in weights:
+        if weight <= 0.0:
+            continue
+        if target <= base + weight or span is weights[-1][1]:
+            return min(max(math.exp(math.log(span.low) + (target - base)), span.low), span.high)
+        base += weight
+    return None
+
+
 def test_log_uniform_draw_stays_in_the_spans_and_keeps_their_share_of_the_law():
     spans = ledger.SpanSet([(1.0, 2.0), (8.0, 16.0)])
     rng = random.Random(1014)
-    draws = [ledger.log_uniform_quantile(rng.random(), spans) for _ in range(20000)]
+    draws = [_log_uniform_quantile(rng.random(), spans) for _ in range(20000)]
     assert all(spans.contains(x) for x in draws)
-    assert ledger.log_uniform_quantile(0.0, spans) == pytest.approx(1.0) and ledger.log_uniform_quantile(1.0, spans) == pytest.approx(16.0)
+    assert _log_uniform_quantile(0.0, spans) == pytest.approx(1.0) and _log_uniform_quantile(1.0, spans) == pytest.approx(16.0)
     assert sum(x < 4.0 for x in draws) / len(draws) == pytest.approx(0.5, abs=0.02)   # equal log widths
 
 
-def test_a_restricted_quantile_is_the_conditional_law_for_any_law():
-    # an exponential law cut to [0, 1] and [3, 4]
-    spans = ledger.SpanSet([(0.0, 1.0), (3.0, 4.0)])
-    cdf, ppf = (lambda x: 1.0 - math.exp(-x)), (lambda p: -math.log(1.0 - p))
-    low_mass, high_mass = cdf(1.0) - cdf(0.0), cdf(4.0) - cdf(3.0)
-    rng = random.Random(3)
-    draws = [ledger.restricted_quantile(rng.random(), spans, cdf, ppf) for _ in range(20000)]
-    assert sum(x <= 1.0 for x in draws) / len(draws) == pytest.approx(low_mass / (low_mass + high_mass), abs=0.02)
-    assert all(spans.contains(x) for x in draws)
-
-
 def test_a_draw_with_no_probability_in_the_spans_says_so():
-    assert ledger.restricted_quantile(0.5, ledger.SpanSet(), math.log, math.exp) is None
-    assert ledger.log_uniform_quantile(0.5, ledger.SpanSet([(-3.0, -1.0)])) is None
+    assert _log_uniform_quantile(0.5, ledger.SpanSet()) is None
+    assert _log_uniform_quantile(0.5, ledger.SpanSet([(-3.0, -1.0)])) is None
 
 
 # --- exclusions ---------------------------------------------------------------------------------------------------------------------------
@@ -241,7 +249,7 @@ def test_no_room_is_an_empty_set():
     book = ledger.Ledger(nodes, members, ceilings_au={host: 1.0}, floors_au={0: 0.9})
     book.place_planet(host, 0.95, 1e27)
     assert not book.open_spans(host, 1e27)
-    assert ledger.log_uniform_quantile(0.5, book.open_spans(host, 1e27)) is None
+    assert _log_uniform_quantile(0.5, book.open_spans(host, 1e27)) is None
 
 
 # --- placing only where the ledger allows, and the verifier finds nothing ---------------------------------------------------------------------
@@ -274,7 +282,7 @@ def test_planets_and_belts_drawn_from_the_ledger_pass_the_independent_verifier(k
                     spans = book.open_belt_spans(host, 0.3)
                     if not spans:
                         continue
-                    low = ledger.log_uniform_quantile(rng.random(), ledger.SpanSet((s.low, s.high - 0.3) for s in spans))
+                    low = _log_uniform_quantile(rng.random(), ledger.SpanSet((s.low, s.high - 0.3) for s in spans))
                     if low is None:
                         continue
                     book.place_belt(host, low, low + 0.3)
@@ -282,7 +290,7 @@ def test_planets_and_belts_drawn_from_the_ledger_pass_the_independent_verifier(k
                     continue
                 mass = EARTH * 10 ** rng.uniform(-1.0, 3.0)
                 e = rng.uniform(0.0, 0.3)
-                a = ledger.log_uniform_quantile(rng.random(), book.open_spans(host, mass, e))
+                a = _log_uniform_quantile(rng.random(), book.open_spans(host, mass, e))
                 if a is None:
                     continue
                 book.place_planet(host, a, mass, e)

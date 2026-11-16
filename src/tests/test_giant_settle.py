@@ -9,6 +9,8 @@ test_giant_draw.py; here the planet it is wired to and the finished system.
 import math
 from types import SimpleNamespace
 
+from planetgen.generation.build_record import BuildRecord
+
 import pytest
 
 from planetgen.generation.config import SystemConfig
@@ -105,9 +107,9 @@ def test_a_moon_the_smaller_giant_cannot_hold_is_dropped(host_star, monkeypatch)
     planet = _table_giant(host_star)
     limit_km, _ = planets.moon_size_limits(planet)
     kept = SimpleNamespace(radius=0.1 * limit_km, mass=1e-6 * planet.mass, distance=planet.hill_radius * 0.1 / constants.AU_TO_KM,
-                           eccentricity=0.0, position_x=0.0, position_y=0.0, position_z=0.0)
+                           eccentricity=0.0, position_x=0.0, position_y=0.0, position_z=0.0, build=BuildRecord())
     too_big = SimpleNamespace(radius=0.999 * limit_km, mass=1e-6 * planet.mass, distance=planet.hill_radius * 0.12 / constants.AU_TO_KM,
-                              eccentricity=0.0, position_x=0.0, position_y=0.0, position_z=0.0)
+                              eccentricity=0.0, position_x=0.0, position_y=0.0, position_z=0.0, build=BuildRecord())
     planet.moons = [kept, too_big]
     host_star.age = 7.0
     assert planets.settle_giant(planet) is True
@@ -138,7 +140,7 @@ def _close_in_planet(star, mass_kg=0.9 * constants.EARTH_MASS_TO_KG, distance=0.
     star.age = 0.5
     for seed in range(80):
         planet = class_support.draw_planet(star, distance, seed, SystemConfig(), mass=mass_kg, zone_override="h", moon_count=moon_count)
-        birth = getattr(planet, "_orbit_birth", None)
+        birth = planet.build.orbit_birth
         if birth is None or planet.eccentricity < 0.05:
             continue
         time_yr = orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance)
@@ -153,9 +155,9 @@ def test_a_close_in_planet_is_circularised_for_the_final_age(host_star):
     host_star.age = 13.8
     assert planets.settle_orbit(planet) is True
     time_yr = orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance)
-    cold = orbit_elements.circularised(planet._orbit_birth, 13.8e9, time_yr)
+    cold = orbit_elements.circularised(planet.build.orbit_birth, 13.8e9, time_yr)
     # GEN.1351: the orbit decays at the faster of the cold rheology's time and the one the tide the body really feels gives
-    assert planet.eccentricity == pytest.approx(orbit_elements.settled_eccentricity(planet, planet._orbit_birth, 13.8e9, planet.primary_mass_kg, planet.distance), rel=1e-9)
+    assert planet.eccentricity == pytest.approx(orbit_elements.settled_eccentricity(planet, planet.build.orbit_birth, 13.8e9, planet.primary_mass_kg, planet.distance), rel=1e-9)
     assert planet.eccentricity <= cold * (1.0 + 1e-9)
     assert planet.eccentricity < drawn
     assert planet.orbit_from_vector()["eccentricity"] == pytest.approx(planet.eccentricity, abs=1e-7)
@@ -171,7 +173,7 @@ def test_a_planet_whose_age_did_not_move_keeps_its_orbit(host_star):
 
 def test_the_moons_of_a_settled_planet_are_told_its_new_eccentricity(host_star):
     planet = _close_in_planet(host_star)
-    planet.moons = [SimpleNamespace(host_eccentricity=planet.eccentricity), SimpleNamespace(host_eccentricity=planet.eccentricity)]
+    planet.moons = [SimpleNamespace(host_eccentricity=planet.eccentricity, build=BuildRecord()), SimpleNamespace(host_eccentricity=planet.eccentricity, build=BuildRecord())]
     host_star.age = 13.8
     assert planets.settle_orbit(planet) is True
     assert all(moon.host_eccentricity == planet.eccentricity for moon in planet.moons)

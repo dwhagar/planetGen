@@ -3871,7 +3871,7 @@
             ],
             [
               "Where it holds",
-              "the one Earth heat-flow reference: the outgassing flux, the life supply's heat share (life_supply.heat_share) and the hydrothermal ores' heat ratio read it (GEN.1636; the Earth's measured 0.087 to 0.09 is not used, the model's heat flows are read against the model's own Earth twin)"
+              "the one Earth heat-flow reference: the outgassing flux, the life supply's heat share (life_supply.heat_share), the hydrothermal ores' heat ratio and the oxygen balance's reductant flux (biogenic_oxygen.EARTH_HEAT_W, 31 TW) read it (GEN.1636, GEN.1762; the Earth's measured 0.087 to 0.09 (44 TW) is not used, the model's heat flows are read against the model's own Earth twin: its Earth twin gives 0.0614 because the stagnant lid it models loses heat less freely than Earth's mobile lid, so the gap is the model's and no second constant carries it)"
             ],
             [
               "What would show it wrong",
@@ -12509,7 +12509,7 @@
           "fields": [
             [
               "What it is",
-              "biogenic_oxygen.EARTH_STORE_MOL 4e21 (5e21 until GEN.1463): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
+              "biogenic_oxygen.EARTH_STORE_MOL 2.4e21 (4e21 until GEN.1762, 5e21 until GEN.1463; GEN.1762 read the Earth twin's heat from the one reference, so R of an Earth-mass body is 1.07 of Earth's and not 0.76, and the store was set again to keep the 0.714 Gyr): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
             ],
             [
               "The range it moves in",
@@ -12540,7 +12540,7 @@
           "tier_code": "T3",
           "tweak": "L1",
           "unread": null,
-          "what": "biogenic_oxygen.EARTH_STORE_MOL 4e21 (5e21 until GEN.1463): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
+          "what": "biogenic_oxygen.EARTH_STORE_MOL 2.4e21 (4e21 until GEN.1762, 5e21 until GEN.1463; GEN.1762 read the Earth twin's heat from the one reference, so R of an Earth-mass body is 1.07 of Earth's and not 0.76, and the store was set again to keep the 0.714 Gyr): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
         },
         {
           "burn_down": [
@@ -24935,7 +24935,7 @@
           "fields": [
             [
               "What it is",
-              "brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 [R0606]"
+              "baraffe_isochrones.cooling_track: the radius of a mass the table loses while it is young shrinks past that age as the lightest mass the table still holds does (the radius of an old brown dwarf is nearly the same at every mass), the temperature continues at t^-0.32 [R0606] (GEN.1624: it was held at its last, young, value, 1.7 Jupiter radii at 13 Jupiter masses at any age, and the luminosity ran up to 2.4 times high)"
             ],
             [
               "The range it moves in",
@@ -24947,7 +24947,7 @@
             ],
             [
               "What would show it wrong",
-              "a radius of a 13 Jupiter mass object at 10 Gy over 1.2 Jupiter radii"
+              "a radius of a 13 Jupiter mass object at 10 Gy outside 0.8 to 1.05 Jupiter radii"
             ],
             [
               "What replaces it",
@@ -24955,7 +24955,7 @@
             ],
             [
               "Evidence",
-              "an inference, kept from the eleven-row table it replaces; the radius is 1.7 Jupiter radii for 13 Jupiter masses"
+              "an inference from the table's own radii: at 0.3 to 1 Gy they lie within 5 percent of each other from 0.04 to 0.07 solar masses"
             ]
           ],
           "id": "LM4",
@@ -24966,7 +24966,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 [R0606]"
+          "what": "baraffe_isochrones.cooling_track: the radius of a mass the table loses while it is young shrinks past that age as the lightest mass the table still holds does (the radius of an old brown dwarf is nearly the same at every mass), the temperature continues at t^-0.32 [R0606] (GEN.1624: it was held at its last, young, value, 1.7 Jupiter radii at 13 Jupiter masses at any age, and the luminosity ran up to 2.4 times high)"
         },
         {
           "burn_down": null,
@@ -42657,11 +42657,11 @@
           "fields": [
             [
               "What it is",
-              "surface_air._steam_possible and MOIST_LIMIT_K 375: a body holds steam only when its effective flux (starlight over 1361 W/m2 plus 4 times its own heat flow over 1361 times one less its albedo) is past orbits.runaway_greenhouse_flux of its star's temperature and its mass (the Sun's temperature for a body with no star); under it a body with water has its surface held at 375 K or under, the surface of the radiative-convective model's saturated clear-sky air at its last solution (374.6 K at 330 W/m2, GEN.1194)"
+              "surface_air._steam_possible and the moist limit of the air (moist_limit.limit_k, row ML1): a body holds steam only when its effective flux (starlight over 1361 W/m2 plus 4 times its own heat flow over 1361 times one less its albedo) is past orbits.runaway_greenhouse_flux of its star's temperature and its mass (the Sun's temperature for a body with no star); under it a body with water has its surface held at or under the moist limit of its air (ML1)"
             ],
             [
               "The range it moves in",
-              "MOIST_LIMIT_K 340 to 420; the limit's own range ([R2446] runaway sets, 0.9 to 1.5 S by star and mass)"
+              "the limit's own range ([R2446] runaway sets, 0.9 to 1.5 S by star and mass)"
             ],
             [
               "Where it holds",
@@ -42677,7 +42677,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics: a hot steam air cannot radiate less than about 280 W/m2 [R1607, R3236], so a body that absorbs less than the limit cools until its water condenses; the 375 K bound is the model's own moist limit, not a source value"
+              "educated guess from physics: a hot steam air cannot radiate less than about 280 W/m2 [R1607, R3236], so a body that absorbs less than the limit cools until its water condenses; the bound is the model's own moist limit of the air (ML1), not a source value"
             ]
           ],
           "id": "SV1",
@@ -42688,7 +42688,45 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "surface_air._steam_possible and MOIST_LIMIT_K 375: a body holds steam only when its effective flux (starlight over 1361 W/m2 plus 4 times its own heat flow over 1361 times one less its albedo) is past orbits.runaway_greenhouse_flux of its star's temperature and its mass (the Sun's temperature for a body with no star); under it a body with water has its surface held at 375 K or under, the surface of the radiative-convective model's saturated clear-sky air at its last solution (374.6 K at 330 W/m2, GEN.1194)"
+          "what": "surface_air._steam_possible and the moist limit of the air (moist_limit.limit_k, row ML1): a body holds steam only when its effective flux (starlight over 1361 W/m2 plus 4 times its own heat flow over 1361 times one less its albedo) is past orbits.runaway_greenhouse_flux of its star's temperature and its mass (the Sun's temperature for a body with no star); under it a body with water has its surface held at or under the moist limit of its air (ML1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "physics/data/moist_limit_table.json and moist_limit.limit_k (GEN.1579): the hottest surface a moist state of an air can have, the temperature where the relative slope of the infrared flux to space of the air's saturated clear-sky column over an ocean (radiative_convective with saturated=True, clear_sky=True, the humidity 0.77 of the generator's oceans, row IR17) first falls under 0.1 percent of itself per K (moist_limit.SLOPE_FLOOR_PER_K, 0.001), read from a table of that flux on a grid of surface temperature (260 to 600 K), non-condensing gas (0 to 100 bar), carbon dioxide (0 to 300 bar) and gravity (0.5 to 2 g) by interpolation in the logarithm of the pressures (plus 10 kPa, moist_limit.PRESSURE_OFFSET_PA) and of the gravity, held at the grid's edge outside it; every gas that is neither carbon dioxide nor water counts as nitrogen; built by scripts/build_moist_limit_table.py, refused when the k-tables are not the ones it was built from"
+            ],
+            [
+              "The range it moves in",
+              "slope floor 0.05 to 0.4 percent per K (a ceiling several tens of kelvin higher or lower for the airs with a long flat top); the pressure offset 10 kPa (shifts the thin airs' place on the axis, not their values at the grid's points)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with surface water under their runaway flux, air of up to 100 bar of non-condensing gas and 300 bar of carbon dioxide at 0.5 to 2 g (held at the edge beyond)"
+            ],
+            [
+              "What would show it wrong",
+              "a line-by-line or three-dimensional model that holds a moist state well above the ceiling of a thin nitrogen air (clouds move it [R1607]), or a flat of the published saturated limit (282 to 296 W/m2 [R1607] [R4773]) at a temperature far from the table's; a body past the ceiling whose air the sources hold stable"
+            ],
+            [
+              "What replaces it",
+              "a table from a line-by-line or three-dimensional model, the ceiling of each air of the grid"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the stable branch of a moist climate ends where its outgoing flux stops rising [R1607]; the model's flat top is 315 to 335 W/m2, not the 282 of the line-by-line limit, so the temperature is the model's, not a source value; the slope floor is a design constant and the clouds are left out"
+            ]
+          ],
+          "id": "ML1",
+          "key": "6.204:ML1",
+          "kind": "P",
+          "slug": "6-204-ml1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "physics/data/moist_limit_table.json and moist_limit.limit_k (GEN.1579): the hottest surface a moist state of an air can have, the temperature where the relative slope of the infrared flux to space of the air's saturated clear-sky column over an ocean (radiative_convective with saturated=True, clear_sky=True, the humidity 0.77 of the generator's oceans, row IR17) first falls under 0.1 percent of itself per K (moist_limit.SLOPE_FLOOR_PER_K, 0.001), read from a table of that flux on a grid of surface temperature (260 to 600 K), non-condensing gas (0 to 100 bar), carbon dioxide (0 to 300 bar) and gravity (0.5 to 2 g) by interpolation in the logarithm of the pressures (plus 10 kPa, moist_limit.PRESSURE_OFFSET_PA) and of the gravity, held at the grid's edge outside it; every gas that is neither carbon dioxide nor water counts as nitrogen; built by scripts/build_moist_limit_table.py, refused when the k-tables are not the ones it was built from"
         }
       ],
       "slug": "6-204-stand-in-of-the-steam-limit-of-the-air-of-a-body",
@@ -56935,44 +56973,6 @@
           "tweak": "L1",
           "unread": null,
           "what": "belt_origin.INSTABILITY_SURVIVAL_RANGE 0.002 to 0.01, the share of the swept stretch a giant that migrated through it leaves, log-uniform"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_origin.DESTROYED_RETAINED_SHARE 0.5, the share of a destroyed planet's mass that stays in orbit as a belt"
-            ],
-            [
-              "The range it moves in",
-              "0.1 to 0.9"
-            ],
-            [
-              "Where it holds",
-              "planets destroyed by collision or tide"
-            ],
-            [
-              "What would show it wrong",
-              "a collision run of a planet that leaves under 10 percent in orbit"
-            ],
-            [
-              "What replaces it",
-              "the retained share of collision_outcome for the event"
-            ],
-            [
-              "Evidence",
-              "no source; the rest is ejected or falls onto the star"
-            ]
-          ],
-          "id": "BG10",
-          "key": "6.97:BG10",
-          "kind": "P",
-          "slug": "6-97-bg10",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L0",
-          "unread": null,
-          "what": "belt_origin.DESTROYED_RETAINED_SHARE 0.5, the share of a destroyed planet's mass that stays in orbit as a belt"
         },
         {
           "burn_down": null,
@@ -72969,6 +72969,342 @@
       ],
       "slug": "6-300-stand-ins-of-the-planet-s-hill-sphere-against-the-bodies-besides-its-host-and-of-the-moons-resonances-gen-1449",
       "title": "Stand-ins of the planet's Hill sphere against the bodies besides its host and of the moons' resonances (GEN.1449)"
+    },
+    {
+      "key": "6.303",
+      "number": "6.303",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_PERIOD_CLASSES period cuts 20 and 200 years between the Jupiter family, Halley-type and long-period comets (the usual dynamical classes, recalled, no paper opened)"
+            ],
+            [
+              "The range it moves in",
+              "none: class definitions"
+            ],
+            [
+              "Where it holds",
+              "star-bound comets of a one solar mass star (GEN.1612 scales the window with the star's mass)"
+            ],
+            [
+              "What would show it wrong",
+              "a comet classification that cuts the families at other periods"
+            ],
+            [
+              "What replaces it",
+              "the Tisserand parameter of the star's own giants, which already decides the Jupiter family where a giant exists (CT1 to CT4)"
+            ],
+            [
+              "Evidence",
+              "test_comet_period_class holds the draw inside each family's window"
+            ]
+          ],
+          "id": "CMT1",
+          "key": "6.303:CMT1",
+          "kind": "P",
+          "slug": "6-303-cmt1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.COMET_PERIOD_CLASSES period cuts 20 and 200 years between the Jupiter family, Halley-type and long-period comets (the usual dynamical classes, recalled, no paper opened)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the short end is the shortest period the Solar System shows and the long end a round number inside a cloud's tidal edge; the outer edge of the cloud from the star's mass and the galactic tide (GEN.1466) replaces the long end, and a census of other systems' comets would replace the short one; tier T4 stays"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_PERIOD_CLASSES outer ends: the Jupiter family's shortest period 3.3 years and the long-period comets' longest 4,000,000 years (aphelion about 5e4 AU for a solar mass star)"
+            ],
+            [
+              "The range it moves in",
+              "short end 2 to 5 years; long end 2e6 to 1.1e7 years (the tidal edge of a cloud, about 1e5 AU)"
+            ],
+            [
+              "Where it holds",
+              "star-bound comets"
+            ],
+            [
+              "What would show it wrong",
+              "a census of a system's comets with periods outside the window in numbers"
+            ],
+            [
+              "What replaces it",
+              "the cloud's own outer edge from the star's mass and the galactic tide (GEN.1466)"
+            ],
+            [
+              "Evidence",
+              "design: the short end is the shortest period the Solar System shows, a Solar System number kept only because nothing derived replaces it; the long end is a round number inside the tidal edge"
+            ]
+          ],
+          "id": "CMT2",
+          "key": "6.303:CMT2",
+          "kind": "P",
+          "slug": "6-303-cmt2",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.COMET_PERIOD_CLASSES outer ends: the Jupiter family's shortest period 3.3 years and the long-period comets' longest 4,000,000 years (aphelion about 5e4 AU for a solar mass star)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the eccentricity ranges keep each family inside its period window and no source was read; the eccentricity a giant's scattering gives replaces them and no measured family eccentricity of another system exists; tier T4 stays"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_PERIOD_CLASSES eccentricity ranges 0.2 to 0.75 (Jupiter family), 0.5 to 0.97 (Halley-type) and 0.9 to 0.999 (long-period)"
+            ],
+            [
+              "The range it moves in",
+              "each end within 0.1 (the long-period top within 0.001 of 1)"
+            ],
+            [
+              "Where it holds",
+              "star-bound comets"
+            ],
+            [
+              "What would show it wrong",
+              "an orbit catalogue whose family eccentricities lie outside the ranges"
+            ],
+            [
+              "What replaces it",
+              "the eccentricity a giant's scattering gives (the Tisserand redraw)"
+            ],
+            [
+              "Evidence",
+              "design: the ends keep each family inside its period window for the perihelion range of CMT6; no source read"
+            ]
+          ],
+          "id": "CMT3",
+          "key": "6.303:CMT3",
+          "kind": "P",
+          "slug": "6-303-cmt3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.COMET_PERIOD_CLASSES eccentricity ranges 0.2 to 0.75 (Jupiter family), 0.5 to 0.97 (Halley-type) and 0.9 to 0.999 (long-period)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_PERIOD_CLASSES inclination caps 30 degrees (Jupiter family), 180 (Halley-type) and 180 (long-period)"
+            ],
+            [
+              "The range it moves in",
+              "Jupiter family 20 to 40 degrees"
+            ],
+            [
+              "Where it holds",
+              "star-bound comets"
+            ],
+            [
+              "What would show it wrong",
+              "a Jupiter family whose inclinations are not mostly under 30 degrees, or a long-period family that is not isotropic"
+            ],
+            [
+              "What replaces it",
+              "the inclination a giant's scattering and the outer disk's plane give"
+            ],
+            [
+              "Evidence",
+              "an isotropic cloud and the low inclination of the Jupiter family, both recalled, no paper opened"
+            ]
+          ],
+          "id": "CMT4",
+          "key": "6.303:CMT4",
+          "kind": "P",
+          "slug": "6-303-cmt4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.COMET_PERIOD_CLASSES inclination caps 30 degrees (Jupiter family), 180 (Halley-type) and 180 (long-period)"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1765",
+            "the family weights are chosen so all three families are common; a supply from the outer belt (Jupiter family) and the cloud (the other two) through the giants' scattering replaces them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family"
+            ],
+            [
+              "The range it moves in",
+              "each 0.1 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "stars that hold comets"
+            ],
+            [
+              "What would show it wrong",
+              "a comet census of a system with the shares of its outer belt, giants and cloud"
+            ],
+            [
+              "What replaces it",
+              "a supply from the reservoirs: the outer belt's mass for the Jupiter family, the cloud for the other two, through the giants' scattering"
+            ],
+            [
+              "Evidence",
+              "the code's own comment says it is not a population estimate; chosen so the three families are all common"
+            ]
+          ],
+          "id": "CMT5",
+          "key": "6.303:CMT5",
+          "kind": "P",
+          "slug": "6-303-cmt5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1765",
+            "a truncated power law in nucleus diameter with a published cumulative index, its upper end from the belt's largest body, replaces the uniform draw and its ends"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM (0.5, 20) drawn uniform in diameter"
+            ],
+            [
+              "The range it moves in",
+              "lower end 0.2 to 1 km; upper end 15 to 60 km"
+            ],
+            [
+              "Where it holds",
+              "star-bound comet nuclei"
+            ],
+            [
+              "What would show it wrong",
+              "a measured nucleus size distribution of a star's comets (the cumulative number of nuclei falls steeply with diameter, with an index of about 1.9 for the Jupiter family, recalled, not opened; a uniform draw has index 0)"
+            ],
+            [
+              "What replaces it",
+              "a truncated power law in diameter with the published cumulative index, its upper end from the belt's largest body"
+            ],
+            [
+              "Evidence",
+              "nuclei of 1 to 10 km typical, as the comment in tuning.py quotes it, second-hand; the draw's shape is a stand-in"
+            ]
+          ],
+          "id": "CMT6",
+          "key": "6.303:CMT6",
+          "kind": "P",
+          "slug": "6-303-cmt6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM (0.5, 20) drawn uniform in diameter"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the flat shape follows from an isotropic cloud with a full loss cone; the ends are hand set (the star's radius and tidal limit below, the activity threshold of CA1 above) and no measured perihelion distribution of another system's comets exists"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_PERIHELION_DISTANCE_RANGE_AU (0.05, 5.0) drawn uniform in perihelion"
+            ],
+            [
+              "The range it moves in",
+              "lower end 0.01 to 0.1 AU; upper end 3 to 10 AU"
+            ],
+            [
+              "Where it holds",
+              "star-bound comets"
+            ],
+            [
+              "What would show it wrong",
+              "a comet catalogue whose perihelia are not flat in distance inside the range after the survey bias is removed"
+            ],
+            [
+              "What replaces it",
+              "the star's radius and tidal limit for the lower end and the activity threshold (CA1) for the upper"
+            ],
+            [
+              "Evidence",
+              "physics: for a near-parabolic orbit q = L^2 / (2 G M), and an isotropic cloud that fills its loss cone is flat in L^2, so flat in q; the two ends are hand set"
+            ]
+          ],
+          "id": "CMT7",
+          "key": "6.303:CMT7",
+          "kind": "P",
+          "slug": "6-303-cmt7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.COMET_PERIHELION_DISTANCE_RANGE_AU (0.05, 5.0) drawn uniform in perihelion"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1765",
+            "comets present wherever the system has an outer belt, a cloud or a giant, from the supply of the reservoirs, replace the flat chance and the count"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SYSTEM_COMET_CHANCE 0.3 and SYSTEM_COMET_COUNT_RANGE (1, 3): the share of stars that hold comets and how many of the few the generator models each holds"
+            ],
+            [
+              "The range it moves in",
+              "chance 0.1 to 1; count 1 to 5"
+            ],
+            [
+              "Where it holds",
+              "every star's own comets"
+            ],
+            [
+              "What would show it wrong",
+              "a star with an outer belt or a cloud that shows no comets, or a comet census per star that is far from this rate"
+            ],
+            [
+              "What replaces it",
+              "comets present wherever the system has an outer belt, a cloud or a giant, from the supply of CMT5's replacement"
+            ],
+            [
+              "Evidence",
+              "design: the code's comment (\"most real stars aren't known to host an observed comet population\") is an observation limit, not a rate"
+            ]
+          ],
+          "id": "CMT8",
+          "key": "6.303:CMT8",
+          "kind": "P",
+          "slug": "6-303-cmt8",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SYSTEM_COMET_CHANCE 0.3 and SYSTEM_COMET_COUNT_RANGE (1, 3): the share of stars that hold comets and how many of the few the generator models each holds"
+        }
+      ],
+      "slug": "6-303-stand-ins-of-the-shape-of-a-star-s-own-comets-gen-595",
+      "title": "Stand-ins of the shape of a star's own comets (GEN.595)"
     }
   ]
 }

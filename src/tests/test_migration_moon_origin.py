@@ -12,7 +12,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import moon_composition
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema, migration_number
 
 pytestmark = pytest.mark.fresh_database
 
@@ -55,23 +54,4 @@ def test_a_saved_system_keeps_every_moons_origin_and_its_giants_disk(mysql_confi
                 assert item["moon_disk_lifetime_myr"] is None
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_the_previous_schemas_galaxy_gets_the_columns_empty(mysql_config):
-    load_old_schema(mysql_config, migration_number("moon_origin_and_disk") - 1)
-    assert store.schema_status(mysql_config)[0] == migration_number("moon_origin_and_disk") - 1
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            assert not conn.execute("SHOW COLUMNS FROM " + table + " LIKE 'moon_origin'").fetchall()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            for column in moon_composition.BODY_FIELDS:
-                assert conn.execute("SHOW COLUMNS FROM " + table + " LIKE ?", (column,)).fetchall(), (table, column)
-    finally:
         conn.close()

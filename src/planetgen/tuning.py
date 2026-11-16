@@ -3242,14 +3242,15 @@ INTERSTELLAR_COMET_ACTIVE_CHANCE = 0.5
 # comet nuclei are typically observed in the 1-10 km range (Lamy et al.
 # 2004, "Sizes, Shapes, Albedos, and Colors of Cometary Nuclei"). A
 # separate, wider range reflects that real difference rather than reusing
-# the interstellar range as-is.
+# the interstellar range as-is. Drawn uniform in diameter, a hand-set shape ([Stand-in 6.303 CMT6, tier T6, tweak L3.]).
 BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (0.5, 20.0)
 
 # Perihelion distance range, in AU, for a star-bound comet -- wide enough
 # to cover both a sungrazer-like close pass and an outer-system comet that
 # never gets very active. COMET_ACTIVITY_PERIHELION_THRESHOLD_AU (below)
 # is what actually drives whether a given perihelion produces visible
-# activity, not this range's own bounds.
+# activity, not this range's own bounds. Flat in perihelion, as an isotropic cloud
+# with a full loss cone gives ([Stand-in 6.303 CMT7, tier T6, tweak L3.]).
 COMET_PERIHELION_DISTANCE_RANGE_AU = (0.05, 5.0)
 
 # Real ices (dominated by water ice) begin sublimating noticeably inside
@@ -3284,6 +3285,9 @@ COMET_PERIOD_CLASSES = {
     # isotropic inclination -- true Oort Cloud origin, only weakly
     # dynamically processed). `weight` is this family's relative share of
     # generated elliptical comets, not a physical population estimate.
+    # Registry rows: period cuts [Stand-in 6.303 CMT1, tier T2, tweak L0.], outer ends [Stand-in 6.303 CMT2, tier T4, tweak L3.],
+    # eccentricity [Stand-in 6.303 CMT3, tier T4, tweak L3.], inclination [Stand-in 6.303 CMT4, tier T2, tweak L1.],
+    # weights [Stand-in 6.303 CMT5, tier T9, tweak L3.]
     "jupiter_family": {
         "period_range_years": (3.3, 20.0),
         "eccentricity_range": (0.2, 0.75),
@@ -3341,7 +3345,7 @@ PARABOLIC_COMET_INCLINATION_MAX_DEG = 180.0
 # `SystemConfig.COMETS` is left at its default `None` (random chance) --
 # most real stars aren't known to host an observed comet population, so
 # this stays well under 1.0 rather than guaranteeing every system gets
-# one.
+# one. [Stand-in 6.303 CMT8, tier T9, tweak L3, with SYSTEM_COMET_COUNT_RANGE.]
 SYSTEM_COMET_CHANCE = 0.3
 
 # --- Prevalence (generation/prevalence.py, GEN.52) ---

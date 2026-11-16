@@ -2,6 +2,8 @@
 
 """GEN.1745 slice 1: the step schedule and the clocks of a world's air history (`physics/air_history.py`)."""
 
+import functools
+
 import pytest
 
 from planetgen.generation import evolution
@@ -68,13 +70,13 @@ def test_the_clocks_of_a_world_run_from_a_dim_hot_young_star_to_its_age_now():
 def test_the_water_lost_by_the_last_step_is_the_water_the_runaway_history_gives():
     body = _a_rocky_world_with_life()
     steps = air_history.run(body)
-    distance = getattr(body, "_star_distance_au", None) or body.distance
+    distance = body.build.star_distance_au or body.distance
     assert steps[-1].water_lost_kg == pytest.approx(runaway_history.loss_kg(body.star, distance, body.mass, body.radius), rel=1e-9)
 
 
 def test_the_trace_of_the_runaway_history_changes_no_answer_and_the_light_of_the_last_age_is_the_light_now():
     body = _a_rocky_world_with_life()
-    distance = getattr(body, "_star_distance_au", None) or body.distance
+    distance = body.build.star_distance_au or body.distance
     trace = []
     with_trace = runaway_history.loss_kg(body.star, distance, body.mass, body.radius, trace=trace)
     assert with_trace == runaway_history.loss_kg(body.star, distance, body.mass, body.radius)
@@ -89,3 +91,95 @@ def test_a_body_with_no_star_age_has_no_history():
     class Bare:
         star = None
     assert air_history.run(Bare()) == []
+
+
+@functools.lru_cache(maxsize=None)
+def _a_world_with_its_air_input():
+    """`(body, (setting, start_k, entry_state))` of a generated rocky world with life: the input of its final air solve, caught as it was made."""
+    from planetgen.physics import surface_air
+    from planetgen.util import draw
+    caught = []
+    real = surface_air.solve
+
+    def spy(setting, start):
+        state = draw.getstate()
+        air = real(setting, start)
+        caught.append((setting, start, state, air))
+        return air
+
+    surface_air.solve = spy
+    try:
+        for body in _worlds(60, HABITABLE_WORLD=True):
+            if body.body_type != "t" or not body.life_class or not body.star.age:
+                continue
+            for setting, start, state, air in reversed(caught):
+                if abs(setting.radius_m - body.radius * 1000.0) < 1e-6 * setting.radius_m and air_history.aged_setting(setting, body, body.star.age) is not None:
+                    return body, (setting, start, state)
+    finally:
+        surface_air.solve = real
+    pytest.fail("no generated rocky world with a life class and an air solve")
+
+
+def test_the_aged_setting_of_the_star_s_age_is_the_setting_of_the_final_air():
+    body, (setting, _, _) = _a_world_with_its_air_input()
+    now = air_history.aged_setting(setting, body, body.star.age)
+    assert now.age_gy == body.star.age
+    assert now.starlight_w_m2 == pytest.approx(setting.starlight_w_m2, rel=1e-9) and now.absorbed_flux_w_m2 == pytest.approx(setting.absorbed_flux_w_m2, rel=1e-9)
+    assert now.heat_flux_w_m2 == pytest.approx(setting.heat_flux_w_m2, rel=1e-6)
+    young = air_history.aged_setting(setting, body, 0.2)
+    assert young.heat_flux_w_m2 > now.heat_flux_w_m2 and young.released_j < now.released_j
+    assert young.water_kg == setting.water_kg and young.mantle_kg == setting.mantle_kg
+
+
+def test_the_anchors_are_the_first_and_the_last_step_and_at_most_the_cap_and_move_where_light_or_heat_move():
+    scale = [1.0 + 0.0005 * k for k in range(40)]
+    steps = list(range(40))
+    assert air_history._anchor_indices(steps, scale, [1.0] * 40) == [0, 39]
+    moving = [1.0 * 1.2 ** k for k in range(40)]
+    chosen = air_history._anchor_indices(steps, moving, [1.0] * 40)
+    assert chosen[0] == 0 and chosen[-1] == 39 and chosen == sorted(set(chosen)) and len(chosen) <= air_history.MAX_ANCHORS
+    heat = [1.0 * 1.5 ** k for k in range(40)]
+    assert len(air_history._anchor_indices(steps, [1.0] * 40, heat)) > 2
+
+
+def test_a_temperature_that_follows_the_light_is_read_exactly_between_anchors_and_solved_only_at_them(monkeypatch):
+    body, air_input = _a_world_with_its_air_input()
+    setting = air_input[0]
+    solved = []
+
+    def fake(aged, start_k, entry_state):
+        solved.append(aged.age_gy)
+        return 200.0 + 0.5 * aged.absorbed_flux_w_m2
+
+    monkeypatch.setattr(air_history, "_solved_temperature", fake)
+    steps = air_history.run(body, air_input=air_input)
+    assert steps and all(step.temperature_k is not None for step in steps)
+    assert solved and len(solved) == sum(1 for step in steps if step.anchor) <= air_history.MAX_ANCHORS
+    assert steps[0].anchor and steps[-1].anchor and steps[-1].age_gyr == body.star.age
+    for step in steps:
+        aged = air_history.aged_setting(setting, body, step.age_gyr)
+        if step.anchor:
+            assert step.temperature_k == pytest.approx(200.0 + 0.5 * aged.absorbed_flux_w_m2)
+        else:
+            assert step.temperature_k == pytest.approx(200.0 + 0.5 * aged.absorbed_flux_w_m2, rel=0.02)
+
+
+def test_a_history_asked_for_no_air_has_no_temperatures_and_an_anchor_with_no_air_leaves_none(monkeypatch):
+    body, air_input = _a_world_with_its_air_input()
+    assert all(step.temperature_k is None and not step.anchor for step in air_history.run(body))
+    monkeypatch.setattr(air_history, "_solved_temperature", lambda *args: None)
+    assert all(step.temperature_k is None for step in air_history.run(body, air_input=air_input))
+
+
+def test_an_anchor_is_the_air_the_body_has_now_solved_under_the_light_and_heat_of_its_age():
+    body, air_input = _a_world_with_its_air_input()
+    setting, start_k, state = air_input
+    from planetgen.physics import surface_air
+    from planetgen.util import draw
+    stream = draw.Stream(0)
+    stream.setstate(state)
+    with draw.bound(stream):
+        final = surface_air.solve(setting, start_k)
+    now = air_history._solved_temperature(air_history.aged_setting(setting, body, body.star.age), start_k, state)
+    assert final is not None and now == pytest.approx(final.temperature_k, abs=0.5)
+    assert air_history._solved_temperature(air_history.aged_setting(setting, body, 0.1), start_k, state) != now

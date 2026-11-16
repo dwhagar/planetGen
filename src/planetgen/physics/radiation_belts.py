@@ -40,6 +40,7 @@ share only), no moons or rings that sweep the belts clean (Saturn's), no plasma 
 and the shield is aluminium of one thickness. The intensities are Earth's scaled, not derived; the stand-ins and their tiers are in the gap-filling plan (section 6.15).
 """
 
+from planetgen.generation.build_record import record_of
 import math
 from dataclasses import dataclass
 
@@ -158,7 +159,7 @@ def belts_of_body(body, star_distance_au=None):
     no distance.
     """
     moment = getattr(body, "magnetic_moment_a_m2", None)
-    distance = star_distance_au or getattr(body, "_star_distance_au", None)
+    distance = star_distance_au or record_of(body).star_distance_au
     if not moment or not distance or getattr(body, "star", None) is None:
         return ()
     rotation_h = getattr(body, "rotation_period_hours", None)

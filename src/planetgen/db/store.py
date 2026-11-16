@@ -2941,6 +2941,9 @@ STAR_FIELDS = (
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
     object_rows.each(activity.STAR_ACTIVITY_FIELDS), object_rows.optional("metallicity_fe_h"),
     object_rows.optional("state"), object_rows.optional("decay_age_yr"), object_rows.optional("nuclear_arrival_age_gy"),
+    object_rows.optional("initial_mass_sol"),       # DB.133: the mass the population model gave the star at birth, which the orbits a white dwarf's planets formed on and the companion floor read
+    object_rows.computed("phase_end_age_gy", lambda star, context: _lifespan_gy(getattr(star, "phase_end_age_gy", None)),
+                         lambda row: {"phase_end_age_gy": (float("inf") if row["initial_mass_sol"] is not None else None) if row["phase_end_age_gy"] is None else row["phase_end_age_gy"]}),
     object_rows.scaled("snow_line_km", "snow_line_au", _AU_KM),
     object_rows.each(pre_main_sequence.DISK_FIELDS),
     object_rows.context("parent_node_id"), object_rows.context("slot"),
@@ -10441,7 +10444,7 @@ def _runaway_origin(conn, star_system_id):
 
 def attach_body_history(conn, system, star_system_id):
     """
-    GEN.1533, the reader of `body_history`: gives each restored planet and moon of `system` the numbers its history left (`physics/body_history.attach`: `_orbit_birth` and `_birth_spin`).
+    GEN.1533, the reader of `body_history`: gives each restored planet and moon of `system` the numbers its history left (`physics/body_history.attach`: `build.orbit_birth` and `build.birth_spin`).
 
     Returns:
         int: The bodies that got any.
