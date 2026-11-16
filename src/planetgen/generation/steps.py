@@ -82,7 +82,7 @@ STEP_KINDS = {
     "scatter-bright": "Bright-star layer",
     "phenomena": "Phenomena layer",
     "phenomena-write": "Phenomena layer: writing the rows",
-    "phenomena-index": "Phenomena scatter: build the indexes",
+    "phenomena-special": "Phenomena scatter: write the special phenomena",
     "map-luminosity": "Map luminosity fill",
     "block-lights": "Map block light totals",
     "nebula-field": "Nebula field",

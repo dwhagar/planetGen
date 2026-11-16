@@ -7516,11 +7516,18 @@ def missing_phenomenon_scatter_indexes(conn):
     return [(name, columns) for name, columns in PHENOMENON_SCATTER_INDEXES.items() if name not in present]
 
 
+def add_phenomenon_scatter_index(conn, name):
+    """Builds the index `name` of `phenomenon_scatter` where the table has not got it (OPS.239: one piece of the `build-phenomenon-indexes` unit), and says the beat moved (a build can take a while on a table of millions of rows)."""
+    if name not in phenomenon_scatter_index_names(conn):
+        conn.execute(f"ALTER TABLE phenomenon_scatter ADD KEY {name} ({PHENOMENON_SCATTER_INDEXES[name]})")
+    batched.moving()
+
+
 def add_phenomenon_scatter_indexes(conn, on_index=None):
     """Builds the secondary indexes `drop_phenomenon_scatter_indexes` took off (those missing), one statement per
     index so there is something to count: `on_index(name)` is called after each is built (PERF.101)."""
-    for name, columns in missing_phenomenon_scatter_indexes(conn):
-        conn.execute(f"ALTER TABLE phenomenon_scatter ADD KEY {name} ({columns})")
+    for name, _columns in missing_phenomenon_scatter_indexes(conn):
+        add_phenomenon_scatter_index(conn, name)
         if on_index is not None:
             on_index(name)
 
