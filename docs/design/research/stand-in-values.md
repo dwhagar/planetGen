@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1860 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1861 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1833 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1834 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 169 | 71 | 3 | 1 | 0 | 244 |
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 90 | 16 | 8 | 22 | 13 | 149 |
-| T5 | 107 | 28 | 8 | 2 | 1 | 146 |
+| T5 | 107 | 29 | 8 | 2 | 1 | 147 |
 | T6 | 237 | 126 | 34 | 79 | 4 | 480 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 106 | 41 | 225 |
-| All | 1066 | 381 | 94 | 259 | 60 | 1860 |
+| All | 1066 | 382 | 94 | 259 | 60 | 1861 |
 
 ## How the labels were given
 
@@ -1864,6 +1864,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | EC10 | B | T5 | L0 | envelope_capture.KEEPS_FROM_MASS_EARTH 1: a body lighter than this is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated "would efficiently remove any residual hydrogen dominated atmospheres" of embryos, Young et al. [R5293]); its envelope is a history and the water it made | 0.5 to 1.5 | rocky bodies | a body under 1 Earth mass whose observed radius needs an envelope | a radius law that holds under 1 Earth mass | `bulk_structure.CLOSED_FORM_RANGES["envelope"]` (1 to 20 Earth masses) and Young et al. [R5293] (read: Introduction) | predicted only | - | - |
 | EC11 | B | T1 | L0 | envelope_capture.OCEAN_MASS_KG 1.4e21: the mass of the Earth's oceans, the unit Young et al. [R5293] count their water in ("approximately one terrestrial ocean") | 1.35e21 to 1.40e21 | the Earth | an ocean mass of the Earth outside the range | none | the standard value of the Earth's ocean mass (1.335 to 1.4e21 kg) | predicted only | - | - |
 | EC12 | P | T1 | L1 | envelope_capture.YOUNG_EMBRYO_MASS_EARTH 0.5 and YOUNG_WATER_CASES ((0.002, 1), (0.003, 2.5)): a total H-mass fraction of 0.2 percent makes about 1 terrestrial ocean of water in the magma ocean of a 0.5 Earth-mass embryo, 0.3 percent makes 2 to 3 (the middle, 2.5 is the L1 pick); between, below and held above 0.3 percent as the power of the hydrogen that joins them (2.26) | 2 to 3 oceans at 0.3 percent | rocky bodies of 0.2 to 1 Earth mass | a body of 0.5 Earth masses with 0.2 percent hydrogen and no water from it | a mass-dependent magma-ocean and hydrogen equilibrium (the paper's own thermodynamic model) | Young, Shahar and Schlichting [R5293] (read: abstract and Results) | predicted only | - | - |
+| EC13 | P | T5 | L1 | envelope_capture.in_range 0.2 to `MAX_MASS_EARTH` 20 for the water (`bulk_draw._nebular_water`, GEN.1754): the water of the nebular envelope (EC12, a share of the body's mass, held at the 0.3 percent hydrogen case, about 0.12 percent of the mass) is made by every rocky body of 0.2 to 20 Earth masses, whether it keeps the envelope or loses it, as the same share of its mass (Young et al. [R5293] find no dependence on mass above ~0.2 Earth masses); cross-check, Schlichting and Young [R5294]: a 4 Earth-mass planet with 1 to 14 percent hydrogen has about 0.01 percent (reactive metal core) to 0.1 percent (unreactive) water in its silicate mantle, and more water than that in the envelope | 0.01 to 0.12 percent of the mass | rocky bodies of 1 to 20 Earth masses | a super-Earth of 1 to 20 Earth masses with a water share of its mass that falls outside 0.01 to 0.2 percent from the envelope alone | a mass-dependent magma-ocean and hydrogen equilibrium for 1 to 20 Earth masses (the papers' own thermodynamic models) | Young, Shahar and Schlichting [R5293] (read: abstract and Results); Schlichting and Young [R5294] (read: abstract and Section 3, second-hand summary of the rest) | predicted only | - | - |
 
 ## 6.207 Stand-in of the bodies an asteroid field stores
 
