@@ -481,7 +481,13 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
                     core.advance(core_from_t, core_h, core_from_k, temperature)
                     core_steps = 0
             flux_end = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)
-            released_j += 0.5 * (flux + flux_end) * area_dry_m2 * h * GY_S
+            if raw_k < surface_k:
+                # the step wanted a mantle cooler than its surface: it ends on the floor, and what it released is the heat it made and the heat it gave up on the way down
+                # (energy kept), not the flux law's, which at the floor carries more than the body makes (TEST.775: a 4.5 Earth-mass planet at 3,032 K released 7 times its radiogenic)
+                made_w = 0.5 * (radiogenic_start + radiogenic_end) + (tide(temperature) if tide is not None else 0.0)
+                released_j += capacity * (before - temperature) + made_w * h * GY_S
+            else:
+                released_j += 0.5 * (flux + flux_end) * area_dry_m2 * h * GY_S
             flux = flux_end
             radiogenic_start = radiogenic_end
             t += h
@@ -495,6 +501,8 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         total_w = conduction_w(temperature) + unrun_tidal_w
         if temperature >= cap_k:
             total_w = max(total_w, now_w + tidal_w)
+        elif temperature <= surface_k:
+            total_w = min(total_w, now_w + tidal_w)     # a mantle on its floor (as warm as its surface) cannot cool: it carries out what it makes, not the flux law's (TEST.775)
         return Heat(total_w, now_w, total_w - now_w - tidal_w, temperature, total_w / area_m2, released_j, tidal_w, core)
 
     temperature, released_j, _, core = cool()
