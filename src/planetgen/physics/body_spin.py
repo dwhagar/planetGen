@@ -55,9 +55,9 @@ def icy_regime(body, planet):
 
 
 def frozen_mean_temperature_k(radius_m, flux_w_m2, top_k):
-    """The mean of the surface temperature and the centre's of a conducting body of radius `radius_m` (`T = T_top exp(F r / A)`, `k = A / T`), K: the one temperature `tidal_rheology.ice_response` is run at."""
-    centre_k = min(top_k * math.exp(flux_w_m2 * radius_m / hydrosphere.ICE_CONDUCTIVITY_A_W_M), aquifers.WATER_MELTING_K)
-    return 0.5 * (top_k + centre_k)
+    """The mean of the surface temperature and the center's of a conducting body of radius `radius_m` (`T = T_top exp(F r / A)`, `k = A / T`), K: the one temperature `tidal_rheology.ice_response` is run at."""
+    center_k = min(top_k * math.exp(flux_w_m2 * radius_m / hydrosphere.ICE_CONDUCTIVITY_A_W_M), aquifers.WATER_MELTING_K)
+    return 0.5 * (top_k + center_k)
 
 
 def dissipation_of(body, planet):
