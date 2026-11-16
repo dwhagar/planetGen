@@ -43,9 +43,10 @@ def test_a_nebula_field_unit_has_a_piece_for_each_slab_after_the_cursor():
 @pytest.mark.parametrize("low, high", [(1, 10), (1, run_plan.MAP_LUMINOSITY_PIECE_IDS), (7, 3 * run_plan.MAP_LUMINOSITY_PIECE_IDS + 5), (100, 100)])
 def test_the_map_luminosity_pieces_cover_every_id_of_the_unit_once(low, high):
     pieces = run_plan.fill_map_luminosity_pieces({"low": low, "high": high}, 0)
-    assert pieces[0][0] == low and pieces[-1][1] == high
-    assert all(a[1] + 1 == b[0] for a, b in zip(pieces, pieces[1:]))
-    assert all(1 <= end - start + 1 <= run_plan.MAP_LUMINOSITY_PIECE_IDS for start, end in pieces)
+    assert pieces[0]["low"] == low and pieces[-1]["high"] == high
+    assert all(a["high"] + 1 == b["low"] for a, b in zip(pieces, pieces[1:]))
+    assert all(1 <= piece["high"] - piece["low"] + 1 <= run_plan.MAP_LUMINOSITY_PIECE_IDS for piece in pieces)
+    assert all(piece["weight"] == piece["high"] - piece["low"] + 1 for piece in pieces)       # OPS.243: a piece weighs its ids
     assert run_plan.fill_map_luminosity_pieces({"low": low, "high": high}, 1) == pieces[1:]
 
 

@@ -26,7 +26,7 @@ from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, sky_tier_ledger, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
-from planetgen.queue import commands, engine, units as queueUnits, wrapper
+from planetgen.queue import commands, engine, splitter, units as queueUnits, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.util.ticker import Ticker
@@ -930,8 +930,9 @@ LINK_UNITS_MAX = 1000
 def expand_link_neighbors(params):
     """
     The `link-neighbors` command's stage (PERF.107, PERF.113): the sectors saved since `params["since"]` (or named in
-    `params["sector_ids"]`) are found once, here, put in neighbourhood order (`store.link_order`) and cut into static
-    chunks of `LINK_UNIT_SECTORS` (at most `LINK_UNITS_MAX` chunks), the same at any worker count. Each unit links its
+    `params["sector_ids"]`) are found once, here, put in neighbourhood order (`store.link_order`) and cut into chunks
+    by the queue engine (`splitter.cut`, OPS.243: the stage is flagged byte identical, so the cut comes from the profile and the free resources; `LINK_UNIT_SECTORS` is the suggested size it
+    keeps when the profile has nothing usable, in at most `LINK_UNITS_MAX` chunks), written to the stage's plan so a restarted unit has the same one. Each unit links its
     chunk and leaves the run's other sectors alone, as the batches of one call do: a sector's lists are computed whole from
     the placed systems, and a system merged into the lists of the sectors around is the same whichever batch merges it, so
     the stored links do not depend on the order the units run in. A stage with nothing to link is one empty unit.
@@ -940,11 +941,11 @@ def expand_link_neighbors(params):
     """
     created = _sectors_since(params)
     ordered = store.link_order(_mysql_config_of(params), created)
-    _size, chunks = _chunks(ordered, LINK_UNIT_SECTORS, LINK_UNITS_MAX)
+    chunks, decision = splitter.cut("link-neighbors", ordered, LINK_UNIT_SECTORS, LINK_UNITS_MAX)       # OPS.243: the engine's cut (the suggested size when the profile has nothing usable)
     run = {key: params[key] for key in ("since", "sector_ids") if params.get(key) is not None}
     units = [({"database": params["database"], "chunk": chunk, **run}, float(len(chunk) * store.LINK_PHASES)) for chunk in chunks]
     return commands.Expansion(units or [({"database": params["database"], "chunk": [], **run}, 1.0)],
-                              {"sectors": len(ordered), **({} if ordered else {"skip": SAVED_NO_SECTOR})})
+                              {"sectors": len(ordered), **({} if ordered else {"skip": SAVED_NO_SECTOR})}, split=decision)
 
 
 def link_neighbors_pieces(params, cursor):
@@ -954,7 +955,8 @@ def link_neighbors_pieces(params, cursor):
     (the batch size is the unit's own, so the unit's count moves every batch). An empty chunk has no piece.
     """
     ordered = store.link_order(_mysql_config_of(params), params["chunk"])
-    return [ordered[start:start + store.LINK_BATCH_SECTORS] for start in range(0, len(ordered), store.LINK_BATCH_SECTORS)][cursor:]
+    batches = [ordered[start:start + store.LINK_BATCH_SECTORS] for start in range(0, len(ordered), store.LINK_BATCH_SECTORS)]
+    return [{"sectors": batch, "weight": len(batch)} for batch in batches][cursor:]       # OPS.243: a piece weighs its sectors, the item the profile and the cut count in
 
 
 def link_neighbors_do(params, piece, ctx):
@@ -968,7 +970,7 @@ def link_neighbors_do(params, piece, ctx):
     """
     if "skip" not in ctx.state:
         ctx.state["skip"] = _sectors_since(params)
-    return store.link_sector_neighbors(_mysql_config_of(params), piece, skip=ctx.state["skip"])
+    return store.link_sector_neighbors(_mysql_config_of(params), piece["sectors"], skip=ctx.state["skip"])
 
 
 def link_neighbors_gather(params, results, ctx):
@@ -1115,8 +1117,8 @@ def expand_save_sector_paths(params):
     """
     The `settle-sector-paths` command's stage (PERF.107, PERF.115): the sectors to settle (those saved since `params["since"]`,
     or `params["sector_ids"]`, and with `params["expand"]` (the default) the sectors around them,
-    `sector_paths.sectors_to_settle`) are found once, here, and cut in order into static chunks of `SETTLE_UNIT_SECTORS`
-    (at most `SETTLE_UNITS_MAX` chunks) in the order of the sectors' cell keys (GEN.1477: a chunk is a block of sectors that sit together and read the point masses around them once), the same at any worker count. Each sector's paths depend only on the final
+    `sector_paths.sectors_to_settle`) are found once, here, and cut in order into chunks by the queue engine (`splitter.cut`, OPS.243: the stage is flagged byte identical, so the cut
+    comes from the profile and the free resources; `SETTLE_UNIT_SECTORS` is the suggested size it keeps when the profile has nothing usable, in at most `SETTLE_UNITS_MAX` chunks) in the order of the sectors' cell keys (GEN.1477: a chunk is a block of sectors that sit together and read the point masses around them once), the same at any worker count. Each sector's paths depend only on the final
     sectors around it and are saved with the sector, so the chunks cannot collide. A stage with nothing to settle is one
     empty unit, so the stage still stores its row.
     """
@@ -1131,12 +1133,12 @@ def expand_save_sector_paths(params):
             sectors = sector_paths.sectors_in_cell_order(conn, sectors)
         finally:
             conn.close()
-    size, chunks = _chunks(sectors, SETTLE_UNIT_SECTORS, SETTLE_UNITS_MAX)
+    chunks, decision = splitter.cut("settle-sector-paths", sectors, SETTLE_UNIT_SECTORS, SETTLE_UNITS_MAX)       # OPS.243: the engine's cut (the suggested size when the profile has nothing usable)
     # One unit may spread a crowded sector's bodies over processes; a stage of many units already fills the workers.
-    workers = params["workers"] if len(sectors) <= size else 1
+    workers = params["workers"] if len(chunks) <= 1 else 1
     units = [({"database": params["database"], "sector_ids": chunk, "workers": workers}, float(len(chunk))) for chunk in chunks]
     return commands.Expansion(units or [({"database": params["database"], "sector_ids": [], "workers": 1}, 1.0)],
-                              {"sectors": len(sectors), **({"skip": SAVED_NO_SECTOR} if not created and params.get("sector_ids") is None else {})})
+                              {"sectors": len(sectors), **({"skip": SAVED_NO_SECTOR} if not created and params.get("sector_ids") is None else {})}, split=decision)
 
 
 def save_sector_paths_pieces(params, cursor):
@@ -1149,7 +1151,8 @@ def save_sector_paths_pieces(params, cursor):
         sectors = sector_paths.sectors_to_settle_in(reader.db, params["sector_ids"], expand=False)
     finally:
         reader.close()
-    return [sectors[start:start + sector_paths.SETTLE_BATCH] for start in range(0, len(sectors), sector_paths.SETTLE_BATCH)][cursor:]
+    batches = [sectors[start:start + sector_paths.SETTLE_BATCH] for start in range(0, len(sectors), sector_paths.SETTLE_BATCH)]
+    return [{"sectors": batch, "weight": len(batch)} for batch in batches][cursor:]       # OPS.243: a piece weighs its sectors, the item the profile and the cut count in
 
 
 def save_sector_paths_do(params, batch, ctx):
@@ -1165,7 +1168,7 @@ def save_sector_paths_do(params, batch, ctx):
         ctx.state["pool"] = sector_paths.settle_pool(params["workers"])
         if ctx.state["pool"] is not None:
             ctx.on_close(ctx.state["pool"].shutdown)
-    return sector_paths.settle_batch(ctx.db, batch, ctx.state["pool"], ctx.commit)
+    return sector_paths.settle_batch(ctx.db, batch["sectors"], ctx.state["pool"], ctx.commit)
 
 
 def save_sector_paths_gather(params, results, ctx):
