@@ -9212,28 +9212,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (TODO sweep, 2026-11-12): Lane 15 (storage).
   Moved to 8.2 with the barycentre items it needs (GEN.576 to GEN.578), under Boss's 9:19 PM EST plan (TODO, 2026-11-12).
 
-- [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
-  Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
-  database. The physics items moved into 8.1 (GEN.727 to GEN.753,
-  GEN.755, GEN.759 to GEN.763) change or add values (eccentricity and
-  inclination, seasons, tidal heating, spin and day length, magnetic
-  field, rings, escape and delivery history, life timeline stages,
-  spectral labels, white dwarf and neutron star state, climate feedback
-  terms) and not every one has a storage line. This item holds the table
-  in reports/wiring-db-ux-audit-2026-10-24.md (item, new stored value,
-  existing column or new, unit, who ships it) and checks it: each owner
-  adds the column and its db/column_units.py entry in the same PR as the
-  item, and this item's owner reviews the table, names the migration
-  order and fails the gate if a stored value has no column. No shim; the
-  old column is dropped when replaced. Owner: Aux 12 (Lane 4, database),
-  review only; the column itself ships with each item.
-  Prerequisites: none. Related: DB.67, DB.70, DB.71, DB.96, DB.99,
-  DB.100, GEN.754.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 12) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Owner (TODO sweep, 2026-11-12): Lane 15 (storage).
-
 - [ ] **DB.103 Storage for nation-states and cities: tables, Object IDs, column units and the migration**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
   say somewhere in the 8.x chain I want to add editable civilizations,
