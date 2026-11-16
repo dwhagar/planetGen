@@ -26465,6 +26465,21 @@
       "kind": "paper",
       "label": "Fernández et al. 2013b",
       "title": "Thermal properties, sizes, and size distribution of Jupiter-family cometary nuclei"
+    },
+    "R5305": {
+      "kind": "paper",
+      "label": "Ribas et al. 2013",
+      "title": "Disk evolution in the solar neighborhood"
+    },
+    "R5306": {
+      "kind": "paper",
+      "label": "Richert et al. 2018",
+      "title": "Circumstellar disc lifetimes in numerous galactic young stellar clusters"
+    },
+    "R5307": {
+      "kind": "paper",
+      "label": "Mamajek et al. 2009",
+      "title": "Initial Conditions of Planet Formation: Lifetimes of Primordial Disks"
     }
   }
 }

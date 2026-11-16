@@ -64189,6 +64189,120 @@
           "tweak": "L0",
           "unread": null,
           "what": "disk_truncation.CLOSE_COMPANION_GAS_SHARE 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_dispersal.DISPERSAL_TAU_MYR_BY_MASS ((0.08, 3.0), (0.5, 2.5), (1.3, 1.0)) (GEN.1551): the characteristic time in Myr of the exponential fall of the share of stars holding a primordial disk, by mass (log-linear between the knots, flat outside); a star's own dispersal time is -tau ln u from its own draw"
+            ],
+            [
+              "The range it moves in",
+              "2 to 3 Myr at 0.5 solar masses (the short infrared wavelengths of [R5305]); the half-life of 1.3 to 2 Myr of [R5306] is a characteristic time of 1.9 to 2.9 Myr (a half-life of 3.5 Myr with magnetic tracks: 5 Myr)"
+            ],
+            [
+              "Where it holds",
+              "stars under 10 Myr in clusters of the solar neighbourhood; the same law in every environment"
+            ],
+            [
+              "What would show it wrong",
+              "a cluster-by-cluster scatter in the disk fraction wider than the 2 to 3 Myr range at one age ([R5307] notes real scatter)"
+            ],
+            [
+              "What replaces it",
+              "a Weibull or a table of the cluster shares by age, once a lane reads the cluster tables of [R5305]"
+            ],
+            [
+              "Evidence",
+              "[R5307] abstract (about exponential, characteristic time 2.5 Myr, half-life 1.7 Myr; about 1 Myr over 1.3 solar masses to about 3 Myr under 0.08); [R5305] abstract (22 associations, exponential, 2 to 3 Myr at 3.4 to 12 um, 4.2 to 5.8 Myr at 22 to 24 um); [R5306] abstract (half-life 1.3 to 2 Myr, 3.5 with magnetic tracks); the middle knot is a placement. The shares a lane remembered (0.8 at 1 Myr, half at 3, 0.1 at 5 to 6) are not an exponential: this law gives 0.67, 0.30 and 0.11 at 0.5 solar masses, left to Boss"
+            ]
+          ],
+          "id": "DZ1",
+          "key": "6.264:DZ1",
+          "kind": "P",
+          "slug": "6-264-dz1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": "GEN.1551",
+          "what": "disk_dispersal.DISPERSAL_TAU_MYR_BY_MASS ((0.08, 3.0), (0.5, 2.5), (1.3, 1.0)) (GEN.1551): the characteristic time in Myr of the exponential fall of the share of stars holding a primordial disk, by mass (log-linear between the knots, flat outside); a star's own dispersal time is -tau ln u from its own draw"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_dispersal.dispersal_time_yr (GEN.1551): the form of the fall is an exponential: the share holding a disk at an age is exp(-age / tau), so a star's time is -tau ln u for one draw u of its own stream, keyed to the star and not to its age"
+            ],
+            [
+              "The range it moves in",
+              "a Weibull of shape 1 to 1.4 may fit the cluster shares as well (not tried)"
+            ],
+            [
+              "Where it holds",
+              "the share of young stars with a disk against age"
+            ],
+            [
+              "What would show it wrong",
+              "an observed share at 1 Myr or at 10 Myr more than 0.2 off the exponential"
+            ],
+            [
+              "What replaces it",
+              "a Weibull shape, once a lane reads the cluster tables"
+            ],
+            [
+              "Evidence",
+              "[R5307] abstract (approximately exponential decay); [R5305] abstract (assuming an exponential decay)"
+            ]
+          ],
+          "id": "DZ2",
+          "key": "6.264:DZ2",
+          "kind": "P",
+          "slug": "6-264-dz2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_dispersal.dispersal_time_yr (GEN.1551): the form of the fall is an exponential: the share holding a disk at an age is exp(-age / tau), so a star's time is -tau ln u for one draw u of its own stream, keyed to the star and not to its age"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_dispersal.CLOSE_COMPANION_TAU_MYR 1 / ln 3, 0.91 Myr (GEN.1551, GEN.1475): a star with a companion inside disk_truncation.CLOSE_COMPANION_AXIS_AU loses its disk by the same draw with this characteristic time when it is the shorter, so two thirds are gone within 1 Myr"
+            ],
+            [
+              "The range it moves in",
+              "about two thirds of close binaries within 1 Myr, against 10 to 20 percent of wide binaries and single stars [R5225] (the law gives 33 percent of single stars of 0.5 solar masses by 1 Myr)"
+            ],
+            [
+              "Where it holds",
+              "companions inside 47 AU, taken as they stand today"
+            ],
+            [
+              "What would show it wrong",
+              "a share of close binaries without a disk at 1 Myr more than 0.15 off two thirds"
+            ],
+            [
+              "What replaces it",
+              "a separation-dependent share, once a source gives it"
+            ],
+            [
+              "Evidence",
+              "[R5225], ApJ 745, 19 (arXiv 1109.4141), abstract; the same number as CD2 of this section, read as a time"
+            ]
+          ],
+          "id": "DZ3",
+          "key": "6.264:DZ3",
+          "kind": "P",
+          "slug": "6-264-dz3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_dispersal.CLOSE_COMPANION_TAU_MYR 1 / ln 3, 0.91 Myr (GEN.1551, GEN.1475): a star with a companion inside disk_truncation.CLOSE_COMPANION_AXIS_AU loses its disk by the same draw with this characteristic time when it is the shorter, so two thirds are gone within 1 Myr"
         }
       ],
       "slug": "6-264-stand-ins-of-the-gas-a-close-companion-leaves-a-disk",
