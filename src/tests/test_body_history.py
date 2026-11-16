@@ -131,3 +131,58 @@ def test_a_v242_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mys
         assert conn.execute("SELECT COUNT(*) AS n FROM body_history").fetchone()["n"] == 0
     finally:
         conn.close()
+
+
+# --- GEN.1533: the reader ------------------------------------------------------------------------
+
+def _row(**changes):
+    row = {"star_system_id": 1, "body_type": 2, "body_id": 3, "birth_eccentricity": 0.25, "birth_spin_rate": 1.5e-4, "birth_obliquity_deg": 23.0,
+           "capture_draw_1": 0.5, "capture_draw_2": 0.75, "formula_version": body_history.FORMULA_VERSION}
+    return {**row, **changes}
+
+
+def test_attach_gives_a_restored_body_the_names_a_generated_one_keeps():
+    body = _Body()
+    assert body_history.attach(body, _row())
+    assert body._orbit_birth == 0.25 and body._birth_spin == (1.5e-4, 23.0, (0.5, 0.75))
+    assert body_history.numbers_of(body) == {"birth_eccentricity": 0.25, "birth_spin_rate": 1.5e-4, "birth_obliquity_deg": 23.0,
+                                              "capture_draw_1": 0.5, "capture_draw_2": 0.75, "formula_version": body_history.FORMULA_VERSION}
+
+
+def test_attach_gives_the_spin_whole_or_not_at_all_and_nothing_for_another_formula_version():
+    moon = _Body()
+    assert body_history.attach(moon, _row(birth_eccentricity=None, capture_draw_2=None)) is False
+    assert not hasattr(moon, "_birth_spin") and not hasattr(moon, "_orbit_birth")
+    born_with_its_planet = _Body()
+    assert body_history.attach(born_with_its_planet, _row(birth_eccentricity=None))
+    assert not hasattr(born_with_its_planet, "_orbit_birth") and born_with_its_planet._birth_spin[0] == 1.5e-4
+    old = _Body()
+    assert body_history.attach(old, _row(formula_version=body_history.FORMULA_VERSION + 1)) is False
+    assert not hasattr(old, "_birth_spin")
+
+
+@pytest.mark.fresh_database
+def test_a_loaded_system_carries_the_numbers_the_generated_one_kept(mysql_config):
+    system, cfg = _system()
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = store.insert_star_system(conn, system, cfg)
+        loaded = store.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+    made = [b for p in system.planets for b in (p, *getattr(p, "moons", ()))]
+    restored = [b for p in loaded.planets for b in (p, *getattr(p, "moons", ()))]
+    assert len(made) == len(restored)
+    checked = 0
+    for original, again in zip(made, restored):
+        kept = body_history.numbers_of(original)
+        if not kept:
+            assert not hasattr(again, "_birth_spin") and not hasattr(again, "_orbit_birth")
+            continue
+        got = body_history.numbers_of(again)
+        assert got.keys() == kept.keys()
+        for name, value in kept.items():
+            assert got[name] == pytest.approx(value, rel=1e-6, abs=1e-6), name      # the capture draws are a FLOAT column (six digits)
+        checked += 1
+    assert checked

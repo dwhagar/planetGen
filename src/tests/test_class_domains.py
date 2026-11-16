@@ -97,10 +97,11 @@ def test_an_icy_body_with_ammonia_in_its_water_is_class_x():
     assert domains.derived(worked_out)["ammonia_water_mass_fraction"] > 0.1
 
 
-def test_a_body_without_the_ammonia_or_outside_the_eutectic_window_is_not_class_x():
+def test_a_body_without_the_ammonia_is_not_class_x_and_the_surface_temperature_does_not_matter():
     dry = _icy_moon(surface_liquid_ammonia_wt=0.0)
     assert class_fit.scores(dry).get("X", 0.0) == 0.0
+    # GEN.1737: the ocean lies under its lid at the freezing point of its own solution, so the surface temperature is no test of it
     cold = _icy_moon(surface_liquid_ammonia_wt=25.0, surface_temperature_k=150.0)
-    assert class_fit.scores(cold).get("X", 0.0) == 0.0
+    assert class_fit.scores(cold).get("X", 0.0) == 1.0
     hot = _icy_moon(surface_liquid_ammonia_wt=25.0, surface_temperature_k=300.0)
-    assert class_fit.scores(hot).get("X", 0.0) == 0.0
+    assert class_fit.scores(hot).get("X", 0.0) == 1.0

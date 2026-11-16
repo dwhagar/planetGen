@@ -23,7 +23,7 @@ import types
 
 import pymysql
 
-from planetgen.queue import commands, progress_rate, taskprogress, unitbeat, units, wrapper
+from planetgen.queue import commands, progress_rate, splitter, taskprogress, unitbeat, units, wrapper
 from planetgen.db import block_lights, block_stats, galaxy_counts, containers as containersDb, contention, derived_stamp, nebula_blocks, query, sky_tier_ledger as skyTierLedger, statementmark, storage_checksum, store, uncharted_index
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
@@ -2584,8 +2584,8 @@ def _id_batches(top, size):
 
 
 def expand_fill_map_luminosity(params):
-    """The `fill-map-luminosity` command's stage (PERF.106): a unit per id range of `MAP_LUMINOSITY_BATCH_IDS` (a whole
-    multiple of it past `units.MAX_UNITS` ranges) of `phenomenon_scatter`, its cost the ids it covers; `detail` holds the
+    """The `fill-map-luminosity` command's stage (PERF.106): a unit per id range of `phenomenon_scatter`, its cost the ids it covers, cut by the queue engine (`splitter.cut`, OPS.243: the stage
+    is flagged byte identical; `MAP_LUMINOSITY_BATCH_IDS` is the suggested size, a whole multiple of it past `units.MAX_UNITS` ranges, which it keeps when the profile has nothing usable); `detail` holds the
     highest id. It does not count the rows still empty: no index serves `mass_solar IS NOT NULL AND map_luminosity_sol IS NULL`,
     so the count was a read of the whole table before the first unit started (the units read the same rows, a range each, in
     parallel and under the memory gate)."""
@@ -2594,10 +2594,10 @@ def expand_fill_map_luminosity(params):
         top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM phenomenon_scatter").fetchone()["n"])
     finally:
         conn.close()
+    ranges, decision = splitter.cut("fill-map-luminosity", range(1, top + 1), units.coarsen(top, MAP_LUMINOSITY_BATCH_IDS))       # OPS.243: the engine's cut, an id an item (the suggested size when the profile has nothing usable)
     return commands.Expansion(
-        [({"database": params["database"], "low": low, "high": high}, float(high - low + 1))
-         for low, high in _id_batches(top, units.coarsen(top, MAP_LUMINOSITY_BATCH_IDS))],
-        {"top": top})
+        [({"database": params["database"], "low": ids[0], "high": ids[-1]}, float(len(ids))) for ids in ranges],
+        {"top": top}, split=decision)
 
 
 MAP_LUMINOSITY_PIECE_IDS = 20_000
@@ -2605,9 +2605,9 @@ MAP_LUMINOSITY_PIECE_IDS = 20_000
 
 
 def fill_map_luminosity_pieces(params, cursor):
-    """The `pieces` of the map luminosity fill (`fill-map-luminosity`; OPS.198): the unit's ids `low` to `high` cut into `(low, high)` ranges of `MAP_LUMINOSITY_PIECE_IDS`."""
-    return [[start, min(start + MAP_LUMINOSITY_PIECE_IDS - 1, params["high"])]
-            for start in range(params["low"], params["high"] + 1, MAP_LUMINOSITY_PIECE_IDS)][cursor:]
+    """The `pieces` of the map luminosity fill (`fill-map-luminosity`; OPS.198): the unit's ids `low` to `high` cut into ranges of `MAP_LUMINOSITY_PIECE_IDS`, each `{"low", "high", "weight"}` (the weight is its ids)."""
+    return [{"low": start, "high": min(start + MAP_LUMINOSITY_PIECE_IDS - 1, params["high"]), "weight": min(MAP_LUMINOSITY_PIECE_IDS, params["high"] - start + 1)}
+            for start in range(params["low"], params["high"] + 1, MAP_LUMINOSITY_PIECE_IDS)][cursor:]       # OPS.243: a piece weighs its ids, the item the profile and the cut count in
 
 
 def fill_map_luminosity_do(params, piece, ctx):
@@ -2619,7 +2619,7 @@ def fill_map_luminosity_do(params, piece, ctx):
     Returns:
         dict: `filled`, the rows the piece filled.
     """
-    low, high = piece
+    low, high = piece["low"], piece["high"]
     log.debug(f"Map luminosity: ids {low:,} to {high:,}")
     # GEN.1476: the light of an unbuilt phenomenon that gets its value now is in its cell's part, so the cells are put right in the same transaction and the
     # block light stage rolls the parts up instead of making them again from every object.

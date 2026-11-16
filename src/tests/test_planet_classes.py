@@ -361,3 +361,30 @@ def test_the_liquid_and_volcano_conditions_read_in_plain_words_gen1617():
     assert any("sulfuric acid lies at the ground" in w for w in words["Y"])
     assert any("melt rock" in w for w in words["A"])
     assert any("holds ammonia" in w for w in words["X"])
+
+
+def test_class_x_has_no_surface_temperature_band_gen1737():
+    """GEN.1737: an ammonia-water ocean lies under its lid at the freezing point of its own solution, 273 K for pure water and 176 K at 32 percent ammonia, linear between [R5292] [R2639],
+    so the surface temperature is no test of it. The least ammonia of class X, 10 percent of the water's mass, is 9.09 percent of the liquid, which freezes at about 246 K: inside the
+    family's window of 176 K to the boiling point whatever the surface is. The same ocean on a surface of 30 K and of 300 K is class X."""
+    from planetgen.physics import surface_liquid_world as slw, surface_liquids
+    x_row = [c for c in cf.CLASSES if c.letter == "X" and c.kind == "t"][0]
+    assert all(c["quantity"] != "temperature_k" for c in x_row.when)
+    least = 100.0 * 0.1 / 1.1
+    melting, eutectic = surface_liquids.melting_k("water"), surface_liquids.melting_k("ammonia_water")
+    liquidus = melting + (eutectic - melting) * least / slw.AMMONIA_WATER_MASS_PERCENT
+    assert eutectic <= liquidus <= 250.0
+    x = CASES["X"]
+    for surface_k in (30.0, 100.0, 300.0):
+        assert pc.classify(dict(x, surface_temperature_k=surface_k, **{f"band{n}_mean_k": surface_k for n in range(1, pc.BAND_COUNT + 1)})) == "X"
+    assert pc.classify(dict(x, surface_liquid_ammonia_wt=5.0)) != "X"          # 5 percent of the liquid is 5.3 percent of the water: under the 10 percent floor
+
+
+def test_class_x_holds_with_or_without_an_air_gen1737():
+    """GEN.1737 (Boss, 1:03 PM EST 2026-11-15): the ocean under the lid does not care what lies above it, so class X has no air gate (a null gate holds on either side of it)."""
+    x_row = [c for c in cf.CLASSES if c.letter == "X" and c.kind == "t"][0]
+    assert x_row.air is None
+    x = CASES["X"]
+    thin = dict(x, atmospheric_pressure_pa=20000.0, **{atmosphere.GAS_FIELD: {"N2": 20000.0}})
+    thick = dict(x, atmospheric_pressure_pa=300000.0, **{atmosphere.GAS_FIELD: {"N2": 300000.0}})
+    assert pc.classify(x) == pc.classify(thin) == pc.classify(thick) == "X"

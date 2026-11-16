@@ -37,7 +37,7 @@ from dataclasses import dataclass
 
 from scipy import integrate
 
-from planetgen.physics import constants, rings, spin_torques
+from planetgen.physics import constants, evection, rings, spin_torques
 
 COROTATION_SOFTNESS = 1.0e-2
 """float: The share of its orbital rate over which a moon's torque on the planet changes sign ([R0199], equation 77:
@@ -92,12 +92,14 @@ class Fate:
         distance_m (float): Its distance at the end (at the event for a moon that is gone).
         fate (str): `"stays"`, `"fell"` (inside the Roche limit: its mass is ring material) or `"escaped"` (beyond the planet's Hill sphere's stable part).
         time_s (float): When the event happened (the age for a moon that stays).
+        held (bool): Whether the moon was caught in the evection resonance and ends held at it (`evection`, GEN.1750).
     """
 
     moon: Moon
     distance_m: float
     fate: str
     time_s: float
+    held: bool = False
 
 
 @dataclass(frozen=True)
@@ -170,7 +172,7 @@ def _solve(rhs, y0, events, atol):
 
 
 def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, planet_density_kg_m3=None, hill_radius_m=None,
-           factor=spin_torques.GRAVITATIONAL_TORQUE_FACTOR):
+           factor=spin_torques.GRAVITATIONAL_TORQUE_FACTOR, resonance=None):
     """
     The planet's spin and its moons' orbits after `age_s`, all from the tide each moon raises, the star's tide and the air's thermal tide.
 
@@ -185,6 +187,8 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
         planet_density_kg_m3 (float, optional): For the Roche limit; the planet's mean density if omitted.
         hill_radius_m (float, optional): The planet's Hill radius, for the escape of an outward-drifting moon; none if omitted.
         factor (float): `spin_torques.GRAVITATIONAL_TORQUE_FACTOR`.
+        resonance (evection.Resonance, optional): The planet's evection resonance (GEN.1750). A prograde moon the resonance sweeps across is caught or passes by `evection.caught`;
+            a caught moon is held at the resonance, which moves in with the planet's spin (`Fate.held`). Without it no moon is held.
 
     Returns:
         OrbitResult: The planet's spin, each moon's fate, the ring material and the heat the moons' tides put into the planet.
@@ -193,6 +197,7 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
     alive = list(range(len(moons)))
     distance = [m.distance_m for m in moons]
     fates = [None] * len(moons)
+    crossed, held = set(), set()      # moons the evection resonance has swept (caught ones are in `held` too)
     spin, time, heat, ring_mass = spin_rate, 0.0, 0.0, 0.0
     scale = max(abs(spin_rate), 1.0e-9)
 
@@ -225,7 +230,10 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
             out = [torques.total(spin_now) / planet.inertia / scale]
             for k, i in enumerate(indices):
                 moon = Moon(moons[i].mass_kg, distances[k], moons[i].density_kg_m3, moons[i].retrograde)
-                out.append(-2.0 * moon_torques[k] / orbital_angular_momentum(planet.mass_kg, moon))
+                if i in held:      # held at the evection resonance, which moves in with the spin (`evection.SPIN_EXPONENT`); its tide still brakes the planet
+                    out.append(evection.SPIN_EXPONENT * out[0] * scale / spin_now)
+                else:
+                    out.append(-2.0 * moon_torques[k] / orbital_angular_momentum(planet.mass_kg, moon))
             power = 0.0
             for k, i in enumerate(indices):
                 raiser = torques.raisers[offset + k]
@@ -245,7 +253,15 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
             event.terminal, event.direction = True, -1
             return event
 
-        events = [roche_event_for(k) for k in range(len(indices))] + [hill_event_for(k) for k in range(len(indices))]
+        def evection_event_for(k):
+            def event(t, y):
+                spin_now = y[0] * scale
+                return evection.distance_m(resonance, spin_now, planet.mass_kg, planet.radius_m) - math.exp(y[1 + k]) if spin_now > 0.0 else 1.0
+            event.terminal, event.direction = True, -1
+            return event
+
+        sweepers = [k for k, i in enumerate(indices) if resonance is not None and not moons[i].retrograde and i not in crossed]
+        events = [roche_event_for(k) for k in range(len(indices))] + [hill_event_for(k) for k in range(len(indices))] + [evection_event_for(k) for k in sweepers]
         y0 = [spin / scale] + [math.log(distance[i]) for i in indices] + [0.0]
 
         # the heat is the last state; its derivative is the sum of the moon powers
@@ -261,6 +277,18 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
             break
         time += solution.t[-1] * horizon
         hit = next((k for k, ev in enumerate(solution.t_events) if len(ev)), None)
+        if hit >= 2 * len(indices):      # the evection resonance swept this moon (GEN.1750): caught or passed, and the run goes on
+            k = sweepers[hit - 2 * len(indices)]
+            i = indices[k]
+            crossed.add(i)
+            state = solution.y_events[hit][0]
+            rates = rhs(solution.t_events[hit][0], state)
+            spin_now, axis = state[0] * scale, math.exp(state[1 + k])
+            nu = evection.resonance_precession(resonance, spin_now, planet.mass_kg, planet.radius_m, axis)
+            sweep = evection.nu_rate(spin_now, rates[0] * scale / horizon, axis, rates[1 + k] * axis / horizon, nu)
+            if evection.caught(evection.sweep_ratio(resonance, planet.mass_kg, axis, sweep)):
+                held.add(i)
+            continue
         k = hit % len(indices)
         i = indices[k]
         if hit < len(indices):
@@ -272,5 +300,5 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
             fates[i] = Fate(moons[i], distance[i], "escaped", time)
         alive.remove(i)
     for i in alive:
-        fates[i] = Fate(moons[i], distance[i], "stays", age_s)
+        fates[i] = Fate(moons[i], distance[i], "stays", age_s, i in held)
     return OrbitResult(spin, tuple(fates), ring_mass, heat)

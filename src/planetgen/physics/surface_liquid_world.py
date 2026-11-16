@@ -57,9 +57,6 @@ OSMOTIC_COEFFICIENT = 0.93
 `ln a_w = -nu M_w phi m` with `nu` 2 and `M_w` 0.018015 kg/mol."""
 NACL_G_PER_MOL = 58.44
 """float: The molar mass of sodium chloride, g/mol."""
-NACL_SATURATION_ACTIVITY = 0.753
-"""float: The water activity of a sodium chloride solution saturated at 25 C (753 per mille). A sea with a lower activity holds other salts (chlorides of calcium and magnesium, perchlorates)
-and has no sodium chloride equivalent, so it stores no salinity (`_salinity`)."""
 WATER_MOLAR_MASS_KG = 0.018015
 """float: The molar mass of water, kg/mol."""
 
@@ -318,7 +315,7 @@ def _mix(body):
 def _salinity(body):
     """Sets `SALT_FIELD` for a water sea from its water activity: the sodium chloride that lowers it as far (`ln a_w = -2 M_w phi m`), percent of the solution's mass; none under the activity of a saturated sodium chloride solution."""
     activity = getattr(body, "water_activity", None)
-    if getattr(body, "surface_liquid", None) != WATER_ID or not activity or not NACL_SATURATION_ACTIVITY <= activity <= 1.0:
+    if getattr(body, "surface_liquid", None) != WATER_ID or not activity or not hydrosphere.NACL_SATURATION_ACTIVITY <= activity <= 1.0:
         return
     molality = -math.log(activity) / (2.0 * WATER_MOLAR_MASS_KG * OSMOTIC_COEFFICIENT)
     grams = molality * NACL_G_PER_MOL

@@ -228,3 +228,43 @@ def expand(params):
 
 def unit(args, report):
     return {}
+
+
+# --- OPS.243: a command's expand asks the engine for its cut (`splitter.cut`) -----------------------------------------------------------------------------------------------------------
+
+def test_a_stage_flagged_byte_identical_is_cut_by_the_engine_from_the_profile(monkeypatch):
+    monkeypatch.setitem(splitprofile.STUB, "link-neighbors", FAST)
+    items = list(range(10000))
+    chunks, decision = splitter.cut("link-neighbors", items, 100, resources=ROOMY)
+    assert decision.by == splitter.BY_PROFILE and decision.flag == commands.SPLIT_BYTE_IDENTICAL
+    assert [x for chunk in chunks for x in chunk] == items, "every item is in one chunk, in order"
+    assert len(chunks) == decision.new_units != 100
+    assert max(len(chunk) for chunk in chunks) <= 400, "the typed size stays the bound (a quarter to four times it)"
+
+
+def test_with_nothing_in_the_profile_the_stage_is_cut_as_it_was_by_its_suggested_size(monkeypatch):
+    monkeypatch.setitem(splitprofile.STUB, "link-neighbors", None)
+    items = list(range(1050))
+    chunks, decision = splitter.cut("link-neighbors", items, 500, resources=ROOMY)
+    assert decision.by == splitter.BY_SUGGESTED
+    assert [len(chunk) for chunk in chunks] == [500, 500, 50]
+    chunks, _ = splitter.cut("link-neighbors", items, 5, units_max=10, resources=ROOMY)
+    assert len(chunks) == 10 and [x for chunk in chunks for x in chunk] == items, "no more units than the stage allows, as the typed cut did"
+
+
+def test_a_stage_that_is_not_flagged_keeps_its_suggested_size_whatever_the_profile_says(monkeypatch):
+    monkeypatch.setitem(splitprofile.STUB, "refresh-run-blocks", FAST)
+    chunks, decision = splitter.cut("refresh-run-blocks", list(range(1000)), 100, resources=ROOMY)
+    assert decision.by == splitter.BY_SUGGESTED and len(chunks) == 10
+
+
+def test_a_stage_with_nothing_to_do_has_no_chunk_and_a_range_is_cut_without_listing_it(monkeypatch):
+    assert splitter.cut("link-neighbors", [], 500, resources=ROOMY)[0] == []
+    monkeypatch.setitem(splitprofile.STUB, "fill-map-luminosity", None)
+    chunks, _ = splitter.cut("fill-map-luminosity", range(1, 1_000_001), 200_000, resources=ROOMY)
+    assert [(chunk[0], chunk[-1]) for chunk in chunks] == [(1, 200_000), (200_001, 400_000), (400_001, 600_000), (600_001, 800_000), (800_001, 1_000_000)]
+
+
+def test_the_stages_that_cut_neutral_proofs_exist_for_are_flagged_so_the_engine_cuts_them():
+    for kind in ("link-neighbors", "settle-sector-paths", "fill-map-luminosity"):
+        assert commands.REGISTRY[kind].split == commands.SPLIT_BYTE_IDENTICAL, kind
