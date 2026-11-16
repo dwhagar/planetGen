@@ -54,6 +54,7 @@ plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma 
 `insolation` gives every planet.
 """
 
+from planetgen.generation.build_record import record_of
 import math
 
 from planetgen import tuning
@@ -569,9 +570,9 @@ def generate(body, internal_flux_w_m2):
         return
     star = getattr(body, "star", None)
     body.energy_flux_w_m2 = energy_flux_w_m2(
-        values, getattr(star, "luminosity", None), body.build.star_distance_au,
+        values, getattr(star, "luminosity", None), record_of(body).star_distance_au,
         internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0),
-        radiation_field.companion_light_w_m2(star, body.build.star_distance_au) if star is not None and body.build.star_distance_au else 0.0)
+        radiation_field.companion_light_w_m2(star, record_of(body).star_distance_au) if star is not None and record_of(body).star_distance_au else 0.0)
     values["energy_flux_w_m2"] = body.energy_flux_w_m2
     sulfur_cloud_set.fill(body, values)         # GEN.1425: the species of the Venus set its air and light give it
     body.relative_humidity = relative_humidity(values)      # GEN.1221: stored, for the wet bulb and the water of a class

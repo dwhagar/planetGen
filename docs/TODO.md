@@ -11706,11 +11706,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 16. Prerequisites: OPS.169. Related: OPS.169.
   Filed by the TODO thread.
 
-- [ ] **TEST.729 Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run)**
-  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
-  Filed by the TODO thread.
-
 - [ ] **TEST.730 Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s)**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A2). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
@@ -11718,12 +11713,12 @@ clears each one.
 
 - [ ] **TEST.731 Retire the 29 shape-only downgrade-and-migrate migration tests, keeping each file's save-and-load round trip**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A3). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Covered by test_db_old_schemas (shape) and test_db_column_round_trip.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: TEST.729. Related: TEST.261.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 15 (moved from the old Lane 03, now Gate, which had not started it). Prerequisites: TEST.729. Related: TEST.261.
   Filed by the TODO thread.
 
 - [ ] **TEST.733 Retire the 23 data-backfill migration tests for migrations Boss's server has already run, keeping the not-yet-applied ones**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Boss, 3:53 PM EST on 2026-11-12: "Yes I ran the update ... I'm okay with the migration tests for old versions going away ... Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above". So all 23 retire, none held; a migration chain kept only for history may come later, not now.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 15 (moved from the old Lane 03, now Gate, which had not started it). Prerequisites: none. Related: TEST.261.
   Filed by the TODO thread.
 
 - [ ] **TEST.737 Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips**
@@ -11975,11 +11970,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: none. Related: DB.101, DB.132.
   Filed by the TODO thread.
 
-- [ ] **GEN.1763 A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources**
-  Lane 03, 7:11 AM EST 2026-11-16 (PR 6837, GEN.1579 before and after on 80 systems): 4 bodies were pinned at 375 K; 3 move to class N (489 to 600 K) and 1 to X. One N body has 7,825 bar (5,300 bar CO2 plus 2,300 bar OCS out of the rock) and its greenhouse asks 1,481 K. Do: check the carbonate and sulfur degassing laws at 500 to 600 K against sources (physics found in research wins), and say whether thousands of bar is real or a law used outside its range.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: GEN.1579. Related: GEN.1579, GEN.1580, GEN.1713.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1765 Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt**
   Lane 06, 10:38 AM EST 2026-11-16 (PR 6870, GEN.595): the comet shape is now registered as stand-in rows CMT1 to CMT8 (section 6.303); several are hand-tuned. The nucleus diameter is drawn uniform where the published size law is a steep power law, and the comet count and orbits are not tied to the system's own outer belt. Do: draw the nucleus size from a power law and the comet supply and orbits from the outer belt or disk the system has, then retire or re-tier the CMT rows. Changes generation: lock item.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 06. Prerequisites: GEN.595. Related: GEN.595, GEN.725.
@@ -11988,6 +11978,16 @@ clears each one.
 - [ ] **GEN.1766 (bug) The life-air caps are worked before the air settles: a life-bearing world whose air holds water vapor can freeze it out when methane cools it, leaving methane, hydrogen or hydrogen sulfide above their caps (3 test_life_air reds after GEN.1579)**
   Lane 03, 11:46 AM EST 2026-11-16 (PR 6880): Train 38 (GEN.1579) moved the test's first world from an ice ocean at 174 K to a surface ocean at 262 K; its air now holds vapor, added methane cools it 35 K, the vapor freezes out when the air is stored, and the cap worked before that ends 0.17 percent over. Do: apply_gases finds the settled water by storing on a copy and repeats the caps until they stop moving; bounds untouched. Changes generation (methane and hydrogen on life-bearing worlds with vapor): lock item.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: GEN.1579. Related: GEN.1579, GEN.1743.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1767 Research a dry-surface carbonate buffer for bodies whose ocean has gone (carbonate-silicate equilibrium on dry rock, limited by the crust's calcium): today weathering switches off when the ocean is all vapor and nothing takes the carbon**
+  Lane 03, 12:13 PM EST 2026-11-16 (GEN.1763 report, /mnt/project-files/reports/gen1763-hot-wet-body-degassing-2026-11-16.md): surface_air._weathers turns weathering off when the ocean is all vapor, so a hot wet body keeps all its carbon and sulfur in the air. Source leads in the report are unread and none is on the reference list yet. Do: read the sources, decide whether a dry carbonate equilibrium buffers CO2 at 500 to 1,000 K on the model's crust calcium, and report before building (lock item if built).
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: GEN.1763. Related: GEN.1763, GEN.1713, GEN.1720.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1769 Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw**
+  Lane 02, 12:23 PM EST 2026-11-16 (GEN.1768 trace, main a756e09b0a, seed 4008): an M dwarf world of recipe row j5 keeps 339 bar of O2 because the crust takes only the drawn share OXYGEN_SINK (0.11 here, drawn 0 to 0.9); the water loss itself is sound. Do: read sources for the crust and magma-ocean oxygen budget, derive the sink from the body's iron, sulfur and magma history, carry it in the GEN.1745 air history as a step term (oxygen and reductant stores at every age), and check OXYGEN_SINK is registered in GEN.725 until then. Report before building; lock item when built.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 02. Prerequisites: none. Related: GEN.1768, GEN.1745, GEN.1739, GEN.725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**

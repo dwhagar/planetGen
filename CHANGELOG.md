@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4382] - 2026-11-16
+
+**Headline:** The old-schema shape test starts from the baseline and the newest three stored schemas instead of all 137, about 1,350 s less on a full run.
+
+### Changed
+
+- `tests/test_db_old_schemas.py`: `test_old_schema_migrates_to_the_fresh_shape` runs for the baseline (v130) and the `NEWEST` (3) versions before the current one (`checked_versions()`), not for every stored schema. The run from the baseline passes through every revision and the fixtures hold schema only, so the start points between add nothing; the newest revisions are the ones Boss's server has not run, so they are also started from the schema just before each. The fixture-presence test now asks for those four.
+- `tests/fixtures/old_schemas/`: the 84 fixtures no test loads by number are removed with their README lines (the 53 that remain are the baseline, the newest three, and the ones `test_downgrade_to` and the `test_migration_*` files still load; they go with those tests under TEST.731 and TEST.733).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4381] - 2026-11-16
+
+**Headline:** the system scene and the pages that show a planet's air colour work again after the build record change.
+
+### Fixed
+
+- GEN.1651 follow-up: a planet restored for display is a plain namespace of its columns with no `build`, and the readers that take any object (`body_radiation._star_distance_au`, reached through the scene's air colour, and sixteen more in `physics/`) read `body.build.<field>` and raised `AttributeError`. They read `record_of(body)` now: the body's record, or an empty one for an object that built nothing, so they give what the old `getattr(body, "_x", None)` gave. Passes that write a field still use the real record of a real body.
+
+generation-output: unchanged
+
 ## [8.0.4380] - 2026-11-16
 
 **Headline:** The test runner ends the supervisor a test leaves behind, as it does the workers, so a check run in the next test is no longer served by it.

@@ -52,6 +52,7 @@ section 3.5 (design defaults):
 Earth's) or multipolar (the dipole's share under 0.5).
 """
 
+from planetgen.generation.build_record import record_of
 import cmath
 import math
 
@@ -232,7 +233,7 @@ def generate_field(body, core=None):
         body.dipole_class = "strong"
     else:
         body.dipole_class = "earth-like"
-    distance = body.build.star_distance_au
+    distance = record_of(body).star_distance_au
     body.magnetopause_rp = magnetopause_rp(body, distance) if distance else None
 
 
@@ -313,7 +314,7 @@ def generate_stellar_induction(planet):
     if planet.body_type == "g":
         return
     planet.induced_moment_a_m2 = 0.0
-    distance = planet.build.star_distance_au
+    distance = record_of(planet).star_distance_au
     period = getattr(planet, "period", None)
     if not distance or not period:
         return

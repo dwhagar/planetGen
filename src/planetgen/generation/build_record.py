@@ -91,6 +91,16 @@ class BuildRecord:
         return clone
 
 
+_NOTHING = BuildRecord()
+"""BuildRecord: What an object that builds nothing reads (never written: a pass that sets a field reads `body.build` of a real body)."""
+
+
+def record_of(body):
+    """`body.build`, or an empty record for an object that has none (a row restored for display, a stand-in, a belt): a reader of any object asks here."""
+    record = getattr(body, "build", None)
+    return record if record is not None else _NOTHING
+
+
 class HasBuildRecord:
     """A class whose objects carry a `BuildRecord` as `build`, made the first time it is read (a body rebuilt from the database never ran `__init__`)."""
 

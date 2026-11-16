@@ -50,6 +50,7 @@ holds a planet's spin, as the Earth's), and spin-orbit resonances such as Mercur
 (`PAPER_MAX_ECCENTRICITY`): beyond it the result is computed at 0.3 and flagged. Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.90.
 """
 
+from planetgen.generation.build_record import record_of
 import math
 from dataclasses import dataclass
 
@@ -238,7 +239,7 @@ def spin_of(body):
     star = getattr(body, "star", None)
     if getattr(body, "body_type", None) != "t" or getattr(body, "is_moon", False) or star is None:
         return None
-    birth = body.build.birth_spin
+    birth = record_of(body).birth_spin
     tilt = birth[1] if birth else getattr(body, "axial_tilt_deg", None)
     values = (getattr(body, "mass", None), getattr(body, "radius", None), getattr(body, "atmospheric_pressure", None), getattr(body, "distance", None),
               getattr(body, "eccentricity", None), getattr(star, "mass", None), getattr(star, "luminosity", None), getattr(star, "age", None), tilt)
@@ -274,7 +275,7 @@ def venus_spin(body, row):
 
 def set_on(body):
     """Puts the kept Venus-type state of `body` (`venus_spin`) on its rotation period and tilt; returns the tilt, or `None` when the body has no such state."""
-    result = body.build.venus_spin
+    result = record_of(body).venus_spin
     if result is None:
         return None
     body.rotation_period_hours = result.period_days * 24.0
