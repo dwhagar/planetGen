@@ -12415,11 +12415,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
   Filed by the TODO thread.
 
-- [ ] **OPS.266 (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector**
-  Lane 16, 9:29 PM EST 2026-11-15 (OPS.262, PR #6762): the all-commands silence run records these with their own budgets in src/tests/test_longest_silence.py (or tests/), so the test stays green while they are open. Boss's standing order (11-13): every long step reports fine-grained progress with real counts. Do: add the inner count, then drop the command's own budget from the silence test so the default 5 s applies.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
-  Filed by the TODO thread.
-
 - [ ] **TEST.774 (bug) test_plan_outline::test_the_plan_says_where_its_time_went_step_by_step is red on main: the plan's timing table now prints HMS durations (UX.319, Boss rule) and the test still parses plain seconds**
   Lane 16, 12:24 AM EST 2026-11-16 (found while testing PR 6789, OPS.265): red without 6789 too. Do: make the test read the table's durations through the project's HMS parser (or the same formatter's inverse, no second parser) and keep its checks (costliest first, rows add up to the named total, the named steps present). Lock-free, test only.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: UX.319, OPS.265.
