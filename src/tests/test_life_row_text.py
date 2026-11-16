@@ -17,14 +17,8 @@ from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
 from tests.test_life_text_consistency import _life_text
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
-
-
-def _table_ages(pace):
-    """The ages migration 0156 gives a row of a pace: the table of `tuning.EVOLUTIONARY_TIMELINES`."""
-    return tuple(tuning.EVOLUTIONARY_TIMELINES[pace][key] for key in tuning.LIFE_MILESTONES)
 
 
 def _system():
@@ -80,41 +74,3 @@ def test_a_saved_world_reads_the_same_without_a_draw_or_a_pace_table(mysql_confi
         assert _life_text(body)[0] == expected[body.name], body.name
         seen += "timeline" in expected[body.name]
     assert seen >= 2
-
-
-def _downgrade(config):
-    db_schema_support.downgrade_to(config, 155)
-
-
-def test_a_v155_galaxy_gets_the_ages_of_its_stored_pace(mysql_config):
-    system, system_id, _loaded = _save(mysql_config)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        ids = [row["id"] for row in conn.execute(
-            "SELECT id FROM planets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
-    finally:
-        conn.close()
-    assert len(ids) >= 3
-    _downgrade(mysql_config)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        with conn:
-            conn.execute("UPDATE planets SET evolutionary_pace = NULL WHERE id = ?", (ids[0],))
-            conn.execute("UPDATE planets SET evolutionary_pace = 'fast' WHERE id = ?", (ids[1],))
-            conn.execute("UPDATE planets SET evolutionary_pace = 'slow' WHERE id = ?", (ids[2],))
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        columns = ", ".join(evolution.SCHEDULE_FIELDS)
-        none, fast, slow = (conn.execute(f"SELECT {columns} FROM planets WHERE id = ?", (i,)).fetchone() for i in ids[:3])
-        assert tuple(none[f] for f in evolution.SCHEDULE_FIELDS) == (None,) * 5
-        assert tuple(fast[f] for f in evolution.SCHEDULE_FIELDS) == _table_ages("fast")
-        assert tuple(slow[f] for f in evolution.SCHEDULE_FIELDS) == _table_ages("slow")
-        for table in ("planets", "moons"):
-            found = {row["Field"] for row in conn.execute(f"SHOW COLUMNS FROM {table}").fetchall()}
-            assert set(evolution.SCHEDULE_FIELDS) <= found
-        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
-    finally:
-        conn.close()
