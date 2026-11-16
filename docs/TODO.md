@@ -12433,12 +12433,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: UX.319, OPS.265.
   Filed by the TODO thread.
 
-- [ ] **PERF.273 (bug) One body's seasonal solve stalls 4 to 6.6 s inside a single call (seasonal_swing.temperature_series from refresh_at_final_age of a pre-placed system's moon) on 4 of 7 runs, where its mean is 66 ms; the three sector commands keep 12 s rows in RECORDED_SILENCE for it**
-  Lane 16, 12:24 AM EST 2026-11-16 (found while building PR 6789, OPS.265). Do: find which body and why the solve runs long (iteration count, step size, a non-converging case), fix the cause so the call is bounded or beats progress inside it, then drop the three 12 s rows from RECORDED_SILENCE. Measure that seasonal temperatures are unchanged on fixed seeds; if they move it is a lock item for Train Manager.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: OPS.265, OPS.239.
-  Filed by the TODO thread.
-  Cause found (Lane 16, 8:43 AM EST 2026-11-16, PR 6820 head 723a68371c): not the seasonal solve (worst single call 1.2 s on 400 bodies) but the cold build of the bright-star sampling tables on the first run of a new code key (231 tables); real in production because every update is a first run. Fix: the three table builds in star_population move the unit's clock once per cell; no draw touched, not a lock item. The silence test uses its own empty table folder so it always measures the cold case.
-
 - [ ] **GEN.1760 (bug) Orbits are circularised before the surface temperature is known, so every icy-by-water body is tidally treated as a 100 K ice shell then, and a warm water world keeps an eccentric orbit a rock tide would have worn down (Eltotecius I: e 0.43 at 0.03 AU)**
   Lane 07, 2:21 AM EST 2026-11-16 (found building GEN.1759): warm icy-by-water bodies keep their old tidal heat in GEN.1759 for this reason (the rock regime would give up to 1e5 W/m2 with today's eccentricities). Do: order the build so circularisation and tidal heat read the settled surface temperature (or iterate the two to a fixed point), using GEN.1759's shared k2/Q chooser; measure eccentricities and tidal heat of close-in water worlds before and after on fixed seeds. Lock item (orbits and heat move).
   Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: GEN.1759. Related: GEN.1755, GEN.1756, GEN.1759.
