@@ -56979,44 +56979,6 @@
           "fields": [
             [
               "What it is",
-              "belt_origin.DESTROYED_RETAINED_SHARE 0.5, the share of a destroyed planet's mass that stays in orbit as a belt"
-            ],
-            [
-              "The range it moves in",
-              "0.1 to 0.9"
-            ],
-            [
-              "Where it holds",
-              "planets destroyed by collision or tide"
-            ],
-            [
-              "What would show it wrong",
-              "a collision run of a planet that leaves under 10 percent in orbit"
-            ],
-            [
-              "What replaces it",
-              "the retained share of collision_outcome for the event"
-            ],
-            [
-              "Evidence",
-              "no source; the rest is ejected or falls onto the star"
-            ]
-          ],
-          "id": "BG10",
-          "key": "6.97:BG10",
-          "kind": "P",
-          "slug": "6-97-bg10",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L0",
-          "unread": null,
-          "what": "belt_origin.DESTROYED_RETAINED_SHARE 0.5, the share of a destroyed planet's mass that stays in orbit as a belt"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "belt_origin.DEBRIS_MIN_WIDTH 0.05, the least half-width of a belt of debris as a share of its distance"
             ],
             [

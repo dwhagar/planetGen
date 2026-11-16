@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1873 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1872 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1846 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1845 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 215 | 22 | 12 | 1 | 0 | 250 |
 | T2 | 171 | 72 | 3 | 1 | 0 | 247 |
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
-| T4 | 90 | 16 | 8 | 24 | 13 | 151 |
+| T4 | 89 | 16 | 8 | 24 | 13 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 1 | 148 |
 | T6 | 238 | 127 | 34 | 81 | 4 | 484 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 108 | 41 | 227 |
-| All | 1070 | 384 | 94 | 265 | 60 | 1873 |
+| All | 1069 | 384 | 94 | 265 | 60 | 1872 |
 
 ## How the labels were given
 
@@ -2513,7 +2513,6 @@ The tier says how good the source of a number is; the **evidence status** says w
 | BG4 | P | T4 | L0 | belt_origin.SNOW_BUMP_WIDTH 0.15, the half-width of the snow-line pile-up as a share of the snow line | 0.05 to 0.4 | discs with a quiet snow line | a survey of belt radii against the snow line that finds them outside 15 percent | a disc model with the pebble flux and the viscosity | [R2074] (row BR16, READ) say a pressure bump forms at the snow line but give no width | predicted only | - | - |
 | BG8 | P | T6 | L0 | belt_origin.STIR_ZONE_WIDTHS 3.0, a belt within 3 chaotic half-widths of a giant is stirred by it | 2 to 5 | belts near giants | a belt 3 half-widths out with a flat, cold size distribution | the stirring of the belt's eccentricity from the secular model | [R3175] (read) follow the clearing out to 3.0 mu^(2/7) a | predicted only | - | - |
 | BG9 | P | T2 | L1 | belt_origin.INSTABILITY_SURVIVAL_RANGE 0.002 to 0.01, the share of the swept stretch a giant that migrated through it leaves, log-uniform | one decade each way | belts of systems whose giants migrated through them | a system with a migration history whose belt is outside the range | N-body migration runs of the system's own giants | row BR4: [R4603] (READ) and [R3150] (READ); a Nice type instability alone leaves 0.1 to 0.5 (row BR5), not used until the architecture records instabilities (GEN.1082) | predicted only | - | - |
-| BG10 | P | T4 | L0 | belt_origin.DESTROYED_RETAINED_SHARE 0.5, the share of a destroyed planet's mass that stays in orbit as a belt | 0.1 to 0.9 | planets destroyed by collision or tide | a collision run of a planet that leaves under 10 percent in orbit | the retained share of `collision_outcome` for the event | no source; the rest is ejected or falls onto the star | predicted only | - | - |
 | BG11 | P | T6 | L0 | belt_origin.DEBRIS_MIN_WIDTH 0.05, the least half-width of a belt of debris as a share of its distance | 0.02 to 0.2 | belts of debris | a debris belt that stays narrower than 5 percent for a Gyr | the spread from the energy of the event | the relative speed of the pieces is of the order of the escape speed, a few percent of the orbital speed | predicted only | - | - |
 | BG12 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_PER_GYR 0.003, the chance per Gyr that a system has a standing belt of rubble from a collision of large bodies (1.3 percent over 4.5 Gyr) | 0.001 to 0.01 | systems of any age | a census of hot or warm dust that needs more than three times the rate | the occurrence of transient dust of the debris-disc surveys | no source; hot dust under 4 AU is thought to come from transient events ([R4081], row BR15) | predicted only | - | - |
 | BG13 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_MASS_EARTH 1e-4, the mass of a belt of collision rubble (6e20 kg) | 1e-5 to 1e-2 | collisions of large bodies | a rubble belt of the census well outside the range | the mass of the colliding pair | no source; the size of the family of a Ceres-class parent | predicted only | - | - |

@@ -18,7 +18,6 @@ in as `u` arguments) and moves nothing. GEN.1068 gives it the final chain in pla
 - `snow-line-bump`: solids pile up at the snow line as the system formed it (the formation snow line is stored); where that stretch is free of
   planets and is not already inside a gap or tail (which then take it as a second cause) it is its own belt.
 - `outer-disk`: the disk past the last giant (or past the tail), out to `disk_edge_au`.
-- `destroyed-planet`: the remains of a planet the system's history destroyed (the caller names it), `DESTROYED_RETAINED_SHARE` of its mass.
 - `collisional-debris`: the rubble of a collision between large bodies, a rare event at `COLLISIONAL_DEBRIS_PER_GYR` of mass
   `COLLISIONAL_DEBRIS_MASS_EARTH`; `collisional_debris` turns the caller's draw into the event or none.
 
@@ -86,8 +85,6 @@ architecture to record instabilities (GEN.1082) (BG9)."""
 JUPITER_RADIUS_KM = 71492.0
 """float: The radius of a giant that has none stored, km (Jupiter's; a giant's radius changes little with its mass, row BG21)."""
 
-DESTROYED_RETAINED_SHARE = 0.5
-"""float: The share of a destroyed planet's mass that stays in orbit as a belt (BG10)."""
 
 DEBRIS_MIN_WIDTH = 0.05
 """float: The least half-width of the belt of debris round its distance, as a share of the distance (BG11)."""
@@ -134,7 +131,7 @@ Jupiter), where it formed, its radius (km; `JUPITER_RADIUS_KM` for a giant that 
 (`Planet.min_orbit_distance`, AU; `None` where only the mass is known and five Hill radii are worked out from it)."""
 
 Debris = collections.namedtuple("Debris", ("cause", "mass_earth", "distance_au", "eccentricity"), defaults=(0.0,))
-"""The event behind a belt of rubble: `cause` is 'destroyed-planet' or 'collisional-debris', `mass_earth` the mass of the belt, `distance_au` the
+"""The event behind a belt of rubble: `cause` is 'collisional-debris', `mass_earth` the mass of the belt, `distance_au` the
 distance of the event."""
 
 Event = collections.namedtuple("Event", ("cause", "mass_earth", "giant_au", "text"))
@@ -309,11 +306,6 @@ def snow_line_bump(chain, star_mass_kg, formation_snow_line_au, taken):
     return [_candidate("snow-line-bump", lower, upper, snow_line_au=formation_snow_line_au)]
 
 
-def destroyed_planet(mass_kg, distance_au, eccentricity=0.0):
-    """The `Debris` of a planet of `mass_kg` the system's history destroyed at `distance_au`: `DESTROYED_RETAINED_SHARE` of its mass stays."""
-    return Debris("destroyed-planet", _kg_to_mearth(DESTROYED_RETAINED_SHARE * mass_kg), distance_au, eccentricity)
-
-
 def collisional_debris_chance(age_yr):
     """The chance that a system of `age_yr` has a standing belt of rubble from a collision of large bodies: `1 - exp(-rate t)`."""
     return 1.0 - math.exp(-COLLISIONAL_DEBRIS_PER_GYR * age_yr / 1.0e9)
@@ -327,8 +319,8 @@ def collisional_debris(distance_au, eccentricity, age_yr, u):
 
 
 def _debris_candidate(debris):
-    if debris.cause not in ("destroyed-planet", "collisional-debris"):
-        raise BeltOriginError(f"debris cause {debris.cause!r} is not destroyed-planet or collisional-debris")
+    if debris.cause != "collisional-debris":
+        raise BeltOriginError(f"debris cause {debris.cause!r} is not collisional-debris")
     width = max(debris.eccentricity, DEBRIS_MIN_WIDTH)
     return _candidate(debris.cause, debris.distance_au * (1.0 - width), debris.distance_au * (1.0 + width), event_au=debris.distance_au,
                       mass_earth=debris.mass_earth)
@@ -491,7 +483,7 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
         growth_limit_au (float): Where the disk built less (`tuning.PLANET_OUTER_GROWTH_AU`).
         disk_edge_au (float): The outer edge of the disk.
         u (float): A uniform draw in (0, 1) for the survival share of a belt a giant swept through.
-        debris (iterable): `Debris` events, from `destroyed_planet` and `collisional_debris`.
+        debris (iterable): `Debris` events, from `collisional_debris`.
         instability (float): 0 to 1, how much the giants scattered each other (`capture_windows.instability_level`): it throws out a share of the disk past the outermost giant (`scattering_loss_share`, GEN.1341).
         age_myr (float or None): The star's age, Myr, for the resonance zones the giants have emptied by then (`resonance_gaps.RESONANCE_CLEARING_MYR`); `None` is old enough.
         disk_limit_au (float): Where a companion star cuts the disk (`disk_truncation.star_truncation_au`, GEN.1451): every stretch ends there before its mass is worked out, and one that no longer fits is no belt. Infinite for a lone star.
