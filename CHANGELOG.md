@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4338] - 2026-11-16
+
+**Headline:** Two more tests that still expected a decimal time now expect the hours, minutes and seconds form.
+
+### Fixed
+- `test_job_view` (a retry hold and an attempt's CPU time) and `test_web_sector_nav` (the stay at each stop) read times as `2m`, `1m 5s` and `30m`.
+
+generation-output: unchanged
+
 ## [8.0.4337] - 2026-11-16
 
 **Headline:** The queue commands' declared reads and writes are now held to a second tap run on a dense galaxy, and the declarations that run showed to be wrong are corrected.
