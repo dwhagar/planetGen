@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1755 |
+| GEN | GEN.1758 |
 | PERF | PERF.273 |
 | DB | DB.132 |
 | API | API.52 |
@@ -4077,6 +4077,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1752 | Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule) | none | open |
 | GEN.1753 | Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them | GEN.1533 | open |
 | GEN.1754 | Nebular envelopes and their water for bodies of 1 Earth mass and up (the GEN.1748 source stops at 0.3 percent hydrogen) | GEN.1748 | open |
+| GEN.1755 | (bug, measure first) Class D size bodies (under 0.001 Earth masses) at 1 to 5 AU of F, G and K stars are tidally locked 17 to 59 percent of the time, where the standard tide time gives about zero | none | open |
+| GEN.1756 | Check: 12.9 percent of rocky planets of 0.1 Earth masses or more inside 0.1 AU are not tidally locked (free spin 5 to 36 h on 95 to 750 h orbits, at every star age) though the simple tide time locks them all within the star's age | none | open |
+| GEN.1757 | Check: 742 moons (1.02 percent of bodies, up from 0.8 percent at Train 28) carry no class letter; confirm every one is an Asteroid object (under roundness ratio 1, no air, liquid or life, GEN.1160 and GEN.1752) and none is a classifiable moon left unclassed | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
