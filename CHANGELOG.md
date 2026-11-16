@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4340] - 2026-11-16
+
+**Headline:** The second pair of commands that may overlap, the mass scatter and the phenomena scatter, is proved and listed.
+
+### Changed
+- `queue/independence.json` lists `scatter-mass` and `scatter-phenomena`, with the tables they share named in the entry (`bright_stars`, `phenomenon_scatter`, `scatter_members`, `scatter_nodes`, `id_counters`, `galaxy_block_light_parts`, `galaxy_shape`): each writes its own scatter table and the members, nodes, ids and block light parts of its own rows, and reads the other's table only for the light. Overlapped at 1 and 15 workers in both orders, the stored content (row ids left out, members and nodes compared through the owner's `uid`) equals plan order's. Nothing runs overlapped until the new engine's supervisor starts the jobs the plan leaves free, so a run is as before; output of generation is unchanged.
+
 ## [8.0.4339] - 2026-11-16
 
 **Headline:** The queue commands' declared reads and writes are now held to a second tap run on a dense galaxy, and the declarations that run showed to be wrong are corrected.

@@ -1,4 +1,0 @@
-**Headline:** The second pair of commands that may overlap, the mass scatter and the phenomena scatter, is proved and listed.
-
-### Changed
-- `queue/independence.json` lists `scatter-mass` and `scatter-phenomena`, with the tables they share named in the entry (`bright_stars`, `phenomenon_scatter`, `scatter_members`, `scatter_nodes`, `id_counters`, `galaxy_block_light_parts`, `galaxy_shape`): each writes its own scatter table and the members, nodes, ids and block light parts of its own rows, and reads the other's table only for the light. Overlapped at 1 and 15 workers in both orders, the stored content (row ids left out, members and nodes compared through the owner's `uid`) equals plan order's. Nothing runs overlapped until the new engine's supervisor starts the jobs the plan leaves free, so a run is as before; output of generation is unchanged.
