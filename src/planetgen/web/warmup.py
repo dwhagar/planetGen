@@ -29,7 +29,7 @@ from planetgen.api.limiter import PAGE_LIMITS_OFF
 from planetgen.db import nodes, objectindex, store
 from planetgen.galaxy.nodecut import node_cut
 from planetgen.physics.units import ly_to_pc
-from planetgen.queue import commands
+from planetgen.queue import commands, splitter
 from planetgen.queue import units as units_module
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util import log, logrecord
@@ -786,13 +786,13 @@ def _expand_objects(params, family):
     with app.test_request_context("/"):
         total = int(getattr(apiclient, _OBJECT_TOTALS[family])(database, limit=1)["total"])
     wanted = min(total, cap)
-    size = units_module.coarsen(wanted, OBJECT_CHUNK)
-    units = [({"database": database, "cap": params.get("cap"), "offset": start, "count": min(size, wanted - start),
-               "left_out": total - wanted if start == 0 else 0}, ITEM_SECONDS[family] * min(size, wanted - start))
-             for start in range(0, wanted, size)]
+    slices, decision = splitter.cut(f"warm-{family}", range(wanted), units_module.coarsen(wanted, OBJECT_CHUNK), units_module.MAX_UNITS)   # OPS.243: the engine's cut
+    units = [({"database": database, "cap": params.get("cap"), "offset": piece.start, "count": len(piece),
+               "left_out": total - wanted if piece.start == 0 else 0}, ITEM_SECONDS[family] * len(piece))
+             for piece in slices]
     if not units:
         units = [({"database": database, "cap": params.get("cap"), "offset": 0, "count": 0, "left_out": 0}, OBJECT_SECONDS)]
-    return commands.Expansion(units, {family: total, "cap": cap})
+    return commands.Expansion(units, {family: total, "cap": cap}, split=decision)
 
 
 def expand_warm_sectors(params):
@@ -891,7 +891,7 @@ def _node_units(database, keys, family):
     their nodes stored. A check that fails is no reason to skip a node: every node is then cut as before.
 
     Returns:
-        tuple: `(units, stored)`: the `(args, cost)` pairs, and the number of nodes left out because they are stored.
+        tuple: `(units, stored, decision)`: the `(args, cost)` pairs, the number of nodes left out because they are stored, and the engine's split decision (OPS.243).
     """
     stored = set()
     if keys:
@@ -901,15 +901,14 @@ def _node_units(database, keys, family):
         except Exception as exc:  # noqa: BLE001 -- best effort: without the check every node is cut, as before
             log.debug(f"{family}: the stamp check failed ({exc!r}); every node is cut into units.", area="cache")
     todo = [key for key in keys if key not in stored]
-    size = units_module.coarsen(len(todo), NODE_CHUNK)
-    units = [({"database": database, "keys": todo[start:start + size]}, ITEM_SECONDS[family] * len(todo[start:start + size]))
-             for start in range(0, len(todo), size)]
+    chunks, decision = splitter.cut(f"warm-{family}", todo, units_module.coarsen(len(todo), NODE_CHUNK), units_module.MAX_UNITS)   # OPS.243: the engine's cut
+    units = [({"database": database, "keys": chunk}, ITEM_SECONDS[family] * len(chunk)) for chunk in chunks]
     if stored:
         if units:
             units[0][0]["stored"] = len(stored)
         else:
             units = [({"database": database, "keys": [], "stored": len(stored)}, NODE_SECONDS)]
-    return units or [({"database": database, "keys": []}, NODE_SECONDS)], len(stored)    # nothing is stored yet: one unit with no nodes, so the stage still runs and says so
+    return units or [({"database": database, "keys": []}, NODE_SECONDS)], len(stored), decision    # nothing is stored yet: one unit with no nodes, so the stage still runs and says so
 
 
 def pieces_warm_galaxy_nodes(args, cursor):
@@ -944,8 +943,8 @@ def expand_warm_galaxy_nodes(params):
     """The units of the `warm-galaxy-nodes` stage: the populated blocks of `NODE_WARM_FLOOR` and above that the cache does not already hold in chunks of
     `NODE_CHUNK` (a whole multiple of it past `units.MAX_UNITS` chunks), coarsest first."""
     keys = _populated_nodes(params["database"])
-    units, stored = _node_units(params["database"], keys, "galaxy-nodes")
-    return commands.Expansion(units, {"nodes": len(keys), "stored": stored, "floor": NODE_WARM_FLOOR})
+    units, stored, decision = _node_units(params["database"], keys, "galaxy-nodes")
+    return commands.Expansion(units, {"nodes": len(keys), "stored": stored, "floor": NODE_WARM_FLOOR}, split=decision)
 
 
 def finish_warm_galaxy_nodes(params, plan, results, seconds):
@@ -961,8 +960,8 @@ def expand_warm_galaxy_deep_nodes(params):
     with app_for().test_request_context("/"):
         shape = apiclient.get_galaxy_shape(database)
     keys = deep_nodes_to_warm(shape, floor)
-    units, stored = _node_units(database, keys, "galaxy-deep-nodes")
-    return commands.Expansion(units, {"nodes": len(keys), "stored": stored, "zoom_floor": floor})
+    units, stored, decision = _node_units(database, keys, "galaxy-deep-nodes")
+    return commands.Expansion(units, {"nodes": len(keys), "stored": stored, "zoom_floor": floor}, split=decision)
 
 
 def _finish_nodes(params, results, seconds, family):
