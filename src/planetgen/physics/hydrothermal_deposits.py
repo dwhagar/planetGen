@@ -32,17 +32,16 @@ range of each type are the design file's, recalled.
 
 from typing import NamedTuple, Optional
 
-from planetgen.physics import constants, interior_heat, mixture, ore_deposits, sedimentary_deposits as sd
+from planetgen.physics import constants, interior_heat, mixture, ore_deposits, sedimentary_deposits as sd, surface_pressure
 
 PORPHYRY, VMS, SEDEX, OROGENIC, EPITHERMAL, ROLL_FRONT = ("porphyry_cu_mo_au", "vms_massive_sulfide", "sedex_mvt_zn_pb", "orogenic_gold", "epithermal_au_ag", "roll_front_uranium")
 HYDROTHERMAL_IDS = (PORPHYRY, VMS, SEDEX, OROGENIC, EPITHERMAL, ROLL_FRONT)
 """tuple: The ids this module stores in `ore_deposits.ATTRIBUTE` (the magmatic and sedimentary ids stay as their passes made them)."""
 
-EARTH_HEAT_FLUX_W_M2 = 0.087
 EARTH_OCEAN_FRACTION = 0.71
 EARTH_LAND_FRACTION = 0.29
 EARTH_O2_PA = 21278.0
-"""float: The Earth's mean heat flow, ocean share, land share and oxygen partial pressure: the references the opportunities scale from. Row HT1, tier T3, L0."""
+"""float: The Earth's ocean share, land share and oxygen partial pressure: the references the opportunities scale from (their heat flow is `surface_pressure.HEAT_FLUX_EARTH_W_M2`, the one Earth heat flow of the interior model, GEN.1636). Row HT1, tier T3, L0."""
 
 PORPHYRY_MIN_CRUST_KM = 20.0
 OROGENIC_MIN_CRUST_KM = 25.0
@@ -95,7 +94,7 @@ class State(NamedTuple):
 
 
 def _heat_ratio(state):
-    return min(HEAT_RATIO_CAP, state.heat_flux_w_m2 / EARTH_HEAT_FLUX_W_M2)
+    return min(HEAT_RATIO_CAP, state.heat_flux_w_m2 / surface_pressure.HEAT_FLUX_EARTH_W_M2)
 
 
 def _area_ratio(state):
@@ -123,7 +122,7 @@ def _porphyry(state):
 
 
 def _vms(state):
-    if not _mobile_wet(state) or not state.ocean or state.heat_flux_w_m2 < VMS_MIN_HEAT_RATIO * EARTH_HEAT_FLUX_W_M2:
+    if not _mobile_wet(state) or not state.ocean or state.heat_flux_w_m2 < VMS_MIN_HEAT_RATIO * surface_pressure.HEAT_FLUX_EARTH_W_M2:
         return None
     return _setting(state, VMS, _area_ratio(state) * _heat_ratio(state) * state.ocean_fraction / EARTH_OCEAN_FRACTION, _cap(state, "Zn"))
 

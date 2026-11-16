@@ -26,8 +26,8 @@ the thermal tide of the air on the planet's spin in the same sum (`body_spin`, G
   from the stored distances, masses and spin by `interior_heat`, at the temperature of the mantle.
 
 The pass draws nothing except the spin axis' precession angle that `spin.set_spin` places again, and it can be repeated: it starts from the bodies
-`_born_moons` (kept on the planet, with each moon's `_birth_distance_au`) and the planet's `_birth_spin`. A planet restored from the database has neither
-and is left as it is. A history no integrator can finish (`moon_orbits.IntegrationFailed`) leaves the moons as born (TM8). A planet cannot be spun past `spin.BREAKUP_FRACTION` of its breakup rate by the moons that fall (TM9). Stand-ins are TM5 to TM9 of `docs/design/research/gap-filling-plan.md` section 6.25.
+`_born_moons` (kept on the planet, with each moon's `_birth_distance_au`) and the planet's `_birth_spin`. A planet restored from the database has them from its rows (GEN.1753: `body_history`, the `lost_moons` table
+and `restore_born`), the moons the history lost as `LostMoon`s; one saved before that starts from the moons it has, each at the orbit it has now. A history no integrator can finish (`moon_orbits.IntegrationFailed`) leaves the moons as born (TM8). A planet cannot be spun past `spin.BREAKUP_FRACTION` of its breakup rate by the moons that fall (TM9). Stand-ins are TM5 to TM9 of `docs/design/research/gap-filling-plan.md` section 6.25.
 """
 
 import math
@@ -56,13 +56,59 @@ def density_kg_m3(body):
     return body.mass / (4.0 / 3.0 * math.pi * (body.radius * 1000.0) ** 3)
 
 
+class LostMoon:
+    """
+    A moon the history of a stored planet took away, kept for the history to run again (GEN.1753, `body_history.lost_rows`): the four numbers `moon_orbits.Moon` reads (its mass, birth orbit, density and
+    direction) and nothing else. It is never a body of the system: `apply` lets it take part and drops it again, and one that the history now lets stay is counted with the moons that fell.
+
+    Attributes:
+        mass (float): kg.
+        radius (float): km, from the density.
+        distance (float): AU, the birth orbit; a moon that was lost is nowhere else.
+        orbital_inclination_deg (float): 180 for a moon that went round against its planet's spin, else 0.
+    """
+
+    def __init__(self, mass_kg, birth_distance_au, density_kg_m3, retrograde_flag):
+        self.mass = mass_kg
+        self.radius = (3.0 * mass_kg / (4.0 * math.pi * density_kg_m3)) ** (1.0 / 3.0) / 1000.0
+        self.distance = birth_distance_au
+        self._birth_distance_au = birth_distance_au
+        self.orbital_inclination_deg = 180.0 if retrograde_flag else 0.0
+
+
+def restore_born(planet, kept, lost):
+    """
+    Gives a planet restored from the database the list of the moons it was born with (`_born_moons`) that a run keeps (GEN.1753): its moons that have a stored birth orbit and place, and the lost ones as `LostMoon`s,
+    in the order they were born in. Nothing is set unless every moon the planet has comes with a place (a planet saved before the lost moons were kept starts its history from the moons it has, as before), and
+    the planet needs its birth spin (`_birth_spin`) for the history to be run.
+
+    Args:
+        planet: A restored planet.
+        kept (list[tuple]): `(born_index, moon)` for each moon of the planet that has a stored place.
+        lost (list[dict]): The planet's `lost_moons` rows (`body_history.LOST_FIELDS`).
+
+    Returns:
+        bool: Whether the born list was set.
+    """
+    if getattr(planet, "_birth_spin", None) is None or len(kept) != len(getattr(planet, "moons", ())) or not kept and not lost:
+        return False
+    placed = {place: moon for place, moon in kept}
+    for row in lost:
+        placed[row["born_index"]] = LostMoon(row["mass_kg"], row["birth_distance_au"], row["density_kg_m3"], row["retrograde"])
+    if len(placed) != len(kept) + len(lost) or sorted(placed) != list(range(len(placed))):
+        return False
+    planet._born_moons = [placed[place] for place in range(len(placed))]
+    return True
+
+
 def born_moons(planet):
     """The moons the planet was generated with, in order, each with its birth distance (`_birth_distance_au`); the current moons the first time."""
     born = getattr(planet, "_born_moons", None)
     if born is None:
         born = list(planet.moons)
         for moon in born:
-            moon._birth_distance_au = moon.distance
+            if getattr(moon, "_birth_distance_au", None) is None:      # a restored moon brings the orbit it was born on (GEN.1753)
+                moon._birth_distance_au = moon.distance
         planet._born_moons = born
     return born
 
@@ -112,6 +158,7 @@ def apply(planet, primary_mass_kg):
     except moon_orbits.IntegrationFailed:
         # TM8: no integrator finished (a very stiff planet): the moons stay as they were born and the planet's spin is the one it would have without them
         planet.fallen_moons = ()
+        born = [moon for moon in born if not isinstance(moon, LostMoon)]      # a stand-in is no body of the system
         for moon in born:
             if abs(moon.distance / moon._birth_distance_au - 1.0) > 1.0e-12:
                 planets.move_orbit(moon, moon._birth_distance_au, planet.mass)
@@ -121,8 +168,11 @@ def apply(planet, primary_mass_kg):
         return None
     entry = {id(m): m.distance for m in born}
     survivors = []
+    stayed = []      # lost moons of a stored planet that the history, run again, lets stay: the system has no body for them, so they are counted as lost
     for moon, fate in zip(born, result.moons):
-        if fate.fate == "stays":
+        if fate.fate == "stays" and isinstance(moon, LostMoon):
+            stayed.append(moon.mass)
+        elif fate.fate == "stays":
             target_au = fate.distance_m / constants.AU_TO_M
             if abs(target_au / moon.distance - 1.0) > 1.0e-12:
                 planets.move_orbit(moon, target_au, planet.mass)
@@ -149,7 +199,7 @@ def apply(planet, primary_mass_kg):
     age_yr = planet.star.age * 1.0e9
     planet.fallen_moons = tuple(
         [ring_origin.FallenMoon(fate.moon.mass_kg, fate.time_s / constants.SECONDS_PER_YEAR) for fate in result.moons if fate.fate == "fell"]
-        + [ring_origin.FallenMoon(mass, age_yr) for mass in dragged])
+        + [ring_origin.FallenMoon(mass, age_yr) for mass in dragged + stayed])
     if survivors:
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in survivors])

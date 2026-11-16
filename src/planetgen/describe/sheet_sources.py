@@ -88,6 +88,7 @@ _STAR = {
     "chemistry_core_neon22": "Every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as neon-22 in the core, so the share rises with the star's metal fraction.",
     "chemistry_pollutant_class": "[R1832]: a polluted white dwarf shows the rock of a body that fell in; here one belt body of its system, picked by mass, sorted by its metal, ice and calcium and aluminum.",
     "chemistry_pollutant_ratios": "The elements a white dwarf's spectrum shows, over the magnesium, from the materials of the accreted body's taxon [R1832].",
+    "chemistry_pollution_rate": "[R2415]: polluted white dwarfs accrete a few 1e5 to a few 1e8 g/s. Here the rate of the rock the star's mass loss threw inward from its belts, over the time it takes to fall, or the typical 1e8 g/s when no belt gives enough.",
 }
 """dict: A star's column key (or the key of a row worked out from the stored values, UX.254) -> its source line."""
 

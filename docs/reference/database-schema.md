@@ -1612,6 +1612,7 @@ columns capture the facts the prose always states instead.
 | `lower_limit_km`, `upper_limit_km` | DOUBLE | NOT NULL | The belt's inner/outer boundary. |
 | `density_g_cm3`, `ice_mass_fraction` | DOUBLE | nullable | Added in v199 (GEN.1159). The mean bulk density of the members in g/cm3 and the mean share of their mass that is ice of any kind, from the drawn makeup (`physics/small_body_composition.py`). NULL for a row made before v195. The roundness ratio, strength and binding energy belong to a member, not to the population. |
 | `history_text` | TEXT | nullable | Added in v210 (GEN.1232). What the star's evolution did to the belt, as one paragraph of plain sentences (`physics/belt_history.py`: the part the giant branch engulfed, the share the mass loss threw inward). NULL for a belt nothing happened to and for a row made before v205. |
+| `thrown_inward_kg` | DOUBLE | nullable | Added in v267 (GEN.1231). The mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`, set by `remnant_orbits` on the belts of a white dwarf's system): the source of the rock that falls on the star, whose rate its sheet shows. NULL for a belt of no remnant system and for a row made before v267. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary built the same way as the prose sentence (`asteroidData.py:119-137`), e.g. `"high concentrations of iron, moderate concentrations of nickel, and trace amounts of platinum"` — searchable without a join, alongside the structured breakdown below. |
 | `origin_cause`, `co_causes` | VARCHAR(24), TEXT | nullable | Added in v204 (GEN.1069). What formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet` or `collisional-debris`, `physics/belt_origin.py`) and the other formation causes that coincide with it, a JSON list. NULL for a belt made without an origin. |
@@ -2114,9 +2115,28 @@ Added in v243 (GEN.1497). The numbers a planet's or moon's history leaves that c
 | `birth_spin_rate` | DOUBLE | nullable | The spin rate it was born with, rad/s. |
 | `birth_obliquity_deg` | DOUBLE | nullable | The tilt it was born with, 0 to 180 degrees (CHECK). |
 | `capture_draw_1`, `capture_draw_2` | FLOAT | nullable | The uniforms (0 to 1) that decide whether the spin is caught in the first and the second resonance of `spin_torques.CAPTURE_RATIOS`. |
+| `formation_distance_au` | DOUBLE | nullable | Added in v266 (GEN.1753). Where the body formed, AU (a moon's is its planet's; CHECK 0 or more): the key of the end-stage draw streams (`draw.body_stream_of`) and the line the water's origin is read against. NULL for a row written before v266. |
+| `birth_distance_au` | DOUBLE | nullable | Added in v266. A moon's orbit when it was born, AU, before the planet's tide moved it (CHECK 0 or more); the moon history of its planet starts from it. NULL for a planet and for a row written before v266. |
+| `born_index` | SMALLINT UNSIGNED | nullable | Added in v266. The moon's place in its planet's list of born moons (`moon_history.born_moons`), which the `lost_moons` rows share. |
 | `formula_version` | TINYINT UNSIGNED | NOT NULL | `body_history.FORMULA_VERSION` when the row was written. |
 
 Primary key `(star_system_id, body_type, body_id)`; no other index. Left out of the fingerprint (it keeps draws, the results are what a fingerprint reads). A galaxy made before v243 has no rows, which reads as not kept; nothing is backfilled. An edit of a system keeps the rows of the bodies it keeps and deletes those of a planet or moon it deleted (`db/edits.py`).
+
+### `lost_moons`
+
+Added in v266 (GEN.1753). The moons a planet was born with that its history took away (fell below the Roche limit, were pushed out of the stable orbits or dragged in), kept as the four numbers `moon_orbits.Moon` reads so that the history of a restored planet runs again from what it started with (`physics/body_history.lost_rows`, `moon_history.restore_born`, `moon_history.LostMoon`). One row for each lost moon; a planet that lost none has none. `store.attach_body_history` reads them with the rows of `body_history`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `star_system_id` | BIGINT UNSIGNED | NOT NULL | The system; FK -> `star_systems.id` (`ON DELETE CASCADE`). |
+| `planet_id` | BIGINT UNSIGNED | NOT NULL | The planet's `planets.id`. |
+| `born_index` | SMALLINT UNSIGNED | NOT NULL | The moon's place in the planet's born moons, shared with `body_history.born_index` of the moons it kept. |
+| `mass_kg` | DOUBLE | NOT NULL | Its mass (CHECK above 0). |
+| `birth_distance_au` | DOUBLE | NOT NULL | The orbit it was born on, AU (CHECK above 0). |
+| `density_kg_m3` | DOUBLE | NOT NULL | Its mean density (CHECK above 0), from which the history takes its radius. |
+| `retrograde` | TINYINT UNSIGNED | NOT NULL | 1 when it went round against its planet's spin (CHECK 0 or 1). |
+
+Primary key `(star_system_id, planet_id, born_index)`; no other index. Left out of the fingerprint. Written with the system (`store.insert_body_history`) and again by an edit (`store.rewrite_body_history`).
 
 ### `chart_ledger`
 
@@ -2511,6 +2531,10 @@ Migration 0208 drops `description` from `planets` and `moons`. It held the sente
 
 Migration 0210 adds `history_text` (TEXT, nullable) to `asteroid_belts`: the sentences `physics/belt_history.py` wrote for the events the star's evolution put a belt through (engulfed in part by the giant branch, thrown inward by the mass loss), as one paragraph for the belt's page. A belt nothing happened to keeps NULL, and so does a row made before v210; nothing is backfilled, and a column already there is skipped, so a stopped run can be started again.
 
+### v267 (GEN.1231): the mass a belt's star threw inward
+
+Migration 0267 adds `thrown_inward_kg` (DOUBLE, nullable) to `asteroid_belts`: the mass of the belt the star's mass loss threw inward (`physics/belt_history.py`), the rock that falls on a white dwarf. NULL for a belt of no remnant system and for a row made before v267; nothing is backfilled, a regenerated galaxy fills it.
+
 ### v203 (GEN.1209): several life classes on one body
 
 Migration 0203 creates `planet_life` and `moon_life` (a table already there is kept). A body stored before has no rows: its one class is the dominant one in its own columns, and nothing is backfilled; the rows come when the galaxy is regenerated (the epoch of GEN.1209).
@@ -2725,6 +2749,10 @@ Migration 0260 adds three nullable columns to `rogue_planets`, at the end of the
 ### v261 (OPS.215): `engine_items`, the galaxy's half of the job engine's ledger
 
 Migration 0261 creates `engine_items` (see the table section above). Nothing is backfilled: the supervisor writes a row when it hands a job out.
+
+### v266 (GEN.1753): the birth numbers of moons and the moons a history lost
+
+Migration 0266 adds `formation_distance_au`, `birth_distance_au` and `born_index` to `body_history` and creates `lost_moons` (see the table sections above). Nothing is backfilled: the numbers of a body made before v266 are stored nowhere, and a planet saved before it starts its moon history from the moons it has.
 
 ### v264 (DB.112): `sector_system_counts` loses `quadrant`
 
