@@ -3837,7 +3837,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1508 | (bug) A system shows "Asteroid Belt 5" when it holds only one belt: belt numbers do not start at 1 | none | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1509 | Design: belt bodies at or above the smallest planet class floor get full planet status | GEN.1070 | open |
 | GEN.1510 | Build: belt bodies at or above the class floor run through the planet generator and are stored as planets | GEN.1509 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
-| GEN.1511 | Promoted belt bodies appear as planets in names, pages, lists and maps, and in the census | GEN.1510 | open |
+| GEN.1511 | Promoted belt bodies appear as planets in names, pages, lists and maps, and in the census | GEN.1510 | done (PR 6852, Lane 06, merged 9:29 AM EST 11-16: belt page and API list the planets a belt made, the old belt designation leads to the planet, the planet sheet and scene API name the belt (made_from_belt), census report tests/audit/belt_promotion_census.py; names, maps and class census were already right) |
 | GEN.1512 | Atomic phosphorus and the other phosphorus gases above 6000 K are missing from the gas table | none | done (Train 23, 2026-11-11) |
 | GEN.1513 | (bug) EquilibriumError 'no convergence' on a very hot, very high-pressure giant in cap_ices / equilibrium_at | none | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1514 | Pebble flux decays smoothly after the first million years instead of a step at the pebble end (GEN.1473 stand-in DE3) | GEN.1473 | done, Train 24 PR #6033 (b8a0163b7) |

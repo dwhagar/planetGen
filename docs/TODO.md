@@ -11715,11 +11715,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 06 (belts), with Lane 04 (composition and class). Prerequisites: GEN.1070. Related: GEN.1070, GEN.1259, GEN.1261, GEN.1510, MAP.412.
   Filed by the TODO thread.
 
-- [ ] **GEN.1511 Promoted belt bodies appear as planets in names, pages, lists and maps, and in the census**
-  Boss, 6:08 PM EST on 2026-11-09. Once GEN.1510 stores promoted belt bodies as planets: their name and designation follow the planet rules (not Belt member), the belt page lists them as planets, the system list, 2D map and 3D view show them with the planet look (MAP.412 to MAP.415 draw only the small members), the planet class census counts them, and the API shows them as planets with a belt parent. Add a census report of promoted bodies by class and by star type. Lock-free where it is only display; lock if the API version bumps (follow the API rule).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 06, with Lane 05 for the map. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, MAP.412, MAP.414.
-  Filed by the TODO thread.
-
 - [ ] **MAP.416 Census of cloud and haze data: share of generated planets and moons with cloud_cover or tau_haze above zero, by class**
   Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Read-only report (reports/). It tells us whether the thin haze and cloud look is the code or the data. Lock-free; a waiting lane may take it early, it is the first step of the haze and cloud chain.
   Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 05 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: none. Related: MAP.350, MAP.280.
