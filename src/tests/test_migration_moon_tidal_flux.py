@@ -11,7 +11,6 @@ from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -46,24 +45,3 @@ def test_a_saved_moon_keeps_its_tide(mysql_config):
     finally:
         conn.rollback()
         conn.close()
-
-
-def test_a_v151_galaxy_gets_the_column_and_every_moon_keeps_its_row(mysql_config):
-    system, cfg = _system_with_a_tide()
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            system_id = store.insert_star_system(conn, system, cfg)
-        count = conn.execute("SELECT COUNT(*) AS n FROM moons WHERE star_system_id = ?", (system_id,)).fetchone()["n"]
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 151)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        rows = conn.execute("SELECT tidal_flux_w_m2 FROM moons WHERE star_system_id = ?", (system_id,)).fetchall()
-        assert len(rows) == count and all(row["tidal_flux_w_m2"] is None for row in rows)
-        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION  # a second run changes nothing

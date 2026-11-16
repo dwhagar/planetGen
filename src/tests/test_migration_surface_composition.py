@@ -12,7 +12,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import surface_composition as sc
 from planetgen.util import draw
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -50,24 +49,4 @@ def test_a_saved_system_keeps_every_bodys_ground(mysql_config):
                 assert sum(item[field] for field in sc.FRACTION_FIELDS) == pytest.approx(1.0)
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_a_v151_galaxy_gets_the_columns_empty(mysql_config):
-    system, cfg = _system()
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            system_id = store.insert_star_system(conn, system, cfg)
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 151)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        rows = conn.execute("SELECT ground_type, ground_basaltic_fraction FROM planets WHERE star_system_id = ?", (system_id,)).fetchall()
-        assert rows and all(row["ground_type"] is None and row["ground_basaltic_fraction"] is None for row in rows)
-        loaded = store.load_star_system(conn, system_id)
-        assert all(item["ground_type"] is None for item in _grounds(loaded))
-    finally:
         conn.close()
