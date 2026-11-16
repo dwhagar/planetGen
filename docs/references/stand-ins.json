@@ -64161,7 +64161,7 @@
             ],
             [
               "The range it moves in",
-              "2 to 3 Myr at 0.5 solar masses (the short infrared wavelengths of [R5296]); the half-life of 1.3 to 2 Myr of [R5297] is a characteristic time of 1.9 to 2.9 Myr (a half-life of 3.5 Myr with magnetic tracks: 5 Myr)"
+              "2 to 3 Myr at 0.5 solar masses (the short infrared wavelengths of [R5305]); the half-life of 1.3 to 2 Myr of [R5306] is a characteristic time of 1.9 to 2.9 Myr (a half-life of 3.5 Myr with magnetic tracks: 5 Myr)"
             ],
             [
               "Where it holds",
@@ -64169,15 +64169,15 @@
             ],
             [
               "What would show it wrong",
-              "a cluster-by-cluster scatter in the disk fraction wider than the 2 to 3 Myr range at one age ([R5298] notes real scatter)"
+              "a cluster-by-cluster scatter in the disk fraction wider than the 2 to 3 Myr range at one age ([R5307] notes real scatter)"
             ],
             [
               "What replaces it",
-              "a Weibull or a table of the cluster shares by age, once a lane reads the cluster tables of [R5296]"
+              "a Weibull or a table of the cluster shares by age, once a lane reads the cluster tables of [R5305]"
             ],
             [
               "Evidence",
-              "[R5298] abstract (about exponential, characteristic time 2.5 Myr, half-life 1.7 Myr; about 1 Myr over 1.3 solar masses to about 3 Myr under 0.08); [R5296] abstract (22 associations, exponential, 2 to 3 Myr at 3.4 to 12 um, 4.2 to 5.8 Myr at 22 to 24 um); [R5297] abstract (half-life 1.3 to 2 Myr, 3.5 with magnetic tracks); the middle knot is a placement. The shares a lane remembered (0.8 at 1 Myr, half at 3, 0.1 at 5 to 6) are not an exponential: this law gives 0.67, 0.30 and 0.11 at 0.5 solar masses, left to Boss"
+              "[R5307] abstract (about exponential, characteristic time 2.5 Myr, half-life 1.7 Myr; about 1 Myr over 1.3 solar masses to about 3 Myr under 0.08); [R5305] abstract (22 associations, exponential, 2 to 3 Myr at 3.4 to 12 um, 4.2 to 5.8 Myr at 22 to 24 um); [R5306] abstract (half-life 1.3 to 2 Myr, 3.5 with magnetic tracks); the middle knot is a placement. The shares a lane remembered (0.8 at 1 Myr, half at 3, 0.1 at 5 to 6) are not an exponential: this law gives 0.67, 0.30 and 0.11 at 0.5 solar masses, left to Boss"
             ]
           ],
           "id": "DZ1",
@@ -64215,7 +64215,7 @@
             ],
             [
               "Evidence",
-              "[R5298] abstract (approximately exponential decay); [R5296] abstract (assuming an exponential decay)"
+              "[R5307] abstract (approximately exponential decay); [R5305] abstract (assuming an exponential decay)"
             ]
           ],
           "id": "DZ2",

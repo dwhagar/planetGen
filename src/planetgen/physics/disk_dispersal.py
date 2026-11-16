@@ -7,9 +7,9 @@ How long a star holds its disk (GEN.1551, slice 0: the law, not yet wired)
 A young star holds a class 0, I or II disk only until its own dispersal time; after that it is class III and bodies may stand where the disk was (GEN.1552). Today every star
 loses its disk at one age, 3 Myr (`tuning.DISK_CLASS_AGES_YR`), which holds disks too long under 3 Myr and none between 3 and 10 Myr, where the surveys still see them.
 
-**The law.** The share of young stars that still hold a primordial disk falls about exponentially with age, with a characteristic time of 2.5 Myr (half-life 1.7 Myr) [R5298], 2 to 3 Myr
-at the short infrared wavelengths of 22 clusters from 1 to 100 Myr [R5296], and a half-life of 1.3 to 2 Myr (3.5 Myr with magnetic tracks) in 69 clusters of 5 Myr and under [R5297]. So a star's dispersal time is
-`t = -tau ln(u)`, `u` a draw in (0, 1] from the star's own stream, and `tau` the characteristic time of its mass: [R5298] has it fall from about 3 Myr for brown dwarfs (under
+**The law.** The share of young stars that still hold a primordial disk falls about exponentially with age, with a characteristic time of 2.5 Myr (half-life 1.7 Myr) [R5307], 2 to 3 Myr
+at the short infrared wavelengths of 22 clusters from 1 to 100 Myr [R5305], and a half-life of 1.3 to 2 Myr (3.5 Myr with magnetic tracks) in 69 clusters of 5 Myr and under [R5306]. So a star's dispersal time is
+`t = -tau ln(u)`, `u` a draw in (0, 1] from the star's own stream, and `tau` the characteristic time of its mass: [R5307] has it fall from about 3 Myr for brown dwarfs (under
 0.08 solar masses) to about 1 Myr for stars over 1.3, so `tau` runs log-linear in mass through `DISPERSAL_TAU_MYR_BY_MASS` (the 0.5 solar mass knot is the survey's 2.5 Myr, where most of
 the young stars of the surveys lie), flat outside.
 
@@ -19,8 +19,8 @@ same draw, `u`: the dispersal time is the shorter of the two (GEN.1475's `gas_su
 **The draw is keyed to the star** (`draw_dispersal_time_yr`), never to its age, so the time does not re-roll when the age moves.
 
 Not the whole of the survey curve: the shares a lane remembered (0.8 at 1 Myr, half at 3, 0.1 at 5 to 6) are not an exponential (this law gives 0.67, 0.30 and 0.11 for a star of 0.5 solar masses); the exponential is what the papers
-say, and a lane that reads the cluster tables of [R5296] can replace it by a Weibull or a table without touching the callers. Disk fractions of the surveys also differ by half between wavelengths and
-by the model of the pre-main-sequence tracks [R5297], so the 2.5 Myr is a middle, not a measurement of any star.
+say, and a lane that reads the cluster tables of [R5305] can replace it by a Weibull or a table without touching the callers. Disk fractions of the surveys also differ by half between wavelengths and
+by the model of the pre-main-sequence tracks [R5306], so the 2.5 Myr is a middle, not a measurement of any star.
 """
 
 import math
@@ -28,7 +28,7 @@ import math
 from planetgen.util import draw
 
 DISPERSAL_TAU_MYR_BY_MASS = ((0.08, 3.0), (0.5, 2.5), (1.3, 1.0))
-"""tuple: `(mass in solar masses, characteristic time in Myr)` of the exponential fall of the disk fraction: 3 Myr for brown dwarfs and 1 Myr over 1.3 solar masses, the ends [R5298] gives, and the
+"""tuple: `(mass in solar masses, characteristic time in Myr)` of the exponential fall of the disk fraction: 3 Myr for brown dwarfs and 1 Myr over 1.3 solar masses, the ends [R5307] gives, and the
 2.5 Myr of the survey as a whole at 0.5 solar masses, where the surveyed stars lie. The line between is a placement of the knots, nudged inside the spread of the three papers. [Stand-in 6.264 DZ1, tier T2, tweak L1.]"""
 
 CLOSE_COMPANION_SHARE_WITHIN_1_MYR = 2.0 / 3.0
