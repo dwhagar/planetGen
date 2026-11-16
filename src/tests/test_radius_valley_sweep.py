@@ -9,6 +9,9 @@ planets beyond 100 days, the largest a rocky planet comes out, and the rogue pla
 """
 
 import collections
+import concurrent.futures
+import multiprocessing
+import os
 
 import pytest
 
@@ -20,20 +23,24 @@ from planetgen.physics import constants, envelope_capture, planet_classes, plane
 from planetgen.util import draw
 
 EARTH = constants.EARTH_MASS_TO_KG
-SYSTEMS = 60
+SYSTEMS = 120
 SEED = 20261107
+BLOCKS = 8
+"""int: TEST.783: the sweep is made in this many blocks of `SYSTEMS // BLOCKS` systems, one worker at a time, every block on a run seed of its own (blocks 0 to 7: the first eight, none left out).
+The share of the inner planets above 2.0 Earth radii that the first test reads is 57 of 156 (0.365) over these blocks; the blocks alone give 0.23 to 0.62 (standard deviation 0.13), and
+twelve blocks (blocks 8 to 11 added) give 72 of 197 (0.365). The binomial noise of 156 planets is 0.039, so the 0.3 edge of the band is 1.7 of those under the share: a sample drawn again
+(a change to the generator moves every draw) falls under 0.3 about one time in twenty, and the band, not the sample, is what is tight."""
 INNER_DAYS = 100.0
 """float: [R1478] count the planets inside 100 days."""
 
 Row = collections.namedtuple("Row", "days radius mass envelope density planet_type planet_class")
 
 
-@pytest.fixture(scope="module")
-def sweep():
-    """One row per rocky planet of `SYSTEMS` G2V systems."""
-    draw.set_run_seed(SEED)
+def _block_rows(block):
+    """One row per rocky planet of one block of G2V systems, on the run seed of the block."""
+    draw.set_run_seed(f"{SEED}:{block}")
     rows = []
-    for _ in range(SYSTEMS):
+    for _ in range(SYSTEMS // BLOCKS):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         for planet in StarSystem(system_config=cfg).all_planets:
@@ -42,6 +49,15 @@ def sweep():
             rows.append(Row(planet.period * 365.25, planet.radius / constants.EARTH_RADIUS_KM, planet.mass / EARTH,
                             planet.envelope_mass_fraction or 0.0, planet.density, planet_type.planet_type(planet), planet.planet_class))
     return rows
+
+
+@pytest.fixture(scope="module")
+def sweep():
+    """One row per rocky planet of `SYSTEMS` G2V systems. TEST.783: the systems of a run seed make one another's draws, so the sweep is `BLOCKS` blocks on
+    seeds of their own, made at the same time (forked workers: a system takes about 15 s, and 60 one after another ran past the hang guard; the sample is twice as large for a third of the time)."""
+    with concurrent.futures.ProcessPoolExecutor(max_workers=min(BLOCKS, os.cpu_count() or 1), mp_context=multiprocessing.get_context("fork")) as pool:
+        blocks = list(pool.map(_block_rows, range(BLOCKS)))
+    return [row for rows in blocks for row in rows]
 
 
 def test_about_half_of_the_inner_planets_of_one_to_four_earth_radii_are_above_two(sweep):
