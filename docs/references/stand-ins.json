@@ -72827,7 +72827,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.COMET_PERIOD_CLASSES period cuts 20 and 200 years between the Jupiter family, Halley-type and long-period comets (the dynamical classes of Levison 1996, recalled, not opened)"
+              "tuning.COMET_PERIOD_CLASSES period cuts 20 and 200 years between the Jupiter family, Halley-type and long-period comets (the usual dynamical classes, recalled, no paper opened)"
             ],
             [
               "The range it moves in",
@@ -72858,10 +72858,14 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.COMET_PERIOD_CLASSES period cuts 20 and 200 years between the Jupiter family, Halley-type and long-period comets (the dynamical classes of Levison 1996, recalled, not opened)"
+          "what": "tuning.COMET_PERIOD_CLASSES period cuts 20 and 200 years between the Jupiter family, Halley-type and long-period comets (the usual dynamical classes, recalled, no paper opened)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the short end is the shortest period the Solar System shows and the long end a round number inside a cloud's tidal edge; the outer edge of the cloud from the star's mass and the galactic tide (GEN.1466) replaces the long end, and a census of other systems' comets would replace the short one; tier T4 stays"
+          ],
           "fields": [
             [
               "What it is",
@@ -72899,7 +72903,11 @@
           "what": "tuning.COMET_PERIOD_CLASSES outer ends: the Jupiter family's shortest period 3.3 years and the long-period comets' longest 4,000,000 years (aphelion about 5e4 AU for a solar mass star)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the eccentricity ranges keep each family inside its period window and no source was read; the eccentricity a giant's scattering gives replaces them and no measured family eccentricity of another system exists; tier T4 stays"
+          ],
           "fields": [
             [
               "What it is",
@@ -72961,7 +72969,7 @@
             ],
             [
               "Evidence",
-              "Oort 1950 (an isotropic cloud) and Levison and Duncan 1997 (low inclination of the Jupiter family), both recalled, not opened"
+              "an isotropic cloud and the low inclination of the Jupiter family, both recalled, no paper opened"
             ]
           ],
           "id": "CMT4",
@@ -72975,7 +72983,11 @@
           "what": "tuning.COMET_PERIOD_CLASSES inclination caps 30 degrees (Jupiter family), 180 (Halley-type) and 180 (long-period)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "replace",
+            "GEN.1765",
+            "the family weights are chosen so all three families are common; a supply from the outer belt (Jupiter family) and the cloud (the other two) through the giants' scattering replaces them"
+          ],
           "fields": [
             [
               "What it is",
@@ -73013,7 +73025,11 @@
           "what": "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "replace",
+            "GEN.1765",
+            "a truncated power law in nucleus diameter with a published cumulative index, its upper end from the belt's largest body, replaces the uniform draw and its ends"
+          ],
           "fields": [
             [
               "What it is",
@@ -73037,7 +73053,7 @@
             ],
             [
               "Evidence",
-              "Lamy et al. 2004 (nuclei of 1 to 10 km typical, as the comment in tuning.py quotes it), second-hand; the draw's shape is a stand-in"
+              "nuclei of 1 to 10 km typical, as the comment in tuning.py quotes it, second-hand; the draw's shape is a stand-in"
             ]
           ],
           "id": "CMT6",
@@ -73051,7 +73067,11 @@
           "what": "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM (0.5, 20) drawn uniform in diameter"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the flat shape follows from an isotropic cloud with a full loss cone; the ends are hand set (the star's radius and tidal limit below, the activity threshold of CA1 above) and no measured perihelion distribution of another system's comets exists"
+          ],
           "fields": [
             [
               "What it is",
@@ -73089,7 +73109,11 @@
           "what": "tuning.COMET_PERIHELION_DISTANCE_RANGE_AU (0.05, 5.0) drawn uniform in perihelion"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "replace",
+            "GEN.1765",
+            "comets present wherever the system has an outer belt, a cloud or a giant, from the supply of the reservoirs, replace the flat chance and the count"
+          ],
           "fields": [
             [
               "What it is",
