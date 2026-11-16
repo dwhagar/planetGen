@@ -98,7 +98,15 @@ READS = {
     "empty-phenomenon-scatter": (),
     "end-map-rebuild-maintenance": (),
     "fill-map-luminosity": ("phenomenon_scatter",),
-    "finish-phenomena": (
+    "build-phenomenon-indexes": (
+        "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
+        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector",
+    ),
+    "record-phenomenon-scatter": (
+        "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
+        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector",
+    ),
+    "write-special-phenomena": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
         "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector",
     ),
@@ -193,7 +201,15 @@ WRITES = {
     "empty-phenomenon-scatter": ("phenomenon_scatter", "phenomenon_scatter_classes"),
     "end-map-rebuild-maintenance": (),
     "fill-map-luminosity": ("phenomenon_scatter",),
-    "finish-phenomena": (
+    "build-phenomenon-indexes": (
+        "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
+        "scatter_uid_rank", "scatter_uid_sector",
+    ),
+    "record-phenomenon-scatter": (
+        "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
+        "scatter_uid_rank", "scatter_uid_sector",
+    ),
+    "write-special-phenomena": (
         "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
         "scatter_uid_rank", "scatter_uid_sector",
     ),
