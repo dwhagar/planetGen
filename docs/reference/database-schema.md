@@ -2114,9 +2114,28 @@ Added in v243 (GEN.1497). The numbers a planet's or moon's history leaves that c
 | `birth_spin_rate` | DOUBLE | nullable | The spin rate it was born with, rad/s. |
 | `birth_obliquity_deg` | DOUBLE | nullable | The tilt it was born with, 0 to 180 degrees (CHECK). |
 | `capture_draw_1`, `capture_draw_2` | FLOAT | nullable | The uniforms (0 to 1) that decide whether the spin is caught in the first and the second resonance of `spin_torques.CAPTURE_RATIOS`. |
+| `formation_distance_au` | DOUBLE | nullable | Added in v266 (GEN.1753). Where the body formed, AU (a moon's is its planet's; CHECK 0 or more): the key of the end-stage draw streams (`draw.body_stream_of`) and the line the water's origin is read against. NULL for a row written before v266. |
+| `birth_distance_au` | DOUBLE | nullable | Added in v266. A moon's orbit when it was born, AU, before the planet's tide moved it (CHECK 0 or more); the moon history of its planet starts from it. NULL for a planet and for a row written before v266. |
+| `born_index` | SMALLINT UNSIGNED | nullable | Added in v266. The moon's place in its planet's list of born moons (`moon_history.born_moons`), which the `lost_moons` rows share. |
 | `formula_version` | TINYINT UNSIGNED | NOT NULL | `body_history.FORMULA_VERSION` when the row was written. |
 
 Primary key `(star_system_id, body_type, body_id)`; no other index. Left out of the fingerprint (it keeps draws, the results are what a fingerprint reads). A galaxy made before v243 has no rows, which reads as not kept; nothing is backfilled. An edit of a system keeps the rows of the bodies it keeps and deletes those of a planet or moon it deleted (`db/edits.py`).
+
+### `lost_moons`
+
+Added in v266 (GEN.1753). The moons a planet was born with that its history took away (fell below the Roche limit, were pushed out of the stable orbits or dragged in), kept as the four numbers `moon_orbits.Moon` reads so that the history of a restored planet runs again from what it started with (`physics/body_history.lost_rows`, `moon_history.restore_born`, `moon_history.LostMoon`). One row for each lost moon; a planet that lost none has none. `store.attach_body_history` reads them with the rows of `body_history`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `star_system_id` | BIGINT UNSIGNED | NOT NULL | The system; FK -> `star_systems.id` (`ON DELETE CASCADE`). |
+| `planet_id` | BIGINT UNSIGNED | NOT NULL | The planet's `planets.id`. |
+| `born_index` | SMALLINT UNSIGNED | NOT NULL | The moon's place in the planet's born moons, shared with `body_history.born_index` of the moons it kept. |
+| `mass_kg` | DOUBLE | NOT NULL | Its mass (CHECK above 0). |
+| `birth_distance_au` | DOUBLE | NOT NULL | The orbit it was born on, AU (CHECK above 0). |
+| `density_kg_m3` | DOUBLE | NOT NULL | Its mean density (CHECK above 0), from which the history takes its radius. |
+| `retrograde` | TINYINT UNSIGNED | NOT NULL | 1 when it went round against its planet's spin (CHECK 0 or 1). |
+
+Primary key `(star_system_id, planet_id, born_index)`; no other index. Left out of the fingerprint. Written with the system (`store.insert_body_history`) and again by an edit (`store.rewrite_body_history`).
 
 ### `chart_ledger`
 
@@ -2725,6 +2744,10 @@ Migration 0260 adds three nullable columns to `rogue_planets`, at the end of the
 ### v261 (OPS.215): `engine_items`, the galaxy's half of the job engine's ledger
 
 Migration 0261 creates `engine_items` (see the table section above). Nothing is backfilled: the supervisor writes a row when it hands a job out.
+
+### v266 (GEN.1753): the birth numbers of moons and the moons a history lost
+
+Migration 0266 adds `formation_distance_au`, `birth_distance_au` and `born_index` to `body_history` and creates `lost_moons` (see the table sections above). Nothing is backfilled: the numbers of a body made before v266 are stored nowhere, and a planet saved before it starts its moon history from the moons it has.
 
 ### v264 (DB.112): `sector_system_counts` loses `quadrant`
 

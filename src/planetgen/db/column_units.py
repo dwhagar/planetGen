@@ -803,7 +803,16 @@ TABLES = {
         "frac": ("birth_eccentricity", "capture_draw_1", "capture_draw_2"),
         "deg": ("birth_obliquity_deg",),
         "rad_s": ("birth_spin_rate",),
-        "count": ("formula_version",),
+        "au": ("formation_distance_au", "birth_distance_au"),
+        "count": ("formula_version", "born_index"),
+    },
+    "lost_moons": {
+        "id": ("star_system_id", "planet_id"),
+        "kg": ("mass_kg",),
+        "au": ("birth_distance_au",),
+        "kg_m3": ("density_kg_m3",),
+        "index": ("born_index",),
+        "flag": ("retrograde",),
     },
     "effect_ledger": {
         "id": ("star_system_id", "body_id", "source_id"),

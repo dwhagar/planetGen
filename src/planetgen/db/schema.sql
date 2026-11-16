@@ -5337,10 +5337,30 @@ CREATE TABLE IF NOT EXISTS body_history (
     birth_obliquity_deg DOUBLE NULL CHECK (birth_obliquity_deg IS NULL OR birth_obliquity_deg BETWEEN 0 AND 180),
     capture_draw_1      FLOAT NULL CHECK (capture_draw_1 IS NULL OR capture_draw_1 BETWEEN 0 AND 1),
     capture_draw_2      FLOAT NULL CHECK (capture_draw_2 IS NULL OR capture_draw_2 BETWEEN 0 AND 1),
+    formation_distance_au DOUBLE NULL CHECK (formation_distance_au IS NULL OR formation_distance_au >= 0),
+    birth_distance_au   DOUBLE NULL CHECK (birth_distance_au IS NULL OR birth_distance_au >= 0),
+    born_index          SMALLINT UNSIGNED NULL,
     formula_version     TINYINT UNSIGNED NOT NULL,
 
     PRIMARY KEY (star_system_id, body_type, body_id),
     CONSTRAINT fk_body_history_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v266 (GEN.1753): `body_history` gains `formation_distance_au` (where the body formed, which keys its end-stage draw streams), `birth_distance_au` (the orbit a moon was born on) and `born_index` (its place in its
+-- planet's born moons); `lost_moons` keeps the moons a planet was born with that its history took away, as the four numbers the history reads (`mass_kg`, `birth_distance_au`, `density_kg_m3`, `retrograde`) and
+-- their place in the born list (`born_index`), so the history of a restored planet runs again from what it started with. `planet_id` is the planet's `planets.id`. A galaxy made earlier has NULL and no rows.
+CREATE TABLE IF NOT EXISTS lost_moons (
+    star_system_id      BIGINT UNSIGNED NOT NULL,
+    planet_id           BIGINT UNSIGNED NOT NULL,
+    born_index          SMALLINT UNSIGNED NOT NULL,
+    mass_kg             DOUBLE NOT NULL CHECK (mass_kg > 0),
+    birth_distance_au   DOUBLE NOT NULL CHECK (birth_distance_au > 0),
+    density_kg_m3       DOUBLE NOT NULL CHECK (density_kg_m3 > 0),
+    retrograde          TINYINT UNSIGNED NOT NULL CHECK (retrograde IN (0, 1)),
+
+    PRIMARY KEY (star_system_id, planet_id, born_index),
+    CONSTRAINT fk_lost_moons_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
