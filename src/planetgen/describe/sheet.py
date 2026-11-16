@@ -598,7 +598,7 @@ def _phenomenon_not_shown(kind, **extra):
 
 _BODY_NOT_SHOWN = {
     "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
-    "shape_temperature_k": "the temperature the body took its shape at (GEN.1201); the roundness it sets is shown, not the temperature",
+    "shape_temperature_k": "the temperature the body took its shape at; the roundness it sets is shown, not the temperature",
     "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
@@ -654,8 +654,8 @@ NOT_SHOWN = {
                    "spin_axis_z", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), _VECTORS),
     },
     "planet": {**_BODY_NOT_SHOWN, "host_node_id": "the orbit tree node; bookkeeping",
-               "belt_order": "the number of the belt a promoted planet came from, which its designation carries (GEN.1510); bookkeeping",
-               "belt_rank": "the rank a promoted planet had among its belt's members, which its designation carries (GEN.1510); bookkeeping",
+               "belt_order": "the number of the belt a promoted planet came from, which its designation carries; bookkeeping",
+               "belt_rank": "the rank a promoted planet had among its belt's members, which its designation carries; bookkeeping",
                **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km"), _VECTORS)},
     "moon": {**_BODY_NOT_SHOWN, "planet_id": "the planet it circles, a link in the Location chain",
              "rogue_planet_id": "the free planet it circles, a link in the Location chain"},
@@ -693,7 +693,7 @@ NOT_SHOWN = {
         **_phenomenon_not_shown("rogue_planet"),
         "donor_uid": "the system that threw it out, a link in the Location chain and the Where it came from row",
         "event_index": "which of the donor's ejections it is; bookkeeping",
-        "pair_event_index": "which ejection of the same donor is its companion (GEN.332 slice D); bookkeeping, the companion is a link in its contents",
+        "pair_event_index": "which ejection of the same donor is its companion; bookkeeping, the companion is a link in its contents",
     },
     "interstellar_comet": _phenomenon_not_shown("interstellar_comet"),
     "quasar": _phenomenon_not_shown("quasar"),
@@ -719,7 +719,7 @@ NOT_SHOWN = {
 }
 
 for _kind in ("star", "belt", "comet", "nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant", "interstellar_comet", "quasar"):
-    NOT_SHOWN[_kind]["flavor_key"] = "which flavor line the page says after \"Sensors show\" (GEN.1433); the page prints the line, so the id is bookkeeping"
+    NOT_SHOWN[_kind]["flavor_key"] = "which flavor line the page says after \"Sensors show\"; the page prints the line, so the id is bookkeeping"
 """dict: For each kind, the columns of its table the sheet does not show, each with why."""
 
 
@@ -1043,8 +1043,8 @@ _BODY_RULES = [
 _PLANET_RULES = [
     (("obliquity_min_deg", "obliquity_max_deg"), lambda klass, row: row is None or (
         spin.spin_state(row.get("rotation_period_hours"), row.get("period_years"))[0] in (None, "free")),
-     "the range a tilt wanders over is worked out (GEN.1535, `settle_obliquity`) for a planet that spins freely, a belt member made a planet (GEN.1510, GEN.1668) among them: a locked or resonant planet sits at the Cassini state "
-     "of its spin and does not wander (GEN.1536)"),
+     "the range a tilt wanders over is worked out (`settle_obliquity`) for a planet that spins freely, a belt member made a planet among them: a locked or resonant planet sits at the Cassini state "
+     "of its spin and does not wander"),
     (("moon_origin",), lambda klass, row: False,
      "only a moon has an origin (disk, impact, captured, ring, binary or exchange); a planet orbits its star alone"),
     (("parent_shadow_share",), lambda klass, row: False,
@@ -1054,7 +1054,7 @@ _PLANET_RULES = [
 _MOON_RULES = [
     (("obliquity_min_deg", "obliquity_max_deg"), lambda klass, row: False,
      "the range a tilt wanders over is worked out for a planet from the nodal modes of the other planets' pull on its orbit; a moon's tilt is held by its planet's pull or its own tide "
-     "(a locked moon takes the Cassini state, GEN.1556) and it has no range"),
+     "(a locked moon takes the Cassini state) and it has no range"),
 ]
 
 _STAR_RULES = [

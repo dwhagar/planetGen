@@ -134,9 +134,10 @@ def _copy_checkpoint(galaxy, earlier, new, cursor):
     it, which leaves the cursor and the results as they are.
     """
     galaxy.execute("INSERT INTO engine_items (job_id, attempt, cursor_key, updated_at) VALUES (?, 0, ?, NOW(6))"
-                   " ON DUPLICATE KEY UPDATE cursor_key = VALUES(cursor_key), updated_at = NOW(6)", (new, str(cursor)))
-    galaxy.execute("INSERT INTO engine_piece_results (job_id, piece_index, result) SELECT ?, piece_index, result FROM engine_piece_results"
-                   " WHERE job_id = ? AND piece_index < ? ON DUPLICATE KEY UPDATE result = VALUES(result)", (new, earlier, cursor))
+                   " ON DUPLICATE KEY UPDATE cursor_key = ?, updated_at = NOW(6)", (new, str(cursor), str(cursor)))
+    galaxy.execute("INSERT INTO engine_piece_results (job_id, piece_index, result) SELECT job_id, piece_index, copied FROM"
+                   " (SELECT ? AS job_id, piece_index, result AS copied FROM engine_piece_results WHERE job_id = ? AND piece_index < ?) AS earlier"
+                   " ON DUPLICATE KEY UPDATE result = copied", (new, earlier, cursor))
     galaxy.commit()
 
 
