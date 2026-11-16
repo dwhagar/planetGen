@@ -677,8 +677,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1541 | The tide a large asteroid or dwarf planet raises on its own moons (GEN.1464 part C) | GEN.1464 | Lane 07, 2026-11-11. |
 | GEN.1639 | (bug) The shape-setting temperature has no latent heat or convective loss, so with canonical 26Al every rocky body over about 100 km and every ice-rock body over 200 km comes out round (Proteus, Hyperion, Phoebe and Pallas analogues would be round) | GEN.1201 | Lane 04, 2026-11-12, deferred. |
 | GEN.1642 | Real-gas fugacity coefficients in gas_equilibrium.solve (Peng-Robinson for the species with critical constants, stand-ins for the rest), replacing the GEN.1613 fO2 clamp | GEN.1613 | Lane 02, 2026-11-12, deferred. |
-| GEN.1643 | Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues | GEN.1150 | Lane 07, 2026-11-12. |
-| GEN.1647 | Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one | GEN.1643 | Lane 07, 2026-11-12. |
 | GEN.1644 | Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7) | none | Lane 13, 2026-11-12. |
 | GEN.1651 | BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build | GEN.1649 | Lane 14, 2026-11-12. |
 | GEN.1652 | One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py) | GEN.1651 | Lane 14, 2026-11-12. |

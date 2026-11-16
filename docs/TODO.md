@@ -12222,12 +12222,6 @@ clears each one.
   Deferred (TODO, 2026-11-12): after the generation fixes, with the other deferred code items (Boss, 10:01 PM EST on 2026-11-11).
   Filed by the TODO thread.
 
-- [ ] **GEN.1643 Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues**
-  Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): registry rows 6.121:TJ9, TJ10 and TJ11 sit at L4 with no burn-down line. The Rayleigh scales of `trojan_swarm` (LIBRATION_SIGMA_DEG 10, ECC_SIGMA 0.06, INCLINATION_SIGMA_DEG 12) are recalled, not read. Do: read a proper-element catalogue (secondary sources accepted), fit the three scales, and lower the rows to L1 or L2. The catalogue is a calibration reference only; no fixed Solar System content enters the output.
-  Version 8.1. Owner: Lane 23. Prerequisites: GEN.1150. Related: GEN.1151, GEN.1647.
-  Filed by the TODO thread.
-  Owner (TODO, 2026-11-12): Lane 07. Slice 0 (fit and proposal, lock-free) is PR 6233; slice 1 (lock) sets TJ9 to 13 degrees and lowers the rows, together with GEN.1647.
-
 - [ ] **GEN.1644 Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7)**
   Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): 6.228:SV7 named GEN.1425, which closed with Train 24 while the row is still L3. The cold acid cloud stays liquid to 185 K because the freezing curve of [R4877: figure 1 and section 4.3] is not yet a function. Do: turn that curve into a function, read it where the cloud step places the acid aerosol, and lower SV7 to L0 or L1.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1425, GEN.1307.
@@ -12236,11 +12230,6 @@ clears each one.
 - [ ] **GEN.1645 Wire the planet and sibling-planet Kozai screen (physics/kozai_planets.py, stand-ins KZP1 and KZP2) into generation once the companion planes are stored**
   Lane 23 (as the lane reported 6:54 AM EST on 2026-11-12): GEN.1447 slice 0 (PR 6228, lock-free) built kozai_planets.py, which screens a planet against a companion star or a heavier outer planet; report reports/gen1447-planet-case-2026-11-12.md. Do: read the screen in generation (planets in the Kozai band are driven to high eccentricity or removed, as the screen says), using the stored companion planes of GEN.1500. Lock item: it changes output.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 07. Prerequisites: GEN.1500. Related: GEN.1447, GEN.1352.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1647 Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one**
-  Lane 23 (as the lane reported 7:17 AM EST on 2026-11-12), GEN.1643 slice 0 (PR 6233, reports/gen1643-trojan-scales-2026-11-12.md): about a fifth of the real Jupiter Trojans librate wider than 23.9 degrees, and with the cut there the mean amplitude cannot reach the observed mean of 16.2 degrees; a scale of 13 with the cut at the edge of the zone gives 16.3. Do: cut the swarm draw and split tadpole from horseshoe in trojans.motion at the libration amplitude edge, and fix the falsifier of registry row TJ3. Lock item; built together with GEN.1643 slice 1 in one PR.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 07. Prerequisites: GEN.1643. Related: GEN.1150, GEN.1151.
   Filed by the TODO thread.
 
 - [ ] **OPS.154 Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB**
