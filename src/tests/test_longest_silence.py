@@ -13,7 +13,7 @@ import os
 import pytest
 
 from planetgen.cli import generate
-from planetgen.generation import run_galaxy, run_plan
+from planetgen.generation import band_table_cache, run_galaxy, run_plan
 from planetgen.queue import commands, redisqueue, unitbeat, wrapper
 from planetgen.web import warmup
 from tests.test_api import _place_sector
@@ -21,13 +21,26 @@ from tests.test_galaxy_gen import EDGE_PC, _seed_skeleton
 
 pytestmark = pytest.mark.fresh_database
 
+
+@pytest.fixture(scope="module", autouse=True)
+def cold_sampling_tables(tmp_path_factory):
+    """
+    The bright-star sampling tables are built cold (PERF.273): a code key no process has seen builds them all (231 on this galaxy, minutes in production, 9 s on the first sector of
+    this test), and the kept copies of an earlier run on the same code would hide that. So the file has a folder of its own, empty when it starts.
+    """
+    folder = tmp_path_factory.mktemp("band-tables")
+    previous = os.environ.get(band_table_cache.ENV)
+    os.environ[band_table_cache.ENV] = str(folder)
+    yield folder
+    if previous is None:
+        del os.environ[band_table_cache.ENV]
+    else:
+        os.environ[band_table_cache.ENV] = previous
+
 BUDGET_SECONDS = 5.0
 """float: The longest a command may stand without a count, a phase or a statement label moving, on a small galaxy."""
 
 RECORDED_SILENCE = {
-    "generate-start-sector": (12.0, "OPS.265: on some runs one body's seasonal solve (`seasonal_swing.temperature_series`, in `refresh_at_final_age` of a pre-placed system's moon) stands 4 to 6.6 s inside one call, though its mean is 66 ms; measured 6.2 to 6.6 s on 4 of 7 runs, none on the others"),
-    "generate-neighborhood": (12.0, "the same single seasonal solve (6.5 s)"),
-    "generate-sectors": (12.0, "the same single seasonal solve (6.3 s)"),
 }
 """dict: The commands that go silent longer than `BUDGET_SECONDS` today, `{command: (their budget, what was measured)}` (OPS.262). Each is a bug to fix (a count inside the piece), not a norm: the budget is about twice what was measured, so a command that gets worse still fails, and a fixed one has its row deleted."""
 
