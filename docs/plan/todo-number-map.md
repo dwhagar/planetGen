@@ -3955,7 +3955,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1628 | (bug) The Sm-146 half-life of 68 Myr is a retracted value (now 92 to 103 Myr) | none | open |
 | GEN.1629 | (bug) 52 of 124 gases have ir null, and the null is handled two different ways | none | open |
 | GEN.1630 | (bug) The HCl vapour-pressure curve runs 35 percent high above the triple point | none | open |
-| GEN.1631 | (bug) Earth's Th/U of 3.83 sits above the 95th percentile of drawn bodies | none | open |
+| GEN.1631 | (bug) Earth's Th/U of 3.83 sits above the 95th percentile of drawn bodies | none | closed as measured, not a bug (Lane 04, 4:44 AM EST 11-16: hosted bodies take F from the star age, Th/U 5th to 95th percentile 2.91 to 4.40, median 3.62, Earth 3.83 at the 62nd percentile; the audit measured the host-less path only) |
 | GEN.1632 | (bug) Stand-in registry: 102 ids reused across sections, 30 code tags with a different tier or tweak than the registry, 5 code ids not in the registry, 2 rows naming constants that no longer exist | none | done, PR #6692 (2:43 PM EST 11-15); follow-up PR #6718 |
 | GEN.1633 | (bug) physics/belt_mass.py cannot be imported on its own | none | open |
 | GEN.1634 | (bug) The snow line scatter in the code is a factor of 4, but the text says 2 to 3 | none | done, PR #6168 |

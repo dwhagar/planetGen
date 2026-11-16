@@ -461,7 +461,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1628 | (bug) The Sm-146 half-life of 68 Myr is a retracted value (now 92 to 103 Myr) | none | Lane 04, 2026-11-12, deferred. |
 | GEN.1629 | (bug) 52 of 124 gases have ir null, and the null is handled two different ways | none | Lane 02, 2026-11-12, deferred. |
 | GEN.1630 | (bug) The HCl vapour-pressure curve runs 35 percent high above the triple point | none | Lane 02, 2026-11-12, deferred. |
-| GEN.1631 | (bug) Earth's Th/U of 3.83 sits above the 95th percentile of drawn bodies | none | Lane 04, 2026-11-12, deferred. |
 | GEN.1633 | (bug) physics/belt_mass.py cannot be imported on its own | none | Lane 06, 2026-11-12, deferred. |
 | GEN.1635 | (bug) Ordinary M dwarfs are labelled Subdwarf (class VI): the rule in stellar_evolution.py (about lines 228-232, 0.3 dex under the dwarf line) catches every M dwarf under 0.4 Msun with [Fe/H] of -0.2 or lower (13 of 270 single stars, all M3-M5 at [Fe/H] -0.08 to -0.34; real subdwarfs sit near -1 or lower) | none | Lane 05, 2026-11-12, deferred. |
 | GEN.1636 | (bug) Two Earth heat-flow references: surface_pressure uses 0.0614 W/m2 for outgassing, life_supply.json and hydrothermal_deposits use the measured 0.087 W/m2, so an exact Earth twin scores 0.6 to 0.7 for life energy and ores | none | Lane 04, 2026-11-12, deferred. |
