@@ -622,7 +622,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.835 | The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule |  |  |
 | DB.132 | (bug) A planet's forced eccentricity from a resonant chain (oddity_quantities, GEN.1459) is not stored, so a restored planet in a chain that is moved or edited loses the floor settle_orbit keeps | none | Lane 15, 2026-11-16. |
 | DB.133 | (bug) Stars do not store initial_mass_sol and phase_end_age_gy (bright_stars does), so a restored star has None for both | none | Lane 15, 2026-11-16. |
-| DB.134 | Extend the DB.101 stored-outputs test to belts, comets, phenomena tables and private attributes that outlive a build | DB.101 | Lane 15, 2026-11-16. |
 | GEN.805 | The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2) | GEN.804 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
 | GEN.944 | Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars) |  |  |
 | GEN.91 | Classes like S and V in the hot and cold zones |  |  |
@@ -674,7 +673,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | API.48 | API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging | none | Lane 14, 2026-11-13. |
 | GEN.1698 | (bug) H2S and SO2 have no sink on habitable-zone planets (no ocean solution, no pyrite burial), so after the S2 condensation limit they still hold 3,240 to 13,300 kPa of H2S and 172 to 675 kPa of SO2 | GEN.1562 | Lane 03, 2026-11-14. |
 | GEN.1706 | Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed | GEN.1694-1698 | Class M and Blue thread, 2026-11-14. |
-| GEN.1709 | Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star) | none | Lane 05, 2026-11-14. |
+| GEN.1709 | Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star) | none | Lane 07, 2026-11-14. |
 | GEN.1710 | (bug) Two different "envelope is gone" cuts: a rocky planet has ground when its stored envelope is under 0.5 percent of its mass, but envelope_escape.BARE_BELOW is 0.2 percent, so envelopes of 0.2 to 0.5 percent vanish silently | none | Lane 06, 2026-11-14. |
 | GEN.1711 | Habitable-zone sub-Neptunes of 3 to 6 Earth masses come out larger than Kepler's (2.7 to 3.8 Earth radii against 2.1 to 2.6): the starting envelope median above 3.72 Earth masses is 10 percent against inferred birth values of 1 to 4 percent (stand-in EC1, T9, L3) | none | Lane 06, 2026-11-14. |
 | PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | Lane 06, 2026-11-15. |
