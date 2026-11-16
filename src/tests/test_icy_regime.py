@@ -44,3 +44,42 @@ def test_a_water_rich_body_too_warm_for_ice_meets_the_rock_under_its_sea():
     """GEN.1756: a surface over the melting point of ice has no shell, the shell model gave 0 and the planet never despun; it is the rock's rheology (and the air's thermal tide) it meets."""
     assert _regime(WARM_WET)[1] == interior_heat.ROCK
     assert _regime(DRY)[1] == interior_heat.ROCK
+
+
+# --- GEN.1759: the one chooser read by the circularisation, the heat and the sea's tide -----------------------------------------------------------------------------------
+
+STAR_KG = 1.989e30
+
+
+def _on_orbit(fields, distance_au=3.0, eccentricity=0.3):
+    return types.SimpleNamespace(**fields, primary_mass_kg=STAR_KG, distance=distance_au, eccentricity=eccentricity, is_moon=False)
+
+
+def test_the_choice_does_not_depend_on_the_tide_an_earlier_run_stored():
+    """The shell's flux is its own heat plus the tide the shell makes on the orbit, worked out here, so a body stores the same regime whatever `tidal_flux_w_m2` holds."""
+    body = _on_orbit(EUROPA, distance_au=5.2, eccentricity=0.01)
+    first = interior_heat.icy_regime(body)
+    body.tidal_flux_w_m2 = 5.0
+    assert interior_heat.icy_regime(body) == first
+    body.tidal_flux_w_m2 = 0.0
+    assert interior_heat.icy_regime(body) == first
+
+
+def test_a_body_frozen_through_is_flexed_as_solid_ice_by_the_circularisation_and_the_heat():
+    """GEN.1759: `tidal_response` gives the ice sphere's `(k2, Q)` and the tide's power is the Peale power of its `k2/Q`, far under what the shell formula made of the same body."""
+    body = _on_orbit(SMALL_COLD, distance_au=3.0, eccentricity=0.5)
+    assert interior_heat.icy_regime(body) == interior_heat.FROZEN
+    rate = 1.0e-7
+    k2, q = interior_heat.tidal_response(body, rate)
+    assert k2 / q == pytest.approx(interior_heat.frozen_response(body, rate).k2_over_q)
+    forcing = interior_heat.tidal_heating.forcing_of(body)
+    shell = interior_heat.tidal_heating.peale_power_w(icy_tide.k2_over_q(body.mass, body.radius * 1000.0, rate, 1.0e-3, 60.0), forcing, body.radius * 1000.0)
+    assert interior_heat.frozen_tide_w(body, forcing) < shell / 10.0
+
+
+def test_a_water_world_too_warm_for_ice_flexes_as_rock_in_the_sea_tide_too():
+    from planetgen.physics import ocean_tides, tidal_heating
+    body = _on_orbit(WARM_WET, distance_au=0.5, eccentricity=0.0)
+    assert ocean_tides._love_k2(body, body.mass, body.radius * 1000.0, 1.0e-4) == tidal_heating.rigid_k2(body.mass, body.radius * 1000.0)
+    cold = _on_orbit(EUROPA, distance_au=5.2, eccentricity=0.0)
+    assert ocean_tides._love_k2(cold, cold.mass, cold.radius * 1000.0, 1.0e-4) == icy_tide.love_k2(cold.mass, cold.radius * 1000.0, 1.0e-4)
