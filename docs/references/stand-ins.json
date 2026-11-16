@@ -73153,6 +73153,90 @@
       ],
       "slug": "6-303-stand-ins-of-the-shape-of-a-star-s-own-comets-gen-595",
       "title": "Stand-ins of the shape of a star's own comets (GEN.595)"
+    },
+    {
+      "key": "6.304",
+      "number": "6.304",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SNOW_LINE_SCATTER_DEX 0.2: the standard deviation, in dex, of a star's snow line around the blackbody position of its disk's luminosity ([R3193: abstract]: an observed 0.4 dex dispersion in accretion rates \"naturally leads to a dispersion in snow line locations of about 0.2 dex\" at a given age and stellar mass)"
+            ],
+            [
+              "The range it moves in",
+              "0.15 to 0.25"
+            ],
+            [
+              "Where it holds",
+              "every star's own snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a measured spread of snow lines at one stellar mass and age outside 0.15 to 0.25 dex"
+            ],
+            [
+              "What replaces it",
+              "a spread drawn from the accretion rates of the star's own mass and age"
+            ],
+            [
+              "Evidence",
+              "the accretion-rate dispersion carried through the snow-line law (Eq. 2 and 4 of [R3193], exponent 4/9 of the accretion rate), read in the open arXiv copy"
+            ]
+          ],
+          "id": "SNL1",
+          "key": "6.304:SNL1",
+          "kind": "P",
+          "slug": "6-304-snl1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.SNOW_LINE_SCATTER_DEX 0.2: the standard deviation, in dex, of a star's snow line around the blackbody position of its disk's luminosity ([R3193: abstract]: an observed 0.4 dex dispersion in accretion rates \"naturally leads to a dispersion in snow line locations of about 0.2 dex\" at a given age and stellar mass)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SNOW_LINE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 2.5 either way ([R3193: Fig. 3] works the snow lines at the median and plus and minus 2 sigma); it was 3.0, a factor of 4"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "every star's own snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a star whose measured snow line lies beyond a factor of 2.5 of the blackbody position of its disk's luminosity at its mass and age"
+            ],
+            [
+              "What replaces it",
+              "a heavier tail from the log-normal of the accretion rates"
+            ],
+            [
+              "Evidence",
+              "the range the source works its simulations over; the cut of 3 sigma put 29 of 3,000 stars' lines inside the inner edge of the habitable zone against 25 at 2 sigma (reports/gen1611-snow-line-scatter-2026-11-16.md)"
+            ]
+          ],
+          "id": "SNL2",
+          "key": "6.304:SNL2",
+          "kind": "P",
+          "slug": "6-304-snl2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.SNOW_LINE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 2.5 either way ([R3193: Fig. 3] works the snow lines at the median and plus and minus 2 sigma); it was 3.0, a factor of 4"
+        }
+      ],
+      "slug": "6-304-stand-ins-of-the-scatter-of-a-star-s-own-snow-line-gen-1611",
+      "title": "Stand-ins of the scatter of a star's own snow line (GEN.1611)"
     }
   ]
 }
