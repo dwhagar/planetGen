@@ -847,19 +847,6 @@ def sector_zone(shell, edge_ly, zone_target_ly=100.0):
     return shell // zone_shell_depth
 
 
-def sector_quadrant(x_pc, y_pc):
-    """
-    Classifies a galaxy-frame `(x, y)` position into one of 4 azimuthal
-    Quadrants, numbered 1-4 counterclockwise from `+X`, which
-    `planetgen/web/maps/galaxymap.py`'s `sector_quadrant` labels as "I"-"IV".
-
-    Returns:
-        int: 1, 2, 3, or 4.
-    """
-    theta = math.atan2(y_pc, x_pc) % TWO_PI
-    return min(3, int(theta // (math.pi / 2))) + 1
-
-
 def _wedge_window(count, center, half_width):
     """The wedges (of a band of `count`) whose center longitude lies within `half_width` of `center`, as the run
     `(first, length)` that starts at wedge `first` and goes on `length` wedges, wrapping past `count`; `length` is

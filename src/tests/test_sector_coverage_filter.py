@@ -97,7 +97,7 @@ def test_another_coverage_is_a_400(client):
     assert client.get("/api/sectors?coverage=everything").status_code == 400
 
 
-@pytest.mark.parametrize("sort", [None, "name", "distance", "systems", "density", "position"])
+@pytest.mark.parametrize("sort", [None, "name", "distance", "systems", "density"])
 def test_every_sort_keeps_to_the_filter_through_every_page(client, sort):
     sort_part = f"&sort={sort}" if sort else ""
     for query_string, expected in (("coverage=uncharted&empty=1", set(NOT_EMPTY + EMPTIES)), ("", set(CHARTED)), ("coverage=all", set(CHARTED + NOT_EMPTY))):

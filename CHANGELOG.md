@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4325] - 2026-11-16
+
+**Headline:** A sector unit that runs again after its first try already saved the sector no longer fills it twice, which stopped a new-galaxy run on a duplicate object ID.
+
+### Fixed
+
+- DB.131: Boss's new galaxy (8.0.4317) stopped in the neighborhood stage on `IntegrityError 1062 Duplicate entry ... for key 'star_systems.uq_star_systems_uid'` (sector 75B000100861, serial 0, body 0). A sector is saved, and its cell charted, in one transaction, and the job engine marks the piece done only afterward; a unit run again after the save committed (a connection lost at the commit, a worker killed just after it) filled the cell a second time, and the second fill's systems took the object IDs the first fill's already held. `run_galaxy.generate_sectors_do` now asks the chart ledger first: a charted cell is reported from the rows (`store.saved_sector_report`: sector id, name, systems, stars, planets, phenomena, `stored` true) and is not filled. The sectors it reports add to the run's counts and are left out of the speed figures (`run_common._count_reported`). A held run that stopped on this error is finished by Retry held once the fix is installed. Reuse: `chart_ledger.row` says whether a cell is charted, as `generate_sectors_pieces` already does for a run begun again.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4324] - 2026-11-16
+
+**Headline:** The Sectors list no longer stores a Quadrant for each sector: the column and its index are dropped, with the `position` sort and the Quadrant filter that had no page left to use them.
+
+### Removed
+
+- DB.112 (schema v264, migration 0264): `sector_system_counts.quadrant` and `idx_sector_system_counts_quadrant` are dropped (the index online, the column instantly; a stopped run can be started again). The Quadrants were taken off the site by UX.272, so nothing filtered by them; `query.list_sectors`, `count_sectors` and `virtual_cells` lose their `quadrants` argument, `SECTOR_SORTS` loses `position` (so `GET /api/sectors?sort=position` is a 400 like any unknown sort), and `refresh_sector_system_counts` no longer works out a Quadrant for every sector. `spherical.sector_quadrant`, which only that column and filter used, is gone with `VIRTUAL_SCAN_ROWS` (the walk of the uncharted cells that filled a page the filter had thinned) and the Quadrant SQL. `star_systems.quadrant` and the octant `quadrant` columns are a different thing and stay. Reuse: the migration uses `helpers.drop_index_online` and `helpers.drop_column_instant`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4323] - 2026-11-16
+
+**Headline:** the end of the phenomena scatter is now three commands of its own, so each can be seen, stopped and carried on by itself and the generated galaxy is the same.
+
+### Changed
+
+- OPS.239, part A: the `finish-phenomena` command is gone. `write-special-phenomena` (stage `phenomena-special`) draws the special phenomena and writes them with their classes in one transaction (the classes were added by the record piece before; a write that is repeated adds them once). `build-phenomenon-indexes` (stage `phenomena-index`) builds the table's indexes, a piece to an index, and stamps the hypervelocity stars' epoch. `record-phenomenon-scatter` (stage `phenomena-record`) records the scatter's seed, mass cut and epoch. `needs.py` declares the chain (`phenomena-shells`, `phenomena-special`, `phenomena-indexed`, `phenomena`), and a galaxy run counts two stages more.
+
 ## [8.0.4322] - 2026-11-16
 
 **Headline:** The queue engine now picks the unit size of the link, settle and map luminosity stages from the job profile and the free resources.

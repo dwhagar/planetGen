@@ -524,9 +524,8 @@ def test_describing_a_cell():
         spherical.describe_sector_cell(10, 3, 99, EDGE_PC)
 
 
-def test_zone_and_quadrant_group_as_before():
+def test_zone_groups_as_before():
     assert spherical.sector_zone(0, 13.05) == 0 and spherical.sector_zone(8, 13.05) == 1
-    assert [spherical.sector_quadrant(*xy) for xy in [(1, 1), (-1, 1), (-1, -1), (1, -1)]] == [1, 2, 3, 4]
 
 
 @pytest.mark.parametrize("address, radius", [((12, 17, 4), 0.0), ((5, 1, 25), 15.0)])

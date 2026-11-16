@@ -115,13 +115,12 @@ connectivity to that specific schema rather than the default one.
   `null` together for an unplaced sector, plus a `placed` bool), nearest
   the galactic core first, then unplaced sectors by name
   (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
-  takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
-  `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
-  `position`; ties follow the sort's direction by sector ID). Each item carries `region`, the named region its sector lies in (`{"name", "parent"}`, UX.231), or `null` for an unplaced sector or a galaxy with no naming key. There is no `quadrant` filter and no `facets` (UX.272: the galaxy's four quadrants are gone from the site; a request that still sends them has them ignored). `total` counts the sectors; a bad `sort` or
+  takes `sort` (`name`, `systems`, `density`, `distance`) with
+  `order=asc|desc` (unplaced sectors sort last for `density` and `distance`; ties follow the sort's direction by sector ID). Each item carries `region`, the named region its sector lies in (`{"name", "parent"}`, UX.231), or `null` for an unplaced sector or a galaxy with no naming key. There is no `quadrant` filter and no `facets` (UX.272: the galaxy's four quadrants are gone from the site; a request that still sends them has them ignored). `total` counts the sectors; a bad `sort` or
   `order` is a 400. `after=<sector ID>` (PERF.137, PERF.208) starts the page after that
   sector in every sort and ignores `offset`, so a page costs the same at any depth: the
   placed sectors are read by the distance index and the unplaced ones after them by name; the
-  systems, density and position sorts read the stored count, density and Quadrant
+  systems and density sorts read the stored count and density
   (`sector_system_counts`) by index, with the sectors that have no galaxy position last, and
   sectors that tie follow the sort's direction by id; a sector made since the last refresh of
   those figures follows the others. An `after` that is not a sector ID is a 400.
@@ -133,7 +132,7 @@ connectivity to that specific schema rather than the default one.
   OPS.154: a cell that holds a waiting object (a bright star or an unbuilt scattered phenomenon) and has no chart-ledger entry needs no sector row of its own: with `coverage=uncharted|all`
   the listing goes on, after the rows, into those cells by distance (shell, band, wedge; read by key from the block light parts), once the uncharted placeholder rows are few
   (at most 100,000). Such an item has `virtual: true` and the cell's sector ID as `id` (its designation, which `GET /api/sectors/<id>` and `after=<sector ID>` accept though no row has it);
-  it has no systems (the `systems` and `density` sorts count it as zero, so these follow the rows) and the `quadrant` filter of the library function works from the cell's position.
+  it has no systems (the `systems` and `density` sorts count it as zero, so these follow the rows).
   `uncharted_total` and `total` include these cells. A cell with a row (a rogue planet's) is listed once, as its row.
   Migration 0254 deletes the placeholder rows nothing lives in and no stage makes them, so these cells are all of the waiting cells that no rogue planet holds a row for. A sector search (`sector_q`) with `coverage=uncharted|all` finds such a cell when the whole designation is typed (`virtual: true`).
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
