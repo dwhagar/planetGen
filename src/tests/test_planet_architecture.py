@@ -123,7 +123,7 @@ def test_an_inner_system_starts_at_the_inner_edge_and_neighbours_are_alike():
 
 
 def test_the_inner_system_spreads_over_the_periods_the_surveys_see():
-    """GEN.1709: small planets are flat per factor of 2 in period from 8 to 128 days ([R2020], Hsu 2019 Table 2, 0.20 to 0.25 per star at 0.5 to 2.5 Earth radii); the first planet of an
+    """GEN.1709: small planets are flat per factor of 2 in period from 8 to 128 days ([R2020: Table 2], 0.20 to 0.25 per star at 0.5 to 2.5 Earth radii); the first planet of an
     inner system is drawn broadly and the planets inside 400 days of a Sun-like star stay near the surveys' count. A build of the architecture, 0.1 to 7 Earth masses for the small ones."""
     stars = 2000
     bins = {(8, 16): 0, (16, 32): 0, (32, 64): 0, (64, 128): 0}

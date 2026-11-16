@@ -209,7 +209,7 @@ INNER_OUTWARD_MASS_DEX_PER_PLANET = 0.04
 INNER_SEPARATION_MEDIAN = 5.983
 INNER_SPACING_SIGMA_LN = 0.25
 # The period of the first planet of an inner system, days: log-normal about this median with this width in dex (GEN.1709). The occurrence of small planets
-# is flat per logarithm of period from 8 to 128 days ([R2020], Hsu et al. 2019 Table 2, read), so the first planet of the Kepler-like systems sits anywhere in
+# is flat per logarithm of period from 8 to 128 days ([R2020: Table 2], read), so the first planet of the Kepler-like systems sits anywhere in
 # that range and its neighbours follow outward at the spacing above; a first planet at 5 days with a width of 0.2 dex put every inner planet inside 30 days. A planetGen
 # stand-in (tier T6, tweak L2: tuned to that flat shape and to the planets inside 400 days per star), registry row PA19.
 INNER_FIRST_PERIOD_MEDIAN_DAYS = 25.0
