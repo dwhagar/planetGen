@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.431 |
 | NAV | NAV.78 |
 | GEN | GEN.1764 |
-| PERF | PERF.274 |
+| PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
 | ADM | ADM.156 |
@@ -2968,6 +2968,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.271 | Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system) | none | done, Train 35 PR #6763 (9:35 PM EST 11-15), PR #6743 |
 | PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | open |
 | PERF.273 | (bug) One body's seasonal solve stalls 4 to 6.6 s inside a single call (seasonal_swing.temperature_series from refresh_at_final_age of a pre-placed system's moon) on 4 of 7 runs, where its mean is 66 ms; the three sector commands keep 12 s rows in RECORDED_SILENCE for it | open |
+| PERF.274 | (bug) Warming the galaxy lists and stats every tile-cache file once per warm chunk (tilecache.cache_is_full from web/warmup.py line 854): the warm-galaxy-deep-nodes case stood 58 s walking 181,000 files on a cold file cache | open |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | done, PR #6336 (11:34 PM EST 11-14) |
