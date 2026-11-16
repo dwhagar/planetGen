@@ -558,7 +558,7 @@ def test_a_white_dwarf_shows_its_core_and_a_polluted_one_the_body_it_accreted(cl
             assert rows["chemistry_pollution_rate"]["raw"] == belt_history.TYPICAL_POLLUTION_RATE_G_S and "typical" in rows["chemistry_pollution_rate"]["text"]
             conn = store.get_connection(mysql_config)
             try:
-                conn.execute("UPDATE asteroid_belts SET thrown_inward_kg = 1e21 WHERE star_system_id = ?", (star["star_system_id"],))
+                conn.execute("UPDATE asteroid_belts SET thrown_inward_kg = 1e21 WHERE star_system_id = ? ORDER BY id LIMIT 1", (star["star_system_id"],))
                 conn.commit()
             finally:
                 conn.close()
