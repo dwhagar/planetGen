@@ -12721,6 +12721,21 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.228, TEST.769.
   Filed by the TODO thread.
 
+- [ ] **GEN.1755 (bug, measure first) Class D size bodies (under 0.001 Earth masses) at 1 to 5 AU of F, G and K stars are tidally locked 17 to 59 percent of the time, where the standard tide time gives about zero**
+  Census thread, 10:32 PM EST 2026-11-15 (Boss's default 5,000-system census on main 1e50e1dc, /mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md): 58.6 percent locked at 1 to 2 AU, while real planets beyond 1 AU are 0 of 8,332 locked. Do: measure the tide time of these bodies against the lock flag; check the small-body k2 in tidal_rheology and the belt-member spin draw; fix the cause. Lock item if output changes.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: GEN.1752, GEN.1459.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1756 Check: 12.9 percent of rocky planets of 0.1 Earth masses or more inside 0.1 AU are not tidally locked (free spin 5 to 36 h on 95 to 750 h orbits, at every star age) though the simple tide time locks them all within the star's age**
+  Census thread, 10:32 PM EST 2026-11-15 (/mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md): possibly the TR10 cold-Q ceiling (L3) or the thermal tide holding them off lock; cause not traced. Do: trace a sample, say whether it is physics (a thermal-tide or resonance spin state, which is real for some) or a bug, and fix or document it with its stand-in. Lock item if output changes.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: GEN.1755.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1757 Check: 742 moons (1.02 percent of bodies, up from 0.8 percent at Train 28) carry no class letter; confirm every one is an Asteroid object (under roundness ratio 1, no air, liquid or life, GEN.1160 and GEN.1752) and none is a classifiable moon left unclassed**
+  Census thread, 10:32 PM EST 2026-11-15 (/mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md). Do: break the 742 down by object type, roundness, air and liquid; any round or aired moon without a letter is a bug to fix.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: GEN.1160, GEN.1752.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**
   Boss, 6:11 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiJqSpmsJfWDRzSDRQYhyor8): "even if they are in an asteroid belt and small, if another class fits better, class always comes last so if we have an odd situation where like a small planet in the asteroid field has air or life, it can have another class on the fudging lines". Standing rule. Today a belt body under roundness ratio 1 is an Asteroid with no class letter (GEN.1160), and small airless rocks are D by size. Do: find every place size, roundness or belt membership decides a class before the finished body is read (GEN.1160's Asteroid rule, the D size gate, belt promotion, on-demand belt planets of GEN.1674); make each a class-fit term that a better-fitting class (an atmosphere, habitable-family or life class) can beat on the existing fit edges, after the body is finished; test with a small belt body given air and with one given life. Lock item (classes move).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 06 (belts and small bodies) with Lane 03 (class fit). Prerequisites: none. Related: GEN.1160, GEN.1674, GEN.1745, GEN.1737.
