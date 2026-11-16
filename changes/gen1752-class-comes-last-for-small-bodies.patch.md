@@ -1,8 +1,0 @@
-**Headline:** A small body that is not round is an Asteroid only while it holds no air, no surface liquid and no life; one that does is classed by the fit like any other body.
-
-### Changed
-- `planet_classes.classify_detail` no longer ends the question at the roundness ratio (GEN.1160): a terrestrial body under a ratio of 1 is an Asteroid, with no class letter, only if it also holds no air (under the fit's 10 Pa gate), no liquid at its surface and no life (`planet_classes.is_asteroid`, `holds_air_liquid_or_life`). A body that holds any of them takes the class that fits it best on the class-fit edges, fudged as any body is (Boss, 6:11 PM EST 2026-11-15: class always comes last, even for a small planet in an asteroid field that has air or life).
-- The Class D size gate needed no change: D is airless in the fit and under 0.1 Earth masses, so a small body with an air is already outside it. The sheet's rule that a non-round body has no class fields follows the same test.
-- Measured on 212 bodies (planets and moons of 15 systems, five star types): 2 are not round, none holds air, liquid or life, so no generated class moves today; the rule matters once a built body can have them (the air history of GEN.1745 classes bodies after their life ages).
-
-generation-affects: none
