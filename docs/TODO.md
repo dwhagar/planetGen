@@ -11939,11 +11939,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02. Prerequisites: none. Related: GEN.1768, GEN.1745, GEN.1739, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **TEST.782 (bug) test_systems::test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt gets 2.45 where it expects 2.25 on main**
-  Lane 05 and Lane 14 (2026-11-16): red on main since before GEN.1651. Do: find whether the overlap correction moved (a validation change) or the test's expectation is stale, and fix the side that is wrong, not the bound alone.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 06. Lock-free. Prerequisites: none. Related: GEN.1764.
-  Filed by the TODO thread.
-
 - [ ] **TEST.783 (bug) test_star_composition_sweep and test_radius_valley_sweep: the filled-galaxy fixture runs past the hang guard (900 s, 1,500 s in gates) on a 4-core box, so the files error instead of testing**
   Lane 05 and Lane 06 (2026-11-16, Train 39 gate): both sweep files hit the timeout with fixture errors on a loaded 4-core box. Do: profile the fixture build, make it smaller or cached (see TEST.417) without weakening what the sweeps check, and report run times before and after.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Lock-free. Prerequisites: none. Related: TEST.417, PERF.274.
@@ -11952,11 +11947,6 @@ clears each one.
 - [ ] **GEN.1770 (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red)**
   Lane 07, 1:35 PM EST 2026-11-16 (PR 6903): seed 0 has a 0.0031 Earth-mass body with Urey 1,798; 71 of 167 such bodies over 12 seeds had Urey over 1.5. Under the critical Rayleigh number the boundary layer grew past the mantle and the flux fell to 0. Do: the flux is never under conduction through the sphere, 5 k (Tm - Ts) / R. No body over 0.005 Earth masses changes; Urey over 1.5 goes from 71 to 0. Changes output for bodies under 0.005 Earth masses: lock item.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: none. Related: GEN.1510, GEN.1760.
-  Filed by the TODO thread.
-
-- [ ] **TEST.784 (bug) test_earth_analog::test_the_stored_baseline_is_well_formed_and_its_first_trials_redraw_the_same is red on main: a stored trial redraws hydrology 'brine seep' where the baseline says 'surface ocean'**
-  Lane 07, 1:35 PM EST 2026-11-16: red on main, not from PR 6903. Do: find which merge moved the draw (a generation change the baseline was not refreshed for, or a real regression in hydrology), and either refresh the baseline with the reason in the PR or fix the regression.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Lock-free unless the cause is in generation. Prerequisites: none. Related: GEN.1579, GEN.1754.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
