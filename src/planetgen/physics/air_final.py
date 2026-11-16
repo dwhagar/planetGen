@@ -67,7 +67,7 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
     """
     The air of `planet` as it ends: solved from the start temperature the body's water gives (`past_runaway_with_water`, or the warm side for a body with the ice law, GEN.1696), replaced by the air of an oddity of lever L7 when a row names the body
     (`air_branches`), or the airless state when it keeps none (`surface_air.airless_state`, the ice-albedo law's own answer). Keeps on the planet, as before and not stored, the replay of the
-    late accretion (`_air_replay`, GEN.1493), the retention cap of the first solve (`_retention_cap_pa`, GEN.1340) and the carbon sink of the air kept (`_co2_sink`, GEN.1309 A).
+    late accretion (`build.air_replay`, GEN.1493), the retention cap of the first solve (`build.retention_cap_pa`, GEN.1340) and the carbon sink of the air kept (`build.co2_sink`, GEN.1309 A).
 
     Args:
         planet (Planet): The planet or moon.
@@ -88,10 +88,10 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
     start_k = air_branches.formation_start_k(no_air_temperature_k, steam=steam, ice_law=setting.albedo_law is not None and not giant)
     air = surface_air.solve(setting, start_k)
     if not planet.is_moon and not giant and air is not None and air.partials_pa:       # GEN.1493: the late accretion this air was made with and what it is small or large against, for `remake_air`
-        planet._air_replay = (*planet._air_replay[:3], (setting, air.late_state, air.late, air.degassed))
-    planet._retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
+        planet.build.air_replay = (*planet.build.air_replay[:3], (setting, air.late_state, air.late, air.degassed))
+    planet.build.retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
     air = _air_oddities(planet, setting, air, steam, starlight_w_m2, distance_au, albedo, giant)
-    planet._co2_sink = None if air is None else air.co2_sink                      # GEN.1309 A: kept, not stored; the life stage balances the CO2 again at the temperature the oxygen rise leaves
+    planet.build.co2_sink = None if air is None else air.co2_sink                      # GEN.1309 A: kept, not stored; the life stage balances the CO2 again at the temperature the oxygen rise leaves
     planet._air_haze = None if air is None or setting.haze_draws is None else (setting.haze_draws, setting.star_temperature_k, setting.far_uv, setting.internal_flux_w_m2)    # GEN.1589: kept, not stored; the haze of the air kept, for the life stage
     if air is None or not air.partials_pa:
         temperature_k, albedo_kept = no_air_temperature_k, albedo

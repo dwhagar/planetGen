@@ -9,6 +9,7 @@ import types
 import pytest
 
 from planetgen.physics import constants, magnetism, radiation_belts as rb
+from planetgen.generation.build_record import BuildRecord
 
 EARTH_RADIUS_M = constants.EARTH_RADIUS_KM * 1000.0
 JUPITER_RADIUS_M = constants.JUPITER_RADIUS_KM * 1000.0
@@ -130,7 +131,7 @@ def test_belts_of_body_reads_the_stored_values():
     star = types.SimpleNamespace(radius=None, luminosity=None, log_lx_lbol=None, pulsar_type=None)
     body = types.SimpleNamespace(
         magnetic_moment_a_m2=magnetism.EARTH_MOMENT_A_M2, body_type="t", is_moon=False, rotation_period_hours=23.93,
-        radius=constants.EARTH_RADIUS_KM, mass=constants.EARTH_MASS_TO_KG, star=star, _star_distance_au=1.0,
+        radius=constants.EARTH_RADIUS_KM, mass=constants.EARTH_MASS_TO_KG, star=star, build=BuildRecord(star_distance_au=1.0),
         surface_temperature=None, gravity=None, atmospheric_pressure=0.0)
     belts = rb.belts_of_body(body)
     assert len(belts) == 2

@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4379] - 2026-11-16
+
+**Headline:** The comet shape stand-ins now have their burn-down lines and no author-year names.
+
+### Fixed
+- GEN.595: the registry rows CMT2, CMT3, CMT5, CMT6, CMT7 and CMT8 (tweak level L3) now have lines in the burn-down register, three of them naming GEN.1765 as the item that replaces them, and the source names written without a reference id are dropped from section 6.303, so `test_every_hand_tuned_row_has_a_line` and `test_citations_outside_the_registry` pass again. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4378] - 2026-11-16
+
+**Headline:** the plan timing test reads the durations the table prints, so it is green again.
+
+### Fixed
+
+- TEST.774: `test_the_plan_says_where_its_time_went_step_by_step` parsed the plan's timing table as plain seconds, and the table prints durations in the clock form (`1h 23m 45s`, `850 ms`) since UX.319. The test now reads each row and the named total through a small helper that is the inverse of `format_duration_seconds`, with a tolerance of half a second per whole-second row. All the checks stay (sorted, at least eight rows, the sum equals the named total, the steps named).
+
+generation-output: unchanged
+
+## [8.0.4377] - 2026-11-16
+
+**Headline:** the twenty private attributes a build stashed on each body are now one `BuildRecord` on the body (`body.build`), so a reader finds them by name and a restored body reads the same defaults a new one does.
+
+### Changed
+
+- GEN.1651: the numbers a pass leaves for a later pass of the same body (the birth spin and eccentricity, the draws and the light an air began with, the capture of an envelope, the carbon sink, the moons a planet was born with and the rest) were set as private attributes (`_birth_spin`, `_air_replay`, `_late_core` and seventeen more) and read back with `getattr(body, "_x", None)`. They are the fields of `planetgen.generation.build_record.BuildRecord`, one per body, each with a default; `Planet`, `life._trial_copy`, `copy` and pickling carry the record as they carried the attributes (a pickle leaves the carbon sink out, a copy keeps it). Nothing is stored differently and nothing draws a random number.
+- The generator battery's digest moves because it walks each body's attributes and the record is one more; the body values on fixed seeds are identical (seeds 0 to 13, compared field by field before and after).
+
+generation-output: unchanged
+
+## [8.0.4376] - 2026-11-16
+
+**Headline:** The hand-set shape of a star's own comets is registered with a tier and a tweak level.
+
+### Changed
+- GEN.595: the period cuts, outer period ends, eccentricity ranges, inclination caps and family weights of `COMET_PERIOD_CLASSES`, the nucleus diameter range, the perihelion range, the chance a star holds comets and how many are now rows CMT1 to CMT8 of the stand-in registry (section 6.303), each with its tier, tweak level, knobs, falsifier and the data that would replace it, and tagged in `tuning.py`. Only the parabolic share was registered before (AUD20). The period cuts and the flat perihelion are derived from the dynamical class definitions and from a loss cone; the rest are named as hand set, with a derived draw (a power-law nucleus size, a supply from the outer belt) left as its own item. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4375] - 2026-11-16
+
+**Headline:** Two unused belt functions are removed.
+
+### Changed
+- GEN.1764: `belt_origin.destroyed_planet` (with its `destroyed-planet` cause, its retained-share constant and its origin text) and `clearance_ledger.log_uniform_quantile` (with `restricted_quantile`) had no caller: the generator models no event that destroys a planet and leaves rubble, and no placer reads the clearance ledger's spans yet. Both are deleted with their wiring register lines and registry row BG10; the ledger tests draw from the spans with a helper of their own. Nothing generated changes.
+
+generation-output: none
+
 ## [8.0.4374] - 2026-11-16
 
 **Headline:** warming the map no longer goes quiet for a minute while it counts how much disk the tile cache uses, and it counts less often.

@@ -324,8 +324,8 @@ def pump_moons(planet, ledger=None):
 
     The third body is the planet's star at the planet's distance and eccentricity. The other precessions are the siblings' (`secular_chain.precession_rates` of the planet's moons) and the
     planet's equatorial bulge (`oblateness_precession_rad_yr`), summed. The starting argument of periapsis is drawn from the moon's own stream (`kozai:` plus what is final about the
-    triple), so no draw of the run's stream moves and a body made again is the same. A moon that cycles keeps its `Kozai` as `moon._kozai` (the cycle count and the draw are the kind-4 numbers
-    of `body_history`), and its birth eccentricity for the tides (`_orbit_birth`) becomes the pumped one, so `planets.settle_orbit` wears it down from where the cycle left it.
+    triple), so no draw of the run's stream moves and a body made again is the same. A moon that cycles keeps its `Kozai` as `moon.build.kozai` (the cycle count and the draw are the kind-4 numbers
+    of `body_history`), and its birth eccentricity for the tides (`build.orbit_birth`) becomes the pumped one, so `planets.settle_orbit` wears it down from where the cycle left it.
 
     Args:
         planet: A generated planet with `moons`.
@@ -360,10 +360,10 @@ def pump_moons(planet, ledger=None):
             ledger.add("secular", moon, planet.star, SECULAR_RATE_UNIT_PER_S / outcome.timescale_yr)
         if not outcome.cycles:
             continue
-        moon._kozai = outcome
+        moon.build.kozai = outcome
         if outcome.lost:
             lost.append(moon)
             continue
         moon.eccentricity = outcome.eccentricity_now
-        moon._orbit_birth = outcome.eccentricity_now
+        moon.build.orbit_birth = outcome.eccentricity_now
     return lost

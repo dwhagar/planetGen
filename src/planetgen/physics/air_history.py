@@ -123,7 +123,7 @@ def run(body, cuts=()):
     heat_now = interior_heat.heat_at(body, star_age)
     flux_now = None if heat_now is None else heat_now.own_flux_w_m2
     trace = []
-    distance_au = getattr(body, "_star_distance_au", None) or body.distance
+    distance_au = body.build.star_distance_au or body.distance
     mass_kg, radius_km = getattr(body, "mass", None), getattr(body, "radius", None)
     if distance_au and mass_kg and radius_km:
         runaway_history.loss_kg(star, distance_au, mass_kg, radius_km, trace=trace)

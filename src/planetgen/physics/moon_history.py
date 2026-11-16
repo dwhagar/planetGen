@@ -32,6 +32,8 @@ and `restore_born`), the moons the history lost as `LostMoon`s; one saved before
 
 import math
 
+from planetgen.generation.build_record import HasBuildRecord
+
 from planetgen.physics import body_spin, constants, evection, hill_perturbers, moon_orbits, moon_resonances, ring_origin, spin, spin_torques
 from planetgen.physics.orbits import calculate_reflex_offset
 
@@ -56,7 +58,7 @@ def density_kg_m3(body):
     return body.mass / (4.0 / 3.0 * math.pi * (body.radius * 1000.0) ** 3)
 
 
-class LostMoon:
+class LostMoon(HasBuildRecord):
     """
     A moon the history of a stored planet took away, kept for the history to run again (GEN.1753, `body_history.lost_rows`): the four numbers `moon_orbits.Moon` reads (its mass, birth orbit, density and
     direction) and nothing else. It is never a body of the system: `apply` lets it take part and drops it again, and one that the history now lets stay is counted with the moons that fell.
@@ -90,26 +92,27 @@ def restore_born(planet, kept, lost):
     Returns:
         bool: Whether the born list was set.
     """
-    if getattr(planet, "_birth_spin", None) is None or len(kept) != len(getattr(planet, "moons", ())) or not kept and not lost:
+    record = getattr(planet, "build", None)       # a belt of the system has no record
+    if record is None or record.birth_spin is None or len(kept) != len(getattr(planet, "moons", ())) or not kept and not lost:
         return False
     placed = {place: moon for place, moon in kept}
     for row in lost:
         placed[row["born_index"]] = LostMoon(row["mass_kg"], row["birth_distance_au"], row["density_kg_m3"], row["retrograde"])
     if len(placed) != len(kept) + len(lost) or sorted(placed) != list(range(len(placed))):
         return False
-    planet._born_moons = [placed[place] for place in range(len(placed))]
+    planet.build.born_moons = [placed[place] for place in range(len(placed))]
     return True
 
 
 def born_moons(planet):
     """The moons the planet was generated with, in order, each with its birth distance (`_birth_distance_au`); the current moons the first time."""
-    born = getattr(planet, "_born_moons", None)
+    born = planet.build.born_moons
     if born is None:
         born = list(planet.moons)
         for moon in born:
             if getattr(moon, "_birth_distance_au", None) is None:      # a restored moon brings the orbit it was born on (GEN.1753)
                 moon._birth_distance_au = moon.distance
-        planet._born_moons = born
+        planet.build.born_moons = born
     return born
 
 
@@ -142,7 +145,7 @@ def apply(planet, primary_mass_kg):
     moons, which then sets the spin state returned here. A planet with no birth spin on record (restored from the database) is left as it is.
     """
     from planetgen.physics import planets
-    birth = getattr(planet, "_birth_spin", None)
+    birth = planet.build.birth_spin
     if birth is None:
         return None
     born = born_moons(planet)
@@ -182,9 +185,9 @@ def apply(planet, primary_mass_kg):
                 if held_e - (moon.eccentricity or 0.0) > planets.ECCENTRICITY_SETTLE_TOLERANCE:
                     moon.eccentricity = held_e
                     planets.update_orbital_position(moon)
-                    moon._resonance_e = held_e
-                    if getattr(moon, "_age_drawn", None) is not None:
-                        moon._age_drawn = 0.0      # its air, class and heat are made again once, on the orbit it ends with (`planets.stale_air`)
+                    moon.build.resonance_e = held_e
+                    if moon.build.age_drawn is not None:
+                        moon.build.age_drawn = 0.0      # its air, class and heat are made again once, on the orbit it ends with (`planets.stale_air`)
     survivors.sort(key=lambda m: m.distance)      # a moon that drifted past another keeps its place by distance
     if len(survivors) > 1:        # GEN.1449 slice 2: a pair that swept a first-order resonance on the way out is held in it (`moon_resonances.capture`)
         held, _ = moon_resonances.capture([m.mass for m in survivors], [m._birth_distance_au for m in survivors], [m.distance for m in survivors])
@@ -194,7 +197,7 @@ def apply(planet, primary_mass_kg):
     survivors, dragged = _settle(planet, survivors)
     for moon in survivors:
         if abs(moon.distance / entry[id(moon)] - 1.0) >= RESPIN_FRACTION and not planets.is_bare(moon):     # a moon built bare has no spin yet, it takes its first at its final orbit (GEN.1548)
-            planets.generate_spin(moon, planet.mass, birth=getattr(moon, "_birth_spin", None))
+            planets.generate_spin(moon, planet.mass, birth=moon.build.birth_spin)
     planet.moons[:] = survivors
     age_yr = planet.star.age * 1.0e9
     planet.fallen_moons = tuple(

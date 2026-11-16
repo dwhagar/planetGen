@@ -8,6 +8,7 @@ the ground, the ground dose and the habitability score again from it, on the bod
 
 import pytest
 
+from planetgen.generation.build_record import HasBuildRecord
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants, hydrosphere, planets, surface_composition
@@ -43,7 +44,7 @@ def shell_km(body):
 def icy(seeds):
     # a body with little water has a brine whose eutectic (drawn again at the refresh) is where its shell melts, not the 273.15 K `shell_km` takes
     return (body for body in bodies(seeds) if body.hydrosphere == "ice-covered ocean" and body.ocean_class != "chloride brine"
-            and body._surface_w >= hydrosphere.BRINE_MAX_WATER_FRACTION and body.ice_shell_km and body.internal_heat_flux_w_m2)
+            and body.build.surface_w >= hydrosphere.BRINE_MAX_WATER_FRACTION and body.ice_shell_km and body.internal_heat_flux_w_m2)
 
 
 def test_the_stored_ice_shell_is_the_one_the_stored_final_age_heat_gives():
@@ -101,11 +102,11 @@ def test_the_refresh_is_deterministic_and_repeatable():
 
 
 def test_a_giant_a_belt_and_a_body_with_no_water_drawn_are_left_alone():
-    class Bare:
+    class Bare(HasBuildRecord):
         body_type = "g"
     planets.refresh_at_final_age(Bare())
     body = next(iter(bodies([12])))
-    body._surface_w = None
+    body.build.surface_w = None
     before = body.ice_shell_km
     planets.refresh_at_final_age(body)
     assert body.ice_shell_km == before

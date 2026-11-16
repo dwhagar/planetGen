@@ -8,6 +8,7 @@ and the two draws of its mantle's rheology (GEN.955).
 import math
 import types
 
+from planetgen.generation.build_record import BuildRecord
 from planetgen.physics import body_spin, constants
 from planetgen.physics.mathcheck import _bulk_silicate_earth
 
@@ -18,7 +19,7 @@ def rocky(mass_kg, radius_km, age_gy=4.5, eta0_pa_s=1.0e12, activation_kj_mol=25
     stored = dict(
         mass=mass_kg, radius=radius_km, body_type="t", water_mass_fraction=0.0, star=types.SimpleNamespace(age=age_gy),
         c_k0_ppm=content.k0_ppm, c_th0_ppm=content.th0_ppm, c_u0_ppm=content.u0_ppm, al26_ratio=content.al26_ratio,
-        mantle_eta0_pa_s=eta0_pa_s, mantle_activation_kj_mol=activation_kj_mol)
+        mantle_eta0_pa_s=eta0_pa_s, mantle_activation_kj_mol=activation_kj_mol, build=BuildRecord())
     stored.update(fields)
     return types.SimpleNamespace(**stored)
 

@@ -98,8 +98,8 @@ def test_the_stale_air_mark_is_cleared_by_the_final_age_refresh(systems):
     for system in systems:
         for planet in system.planets:
             for body in (*([planet] if planet.body_type == "t" else []), *getattr(planet, "moons", ())):      # (a giant is not made again by the refresh)
-                if getattr(body, "_age_drawn", None) is not None:
-                    assert not planetPhysics.age_moved(body), (body.name, body._age_drawn)
+                if body.build.age_drawn is not None:
+                    assert not planetPhysics.age_moved(body), (body.name, body.build.age_drawn)
 
 
 def _belted_system(accept, limit=60):

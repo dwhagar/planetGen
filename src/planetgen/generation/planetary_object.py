@@ -14,10 +14,11 @@ A moon is not a class of its own: it is a planetary object whose parent is a pla
 Nothing here draws a random number.
 """
 
+from planetgen.generation.build_record import HasBuildRecord
 from planetgen.generation.mass_object import MassObject
 
 
-class PlanetaryObject(MassObject):
+class PlanetaryObject(HasBuildRecord, MassObject):
     """A planet, a moon or a rogue planet."""
 
     GIANT_LETTER = "g"

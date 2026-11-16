@@ -172,8 +172,8 @@ def test_every_generated_system_body_spins(seed):
             continue  # an asteroid belt
         for body in [planet, *planet.moons]:
             normal = spin.orbit_normal(body.orbital_inclination_deg, body.orbital_ascending_node_deg)
-            if getattr(body, "_frame_axis", None) is not None:      # GEN.1352: a regular moon's elements are against its planet's equator
-                normal = spin.turn_to_axis(normal, body._frame_axis)
+            if body.build.frame_axis is not None:      # GEN.1352: a regular moon's elements are against its planet's equator
+                normal = spin.turn_to_axis(normal, body.build.frame_axis)
             _assert_spin(body, normal)
             orbit_hours = body.period * constants.SECONDS_PER_YEAR / 3600
             if body.rotation_period_hours == pytest.approx(orbit_hours):
