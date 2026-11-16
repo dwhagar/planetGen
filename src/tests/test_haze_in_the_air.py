@@ -68,7 +68,10 @@ def test_the_setting_carries_the_draws_of_the_bodys_own_stream(hazy):
 def hazy_with_ground():
     for seed in range(200):      # GEN.1646 moved the recipe draws: the first hazy body with ground is seed 98 now (it was inside the first 60)
         planet, captured = _generate(seed)
-        if planet.tau_haze and planet.tau_haze > 0.0 and planet_type.has_ground(planet):
+        # TEST.778: an air that did not settle (`Air.converged` False, a knee, GEN.1344) has no fixed point to compare: its haze switches on and off between two answers and the
+        # stored air is their mean, so the replay with the haze is not "the same air". GEN.1754 moved the water of rocky bodies and with it the first hazy body with ground
+        # (seed 98 to seed 15, a 257 K body whose haze switches at a temperature, GEN.1344's knee); the test speaks of airs that settle.
+        if planet.tau_haze and planet.tau_haze > 0.0 and planet_type.has_ground(planet) and captured["air"].converged and not captured["air"].knee:
             return planet, captured
     pytest.fail("no body with ground of the first 200 seeds has a haze")
 
@@ -78,11 +81,16 @@ def test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it(hazy
     is as warm or warmer. A body with ground: a planet under a deep envelope takes one step of the solve from its starting temperature (GEN.1334, GEN.1394) and is
     not a fixed point to compare."""
     _, captured = hazy_with_ground
+    # TEST.778: both solves repeat every draw of the body's own solve (`Air.entry_state`, as `air_branches.other_branch` does), so they are the same world: with a stream of its own the
+    # replay drew another inventory and ended with no haze at all (a replayed tau of 0.0 in every body tried), and the test compared two airs that did not differ.
     with draw.bound("haze-in-the-air-replay"):
+        draw.setstate(captured["air"].entry_state)
         with_haze = sa.solve(captured["setting"], captured["start"])
     with draw.bound("haze-in-the-air-replay"):
+        draw.setstate(captured["air"].entry_state)
         clear = sa.solve(dataclasses.replace(captured["setting"], haze_draws=None), captured["start"])
     assert with_haze.converged and clear.converged
+    assert with_haze.haze.tau > 0.0, "the replay holds the haze the body stores, or the comparison says nothing"
     assert clear.haze is aerosols.NO_HAZE
     assert clear.temperature_k >= with_haze.temperature_k - 0.5
 
