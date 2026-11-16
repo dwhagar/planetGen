@@ -1998,10 +1998,10 @@ def scatter_shells_do(unit_args, piece, ctx):
         landed[row[0]] += 1
         batch.append(row)
         if len(batch) >= 10000:
-            systems += scatterCompanions.write_committed(ctx.db, scatterCompanions.insert_bright_stars, batch, epoch, label=f"{unit_args['key']} scatter").systems
+            systems += scatterCompanions.write_once(ctx.db, scatterCompanions.insert_bright_stars, batch, epoch, label=f"{unit_args['key']} scatter").systems
             batch = []
     if batch:
-        systems += scatterCompanions.write_committed(ctx.db, scatterCompanions.insert_bright_stars, batch, epoch, label=f"{unit_args['key']} scatter").systems
+        systems += scatterCompanions.write_once(ctx.db, scatterCompanions.insert_bright_stars, batch, epoch, label=f"{unit_args['key']} scatter").systems
     ctx.commit()
     if piece["run"] == "far" or key == COMPONENT_TASK_SHELL:
         per_shell = [[shell, stars] for shell, stars in sorted(landed.items())]
@@ -2298,12 +2298,12 @@ def scatter_phenomena_do(unit_args, piece, ctx):
                 ctx.advance(PHENOMENA_REPORT_ROWS)
             if len(batch) >= 10000:
                 wrote = time.perf_counter()
-                systems += scatterCompanions.write_committed(ctx.db, scatterCompanions.insert_phenomenon_scatter, batch, epoch, label="Phenomenon scatter").systems
+                systems += scatterCompanions.write_once(ctx.db, scatterCompanions.insert_phenomenon_scatter, batch, epoch, label="Phenomenon scatter").systems
                 write_seconds += time.perf_counter() - wrote
                 batch = []
     wrote = time.perf_counter()
     if batch:
-        systems += scatterCompanions.write_committed(ctx.db, scatterCompanions.insert_phenomenon_scatter, batch, epoch, label="Phenomenon scatter").systems
+        systems += scatterCompanions.write_once(ctx.db, scatterCompanions.insert_phenomenon_scatter, batch, epoch, label="Phenomenon scatter").systems
     ctx.commit()
     write_seconds += time.perf_counter() - wrote
     return {"counts": counts, "write_seconds": write_seconds, "systems": systems, "seconds": time.monotonic() - started}
@@ -2421,6 +2421,7 @@ def draw_nebula_field_do(params, slab, ctx):
         pace.total = total
         pace.tick(done)
 
+    ctx.db.execute("DELETE FROM nebula_field WHERE cell_i = ?", (slab,))       # OPS.264: a slab drawn again after a try that wrote it takes the rows back, as the key refuses a second copy
     written = store.insert_nebula_field(ctx.db, watched(nebulaField.table_rows(
         galaxy_seed, skeleton.shape, slab, params["radius_pc"], params["half_height_pc"], on_column=column_done)))
     ctx.commit()

@@ -443,11 +443,35 @@ def system_pieces(unit_args, cursor):
     return [{"run": "generate"}, {"run": "finish"}][cursor:]
 
 
+def _draw_system(args, ctx):
+    """The `generate` piece's work: draws the system (the tries of GEN.81) and leaves it, its config and the warning in `ctx.state` for the `finish` piece."""
+    system_config = build_system_config(args)
+    attempts = program_constants.SINGLE_SYSTEM_GENERATION_ATTEMPTS
+    ctx.step("Tries", attempts)
+    warning = None
+    for attempt in range(1, attempts + 1):
+        system = StarSystem(system_config=system_config)
+        ctx.advance(1)
+        if not system.unmet_requirements:
+            break
+    else:
+        star = f"--star-type {system_config.STAR_TYPE}" if system_config.STAR_TYPE else "the drawn star"
+        # GEN.81: the last try is kept, without the body it had no room for.
+        warning = (f"No system with {' and '.join(system.unmet_requirements)} came out of {attempts} tries for "
+                   f"{star}; the last one is kept without it. Hot, short-lived and very large stars often have "
+                   f"no room for one.")
+    ctx.state["system"], ctx.state["system_config"], ctx.state["warning"] = system, system_config, warning
+
+
 def system_do(unit_args, piece, ctx):
     """
     One piece of the unit of a `system` run (OPS.202): the `generate` piece draws the system on a stream seeded from the run's (so it is the same at any worker count), up to
     `SINGLE_SYSTEM_GENERATION_ATTEMPTS` tries, and counts the tries into the second level; the `finish` piece renders it (`--output`) or saves it, on the same stream, which the unit keeps
     (`ctx.kept`) between its two pieces.
+
+    The unit resumes (OPS.264): the save writes the unit's cursor past the `finish` piece in its own transaction (`engine.Context.commit_piece_in`), so a unit run again after the save does not
+    save the system twice, and a unit that starts at the `finish` piece (the `generate` piece's cursor was stored, its state is gone) draws the system again from the run's stream, which gives the
+    system it drew before.
 
     Returns:
         dict: The `generate` piece's is `{}`; the `finish` piece's is `warning` (the message of a system that kept no forced body, which the starter refuses or logs by `--strict`, else `None`),
@@ -457,23 +481,10 @@ def system_do(unit_args, piece, ctx):
     args = run_galaxy._sector_args_of(unit_args)
     with draw.bound(ctx.kept("stream", lambda: draw.Stream(unit_args["run_seed"]))):
         if piece["run"] == "generate":
-            system_config = build_system_config(args)
-            attempts = program_constants.SINGLE_SYSTEM_GENERATION_ATTEMPTS
-            ctx.step("Tries", attempts)
-            warning = None
-            for attempt in range(1, attempts + 1):
-                system = StarSystem(system_config=system_config)
-                ctx.advance(1)
-                if not system.unmet_requirements:
-                    break
-            else:
-                star = f"--star-type {system_config.STAR_TYPE}" if system_config.STAR_TYPE else "the drawn star"
-                # GEN.81: the last try is kept, without the body it had no room for.
-                warning = (f"No system with {' and '.join(system.unmet_requirements)} came out of {attempts} tries for "
-                           f"{star}; the last one is kept without it. Hot, short-lived and very large stars often have "
-                           f"no room for one.")
-            ctx.state["system"], ctx.state["system_config"], ctx.state["warning"] = system, system_config, warning
+            _draw_system(args, ctx)
             return {}
+        if "system" not in ctx.state:
+            _draw_system(args, ctx)
         system, system_config, warning = ctx.state["system"], ctx.state["system_config"], ctx.state["warning"]
         asked = class_request_report(system, system_config)      # GEN.1620: said by the starter beside the result
         if warning and run_common._strict(args):
@@ -482,8 +493,15 @@ def system_do(unit_args, piece, ctx):
             text = (json.dumps(describe.describe(system)) if args.format == DOCUMENT_FORMAT
                     else render_star_system(system, args.format))
             return {"warning": warning, "name": system.name, "text": text, "star_system_id": None, "asked": asked}
-        star_system_id = store.save_system(system, system_config, config=store.mysql_config_from_args(args))
-        return {"warning": warning, "name": system.name, "text": None, "star_system_id": star_system_id, "asked": asked}
+        result = {"warning": warning, "name": system.name, "text": None, "star_system_id": None, "asked": asked}
+
+        def commit_with_cursor(conn, system_id):
+            """The system's rows and the unit's cursor past this piece in one transaction (OPS.264)."""
+            result.update(name=system.name, star_system_id=system_id)
+            ctx.commit_piece_in(conn, result)
+
+        store.save_system(system, system_config, config=store.mysql_config_from_args(args), also=commit_with_cursor)
+        return result
 
 
 def system_gather(unit_args, results, ctx):
