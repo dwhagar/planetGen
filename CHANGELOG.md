@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4351] - 2026-11-16
+
+**Headline:** `planetgen plan --reach-shells 3` no longer ends with an error when the galaxy reaches past the shells it was allowed to walk.
+
+### Fixed
+
+- OPS.267: when the outline's walk was cut short and no `--edge` was given (`--reach-shells 3` alone), the plan's closing warning tried to write the Edge dial's value and failed with a TypeError. It now says the plane still qualified at the reach (the shell and `--reach-shells`) and to re-run with a larger one; with `--edge` given it says what it said before.
+
 ## [8.0.4350] - 2026-11-16
 
 **Headline:** Small icy bodies far from their star no longer lock in a few Gy, and close-in planets that lost their moons or hold water over a warm surface now lock as the tide says they should.
