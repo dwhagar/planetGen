@@ -5707,7 +5707,7 @@
           "fields": [
             [
               "Evidence",
-              "design (an envelope under 0.2 percent of the planet's mass counts as gone: a numerical cutoff of the integration)"
+              "design (an envelope under 0.2 percent of the planet's mass counts as gone: the cutoff of the integration, and since GEN.1710 also the ground rule of planet_type.TERRESTRIAL_MAX_ENVELOPE, PT1)"
             ],
             [
               "What it is",
@@ -36715,7 +36715,7 @@
           "fields": [
             [
               "What it is",
-              "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end)"
+              "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.002 (= envelope_escape.BARE_BELOW, row AM82; 0.005 until GEN.1710): an envelope under 0.2 percent of the mass is a terrestrial body (the envelope the escape law does not call gone; the 1.6 Earth radii where rocky planets end came out of it, and a 1 Earth-mass body holds 2,000 bar of hydrogen at 0.2 percent)"
             ],
             [
               "The range it moves in",
@@ -36746,7 +36746,7 @@
           "tier_code": "T9",
           "tweak": "L0",
           "unread": null,
-          "what": "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end)"
+          "what": "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.002 (= envelope_escape.BARE_BELOW, row AM82; 0.005 until GEN.1710): an envelope under 0.2 percent of the mass is a terrestrial body (the envelope the escape law does not call gone; the 1.6 Earth radii where rocky planets end came out of it, and a 1 Earth-mass body holds 2,000 bar of hydrogen at 0.2 percent)"
         },
         {
           "burn_down": null,

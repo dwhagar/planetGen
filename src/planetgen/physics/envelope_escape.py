@@ -30,7 +30,10 @@ ONSET_GY = 1.0
 Earth radii or more with a slope of -0.16 or steeper at any weaker or later start but 1 Gyr), tweak level 3."""
 
 BARE_BELOW = 0.002
-"""float: An envelope under this fraction of the planet's mass is gone (a bare core)."""
+"""float: An envelope under this fraction of the planet's mass is gone (a bare core), and a planet with one over it has no ground: the one cut of a rocky body's envelope, which
+`planet_type.TERRESTRIAL_MAX_ENVELOPE` (PT1) reads (GEN.1710). The ground rule stood at 0.005 beside this 0.002, so an envelope of 0.2 to 0.5 percent was kept, with its radius, on a body that had ground and an air with
+no hydrogen in it. An envelope that the escape law does not call gone is a real one: at 0.2 percent a 1 Earth-mass body holds 2,000 bar of hydrogen and helium, so it has no surface to stand on. The valley fit
+(row AM81) was made with this cut and stays."""
 
 MAX_ENVELOPE = 0.5
 """float: A starting envelope fraction is held at this (the law of Lopez and Fortney covers a few percent to tens of percent)."""
