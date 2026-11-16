@@ -4960,7 +4960,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.782 | (bug) test_systems::test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt gets 2.45 where it expects 2.25 on main | open |
 | TEST.783 | (bug) test_star_composition_sweep and test_radius_valley_sweep: the filled-galaxy fixture runs past the hang guard (900 s, 1,500 s in gates) on a 4-core box, so the files error instead of testing | open |
 | TEST.784 | (bug) test_earth_analog::test_the_stored_baseline_is_well_formed_and_its_first_trials_redraw_the_same is red on main: a stored trial redraws hydrology 'brine seep' where the baseline says 'surface ocean' | open |
-| TEST.785 | (bug) test_envelope_dial::test_at_share_one_no_candidate_keeps_an_envelope_and_the_others_are_not_made_late_cores is red on main: a candidate planet that moved into the ecosphere after the late-core draw keeps its envelope | open |
+| TEST.785 | (bug) test_envelope_dial::test_at_share_one_no_candidate_keeps_an_envelope_and_the_others_are_not_made_late_cores is red on main: a candidate planet that moved into the ecosphere after the late-core draw keeps its envelope | done (PR 6907, Lane 04, merged 1:53 PM EST 11-16: generation is right, the dial is drawn once in the zone held then and a planet moved later keeps its decision; the test now counts only candidates whose zone did not change) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
