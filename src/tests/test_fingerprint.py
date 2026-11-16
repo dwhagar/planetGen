@@ -37,7 +37,7 @@ def test_every_content_table_is_in_one_section():
     assert len(tables) == len(set(tables)) and set(tables) == fingerprint.CONTENT_TABLES
 
 
-def _generate(config, monkeypatch, seed=GALAXY_SEED, shift_ids=False):
+def _generate(config, monkeypatch, seed=GALAXY_SEED, shift_ids=False, limit=None):
     _plan_wide_galaxy(config, galaxy_seed=seed)
     if shift_ids:
         conn = store.get_connection(config)
@@ -53,7 +53,7 @@ def _generate(config, monkeypatch, seed=GALAXY_SEED, shift_ids=False):
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", config.database)
     for counter in run_common.RUN_COUNTS:
         run_common.RUN_COUNTS[counter] = 0
-    _cli(["sectors", "--shell", "1", "--num-systems", "4", "--workers", "1"], config)
+    _cli(["sectors", "--shell", "1", "--num-systems", "4", "--workers", "1", *(["--limit", str(limit)] if limit else [])], config)
 
 
 def _cli(argv, config):
@@ -81,17 +81,21 @@ def _region(config, **kwargs):
         conn.close()
 
 
+ROW_ID_SECTORS = 2
+"""int: The sectors of the shell the row-id test generates (a sector takes about a minute, with its scatter cells; the second galaxy starts its ids at 5000 so none of them can match the first's)."""
+
+
 def test_one_seed_gives_one_fingerprint_whatever_the_row_ids(make_database, monkeypatch):
     first, second = make_database(), make_database()
-    _generate(first, monkeypatch)
-    _generate(second, monkeypatch, shift_ids=True)
+    _generate(first, monkeypatch, limit=ROW_ID_SECTORS)        # TEST.751: two sectors of the shell are enough to carry every table's ids; the whole shell took 12 minutes a galaxy
+    _generate(second, monkeypatch, shift_ids=True, limit=ROW_ID_SECTORS)
     conn = store.get_connection(second)
     try:
         assert conn.execute("SELECT MIN(id) AS n FROM star_systems").fetchone()["n"] >= 5000
     finally:
         conn.close()
     a, b = _region(first), _region(second)
-    assert len(a.sectors) >= 8 and a.plan is not None
+    assert len(a.sectors) >= ROW_ID_SECTORS and a.plan is not None
     assert a == b
     assert _print(first) == _print(second) == a.lines()
 
