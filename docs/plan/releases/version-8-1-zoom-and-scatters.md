@@ -68,7 +68,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.695 | Stale or failing tests, group one: point_columns (sky_tier_draws), column round trip (irregular_moons), materials table, command docs (link-neighbors), TODO codes shown, JS unit and raw formatting, web_formulas, multistar registry MS4 and MS6, sql portability, db boundary values, update_database_step, literal insert, old_urls belt_ref, parent_link, container_plan, nebula_shape, object_rows, outline_reach, describe_render, property_sheet, api_link_ids (bug) |  | Bug Hunt first pass, 2026-11-07. |
 | GEN.1390 | Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug) |  | Bug Hunt first pass, 2026-11-07. |
 | TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) |  | Bug Hunt first pass, 2026-11-07. |
-| PERF.254 | Memory governor for the generation run: admit and shed workers from the live free memory, learn each stage's worker size, and measure the cut of a stage as its own step |  | Boss, 2026-11-08. |
 | DOC.114 | Full refresh of all documents of all types against main: READMEs, design notes, plan files, reports, change notes, generated pages and help text |  | Boss, 2026-11-08. |
 | DOC.115 | One unified planning source: the plan files consolidated so that docs/TODO.md stays the item list and every other plan file points at it, with item numbers and links kept |  | Boss, 2026-11-08. |
 | DOC.117 | History sweep: read every commit, item, choice, issue and pull request, alive or dead, and add past choices, rejected paths and trends to the design documents |  | Boss, 2026-11-08. |
@@ -227,7 +226,6 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) |  | Interface; queued after sphere stages (Boss, 12:52 AM EDT) |
-| DB.112 | Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration) |  |  |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | UX.115 | Quality; queued after UX.115 |
 
 ### Habitability system
@@ -500,9 +498,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.236 | Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill) | none | Lane 13, 2026-11-14. |
 | OPS.239 | Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle | none | Lane 16, 2026-11-14. |
 | OPS.240 | Job engine stage 5: sectors one at a time from a spawner job with a queued window; absorbs OPS.126 | none | Lane 16, 2026-11-14. |
-| OPS.241 | Job engine stage 5: independence harness (declared reads and writes; a SQL tap test fails undeclared tables); absorbs OPS.131 | none | Lane 07, 2026-11-14. |
 | OPS.242 | Job engine stage 5: overlap pair by pair, each with its proof (skeleton-only commands first, then narrower edges); absorbs OPS.132; one item per pair | none | Lane 07, 2026-11-14. |
-| OPS.243 | Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261 | none | Lane 06, 2026-11-14. |
 | OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | Lane 15, 2026-11-14. |
 | OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | Lane 13, 2026-11-14. |
 | OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | Lane 13, 2026-11-14. |
@@ -591,7 +587,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.1141 | Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete |  |  |
 | API.38 | API and search for local names: name is the local name, a new sector field carries the place, a typed name returns every match with its sector, an ID typed in full still opens its object |  |  |
 
 ### Physics rectification: strength, rings, trojans and small-body follow-ups
@@ -713,24 +708,23 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1709 | Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star) | none | Lane 05, 2026-11-14. |
 | GEN.1710 | (bug) Two different "envelope is gone" cuts: a rocky planet has ground when its stored envelope is under 0.5 percent of its mass, but envelope_escape.BARE_BELOW is 0.2 percent, so envelopes of 0.2 to 0.5 percent vanish silently | none | Lane 06, 2026-11-14. |
 | GEN.1711 | Habitable-zone sub-Neptunes of 3 to 6 Earth masses come out larger than Kepler's (2.7 to 3.8 Earth radii against 2.1 to 2.6): the starting envelope median above 3.72 Earth masses is 10 percent against inferred birth values of 1 to 4 percent (stand-in EC1, T9, L3) | none | Lane 06, 2026-11-14. |
-| PERF.271 | Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system) | none | Lane 06, 2026-11-15. |
 | PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | Lane 06, 2026-11-15. |
 | GEN.1724 | Research: a sourced table of life adaptations to cold, heat, dryness, salt and low light, by climate type and life type, feeding GEN.1721 and GEN.1723 | none | research thread, 2026-11-14
 | GEN.1727 | Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit | none | research thread, 2026-11-14
 | GEN.1732 | Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change | none | Lane 02, 2026-11-15 |
 | GEN.1735 | Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place) | GEN.1728 | Lane 04, 2026-11-15 |
-| GEN.1744 | Oxygenic life variants 1b and 1c use their own light bands in biogenic_oxygen.active_light_ratio (all use 400 to 700 nm today; Science output changes) | none | Lane 04, 2026-11-15 |
 | GEN.1745 | A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts | GEN.1743, GEN.1741 | Lane 02, 2026-11-15 |
 | API.51 | The life-air API and the page chart read the stored air history, every gas | GEN.1745 | Lane 16, 2026-11-15 |
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | Lane 03, 2026-11-15 |
-| OPS.262 | Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget | OPS.196 | Lane 16, 2026-11-15 |
-| GEN.1748 | Nebular hydrogen envelopes for bodies under 1 Earth mass (source in reports/early-envelope-gen1741-2026-11-15.md): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state | GEN.1741 | Lane 04, 2026-11-15 |
-| GEN.1749 | (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant) | none | Lane 04, 2026-11-15 |
 | GEN.1752 | Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule) | none | Lane 06, 2026-11-15 |
 | GEN.1753 | Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them | GEN.1533 | Lane 15, 2026-11-15 |
 | GEN.1754 | Nebular envelopes and their water for bodies of 1 Earth mass and up (the GEN.1748 source stops at 0.3 percent hydrogen) | GEN.1748 | Lane 04, 2026-11-15 |
-| UX.319 | (bug) Every time output uses standard hours, minutes and seconds, never decimal hours, minutes or seconds ("1.25 minutes", "3.5 days", "seconds=12.3") | none | Lane 14, 2026-11-15 |
-| DB.131 | (bug) New galaxy run fails in Stage 5 (Neighborhood): unit 67 hits IntegrityError 1062, duplicate star_systems.uq_star_systems_uid for a system of sector 75B000100861 | none | Lane 15, 2026-11-15 |
+| GEN.1755 | (bug, measure first) Class D size bodies (under 0.001 Earth masses) at 1 to 5 AU of F, G and K stars are tidally locked 17 to 59 percent of the time, where the standard tide time gives about zero | none | Lane 07, 2026-11-15 |
+| GEN.1756 | Check: 12.9 percent of rocky planets of 0.1 Earth masses or more inside 0.1 AU are not tidally locked (free spin 5 to 36 h on 95 to 750 h orbits, at every star age) though the simple tide time locks them all within the star's age | none | Lane 07, 2026-11-15 |
+| GEN.1757 | Check: 742 moons (1.02 percent of bodies, up from 0.8 percent at Train 28) carry no class letter; confirm every one is an Asteroid object (under roundness ratio 1, no air, liquid or life, GEN.1160 and GEN.1752) and none is a classifiable moon left unclassed | none | Lane 03, 2026-11-15 |
 | OPS.264 | (bug) Every per-piece writer is safe to re-run: scatter shells and scatter phenomena write their 10,000-row batches twice, and unplaced sectors and the system finish piece write a second row, when a piece runs again after its commit | none | Lane 15, 2026-11-15 |
+| OPS.265 | (bug) plan-skeleton's outline piece (7.5 s) and generate-system's first system (8.5 s) go silent past the 5 s budget on a small galaxy: give each a count inside | none | Lane 16, 2026-11-15 |
+| OPS.266 | (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector | none | Lane 16, 2026-11-15 |
+| TEST.773 | (bug) test_fuzz_cli: two galaxy tests fail in the whole-file run with "RunStopped: the run done before stage 1 was queued" and pass alone (order-dependent) | none | Lane 14, 2026-11-15 |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
 | TEST.751 | (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback | none | Lane 12, 2026-11-14

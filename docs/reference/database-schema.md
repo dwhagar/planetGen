@@ -2730,6 +2730,10 @@ Migration 0261 creates `engine_items` (see the table section above). Nothing is 
 
 Migration 0264 drops `idx_sector_system_counts_quadrant` and the column `quadrant` of `sector_system_counts` (added by 0181). The Sectors list has no Quadrant filter or position sort any more; the table is derived data and nothing is backfilled.
 
+### v265 (GEN.1141): `designations.reason` takes `deleted`
+
+Migration 0265 replaces the CHECK `chk_designations_reason` with one that lists seven reasons, the new one being `deleted`: when an object is deleted (`DELETE /api/systems/<id>`, `db/edits.delete_phenomenon`, a planet, moon or belt an edit drops) `designation_rows.tombstone_tree` writes its current ID as a retired one (so it is reserved for ever) and its current name, with that reason, and stamps `gone_epoch` on every row of the object, so a link to it answers 410. The bodies of a deleted system and the moons of a deleted planet are recorded first. A sector's contents emptied for regeneration are not tombstoned (the cell is made again). No row changes.
+
 ### v263 (OPS.219): `engine_piece_results`, what the finished pieces of a job returned
 
 Migration 0263 creates `engine_piece_results` (see the table section above). Nothing is backfilled: a unit of a command that `resumes` writes a row for each piece that returns something.

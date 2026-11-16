@@ -46,20 +46,24 @@ SPEED_CASES = [
 
 # (seconds, expected text).
 PERIOD_CASES = [
-    (0.0, "0 s"),
+    (0.0, "0s"),
     (3e-7, "0.3 µs"),
     (1e-6, "1 µs"),
     (9.47e-4, "947 µs"),
     (1.56e-3, "1.56 ms"),
     (0.5, "500 ms"),
-    (1.0, "1 s"),
-    (45.0, "45 s"),
-    (60.0, "1 minute"),
-    (90.0, "1.5 minutes"),
-    (3600.0, "1 hour"),
-    (12 * 3600.0, "12 hours"),
-    (86400.0, "1 day"),
-    (27.32 * 86400, "27.3 days"),
+    (1.0, "1s"),
+    (45.0, "45s"),
+    (59.6, "1m"),
+    (60.0, "1m"),
+    (90.0, "1m 30s"),
+    (3600.0, "1h"),
+    (5025.0, "1h 23m 45s"),
+    (12 * 3600.0, "12h"),
+    (86400.0, "1d"),
+    (2 * 86400.0 + 3 * 3600 + 4 * 60, "2d 3h 4m"),
+    (27.32 * 86400, "27d 7h 41m"),
+    (-45.0, "-45s"),
     (_YEAR, "1 year"),
     (1.88 * _YEAR, "1.88 years"),
     (999 * _YEAR, "999 years"),
@@ -99,7 +103,20 @@ def test_unit_wrappers_and_none():
 def test_singular_only_when_exactly_one():
     assert format_period_years(1.001) == "1 year"
     assert format_period_years(1.01) == "1.01 years"
-    assert format_duration_seconds(2 * 86400) == "2 days"
+    assert format_duration_seconds(2 * 86400) == "2d"
+
+
+def test_no_time_output_below_a_year_has_a_decimal_unit():
+    """UX.319: a duration between a second and a year reads in whole h/m/s or d/h/m parts (1h 23m 45s), never 1.25 minutes."""
+    import re
+    import random
+
+    rng = random.Random(319)
+    values = [rng.uniform(1.0, 360 * 86400.0) for _ in range(2000)] + [59.5, 59.6, 3599.6, 86399.7, 90.0, 7500.0]
+    for seconds in values:
+        text = format_duration_seconds(seconds)
+        assert re.fullmatch(r"(\d+[dhms])( \d+[dhms])*", text) or text.endswith(("year", "years")), (seconds, text)
+        assert "." not in text, (seconds, text)
 
 
 def test_year_is_julian():

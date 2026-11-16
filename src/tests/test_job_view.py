@@ -98,7 +98,7 @@ def test_a_retry_hold_says_how_long_and_how_the_last_attempt_ended(conn, run, co
     ledger.set_job_state(control, row, "waiting", not_before=time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time() + 120)))
     control.commit()
     shown = next(item for item in jobview.jobs(control, engine, time.time())["items"] if item["id"] == row)
-    assert re.match(r"held back for a retry for another (1\.\d+|2) minutes", shown["waits"]) and shown["waits"].endswith("after its attempt 1 killed for memory")
+    assert re.match(r"held back for a retry for another (1m \d+s|2m)", shown["waits"]) and shown["waits"].endswith("after its attempt 1 killed for memory")
     assert shown["last"]["outcome"] == "killed_memory" and shown["last"]["peak_mb"] == 1800.0 and shown["attempts"] == 1
 
 
@@ -188,7 +188,7 @@ def test_a_jobs_page_shows_its_attempts_and_a_stack_file(admin_client, conn, run
     control.commit()
     html = admin_client.get(f"/admin/queue/{run}/job/{row}").get_data(as_text=True)
     assert 'id="attempt-1"' in html and "stopped as stuck" in html and "no count for 4 minutes" in html and "job9-attempt1-stack.txt" in html
-    assert "950 MB" in html and "1.08 minutes" in html and "777" in html
+    assert "950 MB" in html and "1m 5s" in html and "777" in html
     assert admin_client.get(f"/admin/queue/{run}/job/987654321").status_code == 404
     assert admin_client.get(f"/admin/queue/not-a-run/job/{row}").status_code == 404
     assert admin_client.get(f"/admin/queue/{run}/job/abc").status_code == 404

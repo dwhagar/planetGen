@@ -38,15 +38,15 @@ def test_the_warm_up_log_is_warmup_log_in_the_log_folder(tmp_path, monkeypatch):
 
 def test_a_run_is_bracketed_and_every_line_has_the_local_time_and_zone(path):
     with warm_log.RunLog() as record:
-        log.normal("galaxy-map: 1 warmed (0 already cached, 0 left out by the cap) in 4.0 s")
+        log.normal("galaxy-map: 1 warmed (0 already cached, 0 left out by the cap) in 4s")
         record.say("a line only the bars' console printed")
         record.families = 5
     lines = _lines(path)
     assert len(lines) == 4 and all(LINE.match(line) for line in lines)
     assert lines[0].endswith("Cache warm-up started (by hand)")
-    assert lines[1].endswith("warm: galaxy-map: 1 warmed (0 already cached, 0 left out by the cap) in 4.0 s")
+    assert lines[1].endswith("warm: galaxy-map: 1 warmed (0 already cached, 0 left out by the cap) in 4s")
     assert lines[2].endswith("a line only the bars' console printed")
-    assert re.search(r"Cache warm-up finished after (?:\d+ ms|\d+\.\d s|\d+:\d\d(?::\d\d)?) \(5 families\)$", lines[3])
+    assert re.search(r"Cache warm-up finished after (?:[\d.]+ (?:ms|µs)|(?:\d+[dhm] )*\d+s) \(5 families\)$", lines[3])
 
 
 def test_runs_are_appended_not_overwritten(path):
@@ -58,10 +58,10 @@ def test_runs_are_appended_not_overwritten(path):
 
 def test_the_opening_line_says_what_started_the_run(path, monkeypatch):
     environ = {warm_log.STARTED_BY_ENV: "update.sh, part 2 of 2, the full warm-up", warm_log.TIME_LIMIT_ENV: "14400"}
-    assert warm_log.started_by(environ=environ) == "update.sh, part 2 of 2, the full warm-up; time limit 4 hours"
+    assert warm_log.started_by(environ=environ) == "update.sh, part 2 of 2, the full warm-up; time limit 4h"
     assert warm_log.started_by(environ={}) == "by hand"
     assert warm_log.started_by("orbits, systems", environ=environ) == "after a change: orbits, systems"
-    assert warm_log.started_by(environ={warm_log.TIME_LIMIT_ENV: "5400"}) == "by hand; time limit 90 minutes"
+    assert warm_log.started_by(environ={warm_log.TIME_LIMIT_ENV: "5400"}) == "by hand; time limit 1h 30m"
     monkeypatch.setenv(warm_log.STARTED_BY_ENV, "update.sh, part 1 of 2")
     with warm_log.RunLog():
         pass
@@ -79,9 +79,9 @@ def test_a_failed_run_says_why_and_a_stopped_one_says_by_what(path):
         with warm_log.RunLog():
             raise KeyboardInterrupt()
     ends = [line for line in _lines(path) if "started" not in line]
-    assert re.search(r"ERROR\s+warm: Cache warm-up failed after (?:\d+ ms|\d+\.\d s|\d+:\d\d(?::\d\d)?): no Redis server answers$", ends[0])
-    assert re.search(r"ended by a SIGTERM that left no reason after (?:\d+ ms|\d+\.\d s|\d+:\d\d(?::\d\d)?)$", ends[1])
-    assert re.search(r"ended by Ctrl\+C after (?:\d+ ms|\d+\.\d s|\d+:\d\d(?::\d\d)?)$", ends[2])
+    assert re.search(r"ERROR\s+warm: Cache warm-up failed after (?:[\d.]+ (?:ms|µs)|(?:\d+[dhm] )*\d+s): no Redis server answers$", ends[0])
+    assert re.search(r"ended by a SIGTERM that left no reason after (?:[\d.]+ (?:ms|µs)|(?:\d+[dhm] )*\d+s)$", ends[1])
+    assert re.search(r"ended by Ctrl\+C after (?:[\d.]+ (?:ms|µs)|(?:\d+[dhm] )*\d+s)$", ends[2])
 
 
 def test_lines_printed_after_the_run_are_not_in_the_file(path):
@@ -106,8 +106,8 @@ def test_the_bars_console_lines_reach_the_file_through_the_mirror():
     with bars:
         bars.plan(0, {"units": 1, "cost": None})
         bars.result({"warmed": 3, "built": 3, "cached": 0, "left_out": 0, "noun": "pages", "seconds": 1.0,
-                     "line": "lists: 3 warmed (0 already cached, 0 left out by the cap) in 1.0 s"})
-    assert mirrored == ["lists: 3 warmed (0 already cached, 0 left out by the cap) in 1.0 s"]
+                     "line": "lists: 3 warmed (0 already cached, 0 left out by the cap) in 1s"})
+    assert mirrored == ["lists: 3 warmed (0 already cached, 0 left out by the cap) in 1s"]
 
 
 def test_warm_once_keeps_a_record_of_the_run_and_the_reason_a_change_gave(path, monkeypatch):

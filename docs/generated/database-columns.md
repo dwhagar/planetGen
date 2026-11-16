@@ -2890,14 +2890,13 @@ designations (v202, GEN.1138): the IDs and names an object used to have, one row
 
 ## `sector_system_counts`
 
-sector_system_counts (v82, PERF.74; v181, PERF.208): each sector's system count, system density and Quadrant as of the last refresh (`query.refresh_sector_system_counts`), one row for each sector (a sector made since has none yet), so the Sectors list reads these instead of counting every system per request and its sorts by systems, density and position page by key on the three indexes.
+sector_system_counts (v82, PERF.74; v181, PERF.208; v264, DB.112): each sector's system count and system density as of the last refresh (`query.refresh_sector_system_counts`), one row for each sector (a sector made since has none yet), so the Sectors list reads these instead of counting every system per request and its sorts by systems and density page by key on the two indexes.
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|
 | `sector_id` | BIGINT UNSIGNED | NOT NULL |  |
 | `system_count` | INT UNSIGNED | NOT NULL |  |
 | `system_density` | DOUBLE | NULL | v181: systems per cubic milliparsec of the sector, NULL for a sector with no galaxy position |
-| `quadrant` | VARCHAR(8) | NULL | v181: 'I' to 'IV' as `spherical.sector_quadrant` says, NULL for a sector with no galaxy position |
 
 ## `system_interests`
 
