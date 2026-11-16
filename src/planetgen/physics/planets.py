@@ -384,6 +384,17 @@ def needs_remake(body):
     return age_moved(body) or orbit_moved(body)
 
 
+def end_stages_after_air(body, primary_mass_kg):
+    """
+    What follows a body's air in every pass that makes its end stages again (GEN.1652): the class's inputs (`prepare_class`), the spin on the birth spin the body keeps (`generate_spin` with
+    `birth`, GEN.961; it makes the field, the dose, the colour and the score too) and the class, judged after the spin that makes the latitude bands it reads (GEN.1587). It binds no stream and
+    draws from the one the caller bound. `primary_mass_kg` is the mass the body orbits (the star's for a planet, the planet's for a moon).
+    """
+    prepare_class(body)
+    generate_spin(body, primary_mass_kg, birth=body.build.birth_spin)
+    classify(body)
+
+
 def remake_end_stages(body, planet):
     """
     Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`). `planet` is the body
@@ -393,14 +404,24 @@ def remake_end_stages(body, planet):
     with draw.bound(stream):
         if body.is_moon:
             calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
-            prepare_class(body)
-            generate_spin(body, planet.mass, birth=body.build.birth_spin)
-            classify(body)      # GEN.1587: after the spin, which makes the latitude bands the class reads
+            end_stages_after_air(body, planet.mass)
         else:
             calculate_atmospheric_conditions(body)
-            prepare_class(body)
-            generate_spin(body, body.primary_mass_kg, birth=body.build.birth_spin)
-            classify(body)
+            end_stages_after_air(body, body.primary_mass_kg)
+
+
+def settle_surroundings(planet, *, own_daylight):
+    """
+    The day and night shares and the ocean tides of a planet and its moons, worked out again from the spins, periods and orbits they have now (GEN.767, GEN.904, GEN.1034; no draws), after a pass
+    made the spin, the period, the class or the sea of one of them again. `own_daylight` also makes the planet's own daylight (a planet that moved or was remade; the moons' always follow).
+    """
+    if own_daylight:
+        daylight.generate(planet)
+    for moon in planet.moons:
+        daylight.generate(moon, planet)
+    ocean_tides.generate(planet)
+    for moon in planet.moons:
+        ocean_tides.generate(moon, planet)
 
 
 def refinish_rocky(planet):
@@ -433,14 +454,8 @@ def refinish_rocky(planet):
         remake_end_stages(body, planet)
         body.build.age_drawn = body.star.age
         made += 1
-    if made:  # GEN.767: the spin and period changed, the moons' day and night shares follow (no draws)
-        for moon in planet.moons:
-            daylight.generate(moon, planet)
-    if made:
-        # GEN.1034: the sea and the spin are new, and the tide worked out from the old ones follows them (no draws)
-        ocean_tides.generate(planet)
-        for moon in planet.moons:
-            ocean_tides.generate(moon, planet)
+    if made:  # GEN.767, GEN.1034: the spin, the period and the sea are new, and the moons' day and night shares and the tides worked out from the old ones follow them (no draws)
+        settle_surroundings(planet, own_daylight=False)
     return made
 
 
@@ -834,9 +849,7 @@ def _remake_what_reads_the_air(planet):
     """
     stream = draw.body_stream_of("late-accretion-end", planet)      # GEN.1547
     with draw.bound(stream):
-        prepare_class(planet)
-        generate_spin(planet, planet.primary_mass_kg, birth=planet.build.birth_spin)
-        classify(planet)      # GEN.1587: after the score, which makes the latitude bands the class reads
+        end_stages_after_air(planet, planet.primary_mass_kg)
     for moon in planet.moons:
         daylight.generate(moon, planet)
 
