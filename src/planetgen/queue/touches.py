@@ -49,6 +49,15 @@ SECTOR_WRITES = (
     "sectors", "star_systems", "stars", "system_configs", "system_interests", "system_name_registry", "system_summary",
 )
 
+SYSTEM_RELOAD_READS = (
+    "asteroid_belt_composition", "asteroid_belts", "belt_members", "black_holes", "body_history", "comet_composition", "comets", "dark_members", "facilities",
+    "irregular_moons", "irregular_sets", "moon_deposit_types", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_class_scores",
+    "moon_reflection_spectrum", "moons", "neutron_stars", "orbit_nodes", "planet_deposit_types", "planet_gases", "planet_interior_layers", "planet_isotopes",
+    "planet_life", "planet_life_class_scores", "planet_reflection_spectrum", "planets", "sector_stats", "sectors", "species", "star_systems", "stars",
+    "system_config_slots", "system_configs", "system_interests", "system_summary",
+)
+"""tuple: What a command that loads one whole system reads (`store.refresh_habitability`, `store.refresh_effect_ledger`): the system, its bodies and their parts."""
+
 SCATTER_READS = (
     "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters", "orbit_simulation_state",
     "phenomenon_scatter",
@@ -103,7 +112,7 @@ READS = {
     "conclude-warm-cluster-field": ("*",),
     "draw-nebula-field": ("galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell"),
     "drop-phenomenon-indexes": (),
-    "empty-nebula-field": (),
+    "empty-nebula-field": ("galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "scatter_epochs"),
     "empty-phenomenon-scatter": (),
     "end-map-rebuild-maintenance": (),
     "fill-map-luminosity": ("phenomenon_scatter",),
@@ -134,14 +143,14 @@ READS = {
         "sectors", "star_systems", "supernova_remnants",
     ),
     "plan-skeleton": (),
-    "refill-effect-ledger": ("star_systems", "system_summary"),
+    "refill-effect-ledger": SYSTEM_RELOAD_READS,
     "refresh-block-lights": ("bright_stars", "galaxy_block_light_parts", "galaxy_block_lights", "phenomenon_scatter", "phenomenon_scatter_classes"),
     "refresh-run-blocks": (
         "asteroid_belts", "asteroid_fields", "black_holes", "bright_stars", "chart_ledger", "comets", "galaxy_block_light_parts", "galaxy_block_lights",
         "galaxy_block_stats", "galaxy_shape", "galaxy_shape_pins", "interstellar_comets", "moons", "nebula_block_state", "nebulae", "neutron_stars", "phenomenon_scatter",
         "planets", "quasars", "rogue_planets", "sector_stats", "sectors", "star_systems", "stars",
     ),
-    "rescore-habitability": ("star_systems", "system_summary"),
+    "rescore-habitability": SYSTEM_RELOAD_READS,
     "reset-galaxy": ("*",),
     "run-population": ("moons", "planet_life", "planets", "polities", "population_state", "species", "star_systems", "system_configs"),
     "run-territories": ("polities", "sectors", "star_systems"),
@@ -202,7 +211,7 @@ WRITES = {
     "conclude-warm-cluster-field": (),
     "draw-nebula-field": ("nebula_field",),
     "drop-phenomenon-indexes": ("phenomenon_scatter",),
-    "empty-nebula-field": ("nebula_field",),
+    "empty-nebula-field": ("nebula_field", "scatter_epochs"),
     "empty-phenomenon-scatter": ("phenomenon_scatter", "phenomenon_scatter_classes"),
     "end-map-rebuild-maintenance": (),
     "fill-map-luminosity": ("phenomenon_scatter",),
@@ -227,10 +236,10 @@ WRITES = {
     "generate-unplaced-sector": SECTOR_WRITES,
     "link-neighbors": ("nearest_systems", "rogue_planets"),
     "plan-skeleton": ("galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell"),
-    "refill-effect-ledger": (),
+    "refill-effect-ledger": ("effect_ledger", "system_summary"),
     "refresh-block-lights": ("galaxy_block_lights",),
     "refresh-run-blocks": ("galaxy_block_light_parts", "galaxy_block_lights", "galaxy_block_stats", "region_stats", "sector_stats"),
-    "rescore-habitability": (),
+    "rescore-habitability": ("moons", "planets", "system_interests", "system_summary"),
     "reset-galaxy": ("*",),
     "run-population": ("population_state", "species", "system_interests"),
     "run-territories": ("system_owners",),
