@@ -7,6 +7,21 @@
       "grain": "table",
       "shared": [],
       "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-phenomena-draw-nebula-field]"
+    },
+    {
+      "a": "scatter-mass",
+      "b": "scatter-phenomena",
+      "grain": "table",
+      "shared": [
+        "bright_stars",
+        "galaxy_block_light_parts",
+        "galaxy_shape",
+        "id_counters",
+        "phenomenon_scatter",
+        "scatter_members",
+        "scatter_nodes"
+      ],
+      "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-mass-scatter-phenomena]"
     }
   ]
 }
