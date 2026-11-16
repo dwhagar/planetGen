@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.782 |
+| TEST | TEST.784 |
 | USR | USR.33 |
 | OPS | OPS.268 |
 | DOC | DOC.121 |
@@ -4956,6 +4956,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.779 | (bug) test_body_state_fields::test_a_remake_after_an_orbit_change is red on main: the remade body's composition text differs | done (PR 6855, Lane 04, merged 9:31 AM EST 11-16: a belt member at a water share exactly on a level edge grows a trace air and its composition phrase is rewritten from its shares on purpose (GEN.430); the test now checks the phrase against the current shares and allows a change only within 1e-5 of an edge) |
 | TEST.780 | (bug) test_mass_boundaries::test_the_generator_rows_read_the_table is red on main: it multiplies by a hard-coded 317.8 while tuning reads constants.JUPITER_MASS_EARTH (317.83) since GEN.1152 | done (PR 6860, Lane 15, merged 9:42 AM EST 11-16: the test reads constants.JUPITER_MASS_EARTH) |
 | TEST.781 | (bug) test_api::test_update_and_delete_system gets 410 where it expects 404 after a delete, on main | done (PR 6895, Lane 14, merged 12:48 PM EST 11-16: the API is right, a deleted system is a tombstone that answers 410 Gone since GEN.1141; the stale test now expects 410 and keeps a 404 for an id nobody had) |
+| TEST.782 | (bug) test_systems::test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt gets 2.45 where it expects 2.25 on main | open |
+| TEST.783 | (bug) test_star_composition_sweep and test_radius_valley_sweep: the filled-galaxy fixture runs past the hang guard (900 s, 1,500 s in gates) on a 4-core box, so the files error instead of testing | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
