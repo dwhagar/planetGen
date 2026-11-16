@@ -310,11 +310,11 @@ def resonance_forced(body, row):
         return False
     ceiling = orbit_elements.max_planet_eccentricity(body.distance, body.star, body)
     target = min(forced, ceiling)
-    if getattr(body, "_resonance_e", None) == target:       # the orbit was already held on it (this step runs again): nothing more to do
+    if body.build.resonance_e == target:       # the orbit was already held on it (this step runs again): nothing more to do
         return None
     if target <= body.eccentricity:
         return False
     body.eccentricity = target
-    body._orbit_birth = None
-    body._resonance_e = target
+    body.build.orbit_birth = None
+    body.build.resonance_e = target
     return None

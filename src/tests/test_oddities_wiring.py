@@ -10,6 +10,7 @@ import types
 import pytest
 
 from planetgen.physics import air_branches, oddities
+from planetgen.generation.build_record import BuildRecord
 
 
 def _table(*rows):
@@ -36,7 +37,7 @@ def _row(row_id="W91", lever="L3", input_="core_mass_fraction", rate=0.5, **chan
 
 def _body(mass_kg=3.0e24, seed=1.0, **extra):
     body = types.SimpleNamespace(body_type="t", mass=mass_kg, radius=6000.0, distance=seed, eccentricity=0.0, star=None, is_moon=False,
-                                 oddities=(), system_config=types.SimpleNamespace(FORCE_ODDITIES=None))
+                                 oddities=(), system_config=types.SimpleNamespace(FORCE_ODDITIES=None), build=BuildRecord())
     body.__dict__.update(extra)
     return body
 
@@ -232,8 +233,10 @@ def test_without_forcing_the_iron_rich_core_is_rare_among_merged_planets():
 def _venus(tilt=170.0, age=4.5, moons=(), pressure=9.2e6, distance=0.7233):
     """A Venus: its mass, radius, air, orbit and the Sun's luminosity and mass, a given birth tilt and age."""
     star = types.SimpleNamespace(mass=1.98847e30, luminosity=3.828e26, age=age, temperature=5772.0)
-    return _body(mass_kg=4.8675e24, radius=6051.8, distance=distance, eccentricity=0.007, star=star, atmospheric_pressure=pressure, moons=list(moons),
-                 _birth_spin=(1.0e-5, tilt, ()), axial_tilt_deg=tilt, rotation_period_hours=24.0, period=distance ** 1.5)
+    body = _body(mass_kg=4.8675e24, radius=6051.8, distance=distance, eccentricity=0.007, star=star, atmospheric_pressure=pressure, moons=list(moons),
+                 axial_tilt_deg=tilt, rotation_period_hours=24.0, period=distance ** 1.5)
+    body.build.birth_spin = (1.0e-5, tilt, ())
+    return body
 
 
 def _force_w2(body):
@@ -251,7 +254,7 @@ def test_a_born_upside_down_venus_is_given_its_243_day_retrograde_spin():
 
 def test_a_planet_born_upright_ends_prograde_so_the_oddity_is_declined_and_not_recorded():
     body = _venus(tilt=20.0)
-    assert _force_w2(body) == [] and body.oddities == () and body._venus_spin is None
+    assert _force_w2(body) == [] and body.oddities == () and body.build.venus_spin is None
 
 
 def test_a_planet_whose_tide_has_not_had_the_age_is_declined():
@@ -294,11 +297,11 @@ def test_generate_spin_puts_the_state_on_the_rotation_and_the_tilt():
         planet = Planet(config, star, star.habitable_zone, 0.7, moon_count=0)
         star.mass, star.luminosity, star.age = 1.98847e30, 3.828e26, 4.5
         planet.mass, planet.radius, planet.eccentricity, planet.distance, planet.atmospheric_pressure = 4.8675e24, 6051.8, 0.007, 0.7233, 9.2e6
-        planets.generate_spin(planet, star.mass, birth=(planet._birth_spin[0], 170.0, planet._birth_spin[2]))
+        planets.generate_spin(planet, star.mass, birth=(planet.build.birth_spin[0], 170.0, planet.build.birth_spin[2]))
         assert planet.oddities == ("W2",) and planet.axial_tilt_deg == 180.0 and abs(planet.rotation_period_hours / 24.0 - 243.0) < 1.0
         planet.atmospheric_pressure = 1.0e5       # made again with a thin air: the row's gate fails and the Venus state goes
-        planets.generate_spin(planet, star.mass, birth=(planet._birth_spin[0], 170.0, planet._birth_spin[2]))
-        assert planet.oddities == () and planet._venus_spin is None
+        planets.generate_spin(planet, star.mass, birth=(planet.build.birth_spin[0], 170.0, planet.build.birth_spin[2]))
+        assert planet.oddities == () and planet.build.venus_spin is None
 
 
 def test_a_planet_tilted_far_over_with_no_moon_is_named_for_its_seasons_and_nothing_on_it_changes():
@@ -354,9 +357,9 @@ def test_a_generated_ice_giant_is_read_for_the_giant_tilt_row_when_the_spin_is_m
         star = Star(config)
         planet = Planet(config, star, star.habitable_zone, 19.2, moon_count=0, mass=14.5 * 5.972e24)
         assert planet.body_type == "g"
-        planets.generate_spin(planet, star.mass, birth=(planet._birth_spin[0], 98.0, planet._birth_spin[2]))
+        planets.generate_spin(planet, star.mass, birth=(planet.build.birth_spin[0], 98.0, planet.build.birth_spin[2]))
         assert planet.oddities == ("G1",) and 97.0 < planet.axial_tilt_deg < 99.0
-        planets.generate_spin(planet, star.mass, birth=(planet._birth_spin[0], 20.0, planet._birth_spin[2]))
+        planets.generate_spin(planet, star.mass, birth=(planet.build.birth_spin[0], 20.0, planet.build.birth_spin[2]))
         assert planet.oddities == ()
 
 
@@ -429,7 +432,7 @@ def test_a_forced_resonance_raises_the_eccentricity_keeps_it_through_a_second_ro
     body.system_config.FORCE_ODDITIES = ("W5",)
     assert oddities.apply(body, levers=("L2",)) == ["W5"]
     held = body.eccentricity
-    assert held >= 0.001 and body._orbit_birth is None
+    assert held >= 0.001 and body.build.orbit_birth is None
     oddities.drop(body, ("L2",))
     assert oddities.apply(body, levers=("L2",)) == ["W5"] and body.eccentricity == held      # the same planet again: still held, not raised twice
     rich = planets[2]

@@ -15,6 +15,7 @@ from planetgen.generation.star import Star
 from planetgen.physics import activity, constants, formation_snow_line, mixture_draw, mixture_subject as ms, thermosphere
 from planetgen.physics.mixture_base import MixtureError
 from planetgen.util import draw
+from planetgen.generation.build_record import BuildRecord
 
 EARTH_MASS_KG, EARTH_RADIUS_KM = constants.EARTH_MASS_TO_KG, constants.EARTH_RADIUS_KM
 
@@ -28,7 +29,7 @@ def _sun(**over):
 
 def _earth(**over):
     values = dict(body_type="t", mass=EARTH_MASS_KG, radius=EARTH_RADIUS_KM, distance=1.0, bond_albedo=0.306, is_moon=False,
-                  star=_sun(), core_mass_earth=None)
+                  star=_sun(), core_mass_earth=None, build=BuildRecord())
     values.update(over)
     return SimpleNamespace(**values)
 
@@ -50,7 +51,7 @@ def test_the_earth_gives_the_quantities_the_world_gives():
 
 def test_the_xuv_index_is_the_one_stored_for_the_distance_the_body_sits_at():
     """GEN.806: a body that stored its exposure index at its distance gives that value, and the one implementation answers at another distance."""
-    stored = _earth(xuv_exposure_index=7.5, _star_distance_au=1.0)
+    stored = _earth(xuv_exposure_index=7.5, build=BuildRecord(star_distance_au=1.0))
     assert ms.quantities_of_body(stored, ts_k=288.0, pressure_bar=1.0)["xuv_index"] == 7.5
     assert ms.quantities_of_body(stored, ts_k=288.0, pressure_bar=1.0, star_distance_au=2.0)["xuv_index"] == pytest.approx(0.25)
     unstored = _earth(xuv_exposure_index=None)

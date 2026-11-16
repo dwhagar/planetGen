@@ -68,13 +68,13 @@ def test_the_clocks_of_a_world_run_from_a_dim_hot_young_star_to_its_age_now():
 def test_the_water_lost_by_the_last_step_is_the_water_the_runaway_history_gives():
     body = _a_rocky_world_with_life()
     steps = air_history.run(body)
-    distance = getattr(body, "_star_distance_au", None) or body.distance
+    distance = body.build.star_distance_au or body.distance
     assert steps[-1].water_lost_kg == pytest.approx(runaway_history.loss_kg(body.star, distance, body.mass, body.radius), rel=1e-9)
 
 
 def test_the_trace_of_the_runaway_history_changes_no_answer_and_the_light_of_the_last_age_is_the_light_now():
     body = _a_rocky_world_with_life()
-    distance = getattr(body, "_star_distance_au", None) or body.distance
+    distance = body.build.star_distance_au or body.distance
     trace = []
     with_trace = runaway_history.loss_kg(body.star, distance, body.mass, body.radius, trace=trace)
     assert with_trace == runaway_history.loss_kg(body.star, distance, body.mass, body.radius)

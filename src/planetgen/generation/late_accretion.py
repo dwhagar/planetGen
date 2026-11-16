@@ -55,7 +55,7 @@ def is_rocky_of_a_star(planet):
 
 def applies_to(planet):
     """Whether the planet's air is made again: a rocky planet of a star, with ground, whose air was made here."""
-    return is_rocky_of_a_star(planet) and getattr(planet, "_air_replay", None) is not None
+    return is_rocky_of_a_star(planet) and planet.build.air_replay is not None
 
 
 def percent_in(planet, planets):
@@ -71,8 +71,8 @@ def give_first_air(planets):
     function (`percent_in`) the later pass uses; `planets.remake_air` still gates the second pass by how far the number moved the carbon and the nitrogen.
     """
     for planet in planets:
-        if planet.body_type != "a" and getattr(planet, "_deferred_climate", None) is not None and is_rocky_of_a_star(planet):
-            planet._late_accreted_percent = percent_in(planet, planets)
+        if planet.body_type != "a" and planet.build.deferred_climate is not None and is_rocky_of_a_star(planet):
+            planet.build.late_accreted_percent = percent_in(planet, planets)
 
 
 def apply(planets, gate=planet_physics.LATE_ACCRETION_GATE):

@@ -7,6 +7,7 @@ import math
 import pytest
 
 from planetgen.physics import kozai_bodies as kb, stability
+from planetgen.generation.build_record import BuildRecord
 
 
 def _closed_form_peak(e0, inclination):
@@ -116,7 +117,7 @@ def _giant_with_moons(moons, obliquity_deg=70.0, rotation_hours=10.0):
 
 def _moon(distance_au, origin, inclination_deg, mass=8.9e22, radius=1821.0, eccentricity=0.004):
     return _Bag(mass=mass, radius=radius, distance=distance_au, eccentricity=eccentricity, moon_origin=origin, orbital_inclination_deg=inclination_deg, orbital_ascending_node_deg=0.0,
-                _orbit_birth=eccentricity)
+                build=BuildRecord(orbit_birth=eccentricity))
 
 
 def test_a_moon_that_formed_in_place_keeps_its_stored_inclination_as_the_free_one():
@@ -136,13 +137,13 @@ def test_pump_moons_leaves_a_disk_moon_and_a_planet_without_moons_alone_and_is_d
     disk = _moon(0.003, "disk", 1.0)
     planet = _giant_with_moons([disk])
     assert kb.pump_moons(planet) == []
-    assert getattr(disk, "_kozai", None) is None and disk.eccentricity == 0.004
+    assert disk.build.kozai is None and disk.eccentricity == 0.004
     assert kb.pump_moons(_giant_with_moons([])) == []
     outcomes = []
     for _ in range(2):
         captured = _moon(0.12, "captured", 62.0, mass=1.0e18, radius=5.0, eccentricity=0.1)
         kb.pump_moons(_giant_with_moons([captured]))
-        outcomes.append((getattr(captured, "_kozai", None), captured.eccentricity))
+        outcomes.append((captured.build.kozai, captured.eccentricity))
     assert outcomes[0] == outcomes[1]
 
 
@@ -152,12 +153,12 @@ def test_pump_moons_pumps_a_captured_moon_in_the_window_and_removes_one_the_cycl
     captured = _moon(0.12, "captured", 62.0, mass=1.0e18, radius=5.0, eccentricity=0.1)
     planet = _giant_with_moons([captured])
     lost = kb.pump_moons(planet, ledger)
-    kozai = captured._kozai
+    kozai = captured.build.kozai
     assert kozai.cycles and kozai.eccentricity_max > 0.8
     if kozai.lost:
         assert lost == [captured]
     else:
-        assert lost == [] and captured.eccentricity == kozai.eccentricity_now and captured._orbit_birth == kozai.eccentricity_now
+        assert lost == [] and captured.eccentricity == kozai.eccentricity_now and captured.build.orbit_birth == kozai.eccentricity_now
     assert ledger.rows and ledger.rows[0][0] == "secular" and ledger.rows[0][1] > 0.0
 
 

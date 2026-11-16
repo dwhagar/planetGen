@@ -7,7 +7,7 @@ The light and ultraviolet rows of the effect ledger (GEN.1465, GEN.1498)
 What each star puts on each planet and moon as light and as far ultraviolet, by source: the parts of the field at the distance the body's light was made on
 (`radiation_field.field_at`, GEN.1441). `fill` notes them in an `EffectLedger`; it draws nothing and changes no value.
 
-Two callers, one rule. Generation (`StarSystem._fill_light_ledger`) has the distance the body's air was solved on (`_air_light_au`, kept on the body and not stored). The refill job
+Two callers, one rule. Generation (`StarSystem._fill_light_ledger`) has the distance the body's air was solved on (`build.air_light_au`, kept on the body and not stored). The refill job
 (`store.refresh_effect_ledger`, GEN.1498) works from a stored system, which keeps only where the orbit settled: `stored_distance_au` is the same circle of mean light worked out from
 the stored distance and eccentricity (a moon's from its planet's, GEN.727). The two differ only by the little a later settling moved the orbit, so a refilled row may differ from the
 one generation wrote in its last digits, and the sources and their order are the same.

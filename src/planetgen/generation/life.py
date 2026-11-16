@@ -305,14 +305,20 @@ def _redate(planet, cands):
 
 def _trial_copy(planet):
     """A copy of `planet` to try an air on: its attributes copied, with the containers (the air, the spectra, the layers) copied too, so building the air on
-    it leaves the body as it was. The star and the moons are shared (nothing in the air pass changes them)."""
-    clone = copy.copy(planet)
-    for name, value in vars(planet).items():
-        if name not in ("star", "moons") and isinstance(value, (dict, list, set)):
-            # GEN.1734: a list of bodies (the moons the planet was born with, `_born_moons`) is shared like `moons`: each body holds the siblings of its host, so a deep copy of
+    it leaves the body as it was. The star and the moons are shared (nothing in the air pass changes them). Its build record is copied the same way."""
+    clone = copy.copy(planet)       # the clone has a record of its own (`Planet.__copy__`)
+    _copy_containers(planet, clone, skip=("star", "moons"))
+    _copy_containers(planet.build, clone.build)
+    return clone
+
+
+def _copy_containers(source, clone, skip=()):
+    """Gives `clone` its own copy of every dict, list and set `source` holds, so a pass on the clone leaves the source's as they were."""
+    for name, value in vars(source).items():
+        if name not in skip and isinstance(value, (dict, list, set)):
+            # GEN.1734: a list of bodies (the moons the planet was born with, `build.born_moons`) is shared like `moons`: each body holds the siblings of its host, so a deep copy of
             # one walks every body of the system in one chain (a recursion of 160 deep systems) and copies bodies the air pass never changes
             setattr(clone, name, copy.copy(value) if _holds_bodies(value) else copy.deepcopy(value))
-    return clone
 
 
 def _holds_bodies(container):

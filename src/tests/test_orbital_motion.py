@@ -38,6 +38,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.physics import secular_chain, spin, tide_sources
 from planetgen.physics.planets import generate_orbital_motion_properties
 from planetgen.generation.system import StarSystem
+from planetgen.generation.build_record import BuildRecord
 from tests.tide_support import locking_time_s, rocky
 
 N_SYSTEMS = 20
@@ -370,7 +371,7 @@ def test_a_circular_body_has_the_circular_speed_and_sits_on_its_distance():
 
     body = types.SimpleNamespace(
         distance=1.3, period=1.3 ** 1.5, eccentricity=0.0, orbital_inclination_deg=12.0, orbital_ascending_node_deg=40.0,
-        set_position_au=lambda *xyz: setattr(body, "xyz", xyz), set_velocity_kms=lambda *xyz: None)
+        set_position_au=lambda *xyz: setattr(body, "xyz", xyz), set_velocity_kms=lambda *xyz: None, build=BuildRecord())
     update_orbital_position(body, 77.0)
     assert math.sqrt(sum(c * c for c in body.xyz)) == pytest.approx(1.3, rel=1e-12)
     assert body.orbital_speed_kms == pytest.approx(circular_orbital_speed_kms(1.3, 1.3 ** 1.5), rel=1e-9)
@@ -405,7 +406,7 @@ def test_a_moon_the_kozai_pass_changed_sits_on_the_ellipse_it_ends_with():
         return StarSystem(system_config=cfg)
 
     def has_pumped_moon(system):
-        return any(getattr(moon, "_kozai", None) is not None for planet in system.planets if planet.body_type != "a" for moon in planet.moons)
+        return any(moon.build.kozai is not None for planet in system.planets if planet.body_type != "a" for moon in planet.moons)
 
     _, system = first_seed_with(build, has_pumped_moon, seeds=range(60), what="a moon the Kozai-Lidov pass cycled")
     checked = 0

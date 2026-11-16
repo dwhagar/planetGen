@@ -106,4 +106,4 @@ def test_moving_a_moon_or_making_its_ellipse_again_keeps_it_in_its_planets_equat
     assert _angle_deg(_orbit_normal(moon), _axis(planet)) == pytest.approx(inclination, abs=1.0e-6)
     planets.move_orbit(moon, moon.distance * 1.1, planet.mass)
     assert _angle_deg(_orbit_normal(moon), _axis(planet)) == pytest.approx(inclination, abs=1.0e-6)
-    assert getattr(moon, "_frame_axis", None) is not None
+    assert moon.build.frame_axis is not None
