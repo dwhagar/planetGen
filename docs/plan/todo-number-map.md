@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1771 |
+| GEN | GEN.1772 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
@@ -4096,6 +4096,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1768 | (bug) A hot thick non-steam body holds 339 bar of oxygen in a 374 bar air (Ebge Angus V on main, 180-system run): check where that oxygen comes from in the oxygen balance | closed, no code change (Lane 02, 12:23 PM EST 11-16, traced on main a756e09b0a seed 4008): the 339 bar O2 is the abiotic-oxygen recipe row j5, oxygen left by photolyzed ocean water with a drawn crust sink of 0.11; it is under what the body's own water loss implies (about 880 bar), so no ledger error; the weak part, the drawn sink, is GEN.1769 |
 | GEN.1769 | Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw | open |
 | GEN.1770 | (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red) | open |
+| GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
