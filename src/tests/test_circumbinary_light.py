@@ -9,14 +9,21 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import climate_draws, orbit_elements, radiation_field
 from planetgen.util import draw
 
-PAIR_SEED = 100039
-"""int: A run seed whose first system is a close pair with three planets (seed 100039 of the census, found again on the Train 22 head after the draws moved)."""
+from tests.fuzz_support import first_seed_with
+
+PAIR_SEEDS = range(100000, 100200)
+"""range: The run seeds searched for a close pair with planets (TEST.714: no seed is pinned, since a change to what the seeds draw moves the case)."""
+
+
+def _is_a_close_pair_with_planets(system):
+    return any(hasattr(p, "planet_class") and p.light_factor is not None for p in system.planets)
 
 
 @pytest.fixture(scope="module")
 def pair_system():
-    draw.set_run_seed(PAIR_SEED)
-    return StarSystem(system_config=SystemConfig())
+    _seed, system = first_seed_with(lambda seed: StarSystem(system_config=SystemConfig()), _is_a_close_pair_with_planets,
+                                    seeds=PAIR_SEEDS, what="a close pair with planets")
+    return system
 
 
 def test_the_planets_of_a_close_pair_store_a_factor_below_one(pair_system):

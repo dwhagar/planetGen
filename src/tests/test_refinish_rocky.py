@@ -99,17 +99,25 @@ def test_a_made_again_planet_and_its_moons_keep_the_birth_spin_they_were_born_wi
             assert body.build.birth_spin == born[id(body)]
 
 
+FINAL_AGE_SWEEP_SEEDS = range(12)
+"""range: The seeds whose systems are swept for the moons the history replaced (TEST.714: no one seed is pinned to the day one of them had such a moon)."""
+
+
 def test_a_moon_the_planets_history_replaced_is_made_again_at_the_final_age_too():
-    # GEN.992 after GEN.959: the planet's spin history can swap a moon for a new body, which has to be made again like the rest (seed 38 of the final-age sweep)
+    # GEN.992 after GEN.959: the planet's spin history can swap a moon for a new body, which has to be made again like the rest; the sweep holds for every moon of every seed, so it holds for the ones that were swapped
     from planetgen.generation.system import StarSystem
-    with draw.bound(38):
-        system = StarSystem(system_config=SystemConfig())
-    for planet in system.all_planets:
-        if planet.body_type == "a":
-            continue
-        for moon in planet.moons:
-            if moon.body_type != "g":
-                assert not planets.age_moved(moon), (moon.name, moon.build.age_drawn, moon.star.age)
+    checked = 0
+    for seed in FINAL_AGE_SWEEP_SEEDS:
+        with draw.bound(seed):
+            system = StarSystem(system_config=SystemConfig())
+        for planet in system.all_planets:
+            if planet.body_type == "a":
+                continue
+            for moon in planet.moons:
+                if moon.body_type != "g":
+                    assert not planets.age_moved(moon), (seed, moon.name, moon.build.age_drawn, moon.star.age)
+                    checked += 1
+    assert checked, "none of the swept systems had a moon to check"
 
 
 def test_a_planet_whose_orbit_settled_is_made_again_though_the_age_did_not_move(host_star):
@@ -126,10 +134,17 @@ def test_a_planet_whose_orbit_settled_is_made_again_though_the_age_did_not_move(
     assert planets.orbit_moved(planet) is False and planets.refinish_rocky(planet) == 0
 
 
+def _rocky_with_a_moon(star, seeds=range(60)):
+    """A rocky planet that drew a moon (TEST.714: found by a bounded search of seeds, since the count asked for is a maximum)."""
+    for seed in seeds:
+        planet = class_support.draw_planet(star, 1.0, seed, SystemConfig(), mass=EARTH_KG, moon_count=1)
+        if planet.body_type == "t" and planet.moons:
+            return planet
+    pytest.fail(f"none of {len(seeds)} seeds drew a rocky planet with a moon")
+
+
 def test_the_moons_of_a_planet_whose_orbit_settled_are_made_again_too(host_star):
-    planet = _rocky(host_star, moon_count=1)
-    if not planet.moons:
-        pytest.skip("no moon in the draw")
+    planet = _rocky_with_a_moon(host_star)
     planet.eccentricity = 0.4
     for moon in planet.moons:
         moon.host_eccentricity = 0.4
@@ -149,8 +164,7 @@ def test_a_giant_whose_orbit_settled_is_made_again_on_the_orbit_but_not_for_the_
         if candidate.body_type == "g":
             giant = candidate
             break
-    if giant is None:
-        pytest.skip("no giant in the draws")
+    assert giant is not None, "none of 60 seeds drew a giant"
     giant.eccentricity = 0.4
     planets.remake_end_stages(giant, giant)
     host_star.age = 8.0
