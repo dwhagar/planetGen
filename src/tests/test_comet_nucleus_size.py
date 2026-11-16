@@ -1,5 +1,5 @@
 """
-GEN.1765: a star-bound comet's nucleus diameter follows the cumulative size law of the Jupiter family ([R4139], [R5296]) between the ends of
+GEN.1765: a star-bound comet's nucleus diameter follows the cumulative size law of the Jupiter family [R4139, R5296] between the ends of
 `BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM`, not a flat draw: small nuclei are the common ones.
 """
 
