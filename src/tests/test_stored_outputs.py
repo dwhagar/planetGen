@@ -37,7 +37,9 @@ HOMES = {
     "fallen_moons": "not stored: the moons the history took away, worked out again by `moon_history.apply` from the born moons (`lost_moons`, GEN.1753); the ring they fed is stored (`ring_*` columns)",
     "phi_bio": "not stored: the likelihood the microbial life score is made from (`life_scores`); the score is stored (`planet_life_class_scores`, migration 0150 dropped the likelihood columns)",
     "phi_cpx": "not stored: the likelihood the complex life score is made from (`life_scores`); the score is stored (`planet_life_class_scores`)",
-    "oddity_quantities": "not stored: the numbers an oddity row gave the body (`physics/oddities.py`) and the eccentricity a resonant chain forces on it (`resonant_chains`, GEN.1459); the oddity ids are stored (`oddities`)",
+    "oddity_quantities": (
+        "stored in part: the eccentricity a chain forces on a planet is `body_history.forced_eccentricity` (DB.132); `tilt_chaotic` (GEN.1535) is not stored: it is the gate that oddities W6 and W61 are drawn by when the "
+        "tilt is made, read at generation only; the oddity ids and the tilt they led to are stored (`oddities`, `axial_tilt_deg`, `obliquity_min_deg`, `obliquity_max_deg`)"),
     "belt_member": "not stored: the flag of a body drawn as a belt member; a promoted body keeps its belt in `belt_order` and `belt_rank`",
 }
 """dict: Public attribute of a generated planet or moon -> where it is kept when it is not loaded by a field of the body tables (`store.BODY_FIELDS`, `PLANET_ONLY_FIELDS`), or why it is not kept."""
@@ -141,3 +143,185 @@ def test_every_public_number_of_a_generated_star_is_loaded_from_a_column_or_has_
                 found[name].add(star.name)
     homeless = sorted(name for name in found if name not in loaded and name not in STAR_HOMES)
     assert not homeless, f"public attributes of a generated star with no column that loads them and no line in STAR_HOMES (DB.101): {homeless}"
+
+
+# --- DB.134: the same check for belts, comets, the objects that stand alone, and the private attributes -------------------------------------------------------------------------
+
+NAME_GIVEN = "not stored: only says whether the name was given by hand, which decides whether it is reserved when the object is first saved (`store._take_name`); the name is stored"
+DERIVED_SPEED = "not stored: worked out from the stored galactic velocity when the object is loaded; the orbit's period and phase are stored (`galactic_orbital_period_gy`, `galactic_orbital_phase_deg`)"
+
+KIND_HOMES = {
+    "asteroid belts": {
+        "body_type": "which table the row is in (`asteroid_belts`): a belt is always 'a'",
+        "composition": "`asteroid_belt_composition`, the child rows of the belt",
+        "cleared_spans": "not stored: the stretches of the belt the giants cleared (GEN.1092), used only to place the members; a belt read back keeps the members it was saved with",
+        "scatter_giant_au": "not stored: the distance of the giant that swept an outer disk (GEN.1092), used only to place the members; the members it placed are stored",
+        "oddity_quantities": "not stored: the numbers an oddity row gave the belt, read when the oddity is drawn at generation; the oddity ids are stored (`oddities`)",
+    },
+    "comets": {
+        "composition": "`comet_composition`, the child rows of the comet",
+        "name_given": NAME_GIVEN,
+    },
+    "rogue planets": {"galactic_orbital_speed_kms": DERIVED_SPEED, "name_given": NAME_GIVEN},
+    "interstellar comets": {
+        "composition": "`interstellar_comet_composition`, the child rows of the comet",
+        "galactic_orbital_speed_kms": DERIVED_SPEED,
+        "name_given": NAME_GIVEN,
+    },
+    "asteroid fields": {
+        "composition": "`asteroid_field_composition`, the child rows of the field",
+        "galactic_orbital_speed_kms": DERIVED_SPEED,
+        "name_given": NAME_GIVEN,
+    },
+    "black holes": {
+        "galactic_center_dist_ly": "not stored: worked out from the stored galactic position when the object is loaded",
+        "galactic_orbital_speed_kms": DERIVED_SPEED,
+        "name_given": NAME_GIVEN,
+    },
+    "neutron stars": {
+        "galactic_center_dist_ly": "not stored: worked out from the stored galactic position when the object is loaded",
+        "galactic_orbital_speed_kms": DERIVED_SPEED,
+        "name_given": NAME_GIVEN,
+    },
+}
+"""dict: Kind -> {public attribute of a generated object -> where it is kept when no field of the kind's rows loads it, or why it is not kept}."""
+
+KIND_FIELDS = {
+    "asteroid belts": store.BELT_FIELDS,
+    "comets": store.COMET_FIELDS,
+    "rogue planets": (*store.ROGUE_PLANET_FIELDS, *store.ROGUE_BODY_ROW_FIELDS),
+    "interstellar comets": store.INTERSTELLAR_COMET_FIELDS,
+    "asteroid fields": store.ASTEROID_FIELD_FIELDS,
+    "black holes": (*store.STAR_FIELDS, *store.BLACK_HOLE_FIELDS),
+    "neutron stars": (*store.STAR_FIELDS, *store.NEUTRON_STAR_FIELDS),
+}
+"""dict: Kind -> the `Field`s of the rows that hold it (a remnant's `stars` row and its own)."""
+
+PRIVATE_HOMES = {
+    # names and the placement of an object before it has its motion
+    "_name": "not stored: the name drawn on first read (`LazySaladName`, PERF.43); the name is stored",
+    "_name_seed": "not stored: the seed the name is drawn from; the name is stored",
+    "_staged_au": "not stored: a position handed to an object before its motion is set (`mass_object`); the position is stored",
+    "_staged_velocity_kms": "not stored: a velocity handed to an object before its motion is set (`mass_object`); the velocity is stored",
+    "_star_distance_au": "not stored: the distance of the light the body's exposure was made at (`magnetism.update_exposure`); the exposure and the orbit are stored and the distance is worked out from them",
+    "_model_age_lifespan": "not stored: the age and lifespan the star model drew, which `Star._generate_from_population_model` sets once; `age_gy` and `lifespan_gy` are stored",
+    "_model_fe_h": "not stored: the metallicity the star model drew; `metallicity_fe_h` is stored",
+    "_model_rotation_hours": "not stored: the rotation the star model drew; `rotation_period_hours` is stored",
+    # kept, in `body_history` and `lost_moons` (GEN.1497, GEN.1533, GEN.1753, DB.132)
+    "_orbit_birth": "`body_history.birth_eccentricity`, attached on load (`body_history.attach`)",
+    "_birth_spin": "`body_history.birth_spin_rate`, `birth_obliquity_deg`, `capture_draw_1` and `capture_draw_2`, attached on load",
+    "_birth_distance_au": "`body_history.birth_distance_au` (a moon's orbit when it was born), attached on load",
+    "_born_moons": "`body_history.born_index` and `lost_moons`, rebuilt on load (`moon_history.restore_born`)",
+    "_resonance_e": "`body_history.held_eccentricity` (DB.132), attached on load",
+    "_kozai": "not stored yet: the Kozai cycle count and start age, the 'kind 4' numbers `physics/body_history.py` lists as still to come (GEN.1447)",
+    # the air and the tide state of a body, kept for the passes that make it again at the star's final age (the area of GEN.1745)
+    "_age_drawn": "not stored: the star's age the body's air, class and heat were made at, which `planets.refinish_rocky` compares with the final age; a loaded system is final",
+    "_air_choice": "not stored: the branch of the air the body took (`air_branches`), kept for the passes that make the air again at the final age; the air is stored (`planet_gases`)",
+    "_air_context": "not stored: the setting the air was solved in (`air_final`), kept for the life stage; the air is stored",
+    "_air_eccentricity": "not stored: the orbit the air was made on (`planets.orbit_moved`, GEN.1402); the orbit is stored",
+    "_air_haze": "not stored: the haze of the air kept for the life stage (GEN.1589); the air is stored",
+    "_air_light_au": "not stored: the light the air, temperature, dose and spectrum were made on; the orbit is stored",
+    "_air_replay": "not stored: where the air's draws began, for `remake_air` while the system is generated (GEN.1493); spent once the belts are known",
+    "_air_stale": "not stored: marks air made on an orbit that has since moved, which the final-age refresh makes again; a loaded system is final",
+    "_co2_sink": "not stored: the CO2 sink of the air, kept for the life stage (GEN.1309); the air is stored",
+    "_retention_cap_pa": "not stored: the pressure the air can keep, kept for the life stage (GEN.1340); the air is stored",
+    "_surface_w": "not stored: the heat at the surface, kept for the final-age refresh (GEN.839); the temperatures are stored",
+    "_tide_parent": "not stored: the planet that tides a moon, set for the system by `tide_sources.register` (the parent is stored)",
+    "_tide_siblings": "not stored: the other bodies that pull on a body, set for the system by `tide_sources.register` (their orbits are stored)",
+    "_tidal_radius_km": "not stored: the radius a giant's envelope is tidally cut at (`apply_envelope`); the radius is stored",
+    "_exchange_damped_yr": "not stored: the age the secular exchange wore the eccentricity down (GEN.1459), which `settle_orbit` reads at generation; the eccentricity is stored",
+    # working state of the generation of a body
+    "_bare_core": "not stored: the core of a body before its envelope (`apply_envelope`, GEN.1323); the radius and envelope share are stored",
+    "_captured_envelope": "not stored: the envelope a body captured before the loss (`apply_envelope`); the envelope share is stored",
+    "_envelope_helium_y": "not stored: the helium share a hydrogen-first loss left (TEST.761); the composition is stored",
+    "_formation_fractions": "not stored: the volatile fractions the body formed with (`envelope_share`), read while its envelope is made",
+    "_giant_draw": "not stored: the draw a giant's radius was settled with (`giant_draw`); the radius is stored",
+    "_late_accreted_percent": "not stored: the share of the body accreted late (`late_accretion`), which its first air reads; the air and the core are stored",
+    "_late_core": "not stored: whether a body was built from solids and captured no envelope (GEN.1510); the composition is stored",
+    "_venus_spin": "not stored: the Venus-type spin a body was given, read while the spin is made (`planets.generate_spin`); the spin is stored",
+    "_frame_axis": "not stored: the axis a moon's state is drawn in, set while the moons are placed; the orbit is stored",
+    "_belt_exposure_msv_yr": "not stored: the dose a moon takes from its planet's radiation belts, kept for the dose pass; the dose is stored",
+    "_deferred_climate": "not stored: a body built bare that `finish_climate` still owes its air (GEN.1282); a loaded body is finished",
+    "_motion_done": "not stored: whether `finish_motion` has made the body's position and velocity (GEN.1548); a loaded body has them",
+    "_companions": "not stored: the companion stars the light of a body is summed over (`radiation_field`), found again from the system",
+    "_members": "not stored: the members of a belt drawn on demand (`belt_ondemand`); a belt read back keeps the members it was saved with",
+    "_secular_planets": "not stored: the axes and masses of the planets beside a belt (GEN.1492), which dilute a companion star's forcing of its members; the planets are stored",
+}
+"""dict: Private (underscore) attribute of a generated object -> why it is not kept. Working state is not a stored output; what it produced is. A new one must say so here."""
+
+def _loaded_by(fields):
+    """The attribute names the `fields` load back, and the columns of a field that is only written (its column is named as the attribute, so the number has a column)."""
+    class Row(collections.defaultdict):
+        def __missing__(self, key):
+            return 1.0
+
+    names = set()
+    for field in fields:
+        if field.load is None:
+            names |= set(field.columns)
+            continue
+        try:
+            names |= set(field.load(Row()))
+        except Exception:      # noqa: BLE001 -- as `_loaded`
+            names |= set(field.columns)
+    return names
+
+
+def _kinds():
+    """`{kind: [generated objects]}` for the kinds of `KIND_FIELDS` (made once for the module): the belts and comets of five systems and five of each stand-alone kind."""
+    from planetgen.generation.phenomena.asteroid_field import AsteroidField
+    from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+    from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+
+    if _KINDS:
+        return _KINDS
+    found = {kind: [] for kind in KIND_FIELDS}
+    for seed in range(60):
+        config = SystemConfig()
+        config.PLANETS = config.MAX_PLANETS = config.MOONS = config.COMETS = True
+        with draw.bound(seed):
+            system = StarSystem(system_config=config)
+        found["asteroid belts"] += [p for p in system.planets if p.body_type == "a"]
+        found["comets"] += list(system.comets)
+        if seed >= 4:
+            break
+    for seed in range(5):
+        for kind, cls in (("rogue planets", RoguePlanet), ("interstellar comets", InterstellarComet), ("asteroid fields", AsteroidField), ("black holes", BlackHole), ("neutron stars", NeutronStar)):
+            with draw.bound(seed):
+                found[kind].append(cls(SystemConfig()))
+    _KINDS.update(found)
+    return _KINDS
+
+
+_KINDS = {}
+
+
+@pytest.mark.parametrize("kind", sorted(KIND_FIELDS))
+def test_every_public_number_of_a_generated_object_of_each_other_kind_is_loaded_from_a_column_or_has_a_home(kind):
+    objects = _kinds()[kind]
+    assert objects, f"no generated {kind} to check"
+    loaded = _loaded_by(KIND_FIELDS[kind])
+    found = collections.defaultdict(set)
+    for obj in objects:
+        for name in _public(obj):
+            found[name].add(getattr(obj, "name", kind))
+    homeless = sorted(name for name in found if name not in loaded and name not in KIND_HOMES[kind])
+    stale = sorted(name for name in KIND_HOMES[kind] if name in loaded or name not in found)
+    assert not homeless, f"public attributes of a generated object of the kind {kind!r} with no column that loads them and no line in KIND_HOMES (DB.134): {homeless}"
+    assert not stale, f"KIND_HOMES lists attributes of {kind!r} that its rows load or no generated object has: {stale}"
+
+
+def test_every_private_attribute_of_a_generated_body_star_or_other_object_says_why_it_is_not_kept():
+    found = collections.defaultdict(set)
+    for system in _systems():
+        for obj in (*system.planets, *(m for p in system.planets if p.body_type != "a" for m in p.moons), *system.stars, *system.comets):
+            for name in vars(obj):
+                if name.startswith("_"):
+                    found[name].add(getattr(obj, "name", type(obj).__name__))
+    for objects in _kinds().values():
+        for obj in objects:
+            for name in vars(obj):
+                if name.startswith("_"):
+                    found[name].add(getattr(obj, "name", type(obj).__name__))
+    homeless = sorted(name for name in found if name not in PRIVATE_HOMES)
+    assert not homeless, f"private attributes of a generated object with no line in PRIVATE_HOMES (DB.134): {homeless}; a stored output belongs in a column, working state says here why it is not kept"
