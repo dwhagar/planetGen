@@ -12328,6 +12328,7 @@ clears each one.
   Lane 15, 6:53 AM EST 2026-11-16: DB.101's tests/test_stored_outputs.py covers planets, moons and stars only. Do: the same check for the other stored objects; file any gap it finds as a (bug) item.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: DB.101. Related: DB.101, DB.132, DB.133.
   Filed by the TODO thread.
+  Added (Lane 15, 9:03 AM EST 2026-11-16): tilt_chaotic in oddity_quantities is also unstored; store it here or state why not.
 
 - [ ] **GEN.1763 A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources**
   Lane 03, 7:11 AM EST 2026-11-16 (PR 6837, GEN.1579 before and after on 80 systems): 4 bodies were pinned at 375 K; 3 move to class N (489 to 600 K) and 1 to X. One N body has 7,825 bar (5,300 bar CO2 plus 2,300 bar OCS out of the rock) and its greenhouse asks 1,481 K. Do: check the carbonate and sulfur degassing laws at 500 to 600 K against sources (physics found in research wins), and say whether thousands of bar is real or a law used outside its range.
@@ -12337,6 +12338,11 @@ clears each one.
 - [ ] **PERF.274 (bug) Warming the galaxy lists and stats every tile-cache file once per warm chunk (tilecache.cache_is_full from web/warmup.py line 854): the warm-galaxy-deep-nodes case stood 58 s walking 181,000 files on a cold file cache**
   Lane 16, 8:43 AM EST 2026-11-16 (found while fixing PERF.273, PR 6820): passes on a quiet box and fails test_longest_silence when the file cache is cold, so it flakes for Gate and costs real time on a big site cache. Do: keep a running size of the tile cache (or check it once per run, not per chunk) so the full check is cheap, and show the deep-nodes case under budget on a cold file cache.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: PERF.273, OPS.262.
+  Filed by the TODO thread.
+
+- [ ] **TEST.779 (bug) test_body_state_fields::test_a_remake_after_an_orbit_change is red on main: the remade body's composition text differs**
+  Lane 15, 9:03 AM EST 2026-11-16 (found while testing PR 6850, DB.132 and DB.133): red on main too, the difference is in the composition text. Do: find which merge turned it red and whether the composition text now reads something the orbit change moves (then the remake must rebuild it, or the test's expectation is wrong: say which with the reason); fix the cause, never loosen the check.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: none. Related: DB.132, DB.133.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
@@ -12426,12 +12432,6 @@ clears each one.
   Lane 16, 12:24 AM EST 2026-11-16 (found while testing PR 6789, OPS.265): red without 6789 too. Do: make the test read the table's durations through the project's HMS parser (or the same formatter's inverse, no second parser) and keep its checks (costliest first, rows add up to the named total, the named steps present). Lock-free, test only.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: UX.319, OPS.265.
   Filed by the TODO thread.
-
-- [ ] **PERF.273 (bug) One body's seasonal solve stalls 4 to 6.6 s inside a single call (seasonal_swing.temperature_series from refresh_at_final_age of a pre-placed system's moon) on 4 of 7 runs, where its mean is 66 ms; the three sector commands keep 12 s rows in RECORDED_SILENCE for it**
-  Lane 16, 12:24 AM EST 2026-11-16 (found while building PR 6789, OPS.265). Do: find which body and why the solve runs long (iteration count, step size, a non-converging case), fix the cause so the call is bounded or beats progress inside it, then drop the three 12 s rows from RECORDED_SILENCE. Measure that seasonal temperatures are unchanged on fixed seeds; if they move it is a lock item for Train Manager.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: OPS.265, OPS.239.
-  Filed by the TODO thread.
-  Cause found (Lane 16, 8:43 AM EST 2026-11-16, PR 6820 head 723a68371c): not the seasonal solve (worst single call 1.2 s on 400 bodies) but the cold build of the bright-star sampling tables on the first run of a new code key (231 tables); real in production because every update is a first run. Fix: the three table builds in star_population move the unit's clock once per cell; no draw touched, not a lock item. The silence test uses its own empty table folder so it always measures the cold case.
 
 - [ ] **GEN.1760 (bug) Orbits are circularised before the surface temperature is known, so every icy-by-water body is tidally treated as a 100 K ice shell then, and a warm water world keeps an eccentric orbit a rock tide would have worn down (Eltotecius I: e 0.43 at 0.03 AU)**
   Lane 07, 2:21 AM EST 2026-11-16 (found building GEN.1759): warm icy-by-water bodies keep their old tidal heat in GEN.1759 for this reason (the rock regime would give up to 1e5 W/m2 with today's eccentricities). Do: order the build so circularisation and tidal heat read the settled surface temperature (or iterate the two to a fixed point), using GEN.1759's shared k2/Q chooser; measure eccentricities and tidal heat of close-in water worlds before and after on fixed seeds. Lock item (orbits and heat move).
