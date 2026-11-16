@@ -629,7 +629,7 @@ def icy_own_flux_w_m2(body):
 
 def icy_regime(body):
     """
-    Which tide model a body flexes by, the one chooser the spin (`body_spin`), the circularisation (`tidal_response`), the heat (`update_heat`, `eccentricity_tide_w`) and the sea's tide (`ocean_tides`) all read.
+    Which tide model a body flexes by, the one chooser the spin (`body_spin`), the circularisation (`tidal_response`), the heat (`update_heat`, `eccentricity_tide_w`, for ice solid through) and the sea's tide (`ocean_tides`) all read.
     `ROCK` for a body that is not icy (`tidal_heating.is_icy`) and for an icy one whose surface is at or above the melting point of ice (no shell: the water is a sea over a rocky mantle; the shell model gave
     it no tide at all, GEN.1756). `SHELL` for a shell that sits on an ocean: the flux it conducts (its own heat and the tide `icy_tide.flux_from_tide` makes in it on its orbit, so the choice does not depend on what an earlier run stored) puts its base
     (`hydrosphere.ice_shell_thickness_km`) within the radius, the case `icy_tide` is made for. `FROZEN` for one whose base would lie below the center: ice solid through, with no ocean for the shell formula to
@@ -706,7 +706,7 @@ def heat_at(body, age_gy):
     content, interior = radiogenic.content_of(body), interior_of(body)
     if content is None or interior is None:
         return None
-    forcing = None if icy_regime(body) != ROCK else tidal_heating.forcing_of(body)
+    forcing = None if tidal_heating.is_icy(body) else tidal_heating.forcing_of(body)      # an icy body's tide is not in the box (a warm one's is left out until the circularisation knows its surface, `update_heat`)
     return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body))
 
 
@@ -721,16 +721,15 @@ def eccentricity_tide_w(body, eccentricity, host_mass_kg, distance_au):
         return 0.0
     age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     semi_major_axis_m = distance_au * constants.AU_TO_M
-    regime = icy_regime(body)
-    if regime == SHELL:
+    if tidal_heating.is_icy(body):
+        if icy_regime(body) == FROZEN:
+            return frozen_tide_w(body, tidal_heating.Forcing(host_mass_kg, semi_major_axis_m, eccentricity))
         found = heat_of(body)
         if found is None:
             return 0.0
         _, power = icy_tide.flux_from_tide(body.mass, body.radius * 1000.0, host_mass_kg, semi_major_axis_m, eccentricity, found.own_flux_w_m2,
                                            icy_shell_top_k(body))
         return power
-    if regime == FROZEN:
-        return frozen_tide_w(body, tidal_heating.Forcing(host_mass_kg, semi_major_axis_m, eccentricity))
     forcing = tidal_heating.Forcing(host_mass_kg, semi_major_axis_m, eccentricity)
     return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body)).tidal_w
 
@@ -764,17 +763,18 @@ def update_heat(body):
             setattr(body, name, None)
         return None
     body.urey_ratio, body.internal_heat_flux_w_m2 = found.urey_ratio, found.own_flux_w_m2
-    regime = icy_regime(body)
-    if regime != ROCK:
-        # GEN.960: the shell's tide in equilibrium with the shell it makes (`icy_tide.flux_from_tide`), over its surface; GEN.1759: the tide of a body frozen through is solid ice's (`frozen_tide_w`)
+    if tidal_heating.is_icy(body):
+        regime = icy_regime(body)
+        # GEN.1759: a water-rich body too warm for ice (`ROCK`) keeps the shell function, which gives it no tide: its orbit was circularised before its surface was known (as a cold shell), so
+        # the rock box's tide on an orbit that was never worn down by it would be the Peale ceiling of a planet the tide had not circularised; GEN.960: the shell's tide in equilibrium with the shell it makes (`icy_tide.flux_from_tide`), over its surface; GEN.1759: the tide of a body frozen through is solid ice's (`frozen_tide_w`)
         forcing = tidal_heating.forcing_of(body)
         radius_m = body.radius * 1000.0
         if forcing is not None and forcing.eccentricity > 0.0:
-            if regime == SHELL:
+            if regime == FROZEN:
+                power = frozen_tide_w(body, forcing)
+            else:
                 _, power = icy_tide.flux_from_tide(body.mass, radius_m, forcing.host_mass_kg, forcing.semi_major_axis_m, forcing.eccentricity,
                                                    found.own_flux_w_m2, icy_shell_top_k(body))
-            else:
-                power = frozen_tide_w(body, forcing)
             body.tidal_flux_w_m2 = power / (4.0 * math.pi * radius_m ** 2)
         else:
             body.tidal_flux_w_m2 = 0.0

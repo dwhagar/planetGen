@@ -157,6 +157,7 @@ def _bodies(system):
 
 
 def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_energy_counts_it():
+    from planetgen.physics import hydrosphere
     seen = icy = rocky = 0
     for seed in range(10):
         with deterministic_entropy(seed):
@@ -171,14 +172,13 @@ def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_
             if forcing is None:  # a planet or captured moon the tide has circularised has none left, and a stored 0.0 says so (GEN.778)
                 assert body.eccentricity == 0.0 and body.tidal_flux_w_m2 == 0.0
                 continue
-            regime = interior_heat.icy_regime(body)      # GEN.1759: an icy body's tide is by its regime; a body too warm for ice is rock to the tide
-            if regime != interior_heat.ROCK:
+            if (body.water_mass_fraction or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION:
                 icy += 1
-                if regime == interior_heat.SHELL:
+                if interior_heat.icy_regime(body) == interior_heat.FROZEN:      # GEN.1759: ice solid through flexes as solid ice does
+                    power = interior_heat.frozen_tide_w(body, forcing) if forcing.eccentricity > 0.0 else 0.0
+                else:
                     _, power = icy_tide.flux_from_tide(body.mass, body.radius * 1000.0, forcing.host_mass_kg, forcing.semi_major_axis_m, forcing.eccentricity,
                                                        body.internal_heat_flux_w_m2, interior_heat.icy_shell_top_k(body))
-                else:
-                    power = interior_heat.frozen_tide_w(body, forcing) if forcing.eccentricity > 0.0 else 0.0
                 assert body.tidal_flux_w_m2 == pytest.approx(power / (4.0 * math.pi * (body.radius * 1000.0) ** 2))
             else:
                 rocky += 1
@@ -204,7 +204,7 @@ def test_an_icy_body_on_an_orbit_so_round_the_tide_underflows_stores_zero():
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
         for body in _bodies(system):
-            if body.body_type in ("g", "a") or interior_heat.icy_regime(body) == interior_heat.ROCK:      # GEN.1759: a body too warm for ice has the rock box's tide, with its moons'
+            if body.body_type in ("g", "a") or interior_heat.icy_regime(body) == interior_heat.ROCK:      # GEN.1759: a body too warm for ice keeps no tide (its tide is not in the box)
                 continue
             if tidal_heating.forcing_of(body) is None:
                 continue
