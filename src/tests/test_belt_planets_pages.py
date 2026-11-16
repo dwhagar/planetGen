@@ -7,7 +7,8 @@ GEN.1511: the pages of a belt that made planets (GEN.1510): the belt's informati
 import pytest
 
 from planetgen.db import store
-from planetgen.describe import belt_info, belt_member_info
+from planetgen.describe import belt_info, belt_member_info, sheet as sheet_module
+from planetgen.galaxy import object_uid
 from planetgen.generation import irregular_moons
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -72,3 +73,17 @@ def test_a_member_that_stayed_still_has_its_page(saved_belt):
             pytest.skip("the belt kept no member")
         answer = belt_member_info.member_info(conn, belt_id, page["bodies"][0]["rank"])
     assert "member" in answer and "promoted" not in answer
+
+
+def test_a_planet_made_from_a_belt_names_that_belt_on_its_sheet(saved_belt):
+    """GEN.1511: the planet's own page keeps the belt it came from as its parent, as the belt's page lists the planet."""
+    belt_id, made, config = saved_belt
+    with store.get_connection(config) as conn:
+        planet = made[0]
+        belt_uid = object_uid.from_bytes(conn.execute("SELECT uid FROM asteroid_belts WHERE id = ?", (belt_id,)).fetchone()["uid"])
+        found = sheet_module.sheet(conn, "planet", planet.db_id)
+        rows = [row for group in found["groups"] for row in group["rows"] if row["key"] == sheet_module.BELT_ORIGIN_KEY]
+        kept = next(b for b in store.load_star_system(conn, conn.execute("SELECT star_system_id FROM planets WHERE id = ?", (planet.db_id,)).fetchone()["star_system_id"]).planets if getattr(b, "belt_rank", None) is None and b.body_type != "a")
+        plain = sheet_module.sheet(conn, "planet", kept.db_id)
+    assert len(rows) == 1 and object_uid.designation(belt_uid, planet.belt_rank) in rows[0]["text"]
+    assert not [row for group in plain["groups"] for row in group["rows"] if row["key"] == sheet_module.BELT_ORIGIN_KEY]
