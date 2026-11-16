@@ -12696,12 +12696,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1724, GEN.1723.
   Filed by the TODO thread.
 
-- [ ] **PERF.271 Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system)**
-  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing, may move results). PERF.267 finding (3): in a system 52 percent of the time is surface_air.solve, and each planet's air is built twice; 20 percent is gas_equilibrium. The generator is about 60 percent slower than 8.0.3700 (3.4 to 5.4 s a system, about 30 percent of it at the Train 25 merge, release 3992). Reuse rule applies; physics must not change, only the repeat.
-  Correction (Lane 06, 4:00 AM EST 11-15): building the air once saves only about 15 percent (116 first builds at 0.14 s and 7 remakes); the cost is the final-age solve, a fixed point of about 8 steps that redraws the gas mixture each step (mixture_draw 86 s, gas_equilibrium 42 s on 16 systems). The lever: start the final solve from the air the first build found. Still a lock item (values move slightly).
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
-  Filed by the TODO thread.
-
 - [ ] **PERF.272 Promote belt members only when they are read (15 percent of a system's time)**
   Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing). PERF.267 finding (3): belt-member promotion takes 15 percent of each system's generation time. Make it on demand where nothing in generation reads the members.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
@@ -12726,11 +12720,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: OPS.219, OPS.227. Related: OPS.220, OPS.226, OPS.228.
   Filed by the TODO thread.
 
-- [ ] **GEN.1744 Oxygenic life variants 1b and 1c use their own light bands in biogenic_oxygen.active_light_ratio (all use 400 to 700 nm today; Science output changes)**
-  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (biogenic_oxygen owner), lock item. Prerequisites: none. Related: GEN.1739, GEN.1745.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1745 A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts**
   Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
   Boss, 11:25 AM EST 2026-11-15 (research thread): "NO class is assigned until the evolution is finished and we have a finished planet, this way we settle the planet after the physics not before." So nothing in the air history reads a class letter; the class is assigned once from the finished body after the last step; the in-between apply_class calls (generation/life.py 89 and 473, generation/system.py 2410 and 2419) go with this item, and forced requests judge only that final class (report section 5.8.1). Overlaps GEN.1653.
@@ -12747,17 +12736,6 @@ clears each one.
 - [ ] **GEN.1746 Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page**
   Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03, after GEN.1737; lock item. Prerequisites: GEN.1745, GEN.1740. Related: GEN.1739, GEN.1740.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1748 Nebular hydrogen envelopes for bodies under 1 Earth mass (source in reports/early-envelope-gen1741-2026-11-15.md): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state**
-  Research thread "Design planet air history simulation", 12:46 PM EST 2026-11-15 (GEN.1741 report reports/early-envelope-gen1741-2026-11-15.md). Do: give bodies of 0.2 to 1 Earth mass the sourced nebular envelope and its loss, feeding GEN.1745's history; register stand-ins in GEN.725. Changes output (lock item).
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (planet composition), lock item, after GEN.1744. Prerequisites: GEN.1741. Related: GEN.1745, GEN.1741.
-  Boss, 6:09 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiXMTDQXwZf1M4vPEnYyuBPV, "1"): option 1, build both the nebular envelope and the water its hydrogen makes.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1749 (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant)**
-  Lane 04, 1:25 PM EST 2026-11-15 (Class M thread's meter of 6645 and 6674 on Train 32): older than 6674, which only made the halite sea that showed it. Do: find why a rocky planet stores no P2O5 at all and fix the composition step so every rocky body carries its rock phosphorus; no default patched in at the reader.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04, lock item, after GEN.1744. Prerequisites: none. Related: GEN.1730, GEN.1733.
   Filed by the TODO thread.
 
 - [ ] **OPS.264 (bug) Every per-piece writer is safe to re-run: scatter shells and scatter phenomena write their 10,000-row batches twice, and unplaced sectors and the system finish piece write a second row, when a piece runs again after its commit**
