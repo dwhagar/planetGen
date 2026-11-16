@@ -12222,12 +12222,6 @@ clears each one.
   Deferred (TODO, 2026-11-12): after the generation fixes, with the other deferred code items (Boss, 10:01 PM EST on 2026-11-11).
   Filed by the TODO thread.
 
-- [ ] **GEN.1643 Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues**
-  Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): registry rows 6.121:TJ9, TJ10 and TJ11 sit at L4 with no burn-down line. The Rayleigh scales of `trojan_swarm` (LIBRATION_SIGMA_DEG 10, ECC_SIGMA 0.06, INCLINATION_SIGMA_DEG 12) are recalled, not read. Do: read a proper-element catalogue (secondary sources accepted), fit the three scales, and lower the rows to L1 or L2. The catalogue is a calibration reference only; no fixed Solar System content enters the output.
-  Version 8.1. Owner: Lane 23. Prerequisites: GEN.1150. Related: GEN.1151, GEN.1647.
-  Filed by the TODO thread.
-  Owner (TODO, 2026-11-12): Lane 07. Slice 0 (fit and proposal, lock-free) is PR 6233; slice 1 (lock) sets TJ9 to 13 degrees and lowers the rows, together with GEN.1647.
-
 - [ ] **GEN.1644 Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7)**
   Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): 6.228:SV7 named GEN.1425, which closed with Train 24 while the row is still L3. The cold acid cloud stays liquid to 185 K because the freezing curve of [R4877: figure 1 and section 4.3] is not yet a function. Do: turn that curve into a function, read it where the cloud step places the acid aerosol, and lower SV7 to L0 or L1.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1425, GEN.1307.
@@ -12236,11 +12230,6 @@ clears each one.
 - [ ] **GEN.1645 Wire the planet and sibling-planet Kozai screen (physics/kozai_planets.py, stand-ins KZP1 and KZP2) into generation once the companion planes are stored**
   Lane 23 (as the lane reported 6:54 AM EST on 2026-11-12): GEN.1447 slice 0 (PR 6228, lock-free) built kozai_planets.py, which screens a planet against a companion star or a heavier outer planet; report reports/gen1447-planet-case-2026-11-12.md. Do: read the screen in generation (planets in the Kozai band are driven to high eccentricity or removed, as the screen says), using the stored companion planes of GEN.1500. Lock item: it changes output.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 07. Prerequisites: GEN.1500. Related: GEN.1447, GEN.1352.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1647 Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one**
-  Lane 23 (as the lane reported 7:17 AM EST on 2026-11-12), GEN.1643 slice 0 (PR 6233, reports/gen1643-trojan-scales-2026-11-12.md): about a fifth of the real Jupiter Trojans librate wider than 23.9 degrees, and with the cut there the mean amplitude cannot reach the observed mean of 16.2 degrees; a scale of 13 with the cut at the edge of the zone gives 16.3. Do: cut the swarm draw and split tadpole from horseshoe in trojans.motion at the libration amplitude edge, and fix the falsifier of registry row TJ3. Lock item; built together with GEN.1643 slice 1 in one PR.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 07. Prerequisites: GEN.1643. Related: GEN.1150, GEN.1151.
   Filed by the TODO thread.
 
 - [ ] **OPS.154 Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB**
@@ -12361,16 +12350,6 @@ clears each one.
 - [ ] **OPS.179 cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N8). Output unchanged, no epoch; lock-free. Low.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as nothing: moot with OPS.235 (RQ removed, stage 4); not started. Prerequisites: none. Related: OPS.178.
-  Filed by the TODO thread.
-
-- [ ] **MAP.427 Sector view: the wireframe stays fixed around the current focus sector, and the user moves to a neighbouring sector through a POI icon at the middle of each sector edge**
-  Boss, 5:21 PM EST on 2026-11-12: "The wireframe around a selected sector in sector view should be static around the current focus sector. User can nevigate to other sectors through POI icons at the middle of each sector edge." Do: in the Sector Map (web/maps/starmap.py and its client), keep the sector wireframe anchored to the focus sector while the view pans, rotates or zooms; place one POI icon at the midpoint of each face edge that has a neighbour sector (named on hover), and clicking it opens that sector as the new focus (reuse the existing sector links and the galactic navigation route data). Edges with no neighbour (galaxy edge) show no icon. Browser test: the wireframe does not move with the camera, and each icon opens the right neighbour. Map drawing only, output unchanged; lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 07, after OPS.176. Prerequisites: none. Related: MAP.426.
-  Filed by the TODO thread.
-
-- [ ] **MAP.428 Wide binaries and multiples read as one system in the nav and sector views: a link line or ring around the group and one shared system label**
-  Boss, 5:28 PM EST on 2026-11-12 (via the coordinator, with screenshots, as Lane 23 relayed): wide binaries and multiples display poorly in the nav and sector views. Example: Ofriggor, a quadruple (A G8V, B M4VI, C M3VI, D M0V) where D sits about 8 AU out and shows as its own point with its own label. Do: as the view approaches a wide binary or multiple, show that the stars are one system (a link line or ring around the group, one shared system label instead of a label per star). Display only, output unchanged; lock-free. One PR with MAP.427.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 07, with MAP.427. Prerequisites: none. Related: MAP.427, MAP.136.
   Filed by the TODO thread.
 
 - [ ] **TEST.738 Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale**
