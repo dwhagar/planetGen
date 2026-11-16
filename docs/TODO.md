@@ -12334,6 +12334,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: GEN.1579. Related: GEN.1579, GEN.1580, GEN.1713.
   Filed by the TODO thread.
 
+- [ ] **TEST.778 (bug) test_haze_in_the_air::test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it is red on main e22ff539e2**
+  Lane 04, 8:05 AM EST 2026-11-16 (found while gating Train 38), relayed by Train Manager: fails the same on main e22ff539e2, not the train. The test (GEN.1646) asks that a hazy body with ground is as warm or warmer once its haze is removed (clear.temperature_k >= with_haze.temperature_k - 0.5). Do: find which merge turned it red and whether the haze now warms the ground (a real physics change: say why) or the solve regressed (fix the cause); never loosen the bound to pass.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: none. Related: GEN.1646, GEN.1579.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
   Boss, 11:17 to 11:19 PM EST on 2026-11-13 (the Class M tier card, "Build now, calibrate after fixes"). Do: after GEN.1694 to GEN.1698 merge, set each tier's dial values from the GEN.1705 meter; first-pass values are registered as stand-ins in GEN.725 with tier and tweak level. Measured by the Class M thread on PR 6469 (2026-11-14): first-pass tier rates per 1,000 Sun-like systems are 0, 0, 2.5, 5.0 and 12.5 against targets none, 1, 10, 33 and 100; the water dial at share 1 reaches about 46 percent of final-zone candidates (icy-origin ones and planets moved into the ecosphere after their body is drawn are not reached), so calibration must decide whether the dials also act on moved planets.
   Boss, 9:28 PM EST on 2026-11-14: "increase sparse to be 1 in 500, and crawl up from there"; 9:30 PM EST: "So let's say 1 in 10 for top end, split the rest logarithmically from Sparse to Abundrant". New tier targets (in PR 6575, GEN.1721 slice 1): Sparse 1 in 500, Scattered 1 in 135, Plentiful 1 in 37, Abundant 1 in 10 Sun-like systems (were 1,000, 100, 30, 10). Calibrate to these against the Science baseline of 1 in 2,800 (95 percent 0.1 to 2.0 per 1,000; census /mnt/project-files/reports/train28-census-2026-11-14/five-classes-2800.md). Blocked in practice by GEN.1720.
