@@ -28,5 +28,5 @@ def test_a_block_that_raises_leaves_no_step_behind():
 def test_the_table_lists_the_costliest_step_first_with_its_share():
     timer = StepTimer()
     timer.steps = [("small", 1.0), ("big", 3.0)]
-    assert timer.lines("Work") == ["Work (4 s):", "           3 s  75.0%  big", "           1 s  25.0%  small"]
-    assert StepTimer().lines("Nothing") == ["Nothing (0 s):"]
+    assert timer.lines("Work") == ["Work (4s):", "            3s  75.0%  big", "            1s  25.0%  small"]
+    assert StepTimer().lines("Nothing") == ["Nothing (0s):"]

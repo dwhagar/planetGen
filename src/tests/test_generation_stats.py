@@ -154,7 +154,7 @@ def test_the_size_estimates_read_on_the_units_codes_bytes_ladder(count, text):
 
 
 @pytest.mark.parametrize("seconds, text", [
-    (0, "0 s"), (12, "12 s"), (250, "4.17 minutes"), (7500, "2.08 hours"), (90000, "1.04 days"), (3 * 86400, "3 days"),
+    (0, "0s"), (12, "12s"), (250, "4m 10s"), (7500, "2h 5m"), (90000, "1d 1h"), (3 * 86400, "3d"),
 ])
 def test_the_time_estimates_read_on_the_units_codes_time_ladder(seconds, text):
     assert format_duration_seconds(seconds) == text

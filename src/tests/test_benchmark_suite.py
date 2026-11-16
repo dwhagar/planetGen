@@ -145,7 +145,7 @@ def test_the_report_lists_each_step_its_stages_the_counters_and_the_ranking():
     assert "size small" in text and "8.0.1" in text
     assert "Scatter the massive stars" in text and "stage Scatter the massive stars" in text and "shells 12" in text
     assert "Questions 500" in text and "Com_delete" not in text      # a counter of zero is left out
-    assert "ms per star" in text and "worker start-up: 1.2 s" in text
+    assert "ms per star" in text and "worker start-up: 1s" in text
     assert "run-to-run" in text and "ranked by wall time" in text
     ranked = text.split("ranked by wall time")[1]
     assert ranked.index("90.0%") < ranked.index("10.0%")
@@ -153,7 +153,7 @@ def test_the_report_lists_each_step_its_stages_the_counters_and_the_ranking():
 
 def test_a_step_that_ends_prints_a_line_a_stopped_run_keeps():
     line = benchmark_suite.progress_line(_record("scatter-mass", 90.0, made=24558))
-    assert line == "  done: Scatter the massive stars in 1.5 minutes (24,558 stars, client CPU 3 minutes)"
+    assert line == "  done: Scatter the massive stars in 1m 30s (24,558 stars, client CPU 3m)"
     assert benchmark_suite.progress_line(_record("plan", 5400.0, timed_out=True, exit_code=None)).startswith(
         "  NOT FINISHED: Plan the galaxy")
     assert benchmark_suite.progress_line(_record("plan", 3.0, exit_code=1)).startswith("  FAILED: ")

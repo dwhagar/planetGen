@@ -88,7 +88,7 @@ def test_the_report_lists_each_run_and_its_stage_shares():
     assert "1 worker(s)" in text and "2 worker(s)" in text
     assert "Generate the sectors" in text and "50.0%" in text and "sectors 2" in text
     assert "Scatter " not in text  # a skipped stage is left out
-    assert "Questions 400 (10/s)" in text and "Com_delete" not in text  # zero counters are left out
+    assert "Questions 400 (10.0 a second)" in text and "Com_delete" not in text  # zero counters are left out
 
 
 def test_the_report_lists_the_profile():
@@ -107,11 +107,11 @@ def test_the_command_is_known_to_the_cli():
 def test_the_report_names_the_buffer_pool_the_tables_and_the_worker_start_up():
     """PERF.47: what a later run needs to compare a result with this one."""
     text = benchmark.format_report(_args(), [_run()], None)
-    assert "innodb_buffer_pool_size: 128.0 MB" in text
-    assert "tables: 2, 4.0 MB in all" in text
+    assert "innodb_buffer_pool_size: 134 MB" in text
+    assert "tables: 2, 4.23 MB in all" in text
     assert text.index("    bright_stars") < text.index("    sectors")  # the largest first
     assert "1,200 rows" in text
-    assert "worker start-up: 1.50 s a process (imports 1.25 s, first connection 0.05 s)" in text
+    assert "worker start-up: 2s a process (imports 1s, first connection 50 ms)" in text
 
 
 def test_the_start_up_probe_measures_a_real_process(mysql_config):

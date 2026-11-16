@@ -270,7 +270,7 @@ def test_a_command_that_timed_out_or_could_not_start_is_logged(folder):
     api_jobs.run_command([sys.executable, "-c", "import time; time.sleep(30)"], dict(os.environ), str(folder), 1)
     api_jobs.run_command(["/nonexistent/planetgen-command"], dict(os.environ), str(folder), 5)
     text = "\n".join(_lines(folder))
-    assert "timed out after 1 s" in text and "could not be started" in text
+    assert "timed out after 1s" in text and "could not be started" in text
 
 
 def test_a_command_that_succeeded_is_not_an_error(folder):
