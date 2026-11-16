@@ -1394,7 +1394,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) | none | done, PR #2327 |
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets | none | open |
 | GEN.594 | Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files | none | open |
-| GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution | none | open |
+| GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution | none | done (PR 6870, Lane 06, merged 10:41 AM EST 11-16: the hand-set comet shape is registered as stand-in rows CMT1 to CMT8, section 6.303, tagged in tuning.py; a derived draw was left unfiled) |
 | GEN.596 | A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug) | none | done, PR #2428 |
 | GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) | none | done, PR #2399 |
 | GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | none | done, PR #2478 |
