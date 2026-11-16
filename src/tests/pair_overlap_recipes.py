@@ -18,7 +18,7 @@ def _prepare(context):
 
 def _scatters(context):
     """The command lines that run the stages of the pairs for real, so the capture sees the params each is cut with."""
-    for flags in (["--phenomena"], ["--nebula-field"]):
+    for flags in (["--mass", "--phenomenon-min-mass", "8"], ["--phenomena"], ["--nebula-field"]):
         run_cli("scatter", [*flags, "--bright-star-min-luminosity", str(THRESHOLD), *mysql_argv(context.mysql_config)])
 
 
@@ -51,6 +51,10 @@ PAIRS = {
     ("scatter-phenomena", "draw-nebula-field"): PairRecipe(
         "scatter-phenomena", "draw-nebula-field", **SKELETON,
         note="The phenomena scatter writes its own table, the members and nodes of what it drew and the light parts of the blocks; the nebula field is its own table and its stage's own rows. " + IDS),
+    ("scatter-mass", "scatter-phenomena"): PairRecipe(
+        "scatter-mass", "scatter-phenomena", **SKELETON,
+        note="The mass pass writes `bright_stars`, the phenomena scatter `phenomenon_scatter`; both write members, nodes, block light parts and the ids of their own rows (`id_counters`: a counter each, "
+             "the stars' and the phenomena's), and each reads the other's table only to give the blocks their light. " + IDS),
 }
 """dict: `{(first, second): recipe}`, the commands in plan order, one for each pair in `queue/independence.json`."""
 
