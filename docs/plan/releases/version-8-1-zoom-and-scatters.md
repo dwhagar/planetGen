@@ -508,7 +508,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.510 | Tuned draw builder B2: delivery and water worlds |  | Tunable gaps report: Tuned draw builder B2: delivery and water worlds. |
 | GEN.515 | Tuned draw builder B7: ground and petrology |  | Tunable gaps report: Tuned draw builder B7: ground and petrology. |
 | GEN.519 | Tuned draw builder B11: aerosol amplitude |  | Tunable gaps report: Tuned draw builder B11: aerosol amplitude. |
-| GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution |  | Boss, 2026-10-18 (fork 8, flagged stand-ins only). |
 | GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects |  | Tunable gaps report: Tuned draw builder B14: moons and Kuiper belt objects. |
 | GEN.523 | Tuned draw builder B15: host-star activity |  | Tunable gaps report: Tuned draw builder B15: host-star activity. |
 | GEN.524 | Tuned draw builder B16: halogens and trace gases |  | Tunable gaps report: Tuned draw builder B16: halogens and trace gases. |
@@ -675,4 +674,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | Lane 03, 2026-11-15 |
 | GEN.1762 | biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087 | GEN.1636 | Lane 04, 2026-11-16. |
 | GEN.1763 | A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources | GEN.1579 | Lane 03, 2026-11-16. |
+| GEN.1765 | Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt | GEN.595 | Lane 06, 2026-11-16. |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |

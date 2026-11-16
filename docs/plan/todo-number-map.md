@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1765 |
+| GEN | GEN.1766 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
@@ -1394,7 +1394,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) | none | done, PR #2327 |
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets | none | open |
 | GEN.594 | Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files | none | open |
-| GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution | none | open |
+| GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution | none | done (PR 6870, Lane 06, merged 10:41 AM EST 11-16: the hand-set comet shape is registered as stand-in rows CMT1 to CMT8, section 6.303, tagged in tuning.py; a derived draw was left unfiled) |
 | GEN.596 | A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug) | none | done, PR #2428 |
 | GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) | none | done, PR #2399 |
 | GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | none | done, PR #2478 |
@@ -4090,6 +4090,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1762 | biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087 | open |
 | GEN.1763 | A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources | open |
 | GEN.1764 | Wire or delete two unread belt functions left when GEN.1068 and GEN.1072 closed: belt_origin.destroyed_planet and clearance_ledger.log_uniform_quantile | done (PR 6868, Lane 06, merged 10:36 AM EST 11-16: belt_origin.destroyed_planet and clearance_ledger.log_uniform_quantile/restricted_quantile deleted with their wiring-register lines and registry row BG10; nothing generated changes) |
+| GEN.1765 | Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
