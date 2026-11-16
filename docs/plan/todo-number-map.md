@@ -3976,7 +3976,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1648 | Planets around a black hole with no accretion disk: 18 of 40 seeds carry planets (up to 7), while a test and its comment say the snow-line physics leaves none; decide from physics which is right | none | done, PR #6366 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1649 | Lock-free cleanup: the request bookkeeping list built once, not appended, removed and re-appended | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1650 | Planet.__init__: drop the dead moves, the dead distance_override and the relic comment; one build path | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
-| GEN.1651 | BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build | GEN.1649 | open |
+| GEN.1651 | BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build | GEN.1649 | done (PR 6871, Lane 14, merged 10:47 AM EST 11-16: the twenty private attributes a build stashed on bodies are the fields of one BuildRecord, body.build; body values on seeds 0 to 13 identical to main) |
 | GEN.1652 | One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py) | GEN.1651 | open |
 | GEN.1653 | apply_class runs only as the last step of the finish chain (class before bands is the H3 cause) | GEN.1652 | open |
 | GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | none | open |
