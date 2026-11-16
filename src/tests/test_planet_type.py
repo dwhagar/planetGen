@@ -57,8 +57,8 @@ def test_the_ground_cut_is_the_escape_laws_bare_cut_and_no_planet_keeps_an_envel
         with draw.bound(70000 + seed):
             system = StarSystem(system_config=config)
         for planet in system.all_planets:
-            held = getattr(planet, "_captured_envelope", 0.0) or 0.0
-            if planet.body_type == "t" and held:
+            held = (planet.build.captured_envelope or 0.0) if getattr(planet, "body_type", None) == "t" else 0.0
+            if held:
                 kept += 1
                 assert held >= envelope_escape.BARE_BELOW and not pt.has_ground(planet), (seed, planet.name, held)
     assert kept
