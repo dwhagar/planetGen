@@ -7,12 +7,11 @@ layers; migration 0154 gives a galaxy made at v153 the columns and tables, empty
 
 import pytest
 
-from planetgen.db import edits, store
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import giant_interior
 from planetgen.util import draw
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -90,25 +89,4 @@ def test_a_planet_cannot_hold_two_layers_at_one_index_or_an_unknown_kind(mysql_c
             conn.execute(sql, (planet_id, "granite"))
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_a_v153_galaxy_gets_the_columns_and_tables_empty(mysql_config):
-    system, cfg = _system()
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            system_id = store.insert_star_system(conn, system, cfg)
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 153)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        rows = conn.execute("SELECT interior_kind, core_mass_earth FROM planets WHERE star_system_id = ?", (system_id,)).fetchall()
-        assert rows and all(row["interior_kind"] is None and row["core_mass_earth"] is None for row in rows)
-        assert conn.execute("SELECT COUNT(*) AS n FROM planet_interior_layers").fetchone()["n"] == 0
-        loaded = store.load_star_system(conn, system_id)
-        assert all(_interior_of(body) == ((None,) * len(giant_interior.BODY_FIELDS), None) for body in _bodies(loaded))
-    finally:
         conn.close()

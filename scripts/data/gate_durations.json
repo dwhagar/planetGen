@@ -359,7 +359,6 @@
  "tests/test_migration_moon_origin.py": 38.61,
  "tests/test_migration_nuclear_arrival.py": 5.43,
  "tests/test_migration_planet_rings.py": 96.0,
- "tests/test_migration_region_stats.py": 60.0,
  "tests/test_migration_regional_temperature.py": 70.1,
  "tests/test_migration_rogue_habitability.py": 98.0,
  "tests/test_migration_rogue_rings.py": 73.0,
