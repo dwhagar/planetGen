@@ -3227,15 +3227,18 @@ INTERSTELLAR_COMET_ACTIVE_CHANCE = 0.5
 # docs/design/systems/comet-orbital-realism.md for the full research/design
 # writeup this implements.
 
-# Bound short-period/long-period comet nuclei run larger, on average,
-# than the two confirmed interstellar visitors this generator also models
-# (INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM, ~0.1-1 km) -- e.g. Halley
-# is ~15x8 km ([R2301], ESA Giotto results) and Jupiter-family
-# comet nuclei are typically observed in the 1-10 km range (Lamy et al.
-# 2004, "Sizes, Shapes, Albedos, and Colors of Cometary Nuclei"). A
-# separate, wider range reflects that real difference rather than reusing
-# the interstellar range as-is. Drawn uniform in diameter, a hand-set shape ([Stand-in 6.303 CMT6, tier T6, tweak L3.]).
-BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (0.5, 20.0)
+# A star-bound comet's nucleus diameter follows the size law of the Jupiter family: the cumulative number of nuclei above a
+# diameter falls as D^-q, with q = 1.92 +- 0.20 for nuclei of radius 1.25 km and up ([R4139], abstract) and about 1.9 in a
+# second sample of 89 nuclei ([R5296], abstract). `Comet` draws from it between the two ends below by inverting its
+# cumulative distribution (GEN.1765, `util.random.sample_power_law`), so small nuclei are the common ones.
+COMET_NUCLEUS_CUMULATIVE_INDEX = 1.92
+"""float: The power-law index q of the cumulative nucleus size law, N(>D) ~ D^-q. [Stand-in 6.303 CMT6, tier T1, tweak L0.]"""
+
+# The ends of the draw, in km. The lower end is the edge of the fit ([R4139]: radius 1.25 km): both samples say the observed
+# numbers fall short below it, and the generator models a star's few most notable comets, not its whole swarm.
+# The upper end is hand set, wide of the largest nuclei measured (Halley's is about 15 x 8 km, [R2301]) until the
+# belt's own largest body sets it. [Stand-in 6.303 CMT9, tier T6, tweak L3, for the upper end.]
+BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (2.5, 20.0)
 
 # Perihelion distance range, in AU, for a star-bound comet -- wide enough
 # to cover both a sungrazer-like close pass and an outer-system comet that

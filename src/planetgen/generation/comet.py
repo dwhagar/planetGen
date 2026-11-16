@@ -42,6 +42,7 @@ from planetgen.physics import body_strength, bulk_draw, comet_activity, comet_co
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
+from planetgen.util.random import sample_power_law
 from planetgen.util import log
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
@@ -268,7 +269,7 @@ class Comet(SmallBody):
             log.choice("Comet orbit type", self.orbit_type,
                        f"roll against COMET_PARABOLIC_CHANCE ({tuning.COMET_PARABOLIC_CHANCE})")
 
-        self.nucleus_diameter_km = draw.uniform(*tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM)
+        self.nucleus_diameter_km = sample_power_law(*tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM, tuning.COMET_NUCLEUS_CUMULATIVE_INDEX)
 
         self.perihelion_distance_au = draw.uniform(*tuning.COMET_PERIHELION_DISTANCE_RANGE_AU)
         self.arg_periapsis_deg = draw.uniform(0, 360)

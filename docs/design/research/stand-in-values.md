@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1872 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1873 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,14 +40,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1845 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1846 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 215 | 22 | 12 | 1 | 0 | 250 |
+| T1 | 216 | 22 | 12 | 1 | 0 | 251 |
 | T2 | 171 | 72 | 3 | 1 | 0 | 247 |
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
@@ -56,7 +56,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 108 | 41 | 227 |
-| All | 1069 | 384 | 94 | 265 | 60 | 1872 |
+| All | 1070 | 384 | 94 | 265 | 60 | 1873 |
 
 ## How the labels were given
 
@@ -3317,6 +3317,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CMT3 | P | T4 | L3 | `tuning.COMET_PERIOD_CLASSES` eccentricity ranges 0.2 to 0.75 (Jupiter family), 0.5 to 0.97 (Halley-type) and 0.9 to 0.999 (long-period) | each end within 0.1 (the long-period top within 0.001 of 1) | star-bound comets | an orbit catalogue whose family eccentricities lie outside the ranges | the eccentricity a giant's scattering gives (the Tisserand redraw) | design: the ends keep each family inside its period window for the perihelion range of CMT6; no source read | predicted only | - | no data |
 | CMT4 | P | T2 | L1 | `tuning.COMET_PERIOD_CLASSES` inclination caps 30 degrees (Jupiter family), 180 (Halley-type) and 180 (long-period) | Jupiter family 20 to 40 degrees | star-bound comets | a Jupiter family whose inclinations are not mostly under 30 degrees, or a long-period family that is not isotropic | the inclination a giant's scattering and the outer disk's plane give | an isotropic cloud and the low inclination of the Jupiter family, both recalled, no paper opened | predicted only | - | - |
 | CMT5 | P | T9 | L3 | `tuning.COMET_PERIOD_CLASSES` weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family | each 0.1 to 0.6 | stars that hold comets | a comet census of a system with the shares of its outer belt, giants and cloud | a supply from the reservoirs: the outer belt's mass for the Jupiter family, the cloud for the other two, through the giants' scattering | the code's own comment says it is not a population estimate; chosen so the three families are all common | predicted only | - | replace (GEN.1765) |
-| CMT6 | P | T6 | L3 | `tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM` (0.5, 20) drawn uniform in diameter | lower end 0.2 to 1 km; upper end 15 to 60 km | star-bound comet nuclei | a measured nucleus size distribution of a star's comets (the cumulative number of nuclei falls steeply with diameter, with an index of about 1.9 for the Jupiter family, recalled, not opened; a uniform draw has index 0) | a truncated power law in diameter with the published cumulative index, its upper end from the belt's largest body | nuclei of 1 to 10 km typical, as the comment in `tuning.py` quotes it, second-hand; the draw's shape is a stand-in | predicted only | - | replace (GEN.1765) |
+| CMT6 | P | T1 | L0 | `tuning.COMET_NUCLEUS_CUMULATIVE_INDEX` 1.92 and the lower end 2.5 km of `BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM`: a star-bound comet's nucleus diameter is drawn from a power law, the cumulative number above D falling as D^-q, between 2.5 and 20 km (`Comet`, `util.random.sample_power_law`) | q 1.72 to 2.12 (the printed error of 0.20); lower end 1 to 2.5 km | Jupiter-family nuclei of radius 1.25 km and up, applied to the Halley-type and long-period nuclei too (no size law of those is read) | a nucleus sample complete to smaller sizes with another slope, or a turnover above 2.5 km | a law with its own break once a sample complete below 2.5 km is read | [R4139] (Snodgrass et al., abstract: q = 1.92 +- 0.20 for radius 1.25 km and up) and [R5296] (abstract: slope about -1.9 of 89 nuclei); only the abstracts were read | predicted only | - | - |
 | CMT7 | P | T6 | L3 | `tuning.COMET_PERIHELION_DISTANCE_RANGE_AU` (0.05, 5.0) drawn uniform in perihelion | lower end 0.01 to 0.1 AU; upper end 3 to 10 AU | star-bound comets | a comet catalogue whose perihelia are not flat in distance inside the range after the survey bias is removed | the star's radius and tidal limit for the lower end and the activity threshold (CA1) for the upper | physics: for a near-parabolic orbit q = L^2 / (2 G M), and an isotropic cloud that fills its loss cone is flat in L^2, so flat in q; the two ends are hand set | predicted only | - | no data |
 | CMT8 | P | T9 | L3 | `tuning.SYSTEM_COMET_CHANCE` 0.3 and `SYSTEM_COMET_COUNT_RANGE` (1, 3): the share of stars that hold comets and how many of the few the generator models each holds | chance 0.1 to 1; count 1 to 5 | every star's own comets | a star with an outer belt or a cloud that shows no comets, or a comet census per star that is far from this rate | comets present wherever the system has an outer belt, a cloud or a giant, from the supply of CMT5's replacement | design: the code's comment ("most real stars aren't known to host an observed comet population") is an observation limit, not a rate | predicted only | - | replace (GEN.1765) |
+| CMT9 | P | T6 | L3 | `tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM` upper end 20 km: the largest nucleus the draw gives | 15 to 60 km | star-bound comet nuclei | a comet of a star with a belt whose largest body is far under or over it | the largest body of the star's own outer belt (GEN.1765, supply slice) | design: wide of the largest measured nuclei, [R2301] gives Halley at about 15 x 8 km | predicted only | - | replace (GEN.1765) |
