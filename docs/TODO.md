@@ -12701,11 +12701,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03, after GEN.1737; lock item. Prerequisites: GEN.1745, GEN.1740. Related: GEN.1739, GEN.1740.
   Filed by the TODO thread.
 
-- [ ] **OPS.264 (bug) Every per-piece writer is safe to re-run: scatter shells and scatter phenomena write their 10,000-row batches twice, and unplaced sectors and the system finish piece write a second row, when a piece runs again after its commit**
-  Lane 15, 8:32 PM EST 2026-11-15 (found while fixing DB.131, PR #6758): a piece that re-runs after its write committed (Boss's run of 8:18 PM EST re-ran a Neighborhood piece) is safe only where the write and the piece's cursor commit together or the piece checks first. By reading: the nebula field draw stops on a duplicate key; scatter shells and scatter phenomena commit 10,000-row batches one by one, so a re-run silently writes the rows twice; unplaced sectors and the system finish piece write a second row; finish-phenomena, backfill, link, sector paths and the clear/empty commands are safe; population and territories not yet read. Do: make each unsafe writer commit its rows with the piece's cursor (as OPS.222 part B did) or check first, read population and territories, and add a re-run test per writer. Lane 13 owns why the engine re-ran the piece.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 15, after DB.131 and ahead of GEN.1141. Prerequisites: none. Related: DB.131, OPS.222, OPS.228.
-  Filed by the TODO thread.
-
 - [ ] **OPS.265 (bug) plan-skeleton's outline piece (7.5 s) and generate-system's first system (8.5 s) go silent past the 5 s budget on a small galaxy: give each a count inside**
   Lane 16, 9:29 PM EST 2026-11-15 (OPS.262, PR #6762): the all-commands silence run records these with their own budgets in src/tests/test_longest_silence.py (or tests/), so the test stays green while they are open. Boss's standing order (11-13): every long step reports fine-grained progress with real counts. Do: add the inner count, then drop the command's own budget from the silence test so the default 5 s applies.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
@@ -12714,11 +12709,6 @@ clears each one.
 - [ ] **OPS.266 (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector**
   Lane 16, 9:29 PM EST 2026-11-15 (OPS.262, PR #6762): the all-commands silence run records these with their own budgets in src/tests/test_longest_silence.py (or tests/), so the test stays green while they are open. Boss's standing order (11-13): every long step reports fine-grained progress with real counts. Do: add the inner count, then drop the command's own budget from the silence test so the default 5 s applies.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
-  Filed by the TODO thread.
-
-- [ ] **TEST.773 (bug) test_fuzz_cli: two galaxy tests fail in the whole-file run with "RunStopped: the run done before stage 1 was queued" and pass alone (order-dependent)**
-  Lane 15, 10:24 PM EST 2026-11-15 (on main f1f0c8ac3d): test_galaxy_runs_clean_with_hostile_numbers and test_galaxy_absurd_radius_is_clean[200.0] fail in the full src/tests/test_fuzz_cli.py run (51 pass) and pass alone. A run seen as done before its first stage was queued points at run state leaking between tests (a reused run id or Redis key) or a real engine race; find which, fix the cause (code if the engine can see a fresh run as done), not the test order.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.228, TEST.769.
   Filed by the TODO thread.
 
 - [ ] **GEN.1755 (bug, measure first) Class D size bodies (under 0.001 Earth masses) at 1 to 5 AU of F, G and K stars are tidally locked 17 to 59 percent of the time, where the standard tide time gives about zero**
@@ -12743,6 +12733,7 @@ clears each one.
 
 - [ ] **GEN.1753 Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them**
   Lane 15, 6:32 PM EST 2026-11-15 (GEN.1533, PR #6747): store.load_star_system now attaches each restored body's birth numbers from body_history, but nothing uses them yet (planets.draw_birth_spin always draws). Do: a moved or edited body starts from its own stored birth eccentricity, spin and capture draws; the air history (GEN.1745) reads them for restored bodies. Lock item (changes what an edit produces).
+  Lane 15, 10:38 PM EST 2026-11-15: scope found by measuring a moved restored system against its generated twin: planets with moons lose `_born_moons` (moon history restarts from drifted distances, spin wrong), and `formation_distance_au` is stored nowhere, so a restored body's end-stage draw streams (haze, spin, minerals, envelope, isotopes) and its ice-or-rock water fall back to its current distance (one moved planet came out with no class). Migration 0266 adds body_history.formation_distance_au, birth_distance_au and born_index plus a lost born moons table; attach restores all of them.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 15. Prerequisites: GEN.1533. Related: GEN.1497, GEN.1745.
   Filed by the TODO thread.
 
