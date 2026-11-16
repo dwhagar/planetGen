@@ -7,9 +7,8 @@ Poisson-disk growth (`grow_from_seed`), `nearest_neighbors`, the
 Poisson count sampler, the galaxy-cell geometry sectors place into, and
 the `to_dict`/`from_dict`/`save`/`load` round trip.
 
-`test_bughunt_sector_placement.py` crams a handful of real large systems
-into one small cube. This file instead drives the placement code with
-hypothesis-chosen *geometry*: sector edges from 0 to 10^4 ly, real
+The separation law reads only an object's Hill sphere, so this file drives the placement code with
+hypothesis-chosen *geometry* and stand-in objects, where a test that built real large systems took 20 minutes for the same check (TEST.730): sector edges from 0 to 10^4 ly, real
 spherical galaxy cells from shell 0 (the core ball)
 to shell 10^6 (a thin shell piece), Hill radii from 0 to far larger than the
 sector, flat `min_separation_ly` overrides including 0, negative and NaN,
@@ -265,6 +264,14 @@ def test_explicit_non_finite_position_is_rejected(bad, method):
             sector.add_phenomenon(_StubRemnant(1.0, "bh"), "black-hole", position=bad)
     assert not sector.entries and not sector.phenomena
     sector.add_system(_StubSystem(1.0))  # still usable
+
+
+def test_explicit_positions_skip_the_separation_check_as_documented():
+    """An explicit position skips the automatic Hill-sphere separation: a caller placing two systems close together on purpose (a hand-made scenario) is not blocked."""
+    sector = SpaceSector("explicit", edge_ly=100.0)
+    first = sector.add_system(_StubSystem(50.0), position=(0.0, 0.0, 0.0))
+    second = sector.add_system(_StubSystem(50.0), position=(0.0001, 0.0, 0.0))
+    assert [entry.position for entry in sector.entries] == [first.position, second.position] == [(0.0, 0.0, 0.0), (0.0001, 0.0, 0.0)]
 
 
 @pytest.mark.parametrize("position", [(1e9, 0.0, 0.0), (5.000001, 0.0, 0.0), (-6.0, -6.0, -6.0)])
