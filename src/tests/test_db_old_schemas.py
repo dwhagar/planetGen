@@ -1,12 +1,13 @@
 # tests/test_db_old_schemas.py
 
 """
-TEST.8: every checked-in old galaxy schema (`fixtures/old_schemas/`, the
-Alembic baseline v130 and later) migrates to the current version and ends up
+TEST.8, TEST.729: the Alembic baseline (v130) and the newest `NEWEST` old galaxy schemas (`fixtures/old_schemas/`) migrate to the current version and end up
 exactly the shape `schema.sql` gives a new database: the same tables,
 columns (type, nullability, default), indexes, foreign keys and CHECKs.
 Starting from the real old schema, not a new database with columns
 dropped, also covers drift between `schema.sql` and the revisions.
+The run from the baseline passes through every revision, and the fixtures hold schema only (no rows), so a start point between adds nothing to it; the newest revisions
+are the ones Boss's server has not run yet, so they are also started from the schema just before each. Any other fixture a test loads by number is kept for that test.
 """
 
 import pytest
@@ -26,7 +27,15 @@ from tests.db_schema_support import (
 # A fresh database with no schema, which these tests build and migrate themselves (TEST.139 stage 3).
 pytestmark = pytest.mark.fresh_database
 
+NEWEST = 3
+"""int: How many of the newest old schemas are started from besides the baseline (TEST.729)."""
+
 _fresh_snapshots = {}
+
+
+def checked_versions():
+    """The old schemas the shape test starts from: the baseline and the `NEWEST` versions before the current one."""
+    return [alembic_runner.BASELINE_VERSION, *range(max(alembic_runner.BASELINE_VERSION + 1, store.SCHEMA_VERSION - NEWEST), store.SCHEMA_VERSION)]
 
 
 def fresh_snapshot(beside):
@@ -39,13 +48,14 @@ def fresh_snapshot(beside):
     return _fresh_snapshots[server]
 
 
-def test_every_version_before_the_current_one_has_a_fixture():
+def test_the_baseline_and_the_newest_versions_before_the_current_one_have_a_fixture():
     versions = old_schema_versions()
     assert versions[0] == alembic_runner.BASELINE_VERSION
-    assert set(range(alembic_runner.BASELINE_VERSION, store.SCHEMA_VERSION)) <= set(versions)
+    assert set(checked_versions()) <= set(versions)
+    assert len(checked_versions()) == NEWEST + 1
 
 
-@pytest.mark.parametrize("version", old_schema_versions())
+@pytest.mark.parametrize("version", checked_versions())
 def test_old_schema_migrates_to_the_fresh_shape(mysql_config, version):
     load_old_schema(mysql_config, version)
     assert store.schema_status(mysql_config)[0] == version
