@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4396] - 2026-11-16
+
+**Headline:** The pinned civilized test systems hold a civilization again, so the population tests no longer hunt for one.
+
+### Fixed
+- **`test_the_pinned_civilized_seeds_still_qualify` was red on main.** Draw shifts since the last refresh left none of the four pinned candidates (112, 135, 172, 242) with a technological civilization, so the population tests fell back to hunting random systems. The pins are now candidates 5 and 39, found by scanning candidates; the civilization rate is unchanged at about 1.6 percent (2 of 124 scanned now, 4 of the first 243 when the old pins were found).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4395] - 2026-11-16
 
 **Headline:** The belt overlap test now checks the belt's inner edge, the way the spacing pass measures it.
