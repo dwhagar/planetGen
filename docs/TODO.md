@@ -11580,11 +11580,6 @@ clears each one.
   Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
   Lane 11 (as the lane reported 1:30 AM EST on 2026-11-12): the birth luminosity function is PR 6180 (physics/birth_luminosity.py, birth_luminosity_sol(initial_mass_sol, fe_h, age_gy), lock-free, unwired), for GEN.1611 slice 1 (Lane 21). It has a 1.8x step at 1.4 Msun from the track mismatch in GEN.1640.
 
-- [ ] **GEN.1612 (bug) About 40 percent of comets have an orbital period outside their family's period range, because the comet draw never reads the family's range**
-  Lane 22 (as the lane reported 9:06 PM EST on 2026-11-11, while building GEN.1608, PR 6127), confirmed by run: the comet shape draw never reads the family's period range, so about 40 percent of comets sit outside it (GEN.1608 only fixes the 200-year periodic and long-period split the designation uses). Coordinator, 9:14 PM EST on 2026-11-11: file and build under Boss's standing 'fix all the bug work finds for 8.1' (Boss may veto). Do: draw each comet's orbit within its family's period range (or draw the family from the drawn orbit), reusing comet.py _draw_shape and the family table; no second comet pass. Done: a test that every drawn comet's period sits in its family's range over a seeded sample, before and after family and ice-makeup counts. Lock item (changes stored comet values, new epoch). Split (TODO sweep, 2026-11-12): slice 0 lock-free: a check script that counts comets outside their family's range on main; slice 1 lock: the fix.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: GEN.1608. Related: GEN.1608, GEN.595.
-  Filed by the TODO thread. Bug work; approved under Boss's fix-all (veto open).
-
 - [ ] **UX.305 (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212**
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do: read planet_class_text.description instead, and test that each class facet has a tooltip. Lock-free.
   Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1212. Boss's call on the choice where noted.
@@ -11600,12 +11595,6 @@ clears each one.
 - [ ] **GEN.1622 (bug) The climate model gives Venus 586 K (real 735 K) and Titan 114 K (real 94 K): no cloud greenhouse and no haze cooling in thick airs**
   Data audit batch 1, D2 (report reports/data-audit-2026-11-11.md, with file and line). Do: add a cloud greenhouse term and haze anti-greenhouse for thick airs from the research ([R....] ids only), check Venus and Titan analogues. Lock item.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.1586, GEN.1613.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
-- [ ] **GEN.1624 (bug) Old brown dwarfs keep their young radius (13 Jupiter masses stays 1.50 Rjup, should be about 1.0) and their luminosity runs up to 2.4 times high (physics/brown_dwarf.py)**
-  Data audit batch 1, D4 (report reports/data-audit-2026-11-11.md, with file and line). Do: cool and contract brown dwarfs with age from an evolution track (reuse any table already in the datasets). Lock item.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: GEN.1371.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
@@ -11928,21 +11917,6 @@ clears each one.
 - [ ] **TEST.740 (bug) Main reds left after Train 26: fill_order, materials reachability, cli_edges, math lint in reproducible_draws, sql_portability, generation_stats, datasets_gaia_sources, web_generate_size and finish_run_generation**
   Train Manager (2026-11-14, after Train 26, PR 6402): these tests are red on main and were left out of the train. test_clearance is GEN.1693 (Lane 22, PR 6428) and is not part of this item. The list: fill_order; materials reachability; cli_edges; math lint in reproducible_draws (system.py math.dist, eclipses.py math.hypot, the @ operator in secular_chain and obliquity_variation); sql_portability (`dec` in gaia_nearby.py); test_generation_stats (a WARNING line); test_datasets_gaia_sources (the "Nearby Stars" text, changed by PR 6436); test_web_generate_size ("refused"); test_finish_run_generation (its first test runs three 12-sector band runs and the 900 s hung-test guard ends it on a 4-core box); test_plans::test_a_system_moves_inside_its_sector_and_clear_of_its_neighbours (DID NOT RAISE PlanError, red on main 0350ccad5); after PR 6454: the wiring guard (run_common.write_text_output and one more built but unread) and a source written by name in physics/planet_architecture.py about line 282 (write [R4897]); reported by Lane 21 (12:01 AM EST 11-14): test_only_oxygenic_life_holds_oxygen_it_made fails on an oxygenic world with an "ice-covered ocean" hydrosphere (not in LIVING_HYDROSPHERES); activity.SUN_LOGG has no registry row or tag; four test_no_own_log_formatting failures (cli/admin_account_command.py about line 53 prints, cli/forget_devices.py stale allowance, queue/wrapper.py about line 253 counts by hand, generation/run_common.py about line 426 severity word); test_bulk_draw::test_a_radius_gets_the_mass_its_composition_needs (BulkFractions comparison, Lane 21); stand-in row AM97 named two constants (fixed in PR 6471); test_moon_and_rogue_rings::test_a_moon_s_ring_obeys_the_same_law_and_a_moon_has_no_moon_to_stop_it takes 520 s and is not marked slow; stale scripts: build_fudge_table.py about line 230 reads class_fit.SHOULDERS, measure_sky_sphere.py about line 49 calls bright_stars.backfill_sphere, class_census.py about line 99 patches Star.adjust_age_for_planets (all gone). Routed: Lane 21 takes the physics and script reds; PR 6460 (TODO) the Gaia, warm-up, citation and wiring reds; Lane 03 the queue MySQLConfig.from_args break from PR 6454. PR 6460 fixes the Gaia, warm-up and citation reds. Do: fix each on main, one PR or several, without skipping or loosening a test; a test that is too heavy gets a smaller run that still proves the same thing.
   Version 8.1. Owner (TODO, 2026-11-14): TODO thread for the text and lint reds; Lane 12 runs the gate. Prerequisites: none. Related: GEN.1693, TEST.738.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1762 biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087**
-  Lane 04, 4:38 AM EST 2026-11-16 (PR 6815, GEN.1636): GEN.1636 made surface_pressure.HEAT_FLUX_EARTH_W_M2 (0.0614, the interior model's own Earth twin, row AM33) the one reference for outgassing, life supply and hydrothermal ores; the oxygen balance still scales from 4.4e13 W. Do: make biogenic_oxygen read the same reference (an Earth twin gets 1.0 of Earth's reductant flux), measure oxygen and class changes on fixed seeds; and record in the registry why the model's Earth twin is 0.0614 against the measured 0.087 (the gap is the model's, not a second constant). Lock item (every oxygen balance moves).
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: GEN.1636. Related: GEN.1636, GEN.1733.
-  Filed by the TODO thread.
-
-- [ ] **DB.132 (bug) A planet's forced eccentricity from a resonant chain (oddity_quantities, GEN.1459) is not stored, so a restored planet in a chain that is moved or edited loses the floor settle_orbit keeps**
-  Lane 15, 6:53 AM EST 2026-11-16 (DB.101 audit, /mnt/project-files/reports/db101-storage-audit-2026-11-16.md). Do: store it (a column with its column_units entry, migration from the TODO thread) or rebuild it on load from the stored chain, whichever reuses more; a restored chain planet keeps the same floor. Lock item if stored values change.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: none. Related: GEN.1459, DB.101, DB.133.
-  Filed by the TODO thread.
-
-- [ ] **DB.133 (bug) Stars do not store initial_mass_sol and phase_end_age_gy (bright_stars does), so a restored star has None for both**
-  Lane 15, 6:53 AM EST 2026-11-16 (DB.101 audit). Do: add both columns with column_units entries (one migration with DB.132 if both need one), fill them at save, read them at load; test a restored star against its generated twin.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: none. Related: DB.101, DB.132.
   Filed by the TODO thread.
 
 - [ ] **GEN.1765 Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt**
