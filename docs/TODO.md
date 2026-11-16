@@ -11944,11 +11944,6 @@ clears each one.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the Roche-lobe accretion light as a pure function with tests (unwired); slice 1 lock: wire. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
-- [ ] **GEN.1536 The Cassini state of a planet's tilt from its real precession constant (needs the stored J2 or C22 figure), replacing the log-uniform stand-in**
-  Lane 21 (as the lane reported 2:00 PM EST on 2026-11-11), left out of GEN.1535 (PR 6023). With the fluid Darwin-Radau figure a Mercury-like body gets a precession constant alpha of 5 arcsec/yr, which puts its tilt at 4 to 7 degrees against the real 0.03 degrees, because the real figure is frozen in. So the log-uniform Cassini-state stand-in cannot be replaced until the body's stored J2 or C22 figure (its frozen shape) is available to the precession constant. Build: store or derive that figure, compute alpha from it, set the Cassini-state tilt from it, retire the stand-in in the registry (GEN.725) and say what moved in the change note. Lock item if it adds a column.
-  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 04. Prerequisites: GEN.1535. Related: GEN.1535, GEN.1454, GEN.1447, GEN.725.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1539 Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size**
   Lane 14 (as the lane reported 3:32 PM EST on 2026-11-11), found in the GEN.1520 after-sweep (PR 6035): outer-disk belts start at the fixed tuning.PLANET_OUTER_GROWTH_AU for every star, so every spectral type now shows a median belt at 11.4 au even though the disk edge now scales with the star's mass (100 au x (M/Msun)^0.5). Do: replace the fixed start with a limit that follows the star (the snow line, the disk edge of GEN.1520, or both), register the new constants in GEN.725 at the right tier and tweak level, check the belt census by spectral type before and after, and say in the change note what moved. Lock item (it changes belts).
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 03. Prerequisites: GEN.1520. Related: GEN.1520, GEN.1509, GEN.725.
