@@ -205,6 +205,14 @@ def test_a_belts_largest_body_is_the_largest_member_it_still_holds(promoted_syst
         assert belt.largest_body_km == pytest.approx(max(left, default=0.0), rel=1e-12)
 
 
+def test_every_belts_largest_body_is_its_largest_member(promoted_system):
+    """GEN.1605: a belt nothing was promoted from shows the largest member it lists too, not the size law's figure at another density."""
+    _seed, system = promoted_system
+    for belt in belt_planets.irregular_moons.belts_of(system.planets).values():
+        if belt.members:
+            assert belt.largest_body_km == pytest.approx(belt_planets.largest_left_km(belt), rel=1e-12)
+
+
 def test_a_member_over_the_oligarch_mass_is_promoted_whatever_the_limit(promoted_system, monkeypatch):
     """GEN.1561 (Boss, 10:06 PM EST 11-12): the ten is a cost limit; a round member heavier than the isolation mass of its stretch is a planet."""
     seed, system = promoted_system
