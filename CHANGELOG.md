@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4390] - 2026-11-16
+
+**Headline:** The CHECK-constraint test knows the shape of the two eccentricity columns DB.132 added to body_history, so it breaks and sees refused a bad value for each.
+
+### Fixed
+
+- `tests/test_db_check_constraints.py`: `_breaking_value` reads `(a is null) or ((a >= 0) and (a < 1))` (`held_eccentricity`, `forced_eccentricity`) and breaks it with 1.0, which the CHECK must refuse (a fix for Train 39).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4389] - 2026-11-16
 
 **Headline:** The air history now gives the surface temperature of a world's air at every step from the star's light and the interior's heat of that age, with no change to any generated world.
