@@ -51,7 +51,7 @@ SECTOR_WRITES = (
 
 SYSTEM_RELOAD_READS = (
     "asteroid_belt_composition", "asteroid_belts", "belt_members", "black_holes", "body_history", "comet_composition", "comets", "dark_members", "facilities",
-    "irregular_moons", "irregular_sets", "moon_deposit_types", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_class_scores",
+    "irregular_moons", "irregular_sets", "lost_moons", "moon_deposit_types", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_class_scores",
     "moon_reflection_spectrum", "moons", "neutron_stars", "orbit_nodes", "planet_deposit_types", "planet_gases", "planet_interior_layers", "planet_isotopes",
     "planet_life", "planet_life_class_scores", "planet_reflection_spectrum", "planets", "sector_stats", "sectors", "species", "star_systems", "stars",
     "system_config_slots", "system_configs", "system_interests", "system_summary",
