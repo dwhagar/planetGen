@@ -189,7 +189,7 @@ class AsteroidBelt:
     implanted_kg = 0.0
     """float: The mass an outer disk's giant implanted in this inner belt (GEN.1308), kg; part of the mass and the primordial mass it has. Not stored."""
     largest_body_km = None
-    """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet`, `collisional-debris`), the causes that
+    """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,
     the sentences of what shaped it, its sentence for the page and, for an outer disk, the shares the scatter step gave each population (`physics/scatter.py`). All empty for a belt a `SLOTS` entry asked for. `largest_body_km` is the largest body of the belt (Dc) as settled with its mass (GEN.1000, GEN.1069); None for a belt stored before GEN.1069."""
     history = ()

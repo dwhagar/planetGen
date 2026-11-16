@@ -34,12 +34,6 @@
       "fields": ["inner_au", "outer_au", "event_au"],
       "text": "The rubble of a collision between large bodies near {event_au:.3g} AU, still spread along their orbit."
     },
-    "destroyed-planet": {
-      "kind": "formation",
-      "label": "remains of a destroyed planet",
-      "fields": ["inner_au", "outer_au", "event_au"],
-      "text": "What is left of a planet that was destroyed near {event_au:.3g} AU."
-    },
     "giant-stirring": {
       "kind": "shaping",
       "label": "cleared and stirred by a giant",

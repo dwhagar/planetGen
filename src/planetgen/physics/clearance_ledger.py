@@ -10,7 +10,7 @@ floor, spacing and `min_orbit_distance` rules the placer applies one body at a t
 it out until the rules hold, so a rule it forgets to repeat (a planet after a belt is spaced against the belt but not against the planet
 before it, GEN.1023) lets a pair through. The ledger answers the question first: for a host (a star, or a close pair taken as one body) it
 holds the **spans** of semi-major axis where a new body of a given mass and eccentricity may sit, and the placer draws from the spans
-(`restricted_quantile`: the placer's own law cut to the spans, by inverting its cumulative distribution), so no fitting is needed after.
+(the law cut to them, by inverting its cumulative distribution; the tests do it in `_log_uniform_quantile`, no placer reads the spans yet, GEN.1764), so no fitting is needed after.
 
 What the spans are made of, each rule one read:
 
@@ -157,41 +157,6 @@ def _pairs(spans):
             yield span.low, span.high
         else:
             yield span
-
-
-def restricted_quantile(u, spans, cdf, ppf):
-    """
-    The `u` quantile (0 to 1) of a law cut to `spans`: the exact conditional distribution, in one draw with no retry. The law's cumulative
-    distribution `cdf` is taken at both ends of every span, `u` picks a point of the total probability the spans hold, and `ppf` (the law's
-    inverse) turns it back into a distance.
-
-    Args:
-        u (float): A uniform draw in [0, 1).
-        spans (SpanSet): Where the body may sit.
-        cdf (callable): The law's cumulative distribution over the distance.
-        ppf (callable): Its inverse, over [0, 1].
-
-    Returns:
-        float or None: The distance, or None when the spans hold none of the law's probability (no room: a counted event for the caller).
-    """
-    weights = [(cdf(span.high) - cdf(span.low), span) for span in spans]
-    total = sum(weight for weight, _span in weights if weight > 0.0)
-    if not total > 0.0:
-        return None
-    target = min(max(u, 0.0), 1.0) * total
-    base = 0.0
-    for weight, span in weights:
-        if weight <= 0.0:
-            continue
-        if target <= base + weight or span is weights[-1][1]:
-            return min(max(ppf(cdf(span.low) + (target - base)), span.low), span.high)
-        base += weight
-    return None
-
-
-def log_uniform_quantile(u, spans):
-    """`restricted_quantile` for a law uniform in the logarithm of the distance (the placer's default), over spans that start above 0."""
-    return restricted_quantile(u, spans.intersect(1e-300, math.inf), math.log, math.exp)
 
 
 # --- planets and belts ------------------------------------------------------------------------------------------------------------------
