@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4360] - 2026-11-16
+
+**Headline:** A new number on a generated planet, moon or star that has no database column now fails a test, so a physics output cannot go unstored unnoticed.
+
+### Added
+
+- DB.101: `tests/test_stored_outputs.py` generates systems and fails when a generated planet, moon or star carries a public attribute that no field of its rows loads (`store.PLANET_FIELDS`, `MOON_FIELDS`, `STAR_FIELDS`) and that `HOMES` or `STAR_HOMES` does not place (another table, a derived value, or a reason it is not stored). A stale entry fails too. The audit of the 2026-10-24 wiring table is in `reports/db101-storage-audit-2026-11-16.md`: every built item stores its output; the unstored public attributes found are listed with their reasons.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4359] - 2026-11-16
 
 **Headline:** The tables a sector's generation writes are declared in full, so the touches check no longer depends on which bodies a test galaxy happens to generate.
