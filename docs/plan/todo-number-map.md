@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.780 |
+| TEST | TEST.781 |
 | USR | USR.33 |
 | OPS | OPS.268 |
 | DOC | DOC.121 |
@@ -4948,6 +4948,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.777 | (bug) test_unit_registry_js::test_no_browser_script_declares_a_unit_factor is red on main: unitladder.js (UX.319 HMS formatter, PR 6764) declares YEAR_SECONDS and the 86400 and 3600 factors instead of reading them from unitregistry.js | done (PR 6839, Lane 14, merged 7:20 AM EST 11-16: unitladder.js reads year, day, hour and minute from unitregistry.js) |
 | TEST.778 | (bug) test_haze_in_the_air::test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it is red on main e22ff539e2 | done (PR 6847, Lane 03, merged 8:37 AM EST 11-16: red since GEN.1754 moved the first hazy body with ground to a 257 K body whose air does not settle; the test now replays from the body own draw state and asserts haze is present, 0.5 K bound untouched) |
 | TEST.779 | (bug) test_body_state_fields::test_a_remake_after_an_orbit_change is red on main: the remade body's composition text differs | done (PR 6855, Lane 04, merged 9:31 AM EST 11-16: a belt member at a water share exactly on a level edge grows a trace air and its composition phrase is rewritten from its shares on purpose (GEN.430); the test now checks the phrase against the current shares and allows a change only within 1e-5 of an edge) |
+| TEST.780 | (bug) test_mass_boundaries::test_the_generator_rows_read_the_table is red on main: it multiplies by a hard-coded 317.8 while tuning reads constants.JUPITER_MASS_EARTH (317.83) since GEN.1152 | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
