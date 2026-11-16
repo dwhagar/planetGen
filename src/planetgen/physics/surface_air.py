@@ -1233,5 +1233,5 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         far_uv=aerosols.far_uv_of(star, star_distance_au),
         starlight_w_m2=starlight_w_m2, albedo_law=ice_law,
         cloud_law=None if ice_law is None else cloud_law_of(body, starlight_w_m2, star_distance_au),
-        late_accreted_percent=getattr(body, "_late_accreted_percent", None),
+        late_accreted_percent=body.build.late_accreted_percent,
         ice_kg=None if giant else surface_ice_kg(body), cycle_share=abundance_tier.cycle_share(body))

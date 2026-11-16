@@ -12,6 +12,7 @@ from planetgen.generation.system import StarSystem
 from planetgen import tuning
 from planetgen.physics import bulk_composition as bc, bulk_draw, bulk_structure, constants, envelope_share
 from planetgen.util import draw
+from planetgen.generation.build_record import BuildRecord
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -26,7 +27,7 @@ def _star(**extra):
 
 def _body(radius_km, icy=False, **extra):
     """A body of the given radius that formed inside the snow line, or (`icy`) well beyond it."""
-    fields = dict(radius=radius_km, mass=None, star=_star(), is_moon=False, distance=20.0 if icy else 1.0)
+    fields = dict(radius=radius_km, mass=None, star=_star(), is_moon=False, distance=20.0 if icy else 1.0, build=BuildRecord())
     fields.update(extra)
     return SimpleNamespace(**fields)
 
@@ -170,7 +171,7 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
                     assert bulk.envelope > 0.0
                 else:
                     # GEN.1226: the share of a hydrogen-rich air, else 0; GEN.1323: a planet that captured an envelope stores that one (its air is the envelope)
-                    captured = getattr(body, "_captured_envelope", 0.0)
+                    captured = body.build.captured_envelope
                     assert bulk.envelope == pytest.approx(captured or envelope_share.air_share(body)) and body.water_mass_fraction == bulk.water
                     if captured:
                         assert bulk.envelope_helium is not None and bulk.envelope_z is not None
@@ -183,10 +184,10 @@ def test_a_rocky_body_under_one_earth_mass_adds_the_water_its_nebular_envelope_m
     of under 0.2 Earth masses get none, and the run's stream does not move."""
     from planetgen.physics import envelope_capture
     mass = lambda earth: earth * constants.EARTH_MASS_TO_KG
-    for earth, extra in ((0.5, {}), (0.5, {"_late_core": True}), (0.5, {"is_moon": True}), (1.5, {}), (0.1, {})):
+    for earth, extra in ((0.5, {}), (0.5, {"build": BuildRecord(late_core=True)}), (0.5, {"is_moon": True}), (1.5, {}), (0.1, {})):
         body = _body(5000.0, mass=mass(earth), **extra)
         draw.set_run_seed(11)
-        base = bulk_draw._rocky_water(_body(5000.0, mass=mass(earth), _late_core=True))     # the delivered water alone
+        base = bulk_draw._rocky_water(_body(5000.0, mass=mass(earth), build=BuildRecord(late_core=True)))     # the delivered water alone
         draw.set_run_seed(11)
         water = bulk_draw._rocky_water(body)
         if earth == 0.5 and not extra:

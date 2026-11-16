@@ -127,12 +127,12 @@ def test_every_planet_with_moons_ends_with_moons_it_can_keep():
 
 def test_the_history_runs_again_to_the_same_state_without_new_draws():
     """It starts from the moons the planet was born with and its birth spin, so applying it twice gives one result, and only the spin axis' precession is drawn."""
-    planet = _planet_where(lambda p: getattr(p, "_born_moons", None), "a planet with the moons it was born with")
+    planet = _planet_where(lambda p: p.build.born_moons, "a planet with the moons it was born with")
     # the star's age is adjusted for its planets after they are made, so the first run is of the age it had; two runs on the final age agree
-    planets.generate_spin(planet, planet.star.mass, birth=planet._birth_spin)
+    planets.generate_spin(planet, planet.star.mass, birth=planet.build.birth_spin)
     before = ([m.distance for m in planet.moons], planet.rotation_period_hours, getattr(planet, "fallen_moons", ()))
     draw.set_run_seed(7)
-    planets.generate_spin(planet, planet.star.mass, birth=planet._birth_spin)
+    planets.generate_spin(planet, planet.star.mass, birth=planet.build.birth_spin)
     after = ([m.distance for m in planet.moons], planet.rotation_period_hours, getattr(planet, "fallen_moons", ()))
     assert after[0] == pytest.approx(before[0], rel=1e-9) and after[1] == pytest.approx(before[1], rel=1e-9) and after[2] == before[2]
 
@@ -152,9 +152,9 @@ def test_a_history_no_integrator_can_finish_leaves_the_moons_as_born(monkeypatch
     def fail(*args, **kwargs):
         raise moon_orbits.IntegrationFailed("stiff")
 
-    planet = _planet_where(lambda p: getattr(p, "_born_moons", None), "a planet with the moons it was born with")
+    planet = _planet_where(lambda p: p.build.born_moons, "a planet with the moons it was born with")
     monkeypatch.setattr(moon_orbits, "evolve", fail)
-    planets.generate_spin(planet, planet.star.mass, birth=planet._birth_spin)
-    assert planet.moons == planet._born_moons
+    planets.generate_spin(planet, planet.star.mass, birth=planet.build.birth_spin)
+    assert planet.moons == planet.build.born_moons
     assert all(m.distance == pytest.approx(m._birth_distance_au) for m in planet.moons)
     assert planet.fallen_moons == () and planet.rotation_period_hours > 0.0

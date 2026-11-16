@@ -11,6 +11,7 @@ import types
 import pytest
 
 from planetgen.physics import constants, magnetism, radiation, radiation_belts as rb
+from planetgen.generation.build_record import BuildRecord
 from tests.test_radiation_belts import JUPITER_MOMENT
 
 AU_KM = constants.AU_M / 1000.0
@@ -20,7 +21,7 @@ def _parent(moment=JUPITER_MOMENT):
     """A Jupiter-like parent with just what `belts_of_body` reads."""
     return types.SimpleNamespace(
         magnetic_moment_a_m2=moment, radius=constants.JUPITER_RADIUS_KM, mass=constants.JUPITER_MASS_TO_KG, rotation_period_hours=9.925,
-        star=types.SimpleNamespace(), _star_distance_au=5.2, surface_temperature=None, atmospheric_pressure=None)
+        star=types.SimpleNamespace(), build=BuildRecord(star_distance_au=5.2), surface_temperature=None, atmospheric_pressure=None)
 
 
 @pytest.fixture(autouse=True)

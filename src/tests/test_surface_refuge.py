@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 from planetgen.physics import biogenic_oxygen as bo, habitability_world, ice_light, life_classes, surface_refuge
+from planetgen.generation.build_record import BuildRecord
 
 from tests.test_life_classes import world
 
@@ -110,7 +111,7 @@ def test_a_wet_place_at_the_cold_edge_makes_next_to_nothing():
 def _body(values, **over):
     """A planet of `values` with the attributes `biogenic_oxygen` reads (Earth's size, the Sun at 1 AU)."""
     star = SimpleNamespace(luminosity=3.828e26, temperature=5772.0, age=4.6)
-    body = SimpleNamespace(star=star, _star_distance_au=1.0, radius=6371.0, gravity=1.0, surface_temperature=values["surface_temperature_k"], hydrosphere=values["hydrosphere"],
+    body = SimpleNamespace(star=star, build=BuildRecord(star_distance_au=1.0), radius=6371.0, gravity=1.0, surface_temperature=values["surface_temperature_k"], hydrosphere=values["hydrosphere"],
                            internal_heat_flux_w_m2=0.09, **{key: values.get(key) for key in ("aquifer_depth_km", "aquifer_thickness_km", "ocean_fraction", "ocean_class")})
     for key, value in over.items():
         setattr(body, key, value)

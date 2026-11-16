@@ -44,7 +44,7 @@ _FORMED = "_formation_fractions"
 
 def air_share(body):
     """The hydrogen-rich air's mass over the body's mass; 0 for a body without a hydrogen-rich air (a giant, a body with no air, no mass or no radius)."""
-    if getattr(body, "_captured_envelope", 0.0):
+    if body.build.captured_envelope:
         return 0.0      # the envelope the planet captured (GEN.1323, `envelope_capture`) is its hydrogen air already; the share is not counted twice
     mass, radius_km, pressure = getattr(body, "mass", None), getattr(body, "radius", None), getattr(body, "atmospheric_pressure", None)
     if not mass or not radius_km or not pressure or pressure <= 0.0:

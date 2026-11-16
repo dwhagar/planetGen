@@ -80,14 +80,14 @@ def _kept_planet(star, distance, mass_earth):
     """A planet that was drawn with an envelope (the draw gives it when the planet is made), and the radius of its drawn core."""
     for seed in range(60):
         planet = _planet(star, distance, mass_earth, seed)
-        if planet._captured_envelope:
-            return planet, planet._bare_core["radius"]
+        if planet.build.captured_envelope:
+            return planet, planet.build.bare_core["radius"]
     pytest.fail("no planet kept an envelope in 60 draws")
 
 
 def test_a_planet_is_made_with_the_envelope_it_kept_its_radius_density_gravity_and_fractions(sun):
     planet, bare_radius = _kept_planet(sun, 1.5, 6.0)
-    assert planet.envelope_mass_fraction == pytest.approx(planet._captured_envelope) and 0.0 < planet.envelope_mass_fraction < 0.5
+    assert planet.envelope_mass_fraction == pytest.approx(planet.build.captured_envelope) and 0.0 < planet.envelope_mass_fraction < 0.5
     assert planet.radius > bare_radius * 1.15
     assert planet.volume == pytest.approx(4 / 3 * math.pi * planet.radius ** 3, rel=1e-12)
     assert planet.gravity == pytest.approx(constants.G * planet.mass / (planet.radius * 1000) ** 2 / constants.EARTH_GRAVITY, rel=1e-6)
@@ -108,7 +108,7 @@ def test_the_fractions_add_to_one_whatever_the_drawn_planet_already_held(sun):
         planet = _planet(sun, 1.2, 2.0 + 0.4 * (seed % 8), seed)
         total = sum(getattr(planet, name) or 0.0 for name in (*envelope_share.SOLIDS, "envelope_mass_fraction"))
         assert total == pytest.approx(1.0, abs=1e-9), (seed, total)
-        checked += bool(planet._captured_envelope)
+        checked += bool(planet.build.captured_envelope)
     assert checked >= 3
 
 
@@ -117,7 +117,7 @@ def _stripped_by_age(star):
     star.age = 0.8
     for seed in range(60):
         planet = _planet(star, 0.12, 12.0, seed)
-        if planet._captured_envelope:
+        if planet.build.captured_envelope:
             star.age = 6.0
             return planet
     pytest.fail("no planet kept an envelope at 0.8 Gyr in 60 draws")
@@ -143,11 +143,11 @@ def test_a_settled_planet_is_settled_for_good_and_a_second_pass_does_not_compoun
 
 def test_the_star_stripping_all_of_it_gives_the_drawn_core_back(sun):
     planet = _stripped_by_age(sun)
-    bare_radius = planet._bare_core["radius"]
+    bare_radius = planet.build.bare_core["radius"]
     sun.age = 10.0
     sun.luminosity *= 30.0       # a star that has turned on: the loss takes it all
     assert planets.settle_envelope(planet) is True
-    assert planet._captured_envelope == 0.0 and planet.radius == pytest.approx(bare_radius) and not planet.envelope_mass_fraction
+    assert planet.build.captured_envelope == 0.0 and planet.radius == pytest.approx(bare_radius) and not planet.envelope_mass_fraction
     assert planet.envelope_helium_fraction is None and planet.envelope_z_fraction is None
 
 
@@ -157,7 +157,7 @@ def test_a_bare_core_and_a_planet_out_of_range_are_left_as_drawn(sun):
     assert planets.settle_envelope(close) is False
     assert (close.radius, close.gravity, close.envelope_mass_fraction, close.planet_class) == before
     light = _planet(sun, 1.5, 0.5)
-    assert planets.settle_envelope(light) is False and not light._captured_envelope
+    assert planets.settle_envelope(light) is False and not light.build.captured_envelope
 
 
 def test_settling_draws_nothing_from_the_run_stream(sun):

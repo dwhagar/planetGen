@@ -158,7 +158,7 @@ def belts_of_body(body, star_distance_au=None):
     no distance.
     """
     moment = getattr(body, "magnetic_moment_a_m2", None)
-    distance = star_distance_au or getattr(body, "_star_distance_au", None)
+    distance = star_distance_au or body.build.star_distance_au
     if not moment or not distance or getattr(body, "star", None) is None:
         return ()
     rotation_h = getattr(body, "rotation_period_hours", None)

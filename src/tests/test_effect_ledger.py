@@ -180,7 +180,7 @@ def test_a_v239_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mys
 def test_a_generated_system_notes_the_light_and_ultraviolet_of_each_star_on_each_body_and_changes_nothing():
     system, cfg = _system_with_a_moon()
     light = {id(receiver): sources for receiver, sources in system.effect_ledger.contributions("light")}
-    bodies = [body for obj in system.all_planets for body in (obj, *getattr(obj, "moons", ())) if getattr(body, "_air_light_au", None)]
+    bodies = [body for obj in system.all_planets for body in (obj, *getattr(obj, "moons", ())) if body.body_type != "a" and body.build.air_light_au]
     assert bodies and all(id(body) in light for body in bodies)
     for receiver, sources in system.effect_ledger.contributions("light"):
         assert all(value > 0.0 for _, value in sources)

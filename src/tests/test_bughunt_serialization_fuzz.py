@@ -117,12 +117,12 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # likelihoods its life draw and life scores are made from; the stored life scores say what they gave (GEN.649). A moon's
 # `moon_disk_system` is the giant's disk while its moons are drawn; the giant keeps the disk's numbers in columns (DB.70), as a moon does its
 # `moon_origin`. A planet's `formation_distance_au` is where it formed, which for all but a pulsar's disk planet is the orbit distance it is
-# stored with; what the draws read it for is kept as `born_beyond_snow_line` (TEST.427). A planet's `_orbit_birth` is the eccentricity
+# stored with; what the draws read it for is kept as `born_beyond_snow_line` (TEST.427). A planet's `build.orbit_birth` is the eccentricity
 # and tidal state it was drawn with, which `settle_orbit` takes again once the star's age is final (GEN.985); it is not stored. A giant's `_giant_draw` is the heavy-element draws that
-# `giant_draw.settle` keeps (GEN.961), also runtime state. A planet's `_surface_w` is the surface water its air solve drew, kept so the final-age
+# `giant_draw.settle` keeps (GEN.961), also runtime state. A planet's `build.surface_w` is the surface water its air solve drew, kept so the final-age
 # refresh (GEN.839) solves again with the same draw. A moon's `_belt_exposure_msv_yr` is the dose its parent's belts give at its orbit before the air
 # cuts it (GEN.983); the stored `dose_belt_msv_yr` is that after the air.
-# A planet's `_air_replay` is the state of the draws of its air, kept so the end-of-making pass can make the air again with the late accretion it read (GEN.1493); runtime state, spent to None and never stored. Its `_late_accreted_percent` is the late accretion the pass set (GEN.1493), also not stored.
+# A planet's `build.air_replay` is the state of the draws of its air, kept so the end-of-making pass can make the air again with the late accretion it read (GEN.1493); runtime state, spent to None and never stored. Its `_late_accreted_percent` is the late accretion the pass set (GEN.1493), also not stored.
 # A star's `initial_mass_sol`, `phase_end_age_gy`, `_model_age_lifespan` and `_model_fe_h` are the population model's
 # own state, which a forced type shares (GEN.941); they are runtime state that the stored columns rebuild. `_model_rotation_hours` is the
 # spin period a scattered star was placed with (GEN.846), which the built star takes from the `bright_stars` row it was built from.
@@ -131,14 +131,13 @@ _RUNTIME_ONLY = {
            "phase_end_age_gy", "_model_age_lifespan", "_model_fe_h", "_model_rotation_hours",
            "state", "decay_age_yr",
            "_companions"},    # GEN.1441: the other radiating objects a star's bodies see besides the host, attached by the system from its tree (`radiation_field.attach`), not stored; derived with no draw at __init__ from the class and the phase (GEN.785, GEN.786); the store writes the columns
-    Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
-             "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
-             "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw", "_age_drawn",
-             "_surface_w", "_belt_exposure_msv_yr", "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au",
-             "_formation_fractions", "irregulars", "_deferred_climate", "_motion_done",
-             "_bare_core", "_captured_envelope", "_late_core",
-             "_air_choice", "_air_context", "belt_member", "_air_haze", "_co2_sink", "_tidal_radius_km", "_resonance_e", "_exchange_damped_yr", "_kozai", "_retention_cap_pa", "_venus_spin", "oddity_quantities", "_frame_axis", "_air_light_au",
-             "_air_replay", "_late_accreted_percent", "_air_stale", "_air_eccentricity", "_tide_parent", "_tide_siblings", "_envelope_helium_y"},    # GEN.1047 to 1051, GEN.1340: the air branch and its context the oddity rows read, the resonance eccentricity, the retention cap the life stage keeps its oxygen inside, the Venus-type spin and the oddity quantities, the helium share of a hydrogen-first loss (GEN.1527, rebuilt by the settle pass); the stored columns (`oddities`, the eccentricity, the spin, the air) hold their result;    # the core the envelope was captured onto, the envelope it kept and the late-core request, which only the draw reads (GEN.1323); the stored columns hold their result; `irregulars` is written by `to_dict` as its own entry (GEN.1083); the solid fractions drawn before the envelope took its share (GEN.1226); the stored fractions are the ones after; `_deferred_climate` is the climate step held until the moons are known (GEN.1282), None once it ran; `_motion_done` is set once the orbit state was made earlier than the climate (GEN.1548), a flag the draw reads    # kept so the moon history can run again (GEN.959); the ring it builds is stored
+    Planet: {"system_config", "star", "moons", "spatial", "_build", "_staged_au", "_staged_velocity_kms",
+             "primary_mass_kg", "phi_bio", "phi_cpx",
+             "moon_disk_system", "formation_distance_au", "_giant_draw",
+             "_belt_exposure_msv_yr", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au",
+             "_formation_fractions", "irregulars", "_motion_done",
+             "_air_choice", "_air_context", "belt_member", "_air_haze", "_tidal_radius_km", "_exchange_damped_yr", "oddity_quantities",
+             "_air_stale", "_tide_parent", "_tide_siblings", "_envelope_helium_y"},    # GEN.1047 to 1051, GEN.1340: the air branch and its context the oddity rows read, the resonance eccentricity, the retention cap the life stage keeps its oxygen inside, the Venus-type spin and the oddity quantities, the helium share of a hydrogen-first loss (GEN.1527, rebuilt by the settle pass); the stored columns (`oddities`, the eccentricity, the spin, the air) hold their result;    # the core the envelope was captured onto, the envelope it kept and the late-core request, which only the draw reads (GEN.1323); the stored columns hold their result; `irregulars` is written by `to_dict` as its own entry (GEN.1083); the solid fractions drawn before the envelope took its share (GEN.1226); the stored fractions are the ones after; `_deferred_climate` is the climate step held until the moons are known (GEN.1282), None once it ran; `_motion_done` is set once the orbit state was made earlier than the climate (GEN.1548), a flag the draw reads    # kept so the moon history can run again (GEN.959); the ring it builds is stored
     AsteroidBelt: {"system_config", "composition", "makeup", "_members", "cleared_spans", "scatter_giant_au", "captured_mass_kg", "oddity_quantities", "swept_kg", "implanted_kg", "scatter_giant_kg", "scatter_giant_radius_km", "_secular_planets"},    # where the mass an outer disk lost went and the giant that scattered it (GEN.1308, not stored); the giant's distance the members of an outer disk are drawn with (GEN.1092); the stored members hold what it gave; the mass the planets caught (GEN.1085), already out of `mass_kg`
 }
 

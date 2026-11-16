@@ -9,10 +9,12 @@ import pytest
 
 from planetgen.db import store
 from planetgen.generation import life
+from planetgen.generation.build_record import HasBuildRecord
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import atmosphere, life_classes
 from planetgen.util import draw
+from planetgen.generation.build_record import BuildRecord
 
 SEEDS = range(5000, 5016)
 
@@ -110,15 +112,21 @@ def test_a_trial_copy_shares_the_bodies_a_planet_holds_and_does_not_walk_a_long_
     and ran out of recursion in a system of a few hundred bodies. The bodies are shared, like `moons`; a container with no body in it is still copied."""
     import types
 
-    class Body(types.SimpleNamespace):
+    class Body(types.SimpleNamespace, HasBuildRecord):
         body_type = "t"
+
+        def __copy__(self):
+            clone = type(self)(**vars(self))
+            self._copy_build_record(clone)
+            return clone
 
     chain = None
     for _ in range(3000):
         chain = Body(follow=(chain,) if chain is not None else ())
-    planet = Body(_born_moons=[chain], moons=[chain], notes={"a": [1, 2]}, star=object())
+    planet = Body(moons=[chain], notes={"a": [1, 2]}, star=object())
+    planet.build.born_moons = [chain]
     clone = life._trial_copy(planet)
-    assert clone._born_moons == planet._born_moons and clone._born_moons is not planet._born_moons and clone._born_moons[0] is chain
+    assert clone.build.born_moons == planet.build.born_moons and clone.build.born_moons is not planet.build.born_moons and clone.build.born_moons[0] is chain
     clone.notes["a"].append(3)
     assert planet.notes == {"a": [1, 2]}
 

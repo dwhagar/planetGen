@@ -25,7 +25,7 @@ the thermal tide of the air on the planet's spin in the same sum (`body_spin`, G
   from the stored distances, masses and spin by `interior_heat`, at the temperature of the mantle.
 
 The pass draws nothing except the spin axis' precession angle that `spin.set_spin` places again, and it can be repeated: it starts from the bodies
-`_born_moons` (kept on the planet, with each moon's `_birth_distance_au`) and the planet's `_birth_spin`. A planet restored from the database has neither
+`build.born_moons` (kept on the planet, with each moon's `_birth_distance_au`) and the planet's `build.birth_spin`. A planet restored from the database has neither
 and is left as it is. A history no integrator can finish (`moon_orbits.IntegrationFailed`) leaves the moons as born (TM8). A planet cannot be spun past `spin.BREAKUP_FRACTION` of its breakup rate by the moons that fall (TM9). Stand-ins are TM5 to TM9 of `docs/design/research/gap-filling-plan.md` section 6.25.
 """
 
@@ -55,12 +55,12 @@ def density_kg_m3(body):
 
 def born_moons(planet):
     """The moons the planet was generated with, in order, each with its birth distance (`_birth_distance_au`); the current moons the first time."""
-    born = getattr(planet, "_born_moons", None)
+    born = planet.build.born_moons
     if born is None:
         born = list(planet.moons)
         for moon in born:
             moon._birth_distance_au = moon.distance
-        planet._born_moons = born
+        planet.build.born_moons = born
     return born
 
 
@@ -93,7 +93,7 @@ def apply(planet, primary_mass_kg):
     moons, which then sets the spin state returned here. A planet with no birth spin on record (restored from the database) is left as it is.
     """
     from planetgen.physics import planets
-    birth = getattr(planet, "_birth_spin", None)
+    birth = planet.build.birth_spin
     if birth is None:
         return None
     born = born_moons(planet)
@@ -129,9 +129,9 @@ def apply(planet, primary_mass_kg):
                 if held_e - (moon.eccentricity or 0.0) > planets.ECCENTRICITY_SETTLE_TOLERANCE:
                     moon.eccentricity = held_e
                     planets.update_orbital_position(moon)
-                    moon._resonance_e = held_e
-                    if getattr(moon, "_age_drawn", None) is not None:
-                        moon._age_drawn = 0.0      # its air, class and heat are made again once, on the orbit it ends with (`planets.stale_air`)
+                    moon.build.resonance_e = held_e
+                    if moon.build.age_drawn is not None:
+                        moon.build.age_drawn = 0.0      # its air, class and heat are made again once, on the orbit it ends with (`planets.stale_air`)
     survivors.sort(key=lambda m: m.distance)      # a moon that drifted past another keeps its place by distance
     if len(survivors) > 1:        # GEN.1449 slice 2: a pair that swept a first-order resonance on the way out is held in it (`moon_resonances.capture`)
         held, _ = moon_resonances.capture([m.mass for m in survivors], [m._birth_distance_au for m in survivors], [m.distance for m in survivors])
@@ -141,7 +141,7 @@ def apply(planet, primary_mass_kg):
     survivors, dragged = _settle(planet, survivors)
     for moon in survivors:
         if abs(moon.distance / entry[id(moon)] - 1.0) >= RESPIN_FRACTION and not planets.is_bare(moon):     # a moon built bare has no spin yet, it takes its first at its final orbit (GEN.1548)
-            planets.generate_spin(moon, planet.mass, birth=getattr(moon, "_birth_spin", None))
+            planets.generate_spin(moon, planet.mass, birth=moon.build.birth_spin)
     planet.moons[:] = survivors
     age_yr = planet.star.age * 1.0e9
     planet.fallen_moons = tuple(

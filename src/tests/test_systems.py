@@ -306,7 +306,7 @@ def assert_positions_and_speeds_are_consistent(system):
     """
     for body in _all_planets_and_moons(system):
         position = (body.position_x, body.position_y, body.position_z)
-        axis = getattr(body, "_frame_axis", None)
+        axis = body.build.frame_axis
         if axis is not None:      # GEN.1352: a moon is set in the system's frame, but its inclination and node are measured in the frame of its planet's equator
             position = spin.turn_from_axis(position, axis)
         radius = math.sqrt(sum(c * c for c in position))

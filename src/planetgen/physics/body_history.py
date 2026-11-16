@@ -7,17 +7,17 @@ The numbers a body's history leaves that cannot be worked out again from what is
 The gravity effects of the effect ledger are recomputed on demand from stored masses and orbits (Boss 8:37 PM EST 11-08). A few numbers cannot be: they were
 drawn, or they are the state a run started from, and the stored body keeps only where the run ended. This module names those numbers and reads them off a
 generated body when the system is saved. It draws nothing and changes no result: the draws are kept on the body by the generator (`planets.draw_birth_spin`
-keeps `_birth_spin`, `planets.generate_orbit_shape` keeps `_orbit_birth`) for the passes that run the history again, and this table keeps them for the stored galaxy.
+keeps `build.birth_spin`, `planets.generate_orbit_shape` keeps `build.orbit_birth`) for the passes that run the history again, and this table keeps them for the stored galaxy.
 
 | Column | Unit | From |
 |---|---|---|
-| `birth_eccentricity` | fraction | the eccentricity a planet or captured moon was born on, before the tides and the secular chain settled it (`_orbit_birth`) |
-| `birth_spin_rate` | rad/s | the spin rate it was born with (`_birth_spin[0]`) |
-| `birth_obliquity_deg` | deg | the tilt it was born with, before the tides, the Cassini state or a Venus-type spin changed it (`_birth_spin[1]`) |
-| `capture_draw_1`, `capture_draw_2` | fraction | one uniform for each resonance the spin can pass without being caught (`spin_torques.CAPTURE_RATIOS`, in that order; `_birth_spin[2]`): they decide the tide history of the spin |
+| `birth_eccentricity` | fraction | the eccentricity a planet or captured moon was born on, before the tides and the secular chain settled it (`build.orbit_birth`) |
+| `birth_spin_rate` | rad/s | the spin rate it was born with (`build.birth_spin[0]`) |
+| `birth_obliquity_deg` | deg | the tilt it was born with, before the tides, the Cassini state or a Venus-type spin changed it (`build.birth_spin[1]`) |
+| `capture_draw_1`, `capture_draw_2` | fraction | one uniform for each resonance the spin can pass without being caught (`spin_torques.CAPTURE_RATIOS`, in that order; `build.birth_spin[2]`): they decide the tide history of the spin |
 | `formula_version` | count | `FORMULA_VERSION`: which set of formulas wrote the row, so a later change to them can tell the rows it must not refill from the rows it can |
 
-**Read back (GEN.1533):** `attach`, called by `store.load_star_system`, gives a restored planet or moon its `_orbit_birth` and `_birth_spin` from its row, so the stored galaxy carries what a run would
+**Read back (GEN.1533):** `attach`, called by `store.load_star_system`, gives a restored planet or moon its `build.orbit_birth` and `build.birth_spin` from its row, so the stored galaxy carries what a run would
 (the air history of GEN.1739 starts from them, and a moved body's history can start from its own birth). No pass that runs on a restored body reads them yet: `planets.draw_birth_spin` still draws, so a
 change to what the stored galaxy produces is a later slice and a lock item. The capture draws are a `FLOAT` column, so a restored draw is the stored one to six digits.
 
@@ -58,13 +58,16 @@ def numbers_of(body):
     The numbers of `body`'s history that it keeps, as `{column: value}`; empty for a body with none.
 
     Args:
-        body: A generated planet or moon (any object: one with no `_orbit_birth` or `_birth_spin` has none of those).
+        body: A generated planet or moon (any object: one with no `build.orbit_birth` or `build.birth_spin` has none of those).
     """
     out = {}
-    birth_orbit = getattr(body, "_orbit_birth", None)
+    record = getattr(body, "build", None)
+    if record is None:      # a belt builds nothing and carries no record
+        return out
+    birth_orbit = record.orbit_birth
     if birth_orbit is not None:
         out["birth_eccentricity"] = float(birth_orbit)
-    birth_spin = getattr(body, "_birth_spin", None)
+    birth_spin = record.birth_spin
     if birth_spin is not None:
         rate, tilt, captures = birth_spin
         out["birth_spin_rate"] = float(rate)
@@ -78,8 +81,8 @@ def numbers_of(body):
 
 def attach(body, row):
     """
-    Gives a planet or moon restored from the database the numbers of its history that `body_history` holds (GEN.1533, the reader of the table): the birth eccentricity as `_orbit_birth` and the
-    birth spin, tilt and capture draws as `_birth_spin`, the two names a generated body keeps them under, so a pass that runs a body's history again reads the body it was made as and not a fresh draw.
+    Gives a planet or moon restored from the database the numbers of its history that `body_history` holds (GEN.1533, the reader of the table): the birth eccentricity as `build.orbit_birth` and the
+    birth spin, tilt and capture draws as `build.birth_spin`, the two names a generated body keeps them under, so a pass that runs a body's history again reads the body it was made as and not a fresh draw.
     The spin is given whole or not at all (a body that has any of it has all of it). A row written under another `FORMULA_VERSION` is not read: its numbers belong to formulas this code no longer runs.
     Nothing changes for a body with no row (a galaxy made before v243, or a body with no history).
 
@@ -94,11 +97,11 @@ def attach(body, row):
         return False
     attached = False
     if row["birth_eccentricity"] is not None:
-        body._orbit_birth = float(row["birth_eccentricity"])
+        body.build.orbit_birth = float(row["birth_eccentricity"])
         attached = True
     draws = (row["capture_draw_1"], row["capture_draw_2"])
     if row["birth_spin_rate"] is not None and row["birth_obliquity_deg"] is not None and all(draw is not None for draw in draws):
-        body._birth_spin = (float(row["birth_spin_rate"]), float(row["birth_obliquity_deg"]), tuple(float(draw) for draw in draws))
+        body.build.birth_spin = (float(row["birth_spin_rate"]), float(row["birth_obliquity_deg"]), tuple(float(draw) for draw in draws))
         attached = True
     return attached
 

@@ -232,7 +232,7 @@ def generated_moons():
             system = StarSystem(system_config=config)
             for planet in system.planets:
                 if planet.body_type != "a":
-                    moons.extend(getattr(planet, "_born_moons", None) or planet.moons)      # the moons as generated: the tide has since removed some (GEN.959)
+                    moons.extend(planet.build.born_moons or planet.moons)      # the moons as generated: the tide has since removed some (GEN.959)
     return moons
 
 

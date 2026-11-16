@@ -186,7 +186,7 @@ def reconcile_moved_planet(planet):
     planetPhysics.reconcile_zone(planet, planet.star.mass)
     # The Hill sphere grows with distance, so a moved planet's own clearance (and the next body's spacing) must follow it.
     planetPhysics.update_hill_sphere(planet)
-    if getattr(planet, "_deferred_climate", None) is not None:
+    if planet.build.deferred_climate is not None:
         # GEN.1282: a planet built without its climate has no air or moons to make again; `finish_climate` makes them at this distance.
         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
         if getattr(planet, "_motion_done", False):
@@ -196,7 +196,7 @@ def reconcile_moved_planet(planet):
     planetPhysics.calculate_atmospheric_conditions(planet)
     planetPhysics.prepare_class(planet)
     planetPhysics.update_orbital_position(planet)
-    planetPhysics.generate_spin(planet, planet.star.mass, birth=getattr(planet, "_birth_spin", None))        # GEN.1597: the planet keeps the spin it was born with, only the orbit moved
+    planetPhysics.generate_spin(planet, planet.star.mass, birth=planet.build.birth_spin)        # GEN.1597: the planet keeps the spin it was born with, only the orbit moved
     planetPhysics.classify(planet)      # GEN.1587: after the spin, which makes the latitude bands the class reads
 
     planetPhysics.release_moons(planet)      # GEN.1352: the moons are regenerated in their planet's equator, then set in the system again below
@@ -205,7 +205,7 @@ def reconcile_moved_planet(planet):
         planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
         planetPhysics.prepare_class(moon)
         # GEN.704: the moon's star distance changed, so the dose, UV and score `generate_spin` ends with are re-run as a moved planet's are.
-        planetPhysics.generate_spin(moon, planet.mass, birth=getattr(moon, "_birth_spin", None))
+        planetPhysics.generate_spin(moon, planet.mass, birth=moon.build.birth_spin)
         planetPhysics.classify(moon)
     planetPhysics.orient_moons(planet)
 
@@ -638,7 +638,7 @@ def refresh_moon_orbit(moon, planet):
     moon.primary_mass_kg = planet.mass
     planetPhysics.update_hill_sphere(moon)
     planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
-    moon._frame_axis = None      # its state is drawn again in its planet's equator
+    moon.build.frame_axis = None      # its state is drawn again in its planet's equator
     planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
     planetPhysics.orient_moons(planet)
 

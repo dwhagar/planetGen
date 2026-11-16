@@ -33,7 +33,8 @@ def _sector(name, system_names, rogue_names=()):
         system.name = system_name
         for planet in system.planets:      # the carbon sink a planet keeps for the life stage (GEN.1309 A) holds a closure, which is not stored and does not pickle
             for body in (planet, *getattr(planet, "moons", ())):
-                body._co2_sink = None
+                if body.body_type != "a":
+                    body.build.co2_sink = None
         sector.add_system(system, position=(float(index), 0.0, 0.0), system_config=cfg)
     for index, rogue_name in enumerate(rogue_names):
         rogue = RoguePlanet(SystemConfig(), name=rogue_name)
@@ -83,10 +84,10 @@ def test_a_planet_that_carries_its_co2_sink_is_pickled_without_it_and_copied_wit
     sector = _sector("Pickled Sector", [f"Pickle {n}" for n in range(8)])      # eight systems: a bounded search for a planet that is not a belt
     planet = next((obj for entry in sector.entries for obj in entry.star_system.planets if obj.body_type != "a"), None)
     assert planet is not None, "none of the eight generated systems has a planet that is not a belt"
-    planet._co2_sink = local_sink
-    assert pickle.loads(pickle.dumps(planet))._co2_sink is None
-    assert copy.copy(planet)._co2_sink is local_sink and copy.deepcopy(planet)._co2_sink is local_sink
-    assert planet._co2_sink is local_sink
+    planet.build.co2_sink = local_sink
+    assert pickle.loads(pickle.dumps(planet)).build.co2_sink is None
+    assert copy.copy(planet).build.co2_sink is local_sink and copy.deepcopy(planet).build.co2_sink is local_sink and copy.copy(planet).build is not planet.build
+    assert planet.build.co2_sink is local_sink
 
 
 def test_sector_rows_are_written_in_a_few_multi_row_inserts(mysql_config, monkeypatch):

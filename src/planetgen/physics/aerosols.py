@@ -706,7 +706,7 @@ def generate_aerosols(body):
     star_temperature = getattr(getattr(body, "star", None), "temperature", None)
     star = getattr(body, "star", None)
     haze = haze_in(column, temperature, draw_haze_draws(haze_stream_of(body)), star_temperature,
-                   far_uv_of(star, getattr(body, "_star_distance_au", None)))
+                   far_uv_of(star, body.build.star_distance_au))
     drawn = draw_aerosols(column, temperature, stream_of(body), haze, dry_surface=dry, skin_k=skin_of(body))
     for field in BODY_FIELDS:
         setattr(body, field, getattr(drawn, field))

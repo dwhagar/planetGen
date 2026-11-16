@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 from planetgen.physics import aerosols, atmosphere, atmosphere_state, biogenic_oxygen as bo, constants
+from planetgen.generation.build_record import BuildRecord
 
 AIR = {"N2": 70000.0, "CO2": 30000.0}
 
@@ -81,7 +82,7 @@ def _fake_air(monkeypatch, body, greenhouse_k_per_kpa, base_k=280.0):
 def test_the_co2_settles_where_the_sink_holds_it_even_when_the_greenhouse_is_strong(monkeypatch):
     """The 8 passes of halving the gap ended far from the root when the greenhouse is steep (562 K falling to 432 K, still falling): the root is found whatever the slope."""
     for slope in (5.0, 20.0, 60.0, 200.0):
-        body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100000.0}, surface_temperature=300.0, _co2_sink=_sink())
+        body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100000.0}, surface_temperature=300.0, build=BuildRecord(co2_sink=_sink()))
         _fake_air(monkeypatch, body, slope)
         bo.rebalance_co2(body)
         held = max(100000.0 + (_sink().kept_at(body.surface_temperature) - 0.001) * 1.0e5, 0.0)
@@ -89,7 +90,7 @@ def test_the_co2_settles_where_the_sink_holds_it_even_when_the_greenhouse_is_str
 
 
 def test_an_air_that_is_already_settled_is_left_as_it_was_stored(monkeypatch):
-    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=300.0, greenhouse_factor=0.7, _co2_sink=_sink())
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=300.0, greenhouse_factor=0.7, build=BuildRecord(co2_sink=_sink()))
     _fake_air(monkeypatch, body, 0.0, base_k=300.0)
     assert bo.rebalance_co2(body) is False
     assert body.air["CO2"] == 100.0 and body.surface_temperature == 300.0 and body.greenhouse_factor == 0.7
