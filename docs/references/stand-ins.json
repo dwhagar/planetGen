@@ -21447,11 +21447,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature is labelled Yerkes VI)"
+              "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 and tuning.SUBDWARF_MAX_FE_H -0.5 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature and of birth [Fe/H] at or below the second is labelled Yerkes VI; GEN.1635: the deficit alone labelled 13 of 270 ordinary M dwarfs at [Fe/H] -0.1 to -0.34, the model makes them 0.3 to 0.5 dex under)"
             ],
             [
               "The range it moves in",
-              "0.25 to 0.4"
+              "deficit 0.25 to 0.4; [Fe/H] -0.7 to -0.3"
             ],
             [
               "Where it holds",
@@ -21467,7 +21467,7 @@
             ],
             [
               "Evidence",
-              "the model's own offsets: a solar-metallicity M dwarf is 0.17 dex under the sequence (95 percent within 0.23) and metal-poor F and G stars 0.4, K 0.6 and M 1.0 dex under it; the margin sits between them"
+              "the model's own offsets: a solar-metallicity M dwarf is 0.17 dex under the sequence (95 percent within 0.23) and metal-poor F and G stars 0.4, K 0.6 and M 1.0 dex under it; the margin sits between them; the sdM class starts near [Fe/H] -0.5 and esdM near -1 [R1582]"
             ]
           ],
           "id": "PS14",
@@ -21478,7 +21478,7 @@
           "tier_code": "T4",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature is labelled Yerkes VI)"
+          "what": "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 and tuning.SUBDWARF_MAX_FE_H -0.5 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature and of birth [Fe/H] at or below the second is labelled Yerkes VI; GEN.1635: the deficit alone labelled 13 of 270 ordinary M dwarfs at [Fe/H] -0.1 to -0.34, the model makes them 0.3 to 0.5 dex under)"
         }
       ],
       "slug": "6-51-stand-ins-of-the-stars-after-the-main-sequence",

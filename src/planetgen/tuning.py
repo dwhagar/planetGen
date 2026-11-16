@@ -724,6 +724,11 @@ HOT_O_SUBCLASS_TEMPERATURES_K = {0: 60000.0, 1: 55000.0, 2: 50000.0}
 # (F and G), 0.6 (K) and 1.0 (M) at [Fe/H] -1.5, while a solar-metallicity M dwarf of the model sits 0.17 dex under the
 # sequence (95 percent within 0.23), so 0.3 labels the first and not the second.
 SUBDWARF_LUMINOSITY_DEFICIT_DEX = 0.3
+# A subdwarf is a metal-poor dwarf (GEN.1635): the sd classes of M dwarfs are [Fe/H] about -0.5 to -1 (sdM), -1 to -1.5 (esdM) and
+# lower (usdM) [R1582]. The model's M dwarfs are under-luminous at their temperature already from [Fe/H] -0.1 (0.3 to 0.5 dex at -0.2, the
+# red dwarfs of the thin disk), so the deficit alone labelled 13 of 270 ordinary M dwarfs Subdwarf; a star is labelled VI only at or
+# below this birth [Fe/H] as well.
+SUBDWARF_MAX_FE_H = -0.5
 # A forced star type (GEN.941, generation/forced_star.py) is a star the model
 # makes. A subdwarf (Yerkes VI) is a main-sequence star under-luminous for its
 # temperature (SUBDWARF_LUMINOSITY_DEFICIT_DEX), which a metal-poor star of the
