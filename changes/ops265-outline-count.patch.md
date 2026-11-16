@@ -1,0 +1,6 @@
+**Headline:** planning a galaxy's skeleton shows a count while its outline is built, so the plan's bar no longer stands still for the 7 seconds its longest part takes.
+
+### Changed
+
+- OPS.265: the `outline` piece of `plan-skeleton` stood 7.4 s with nothing moving on the silence test's small galaxy. Each part of the outline now begins its own second-level count (the shape, the globular clusters, the satellite galaxies, the young open clusters, the walk of the shells), and the longest part, the mean system mass of each cluster's age (8,800 ages, about 4 s), counts each age as it is worked out ("Working out the mean system mass of each age of the cluster field"). The figures are the ones the component field worked out for itself before, found once for each age and handed to it; the field and the galaxy are the same. The longest quiet stretch fell from 7.4 s to 2.2 s.
+- OPS.265: the first system of a process (`generate-system`) stands under the silence test's budget now that a count of bodies runs inside it (OPS.266), so its row is deleted from `RECORDED_SILENCE`; a world's final pass in a system (`_finish_planet`, `_finish_moon`) starts the quiet clock again as each body ends. What is left in the sector commands is one body's seasonal solve that sometimes stands 4 to 6.6 s inside one call: their rows stay, with that reason.
