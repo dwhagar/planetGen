@@ -243,7 +243,10 @@ class Template:
                     os.read(self.wake_read, 4096)
             self.reap()
             if self.control in readable:
-                raw = self.control.recv(MESSAGE_BYTES)
+                try:
+                    raw = self.control.recv(MESSAGE_BYTES)
+                except ConnectionError:         # the supervisor went without closing its end: the channel is closed all the same
+                    raw = b""
                 if not raw:
                     open_ = False
                 else:

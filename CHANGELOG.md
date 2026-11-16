@@ -2,6 +2,66 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4348] - 2026-11-16
+
+**Headline:** The air solver's start dependence and unsettled airs are measured on main and bounded by tests: 2.5 percent of air bodies depend on the start (15 percent before), 0 of 35 airs in the test sample are unsettled (10 of 132 before).
+
+### Changed
+
+- GEN.1555: re-measured on main after Train 36 (G2V, 60 systems, 242 bodies with 10 kPa of air; the census script of Lane 14's branch): 6 bodies (2.5 percent) have an answer that depends on the start, against 42 of 286 (15 percent) when the item was filed; 2 sit on the 375 K moist limit (GEN.1579), 1 near water's boiling point. The fixed point already iterates a giant's temperature (GEN.1716) and settles slow creeps (GEN.1718), so Lane 14's open PR 6103 (giant steps and the recipe freeze near the answer) is superseded; nothing in the solver changes here.
+- New `tests/test_surface_air_start_independence.py`: the same setting, start and draw state give the same answer twice; a giant ends at one temperature from nine starts (before GEN.1716 a hot giant ended at 1,381 K from 120 K and 1,633 K from 600 K); at most 15 percent of air bodies of the first twelve G2V seeds depend on the start (0 of 17 today). Real bistability (a snowball and a warm answer) stays, as TODO decided on 2026-11-12.
+- `test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives`: the cap on airs it cannot read because they did not settle goes from a fifth to a twentieth of the bodies (0 of 35 today; it was 10 of 132).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4347] - 2026-11-16
+
+**Headline:** With `queue.forked_jobs` on, the supervisor no longer waits a minute for a template to build, takes back rows a dead supervisor left running, and ends a unit whose run is gone.
+
+### Changed
+- The supervisor builds a lane's warm template in the background (`TemplateSet(background=True)`); a job whose template is not up yet stays `ready` with the reason `the template ... is being built` and is handed out at a later turn.
+- A row left `running` by a supervisor that ended is settled when its attempt's process is gone (or no attempt was taken): handed out once more, then failed. Rows whose process is alive are left to the unit.
+- A unit that skipped itself (its run is no longer live, or the unit was already done) has its row ended `canceled`, not left `running`.
+- The template treats a reset channel as a closed one and exits.
+
+## [8.0.4346] - 2026-11-16
+
+**Headline:** The gas dwarf (class T) text now says its air can be thin, which is true of 1.2 percent of bodies; no bound was added, because it would leave them with no class.
+
+### Changed
+
+- GEN.1616: the phrase of class T (both rows, which share it) in `physics/data/planet_classes.json` no longer says "a thick hydrogen and helium envelope, with no surface to stand on"; it says "an air of mostly hydrogen and helium, thick on most" (the giant row of T shares the phrase, so both changed). The 11-16 census (default settings, 5,000 systems) has 8,458 terrestrial-kind T bodies; 851 of them (1.2 percent of all 73,247 bodies; all plain terrestrial bodies, median 24 K, median 1.1 kPa of pure hydrogen) hold a thin, cold hydrogen air with an envelope under 0.1 percent of the mass. Every other terrestrial row of `planet_class_fit.json` needs under 30 percent hydrogen, so an envelope or pressure bound on the T row would leave those 851 with no class at all; the sentence already said "the air can be thin", and the phrase now agrees. The basis line of the row and the row in `docs/design/habitability/condition-based-planet-classes.md` give the reason and the count.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4345] - 2026-11-16
+
+**Headline:** The link and settle of one sector may start once the sectors they read are saved, and a test now proves it by address.
+
+### Changed
+- `queue/independence.json` lists `edges` (`touches.load_edges`): the unit of `link-neighbors` or `settle-sector-paths` for one sector waits only for the sectors its rule names (the nearest-systems reach for the link, `NEIGHBOUR_REACH_EDGES` for the settle), not for the whole generate stage. `tests/address_edge_support.py` proves it on five sectors in a row: the units run in random orders on one thread and on 15 threads, each released when its sectors are saved, store the same content as plan order; a unit released after its own sector alone does not (the control). Nothing runs overlapped until the supervisor's release-by-needs step uses the edges, so a run is as before; output of generation is unchanged.
+- `queue/touches.py`: `link-neighbors` writes the quadrant of every placed phenomenon (`black_holes`, `nebulae`, `neutron_stars`, `quasars`, `supernova_remnants`, `asteroid_fields`, `interstellar_comets`, `rogue_planets`); the proof found the declaration lacked the others.
+
+## [8.0.4344] - 2026-11-16
+
+**Headline:** A setting runs the units of a generation run as forked jobs handed out by the supervisor, off by default.
+
+### Added
+- `queue.forked_jobs` (off): when on, the cut of a stage of a generation run makes its unit rows `ready` and queues nothing in RQ; the supervisor's new `Launches` duty hands them out with `dispatch.dispatch` and runs each as a job forked from the lane's warm template (OPS.228, slice B). Runs that carry on from an earlier one, and runs with no ledger, stay with the workers.
+- The `open` row of a stage names the Redis run id (`run_id`) beside the stage's index, so the launcher can build the unit's job from the ledger alone; `planrows.release_units` makes a stage's unit rows ready.
+
+### Changed
+- The launcher leaves a unit's attempt to the unit (`units.run_unit_on`, as in a worker), marks a row `running` when it forks, and settles a process that died with its row still `running`: handed out once more, then failed.
+
+## [8.0.4343] - 2026-11-16
+
+**Headline:** The third pair of commands that may overlap, the mass scatter and the nebula field, is proved and listed.
+
+### Changed
+- `queue/independence.json` lists `scatter-mass` and `draw-nebula-field`, with the tables they share named in the entry (`galaxy_shape`, `generator_epoch`, `scatter_epochs`: the shape row and the epoch rows each stage's end hook stamps for its own stage). The mass pass writes the stars, their members and nodes and the block light parts; the nebula field writes its own table. Overlapped at 1 and 15 workers in both orders, the stored content (row ids left out, members and nodes compared through the owner's `uid`) equals plan order's. Nothing runs overlapped until the new engine's supervisor starts the jobs the plan leaves free, so a run is as before; output of generation is unchanged.
+
 ## [8.0.4342] - 2026-11-16
 
 **Headline:** Two tests that were red on main are green: the job ledger no longer uses `VALUES()` in its upserts, and no item code shows in the text of a page or a log line.
