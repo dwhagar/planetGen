@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.780 |
+| TEST | TEST.781 |
 | USR | USR.33 |
 | OPS | OPS.268 |
 | DOC | DOC.121 |
@@ -1276,7 +1276,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.474 | Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle | none | open |
 | GEN.475 | Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration | none | open |
 | GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range | none | done, PR #5500 |
-| GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) | none | open |
+| GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) | none | done, found built (Lane 06 check 9:38 AM EST 11-16: physics/small_body_composition.py draw_belt and draw_field from taxon tables, called from generation/belt.py and phenomena/asteroid_field.py; makeup stored in asteroid_belts.makeup; tests test_small_body_composition, test_db124_small_body_makeup, test_small_body_wiring) |
 | GEN.478 | The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket | none | done, PR #2587 |
 | GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | none | done, PR #3729 |
 | GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) | none | done, PR #3853 |
@@ -1867,12 +1867,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1065 | Belt member designation: a pure function designation(belt_id, rank) printing the belt ID plus the rank in hex (no name, no salad name, no codec name), and its round trip through parse_id | none | done, PR #4161 |
 | GEN.1066 | Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table | none | done, PR #4754 |
 | GEN.1067 | Per-member composition from the finished taxon kernel at the body's own a, differentiated bodies only if the 26Al ratio says so, density from the compaction taper | none | done, PR #4220 |
-| GEN.1068 | Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py) | none | open |
-| GEN.1069 | Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words | none | open |
+| GEN.1068 | Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py) | none | done, found built (Lane 06 check 11-16: generation/belt_birth.py with physics/belt_origin.py, the slot roll is gone; tests test_belt_birth, test_belt_origin) |
+| GEN.1069 | Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words | none | done, found built (Lane 06 check 11-16: migration 0204_belt_origin stores largest_body_km, formation_snow_line_au, history and mass; AsteroidBelt reads belt_ledger.belt_state; tests test_belt_history_page, test_belt_origin_stored) |
 | GEN.1070 | Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump | none | done, built on main (Lane 13 audit /mnt/project-files/reports/gen1070-audit-2026-11-13.md: stored members, designation, 3D view, member page, API route; no API bump needed); unread helpers move to GEN.1141 |
 | GEN.1071 | Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing | none | done, PR #5282 |
-| GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | none | open |
-| GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | none | open |
+| GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | none | done, found built (Lane 06 check 11-16: remnant_orbits.engulf_belt and widen_for_mass_loss, physics/belt_history.py, thrown_inward_kg, PRs 6778 and 6811; tests test_remnant_belts, test_white_dwarf_pollution_rate) |
+| GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | none | closed, superseded (Lane 06 check 11-16: the fields half merged in PRs 5568 and 5591; for belts the star age is fixed at birth since GEN.1546 and the belt settles to it, so there is no later age change to bring a belt to) |
 | GEN.1074 | Captured asteroid moons: a giant near a belt captures bodies from it as irregular moons; research the capture mechanisms and rates, then plan the build | none | dropped (research done in the captured asteroid moons draft; the build items are GEN.1075 to GEN.1087) |
 | GEN.1075 | Captured moons read list and register rows: [R3263] and 2007, [R0037, R0483, R1771, R4054] and 2005, [R1666, R3814] | none | done, PR #4175 |
 | GEN.1076 | physics/irregular_zone.py: Hill radius, stable limits (prograde and retrograde), the inner edge from the outermost regular moon, the Kozai exclusion | none | done, PR #4155 |
@@ -3837,7 +3837,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1508 | (bug) A system shows "Asteroid Belt 5" when it holds only one belt: belt numbers do not start at 1 | none | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1509 | Design: belt bodies at or above the smallest planet class floor get full planet status | GEN.1070 | open |
 | GEN.1510 | Build: belt bodies at or above the class floor run through the planet generator and are stored as planets | GEN.1509 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
-| GEN.1511 | Promoted belt bodies appear as planets in names, pages, lists and maps, and in the census | GEN.1510 | open |
+| GEN.1511 | Promoted belt bodies appear as planets in names, pages, lists and maps, and in the census | GEN.1510 | done (PR 6852, Lane 06, merged 9:29 AM EST 11-16: belt page and API list the planets a belt made, the old belt designation leads to the planet, the planet sheet and scene API name the belt (made_from_belt), census report tests/audit/belt_promotion_census.py; names, maps and class census were already right) |
 | GEN.1512 | Atomic phosphorus and the other phosphorus gases above 6000 K are missing from the gas table | none | done (Train 23, 2026-11-11) |
 | GEN.1513 | (bug) EquilibriumError 'no convergence' on a very hot, very high-pressure giant in cap_ices / equilibrium_at | none | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1514 | Pebble flux decays smoothly after the first million years instead of a step at the pebble end (GEN.1473 stand-in DE3) | GEN.1473 | done, Train 24 PR #6033 (b8a0163b7) |
@@ -3951,14 +3951,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1623 | Star table: the Sun comes out at 1.107 Lsun and 5848 K (the raw MIST file agrees), so F, G and K dwarfs run 70 to 240 K hot | none | done, PR #6565 in Train 30, PR #6615 (4:21 AM EST 11-15) |
 | GEN.1624 | (bug) Old brown dwarfs keep their young radius (13 Jupiter masses stays 1.50 Rjup, should be about 1.0) and their luminosity runs up to 2.4 times high (physics/brown_dwarf.py) | none | open |
 | GEN.1625 | (bug) The cool-dwarf wind law in generation/star.py (about lines 150-235) has no source: an M5 dwarf gets 2.8 times the Sun's mass loss, white dwarfs get a wind, and magnetism.wind_pressure_pa holds a second, different wind | none | open |
-| GEN.1626 | (bug) age_needs.json settling times have no source and drive the 13.8 Gyr age pile-up (sweep finding M6) | none | open |
+| GEN.1626 | (bug) age_needs.json settling times have no source and drive the 13.8 Gyr age pile-up (sweep finding M6) | none | done, no code (Lane 07, 9:50 AM EST 11-16: age_needs.json and the age-raising code were removed by GEN.1546, commit 9fb3fd3c51; on main 862 stars from 600 seeds, oldest 9.95 Gyr, none at 13.8, against 36 of 270 systems at 13.8 before) |
 | GEN.1627 | (bug) constants.py (about line 99) SOLAR_MASS_LOSS_RATE is wrong by a factor of 1e15 (nothing reads it) | none | closed, already gone (Lane 14, 12:18 AM EST 11-16: SOLAR_MASS_LOSS_RATE is no longer in constants.py or anywhere in code or tests) |
 | GEN.1628 | (bug) The Sm-146 half-life of 68 Myr is a retracted value (now 92 to 103 Myr) | none | done (PR 6818, Lane 04, merged 4:56 AM EST 11-16: Sm-146 half-life 92.0 Myr [R5295]) |
 | GEN.1629 | (bug) 52 of 124 gases have ir null, and the null is handled two different ways | none | open |
 | GEN.1630 | (bug) The HCl vapour-pressure curve runs 35 percent high above the triple point | none | open |
 | GEN.1631 | (bug) Earth's Th/U of 3.83 sits above the 95th percentile of drawn bodies | none | closed as measured, not a bug (Lane 04, 4:44 AM EST 11-16: hosted bodies take F from the star age, Th/U 5th to 95th percentile 2.91 to 4.40, median 3.62, Earth 3.83 at the 62nd percentile; the audit measured the host-less path only) |
 | GEN.1632 | (bug) Stand-in registry: 102 ids reused across sections, 30 code tags with a different tier or tweak than the registry, 5 code ids not in the registry, 2 rows naming constants that no longer exist | none | done, PR #6692 (2:43 PM EST 11-15); follow-up PR #6718 |
-| GEN.1633 | (bug) physics/belt_mass.py cannot be imported on its own | none | open |
+| GEN.1633 | (bug) physics/belt_mass.py cannot be imported on its own | none | done (PR 6857, Lane 06, merged 9:34 AM EST 11-16: belt_mass imports alone; the cycle through collision_outcome, planets and irregular_moons is broken; an import test covers it) |
 | GEN.1634 | (bug) The snow line scatter in the code is a factor of 4, but the text says 2 to 3 | none | done, PR #6168 |
 | GEN.1635 | (bug) Ordinary M dwarfs are labelled Subdwarf (class VI): the rule in stellar_evolution.py (about lines 228-232, 0.3 dex under the dwarf line) catches every M dwarf under 0.4 Msun with [Fe/H] of -0.2 or lower (13 of 270 single stars, all M3-M5 at [Fe/H] -0.08 to -0.34; real subdwarfs sit near -1 or lower) | none | open |
 | GEN.1636 | (bug) Two Earth heat-flow references: surface_pressure uses 0.0614 W/m2 for outgassing, life_supply.json and hydrothermal_deposits use the measured 0.087 W/m2, so an exact Earth twin scores 0.6 to 0.7 for life energy and ores | none | done (Train 37, PR 6829, merged 6:34 AM EST 11-16; PR 6815; biogenic_oxygen is GEN.1762) |
@@ -4947,7 +4947,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.776 | (bug) test_photochemical_loss fails to collect on main: it reads photochemical_loss.YEAR_S, which PR 6718 removed as unused | done (PR 6839, Lane 14, merged 7:20 AM EST 11-16: the test reads the year from unit_registry) |
 | TEST.777 | (bug) test_unit_registry_js::test_no_browser_script_declares_a_unit_factor is red on main: unitladder.js (UX.319 HMS formatter, PR 6764) declares YEAR_SECONDS and the 86400 and 3600 factors instead of reading them from unitregistry.js | done (PR 6839, Lane 14, merged 7:20 AM EST 11-16: unitladder.js reads year, day, hour and minute from unitregistry.js) |
 | TEST.778 | (bug) test_haze_in_the_air::test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it is red on main e22ff539e2 | done (PR 6847, Lane 03, merged 8:37 AM EST 11-16: red since GEN.1754 moved the first hazy body with ground to a 257 K body whose air does not settle; the test now replays from the body own draw state and asserts haze is present, 0.5 K bound untouched) |
-| TEST.779 | (bug) test_body_state_fields::test_a_remake_after_an_orbit_change is red on main: the remade body's composition text differs | open |
+| TEST.779 | (bug) test_body_state_fields::test_a_remake_after_an_orbit_change is red on main: the remade body's composition text differs | done (PR 6855, Lane 04, merged 9:31 AM EST 11-16: a belt member at a water share exactly on a level edge grows a trace air and its composition phrase is rewritten from its shares on purpose (GEN.430); the test now checks the phrase against the current shares and allows a change only within 1e-5 of an edge) |
+| TEST.780 | (bug) test_mass_boundaries::test_the_generator_rows_read_the_table is red on main: it multiplies by a hard-coded 317.8 while tuning reads constants.JUPITER_MASS_EARTH (317.83) since GEN.1152 | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
