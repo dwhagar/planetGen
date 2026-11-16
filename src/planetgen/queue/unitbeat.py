@@ -407,3 +407,6 @@ def read(conn, run_id, stage):
         except (ValueError, TypeError, KeyError):
             continue
     return found
+
+
+log.PHASE_ENDED = lambda label: moving()      # OPS.266: a timed phase of generation that ends is progress the count does not show

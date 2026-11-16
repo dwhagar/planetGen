@@ -32,7 +32,7 @@ Use:
 import json
 import os
 
-from planetgen.physics import atmosphere, elements, habitability, habitability_world
+from planetgen.physics import atmosphere, elements, habitability, habitability_world, surface_pressure
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_supply.json")
 
@@ -93,9 +93,9 @@ def contact(values):
 
 
 def heat_share(values):
-    """The heat flow (its own and its tide's) as a share of Earth's, at most `heat_share_max`."""
+    """The heat flow (its own and its tide's) as a share of the Earth twin's in the interior model (`surface_pressure.HEAT_FLUX_EARTH_W_M2`, GEN.1636), at most `heat_share_max`."""
     heat = (values.get("internal_heat_flux_w_m2") or 0.0) + (values.get("tidal_flux_w_m2") or 0.0)
-    return min(number("heat_share_max"), max(0.0, heat) / number("earth_heat_flux_w_m2"))
+    return min(number("heat_share_max"), max(0.0, heat) / surface_pressure.HEAT_FLUX_EARTH_W_M2)
 
 
 def habitat_temperature_k(values):

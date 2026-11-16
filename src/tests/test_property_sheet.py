@@ -512,7 +512,7 @@ def _give_belt_members(mysql_config, system_id, taxa):
 def test_a_white_dwarf_shows_its_core_and_a_polluted_one_the_body_it_accreted(client, mysql_config):
     """GEN.1370: a carbon-oxygen white dwarf shows the central oxygen, carbon and neon-22 of `star_makeup`; a polluted one in a system with stored belt
     members shows the class and element ratios of the member its own draw picks (in proportion to mass), a star that is not polluted shows none."""
-    from planetgen.physics import constants, stellar_composition, white_dwarf_core
+    from planetgen.physics import belt_history, constants, stellar_composition, white_dwarf_core
     system_id = _save_wide_binary_with_moons(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
@@ -554,8 +554,19 @@ def test_a_white_dwarf_shows_its_core_and_a_polluted_one_the_body_it_accreted(cl
             assert rows["chemistry_pollutant_class"]["text"] == sheet._POLLUTANT_WORDS[found.kind]
             assert rows["chemistry_pollutant_class"]["source"] and rows["chemistry_pollutant_ratios"]["source"]
             assert ("Fe/Mg" in rows["chemistry_pollutant_ratios"]["text"]) == ("Fe" in found.ratios_to_mg and "Mg" in found.ratios_to_mg)
+            # GEN.1231: the rate rock falls on it: the belt's own when its star threw enough inward, else the typical rate of a polluted white dwarf
+            assert rows["chemistry_pollution_rate"]["raw"] == belt_history.TYPICAL_POLLUTION_RATE_G_S and "typical" in rows["chemistry_pollution_rate"]["text"]
+            conn = store.get_connection(mysql_config)
+            try:
+                conn.execute("UPDATE asteroid_belts SET thrown_inward_kg = 1e21 WHERE star_system_id = ? ORDER BY id LIMIT 1", (star["star_system_id"],))
+                conn.commit()
+            finally:
+                conn.close()
+            belt_rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+            assert belt_rows["chemistry_pollution_rate"]["raw"] == pytest.approx(belt_history.pollution_rate_g_s(1e21)) and "belt" in belt_rows["chemistry_pollution_rate"]["text"]
+            assert belt_rows["chemistry_pollution_rate"]["source"]
         else:
-            assert "chemistry_pollutant_class" not in rows and "chemistry_pollutant_ratios" not in rows
+            assert "chemistry_pollutant_class" not in rows and "chemistry_pollutant_ratios" not in rows and "chemistry_pollution_rate" not in rows
 
 
 def test_a_star_lists_the_isotopes_of_its_surface_and_a_red_giant_shows_the_dredged_carbon(client, mysql_config):

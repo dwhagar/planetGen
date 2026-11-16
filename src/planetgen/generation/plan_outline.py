@@ -21,8 +21,9 @@ from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.galaxy.skeleton import (
     DEFAULT_REACH_SHELL, build_shell_extents, expected_system_count_at_density_1, shell_candidate_sector_count,
 )
-from planetgen.generation import clusters, satellites
+from planetgen.generation import clusters, satellites, system_mass
 from planetgen.generation import open_clusters as openClusters
+from planetgen.queue import unitbeat
 from planetgen.util import step_timer as stepTimer
 
 PREVIEW_SEED = bytes(range(16))
@@ -50,6 +51,26 @@ class Outline:
     timer: object
 
 
+OUTLINE_STEPS = ("Drawing the galaxy's shape", "Drawing the globular clusters", "Drawing the satellite galaxies", "Drawing the young open clusters",
+                 "Walking the outline's shells")
+"""tuple: What the second-level count of a unit that builds an outline says as each part of `build` begins (OPS.265: the part that works the longest has its own count, `_mean_system_mass_by_age`)."""
+
+
+def _mean_system_mass_by_age(found):
+    """
+    The mean system mass at each age the components of `found` have, which `ComponentField` looks up for every component (the same figure its own `mean_system_mass_solar` gives, worked
+    out once for each age, here so that a count goes up with each: 8,800 ages of young clusters, 4 to 11 s with nothing moving, OPS.265).
+    """
+    held = componentField.gate_components(found)
+    ages = sorted({componentField.age_key(c) for c in held})
+    unitbeat.step("Working out the mean system mass of each age of the cluster field", len(ages))
+    means = {}
+    for age in ages:
+        means[age] = system_mass.mean_system_mass_at_age_solar(age)
+        unitbeat.advance()
+    return means
+
+
 def build(shape_args, galaxy_seed, edge_pc, reach_shell_index=DEFAULT_REACH_SHELL):
     """
     The galaxy `shape_args` (the lever table's parsed values, `None` for Auto) and `galaxy_seed` plan: the shape, its
@@ -60,21 +81,27 @@ def build(shape_args, galaxy_seed, edge_pc, reach_shell_index=DEFAULT_REACH_SHEL
     """
     timer = stepTimer.StepTimer()
     e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
+    unitbeat.step(OUTLINE_STEPS[0])
     with timer.step("the galaxy's shape (the levers, the halo, the disk's history)"):
         shape, drawn = shapeDraw.plan_shape(shape_args, galaxy_seed)
     scale = shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC
     epoch = program_constants.SCATTER_PHASE_ORIGIN_UNIX
+    unitbeat.step(OUTLINE_STEPS[1])
     with timer.step("the globular clusters"):
         count = clusters.cluster_count(galaxy_seed, drawn.chain.halo_mass_solar)
         found = clusters.generate_clusters(galaxy_seed, count, epoch_unix=epoch, scale=scale, shape=shape)
+    unitbeat.step(OUTLINE_STEPS[2])
     with timer.step("the satellite galaxies"):
         dwarfs = satellites.draw_satellites(galaxy_seed, drawn.chain, epoch_unix=epoch)
+    unitbeat.step(OUTLINE_STEPS[3])
     with timer.step("the young open clusters"):
         young = openClusters.generate_open_clusters(galaxy_seed, shape, edge_pc, e_value, epoch_unix=epoch)
     with timer.step("the component field (each cluster's and satellite's systems)"):
-        shape = shape._replace(components=componentField.ComponentField(found + young + dwarfs, edge_pc, e_value))
+        shape = shape._replace(components=componentField.ComponentField(
+            found + young + dwarfs, edge_pc, e_value, mean_by_age=_mean_system_mass_by_age(found + young + dwarfs)))
     edge_limit = shapeDraw.edge_limit_pc(dials.resolved(shape_args, "edge"), shape.disk_scale_length_pc)
     max_shell = reach_shell_index if edge_limit is None else min(math.ceil(edge_limit / edge_pc), reach_shell_index)
+    unitbeat.step(OUTLINE_STEPS[4])
     with timer.step("the outline (the skeleton's shells)"):
         started = time.perf_counter()
         extents, outer_shell_index, edge_confirmed = build_shell_extents(

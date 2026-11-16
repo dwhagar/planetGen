@@ -2092,7 +2092,8 @@ def object_belt_page_route(ref):
     composition shares, `status` word and Soter's mu, and the `population` of a member the giants scattered), `bins` (the rest of the belt's
     mass by diameter: count, mass, share, whether the bodies are drawn on demand or a total only, typical composition and density),
     `density_factor` (`by_diameter`, the objects per square AU above each diameter, and the `mass` per square AU) and `totals` (the belt, the
-    listed bodies and the bins, which add up). Every number is `{value, unit, text}`. 404 for a reference that is not a belt.
+    listed bodies and the bins, which add up) and `planets` (GEN.1510: the planets the belt made of its heaviest round bodies, each with its `rank`, `designation`, `name`, `ref`, `planet_class`, `mass`,
+    `diameter` and `distance`; empty when it made none). Every number is `{value, unit, text}`. 404 for a reference that is not a belt.
     """
     return _kept_body(ref, "belt", "an asteroid belt", belt_info.belt_info)
 
@@ -2104,7 +2105,7 @@ def object_belt_member_route(ref, rank):
     designation writes it (hex, at least four digits; 1 is the heaviest): `designation`, `rank`, `member` (the entry the belt's information page lists: mass, diameter, density,
     `taxon`, composition, `status`, `population`), `orbit` (the six elements with the `closest_distance`, `farthest_distance` and `period`), `share` of the belt's mass, `belt` (its
     designation, star, where it came from and what shaped it) and the `previous` and `next` designations. Every number is `{value, unit, text}`. 404 for a reference that is
-    not a belt, a rank that is not written canonically, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page).
+    not a belt, a rank that is not written canonically, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page). The rank of a body that was made a planet (GEN.1510) answers `designation`, `rank` and `promoted` (that planet's `ref`, `name` and `planet_class`) instead of a member page.
     """
     return _kept_body(ref, "belt", "an asteroid belt", belt_member_info.member_info, rank)
 

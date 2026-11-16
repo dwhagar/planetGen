@@ -86,7 +86,7 @@ end."""
 
 HALF_LIFE_OVERRIDES = {"Sm-146": (92.0e6 * 365.25 * 86400.0, 2.6e6 * 365.25 * 86400.0)}
 """dict: Half-lives (s) and uncertainties (s) that replace NUBASE2020's where a later measurement stands. 146Sm: 92.0 +- 2.6 Myr
-(Chiera et al., Sci. Rep. 14, 17436, 2024, [R5295]); NUBASE2020 still prints 68 +- 7 Myr, the value of Kinoshita et al. (2012), which
+(Chiera et al., Sci. Rep. 14, 17436, 2024, [R5295]); NUBASE2020 still prints 68 +- 7 Myr, the 2012 value, which
 its authors withdrew (GEN.1628)."""
 
 DYE_2012 = {

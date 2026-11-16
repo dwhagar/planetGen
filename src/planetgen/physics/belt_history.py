@@ -37,6 +37,9 @@ SURFACE_DENSITY_SLOPE = 1.5
 MASS_LOSS_SCATTER_SHARE = 0.5
 """float: The share of a belt thrown inward by the sudden mass loss of the star, per unit fraction of the star's mass lost, if giants remain. [Stand-in 6.117 BHS3, tier T9, tweak L3.]"""
 
+TYPICAL_POLLUTION_RATE_G_S = 1.0e8
+"""float: The accretion rate a polluted white dwarf has when no belt of its system gives one: the typical 1e8 g/s the design note recalls (belt-evolution.md 2.5), the top of the few 1e5 to few 1e8 g/s [R2415] measured. [Stand-in 6.117 BHS6, tier T2, tweak L0.]"""
+
 DELIVERY_MYR = 100.0
 """float: How long the scattered rock takes to fall on the white dwarf ([R2415]'s cooling ages are 20 to 200 Myr; the middle in the log). [Stand-in 6.117 BHS4, tier T6, tweak L1.]"""
 
@@ -145,6 +148,19 @@ def pollution_rate_g_s(scattered_mass_kg, delivery_myr=DELIVERY_MYR):
 def is_polluted(rate_g_s):
     """Whether a white dwarf accreting at this rate shows heavy elements (at least the lowest rate measured on one)."""
     return rate_g_s >= MIN_POLLUTION_RATE_G_S
+
+
+def rate_on_white_dwarf(thrown_inward_kg=None):
+    """
+    The rate at which rock falls on a polluted white dwarf, grams per second (GEN.1231): the belt's own (`pollution_rate_g_s` of the mass its star threw inward) when that is enough to pollute a
+    white dwarf (`is_polluted`), else `TYPICAL_POLLUTION_RATE_G_S`. The star is polluted already (its flag is drawn at the observed share, `multistar.draw_white_dwarf_pollution`), so a belt that gives
+    no rate, or too small a one, leaves the observed typical rate to stand for the debris the flag says fell.
+    """
+    if thrown_inward_kg is not None and thrown_inward_kg > 0.0:
+        rate = pollution_rate_g_s(thrown_inward_kg)
+        if is_polluted(rate):
+            return rate
+    return TYPICAL_POLLUTION_RATE_G_S
 
 
 def scattered_mass_kg(state, formed_mass_kg):

@@ -32,6 +32,7 @@ BOOKKEEPING_TABLES = {
     "engine_piece_results",    # OPS.219: what the finished pieces of a job returned, written and read by queue/ledger.py, not by an object loader
     "body_numbers",        # DB.75a: the slot numbers a redraw keeps (written on a first redraw only), read by the redraw, not by a page's loader
     "body_history",        # GEN.1497: the numbers a body's history leaves, kept by the system save; the readers follow in the effect-ledger chain
+    "lost_moons",          # GEN.1753: the moons a planet was born with that its history took away, read by `store.attach_body_history`, not by an object loader
     "effect_ledger",       # GEN.1465: kept by the generator beside each system; the readers (the API and the sheet) follow in the effect-ledger chain
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,

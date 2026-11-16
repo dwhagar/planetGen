@@ -368,16 +368,19 @@ class TestAddressEdges:
 
     def test_the_edges_load_and_name_their_proof(self):
         edges = touches.load_edges()
-        assert set(edges) == {"link-neighbors", "settle-sector-paths"}
-        for entry in edges.values():
+        assert set(edges) == {"link-neighbors", "settle-sector-paths", "scatter-backfill"}
+        for command, entry in edges.items():
             assert all(key in entry for key in touches.EDGE_KEYS) and entry["grain"] == "sector"
-            assert entry["proof"] == "tests/test_address_edges.py::test_link_and_settle_by_address_store_what_plan_order_stores"
+            assert entry["proof"] == ("tests/test_backfill_edges.py::test_the_backfill_by_address_stores_what_plan_order_stores" if command == "scatter-backfill"
+                                      else "tests/test_address_edges.py::test_link_and_settle_by_address_store_what_plan_order_stores")
 
     def test_the_reach_is_the_one_the_code_uses(self):
         from planetgen.db import sector_paths, store
         edges = touches.load_edges()
         assert edges["settle-sector-paths"]["reach"] == {"reach_edges": sector_paths.NEIGHBOUR_REACH_EDGES}
         assert edges["link-neighbors"]["reach"] == {"search_pc": store.NEAREST_SYSTEMS_SEARCH_PC}
+        from planetgen import tuning
+        assert edges["scatter-backfill"]["reach"] == {"steps": len(tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)}
 
     def test_a_bad_edge_is_refused(self, tmp_path):
         def load(data):

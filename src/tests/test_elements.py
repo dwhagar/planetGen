@@ -204,7 +204,7 @@ def test_short_lived_radionuclides_have_a_half_life_and_the_energy_of_a_decay():
 
 
 def test_samarium_146_has_the_remeasured_half_life_and_not_the_withdrawn_one():
-    # Chiera et al. 2024 [R5295]: 92.0 +- 2.6 Myr; NUBASE2020 still prints the withdrawn 68 +- 7 Myr of Kinoshita et al. 2012 (GEN.1628)
+    # [R5295]: 92.0 +- 2.6 Myr; NUBASE2020 still prints the withdrawn 2012 value of 68 +- 7 Myr (GEN.1628)
     isotope = elements.isotope("Sm-146")
     assert isotope.half_life_s / (1e6 * 365.25 * 86400) == pytest.approx(92.0, rel=1e-6)
     assert isotope.half_life_uncertainty_s / (1e6 * 365.25 * 86400) == pytest.approx(2.6, rel=1e-6)
