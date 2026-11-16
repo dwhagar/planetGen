@@ -35,6 +35,7 @@ moves across the freezing point keeps its stored state of water, as it does afte
 tweak level in the ledger file.
 """
 
+import copy
 import json
 import os
 from dataclasses import dataclass
@@ -204,14 +205,15 @@ def methane_flux_mol_yr(body, life_class, supplies=None):
     return share * area_ratio * number("earth_h2_tmol_yr") * TMOL / number("h2_per_methane")
 
 
-def methane_target_mol(flux_mol_yr, moles):
+def methane_target_mol(flux_mol_yr, moles, total_mol=None):
     """The methane, mol, an air of `moles` (formula to mol) holds at that flux: the flux over its life, within `methane_max_share` of the
-    air's molecules (making methane out of carbon dioxide keeps their number) and within the carbon the air has (`carbon_left_share` of its
-    carbon dioxide and methane stays carbon dioxide)."""
+    air's molecules (making methane out of carbon dioxide keeps their number; `total_mol` is the molecules when they are not the sum of `moles`, the air
+    once its water has settled) and within the carbon the air has (`carbon_left_share` of its carbon dioxide and methane stays carbon dioxide)."""
     steady = flux_mol_yr * number("methane_lifetime_yr")
     share = number("methane_max_share")
     carbon = moles.get("CO2", 0.0) + moles.get("CH4", 0.0)
-    return min(steady, share * sum(moles.values()), (1.0 - number("carbon_left_share")) * carbon)
+    total = sum(moles.values()) if total_mol is None else total_mol
+    return min(steady, share * total, (1.0 - number("carbon_left_share")) * carbon)
 
 
 def _oxygenic(body, living, forever=False):
@@ -308,26 +310,40 @@ def _producing(body, living, rose):
     return not (rose and methane.get("until") == "oxygen")
 
 
-def apply_gases(body, living, rose):
+SETTLE_PASSES = 4
+"""int: The most times the caps of `apply_gases` are worked again for the water the new air leaves (a new air has a new temperature and the water above its saturation freezes out, GEN.1564)."""
+SETTLE_TOLERANCE = 1.0e-9
+"""float: The share by which the gases of two passes of the caps may differ for the air to count as settled."""
+
+
+def _settled_water_mol(body, moles):
+    """The water vapor, mol, the air `moles` holds once it is stored on `body`: stored on a copy, whose new temperature freezes out what stands above saturation (`biogenic_oxygen.store_air`)."""
+    trial = copy.deepcopy(body)
+    air = biogenic_oxygen.partials_pa(trial, moles)
+    if not air:
+        return 0.0
+    biogenic_oxygen.store_air(trial, air)
+    return biogenic_oxygen.air_moles(trial).get("H2O", 0.0)
+
+
+def _with_ledger_gases(body, living, rose, moles, water_mol=None):
     """
-    Gives the air of `body` the gases of the ledger rows of the classes in `living` (a list of `Living`) at the star's age (GEN.1213): the methane their
-    fluxes hold together (each class's flux times its share of the food production, so the fuel they share is counted once; the carbon dioxide it is made
-    from taken out) and the hydrogen, hydrogen sulfide and the like each draws down, class by class. `rose` says the oxygen of a class that splits water has
-    risen on this world (`biogenic_oxygen.apply` returned true): a row that ends there gives no methane. Applying it twice changes nothing more. Returns
-    whether the air changed; the doses, aerosols, colour and score that read the air are the caller's to make again (`generation.life`).
+    `(new moles, changed)`: the air `moles` with the gases of the ledger rows of `living` (see `apply_gases`). The shares the caps hold are of the air's molecules; `water_mol` is
+    the water vapor the air will hold once stored (None: the water it holds now), so a cap holds in the air that is kept and not in the one before its water settled (a body on a
+    climate cliff cools tens of kelvin under its first methane and loses most of its vapor, which put the share of the stored air 0.2 percent over its cap).
     """
-    if getattr(body, "body_type", "t") == "g":
-        return False
-    moles = biogenic_oxygen.air_moles(body)
-    if not moles:
-        return False
     changed = False
     new = dict(moles)
+
+    def total(gases):
+        wet = sum(gases.values())
+        return wet if water_mol is None else wet - gases.get("H2O", 0.0) + water_mol
+
     oxygen_free = moles.get("O2", 0.0) <= number("oxygen_max_share") * sum(moles.values())
     flux = summed_methane_flux_mol_yr(body, living, lambda one: _producing(body, one, rose))
     if oxygen_free and flux > 0.0:
         have = moles.get("CH4", 0.0)
-        wanted = methane_target_mol(flux, moles)
+        wanted = methane_target_mol(flux, moles, total(moles))
         pascal_per_mol = body.atmospheric_pressure / sum(moles.values())
         if wanted > have * number("apply_rise") and (wanted - have) * pascal_per_mol >= biogenic_oxygen.MINIMUM_PA:
             new["CH4"] = wanted
@@ -339,7 +355,7 @@ def apply_gases(body, living, rose):
             continue
         for gas in row["draws_down"]:
             share = number(DRAW_DOWN_CAPS[gas])
-            limit = share / (1.0 - share) * (sum(new.values()) - new.get(gas, 0.0))
+            limit = share / (1.0 - share) * (total(new) - new.get(gas, 0.0))
             have = new.get(gas, 0.0)
             if have <= limit * (1.0 + 1e-9):
                 continue
@@ -348,8 +364,36 @@ def apply_gases(body, living, rose):
             product = (row.get("products") or {}).get(gas)
             if product:      # what the life makes of the gas it takes: sulfur dioxide from hydrogen sulfide, methane from hydrogen
                 new[product["gas"]] = new.get(product["gas"], 0.0) + (have - limit) * number(product["per"])
+    return new, changed
+
+
+def apply_gases(body, living, rose):
+    """
+    Gives the air of `body` the gases of the ledger rows of the classes in `living` (a list of `Living`) at the star's age (GEN.1213): the methane their
+    fluxes hold together (each class's flux times its share of the food production, so the fuel they share is counted once; the carbon dioxide it is made
+    from taken out) and the hydrogen, hydrogen sulfide and the like each draws down, class by class. `rose` says the oxygen of a class that splits water has
+    risen on this world (`biogenic_oxygen.apply` returned true): a row that ends there gives no methane. Applying it twice changes nothing more. Returns
+    whether the air changed; the doses, aerosols, colour and score that read the air are the caller's to make again (`generation.life`).
+
+    The caps are of the molecules of the air that is kept: the new air has a new temperature, and the water of an air with an ocean settles at it, so the water is found by storing
+    the air on a copy and the caps are worked again with it, until the gases stop moving (`SETTLE_PASSES`).
+    """
+    if getattr(body, "body_type", "t") == "g":
+        return False
+    moles = biogenic_oxygen.air_moles(body)
+    if not moles:
+        return False
+    new, changed = _with_ledger_gases(body, living, rose, moles)
     if not changed:
         return False
+    if moles.get("H2O", 0.0) > 0.0:
+        for _ in range(SETTLE_PASSES):
+            water = _settled_water_mol(body, {formula: amount for formula, amount in new.items() if amount > 0.0})
+            again, _ = _with_ledger_gases(body, living, rose, moles, water)
+            settled = all(abs(again.get(formula, 0.0) - new.get(formula, 0.0)) <= SETTLE_TOLERANCE * max(new.get(formula, 0.0), 1.0) for formula in set(new) | set(again))
+            new = again
+            if settled:
+                break
     new = {formula: amount for formula, amount in new.items() if amount > 0.0}
     air = biogenic_oxygen.partials_pa(body, new)
     if not air:
