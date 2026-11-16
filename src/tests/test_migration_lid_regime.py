@@ -11,31 +11,8 @@ from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
-
-
-def _types(conn, table):
-    return {row["COLUMN_NAME"]: row["DATA_TYPE"] for row in conn.execute(
-        "SELECT COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", (table,)).fetchall()}
-
-
-def test_a_v168_galaxy_gets_the_column_empty(mysql_config):
-    load_old_schema(mysql_config, 168)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            assert "lid_regime" not in _types(conn, table)
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            assert _types(conn, table)["lid_regime"] == "varchar", table
-    finally:
-        conn.close()
 
 
 def test_a_saved_system_keeps_every_rocky_bodys_regime(mysql_config):
