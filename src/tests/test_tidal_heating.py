@@ -172,7 +172,7 @@ def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_
             if forcing is None:  # a planet or captured moon the tide has circularised has none left, and a stored 0.0 says so (GEN.778)
                 assert body.eccentricity == 0.0 and body.tidal_flux_w_m2 == 0.0
                 continue
-            if (body.water_mass_fraction or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION:
+            if (body.water_mass_fraction or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION and interior_heat.is_ice_bound(body):      # GEN.1760: a water-rich body too warm for ice is the rocky mantle's below
                 icy += 1
                 if interior_heat.icy_regime(body) == interior_heat.FROZEN:      # GEN.1759: ice solid through flexes as solid ice does
                     power = interior_heat.frozen_tide_w(body, forcing) if forcing.eccentricity > 0.0 else 0.0
