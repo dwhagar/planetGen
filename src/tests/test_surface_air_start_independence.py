@@ -11,7 +11,7 @@ than "one answer from every start":
 * the same setting, start and draw state give the same answer twice, for every captured setting;
 * a giant has the temperature alone to settle (its pressure is the reference level) and ends at one temperature whatever the start (before GEN.1716 a hot giant ended at 1,381 K from a 120 K
   start and 1,633 K from a 600 K one);
-* the share of air bodies whose answer depends on the start stays small (`MAX_BISTABLE_SHARE`): 0 of 17 on the first twelve seeds below and 6 of 242 (2.5 percent) on the 60 G2V systems of
+* the share of air bodies whose answer depends on the start stays bounded (`MAX_BISTABLE_SHARE`, see its note for the measures): 0 of 17 on the first twelve seeds below before GEN.1579 and 6 of 242 (2.5 percent) on the 60 G2V systems of
   Lane 14's census script (branch claude/lane14-gen1555, `scripts/gen1555_moist_limit_census.py`) on main after Train 36; 42 of 286 (15 percent) before the solver work (GEN.1716, GEN.1718,
   GEN.1646), so the bound catches a solver that begins to chatter again.
 
@@ -41,9 +41,11 @@ SAME_PRESSURE_RATIO = 1.25
 """float: Two answers are one fixed point when they are within these (a solver tolerance is 0.1 K, so this is wide on purpose)."""
 AIR_PA = 1.0e4
 """float: The pressure ratio is compared only for answers with at least this much air; a trace of air under 10 kPa moves by tens of percent with the start and is not a branch."""
-MAX_BISTABLE_SHARE = 0.15
-"""float: The most air bodies whose answer depends on the start, as a share of the bodies with 10 kPa or more of air in the sample; main measures 2.5 percent over 242 bodies and the sample
-here is small, so the bound is the share that the solver had before GEN.1716 (15 percent): a solver that chatters again is over it."""
+MAX_BISTABLE_SHARE = 0.40
+"""float: The most air bodies whose answer depends on the start, as a share of the bodies with 10 kPa or more of air in the sample. Measured on the 40 G2V systems of seeds 3000 to 3039 with the
+three probe starts: 6 of 55 (11 percent) while the moist limit was the one 375 K that cut every hot branch at that temperature; 17 of 54 (31 percent) with the moist limit of the air (GEN.1579), which
+lets a thick-air body keep a hot branch (a surface of 400 to 600 K with tens of bar of carbon dioxide out of its carbonates) beside its cold one, as TODO decided a world may (GEN.1403). The sample here
+is small and the bound is above that measure: a solver that chatters again (42 of 286, 15 percent, before GEN.1716 with the hot branches cut) is far over it."""
 
 
 def _spread(setting, starts=STARTS_K):

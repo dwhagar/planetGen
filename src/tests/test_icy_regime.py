@@ -83,3 +83,44 @@ def test_a_water_world_too_warm_for_ice_flexes_as_rock_in_the_sea_tide_too():
     assert ocean_tides._love_k2(body, body.mass, body.radius * 1000.0, 1.0e-4) == tidal_heating.rigid_k2(body.mass, body.radius * 1000.0)
     cold = _on_orbit(EUROPA, distance_au=5.2, eccentricity=0.0)
     assert ocean_tides._love_k2(cold, cold.mass, cold.radius * 1000.0, 1.0e-4) == icy_tide.love_k2(cold.mass, cold.radius * 1000.0, 1.0e-4)
+
+
+# --- GEN.1760: the orbit of a body too warm for ice is worn by the rock's tide, once its surface is known -----------------------------------------------------------------------
+
+
+def test_a_surface_under_the_melting_point_of_ice_binds_the_body_to_the_ice_models_and_a_dry_or_warm_one_does_not():
+    assert interior_heat.is_ice_bound(types.SimpleNamespace(**EUROPA))
+    assert interior_heat.is_ice_bound(types.SimpleNamespace(**SMALL_COLD))
+    assert not interior_heat.is_ice_bound(types.SimpleNamespace(**WARM_WET))
+    assert not interior_heat.is_ice_bound(types.SimpleNamespace(**DRY))
+    unknown = dict(EUROPA, surface_temperature=None)       # circularisation before the air: the cold fallback, a shell
+    assert interior_heat.is_ice_bound(types.SimpleNamespace(**unknown))
+
+
+def test_only_a_warm_water_rich_body_takes_the_tides_of_its_orbit_again(monkeypatch):
+    from planetgen.physics import planets
+    taken = []
+    monkeypatch.setattr(planets, "settle_orbit", lambda body: taken.append(body) or True)
+    for fields in (EUROPA, SMALL_COLD, DRY):
+        assert not planets.settle_warm_icy_orbit(_on_orbit(fields))
+    assert taken == []
+    warm = _on_orbit(WARM_WET, distance_au=0.03, eccentricity=0.43)
+    assert planets.settle_warm_icy_orbit(warm)
+    assert taken == [warm]
+
+
+def test_the_tide_of_a_warm_water_rich_body_is_in_the_box_not_left_out(monkeypatch):
+    """GEN.1759 left it out because its orbit was never worn by the rock's tide; GEN.1760 wears it, so the heat model gives it the mantle's tide like any rocky body (and a body under ice still has none in the box)."""
+    forcings = []
+    monkeypatch.setattr(interior_heat.radiogenic, "content_of", lambda body: object())
+    monkeypatch.setattr(interior_heat, "interior_of", lambda body: object())
+    monkeypatch.setattr(interior_heat.radiogenic, "rock_of", lambda body: None)
+    monkeypatch.setattr(interior_heat, "lid_of", lambda body: None)
+    monkeypatch.setattr(interior_heat, "surface_of", lambda body: None)
+    monkeypatch.setattr(interior_heat, "heat_flow", lambda content, interior, mass, radius, age, rock, forcing, lid, surface: forcings.append(forcing))
+    interior_heat.heat_at(_on_orbit(WARM_WET, distance_au=0.5, eccentricity=0.2), 4.0)
+    interior_heat.heat_at(_on_orbit(EUROPA, distance_au=5.2, eccentricity=0.2), 4.0)
+    interior_heat.heat_at(_on_orbit(DRY, distance_au=5.2, eccentricity=0.2), 4.0)
+    assert forcings[0] is not None and forcings[0].eccentricity == 0.2
+    assert forcings[1] is None
+    assert forcings[2] is not None

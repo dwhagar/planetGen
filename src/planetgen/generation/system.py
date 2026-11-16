@@ -2555,6 +2555,9 @@ class StarSystem:
                         if log.debug_log_active():
                             log.debug(f"{moon.name}: eccentricity settled to {moon.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr.")
                 obj.finish_moons()      # GEN.1548: the moons built bare take their air, class and spin on the orbit the tide left
+                for body in (obj, *obj.moons):      # GEN.1760: a water-rich body now known to be too warm for ice is worn by the tide of a rocky mantle, not a shell's, then its air is made again
+                    if planetPhysics.settle_warm_icy_orbit(body) and log.debug_log_active():
+                        log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} under the tide of its warm surface.")
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     if log.debug_log_active():
