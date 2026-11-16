@@ -3078,7 +3078,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.265 | (bug) plan-skeleton's outline piece (7.5 s) and generate-system's first system (8.5 s) go silent past the 5 s budget on a small galaxy: give each a count inside | none | done (PR 6789, Lane 16, merged 7:30 AM EST 11-16; Gate PASS) |
 | OPS.266 | (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector | none | done (PR 6780, Lane 16, merged 7:03 AM EST 11-16: a sector reports systems and bodies done while it is generated; Gate PASS, galaxy unchanged) |
 | OPS.267 | (bug) planetgen plan --reach-shells 3 ends with a TypeError in log_skeleton_summary: the dials line formats edge when args.edge is None | done (PR 6805, Lane 16, merged 3:00 AM EST 11-16) |
-| OPS.268 | (bug, high) New galaxy neighborhood stage stalls: sectors run one at a time on 5 workers, last 3 of 106 never finish | open (Lane 13) |
+| OPS.268 | (bug, high) New galaxy neighborhood stage stalls: sectors run one at a time on 5 workers, last 3 of 106 never finish | done (PR 6936, Lane 13, merged 6:40 PM EST 11-16) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
