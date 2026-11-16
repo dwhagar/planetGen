@@ -87,7 +87,7 @@ def values_from_body(body):
         "flux_variation": getattr(body, "flux_variation", None),
         "ocean_ph": getattr(body, "ocean_ph", None),
         "roundness_ratio": getattr(body, "roundness_ratio", None),
-        "life_class": getattr(body, "life_class", None),        # GEN.1752: a body with life is not an Asteroid
+        **{name: getattr(body, name, None) for name in LIFE_RECORDS},       # GEN.1752: a body with life is not an Asteroid
         "relative_humidity": getattr(body, "relative_humidity", None),
         "groundwater": getattr(body, "groundwater", None),
         "aquifer_depth_km": getattr(body, "aquifer_depth_km", None),
@@ -234,15 +234,25 @@ ASTEROID = AsteroidType(DOCUMENT["asteroid"])
 """AsteroidType: What a terrestrial body whose roundness ratio is under 1 is. `classify_values` gives it and `classify` gives `None` for it."""
 
 
+LIFE_RECORDS = ("life_stage", "life_microbial", "life_flora", "life_fauna", "life_sentient")
+"""tuple: The stored fields that say a body has had life (GEN.1752): the stage its timeline reached (kept when the life later ends or falls back, GEN.1746) and the four kind scores. `life_class` alone does not
+say so: a world whose star is younger than the first step of its schedule suits a class and has no life yet (`life_classes.living_class_id`, GEN.1001)."""
+
+
+def has_life(values):
+    """Whether a body's stored `values` record life that is or was there: a stage reached, or a kind score above 0."""
+    return values.get("life_stage") is not None or any((values.get(name) or 0) > 0 for name in LIFE_RECORDS[1:])
+
+
 def holds_air_liquid_or_life(values, found=None):
     """
     Whether a body (its stored `values`, a column-named mapping, and `found` its `quantities` when the caller has them) has something a class can fit besides its size: an air at or above the
-    fit's gate pressure (`class_fit.GATE_PRESSURE_PA`), a liquid at its surface (the fields of `LIQUID_CLASS_FIELDS`) or life (`life_class`). GEN.1752 (Boss, 6:11 PM EST 2026-11-15): class comes last
+    fit's gate pressure (`class_fit.GATE_PRESSURE_PA`), a liquid at its surface (the fields of `LIQUID_CLASS_FIELDS`) or life (`has_life`: the stage its timeline reached, which stays when the life ends, or a kind score). GEN.1752 (Boss, 6:11 PM EST 2026-11-15): class comes last
     even for a small or belt body, so a body under a roundness ratio of 1 is an Asteroid only while it holds none of these; one that does is classed by the fit, on its fudge edges.
     """
     from planetgen.physics import class_fit        # class_fit reads this module's quantities
     pressure = (found["pressure_pa"] if found is not None else values.get("atmospheric_pressure_pa")) or 0.0
-    return bool(pressure >= class_fit.GATE_PRESSURE_PA or values.get("surface_liquid") or values.get("life_class"))
+    return bool(pressure >= class_fit.GATE_PRESSURE_PA or values.get("surface_liquid") or has_life(values))
 
 
 def is_asteroid(values, found=None):

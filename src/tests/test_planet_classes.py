@@ -403,9 +403,11 @@ def test_a_small_not_round_body_with_a_surface_liquid_or_with_life_is_classed_an
     bare = airless(mass_earth=1e-5, roundness_ratio=0.4)
     assert pc.is_asteroid(bare) and pc.classify(bare) is None
     wet = dict(bare, surface_liquid="water")
-    living = dict(bare, life_class="a")
-    for held in (wet, living):
+    living = dict(bare, life_stage="microbes", life_microbial=40)
+    fallen = dict(bare, life_stage="microbes", life_microbial=0)      # the life ended and the stage stays (GEN.1746)
+    for held in (wet, living, fallen):
         assert not pc.is_asteroid(held) and pc.classify(held) in pc.LETTERS
+    assert pc.is_asteroid(dict(bare, life_class="a", life_stage=None, life_microbial=0)), "a class that suits the world with no life yet is no life"
     thin_air = dict(bare, atmospheric_pressure_pa=9.0)          # under the fit's 10 Pa gate it is no air
     assert pc.is_asteroid(thin_air)
 
