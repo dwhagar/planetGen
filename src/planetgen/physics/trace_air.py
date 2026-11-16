@@ -20,6 +20,7 @@ The ozone rows m1 and m2 are retired (part 3): the ozone column is `physics.ozon
 A body that is drawn again (an edit, `validation.reapply_life`) loses the trace gases it had before the new ones are drawn, so applying twice gives the same air.
 """
 
+from planetgen.generation.build_record import record_of
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics import atmosphere, atmosphere_state, constants, envelope_share, mixture_subject, mixture_trace, planet_type
 from planetgen.util import draw
@@ -58,7 +59,7 @@ def subject_of(body, partials):
     """The `Subject` of table m for `body` and its air `partials` (formula to Pa, without the trace gases)."""
     pressure_pa = sum(partials.values())
     quantities = mixture_subject.quantities_of_body(
-        body, ts_k=body.surface_temperature, pressure_bar=pressure_pa / constants.BAR_PA, star_distance_au=body.build.star_distance_au)
+        body, ts_k=body.surface_temperature, pressure_bar=pressure_pa / constants.BAR_PA, star_distance_au=record_of(body).star_distance_au)
     quantities.update({
         "has_solid_ground": getattr(body, "body_type", "t") == "t",
         "gas_has_co_h2s": partials.get("CO", 0.0) > 0.0 and partials.get("H2S", 0.0) > 0.0,
