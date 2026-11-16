@@ -24168,7 +24168,7 @@
     },
     "R4834": {
       "kind": "paper",
-      "label": "Young et al. 2023",
+      "label": "Young et al. 2023a",
       "title": "On the conditions for warping and breaking protoplanetary discs"
     },
     "R4835": {
@@ -26395,6 +26395,11 @@
       "kind": "paper",
       "label": "Burdige 2005",
       "title": "Burial of terrestrial organic matter in marine sediments: A re‐assessment"
+    },
+    "R5286": {
+      "kind": "paper",
+      "label": "Young et al. 2023b",
+      "title": "Earth shaped by primordial H2 atmospheres"
     }
   }
 }

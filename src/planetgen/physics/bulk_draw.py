@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import abundance_tier, possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water,
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water, envelope_capture,
                                disk_condensation, elements, formation_snow_line, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
                                volatile_depletion)
 from planetgen.util import draw
@@ -435,7 +435,23 @@ def _rocky_water(body):
     dialed = delivered_water.dialed_class(share, abundance_tier.dry_part(body))     # a tier: ONE extra draw; `science` (share 0) draws nothing and leaves the body untouched
     if share > 0.0 or hasattr(body, "_water_dialed"):
         body._water_dialed = dialed         # remembered so the body's air takes the same class (`mixture_subject`); a redraw decides again
-    return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio, dialed=dialed)
+    water = delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio, dialed=dialed)
+    return water if dialed is not None else water + _nebular_water(body, mass_earth)
+
+
+def _nebular_water(body, mass_earth):
+    """
+    The water, a share of the body's mass, that the hydrogen envelope of a rocky body under `envelope_capture.KEEPS_FROM_MASS_EARTH` made in its magma ocean before it was lost (GEN.1748, Young et al. [R5286]): the
+    body captured an envelope in the disk (`envelope_capture.start_of`, the start `planets.apply_envelope` would draw, from the body's own stream, no draw of the run's) and `envelope_capture.nebular_water_fraction` of it is
+    water, added to the delivered water. 0 for a body that is a moon, has no star, mass or formation distance, captured nothing (a late core, a belt member), is too light to hold a nebular envelope
+    (`envelope_capture.MIN_MASS_EARTH`) or is heavy enough to keep its envelope and so is read as a sub-Neptune's. Not added where the Class M abundance tier's water dial decided the class (`dialed`).
+    """
+    star = getattr(body, "star", None)
+    distance = _formation_distance_au(body)
+    if (getattr(body, "is_moon", False) or getattr(body, "_late_core", False) or star is None or distance is None
+            or not envelope_capture.in_range(mass_earth) or envelope_capture.keeps_envelope(mass_earth)):
+        return 0.0
+    return envelope_capture.nebular_water_fraction(envelope_capture.start_of(body.mass, distance, star.mass), host_ratios(star).y_envelope)
 
 
 def _icy_water_range(body):

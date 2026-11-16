@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1840 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1844 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1813 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1817 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 210 | 21 | 12 | 1 | 0 | 244 |
+| T1 | 213 | 22 | 12 | 1 | 0 | 248 |
 | T2 | 169 | 71 | 3 | 1 | 0 | 244 |
 | T3 | 125 | 62 | 13 | 11 | 0 | 211 |
 | T4 | 90 | 16 | 8 | 22 | 13 | 149 |
-| T5 | 106 | 28 | 8 | 2 | 1 | 145 |
-| T6 | 236 | 122 | 34 | 79 | 4 | 475 |
+| T5 | 107 | 28 | 8 | 2 | 1 | 146 |
+| T6 | 235 | 122 | 34 | 79 | 4 | 474 |
 | T7 | 65 | 34 | 10 | 32 | 0 | 141 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 105 | 41 | 224 |
-| All | 1054 | 374 | 94 | 258 | 60 | 1840 |
+| All | 1057 | 375 | 94 | 258 | 60 | 1844 |
 
 ## How the labels were given
 
@@ -1852,12 +1852,16 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | EC1 | P | T9 | L3 | envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket `f_env0` 0.05 to 0.2, log) | 0.05 to 0.2 | rocky planets of 3.72 to 20 Earth masses | a measured envelope fraction of the sub-Neptunes of that mass that sits outside the bracket | an envelope drawn from a disk gas-accretion model of the core's mass, the disk's life and its opacity | both valley targets (slope -0.11, 1.84 Earth radii at 10 days) are inside 2 sigma for the whole bracket (`envelope-escape-wiring.md` section 1); the generator's 240-system sweep gives 45 percent above 2.0 inside 100 days (`reports/gen1323-sub-neptune-envelopes-2026-11-07.md`) | predicted only | - | no data |
 | EC2 | P | T7 | L3 | envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power | 2 to 4 | rocky planets of 1 to 3.72 Earth masses | a population of 1 to 2 Earth-mass planets whose radii are mostly above 1.6 (exponent too low) or of 2 to 4 Earth-mass planets that are all bare (too high) | gas capture by a core in a disk of its own mass and temperature | no source read: a flat start gives every Earth-mass planet an envelope (median radius 3.2 in the sweep) and the Earth and Venus have none; at 3, a 1 Earth-mass planet starts with 0.2 percent and a 2 Earth-mass planet with 1.6 percent; at 4, 1 to 2 Earth-mass planets are mostly bare | predicted only | - | no data |
-| EC3 | B | T6 | L0 | envelope_capture.MIN_MASS_EARTH 1 and MAX_MASS_EARTH 20: the planets that capture an envelope are the rocky planets of the e1 and e2 rows (1 Earth mass up) and `planet_kind`'s heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope) | 0.5 to 2; 15 to 30 | rocky planets | an envelope found on a planet under 1 Earth mass | a capture law that has no lower edge | the e1 and e2 rows (`mass_earth` 1 to 30) and `planet_kind._MAX_TERRESTRIAL_EARTH` | predicted only | - | - |
+| EC3 | B | T1 | L0 | envelope_capture.MIN_MASS_EARTH 0.2 and MAX_MASS_EARTH 20: the bodies that capture an envelope are the rocky bodies from the 0.2 Earth masses that Young et al. [R5286] find the H2 atmosphere of an embryo does not depend on below (their fiducial embryo 0.5 and a case at 0.3; Mars's 0.1 "can only accrete a primary hydrogen-dominated atmosphere from the disk after its surface cooled to 700 K or less") up to `planet_kind`'s heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope) | 0.1 to 0.3; 15 to 30 | rocky bodies | an envelope found on a body under 0.2 Earth masses | a capture law that has no lower edge | Young, Shahar and Schlichting [R5286] (read: Introduction and Methods) and `planet_kind._MAX_TERRESTRIAL_EARTH` | predicted only | - | - |
 | EC4 | P | T6 | L1 | `planets.settle_envelope` keeps the drawn mass as the planet's total and takes the radius at the 20 mbar level of Lopez and Fortney (the level the valley survey and transit radii use) | the envelope's mass, a few percent | planets with an envelope of 0.5 to 20 percent | a planet whose measured mass is the core's alone (the total is then a few percent too light) | the core mass drawn first and the envelope added on top | the rows pass the planet's mass as the core mass in the same way (`envelope-escape-wiring.md` section 3) | predicted only | - | - |
 | EC5 | B | T6 | L1 | envelope_capture.MAX_START 0.2: the largest starting envelope a rocky planet draws, the top of the range the radius law of Lopez and Fortney was fitted over (the survey holds 0.5) | 0.1 to 0.3 | rocky planets of 1 to 20 Earth masses | a planet of 2 to 4 Earth masses with an envelope of more than 20 percent | a radius law that holds past 20 percent, or a capture law that caps the envelope by the core's mass | [R2741] fit range (`bulk_structure.CLOSED_FORM_RANGES`); the first sweep with the survey's 0.5 gave planets of 3 Earth masses of 7 Earth radii | predicted only | - | - |
 | EC6 | B | T6 | L0 | planets.ENVELOPE_SETTLE_TOLERANCE 0.02: a planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it, its air, class and spin | 0.01 to 0.05 | rocky planets with an envelope | a planet whose radius or class moves visibly between the draw and the settle | none (numerical: the radius moves by under a hundredth) | the same 2 percent as `AGE_SETTLE_TOLERANCE` (row OE15) | predicted only | - | - |
 | EC7 | B | T9 | L3 | tuning.CLASS_REQUEST_LATE_CORE_EVERY 2: every second draw of a class request after its free attempts is a core that formed after the gas disk went (`late_core`, no envelope) | one in four to one in two | rocky planets asked for by class (V, 2 g or more, needs a bare core) | a forced V that no seed reaches | a formation-time draw against the disk's lifetime, which the generator does not make | with no late cores every rocky planet of 4 Earth masses or more keeps an envelope except close in, and V (2 g) is out of reach (0 of 40 seeds); alternate draws reach it in 12 of 40 | predicted only | - | no data |
 | EC8 | B | T4 | L0 | envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is `super_puff.START_MAX_MASS_EARTH`, row PF1) | 1 to 3 | sub-Neptune cores inside 100 days | a super-puff of Kepler-51 b's kind under 2 Earth masses | a core mass at which the dust-free accretion works | [R2609: Sec. 4] (read) | predicted only | - | - |
+| EC9 | P | T1 | L0 | envelope_capture.FLAT_BELOW_MASS_EARTH 1: below 1 Earth mass the median starting envelope stops falling with the mass and is its value at 1 Earth mass, 0.0019 of the mass (Young et al.'s favoured solution: a total H-mass fraction of about 0.2 percent for an embryo of 0.5 Earth masses, the same at 0.3, no dependence on mass above ~0.2) | 0.0015 to 0.003 | rocky bodies of 0.2 to 1 Earth mass | an envelope fraction of such bodies that falls steeply with mass | the mass dependence of the capture of the disk's gas by an embryo | Young, Shahar and Schlichting [R5286] (read: Methods, favoured solution) | predicted only | - | - |
+| EC10 | B | T5 | L0 | envelope_capture.KEEPS_FROM_MASS_EARTH 1: a body lighter than this is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated "would efficiently remove any residual hydrogen dominated atmospheres" of embryos, Young et al. [R5286]); its envelope is a history and the water it made | 0.5 to 1.5 | rocky bodies | a body under 1 Earth mass whose observed radius needs an envelope | a radius law that holds under 1 Earth mass | `bulk_structure.CLOSED_FORM_RANGES["envelope"]` (1 to 20 Earth masses) and Young et al. [R5286] (read: Introduction) | predicted only | - | - |
+| EC11 | B | T1 | L0 | envelope_capture.OCEAN_MASS_KG 1.4e21: the mass of the Earth's oceans, the unit Young et al. [R5286] count their water in ("approximately one terrestrial ocean") | 1.35e21 to 1.40e21 | the Earth | an ocean mass of the Earth outside the range | none | the standard value of the Earth's ocean mass (1.335 to 1.4e21 kg) | predicted only | - | - |
+| EC12 | P | T1 | L1 | envelope_capture.YOUNG_EMBRYO_MASS_EARTH 0.5 and YOUNG_WATER_CASES ((0.002, 1), (0.003, 2.5)): a total H-mass fraction of 0.2 percent makes about 1 terrestrial ocean of water in the magma ocean of a 0.5 Earth-mass embryo, 0.3 percent makes 2 to 3 (the middle, 2.5 is the L1 pick); between, below and held above 0.3 percent as the power of the hydrogen that joins them (2.26) | 2 to 3 oceans at 0.3 percent | rocky bodies of 0.2 to 1 Earth mass | a body of 0.5 Earth masses with 0.2 percent hydrogen and no water from it | a mass-dependent magma-ocean and hydrogen equilibrium (the paper's own thermodynamic model) | Young, Shahar and Schlichting [R5286] (read: abstract and Results) | predicted only | - | - |
 
 ## 6.207 Stand-in of the bodies an asteroid field stores
 

@@ -42,11 +42,14 @@ def test_the_start_is_centered_where_the_valley_was_tuned_and_falls_below_it():
     assert low <= envelope_capture.MEDIAN_START <= high
     assert envelope_capture.median_start(10.0) == envelope_capture.median_start(envelope_capture.REFERENCE_MASS_EARTH) == envelope_capture.MEDIAN_START
     assert envelope_capture.median_start(1.0) < 0.005 < envelope_capture.median_start(2.0) < envelope_capture.median_start(3.0)
+    assert envelope_capture.median_start(0.3) == envelope_capture.median_start(0.9) == envelope_capture.median_start(1.0)       # GEN.1748: flat under 1 Earth mass, at Young et al.'s 0.2 percent
+    assert envelope_capture.median_start(1.0) == pytest.approx(0.002, rel=0.1)
 
 
-def test_only_planets_of_one_to_twenty_earth_masses_draw_a_start_and_the_start_is_capped():
+def test_only_bodies_of_a_fifth_to_twenty_earth_masses_draw_a_start_and_the_start_is_capped():
     with draw.bound("envelope-capture:start"):
-        assert envelope_capture.draw_start(0.5) == 0.0 and envelope_capture.draw_start(25.0) == 0.0
+        assert envelope_capture.draw_start(0.1) == 0.0 and envelope_capture.draw_start(25.0) == 0.0     # Mars's 0.1 Earth masses: too small before the disk is gone (Young et al. [R5286], GEN.1748)
+        assert envelope_capture.draw_start(0.5) > 0.0
         starts = [envelope_capture.draw_start(8.0) for _ in range(400)]
     assert all(0.0 < value <= envelope_capture.MAX_START <= envelope_escape.MAX_ENVELOPE for value in starts)
     assert statistics.median(starts) == pytest.approx(envelope_capture.MEDIAN_START, rel=0.2)
@@ -203,3 +206,25 @@ def test_the_generated_planets_show_the_radius_valley_a_system_sweep_finds():
                 light_rocky += (planet.envelope_mass_fraction or 0.0) < 0.01
     assert inner >= 8 and 0.2 <= big / inner <= 0.75
     assert light >= 10 and light_rocky / light >= 0.6
+
+
+def test_a_body_under_one_earth_mass_made_water_from_its_envelope_and_keeps_no_envelope():
+    """GEN.1748 (Young et al. [R5286]): 0.2 percent hydrogen makes about an ocean and 0.3 percent 2 to 3; the radius law starts at 1 Earth mass, so a lighter body ends bare."""
+    cases = dict(envelope_capture.YOUNG_WATER_CASES)
+    ocean_share = envelope_capture.OCEAN_MASS_KG / (envelope_capture.YOUNG_EMBRYO_MASS_EARTH * constants.EARTH_MASS_TO_KG)
+    for hydrogen, oceans in cases.items():
+        start = hydrogen / (1.0 - 0.27)
+        assert envelope_capture.nebular_water_fraction(start) == pytest.approx(oceans * ocean_share, rel=1e-9)
+    assert envelope_capture.nebular_water_fraction(0.0) == 0.0
+    assert envelope_capture.nebular_water_fraction(0.001) < envelope_capture.nebular_water_fraction(0.002) < envelope_capture.nebular_water_fraction(0.003)
+    assert envelope_capture.nebular_water_fraction(0.05) == envelope_capture.nebular_water_fraction(0.01)             # held at the paper's top case
+    assert not envelope_capture.keeps_envelope(0.9) and envelope_capture.keeps_envelope(1.0)
+
+
+def test_the_start_the_water_reads_is_the_start_the_planet_draws(sun):
+    """The water of `bulk_draw` and the envelope of `planets.apply_envelope` come from one stream of the planet's own."""
+    mass = 0.6 * EARTH
+    with draw.bound("envelope-capture:other"):
+        first = envelope_capture.start_of(mass, 1.0, sun.mass)
+    with draw.bound(envelope_capture.start_stream(mass, 1.0, sun.mass)):
+        assert envelope_capture.draw_start(0.6) == first > 0.0

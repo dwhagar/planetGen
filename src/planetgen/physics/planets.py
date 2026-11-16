@@ -445,13 +445,12 @@ def apply_envelope(planet):
     if planet.body_type != "t" or planet.is_moon:
         return False
     mass_earth = _kg_to_mearth(planet.mass)
-    if not envelope_capture.in_range(mass_earth):
-        return False
+    if not envelope_capture.in_range(mass_earth) or not envelope_capture.keeps_envelope(mass_earth):
+        return False                    # a body under 1 Earth mass captured one (and made its water from it, `bulk_draw`), and is bare at the end (GEN.1748)
     if getattr(planet, "_late_core", False):
         start = 0.0                     # a core that finished after the gas disk went captured nothing
     else:
-        stream = draw.Stream(f"envelope-start:{float(planet.mass)!r}:{float(formation_distance_au(planet))!r}:{float(planet.star.mass)!r}")
-        with draw.bound(stream):
+        with draw.bound(envelope_capture.start_stream(planet.mass, formation_distance_au(planet), planet.star.mass)):
             start = envelope_capture.draw_start(mass_earth)
             puff = envelope_capture.draw_puff_start(mass_earth, envelope_capture.period_days(planet))     # GEN.1343 (W15): one sub-Neptune core in 20 starts as a super-puff
             start = puff or start
