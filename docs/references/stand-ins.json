@@ -17749,7 +17749,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.INNER_INITIAL_COUNT_EXTRA 5.619 and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
+              "tuning.INNER_INITIAL_COUNT_EXTRA 9 (5.619 before GEN.1709) and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
             ],
             [
               "The range it moves in",
@@ -17780,7 +17780,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.INNER_INITIAL_COUNT_EXTRA 5.619 and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
+          "what": "tuning.INNER_INITIAL_COUNT_EXTRA 9 (5.619 before GEN.1709) and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
         },
         {
           "burn_down": [
@@ -18273,6 +18273,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.INNER_FIRST_PERIOD_MEDIAN_DAYS 25 and INNER_FIRST_PERIOD_SIGMA_DEX 0.7 (the period of the first planet of an inner system, log-normal; GEN.1709, with the giant-impact stage of GEN.1560 left to the outer chain, which starts at INNER_SYSTEM_PERIOD_LIMIT_DAYS 400 times OUTER_CHAIN_START_RATIO 1.3)"
+            ],
+            [
+              "The range it moves in",
+              "median 15 to 40 d; width 0.5 to 0.9 dex"
+            ],
+            [
+              "Where it holds",
+              "all hosts with an inner system"
+            ],
+            [
+              "What would show it wrong",
+              "test_planet_architecture::test_the_inner_system_spreads_over_the_periods_the_surveys_see; a planet count of 0.5 to 2.5 Earth radii per factor of 2 in period outside 0.04 to 0.30 between 8 and 128 days, or planets inside 400 days per Sun-like star outside 0.6 to 1.6 (Earth masses of 0.8 or more)"
+            ],
+            [
+              "What replaces it",
+              "a formation model of where the inner disc's chain begins and of the pebble supply beyond it"
+            ],
+            [
+              "Evidence",
+              "[R2020] (Hsu et al. 2019 Table 2, READ: 0.20 to 0.25 planets of 0.5 to 2.5 Earth radii per star per factor of 2 in period from 4 to 128 days, flat from 8 days; no fall beyond 64 days); the median and width tuned to that shape and to the planets inside 400 days of the occurrence bands (tweak L2)"
+            ]
+          ],
+          "id": "PA19",
+          "key": "6.36:PA19",
+          "kind": "P",
+          "slug": "6-36-pa19",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.INNER_FIRST_PERIOD_MEDIAN_DAYS 25 and INNER_FIRST_PERIOD_SIGMA_DEX 0.7 (the period of the first planet of an inner system, log-normal; GEN.1709, with the giant-impact stage of GEN.1560 left to the outer chain, which starts at INNER_SYSTEM_PERIOD_LIMIT_DAYS 400 times OUTER_CHAIN_START_RATIO 1.3)"
         },
         {
           "burn_down": [
@@ -33651,11 +33689,11 @@
             ],
             [
               "The range it moves in",
-              "the taper endpoints (compaction.TAPER_START_KG, TAPER_END_KG, stand-ins of decision S9)"
+              "the taper endpoints (compaction.TAPER_START_KG 1e20 and TAPER_END_KG 1e21, stand-ins of decision S9; the start moved from 1e19 under GEN.1637 to fit the measured densities of Varda, Salacia and Orcus, so its tweak level is L2)"
             ],
             [
               "Where it holds",
-              "members of 1e19 to 1e21 kg"
+              "members of 1e19 to 1e21 kg (the brittle law whole below 1e20)"
             ],
             [
               "What would show it wrong",
@@ -33676,7 +33714,7 @@
           "slug": "6-115-mc1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L1",
+          "tweak": "L2",
           "unread": null,
           "what": "belt_member._filling: the filling of a stored member (one minus its porosity) is the compacted density of compaction over the compaction's own grain density at the member's rock fraction, applied to the taxon's grain density"
         },
