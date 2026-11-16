@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4322] - 2026-11-16
+
+**Headline:** The queue engine now picks the unit size of the link, settle and map luminosity stages from the job profile and the free resources.
+
+### Changed
+- `link-neighbors`, `settle-sector-paths` and `fill-map-luminosity` are flagged byte identical (PERF.260 holds each to the same stored bytes at two cuts), and their `expand` cuts the stage with the new `splitter.cut` instead of a typed size. With a usable profile for the kind the unit is about a fifth of the unit ceiling long (60 s) and fits its share of the free memory, between a quarter and four times the old size; with none, the cut is the old one (`LINK_UNIT_SECTORS`, `SETTLE_UNIT_SECTORS`, `MAP_LUMINOSITY_BATCH_IDS` stay as that suggested size). The decision is written to the stage's plan and the run's log, so a restarted unit has the same cut.
+- A piece of these three stages now weighs the items the cut counts in (its sectors, its ids), so the unit's seconds per item in the profile and the size the engine chooses mean the same thing. The cut-neutral probe tests judge the harness with a registry of the probe alone.
+
 ## [8.0.4321] - 2026-11-16
 
 **Headline:** A moon that the planet's bulge brings into the evection resonance (its orbit turning once a year of the star's) is now caught and held there with a high eccentricity, or passes, by how fast the resonance sweeps it.
