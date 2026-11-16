@@ -12329,11 +12329,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): TODO thread for the text and lint reds; Lane 12 runs the gate. Prerequisites: none. Related: GEN.1693, TEST.738.
   Filed by the TODO thread.
 
-- [ ] **GEN.1761 Refuge term for lakes and seasonal lids on worlds that are not an ice-covered ocean: store a lake share per body so ice_growth.lid_of can give lakes their own lid (the lake half of GEN.1735)**
-  Lane 04, 4:23 AM EST 2026-11-16 (PR 6812, GEN.1735): the sea-under-ice refuge now reads each cell's own lid, but lakes on worlds that are not an ice-covered ocean are not done because no lake share is stored. Do: store a lake share (from the surface water budget and terrain the generator already has, no new draw), feed it through ice_growth.lid_of, and let the refuge term read it; measure refuges gained or lost on fixed seeds. Lock item if refuges move. Life lever (priority 2).
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: GEN.1735. Related: GEN.1723, GEN.1728, GEN.1735.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1762 biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087**
   Lane 04, 4:38 AM EST 2026-11-16 (PR 6815, GEN.1636): GEN.1636 made surface_pressure.HEAT_FLUX_EARTH_W_M2 (0.0614, the interior model's own Earth twin, row AM33) the one reference for outgassing, life supply and hydrothermal ores; the oxygen balance still scales from 4.4e13 W. Do: make biogenic_oxygen read the same reference (an Earth twin gets 1.0 of Earth's reductant flux), measure oxygen and class changes on fixed seeds; and record in the registry why the model's Earth twin is 0.0614 against the measured 0.087 (the gap is the model's, not a second constant). Lock item (every oxygen balance moves).
   Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: GEN.1636. Related: GEN.1636, GEN.1733.
