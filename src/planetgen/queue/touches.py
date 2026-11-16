@@ -36,18 +36,27 @@ SECTOR_READS = (
     "moon_isotopes", "moon_life", "moon_life_class_scores", "moon_reflection_spectrum", "moons", "nebulae", "neutron_stars", "orbit_simulation_state",
     "phenomenon_scatter",
     "planet_life", "planets", "quasars", "rogue_planet_deposit_types", "rogue_planet_gases", "rogue_planet_interior_layers", "rogue_planet_isotopes",
-    "rogue_planet_life_class_scores", "rogue_planet_reflection_spectrum", "rogue_planets", "scatter_members", "scatter_nodes", "scatter_uid_rank",
-    "scatter_uid_sector", "sector_facets", "sector_name_registry", "sector_stats", "sectors", "sky_tier_draws", "species", "star_systems", "stars", "supernova_remnants", "system_configs",
+    "rogue_planet_life_class_scores", "rogue_planet_reflection_spectrum", "rogue_planets", "scatter_members", "scatter_nodes",
+    "sector_facets", "sector_name_registry", "sector_stats", "sectors", "sky_tier_draws", "species", "star_systems", "stars", "supernova_remnants", "system_configs",
     "system_interests", "system_name_registry",
 )
 SECTOR_WRITES = (
     "asteroid_belt_composition", "asteroid_belts", "belt_members", "body_history", "bright_stars", "chart_ledger", "comet_composition", "comets", "dark_members",
-    "effect_ledger", "galaxy_block_light_parts", "galaxy_shape", "galaxy_totals", "id_blocks", "id_counters", "irregular_moons", "irregular_sets", "moon_deposit_types",
+    "effect_ledger", "galaxy_block_light_parts", "galaxy_shape", "galaxy_totals", "id_blocks", "id_counters", "interstellar_comet_composition", "interstellar_comets", "irregular_moons", "irregular_sets", "moon_deposit_types",
     "moon_gases", "moon_isotopes", "moon_life", "moon_life_class_scores", "moons", "orbit_nodes", "planet_deposit_types", "planet_gases", "planet_interior_layers",
     "planet_isotopes", "planet_life", "planet_life_class_scores", "planets", "rogue_planet_deposit_types", "rogue_planet_gases", "rogue_planet_isotopes",
-    "rogue_planets", "scatter_members", "scatter_nodes", "scatter_uid_rank", "scatter_uid_sector", "sector_facets", "sector_name_registry", "sector_stats", "sector_tree_nodes",
+    "rogue_planets", "scatter_members", "scatter_nodes", "sector_facets", "sector_name_registry", "sector_stats", "sector_tree_nodes",
     "sectors", "star_systems", "stars", "system_configs", "system_interests", "system_name_registry", "system_summary",
 )
+
+SCATTER_READS = (
+    "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters", "orbit_simulation_state",
+    "phenomenon_scatter",
+)
+SCATTER_STAR_WRITES = ("bright_stars", "galaxy_block_light_parts", "id_counters", "scatter_members", "scatter_nodes")
+SCATTER_PHENOMENON_WRITES = ("galaxy_block_light_parts", "id_counters", "phenomenon_scatter", "scatter_members", "scatter_nodes")
+"""tuple: What a scatter stage's units read and write, from the tap on a toy galaxy dense enough that each draws rows (`tests/pair_overlap_support.py`). The scatters work on a skeleton and write
+only their own scatter table, the light parts of the blocks, the members of what they drew and the ids of the rows; the rest is the stage's end commands'."""
 
 READS = {
     "check-counts": (
@@ -100,15 +109,15 @@ READS = {
     "fill-map-luminosity": ("phenomenon_scatter",),
     "build-phenomenon-indexes": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
-        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector",
+        "orbit_simulation_state", "phenomenon_scatter",
     ),
     "record-phenomenon-scatter": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
-        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector",
+        "orbit_simulation_state", "phenomenon_scatter",
     ),
     "write-special-phenomena": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
-        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector",
+        "orbit_simulation_state", "phenomenon_scatter",
     ),
     "finish-warm-galaxy-deep-nodes": ("*",),
     "finish-warm-galaxy-nodes": ("*",),
@@ -138,16 +147,12 @@ READS = {
     "run-territories": ("polities", "sectors", "star_systems"),
     "scatter-backfill": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
-        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector", "sector_stats", "sectors", "sky_tier_draws",
+        "orbit_simulation_state", "phenomenon_scatter", "sector_stats", "sectors", "sky_tier_draws",
     ),
-    "scatter-band": (
-        "bright_stars", "chart_ledger", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "orbit_simulation_state",
-    ),
-    "scatter-luminosity": (
-        "bright_stars", "chart_ledger", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "orbit_simulation_state",
-    ),
-    "scatter-mass": ("chart_ledger", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "orbit_simulation_state"),
-    "scatter-phenomena": ("chart_ledger", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "orbit_simulation_state"),
+    "scatter-band": SCATTER_READS,
+    "scatter-luminosity": SCATTER_READS,
+    "scatter-mass": SCATTER_READS,
+    "scatter-phenomena": SCATTER_READS,
     "settle-sector-paths": (
         "black_holes", "interstellar_comets", "neutron_stars", "rogue_planets", "sector_paths", "sectors", "star_systems", "system_summary",
     ),
@@ -203,15 +208,12 @@ WRITES = {
     "fill-map-luminosity": ("phenomenon_scatter",),
     "build-phenomenon-indexes": (
         "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
-        "scatter_uid_rank", "scatter_uid_sector",
     ),
     "record-phenomenon-scatter": (
         "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
-        "scatter_uid_rank", "scatter_uid_sector",
     ),
     "write-special-phenomena": (
         "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
-        "scatter_uid_rank", "scatter_uid_sector",
     ),
     "finish-warm-galaxy-deep-nodes": (),
     "finish-warm-galaxy-nodes": (),
@@ -233,12 +235,12 @@ WRITES = {
     "run-population": ("population_state", "species", "system_interests"),
     "run-territories": ("system_owners",),
     "scatter-backfill": (
-        "bright_stars", "galaxy_block_light_parts", "id_counters", "scatter_members", "scatter_nodes", "scatter_uid_rank", "scatter_uid_sector", "sector_stats",
+        "bright_stars", "galaxy_block_light_parts", "id_counters", "scatter_members", "scatter_nodes", "sector_stats",
     ),
-    "scatter-band": (),
-    "scatter-luminosity": (),
-    "scatter-mass": (),
-    "scatter-phenomena": (),
+    "scatter-band": SCATTER_STAR_WRITES,
+    "scatter-luminosity": SCATTER_STAR_WRITES,
+    "scatter-mass": SCATTER_STAR_WRITES,
+    "scatter-phenomena": SCATTER_PHENOMENON_WRITES,
     "settle-sector-paths": ("sector_path_knots", "sector_paths"),
     "store-scatter-limits": ("galaxy_shape",),
     "warm-cluster-field": (),
@@ -267,7 +269,7 @@ OTHER = {
 INDEPENDENCE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "independence.json")
 """str: The pairs of commands a test has run overlapped, in both orders and at 1 and 15 workers, with the same content hashes as the plan-order run (OPS.242 adds a pair with its proof)."""
 
-PAIR_KEYS = ("a", "b", "grain", "proof")
+PAIR_KEYS = ("a", "b", "grain", "shared", "proof")
 
 
 def declared(kind):
@@ -289,16 +291,38 @@ def _hits(first, second):
     return ANY in first or ANY in second or bool(set(first) & set(second))
 
 
-def conflict(kind_a, kind_b):
+def conflicting_names(kind_a, kind_b):
     """
-    Whether two commands conflict: one writes what the other reads or writes, or both touch the same file or cache named in `OTHER`. `ENGINE_TABLES` do not count. A command with no declaration
-    conflicts with every command (nothing is known of it).
+    What two commands share: the tables one writes that the other reads or writes, and the files and caches both name in `OTHER`, sorted. `ANY` for a command that touches every table (the
+    answer is then `["*"]`); `["?"]` for a command with no declaration (nothing is known of it). `ENGINE_TABLES` do not count.
     """
     if not (declared(kind_a) and declared(kind_b)):
-        return True
-    if _hits(writes_of(kind_a), reads_of(kind_b) + writes_of(kind_b)) or _hits(writes_of(kind_b), reads_of(kind_a)):
-        return True
-    return bool(set(OTHER.get(kind_a, ())) & set(OTHER.get(kind_b, ())))
+        return ["?"]
+    reads_a, writes_a, reads_b, writes_b = reads_of(kind_a), writes_of(kind_a), reads_of(kind_b), writes_of(kind_b)
+    if (ANY in writes_a and (writes_b or reads_b)) or (ANY in writes_b and (writes_a or reads_a)) or (ANY in reads_a and writes_b) or (ANY in reads_b and writes_a):
+        return [ANY]
+    found = (set(writes_a) & (set(reads_b) | set(writes_b))) | (set(writes_b) & set(reads_a)) | (set(OTHER.get(kind_a, ())) & set(OTHER.get(kind_b, ())))
+    return sorted(found)
+
+
+def conflict(kind_a, kind_b):
+    """Whether two commands conflict (`conflicting_names` names something): one writes what the other reads or writes, or both touch the same file or cache named in `OTHER`."""
+    return bool(conflicting_names(kind_a, kind_b))
+
+
+def group_of(kind):
+    """A stage's command and the end commands it has (`conclude-<kind>`, `finish-<kind>`), which run when the stage's units are done and are part of what a pair overlaps."""
+    from planetgen.queue import commands, planrows
+    return [kind] + [name for name in (commands.end_name(kind, role) for role in (planrows.CONCLUDE, planrows.FINISH)) if name in READS and name != kind]
+
+
+def shared_between(kind_a, kind_b):
+    """What the stages `kind_a` and `kind_b` share, their end commands counted (`conflicting_names` over `group_of` of each), sorted; empty for two that share nothing."""
+    found = set()
+    for first in group_of(kind_a):
+        for second in group_of(kind_b):
+            found |= set(conflicting_names(first, second))
+    return sorted(found)
 
 
 def load_pairs(path=None):

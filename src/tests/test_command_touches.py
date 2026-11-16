@@ -146,7 +146,7 @@ class TestIndependenceFile:
         assert touches.must_wait_for(["scatter-mass", "scatter-luminosity", "check-counts"], 2, pairs={}) == [0, 1]
 
     def test_a_listed_pair_overlaps_and_is_symmetric(self):
-        pairs = {frozenset(("check-counts", "check-ids")): {"a": "check-counts", "b": "check-ids", "grain": "table", "proof": "x"}}
+        pairs = {frozenset(("check-counts", "check-ids")): {"a": "check-counts", "b": "check-ids", "grain": "table", "shared": [], "proof": "x"}}
         assert touches.may_overlap("check-ids", "check-counts", pairs=pairs)
         assert touches.must_wait_for(["check-counts", "check-ids"], 1, pairs=pairs) == []
 
@@ -158,20 +158,20 @@ class TestIndependenceFile:
         with pytest.raises(ValueError):
             load({"format": 2, "pairs": []})
         with pytest.raises(ValueError):
-            load({"format": 1, "pairs": [{"a": "check-ids", "b": "check-ids", "grain": "table", "proof": "x"}]})
+            load({"format": 1, "pairs": [{"a": "check-ids", "b": "check-ids", "grain": "table", "shared": [], "proof": "x"}]})
         with pytest.raises(ValueError):
-            load({"format": 1, "pairs": [{"a": "check-ids", "b": "no-such-command", "grain": "table", "proof": "x"}]})
+            load({"format": 1, "pairs": [{"a": "check-ids", "b": "no-such-command", "grain": "table", "shared": [], "proof": "x"}]})
         with pytest.raises(ValueError):
             load({"format": 1, "pairs": [{"a": "check-ids", "b": "check-counts"}]})
-        entry = {"a": "check-ids", "b": "check-counts", "grain": "table", "proof": "x"}
+        entry = {"a": "check-ids", "b": "check-counts", "grain": "table", "shared": [], "proof": "x"}
         with pytest.raises(ValueError):
             load({"format": 1, "pairs": [entry, dict(entry, a="check-counts", b="check-ids")]})
         assert len(load({"format": 1, "pairs": [entry]})) == 1
 
-    def test_every_listed_pair_is_a_pair_the_declarations_say_is_free_or_names_a_finer_grain(self):
+    def test_a_listed_pair_names_what_it_shares(self):
         for pair, entry in touches.load_pairs().items():
             kinds = sorted(pair)
-            assert not touches.conflict(*kinds) or entry["grain"] != "table", f"{kinds} conflict at table grain"
+            assert entry["shared"] == touches.shared_between(*kinds), f"{kinds}: what the commands share is not what the entry says"
 
 
 class TestSqlTap:
@@ -300,10 +300,10 @@ class TestPlanEdges:
             assert touches.plan_edges(self.KINDS) == [[], [0], [1], [2]]
 
     def test_a_proven_pair_leaves_its_two_entries_free_of_each_other(self):
-        pairs = {frozenset(("scatter-mass", "scatter-luminosity")): {"a": "scatter-mass", "b": "scatter-luminosity", "grain": "table", "proof": "x"}}
+        pairs = {frozenset(("scatter-mass", "scatter-luminosity")): {"a": "scatter-mass", "b": "scatter-luminosity", "grain": "table", "shared": [], "proof": "x"}}
         assert touches.plan_edges(self.KINDS, pairs=pairs) == [[], [0], [0], [1, 2]]
 
     def test_a_proven_pair_does_not_free_a_third_entry(self):
-        pairs = {frozenset(("scatter-mass", "scatter-luminosity")): {"a": "scatter-mass", "b": "scatter-luminosity", "grain": "table", "proof": "x"}}
+        pairs = {frozenset(("scatter-mass", "scatter-luminosity")): {"a": "scatter-mass", "b": "scatter-luminosity", "grain": "table", "shared": [], "proof": "x"}}
         edges = touches.plan_edges(["generate-sectors", "scatter-mass", "scatter-luminosity", "generate-system"], pairs=pairs)
         assert edges[3] == [1, 2]

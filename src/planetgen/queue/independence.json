@@ -1,4 +1,12 @@
 {
   "format": 1,
-  "pairs": []
+  "pairs": [
+    {
+      "a": "scatter-phenomena",
+      "b": "draw-nebula-field",
+      "grain": "table",
+      "shared": [],
+      "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-phenomena-draw-nebula-field]"
+    }
+  ]
 }

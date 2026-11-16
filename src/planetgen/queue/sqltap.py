@@ -28,6 +28,7 @@ _LOCK_TABLES = re.compile(r"\bLOCK\s+TABLES\b(.*)", re.I | re.S)
 _GET_LOCK = re.compile(r"\bGET_LOCK\s*\(\s*'([^']*)'", re.I)
 _SCHEMA = {"information_schema", "performance_schema", "mysql", "sys"}
 _NOT_TABLES = {"dual", "select", "values", "lateral", "unnest"}
+_TEMPORARY = re.compile(r"\bCREATE\s+TEMPORARY\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?([A-Za-z_][\w$]*)`?", re.I)
 
 
 _ON_DUPLICATE = re.compile(r"\bON\s+DUPLICATE\s+KEY\s+UPDATE\b.*", re.I | re.S)
@@ -84,12 +85,13 @@ def tables_of(sql):
 class Tap:
     """
     Records, per command, the tables the statements of this process touch while that command runs. `with Tap() as tap:` wraps `pymysql`'s cursors; `tap.running(kind)` is the context a command's
-    unit (or cut, or end hook) runs in; `tap.touched[kind]` is `{"reads": set, "writes": set, "locks": set}`. A statement sent while no command is running is kept under `None`.
+    unit (or cut, or end hook) runs in; `tap.touched[kind]` is `{"reads": set, "writes": set, "locks": set}`; a table the process creates `TEMPORARY` is left out (`tap.temporary`). A statement sent while no command is running is kept under `None`.
     """
 
     def __init__(self):
         self.touched = {}
         self.statements = []
+        self.temporary = set()
         self._local = threading.local()
         self._originals = []
 
@@ -113,7 +115,10 @@ class Tap:
         """Adds one statement to the command that is running."""
         stack = self._stack()
         kind = stack[-1] if stack else None
-        reads, writes, locks = tables_of(sql if isinstance(sql, str) else sql.decode("utf-8", "replace"))
+        sql = sql if isinstance(sql, str) else sql.decode("utf-8", "replace")
+        self.temporary.update(_TEMPORARY.findall(sql))      # a temporary table is one connection's own: no other command can touch it
+        reads, writes, locks = tables_of(sql)
+        reads, writes = [name for name in reads if name not in self.temporary], [name for name in writes if name not in self.temporary]
         slot = self.touched.setdefault(kind, {"reads": set(), "writes": set(), "locks": set()})
         slot["reads"].update(reads)
         slot["writes"].update(writes)
