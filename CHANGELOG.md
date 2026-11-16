@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4396] - 2026-11-16
+
+**Headline:** The pinned civilized test systems hold a civilization again, so the population tests no longer hunt for one.
+
+### Fixed
+- **`test_the_pinned_civilized_seeds_still_qualify` was red on main.** Draw shifts since the last refresh left none of the four pinned candidates (112, 135, 172, 242) with a technological civilization, so the population tests fell back to hunting random systems. The pins are now candidates 5 and 39, found by scanning candidates; the civilization rate is unchanged at about 1.6 percent (2 of 124 scanned now, 4 of the first 243 when the old pins were found).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4395] - 2026-11-16
+
+**Headline:** The belt overlap test now checks the belt's inner edge, the way the spacing pass measures it.
+
+### Fixed
+- TEST.782: `test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt` expected the pushed belt's centre to land at the outer edge of the belt inside it plus the separation. Since GEN.1592 a belt is measured and pushed by its inner edge (`shift_belt` moves the centre and both edges together), so the inner edge lands exactly there and the centre sits half a width further out (2.45 AU for a 0.4 AU belt past 2.25). The test now asserts the inner edge, the kept width and the centre; the generator is unchanged.
+
+generation-output: none
+
 ## [8.0.4394] - 2026-11-16
 
 **Headline:** An old brown dwarf of the lightest masses is about one Jupiter radius across, not the 1.5 to 1.7 it kept from its youth, and it is no longer up to 2.4 times too bright.

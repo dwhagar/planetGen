@@ -11939,11 +11939,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02. Prerequisites: none. Related: GEN.1768, GEN.1745, GEN.1739, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **TEST.782 (bug) test_systems::test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt gets 2.45 where it expects 2.25 on main**
-  Lane 05 and Lane 14 (2026-11-16): red on main since before GEN.1651. Do: find whether the overlap correction moved (a validation change) or the test's expectation is stale, and fix the side that is wrong, not the bound alone.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 06. Lock-free. Prerequisites: none. Related: GEN.1764.
-  Filed by the TODO thread.
-
 - [ ] **TEST.783 (bug) test_star_composition_sweep and test_radius_valley_sweep: the filled-galaxy fixture runs past the hang guard (900 s, 1,500 s in gates) on a 4-core box, so the files error instead of testing**
   Lane 05 and Lane 06 (2026-11-16, Train 39 gate): both sweep files hit the timeout with fixture errors on a loaded 4-core box. Do: profile the fixture build, make it smaller or cached (see TEST.417) without weakening what the sweeps check, and report run times before and after.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Lock-free. Prerequisites: none. Related: TEST.417, PERF.274.
@@ -11954,9 +11949,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: none. Related: GEN.1510, GEN.1760.
   Filed by the TODO thread.
 
-- [ ] **TEST.784 (bug) test_earth_analog::test_the_stored_baseline_is_well_formed_and_its_first_trials_redraw_the_same is red on main: a stored trial redraws hydrology 'brine seep' where the baseline says 'surface ocean'**
-  Lane 07, 1:35 PM EST 2026-11-16: red on main, not from PR 6903. Do: find which merge moved the draw (a generation change the baseline was not refreshed for, or a real regression in hydrology), and either refresh the baseline with the reason in the PR or fix the regression.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Lock-free unless the cause is in generation. Prerequisites: none. Related: GEN.1579, GEN.1754.
+- [ ] **GEN.1771 (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more**
+  Lane 03, 3:52 PM EST 2026-11-16 (Train 40 gate, test_radiation_sweep): class N world Akumaus I (seed 15 sweep, extra system 12 of seeds 1015 to 1027; 19 bar, 412 K, 12.7 bar CO2, 2.7 bar H2O). UV-C transmission at fixed ozone: O2 x0.5 2.1e-5, x1 3.7e-5, x2 8.3e-5, x16 3.1e-4; a doubled column passes 13 percent more, also with ground albedo 0. More absorber should not let more UV-C through. About 4e-5 of the light, so no dose moves, but it is a model error. Do: trace the transmission (scattering against absorption, the band integration, or the ozone held fixed while O2 changes the profile) and fix the cause; lock item if output moves.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: none. Related: GEN.1717.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
