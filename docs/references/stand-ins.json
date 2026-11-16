@@ -25011,7 +25011,7 @@
           "fields": [
             [
               "What it is",
-              "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between); above 0.8 the model's own Kelvin-Helmholtz time scaled to the 0.8 value"
+              "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between), and from 0.9 to 1.4 (GEN.1640) the age at which the BHAC15 isochrone radius falls within 5 percent of the MIST zero-age radius (47.1, 38.0, 30.6, 24.9, 22.3 and 19.6 Myr; the isochrone light there is within 4 percent of the zero-age light); above 1.4 the model's own Kelvin-Helmholtz time scaled to the 1.4 value"
             ],
             [
               "The range it moves in",
@@ -25031,7 +25031,7 @@
             ],
             [
               "Evidence",
-              "READ (Sources 2, gen1169 report, BHAC15_tracks+structure): GEN.1174 (Boss, 5:25 AM EDT 2026-10-31: both times, class by radius): a star is pre-main-sequence until its radius has settled; MIST's nuclear arrival (GEN.947) is kept as nuclear_arrival_yr and is 3 to 4 times longer for 0.1 to 0.3 solar masses; above 0.8 solar masses the radius of the track passes through a minimum and the criterion stops meaning the same thing"
+              "READ (Sources 2, gen1169 report, BHAC15_tracks+structure): GEN.1174 (Boss, 5:25 AM EDT 2026-10-31: both times, class by radius): a star is pre-main-sequence until its radius has settled; MIST's nuclear arrival (GEN.947) is kept as nuclear_arrival_yr and is 3 to 4 times longer for 0.1 to 0.3 solar masses; above 0.8 solar masses the radius of the track passes through a minimum and the criterion stops meaning the same thing, so the age is read against the zero-age radius there (GEN.1640, which also takes the star's light, temperature and radius from the table up to 1.4 solar masses: the model's own track was 0.75 against 0.46 solar luminosities for the Sun at 10 Myr)"
             ]
           ],
           "id": "LM6",
@@ -25042,7 +25042,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between); above 0.8 the model's own Kelvin-Helmholtz time scaled to the 0.8 value"
+          "what": "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between), and from 0.9 to 1.4 (GEN.1640) the age at which the BHAC15 isochrone radius falls within 5 percent of the MIST zero-age radius (47.1, 38.0, 30.6, 24.9, 22.3 and 19.6 Myr; the isochrone light there is within 4 percent of the zero-age light); above 1.4 the model's own Kelvin-Helmholtz time scaled to the 1.4 value"
         }
       ],
       "slug": "6-66-stand-ins-of-the-low-mass-main-sequence-and-the-star-brown-dwarf-boundary",

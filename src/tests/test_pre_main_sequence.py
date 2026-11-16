@@ -66,8 +66,8 @@ def test_a_heavier_star_contracts_faster_and_the_old_law_is_gone():
     assert pms.contraction_time_yr(0.1) < 1.0e9  # the old `31 Myr * m^-2.5` law gave 10 Gyr here
 
 
-@pytest.mark.parametrize("mass", [0.1, 0.3, 1.0, 3.0, 7.0])
-def test_the_track_dims_and_heats_towards_the_main_sequence_without_a_jump(mass):
+@pytest.mark.parametrize("mass", [3.0, 7.0])
+def test_the_model_track_dims_and_heats_towards_the_main_sequence_without_a_jump(mass):
     end = pms.contraction_time_yr(mass)
     ages = [end * fraction for fraction in (0.001, 0.01, 0.1, 0.3, 0.6, 0.9, 0.999)]
     states = [pms._track_state(mass, age) for age in ages]
@@ -79,6 +79,29 @@ def test_the_track_dims_and_heats_towards_the_main_sequence_without_a_jump(mass)
     arrival = main_sequence.zams_state(mass)
     assert last["luminosity_sol"] == pytest.approx(arrival.luminosity_sol, rel=0.02)
     assert last["temperature_k"] == pytest.approx(arrival.temperature_k, rel=0.03)
+
+
+@pytest.mark.parametrize("mass", [0.1, 0.3, 1.0, 1.4])
+def test_the_published_track_reaches_the_main_sequence_within_a_few_tenths(mass):
+    """GEN.1640: the table's track is not monotone (a star of 1 solar mass dips under its main-sequence light and climbs back), so only its end is held to the main sequence MIST gives."""
+    end = pms._track_state(mass, pms.contraction_time_yr(mass) * 0.999)
+    arrival = main_sequence.zams_state(mass)
+    assert end["luminosity_sol"] == pytest.approx(arrival.luminosity_sol, rel=0.25)
+    assert end["temperature_k"] == pytest.approx(arrival.temperature_k, rel=0.08)
+
+
+@pytest.mark.parametrize("mass, luminosity_10_myr", [(0.5, 0.123), (1.0, 0.457), (1.2, 0.851), (1.4, 1.95)])
+def test_a_star_the_table_holds_has_the_bhac15_light_at_10_myr(mass, luminosity_10_myr):
+    """GEN.1640: the model's own track gave 0.75 solar luminosities at 1 solar mass and 3.35 at 1.4, against the table's 0.46 and 1.95 (and 1.4 solar masses reached the main sequence at 9 Myr, the table's 19.6)."""
+    assert pms._track_state(mass, 10.0 * MYR)["luminosity_sol"] == pytest.approx(luminosity_10_myr, rel=0.1)
+
+
+def test_the_table_takes_over_where_the_models_own_track_ends_and_reads_its_first_age_below_it():
+    from planetgen.datasets import baraffe_isochrones
+    first = baraffe_isochrones.isochrones()[0].age_gyr
+    assert pms._track_state(1.0, 0.1 * MYR) == pms._track_state(1.0, first * 1.0e9)
+    assert pms._table_state(1.4001, 10.0 * MYR) is None
+    assert pms._track_state(1.5, 10.0 * MYR)["luminosity_sol"] > 2.0 * pms._track_state(1.4, 10.0 * MYR)["luminosity_sol"]    # the step the module names
 
 
 def test_the_stage_follows_the_mass_and_the_age():
@@ -231,22 +254,28 @@ def test_a_population_draw_is_rarely_young():
 
 @pytest.mark.parametrize("mass, bhac15_myr", [
     (0.08, 830.5), (0.1, 402.4), (0.15, 240.1), (0.2, 187.5), (0.3, 130.2), (0.5, 88.2), (0.8, 50.3),
+    (0.9, 47.1), (1.0, 38.0), (1.2, 24.9), (1.4, 19.6),
 ])
 def test_the_contraction_time_is_the_age_the_bhac15_radius_settles(mass, bhac15_myr):
-    """GEN.1174: the age at which the radius of the BHAC15 track ([R0254], solar metallicity) is within 5 percent of its value at 5 Gyr."""
+    """GEN.1174: the age at which the radius of the BHAC15 track ([R0254], solar metallicity) is within 5 percent of its value at 5 Gyr (from 0.9 solar masses, within 5 percent of the zero-age radius, GEN.1640)."""
     assert pms.contraction_time_yr(mass) / MYR == pytest.approx(bhac15_myr, rel=1e-6)
     assert pms.radius_settled_yr(mass) == pytest.approx(pms.contraction_time_yr(mass))
 
 
 def test_the_radius_settled_time_falls_with_the_mass_without_a_step():
-    masses = [0.07 + 0.005 * i for i in range(190)]      # to 1.0; past it the model's own time (MIST rows) has small bumps
+    masses = [0.07 + 0.005 * i for i in range(267)]      # to 1.4 (GEN.1640); past it the model's own time, scaled onto the 1.4 value
     times = [pms.radius_settled_yr(m) for m in masses]
     assert all(later <= earlier * (1 + 1e-12) for earlier, later in zip(times, times[1:]))
     assert max(math.log(a / b) for a, b in zip(times, times[1:])) < 0.3      # the steepest is the BHAC15 fall from 830 to 507 Myr between 0.08 and 0.09
 
 
 def test_the_track_ends_on_the_main_sequence_when_the_radius_settles():
-    for mass in (0.1, 0.3, 1.0):
+    for mass in (0.1, 0.3, 1.0, 1.4):
+        end = pms._track_state(mass, pms.contraction_time_yr(mass))
+        arrival = main_sequence.zams_state(mass, 0.0)
+        assert end["luminosity_sol"] == pytest.approx(arrival.luminosity_sol, rel=0.25)       # the published radius is 5 percent from the zero-age one by the criterion, its light a few tenths
+        assert end["radius_sol"] == pytest.approx(arrival.radius_sol, rel=0.08)
+    for mass in (1.5, 3.0):
         end = pms._track_state(mass, pms.contraction_time_yr(mass))
         arrival = main_sequence.zams_state(mass, 0.0)
         assert end["luminosity_sol"] == pytest.approx(arrival.luminosity_sol, rel=0.02)
