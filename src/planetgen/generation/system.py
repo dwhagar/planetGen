@@ -22,7 +22,7 @@ import dataclasses
 import math
 import re
 
-from planetgen.generation import irregular_moons
+from planetgen.generation import bodybeat, irregular_moons
 from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
 from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, node_pair_label, wide_pair_first_word
 from planetgen.generation.comet import Comet
@@ -2411,6 +2411,7 @@ class StarSystem:
         magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
         planetLife.apply_life_data(obj)
         planetLife.decide_flavor_text(obj)
+        bodybeat.settled()      # OPS.265: a world's final pass (its seasons alone can take seconds) starts the unit's quiet clock again
 
     def _finish_moon(self, moon, obj):
         """The end of a moon's making (the life data pass), after its parent's (`_finish_planet`)."""
@@ -2421,6 +2422,7 @@ class StarSystem:
         radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
         planetLife.apply_life_data(moon)
         planetLife.decide_flavor_text(moon)
+        bodybeat.settled()
 
     @staticmethod
     def _barred(body):
