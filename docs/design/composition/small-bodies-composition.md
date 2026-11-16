@@ -28,7 +28,7 @@ The numbers marked COMPUTED were made for this note with the two small programs 
 | S6 | Icy bodies draw a rock mass fraction from a truncated normal with centre 0.70 and a collisional tail | Verified for the centre (Bierson and Nimmo: 70 percent matches 14 of 17 Kuiper belt objects within 2 sigma); the 0.08 width and the 0.45 to 0.95 limits are not in the paper | Decision 26 of the bulk note: 0.30 to 0.82 range, most permissive; section 5.3 |
 | S7 | A moon takes an origin type from a gated table (disk, impact, captured, ring, binary) and its composition from the origin | Weights all open; the rules of each origin are part D 2.8, 2.9 and 3.4.3 to 3.4.5 | Section 5.4 |
 | S8 | A disk moon's ice fraction rises with its formation distance past the disk's ice line: `f_ice = f_inf clamp(ln(r / (0.4 r_ice)) / ln 2.5, 0, 1)`, `f_inf` N(0.35, 0.10) on [0.1, 0.6]; the bracket over all moon systems is 0.5 to 0.85 with [R0804] at the centre | Decided (Boss, contradiction sweep, taps 6:10 to 6:12 PM on 2026-10-18, fork 15) for the bracket; the ramp is a parametrisation | Section 5.5. [R0804, R3922] disagree on the ice fraction: the newest wins |
-| S9 | The hand-over mass to the structure solver is a continuity condition per composition, not the constant 1e20 kg | Decided (Boss, card tapped 8:13 PM EDT on 2026-10-21): taper porosity to zero between 1e19 and 1e21 kg | Section 4.2 |
+| S9 | The hand-over mass to the structure solver is a continuity condition per composition, not the constant 1e20 kg | Decided (Boss, card tapped 8:13 PM EDT on 2026-10-21): taper porosity to zero between 1e19 and 1e21 kg. Start moved to 1e20 kg under GEN.1637 (data audit D17: measured Kuiper belt bodies keep their pores to about 5e20 kg) | Section 4.2 |
 | S10 | One storage for every body's composition (DB.69 and DB.70), one thresholded text writer (GEN.430, GEN.446); belts keep their four-line text from the stored shares | Decided (composition-model.md section 4b) | Section 6 |
 | S11 | Everything here rides the one generator epoch bump of the 8.4 chain (GEN.428 to GEN.430 and DB.69) | Decided (Boss, taps 6:08 to 6:10 PM on 2026-10-18, fork 1) | The table versions pin in `Registry.versions` |
 
@@ -162,7 +162,7 @@ Each is a stored, flagged constant; a better published distribution replaces it 
 | Taxon kernel and shares | section 5.1 | [R1065: Table 6] (stand-in) | GEN.473 |
 | Dirichlet concentration of the taxon shares | 10 | none (open) | a spread among belts, when one is found |
 | Albedo scatter within a taxon | none found | open | a measured spread |
-| Compaction taper | 1e19 to 1e21 kg | [R0666] (stand-in) | viscous compaction (Eq. 3 sign checked) |
+| Compaction taper | 1e20 to 1e21 kg (1e19 to 1e21 until GEN.1637) | [R0666] (stand-in) | viscous compaction (Eq. 3 sign checked) |
 | Surface porosity `phi0` | C-like U(0.25, 0.55), S-like U(0.10, 0.35), comets U(0.5, 0.8) | [R0544, R0666, R0776] | a measured distribution |
 | Rock fraction of icy bodies | N(0.70, 0.08) on [0.45, 0.95] | Bierson and Nimmo (centre only) | a derived distribution |
 | `delta_RI`, organic share | log-uniform [0.5, 8]; N(0.60, 0.15) | [R0776]; Boss 1:23 PM stand-in | a measurement of the organic share |
