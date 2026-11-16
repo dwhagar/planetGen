@@ -159640,6 +159640,42 @@
    "volume": "627",
    "year": 2005
   },
+  "10.1086/432716": {
+   "arxiv": "astro-ph/0506401",
+   "authors": [
+    [
+     "Wood",
+     "B. E."
+    ],
+    [
+     "Müller",
+     "H. R."
+    ],
+    [
+     "Zank",
+     "G. P."
+    ],
+    [
+     "Linsky",
+     "J. L."
+    ],
+    [
+     "Redfield",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/432716",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "L143",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "New Mass-Loss Measurements from Astrospheric Lyα Absorption",
+   "type": "journal-article",
+   "volume": "628",
+   "year": 2005
+  },
   "10.1086/432718": {
    "authors": [
     [
@@ -177815,6 +177851,26 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "10",
    "year": 2010
+  },
+  "10.1088/1742-6596/1100/1/012028": {
+   "arxiv": "1809.01109",
+   "authors": [
+    [
+     "Wood",
+     "B. E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/1742-6596/1100/1/012028",
+   "editors": [],
+   "journal": "J. Phys.: Conf. Ser.",
+   "page": "012028",
+   "publisher": "IOP Publishing",
+   "src": "crossref",
+   "title": "Implications of Recent Stellar Wind Measurements",
+   "type": "journal-article",
+   "volume": "1100",
+   "year": 2018
   },
   "10.1088/1742-6596/131/1/012044": {
    "arxiv": "0810.0204",
@@ -257522,6 +257578,66 @@
    "volume": "918",
    "year": 2021
   },
+  "10.3847/1538-4357/abfda5": {
+   "arxiv": "2105.00019",
+   "authors": [
+    [
+     "Wood",
+     "B. E."
+    ],
+    [
+     "Müller",
+     "H. R."
+    ],
+    [
+     "Redfield",
+     "S."
+    ],
+    [
+     "Konow",
+     "F."
+    ],
+    [
+     "Vannier",
+     "H."
+    ],
+    [
+     "Linsky",
+     "J. L."
+    ],
+    [
+     "Youngblood",
+     "A."
+    ],
+    [
+     "Vidotto",
+     "A. A."
+    ],
+    [
+     "Jardine",
+     "M."
+    ],
+    [
+     "Alvarado-Gómez",
+     "J. D."
+    ],
+    [
+     "Drake",
+     "J. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/abfda5",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "37",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "New Observational Constraints on the Winds of M dwarf Stars*",
+   "type": "journal-article",
+   "volume": "915",
+   "year": 2021
+  },
   "10.3847/1538-4357/ac081e": {
    "authors": [
     [
@@ -286253,7 +286369,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5296,
+ "id_next": 5299,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -288648,6 +288764,7 @@
   "10.1086/430513": "R3540",
   "10.1086/431739": "R1289",
   "10.1086/432054": "R1563",
+  "10.1086/432716": "R5298",
   "10.1086/432718": "R2094",
   "10.1086/432785": "R4777",
   "10.1086/444620": "R4031",
@@ -289048,6 +289165,7 @@
   "10.1088/1674-1137/abddae": "R2443",
   "10.1088/1674-4527/10/9/006": "R3036",
   "10.1088/1674-=": "R0796",
+  "10.1088/1742-6596/1100/1/012028": "R5297",
   "10.1088/1742-6596/131/1/012044": "R4983",
   "10.1088/1751-8121/aa7953": "R1098",
   "10.1088/2041-8205/710/2/l156": "R3851",
@@ -290982,6 +291100,7 @@
   "10.3847/1538-4357/abd62f": "R4363",
   "10.3847/1538-4357/abfc48": "R0708",
   "10.3847/1538-4357/abfd9c": "R2804",
+  "10.3847/1538-4357/abfda5": "R5296",
   "10.3847/1538-4357/ac081e": "R0054",
   "10.3847/1538-4357/ac1116": "R1548",
   "10.3847/1538-4357/ac1e89": "R1846",
@@ -292033,6 +292152,7 @@
   "arxiv:1808.03654": "R1670",
   "arxiv:1808.04379": "R3188",
   "arxiv:1808.10865": "R0859",
+  "arxiv:1809.01109": "R5297",
   "arxiv:1809.01240": "R2208",
   "arxiv:1809.01673": "R0961",
   "arxiv:1809.03537": "R0075",
@@ -292293,6 +292413,7 @@
   "arxiv:2104.03318": "R3274",
   "arxiv:2104.11631": "R0405",
   "arxiv:2104.13385": "R2851",
+  "arxiv:2105.00019": "R5296",
   "arxiv:2105.01661": "R0168",
   "arxiv:2105.03435": "R0655",
   "arxiv:2105.03440": "R0654",
@@ -292720,6 +292841,7 @@
   "arxiv:astro-ph/0505558": "R2542",
   "arxiv:astro-ph/0506008": "R0749",
   "arxiv:astro-ph/0506357": "R1563",
+  "arxiv:astro-ph/0506401": "R5298",
   "arxiv:astro-ph/0506467": "R0582",
   "arxiv:astro-ph/0506539": "R1499",
   "arxiv:astro-ph/0506659": "R0007",

@@ -26460,6 +26460,21 @@
       "kind": "paper",
       "label": "Chiera et al. 2024",
       "title": "The $$^{146}\\text{Sm}$$ half-life re-measured: consolidating the chronometer for events in the early Solar System"
+    },
+    "R5296": {
+      "kind": "paper",
+      "label": "Wood et al. 2021",
+      "title": "New Observational Constraints on the Winds of M dwarf Stars*"
+    },
+    "R5297": {
+      "kind": "paper",
+      "label": "Wood 2018",
+      "title": "Implications of Recent Stellar Wind Measurements"
+    },
+    "R5298": {
+      "kind": "paper",
+      "label": "Wood et al. 2005",
+      "title": "New Mass-Loss Measurements from Astrospheric Lyα Absorption"
     }
   }
 }

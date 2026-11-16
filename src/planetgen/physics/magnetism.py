@@ -57,11 +57,12 @@ import math
 
 from planetgen import tuning
 from planetgen.physics import (activity, constants, core_heat, dynamo, giant_dynamo, giant_interior, magnetic_geometry, radiation_field,
-                               unit_registry as units)
+                               stellar_wind, unit_registry as units)
 from planetgen.util import draw
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 _kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 
 _h_to_s = units.converter("h", "s")
 _yr_to_s = units.converter("yr", "s")
@@ -127,12 +128,9 @@ INDUCTION_HYDROSPHERES = ("ice-covered ocean", "surface ocean", "hycean")
 
 EARTH_STANDOFF_RP = 9.75
 EARTH_WIND_PA = 2.24e-9
-SOLAR_LX_W = 1.4e20
+SOLAR_LX_W = constants.SOLAR_X_RAY_LUMINOSITY_W
 """float: The Sun's X-ray luminosity today (1.4e27 erg/s, what
-`physics.activity` gives at 4.57 Gyr): the wind pressure's unit."""
-WIND_CAP_SOLAR = 10.0
-M_DWARF_WIND_CAP = 1.0
-M_DWARF_WIND_MASS = 0.4
+`physics.activity` gives at 4.57 Gyr)."""
 
 
 def _log_normal(sigma_dex):
@@ -337,19 +335,20 @@ def pulsar_wind_pressure_pa(edot_w, distance_au):
 
 
 def wind_pressure_pa(star, distance_au):
-    """The stellar wind's pressure at `distance_au` (rule 5); a pulsing neutron star's is its pulsar wind's
-    (`pulsar_wind_pressure_pa`)."""
+    """The stellar wind's pressure at `distance_au` (rule 5): the momentum flux of the one wind law the star's heliosphere reads (`stellar_wind.wind`, GEN.1625), over the
+    Sun's, times the Earth's; a pulsing neutron star's is its pulsar wind's (`pulsar_wind_pressure_pa`)."""
     if getattr(star, "pulsar_type", None) in PULSING_TYPES and distance_au:
         return pulsar_wind_pressure_pa(activity.neutron_star_spin_down_w(star), distance_au)
+    if getattr(star, "yerkes_class", None) in stellar_wind.WHITE_DWARF_CLASSES:
+        return constants.ISM_PRESSURE      # no wind (GEN.1625): a body there sits in the interstellar medium's pressure, which keeps the standoff finite
     if (getattr(star, "radius", None) is None or getattr(star, "luminosity", None) is None
             or getattr(star, "log_lx_lbol", None) is None):
         return EARTH_WIND_PA / distance_au ** 2
-    l_x = 10 ** star.log_lx_lbol * star.luminosity
-    radius_ratio = constants.SOLAR_RADIUS_M / _km_to_m(star.radius)
-    surface_flux = (l_x / SOLAR_LX_W) * radius_ratio ** 2
-    mass_sol = _kg_to_msun(star.mass)
-    cap = M_DWARF_WIND_CAP if mass_sol < M_DWARF_WIND_MASS else WIND_CAP_SOLAR
-    return EARTH_WIND_PA * min(surface_flux ** 1.3, cap) / distance_au ** 2
+    mass_loss, speed = stellar_wind.wind(star.mass, star.luminosity, star.radius, getattr(star, "type", "") or "",
+                                         getattr(star, "yerkes_class", "") or "", star.log_lx_lbol)
+    sun_loss = _msun_to_kg(constants.SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR) / constants.SECONDS_PER_YEAR
+    # A wind weaker than the interstellar medium's pressure is held to it (a very quiet star), which keeps the standoff finite.
+    return max(EARTH_WIND_PA * (mass_loss * speed) / (sun_loss * constants.SOLAR_WIND_VELOCITY) / distance_au ** 2, constants.ISM_PRESSURE)
 
 
 def wind_pressure_at(star, distance_au):

@@ -763,12 +763,8 @@ planetgen.physics.magnetism:MIN_DYNAMO_MASS_EARTH
 planetgen.physics.magnetism:MOBILE_LID_CHANCE
 planetgen.physics.magnetism:MOBILE_LID_MAX_MASS_EARTH
 planetgen.physics.magnetism:MOBILE_LID_MIN_MASS_EARTH
-planetgen.physics.magnetism:M_DWARF_WIND_CAP
-planetgen.physics.magnetism:M_DWARF_WIND_MASS
 planetgen.physics.magnetism:ROCK_DENSITY
-planetgen.physics.magnetism:SOLAR_LX_W
 planetgen.physics.magnetism:SPHERE_SKIN_DEPTHS_MAX
-planetgen.physics.magnetism:WIND_CAP_SOLAR
 planetgen.physics.main_sequence:_EDGE_MEMO_LIMIT
 planetgen.physics.main_sequence:_EDGE_STEP
 planetgen.physics.mantle_reservoirs:MANTLE_X_FE
