@@ -128,19 +128,6 @@ def test_the_counts_include_the_cells(galaxy):
         conn.close()
 
 
-def test_a_quadrant_filter_keeps_the_cells_in_those_quadrants(galaxy):
-    from planetgen.galaxy import spherical
-    conn = store.get_connection(galaxy)
-    try:
-        everything = query.virtual_cells(conn, 50)
-        for quadrant in query.SECTOR_QUADRANTS:
-            found = query.virtual_cells(conn, 50, quadrants=(quadrant,))
-            expected = [i for i in everything if query.SECTOR_QUADRANTS[spherical.sector_quadrant(i["center_x_pc"], i["center_y_pc"]) - 1] == quadrant]
-            assert [i["id"] for i in found] == [i["id"] for i in expected]
-    finally:
-        conn.close()
-
-
 def test_the_bulk_rows_still_there_keep_the_list_as_it_was(galaxy, monkeypatch):
     """Over the guard the cells are not listed from the parts (they have rows), so the list is the rows alone."""
     monkeypatch.setattr(query, "VIRTUAL_PLACEHOLDER_LIMIT", 0)

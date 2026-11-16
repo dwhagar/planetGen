@@ -109,17 +109,15 @@ def _ids_by_key(conn, **kwargs):
 
 @pytest.mark.parametrize("sort, descending", [(None, False), ("name", False), ("name", True),
                                               ("distance", False), ("distance", True)])
-@pytest.mark.parametrize("quadrants", [(), ("I", "II"), ("III", "unplaced"), ("unplaced",), ("IV",)])
 def test_a_page_after_a_sector_continues_the_whole_list_across_placed_and_unplaced(
-        mysql_config, sort, descending, quadrants):
+        mysql_config, sort, descending):
     _galaxy_of_sectors(mysql_config)
     conn = query.open_readonly(mysql_config)
     try:
-        whole = [row["id"] for row in query.list_sectors(conn, sort=sort, descending=descending, quadrants=quadrants)]
-        by_key = _ids_by_key(conn, sort=sort, descending=descending, quadrants=quadrants)
+        whole = [row["id"] for row in query.list_sectors(conn, sort=sort, descending=descending)]
+        by_key = _ids_by_key(conn, sort=sort, descending=descending)
         by_offset = [row["id"] for offset in range(0, len(whole) + 2, 2)
-                     for row in query.list_sectors(conn, limit=2, offset=offset, sort=sort, descending=descending,
-                                                   quadrants=quadrants)]
+                     for row in query.list_sectors(conn, limit=2, offset=offset, sort=sort, descending=descending)]
     finally:
         conn.close()
     assert len(set(whole)) == len(whole)

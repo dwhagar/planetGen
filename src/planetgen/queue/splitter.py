@@ -183,10 +183,10 @@ def choose(kind, decl, reading=None, resources=None, seconds=None, max_units=Non
                     samples=reading.samples, seconds_per_item=reading.seconds_per_item, limit=limit, resources=shown)
 
 
-def decide(kind, decl, resources=None):
+def decide(kind, decl, resources=None, max_units=None):
     """
     `choose` with the stub or stored profile (`splitprofile.lookup`) and the host now (`resources_now`): the call a command's `expand` makes to cut its stage (PERF.261).
-    Any failure to read either leaves the suggested split, and says so.
+    Any failure to read either leaves the suggested split, and says so. `max_units` is the most units the stage may be cut into (`units.MAX_UNITS` when not given).
     """
     try:
         reading = splitprofile.lookup(kind)
@@ -194,8 +194,23 @@ def decide(kind, decl, resources=None):
         log.swallowed("queue/splitter", "decide", exc)
         reading = None
     if not decl.dynamic:
-        return choose(kind, decl, reading)
-    return choose(kind, decl, reading, resources or resources_now(kind))
+        return choose(kind, decl, reading, max_units=max_units)
+    return choose(kind, decl, reading, resources or resources_now(kind), max_units=max_units)
+
+
+def cut(kind, items, suggested_unit, units_max=None, resources=None):
+    """
+    The `items` of a stage cut into the chunks of its units, in order, by the engine (OPS.243; the call a command's `expand` makes instead of a typed unit size). Returns `(chunks, decision)`.
+
+    The command's own flag (`CommandSpec.split`) decides who cuts: a command flagged `BYTE_IDENTICAL` (PERF.260 holds it to the same stored bytes at two cuts) is cut from the profile and the
+    free resources (`decide`); any other keeps `suggested_unit` items a unit. The suggested split is chunks of `suggested_unit` items, at least `ceil(items / units_max)` so the stage has at most
+    `units_max` units, which is what the stage was cut into before the engine chose and is still the cut when the profile has nothing usable for the kind. No item gives no chunk.
+    """
+    from planetgen.queue import commands
+    unit = max(int(suggested_unit), -(-len(items) // units_max) if units_max else 1)
+    decl = breakpoints.even(len(items), unit, split=commands.REGISTRY[kind].split)
+    decision = decide(kind, decl, resources, max_units=units_max)
+    return [items[start:end] for start, end in spans(len(items), decision)], decision
 
 
 def announce(conn, run_id, stage, decision):

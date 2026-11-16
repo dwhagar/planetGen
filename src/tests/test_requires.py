@@ -129,20 +129,20 @@ def test_a_job_cannot_require_itself_or_name_an_empty_requirement(lane):
 def test_the_steps_of_a_run_come_after_the_steps_they_require():
     def step(key, kind):
         return commands.Step(key, kind, key, {})
-    ok = [step("phenomena", "scatter-phenomena"), step("phenomena-index", "finish-phenomena")]
+    ok = [step("phenomena", "scatter-phenomena"), step("phenomena-special", "write-special-phenomena")]
     assert commands.validate_order(ok) == ok
     assert commands.required_stage_keys(ok, 1) == ["phenomena"] and commands.required_stage_keys(ok, 0) == []
     with pytest.raises(ValueError, match="later in the list"):
         commands.validate_order(list(reversed(ok)))
-    assert commands.validate_order([step("phenomena-index", "finish-phenomena")])        # a requirement that is not in the run is nothing to wait for
+    assert commands.validate_order([step("phenomena-special", "write-special-phenomena")])        # a requirement that is not in the run is nothing to wait for
 
 
 def test_a_failed_run_says_which_stage_did_not_run_because_the_stage_it_requires_did_not_finish(redis_server, key_prefix, monkeypatch):
     monkeypatch.setattr(runrecord, "PREFIX", key_prefix)
     connection = redisqueue.connect(redis_server)
     steps = [commands.Step("phenomena", "scatter-phenomena", "Scatter the phenomena", {}),
-             commands.Step("phenomena-index", "finish-phenomena", "Index the phenomena", {})]
-    run_id = runrecord.start_run(connection, "Plan", [Stage("phenomena", "Scatter the phenomena", units=2), Stage("phenomena-index", "Index the phenomena", units=1)],
+             commands.Step("phenomena-special", "write-special-phenomena", "Index the phenomena", {})]
+    run_id = runrecord.start_run(connection, "Plan", [Stage("phenomena", "Scatter the phenomena", units=2), Stage("phenomena-special", "Index the phenomena", units=1)],
                                  steps=[step.as_dict() for step in steps], now=100)
     runrecord.begin_stage(connection, run_id, 0, now=101)
     runrecord.finish_run(connection, run_id, "failed", error="unit 1 of stage Scatter the phenomena failed: boom", now=102)

@@ -2,6 +2,84 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4325] - 2026-11-16
+
+**Headline:** A sector unit that runs again after its first try already saved the sector no longer fills it twice, which stopped a new-galaxy run on a duplicate object ID.
+
+### Fixed
+
+- DB.131: Boss's new galaxy (8.0.4317) stopped in the neighborhood stage on `IntegrityError 1062 Duplicate entry ... for key 'star_systems.uq_star_systems_uid'` (sector 75B000100861, serial 0, body 0). A sector is saved, and its cell charted, in one transaction, and the job engine marks the piece done only afterward; a unit run again after the save committed (a connection lost at the commit, a worker killed just after it) filled the cell a second time, and the second fill's systems took the object IDs the first fill's already held. `run_galaxy.generate_sectors_do` now asks the chart ledger first: a charted cell is reported from the rows (`store.saved_sector_report`: sector id, name, systems, stars, planets, phenomena, `stored` true) and is not filled. The sectors it reports add to the run's counts and are left out of the speed figures (`run_common._count_reported`). A held run that stopped on this error is finished by Retry held once the fix is installed. Reuse: `chart_ledger.row` says whether a cell is charted, as `generate_sectors_pieces` already does for a run begun again.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4324] - 2026-11-16
+
+**Headline:** The Sectors list no longer stores a Quadrant for each sector: the column and its index are dropped, with the `position` sort and the Quadrant filter that had no page left to use them.
+
+### Removed
+
+- DB.112 (schema v264, migration 0264): `sector_system_counts.quadrant` and `idx_sector_system_counts_quadrant` are dropped (the index online, the column instantly; a stopped run can be started again). The Quadrants were taken off the site by UX.272, so nothing filtered by them; `query.list_sectors`, `count_sectors` and `virtual_cells` lose their `quadrants` argument, `SECTOR_SORTS` loses `position` (so `GET /api/sectors?sort=position` is a 400 like any unknown sort), and `refresh_sector_system_counts` no longer works out a Quadrant for every sector. `spherical.sector_quadrant`, which only that column and filter used, is gone with `VIRTUAL_SCAN_ROWS` (the walk of the uncharted cells that filled a page the filter had thinned) and the Quadrant SQL. `star_systems.quadrant` and the octant `quadrant` columns are a different thing and stay. Reuse: the migration uses `helpers.drop_index_online` and `helpers.drop_column_instant`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4323] - 2026-11-16
+
+**Headline:** the end of the phenomena scatter is now three commands of its own, so each can be seen, stopped and carried on by itself and the generated galaxy is the same.
+
+### Changed
+
+- OPS.239, part A: the `finish-phenomena` command is gone. `write-special-phenomena` (stage `phenomena-special`) draws the special phenomena and writes them with their classes in one transaction (the classes were added by the record piece before; a write that is repeated adds them once). `build-phenomenon-indexes` (stage `phenomena-index`) builds the table's indexes, a piece to an index, and stamps the hypervelocity stars' epoch. `record-phenomenon-scatter` (stage `phenomena-record`) records the scatter's seed, mass cut and epoch. `needs.py` declares the chain (`phenomena-shells`, `phenomena-special`, `phenomena-indexed`, `phenomena`), and a galaxy run counts two stages more.
+
+## [8.0.4322] - 2026-11-16
+
+**Headline:** The queue engine now picks the unit size of the link, settle and map luminosity stages from the job profile and the free resources.
+
+### Changed
+- `link-neighbors`, `settle-sector-paths` and `fill-map-luminosity` are flagged byte identical (PERF.260 holds each to the same stored bytes at two cuts), and their `expand` cuts the stage with the new `splitter.cut` instead of a typed size. With a usable profile for the kind the unit is about a fifth of the unit ceiling long (60 s) and fits its share of the free memory, between a quarter and four times the old size; with none, the cut is the old one (`LINK_UNIT_SECTORS`, `SETTLE_UNIT_SECTORS`, `MAP_LUMINOSITY_BATCH_IDS` stay as that suggested size). The decision is written to the stage's plan and the run's log, so a restarted unit has the same cut.
+- A piece of these three stages now weighs the items the cut counts in (its sectors, its ids), so the unit's seconds per item in the profile and the size the engine chooses mean the same thing. The cut-neutral probe tests judge the harness with a registry of the probe alone.
+
+## [8.0.4321] - 2026-11-16
+
+**Headline:** A moon that the planet's bulge brings into the evection resonance (its orbit turning once a year of the star's) is now caught and held there with a high eccentricity, or passes, by how fast the resonance sweeps it.
+
+### Changed
+
+- GEN.1750: `physics/evection.py` (new): the resonance's distance from the planet's spin (`kozai_bodies.bulge_precession_rad_s`, one shared bulge precession), the sweep ratio `rho` of the resonance's coupling against its rate across the moon, and the capture rule (caught at `rho` 1.58 or under, from the likely and unlikely rates of the first analysis, 0.54 and 5.4 for the Earth).
+- `physics/moon_orbits.py` (`evolve`): each prograde moon gets an evection event; at the crossing the moon is caught or passes, and a caught moon is held at the resonance, which moves in with the planet's spin as its tide still brakes the planet (`Fate.held`). `physics/moon_history.py` gives a caught moon the eccentricity it raises (`min(0.5, 1 - 2 R / a)`, kept by `settle_orbit` as a floor) and makes its tide again. Stored values change for the moons the resonance sweeps: their distance, eccentricity and tidal heat.
+- Stand-ins EV1 to EV3 are in GEN.725 (section 6.302); the exit from the resonance is not modelled.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4320] - 2026-11-16
+
+**Headline:** Class X (ammonia-water world) no longer asks for a surface temperature of 190 to 240 K, which no ammonia ocean met, nor for a world with no air: the ocean lies under its lid at the freezing point of its own solution, so neither the surface nor the air above it is a test of it.
+
+### Changed
+- GEN.1737: the two surface temperature conditions of class X are gone. A stored ocean that holds ammonia freezes at 273 K for pure water down to 176 K at 32 percent ammonia, linear between ([R5292]'s Eq. 12 after [R2639]); the least ammonia the class asks, 10 percent of the water's mass (9 percent of the liquid), freezes at about 246 K, inside the family's window whatever the surface is. The stored surfaces of the 380 ammonia oceans drawn run from 3 K to 430 K (median 43 K), so a band on the surface kept every one of them out of the class.
+- Boss, 1:03 PM EST 2026-11-15 (recommendation 1 approved): class X also holds with an air; its air gate is null (`class_fit` accepts a null gate for a terrestrial class; the ocean under the lid does not care what lies above it). The 20 percent liquid cover, the 10 percent ammonia floor and the gravity range are as they were.
+- In 600 natural systems (9,137 bodies) class X goes from 0 to 32 bodies in 26 systems: 18 taken from class C (the dead world with an ice-covered ocean), 8 from T and 6 from E; 11 of the 32 hold an air above 1 kPa. Nothing else moves. These are every one of the 32 stored ammonia oceans (of 380) that reach 10 percent of the water's mass, so no count is forced: the ammonia floor keeps the rest out (the median ocean holds 3.6 percent of the liquid).
+- Class Y has no acid pool in any of 9,137 bodies because a sulfur dioxide air of 3 percent is the rare case (3 bodies, none with oxygen or carbon dioxide to make the acid): that is the sulfur air's supply, not the class gate, and is left as it is.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4319] - 2026-11-16
+
+**Headline:** a planet's eccentricity now settles where its neighbours' pumping and its own tide's wearing-down balance, instead of the tide simply capping what the neighbours gave it.
+
+### Changed
+
+- `physics/secular_chain.py` (GEN.1459): `evolve` takes `damping_per_yr`, each planet's tidal decay rate, and follows `dz/dt = (i A - Gamma) z` for the eccentricity vectors (the matrix exponential, checked against `scipy.linalg.expm`); the inclinations are not damped.
+- `physics/planets.py`: `secular_exchange` starts a planet from its birth eccentricity (`_orbit_birth`) with its cold circularisation rate (`orbit_elements.circularisation_time_yr`) as the damping, over the star's age. `settle_orbit` no longer wears a damped planet from its birth again: it applies only the harder tide of a strong one (the heat softening the mantle), as the share it adds to the cold decay. A planet with no birth value, a lone planet, one outside the theory, and every captured moon keep the old rule.
+- Registry XD1 to XD3 (section 6.244, the secular exchange's table); the design table row for settled eccentricity is updated.
+- Census, 60 systems (538 planets, 470 damped): the stored eccentricity of a planet changes in 358 of them, in both directions (180 up, 178 down), because the secular cycle has run for gigayears and any change of the start or the damping moves its phase at the star's age; the distribution is what moves: mean 0.0457 to 0.0417, median 0.0225 to 0.0171, for planets inside 0.3 AU (352) mean 0.0305 to 0.0237. No system changes its planet count.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4318] - 2026-11-15
 
 **Headline:** A planet or moon loaded from the database now carries the birth eccentricity, spin and capture draws that its history left, so the stored galaxy has the numbers a run has.
