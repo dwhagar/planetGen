@@ -53527,6 +53527,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "belt_history.MIN_POLLUTION_RATE_G_S 1e5: the lowest accretion rate seen on a polluted white dwarf"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_history.TYPICAL_POLLUTION_RATE_G_S 1e8: the accretion rate of a polluted white dwarf when no belt of its system gives one (GEN.1231)"
+            ],
+            [
+              "The range it moves in",
+              "none (recalled typical)"
+            ],
+            [
+              "Where it holds",
+              "polluted white dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a survey whose typical rate is far from 1e8 g/s"
+            ],
+            [
+              "What replaces it",
+              "a rate drawn from the measured range once the belts of white dwarf systems give one"
+            ],
+            [
+              "Evidence",
+              "[R2415] (recalled typical rate; the survey's few 1e5 to few 1e8 g/s is READ)"
+            ]
+          ],
+          "id": "BHS6",
+          "key": "6.117:BHS6",
+          "kind": "P",
+          "slug": "6-117-bhs6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_history.TYPICAL_POLLUTION_RATE_G_S 1e8: the accretion rate of a polluted white dwarf when no belt of its system gives one (GEN.1231)"
         }
       ],
       "slug": "6-117-stand-ins-of-the-history-of-a-belt",

@@ -3516,6 +3516,8 @@ BELT_FIELDS = (
     # GEN.1232: what the star's evolution did to the belt, as one paragraph (NULL when nothing did), read back as the sentences' one line.
     object_rows.computed("history_text", lambda belt, context: belt_history.history_text(belt) or None,
                          load=lambda row: {"history": [row["history_text"]] if row["history_text"] else []}),
+    # GEN.1231: the mass the star's mass loss threw inward (the belt's `scattered_mass_kg`, set only on the belts of a white dwarf's system), the source of the rock that falls on the star.
+    object_rows.optional("thrown_inward_kg", "scattered_mass_kg"),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 

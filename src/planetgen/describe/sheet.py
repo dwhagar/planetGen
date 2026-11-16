@@ -27,7 +27,7 @@ from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, mod
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
+from planetgen.physics import (adaptation_traits, agb_carbon, belt_history, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
                                life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -1189,6 +1189,7 @@ CHEMISTRY_ROWS = {
     "chemistry_core_neon22": ("Central neon-22", "mass fraction"),
     "chemistry_pollutant_class": ("Accreted body", "words"),
     "chemistry_pollutant_ratios": ("Accreted body element ratios to magnesium", "words"),
+    "chemistry_pollution_rate": ("Rock falling on the star", "words"),
 }
 """dict: The star's derived chemistry rows (UX.254, `physics.stellar_composition.star_makeup`) -> `(label, the unit the properties help page names)`: the
 disk population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added; for a carbon-oxygen white dwarf
@@ -1279,6 +1280,22 @@ def _pollutant_rows(conn, row, makeup):
     if ratios:
         rows.append(_chemistry_row("chemistry_pollutant_ratios", [ratios], None))
     return rows
+
+
+def _pollution_rate_rows(conn, row, makeup):
+    """
+    The rate at which rock falls on a polluted white dwarf (GEN.1231): the rate of the mass the star's mass loss threw inward from the belts of its system when that is enough to pollute it,
+    else the typical rate of a polluted white dwarf (`belt_history.rate_on_white_dwarf`). None for a star that is not a polluted white dwarf.
+    """
+    if makeup is None or not makeup.detail.get("polluted"):
+        return []
+    thrown = None
+    if row["star_system_id"] is not None:
+        found = conn.execute("SELECT SUM(thrown_inward_kg) AS thrown FROM asteroid_belts WHERE star_system_id = ?", (row["star_system_id"],)).fetchone()
+        thrown = found["thrown"] if found else None
+    rate = belt_history.rate_on_white_dwarf(thrown)
+    where = "from its belt" if rate != belt_history.TYPICAL_POLLUTION_RATE_G_S else "typical of a polluted white dwarf"
+    return [_chemistry_row("chemistry_pollution_rate", [f"{scientific_text(rate)} g/s, {where}"], rate)]
 
 
 def _star_isotope_rows(makeup, row):
@@ -1467,6 +1484,8 @@ def _star_composition_provider(conn, kind, object_id, row):
     for sheet_row in _chemistry_rows(makeup):
         yield "composition", sheet_row
     for sheet_row in _pollutant_rows(conn, row, makeup):
+        yield "composition", sheet_row
+    for sheet_row in _pollution_rate_rows(conn, row, makeup):
         yield "composition", sheet_row
     for key, label, text, ratio in _star_isotope_rows(makeup, row):
         yield "composition", _text_row(key, label, text, ratio)
