@@ -17,12 +17,12 @@ release is stamped.
 | MAP | MAP.431 |
 | NAV | NAV.78 |
 | GEN | GEN.1760 |
-| PERF | PERF.273 |
+| PERF | PERF.274 |
 | DB | DB.132 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.774 |
+| TEST | TEST.775 |
 | USR | USR.33 |
 | OPS | OPS.267 |
 | DOC | DOC.121 |
@@ -2967,6 +2967,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.270 | A per-sector timing line in the job log for the neighborhood stage | none | done, PR #6618 (2:47 AM EST 11-15) |
 | PERF.271 | Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system) | none | done, Train 35 PR #6763 (9:35 PM EST 11-15), PR #6743 |
 | PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | open |
+| PERF.273 | (bug) One body's seasonal solve stalls 4 to 6.6 s inside a single call (seasonal_swing.temperature_series from refresh_at_final_age of a pre-placed system's moon) on 4 of 7 runs, where its mean is 66 ms; the three sector commands keep 12 s rows in RECORDED_SILENCE for it | open |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | done, PR #6336 (11:34 PM EST 11-14) |
@@ -4935,6 +4936,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.771 | (bug) test_cache_warmup (20 tests) is red on main | none | done, PR #6716 (2:35 PM EST 11-15) |
 | TEST.772 | (bug) test_belt_ondemand: a stored belt member made a planet gets no class | none | done, PR #6731 (3:59 PM EST 11-15) |
 | TEST.773 | (bug) test_fuzz_cli: two galaxy tests fail in the whole-file run with "RunStopped: the run done before stage 1 was queued" and pass alone (order-dependent) | none | done, PR #6779 (11:17 PM EST 11-15) |
+| TEST.774 | (bug) test_plan_outline::test_the_plan_says_where_its_time_went_step_by_step is red on main: the plan's timing table now prints HMS durations (UX.319, Boss rule) and the test still parses plain seconds | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
