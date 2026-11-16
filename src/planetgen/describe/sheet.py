@@ -27,7 +27,7 @@ from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, mod
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
+from planetgen.physics import (adaptation_traits, planet_classes, agb_carbon, belt_history, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
                                life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -328,6 +328,7 @@ _BELT = (
            ("upper_limit_km", "Outer edge")),
     *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members"), ("largest_body_km", "Largest body", "radius"),
            ("primordial_mass_earth", "Mass it formed with"), ("cleared_mass_earth", "Mass the giants cleared"), ("scattered_mass_earth", "Mass an instability scattered"),
+           ("thrown_inward_kg", "Mass its star's mass loss threw inward"),
            ("stirred", "Stirred by a giant", FLAG)),
     *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
            ("chondrite_group", "Nearest meteorite group", TEXT)),
@@ -598,7 +599,7 @@ def _phenomenon_not_shown(kind, **extra):
 
 _BODY_NOT_SHOWN = {
     "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
-    "shape_temperature_k": "the temperature the body took its shape at (GEN.1201); the roundness it sets is shown, not the temperature",
+    "shape_temperature_k": "the temperature the body took its shape at; the roundness it sets is shown, not the temperature",
     "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
@@ -654,8 +655,8 @@ NOT_SHOWN = {
                    "spin_axis_z", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), _VECTORS),
     },
     "planet": {**_BODY_NOT_SHOWN, "host_node_id": "the orbit tree node; bookkeeping",
-               "belt_order": "the number of the belt a promoted planet came from, which its designation carries (GEN.1510); bookkeeping",
-               "belt_rank": "the rank a promoted planet had among its belt's members, which its designation carries (GEN.1510); bookkeeping",
+               "belt_order": "the number of the belt a promoted planet came from, which its designation carries; bookkeeping",
+               "belt_rank": "the rank a promoted planet had among its belt's members, which its designation carries; bookkeeping",
                **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km"), _VECTORS)},
     "moon": {**_BODY_NOT_SHOWN, "planet_id": "the planet it circles, a link in the Location chain",
              "rogue_planet_id": "the free planet it circles, a link in the Location chain"},
@@ -693,7 +694,7 @@ NOT_SHOWN = {
         **_phenomenon_not_shown("rogue_planet"),
         "donor_uid": "the system that threw it out, a link in the Location chain and the Where it came from row",
         "event_index": "which of the donor's ejections it is; bookkeeping",
-        "pair_event_index": "which ejection of the same donor is its companion (GEN.332 slice D); bookkeeping, the companion is a link in its contents",
+        "pair_event_index": "which ejection of the same donor is its companion; bookkeeping, the companion is a link in its contents",
     },
     "interstellar_comet": _phenomenon_not_shown("interstellar_comet"),
     "quasar": _phenomenon_not_shown("quasar"),
@@ -719,7 +720,7 @@ NOT_SHOWN = {
 }
 
 for _kind in ("star", "belt", "comet", "nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant", "interstellar_comet", "quasar"):
-    NOT_SHOWN[_kind]["flavor_key"] = "which flavor line the page says after \"Sensors show\" (GEN.1433); the page prints the line, so the id is bookkeeping"
+    NOT_SHOWN[_kind]["flavor_key"] = "which flavor line the page says after \"Sensors show\"; the page prints the line, so the id is bookkeeping"
 """dict: For each kind, the columns of its table the sheet does not show, each with why."""
 
 
@@ -951,8 +952,8 @@ def _locked(row):
 
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
-    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount"), lambda klass, row: row is None or row.get("roundness_ratio") is None or roundness.is_round(row["roundness_ratio"]),
-     "a body under a roundness ratio of 1 is an Asteroid and has no class letter, digit or match"),
+    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount"), lambda klass, row: row is None or row.get("roundness_ratio") is None or roundness.is_round(row["roundness_ratio"]) or planet_classes.holds_air_liquid_or_life(row),
+     "a body under a roundness ratio of 1 that holds no air, no surface liquid and no life is an Asteroid and has no class letter, digit or match (GEN.1752: one that holds any of them is classed by the fit)"),
     (("runner_up_class",), lambda klass, row: row is None or (row.get("runner_up_match") or 0.0) > 0.0,
      "a runner-up is a second class that fits the body at more than 0 percent; where only one class fits (a class that matches 0 percent is no runner-up, `class_fit.classify`) the column is empty and the match is 0"),
     (("class_fudge_values",), lambda klass, row: row is None or (row.get("class_fudge_amount") or 0.0) > 0.0,
@@ -1043,8 +1044,8 @@ _BODY_RULES = [
 _PLANET_RULES = [
     (("obliquity_min_deg", "obliquity_max_deg"), lambda klass, row: row is None or (
         spin.spin_state(row.get("rotation_period_hours"), row.get("period_years"))[0] in (None, "free")),
-     "the range a tilt wanders over is worked out (GEN.1535, `settle_obliquity`) for a planet that spins freely, a belt member made a planet (GEN.1510, GEN.1668) among them: a locked or resonant planet sits at the Cassini state "
-     "of its spin and does not wander (GEN.1536)"),
+     "the range a tilt wanders over is worked out (`settle_obliquity`) for a planet that spins freely, a belt member made a planet among them: a locked or resonant planet sits at the Cassini state "
+     "of its spin and does not wander"),
     (("moon_origin",), lambda klass, row: False,
      "only a moon has an origin (disk, impact, captured, ring, binary or exchange); a planet orbits its star alone"),
     (("parent_shadow_share",), lambda klass, row: False,
@@ -1054,7 +1055,7 @@ _PLANET_RULES = [
 _MOON_RULES = [
     (("obliquity_min_deg", "obliquity_max_deg"), lambda klass, row: False,
      "the range a tilt wanders over is worked out for a planet from the nodal modes of the other planets' pull on its orbit; a moon's tilt is held by its planet's pull or its own tide "
-     "(a locked moon takes the Cassini state, GEN.1556) and it has no range"),
+     "(a locked moon takes the Cassini state) and it has no range"),
 ]
 
 _STAR_RULES = [
@@ -1189,6 +1190,7 @@ CHEMISTRY_ROWS = {
     "chemistry_core_neon22": ("Central neon-22", "mass fraction"),
     "chemistry_pollutant_class": ("Accreted body", "words"),
     "chemistry_pollutant_ratios": ("Accreted body element ratios to magnesium", "words"),
+    "chemistry_pollution_rate": ("Rock falling on the star", "words"),
 }
 """dict: The star's derived chemistry rows (UX.254, `physics.stellar_composition.star_makeup`) -> `(label, the unit the properties help page names)`: the
 disk population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added; for a carbon-oxygen white dwarf
@@ -1279,6 +1281,22 @@ def _pollutant_rows(conn, row, makeup):
     if ratios:
         rows.append(_chemistry_row("chemistry_pollutant_ratios", [ratios], None))
     return rows
+
+
+def _pollution_rate_rows(conn, row, makeup):
+    """
+    The rate at which rock falls on a polluted white dwarf (GEN.1231): the rate of the mass the star's mass loss threw inward from the belts of its system when that is enough to pollute it,
+    else the typical rate of a polluted white dwarf (`belt_history.rate_on_white_dwarf`). None for a star that is not a polluted white dwarf.
+    """
+    if makeup is None or not makeup.detail.get("polluted"):
+        return []
+    thrown = None
+    if row["star_system_id"] is not None:
+        found = conn.execute("SELECT SUM(thrown_inward_kg) AS thrown FROM asteroid_belts WHERE star_system_id = ?", (row["star_system_id"],)).fetchone()
+        thrown = found["thrown"] if found else None
+    rate = belt_history.rate_on_white_dwarf(thrown)
+    where = "from its belt" if rate != belt_history.TYPICAL_POLLUTION_RATE_G_S else "typical of a polluted white dwarf"
+    return [_chemistry_row("chemistry_pollution_rate", [f"{scientific_text(rate)} g/s, {where}"], rate)]
 
 
 def _star_isotope_rows(makeup, row):
@@ -1467,6 +1485,8 @@ def _star_composition_provider(conn, kind, object_id, row):
     for sheet_row in _chemistry_rows(makeup):
         yield "composition", sheet_row
     for sheet_row in _pollutant_rows(conn, row, makeup):
+        yield "composition", sheet_row
+    for sheet_row in _pollution_rate_rows(conn, row, makeup):
         yield "composition", sheet_row
     for key, label, text, ratio in _star_isotope_rows(makeup, row):
         yield "composition", _text_row(key, label, text, ratio)

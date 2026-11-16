@@ -112,12 +112,15 @@ class OrbitResult:
         moons (tuple): A `Fate` for each moon given, in order.
         ring_mass_kg (float): The mass of the moons that fell (the ring material they leave).
         planet_heat_j (float): The energy the moons' tides dissipated in the planet over the age, J (the integral of `-N_i (omega - n_i)`).
+        time_s (float): The time `spin_rate` is the spin at: the age while a moon is still alive, or the time the last moon was gone (GEN.1756: the spin goes on under the star's tide and the air's
+            for the rest of the age, which the caller runs, `moon_history.apply`).
     """
 
     spin_rate: float
     moons: tuple
     ring_mass_kg: float
     planet_heat_j: float
+    time_s: float
 
 
 def orbital_angular_momentum(planet_mass_kg, moon):
@@ -301,4 +304,4 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
         alive.remove(i)
     for i in alive:
         fates[i] = Fate(moons[i], distance[i], "stays", age_s, i in held)
-    return OrbitResult(spin, tuple(fates), ring_mass, heat)
+    return OrbitResult(spin, tuple(fates), ring_mass, heat, age_s if alive else min(time, age_s))

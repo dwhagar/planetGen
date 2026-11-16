@@ -144,3 +144,5 @@ Commit each file came from:
 - v262: after OPS.253 B migration 0262 (sky_draw_parts), before OPS.219 engine_piece_results (0263) (main's schema.sql with its comment and blank lines removed)
 - v263: after OPS.219's migration 0263 (engine_piece_results), before DB.112's migration 0264 (sector_system_counts loses quadrant) (main's schema.sql with its comment and blank lines removed)
 - v264: after DB.112's migration 0264 (sector_system_counts loses quadrant), before GEN.1141's migration 0265 (designations reason `deleted`) (main's schema.sql with its comment and blank lines removed)
+- v265: after GEN.1141's migration 0265 (designations reason `deleted`), before GEN.1753's migration 0266 (body_history birth numbers, lost_moons) (main's schema.sql with its comment and blank lines removed)
+- v266: after GEN.1753's migration 0266 (body_history birth numbers, lost_moons), before GEN.1231's migration 0267 (belt thrown inward) (main's schema.sql with its comment and blank lines removed)

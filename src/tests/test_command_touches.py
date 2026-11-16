@@ -361,3 +361,38 @@ class TestPlanEdges:
         pairs = {frozenset(("scatter-mass", "scatter-luminosity")): {"a": "scatter-mass", "b": "scatter-luminosity", "grain": "table", "shared": [], "proof": "x"}}
         edges = touches.plan_edges(["generate-sectors", "scatter-mass", "scatter-luminosity", "generate-system"], pairs=pairs)
         assert edges[3] == [1, 2]
+
+
+class TestAddressEdges:
+    """The by-address edges of `independence.json` (OPS.242): each is held to the constants of the code it was proved against, so a change to them fails here until `tests/test_address_edges.py` is run again."""
+
+    def test_the_edges_load_and_name_their_proof(self):
+        edges = touches.load_edges()
+        assert set(edges) == {"link-neighbors", "settle-sector-paths", "scatter-backfill"}
+        for command, entry in edges.items():
+            assert all(key in entry for key in touches.EDGE_KEYS) and entry["grain"] == "sector"
+            assert entry["proof"] == ("tests/test_backfill_edges.py::test_the_backfill_by_address_stores_what_plan_order_stores" if command == "scatter-backfill"
+                                      else "tests/test_address_edges.py::test_link_and_settle_by_address_store_what_plan_order_stores")
+
+    def test_the_reach_is_the_one_the_code_uses(self):
+        from planetgen.db import sector_paths, store
+        edges = touches.load_edges()
+        assert edges["settle-sector-paths"]["reach"] == {"reach_edges": sector_paths.NEIGHBOUR_REACH_EDGES}
+        assert edges["link-neighbors"]["reach"] == {"search_pc": store.NEAREST_SYSTEMS_SEARCH_PC}
+        from planetgen import tuning
+        assert edges["scatter-backfill"]["reach"] == {"steps": len(tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)}
+
+    def test_a_bad_edge_is_refused(self, tmp_path):
+        def load(data):
+            path = tmp_path / "e.json"
+            path.write_text(json.dumps(data))
+            return touches.load_edges(str(path))
+        assert load({"format": 1, "pairs": []}) == {}
+        with pytest.raises(ValueError):
+            load({"format": 1, "pairs": [], "edges": [{"command": "link-neighbors"}]})
+        entry = dict.fromkeys(touches.EDGE_KEYS, "x")
+        with pytest.raises(ValueError):
+            load({"format": 1, "pairs": [], "edges": [dict(entry, command="no-such-command", after=[])]})
+        with pytest.raises(ValueError):
+            load({"format": 1, "pairs": [], "edges": [dict(entry, command="link-neighbors", after=[]), dict(entry, command="link-neighbors", after=[])]})
+

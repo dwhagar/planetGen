@@ -34,7 +34,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.mantle_stripping.strip_probability | by design | the share of random impacts inside the head-on angle (MT7); the W10 rate (WR4) is already a rate on the merged population, so the effect does not apply it again |
 | data | fudge_matrix.json | by design | the measured movement of every class quantity under every stand-in row (GEN.1313, `scripts/stand_in_sensitivity.py screen --frozen`); `scripts/build_fudge_table.py` turns it into `fudge_table.json` and `test_fudge_table.py` holds the table to it; the generator reads the table, not the matrix |
 | function | planetgen.galaxy.nebula_density.octave_bound | by design | the most one more noise octave can move the density, which the tests of the finer levels (the coarse blobs stay put as filaments are added) and the tuning of the drawing read; the node reader asks for the density only |
-| function | planetgen.generation.remnant_orbits.pollution_rate_g_s | GEN.1231 | the white dwarf pollution flag reads the rate of its belt (the scattered mass over the delivery time) when belt birth sees the giants (GEN.1068); the census band of 25 to 50 percent reads it too |
 | function | planetgen.physics.mixture_trace.draw_trace_gases | GEN.524 | the mixture-level draw of the trace gases; `physics.trace_air` reads `draw_trace_amounts` instead, so a later part of GEN.524 deletes this or wires it |
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
@@ -130,7 +129,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.generation.primary_mass_function.systems_per_star | by design | the systems born per star born (0.697 in the stellar mass function note) that `test_primary_mass_function` pins; generation reads `systems_per_solar_mass` |
 | function | planetgen.generation.run_galaxy.backfill_bright_stars_around | by design | the bright-star backfill (GEN.23) as one call with its own progress bar and shell log (PERF.28); a run does the same draw in `scatter-backfill` units (`expand_backfill_bright_stars`), so this form is what the tests and `tests/sector_support.make_sector` call to backfill one sector |
 | function | planetgen.generation.tuning_harness.check_target | by design | the entry of the tuning harness: draws a shipped recipe at a target's subject and compares it; the tests hold every recipe to its target through it, the generator never runs it |
-| function | planetgen.physics.belt_history.is_polluted | GEN.1231 | the pollution flag of a white dwarf from the rate of its belt (GEN.1068 gives the belts that see the giants) |
 | function | planetgen.physics.birth_radioisotopes.fraction_above | by design | the observed share of a fixed-stream sampler, read by test_birth_radioisotopes and the research note, never by the generator |
 | function | planetgen.physics.brown_dwarf_types.type_probabilities | by design | the expected share of each class, read by test_brown_dwarf_types against the sampler it describes |
 | function | planetgen.physics.clathrate_brine.hydrate_stable | by design | the stability test of a hydrate at a temperature and guest pressure: the reference the tests hold `dissociation_pressure_pa` to; the generator reads the pressure and the hold (GEN.762), never this yes or no (GEN.1559) |
@@ -170,7 +168,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.planet_survival.expected_passes | by design | the ionising passes N(a) whose root `planet_survival_limit_au` solves in closed form; `test_planet_survival` pins the root against it |
 | function | planetgen.generation.belt_birth.is_inner | by design | the inner-belt test (a belt ending within 1.2 snow lines) the census of GEN.1156 counts with; the prevalence suites and the tests call it, generation does not need the word |
 | function | planetgen.physics.belt_origin.conservation_error | by design | the check that a belt's formed mass equals what is left plus what the giants cleared and what was scattered; the tests hold every generated belt to it |
-| function | planetgen.physics.belt_origin.destroyed_planet | GEN.1072 | the `Debris` of a planet the star's history destroyed; the engulfment and white dwarf belt events of GEN.1072 pass it to `belt_origin.build` |
+| function | planetgen.physics.belt_origin.destroyed_planet | GEN.1072 | the `Debris` of a planet destroyed by an event the generator does not model yet (a Roche disruption or a collision of planets): a planet the giant branch engulfs is removed whole and leaves no rubble, so nothing calls it; it waits for such an event, none is invented (Lane 06, TODO 9:49 PM EST 11-15) |
 | function | planetgen.physics.proton_range.csda_range_g_cm2 | by design | the forward accessor of the NIST PSTAR range table (`energy_mev` is its inverse, and `test_proton_range` holds the pair to each other and to published values); the generator needs the energy of a column, not the range of an energy |
 | function | planetgen.physics.rprocess_enrichment.effective_duration_gy | by design | the inverse of constant_input_factor by bisection, read by test_rprocess_enrichment to state a history as a duration |
 | function | planetgen.physics.sector_path.box_cell | by design | a box domain for the path integrator; the tests integrate through it because its edges are exact, the generator's only domain is `sector_inside` |
@@ -230,14 +228,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.ice_light.light_below | by design | the light under a lid for a given surface light, the caller's own star: the refuge term reads `transmission` and the light floor, so this is the form the tests and later climate lanes read (GEN.1726) |
 | function | planetgen.physics.ice_light.thickest_ice_m | by design | the thickest bare ice that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |
 | function | planetgen.physics.ice_light.deepest_snow_m | by design | the deepest snow that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |
-| module | planetgen.physics.ice_growth | GEN.1735 | the thickness of the ice a world's water wears and the snow on it (GEN.1728); the refuge term (GEN.1735) is to call `lid_of` for the lid it passes to `ice_light.transmission` |
-| row | 6.298:IG2 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG3 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG4 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG5 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG6 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG7 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG8 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
 | row | 6.212:DP3 | by design | `magnetic_geometry.OFFSET_CLASS_RP`, a documentary constant: the offset class is drawn by kind (`OFFSET_KINDS`), the 0.15 radii is the limit the sheet text and the source state, and no code reads the constant (GEN.1632 found it) |
 | row | 6.296:SA2 | by design | `starlight_aloft.COVERED_BELOW_CM1`, read inside the module only in the text of the covered range, which `line_opacity.EDGES_CM1` sets; the row names the number the tables stop at (GEN.1632 found it) |
 | row | 6.6c:IR18 | by design | `greenhouse_table.FITTED_UP_TO_K`, a documentary constant: the table is no longer clamped there (GEN.1580), so the 4,000 K is the edge of the fit the row describes and nothing reads it (GEN.1632 found it) |

@@ -22,9 +22,11 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 
 from planetgen.queue import template
+from planetgen.util import log
 from planetgen.util.format import format_duration_seconds
 
 READY_SECONDS = 600.0
@@ -251,20 +253,53 @@ def template_key(kind):
     return "tables" if kind in units.TABLE_KINDS else "plain"
 
 
+class NotReady(Exception):
+    """The template of a job is still building its warm set (a `TemplateSet` that starts them in the background): the job is asked for again at the next turn."""
+
+
 class TemplateSet:
     """The supervisor's templates: one per warm set, each started when the first job that wants it is asked for (a host with no star-drawing work never builds the tables) and stopped together."""
 
-    def __init__(self, python=None, warm_sets=None, ready_seconds=READY_SECONDS, pidfd=True):
+    def __init__(self, python=None, warm_sets=None, ready_seconds=READY_SECONDS, pidfd=True, background=False):
         self.python, self.warm_sets, self.ready_seconds, self.pidfd = python, dict(WARM_SETS if warm_sets is None else warm_sets), ready_seconds, pidfd
+        self.background = background        # the supervisor's loop must not stand for the minute a warm set takes to build: it asks again at its next turn
         self.hosts = {}
+        self._warming = {}                  # key -> (thread, host, failures)
 
     def host(self, key):
         """The running `JobHost` of template `key`, started now if it is not (the warm set is built before this returns)."""
         if key not in self.hosts or self.hosts[key]._dead:
+            if self.background:
+                return self._host_in_background(key)
             made = JobHost(python=self.python, warm=self.warm_sets[key], pidfd=self.pidfd)
             made.start(self.ready_seconds)
             self.hosts[key] = made
         return self.hosts[key]
+
+    def _host_in_background(self, key):
+        """The template `key` once its warm set is built; `NotReady` while it is being built (the build starts with the first ask), the failure of a build that failed."""
+        warming = self._warming.get(key)
+        if warming is None:
+            made, failures = JobHost(python=self.python, warm=self.warm_sets[key], pidfd=self.pidfd), []
+
+            def build():
+                try:
+                    made.start(self.ready_seconds)
+                except Exception as exc:  # noqa: BLE001 -- told to the turn that asks next
+                    log.swallowed("queue/jobhost", f"the build of template {key!r}", exc)
+                    failures.append(exc)
+            thread = threading.Thread(target=build, name=f"template-{key}", daemon=True)
+            self._warming[key] = (thread, made, failures)
+            thread.start()
+            raise NotReady(f"the template {key!r} is being built")
+        thread, made, failures = warming
+        if thread.is_alive():
+            raise NotReady(f"the template {key!r} is being built")
+        del self._warming[key]
+        if failures:
+            raise failures[0]
+        self.hosts[key] = made
+        return made
 
     def fork(self, kind, runner, job=None):
         """Forks the unit of `kind` from its template. Returns `(key, Job)`."""
@@ -279,6 +314,11 @@ class TemplateSet:
         return found
 
     def stop(self):
+        for thread, made, _failures in self._warming.values():
+            thread.join(self.ready_seconds)
+            if made.control is not None:
+                made.stop()
+        self._warming = {}
         for host in self.hosts.values():
             host.stop()
         self.hosts = {}

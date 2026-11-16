@@ -144,6 +144,9 @@ _SEPARATION_WORDS = ("distance", "separation", "periapsis", "apoapsis", "perihel
                      "wobble", "min_orbit", "habitable_zone", "lower_limit", "upper_limit", "a_crit",
                      "binary_primary_position", "binary_secondary_position", "binary_mutual_position", "impact_parameter")
 _DERIVED = {("nearest_systems", "distance_pc"), ("system_owners", "distance_ly")}
+_RECORDED = {("body_history", "formation_distance_au"), ("body_history", "birth_distance_au"), ("lost_moons", "birth_distance_au")}
+"""set: The `(table, column)` pairs of the numbers the generator drew for a body and `body_history` keeps to run its history again (GEN.1753): where the body formed and the orbit a moon was born on. They are read back as
+drawn, at their own relative precision, and place nothing, so they are a `size` and no table with only these has a floor."""
 _OTHER_POSITIONS = {
     ("sector_path_knots", "x_pc"): "galaxy", ("sector_path_knots", "y_pc"): "galaxy",
     ("sector_path_knots", "z_pc"): "galaxy",
@@ -169,6 +172,8 @@ def _classify(table, column, unit):
         return Precision("position", _OTHER_POSITIONS[table, column], _FRAME_REACH["galaxy"])
     if (table, column) in _DERIVED or column == "galactic_radius_pc":
         return Precision("derived")
+    if (table, column) in _RECORDED:
+        return Precision("size")
     if any(word in column for word in _SEPARATION_WORDS):
         return Precision("separation", "system", _SYSTEM_REACH.get(table, "bound-orbit"))
     return Precision("size")

@@ -576,7 +576,7 @@ def admin():
 
 def format_duration(seconds):
     """An uptime or wait on the shared period ladder
-    (`format_duration_seconds`, UX.14): "45 s", "12 minutes", "3.5 days";
+    (`format_duration_seconds`, UX.14): "45s", "12m", "3d 12h";
     "unknown" for `None`."""
     if seconds is None:
         return "unknown"

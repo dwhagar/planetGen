@@ -98,7 +98,7 @@ def parse_rate(text):
 
 
 def duration_text(value, unit):
-    """A duration on the units code's time ladder ("6 hours", "15 s", "1.04 days", UX.318); "off" at zero, empty when `value` is not a number."""
+    """A duration on the units code's time ladder ("6h", "15s", "1d 1h", UX.318); "off" at zero, empty when `value` is not a number."""
     try:
         seconds = float(value) * DURATION_UNITS.get(unit, 1)
     except (TypeError, ValueError):

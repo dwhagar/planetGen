@@ -230,12 +230,12 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
         if split is not None:
             summary["split"] = split
         try:
-            ledger.add_jobs(control, run, [{"stage": stage, "command": OPEN, "arguments": {"index": index, "plan": summary}}]
+            ledger.add_jobs(control, run, [{"stage": stage, "command": OPEN, "arguments": {"index": index, "plan": summary, "run_id": run_id}}]
                             + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}
                                for number, (args, unit_cost) in enumerate(units)]
                             + _end_jobs(stage, kind))
             control.execute("UPDATE engine_jobs SET state = 'done', arguments = ?, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''",
-                            (ledger._text({"index": index, "plan": summary}), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
+                            (ledger._text({"index": index, "plan": summary, "run_id": run_id}), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
             control.commit()
         except Exception:
             control.rollback()
@@ -261,6 +261,25 @@ def _end_jobs(stage, kind):
     """The rows of the end of a stage of `kind`, each needing the one before (the first needs the units)."""
     names = [end_rows(kind)[role] for role in END_ROLES]
     return [{"stage": stage, "command": command, "needs": [before]} for command, before in zip(names, ("units", *names))]
+
+
+def release_units(conn, run_id, index, skip=()):
+    """
+    Makes the unit rows of stage `index` that are still `waiting` `ready` for the launcher to hand out (OPS.228), except the units numbered in `skip` (the ones a run this one carries on from did). Returns how many it released.
+    The caller has cut the stage (`record_cut`); a run with no ledger has no rows and releases none.
+    """
+    if not ledgered(conn, run_id):
+        return 0
+    control = control_connection(conn, run_id)
+    try:
+        run, stage = engine_run(conn, run_id, control), _stage_key(conn, run_id, index)
+        marks = ", ".join(["?"] * len(skip))
+        released = control.execute("UPDATE engine_jobs SET state = 'ready', updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND item_key <> '' AND state = 'waiting'"
+                                   + (f" AND item_key NOT IN ({marks})" if skip else ""), (run, stage, *map(str, skip))).rowcount
+        control.commit()
+        return released
+    finally:
+        control.close()
 
 
 def _cut_row(control, run, stage):

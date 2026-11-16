@@ -40,7 +40,7 @@ def test_a_solid_body_with_air_gets_the_row_and_an_airless_one_or_a_giant_does_n
             if section["kind"] not in ("planet", "moon"):
                 continue
             rows = {row["key"]: row for block in section["blocks"] if block["type"] == "facts" for row in block["rows"]}
-            if "pressure" not in rows:                      # a giant has an internal pressure instead
+            if "pressure" not in rows:                      # a giant has an internal pressure instead (rare in a default system: TEST.695)
                 assert "atmosphere_colour" not in rows
                 giants += 1
             elif display_value(rows["pressure"]["value"][0]["qty"]) > 0:
@@ -50,4 +50,4 @@ def test_a_solid_body_with_air_gets_the_row_and_an_airless_one_or_a_giant_does_n
             else:
                 assert "atmosphere_colour" not in rows
                 airless += 1
-    assert with_air > 0 and airless > 0 and giants > 0
+    assert with_air > 0 and airless > 0       # giants are rare in a default system now; the row rule for them holds whenever one is drawn

@@ -379,6 +379,25 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
 
 
 @pytest.mark.timeout(60)
+def test_a_mantle_on_its_floor_carries_out_only_what_it_makes():
+    """TEST.775: a mantle cannot cool below its surface (3,032 K at 0.07 AU), yet the stagnant-lid flux law carried 0.7 W/m2 out of it, 7 to 100 times its radiogenic heat, for ever
+    (a Urey ratio of 0.01 to 0.13, and a released heat with no source). On its floor it carries out the heat it makes, so the Urey ratio is 1, and it has released no more than a
+    cooler-surfaced twin that was free to cool."""
+    terms = ((4.06712528459501e-12, 0.5554063946794433), (1.1519457618003578e-12, 0.04951051289713895),
+             (1.9827998614583646e-12, 0.15530969763834757), (3.744530060985561e-12, 0.9845840632953767),
+             (4.075177246711262e-07, 966.7324694002026))
+    rock = radiogenic.Rock(0.7545618533566459, 0.0, 0.2454381466433541, 0.018143235516770093)
+    interior = ih.Interior(382324606739.6106, 218.6088709840769)
+    for age in (1.0, 3.0, 6.0):
+        cool = ih.heat(terms, interior, 4.666239116198571e24, 7011.034245444521, age, rock, None, ih.STAGNANT, 300.0)
+        hot = ih.heat(terms, interior, 4.666239116198571e24, 7011.034245444521, age, rock, None, ih.STAGNANT, 3032.0)
+        assert hot.mantle_temperature_k == pytest.approx(3032.0)
+        assert hot.total_w == pytest.approx(hot.radiogenic_w) and hot.urey_ratio == pytest.approx(1.0)
+        assert hot.released_j < cool.released_j
+        assert cool.urey_ratio < 1.0            # a cooling mantle still gives up more than it makes
+
+
+@pytest.mark.timeout(60)
 def test_a_hot_surface_never_collapses_the_step_below_it():
     """GEN.866: a 4.7e24 kg wet planet whose surface is 2304 K (an ecosphere orbit of an F5V star, the greenhouse run away) started at the
     surface temperature and a step overshot below zero kelvin; the viscosity law on that temperature gave a flux of 1e59 W/m2 and a step of 1e-65 Gy, so

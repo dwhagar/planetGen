@@ -429,7 +429,7 @@ def counting_text(word, number, total):
 def duration_text(seconds):
     """
     How long something took, in the one form a log line uses (OPS.173; logging standard, "Message text", rule 3): the duration ladder of the
-    units code (`format.format_duration_seconds`, UX.318), `340 ms`, `12.3 s`, `4.12 minutes`, `1.09 hours`, `3 days`. `?` when the time is not
+    units code (`format.format_duration_seconds`, UX.318), `340 ms`, `12s`, `4m 7s`, `1h 5m 12s`, `3d`. `?` when the time is not
     known (`None`, not a number or negative). The field that carries the same figure for a tool is `seconds=`, always in seconds, never this text.
 
     Args:
