@@ -133,31 +133,11 @@ def open_readonly(config=None, statement_timeout_s=None):
 
 SECTOR_SORTS = {
     "name": "sec.name", "systems": "c.system_count", "density": "c.system_density",
-    "position": "c.quadrant", "distance": "sec.galactic_radius_pc",
+    "distance": "sec.galactic_radius_pc",
 }
 """dict: The sort keys `list_sectors` accepts (the Sectors table's column
 keys) -> the column they order by (`c` is `sector_system_counts`). A sector
 with no value (unplaced) sorts last either way."""
-
-SECTOR_QUADRANTS = ("I", "II", "III", "IV")
-"""tuple[str]: The sector Quadrant labels `list_sectors` filters by, plus
-`"unplaced"` for a sector with no galaxy position."""
-
-_SECTOR_QUADRANT_SQL = (
-    "(CASE WHEN sec.center_x_pc IS NULL THEN 'unplaced' "
-    "WHEN sec.center_y_pc >= 0 THEN (CASE WHEN sec.center_x_pc >= 0 THEN 'I' ELSE 'II' END) "
-    "ELSE (CASE WHEN sec.center_x_pc < 0 THEN 'III' ELSE 'IV' END) END)"
-)
-"""str: SQL for a sector's Quadrant label, the same bands as
-`planetgen.galaxy.spherical.sector_quadrant`."""
-
-
-def _sector_quadrant_filter(quadrants):
-    """`(where_sql, params)` keeping sectors in any of `quadrants`."""
-    if not quadrants:
-        return "", []
-    return f" WHERE {_SECTOR_QUADRANT_SQL} IN ({', '.join('?' for _ in quadrants)})", list(quadrants)
-
 
 SECTOR_COVERAGES = ("charted", "all", "uncharted")
 """tuple[str]: The `coverage` choices of `list_sectors` (MAP.403): the sectors that were charted, every sector, or only the uncharted placeholders."""
@@ -208,8 +188,7 @@ def sector_coverage_condition(coverage=DEFAULT_SECTOR_COVERAGE, show_empty=False
 def refresh_sector_system_counts(conn):
     """
     Makes `sector_system_counts` match the sectors and systems now (PERF.74, PERF.208): one row for each sector with its
-    system count, its density (systems per cubic milliparsec, `NULL` for a sector with no galaxy position) and its
-    Quadrant (`NULL` likewise), from one `GROUP BY` on the sector index, in one transaction so a reader sees the old
+    system count and its density (systems per cubic milliparsec, `NULL` for a sector with no galaxy position), from one `GROUP BY` on the sector index, in one transaction so a reader sees the old
     rows or the new ones. `list_sectors` asks for it through `countcache`, which runs it in the background and not
     more often than every 30 seconds.
 
@@ -218,10 +197,9 @@ def refresh_sector_system_counts(conn):
     """
     conn.execute("DELETE FROM sector_system_counts")
     cur = conn.execute(
-        "INSERT INTO sector_system_counts (sector_id, system_count, system_density, quadrant) "
+        "INSERT INTO sector_system_counts (sector_id, system_count, system_density) "
         "SELECT sec.id, COALESCE(n.system_count, 0), "
-        "CASE WHEN sec.center_x_pc IS NULL THEN NULL ELSE COALESCE(n.system_count, 0) / POW(sec.edge_mpc, 3) END, "
-        f"NULLIF({_SECTOR_QUADRANT_SQL}, 'unplaced') "
+        "CASE WHEN sec.center_x_pc IS NULL THEN NULL ELSE COALESCE(n.system_count, 0) / POW(sec.edge_mpc, 3) END "
         "FROM sectors sec LEFT JOIN (SELECT sector_id, COUNT(*) AS system_count FROM star_systems "
         "WHERE sector_id IS NOT NULL GROUP BY sector_id) n ON n.sector_id = sec.id")
     conn.commit()
@@ -232,9 +210,6 @@ VIRTUAL_PLACEHOLDER_LIMIT = 100_000
 """int: The most uncharted placeholder rows a galaxy may still hold for its uncharted cells to be listed from the block light parts (OPS.154; stand-in: a guard size, not a
 physical value, it changes no drawn star). More than this and the rows the scatters made are still there (before the migration that deletes them): the cells have rows and the
 walk of the parts that finds the cells without one would read the whole table, so the list is the rows alone, as it was."""
-
-VIRTUAL_SCAN_ROWS = 2000
-"""int: The most cells of the parts a page walks to fill itself when a Quadrant filter drops some (OPS.154; stand-in: a guard size, not a physical value)."""
 
 _VIRTUAL_CELLS = (
     "SELECT p.shell_index, p.band_index, p.wedge_index FROM galaxy_block_light_parts p WHERE {keyset} "
@@ -265,44 +240,23 @@ def _virtual_item(conn, address, edge_pc):
     }
 
 
-def virtual_cells(conn, limit, offset=0, descending=False, quadrants=(), after_address=None):
+def virtual_cells(conn, limit, offset=0, descending=False, after_address=None):
     """
     The uncharted cells that have no sector row, as the items of `list_sectors` (OPS.154), by distance: shell, then band, then wedge (backward for `descending`), read by key from the block
     light parts so any page costs the same. `after_address` starts after that cell (the keyset), else `offset` cells are skipped. A cell has no systems, so the `systems` and
-    `density` sorts treat it as zero and these follow the rows in key order. `quadrants` keeps the cells in those Quadrants (worked out from each cell's position; a page walks up to
-    `VIRTUAL_SCAN_ROWS` cells to fill itself).
+    `density` sorts treat it as zero and these follow the rows in key order.
 
     Returns:
         list[dict]: At most `limit` items.
     """
     edge_pc = galaxy_edge_pc(conn)
-    wanted = set(quadrants) - {"unplaced"}
-    found, scanned, skip = [], 0, offset or 0
-    last = after_address
-    while len(found) < limit and scanned < (VIRTUAL_SCAN_ROWS if wanted else limit):
-        want = limit - len(found) if not wanted else min(500, VIRTUAL_SCAN_ROWS - scanned)
-        keyset, params = ("", [])
-        if last is not None:
-            keyset = f"(p.shell_index, p.band_index, p.wedge_index) {'<' if descending else '>'} (?, ?, ?) AND"
-            params = list(last)
-        rows = conn.execute(_VIRTUAL_CELLS.format(keyset=keyset, order="DESC" if descending else "ASC"), params + [want, skip if last is None else 0]).fetchall()
-        if not rows:
-            break
-        skip = 0
-        for row in rows:
-            address = (row["shell_index"], row["band_index"], row["wedge_index"])
-            last = address
-            scanned += 1
-            if wanted:
-                x, y, _z = spherical.sector_position_pc(*address, edge_pc)
-                if SECTOR_QUADRANTS[spherical.sector_quadrant(x, y) - 1] not in wanted:
-                    continue
-            found.append(_virtual_item(conn, address, edge_pc))
-            if len(found) >= limit:
-                break
-        if len(rows) < want:
-            break
-    return found
+    keyset, params = ("", [])
+    if after_address is not None:
+        keyset = f"(p.shell_index, p.band_index, p.wedge_index) {'<' if descending else '>'} (?, ?, ?) AND"
+        params = list(after_address)
+    rows = conn.execute(_VIRTUAL_CELLS.format(keyset=keyset, order="DESC" if descending else "ASC"),
+                        params + [limit, 0 if after_address is not None else (offset or 0)]).fetchall()
+    return [_virtual_item(conn, (row["shell_index"], row["band_index"], row["wedge_index"]), edge_pc) for row in rows]
 
 
 def virtual_sector_detail(conn, address):
@@ -335,7 +289,7 @@ def sector_address_of_uid(printed):
         return None
 
 
-def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=(), after=None, coverage="all", show_empty=True):
+def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, after=None, coverage="all", show_empty=True):
     """
     Returns every sector, with its edge length (converted to light-years)
     and how many systems it contains (as of the last refresh of
@@ -346,7 +300,7 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     The default order and the `distance` and `name` sorts are read by key (PERF.137): the placed sectors by an index
     walk of `galactic_radius_pc` and the unplaced ones, after them, by the name index, so the first page and the last
     cost the same on a galaxy of a million sectors (a sort of the whole table took 1 to 8 s). Sectors at the same
-    distance follow the sort's direction by id. The `systems`, `density` and `position` sorts read the same way from
+    distance follow the sort's direction by id. The `systems` and `density` sorts read the same way from
     `sector_system_counts` (PERF.208), each walk an index of it ending in the sector id; a sector made since the last
     refresh has no row there yet and follows the others, by id.
 
@@ -361,8 +315,6 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
             default order below. Ties fall back to the default order, so
             pages never overlap.
         descending (bool): Reverse `sort`.
-        quadrants (iterable[str]): Keep only sectors in these Quadrants
-            (`SECTOR_QUADRANTS`, or `"unplaced"`).
         after (int, optional): The row id of the sector the previous page ended on. With a `limit` the page starts
             after that sector in every sort and `offset` is ignored.
         coverage (str): One of `SECTOR_COVERAGES` (MAP.403): `all` (the default here, so a caller that asks for no filter gets every row), `charted`
@@ -387,9 +339,9 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     if after_address is not None:
         rows = []
     elif sort in (None, "name", "distance"):
-        rows = _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after, extra)
+        rows = _sectors_by_key(conn, limit, offset, sort, descending, after, extra)
     else:
-        rows = _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after, extra)
+        rows = _sectors_by_counts(conn, limit, offset, sort, descending, after, extra)
     charted = chart_ledger.charted_among(conn, [(r["shell_index"], r["band_index"], r["wedge_index"]) for r in rows if r["shell_index"] is not None])
     items = [
         {
@@ -411,8 +363,8 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         # OPS.154: after the rows, the uncharted cells that hold a waiting object and have no row, by distance. The page that ends among the rows goes on into them.
         skipped = 0     # an offset that lies past the rows goes on into the cells: the cells it skips are what it is past the rows' end by
         if after is None and not items and (offset or 0) > 0:
-            skipped = max(0, offset - count_sectors(conn, quadrants, coverage, show_empty, virtual=False))
-        items.extend(virtual_cells(conn, limit - len(items), skipped, descending, quadrants, after_address))
+            skipped = max(0, offset - count_sectors(conn, coverage, show_empty, virtual=False))
+        items.extend(virtual_cells(conn, limit - len(items), skipped, descending, after_address))
     return items
 
 
@@ -462,7 +414,7 @@ def _read_sectors(conn, where, params, order, limit, offset):
     query = f"""
         SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                sec.galactic_radius_pc, sec.shell_index, sec.band_index, sec.wedge_index,
-               COALESCE(c.system_count, 0) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
+               COALESCE(c.system_count, 0) AS system_count
         FROM sectors sec
         LEFT JOIN sector_system_counts c ON c.sector_id = sec.id{where}
         ORDER BY {order}
@@ -474,22 +426,18 @@ def _read_sectors(conn, where, params, order, limit, offset):
     return conn.execute(query, params).fetchall()
 
 
-def _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after, extra=""):
+def _sectors_by_key(conn, limit, offset, sort, descending, after, extra=""):
     """
     The rows of `list_sectors` in the default order or the `name` or `distance` sort, each walk in the order an index
     serves (PERF.137). The `name` sort is one walk of `idx_sectors_name`. The others are two: the placed sectors by
     `idx_sectors_galactic_radius_pc` (backward for a descending `distance`), then the unplaced ones by name. `after`
     starts the page after that sector instead of skipping `offset` rows. `extra` is a further condition on `sectors sec` (`sector_coverage_condition`).
     """
-    wanted = set(quadrants)
     backward = descending and sort in ("name", "distance")
     walks = [("all", None, "sec.name", descending)] if sort == "name" else []
     if sort != "name":
-        if not wanted or wanted - {"unplaced"}:
-            walks.append(("placed", "sec.galactic_radius_pc IS NOT NULL", "sec.galactic_radius_pc", backward))
-        if not wanted or "unplaced" in wanted:
-            walks.append(("unplaced", "sec.galactic_radius_pc IS NULL", "sec.name", False))
-    where_quadrant, quadrant_params = _sector_quadrant_filter(quadrants)
+        walks.append(("placed", "sec.galactic_radius_pc IS NOT NULL", "sec.galactic_radius_pc", backward))
+        walks.append(("unplaced", "sec.galactic_radius_pc IS NULL", "sec.name", False))
     start = None
     if after is not None and limit is not None:
         start = conn.execute("SELECT name, galactic_radius_pc FROM sectors WHERE id = ?", (after,)).fetchone()
@@ -497,11 +445,9 @@ def _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after, ext
     rows = []
     for phase, phase_condition, column, walk_backward in walks:
         conditions = [phase_condition] if phase_condition else []
-        if where_quadrant:
-            conditions.append(where_quadrant.removeprefix(" WHERE "))
         if extra:
             conditions.append(extra)
-        params = list(quadrant_params)
+        params = []
         placed_start = start is not None and start["galactic_radius_pc"] is not None
         if start is not None and not (phase == "unplaced" and placed_start):
             if phase == "placed" and not placed_start:
@@ -532,22 +478,20 @@ _SECTOR_COLUMNS = ("sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_
 _COUNTED_SECTORS = ("sector_system_counts c STRAIGHT_JOIN sectors sec ON sec.id = c.sector_id")
 
 
-def _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after, extra=""):
+def _sectors_by_counts(conn, limit, offset, sort, descending, after, extra=""):
     """
-    The rows of `list_sectors` in the `systems`, `density` and `position` sorts (PERF.208), each walk in the order an
-    index of `sector_system_counts` serves, the sector id breaking ties in the sort's direction. `density` and
-    `position` are two walks, the sectors with a value and then the ones with none (no galaxy position), which come
+    The rows of `list_sectors` in the `systems` and `density` sorts (PERF.208), each walk in the order an
+    index of `sector_system_counts` serves, the sector id breaking ties in the sort's direction. `density` is
+    two walks, the sectors with a value and then the ones with none (no galaxy position), which come
     last either way. A last walk reads the sectors made since the last refresh, which have no row yet, by id. `after`
     starts the page after that sector instead of skipping `offset` rows. `extra` is a further condition on `sectors sec` (`sector_coverage_condition`).
     """
     column = SECTOR_SORTS[sort].removeprefix("c.")
     direction = "DESC" if descending else "ASC"
-    placed_wanted = [quadrant for quadrant in quadrants if quadrant != "unplaced"]
-    placed_condition = ([f"c.quadrant IN ({', '.join('?' for _ in placed_wanted)})"], placed_wanted) if placed_wanted else ([], [])
     newest = conn.execute("SELECT COALESCE(MAX(sector_id), 0) AS n FROM sector_system_counts").fetchone()["n"]
     start = None                # the row the page starts after: its stored values, or {} for a sector with no row yet
     if after is not None and limit is not None:
-        start = conn.execute("SELECT system_count, system_density, quadrant FROM sector_system_counts WHERE sector_id = ?",
+        start = conn.execute("SELECT system_count, system_density FROM sector_system_counts WHERE sector_id = ?",
                              (after,)).fetchone()
         if start is None and after > newest and conn.execute("SELECT 1 FROM sectors WHERE id = ?", (after,)).fetchone():
             start = {}
@@ -557,13 +501,10 @@ def _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after, 
 
     walks = []      # (name, conditions, params, the column it orders by)
     if column == "system_count":
-        parts = placed_condition[0] + (["c.quadrant IS NULL"] if "unplaced" in quadrants else [])
-        walks.append(("all", [f"({' OR '.join(parts)})"] if parts else [], placed_condition[1] if parts else [], column))
+        walks.append(("all", [], [], column))
     else:
-        if placed_wanted or not quadrants:
-            walks.append(("placed", [f"c.{column} IS NOT NULL"] + placed_condition[0], placed_condition[1], column))
-        if not quadrants or "unplaced" in quadrants:
-            walks.append(("unplaced", [f"c.{column} IS NULL"], [], None))
+        walks.append(("placed", [f"c.{column} IS NOT NULL"], [], column))
+        walks.append(("unplaced", [f"c.{column} IS NULL"], [], None))
     rows = []
     for phase, conditions, params, key_column in walks:
         if in_tail or (started_unplaced and phase != "unplaced"):
@@ -600,9 +541,6 @@ def _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after, 
     conditions, params = ["sec.id > ?"], [newest]
     if extra:
         conditions.append(extra)
-    if quadrants:
-        conditions.append(_sector_quadrant_filter(quadrants)[0].removeprefix(" WHERE "))
-        params += list(quadrants)
     if in_tail:
         conditions.append("sec.id < ?" if descending else "sec.id > ?")
         params.append(after)
@@ -654,9 +592,9 @@ def _counted(conn, key, compute, fallback, stamp=None):
     return countcache.cached(conn, [sector_deletions(conn), key], compute, fallback, stamp or galaxy_content_stamp)
 
 
-def count_sectors(conn, quadrants=(), coverage="all", show_empty=True, virtual=True):
+def count_sectors(conn, coverage="all", show_empty=True, virtual=True):
     """
-    Returns the total number of sectors (that pass the same `quadrants`, `coverage` and `show_empty`
+    Returns the total number of sectors (that pass the same `coverage` and `show_empty`
     filters as `list_sectors`), ignoring any pagination --
     the denominator `list_sectors(conn, limit=...)` callers (the API's
     `/api/sectors`) need to report how many pages exist. Kept by
@@ -665,17 +603,15 @@ def count_sectors(conn, quadrants=(), coverage="all", show_empty=True, virtual=T
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
-        virtual (bool): Add the uncharted cells that have no row (OPS.154, `count_virtual_cells`) to a count of `uncharted` or `all`; not under a Quadrant filter, whose cells are not counted.
+        virtual (bool): Add the uncharted cells that have no row (OPS.154, `count_virtual_cells`) to a count of `uncharted` or `all`.
 
     Returns:
         int: Total sector count.
     """
-    if virtual and coverage != "charted" and not quadrants and virtual_cells_listed(conn):
-        return count_sectors(conn, quadrants, coverage, show_empty, virtual=False) + count_virtual_cells(conn)
-    where, params = _sector_quadrant_filter(quadrants)
+    if virtual and coverage != "charted" and virtual_cells_listed(conn):
+        return count_sectors(conn, coverage, show_empty, virtual=False) + count_virtual_cells(conn)
     extra = sector_coverage_condition(coverage, show_empty)
-    if extra:
-        where = f"{where} AND {extra}" if where else f" WHERE {extra}"
+    where, params = (f" WHERE {extra}" if extra else ""), []
 
     def exact(c):
         return c.execute(f"SELECT COUNT(*) AS n FROM sectors sec{where}", params).fetchone()["n"]
@@ -686,7 +622,7 @@ def count_sectors(conn, quadrants=(), coverage="all", show_empty=True, virtual=T
         return _capped(c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM sectors sec{where} LIMIT ?) c",
                                  list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
-    return _counted(conn, ["count_sectors", list(quadrants), coverage, bool(show_empty)], exact, estimate)
+    return _counted(conn, ["count_sectors", coverage, bool(show_empty)], exact, estimate)
 
 
 def count_empty_uncharted_sectors(conn):

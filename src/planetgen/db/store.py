@@ -8081,6 +8081,30 @@ def filled_sector_addresses(conn):
     return chart_ledger.charted_addresses(conn)
 
 
+def saved_sector_report(conn, address):
+    """
+    What the charted cell `address` holds (DB.131): the figures a sector unit reports for a sector it saved, read back from the rows, for a unit that
+    finds its cell already charted (a run again after its first try saved the sector and was lost before it said so) and must not fill it twice.
+
+    Returns:
+        dict or None: `sector_id`, `name`, `systems`, `stars`, `planets` and `phenomena` (rows filed in the sector), or `None` when the cell is not charted.
+    """
+    address = tuple(address)
+    if chart_ledger.row(conn, address) is None:
+        return None
+    sector = conn.execute("SELECT id, name FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ? ORDER BY id LIMIT 1", address).fetchone()
+    if sector is None:
+        return None
+    sector_id = sector["id"]
+    counts = {"systems": conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]}
+    for key, table in (("stars", "stars"), ("planets", "planets")):
+        counts[key] = conn.execute(f"SELECT COUNT(*) AS n FROM {table} t JOIN star_systems s ON s.id = t.star_system_id WHERE s.sector_id = ?",
+                                   (sector_id,)).fetchone()["n"]
+    counts["phenomena"] = sum(conn.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
+                              for table in PHENOMENON_UID_TABLES)
+    return {"sector_id": sector_id, "name": sector["name"], **{key: int(value) for key, value in counts.items()}}
+
+
 def _naming_key_of(conn):
     """The galaxy database's naming key (GEN.70) from the control database, or `None` when none is drawn or the control database cannot be read."""
     from planetgen.names import naming_key
