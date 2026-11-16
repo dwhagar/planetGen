@@ -151,3 +151,10 @@ def test_every_star_of_a_system_adds_its_own_spectrum_to_the_dose():
     assert body_radiation.dna_dose_index(pair) > body_radiation.dna_dose_index(lone)
     bare = dict(atmospheric_pressure=0.0, p_n2_kpa=0.0, p_o2_kpa=0.0, p_ar_kpa=0.0)
     assert body_radiation.dna_dose_index(_earth(star=host, **bare)) > body_radiation.dna_dose_index(_earth(**bare))
+
+
+def test_a_stored_row_with_no_build_record_reads_as_a_body_that_built_nothing():
+    """GEN.1651: the scene and the pages light a planet restored for display (a plain namespace of its columns, no `build`); it has no recorded distance, so its own orbit is read."""
+    from planetgen.generation.build_record import record_of
+    row = types.SimpleNamespace(distance=1.0, is_moon=False)
+    assert record_of(row).star_distance_au is None and body_radiation._star_distance_au(row) == 1.0
