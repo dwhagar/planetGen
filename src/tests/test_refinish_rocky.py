@@ -53,7 +53,7 @@ def test_a_rocky_planet_is_made_again_at_the_final_age_once(host_star):
     dose = planet.dose_ground_msv_yr
     host_star.age = 8.0
     assert planets.refinish_rocky(planet) == 1
-    assert planets.age_moved(planet) is False and planet._age_drawn == 8.0
+    assert planets.age_moved(planet) is False and planet.build.age_drawn == 8.0
     assert planet.planet_class is not None
     if dose:
         assert planet.dose_ground_msv_yr != dose
@@ -84,19 +84,19 @@ def test_the_moons_of_a_giant_are_made_again_when_the_age_rose(host_star):
         pytest.fail("no giant with a moon in 60 draws")
     host_star.age = 8.0
     assert planets.refinish_rocky(giant) == len(giant.moons)
-    assert all(moon._age_drawn == 8.0 for moon in giant.moons)
+    assert all(moon.build.age_drawn == 8.0 for moon in giant.moons)
 
 
 def test_a_made_again_planet_and_its_moons_keep_the_birth_spin_they_were_born_with(host_star):
     # GEN.961: the history is run again from the birth spin (`generate_spin(..., birth=)`), not from a new draw out of the settle stream
     planet = _rocky(host_star, distance=0.5, moon_count=2)
-    born = {id(body): body._birth_spin for body in (planet, *planet.moons) if getattr(body, "_birth_spin", None) is not None}
+    born = {id(body): body.build.birth_spin for body in (planet, *planet.moons) if body.build.birth_spin is not None}
     assert born
     host_star.age = 8.0
     assert planets.refinish_rocky(planet) >= 1
     for body in (planet, *planet.moons):
         if id(body) in born:
-            assert body._birth_spin == born[id(body)]
+            assert body.build.birth_spin == born[id(body)]
 
 
 def test_a_moon_the_planets_history_replaced_is_made_again_at_the_final_age_too():
@@ -109,7 +109,7 @@ def test_a_moon_the_planets_history_replaced_is_made_again_at_the_final_age_too(
             continue
         for moon in planet.moons:
             if moon.body_type != "g":
-                assert not planets.age_moved(moon), (moon.name, moon._age_drawn, moon.star.age)
+                assert not planets.age_moved(moon), (moon.name, moon.build.age_drawn, moon.star.age)
 
 
 def test_a_planet_whose_orbit_settled_is_made_again_though_the_age_did_not_move(host_star):

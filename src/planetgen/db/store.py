@@ -10441,7 +10441,7 @@ def _runaway_origin(conn, star_system_id):
 
 def attach_body_history(conn, system, star_system_id):
     """
-    GEN.1533, the reader of `body_history`: gives each restored planet and moon of `system` the numbers its history left (`physics/body_history.attach`: `_orbit_birth` and `_birth_spin`).
+    GEN.1533, the reader of `body_history`: gives each restored planet and moon of `system` the numbers its history left (`physics/body_history.attach`: `build.orbit_birth` and `build.birth_spin`).
 
     Returns:
         int: The bodies that got any.

@@ -127,12 +127,12 @@ def test_every_planet_with_moons_ends_with_moons_it_can_keep():
 
 def test_the_history_runs_again_to_the_same_state_without_new_draws():
     """It starts from the moons the planet was born with and its birth spin, so applying it twice gives one result, and only the spin axis' precession is drawn."""
-    planet = _planet_where(lambda p: getattr(p, "_born_moons", None), "a planet with the moons it was born with")
+    planet = _planet_where(lambda p: p.build.born_moons, "a planet with the moons it was born with")
     # the star's age is adjusted for its planets after they are made, so the first run is of the age it had; two runs on the final age agree
-    planets.generate_spin(planet, planet.star.mass, birth=planet._birth_spin)
+    planets.generate_spin(planet, planet.star.mass, birth=planet.build.birth_spin)
     before = ([m.distance for m in planet.moons], planet.rotation_period_hours, getattr(planet, "fallen_moons", ()))
     draw.set_run_seed(7)
-    planets.generate_spin(planet, planet.star.mass, birth=planet._birth_spin)
+    planets.generate_spin(planet, planet.star.mass, birth=planet.build.birth_spin)
     after = ([m.distance for m in planet.moons], planet.rotation_period_hours, getattr(planet, "fallen_moons", ()))
     assert after[0] == pytest.approx(before[0], rel=1e-9) and after[1] == pytest.approx(before[1], rel=1e-9) and after[2] == before[2]
 
@@ -152,10 +152,10 @@ def test_a_history_no_integrator_can_finish_leaves_the_moons_as_born(monkeypatch
     def fail(*args, **kwargs):
         raise moon_orbits.IntegrationFailed("stiff")
 
-    planet = _planet_where(lambda p: getattr(p, "_born_moons", None), "a planet with the moons it was born with")
+    planet = _planet_where(lambda p: p.build.born_moons, "a planet with the moons it was born with")
     monkeypatch.setattr(moon_orbits, "evolve", fail)
-    planets.generate_spin(planet, planet.star.mass, birth=planet._birth_spin)
-    assert planet.moons == planet._born_moons
+    planets.generate_spin(planet, planet.star.mass, birth=planet.build.birth_spin)
+    assert planet.moons == planet.build.born_moons
     assert all(m.distance == pytest.approx(m._birth_distance_au) for m in planet.moons)
     assert planet.fallen_moons == () and planet.rotation_period_hours > 0.0
 
@@ -165,7 +165,7 @@ def test_a_planet_whose_last_moon_is_gone_early_goes_on_to_the_spin_the_tide_giv
     does, not the spin the moon left it: a close-in planet ends locked, not turning 14 times an orbit."""
     from planetgen.physics import body_spin, moon_orbits, spin_torques
 
-    planet = _planet_where(lambda p: getattr(p, "_born_moons", None) and not p.is_moon, "a planet with the moons it was born with")
+    planet = _planet_where(lambda p: p.build.born_moons and not p.is_moon, "a planet with the moons it was born with")
     host = planet.star.mass
     age_s = planet.star.age * 1.0e9 * pc.SECONDS_PER_YEAR
     axis_m = planet.distance * pc.AU_TO_M
@@ -179,8 +179,8 @@ def test_a_planet_whose_last_moon_is_gone_early_goes_on_to_the_spin_the_tide_giv
         return moon_orbits.OrbitResult(start, fates, 0.0, 0.0, gone_s)
 
     monkeypatch.setattr(moon_orbits, "evolve", moon_leaves)
-    planets.generate_spin(planet, host, birth=planet._birth_spin)
-    expected = body_spin.evolve(planet, host, axis_m, start, age_s - gone_s, getattr(planet, "eccentricity", 0.0) or 0.0, capture_units=planet._birth_spin[2])
+    planets.generate_spin(planet, host, birth=planet.build.birth_spin)
+    expected = body_spin.evolve(planet, host, axis_m, start, age_s - gone_s, getattr(planet, "eccentricity", 0.0) or 0.0, capture_units=planet.build.birth_spin[2])
     if expected.ratio is not None:
         assert planet.rotation_period_hours == pytest.approx(planet.period * pc.SECONDS_PER_YEAR / 3600.0 / expected.ratio, rel=1e-9)
     else:

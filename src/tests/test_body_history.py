@@ -5,6 +5,7 @@
 import pytest
 
 from planetgen.db import column_units, edits, store
+from planetgen.generation.build_record import HasBuildRecord
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import body_history, effect_ledger, spin_torques, unit_registry
@@ -12,29 +13,29 @@ from planetgen.util import draw
 from tests.db_schema_support import load_old_schema
 
 
-class _Body:
+class _Body(HasBuildRecord):
     pass
 
 
 def test_a_body_with_birth_draws_gives_them_and_a_version_and_a_body_without_gives_nothing():
     body = _Body()
-    body._orbit_birth = 0.2
-    body._birth_spin = (7.0e-5, 23.5, (0.25, 0.75))
+    body.build.orbit_birth = 0.2
+    body.build.birth_spin = (7.0e-5, 23.5, (0.25, 0.75))
     assert body_history.numbers_of(body) == {
         "birth_eccentricity": 0.2, "birth_spin_rate": 7.0e-5, "birth_obliquity_deg": 23.5, "capture_draw_1": 0.25, "capture_draw_2": 0.75,
         "formula_version": body_history.FORMULA_VERSION}
     assert body_history.numbers_of(_Body()) == {}
     moon = _Body()
-    moon._orbit_birth = None      # a moon born with its planet has no birth orbit of its own
-    moon._birth_spin = (1.0e-4, 5.0, (0.5, 0.5))
+    moon.build.orbit_birth = None      # a moon born with its planet has no birth orbit of its own
+    moon.build.birth_spin = (1.0e-4, 5.0, (0.5, 0.5))
     assert body_history.numbers_of(moon)["formula_version"] == body_history.FORMULA_VERSION and "birth_eccentricity" not in body_history.numbers_of(moon)
 
 
 def test_rows_name_the_saved_row_skip_an_unsaved_body_and_carry_none_for_a_missing_number():
     planet, moon, ghost, bare = _Body(), _Body(), _Body(), _Body()
-    planet._orbit_birth, planet._birth_spin = 0.1, (1.0e-4, 10.0, (0.1, 0.2))
-    moon._birth_spin = (2.0e-4, 20.0, (0.3, 0.4))
-    ghost._birth_spin = (3.0e-4, 30.0, (0.5, 0.6))
+    planet.build.orbit_birth, planet.build.birth_spin = 0.1, (1.0e-4, 10.0, (0.1, 0.2))
+    moon.build.birth_spin = (2.0e-4, 20.0, (0.3, 0.4))
+    ghost.build.birth_spin = (3.0e-4, 30.0, (0.5, 0.6))
     rows = body_history.rows(42, [planet, moon, ghost, bare], {id(planet): ("planets", 7), id(moon): ("moons", 9), id(bare): ("planets", 8)})
     assert [(row["body_type"], row["body_id"]) for row in rows] == [(effect_ledger.BODY_CODES["planets"], 7), (effect_ledger.BODY_CODES["moons"], 9)]
     assert rows[1]["birth_eccentricity"] is None and rows[0]["birth_eccentricity"] == 0.1
@@ -66,10 +67,10 @@ def _system(binary=False):
 
 def test_a_generated_planet_keeps_the_draws_the_history_read_and_the_generator_draws_nothing_more():
     system, _ = _system()
-    drawn = [p for p in system.planets if getattr(p, "_birth_spin", None) is not None]
-    assert drawn and all(body_history.numbers_of(p)["birth_obliquity_deg"] == p._birth_spin[1] for p in drawn)
+    drawn = [p for p in system.planets if p.body_type != "a" and p.build.birth_spin is not None]
+    assert drawn and all(body_history.numbers_of(p)["birth_obliquity_deg"] == p.build.birth_spin[1] for p in drawn)
     again, _ = _system()      # the same seeds: reading the numbers is not a draw
-    assert [getattr(p, "_birth_spin", None) for p in again.planets] == [getattr(p, "_birth_spin", None) for p in system.planets]
+    assert [getattr(p, "build", None) and p.build.birth_spin for p in again.planets] == [getattr(p, "build", None) and p.build.birth_spin for p in system.planets]
 
 
 @pytest.mark.fresh_database
@@ -82,9 +83,9 @@ def test_a_saved_system_keeps_a_row_for_each_body_with_draws_and_deleting_the_sy
         rows = conn.execute("SELECT * FROM body_history WHERE star_system_id = ?", (system_id,)).fetchall()
         bodies = [b for p in system.planets for b in (p, *getattr(p, "moons", ())) if body_history.numbers_of(b)]
         assert rows and len(rows) == len(bodies)
-        planet = next(p for p in system.planets if getattr(p, "_birth_spin", None) is not None)
-        saved = next(row for row in rows if row["body_type"] == effect_ledger.BODY_CODES["planets"] and row["birth_spin_rate"] == planet._birth_spin[0])
-        assert saved["birth_obliquity_deg"] == planet._birth_spin[1]
+        planet = next(p for p in system.planets if p.build.birth_spin is not None)
+        saved = next(row for row in rows if row["body_type"] == effect_ledger.BODY_CODES["planets"] and row["birth_spin_rate"] == planet.build.birth_spin[0])
+        assert saved["birth_obliquity_deg"] == planet.build.birth_spin[1]
         assert saved["formula_version"] == body_history.FORMULA_VERSION
         with conn:
             conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
@@ -145,7 +146,7 @@ def _row(**changes):
 def test_attach_gives_a_restored_body_the_names_a_generated_one_keeps():
     body = _Body()
     assert body_history.attach(body, _row())
-    assert body._orbit_birth == 0.25 and body._birth_spin == (1.5e-4, 23.0, (0.5, 0.75))
+    assert body.build.orbit_birth == 0.25 and body.build.birth_spin == (1.5e-4, 23.0, (0.5, 0.75))
     assert body_history.numbers_of(body) == {"birth_eccentricity": 0.25, "birth_spin_rate": 1.5e-4, "birth_obliquity_deg": 23.0,
                                               "capture_draw_1": 0.5, "capture_draw_2": 0.75, "formula_version": body_history.FORMULA_VERSION}
 
@@ -157,7 +158,7 @@ def test_attach_gives_a_restored_body_where_it_formed_and_a_moon_the_orbit_it_wa
     assert body_history.numbers_of(moon)["formation_distance_au"] == 1.25 and body_history.numbers_of(moon)["birth_distance_au"] == 0.002
     bare = _Body()
     assert body_history.attach(bare, _row(birth_eccentricity=None, birth_spin_rate=None, birth_obliquity_deg=None, capture_draw_1=None, capture_draw_2=None, formation_distance_au=0.7)) is True
-    assert bare.formation_distance_au == 0.7 and not hasattr(bare, "_birth_spin") and not hasattr(bare, "_birth_distance_au")
+    assert bare.formation_distance_au == 0.7 and bare.build.birth_spin is None and not hasattr(bare, "_birth_distance_au")
 
 
 def test_a_row_with_no_new_numbers_leaves_a_body_as_a_galaxy_before_v266_did():
@@ -169,13 +170,13 @@ def test_a_row_with_no_new_numbers_leaves_a_body_as_a_galaxy_before_v266_did():
 def test_attach_gives_the_spin_whole_or_not_at_all_and_nothing_for_another_formula_version():
     moon = _Body()
     assert body_history.attach(moon, _row(birth_eccentricity=None, capture_draw_2=None)) is False
-    assert not hasattr(moon, "_birth_spin") and not hasattr(moon, "_orbit_birth")
+    assert moon.build.birth_spin is None and moon.build.orbit_birth is None
     born_with_its_planet = _Body()
     assert body_history.attach(born_with_its_planet, _row(birth_eccentricity=None))
-    assert not hasattr(born_with_its_planet, "_orbit_birth") and born_with_its_planet._birth_spin[0] == 1.5e-4
+    assert born_with_its_planet.build.orbit_birth is None and born_with_its_planet.build.birth_spin[0] == 1.5e-4
     old = _Body()
     assert body_history.attach(old, _row(formula_version=body_history.FORMULA_VERSION + 1)) is False
-    assert not hasattr(old, "_birth_spin")
+    assert old.build.birth_spin is None
 
 
 @pytest.mark.fresh_database
@@ -195,7 +196,7 @@ def test_a_loaded_system_carries_the_numbers_the_generated_one_kept(mysql_config
     for original, again in zip(made, restored):
         kept = body_history.numbers_of(original)
         if not kept:
-            assert not hasattr(again, "_birth_spin") and not hasattr(again, "_orbit_birth")
+            assert body_history.numbers_of(again) == {}
             continue
         got = body_history.numbers_of(again)
         assert got.keys() == kept.keys()

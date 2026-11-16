@@ -7240,40 +7240,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Catalog sections 1 and 3.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.422, GEN.600, DOC.72.
 
-- [ ] **GEN.595 Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution**
-  Filed from Boss's sweep answer on fork 8 (6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported it): GEN.520 D6 accepts the
-  Solar System population as the within-system comet shape plus a
-  per-system offset knob bracketed by the two interstellar objects; that
-  row stays only as a flagged `stand-in`. Do: find the published size,
-  orbit and composition distributions of long and short period comets
-  and the interstellar objects, derive the within-system shape from
-  them, and replace the stand-in row. Done: the row no longer names a
-  Solar System body as its only source and the stand-in flag is cleared,
-  with its test (TEST.215) still passing. Suggested owner: a research
-  thread, then Lane 14 (the comet sampler lane); version 8.4.
-  Rescoped (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): this is no longer a research-only item waiting for Boss
-  or a read-only lane. Take the best published value, secondary sources
-  accepted, build it into the generator, and register any stand-in with
-  tier and tweak level (GEN.725). Owner: Sources 1 (new lane, proposed
-  by TODO). Nothing fixed from the Solar System or the Milky Way
-  (standing rule).
-  Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
-  design-drafts/gen465-second-pass; the stand-in registry
-  (stand-in-values.md, 316 rows) lists every constant with its source.
-  Catalog sections 3 and 4.
-  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
-  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
-  from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 6. Brief:
-  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
-  Prerequisites: none.
-  Owner (TODO sweep, 2026-11-12): Lane 06 (comets).
-  Gap (Lane 06 check, TODO 9:40 AM EST 2026-11-16): comet ice is derived (physics/comet_population.py, comet_ice_budget) but the in-system shape is hand set: tuning.COMET_PERIOD_CLASSES weights and ranges, BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM, COMET_PERIHELION_DISTANCE_RANGE_AU, SYSTEM_COMET_CHANCE; only COMET_PARABOLIC_CHANCE is registered (AUD20). Do: derive each or register it as a stand-in with tier and tweak level. Owner (TODO, 2026-11-16): Lane 06.
-
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
   reported), filed by the TODO thread. Boss's size limits (7:05 to 7:13
@@ -12020,6 +11986,11 @@ clears each one.
 - [ ] **GEN.1763 A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources**
   Lane 03, 7:11 AM EST 2026-11-16 (PR 6837, GEN.1579 before and after on 80 systems): 4 bodies were pinned at 375 K; 3 move to class N (489 to 600 K) and 1 to X. One N body has 7,825 bar (5,300 bar CO2 plus 2,300 bar OCS out of the rock) and its greenhouse asks 1,481 K. Do: check the carbonate and sulfur degassing laws at 500 to 600 K against sources (physics found in research wins), and say whether thousands of bar is real or a law used outside its range.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: GEN.1579. Related: GEN.1579, GEN.1580, GEN.1713.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1765 Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt**
+  Lane 06, 10:38 AM EST 2026-11-16 (PR 6870, GEN.595): the comet shape is now registered as stand-in rows CMT1 to CMT8 (section 6.303); several are hand-tuned. The nucleus diameter is drawn uniform where the published size law is a steep power law, and the comet count and orbits are not tied to the system's own outer belt. Do: draw the nucleus size from a power law and the comet supply and orbits from the outer belt or disk the system has, then retire or re-tier the CMT rows. Changes generation: lock item.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 06. Prerequisites: GEN.595. Related: GEN.595, GEN.725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**

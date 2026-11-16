@@ -40,7 +40,7 @@ EARTH_AIR_PA = {"N2": 79100.0, "O2": 21200.0, "Ar": 950.0}
 def _star_distance_au(body):
     """The body's distance from its star: the one `magnetism.update_exposure` set, else a planet's own orbit (a moon's is its planet's, so a
     moon without it has none)."""
-    distance = getattr(body, "_star_distance_au", None)
+    distance = body.build.star_distance_au
     if distance is None and not getattr(body, "is_moon", False):
         distance = getattr(body, "distance", None)
     return distance

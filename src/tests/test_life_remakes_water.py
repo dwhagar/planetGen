@@ -26,7 +26,7 @@ def _ocean_world(host_star):
     inner, outer = host_star.habitable_zone
     for seed in range(60):
         planet = class_support.draw_planet(host_star, (inner + outer) / 2.0, seed)
-        if planet.hydrosphere == "surface ocean" and getattr(planet, "_surface_w", None):
+        if planet.hydrosphere == "surface ocean" and planet.build.surface_w:
             return planet
     pytest.skip("no ocean world among the first 60 seeds")
 

@@ -11,6 +11,8 @@ import pytest
 
 from planetgen.physics import air_column, atmosphere, atmospheric_radiation, body_radiation, constants, stellar_spectrum
 
+from planetgen.generation.build_record import BuildRecord
+
 from tests.air_support import fold_air
 
 
@@ -22,7 +24,7 @@ def _sun(**fields):
 
 def _earth(**fields):
     base = {"planet_class": "M", "gravity": 1.0, "atmospheric_pressure": 101325.0, "distance": 1.0, "is_moon": False, "star": _sun(),
-            "p_n2_kpa": 79.1, "p_o2_kpa": 21.2, "p_ar_kpa": 0.95, "ozone_column_du": 300.0}
+            "p_n2_kpa": 79.1, "p_o2_kpa": 21.2, "p_ar_kpa": 0.95, "ozone_column_du": 300.0, "build": BuildRecord()}
     base.update(fields)
     return types.SimpleNamespace(**fold_air(base))
 
@@ -83,13 +85,13 @@ def test_a_moon_needs_the_distance_of_its_planet_from_the_star():
     moon = _earth(is_moon=True, distance=0.002)
     assert body_radiation.surface_spectrum(moon) is None
     assert body_radiation.uv_index(moon, distance_au=1.0) == pytest.approx(body_radiation.uv_index(_earth()))
-    moon._star_distance_au = 1.0
+    moon.build.star_distance_au = 1.0
     assert body_radiation.uv_index(moon) == pytest.approx(body_radiation.uv_index(_earth()))
 
 
 def test_the_exposure_distance_of_the_body_wins_over_its_orbit():
     body = _earth(distance=5.0)
-    body._star_distance_au = 1.0
+    body.build.star_distance_au = 1.0
     assert body_radiation.uv_index(body) == pytest.approx(body_radiation.uv_index(_earth()))
 
 

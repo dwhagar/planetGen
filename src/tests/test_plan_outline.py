@@ -7,6 +7,7 @@ An outline with no sector in it is refused with the reason.
 """
 
 import json
+import re
 
 import pytest
 
@@ -81,6 +82,16 @@ def test_the_plan_refuses_an_empty_outline_and_stores_nothing(control_database):
         conn.close()
 
 
+def _seconds_of(text):
+    """The seconds a duration in the units code's form reads (`format_duration_seconds`: `1h 23m 45s`, `850 ms`, `12 µs`, `2d 3h 4m`); the form has no other reader."""
+    unit_seconds = {"d": 86400.0, "h": 3600.0, "m": 60.0, "s": 1.0}
+    total = 0.0
+    for number, unit in re.findall(r"([\d.,]+)\s*(ms|µs|[dhms])", text):
+        value = float(number.replace(",", ""))
+        total += value * (1e-3 if unit == "ms" else 1e-6 if unit == "µs" else unit_seconds[unit])
+    return total
+
+
 @pytest.mark.fresh_database
 def test_the_plan_says_where_its_time_went_step_by_step(control_database):  # noqa: F811
     """PERF.163: a table of the unit's steps, the costliest first, whose seconds add up to the total it names (UX.162:
@@ -90,10 +101,10 @@ def test_the_plan_says_where_its_time_went_step_by_step(control_database):  # no
     result = commands.run_alone("plan-skeleton", params)
     start = next(i for i, line in enumerate(result["lines"]) if line.startswith("Where the plan's time went ("))
     rows = result["lines"][start + 1:]
-    seconds = [float(row.split("s ", 1)[0]) for row in rows]
+    seconds = [_seconds_of(row.split("%", 1)[0].rsplit(None, 1)[0]) for row in rows]      # the duration, then the share, then the step
     assert seconds == sorted(seconds, reverse=True) and len(rows) >= 8
-    named = float(result["lines"][start].split("(")[1].split("s)")[0])
-    assert sum(seconds) == pytest.approx(named, abs=0.01 * len(rows))
+    named = _seconds_of(result["lines"][start].split("(", 1)[1].split("):")[0])
+    assert sum(seconds) == pytest.approx(named, abs=0.5 * (len(rows) + 1))      # each is whole seconds (UX.319), so a row is off by up to half a second
     text = "\n".join(rows)
     for step in ("the globular clusters", "the satellite galaxies", "the component field", "storing the shells",
                  "storing the clusters and satellites", "the outline"):

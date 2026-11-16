@@ -123,8 +123,8 @@ def give_forced_eccentricities(planet):
             continue
         moon.eccentricity = forced
         planets.update_orbital_position(moon)
-        if getattr(moon, "_age_drawn", None) is not None:
-            moon._age_drawn = 0.0      # the air, class and heat of a rocky moon are made again once, on the orbit it ends with (`planets.stale_air`)
-        moon._resonance_e = forced
+        if moon.build.age_drawn is not None:
+            moon.build.age_drawn = 0.0      # the air, class and heat of a rocky moon are made again once, on the orbit it ends with (`planets.stale_air`)
+        moon.build.resonance_e = forced
         moved.append(moon)
     return moved

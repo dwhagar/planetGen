@@ -232,13 +232,13 @@ def venus_type_spin(mass_kg, radius_m, surface_pressure_pa, distance_au, eccentr
 
 def spin_of(body):
     """
-    The `VenusSpin` of a rocky planet from what it is now: its mass, radius, air, orbit and star, and the tilt it was born with (`_birth_spin`, else the tilt it has).
+    The `VenusSpin` of a rocky planet from what it is now: its mass, radius, air, orbit and star, and the tilt it was born with (`build.birth_spin`, else the tilt it has).
     `None` when the body lacks one of those or is not a rocky planet of its own star.
     """
     star = getattr(body, "star", None)
     if getattr(body, "body_type", None) != "t" or getattr(body, "is_moon", False) or star is None:
         return None
-    birth = getattr(body, "_birth_spin", None)
+    birth = body.build.birth_spin
     tilt = birth[1] if birth else getattr(body, "axial_tilt_deg", None)
     values = (getattr(body, "mass", None), getattr(body, "radius", None), getattr(body, "atmospheric_pressure", None), getattr(body, "distance", None),
               getattr(body, "eccentricity", None), getattr(star, "mass", None), getattr(star, "luminosity", None), getattr(star, "age", None), tilt)
@@ -254,11 +254,11 @@ def spin_of(body):
 def venus_spin(body, row):
     """
     The effect of oddity W2: the tides of the star on the planet and its thick air leave it turning slowly backwards (Venus). The state is the module's
-    (`venus_type_spin`) for the tilt the planet was born with; it is kept on the body as `_venus_spin` for `planets.generate_spin` to put on the rotation and the
+    (`venus_type_spin`) for the tilt the planet was born with; it is kept on the body as `build.venus_spin` for `planets.generate_spin` to put on the rotation and the
     tilt. The effect declines (returns False: not given) when the tides have not had the age to reach it, when the end state is not retrograde, or when the
     period it gives would break a limit of the row (a day of at least 20 d).
     """
-    body._venus_spin = None
+    body.build.venus_spin = None
     result = spin_of(body)
     if result is None or not result.reached or not result.retrograde:
         return False
@@ -267,14 +267,14 @@ def venus_spin(body, row):
     found["obliquity_deg"] = result.final_obliquity_deg
     if oddities.limit_failures(row, found):
         return False
-    body._venus_spin = result
+    body.build.venus_spin = result
     body.axial_tilt_deg = result.final_obliquity_deg      # the rows after this one (W1) read the tilt the planet ends with; `set_on` puts the rest
     return None
 
 
 def set_on(body):
     """Puts the kept Venus-type state of `body` (`venus_spin`) on its rotation period and tilt; returns the tilt, or `None` when the body has no such state."""
-    result = getattr(body, "_venus_spin", None)
+    result = body.build.venus_spin
     if result is None:
         return None
     body.rotation_period_hours = result.period_days * 24.0
