@@ -25,9 +25,6 @@ BUDGET_SECONDS = 5.0
 """float: The longest a command may stand without a count, a phase or a statement label moving, on a small galaxy."""
 
 RECORDED_SILENCE = {
-    "generate-start-sector": (12.0, "OPS.265: on some runs one body's seasonal solve (`seasonal_swing.temperature_series`, in `refresh_at_final_age` of a pre-placed system's moon) stands 4 to 6.6 s inside one call, though its mean is 66 ms; measured 6.2 to 6.6 s on 4 of 7 runs, none on the others"),
-    "generate-neighborhood": (12.0, "the same single seasonal solve (6.5 s)"),
-    "generate-sectors": (12.0, "the same single seasonal solve (6.3 s)"),
 }
 """dict: The commands that go silent longer than `BUDGET_SECONDS` today, `{command: (their budget, what was measured)}` (OPS.262). Each is a bug to fix (a count inside the piece), not a norm: the budget is about twice what was measured, so a command that gets worse still fails, and a fixed one has its row deleted."""
 
