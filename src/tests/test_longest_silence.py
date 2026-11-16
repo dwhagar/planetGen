@@ -26,10 +26,10 @@ BUDGET_SECONDS = 5.0
 
 RECORDED_SILENCE = {
     "plan-skeleton": (20.0, "the `outline` piece works 7.5 s with no count (measured 11-15, a box also running a gate)"),
+    "generate-start-sector": (12.0, "OPS.266 put a count of systems and bodies inside a sector (18 to 42 s down to 3 to 7 s); what is left is the first star of a process, which loads its tables (6.5 s): OPS.265"),
+    "generate-neighborhood": (12.0, "the same: the first star of a process (6.8 s)"),
+    "generate-sectors": (12.0, "the same: the first star of a process (6.6 s)"),
     "generate-system": (20.0, "the first system of a process takes 8.5 s with no count inside the `generate` piece"),
-    "generate-start-sector": (60.0, "a sector is one piece and counts nothing inside it: 18 s for one system on this box"),
-    "generate-neighborhood": (90.0, "the same: 31 to 40 s for two one-system sectors"),
-    "generate-sectors": (90.0, "the same: 31 to 42 s for two one-system sectors"),
 }
 """dict: The commands that go silent longer than `BUDGET_SECONDS` today, `{command: (their budget, what was measured)}` (OPS.262). Each is a bug to fix (a count inside the piece), not a norm: the budget is about twice what was measured, so a command that gets worse still fails, and a fixed one has its row deleted."""
 

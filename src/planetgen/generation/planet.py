@@ -24,6 +24,7 @@ defined separately in `asteroidData`.
 import math
 
 from planetgen import tuning
+from planetgen.generation import bodybeat
 from planetgen.generation import abundance_tier, habitable_request, irregular_moons, prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import isotope_record, ore_deposits
@@ -552,6 +553,7 @@ class Planet(PlanetaryObject):
 
         if moon_count != DEFER_MOONS:
             self.add_moons(moon_count, bare=bare_moons)
+        bodybeat.made()      # OPS.266: the sector's unit counts the body (a moon is a body of its own)
 
     def finish_motion(self):
         """
@@ -576,6 +578,7 @@ class Planet(PlanetaryObject):
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
         planetPhysics.prepare_class(self)
         self._finish_motion_and_moons(self.primary_mass_kg, moon_count, bare_moons=not self.is_moon)
+        bodybeat.settled()
 
     def finish_moons(self):
         """
