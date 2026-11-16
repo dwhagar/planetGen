@@ -56,6 +56,10 @@ _EMPTY_TABLE_ROWS = {
     "moon_interior_layers": (
         "INSERT INTO moon_interior_layers (moon_id, layer_index, kind, state, top_pressure_gpa, bottom_pressure_gpa, mass_earth, top_radius_fraction, bottom_radius_fraction, hydrogen, helium, iron, rock, water_liquid, ice_x, nh3_ice, ch4_ice)"
         " VALUES ((SELECT MIN(id) FROM moons), 0, 'molecular_envelope', 'molecular_fluid', 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0)"),
+    # GEN.1753: a planet keeps a lost moon only when its history took one away, which the seeded galaxy's draws may not do.
+    "lost_moons": (
+        "INSERT INTO lost_moons (star_system_id, planet_id, born_index, mass_kg, birth_distance_au, density_kg_m3, retrograde)"
+        " VALUES ((SELECT MIN(id) FROM star_systems), 1, 0, 1, 1, 1, 0)"),
     # DB.75: a system keeps its body numbers only once its content has been drawn again.
     "body_numbers": (
         "INSERT INTO body_numbers (star_system_id, slot_key, body_number)"

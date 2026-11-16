@@ -22,6 +22,67 @@
         "scatter_nodes"
       ],
       "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-mass-scatter-phenomena]"
+    },
+    {
+      "a": "scatter-mass",
+      "b": "draw-nebula-field",
+      "grain": "table",
+      "shared": [
+        "galaxy_shape",
+        "generator_epoch",
+        "scatter_epochs"
+      ],
+      "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-mass-draw-nebula-field]"
+    }
+  ],
+  "edges": [
+    {
+      "command": "link-neighbors",
+      "after": [
+        "generate-neighborhood",
+        "generate-sectors",
+        "generate-start-sector",
+        "generate-unplaced-sector"
+      ],
+      "grain": "sector",
+      "needs": "the sector and every placed sector whose center is within twice the half diagonal of a sector's edge plus the nearest-systems search distance of its center (`store._sectors_near`, the sectors `refresh_nearest_systems` reads)",
+      "reach": {
+        "search_pc": 4.0
+      },
+      "unit_params": "the run's own sector ids as `sector_ids` and the unit's sector as `chunk` (never `since`: the sectors saved since a time are the ones saved so far, and `skip` must be the whole run)",
+      "proof": "tests/test_address_edges.py::test_link_and_settle_by_address_store_what_plan_order_stores"
+    },
+    {
+      "command": "settle-sector-paths",
+      "after": [
+        "generate-neighborhood",
+        "generate-sectors",
+        "generate-start-sector",
+        "generate-unplaced-sector"
+      ],
+      "grain": "sector",
+      "needs": "the sector and every placed sector whose center is within `NEIGHBOUR_REACH_EDGES` edges of its center along each axis (`sector_paths._neighbour_centers`, the point masses a body's path sees)",
+      "reach": {
+        "reach_edges": 2.5
+      },
+      "unit_params": "the unit's sector as `sector_ids` with `workers` 1 (the cut's `expand` of the sectors around is the edge's job: each of them is its own unit)",
+      "proof": "tests/test_address_edges.py::test_link_and_settle_by_address_store_what_plan_order_stores"
+    },
+    {
+      "command": "scatter-backfill",
+      "after": [
+        "generate-neighborhood",
+        "generate-sectors",
+        "generate-start-sector",
+        "generate-unplaced-sector"
+      ],
+      "grain": "sector",
+      "needs": "the unit's source sector, and each sector of its list that the run saves (the sectors a face away from the source out to the last of the backfill's steps, `run_galaxy.backfill_step_targets`): a saved sector is charted and the draw skips it, so a unit that ran before it is saved would fill it. The galaxy's shape and mass limit (the scatter) and the sky tier ledger (the sky units) are stages before and stay stage edges",
+      "reach": {
+        "steps": 4
+      },
+      "unit_params": "`items`: the source's step targets with the mass of each step as seen from the source alone, `[shell, band, wedge, mass]` (no `sky`, which is its own stage edge); the draw rechecks each sector under the lock of its `sector_stats` row, and takes a sector reached from two sources down to the lower mass in either order",
+      "proof": "tests/test_backfill_edges.py::test_the_backfill_by_address_stores_what_plan_order_stores"
     }
   ]
 }

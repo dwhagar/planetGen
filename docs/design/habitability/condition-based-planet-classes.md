@@ -26,7 +26,7 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | S | Airless super-Earth | pressure under 10 Pa and 1.5 Earth masses or more |
 | C | Dead world | pressure under 10 Pa and 0.1 Earth masses or more |
 | A | Volcanic world | sulfur dioxide 3 percent of the air or more, and an interior heat flow (with the tide's) of at least the middle of the ground's volcanism floor, so that rock melts (GEN.1617) |
-| T | Gas dwarf (terrestrial kind) | hydrogen 30 percent of the air or more and under 10 Earth masses (GEN.1142; the same T as the giant row) |
+| T | Gas dwarf (terrestrial kind) | hydrogen 30 percent of the air or more and under 10 Earth masses (GEN.1142; the same T as the giant row). The air can be thick or thin: every other terrestrial row needs under 30 percent hydrogen, so a bound on pressure or envelope would leave the thin cold hydrogen air bodies (1.2 percent of bodies) with no class (GEN.1616) |
 | N | Hot dense world | pressure of 10 bar or more, 400 K or more, hydrogen under 30 percent of the air (GEN.1142) |
 | V | High-gravity world | gravity of 2 g or more (GEN.1136; 1.25 g before) |
 | L | Marginal thin-air world | pressure 30 kPa to 3 bar, 273.15 to 320 K, carbon dioxide 1 kPa or more (GEN.1321: a pressure too), oxygen 3 to 16 kPa (GEN.1321: judged by oxygen pressure; a share of 3 to 16 percent before), gravity 0.5 g or more (GEN.1142) |

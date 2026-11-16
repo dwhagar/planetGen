@@ -136,7 +136,7 @@
     {
       "letter": "T",
       "name": "Gas dwarf",
-      "phrase": "a gas dwarf: a solid interior of rock, metal, and some ice under a thick hydrogen and helium envelope, with no surface to stand on",
+      "phrase": "a gas dwarf: a solid interior of rock, metal, and some ice under an air of mostly hydrogen and helium, thick on most",
       "kind": "g",
       "sentence": "A gas dwarf: lighter than the ice giants. It has a solid interior of rock, metal, and some ice under a thick hydrogen and helium envelope, and no surface to stand on.",
       "basis": "design: 10 Earth masses, the lower edge of the ice giants' range; the sweep finds no better cut"
@@ -192,10 +192,10 @@
     {
       "letter": "T",
       "name": "Gas dwarf",
-      "phrase": "a gas dwarf: a solid interior of rock, metal, and some ice under a thick hydrogen and helium envelope, with no surface to stand on",
+      "phrase": "a gas dwarf: a solid interior of rock, metal, and some ice under an air of mostly hydrogen and helium, thick on most",
       "kind": "t",
       "sentence": "A gas dwarf: a world lighter than the ice giants whose air is mostly hydrogen, over a solid interior of rock, metal, and some ice. The air can be thin.",
-      "basis": "design stand-in (GEN.1142, registry CL1): 30 percent hydrogen and 10 Earth masses; the same T as the giant row, for the terrestrial-kind bodies whose envelope outweighs a thin air"
+      "basis": "design stand-in (GEN.1142, registry CL1): 30 percent hydrogen and 10 Earth masses; the same T as the giant row, for the terrestrial-kind bodies whose air is mostly hydrogen: a thick envelope on most, and on 1.2 percent of bodies (851 of 73,247, the 11-16 census) a thin, cold hydrogen air that no other terrestrial row takes (GEN.1616)"
     },
     {
       "letter": "N",

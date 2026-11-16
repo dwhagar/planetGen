@@ -172,10 +172,13 @@ def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_
             if forcing is None:  # a planet or captured moon the tide has circularised has none left, and a stored 0.0 says so (GEN.778)
                 assert body.eccentricity == 0.0 and body.tidal_flux_w_m2 == 0.0
                 continue
-            if (body.water_mass_fraction or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION:
+            if (body.water_mass_fraction or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION and interior_heat.is_ice_bound(body):      # GEN.1760: a water-rich body too warm for ice is the rocky mantle's below
                 icy += 1
-                _, power = icy_tide.flux_from_tide(body.mass, body.radius * 1000.0, forcing.host_mass_kg, forcing.semi_major_axis_m, forcing.eccentricity,
-                                                   body.internal_heat_flux_w_m2, interior_heat.icy_shell_top_k(body))
+                if interior_heat.icy_regime(body) == interior_heat.FROZEN:      # GEN.1759: ice solid through flexes as solid ice does
+                    power = interior_heat.frozen_tide_w(body, forcing) if forcing.eccentricity > 0.0 else 0.0
+                else:
+                    _, power = icy_tide.flux_from_tide(body.mass, body.radius * 1000.0, forcing.host_mass_kg, forcing.semi_major_axis_m, forcing.eccentricity,
+                                                       body.internal_heat_flux_w_m2, interior_heat.icy_shell_top_k(body))
                 assert body.tidal_flux_w_m2 == pytest.approx(power / (4.0 * math.pi * (body.radius * 1000.0) ** 2))
             else:
                 rocky += 1
@@ -196,13 +199,12 @@ def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_
 
 def test_an_icy_body_on_an_orbit_so_round_the_tide_underflows_stores_zero():
     """An eccentricity of 1e-203 squares to 0.0, and the tide of 0.0 W/m2 is stored as that, as every rocky body's is (GEN.778)."""
-    from planetgen.physics import hydrosphere
     for seed in range(12):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
         for body in _bodies(system):
-            if body.body_type in ("g", "a") or (body.water_mass_fraction or 0.0) < hydrosphere.ICY_MIN_WATER_FRACTION:
+            if body.body_type in ("g", "a") or interior_heat.icy_regime(body) == interior_heat.ROCK:      # GEN.1759: a body too warm for ice keeps no tide (its tide is not in the box)
                 continue
             if tidal_heating.forcing_of(body) is None:
                 continue

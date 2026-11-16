@@ -101,6 +101,17 @@ def test_a_moon_of_a_locked_planet_falls_into_a_ring_and_the_spin_takes_its_mome
     assert result.spin_rate > slow
 
 
+def test_the_result_says_when_the_spin_was_last_run_to():
+    """GEN.1756: the spin is the spin at `time_s`: the age while a moon is alive, the time the last moon fell once none is."""
+    slow = 2.0 * math.pi / (30.0 * 86400.0)
+    near = moon_orbits.Moon(7.0e21, 4.0e7, 3000.0)
+    age = 4.5e9 * YEAR
+    fell = moon_orbits.evolve(EARTH, None, spin_torques.constant_dissipation(2.5, 100.0), [near], slow, age, factor=1.5)
+    assert fell.time_s == pytest.approx(fell.moons[0].time_s) and fell.time_s < age
+    stays = moon_orbits.evolve(EARTH, None, spin_torques.constant_dissipation(2.5, 100.0), [MOON], EARTH_SPIN, 1.0e6 * YEAR, factor=1.5)
+    assert stays.time_s == 1.0e6 * YEAR
+
+
 def test_a_moon_inside_the_roche_limit_from_the_start_falls_at_once():
     inside = moon_orbits.Moon(1.0e20, 1.0e7, 3000.0)
     result = moon_orbits.evolve(EARTH, None, spin_torques.constant_dissipation(2.5, 100.0), [inside], EARTH_SPIN, 1.0e9 * YEAR, factor=1.5)

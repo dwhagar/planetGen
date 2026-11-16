@@ -8,7 +8,7 @@ A hot steam air radiates about 280 W/m2 whatever it absorbs [R3236], so a body t
 table warms to 1,000 K) carried the air past the critical temperature of water (647 K), `freeze_out` then let the whole ocean join the air (a gas above its critical
 point has no saturation) and the steam air of 1e10 to 1e11 Pa stood at 2 W/m2 absorbed: 44 of the 63 steam airs in 450 generated systems were under the limit, one at 0.008
 of it, and 8 of 14 Earth-mass bodies in the habitable zone of a Sun-like star ended at 1,100 to 1,500 K. `Setting.steam_possible` (`surface_air._steam_possible`) now
-holds the surface of such a body with water under `surface_air.MOIST_LIMIT_K`.
+holds the surface of such a body with water under the moist limit of its air (`moist_limit.limit_k`, GEN.1579; the 375 K of GEN.1329 until then).
 """
 
 import math
@@ -17,7 +17,7 @@ import types
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import orbits, surface_air as sa
+from planetgen.physics import atmosphere, moist_limit, orbits, surface_air as sa
 from tests.test_surface_air import _earth_like_planet
 
 
@@ -50,13 +50,13 @@ def test_a_body_with_no_star_takes_the_limit_of_the_sun():
     assert sa._steam_possible(body, 0.3, 1.1 * limit * s) and not sa._steam_possible(body, 0.3, 0.9 * limit * s)
 
 
-def test_the_moist_limit_is_under_the_critical_temperature_of_water():
-    assert 340.0 < sa.MOIST_LIMIT_K < 647.0
+def test_the_moist_limit_of_an_earth_like_air_is_under_the_critical_temperature_of_water():
+    assert 300.0 < moist_limit.limit_k({"N2": 0.78e5, "O2": 0.21e5, "CO2": 40.0}, 9.81) < 647.0
 
 
 @pytest.mark.parametrize("seed", range(1, 10))
 def test_an_earth_mass_body_in_the_habitable_zone_is_never_a_steam_air(seed):
     """Seeds 1, 3, 4, 5, 6, 7, 8, 9 of this body ended at 1,100 to 1,500 K with 1e9 to 2e10 Pa of steam before GEN.1329."""
     planet = _earth_like_planet(seed)
-    assert planet.surface_temperature <= sa.MOIST_LIMIT_K * (1.0 + 1e-6)
+    assert planet.surface_temperature <= moist_limit.limit_k(atmosphere.gas_partials_pa(planet), planet.gravity * 9.80665) * 1.02
     assert planet.atmospheric_pressure < 1.0e7

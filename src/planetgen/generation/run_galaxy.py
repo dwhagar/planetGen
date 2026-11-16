@@ -25,6 +25,7 @@ import time
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, sky_tier_ledger, store
 from planetgen.generation import bright_stars as brightStars
+from planetgen.generation import bodybeat
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, engine, splitter, units as queueUnits, wrapper
 from planetgen import tuning as program_constants
@@ -1299,7 +1300,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
             sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
                                         galaxy_position=galaxy_position,
                                         link_neighbors=not getattr(args, "link_later", False),
-                                        progress=save_step, run_id=getattr(args, "generation_run_id", None))
+                                        progress=save_step if channel is not None else bodybeat.SaveStep(units), run_id=getattr(args, "generation_run_id", None))
     run_common._count_sector(sector)
     _save_object_timing(args, timings, sector_id)
     return sector_id, sector.name, sector

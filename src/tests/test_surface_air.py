@@ -361,10 +361,10 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=2e-3)       # a thin cold air's G of a few 1e-4 moves T by under 0.05 percent and cannot be read back from the stored haze closer than that
     assert bodies > 5
-    # the unsettled airs are few: more would mean the fixed point stopped settling, not that the test cannot read them. The share is a property of the
-    # solver (a world near its boiling point swings between a cool air and a steam one, GEN.1344), not of one sample: over seeds 10 to 59 it is 10 of
-    # 132 airs on main and 8 of 129 on Train 24 (GEN.993), and a draw of ten seeds ranges from none to three of 28, so a tenth was a luck bound, a fifth is three times the share
-    assert skipped <= max(1, bodies // 5)
+    # the unsettled airs are few: more would mean the fixed point stopped settling, not that the test cannot read them (GEN.1555). The share is a property of the solver, not of one sample:
+    # over seeds 10 to 59 it was 10 of 132 airs on main and 8 of 129 on Train 24 (GEN.993, near water's boiling point a world swung between a cool air and a steam one, GEN.1344), which is why
+    # the bound was a fifth; after the solver work of GEN.1716, GEN.1718 and GEN.1646 it is 0 of 35 on this sample (Train 36 head), so the bound is a twentieth, one air of 35
+    assert skipped <= max(1, bodies // 20)
 
 
 def _first_air_of(key, monkeypatch):
@@ -435,9 +435,9 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
         assert 250.0 < air.temperature_k < 335.0, (key, air.temperature_k)
 
 
-CREEP_KEYS = (274, 387)
+CREEP_KEYS = (156, 387)
 """tuple: Seeded keys of `_first_air_of` whose first air creeps at the end of its 60 steps on the star table of the day and settles in the steps `CREEP_EXTENSION` gives (GEN.1718 part 2). The star draws and the greenhouse table move which keys
-these are (key 175 before GEN.1623's star table); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
+these are (key 175 before GEN.1623's star table, key 274 before Train 36's nebular water of rocky bodies, GEN.1754); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
 
 
 def test_an_air_still_creeping_when_its_steps_run_out_is_given_more_and_settles(monkeypatch):
@@ -507,7 +507,7 @@ def test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_na
     """GEN.1580: the surface stops where the main gas of the air is half ionized (`ionization.ceiling_k`), a limit no generated body should reach: the test suite makes
     a body there an error (`PLANETGEN_CEILING_IS_ERROR`, checked first), and in a run it is one normal-log line with the body, the uncapped value, the ceiling and the air.
     The ceiling is the guard of a body that can hold steam; the Earth-like body of the sample is under its runaway limit (GEN.1329 holds such a body under
-    `MOIST_LIMIT_K`), so the test declares it past the limit."""
+    the moist limit of its air, `moist_limit.limit_k`), so the test declares it past the limit."""
     import dataclasses
     import logging
 

@@ -101,6 +101,9 @@ def member_info(conn, belt_id, rank):
     members = list(belt.members)
     found = belt_ondemand.member_of_rank(belt, star, system.system_config, rank)
     if found is None:
+        made = next((planet for planet in belt_info.promoted_planets(conn, system, belt, row, object_uid.from_bytes(row["uid"])) if planet["rank"] == rank), None)
+        if made is not None:      # GEN.1510: the body was made a planet; its designation names that planet now
+            return {"designation": made["designation"], "rank": rank, "promoted": made}
         raise BeltMemberNotFound(f"the belt holds no body of rank {rank} at or over the Class D size (it keeps {len(members)} one by one and {belt_ondemand.individual_count(belt_ondemand.settled_of(belt, star)):,} in all)")
     object_id = object_uid.from_bytes(row["uid"])
     count = belt_ondemand.individual_count(belt_ondemand.settled_of(belt, star))

@@ -1,11 +1,11 @@
-"""Each physics module that other modules reach through a long chain imports on its own in a fresh interpreter (GEN.1401: `hydrosphere` and `bulk_draw` failed with a circular import)."""
+"""Each physics module that other modules reach through a long chain imports on its own in a fresh interpreter (GEN.1401: `hydrosphere` and `bulk_draw` failed with a circular import; GEN.1633: `belt_mass` did, through `collision_outcome`, `planets` and `irregular_moons`)."""
 
 import subprocess
 import sys
 
 import pytest
 
-MODULES = ("hydrosphere", "bulk_draw", "icy_tide", "planet_type", "orbit_elements", "interior_heat", "envelope_capture", "surface_composition", "aquifers")
+MODULES = ("hydrosphere", "bulk_draw", "icy_tide", "planet_type", "orbit_elements", "interior_heat", "envelope_capture", "surface_composition", "aquifers", "belt_mass", "belt_ledger", "irregular_population", "collision_outcome", "planets")
 
 
 @pytest.mark.parametrize("module", MODULES)

@@ -5,7 +5,7 @@ The page of one body an asteroid belt keeps, `/object/belt:<ID>/member/<rank>` (
 `GET /api/objects/<ref>/belt-members/<rank>` (`describe/belt_member_info.py`); this page lays it out.
 """
 
-from flask import abort
+from flask import abort, redirect
 
 from planetgen.galaxy import object_uid
 from planetgen.web.lib import apiclient, bodyview
@@ -30,6 +30,8 @@ def belt_member_page(belt_ref, rank):
         data = apiclient.get_belt_member(db, ref, rank)
     except apiclient.NotFoundError:
         abort(404)
+    if data.get("promoted"):      # GEN.1510: the body was made a planet, so its designation leads to that planet's page
+        return redirect(item_url(data["promoted"]["ref"]))
     name = found["name"]
     crumbs = linked_crumbs(found, name, ref)
     crumbs.append(crumb("Bodies and sizes", "belt_info_page", belt_ref=ref))

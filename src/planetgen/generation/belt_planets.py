@@ -18,7 +18,8 @@ What a promoted member is:
   (their names, and the order they are stored in, move; `names.bodies.name_bodies` numbers them in the order they stand). They are exempt from the spacing of the slots (`validation.slot_planets`): they orbit inside the
   belt, on the orbits the belt gave them.
 * **Out of the belt.** The member leaves the belt's members (its rank is not used again) and its mass leaves the belt's (`mass_kg`), so the belt and the planets made of it add up to the belt that was drawn. The belt's
-  largest body (`largest_body_km`) is the largest member it still holds (GEN.1561: it was the drawn body's, a planet now); its other numbers are as they were drawn.
+  largest body (`largest_body_km`) is the largest member it still holds (GEN.1561: it was the drawn body's, a planet now), for every belt with members, promoted from or not (GEN.1605: the size
+  law's figure is the heaviest body at the law's density, the member's is at its own taxon's, up to 15 percent apart); its other numbers are as they were drawn.
 * **Every member over the oligarch mass is a planet** (GEN.1561). The ten is a cost limit, not a physical one: a member heavier than the isolation mass of the stretch the belt lies in (`oligarch_cap_kg`) would have
   cleared it, so it is promoted whatever the count, and the belt keeps its mass in the members below the cap. A real belt holds no body near that size (the main belt and the Kuiper belt
   with its largest objects hold 4.0e-4 and 2.0e-2 Earth masses, R3539), while a debris disk's belt is a mass of small planetesimals (R5253), so the cut leaves the mass and takes only the worlds out.
@@ -125,8 +126,9 @@ def promote(system, star, bodies):
             belt.mass_kg = max(belt.mass_kg - member["mass_kg"], 0.0)
             log.choice("Belt member made a planet", f"rank {member['rank']} of the belt at {belt.distance:.4g} AU",
                        f"{member['mass_kg']:.3g} kg at {member['distance_au']:.4g} AU, {member['status']}, class {planet.planet_class}")
-        if taken:
-            belt.largest_body_km = largest_left_km(belt)       # GEN.1561: the belt's largest body is the largest it still holds
+        largest = largest_left_km(belt)
+        if largest > 0.0:
+            belt.largest_body_km = largest       # GEN.1561, GEN.1605: the belt's largest body is the largest member it holds, the figure its members list shows
     if made:
         bodies[:] = sorted([*bodies, *made], key=lambda body: body.distance)
     return made

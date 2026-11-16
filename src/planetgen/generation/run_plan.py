@@ -3792,8 +3792,13 @@ def log_skeleton_summary(args, summary):
         f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:
-        log.warning(f"The galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}), so the galaxy's true edge was not reached. "
-                    f"Re-run with a larger --edge, or none.")
+        if getattr(args, "edge", None) is None:
+            # OPS.267: no --edge was given, so the walk was cut by the reach (`--reach-shells`, or its default), and `args.edge` has nothing to format.
+            log.warning(f"The galactic plane still qualified at the reach (shell {summary['reach_shell_index']}, --reach-shells), so the galaxy's true edge was not reached. "
+                        f"Re-run with a larger --reach-shells.")
+        else:
+            log.warning(f"The galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}), so the galaxy's true edge was not reached. "
+                        f"Re-run with a larger --edge, or none.")
 
 
 SCATTER_NAMES = {"mass": "massive-star", "luminosity": "bright-star", "phenomena": "phenomena",

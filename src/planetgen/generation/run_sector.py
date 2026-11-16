@@ -54,6 +54,7 @@ from planetgen.generation import followed, run_common
 from planetgen.generation import run_phenomenon
 from planetgen.generation import run_system
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.generation import bodybeat
 
 
 SECTOR_PHENOMENON_KINDS = tuple(
@@ -825,7 +826,8 @@ def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
     Each one's companion, planets and moons come from its own stored
     `seed`, without disturbing the sector's draw stream. A row with members is built from the tree it stored
     (`fill.stored_plan`, GEN.315), a row without is one star: neither draws a companion of its own."""
-    for row in fill.bright_rows:
+    for place, row in enumerate(fill.bright_rows):
+        bodybeat.system(f"Pre-placed star {place + 1} of {len(fill.bright_rows)}: bodies made")      # OPS.266
         cfg = run_system.build_system_config(args)
         cfg.POPULATION = row["population"]
         cfg.PLACE_TERMS = fill.place_terms
@@ -949,6 +951,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
         for i, cfg in enumerate(iter_sector_configs(args)):
             if fill is not None:
                 fill.apply(cfg)
+            bodybeat.system(f"System {i + 1} of {total}: bodies made")      # OPS.266
             with log.timed_phase(f"generate system {i + 1}/{total}"):
                 system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)
 
@@ -1279,7 +1282,7 @@ def _unplaced_sector_task(args, also=None):
         if also is not None:
             also(conn, reported)
 
-    store.save_sector(sector, config=store.mysql_config_from_args(args),
+    store.save_sector(sector, config=store.mysql_config_from_args(args), progress=bodybeat.SaveStep(len(sector.entries) + len(sector.phenomena)),
                       run_id=getattr(args, "generation_run_id", None), also=report)
     run_common._count_sector(sector)
     return reported

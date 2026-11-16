@@ -50,6 +50,7 @@ def belt_info_page(belt_ref):
         belt_composition=_composition(belt["composition"]),
         bodies=[{**body, "url": member_url(ref, body["designation"]), "composition_text": ", ".join(f"{part} {body['composition'][part]['text']}" for part in ("rock", "metal", "water", "ice")
                                                      if body["composition"][part]["value"] > 0.0)} for body in data["bodies"]],
+        planets=[{**planet, "url": item_url(planet["ref"])} for planet in data.get("planets", [])],
         bins=[{**row, "composition_text": _composition(row["composition"])} for row in data["bins"]],
         density=data["density_factor"],
         totals=data["totals"],
