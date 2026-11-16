@@ -12718,11 +12718,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: GEN.1759. Related: GEN.1755, GEN.1756, GEN.1759.
   Filed by the TODO thread.
 
-- [ ] **OPS.267 (bug) planetgen plan --reach-shells 3 ends with a TypeError in log_skeleton_summary: the dials line formats edge when args.edge is None**
-  Lane 13, 2:21 AM EST 2026-11-16 (found while proving OPS.228 slice C). Do: print the dials only for values that are set (or the resolved edge the plan used), and add a test that runs the plan with --reach-shells and no --edge. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: OPS.265.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1753 Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them**
   Lane 15, 6:32 PM EST 2026-11-15 (GEN.1533, PR #6747): store.load_star_system now attaches each restored body's birth numbers from body_history, but nothing uses them yet (planets.draw_birth_spin always draws). Do: a moved or edited body starts from its own stored birth eccentricity, spin and capture draws; the air history (GEN.1745) reads them for restored bodies. Lock item (changes what an edit produces).
   Lane 15, 10:38 PM EST 2026-11-15: scope found by measuring a moved restored system against its generated twin: planets with moons lose `_born_moons` (moon history restarts from drifted distances, spin wrong), and `formation_distance_au` is stored nowhere, so a restored body's end-stage draw streams (haze, spin, minerals, envelope, isotopes) and its ice-or-rock water fall back to its current distance (one moved planet came out with no class). Migration 0266 adds body_history.formation_distance_au, birth_distance_au and born_index plus a lost born moons table; attach restores all of them.
