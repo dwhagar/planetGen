@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4378] - 2026-11-16
+
+**Headline:** the plan timing test reads the durations the table prints, so it is green again.
+
+### Fixed
+
+- TEST.774: `test_the_plan_says_where_its_time_went_step_by_step` parsed the plan's timing table as plain seconds, and the table prints durations in the clock form (`1h 23m 45s`, `850 ms`) since UX.319. The test now reads each row and the named total through a small helper that is the inverse of `format_duration_seconds`, with a tolerance of half a second per whole-second row. All the checks stay (sorted, at least eight rows, the sum equals the named total, the steps named).
+
+generation-output: unchanged
+
 ## [8.0.4377] - 2026-11-16
 
 **Headline:** the twenty private attributes a build stashed on each body are now one `BuildRecord` on the body (`body.build`), so a reader finds them by name and a restored body reads the same defaults a new one does.
