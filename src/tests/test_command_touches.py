@@ -215,14 +215,8 @@ class TestSqlTap:
         assert tap.touched[None]["reads"] == {"sectors"}
 
 
-@pytest.mark.db
-@pytest.mark.usefixtures("unit_density_plans")
-def test_commands_touch_only_what_they_declare(mysql_config, monkeypatch):
-    """
-    Runs the toy galaxy's commands under the tap and fails any command that reads a table it does not declare (a write covers a read), writes a table it does not declare, or is neither
-    exercised nor in `UNTAPPED`. The engine's own tables are left out.
-    """
-    _seed_skeleton(mysql_config, shells=SHELLS)
+def _tapped(mysql_config, monkeypatch, scenarios, checks=True):
+    """Runs the command lines of `scenarios` (and, with `checks`, every `check-*` command alone) under the tap, and returns `(tap, failed)`: the tap and a line for each command line that did not end well."""
     tap = sqltap.Tap()
     real_run = engine.run
     real_expand = commands.expand_function
@@ -256,7 +250,7 @@ def test_commands_touch_only_what_they_declare(mysql_config, monkeypatch):
     monkeypatch.setattr(commands, "end_function", end)
     failed = []
     with tap:
-        for name, argv in SCENARIOS:
+        for name, argv in scenarios:
             try:
                 run_cli(name, [*argv, *mysql_argv(mysql_config)])
             except SystemExit as exit_:
@@ -264,10 +258,16 @@ def test_commands_touch_only_what_they_declare(mysql_config, monkeypatch):
                     failed.append(f"{name} {argv} exited {exit_.code}")
             except Exception as error:
                 failed.append(f"{name} {argv} raised {error!r}")
-        params = {"database": wrapper.database_args(mysql_config)}
-        for kind in sorted(commands.REGISTRY):
-            if kind.startswith("check-") and kind not in UNTAPPED:
-                commands.run_alone(kind, params)
+        if checks:
+            params = {"database": wrapper.database_args(mysql_config)}
+            for kind in sorted(commands.REGISTRY):
+                if kind.startswith("check-") and kind not in UNTAPPED:
+                    commands.run_alone(kind, params)
+    return tap, failed
+
+
+def _undeclared(tap):
+    """A line for every command the tap saw read or write a table `touches` does not declare for it (a write covers a read; the engine's own tables are left out)."""
     problems = []
     for kind, slot in sorted((k, v) for k, v in tap.touched.items() if k is not None):
         if kind not in touches.READS:
@@ -279,12 +279,66 @@ def test_commands_touch_only_what_they_declare(mysql_config, monkeypatch):
             problems.append(f"{kind}: reads undeclared {sorted(extra_reads)}")
         if extra_writes:
             problems.append(f"{kind}: writes undeclared {sorted(extra_writes)}")
+    return problems
+
+
+@pytest.mark.db
+@pytest.mark.usefixtures("unit_density_plans")
+def test_commands_touch_only_what_they_declare(mysql_config, monkeypatch):
+    """
+    Runs the toy galaxy's commands under the tap and fails any command that reads a table it does not declare (a write covers a read), writes a table it does not declare, or is neither
+    exercised nor in `UNTAPPED`. The engine's own tables are left out. This galaxy is sparse: a command whose work depends on what the data holds is run again on a dense one
+    (`test_commands_touch_only_what_they_declare_on_a_dense_galaxy`).
+    """
+    _seed_skeleton(mysql_config, shells=SHELLS)
+    tap, failed = _tapped(mysql_config, monkeypatch, SCENARIOS)
+    problems = _undeclared(tap)
     assert not failed, "\n".join(failed)
     assert not problems, "\n".join(problems)
     unexercised = _all_kinds() - set(tap.touched) - set(UNTAPPED)
     assert not unexercised, f"commands the tap run never exercised (run them, or list them in UNTAPPED with the reason): {sorted(unexercised)}"
     stale = set(UNTAPPED) & set(tap.touched)
     assert not stale, f"in UNTAPPED but exercised now (remove the row): {sorted(stale)}"
+
+
+DENSE_SCENARIOS = [
+    ("scatter", ["--mass", "--phenomenon-min-mass", "8", "--bright-star-min-luminosity", "2500"]),
+    ("scatter", ["--luminosity", "--bright-star-min-luminosity", "2500"]),
+    ("scatter", ["--phenomena"]),
+    ("scatter", ["--nebula-field"]),
+    ("sector", ["--num-sectors", "2", "--num-systems", "1"]),
+    ("system", ["--name", "Dense"]),
+    ("link", ["--since", "2000-01-01 00:00:00"]),
+    ("settle", ["--since", "2000-01-01 00:00:00"]),
+    ("rescore-habitability", ["--all"]),
+    ("refill-effect-ledger", ["--all"]),
+    ("fill-map-luminosity", []),
+    ("clean-nebula-field", []),
+    ("backfill", ["--since", "2000-01-01 00:00:00"]),
+    ("population", []),
+    ("territories", []),
+    ("fill-block-totals", []),
+    ("fill-nebula-blocks", []),
+    ("clear-scatter", ["--phenomena"]),
+    ("clear-scatter", ["--nebula-field"]),
+    ("clear-scatter", ["--luminosity"]),
+    ("clear-scatter", ["--mass"]),
+]
+"""list: The command lines run on a galaxy dense enough that every scatter draws rows and a sector holds systems, so a command whose statements depend on the data is seen doing its work."""
+
+
+@pytest.mark.db
+def test_commands_touch_only_what_they_declare_on_a_dense_galaxy(mysql_config, monkeypatch):
+    """
+    The tap again on a galaxy where the scatters draw stars and phenomena and the sectors hold systems (OPS.242: the sparse galaxy of the test above drew none, and a command that sends no
+    statement for want of rows was declared as touching nothing). Fails any command that touches a table it does not declare.
+    """
+    from tests.test_bright_star_scatter import SMALL_E_VALUE, _seed_galaxy
+    _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE * 5)
+    tap, failed = _tapped(mysql_config, monkeypatch, DENSE_SCENARIOS, checks=False)
+    assert not failed, "\n".join(failed)
+    problems = _undeclared(tap)
+    assert not problems, "\n".join(problems)
 
 
 class TestPlanEdges:
