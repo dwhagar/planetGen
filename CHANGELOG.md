@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4395] - 2026-11-16
+
+**Headline:** The belt overlap test now checks the belt's inner edge, the way the spacing pass measures it.
+
+### Fixed
+- TEST.782: `test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt` expected the pushed belt's centre to land at the outer edge of the belt inside it plus the separation. Since GEN.1592 a belt is measured and pushed by its inner edge (`shift_belt` moves the centre and both edges together), so the inner edge lands exactly there and the centre sits half a width further out (2.45 AU for a 0.4 AU belt past 2.25). The test now asserts the inner edge, the kept width and the centre; the generator is unchanged.
+
+generation-output: none
+
 ## [8.0.4394] - 2026-11-16
 
 **Headline:** An old brown dwarf of the lightest masses is about one Jupiter radius across, not the 1.5 to 1.7 it kept from its youth, and it is no longer up to 2.4 times too bright.
