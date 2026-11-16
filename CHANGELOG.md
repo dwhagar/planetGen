@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4368] - 2026-11-16
+
+**Headline:** The belt mass module imports on its own again.
+
+### Fixed
+- GEN.1633: `physics/belt_mass.py` failed to import in a fresh interpreter (a circular import through `collision_outcome`, `planets`, `generation/irregular_moons`, `irregular_population` and `belt_ledger`). `physics/planets.py` now imports `irregular_moons` where it uses it, and `tests/test_physics_imports_alone.py` covers `belt_mass` and the four modules of the cycle. Nothing generated changes.
+
+generation-output: none
+
 ## [8.0.4367] - 2026-11-16
 
 **Headline:** An asteroid belt's page lists the planets it made, and the designation of a belt body that became a planet leads to that planet.
