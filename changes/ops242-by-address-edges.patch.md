@@ -1,5 +1,0 @@
-**Headline:** The link and settle of one sector may start once the sectors they read are saved, and a test now proves it by address.
-
-### Changed
-- `queue/independence.json` lists `edges` (`touches.load_edges`): the unit of `link-neighbors` or `settle-sector-paths` for one sector waits only for the sectors its rule names (the nearest-systems reach for the link, `NEIGHBOUR_REACH_EDGES` for the settle), not for the whole generate stage. `tests/address_edge_support.py` proves it on five sectors in a row: the units run in random orders on one thread and on 15 threads, each released when its sectors are saved, store the same content as plan order; a unit released after its own sector alone does not (the control). Nothing runs overlapped until the supervisor's release-by-needs step uses the edges, so a run is as before; output of generation is unchanged.
-- `queue/touches.py`: `link-neighbors` writes the quadrant of every placed phenomenon (`black_holes`, `nebulae`, `neutron_stars`, `quasars`, `supernova_remnants`, `asteroid_fields`, `interstellar_comets`, `rogue_planets`); the proof found the declaration lacked the others.
