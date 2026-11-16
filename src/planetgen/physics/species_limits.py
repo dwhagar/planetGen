@@ -104,6 +104,11 @@ def generated(world):
         factor = (world.dose_sv_yr * margin["dose_factor"]) / limit("dose_blue_sv_yr")
         if factor > 1.0:
             out.update(_shifted(_DOSE, factor=factor))
+    # Gases (GEN.1772): each of the four gas bands moves out by the factor that puts the homeworld's partial pressure of that gas inside Blue with the margin.
+    for gas, (chronic, _acute) in habitability.GAS_LIMITS_KPA.items():
+        scale = world.partial_kpa(gas) * margin["gas_factor"] / chronic
+        if scale > 1.0:
+            out[f"{gas.lower()}_scale"] = scale
     # Oxygen: inspired O2 of the homeworld's air, with the species' own Armstrong edge.
     here = habitability.bands(out)
     inspired = habitability.inspired_o2_kpa(world, here)

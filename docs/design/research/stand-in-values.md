@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1875 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1881 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1848 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1854 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 238 | 127 | 34 | 81 | 4 | 484 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 52 | 20 | 6 | 108 | 41 | 227 |
-| All | 1071 | 385 | 94 | 265 | 60 | 1875 |
+| T9 | 52 | 20 | 6 | 114 | 41 | 233 |
+| All | 1071 | 385 | 94 | 271 | 60 | 1881 |
 
 ## How the labels were given
 
@@ -3323,3 +3323,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CMT6 | P | T6 | L3 | `tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM` (0.5, 20) drawn uniform in diameter | lower end 0.2 to 1 km; upper end 15 to 60 km | star-bound comet nuclei | a measured nucleus size distribution of a star's comets (the cumulative number of nuclei falls steeply with diameter, with an index of about 1.9 for the Jupiter family, recalled, not opened; a uniform draw has index 0) | a truncated power law in diameter with the published cumulative index, its upper end from the belt's largest body | nuclei of 1 to 10 km typical, as the comment in `tuning.py` quotes it, second-hand; the draw's shape is a stand-in | predicted only | - | replace (GEN.1765) |
 | CMT7 | P | T6 | L3 | `tuning.COMET_PERIHELION_DISTANCE_RANGE_AU` (0.05, 5.0) drawn uniform in perihelion | lower end 0.01 to 0.1 AU; upper end 3 to 10 AU | star-bound comets | a comet catalogue whose perihelia are not flat in distance inside the range after the survey bias is removed | the star's radius and tidal limit for the lower end and the activity threshold (CA1) for the upper | physics: for a near-parabolic orbit q = L^2 / (2 G M), and an isotropic cloud that fills its loss cone is flat in L^2, so flat in q; the two ends are hand set | predicted only | - | no data |
 | CMT8 | P | T9 | L3 | `tuning.SYSTEM_COMET_CHANCE` 0.3 and `SYSTEM_COMET_COUNT_RANGE` (1, 3): the share of stars that hold comets and how many of the few the generator models each holds | chance 0.1 to 1; count 1 to 5 | every star's own comets | a star with an outer belt or a cloud that shows no comets, or a comet census per star that is far from this rate | comets present wherever the system has an outer belt, a cloud or a giant, from the supply of CMT5's replacement | design: the code's comment ("most real stars aren't known to host an observed comet population") is an observation limit, not a rate | predicted only | - | replace (GEN.1765) |
+
+## 6.305 Stand-ins of how far inside Blue a species' homeworld sits (POP.12, GEN.1772)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| GL1 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["pressure_factor"]` 1.5: the homeworld's pressure is this many times inside the Blue pressure edge (low side or high side) | 1.2 to 3 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | - |
+| GL2 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["temperature_c"]` 10.0: the homeworld's hottest and coldest temperature lie this many degrees inside the Blue temperature edges | 5 to 15 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | - |
+| GL3 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["wet_bulb_c"]` 2.0: the species' wet-bulb limit sits this many degrees above the homeworld's | 1 to 4 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | - |
+| GL4 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["dose_factor"]` 3.0: the homeworld's dose is this many times under the Blue dose edge | 2 to 10 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | - |
+| GL5 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["o2_factor"]` 1.25: the chronic inspired-oxygen limit sits this far above the homeworld's own inspired oxygen | 1.1 to 1.5 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | - |
+| GL6 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["gas_factor"]` 1.5: the homeworld's partial pressure of each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) is this many times under the chronic edge of that gas's band, every edge of the band moving by the same factor (GEN.1772) | 1.2 to 3 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | - |
