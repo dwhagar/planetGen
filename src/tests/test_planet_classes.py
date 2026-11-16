@@ -388,3 +388,30 @@ def test_class_x_holds_with_or_without_an_air_gen1737():
     thin = dict(x, atmospheric_pressure_pa=20000.0, **{atmosphere.GAS_FIELD: {"N2": 20000.0}})
     thick = dict(x, atmospheric_pressure_pa=300000.0, **{atmosphere.GAS_FIELD: {"N2": 300000.0}})
     assert pc.classify(x) == pc.classify(thin) == pc.classify(thick) == "X"
+
+
+# --- GEN.1752: class comes last, even for a small body (Boss, 6:11 PM EST 2026-11-15) ---------------------------------------------------------------------------------------------------
+
+def test_a_small_not_round_body_that_holds_air_is_classed_by_the_fit_and_is_no_asteroid():
+    thin = body(mass_earth=1e-5, roundness_ratio=0.4)         # Earth's air on a body under a roundness ratio of 1
+    assert not pc.is_asteroid(thin) and pc.classify_values(thin) is not pc.ASTEROID
+    assert pc.classify(thin) in pc.LETTERS
+    assert pc.classify_detail(thin).match is not None
+
+
+def test_a_small_not_round_body_with_a_surface_liquid_or_with_life_is_classed_and_a_bare_one_is_still_an_asteroid():
+    bare = airless(mass_earth=1e-5, roundness_ratio=0.4)
+    assert pc.is_asteroid(bare) and pc.classify(bare) is None
+    wet = dict(bare, surface_liquid="water")
+    living = dict(bare, life_stage="microbes", life_microbial=40)
+    fallen = dict(bare, life_stage="microbes", life_microbial=0)      # the life ended and the stage stays (GEN.1746)
+    for held in (wet, living, fallen):
+        assert not pc.is_asteroid(held) and pc.classify(held) in pc.LETTERS
+    assert pc.is_asteroid(dict(bare, life_class="a", life_stage=None, life_microbial=0)), "a class that suits the world with no life yet is no life"
+    thin_air = dict(bare, atmospheric_pressure_pa=9.0)          # under the fit's 10 Pa gate it is no air
+    assert pc.is_asteroid(thin_air)
+
+
+def test_a_round_small_airless_body_is_still_class_d_and_a_giant_is_never_an_asteroid():
+    assert pc.classify(airless(mass_earth=0.01, roundness_ratio=3.0)) == "D"
+    assert not pc.is_asteroid(body(body_type="g", mass_earth=300.0, roundness_ratio=0.1))

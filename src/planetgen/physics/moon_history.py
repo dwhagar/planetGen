@@ -21,6 +21,7 @@ the thermal tide of the air on the planet's spin in the same sum (`body_spin`, G
 * **A moon that falls** inside its Roche limit is removed and its mass and the time it fell are kept (`fallen_moons`, `ring_origin.FallenMoon`s, which `rings.apply` reads
   through `ring_origin.ring_origin`: the share of it that stays in orbit is a ring, spread for the time since, GEN.1057); a moon dragged below the innermost orbit is kept the same way
   at the age of the planet (the history does not say when); one pushed out of the stable part of the Hill sphere is lost.
+* **The spin after the last moon is gone** (GEN.1756): a planet whose moons all fell or escaped early goes on for the rest of its age under its star's tide and the air's, from the spin the last moon left it, as a planet without moons does (`body_spin.evolve`); only a planet with a moon still alive at the end keeps the plain exchange's spin.
 * **The planet's heat** reads the moons that stay: the power their tides dissipate in a rocky planet is part of `tidal_heating.Forcing` (`moons`), found
   from the stored distances, masses and spin by `interior_heat`, at the temperature of the mantle.
 
@@ -39,6 +40,8 @@ RESPIN_FRACTION = 1.0e-4
 much, and a locked moon's turns per orbit must stay within `spin.SPIN_LOCK_TOLERANCE` of one). Source tier T6, tweak level L0."""
 SYNCHRONOUS_TOLERANCE = 1.0e-3
 """float: A planet with moons that ends within this share of its star's orbital rate is locked to the star. Source tier T6, tweak level L0."""
+REMAINING_FRACTION = 1.0e-6
+"""float: The share of the age that must be left when the last moon is gone for the planet's spin to run on without moons (under it the integrator's own end is the end). Source tier T6, tweak level L0."""
 RETROGRADE_INCLINATION_DEG = 90.0
 """float: A moon whose orbit is inclined more than this goes round against its planet's spin."""
 
@@ -154,7 +157,12 @@ def apply(planet, primary_mass_kg):
         planet.reflex_offset_x = planet.reflex_offset_y = planet.reflex_offset_z = 0.0
     breakup = spin.BREAKUP_FRACTION * spin.critical_spin_rad_s(planet.mass, planet.radius)
     rate = math.copysign(min(abs(result.spin_rate), breakup), result.spin_rate)      # the angular momentum of falling moons cannot spin a planet past its breakup (TM9)
-    if abs(rate - star.orbital_rate) <= SYNCHRONOUS_TOLERANCE * star.orbital_rate:
+    left_s = age_s - result.time_s
+    if left_s > REMAINING_FRACTION * age_s:
+        # GEN.1756: every moon was gone (fell or escaped) before the end of the age, and the planet's spin goes on under the star's tide and the air's for the rest of it, as that of a planet
+        # that never had moons (the spin the last moon left is its start)
+        found = body_spin.evolve(planet, primary_mass_kg, semi_major_axis_m, rate, left_s, getattr(planet, "eccentricity", 0.0) or 0.0, capture_units=birth[2])
+    elif abs(rate - star.orbital_rate) <= SYNCHRONOUS_TOLERANCE * star.orbital_rate:
         found = spin_torques.SpinResult(star.orbital_rate, 1.0, "synchronous")
     else:
         found = spin_torques.SpinResult(rate, None, "free")
