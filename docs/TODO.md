@@ -12328,6 +12328,7 @@ clears each one.
   Lane 15, 6:53 AM EST 2026-11-16: DB.101's tests/test_stored_outputs.py covers planets, moons and stars only. Do: the same check for the other stored objects; file any gap it finds as a (bug) item.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: DB.101. Related: DB.101, DB.132, DB.133.
   Filed by the TODO thread.
+  Added (Lane 15, 9:03 AM EST 2026-11-16): tilt_chaotic in oddity_quantities is also unstored; store it here or state why not.
 
 - [ ] **GEN.1763 A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources**
   Lane 03, 7:11 AM EST 2026-11-16 (PR 6837, GEN.1579 before and after on 80 systems): 4 bodies were pinned at 375 K; 3 move to class N (489 to 600 K) and 1 to X. One N body has 7,825 bar (5,300 bar CO2 plus 2,300 bar OCS out of the rock) and its greenhouse asks 1,481 K. Do: check the carbonate and sulfur degassing laws at 500 to 600 K against sources (physics found in research wins), and say whether thousands of bar is real or a law used outside its range.
@@ -12337,6 +12338,11 @@ clears each one.
 - [ ] **PERF.274 (bug) Warming the galaxy lists and stats every tile-cache file once per warm chunk (tilecache.cache_is_full from web/warmup.py line 854): the warm-galaxy-deep-nodes case stood 58 s walking 181,000 files on a cold file cache**
   Lane 16, 8:43 AM EST 2026-11-16 (found while fixing PERF.273, PR 6820): passes on a quiet box and fails test_longest_silence when the file cache is cold, so it flakes for Gate and costs real time on a big site cache. Do: keep a running size of the tile cache (or check it once per run, not per chunk) so the full check is cheap, and show the deep-nodes case under budget on a cold file cache.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: PERF.273, OPS.262.
+  Filed by the TODO thread.
+
+- [ ] **TEST.779 (bug) test_body_state_fields::test_a_remake_after_an_orbit_change is red on main: the remade body's composition text differs**
+  Lane 15, 9:03 AM EST 2026-11-16 (found while testing PR 6850, DB.132 and DB.133): red on main too, the difference is in the composition text. Do: find which merge turned it red and whether the composition text now reads something the orbit change moves (then the remake must rebuild it, or the test's expectation is wrong: say which with the reason); fix the cause, never loosen the check.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: none. Related: DB.132, DB.133.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
