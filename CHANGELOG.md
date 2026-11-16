@@ -2,6 +2,27 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4380] - 2026-11-16
+
+**Headline:** The test runner ends the supervisor a test leaves behind, as it does the workers, so a check run in the next test is no longer served by it.
+
+### Fixed
+
+- `tests/stray_workers.py` ends `planetgen.cli.supervisor` processes on a private test Redis database with the workers (`parse`, `strays`, `reap_database`, `reap_all`). A supervisor stays up for its five idle minutes after the test that started it, and `queue_command_env` ended only workers, so `test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_told_to` failed on main whenever an earlier test on the same Redis database had started one.
+- `tests/test_stray_workers.py` and `tests/test_queue_command_env.py` prove it for supervisors.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4379] - 2026-11-16
+
+**Headline:** The comet shape stand-ins now have their burn-down lines and no author-year names.
+
+### Fixed
+- GEN.595: the registry rows CMT2, CMT3, CMT5, CMT6, CMT7 and CMT8 (tweak level L3) now have lines in the burn-down register, three of them naming GEN.1765 as the item that replaces them, and the source names written without a reference id are dropped from section 6.303, so `test_every_hand_tuned_row_has_a_line` and `test_citations_outside_the_registry` pass again. Nothing generated changes.
+
+generation-output: none
+
 ## [8.0.4378] - 2026-11-16
 
 **Headline:** the plan timing test reads the durations the table prints, so it is green again.
