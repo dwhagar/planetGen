@@ -84,6 +84,11 @@ LUGARO_ERG = {
 and radiation's energies without the neutrinos for beta decays; for a parent with a chain, the whole chain to the stable
 end."""
 
+HALF_LIFE_OVERRIDES = {"Sm-146": (92.0e6 * 365.25 * 86400.0, 2.6e6 * 365.25 * 86400.0)}
+"""dict: Half-lives (s) and uncertainties (s) that replace NUBASE2020's where a later measurement stands. 146Sm: 92.0 +- 2.6 Myr
+(Chiera et al., Sci. Rep. 14, 17436, 2024, [R5295]); NUBASE2020 still prints 68 +- 7 Myr, the 2012 value, which
+its authors withdrew (GEN.1628)."""
+
 DYE_2012 = {
     "U-238": {"abundance_percent": 99.2796, "decay_constant_per_s": 4.916e-18, "neutrinos": 6, "q_pj": 8.282,
               "q_neutrino_pj": 0.634, "q_heat_pj": 7.648, "heat_uw_per_kg": 95.13},
@@ -329,6 +334,8 @@ def build(source_dir=None):
                "stable": state["stable"], "half_life_s": state["half_life_s"],
                "half_life_uncertainty_s": state.get("half_life_uncertainty_s"),
                "modes": state["modes"]}
+        if name in HALF_LIFE_OVERRIDES:
+            row["half_life_s"], row["half_life_uncertainty_s"] = HALF_LIFE_OVERRIDES[name]
         if name in LUGARO_ERG:
             row["decay_energy_j"] = LUGARO_ERG[name] * ERG_J
         if name in DYE_2012:
@@ -365,6 +372,8 @@ def build(source_dir=None):
             "NUBASE2020 (Kondev et al., Chin. Phys. C 45, 030001, 2021, [R2443]), "
             "www-nds.iaea.org/amdc/ame2020/nubase_4.mas20.txt: ground-state half-lives (the year is the Julian year of "
             "365.25 days), decay modes and their branchings in percent",
+            "Chiera et al., Sci. Rep. 14, 17436 (2024), [R5295]: the half-life of 146Sm, 92.0 +- 2.6 Myr, in place of NUBASE2020's "
+            "68 +- 7 Myr (the 2012 value its authors withdrew; HALF_LIFE_OVERRIDES)",
             "Lugaro, Ott and Kereszturi, Prog. Part. Nucl. Phys. 102, 1 (2018), [R2768: Table 4]: "
             "decay_energy_j, the energy released per decay (the whole chain for a parent that has one), without the "
             "neutrinos",

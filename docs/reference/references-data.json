@@ -132603,6 +132603,45 @@
    "volume": "11",
    "year": 2021
   },
+  "10.1038/s41598-024-64104-6": {
+   "authors": [
+    [
+     "Chiera",
+     "N. M."
+    ],
+    [
+     "Sprung",
+     "P."
+    ],
+    [
+     "Amelin",
+     "Y."
+    ],
+    [
+     "Dressler",
+     "R."
+    ],
+    [
+     "Schumann",
+     "D."
+    ],
+    [
+     "Talip",
+     "Z."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41598-024-64104-6",
+   "editors": [],
+   "journal": "Sci Rep",
+   "page": "17436",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "The $$^{146}\\text{Sm}$$ half-life re-measured: consolidating the chronometer for events in the early Solar System",
+   "type": "journal-article",
+   "volume": "14",
+   "year": 2024
+  },
   "10.1038/s41598-024-67342-w": {
    "authors": [
     [
@@ -286214,7 +286253,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5295,
+ "id_next": 5296,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -287937,6 +287976,7 @@
   "10.1038/s41598-017-04910-3": "R4580",
   "10.1038/s41598-020-67751-7": "R3378",
   "10.1038/s41598-021-91801-3": "R5150",
+  "10.1038/s41598-024-64104-6": "R5295",
   "10.1038/s41598-024-67342-w": "R3503",
   "10.1038/s41598-025-03858-z": "R2002",
   "10.1038/s41598-025-27066-x": "R3929",
