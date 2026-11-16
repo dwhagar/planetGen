@@ -40,6 +40,7 @@ weathering), the hydrogen escape that adds oxygen, the phosphorus feedback and, 
 change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak already stands for; a world with no wide sea has them from the rooted stage on, GEN.1729, in `refuge_productivity`).
 """
 
+from planetgen.generation.build_record import record_of
 import collections
 import math
 from dataclasses import dataclass
@@ -224,7 +225,7 @@ def active_light_ratio(body, band=PAR_BAND):
     star = getattr(body, "star", None)
     luminosity = getattr(star, "luminosity", None)
     temperature = getattr(star, "temperature", None)
-    distance = getattr(body, "_star_distance_au", None) or getattr(body, "distance", None)
+    distance = record_of(body).star_distance_au or getattr(body, "distance", None)
     if not luminosity or not temperature or not distance:
         return 0.0
     here = stellar_spectrum.bolometric_flux_w_m2(luminosity, distance) * float(stellar_spectrum.blackbody_fraction(*band.nm, temperature)) * band.efficiency
@@ -480,7 +481,7 @@ def apply(body, target_mol):
         return False
     burnt["O2"] = wanted
     air = partials_pa(body, burnt)
-    cap = getattr(body, "_retention_cap_pa", None)
+    cap = record_of(body).retention_cap_pa
     total = sum(air.values())
     if cap is not None and total > cap:        # GEN.1340: the air is held to the pressure its retention regime keeps (as the pressure stage holds it), oxygen and all
         air = {formula: pascal * cap / total for formula, pascal in air.items()}
@@ -504,13 +505,13 @@ def rebalance_co2(body):
     Returns:
         bool: Whether the air changed.
     """
-    sink = getattr(body, "_co2_sink", None)
+    sink = record_of(body).co2_sink
     if sink is None or not sink.solved_bar > 0.0:
         return False
     air = dict(atmosphere.gas_partials_pa(body))
     base = air.get("CO2", 0.0)
     current = base
-    cap = getattr(body, "_retention_cap_pa", None)
+    cap = record_of(body).retention_cap_pa
     room = float("inf") if cap is None else max(cap - sum(pascal for formula, pascal in air.items() if formula != "CO2"), 0.0)   # the retention regime's cap holds the whole air: the carbon dioxide takes what room the other gases (the oxygen among them, set by their own balance) leave
 
     started = (body.surface_temperature, getattr(body, "greenhouse_factor", None))

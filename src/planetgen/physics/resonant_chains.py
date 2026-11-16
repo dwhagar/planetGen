@@ -35,6 +35,7 @@ feeds `tidal_heating.forcing_of`-style `Forcing` objects (`forcing`) and from th
 `docs/design/research/gap-filling-plan.md` section 6.92.
 """
 
+from planetgen.generation.build_record import record_of
 import itertools
 import math
 from dataclasses import dataclass
@@ -310,11 +311,11 @@ def resonance_forced(body, row):
         return False
     ceiling = orbit_elements.max_planet_eccentricity(body.distance, body.star, body)
     target = min(forced, ceiling)
-    if getattr(body, "_resonance_e", None) == target:       # the orbit was already held on it (this step runs again): nothing more to do
+    if record_of(body).resonance_e == target:       # the orbit was already held on it (this step runs again): nothing more to do
         return None
     if target <= body.eccentricity:
         return False
     body.eccentricity = target
-    body._orbit_birth = None
-    body._resonance_e = target
+    body.build.orbit_birth = None
+    body.build.resonance_e = target
     return None

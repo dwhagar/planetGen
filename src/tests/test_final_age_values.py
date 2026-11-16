@@ -57,7 +57,7 @@ def test_no_rocky_body_or_moon_keeps_values_from_an_age_more_than_the_tolerance_
         for body in _bodies(system):
             if body.body_type == "g" and not body.is_moon:
                 continue
-            assert not planets.age_moved(body), (body.name, body._age_drawn, body.star.age)
+            assert not planets.age_moved(body), (body.name, body.build.age_drawn, body.star.age)
 
 
 def test_no_table_sized_giant_is_left_with_a_radius_the_final_age_would_move(systems):

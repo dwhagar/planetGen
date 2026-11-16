@@ -20,14 +20,15 @@ QUEUE_COMMANDS = ("check-math", "status", "plan")
 """tuple: The commands of `planetgen.cli.generate` and `planetgen.cli.datasets` that run through the queue as check runs or plans (`wrapper.run`)."""
 
 
-@pytest.fixture
-def decoy_worker():
-    """A worker process on this test worker's own database, like the one an earlier test leaves behind."""
+@pytest.fixture(params=[stray_workers.WORKER_COMMAND, stray_workers.SUPERVISOR_COMMAND])
+def decoy_worker(request):
+    """A worker or supervisor process on this test worker's own database, like the one an earlier test leaves behind (a supervisor stays up for five idle minutes with the environment of
+    the test that started it, and served the next test's check run: the red of `test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_told_to`)."""
     url = os.environ.get("PLANETGEN_REDIS_URL")
     path = urlsplit(url or "").path.strip("/")
     if not path.isdigit() or int(path) not in stray_workers.TEST_DATABASES:
         pytest.skip("no test Redis database for this worker (PLANETGEN_TEST_REDIS_URL is not set)")
-    process = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)", "-m", stray_workers.WORKER_COMMAND, "--url", url],
+    process = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)", "-m", request.param, "--url", url],
                                start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     deadline = time.monotonic() + 10
     while process.pid not in [w["pid"] for w in stray_workers.strays(databases=[int(path)])] and time.monotonic() < deadline:
@@ -38,7 +39,7 @@ def decoy_worker():
         process.wait()
 
 
-def test_a_worker_an_earlier_test_left_on_the_database_is_ended_before_a_command_runs(decoy_worker, queue_command_env):
+def test_a_worker_or_supervisor_an_earlier_test_left_on_the_database_is_ended_before_a_command_runs(decoy_worker, queue_command_env):
     process, database = decoy_worker
     assert process.wait(timeout=20) == -signal.SIGTERM
     assert not stray_workers.strays(databases=[database])

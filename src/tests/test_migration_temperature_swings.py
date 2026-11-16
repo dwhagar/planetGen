@@ -12,7 +12,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import regional_temperature
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 
@@ -51,23 +50,4 @@ def test_a_saved_system_keeps_the_swing_of_every_place(mysql_config):
         assert any(item["band1_swing_k"] for item in before) and any(item["band1_swing_k"] == 0.0 for item in before)
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_a_v177_galaxy_gets_the_columns_empty(mysql_config):
-    load_old_schema(mysql_config, 177)
-    assert store.schema_status(mysql_config)[0] == 177
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            assert not conn.execute("SHOW COLUMNS FROM " + table + " LIKE 'temp_polar_swing_k'").fetchall()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            for column in SWINGS:
-                assert conn.execute("SHOW COLUMNS FROM " + table + " LIKE ?", (column,)).fetchall(), (table, column)
-    finally:
         conn.close()

@@ -59,6 +59,7 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
 A planet of a pulsar or a black hole is rated by GEN.89, not here.
 """
 
+from planetgen.generation.build_record import record_of
 import math
 
 from planetgen import tuning
@@ -518,7 +519,7 @@ def generate_dose(body):
     if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334), has no surface
         return
     star = body.star
-    distance = getattr(body, "_star_distance_au", None)
+    distance = record_of(body).star_distance_au
     pressure_pa = getattr(body, "atmospheric_pressure", None) or 0.0
     column = column_g_cm2(pressure_pa, getattr(body, "gravity", None))
     moment = getattr(body, "magnetic_moment_a_m2", None) or 0.0

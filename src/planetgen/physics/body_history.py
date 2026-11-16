@@ -73,10 +73,13 @@ def numbers_of(body):
         body: A generated planet or moon (any object: one with no `_orbit_birth` or `_birth_spin` has none of those).
     """
     out = {}
-    birth_orbit = getattr(body, "_orbit_birth", None)
+    record = getattr(body, "build", None)
+    if record is None:      # a belt builds nothing and carries no record
+        return out
+    birth_orbit = record.orbit_birth
     if birth_orbit is not None:
         out["birth_eccentricity"] = float(birth_orbit)
-    birth_spin = getattr(body, "_birth_spin", None)
+    birth_spin = record.birth_spin
     if birth_spin is not None:
         rate, tilt, captures = birth_spin
         out["birth_spin_rate"] = float(rate)
@@ -124,7 +127,7 @@ def attach(body, row):
         body._birth_distance_au = float(row["birth_distance_au"])
         attached = True
     if row["birth_eccentricity"] is not None:
-        body._orbit_birth = float(row["birth_eccentricity"])
+        body.build.orbit_birth = float(row["birth_eccentricity"])
         attached = True
     if row["held_eccentricity"] is not None:      # DB.132: the floor a resonance keeps under the tide, so a body settled again is held on what it was held on
         body._resonance_e = float(row["held_eccentricity"])
@@ -134,7 +137,7 @@ def attach(body, row):
         attached = True
     draws = (row["capture_draw_1"], row["capture_draw_2"])
     if row["birth_spin_rate"] is not None and row["birth_obliquity_deg"] is not None and all(draw is not None for draw in draws):
-        body._birth_spin = (float(row["birth_spin_rate"]), float(row["birth_obliquity_deg"]), tuple(float(draw) for draw in draws))
+        body.build.birth_spin = (float(row["birth_spin_rate"]), float(row["birth_obliquity_deg"]), tuple(float(draw) for draw in draws))
         attached = True
     return attached
 
@@ -172,7 +175,7 @@ LOST_FIELDS = ("star_system_id", "planet_id", "born_index", "mass_kg", "birth_di
 
 def born_places(planet):
     """`{id(moon): place}` of the moons `planet` was born with (`moon_history.born_moons`) that it still has, the place being their index in that list; empty for a planet with no born list."""
-    born = getattr(planet, "_born_moons", None) or ()
+    born = planet.build.born_moons or ()
     return {id(moon): place for place, moon in enumerate(born) if any(moon is kept for kept in getattr(planet, "moons", ()))}
 
 
@@ -192,7 +195,7 @@ def lost_rows(star_system_id, planet, planet_id):
     from planetgen.physics import moon_history
     kept = born_places(planet)
     out = []
-    for place, moon in enumerate(getattr(planet, "_born_moons", None) or ()):
+    for place, moon in enumerate(planet.build.born_moons or ()):
         if id(moon) in kept:
             continue
         out.append({"star_system_id": star_system_id, "planet_id": planet_id, "born_index": place, "mass_kg": float(moon.mass),

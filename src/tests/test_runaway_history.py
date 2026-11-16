@@ -16,6 +16,7 @@ from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.physics import constants, hydrosphere, orbits, runaway_history
 from planetgen.util import draw
+from planetgen.generation.build_record import BuildRecord
 
 
 def _generate_hydrosphere(body, internal_flux_w_m2):
@@ -163,7 +164,7 @@ def test_the_loss_comes_off_the_surface_first_and_the_mantle_gives_part_back(mon
         water_mass_fraction = 1e-3
         rock_mass_fraction = 0.67      # GEN.1365: the most water the mantle stores comes from its mass, radius and rock; an Earth's holds the whole 1e-3, so the buffer decides
         star = None
-        _star_distance_au = None
+        build = BuildRecord()
 
     monkeypatch.setattr(hydrosphere, "log_uniform", lambda *args, **kwargs: 2.0)  # the mantle buffer
     monkeypatch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 2e-4 * Body.mass)

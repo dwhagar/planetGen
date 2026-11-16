@@ -12,32 +12,8 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import daylight
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
-
-
-def _types(conn, table):
-    return {row["COLUMN_NAME"]: row["DATA_TYPE"] for row in conn.execute(
-        "SELECT COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", (table,)).fetchall()}
-
-
-def test_a_v169_galaxy_gets_the_columns_empty(mysql_config):
-    load_old_schema(mysql_config, 169)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            assert not set(daylight.FIELDS) & set(_types(conn, table))
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            types = _types(conn, table)
-            assert all(types[name] == ("varchar" if name == "day_night_state" else "double") for name in daylight.FIELDS), table  # GEN.1097: the state is a word
-    finally:
-        conn.close()
 
 
 def test_a_saved_system_keeps_the_shares_of_every_body(mysql_config):

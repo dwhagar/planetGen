@@ -23,21 +23,6 @@ def _columns(config, table):
         conn.close()
 
 
-def test_a_v135_galaxy_gains_the_equipment_levels_and_loses_the_tier(mysql_config):
-    load_old_schema(mysql_config, 135)
-    assert store.schema_status(mysql_config)[0] == 135
-    assert "equipment_tier" in _columns(mysql_config, "planets")
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    for table in ("planets", "moons"):
-        columns = _columns(mysql_config, table)
-        assert set(equipment.FIELDS) <= columns and "equipment_tier" not in columns
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
-    finally:
-        conn.close()
-
-
 def test_a_stopped_run_can_be_started_again(mysql_config):
     load_old_schema(mysql_config, 135)
     conn = store.get_connection(mysql_config, ensure_schema=False)

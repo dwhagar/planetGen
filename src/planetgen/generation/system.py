@@ -606,7 +606,7 @@ class StarSystem:
         distance the body's light was made on (`radiation_field.field_at`, GEN.1441), by source. It draws nothing and changes no value; a body with no
         air-solved distance (a belt) has none.
         """
-        light_ledger.fill(self.effect_ledger, self.all_planets, lambda body, planet: getattr(body, "_air_light_au", None))
+        light_ledger.fill(self.effect_ledger, self.all_planets, lambda body, planet: None if body.body_type == "a" else body.build.air_light_au)
 
     @property
     def all_planets(self):
@@ -2467,7 +2467,7 @@ class StarSystem:
                 for moon in planet.moons:
                     if moon not in lost and moon.eccentricity != before[id(moon)]:
                         planetPhysics.update_orbital_position(moon)     # GEN.1540: the moon goes on the ellipse of the eccentricity it now has, in its place in its plane
-                self.kozai_outcomes["cycling"] += sum(1 for moon in planet.moons if getattr(moon, "_kozai", None) is not None)
+                self.kozai_outcomes["cycling"] += sum(1 for moon in planet.moons if moon.build.kozai is not None)
                 for moon in lost:
                     planet.moons.remove(moon)
                     self.kozai_outcomes["lost"] += 1

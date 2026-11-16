@@ -2,6 +2,110 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4383] - 2026-11-16
+
+**Headline:** 28 migration tests that only checked a column was added are retired, and the 14 stored old schemas they alone loaded go with them.
+
+### Removed
+
+- The `downgrade_to(N)` or `load_old_schema(N)` then migrate test of 28 `tests/test_migration_*.py` files (ozone_column, survival_equipment, regional_temperature, aerosols, radiogenic_content, bulk_composition, water_base_pressure, moon_tidal_flux, interior_heat, aquifers, rogue_habitability, surface_composition, atmosphere_colour, lid_regime, day_night_shares, rogue_rings, ice_species, phenomenon_sort_indexes, surface_liquid, ocean_tides, ring_age, dose_belt, surface_liquid_solutes, nuclear_arrival, surface_liquid_mix, temperature_swings, temperature_coverage, moon_origin). Each asserted only that a column exists, has a type or reads NULL after the migration. `tests/test_db_old_schemas.py` compares the shape (type, nullability, default, index, keys) of the baseline and the newest three old schemas migrated with a new database, and `tests/test_db_column_round_trip.py` (TEST.11) proves every column is stored and read.
+- 12 of those files had no other test and are deleted. Each other file keeps its save-and-load round trip, and `test_a_stopped_run_can_be_started_again` stays in survival_equipment and regional_temperature (it proves a half-applied migration finishes, which is not a shape check).
+- `test_migration_snow_line.py` is not in this set: its v131 test computes backfilled values, so it goes with TEST.733.
+- 14 old-schema fixtures nothing loads by number any more (v137, v152, v168, v169, v177, v179, v185, v187, v189, v190, v194, v196, v204, v216).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4382] - 2026-11-16
+
+**Headline:** The old-schema shape test starts from the baseline and the newest three stored schemas instead of all 137, about 1,350 s less on a full run.
+
+### Changed
+
+- `tests/test_db_old_schemas.py`: `test_old_schema_migrates_to_the_fresh_shape` runs for the baseline (v130) and the `NEWEST` (3) versions before the current one (`checked_versions()`), not for every stored schema. The run from the baseline passes through every revision and the fixtures hold schema only, so the start points between add nothing; the newest revisions are the ones Boss's server has not run, so they are also started from the schema just before each. The fixture-presence test now asks for those four.
+- `tests/fixtures/old_schemas/`: the 84 fixtures no test loads by number are removed with their README lines (the 53 that remain are the baseline, the newest three, and the ones `test_downgrade_to` and the `test_migration_*` files still load; they go with those tests under TEST.731 and TEST.733).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4381] - 2026-11-16
+
+**Headline:** the system scene and the pages that show a planet's air colour work again after the build record change.
+
+### Fixed
+
+- GEN.1651 follow-up: a planet restored for display is a plain namespace of its columns with no `build`, and the readers that take any object (`body_radiation._star_distance_au`, reached through the scene's air colour, and sixteen more in `physics/`) read `body.build.<field>` and raised `AttributeError`. They read `record_of(body)` now: the body's record, or an empty one for an object that built nothing, so they give what the old `getattr(body, "_x", None)` gave. Passes that write a field still use the real record of a real body.
+
+generation-output: unchanged
+
+## [8.0.4380] - 2026-11-16
+
+**Headline:** The test runner ends the supervisor a test leaves behind, as it does the workers, so a check run in the next test is no longer served by it.
+
+### Fixed
+
+- `tests/stray_workers.py` ends `planetgen.cli.supervisor` processes on a private test Redis database with the workers (`parse`, `strays`, `reap_database`, `reap_all`). A supervisor stays up for its five idle minutes after the test that started it, and `queue_command_env` ended only workers, so `test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_told_to` failed on main whenever an earlier test on the same Redis database had started one.
+- `tests/test_stray_workers.py` and `tests/test_queue_command_env.py` prove it for supervisors.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4379] - 2026-11-16
+
+**Headline:** The comet shape stand-ins now have their burn-down lines and no author-year names.
+
+### Fixed
+- GEN.595: the registry rows CMT2, CMT3, CMT5, CMT6, CMT7 and CMT8 (tweak level L3) now have lines in the burn-down register, three of them naming GEN.1765 as the item that replaces them, and the source names written without a reference id are dropped from section 6.303, so `test_every_hand_tuned_row_has_a_line` and `test_citations_outside_the_registry` pass again. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4378] - 2026-11-16
+
+**Headline:** the plan timing test reads the durations the table prints, so it is green again.
+
+### Fixed
+
+- TEST.774: `test_the_plan_says_where_its_time_went_step_by_step` parsed the plan's timing table as plain seconds, and the table prints durations in the clock form (`1h 23m 45s`, `850 ms`) since UX.319. The test now reads each row and the named total through a small helper that is the inverse of `format_duration_seconds`, with a tolerance of half a second per whole-second row. All the checks stay (sorted, at least eight rows, the sum equals the named total, the steps named).
+
+generation-output: unchanged
+
+## [8.0.4377] - 2026-11-16
+
+**Headline:** the twenty private attributes a build stashed on each body are now one `BuildRecord` on the body (`body.build`), so a reader finds them by name and a restored body reads the same defaults a new one does.
+
+### Changed
+
+- GEN.1651: the numbers a pass leaves for a later pass of the same body (the birth spin and eccentricity, the draws and the light an air began with, the capture of an envelope, the carbon sink, the moons a planet was born with and the rest) were set as private attributes (`_birth_spin`, `_air_replay`, `_late_core` and seventeen more) and read back with `getattr(body, "_x", None)`. They are the fields of `planetgen.generation.build_record.BuildRecord`, one per body, each with a default; `Planet`, `life._trial_copy`, `copy` and pickling carry the record as they carried the attributes (a pickle leaves the carbon sink out, a copy keeps it). Nothing is stored differently and nothing draws a random number.
+- The generator battery's digest moves because it walks each body's attributes and the record is one more; the body values on fixed seeds are identical (seeds 0 to 13, compared field by field before and after).
+
+generation-output: unchanged
+
+## [8.0.4376] - 2026-11-16
+
+**Headline:** The hand-set shape of a star's own comets is registered with a tier and a tweak level.
+
+### Changed
+- GEN.595: the period cuts, outer period ends, eccentricity ranges, inclination caps and family weights of `COMET_PERIOD_CLASSES`, the nucleus diameter range, the perihelion range, the chance a star holds comets and how many are now rows CMT1 to CMT8 of the stand-in registry (section 6.303), each with its tier, tweak level, knobs, falsifier and the data that would replace it, and tagged in `tuning.py`. Only the parabolic share was registered before (AUD20). The period cuts and the flat perihelion are derived from the dynamical class definitions and from a loss cone; the rest are named as hand set, with a derived draw (a power-law nucleus size, a supply from the outer belt) left as its own item. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4375] - 2026-11-16
+
+**Headline:** Two unused belt functions are removed.
+
+### Changed
+- GEN.1764: `belt_origin.destroyed_planet` (with its `destroyed-planet` cause, its retained-share constant and its origin text) and `clearance_ledger.log_uniform_quantile` (with `restricted_quantile`) had no caller: the generator models no event that destroys a planet and leaves rubble, and no placer reads the clearance ledger's spans yet. Both are deleted with their wiring register lines and registry row BG10; the ledger tests draw from the spans with a helper of their own. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4374] - 2026-11-16
+
+**Headline:** warming the map no longer goes quiet for a minute while it counts how much disk the tile cache uses, and it counts less often.
+
+### Fixed
+
+- PERF.274: `cache_is_full` walked every folder of the tile cache before each chunk of nodes. On a cold disk with 181,000 files that walk alone took 58 s of silence. The walk now tells the unit beat at each folder it enters (`tilecache.ON_DIRECTORY`, set by the warm-up to `unitbeat.moving`), and a walk that took at least a second is trusted for ten times as long as it took before the next one. Small caches are still read fresh every time, so what the cache says when it is nearly full is unchanged.
+
 ## [8.0.4373] - 2026-11-16
 
 **Headline:** A water-rich planet whose surface is too warm for ice now has its orbit worn down by the rock mantle's tide, not by an ice shell's at 100 K, so warm water worlds on close orbits no longer keep an eccentric orbit nothing wears down.

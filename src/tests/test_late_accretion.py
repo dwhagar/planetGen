@@ -11,6 +11,7 @@ from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 from planetgen.physics import impact_history, planets as planet_physics
 from planetgen.util import draw
+from planetgen.generation.build_record import BuildRecord
 from tests.fuzz_support import deterministic_entropy
 
 EARTH_KG = 5.9722e24
@@ -48,7 +49,7 @@ def test_making_the_air_again_with_the_late_accretion_it_drew_gives_the_planet_i
     checked = 0
     for seed in range(1, 6):
         planet, percent = _earth_like(seed)
-        if planet.body_type != "t" or getattr(planet, "_air_replay", None) is None:
+        if planet.body_type != "t" or planet.build.air_replay is None:
             continue
         before = _air(planet)
         assert planet_physics.remake_air(planet, percent, 0.0)
@@ -61,10 +62,10 @@ def test_making_the_air_again_with_the_late_accretion_it_drew_gives_the_planet_i
 
 def test_making_the_air_again_twice_with_one_percent_is_the_same_air():
     planet, percent = _earth_like(4)
-    state = planet._air_replay
+    state = planet.build.air_replay
     assert planet_physics.remake_air(planet, percent, 0.0)
     first = _air(planet)
-    planet._air_replay = state
+    planet.build.air_replay = state
     assert planet_physics.remake_air(planet, percent, 0.0)
     assert _air(planet) == first
 
@@ -85,9 +86,9 @@ def test_a_different_late_accretion_changes_the_air_and_not_the_run_stream():
 
 def test_a_moon_or_a_planet_with_no_replay_is_left_alone():
     planet, percent = _earth_like(2)
-    planet._air_replay = None
+    planet.build.air_replay = None
     assert not planet_physics.remake_air(planet, percent)
-    moon = types.SimpleNamespace(is_moon=True, _air_replay=(None, None, None))
+    moon = types.SimpleNamespace(is_moon=True, build=BuildRecord(air_replay=(None, None, None)))
     assert not planet_physics.remake_air(moon, percent)
 
 
@@ -119,10 +120,10 @@ def test_a_whole_system_has_its_rocky_planets_set_by_the_belts_and_leaves_the_ru
             draw.set_run_seed(seed)
             system = StarSystem(system_config=cfg)
         for planet in system.all_planets:
-            if planet.body_type == "t" and not planet.is_moon and getattr(planet, "_late_accreted_percent", None) is not None:
+            if planet.body_type == "t" and not planet.is_moon and planet.build.late_accreted_percent is not None:
                 found += 1
-                assert 0.0 < planet._late_accreted_percent <= impact_history.LATE_ACCRETED_PERCENT_MAX
-                assert planet._air_replay is None
+                assert 0.0 < planet.build.late_accreted_percent <= impact_history.LATE_ACCRETED_PERCENT_MAX
+                assert planet.build.air_replay is None
     assert found > 5
 
 
@@ -142,24 +143,24 @@ def _drawn_percent(settled):
 def test_the_gate_leaves_the_air_when_the_late_accretion_barely_moves_what_the_volcanoes_gave_and_makes_it_when_it_moves_it_much():
     planet, percent = _earth_like(2)
     before = _air(planet)
-    state = planet._air_replay
+    state = planet.build.air_replay
     drawn = _drawn_percent(state[3])    # the percent the air was made with: it moves nothing
     assert not planet_physics.remake_air(planet, drawn, 1.0e-9)
-    assert _air(planet) == before and planet._late_accreted_percent == drawn and planet._air_replay is None
-    planet._air_replay = state
+    assert _air(planet) == before and planet.build.late_accreted_percent == drawn and planet.build.air_replay is None
+    planet.build.air_replay = state
     assert planet_physics.remake_air(planet, percent * 100.0, 1.0e-9)    # a gate every change passes
     assert _air(planet) != before
 
 
 def test_a_planet_with_no_air_is_not_made_again():
-    planet = types.SimpleNamespace(is_moon=False, _air_replay=(None, None, None, None))      # the air found nothing to hold, so it kept no setting
+    planet = types.SimpleNamespace(is_moon=False, build=BuildRecord(air_replay=(None, None, None, None)))      # the air found nothing to hold, so it kept no setting
     assert not planet_physics.remake_air(planet, 1.0, 0.0)
-    assert planet._air_replay is None and planet._late_accreted_percent == 1.0
+    assert planet.build.air_replay is None and planet.build.late_accreted_percent == 1.0
 
 
 def _stub(body_type="t", deferred=True, **kwargs):
     star = kwargs.pop("star")
-    fields = dict(body_type=body_type, is_moon=False, mass=EARTH_KG, radius=6371.0, distance=1.0, star=star, _deferred_climate=(0, None) if deferred else None)
+    fields = dict(body_type=body_type, is_moon=False, mass=EARTH_KG, radius=6371.0, distance=1.0, star=star, build=BuildRecord(deferred_climate=(0, None) if deferred else None))
     fields.update(kwargs)
     return types.SimpleNamespace(**fields)
 
@@ -175,9 +176,10 @@ def test_the_first_air_reads_the_late_accretion_the_system_gives_and_only_for_a_
     monkeypatch.setattr(late_accretion, "_same_star", lambda belt_body, planet: True)
     planets = [bare, made, giant, belt]
     late_accretion.give_first_air(planets)
-    assert bare._late_accreted_percent == late_accretion.percent_in(bare, planets) > 0.0
-    for left in (made, giant, belt):
-        assert not hasattr(left, "_late_accreted_percent")
+    assert bare.build.late_accreted_percent == late_accretion.percent_in(bare, planets) > 0.0
+    for left in (made, giant):
+        assert left.build.late_accreted_percent is None
+    assert not hasattr(belt, "build")      # a belt keeps no build record
 
 
 def test_a_whole_system_makes_few_airs_again_now_the_first_air_reads_the_late_accretion(monkeypatch):

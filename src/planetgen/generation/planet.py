@@ -206,8 +206,6 @@ class Planet(PlanetaryObject):
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
-    _deferred_climate = None
-    """tuple or None: `(moon_count, distance_override)` of a body built with `defer_climate` whose air and moons `finish_climate` still owes (GEN.1282)."""
     _motion_done = False
 
     SERIALIZABLE_FIELDS = [
@@ -320,20 +318,10 @@ class Planet(PlanetaryObject):
     explanation of what this field means.
     """
 
-    TRANSIENT_STATE = ("_co2_sink",)
-    """tuple[str]: Attributes kept on a body while it is built and never stored (`planets._co2_sink`: a sink that holds a closure over the body), which a pickle of the body leaves out
-    (`__getstate__`) so that a sector can be sent to another process; a copy made in the same process keeps them (`__copy__`, `__deepcopy__`)."""
-
-    def __getstate__(self):
-        state = dict(self.__dict__)
-        for name in self.TRANSIENT_STATE:
-            if name in state:
-                state[name] = None
-        return state
-
     def __copy__(self):
         clone = object.__new__(type(self))
         clone.__dict__.update(self.__dict__)
+        self._copy_build_record(clone)
         return clone
 
     def __deepcopy__(self, memo):
@@ -341,7 +329,7 @@ class Planet(PlanetaryObject):
         clone = object.__new__(type(self))
         memo[id(self)] = clone
         for name, value in self.__dict__.items():
-            clone.__dict__[name] = value if name in self.TRANSIENT_STATE else copy.deepcopy(value, memo)
+            clone.__dict__[name] = copy.deepcopy(value, memo)
         return clone
 
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
@@ -419,7 +407,7 @@ class Planet(PlanetaryObject):
         self.is_moon = is_moon
         self.moon_origin = moon_origin
         self.moon_disk_system = moon_disk_system
-        self._late_core = late_core or belt_member is not None       # GEN.1510: a belt member was built from solids and captured no envelope
+        self.build.late_core = late_core or belt_member is not None       # GEN.1510: a belt member was built from solids and captured no envelope
         self.belt_member = belt_member
         self.belt_order = belt_order
         self.belt_rank = None if belt_member is None else belt_member["rank"]
@@ -508,10 +496,10 @@ class Planet(PlanetaryObject):
         self.primary_mass_kg = primary_mass_kg
         # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds does not draw the body again: the finished body
         # is judged on its conditions at the end of the system and dropped if it is one (GEN.1397).
-        self._deferred_climate = None
+        self.build.deferred_climate = None
         if defer_climate and system_config.HABITABLE_WORLD is not False:
             self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
-            self._deferred_climate = (moon_count, distance_override)
+            self.build.deferred_climate = (moon_count, distance_override)
             return
         self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
@@ -524,12 +512,12 @@ class Planet(PlanetaryObject):
         planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
         self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
         planetPhysics.calculate_surface_gravity(self)
-        # Class M tiers, envelope dial: under a tier a share of the ecosphere's rocky planets is a late core (GEN.1323), one draw, made here once. `_late_core` is a stored
+        # Class M tiers, envelope dial: under a tier a share of the ecosphere's rocky planets is a late core (GEN.1323), one draw, made here once. `build.late_core` is a stored
         # plain attribute, so the settle at the final age (`refresh_at_final_age`) reads the decision and neither draws again nor brings the envelope back. Science: no draw.
         # The zone is the one held now: a planet moved across a zone edge later (`validate_system`, `reconcile_zone`) keeps this decision.
         share = abundance_tier.bare_share(self)
-        if share > 0.0 and not self._late_core and draw.random() < share:
-            self._late_core = True
+        if share > 0.0 and not self.build.late_core and draw.random() < share:
+            self.build.late_core = True
         # Class M tiers, quiet interior (GEN.1721): under a tier a share of the candidates has volcanic gases that take less oxygen; one draw, made here once, and the
         # attribute is set only when the draw says so (a planet on `science`, or not drawn quiet, holds no such field: the golden digests list every field).
         quiet = abundance_tier.quiet_share(self)
@@ -549,7 +537,7 @@ class Planet(PlanetaryObject):
         else:
             planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
         planetPhysics.classify(self)
-        self._age_drawn = self.star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
+        self.build.age_drawn = self.star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
 
         if moon_count != DEFER_MOONS:
             self.add_moons(moon_count, bare=bare_moons)
@@ -560,7 +548,7 @@ class Planet(PlanetaryObject):
         Gives a body built with `defer_climate` its orbit's orientation, position and velocity (`planets.generate_orbit_state`, GEN.1548), which need only its mass and orbit, so the planets' own
         orbit work (secular exchange, resonant chains) can run before any air is made. A body that is not deferred, or is done, does nothing.
         """
-        if self._deferred_climate is None or self._motion_done:
+        if self.build.deferred_climate is None or self._motion_done:
             return
         self._motion_done = True
         planetPhysics.generate_orbit_state(self, self.primary_mass_kg)
@@ -570,11 +558,11 @@ class Planet(PlanetaryObject):
         Makes the air, the class and the moons of a body built with `defer_climate` (GEN.1282), at the distance it has now (and its motion first, if
         `finish_motion` has not). Called by `StarSystem._settle_to_final_age` once the planets' orbit work is done; a body that is not deferred does nothing.
         """
-        if self._deferred_climate is None:
+        if self.build.deferred_climate is None:
             return
         self.finish_motion()
-        moon_count, distance_override = self._deferred_climate
-        self._deferred_climate = None
+        moon_count, distance_override = self.build.deferred_climate
+        self.build.deferred_climate = None
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
         planetPhysics.prepare_class(self)
         self._finish_motion_and_moons(self.primary_mass_kg, moon_count, bare_moons=not self.is_moon)
@@ -611,8 +599,8 @@ class Planet(PlanetaryObject):
                 or self._draw_moons()):
             planetPhysics.generate_moons(self, bare=bare)
         # GEN.959: the moons' history with the planet's spin (outward drift, the fall of a moon into a ring, the planet's day), from its birth spin
-        if self.moons and getattr(self, "_birth_spin", None) is not None:
-            planetPhysics.generate_spin(self, self.star.mass, birth=self._birth_spin)
+        if self.moons and self.build.birth_spin is not None:
+            planetPhysics.generate_spin(self, self.star.mass, birth=self.build.birth_spin)
         # GEN.767: the day and night shares, the moons' with their parent's shadow (no draws)
         daylight.generate(self)
         for moon in self.moons:

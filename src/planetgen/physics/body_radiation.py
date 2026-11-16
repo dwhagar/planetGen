@@ -20,6 +20,7 @@ spectrum below its air; a body with none reads the star's unfiltered light (`bar
 for; a body with no star or no distance has no index (`None`).
 """
 
+from planetgen.generation.build_record import record_of
 import functools
 
 import numpy as np
@@ -40,7 +41,7 @@ EARTH_AIR_PA = {"N2": 79100.0, "O2": 21200.0, "Ar": 950.0}
 def _star_distance_au(body):
     """The body's distance from its star: the one `magnetism.update_exposure` set, else a planet's own orbit (a moon's is its planet's, so a
     moon without it has none)."""
-    distance = getattr(body, "_star_distance_au", None)
+    distance = record_of(body).star_distance_au
     if distance is None and not getattr(body, "is_moon", False):
         distance = getattr(body, "distance", None)
     return distance

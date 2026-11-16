@@ -25,6 +25,7 @@ eccentricity; there is no escape by eccentricity or inclination, no libration am
 are rows HP3 to HP5 of section 6.300 of the gap plan (`[Stand-in 6.300 HP3, tier T7, tweak L1.]` on `CAPTURE_OFFSET`, HP4 on `capture`, HP5 on `give_forced_eccentricities`).
 """
 
+from planetgen.generation.build_record import record_of
 import math
 from dataclasses import dataclass
 
@@ -123,8 +124,8 @@ def give_forced_eccentricities(planet):
             continue
         moon.eccentricity = forced
         planets.update_orbital_position(moon)
-        if getattr(moon, "_age_drawn", None) is not None:
-            moon._age_drawn = 0.0      # the air, class and heat of a rocky moon are made again once, on the orbit it ends with (`planets.stale_air`)
-        moon._resonance_e = forced
+        if record_of(moon).age_drawn is not None:
+            moon.build.age_drawn = 0.0      # the air, class and heat of a rocky moon are made again once, on the orbit it ends with (`planets.stale_air`)
+        moon.build.resonance_e = forced
         moved.append(moon)
     return moved

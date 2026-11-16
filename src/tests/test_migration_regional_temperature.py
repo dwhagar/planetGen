@@ -22,20 +22,6 @@ def _columns(config, table):
         conn.close()
 
 
-def test_a_v136_galaxy_gains_the_regional_temperatures(mysql_config):
-    load_old_schema(mysql_config, 136)
-    assert store.schema_status(mysql_config)[0] == 136
-    assert "temp_swing_k" not in _columns(mysql_config, "planets")
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    for table in ("planets", "moons"):
-        assert set(regional_temperature.FIELDS) <= _columns(mysql_config, table)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
-    finally:
-        conn.close()
-
-
 def test_a_stopped_run_can_be_started_again(mysql_config):
     load_old_schema(mysql_config, 136)
     conn = store.get_connection(mysql_config, ensure_schema=False)

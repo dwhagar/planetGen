@@ -44,7 +44,7 @@ SOL_LIKE = [rocky(0.39, 3.3e23), rocky(0.72, 4.87e24), rocky(1.0), rocky(1.52, 6
 # --- the cause file -------------------------------------------------------------------------------------------------------------------------
 
 def test_the_cause_file_has_six_formation_causes_and_three_shaping_ones_with_sentences_that_format():
-    assert set(bo.FORMATION_CAUSES) == {"gap", "tail", "snow-line-bump", "outer-disk", "collisional-debris", "destroyed-planet"}
+    assert set(bo.FORMATION_CAUSES) == {"gap", "tail", "snow-line-bump", "outer-disk", "collisional-debris"}
     assert set(bo.SHAPING_CAUSES) == {"giant-stirring", "instability-depletion", "planet-scattering"}
     for code, cause in bo.CAUSES.items():
         assert cause["label"] and cause["text"].format(**{name: 1.5 for name in cause["fields"]}), code
@@ -228,14 +228,14 @@ def test_a_hot_jupiter_with_no_other_body_leaves_the_disk_past_it_as_the_outer_d
 
 # --- destroyed planets and collision rubble -------------------------------------------------------------------------------------------------
 
-def test_a_destroyed_planet_leaves_half_its_mass_as_a_belt_round_its_orbit():
-    debris = bo.destroyed_planet(EARTH, 2.0, 0.02)
-    assert debris.cause == "destroyed-planet" and debris.mass_earth == pytest.approx(bo.DESTROYED_RETAINED_SHARE)
-    (belt,) = [b for b in build([giant(8.0)], debris=[debris]) if b.origin == "destroyed-planet"]
-    assert belt.primordial_mass_earth == pytest.approx(0.5)
+def test_collision_rubble_becomes_a_belt_round_its_orbit():
+    """Moved from the destroyed-planet test (GEN.1764 removed that cause: no event of the generator destroys a planet and leaves rubble)."""
+    debris = bo.Debris("collisional-debris", bo.COLLISIONAL_DEBRIS_MASS_EARTH, 2.0, 0.02)
+    (belt,) = [b for b in build([giant(8.0)], debris=[debris]) if b.origin == "collisional-debris"]
+    assert belt.primordial_mass_earth == pytest.approx(bo.COLLISIONAL_DEBRIS_MASS_EARTH)
     assert belt.inner_au == pytest.approx(2.0 * (1.0 - bo.DEBRIS_MIN_WIDTH)) and belt.outer_au == pytest.approx(2.0 * (1.0 + bo.DEBRIS_MIN_WIDTH))
-    assert "destroyed near 2 AU" in belt.sentence
-    wide = bo.destroyed_planet(EARTH, 2.0, 0.2)
+    assert "collision between large bodies near 2 AU" in belt.sentence
+    wide = bo.Debris("collisional-debris", bo.COLLISIONAL_DEBRIS_MASS_EARTH, 2.0, 0.2)
     assert bo._debris_candidate(wide)["outer_au"] == pytest.approx(2.0 * 1.2)
 
 
@@ -380,7 +380,7 @@ def test_a_heavier_outer_giant_has_the_larger_safronov_number_and_throws_out_mor
 ])
 @pytest.mark.parametrize("u", [0.0, 0.5, 1.0])
 def test_every_belt_conserves_its_mass_and_has_a_sentence_made_of_its_numbers(chain, u):
-    debris = [bo.destroyed_planet(2e24, 2.2, 0.1)]
+    debris = [bo.Debris("collisional-debris", bo.COLLISIONAL_DEBRIS_MASS_EARTH, 2.2, 0.1)]
     belts = build(chain, u=u, debris=debris)
     assert belts and [b.inner_au for b in belts] == sorted(b.inner_au for b in belts)
     for belt in belts:

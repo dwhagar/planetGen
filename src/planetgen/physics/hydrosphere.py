@@ -61,6 +61,7 @@ planets (`physics.rogue_surface`) use the functions here.
 The ranges are design defaults, not fits.
 """
 
+from planetgen.generation.build_record import record_of
 import math
 
 from planetgen import tuning
@@ -325,7 +326,7 @@ def _clear(body):
 
 def water_loss_kg(body):
     """The water escape has stripped from a body, kg (GEN.639; `runaway_history.loss_kg`; no draws)."""
-    return runaway_history.loss_kg(getattr(body, "star", None), getattr(body, "_star_distance_au", None), body.mass, body.radius)
+    return runaway_history.loss_kg(getattr(body, "star", None), record_of(body).star_distance_au, body.mass, body.radius)
 
 
 def draw_surface_water(body):
