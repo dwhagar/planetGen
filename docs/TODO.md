@@ -11389,11 +11389,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 04 (read done). Prerequisites: none. Related: GEN.1447, GEN.1467, GEN.1492, GEN.1499.
   Filed by the TODO thread.
 
-- [ ] **TEST.714 Tests that pin a seed for a rare case find the case by searching seeds instead, so a generation change stops breaking them**
-  From the Train Manager's Train 22 report (reports/train22/train-manager-input-2026-11-09.md, 2026-11-09): 5 of the first 9 gate reds were tests that pin one seed (a close pair at seed 100031, a moon in the first seeded system, stored values at a seed) and broke when an unrelated generation change moved that seed's draw. Each red costs a gate round, about half a day. Do: list the tests that pin a seed to get a rare case (a circumbinary pair, a system with a moon, a ring, a belt with a companion, a giant with caps) and give each a small helper that searches a bounded number of seeds for the case and uses the first found, failing with a clear message if none exists in the bound; reuse any seed-search helper already in src/tests (read first). Start with the files that failed on Train 21 and 22 (test_circumbinary_light, test_describe_render, test_moon_history, test_spin, test_belt_light), then the rest by how often they changed in git history. Done: those tests no longer pin a seed for a rare case; a unit test of the helper; no generation change. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-09): Lane 14 (test health), after GEN.1468. Prerequisites: none. Related: TEST.261.
-  Filed by the TODO thread.
-
 - [ ] **OPS.143 Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine**
   Boss, 5:16 PM EST on 2026-11-09 ('implement the heartbeat as described'); research in reports/heartbeat-research-2026-11-09.md. Detail: each rule (dead, waiting, stuck, looping, slow, working), the false-kill case (a moving counter at 10 times the estimate is not killed), requeue once then fail, and the stale rule. Then a trial run of a full-size galaxy on the lane machine with the heartbeat on, reporting every flag it raised. Done: the trial report; no unit was killed while its counter moved. Lock-free.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.212 and OPS.225 (fake clock) and OPS.247 (full-galaxy trial). Prerequisites: OPS.137, OPS.140, OPS.141. Related: PERF.254, OPS.122, OPS.130, PERF.147, OPS.123.
@@ -11709,11 +11704,6 @@ clears each one.
 - [ ] **TEST.730 Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s)**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A2). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
-  Filed by the TODO thread.
-
-- [ ] **TEST.733 Retire the 23 data-backfill migration tests for migrations Boss's server has already run, keeping the not-yet-applied ones**
-  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Boss, 3:53 PM EST on 2026-11-12: "Yes I ran the update ... I'm okay with the migration tests for old versions going away ... Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above". So all 23 retire, none held; a migration chain kept only for history may come later, not now.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 15 (moved from the old Lane 03, now Gate, which had not started it). Prerequisites: none. Related: TEST.261.
   Filed by the TODO thread.
 
 - [ ] **TEST.737 Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips**
