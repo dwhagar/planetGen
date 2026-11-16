@@ -230,14 +230,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.ice_light.light_below | by design | the light under a lid for a given surface light, the caller's own star: the refuge term reads `transmission` and the light floor, so this is the form the tests and later climate lanes read (GEN.1726) |
 | function | planetgen.physics.ice_light.thickest_ice_m | by design | the thickest bare ice that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |
 | function | planetgen.physics.ice_light.deepest_snow_m | by design | the deepest snow that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |
-| module | planetgen.physics.ice_growth | GEN.1735 | the thickness of the ice a world's water wears and the snow on it (GEN.1728); the refuge term (GEN.1735) is to call `lid_of` for the lid it passes to `ice_light.transmission` |
-| row | 6.298:IG2 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG3 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG4 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG5 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG6 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG7 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
-| row | 6.298:IG8 | GEN.1735 | read by `physics/ice_growth.py`, which GEN.1728 wires |
 | row | 6.212:DP3 | by design | `magnetic_geometry.OFFSET_CLASS_RP`, a documentary constant: the offset class is drawn by kind (`OFFSET_KINDS`), the 0.15 radii is the limit the sheet text and the source state, and no code reads the constant (GEN.1632 found it) |
 | row | 6.296:SA2 | by design | `starlight_aloft.COVERED_BELOW_CM1`, read inside the module only in the text of the covered range, which `line_opacity.EDGES_CM1` sets; the row names the number the tables stop at (GEN.1632 found it) |
 | row | 6.6c:IR18 | by design | `greenhouse_table.FITTED_UP_TO_K`, a documentary constant: the table is no longer clamped there (GEN.1580), so the 4,000 K is the edge of the fit the row describes and nothing reads it (GEN.1632 found it) |

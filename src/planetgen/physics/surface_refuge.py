@@ -15,9 +15,11 @@ worked once and kept):
 
 * a `brine seep`: its liquid (`ocean_fraction`) where the temperature is in the range;
 * an `ice-covered ocean` or an `ice` world: the meltwater where a place rises above 273.15 K (the ice cover of the place for an `ice` world: a melt hole, a cryoconite pond);
-* the sea under the lid of an `ice-covered ocean` (GEN.1724 research, LA4, LA5): the lid lets `ice_light.transmission` (GEN.1726) of the light through, and the sea (`ocean_fraction`) makes the
-  ocean's own production in proportion to it, at 273.15 K, when what gets through is over the light floor (`LIGHT_FLOOR_W_M2`, RW2). A lid of a few metres counts (the lake mats under 3 to 5 m of ice, most of
-  the Arctic Ocean's production is under ice), a lid of a kilometre does not. Snow on the ice is left out;
+* the sea under the lid of an `ice-covered ocean` (GEN.1724 research, LA4, LA5; GEN.1735): each cell of the world wears the lid its own mean temperature, the swing of its year and the starlight its
+  surface absorbs give (`ice_growth.lid_of`: the ice a freezing season grows under Stefan's law, the snow on it, and for a year that never thaws the balance of the ice that is worn from the top and grown from below), the lid lets
+  `ice_light.transmission` (GEN.1726) of the light through, and the sea (`ocean_fraction`) makes the ocean's own production in proportion to it, at 273.15 K, for the share of the year the cell is
+  frozen, when what gets through is over the light floor (`LIGHT_FLOOR_W_M2`, RW2). A lid of a few metres counts (the lake mats under 3 to 5 m of ice, most of the Arctic Ocean's production is under ice), a lid of a kilometre
+  does not; a cell whose year never freezes has no lid, and its open water is counted where it is wet and lit (the melting steps above);
 * a world of `SURFACE_STATES` with an aquifer (`aquifers`): the springs and seeps where the water table meets the ground, `SEEP_LAND_SHARE` of the land at a table at the surface and
   falling as `exp(-depth / SEEP_DEPTH_KM)` with the depth of its top ([R5271, R5272]: nearly all the groundwater that reaches the surface comes from a table within a metre), in
   the range. A table deeper than a few metres gives none (the springs where relief cuts it are left out: the minimum reasonable case); the water of a deep aquifer reaches no light. Once the world's life has
@@ -41,7 +43,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import aquifers, constants, ice_light, temperature_coverage
+from planetgen.physics import aquifers, constants, ice_growth, ice_light, temperature_coverage
 
 YEAR_HOURS = 8760.0
 """float: The hours of a year, 365 days of 24 hours (a definition: source tier T1, tweak level L0)."""
@@ -80,6 +82,8 @@ ROOT_SEEP_SHARE = 0.27
 """float: The share of the land a rooted plant draws groundwater from once the stage is reached: the middle of the 22 to 32 percent of Earth's land under shallow groundwater influence ([R5271], read). LA7, tier T1 to T6, tweak level L1."""
 ROOT_DEPTH_KM = 0.0095
 """float: The depth, km, a water table falls by 1/e in the share of the land a rooted plant reaches: the mean maximum rooting depth of desert plants, 9.5 m (the record is 68 m; [R5274], read at second hand). LA7, tier T1, tweak level L0."""
+DEFAULT_ALBEDO = 0.3
+"""float: The Bond albedo taken for a body that stores none, when the starlight is worked from its star and distance (Earth's, a stand-in: source tier T6, tweak level L0)."""
 DEFAULT_LIT_SHARE = 0.5
 """float: The share of the time the star is up when `day_share_mean` is not stored (a half: stand-in, source tier T6, tweak level L0)."""
 
@@ -186,7 +190,7 @@ def refuge_of(values):
         place = cells * np.where(has, share * wet_steps / steps, 0.0)
         warm += float((place * mean_wet).sum())
         weight += float(place.sum())
-    under = _under_ice(values, state, lit)
+    under = _under_ice(values, state, lit, series)
     if under is not None:           # the sea under a lid that lets light through: the ocean's own production, in proportion to the light that gets through (LA4)
         hours, produce = under
         most = max(most, hours)
@@ -198,25 +202,71 @@ def refuge_of(values):
     return Refuge(most, area, warm / weight if weight > 0.0 else None, plants, plants_cover)
 
 
-def under_ice_light_share(values):
-    """The share of the usable light that gets through the ice lid of an `ice-covered ocean` (`ice_light.transmission` of sea ice, GEN.1726, rows IL1 to IL7) from its stored `ice_shell_km`; 0 for any other
-    state or a lid of unknown thickness."""
-    if values.get("hydrosphere") != "ice-covered ocean" or values.get("ice_shell_km") is None:
-        return 0.0
-    return ice_light.transmission(1000.0 * max(float(values["ice_shell_km"]), 0.0), kind=ice_light.SEA)
+def _daily_mean(series):
+    """The series with the turn of the day averaged out, `[row, column, step]` (a sea's lid answers the year, not the night): each step takes the mean of the steps of one solar day round it; a body whose day is
+    not short against its year (a slow turner, a locked one) keeps its steps."""
+    temperature = series.temperature_k
+    steps = temperature.shape[2]
+    day = getattr(series, "solar_days", None)
+    window = int(round(day / series.step_days)) if day and series.step_days and math.isfinite(day) else 1
+    if window < 2 or window * 4 > steps:
+        return temperature
+    return sum(np.roll(temperature, -k, axis=2) for k in range(window)) / window
 
 
-def _under_ice(values, state, lit):
-    """`(hours, production share)` of the sea under a thin lid, or `None`: the light that gets through (`under_ice_light_share`) must be over `LIGHT_FLOOR_W_M2`, and production is the ocean's
-    share of the surface times the transmitted share, linear below the full light (LA4)."""
+def _absorbed_w_m2(values):
+    """The mean starlight the surface absorbs, W/m2: a quarter of the starlight (`temperature_coverage.starlight_w_m2`) over the part the albedo does not return; the star's flux at the body's
+    distance with a Bond albedo of 0.3 for a body with no stored albedo and greenhouse; 0 for none."""
+    light, albedo = temperature_coverage.starlight_w_m2(values)
+    if not light and values.get("star_luminosity_w") and values.get("star_distance_au"):
+        light = values["star_luminosity_w"] / (4.0 * math.pi * (values["star_distance_au"] * constants.AU_TO_M) ** 2)
+        albedo = DEFAULT_ALBEDO
+    return 0.25 * light * (1.0 - albedo) if light else 0.0
+
+
+def lid_of_cells(values, temperature):
+    """
+    The lid each cell of a sea wears and the light it lets through (GEN.1735, `ice_growth.lid_of`): `(transmission, share of the year under the lid)`, two arrays of the shape of the cells.
+    Each cell's lid is the one its own mean temperature and the swing of its year (the root two of the standard deviation of the series with the day averaged out) give, with the starlight
+    the surface absorbs and the heat the body's interior gives its water (`internal_heat_flux_w_m2`, the Arctic's `ice_growth.OCEAN_FLUX_W_M2` where none is stored); the light is
+    `ice_light.transmission` of the ice and the snow on it. A cell whose year never freezes has no lid (`(0, 0)`: its open water is counted where it is wet and lit). The lid is the one the
+    freezing season leaves, so a summer's thin ice counts as the thick one: less light, the cautious side.
+    """
+    mean = temperature.mean(axis=2)
+    swing = math.sqrt(2.0) * temperature.std(axis=2)
+    flux = values.get("internal_heat_flux_w_m2") or ice_growth.OCEAN_FLUX_W_M2
+    absorbed = _absorbed_w_m2(values)
+    key = np.stack([np.round(mean * 4.0) / 4.0, np.round(swing * 4.0) / 4.0], axis=-1).reshape(-1, 2)
+    unique, inverse = np.unique(key, axis=0, return_inverse=True)
+    through, frozen = np.zeros(len(unique)), np.zeros(len(unique))
+    for i, (mean_k, swing_k) in enumerate(unique):
+        share = ice_growth.frozen_share(mean_k, swing_k)
+        if share > 0.0:
+            lid = ice_growth.lid_of(mean_k, swing_k, absorbed, flux)
+            through[i] = ice_light.transmission(lid.ice_m, lid.snow_m, kind=ice_light.SEA)
+            frozen[i] = share
+    inverse = np.asarray(inverse).reshape(mean.shape)
+    return through[inverse], frozen[inverse]
+
+
+def _under_ice(values, state, lit, series):
+    """
+    `(hours, production share)` of the sea under the lids of its cells, or `None` (GEN.1735, LA4): each cell's lid is `lid_of_cells`'s; a cell counts when the light that gets through is over
+    `LIGHT_FLOOR_W_M2` (the usable light at the surface times the transmission), for the share of the year it is frozen, and its production is the ocean's share of the surface times the transmitted share,
+    linear below the full light. The hours are the longest any such cell is under its lid.
+    """
     if state != "ice-covered ocean":
         return None
-    through = under_ice_light_share(values)
-    light = surface_light_w_m2(values)
     sea = float(values.get("ocean_fraction") or values.get("ground_ocean_fraction") or 0.0)
-    if through <= 0.0 or not light or through * light < LIGHT_FLOOR_W_M2 or sea <= 0.0:
+    light = surface_light_w_m2(values)
+    if sea <= 0.0 or not light:
         return None
-    return YEAR_HOURS * lit, sea * through
+    through, frozen = lid_of_cells(values, _daily_mean(series))
+    has = (through * light >= LIGHT_FLOOR_W_M2) & (frozen > 0.0)
+    if not has.any():
+        return None
+    cells = temperature_coverage._cell_weights(series)
+    return float(frozen[has].max()) * YEAR_HOURS * lit, float((cells * np.where(has, sea * through * frozen, 0.0)).sum())
 
 
 def lit_liquid_hours(values):
