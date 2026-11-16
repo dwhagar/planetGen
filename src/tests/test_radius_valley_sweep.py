@@ -23,13 +23,13 @@ from planetgen.physics import constants, envelope_capture, planet_classes, plane
 from planetgen.util import draw
 
 EARTH = constants.EARTH_MASS_TO_KG
-SYSTEMS = 60
+SYSTEMS = 120
 SEED = 20261107
-BLOCKS = 4
-"""int: TEST.783: the sweep is made in this many blocks of `SYSTEMS // BLOCKS` systems, one worker each, every block on a run seed of its own."""
-FIRST_BLOCK = 4
-"""int: The seed number of the first block. Twelve blocks (180 systems) put 197 inner planets of 1 to 4 Earth radii, 72 of them above 2.0 (0.365); blocks 0 to 3 alone drew 26 of 89
-(0.292, under the 0.3 edge of the first test by sampling noise: one in ten draws of 89 planets), blocks 4 to 7 draw 31 of 67 (0.46), so the sweep is blocks 4 to 7."""
+BLOCKS = 8
+"""int: TEST.783: the sweep is made in this many blocks of `SYSTEMS // BLOCKS` systems, one worker at a time, every block on a run seed of its own (blocks 0 to 7: the first eight, none left out).
+The share of the inner planets above 2.0 Earth radii that the first test reads is 57 of 156 (0.365) over these blocks; the blocks alone give 0.23 to 0.62 (standard deviation 0.13), and
+twelve blocks (blocks 8 to 11 added) give 72 of 197 (0.365). The binomial noise of 156 planets is 0.039, so the 0.3 edge of the band is 1.7 of those under the share: a sample drawn again
+(a change to the generator moves every draw) falls under 0.3 about one time in twenty, and the band, not the sample, is what is tight."""
 INNER_DAYS = 100.0
 """float: [R1478] count the planets inside 100 days."""
 
@@ -38,7 +38,7 @@ Row = collections.namedtuple("Row", "days radius mass envelope density planet_ty
 
 def _block_rows(block):
     """One row per rocky planet of one block of G2V systems, on the run seed of the block."""
-    draw.set_run_seed(f"{SEED}:{FIRST_BLOCK + block}")
+    draw.set_run_seed(f"{SEED}:{block}")
     rows = []
     for _ in range(SYSTEMS // BLOCKS):
         cfg = SystemConfig()
@@ -54,7 +54,7 @@ def _block_rows(block):
 @pytest.fixture(scope="module")
 def sweep():
     """One row per rocky planet of `SYSTEMS` G2V systems. TEST.783: the systems of a run seed make one another's draws, so the sweep is `BLOCKS` blocks on
-    seeds of their own, made at the same time (forked workers: a system takes about 20 s, and 60 one after another ran past the hang guard)."""
+    seeds of their own, made at the same time (forked workers: a system takes about 15 s, and 60 one after another ran past the hang guard; the sample is twice as large for a third of the time)."""
     with concurrent.futures.ProcessPoolExecutor(max_workers=min(BLOCKS, os.cpu_count() or 1), mp_context=multiprocessing.get_context("fork")) as pool:
         blocks = list(pool.map(_block_rows, range(BLOCKS)))
     return [row for rows in blocks for row in rows]
