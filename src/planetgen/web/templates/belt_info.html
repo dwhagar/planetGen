@@ -38,6 +38,30 @@
 </section>
 {%- endif %}
 
+{%- if planets %}
+<section class="panel" id="belt-planets" aria-labelledby="belt-planets-heading">
+  <div class="panel-header"><h2 id="belt-planets-heading">Bodies made planets</h2></div>
+  <p>The {{ planets|length }} heaviest round bodies of this belt were made the way every planet is made: they have a name, a page of their own and a place among the planets of the star. Their mass is not counted below. Each keeps its designation in the belt.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead>
+      <tr><th scope="col">Planet</th><th scope="col">Designation in the belt</th><th scope="col">Class</th><th scope="col">Mass</th><th scope="col">Diameter</th><th scope="col">Distance</th></tr>
+    </thead>
+    <tbody>
+      {%- for planet in planets %}
+      <tr>
+        <th scope="row"><a href="{{ planet.url }}">{{ planet.name }}</a></th>
+        <td><code>{{ planet.designation }}</code></td>
+        <td>{{ planet.planet_class or "" }}</td>
+        <td>{{ quantity(planet.mass) }}</td>
+        <td>{{ quantity(planet.diameter) }}</td>
+        <td>{{ quantity(planet.distance) }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
+
 <section class="panel" id="belt-bodies" aria-labelledby="belt-bodies-heading">
   <div class="panel-header"><h2 id="belt-bodies-heading">Bodies kept one by one</h2></div>
   {%- if bodies %}

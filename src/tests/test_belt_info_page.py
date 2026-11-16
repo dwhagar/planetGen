@@ -35,7 +35,7 @@ def test_the_api_answers_a_belt_page_whose_masses_add_up(client, belts):
     response = client.get(f"/api/objects/{ref}/belt-page")
     assert response.status_code == 200
     data = response.get_json()
-    assert set(data) == {"belt", "bodies", "bins", "density_factor", "totals"}
+    assert set(data) == {"belt", "bodies", "bins", "density_factor", "totals", "planets"}
     assert len(data["bodies"]) == members
     totals = data["totals"]
     assert abs(totals["difference"]["value"]) <= 1e-6 * totals["belt_mass"]["value"]

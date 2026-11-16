@@ -10,8 +10,8 @@ size table of everything not stored, the density factor and the totals. `GET /ap
 """
 
 from planetgen.db import store
-from planetgen.generation import belt as belt_generation
-from planetgen.galaxy import object_uid
+from planetgen.generation import belt as belt_generation, irregular_moons
+from planetgen.galaxy import object_uid, objectref
 from planetgen.physics import belt_ledger, radiogenic
 from planetgen.physics import unit_registry as units
 from planetgen.physics import belt_page as page_data
@@ -36,6 +36,44 @@ def belt_of(system, belt_id):
         if getattr(body, "body_type", None) == "a" and getattr(body, "db_id", None) == belt_id:
             return body
     raise BeltPageNotFound(f"no belt has the id {belt_id}")
+
+
+def belt_order_of(system, belt):
+    """The place of `belt` among the belts of its star (`irregular_moons.belts_of`, the number a planet promoted from it keeps as `belt_order`), or `None` for a belt in no list of the system."""
+    lists = [system.planets, getattr(system, "secondary_planets", []), *(getattr(system, "member_planets", None) or [])]
+    for bodies in lists:
+        for order, candidate in irregular_moons.belts_of(bodies).items():
+            if candidate is belt:
+                return order
+    return None
+
+
+def promoted_planets(conn, system, belt, belt_row, belt_id):
+    """
+    The planets the belt made (GEN.1510), heaviest member first: for each, its `rank` in the belt, its `designation` (`<belt ID>.<rank>`, as a member's), its `name`, `ref` (the planet's public
+    reference), `planet_class`, `mass`, `diameter` and `distance` (`{value, unit, text}`). Empty for a belt that promoted none, and for one stored before schema v244.
+    """
+    order = belt_order_of(system, belt)
+    if order is None:
+        return []
+    rows = conn.execute(
+        "SELECT uid, name, planet_class, mass_kg, radius_km, distance_km, belt_rank FROM planets WHERE star_system_id = ? AND star_id <=> ? AND belt_order = ? AND belt_rank IS NOT NULL "
+        "ORDER BY belt_rank", (belt_row["star_system_id"], belt_row["star_id"], order)).fetchall()
+    out = []
+    for row in rows:
+        if row["uid"] is None:
+            continue
+        out.append({
+            "rank": row["belt_rank"],
+            "designation": object_uid.designation(belt_id, row["belt_rank"]),
+            "name": row["name"],
+            "ref": objectref.format_public("planet", object_uid.format_id(object_uid.from_bytes(bytes(row["uid"])))),
+            "planet_class": row["planet_class"],
+            "mass": page_data._q(row["mass_kg"], "kg"),
+            "diameter": page_data._q(2.0 * row["radius_km"], "km"),
+            "distance": page_data._q(units.convert(row["distance_km"], "km", "au"), "au"),
+        })
+    return out
 
 
 def _al26_ratio(system_config, star):
@@ -73,4 +111,5 @@ def belt_info(conn, belt_id):
     object_id = object_uid.from_bytes(row["uid"])
     page = page_data.build(belt_page_record(belt, star, object_id), page_data.stored_bodies(object_id, belt.members))
     page["belt"]["star"] = star.name
+    page["planets"] = promoted_planets(conn, system, belt, row, object_id)
     return page
