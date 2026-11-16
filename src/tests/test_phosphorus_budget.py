@@ -90,6 +90,13 @@ def test_an_earth_like_body_gets_the_earths_crust_hosts_and_ocean(earth_heat):
     assert 0.5 < body.ocean_phosphate_umol_l / pb.EARTH_OCEAN_UMOL_L < 2.0 and body.phosphorus == "limited"
 
 
+def test_a_carbon_rock_with_a_stored_phosphorus_gets_the_chain_too(earth_heat):
+    """GEN.1749: a carbon rock holds its phosphorus now (`bulk_draw._partition`), so the chain from its P2O5 to its ocean's phosphate runs, not the early return it had with a None."""
+    body = _body(carbon_rock=True)
+    pb.generate(body)
+    assert body.ocean_phosphate_umol_l is not None and body.ocean_phosphate_umol_l > 0.0
+
+
 def test_a_stagnant_lid_and_a_deep_ocean_both_lower_the_phosphate(earth_heat):
     earth, stagnant, deep = _body(), _body(lid=interior_heat.STAGNANT), _body(ocean_depth_km=37.0)
     for body in (earth, stagnant, deep):

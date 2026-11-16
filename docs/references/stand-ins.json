@@ -42795,19 +42795,19 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.MIN_MASS_EARTH 1 and MAX_MASS_EARTH 20: the planets that capture an envelope are the rocky planets of the e1 and e2 rows (1 Earth mass up) and planet_kind's heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope)"
+              "envelope_capture.MIN_MASS_EARTH 0.2 and MAX_MASS_EARTH 20: the bodies that capture an envelope are the rocky bodies from the 0.2 Earth masses that Young et al. [R5293] find the H2 atmosphere of an embryo does not depend on below (their fiducial embryo 0.5 and a case at 0.3; Mars's 0.1 \"can only accrete a primary hydrogen-dominated atmosphere from the disk after its surface cooled to 700 K or less\") up to planet_kind's heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope)"
             ],
             [
               "The range it moves in",
-              "0.5 to 2; 15 to 30"
+              "0.1 to 0.3; 15 to 30"
             ],
             [
               "Where it holds",
-              "rocky planets"
+              "rocky bodies"
             ],
             [
               "What would show it wrong",
-              "an envelope found on a planet under 1 Earth mass"
+              "an envelope found on a body under 0.2 Earth masses"
             ],
             [
               "What replaces it",
@@ -42815,18 +42815,18 @@
             ],
             [
               "Evidence",
-              "the e1 and e2 rows (mass_earth 1 to 30) and planet_kind._MAX_TERRESTRIAL_EARTH"
+              "Young, Shahar and Schlichting [R5293] (read: Introduction and Methods) and planet_kind._MAX_TERRESTRIAL_EARTH"
             ]
           ],
           "id": "EC3",
           "key": "6.206:EC3",
           "kind": "B",
           "slug": "6-206-ec3",
-          "tier": "T6",
-          "tier_code": "T6",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "envelope_capture.MIN_MASS_EARTH 1 and MAX_MASS_EARTH 20: the planets that capture an envelope are the rocky planets of the e1 and e2 rows (1 Earth mass up) and planet_kind's heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope)"
+          "what": "envelope_capture.MIN_MASS_EARTH 0.2 and MAX_MASS_EARTH 20: the bodies that capture an envelope are the rocky bodies from the 0.2 Earth masses that Young et al. [R5293] find the H2 atmosphere of an embryo does not depend on below (their fiducial embryo 0.5 and a case at 0.3; Mars's 0.1 \"can only accrete a primary hydrogen-dominated atmosphere from the disk after its surface cooled to 700 K or less\") up to planet_kind's heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope)"
         },
         {
           "burn_down": null,
@@ -43021,6 +43021,158 @@
           "tweak": "L0",
           "unread": null,
           "what": "envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is super_puff.START_MAX_MASS_EARTH, row PF1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.FLAT_BELOW_MASS_EARTH 1: below 1 Earth mass the median starting envelope stops falling with the mass and is its value at 1 Earth mass, 0.0019 of the mass (Young et al.'s favoured solution: a total H-mass fraction of about 0.2 percent for an embryo of 0.5 Earth masses, the same at 0.3, no dependence on mass above ~0.2)"
+            ],
+            [
+              "The range it moves in",
+              "0.0015 to 0.003"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies of 0.2 to 1 Earth mass"
+            ],
+            [
+              "What would show it wrong",
+              "an envelope fraction of such bodies that falls steeply with mass"
+            ],
+            [
+              "What replaces it",
+              "the mass dependence of the capture of the disk's gas by an embryo"
+            ],
+            [
+              "Evidence",
+              "Young, Shahar and Schlichting [R5293] (read: Methods, favoured solution)"
+            ]
+          ],
+          "id": "EC9",
+          "key": "6.206:EC9",
+          "kind": "P",
+          "slug": "6-206-ec9",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "envelope_capture.FLAT_BELOW_MASS_EARTH 1: below 1 Earth mass the median starting envelope stops falling with the mass and is its value at 1 Earth mass, 0.0019 of the mass (Young et al.'s favoured solution: a total H-mass fraction of about 0.2 percent for an embryo of 0.5 Earth masses, the same at 0.3, no dependence on mass above ~0.2)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.KEEPS_FROM_MASS_EARTH 1: a body lighter than this is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); its envelope is a history and the water it made"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a body under 1 Earth mass whose observed radius needs an envelope"
+            ],
+            [
+              "What replaces it",
+              "a radius law that holds under 1 Earth mass"
+            ],
+            [
+              "Evidence",
+              "bulk_structure.CLOSED_FORM_RANGES[\"envelope\"] (1 to 20 Earth masses) and Young et al. [R5293] (read: Introduction)"
+            ]
+          ],
+          "id": "EC10",
+          "key": "6.206:EC10",
+          "kind": "B",
+          "slug": "6-206-ec10",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "envelope_capture.KEEPS_FROM_MASS_EARTH 1: a body lighter than this is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); its envelope is a history and the water it made"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.OCEAN_MASS_KG 1.4e21: the mass of the Earth's oceans, the unit Young et al. [R5293] count their water in (\"approximately one terrestrial ocean\")"
+            ],
+            [
+              "The range it moves in",
+              "1.35e21 to 1.40e21"
+            ],
+            [
+              "Where it holds",
+              "the Earth"
+            ],
+            [
+              "What would show it wrong",
+              "an ocean mass of the Earth outside the range"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the standard value of the Earth's ocean mass (1.335 to 1.4e21 kg)"
+            ]
+          ],
+          "id": "EC11",
+          "key": "6.206:EC11",
+          "kind": "B",
+          "slug": "6-206-ec11",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "envelope_capture.OCEAN_MASS_KG 1.4e21: the mass of the Earth's oceans, the unit Young et al. [R5293] count their water in (\"approximately one terrestrial ocean\")"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.YOUNG_EMBRYO_MASS_EARTH 0.5 and YOUNG_WATER_CASES ((0.002, 1), (0.003, 2.5)): a total H-mass fraction of 0.2 percent makes about 1 terrestrial ocean of water in the magma ocean of a 0.5 Earth-mass embryo, 0.3 percent makes 2 to 3 (the middle, 2.5 is the L1 pick); between, below and held above 0.3 percent as the power of the hydrogen that joins them (2.26)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 3 oceans at 0.3 percent"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies of 0.2 to 1 Earth mass"
+            ],
+            [
+              "What would show it wrong",
+              "a body of 0.5 Earth masses with 0.2 percent hydrogen and no water from it"
+            ],
+            [
+              "What replaces it",
+              "a mass-dependent magma-ocean and hydrogen equilibrium (the paper's own thermodynamic model)"
+            ],
+            [
+              "Evidence",
+              "Young, Shahar and Schlichting [R5293] (read: abstract and Results)"
+            ]
+          ],
+          "id": "EC12",
+          "key": "6.206:EC12",
+          "kind": "P",
+          "slug": "6-206-ec12",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "envelope_capture.YOUNG_EMBRYO_MASS_EARTH 0.5 and YOUNG_WATER_CASES ((0.002, 1), (0.003, 2.5)): a total H-mass fraction of 0.2 percent makes about 1 terrestrial ocean of water in the magma ocean of a 0.5 Earth-mass embryo, 0.3 percent makes 2 to 3 (the middle, 2.5 is the L1 pick); between, below and held above 0.3 percent as the power of the hydrogen that joins them (2.26)"
         }
       ],
       "slug": "6-206-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",

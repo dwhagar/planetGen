@@ -155,3 +155,48 @@ def test_a_planet_with_no_air_is_not_made_again():
     planet = types.SimpleNamespace(is_moon=False, _air_replay=(None, None, None, None))      # the air found nothing to hold, so it kept no setting
     assert not planet_physics.remake_air(planet, 1.0, 0.0)
     assert planet._air_replay is None and planet._late_accreted_percent == 1.0
+
+
+def _stub(body_type="t", deferred=True, **kwargs):
+    star = kwargs.pop("star")
+    fields = dict(body_type=body_type, is_moon=False, mass=EARTH_KG, radius=6371.0, distance=1.0, star=star, _deferred_climate=(0, None) if deferred else None)
+    fields.update(kwargs)
+    return types.SimpleNamespace(**fields)
+
+
+def test_the_first_air_reads_the_late_accretion_the_system_gives_and_only_for_a_planet_whose_air_is_still_to_be_made(monkeypatch):
+    """PERF.271: `give_first_air` sets the number `apply` would take, on a rocky planet built bare; a planet already made, a giant and a belt are left."""
+    monkeypatch.setattr(late_accretion.planet_type, "has_ground", lambda body: body.body_type == "t")
+    star = types.SimpleNamespace(mass=1.989e30, starless=False)
+    bare = _stub(star=star)
+    made = _stub(star=star, deferred=False)
+    giant = _stub("g", star=star, mass=1.9e27, radius=69911.0)
+    belt = types.SimpleNamespace(body_type="a", is_moon=False, primordial_mass_earth=10.0, lower_limit=2.1, upper_limit=3.3)
+    monkeypatch.setattr(late_accretion, "_same_star", lambda belt_body, planet: True)
+    planets = [bare, made, giant, belt]
+    late_accretion.give_first_air(planets)
+    assert bare._late_accreted_percent == late_accretion.percent_in(bare, planets) > 0.0
+    for left in (made, giant, belt):
+        assert not hasattr(left, "_late_accreted_percent")
+
+
+def test_a_whole_system_makes_few_airs_again_now_the_first_air_reads_the_late_accretion(monkeypatch):
+    """PERF.271: the second pass finds the planets done unless the belts it promotes moved the carbon and the nitrogen past the gate."""
+    remade = []
+    real = planet_physics.remake_air
+
+    def count(planet, percent, gate=planet_physics.LATE_ACCRETION_GATE):
+        made = real(planet, percent, gate)
+        remade.append(made)
+        return made
+
+    monkeypatch.setattr(planet_physics, "remake_air", count)
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "K5V"
+    cfg.PLANETS = True
+    cfg.MOONS = False
+    for seed in range(1, 6):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            StarSystem(system_config=cfg)
+    assert remade and sum(remade) < 0.5 * len(remade)

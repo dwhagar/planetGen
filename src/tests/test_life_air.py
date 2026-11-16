@@ -298,7 +298,7 @@ def _steps(history, formula):
 
 def test_the_air_of_an_oxygenic_world_is_methane_before_the_rise_and_oxygen_after_it(world, monkeypatch):
     _force_flux(monkeypatch, 1.0e12)
-    monkeypatch.setattr(bo, "profile_of", lambda body, *args: bo.Profile(1.0, 0.0, 0.3e9, 1.0, 1.0, 0.3))
+    monkeypatch.setattr(bo, "profile_of", lambda body, *args, **kwargs: bo.Profile(1.0, 0.0, 0.3e9, 1.0, 1.0, 0.3))
     assert bo.apply(world, 2.0e19)
     history = life_air.air_history(world, [life_air.Living(_class(1), 1.0, STAGES['photosynthesis'])], STAGES)
     assert history["producers_gyr"] == 0.5 and history["rose_gyr"] == pytest.approx(0.8) and history["age_gyr"] == 3.0
@@ -377,7 +377,7 @@ def test_one_class_with_the_whole_share_is_the_old_single_class_air(world, monke
 
 
 def _mock_profile(monkeypatch, source=2.0, reductant=0.5, store=2.0e9, history=True):
-    monkeypatch.setattr(bo, "profile_of", lambda body, share=1.0, extra_store_mol=0.0: bo.Profile(source * share, reductant, store + extra_store_mol, 1.0, 1.0, 1.0))
+    monkeypatch.setattr(bo, "profile_of", lambda body, share=1.0, extra_store_mol=0.0, producers=None: bo.Profile(source * (share if producers is None else sum(one for one, _ in producers)), reductant, store + extra_store_mol, 1.0, 1.0, 1.0))
     if history:      # the numbers of these tests are for a reductant that stays what it is now (GEN.1463's history is tested on its own below)
         monkeypatch.setattr(bo, "reductant_history_factor", lambda body, age_gyr: 1.0)
 
