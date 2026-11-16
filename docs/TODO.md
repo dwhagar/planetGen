@@ -12133,12 +12133,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: GEN.1608. Related: GEN.1608, GEN.595.
   Filed by the TODO thread. Bug work; approved under Boss's fix-all (veto open).
 
-- [ ] **GEN.1616 (bug) Class T's terrestrial row (hydrogen 30 percent of air, under 10 Earth masses) has no envelope or pressure bound, so 120 of 1318 stored T bodies are thin hydrogen air, not the thick envelope the page describes**
-  From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do: add an envelope or surface-pressure bound to the terrestrial T row (or a separate thin-hydrogen row) so the page and the class agree; measure the census shift. Lock item.
-  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: GEN.822, GEN.1557. Boss's call on the choice where noted.
-  Filed by the TODO thread.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
-
 - [ ] **UX.305 (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212**
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do: read planet_class_text.description instead, and test that each class facet has a tooltip. Lock-free.
   Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1212. Boss's call on the choice where noted.
@@ -12579,6 +12573,7 @@ clears each one.
 
 - [ ] **GEN.1698 (bug) H2S and SO2 have no sink on habitable-zone planets (no ocean solution, no pyrite burial), so after the S2 condensation limit they still hold 3,240 to 13,300 kPa of H2S and 172 to 675 kPa of SO2**
   Boss, 10:43 PM EST on 2026-11-13 (thread "Find why no Class M or Blue worlds"): "When you organize your plan, it should be 2 phase, automatically send all bug fixes to TODO to fix, then we can discuss options for things that are outside our scientific window". Phase 1 bug from that investigation (B5; evidence, lines and probes: /mnt/project-files/reports/class-m-blue-levers-2026-11-14/phase1-bugs-for-todo.md; measured on Train 26 head 3eea0c2). Recut by TODO 2026-11-14 with Lane 14: the S2 condensation half (B5 as filed) is done by GEN.1564 slice 1 (Lane 14), which names it. Probe s2cond (applying the unread S2 curve) removed the S2, but H2S at 3,240 to 13,300 kPa and SO2 at 172 to 675 kPa remain on four of the six planets (seeds in the report). H2S is not limited by condensation; it needs a sink. Do: add the H2S and SO2 sinks (solution into the sea and burial as pyrite), reusing the sulfur cycle of GEN.1562 (PR 6339). Lock item.
+  Sized by Lane 03, 1:49 AM EST 2026-11-16: at default water no body of 300 Sun-like systems holds over 100 kPa of H2S, SO2 or S2; only under the Earth-like-water probe do 16 of 5,384 ocean bodies hold 100 to 31,000 kPa. The sinks and ocean solution of GEN.1562 exist; their capacity (one crust of iron or calcium) is 7 to 10 times under the degassed sulfur. Fix is the capacity rule (crust recycling) or a lower degassing share, not a new sink. Deferred until the habitable-zone water question is decided.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: GEN.1562 (PR 6339) merged; GEN.1564 slice 1. Related: GEN.1694, GEN.1695, GEN.1696, GEN.1697, GEN.1698, TEST.739, GEN.1676.
   Filed by the TODO thread.
 
@@ -12715,14 +12710,34 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: GEN.1755.
   Filed by the TODO thread.
 
-- [ ] **GEN.1757 Check: 742 moons (1.02 percent of bodies, up from 0.8 percent at Train 28) carry no class letter; confirm every one is an Asteroid object (under roundness ratio 1, no air, liquid or life, GEN.1160 and GEN.1752) and none is a classifiable moon left unclassed**
-  Census thread, 10:32 PM EST 2026-11-15 (/mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md). Do: break the 742 down by object type, roundness, air and liquid; any round or aired moon without a letter is a bug to fix.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: GEN.1160, GEN.1752.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1759 Tidal heating and circularisation of icy bodies use the ice-shell k2/Q outside its domain: interior_heat and ocean_tides read the shell formula where the shell is thicker than the body (no ocean) or where the surface is above ice's melting point, the same wrong domain GEN.1755 and GEN.1756 fixed for spin**
   Lane 07, 12:21 AM EST 2026-11-16 (found in PR 6787, GEN.1755 and GEN.1756): the spin path now picks solid-ice or rock k2/Q where the shell model does not apply, but tidal heating (interior_heat) and circularisation (ocean_tides) still use the shell formula there, so a solid icy body gets the shell cap of 1.5 where solid ice is about 1e-3 and a warm wet planet gets 0. Do: route both through the same domain choice 6787 added (one shared k2/Q chooser, no second copy), measure tidal heat and eccentricity damping for icy moons and small bodies before and after on fixed seeds. Lock item (heat and orbits move).
   Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: GEN.1755, GEN.1756. Related: GEN.1755, GEN.1756.
+  Filed by the TODO thread.
+
+- [ ] **TEST.774 (bug) test_plan_outline::test_the_plan_says_where_its_time_went_step_by_step is red on main: the plan's timing table now prints HMS durations (UX.319, Boss rule) and the test still parses plain seconds**
+  Lane 16, 12:24 AM EST 2026-11-16 (found while testing PR 6789, OPS.265): red without 6789 too. Do: make the test read the table's durations through the project's HMS parser (or the same formatter's inverse, no second parser) and keep its checks (costliest first, rows add up to the named total, the named steps present). Lock-free, test only.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: UX.319, OPS.265.
+  Filed by the TODO thread.
+
+- [ ] **PERF.273 (bug) One body's seasonal solve stalls 4 to 6.6 s inside a single call (seasonal_swing.temperature_series from refresh_at_final_age of a pre-placed system's moon) on 4 of 7 runs, where its mean is 66 ms; the three sector commands keep 12 s rows in RECORDED_SILENCE for it**
+  Lane 16, 12:24 AM EST 2026-11-16 (found while building PR 6789, OPS.265). Do: find which body and why the solve runs long (iteration count, step size, a non-converging case), fix the cause so the call is bounded or beats progress inside it, then drop the three 12 s rows from RECORDED_SILENCE. Measure that seasonal temperatures are unchanged on fixed seeds; if they move it is a lock item for Train Manager.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: OPS.265, OPS.239.
+  Filed by the TODO thread.
+
+- [ ] **TEST.775 (bug) test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming is red on main for seed 2: a 4.5 Earth-mass body with a 3,000 K surface has Urey ratio 0.13 against the test's floor of 0.2**
+  Lane 07, 2:21 AM EST 2026-11-16: red on main and on the Train 36 branch, not from PR 6787 or GEN.1759. Do: find whether the body's heat budget is wrong (a hot-surface or composition case outside the Urey model's range) or the floor is; fix the cause in the generator if the heat is wrong, never loosen the test to pass. If generation moves it is a lock item.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: none. Related: GEN.1759.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1760 (bug) Orbits are circularised before the surface temperature is known, so every icy-by-water body is tidally treated as a 100 K ice shell then, and a warm water world keeps an eccentric orbit a rock tide would have worn down (Eltotecius I: e 0.43 at 0.03 AU)**
+  Lane 07, 2:21 AM EST 2026-11-16 (found building GEN.1759): warm icy-by-water bodies keep their old tidal heat in GEN.1759 for this reason (the rock regime would give up to 1e5 W/m2 with today's eccentricities). Do: order the build so circularisation and tidal heat read the settled surface temperature (or iterate the two to a fixed point), using GEN.1759's shared k2/Q chooser; measure eccentricities and tidal heat of close-in water worlds before and after on fixed seeds. Lock item (orbits and heat move).
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: GEN.1759. Related: GEN.1755, GEN.1756, GEN.1759.
+  Filed by the TODO thread.
+
+- [ ] **OPS.267 (bug) planetgen plan --reach-shells 3 ends with a TypeError in log_skeleton_summary: the dials line formats edge when args.edge is None**
+  Lane 13, 2:21 AM EST 2026-11-16 (found while proving OPS.228 slice C). Do: print the dials only for values that are set (or the resolved edge the plan used), and add a test that runs the plan with --reach-shells and no --edge. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: OPS.265.
   Filed by the TODO thread.
 
 - [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**
