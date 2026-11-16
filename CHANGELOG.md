@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4323] - 2026-11-16
+
+**Headline:** the end of the phenomena scatter is now three commands of its own, so each can be seen, stopped and carried on by itself and the generated galaxy is the same.
+
+### Changed
+
+- OPS.239, part A: the `finish-phenomena` command is gone. `write-special-phenomena` (stage `phenomena-special`) draws the special phenomena and writes them with their classes in one transaction (the classes were added by the record piece before; a write that is repeated adds them once). `build-phenomenon-indexes` (stage `phenomena-index`) builds the table's indexes, a piece to an index, and stamps the hypervelocity stars' epoch. `record-phenomenon-scatter` (stage `phenomena-record`) records the scatter's seed, mass cut and epoch. `needs.py` declares the chain (`phenomena-shells`, `phenomena-special`, `phenomena-indexed`, `phenomena`), and a galaxy run counts two stages more.
+
 ## [8.0.4322] - 2026-11-16
 
 **Headline:** The queue engine now picks the unit size of the link, settle and map luminosity stages from the job profile and the free resources.
