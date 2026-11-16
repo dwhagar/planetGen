@@ -22,6 +22,17 @@
         "scatter_nodes"
       ],
       "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-mass-scatter-phenomena]"
+    },
+    {
+      "a": "scatter-mass",
+      "b": "draw-nebula-field",
+      "grain": "table",
+      "shared": [
+        "galaxy_shape",
+        "generator_epoch",
+        "scatter_epochs"
+      ],
+      "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-mass-draw-nebula-field]"
     }
   ]
 }
