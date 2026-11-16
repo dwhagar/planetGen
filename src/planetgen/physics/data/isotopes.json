@@ -4,6 +4,7 @@
  "sources": [
   "NIST, Atomic Weights and Isotopic Compositions with Relative Atomic Masses (physics.nist.gov/Comp): the relative atomic mass (u) of each isotope and its natural isotopic composition (IUPAC)",
   "NUBASE2020 (Kondev et al., Chin. Phys. C 45, 030001, 2021, [R2443]), www-nds.iaea.org/amdc/ame2020/nubase_4.mas20.txt: ground-state half-lives (the year is the Julian year of 365.25 days), decay modes and their branchings in percent",
+  "Chiera et al., Sci. Rep. 14, 17436 (2024), [R5295]: the half-life of 146Sm, 92.0 +- 2.6 Myr, in place of NUBASE2020's 68 +- 7 Myr (the 2012 value its authors withdrew; HALF_LIFE_OVERRIDES)",
   "Lugaro, Ott and Kereszturi, Prog. Part. Nucl. Phys. 102, 1 (2018), [R2768: Table 4]: decay_energy_j, the energy released per decay (the whole chain for a parent that has one), without the neutrinos",
   "Dye, Rev. Geophys. 50, RG3007 (2012), [R1203: Table 2]: dye_2012, the heat constants of 238U, 235U, 232Th and 40K (kept as the cross-check: the newer evaluation wins where they differ)"
  ],
@@ -3260,8 +3261,8 @@
    "abundance_uncertainty": null,
    "mass_estimated": false,
    "stable": false,
-   "half_life_s": 2145916800000000.0,
-   "half_life_uncertainty_s": 220903200000000.0,
+   "half_life_s": 2903299200000000.0,
+   "half_life_uncertainty_s": 82049760000000.0,
    "modes": [
     [
      "A",

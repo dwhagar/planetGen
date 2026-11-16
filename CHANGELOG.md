@@ -2,6 +2,75 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4353] - 2026-11-16
+
+**Headline:** The moons of a belt member that became a planet (GEN.1510) are checked to feel the tide of their own dwarf planet and the star the way any planet's moons do; no generated value changes.
+
+### Changed
+- GEN.1541 (GEN.1464 part C): `tests/test_belt_planet_moon_tides.py` (new, 4 tests, 366 promoted planets in 60 seeds have moons): a promoted planet is raised on by the star and its sibling planets, its moon by the planet and the star, and the promoted body is not counted again in its belt. Promoted planets are in the star's list of planets, so `physics/tide_sources` already finds their sources and the sources of their moons: no code change was needed. What is left open is only the small unpromoted belt members (asteroid binaries), which have no satellite system yet.
+
+generation-affects: none
+
+## [8.0.4352] - 2026-11-16
+
+**Headline:** The backfill of a sector's neighbors is proved safe to start as soon as that sector is saved, while other sectors are still being made.
+
+### Changed
+- OPS.242: `independence.json` lists a third by-address edge, `scatter-backfill`: the unit of one source sector (its step targets, each at the mass of its step from that source alone) may start when the source and every sector of its list that the run saves are saved. `tests/backfill_edge_support.py` runs it on a toy galaxy in plan order and by address (random orders on one thread, and on 15 threads) and compares the stored rows by content; a sector reached from two sources is the same in either order, and a unit released before the saves stores other bytes (the control). No generation output changes.
+- The mass limit and the sky tier ledger the draw reads are written by earlier stages, so they stay stage edges (Lane 13).
+
+## [8.0.4351] - 2026-11-16
+
+**Headline:** `planetgen plan --reach-shells 3` no longer ends with an error when the galaxy reaches past the shells it was allowed to walk.
+
+### Fixed
+
+- OPS.267: when the outline's walk was cut short and no `--edge` was given (`--reach-shells 3` alone), the plan's closing warning tried to write the Edge dial's value and failed with a TypeError. It now says the plane still qualified at the reach (the shell and `--reach-shells`) and to re-run with a larger one; with `--edge` given it says what it said before.
+
+## [8.0.4350] - 2026-11-16
+
+**Headline:** Small icy bodies far from their star no longer lock in a few Gy, and close-in planets that lost their moons or hold water over a warm surface now lock as the tide says they should.
+
+### Changed
+- GEN.1755: the ice-shell `k2/Q` (`icy_tide`) assumes an ocean under the shell. A small or cold icy body (Class D size at 1 to 5 AU) has a shell as thick as its radius or more, and the formula gave it the most it allows (1.5) where solid ice has about a thousandth, so 17 to 59 percent of them despun to a lock. `body_spin.icy_regime` now gives such a body (shell as thick as the radius) the homogeneous ice response (`tidal_rheology.ice_response` at the mean conducting temperature; stand-in 6.23 IC6). On 400 seeds (1,135 such bodies) the locked share fell from 19 to 1 percent.
+- GEN.1756: a water-rich planet (1 percent water or more) whose surface is above the melting point of ice has no shell, and the shell model gave it no tide at all, so it never despun and had no thermal tide from its air (stand-in 6.23 IC7): it now meets the rock mantle's rheology and the air's thermal tide like any rocky planet.
+- GEN.1756: when the last moon of a planet fell or escaped early (`moon_orbits.OrbitResult.time_s`), `moon_history.apply` stopped the planet's spin history there and kept the fast spin the moon left it. It now runs the rest of the age under the star's tide and the air's, so a close-in planet locks (it turned 14 times per orbit at 0.05 AU of an M dwarf in the census).
+- Generation output changes: the spin (and so the day, the tilt and the thermal tide effects) of the planets above. Tidal heating and the circularisation of icy bodies still use the shell formula (open question for TODO).
+
+## [8.0.4349] - 2026-11-16
+
+**Headline:** A small body that is not round is an Asteroid only while it holds no air, no surface liquid and no life; one that does is classed by the fit like any other body.
+
+### Changed
+- `planet_classes.classify_detail` no longer ends the question at the roundness ratio (GEN.1160): a terrestrial body under a ratio of 1 is an Asteroid, with no class letter, only if it also holds no air (under the fit's 10 Pa gate), no liquid at its surface and no life (`planet_classes.is_asteroid`, `holds_air_liquid_or_life`). A body that holds any of them takes the class that fits it best on the class-fit edges, fudged as any body is (Boss, 6:11 PM EST 2026-11-15: class always comes last, even for a small planet in an asteroid field that has air or life).
+- The Class D size gate needed no change: D is airless in the fit and under 0.1 Earth masses, so a small body with an air is already outside it. The sheet's rule that a non-round body has no class fields follows the same test.
+- Measured on 212 bodies (planets and moons of 15 systems, five star types): 2 are not round, none holds air, liquid or life, so no generated class moves today; the rule matters once a built body can have them (the air history of GEN.1745 classes bodies after their life ages).
+
+generation-affects: none
+
+## [8.0.4348] - 2026-11-16
+
+**Headline:** The air solver's start dependence and unsettled airs are measured on main and bounded by tests: 2.5 percent of air bodies depend on the start (15 percent before), 0 of 35 airs in the test sample are unsettled (10 of 132 before).
+
+### Changed
+
+- GEN.1555: re-measured on main after Train 36 (G2V, 60 systems, 242 bodies with 10 kPa of air; the census script of Lane 14's branch): 6 bodies (2.5 percent) have an answer that depends on the start, against 42 of 286 (15 percent) when the item was filed; 2 sit on the 375 K moist limit (GEN.1579), 1 near water's boiling point. The fixed point already iterates a giant's temperature (GEN.1716) and settles slow creeps (GEN.1718), so Lane 14's open PR 6103 (giant steps and the recipe freeze near the answer) is superseded; nothing in the solver changes here.
+- New `tests/test_surface_air_start_independence.py`: the same setting, start and draw state give the same answer twice; a giant ends at one temperature from nine starts (before GEN.1716 a hot giant ended at 1,381 K from 120 K and 1,633 K from 600 K); at most 15 percent of air bodies of the first twelve G2V seeds depend on the start (0 of 17 today). Real bistability (a snowball and a warm answer) stays, as TODO decided on 2026-11-12.
+- `test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives`: the cap on airs it cannot read because they did not settle goes from a fifth to a twentieth of the bodies (0 of 35 today; it was 10 of 132).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4347] - 2026-11-16
+
+**Headline:** With `queue.forked_jobs` on, the supervisor no longer waits a minute for a template to build, takes back rows a dead supervisor left running, and ends a unit whose run is gone.
+
+### Changed
+- The supervisor builds a lane's warm template in the background (`TemplateSet(background=True)`); a job whose template is not up yet stays `ready` with the reason `the template ... is being built` and is handed out at a later turn.
+- A row left `running` by a supervisor that ended is settled when its attempt's process is gone (or no attempt was taken): handed out once more, then failed. Rows whose process is alive are left to the unit.
+- A unit that skipped itself (its run is no longer live, or the unit was already done) has its row ended `canceled`, not left `running`.
+- The template treats a reset channel as a closed one and exits.
+
 ## [8.0.4346] - 2026-11-16
 
 **Headline:** The gas dwarf (class T) text now says its air can be thin, which is true of 1.2 percent of bodies; no bound was added, because it would leave them with no class.

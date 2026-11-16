@@ -45,7 +45,7 @@ normal: a raiser that goes round the other way is a retrograde one for the body 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, icy_tide, spin, surface_liquids, tidal_heating
+from planetgen.physics import constants, icy_tide, interior_heat, spin, surface_liquids, tidal_heating
 
 FIELDS = ("tide_range_spring_m", "tide_range_neap_m", "ocean_liquid")
 """tuple: The stored columns on `planets` and `moons` (see the module text)."""
@@ -215,7 +215,7 @@ def _love_k2(body, mass, radius_m, rate):
     """The Love number `k2` of the body whose sea is raised: a gas giant's fixed one, an icy body's from its ice sphere at the body's spin rate, else a rocky sphere's rigid one."""
     if getattr(body, "body_type", None) == "g":
         return tidal_heating.GIANT_K2
-    if tidal_heating.is_icy(body):
+    if interior_heat.icy_regime(body) != interior_heat.ROCK:      # GEN.1759: an icy body too warm for ice is a sea over a rocky mantle
         return icy_tide.love_k2(mass, radius_m, rate)
     return tidal_heating.rigid_k2(mass, radius_m)
 

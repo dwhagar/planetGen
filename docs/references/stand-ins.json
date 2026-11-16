@@ -3871,7 +3871,7 @@
             ],
             [
               "Where it holds",
-              "the reference of the outgassing flux"
+              "the one Earth heat-flow reference: the outgassing flux, the life supply's heat share (life_supply.heat_share) and the hydrothermal ores' heat ratio read it (GEN.1636; the Earth's measured 0.087 to 0.09 is not used, the model's heat flows are read against the model's own Earth twin)"
             ],
             [
               "What would show it wrong",
@@ -14809,6 +14809,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "icy_tide.ENERGY_RATIO 9/7 and MAX_K2_OVER_Q 1.5 (the spin tide's strain squared against the eccentricity tide's for the same k2/Q, from the 21/2 of the power and the 3 of the torque; no body has a k2/Q above the fluid Love number over a Q of 1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "body_spin.icy_regime FROZEN (an icy body whose conducting shell, hydrosphere.ice_shell_thickness_km, is as thick as its radius or more is ice solid through, with no ocean under it for icy_tide.k2_over_q to stand on: its spin's k2/Q is tidal_rheology.ice_response at the mean of the surface's and the centre's temperature of the conducting profile, body_spin.frozen_mean_temperature_k)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an icy body of a few hundred kilometres or less, or a cold large one with little heat"
+            ],
+            [
+              "What would show it wrong",
+              "test_icy_regime::test_a_body_frozen_through_is_not_given_the_shell_models_k2_over_q"
+            ],
+            [
+              "What replaces it",
+              "a layered ice and rock body with its own temperature profile"
+            ],
+            [
+              "Evidence",
+              "the shell formula's 1.5 against a homogeneous ice sphere's 1e-3 for the same body (measured on the small Class D bodies of 1 to 5 AU, GEN.1755)"
+            ]
+          ],
+          "id": "IC6",
+          "key": "6.23:IC6",
+          "kind": "P",
+          "slug": "6-23-ic6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "body_spin.icy_regime FROZEN (an icy body whose conducting shell, hydrosphere.ice_shell_thickness_km, is as thick as its radius or more is ice solid through, with no ocean under it for icy_tide.k2_over_q to stand on: its spin's k2/Q is tidal_rheology.ice_response at the mean of the surface's and the centre's temperature of the conducting profile, body_spin.frozen_mean_temperature_k)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "body_spin.icy_regime ROCK (an icy body whose surface is at or above the melting point of ice has no shell: the spin's k2/Q is the rock mantle's, tidal_rheology.rock_response, and the air's thermal tide acts as on any rocky planet; the sea's own tide is left out)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an ocean world, or a body with over 1 percent water too warm for ice"
+            ],
+            [
+              "What would show it wrong",
+              "test_icy_regime::test_a_water_rich_body_too_warm_for_ice_meets_the_rock_under_its_sea"
+            ],
+            [
+              "What replaces it",
+              "the ocean's tide dissipation (ocean_tides) on the spin"
+            ],
+            [
+              "Evidence",
+              "the shell formula gave 0 for these, a planet that never despun (GEN.1756)"
+            ]
+          ],
+          "id": "IC7",
+          "key": "6.23:IC7",
+          "kind": "P",
+          "slug": "6-23-ic7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "body_spin.icy_regime ROCK (an icy body whose surface is at or above the melting point of ice has no shell: the spin's k2/Q is the rock mantle's, tidal_rheology.rock_response, and the air's thermal tide acts as on any rocky planet; the sea's own tide is left out)"
         }
       ],
       "slug": "6-23-stand-ins-of-the-tidal-rheology",
@@ -42619,11 +42695,11 @@
           "fields": [
             [
               "What it is",
-              "physics/data/moist_limit_table.json and moist_limit.limit_k (GEN.1579): the hottest surface a moist state of an air can have, the temperature where the slope of the infrared flux to space of the air's saturated clear-sky column over an ocean (radiative_convective with saturated=True, clear_sky=True, the humidity 0.77 of the generator's oceans, row IR17) first falls under 0.25 W/m2 per K (moist_limit.SLOPE_FLOOR_W_M2_K), read from a table of that flux on a grid of surface temperature (260 to 600 K), non-condensing gas (0 to 100 bar), carbon dioxide (0 to 300 bar) and gravity (0.5 to 2 g) by interpolation in the logarithm of the pressures (plus 10 kPa, moist_limit.PRESSURE_OFFSET_PA) and of the gravity, held at the grid's edge outside it; every gas that is neither carbon dioxide nor water counts as nitrogen; built by scripts/build_moist_limit_table.py, refused when the k-tables are not the ones it was built from"
+              "physics/data/moist_limit_table.json and moist_limit.limit_k (GEN.1579): the hottest surface a moist state of an air can have, the temperature where the relative slope of the infrared flux to space of the air's saturated clear-sky column over an ocean (radiative_convective with saturated=True, clear_sky=True, the humidity 0.77 of the generator's oceans, row IR17) first falls under 0.1 percent of itself per K (moist_limit.SLOPE_FLOOR_PER_K, 0.001), read from a table of that flux on a grid of surface temperature (260 to 600 K), non-condensing gas (0 to 100 bar), carbon dioxide (0 to 300 bar) and gravity (0.5 to 2 g) by interpolation in the logarithm of the pressures (plus 10 kPa, moist_limit.PRESSURE_OFFSET_PA) and of the gravity, held at the grid's edge outside it; every gas that is neither carbon dioxide nor water counts as nitrogen; built by scripts/build_moist_limit_table.py, refused when the k-tables are not the ones it was built from"
             ],
             [
               "The range it moves in",
-              "slope floor 0.1 to 0.5 W/m2 per K (a ceiling several tens of kelvin higher or lower for the airs with a long flat top); the pressure offset 10 kPa (shifts the thin airs' place on the axis, not their values at the grid's points)"
+              "slope floor 0.05 to 0.4 percent per K (a ceiling several tens of kelvin higher or lower for the airs with a long flat top); the pressure offset 10 kPa (shifts the thin airs' place on the axis, not their values at the grid's points)"
             ],
             [
               "Where it holds",
@@ -42650,7 +42726,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "physics/data/moist_limit_table.json and moist_limit.limit_k (GEN.1579): the hottest surface a moist state of an air can have, the temperature where the slope of the infrared flux to space of the air's saturated clear-sky column over an ocean (radiative_convective with saturated=True, clear_sky=True, the humidity 0.77 of the generator's oceans, row IR17) first falls under 0.25 W/m2 per K (moist_limit.SLOPE_FLOOR_W_M2_K), read from a table of that flux on a grid of surface temperature (260 to 600 K), non-condensing gas (0 to 100 bar), carbon dioxide (0 to 300 bar) and gravity (0.5 to 2 g) by interpolation in the logarithm of the pressures (plus 10 kPa, moist_limit.PRESSURE_OFFSET_PA) and of the gravity, held at the grid's edge outside it; every gas that is neither carbon dioxide nor water counts as nitrogen; built by scripts/build_moist_limit_table.py, refused when the k-tables are not the ones it was built from"
+          "what": "physics/data/moist_limit_table.json and moist_limit.limit_k (GEN.1579): the hottest surface a moist state of an air can have, the temperature where the relative slope of the infrared flux to space of the air's saturated clear-sky column over an ocean (radiative_convective with saturated=True, clear_sky=True, the humidity 0.77 of the generator's oceans, row IR17) first falls under 0.1 percent of itself per K (moist_limit.SLOPE_FLOOR_PER_K, 0.001), read from a table of that flux on a grid of surface temperature (260 to 600 K), non-condensing gas (0 to 100 bar), carbon dioxide (0 to 300 bar) and gravity (0.5 to 2 g) by interpolation in the logarithm of the pressures (plus 10 kPa, moist_limit.PRESSURE_OFFSET_PA) and of the gravity, held at the grid's edge outside it; every gas that is neither carbon dioxide nor water counts as nitrogen; built by scripts/build_moist_limit_table.py, refused when the k-tables are not the ones it was built from"
         }
       ],
       "slug": "6-204-stand-in-of-the-steam-limit-of-the-air-of-a-body",
@@ -43211,6 +43287,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "envelope_capture.YOUNG_EMBRYO_MASS_EARTH 0.5 and YOUNG_WATER_CASES ((0.002, 1), (0.003, 2.5)): a total H-mass fraction of 0.2 percent makes about 1 terrestrial ocean of water in the magma ocean of a 0.5 Earth-mass embryo, 0.3 percent makes 2 to 3 (the middle, 2.5 is the L1 pick); between, below and held above 0.3 percent as the power of the hydrogen that joins them (2.26)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.in_range 0.2 to MAX_MASS_EARTH 20 for the water (bulk_draw._nebular_water, GEN.1754): the water of the nebular envelope (EC12, a share of the body's mass, held at the 0.3 percent hydrogen case, about 0.12 percent of the mass) is made by every rocky body of 0.2 to 20 Earth masses, whether it keeps the envelope or loses it, as the same share of its mass (Young et al. [R5293] find no dependence on mass above ~0.2 Earth masses); cross-check, Schlichting and Young [R5294]: a 4 Earth-mass planet with 1 to 14 percent hydrogen has about 0.01 percent (reactive metal core) to 0.1 percent (unreactive) water in its silicate mantle, and more water than that in the envelope"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.12 percent of the mass"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies of 1 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a super-Earth of 1 to 20 Earth masses with a water share of its mass that falls outside 0.01 to 0.2 percent from the envelope alone"
+            ],
+            [
+              "What replaces it",
+              "a mass-dependent magma-ocean and hydrogen equilibrium for 1 to 20 Earth masses (the papers' own thermodynamic models)"
+            ],
+            [
+              "Evidence",
+              "Young, Shahar and Schlichting [R5293] (read: abstract and Results); Schlichting and Young [R5294] (read: abstract and Section 3, second-hand summary of the rest)"
+            ]
+          ],
+          "id": "EC13",
+          "key": "6.206:EC13",
+          "kind": "P",
+          "slug": "6-206-ec13",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "envelope_capture.in_range 0.2 to MAX_MASS_EARTH 20 for the water (bulk_draw._nebular_water, GEN.1754): the water of the nebular envelope (EC12, a share of the body's mass, held at the 0.3 percent hydrogen case, about 0.12 percent of the mass) is made by every rocky body of 0.2 to 20 Earth masses, whether it keeps the envelope or loses it, as the same share of its mass (Young et al. [R5293] find no dependence on mass above ~0.2 Earth masses); cross-check, Schlichting and Young [R5294]: a 4 Earth-mass planet with 1 to 14 percent hydrogen has about 0.01 percent (reactive metal core) to 0.1 percent (unreactive) water in its silicate mantle, and more water than that in the envelope"
         }
       ],
       "slug": "6-206-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",
@@ -44589,11 +44703,11 @@
           "fields": [
             [
               "What it is",
-              "hydrothermal_deposits.EARTH_HEAT_FLUX_W_M2 0.087, EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's mean heat flow, ocean and land share and oxygen pressure, the references the opportunities scale from"
+              "hydrothermal_deposits.EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's ocean and land share and oxygen pressure, the references the opportunities scale from (the heat flow they scale from is AM33's surface_pressure.HEAT_FLUX_EARTH_W_M2, GEN.1636)"
             ],
             [
               "The range it moves in",
-              "heat flow 0.08 to 0.09 W/m2"
+              "ocean share 0.70 to 0.71"
             ],
             [
               "Where it holds",
@@ -44609,7 +44723,7 @@
             ],
             [
               "Evidence",
-              "the Earth's global heat flow (about 87 mW/m2), the hypsometry and the air's oxygen share, recalled; not opened"
+              "the hypsometry and the air's oxygen share, recalled; not opened"
             ]
           ],
           "id": "HT1",
@@ -44620,7 +44734,7 @@
           "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "hydrothermal_deposits.EARTH_HEAT_FLUX_W_M2 0.087, EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's mean heat flow, ocean and land share and oxygen pressure, the references the opportunities scale from"
+          "what": "hydrothermal_deposits.EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's ocean and land share and oxygen pressure, the references the opportunities scale from (the heat flow they scale from is AM33's surface_pressure.HEAT_FLUX_EARTH_W_M2, GEN.1636)"
         },
         {
           "burn_down": [
@@ -53565,6 +53679,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "belt_history.MIN_POLLUTION_RATE_G_S 1e5: the lowest accretion rate seen on a polluted white dwarf"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_history.TYPICAL_POLLUTION_RATE_G_S 1e8: the accretion rate of a polluted white dwarf when no belt of its system gives one (GEN.1231)"
+            ],
+            [
+              "The range it moves in",
+              "none (recalled typical)"
+            ],
+            [
+              "Where it holds",
+              "polluted white dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a survey whose typical rate is far from 1e8 g/s"
+            ],
+            [
+              "What replaces it",
+              "a rate drawn from the measured range once the belts of white dwarf systems give one"
+            ],
+            [
+              "Evidence",
+              "[R2415] (recalled typical rate; the survey's few 1e5 to few 1e8 g/s is READ)"
+            ]
+          ],
+          "id": "BHS6",
+          "key": "6.117:BHS6",
+          "kind": "P",
+          "slug": "6-117-bhs6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_history.TYPICAL_POLLUTION_RATE_G_S 1e8: the accretion rate of a polluted white dwarf when no belt of its system gives one (GEN.1231)"
         }
       ],
       "slug": "6-117-stand-ins-of-the-history-of-a-belt",
@@ -68587,7 +68739,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1735",
+          "unread": null,
           "what": "ice_growth.AIR_COUPLING_W_M2_K 17.5 W per m2 and K and AIR_COUPLING_RANGE_W_M2_K 10 to 25: the heat the ice or snow surface gives to the air per kelvin"
         },
         {
@@ -68625,7 +68777,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1735",
+          "unread": null,
           "what": "ice_growth.SNOW_DENSITY_KG_M3 300 kg per m3 and SNOW_DENSITY_RANGE_KG_M3 250 to 320: the density of snow on sea ice"
         },
         {
@@ -68663,7 +68815,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1735",
+          "unread": null,
           "what": "ice_growth.SNOW_CONDUCTIVITY_COEFFICIENT 2.22362 and SNOW_CONDUCTIVITY_EXPONENT 1.885: the conductivity of snow from its density, W per m and K"
         },
         {
@@ -68701,7 +68853,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1735",
+          "unread": null,
           "what": "ice_growth.OCEAN_FLUX_W_M2 2.0 W per m2: the heat the water gives up to the bottom of the ice"
         },
         {
@@ -68739,7 +68891,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1735",
+          "unread": null,
           "what": "ice_growth.PRECIPITATION_ENERGY_SHARE about 0.32: the share of the absorbed starlight that goes into the water cycle, the Earth's (0.99 m a year at 288 K for 238 W per m2 absorbed), applied to snow at any temperature"
         },
         {
@@ -68777,7 +68929,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1735",
+          "unread": null,
           "what": "ice_growth.SNOW_RETENTION 11 / 17 = 0.65: the share of the snow that falls on the ice that is still on it at the end of the season"
         },
         {
@@ -68815,7 +68967,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1735",
+          "unread": null,
           "what": "ice_growth.ABLATION_M_YR 0.4 m of ice a year: what the surface wears off a lid that does not thaw"
         }
       ],

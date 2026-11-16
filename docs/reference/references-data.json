@@ -132603,6 +132603,45 @@
    "volume": "11",
    "year": 2021
   },
+  "10.1038/s41598-024-64104-6": {
+   "authors": [
+    [
+     "Chiera",
+     "N. M."
+    ],
+    [
+     "Sprung",
+     "P."
+    ],
+    [
+     "Amelin",
+     "Y."
+    ],
+    [
+     "Dressler",
+     "R."
+    ],
+    [
+     "Schumann",
+     "D."
+    ],
+    [
+     "Talip",
+     "Z."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41598-024-64104-6",
+   "editors": [],
+   "journal": "Sci Rep",
+   "page": "17436",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "The $$^{146}\\text{Sm}$$ half-life re-measured: consolidating the chronometer for events in the early Solar System",
+   "type": "journal-article",
+   "volume": "14",
+   "year": 2024
+  },
   "10.1038/s41598-024-67342-w": {
    "authors": [
     [
@@ -274808,6 +274847,29 @@
    "volume": "3",
    "year": 2022
   },
+  "10.3847/psj/ac68e6": {
+   "authors": [
+    [
+     "Schlichting",
+     "H. E."
+    ],
+    [
+     "Young",
+     "E. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/psj/ac68e6",
+   "editors": [],
+   "journal": "PSJ",
+   "page": "127",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Chemical Equilibrium between Cores, Mantles, and Atmospheres of Super-Earths and Sub-Neptunes and Implications for Their Compositions, Interiors, and Evolution",
+   "type": "journal-article",
+   "volume": "3",
+   "year": 2022
+  },
   "10.3847/psj/acb2ca": {
    "authors": [
     [
@@ -286191,7 +286253,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5294,
+ "id_next": 5296,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -287914,6 +287976,7 @@
   "10.1038/s41598-017-04910-3": "R4580",
   "10.1038/s41598-020-67751-7": "R3378",
   "10.1038/s41598-021-91801-3": "R5150",
+  "10.1038/s41598-024-64104-6": "R5295",
   "10.1038/s41598-024-67342-w": "R3503",
   "10.1038/s41598-025-03858-z": "R2002",
   "10.1038/s41598-025-27066-x": "R3929",
@@ -291073,6 +291136,7 @@
   "10.3847/psj/ac2e09": "R1003",
   "10.3847/psj/ac562e": "R1716",
   "10.3847/psj/ac5fb1": "R0501",
+  "10.3847/psj/ac68e6": "R5294",
   "10.3847/psj/acb2ca": "R2955",
   "10.3847/psj/acdef3": "R4425",
   "10.3847/psj/ad6764": "R1276",
