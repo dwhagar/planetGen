@@ -258,7 +258,7 @@ def _template_globals():
         "num": format_number,
         # UX.318: a size in bytes on the units code's ladder, `bytes_text(x)`: "12.3 kB", "1.4 GB".
         "bytes_text": format_bytes,
-        # UX.318: seconds on the units code's time ladder, `duration_text(x)`: "45 s", "4.12 minutes".
+        # UX.318: seconds on the units code's time ladder, `duration_text(x)`: "45s", "4m 7s".
         "duration_text": format_duration_seconds,
     }
 

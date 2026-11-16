@@ -53,7 +53,7 @@ test("asks for the job's status a second in and draws an estimate that says so",
   assert.equal(win.fetchCalls[0].options.cache, "no-store");
   assert.equal(el.querySelector("[data-slow-bar]").value, 30);
   assert.equal(text(el, "percent"), "30%");
-  assert.equal(text(el, "status"), "About 30% (an estimate: 300 of 1,000 rows), about 5 s left.");
+  assert.equal(text(el, "status"), "About 30% (an estimate: 300 of 1,000 rows), about 5s left.");
   assert.equal(el.dataset.state, "running");
 });
 

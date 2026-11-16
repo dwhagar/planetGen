@@ -30,7 +30,7 @@ def _follower(monkeypatch, count):
 def test_the_line_says_the_sector_its_systems_planets_time_and_memory():
     line = run_galaxy.timing_line(_saved(), ADDRESS)
     assert "37 systems, 452 planets" in line
-    assert "in 14.2 minutes," in line      # the time in the project's duration form
+    assert "in 14m 13s," in line      # the time in the project's duration form
     assert "2.18 GB" in line
 
 

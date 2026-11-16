@@ -1014,7 +1014,7 @@ class Connection:
             if isinstance(exc, pymysql.err.OperationalError) and exc.args and exc.args[0] in STATEMENT_TIMEOUT_ERRORS:
                 # PERF.64: the page only says "took too long"; the log says which statement.
                 activity_log.event("DB", "statement_timeout", db=self._config.database if self._config else "?",
-                                   seconds=f"{time.perf_counter() - start:.1f}", sql=_sql_for_log(sql, params)[:800])
+                                   seconds=format_duration_seconds(time.perf_counter() - start), sql=_sql_for_log(sql, params)[:800])
             if traced:
                 log.trace(f"SQL failed after {format_duration_seconds(time.perf_counter() - start)}: "
                           f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", area="sql", stacklevel=4)

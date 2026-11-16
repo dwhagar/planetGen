@@ -165,11 +165,11 @@ def test_private_addresses():
 
 
 def test_wait_text():
-    assert loginguard.wait_text(1) == "1 s"
-    assert loginguard.wait_text(45) == "45 s"
-    assert loginguard.wait_text(300) == "5 minutes"
-    assert loginguard.wait_text(0.2) == "1 s"
-    assert loginguard.wait_text(86400) == "1 day"
+    assert loginguard.wait_text(1) == "1s"
+    assert loginguard.wait_text(45) == "45s"
+    assert loginguard.wait_text(300) == "5m"
+    assert loginguard.wait_text(0.2) == "1s"
+    assert loginguard.wait_text(86400) == "1d"
 
 
 # --- The login route and page (no database: the in-memory fallback) ---------
@@ -257,7 +257,7 @@ def test_route_locks_an_address_after_three_failures(app):
     assert response.status_code == 429
     assert response.get_json()["scope"] == "ip"
     assert response.get_json()["retry_after"] == 300
-    assert "try again in 5 minutes" in response.get_json()["error"]
+    assert "try again in 5m" in response.get_json()["error"]
     # Another address is unaffected, and loopback is never locked.
     assert _login(client, "admin", "right").status_code == 200
     for _ in range(5):
@@ -286,7 +286,7 @@ def test_login_page_names_the_wait(app, frozen_clock):
         assert client.post("/login", data=form, environ_base=_fresh_address()).status_code == 401
     response = client.post("/login", data=form, environ_base=_fresh_address())
     assert response.status_code == 429
-    assert "Too many failed logins for this username. Try again in 1 s." in response.get_data(as_text=True)
+    assert "Too many failed logins for this username. Try again in 1s." in response.get_data(as_text=True)
 
 
 # --- The counts in Redis (SEC.30) ---------------------------------------------
