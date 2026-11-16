@@ -14809,6 +14809,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "icy_tide.ENERGY_RATIO 9/7 and MAX_K2_OVER_Q 1.5 (the spin tide's strain squared against the eccentricity tide's for the same k2/Q, from the 21/2 of the power and the 3 of the torque; no body has a k2/Q above the fluid Love number over a Q of 1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "body_spin.icy_regime FROZEN (an icy body whose conducting shell, hydrosphere.ice_shell_thickness_km, is as thick as its radius or more is ice solid through, with no ocean under it for icy_tide.k2_over_q to stand on: its spin's k2/Q is tidal_rheology.ice_response at the mean of the surface's and the centre's temperature of the conducting profile, body_spin.frozen_mean_temperature_k)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an icy body of a few hundred kilometres or less, or a cold large one with little heat"
+            ],
+            [
+              "What would show it wrong",
+              "test_icy_regime::test_a_body_frozen_through_is_not_given_the_shell_models_k2_over_q"
+            ],
+            [
+              "What replaces it",
+              "a layered ice and rock body with its own temperature profile"
+            ],
+            [
+              "Evidence",
+              "the shell formula's 1.5 against a homogeneous ice sphere's 1e-3 for the same body (measured on the small Class D bodies of 1 to 5 AU, GEN.1755)"
+            ]
+          ],
+          "id": "IC6",
+          "key": "6.23:IC6",
+          "kind": "P",
+          "slug": "6-23-ic6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "body_spin.icy_regime FROZEN (an icy body whose conducting shell, hydrosphere.ice_shell_thickness_km, is as thick as its radius or more is ice solid through, with no ocean under it for icy_tide.k2_over_q to stand on: its spin's k2/Q is tidal_rheology.ice_response at the mean of the surface's and the centre's temperature of the conducting profile, body_spin.frozen_mean_temperature_k)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "body_spin.icy_regime ROCK (an icy body whose surface is at or above the melting point of ice has no shell: the spin's k2/Q is the rock mantle's, tidal_rheology.rock_response, and the air's thermal tide acts as on any rocky planet; the sea's own tide is left out)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an ocean world, or a body with over 1 percent water too warm for ice"
+            ],
+            [
+              "What would show it wrong",
+              "test_icy_regime::test_a_water_rich_body_too_warm_for_ice_meets_the_rock_under_its_sea"
+            ],
+            [
+              "What replaces it",
+              "the ocean's tide dissipation (ocean_tides) on the spin"
+            ],
+            [
+              "Evidence",
+              "the shell formula gave 0 for these, a planet that never despun (GEN.1756)"
+            ]
+          ],
+          "id": "IC7",
+          "key": "6.23:IC7",
+          "kind": "P",
+          "slug": "6-23-ic7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "body_spin.icy_regime ROCK (an icy body whose surface is at or above the melting point of ice has no shell: the spin's k2/Q is the rock mantle's, tidal_rheology.rock_response, and the air's thermal tide acts as on any rocky planet; the sea's own tide is left out)"
         }
       ],
       "slug": "6-23-stand-ins-of-the-tidal-rheology",
@@ -43173,6 +43249,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "envelope_capture.YOUNG_EMBRYO_MASS_EARTH 0.5 and YOUNG_WATER_CASES ((0.002, 1), (0.003, 2.5)): a total H-mass fraction of 0.2 percent makes about 1 terrestrial ocean of water in the magma ocean of a 0.5 Earth-mass embryo, 0.3 percent makes 2 to 3 (the middle, 2.5 is the L1 pick); between, below and held above 0.3 percent as the power of the hydrogen that joins them (2.26)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.in_range 0.2 to MAX_MASS_EARTH 20 for the water (bulk_draw._nebular_water, GEN.1754): the water of the nebular envelope (EC12, a share of the body's mass, held at the 0.3 percent hydrogen case, about 0.12 percent of the mass) is made by every rocky body of 0.2 to 20 Earth masses, whether it keeps the envelope or loses it, as the same share of its mass (Young et al. [R5293] find no dependence on mass above ~0.2 Earth masses); cross-check, Schlichting and Young [R5294]: a 4 Earth-mass planet with 1 to 14 percent hydrogen has about 0.01 percent (reactive metal core) to 0.1 percent (unreactive) water in its silicate mantle, and more water than that in the envelope"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.12 percent of the mass"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies of 1 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a super-Earth of 1 to 20 Earth masses with a water share of its mass that falls outside 0.01 to 0.2 percent from the envelope alone"
+            ],
+            [
+              "What replaces it",
+              "a mass-dependent magma-ocean and hydrogen equilibrium for 1 to 20 Earth masses (the papers' own thermodynamic models)"
+            ],
+            [
+              "Evidence",
+              "Young, Shahar and Schlichting [R5293] (read: abstract and Results); Schlichting and Young [R5294] (read: abstract and Section 3, second-hand summary of the rest)"
+            ]
+          ],
+          "id": "EC13",
+          "key": "6.206:EC13",
+          "kind": "P",
+          "slug": "6-206-ec13",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "envelope_capture.in_range 0.2 to MAX_MASS_EARTH 20 for the water (bulk_draw._nebular_water, GEN.1754): the water of the nebular envelope (EC12, a share of the body's mass, held at the 0.3 percent hydrogen case, about 0.12 percent of the mass) is made by every rocky body of 0.2 to 20 Earth masses, whether it keeps the envelope or loses it, as the same share of its mass (Young et al. [R5293] find no dependence on mass above ~0.2 Earth masses); cross-check, Schlichting and Young [R5294]: a 4 Earth-mass planet with 1 to 14 percent hydrogen has about 0.01 percent (reactive metal core) to 0.1 percent (unreactive) water in its silicate mantle, and more water than that in the envelope"
         }
       ],
       "slug": "6-206-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",

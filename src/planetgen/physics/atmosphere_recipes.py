@@ -130,7 +130,7 @@ INPUTS = {
     "water_lost": "True when the water was lost",
     "runaway_ratio": "insolation over the runaway-greenhouse limit of the host",
     "perihelion_au": "perihelion distance of a comet (AU)",
-    "co_over_h2o": "CO / H2O of a comet, drawn by row k5 (GEN.1022: the species of row k7 follow the ice formation temperature it implies)",
+    "co_over_h2o": "CO / H2O of a comet, drawn by row k5 (the species of row k7 follow the ice formation temperature it implies)",
     "family": "asteroid-field family (carbonaceous, stony, metallic, icy, basaltic, mixed, dust, collisional)",
     "o2_pal": "oxygen partial pressure as a fraction of the present atmospheric level",
     "co2_rich": "True for a CO2-rich atmosphere",

@@ -26,13 +26,13 @@ from planetgen import tuning
 from planetgen.physics import materials
 
 # Why a name is vocabulary-only: the setting that makes the mineral and the item that builds it.
-MAGMATIC_SULFIDE = "forms in a magmatic sulfide ore of a differentiated body (ore processes, GEN.1380); a primitive body carries its platinum-group elements in its metal"
-RARE_EARTH_ORE = "a rare-earth mineral of carbonatite, granite and pegmatite (ore processes, GEN.1382); a primitive body holds its rare earths in hibonite, perovskite, oldhamite and merrillite"
-URANIUM_ORE = "a uranium or thorium ore mineral (ore processes, GEN.1381); a primitive body holds its uranium and thorium in the inclusion phases and merrillite"
-SUPERGENE = "a supergene mineral of a weathered ore on a wet, oxidizing body (ore processes, GEN.1381 and GEN.1382)"
+MAGMATIC_SULFIDE = "forms in a magmatic sulfide ore of a differentiated body (ore processes); a primitive body carries its platinum-group elements in its metal"
+RARE_EARTH_ORE = "a rare-earth mineral of carbonatite, granite and pegmatite (ore processes); a primitive body holds its rare earths in hibonite, perovskite, oldhamite and merrillite"
+URANIUM_ORE = "a uranium or thorium ore mineral (ore processes); a primitive body holds its uranium and thorium in the inclusion phases and merrillite"
+SUPERGENE = "a supergene mineral of a weathered ore on a wet, oxidizing body (ore processes)"
 IGNEOUS = "an igneous, pegmatitic or metamorphic mineral of an evolved crust (the crust and rock types of a differentiated body), not of a primitive taxon's mix"
 TITANIUM_OXIDE = "a titanium oxide or silicate of igneous and placer settings (ilmenite and perovskite carry a primitive body's titanium)"
-EVAPORITE = "an evaporite salt (the evaporite sequence, GEN.1366), made where a brine dries"
+EVAPORITE = "an evaporite salt (the evaporite sequence), made where a brine dries"
 OXIDIZED = "an oxidation product of iron on a weathered surface (a primitive body's iron oxide is the magnetite its mix draws)"
 
 PGE_HOSTS = ("kamacite", "taenite")

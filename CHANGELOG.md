@@ -2,6 +2,206 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4351] - 2026-11-16
+
+**Headline:** `planetgen plan --reach-shells 3` no longer ends with an error when the galaxy reaches past the shells it was allowed to walk.
+
+### Fixed
+
+- OPS.267: when the outline's walk was cut short and no `--edge` was given (`--reach-shells 3` alone), the plan's closing warning tried to write the Edge dial's value and failed with a TypeError. It now says the plane still qualified at the reach (the shell and `--reach-shells`) and to re-run with a larger one; with `--edge` given it says what it said before.
+
+## [8.0.4350] - 2026-11-16
+
+**Headline:** Small icy bodies far from their star no longer lock in a few Gy, and close-in planets that lost their moons or hold water over a warm surface now lock as the tide says they should.
+
+### Changed
+- GEN.1755: the ice-shell `k2/Q` (`icy_tide`) assumes an ocean under the shell. A small or cold icy body (Class D size at 1 to 5 AU) has a shell as thick as its radius or more, and the formula gave it the most it allows (1.5) where solid ice has about a thousandth, so 17 to 59 percent of them despun to a lock. `body_spin.icy_regime` now gives such a body (shell as thick as the radius) the homogeneous ice response (`tidal_rheology.ice_response` at the mean conducting temperature; stand-in 6.23 IC6). On 400 seeds (1,135 such bodies) the locked share fell from 19 to 1 percent.
+- GEN.1756: a water-rich planet (1 percent water or more) whose surface is above the melting point of ice has no shell, and the shell model gave it no tide at all, so it never despun and had no thermal tide from its air (stand-in 6.23 IC7): it now meets the rock mantle's rheology and the air's thermal tide like any rocky planet.
+- GEN.1756: when the last moon of a planet fell or escaped early (`moon_orbits.OrbitResult.time_s`), `moon_history.apply` stopped the planet's spin history there and kept the fast spin the moon left it. It now runs the rest of the age under the star's tide and the air's, so a close-in planet locks (it turned 14 times per orbit at 0.05 AU of an M dwarf in the census).
+- Generation output changes: the spin (and so the day, the tilt and the thermal tide effects) of the planets above. Tidal heating and the circularisation of icy bodies still use the shell formula (open question for TODO).
+
+## [8.0.4349] - 2026-11-16
+
+**Headline:** A small body that is not round is an Asteroid only while it holds no air, no surface liquid and no life; one that does is classed by the fit like any other body.
+
+### Changed
+- `planet_classes.classify_detail` no longer ends the question at the roundness ratio (GEN.1160): a terrestrial body under a ratio of 1 is an Asteroid, with no class letter, only if it also holds no air (under the fit's 10 Pa gate), no liquid at its surface and no life (`planet_classes.is_asteroid`, `holds_air_liquid_or_life`). A body that holds any of them takes the class that fits it best on the class-fit edges, fudged as any body is (Boss, 6:11 PM EST 2026-11-15: class always comes last, even for a small planet in an asteroid field that has air or life).
+- The Class D size gate needed no change: D is airless in the fit and under 0.1 Earth masses, so a small body with an air is already outside it. The sheet's rule that a non-round body has no class fields follows the same test.
+- Measured on 212 bodies (planets and moons of 15 systems, five star types): 2 are not round, none holds air, liquid or life, so no generated class moves today; the rule matters once a built body can have them (the air history of GEN.1745 classes bodies after their life ages).
+
+generation-affects: none
+
+## [8.0.4348] - 2026-11-16
+
+**Headline:** The air solver's start dependence and unsettled airs are measured on main and bounded by tests: 2.5 percent of air bodies depend on the start (15 percent before), 0 of 35 airs in the test sample are unsettled (10 of 132 before).
+
+### Changed
+
+- GEN.1555: re-measured on main after Train 36 (G2V, 60 systems, 242 bodies with 10 kPa of air; the census script of Lane 14's branch): 6 bodies (2.5 percent) have an answer that depends on the start, against 42 of 286 (15 percent) when the item was filed; 2 sit on the 375 K moist limit (GEN.1579), 1 near water's boiling point. The fixed point already iterates a giant's temperature (GEN.1716) and settles slow creeps (GEN.1718), so Lane 14's open PR 6103 (giant steps and the recipe freeze near the answer) is superseded; nothing in the solver changes here.
+- New `tests/test_surface_air_start_independence.py`: the same setting, start and draw state give the same answer twice; a giant ends at one temperature from nine starts (before GEN.1716 a hot giant ended at 1,381 K from 120 K and 1,633 K from 600 K); at most 15 percent of air bodies of the first twelve G2V seeds depend on the start (0 of 17 today). Real bistability (a snowball and a warm answer) stays, as TODO decided on 2026-11-12.
+- `test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives`: the cap on airs it cannot read because they did not settle goes from a fifth to a twentieth of the bodies (0 of 35 today; it was 10 of 132).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4347] - 2026-11-16
+
+**Headline:** With `queue.forked_jobs` on, the supervisor no longer waits a minute for a template to build, takes back rows a dead supervisor left running, and ends a unit whose run is gone.
+
+### Changed
+- The supervisor builds a lane's warm template in the background (`TemplateSet(background=True)`); a job whose template is not up yet stays `ready` with the reason `the template ... is being built` and is handed out at a later turn.
+- A row left `running` by a supervisor that ended is settled when its attempt's process is gone (or no attempt was taken): handed out once more, then failed. Rows whose process is alive are left to the unit.
+- A unit that skipped itself (its run is no longer live, or the unit was already done) has its row ended `canceled`, not left `running`.
+- The template treats a reset channel as a closed one and exits.
+
+## [8.0.4346] - 2026-11-16
+
+**Headline:** The gas dwarf (class T) text now says its air can be thin, which is true of 1.2 percent of bodies; no bound was added, because it would leave them with no class.
+
+### Changed
+
+- GEN.1616: the phrase of class T (both rows, which share it) in `physics/data/planet_classes.json` no longer says "a thick hydrogen and helium envelope, with no surface to stand on"; it says "an air of mostly hydrogen and helium, thick on most" (the giant row of T shares the phrase, so both changed). The 11-16 census (default settings, 5,000 systems) has 8,458 terrestrial-kind T bodies; 851 of them (1.2 percent of all 73,247 bodies; all plain terrestrial bodies, median 24 K, median 1.1 kPa of pure hydrogen) hold a thin, cold hydrogen air with an envelope under 0.1 percent of the mass. Every other terrestrial row of `planet_class_fit.json` needs under 30 percent hydrogen, so an envelope or pressure bound on the T row would leave those 851 with no class at all; the sentence already said "the air can be thin", and the phrase now agrees. The basis line of the row and the row in `docs/design/habitability/condition-based-planet-classes.md` give the reason and the count.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4345] - 2026-11-16
+
+**Headline:** The link and settle of one sector may start once the sectors they read are saved, and a test now proves it by address.
+
+### Changed
+- `queue/independence.json` lists `edges` (`touches.load_edges`): the unit of `link-neighbors` or `settle-sector-paths` for one sector waits only for the sectors its rule names (the nearest-systems reach for the link, `NEIGHBOUR_REACH_EDGES` for the settle), not for the whole generate stage. `tests/address_edge_support.py` proves it on five sectors in a row: the units run in random orders on one thread and on 15 threads, each released when its sectors are saved, store the same content as plan order; a unit released after its own sector alone does not (the control). Nothing runs overlapped until the supervisor's release-by-needs step uses the edges, so a run is as before; output of generation is unchanged.
+- `queue/touches.py`: `link-neighbors` writes the quadrant of every placed phenomenon (`black_holes`, `nebulae`, `neutron_stars`, `quasars`, `supernova_remnants`, `asteroid_fields`, `interstellar_comets`, `rogue_planets`); the proof found the declaration lacked the others.
+
+## [8.0.4344] - 2026-11-16
+
+**Headline:** A setting runs the units of a generation run as forked jobs handed out by the supervisor, off by default.
+
+### Added
+- `queue.forked_jobs` (off): when on, the cut of a stage of a generation run makes its unit rows `ready` and queues nothing in RQ; the supervisor's new `Launches` duty hands them out with `dispatch.dispatch` and runs each as a job forked from the lane's warm template (OPS.228, slice B). Runs that carry on from an earlier one, and runs with no ledger, stay with the workers.
+- The `open` row of a stage names the Redis run id (`run_id`) beside the stage's index, so the launcher can build the unit's job from the ledger alone; `planrows.release_units` makes a stage's unit rows ready.
+
+### Changed
+- The launcher leaves a unit's attempt to the unit (`units.run_unit_on`, as in a worker), marks a row `running` when it forks, and settles a process that died with its row still `running`: handed out once more, then failed.
+
+## [8.0.4343] - 2026-11-16
+
+**Headline:** The third pair of commands that may overlap, the mass scatter and the nebula field, is proved and listed.
+
+### Changed
+- `queue/independence.json` lists `scatter-mass` and `draw-nebula-field`, with the tables they share named in the entry (`galaxy_shape`, `generator_epoch`, `scatter_epochs`: the shape row and the epoch rows each stage's end hook stamps for its own stage). The mass pass writes the stars, their members and nodes and the block light parts; the nebula field writes its own table. Overlapped at 1 and 15 workers in both orders, the stored content (row ids left out, members and nodes compared through the owner's `uid`) equals plan order's. Nothing runs overlapped until the new engine's supervisor starts the jobs the plan leaves free, so a run is as before; output of generation is unchanged.
+
+## [8.0.4342] - 2026-11-16
+
+**Headline:** Two tests that were red on main are green: the job ledger no longer uses `VALUES()` in its upserts, and no item code shows in the text of a page or a log line.
+
+### Fixed
+- `test_describe_colour` no longer needs a gas giant among twelve default systems (they now almost never appear there); the stale decimal-time examples in docstrings read `4m 7s`.
+- `ledger.begin_attempt`, `ledger.checkpoint` and `resumed._copy_checkpoint` write the new value (or take it from a derived table) instead of `VALUES(col)` in `ON DUPLICATE KEY UPDATE`, which MySQL deprecated.
+- Item codes are cut from strings that reach a page, a sheet or a log line (the sheet's bookkeeping reasons, the redraw kinds, the asteroid vocabulary, a comet recipe label, a carbon-dioxide warning, the habitability table); the comments written into `schema.sql` by `body_fields.py` are registered as not shown.
+
+generation-output: unchanged
+
+## [8.0.4341] - 2026-11-16
+
+**Headline:** Two galaxy fuzz tests no longer fail in a whole-file run: the test harness stopped pinning the random ids of runs and tickets.
+
+### Fixed
+- `test_fuzz_cli` pinned `secrets.token_bytes` for every length to make a new galaxy's seed repeatable; `secrets.token_hex` calls it too, so a run's id and its ticket in the line repeated from one `main` call to the next and a new run was handed the last run's finished verdict ("the run done before stage 1 was queued"). Only the galaxy seed's length is pinned now.
+
+generation-output: unchanged
+
+## [8.0.4340] - 2026-11-16
+
+**Headline:** The second pair of commands that may overlap, the mass scatter and the phenomena scatter, is proved and listed.
+
+### Changed
+- `queue/independence.json` lists `scatter-mass` and `scatter-phenomena`, with the tables they share named in the entry (`bright_stars`, `phenomenon_scatter`, `scatter_members`, `scatter_nodes`, `id_counters`, `galaxy_block_light_parts`, `galaxy_shape`): each writes its own scatter table and the members, nodes, ids and block light parts of its own rows, and reads the other's table only for the light. Overlapped at 1 and 15 workers in both orders, the stored content (row ids left out, members and nodes compared through the owner's `uid`) equals plan order's. Nothing runs overlapped until the new engine's supervisor starts the jobs the plan leaves free, so a run is as before; output of generation is unchanged.
+
+## [8.0.4339] - 2026-11-16
+
+**Headline:** The queue commands' declared reads and writes are now held to a second tap run on a dense galaxy, and the declarations that run showed to be wrong are corrected.
+
+### Changed
+- `tests/test_command_touches.py` runs a second tap test on the galaxy of the bright star scatter tests, dense enough that every scatter draws rows and the sectors hold systems, with `--all` for the habitability and ledger re-scores and `--since` for the link, settle and backfill runs. The first galaxy is too sparse for a command that sends no statement without rows.
+- `queue/touches.py`: `rescore-habitability` and `refill-effect-ledger` declared one table read and none written; they read a whole system (`SYSTEM_RELOAD_READS`) and write `planets`, `moons`, `system_interests` and `system_summary` (the habitability) and `effect_ledger` and `system_summary` (the ledger). `empty-nebula-field` also reads the skeleton and writes `scatter_epochs`. Output of generation is unchanged.
+
+## [8.0.4338] - 2026-11-16
+
+**Headline:** Two more tests that still expected a decimal time now expect the hours, minutes and seconds form.
+
+### Fixed
+- `test_job_view` (a retry hold and an attempt's CPU time) and `test_web_sector_nav` (the stay at each stop) read times as `2m`, `1m 5s` and `30m`.
+
+generation-output: unchanged
+
+## [8.0.4337] - 2026-11-16
+
+**Headline:** The queue commands' declared reads and writes are now held to a second tap run on a dense galaxy, and the declarations that run showed to be wrong are corrected.
+
+### Changed
+- `tests/test_command_touches.py` runs a second tap test on the galaxy of the bright star scatter tests, dense enough that every scatter draws rows and the sectors hold systems, with `--all` for the habitability and ledger re-scores and `--since` for the link, settle and backfill runs. The first galaxy is too sparse for a command that sends no statement without rows.
+- `queue/touches.py`: `rescore-habitability` and `refill-effect-ledger` declared one table read and none written; they read a whole system (`SYSTEM_RELOAD_READS`) and write `planets`, `moons`, `system_interests` and `system_summary` (the habitability) and `effect_ledger` and `system_summary` (the ledger). `empty-nebula-field` also reads the skeleton and writes `scatter_epochs`. Output of generation is unchanged.
+
+## [8.0.4336] - 2026-11-16
+
+**Headline:** The wiring register marks the Harris cluster catalogue as a reference that is never loaded into a galaxy.
+
+### Changed
+
+- GEN.1559: the `harris_clusters` row of `docs/design/research/wiring-register.md` changes from an open item to `by design`, with the reason (Boss, 2026-10-16: its distributions guide the laws and no real cluster is placed in any galaxy; the cluster generator's laws were calibrated against it and are typed in). The other rows that wait on a feature (`dynamical_state`, `formed_at`, `origin_event_id`, `object_uid.is_on_demand`, `region_run.next_units`) keep the open item each waits on, so they come back when it is built.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4335] - 2026-11-16
+
+**Headline:** A scatter, nebula-field, sector or system piece the job engine runs again after its first try wrote its rows no longer writes them a second time.
+
+### Fixed
+
+- OPS.264: the engine marks a piece done after the piece's last commit, so a unit run again after a stop or a lost connection runs a piece whose rows an earlier try already wrote. `scatter_shells_do` (stars) and `scatter_phenomena_do` (phenomena) commit 10,000-row batches one by one and give each row a new Object ID, so a second run wrote every batch it reached again with nothing to refuse it (the unique key is on the new ID); `draw_nebula_field_do` would have stopped on the table's key. A batch is now written only if its first and last row are not in the table already (`scatter_companions.write_once`: each piece draws the same rows from its own random stream, a batch is one transaction, so both rows are in the table or neither is; one in and one out stops the piece), and a nebula-field slab takes back the rows of its first index before it writes them. The population scan (a watermark and a join on `species`), the territories recompute and `finish_phenomena_do` (`ctx.commit_piece`, OPS.222 B) were read and need nothing. The `sector` and `system` commands (`generate-unplaced-sector`, `generate-system`) save through connections of their own and have no key to find the first try's rows by, so they now resume and their save writes the unit's cursor past the piece in its own transaction (`Context.commit_piece_in`, `Attempt.commit_in`, a hook `also` on `store.save_sector` and `save_system`): the rows, the cursor and the stored result land together or not at all, a replaced attempt's save is rolled back, and a `system` unit that starts at its `finish` piece draws the system again from the run's stream. Reuse: `scatter_companions.write_committed` for the write, `star_trees` and `phenomenon_trees` for the systems a skipped batch holds, the scatter tables' address index for the check.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4334] - 2026-11-16
+
+**Headline:** The first pair of commands that may overlap, the phenomena scatter and the nebula field draw, is proved and listed; the proof is a test that runs any listed pair overlapped and compares the stored content.
+
+### Changed
+- `queue/independence.json` lists `scatter-phenomena` and `draw-nebula-field` (their end commands included; they share no table). The planner (`touches.plan_edges`) no longer makes the nebula field wait for the phenomena scatter; nothing runs overlapped until the new engine's supervisor starts the jobs the rows leave free, so a run is exactly as before.
+- New `tests/pair_overlap_support.py` and `tests/pair_overlap_recipes.py`: for each listed pair, both stages are cut up front and their units mixed one at a time and on 15 threads, in both orders of who starts first, and the content (row ids left out, the members and nodes of a scatter row compared through its `uid`) must equal plan order's; the SQL tap must see each command touch only the tables it declares, on a galaxy dense enough that every stage stores rows. A control pair that depends on the other (the mass and luminosity passes) must fail the proof.
+- The scatter commands' declarations in `queue/touches.py` were wrong: the toy galaxy of OPS.241 drew no stars, so the tap saw no writes. They now say what the dense toy shows (`bright_stars` or `phenomenon_scatter`, `scatter_members`, `scatter_nodes`, `id_counters`, `galaxy_block_light_parts`); the tap no longer counts a temporary table. An entry in `independence.json` now names the tables its pair shares (`shared`), and a test fails when they change.
+
+## [8.0.4333] - 2026-11-16
+
+**Headline:** An object that is deleted keeps its ID and name on record, so a link to it answers "gone" (410) and its ID is never issued again.
+
+### Added
+
+- GEN.1141: `designation_rows.tombstone` and `tombstone_tree` (migration 0265, schema v265: `designations.reason` takes `deleted`). When `DELETE /api/systems/<id>`, `db/edits.delete_phenomenon` or a system edit deletes an object, its current ID (and name) is written as a retired designation and every row of the object is stamped `gone_epoch`; a deleted system takes its bodies' IDs with it and a deleted planet its moons'. The 410 answers of GEN.1139 already read the stamp; nothing wrote it until now. A sector emptied for regeneration is not tombstoned (the cell is made again). Reuse: `body_rows`, `retire_name` and the `designations` table and rules of GEN.1138. The three captured-body functions of `object_uid` (`captured_member`, `outside_reservoir_member`, `parse_captured`) are marked by design in the wiring register: they wait for the captured-asteroid-moon columns; irregular moons print through `irregular_designation`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4332] - 2026-11-16
+
+**Headline:** Every queue command now declares the tables it reads and writes, and a SQL tap test holds those declarations to what the commands really touch.
+
+### Changed
+- New `queue/touches.py` holds the reads and writes of all 66 command kinds and end hooks, the conflict rule (a write another command reads or writes, a shared file or cache), `independence.json` (the proven pairs, empty today) and `plan_edges`, the planner's edges. `planrows.record_plan` takes its `after:` edges from it; with no pair listed each step still waits for the one before it, so a plan is exactly as before.
+- New `queue/sqltap.py` reads the statements a command sends and names the tables each reads and writes. `tests/test_command_touches.py` runs a toy galaxy and the commands around it under the tap and fails a command that touches an undeclared table, a registered command with no declaration, and a command the run never exercised that is not listed with the reason. Output of generation is unchanged.
+
+## [8.0.4331] - 2026-11-16
+
+**Headline:** The warm-up stages for sectors, systems, phenomena and the Galaxy Map's nodes are now cut into units by the queue engine from the profile and the free resources, as the three galaxy stages already are.
+
+### Changed
+- `warm-sectors`, `warm-systems`, `warm-phenomena`, `warm-galaxy-nodes` and `warm-galaxy-deep-nodes` are flagged byte identical (PERF.260 already proves each stores the same cache bytes at two cuts, `tests/cut_neutral_recipes.py`), and their `expand` calls `splitter.cut` (OPS.243) instead of a typed `units.coarsen` size. `OBJECT_CHUNK` and `NODE_CHUNK` stay the suggested size the stage keeps when the profile has nothing usable, in at most `units.MAX_UNITS` units, so a fresh install cuts as it did. The stage plan records the engine's decision.
+
+generation-affects: none
+
 ## [8.0.4330] - 2026-11-16
 
 **Headline:** Every time the pages, progress strips and logs show now reads as hours, minutes and seconds (1h 23m 45s), never as a decimal such as 1.25 minutes.

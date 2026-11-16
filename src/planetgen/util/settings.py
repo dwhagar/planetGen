@@ -499,6 +499,11 @@ class Queue(_Section):
         "Each file is capped at 20 MB and the folder keeps the newest 400 files. Off, nothing extra is written.", group="speed",
         label="Debug log of a restarted unit",
         summary="A unit that runs again writes a debug log of its own.")
+    forked_jobs: bool = opt(
+        False, "The units of a generation run's stages are handed out by the supervisor's launcher and run as jobs forked from a warm template (OPS.228), in place of RQ's workers. A run that "
+        "carries on from an earlier one stays with the workers. Off, every unit goes to a worker as before.", group="speed",
+        label="Run units as forked jobs",
+        summary="Generation units run as jobs forked from a warm template, handed out by the supervisor.")
     max_waiting: int = opt(
         8, "How many entries the one waiting list holds: generation runs and API jobs that wait for the "
         "machine, and Generate page jobs that wait for the running job. One more than this is refused, naming the list.",

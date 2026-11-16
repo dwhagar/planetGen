@@ -130,10 +130,10 @@ def prepare_class(planet):
 
 
 def classify(planet):
-    """The class letter, its match, the runner-up and the digit of a body `prepare_class` has prepared and whose bands exist (GEN.1587); an Asteroid gets none."""
+    """The class letter, its match, the runner-up and the digit of a body `prepare_class` has prepared and whose bands exist (GEN.1587); an Asteroid (a body under a roundness ratio of 1 that holds no air, liquid or life, GEN.1752) gets none."""
     detail = planet_classes.classify_detail(planet)
     if detail is None:
-        return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
+        return      # GEN.1160/GEN.1752: a body under a roundness ratio of 1 that holds no air, liquid or life is an Asteroid, an object type with no class letter; one that holds any of them is classed like any body
     planet.planet_class = detail.letter
     # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
     planet.class_variant, planet.class_match = detail.digit, detail.match

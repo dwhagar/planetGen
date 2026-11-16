@@ -36,18 +36,36 @@ SECTOR_READS = (
     "moon_isotopes", "moon_life", "moon_life_class_scores", "moon_reflection_spectrum", "moons", "nebulae", "neutron_stars", "orbit_simulation_state",
     "phenomenon_scatter",
     "planet_life", "planets", "quasars", "rogue_planet_deposit_types", "rogue_planet_gases", "rogue_planet_interior_layers", "rogue_planet_isotopes",
-    "rogue_planet_life_class_scores", "rogue_planet_reflection_spectrum", "rogue_planets", "scatter_members", "scatter_nodes", "scatter_uid_rank",
-    "scatter_uid_sector", "sector_facets", "sector_name_registry", "sector_stats", "sectors", "sky_tier_draws", "species", "star_systems", "stars", "supernova_remnants", "system_configs",
+    "rogue_planet_life_class_scores", "rogue_planet_reflection_spectrum", "rogue_planets", "scatter_members", "scatter_nodes",
+    "sector_facets", "sector_name_registry", "sector_stats", "sectors", "sky_tier_draws", "species", "star_systems", "stars", "supernova_remnants", "system_configs",
     "system_interests", "system_name_registry",
 )
 SECTOR_WRITES = (
     "asteroid_belt_composition", "asteroid_belts", "belt_members", "body_history", "bright_stars", "chart_ledger", "comet_composition", "comets", "dark_members",
-    "effect_ledger", "galaxy_block_light_parts", "galaxy_shape", "galaxy_totals", "id_blocks", "id_counters", "irregular_moons", "irregular_sets", "moon_deposit_types",
+    "effect_ledger", "galaxy_block_light_parts", "galaxy_shape", "galaxy_totals", "id_blocks", "id_counters", "interstellar_comet_composition", "interstellar_comets", "irregular_moons", "irregular_sets", "moon_deposit_types",
     "moon_gases", "moon_isotopes", "moon_life", "moon_life_class_scores", "moons", "orbit_nodes", "planet_deposit_types", "planet_gases", "planet_interior_layers",
     "planet_isotopes", "planet_life", "planet_life_class_scores", "planets", "rogue_planet_deposit_types", "rogue_planet_gases", "rogue_planet_isotopes",
-    "rogue_planets", "scatter_members", "scatter_nodes", "scatter_uid_rank", "scatter_uid_sector", "sector_facets", "sector_name_registry", "sector_stats", "sector_tree_nodes",
+    "rogue_planets", "scatter_members", "scatter_nodes", "sector_facets", "sector_name_registry", "sector_stats", "sector_tree_nodes",
     "sectors", "star_systems", "stars", "system_configs", "system_interests", "system_name_registry", "system_summary",
 )
+
+SYSTEM_RELOAD_READS = (
+    "asteroid_belt_composition", "asteroid_belts", "belt_members", "black_holes", "body_history", "comet_composition", "comets", "dark_members", "facilities",
+    "irregular_moons", "irregular_sets", "moon_deposit_types", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_class_scores",
+    "moon_reflection_spectrum", "moons", "neutron_stars", "orbit_nodes", "planet_deposit_types", "planet_gases", "planet_interior_layers", "planet_isotopes",
+    "planet_life", "planet_life_class_scores", "planet_reflection_spectrum", "planets", "sector_stats", "sectors", "species", "star_systems", "stars",
+    "system_config_slots", "system_configs", "system_interests", "system_summary",
+)
+"""tuple: What a command that loads one whole system reads (`store.refresh_habitability`, `store.refresh_effect_ledger`): the system, its bodies and their parts."""
+
+SCATTER_READS = (
+    "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters", "orbit_simulation_state",
+    "phenomenon_scatter",
+)
+SCATTER_STAR_WRITES = ("bright_stars", "galaxy_block_light_parts", "id_counters", "scatter_members", "scatter_nodes")
+SCATTER_PHENOMENON_WRITES = ("galaxy_block_light_parts", "id_counters", "phenomenon_scatter", "scatter_members", "scatter_nodes")
+"""tuple: What a scatter stage's units read and write, from the tap on a toy galaxy dense enough that each draws rows (`tests/pair_overlap_support.py`). The scatters work on a skeleton and write
+only their own scatter table, the light parts of the blocks, the members of what they drew and the ids of the rows; the rest is the stage's end commands'."""
 
 READS = {
     "check-counts": (
@@ -94,21 +112,21 @@ READS = {
     "conclude-warm-cluster-field": ("*",),
     "draw-nebula-field": ("galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell"),
     "drop-phenomenon-indexes": (),
-    "empty-nebula-field": (),
+    "empty-nebula-field": ("galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "scatter_epochs"),
     "empty-phenomenon-scatter": (),
     "end-map-rebuild-maintenance": (),
     "fill-map-luminosity": ("phenomenon_scatter",),
     "build-phenomenon-indexes": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
-        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector",
+        "orbit_simulation_state", "phenomenon_scatter",
     ),
     "record-phenomenon-scatter": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
-        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector",
+        "orbit_simulation_state", "phenomenon_scatter",
     ),
     "write-special-phenomena": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
-        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector",
+        "orbit_simulation_state", "phenomenon_scatter",
     ),
     "finish-warm-galaxy-deep-nodes": ("*",),
     "finish-warm-galaxy-nodes": ("*",),
@@ -125,14 +143,14 @@ READS = {
         "sectors", "star_systems", "supernova_remnants",
     ),
     "plan-skeleton": (),
-    "refill-effect-ledger": ("star_systems", "system_summary"),
+    "refill-effect-ledger": SYSTEM_RELOAD_READS,
     "refresh-block-lights": ("bright_stars", "galaxy_block_light_parts", "galaxy_block_lights", "phenomenon_scatter", "phenomenon_scatter_classes"),
     "refresh-run-blocks": (
         "asteroid_belts", "asteroid_fields", "black_holes", "bright_stars", "chart_ledger", "comets", "galaxy_block_light_parts", "galaxy_block_lights",
         "galaxy_block_stats", "galaxy_shape", "galaxy_shape_pins", "interstellar_comets", "moons", "nebula_block_state", "nebulae", "neutron_stars", "phenomenon_scatter",
         "planets", "quasars", "rogue_planets", "sector_stats", "sectors", "star_systems", "stars",
     ),
-    "rescore-habitability": ("star_systems", "system_summary"),
+    "rescore-habitability": SYSTEM_RELOAD_READS,
     "reset-galaxy": ("*",),
     "scan-species": ("moons", "planet_life", "planets", "polities", "population_state", "species", "star_systems", "system_configs"),
     "date-civilizations": ("moons", "planet_life", "planets", "polities", "population_state", "species", "star_systems", "system_configs"),
@@ -141,16 +159,12 @@ READS = {
     "run-territories": ("polities", "sectors", "star_systems"),
     "scatter-backfill": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
-        "orbit_simulation_state", "phenomenon_scatter", "scatter_uid_rank", "scatter_uid_sector", "sector_stats", "sectors", "sky_tier_draws",
+        "orbit_simulation_state", "phenomenon_scatter", "sector_stats", "sectors", "sky_tier_draws",
     ),
-    "scatter-band": (
-        "bright_stars", "chart_ledger", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "orbit_simulation_state",
-    ),
-    "scatter-luminosity": (
-        "bright_stars", "chart_ledger", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "orbit_simulation_state",
-    ),
-    "scatter-mass": ("chart_ledger", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "orbit_simulation_state"),
-    "scatter-phenomena": ("chart_ledger", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "orbit_simulation_state"),
+    "scatter-band": SCATTER_READS,
+    "scatter-luminosity": SCATTER_READS,
+    "scatter-mass": SCATTER_READS,
+    "scatter-phenomena": SCATTER_READS,
     "settle-sector-paths": (
         "black_holes", "interstellar_comets", "neutron_stars", "rogue_planets", "sector_paths", "sectors", "star_systems", "system_summary",
     ),
@@ -200,21 +214,18 @@ WRITES = {
     "conclude-warm-cluster-field": (),
     "draw-nebula-field": ("nebula_field",),
     "drop-phenomenon-indexes": ("phenomenon_scatter",),
-    "empty-nebula-field": ("nebula_field",),
+    "empty-nebula-field": ("nebula_field", "scatter_epochs"),
     "empty-phenomenon-scatter": ("phenomenon_scatter", "phenomenon_scatter_classes"),
     "end-map-rebuild-maintenance": (),
     "fill-map-luminosity": ("phenomenon_scatter",),
     "build-phenomenon-indexes": (
         "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
-        "scatter_uid_rank", "scatter_uid_sector",
     ),
     "record-phenomenon-scatter": (
         "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
-        "scatter_uid_rank", "scatter_uid_sector",
     ),
     "write-special-phenomena": (
         "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
-        "scatter_uid_rank", "scatter_uid_sector",
     ),
     "finish-warm-galaxy-deep-nodes": (),
     "finish-warm-galaxy-nodes": (),
@@ -226,12 +237,14 @@ WRITES = {
     "generate-start-sector": SECTOR_WRITES,
     "generate-system": SECTOR_WRITES,
     "generate-unplaced-sector": SECTOR_WRITES,
-    "link-neighbors": ("nearest_systems", "rogue_planets"),
+    "link-neighbors": (      # the quadrant of every placed phenomenon (`store._octant_updates`, found by the by-address proof on a toy with a black hole) and the nearest systems
+        "asteroid_fields", "black_holes", "interstellar_comets", "nearest_systems", "nebulae", "neutron_stars", "quasars", "rogue_planets", "supernova_remnants",
+    ),
     "plan-skeleton": ("galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell"),
-    "refill-effect-ledger": (),
+    "refill-effect-ledger": ("effect_ledger", "system_summary"),
     "refresh-block-lights": ("galaxy_block_lights",),
     "refresh-run-blocks": ("galaxy_block_light_parts", "galaxy_block_lights", "galaxy_block_stats", "region_stats", "sector_stats"),
-    "rescore-habitability": (),
+    "rescore-habitability": ("moons", "planets", "system_interests", "system_summary"),
     "reset-galaxy": ("*",),
     "scan-species": ("population_state", "species", "system_interests"),
     "date-civilizations": ("population_state", "species", "system_interests"),
@@ -239,12 +252,12 @@ WRITES = {
     "count-population": ("population_state", "species", "system_interests"),
     "run-territories": ("system_owners",),
     "scatter-backfill": (
-        "bright_stars", "galaxy_block_light_parts", "id_counters", "scatter_members", "scatter_nodes", "scatter_uid_rank", "scatter_uid_sector", "sector_stats",
+        "bright_stars", "galaxy_block_light_parts", "id_counters", "scatter_members", "scatter_nodes", "sector_stats",
     ),
-    "scatter-band": (),
-    "scatter-luminosity": (),
-    "scatter-mass": (),
-    "scatter-phenomena": (),
+    "scatter-band": SCATTER_STAR_WRITES,
+    "scatter-luminosity": SCATTER_STAR_WRITES,
+    "scatter-mass": SCATTER_STAR_WRITES,
+    "scatter-phenomena": SCATTER_PHENOMENON_WRITES,
     "settle-sector-paths": ("sector_path_knots", "sector_paths"),
     "store-scatter-limits": ("galaxy_shape",),
     "warm-cluster-field": (),
@@ -273,7 +286,10 @@ OTHER = {
 INDEPENDENCE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "independence.json")
 """str: The pairs of commands a test has run overlapped, in both orders and at 1 and 15 workers, with the same content hashes as the plan-order run (OPS.242 adds a pair with its proof)."""
 
-PAIR_KEYS = ("a", "b", "grain", "proof")
+PAIR_KEYS = ("a", "b", "grain", "shared", "proof")
+EDGE_KEYS = ("command", "after", "grain", "needs", "reach", "unit_params", "proof")
+"""tuple: What an entry of `edges` in `independence.json` names (`load_edges`): the command whose unit for one sector may start when the sectors it needs are saved, the commands that save them, the grain, how the
+needed sectors are found, the numbers of that rule (each is a constant of the code a test holds the entry to), the params the unit is given, and the test that proved it (`tests/test_address_edges.py`)."""
 
 
 def declared(kind):
@@ -295,16 +311,38 @@ def _hits(first, second):
     return ANY in first or ANY in second or bool(set(first) & set(second))
 
 
-def conflict(kind_a, kind_b):
+def conflicting_names(kind_a, kind_b):
     """
-    Whether two commands conflict: one writes what the other reads or writes, or both touch the same file or cache named in `OTHER`. `ENGINE_TABLES` do not count. A command with no declaration
-    conflicts with every command (nothing is known of it).
+    What two commands share: the tables one writes that the other reads or writes, and the files and caches both name in `OTHER`, sorted. `ANY` for a command that touches every table (the
+    answer is then `["*"]`); `["?"]` for a command with no declaration (nothing is known of it). `ENGINE_TABLES` do not count.
     """
     if not (declared(kind_a) and declared(kind_b)):
-        return True
-    if _hits(writes_of(kind_a), reads_of(kind_b) + writes_of(kind_b)) or _hits(writes_of(kind_b), reads_of(kind_a)):
-        return True
-    return bool(set(OTHER.get(kind_a, ())) & set(OTHER.get(kind_b, ())))
+        return ["?"]
+    reads_a, writes_a, reads_b, writes_b = reads_of(kind_a), writes_of(kind_a), reads_of(kind_b), writes_of(kind_b)
+    if (ANY in writes_a and (writes_b or reads_b)) or (ANY in writes_b and (writes_a or reads_a)) or (ANY in reads_a and writes_b) or (ANY in reads_b and writes_a):
+        return [ANY]
+    found = (set(writes_a) & (set(reads_b) | set(writes_b))) | (set(writes_b) & set(reads_a)) | (set(OTHER.get(kind_a, ())) & set(OTHER.get(kind_b, ())))
+    return sorted(found)
+
+
+def conflict(kind_a, kind_b):
+    """Whether two commands conflict (`conflicting_names` names something): one writes what the other reads or writes, or both touch the same file or cache named in `OTHER`."""
+    return bool(conflicting_names(kind_a, kind_b))
+
+
+def group_of(kind):
+    """A stage's command and the end commands it has (`conclude-<kind>`, `finish-<kind>`), which run when the stage's units are done and are part of what a pair overlaps."""
+    from planetgen.queue import commands, planrows
+    return [kind] + [name for name in (commands.end_name(kind, role) for role in (planrows.CONCLUDE, planrows.FINISH)) if name in READS and name != kind]
+
+
+def shared_between(kind_a, kind_b):
+    """What the stages `kind_a` and `kind_b` share, their end commands counted (`conflicting_names` over `group_of` of each), sorted; empty for two that share nothing."""
+    found = set()
+    for first in group_of(kind_a):
+        for second in group_of(kind_b):
+            found |= set(conflicting_names(first, second))
+    return sorted(found)
 
 
 def load_pairs(path=None):
@@ -333,6 +371,31 @@ def load_pairs(path=None):
         if pair in found:
             raise ValueError(f"independence.json: the pair {sorted(pair)} is listed twice")
         found[pair] = entry
+    return found
+
+
+def load_edges(path=None):
+    """
+    The by-address edges in `independence.json` as `{command: entry}` (OPS.242): the units of `command` for one sector (`grain` `"sector"`) that may start once the sectors `needs` names are saved by
+    one of the `after` commands, with the rest of the galaxy still being made. `{}` for a file with no `edges`.
+
+    Raises:
+        ValueError: For an entry that lacks a key, names an unregistered command, or is listed twice.
+    """
+    from planetgen.queue import commands
+    with open(path or INDEPENDENCE_FILE, encoding="utf-8") as handle:
+        data = json.load(handle)
+    found = {}
+    for entry in data.get("edges", []):
+        missing = [key for key in EDGE_KEYS if key not in entry]
+        if missing:
+            raise ValueError(f"independence.json: an edge lacks {', '.join(missing)}: {entry}")
+        for kind in (entry["command"], *entry["after"]):
+            if kind not in commands.REGISTRY:
+                raise ValueError(f"independence.json: {kind!r} is not a registered command")
+        if entry["command"] in found:
+            raise ValueError(f"independence.json: the edges of {entry['command']!r} are listed twice")
+        found[entry["command"]] = entry
     return found
 
 

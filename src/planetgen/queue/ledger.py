@@ -120,7 +120,7 @@ def begin_attempt(conn, job_id, galaxy_conn=None, pid=None):
     conn.commit()
     if galaxy_conn is not None:
         galaxy_conn.execute("INSERT INTO engine_items (job_id, attempt, updated_at) VALUES (?, ?, NOW(6))"
-                            " ON DUPLICATE KEY UPDATE attempt = VALUES(attempt), done_at = NULL, updated_at = NOW(6)", (job_id, attempt))     # the cursor and the stored results stay: a job run again starts after them (OPS.219)
+                            " ON DUPLICATE KEY UPDATE attempt = ?, done_at = NULL, updated_at = NOW(6)", (job_id, attempt, attempt))     # the cursor and the stored results stay: a job run again starts after them (OPS.219)
         galaxy_conn.commit()
     return attempt
 
@@ -176,8 +176,9 @@ def commit_item(galaxy_conn, job_id, attempt, cursor_key=None, done=False, resul
         if row is None or row["attempt"] != attempt:
             raise Replaced(f"Job {job_id} attempt {attempt} was replaced" + (f" by attempt {row['attempt']}." if row else " (it has no row)."))
     for index, result in results:
-        galaxy_conn.execute("INSERT INTO engine_piece_results (job_id, piece_index, result) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE result = VALUES(result)",
-                            (job_id, index, json.dumps(result, sort_keys=True, separators=(",", ":"))))
+        text = json.dumps(result, sort_keys=True, separators=(",", ":"))
+        galaxy_conn.execute("INSERT INTO engine_piece_results (job_id, piece_index, result) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE result = ?",
+                            (job_id, index, text, text))
 
 
 def item_state(galaxy_conn, job_id):

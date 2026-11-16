@@ -25,8 +25,8 @@ done); the time left comes from that overall rate only.
   whole warm-up and one for the stage in progress, each with elapsed time, time left and, for the stage, the seconds a
   chunk takes overall and how many run at once. Lines the warm-up logs are printed above the bars.
 * Without one (a log file, cron, a pipe) a stage of several chunks leaves a progress line when the log cadence (30 s) and ten
-  percentage points have both passed since the last one (OPS.99), `galaxy-nodes 16% (28 of 180 chunks), 1.93 minutes elapsed, about
-  10.2 minutes left`, with the whole warm-up's time left after it once that is known, then one closing line for the stage that
+  percentage points have both passed since the last one (OPS.99), `galaxy-nodes 16% (28 of 180 chunks), 1m 56s elapsed, about
+  10m 12s left`, with the whole warm-up's time left after it once that is known, then one closing line for the stage that
   also says how many chunks ran at once and how long a chunk took on its worker. A stage of one unit prints its own line.
 """
 
