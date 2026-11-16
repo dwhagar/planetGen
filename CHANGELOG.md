@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4350] - 2026-11-16
+
+**Headline:** Small icy bodies far from their star no longer lock in a few Gy, and close-in planets that lost their moons or hold water over a warm surface now lock as the tide says they should.
+
+### Changed
+- GEN.1755: the ice-shell `k2/Q` (`icy_tide`) assumes an ocean under the shell. A small or cold icy body (Class D size at 1 to 5 AU) has a shell as thick as its radius or more, and the formula gave it the most it allows (1.5) where solid ice has about a thousandth, so 17 to 59 percent of them despun to a lock. `body_spin.icy_regime` now gives such a body (shell as thick as the radius) the homogeneous ice response (`tidal_rheology.ice_response` at the mean conducting temperature; stand-in 6.23 IC6). On 400 seeds (1,135 such bodies) the locked share fell from 19 to 1 percent.
+- GEN.1756: a water-rich planet (1 percent water or more) whose surface is above the melting point of ice has no shell, and the shell model gave it no tide at all, so it never despun and had no thermal tide from its air (stand-in 6.23 IC7): it now meets the rock mantle's rheology and the air's thermal tide like any rocky planet.
+- GEN.1756: when the last moon of a planet fell or escaped early (`moon_orbits.OrbitResult.time_s`), `moon_history.apply` stopped the planet's spin history there and kept the fast spin the moon left it. It now runs the rest of the age under the star's tide and the air's, so a close-in planet locks (it turned 14 times per orbit at 0.05 AU of an M dwarf in the census).
+- Generation output changes: the spin (and so the day, the tilt and the thermal tide effects) of the planets above. Tidal heating and the circularisation of icy bodies still use the shell formula (open question for TODO).
+
 ## [8.0.4349] - 2026-11-16
 
 **Headline:** A small body that is not round is an Asteroid only while it holds no air, no surface liquid and no life; one that does is classed by the fit like any other body.
