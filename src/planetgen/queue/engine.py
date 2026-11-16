@@ -148,6 +148,26 @@ class Context:
         else:
             self.commit()
 
+    def commit_piece_in(self, conn, result=None):
+        """
+        `commit_piece` for a piece whose rows are written by a save that opens a connection of its own (OPS.264: `store.save_sector` and `save_system`): called inside that save's transaction with its
+        connection, it writes the unit's cursor past the piece in hand and `result` there, fenced like any commit, and does not commit: the rows, the cursor and the result land together or not at all, so a
+        unit stopped after the save starts at the piece that follows and one stopped before it does this piece again. `result` is what the piece returns (the engine stores it here and not again). Does
+        nothing for a unit with no attempt, with no ledger row or that does not `resumes`: there is no cursor to move.
+
+        Raises:
+            attempts.Replaced: The unit's row is another attempt's; the save's transaction is rolled back by it.
+        """
+        if not (self._resumes and self.attempt is not None and self.attempt.config is not None):
+            return
+        number = len(self.results)          # the place of the piece in hand, as in `commit_piece`
+        pending = [(index, stored) for index, stored in enumerate(self.results[self._stored:], self._stored) if stored is not None]
+        stored = json.loads(json.dumps(result))
+        if stored is not None:
+            pending.append((number, stored))
+        self.attempt.commit_in(conn, str(number + 1), pending)
+        self._stored = number + 1
+
     def checkpoint(self):
         """
         After every piece (OPS.219): stores the number of pieces finished and what the new ones returned, with a commit of anything the piece left uncommitted, fenced like any `commit()`. A unit that does
