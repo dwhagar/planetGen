@@ -28,10 +28,10 @@ def test_a_progress_line_comes_when_the_log_cadence_and_ten_percent_have_passed(
     """OPS.99, OPS.169: a chunk every 20 s of a stage of 8 is a line every two chunks (40 s, past the 30 s log cadence, 25 points), not one per chunk."""
     lines = _run(8)
     progress = [line for line in lines if "%" in line]
-    assert progress[0] == "galaxy-deep-nodes 25% (2 of 8 chunks), 40 s elapsed"
+    assert progress[0] == "galaxy-deep-nodes 25% (2 of 8 chunks), 40s elapsed"
     assert len(progress) == 3 and progress[2].startswith("galaxy-deep-nodes 75% (6 of 8 chunks)")
-    assert lines[-1] == ("galaxy-deep-nodes: 512 nodes warmed (512 built, 0 already stored) in 2.67 minutes over 8 chunks of up to 64 nodes; "
-                         "1 chunk at once, 20 s a chunk on its worker; family 2 of 2")
+    assert lines[-1] == ("galaxy-deep-nodes: 512 nodes warmed (512 built, 0 already stored) in 2m 40s over 8 chunks of up to 64 nodes; "
+                         "1 chunk at once, 20s a chunk on its worker; family 2 of 2")
 
 
 def test_no_time_left_is_shown_from_fewer_than_a_few_chunks():
@@ -40,13 +40,13 @@ def test_no_time_left_is_shown_from_fewer_than_a_few_chunks():
     first = next(line for line in lines if "%" in line)
     assert "left" not in first and "2 of 8" in first
     later = [line for line in lines if "%" in line][-1]
-    assert "2 minutes elapsed, about 40 s left" in later
+    assert "2m elapsed, about 40s left" in later
 
 
 def test_the_closing_line_says_how_many_chunks_run_at_once_and_how_long_a_chunk_takes_on_its_worker():
-    """PERF.237: ten workers each take 37 s a chunk, so a chunk is done every 3.7 s overall. The progress line leaves that out; the stage's last line has it."""
+    """PERF.237: ten workers each take 37s a chunk, so a chunk is done every 3.7 s overall. The progress line leaves that out; the stage's last line has it."""
     lines = _run(40, each=3.7, own=37.0)
-    assert lines[-1].endswith("; 10 chunks at once, 37 s a chunk on its worker; family 2 of 2")
+    assert lines[-1].endswith("; 10 chunks at once, 37s a chunk on its worker; family 2 of 2")
     assert not any("at once" in line for line in lines[:-1])
 
 
@@ -124,8 +124,8 @@ def test_the_whole_warm_up_shows_no_time_left_from_fewer_than_a_few_chunks():
 
 def test_the_times_in_a_progress_line_are_the_one_duration_form():
     """UX.318: the units code's time ladder, as every other log line."""
-    assert logrecord.duration_text(65) == "1.08 minutes"
-    assert logrecord.duration_text(3912) == "1.09 hours"
+    assert logrecord.duration_text(65) == "1m 5s"
+    assert logrecord.duration_text(3912) == "1h 5m 12s"
     assert logrecord.duration_text(None) == "?"
 
 

@@ -113,7 +113,7 @@ from planetgen.db import region_stats
 from planetgen.names import naming_key
 from planetgen.db import cloudcontents, containers as containersDb, nebula_volumes, nodes, objectlist
 from planetgen.db import stats as dbStats
-from planetgen.db import scatter_systems, store
+from planetgen.db import designation_rows, scatter_systems, store
 from planetgen.db import edits as dbEdits
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits, sector_context, stored_trees
 from planetgen import tuning
@@ -2884,6 +2884,7 @@ def delete_system(system_id):
     try:
         with conn:
             row = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+            designation_rows.tombstone_tree(conn, "star_systems", system_id)     # GEN.1141: the system's and its bodies' IDs stay reserved and a link to them answers 410
             deleted = conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,)).rowcount > 0
             if deleted:
                 store.touch_sector(conn, row["sector_id"])

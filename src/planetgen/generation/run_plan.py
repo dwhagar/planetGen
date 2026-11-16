@@ -3423,39 +3423,60 @@ class PhenomenaFollower(followed.Follower):
         stages.note(shells=self.shape.shell_total, shells_modified=self.book.landed, objects=sum(self.book.counts.values()))
 
 
-class PhenomenaIndexFollower(followed.Follower):
-    """The end of the phenomenon scatter as a stage of a run: the special phenomena written, the indexes built, the
-    hypervelocity stars stamped and the scatter recorded (the `finish-phenomena` unit)."""
+class WriteSpecialPhenomenaFollower(followed.Follower):
+    """The special phenomena (the nucleus and the hypervelocity stars) drawn and written as a stage of a run (OPS.239: the `write-special-phenomena` command, one unit)."""
 
-    key = "phenomena-index"
-    label = "Index the phenomena"
+    key = "phenomena-special"
+    label = "Write the special phenomena"
 
     def __init__(self, args, book, settings):
         super().__init__(args)
-        self._params, self.book = {"settings": settings, "run_id": getattr(args, "generation_run_id", None)}, book
+        self._params, self.book = {"settings": settings}, book
         self.bar = None
 
     def params(self):
         return dict(self._params)
 
     def on_plan(self, plan):
-        self.bar = self.hold(steps.Step("Drawing the special phenomena", "phenomena-index", 1, args=self.args,
-                                        progress=self.progress, force=True))
+        self.bar = self.hold(steps.Step("Drawing the special phenomena", "phenomena-special", 1, args=self.args, progress=self.progress, force=True))
 
     def on_progress(self, unit, done, estimate):
-        # The unit reports in quarters: the special rows drawn, written, the indexes built, the rest (UX.84).
-        phase = ("Drawing the special phenomena", "Writing the special phenomena", "Indexing the phenomena",
-                 "Stamping the hypervelocity stars")[min(int(done), 3)]
-        self.bar.update(completed=done, total=estimate, description=phase)
+        self.bar.update(completed=done, total=estimate, description=("Drawing the special phenomena", "Writing the special phenomena")[min(int(done), 1)])
 
     def on_result(self, unit, result):
-        for line in result["lines"]:
-            log.normal(line)
         special = result["special"]
         for label, count in special.items():
             self.book.counts[label] += count
         if special:
             log.normal("Special phenomena: " + ", ".join(f"{count:,} {kind}" for kind, count in sorted(special.items())) + ".")
+
+
+class PhenomenaIndexFollower(UnitBarFollower):
+    """The building of the phenomenon table's indexes as a stage of a run (OPS.239: the `build-phenomenon-indexes` command, one unit, a piece to an index)."""
+
+    key = "phenomena-index"
+    label = "Index the phenomena"
+
+    def __init__(self, args, settings):
+        super().__init__(args)
+        self._settings = settings
+
+    def params(self):
+        return {"settings": self._settings}
+
+
+class RecordPhenomenaFollower(UnitBarFollower):
+    """The recording of the finished phenomenon scatter as a stage of a run (OPS.239: the `record-phenomenon-scatter` command, one unit, the last of the scatter)."""
+
+    key = "phenomena-record"
+    label = "Record the phenomena"
+
+    def __init__(self, args, book, settings):
+        super().__init__(args)
+        self._params, self.book = {"settings": settings, "run_id": getattr(args, "generation_run_id", None)}, book
+
+    def params(self):
+        return dict(self._params)
 
     def on_done(self, conclusion):
         self.book.log()
@@ -3484,7 +3505,9 @@ def phenomena_followers(args, refuse=None, tag=""):
     followers = [EmptyPhenomenonScatterFollower(args, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
                  DropPhenomenonIndexesFollower(args),
                  PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
-                 PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
+                 WriteSpecialPhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena-special", refuse, tag)),
+                 PhenomenaIndexFollower(args, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
+                 RecordPhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena-record", refuse, tag)),
                  EmptyNebulaFieldFollower(args), NebulaFieldFollower(args)]
     return _standing_followers(args, followers), book
 
@@ -3519,7 +3542,7 @@ def _phenomena_settings(marker):
     finally:
         conn.close()
     params = {"min_mass_solar": min_mass_solar, "seed": seed}
-    return {"phenomena": params, "phenomena-index": params}
+    return {key: params for key in ("phenomena", "phenomena-special", "phenomena-index", "phenomena-record")}
 
 
 def scatter_phenomena(args, refuse=None):
@@ -3577,7 +3600,7 @@ def drop_phenomenon_indexes_pieces(params, cursor):
 def drop_phenomenon_indexes_do(params, piece, ctx):
     """
     One piece of the `drop-phenomenon-indexes` unit (OPS.123; the second half of the `prepare` of `scatter-phenomena` before it, PERF.172; one piece to an index, OPS.196): takes off the index the
-    piece names where the table has it: none to keep up to date while tens of millions of rows go in, built once at the end (the `finish-phenomena` unit, PERF.73).
+    piece names where the table has it: none to keep up to date while tens of millions of rows go in, built once at the end (the `build-phenomenon-indexes` unit, PERF.73).
     """
     ctx.phase(piece)
     name = next(index for index in store.PHENOMENON_SCATTER_INDEXES if piece == f"Dropping the index {index} of phenomenon_scatter")
@@ -3631,33 +3654,29 @@ def conclude_scatter_phenomena(params, plan, results, seconds):
     return {}
 
 
-def expand_finish_phenomena(params):
-    """The `finish-phenomena` command's stage: one unit."""
+def expand_write_special_phenomena(params):
+    """The `write-special-phenomena` command's stage: one unit."""
     return commands.Expansion([(params, 1.0)], {})
 
 
-FINISH_PHENOMENA_PIECES = ("draw", "write", "indexes", "record")
-"""tuple: The four pieces of the `finish-phenomena` unit, in order (OPS.199; the four quarters the unit reported by hand): the special rows drawn, written, the indexes built, the rest."""
+WRITE_SPECIAL_PIECES = ("draw", "write")
+"""tuple: The two pieces of the `write-special-phenomena` unit, in order (OPS.199, OPS.239): the special rows drawn, and written with their classes."""
 
 
-def finish_phenomena_pieces(params, cursor):
-    """The pieces of the `finish-phenomena` unit (OPS.199, OPS.222), after `cursor`: `FINISH_PHENOMENA_PIECES`. They hand each other the special rows through the unit's stored results, so a unit stopped partway starts at the piece after the last one it finished."""
-    return list(FINISH_PHENOMENA_PIECES)[cursor:]
+def write_special_pieces(params, cursor):
+    """The pieces of the `write-special-phenomena` unit (OPS.199, OPS.222, OPS.239) after `cursor`: `WRITE_SPECIAL_PIECES`. The write reads the drawn rows from the unit's stored results, so a unit stopped partway starts at the piece after the last it finished."""
+    return list(WRITE_SPECIAL_PIECES)[cursor:]
 
 
-def finish_phenomena_do(params, piece, ctx):
+def write_special_do(params, piece, ctx):
     """
-    One piece of the `finish-phenomena` command's unit (PERF.172): ends the phenomenon scatter once its shells are written: draws the
-    special phenomena (the nucleus and the hypervelocity stars, minus any in a cell already filled) and writes them, builds
-    the table's indexes one at a time (PERF.101), stamps the hypervelocity stars' epoch and records the scatter's seed and
-    mass cut, which tells a sector fill to build its objects from the table (`store.record_phenomenon_scatter`).
+    One piece of the `write-special-phenomena` command's unit (PERF.172, OPS.239; the first half of the `finish-phenomena` unit it was): draws the special phenomena (the nucleus and the hypervelocity stars, minus
+    any in a cell already filled) and writes them with their classes (`store.add_phenomenon_scatter_classes`, in the same transaction, so a write that is repeated adds the classes once).
 
-    The unit can be stopped between two pieces and started again after the last one it finished (OPS.222, `resumes`): the drawn rows are the first piece's result, which a later piece reads from the
-    results the engine kept (`ctx.results`); the two pieces that would write twice if they ran twice, the write and the record, commit through `ctx.commit_piece()`, so their data and the cursor past them
-    land together; and the indexes are built only where they are missing.
+    The unit can be stopped between its pieces and started again after the last one it finished (OPS.222, `resumes`): the drawn rows are the first piece's result, which the write reads from the results the engine kept
+    (`ctx.results`), and the write commits through `ctx.commit_piece()`, so its data and the cursor past it land together.
     """
     conn = ctx.db
-    lines = ctx.state.setdefault("lines", [])
     if piece == "draw":
         skeleton = store.get_galaxy_shape(conn)
         extents = _outline(conn)
@@ -3665,43 +3684,84 @@ def finish_phenomena_do(params, piece, ctx):
         reach = getattr(skeleton, "reach_shell_index", None) if program_constants.SCATTER_COVERS_REACH else None
         return [list(row) for row in phenomenon_scatter.special_rows(extents, skeleton.edge_pc, params["seed"], skeleton.shape, filled, reach)]
     special = ctx.results[0]
-    if piece == "write":
-        def write_special(c):
-            """The special rows and their Object IDs as one transaction (DB.114): other phenomenon units write the same table."""
-            contention.begin_read_committed(c)
-            store.insert_phenomenon_scatter(c, special)
-            ctx.commit_piece()
+    counts = collections.Counter(phenomenon_scatter.class_label(row[3], row[4]) for row in special)
 
-        contention.run_with_retries(conn, write_special, gate="scatter-ids", label="Special phenomena")
-    elif piece == "indexes":
-        # One index at a time, each worth the table's rows, so the second-level count moves after every index (PERF.101, OPS.192).
-        rows = max(store.estimated_rows(conn, "phenomenon_scatter"), 1)
-        pending = store.missing_phenomenon_scatter_indexes(conn)
-        lines.append(f"Building the phenomena indexes: {len(pending)} indexes over about {rows:,} rows, one at a time; a "
-                     f"full galaxy takes a while.")
-        ctx.step("Building the phenomena indexes", len(pending))
+    def write_special(c):
+        """The special rows, their Object IDs and their classes as one transaction (DB.114): other phenomenon units write the same table."""
+        contention.begin_read_committed(c)
+        store.insert_phenomenon_scatter(c, special)
+        store.add_phenomenon_scatter_classes(c, {phenomenon_scatter.split_label(label): count for label, count in counts.items()})
+        ctx.commit_piece(dict(counts))
 
-        def built(name):
-            lines.append(f"Built index {name}.")
-            ctx.advance()
-
-        store.add_phenomenon_scatter_indexes(conn, on_index=built)
-        store.stamp_phenomenon_scatter_epoch(conn)
-    else:
-        store.record_phenomenon_scatter(conn, params["seed"], params["min_mass_solar"])
-        store.record_scatter_epoch(conn, "phenomena", params.get("run_id"))
-        special_counts = collections.Counter(phenomenon_scatter.class_label(row[3], row[4]) for row in special)
-        store.add_phenomenon_scatter_classes(
-            conn, {phenomenon_scatter.split_label(label): count for label, count in special_counts.items()})
-        counts = dict(special_counts)
-        ctx.commit_piece(counts)
-        return counts
-    return None
+    contention.run_with_retries(conn, write_special, gate="scatter-ids", label="Special phenomena")
+    return dict(counts)
 
 
-def finish_phenomena_result(params, results, ctx):
-    """The `finish-phenomena` unit's result: `special`, how many special phenomena of each class were written (the last piece's result), and `lines`, what the run says about it."""
-    return {"special": dict(results[-1]), "lines": ctx.state.get("lines", [])}
+def write_special_result(params, results, ctx):
+    """The `write-special-phenomena` unit's result: `special`, how many special phenomena of each class were written (the last piece's result)."""
+    return {"special": dict(results[-1])}
+
+
+def expand_build_phenomenon_indexes(params):
+    """The `build-phenomenon-indexes` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+STAMP_PIECE = "Stamping the hypervelocity stars"
+"""str: The last piece of the `build-phenomenon-indexes` unit (OPS.239): the epoch the hypervelocity stars' positions hold at."""
+
+
+def build_phenomenon_indexes_pieces(params, cursor):
+    """The pieces of the `build-phenomenon-indexes` unit (OPS.239) after `cursor`: one to an index the table can have (`store.PHENOMENON_SCATTER_INDEXES`, built one at a time, PERF.101), named for the statement that builds it, then the stamp."""
+    pieces = [f"Building the index {name} of phenomenon_scatter" for name in store.PHENOMENON_SCATTER_INDEXES] + [STAMP_PIECE]
+    return pieces[cursor:]
+
+
+def build_phenomenon_indexes_do(params, piece, ctx):
+    """
+    One piece of the `build-phenomenon-indexes` unit (PERF.101, OPS.239; the indexes half of the `finish-phenomena` unit it was): builds the index the piece names where the table has not got it, or stamps the hypervelocity
+    stars' epoch (`store.stamp_phenomenon_scatter_epoch`, which a repeat leaves as it was). A unit that is repeated builds only what is missing.
+    """
+    ctx.phase(piece)
+    if piece == STAMP_PIECE:
+        with statementmark.labelled(piece):
+            store.stamp_phenomenon_scatter_epoch(ctx.db)
+        return
+    name = next(index for index in store.PHENOMENON_SCATTER_INDEXES if piece == f"Building the index {index} of phenomenon_scatter")
+    with statementmark.labelled(piece):
+        store.add_phenomenon_scatter_index(ctx.db, name)
+
+
+def build_phenomenon_indexes_gather(params, results, ctx):
+    """The `build-phenomenon-indexes` unit's result: `indexed`, always true."""
+    return {"indexed": True}
+
+
+def expand_record_phenomenon_scatter(params):
+    """The `record-phenomenon-scatter` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def record_phenomenon_scatter_pieces(params, cursor):
+    """The pieces of the `record-phenomenon-scatter` unit (OPS.239) after `cursor`: one."""
+    return ["Recording the phenomenon scatter"][cursor:]
+
+
+def record_phenomenon_scatter_do(params, piece, ctx):
+    """
+    The one piece of the `record-phenomenon-scatter` unit (GEN.167, OPS.239; the last of the four quarters of the `finish-phenomena` unit it was): records the scatter's seed and mass cut, which tells a sector fill to build its
+    objects from the table (`store.record_phenomenon_scatter`), and the scatter's epoch. Both are updates that give the same rows when repeated.
+    """
+    ctx.phase(piece)
+    with statementmark.labelled(piece):
+        store.record_phenomenon_scatter(ctx.db, params["seed"], params["min_mass_solar"])
+        store.record_scatter_epoch(ctx.db, "phenomena", params.get("run_id"))
+        ctx.commit()
+
+
+def record_phenomenon_scatter_gather(params, results, ctx):
+    """The `record-phenomenon-scatter` unit's result: `recorded`, always true."""
+    return {"recorded": True}
 
 
 def run_plan(args):
@@ -3764,7 +3824,7 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
-STORED_SCATTER_STAGES = {"stars": ("mass-clear", "scatter-limits", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
+STORED_SCATTER_STAGES = {"stars": ("mass-clear", "scatter-limits", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-special", "phenomena-index", "phenomena-record"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
 """dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells and their indexes, the nebula clear and draw."""
 
 

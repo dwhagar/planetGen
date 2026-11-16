@@ -2308,14 +2308,13 @@ Added in v64 (GEN.100) and v77. `planetgen plan` places every black hole, neutro
 
 ### `sector_system_counts`
 
-Added in v82 (PERF.74); `system_density` and `quadrant` and a row for every sector from v181 (PERF.208). Each sector's system count, system density and Quadrant as of the last refresh (`query.refresh_sector_system_counts`), so the Sectors list reads these instead of counting every system per request and its sorts by systems, density and position page by key on the three indexes. Derived data: the refresh makes every row again, in the background and not more often than every 30 s; a sector made since has no row until it runs, and the list shows it after the others with a count of 0.
+Added in v82 (PERF.74); `system_density` and a row for every sector from v181 (PERF.208); `quadrant` came with v181 and went with v264 (DB.112). Each sector's system count and system density as of the last refresh (`query.refresh_sector_system_counts`), so the Sectors list reads these instead of counting every system per request and its sorts by systems, density and position page by key on the three indexes. Derived data: the refresh makes every row again, in the background and not more often than every 30 s; a sector made since has no row until it runs, and the list shows it after the others with a count of 0.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `sector_id` | BIGINT UNSIGNED | PK | FK-like to `sectors.id` (no constraint). |
 | `system_count` | INT UNSIGNED | NOT NULL | The systems it holds. Indexed with `sector_id` (`idx_sector_system_counts_count`). |
 | `system_density` | DOUBLE | NULL | v181. Systems per cubic milliparsec of the sector (`system_count` over `sectors.edge_mpc` cubed). NULL for a sector with no galaxy position. Indexed with `sector_id` (`idx_sector_system_counts_density`). |
-| `quadrant` | VARCHAR(8) | NULL | v181. `'I'` to `'IV'`, the bands of `spherical.sector_quadrant`. NULL for a sector with no galaxy position. Indexed with `sector_id` (`idx_sector_system_counts_quadrant`). |
 
 ### `system_interests`
 
@@ -2726,6 +2725,14 @@ Migration 0260 adds three nullable columns to `rogue_planets`, at the end of the
 ### v261 (OPS.215): `engine_items`, the galaxy's half of the job engine's ledger
 
 Migration 0261 creates `engine_items` (see the table section above). Nothing is backfilled: the supervisor writes a row when it hands a job out.
+
+### v264 (DB.112): `sector_system_counts` loses `quadrant`
+
+Migration 0264 drops `idx_sector_system_counts_quadrant` and the column `quadrant` of `sector_system_counts` (added by 0181). The Sectors list has no Quadrant filter or position sort any more; the table is derived data and nothing is backfilled.
+
+### v265 (GEN.1141): `designations.reason` takes `deleted`
+
+Migration 0265 replaces the CHECK `chk_designations_reason` with one that lists seven reasons, the new one being `deleted`: when an object is deleted (`DELETE /api/systems/<id>`, `db/edits.delete_phenomenon`, a planet, moon or belt an edit drops) `designation_rows.tombstone_tree` writes its current ID as a retired one (so it is reserved for ever) and its current name, with that reason, and stamps `gone_epoch` on every row of the object, so a link to it answers 410. The bodies of a deleted system and the moons of a deleted planet are recorded first. A sector's contents emptied for regeneration are not tombstoned (the cell is made again). No row changes.
 
 ### v263 (OPS.219): `engine_piece_results`, what the finished pieces of a job returned
 

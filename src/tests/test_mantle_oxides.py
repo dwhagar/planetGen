@@ -80,9 +80,13 @@ def test_a_bigger_core_takes_a_bigger_share():
         mantle_oxides.core_share("Cr", 1.5)
 
 
-def test_a_carbon_rock_holds_none_of_the_seven():
+def test_a_carbon_rock_holds_only_its_phosphorus_of_the_seven():
+    """GEN.1749: the carbon rock keeps the star's phosphorus (the P2O5 the life law reads) as the silicate rock does, and none of the other six."""
     part = bulk_draw.dry_partition(SUN_RATIOS, 0.0, 0.07, True, 0.2)
-    assert part.oxides is None
+    silicate = bulk_draw.dry_partition(SUN_RATIOS, 0.0, 0.07, False)
+    assert set(part.oxides) == {"P2O5"} and part.oxides["P2O5"] > 0.0
+    assert part.oxides["P2O5"] == pytest.approx(silicate.oxides["P2O5"], rel=0.5)     # about the same atoms per Mg; the rock is a different mass
+    assert part.metal + part.rock == pytest.approx(1.0)
 
 
 def test_the_rock_oxides_hold_the_star_atoms_the_zone_kept_less_what_the_core_took():

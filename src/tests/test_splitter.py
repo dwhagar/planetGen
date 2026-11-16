@@ -266,5 +266,17 @@ def test_a_stage_with_nothing_to_do_has_no_chunk_and_a_range_is_cut_without_list
 
 
 def test_the_stages_that_cut_neutral_proofs_exist_for_are_flagged_so_the_engine_cuts_them():
-    for kind in ("link-neighbors", "settle-sector-paths", "fill-map-luminosity"):
+    for kind in ("link-neighbors", "settle-sector-paths", "fill-map-luminosity", "warm-sectors", "warm-systems", "warm-phenomena", "warm-galaxy-nodes", "warm-galaxy-deep-nodes"):
         assert commands.REGISTRY[kind].split == commands.SPLIT_BYTE_IDENTICAL, kind
+
+
+def test_a_warm_stage_cut_by_the_engine_holds_every_node_once_in_order_and_says_how_it_was_cut(monkeypatch):
+    from planetgen.web import warmup
+    monkeypatch.setattr(warmup.tilecache, "stored_nodes", lambda database, keys: set(keys[:3]))
+    monkeypatch.setitem(splitprofile.STUB, "warm-galaxy-nodes", FAST)
+    keys = [(level, n) for level in (243, 81) for n in range(2500)]
+    units, stored, decision = warmup._node_units("db", keys, "galaxy-nodes")
+    assert stored == 3 and decision.kind == "warm-galaxy-nodes" and decision.flag == commands.SPLIT_BYTE_IDENTICAL
+    assert [key for args, _cost in units for key in args["keys"]] == keys[3:], "every node not already stored is in one unit, in order"
+    assert units[0][0]["stored"] == 3 and all("stored" not in args for args, _cost in units[1:])
+    assert len(units) == decision.new_units

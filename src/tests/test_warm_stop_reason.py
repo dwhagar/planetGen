@@ -76,7 +76,7 @@ def test_update_sh_time_limit_is_named_when_the_limit_it_told_has_passed(state, 
     monkeypatch.setattr(warm_cli, "_started", 100.0)
     status = _run_ended_by(monkeypatch, signal.SIGTERM, before=lambda: _clock.__setitem__(0, 104.0))
     assert status == 143
-    assert "ended by update.sh's time limit for this stage (3 s, WARM_STAGE_SECONDS)" in _line(capsys)
+    assert "ended by update.sh's time limit for this stage (3s, WARM_STAGE_SECONDS)" in _line(capsys)
 
 
 def test_a_sigterm_long_before_the_limit_is_not_blamed_on_it(state, monkeypatch, capsys):

@@ -421,7 +421,8 @@ def _count_reported(args, saved, elsewhere):
         RUN_COUNTS["sectors"] += 1
         RUN_COUNTS["systems"] += saved["systems"]
         RUN_COUNTS["phenomena"] += saved["phenomena"]
-    _record_sector(args, saved, saved["seconds"])
+    if not saved.get("stored"):     # DB.131: a cell found charted already was not worked on: its time is no speed
+        _record_sector(args, saved, saved["seconds"])
 
 
 def _finish_stats(args):

@@ -236,11 +236,13 @@ RESUMES = {
     "settle-sector-paths": "the unit's sectors that still exist, in batches that sit together",
     "generate-unplaced-sector": "the unit's own numbers, one sector a piece on its own stream; the save writes the cursor past the piece in its own transaction (`ctx.commit_piece_in`, OPS.264), so a sector is made once; the `pid` of the result is the process that gathers, so a sector an earlier attempt saved in another process is counted for the run only by its row",
     "generate-system": "two fixed pieces; the save writes the cursor past the `finish` piece in its own transaction (`ctx.commit_piece_in`, OPS.264), and a unit that starts at `finish` draws the system again from the run's stream",
-    "finish-phenomena": "four fixed pieces; the drawn special rows are the first piece's stored result, the write and the record commit through `ctx.commit_piece()` so their data and the cursor land together, the indexes are built only where missing",
+    "write-special-phenomena": "two fixed pieces; the drawn special rows are the first piece's stored result, the write and the classes commit through `ctx.commit_piece()` so their data and the cursor land together",
+    "build-phenomenon-indexes": "a piece to an index and the stamp, each built only where missing, the stamp the same when repeated",
 }
 """dict: The commands that `resumes`, each with why its pieces may be started after a cursor (the three conditions of `commands.CommandSpec`)."""
 
 RESTARTS = {
+    "record-phenomenon-scatter": "one piece",
     "plan-skeleton": "the pieces hand each other the skeleton through ctx.state",
     "refresh-block-lights": "one piece",
     "store-scatter-limits": "one piece",

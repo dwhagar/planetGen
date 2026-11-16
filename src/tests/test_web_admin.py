@@ -739,7 +739,7 @@ def test_admin_stats_renders(client, fake):
     assert fake.called("admin_stats") == [("admin_stats", DB)]
     assert "someone_elses_db" not in html
     assert '<span class="badge">healthy</span>' in html
-    assert "3,456" in html and "5.0 MB" in html and "1.03 hours" in html
+    assert "3,456" in html and "5.24 MB" in html and "1h 1m 40s" in html
     assert "0.10 / 0.20 / 0.30" in html
     assert re.search(r"Generator version.*?64", html, re.S)      # OPS.37
     # Duplicate names: links to the sector/system pages, escaped names.
@@ -762,8 +762,8 @@ def test_admin_stats_shows_generation_speed(client, fake):
                                     "samples": 76, "seconds_per_task": 1.269, "seconds_per_system": 0.0551,
                                     "systems_per_task": 23.8, "stars_per_system": 1.3, "max_density": 3.0}]}
     html = client.get("/admin/stats").get_data(as_text=True)
-    assert "60.5 KB per star system (1,200 systems, 71.0 MB)" in html
-    assert "<td>Sector fill</td><td class=\"num\">2</td><td>1 to 3.16</td>" in html and "1.27 s per sector" in html and "55.1 ms per system" in html
+    assert "62 kB per star system (1,200 systems, 74.4 MB)" in html
+    assert "<td>Sector fill</td><td class=\"num\">2</td><td>1 to 3.16</td>" in html and "1s per sector" in html and "55.1 ms per system" in html
     assert "23.8 systems per sector" in html
     fake.generation["buckets"].append(dict(fake.generation["buckets"][0], kind="scatter-bright", systems_per_task=1262.2))
     html = client.get("/admin/stats").get_data(as_text=True)
@@ -956,7 +956,7 @@ def test_admin_stats_lists_and_lifts_lockouts(client, fake, admin_token):
     fake.failures = [{"action": "login.failed", "username": "<b>x</b>", "ip": "93.184.216.34",
                       "created_at": "2026-10-01T09:55:00Z"}]
     html = client.get("/admin/stats").get_data(as_text=True)
-    assert "<code>93.184.216.34</code>" in html and "4.83 minutes" in html
+    assert "<code>93.184.216.34</code>" in html and "4m 50s" in html
     assert "&lt;b&gt;x&lt;/b&gt;" in html and "Wrong username or password" in html
     resp = client.post("/admin/stats/lockouts", data={csrf.FIELD_NAME: admin_token, "scope": "ip",
                                                       "subject": "93.184.216.34"})
@@ -1094,8 +1094,8 @@ def test_admin_stats_shows_the_seconds_per_object(client, fake):
          "slowest_seconds": 0.4}]}
     html = client.get("/admin/stats").get_data(as_text=True)
     assert "Seconds per object" in html
-    assert ('<tr><td>system</td><td class="num">1,200</td><td class="num">75.0 ms</td><td class="num">900 \u00b5s</td>'
-            '<td class="num">2.50 s</td><td class="num">90.0%</td></tr>') in html
+    assert ('<tr><td>system</td><td class="num">1,200</td><td class="num">75 ms</td><td class="num">900 \u00b5s</td>'
+            '<td class="num">3s</td><td class="num">90.0%</td></tr>') in html
     assert "<td>binary star</td>" in html and "10.0%" in html and "40 \u00b5s" in html
     fake.generation = {"available": True, "sizes": {}, "buckets": [], "object_types": []}
     assert "Seconds per object" not in client.get("/admin/stats").get_data(as_text=True)

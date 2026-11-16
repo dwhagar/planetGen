@@ -1,10 +1,10 @@
 # tests/test_sector_sort_keys.py
 
 """
-PERF.208: the Sectors list's sorts by systems, density and position page by key. `sector_system_counts` holds a row for
-every sector with its system count, density and Quadrant, and each sort walks an index of it, the sector id breaking
+PERF.208: the Sectors list's sorts by systems and density page by key. `sector_system_counts` holds a row for
+every sector with its system count and density (DB.112 took the Quadrant out), and each sort walks an index of it, the sector id breaking
 ties in the sort's direction. A page by `after` is the page `offset` gives, and both are the order worked out here from
-the rows. Sectors with no galaxy position come last in the density and position sorts; a sector made since the last
+the rows. Sectors with no galaxy position come last in the density sort; a sector made since the last
 refresh follows the others, by id.
 """
 
@@ -19,14 +19,14 @@ SECTORS = (       # name, where it is in the galaxy (pc) or None, how many syste
     ("D", (200.0, -700.0, 0.0), 2), ("E", (800.0, 100.0, 0.0), 0), ("F", None, 2), ("G", None, 3),
     ("H", (100.0, 50.0, 0.0), 1), ("I", (-100.0, 900.0, 0.0), 3),
 )
-QUADRANT_OF = {"A": "I", "B": "II", "C": "III", "D": "IV", "E": "I", "H": "I", "I": "II"}
 
 
 @pytest.fixture
 def sectors(mysql_config, monkeypatch):
     """The sectors above saved, two of them twice the edge (so the density sort differs from the systems sort), the
     counts refreshed; the background refresh is switched off so a test controls when the rows are made."""
-    monkeypatch.setattr(query, "_counted", lambda *args, **kwargs: None)
+    counted = query._counted
+    monkeypatch.setattr(query, "_counted", lambda conn, key, *args, **kwargs: None if key == ["sector_system_counts"] else counted(conn, key, *args, **kwargs))
     for name, center, count in SECTORS:
         _save_sector(mysql_config, name, center_pc=center, positions=[(float(i), 0.0, 0.0) for i in range(count)])
     conn = store.get_connection(mysql_config)
@@ -43,42 +43,34 @@ def sectors(mysql_config, monkeypatch):
         reader.close()
 
 
-def _expected(rows, sort, descending, quadrants=()):
+def _expected(rows, sort, descending):
     """The ids of `rows` in the order the sort promises, worked out from the rows themselves."""
-    def quadrant(row):
-        if not row["placed"]:
-            return None
-        return ("I" if row["center_x_pc"] >= 0 else "II") if row["center_y_pc"] >= 0 else ("IV" if row["center_x_pc"] >= 0 else "III")
-
-    key = {"systems": lambda row: row["system_count"], "density": lambda row: row["system_count"] / row["edge_mpc"] ** 3,
-           "position": quadrant}[sort]
-    wanted = [row for row in rows if not quadrants or (quadrant(row) or "unplaced") in quadrants]
-    with_value = [row for row in wanted if sort == "systems" or row["placed"]]
-    without = [row for row in wanted if sort != "systems" and not row["placed"]]
+    key = {"systems": lambda row: row["system_count"], "density": lambda row: row["system_count"] / row["edge_mpc"] ** 3}[sort]
+    with_value = [row for row in rows if sort == "systems" or row["placed"]]
+    without = [row for row in rows if sort != "systems" and not row["placed"]]
     ordered = sorted(with_value, key=lambda row: (key(row), row["id"]), reverse=descending)
     return [row["id"] for row in ordered + sorted(without, key=lambda row: row["id"], reverse=descending)]
 
 
-SORTS = [(sort, descending, quadrants) for sort in ("systems", "density", "position") for descending in (False, True)
-         for quadrants in ((), ("II",), ("unplaced",), ("I", "unplaced"))]
+SORTS = [(sort, descending) for sort in ("systems", "density") for descending in (False, True)]
 
 
-@pytest.mark.parametrize("sort, descending, quadrants", SORTS)
-def test_every_page_by_key_or_by_offset_is_the_order_worked_out_from_the_rows(sectors, sort, descending, quadrants):
+@pytest.mark.parametrize("sort, descending", SORTS)
+def test_every_page_by_key_or_by_offset_is_the_order_worked_out_from_the_rows(sectors, sort, descending):
     rows = query.list_sectors(sectors)
     assert len(rows) == len(SECTORS)
-    everything = [row["id"] for row in query.list_sectors(sectors, sort=sort, descending=descending, quadrants=quadrants)]
-    assert everything == _expected(rows, sort, descending, quadrants)
+    everything = [row["id"] for row in query.list_sectors(sectors, sort=sort, descending=descending)]
+    assert everything == _expected(rows, sort, descending)
     for size in (1, 2, 4):
         by_offset = []
         for offset in range(0, len(everything) + size, size):
             by_offset += [row["id"] for row in query.list_sectors(
-                sectors, limit=size, offset=offset, sort=sort, descending=descending, quadrants=quadrants)]
+                sectors, limit=size, offset=offset, sort=sort, descending=descending)]
         assert by_offset == everything, (size, "offset")
         by_key, after = [], None
         for _ in range(len(everything) + 2):
             page = query.list_sectors(sectors, limit=size, offset=5 if after else 0, after=after, sort=sort,
-                                      descending=descending, quadrants=quadrants)
+                                      descending=descending)
             if not page:
                 break
             by_key += [row["id"] for row in page]
@@ -86,26 +78,26 @@ def test_every_page_by_key_or_by_offset_is_the_order_worked_out_from_the_rows(se
         assert by_key == everything, (size, "key")
 
 
-def test_the_refresh_gives_every_sector_a_row_with_its_count_density_and_quadrant(sectors, mysql_config):
+def test_the_refresh_gives_every_sector_a_row_with_its_count_and_density(sectors, mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         query.refresh_sector_system_counts(conn)
         stored = {row["name"]: row for row in conn.execute(
-            "SELECT sec.name, c.system_count, c.system_density, c.quadrant, sec.edge_mpc FROM sector_system_counts c "
+            "SELECT sec.name, c.system_count, c.system_density, sec.edge_mpc FROM sector_system_counts c "
             "JOIN sectors sec ON sec.id = c.sector_id").fetchall()}
     finally:
         conn.close()
     assert set(stored) == {name for name, _, _ in SECTORS}
     for name, center, count in SECTORS:
         row = stored[name]
-        assert row["system_count"] == count and row["quadrant"] == QUADRANT_OF.get(name)
+        assert row["system_count"] == count
         if center is None:
             assert row["system_density"] is None
         else:
             assert row["system_density"] == pytest.approx(count / row["edge_mpc"] ** 3)
 
 
-@pytest.mark.parametrize("sort", ["systems", "density", "position"])
+@pytest.mark.parametrize("sort", ["systems", "density"])
 def test_a_sector_made_since_the_last_refresh_follows_the_others_and_can_be_paged_to(sectors, mysql_config, sort):
     before = [row["id"] for row in query.list_sectors(sectors, sort=sort)]
     new_id = _save_sector(mysql_config, "New", center_pc=(1.0, 1.0, 0.0), positions=[(0.0, 0.0, 0.0)])
@@ -127,7 +119,7 @@ def test_a_sector_made_since_the_last_refresh_follows_the_others_and_can_be_page
         reader.close()
 
 
-@pytest.mark.parametrize("sort", ["systems", "density", "position"])
+@pytest.mark.parametrize("sort", ["systems", "density"])
 def test_a_deleted_sector_with_a_stored_row_is_not_listed_and_does_not_break_the_pages(sectors, mysql_config, sort):
     victim = query.list_sectors(sectors, sort=sort)[3]["id"]
     conn = store.get_connection(mysql_config)

@@ -1833,11 +1833,24 @@ def generate_sectors_pieces(unit_args, cursor):
     return pieces[cursor:]
 
 
+def _charted_report(args, address):
+    """`store.saved_sector_report` of the cell `address`: what the sector holds when the chart ledger says it is charted, `None` when it is not."""
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        return store.saved_sector_report(conn, address)
+    finally:
+        conn.close()
+
+
 def generate_sectors_do(unit_args, piece, ctx):
     """
     One piece of the sector stages' unit (PERF.107, OPS.202): generates and saves one sector (`generate_and_save_sector_at`, one transaction) in its own grid cell, its density resolved from its sector
     profile as `_BatchDensity` does for the run (a density or count the run was given is used for every sector). Every draw for a sector comes from its own seed (GEN.39), so the stars are the
     same at any worker count.
+
+    A cell the chart ledger already says is charted is not filled again (DB.131): a unit the job engine runs again after its first try saved the sector but was lost before its piece was marked done (a connection
+    dropped at the commit, a worker killed just after it) would insert the sector's systems a second time, and the second `INSERT` stops on the object IDs the first gave them. The piece reports what the cell holds
+    (`store.saved_sector_report`, with `stored` true so the run's speed figures leave it out).
 
     Returns:
         dict: What the sector reported: `address`, `sector_id`, `name`, `systems`, `stars`, `planets`, `density`, `phenomena`, `summary` (`sector_generation_summary_lines`), `memory_mb` (what the worker holds, MB), `seconds` and `suffix`.
@@ -1849,6 +1862,10 @@ def generate_sectors_do(unit_args, piece, ctx):
     position_pc = sector_position_pc(*address, edge_pc)
     sector_args = batch_density.resolve(args, address, position_pc)
     started = time.monotonic()
+    stored = _charted_report(args, address)
+    if stored is not None:      # DB.131: a cell charted already is not filled twice (its systems hold the IDs a second fill would issue again)
+        return {"address": list(address), **stored, "density": run_common._sector_density(sector_args), "summary": [],
+                "memory_mb": queueUnits.resident_mb(), "seconds": time.monotonic() - started, "suffix": piece["suffix"], "stored": True}
     sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
     return {
         "address": list(address), "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),

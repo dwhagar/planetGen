@@ -24,7 +24,7 @@ Measured shares (40,000 draws, star age uniform 3 to 13 Gyr, oxygenic life, refe
 
 Oxygenic life (Chlorophyll a and Blue-Optimized Porphyrins; `metabolism` is `oxygenic`) needs a sunlit sea: `hydrosphere` is a surface ocean or a hycean ocean (`SUNLIT_OCEAN`). The oxygen of the air is the balance of a source and its sinks, in moles of O2 a year:
 
-* **Source S**, the organic carbon its life buries: planet area, the ocean share, the square root of the photosynthetically active light, a Boltzmann factor of 0.32 eV, to zero outside the liquid range of the sea.
+* **Source S**, the organic carbon its life buries: planet area, the ocean share, the square root of the light of the band the class eats (GEN.1744: class 1a's 400 to 700 nm, 1b's blue 300 to 500 nm, 1c's far red 700 to 800 nm at an efficiency of 0.8, the rows of `life_classes.json`; the classes of a world add by their shares, each in its own band, so a cool star feeds 1c and a hot one 1b), a Boltzmann factor of 0.32 eV, to zero outside the liquid range of the sea.
 * **Reductant flux R**: volcanic and metamorphic gases that take oxygen as they come out; it goes with the heat the interior gives off and the redox of the mantle.
 * **Oxidative weathering k N**: rocks take oxygen in proportion to what the air holds.
 * **A store B** of reductants (ocean iron, crust sulfides, and the reduced gases of the air itself) that takes the first oxygen, so the air holds none until B / (S - R) has passed (the Great Oxidation came 0.3 to 1 Gyr after oxygenic photosynthesis began on Earth).

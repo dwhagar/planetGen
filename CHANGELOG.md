@@ -2,6 +2,128 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4334] - 2026-11-16
+
+**Headline:** The first pair of commands that may overlap, the phenomena scatter and the nebula field draw, is proved and listed; the proof is a test that runs any listed pair overlapped and compares the stored content.
+
+### Changed
+- `queue/independence.json` lists `scatter-phenomena` and `draw-nebula-field` (their end commands included; they share no table). The planner (`touches.plan_edges`) no longer makes the nebula field wait for the phenomena scatter; nothing runs overlapped until the new engine's supervisor starts the jobs the rows leave free, so a run is exactly as before.
+- New `tests/pair_overlap_support.py` and `tests/pair_overlap_recipes.py`: for each listed pair, both stages are cut up front and their units mixed one at a time and on 15 threads, in both orders of who starts first, and the content (row ids left out, the members and nodes of a scatter row compared through its `uid`) must equal plan order's; the SQL tap must see each command touch only the tables it declares, on a galaxy dense enough that every stage stores rows. A control pair that depends on the other (the mass and luminosity passes) must fail the proof.
+- The scatter commands' declarations in `queue/touches.py` were wrong: the toy galaxy of OPS.241 drew no stars, so the tap saw no writes. They now say what the dense toy shows (`bright_stars` or `phenomenon_scatter`, `scatter_members`, `scatter_nodes`, `id_counters`, `galaxy_block_light_parts`); the tap no longer counts a temporary table. An entry in `independence.json` now names the tables its pair shares (`shared`), and a test fails when they change.
+
+## [8.0.4333] - 2026-11-16
+
+**Headline:** An object that is deleted keeps its ID and name on record, so a link to it answers "gone" (410) and its ID is never issued again.
+
+### Added
+
+- GEN.1141: `designation_rows.tombstone` and `tombstone_tree` (migration 0265, schema v265: `designations.reason` takes `deleted`). When `DELETE /api/systems/<id>`, `db/edits.delete_phenomenon` or a system edit deletes an object, its current ID (and name) is written as a retired designation and every row of the object is stamped `gone_epoch`; a deleted system takes its bodies' IDs with it and a deleted planet its moons'. The 410 answers of GEN.1139 already read the stamp; nothing wrote it until now. A sector emptied for regeneration is not tombstoned (the cell is made again). Reuse: `body_rows`, `retire_name` and the `designations` table and rules of GEN.1138. The three captured-body functions of `object_uid` (`captured_member`, `outside_reservoir_member`, `parse_captured`) are marked by design in the wiring register: they wait for the captured-asteroid-moon columns; irregular moons print through `irregular_designation`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4332] - 2026-11-16
+
+**Headline:** Every queue command now declares the tables it reads and writes, and a SQL tap test holds those declarations to what the commands really touch.
+
+### Changed
+- New `queue/touches.py` holds the reads and writes of all 66 command kinds and end hooks, the conflict rule (a write another command reads or writes, a shared file or cache), `independence.json` (the proven pairs, empty today) and `plan_edges`, the planner's edges. `planrows.record_plan` takes its `after:` edges from it; with no pair listed each step still waits for the one before it, so a plan is exactly as before.
+- New `queue/sqltap.py` reads the statements a command sends and names the tables each reads and writes. `tests/test_command_touches.py` runs a toy galaxy and the commands around it under the tap and fails a command that touches an undeclared table, a registered command with no declaration, and a command the run never exercised that is not listed with the reason. Output of generation is unchanged.
+
+## [8.0.4331] - 2026-11-16
+
+**Headline:** The warm-up stages for sectors, systems, phenomena and the Galaxy Map's nodes are now cut into units by the queue engine from the profile and the free resources, as the three galaxy stages already are.
+
+### Changed
+- `warm-sectors`, `warm-systems`, `warm-phenomena`, `warm-galaxy-nodes` and `warm-galaxy-deep-nodes` are flagged byte identical (PERF.260 already proves each stores the same cache bytes at two cuts, `tests/cut_neutral_recipes.py`), and their `expand` calls `splitter.cut` (OPS.243) instead of a typed `units.coarsen` size. `OBJECT_CHUNK` and `NODE_CHUNK` stay the suggested size the stage keeps when the profile has nothing usable, in at most `units.MAX_UNITS` units, so a fresh install cuts as it did. The stage plan records the engine's decision.
+
+generation-affects: none
+
+## [8.0.4330] - 2026-11-16
+
+**Headline:** Every time the pages, progress strips and logs show now reads as hours, minutes and seconds (1h 23m 45s), never as a decimal such as 1.25 minutes.
+
+### Changed
+- `format_duration_seconds` (and its browser twin in `unitladder.js`) shows a duration as whole parts: "45s" under a minute, "1h 23m 45s" under a day, "2d 3h 4m" from a day up to a year; sub-second times keep "850 ms" and a year or more keeps the years ladder.
+- The Generate page, queue and admin pages, ETAs, the CLI progress ticker, log lines and the slow-query log all go through that one helper; the loading-page time sliders use the browser twin.
+- A new test fails if a duration between a second and a year ever carries a decimal or a decimal unit.
+
+generation-output: unchanged
+
+## [8.0.4329] - 2026-11-16
+
+**Headline:** A rocky planet's air is made once, with the late accretion its system gives it, instead of with a drawn number and again at the end.
+
+### Changed
+- `late_accretion.give_first_air` sets the late accretion of each rocky planet whose air is still to be made (`Planet.finish_climate`) from the belts and the planets of its star as they stand when the orbits are final, so the first air is made with a number near the one the later pass (`late_accretion.apply`) takes. That pass still makes the air again where the belts promoted to planets move the carbon and the nitrogen past the gate, and no longer for the rest. On 8 systems of five star types the airs made again fell from 9 to 2 and the time from 96.7 s to 80.9 s (16 percent); of 188 bodies 185 are the same and none changed class.
+- The air of a rocky planet that the second pass used to make again now keeps the first, made with the late accretion of the system; it differs only where the promoted belt bodies would have changed the number by under the gate.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4328] - 2026-11-16
+
+**Headline:** A carbon-rock world now holds the phosphorus of its star, so a living sea on one has phosphate to live on.
+
+### Fixed
+
+- GEN.1749 (every galaxy): `bulk_draw._partition` gave a carbon rock no minor oxide at all, so `rock_p2o5_fraction` was NULL, `phosphorus_budget.generate` returned early, the ocean's phosphate was None and the life law's chemistry term was 0 on every carbon-rock world (Oleodzo II, seed 30391, a sea world in light, was one). The carbon rock now keeps the star's phosphorus as P2O5 in its rock and the share the core takes in its metal, by `mantle_oxides.oxides` as a silicate rock does, and holds none of the other six oxides (they stay NULL, so the norm and ground types, which read no carbon rock, are as they were).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4327] - 2026-11-16
+
+**Headline:** Rocky worlds from 0.2 to 1 Earth mass now capture a hydrogen envelope in the disk and make water from it, so their seas hold more.
+
+### Changed
+
+- GEN.1748 (every galaxy): a rocky body of 0.2 to 20 Earth masses draws a nebular envelope (`envelope_capture.MIN_MASS_EARTH` 0.2, from Young et al. [R5293], which finds the result independent of mass above about 0.2); under 1 Earth mass the median start is flat at 0.2 percent of the mass (it fell as the cube of the mass before, with none under 1). A body under 1 Earth mass is bare at the end (`KEEPS_FROM_MASS_EARTH`), its envelope lost with the disk, and the hydrogen it held made water in its magma ocean: `bulk_draw._nebular_water` adds `envelope_capture.nebular_water_fraction` (about 0.9 Earth oceans per Earth mass at the median start, 0 to 5 over the draw) to the delivered water of rocky bodies of 0.2 to 1 Earth mass that are not moons, late cores or belt members, and not where the Class M abundance tier's water dial decided the class. The start comes from the planet's own stream, so no draw of the run's moves.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4326] - 2026-11-16
+
+**Headline:** The blue and far-red oxygenic classes now make oxygen from the light of their own band, not from the 400 to 700 nm of class 1a.
+
+### Changed
+
+- GEN.1744 (every galaxy): `biogenic_oxygen.active_light_ratio`, `productivity` and `refuge_productivity` take the `Band` of the oxygenic class (`band_of`: its `band_nm` and `efficiency` in `life_classes.json`: 1a 400 to 700 nm at 1.0, 1b blue 300 to 500 nm at 1.0, 1c far red 700 to 800 nm at 0.8), where all three used class 1a's 400 to 700 nm. The source `S` of a world is the sum of its oxygenic classes' shares, each counted in its own band (`source_of`, `profile_of(..., producers=...)`), and the oxygen rise (`rise_age_gyr`) takes the same sum. The methane that a burial-fuelled class makes follows its own band's production. Class 1a is unchanged under any star (1.0 under the Sun), so worlds with only class 1a keep their air; a world whose oxygenic life is 1b or 1c now has less or more oxygen by how much of its star's light lies in that band: a hot star is rich in blue, a cool one in far red.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4325] - 2026-11-16
+
+**Headline:** A sector unit that runs again after its first try already saved the sector no longer fills it twice, which stopped a new-galaxy run on a duplicate object ID.
+
+### Fixed
+
+- DB.131: Boss's new galaxy (8.0.4317) stopped in the neighborhood stage on `IntegrityError 1062 Duplicate entry ... for key 'star_systems.uq_star_systems_uid'` (sector 75B000100861, serial 0, body 0). A sector is saved, and its cell charted, in one transaction, and the job engine marks the piece done only afterward; a unit run again after the save committed (a connection lost at the commit, a worker killed just after it) filled the cell a second time, and the second fill's systems took the object IDs the first fill's already held. `run_galaxy.generate_sectors_do` now asks the chart ledger first: a charted cell is reported from the rows (`store.saved_sector_report`: sector id, name, systems, stars, planets, phenomena, `stored` true) and is not filled. The sectors it reports add to the run's counts and are left out of the speed figures (`run_common._count_reported`). A held run that stopped on this error is finished by Retry held once the fix is installed. Reuse: `chart_ledger.row` says whether a cell is charted, as `generate_sectors_pieces` already does for a run begun again.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4324] - 2026-11-16
+
+**Headline:** The Sectors list no longer stores a Quadrant for each sector: the column and its index are dropped, with the `position` sort and the Quadrant filter that had no page left to use them.
+
+### Removed
+
+- DB.112 (schema v264, migration 0264): `sector_system_counts.quadrant` and `idx_sector_system_counts_quadrant` are dropped (the index online, the column instantly; a stopped run can be started again). The Quadrants were taken off the site by UX.272, so nothing filtered by them; `query.list_sectors`, `count_sectors` and `virtual_cells` lose their `quadrants` argument, `SECTOR_SORTS` loses `position` (so `GET /api/sectors?sort=position` is a 400 like any unknown sort), and `refresh_sector_system_counts` no longer works out a Quadrant for every sector. `spherical.sector_quadrant`, which only that column and filter used, is gone with `VIRTUAL_SCAN_ROWS` (the walk of the uncharted cells that filled a page the filter had thinned) and the Quadrant SQL. `star_systems.quadrant` and the octant `quadrant` columns are a different thing and stay. Reuse: the migration uses `helpers.drop_index_online` and `helpers.drop_column_instant`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4323] - 2026-11-16
+
+**Headline:** the end of the phenomena scatter is now three commands of its own, so each can be seen, stopped and carried on by itself and the generated galaxy is the same.
+
+### Changed
+
+- OPS.239, part A: the `finish-phenomena` command is gone. `write-special-phenomena` (stage `phenomena-special`) draws the special phenomena and writes them with their classes in one transaction (the classes were added by the record piece before; a write that is repeated adds them once). `build-phenomenon-indexes` (stage `phenomena-index`) builds the table's indexes, a piece to an index, and stamps the hypervelocity stars' epoch. `record-phenomenon-scatter` (stage `phenomena-record`) records the scatter's seed, mass cut and epoch. `needs.py` declares the chain (`phenomena-shells`, `phenomena-special`, `phenomena-indexed`, `phenomena`), and a galaxy run counts two stages more.
+
 ## [8.0.4322] - 2026-11-16
 
 **Headline:** The queue engine now picks the unit size of the link, settle and map luminosity stages from the job profile and the free resources.

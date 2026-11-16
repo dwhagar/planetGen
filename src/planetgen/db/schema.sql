@@ -1544,6 +1544,7 @@
 -- v215 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v215. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
 -- v219 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
 -- v221 (GEN.1257): `designations.reason` takes a sixth value, `charted` (`chk_designations_reason`): the name an uncharted star's Object ID spells is kept as a retired name of its system when charting gives the star its own name. No other row or column changes.
+-- v265 (GEN.1141): `designations.reason` takes a seventh value, `deleted` (`chk_designations_reason`): a deleted object keeps its ID as a retired one, reserved for ever, and its rows are stamped with `gone_epoch`. No other row or column changes.
 -- v224 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v224, nothing is backfilled.
 -- v225 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v225, nothing is backfilled.
 -- v226 (GEN.1105): the table `field_members` keeps the individual bodies of an interstellar asteroid field (mass, radius, density, composition shares, status), one row each, heaviest first; `<field ID>.<rank hex>` names a body. A field made before v222 has none, and a field with no ledger (a hand-made or top-up one) has none.
@@ -5663,7 +5664,7 @@ CREATE TABLE IF NOT EXISTS designations (
     KEY idx_designations_name (designation_name, retired_epoch),
     KEY idx_designations_object (object_kind, object_row_id, retired_epoch),
     CONSTRAINT chk_designations_kind CHECK (designation_kind IN ('uid', 'name')),
-    CONSTRAINT chk_designations_reason CHECK (reason IN ('collision bump', 'rename', 'regeneration', 'parent change', 'admin renumber', 'charted')),
+    CONSTRAINT chk_designations_reason CHECK (reason IN ('collision bump', 'rename', 'regeneration', 'parent change', 'admin renumber', 'charted', 'deleted')),
     CONSTRAINT chk_designations_shape CHECK (
         (designation_kind = 'uid' AND designation_uid IS NOT NULL AND designation_name IS NULL)
         OR (designation_kind = 'name' AND designation_name IS NOT NULL AND designation_uid IS NULL))
@@ -5671,19 +5672,17 @@ CREATE TABLE IF NOT EXISTS designations (
 
 
 -- ---------------------------------------------------------------------
--- sector_system_counts (v82, PERF.74; v181, PERF.208): each sector's system count, system density and Quadrant as of
+-- sector_system_counts (v82, PERF.74; v181, PERF.208; v264, DB.112): each sector's system count and system density as of
 -- the last refresh (`query.refresh_sector_system_counts`), one row for each sector (a sector made since has none yet),
--- so the Sectors list reads these instead of counting every system per request and its sorts by systems, density and
--- position page by key on the three indexes.
+-- so the Sectors list reads these instead of counting every system per request and its sorts by systems and density
+-- page by key on the two indexes.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sector_system_counts (
     sector_id      BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     system_count   INT UNSIGNED NOT NULL,
     system_density DOUBLE NULL,         -- v181: systems per cubic milliparsec of the sector, NULL for a sector with no galaxy position
-    quadrant       VARCHAR(8) NULL,     -- v181: 'I' to 'IV' as `spherical.sector_quadrant` says, NULL for a sector with no galaxy position
     KEY idx_sector_system_counts_count (system_count, sector_id),
-    KEY idx_sector_system_counts_density (system_density, sector_id),
-    KEY idx_sector_system_counts_quadrant (quadrant, sector_id)
+    KEY idx_sector_system_counts_density (system_density, sector_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

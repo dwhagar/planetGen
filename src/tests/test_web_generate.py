@@ -466,7 +466,7 @@ def test_galaxy_job_rejects_bad_values(site, client, no_spawn, form, message):
 _ESTIMATE = {"sectors": 9, "systems": 120, "stars": 156, "bytes": 8_400_000, "seconds": 75.0, "workers": 2,
              "measured": True, "refused": False, "refusal": None,
              "disk": {"path": "/var/lib/mysql/", "total_bytes": 10 ** 12, "free_bytes": 4 * 10 ** 11},
-             "summary": "About 8.4 MB and 1 m 15 s for 9 sectors.", "what": "shell 40"}
+             "summary": "About 8.4 MB and 1m 15s for 9 sectors.", "what": "shell 40"}
 
 
 def test_a_typed_command_opens_the_review_step_and_runs_nothing(site, client, no_spawn, monkeypatch):
@@ -546,7 +546,7 @@ def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn,
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200 and no_spawn == []
     assert _argv({"argv": asked[0]}) == ["sectors", "--shell", "40"]
-    assert "About 8.4 MB" in html and "About 1.25 minutes with 2 workers" in html and "400 GB free of 1 TB" in html
+    assert "About 8.4 MB" in html and "About 1m 15s with 2 workers" in html and "400 GB free of 1 TB" in html
     form = html[html.index('id="review"'):]
     form = form[:form.index("</section>")]
     assert 'name="estimate_ok" value="1"' in form
