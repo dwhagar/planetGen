@@ -11985,9 +11985,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: GEN.1763. Related: GEN.1763, GEN.1713, GEN.1720.
   Filed by the TODO thread.
 
-- [ ] **GEN.1768 (bug) A hot thick non-steam body holds 339 bar of oxygen in a 374 bar air (Ebge Angus V on main, 180-system run): check where that oxygen comes from in the oxygen balance**
-  Lane 03, 12:13 PM EST 2026-11-16 (GEN.1763 run, 180 systems, 3,237 terrestrial bodies on main): Ebge Angus V has 374 bar of air, 339 bar of it O2, and its carbon sink works. Do: trace the oxygen (photolysis and hydrogen escape, life, or a ledger error), compare with the oxygen balance of GEN.1733 and GEN.1739, and fix the cause if it is not physical. Lock item if output changes.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 02. Prerequisites: none. Related: GEN.1733, GEN.1739, GEN.1763.
+- [ ] **GEN.1769 Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw**
+  Lane 02, 12:23 PM EST 2026-11-16 (GEN.1768 trace, main a756e09b0a, seed 4008): an M dwarf world of recipe row j5 keeps 339 bar of O2 because the crust takes only the drawn share OXYGEN_SINK (0.11 here, drawn 0 to 0.9); the water loss itself is sound. Do: read sources for the crust and magma-ocean oxygen budget, derive the sink from the body's iron, sulfur and magma history, carry it in the GEN.1745 air history as a step term (oxygen and reductant stores at every age), and check OXYGEN_SINK is registered in GEN.725 until then. Report before building; lock item when built.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 02. Prerequisites: none. Related: GEN.1768, GEN.1745, GEN.1739, GEN.725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
