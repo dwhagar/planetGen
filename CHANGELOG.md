@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4381] - 2026-11-16
+
+**Headline:** the system scene and the pages that show a planet's air colour work again after the build record change.
+
+### Fixed
+
+- GEN.1651 follow-up: a planet restored for display is a plain namespace of its columns with no `build`, and the readers that take any object (`body_radiation._star_distance_au`, reached through the scene's air colour, and sixteen more in `physics/`) read `body.build.<field>` and raised `AttributeError`. They read `record_of(body)` now: the body's record, or an empty one for an object that built nothing, so they give what the old `getattr(body, "_x", None)` gave. Passes that write a field still use the real record of a real body.
+
+generation-output: unchanged
+
 ## [8.0.4380] - 2026-11-16
 
 **Headline:** The test runner ends the supervisor a test leaves behind, as it does the workers, so a check run in the next test is no longer served by it.
