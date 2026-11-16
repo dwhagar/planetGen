@@ -38,12 +38,21 @@ def sun():
 def test_the_start_is_centered_where_the_valley_was_tuned_and_falls_below_it():
     assert envelope_capture.REFERENCE_MASS_EARTH == radius_valley.CORE_MASS_MEDIAN_EARTH
     assert envelope_capture.START_SPREAD == radius_valley.ENVELOPE_SIGMA
-    low, high = 0.05, 0.2           # the recipe bracket of f_env0 (scripts/atmosphere_recipes_data.py)
-    assert low <= envelope_capture.MEDIAN_START <= high
+    assert envelope_capture.MEDIAN_START == 0.04            # GEN.1711: the median initial envelope of the Kepler planets, [R3797: Table 1] model I (0.040 +0.015 -0.016)
     assert envelope_capture.median_start(10.0) == envelope_capture.median_start(envelope_capture.REFERENCE_MASS_EARTH) == envelope_capture.MEDIAN_START
     assert envelope_capture.median_start(1.0) < 0.005 < envelope_capture.median_start(2.0) < envelope_capture.median_start(3.0)
     assert envelope_capture.median_start(0.3) == envelope_capture.median_start(0.9) == envelope_capture.median_start(1.0)       # GEN.1748: flat under 1 Earth mass, at Young et al.'s 0.2 percent
     assert envelope_capture.median_start(1.0) == pytest.approx(0.002, rel=0.1)
+
+
+def test_the_power_law_of_the_light_planets_is_unchanged_and_meets_the_birth_median_at_two_point_seven_earth_masses():
+    """GEN.1711: the median start went from 0.1 to 0.04 for the heavy planets; the planets of 1 to 2.7 Earth masses keep the start the power law gave them."""
+    for mass in (1.0, 1.5, 2.0, 2.6):
+        assert envelope_capture.median_start(mass) == pytest.approx(0.1 * (mass / 3.72) ** 3, rel=1e-12)
+    meets = envelope_capture.REFERENCE_MASS_EARTH * (envelope_capture.MEDIAN_START / envelope_capture.MASS_LAW_MEDIAN) ** (1.0 / envelope_capture.MASS_EXPONENT)
+    assert 2.7 < meets < 2.8
+    assert envelope_capture.median_start(meets * 0.999) < envelope_capture.MEDIAN_START == envelope_capture.median_start(meets * 1.001)
+    assert envelope_capture.median_start(1.0) == pytest.approx(0.0019, rel=0.05)
 
 
 def test_only_bodies_of_a_fifth_to_twenty_earth_masses_draw_a_start_and_the_start_is_capped():

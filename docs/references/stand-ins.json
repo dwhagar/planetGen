@@ -42791,38 +42791,38 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+              "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
             ],
             [
               "The range it moves in",
-              "0.05 to 0.2"
+              "0.024 to 0.055"
             ],
             [
               "Where it holds",
-              "rocky planets of 3.72 to 20 Earth masses"
+              "rocky planets of 2.7 to 20 Earth masses"
             ],
             [
               "What would show it wrong",
-              "a measured envelope fraction of the sub-Neptunes of that mass that sits outside the bracket"
+              "a measured birth or kept envelope fraction of the sub-Neptunes of that mass whose median is outside 0.024 to 0.055"
             ],
             [
               "What replaces it",
-              "an envelope drawn from a disk gas-accretion model of the core's mass, the disk's life and its opacity"
+              "the sources disagree on the size, not the sense: a kept envelope of 1 percent inferred from masses and radii (periods under 25 days), 3 percent kept [R3500], 5 percent times mass^0.5 as a model assumption [R1734] (9.6 percent at 3.72), all read in reports/hydrogen-envelopes-habitable-zone-2026-11-14.md section 4; the fitted birth population of the same survey [R3797] wins as the value read for this planet class"
             ],
             [
               "Evidence",
-              "both valley targets (slope -0.11, 1.84 Earth radii at 10 days) are inside 2 sigma for the whole bracket (envelope-escape-wiring.md section 1); the generator's 240-system sweep gives 45 percent above 2.0 inside 100 days (reports/gen1323-sub-neptune-envelopes-2026-11-07.md)"
+              "both valley targets are inside 1 sigma at 0.04 (slope z 0.02, radius at 10 days z 0.8, 24 surveys of 4000 planets, envelope-escape-wiring.md section 1); the radius law gives 2.5 to 2.75 Earth radii for 3 to 4 percent on a 4 Earth-mass core against the Kepler sub-Neptunes' 2.1 to 2.6 (reports/gen1711-hz-sub-neptune-radii-2026-11-16.md)"
             ]
           ],
           "id": "EC1",
           "key": "6.206:EC1",
           "kind": "P",
           "slug": "6-206-ec1",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
           "unread": null,
-          "what": "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+          "what": "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
         },
         {
           "burn_down": [
@@ -42833,7 +42833,7 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+              "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
             ],
             [
               "The range it moves in",
@@ -42841,7 +42841,7 @@
             ],
             [
               "Where it holds",
-              "rocky planets of 1 to 3.72 Earth masses"
+              "rocky planets of 1 to 2.7 Earth masses"
             ],
             [
               "What would show it wrong",
@@ -42864,7 +42864,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": null,
-          "what": "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+          "what": "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
         },
         {
           "burn_down": null,
