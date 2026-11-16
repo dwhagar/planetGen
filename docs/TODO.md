@@ -12794,6 +12794,56 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 07, after GEN.1459; lock item for the build. Prerequisites: GEN.1449. Related: GEN.1449, GEN.1447.
   Filed by the TODO thread.
 
+- [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**
+  Boss, 6:11 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiJqSpmsJfWDRzSDRQYhyor8): "even if they are in an asteroid belt and small, if another class fits better, class always comes last so if we have an odd situation where like a small planet in the asteroid field has air or life, it can have another class on the fudging lines". Standing rule. Today a belt body under roundness ratio 1 is an Asteroid with no class letter (GEN.1160), and small airless rocks are D by size. Do: find every place size, roundness or belt membership decides a class before the finished body is read (GEN.1160's Asteroid rule, the D size gate, belt promotion, on-demand belt planets of GEN.1674); make each a class-fit term that a better-fitting class (an atmosphere, habitable-family or life class) can beat on the existing fit edges, after the body is finished; test with a small belt body given air and with one given life. Lock item (classes move).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06 (belts and small bodies) with Lane 03 (class fit). Prerequisites: none. Related: GEN.1160, GEN.1674, GEN.1745, GEN.1737.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1753 Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them**
+  Lane 15, 6:32 PM EST 2026-11-15 (GEN.1533, PR #6747): store.load_star_system now attaches each restored body's birth numbers from body_history, but nothing uses them yet (planets.draw_birth_spin always draws). Do: a moved or edited body starts from its own stored birth eccentricity, spin and capture draws; the air history (GEN.1745) reads them for restored bodies. Lock item (changes what an edit produces).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 15. Prerequisites: GEN.1533. Related: GEN.1497, GEN.1745.
+  Filed by the TODO thread.
+
+- [ ] **UX.319 (bug) Every time output uses standard hours, minutes and seconds, never decimal hours, minutes or seconds ("1.25 minutes", "3.5 days", "seconds=12.3")**
+  Boss, 6:40 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiVhVJNckJb3M7xVAwMh8RGD): "time outputs should be in standard HMS format not decimals". Standing rule for every progress bar, ETA, duration, run time, admin page and log line he reads. Today the shared period ladder (util/format.py format_duration_seconds, UX.14, used by web/admin_pages.format_duration and the Generate estimate "About 1.25 minutes") gives decimals, and some log lines print decimal seconds (db/store.py slow-query seconds=). Do: one shared helper (reuse format_duration_seconds, changed in place, and its JS twin in src/html/static) that writes "1h 23m 45s" (days as "2d 3h 4m" past 24 h, whole seconds, "45s" under a minute; sub-second timings in logs may stay as milliseconds "850 ms"); route every time output through it (Python pages and logs, JS progress and ETA strips, CLI progress); a test that greps for a decimal time unit in output code. No shim, no second helper.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14, ahead of TEST.695. Prerequisites: none. Related: UX.318, UX.14, PERF.147.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1754 Nebular envelopes and their water for bodies of 1 Earth mass and up (the GEN.1748 source stops at 0.3 percent hydrogen)**
+  Lane 04, 7:21 PM EST 2026-11-15 (GEN.1748, PR #6751): the envelope and its water are built for 0.2 to 1 Earth mass from the GEN.1748 source, which covers hydrogen fractions only up to 0.3 percent. Do: find a source for the captured envelope, its loss and the water it makes for 1 Earth mass and up (into the super-Earth range where an envelope may survive), register any stand-in, build it on the same path, and re-measure the class counts. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04. Prerequisites: GEN.1748. Related: GEN.1745, GEN.1744.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 4. GEN.909 was closed as a diagnosis (cold by the physics); its option 3 was measured: temperate worlds with at least 10 kPa went from 16 of 45 to 19 or 20 of 45 (G2V) and from 6 of 40 to 6 or 9 of 40 (K5V), the cold share from 60 to 48 or 49 percent (G2V). Small, and it does not recover the zone by itself. Do: source the form (land times min(1, ocean cover over the Earth value 0.71), or a cap of land at Earth's 0.29), register it in GEN.725 with tier and tweak level (an educated guess from physics, L1 inside the published range), build it behind the carbon dioxide step of GEN.1309 and re-measure. Lock item (changes the temperature of nearly every dry world and moves E and W worlds into other classes). Do not start before GEN.1309 steps A and B merge; Boss decides whether to build.
+  Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 7: ocean cover is bimodal (47 of 77 temperate sea worlds at 95 to 100 percent), measured with this lever on and off in GEN.1566; GEN.1565 follows with the oxygen worlds.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 03 (moved up from 8.2 for the Class M fixes), lock item for Train 25. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N20 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 4, train 21. The giant interior has no
+  ice-giant materials. Do: build them on the species split of GEN.1372.
+  Owner (proposed by TODO, 2026-11-07, confirm with TODO before taking;
+  one lock-free item at a time while waiting): Lane 14. Rules: open the
+  primary or an accepted secondary source of every recalled value before
+  it enters GEN.725; draws through draw.py; every stand-in gets a
+  GEN.725 row with tier and tweak level; every number has a unit or
+  scale and a column_units entry; a change to drawn output carries
+  tests.golden_update --reason ... --affects fill and the next epoch;
+  tests are scripts/test.py changed --resume; no fixed content from the
+  Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1372. Related: GEN.1372.
+
 - [ ] **GEN.1408 Fictional materials part 1: the fiction table (the four fictional materials only: Kyber crystal, Solar crystal, Aurora crystal and Tritanium; each with its kind, default inclusion and default name)**
   Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. The fictional-materials table. Do: `generation/fictional_materials.py` with `MATERIALS`, one frozen row per material (id, default name, help sentence, needs text) for the four invented materials only: Kyber, Solar crystal, Aurora crystal and Tritanium (section 2; Boss's rule of 10:38 AM EST on 2026-11-08: all real materials, including deuterium, tritium, spodumene and neutron-degenerate matter, always exist and are never settings), and a strict loader (repeated id, default name equal to a real material name or alias, row with no draw: refused; empty table loads). Done: the table loads, tests cover each refusal. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
   Version 8.2. Owner: none yet. Prerequisites: none. Related: GEN.725.
