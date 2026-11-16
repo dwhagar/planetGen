@@ -6,11 +6,11 @@ import math
 
 import pytest
 
-from planetgen.physics import aerosols, gases, photochemical_loss as pl, photolysis
+from planetgen.physics import aerosols, gases, photochemical_loss as pl, photolysis, unit_registry
 
 SUN_AT_1_AU = aerosols.FarUv(1.0, 0.0)
 SUN_T_K = 5772.0
-GYR_S = 1.0e9 * pl.YEAR_S
+GYR_S = 1.0e9 * unit_registry.unit("yr").factor
 EARTH_G = 9.80665
 
 
