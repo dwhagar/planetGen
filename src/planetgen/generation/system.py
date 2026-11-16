@@ -40,7 +40,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, belt_planets, disk_ejection, abundance_tier, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star
-from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, moon_resonances, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
+from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, comet_supply, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, moon_resonances, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -967,14 +967,16 @@ class StarSystem:
         count = draw.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
         primary_mass_solar = _kg_to_msun(star.mass)
         giant_au = comet_control.controlling_giant_au(planets)
+        belts = [body for body in planets if body.body_type == 'a']
+        supply = {"family_weights": comet_supply.family_weights(belts), "nucleus_top_km": comet_supply.nucleus_top_km(belts)}       # GEN.1765: read from the star's outer disks where it has them
         if ceiling_au is None:
             # A closed orbit stays inside the star's own Hill sphere (GEN.591); a parabolic comet leaves it by design.
             hill_au = validation.orbit_ceiling_au(star)
-            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au, star=star, giant_au=giant_au) for _ in range(count)]
+            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au, star=star, giant_au=giant_au, **supply) for _ in range(count)]
         comets = []
         for _ in range(count):
             for _attempt in range(tuning.COMET_CEILING_ATTEMPTS):
-                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au, star=star, giant_au=giant_au)
+                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au, star=star, giant_au=giant_au, **supply)
                 if validation.comet_fits_ceiling(comet, ceiling_au):
                     comets.append(comet)
                     break
