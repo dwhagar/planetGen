@@ -12726,6 +12726,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: GEN.1160, GEN.1752.
   Filed by the TODO thread.
 
+- [ ] **GEN.1758 (bug, measure first) Gas giants almost never appear in a default system: 1 giant among about 230 planets over 21 seeds, where an older test expected one within 12 systems**
+  Lane 14, 11:25 PM EST 2026-11-15 (TEST.695, PR #6782): found while repairing a stale test. May follow from the composition or envelope work (GEN.1744 to GEN.1749, GEN.1617, GEN.1659 a giant sized once) or the default star mix (mostly M dwarfs, where giants are rare), or may be a bug. Do: measure giant occurrence per star type on main against observed rates (cold giants around about 10 to 20 percent of Sun-like stars, few around M dwarfs, from the sources already in the registry), find the merge that moved it if it moved, and fix the cause if it is wrong. Lock item if output changes.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04. Prerequisites: none. Related: GEN.1659, GEN.1748, GEN.1754.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**
   Boss, 6:11 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiJqSpmsJfWDRzSDRQYhyor8): "even if they are in an asteroid belt and small, if another class fits better, class always comes last so if we have an odd situation where like a small planet in the asteroid field has air or life, it can have another class on the fudging lines". Standing rule. Today a belt body under roundness ratio 1 is an Asteroid with no class letter (GEN.1160), and small airless rocks are D by size. Do: find every place size, roundness or belt membership decides a class before the finished body is read (GEN.1160's Asteroid rule, the D size gate, belt promotion, on-demand belt planets of GEN.1674); make each a class-fit term that a better-fitting class (an atmosphere, habitable-family or life class) can beat on the existing fit edges, after the body is finished; test with a small belt body given air and with one given life. Lock item (classes move).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 06 (belts and small bodies) with Lane 03 (class fit). Prerequisites: none. Related: GEN.1160, GEN.1674, GEN.1745, GEN.1737.
@@ -12972,12 +12977,6 @@ clears each one.
 - [ ] **GEN.1387 Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug)**
   REWORKED: folded into GEN.1397. The redraw storm comes from class E (deep-frozen, GEN.1142) and W still sitting on tuning.HABITABLE_PLANET_CLASSES; GEN.1397 deletes the list, so the storm and this item's test ceiling are fixed there. Close GEN.1387 when GEN.1397 merges and test_barred_world passes. Held for Boss's E/W question: no longer needed (the list goes).
   8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size M; lock-free unless the owner finds a generated value changes. Do: find why the redraw rate is that high (a draw that almost always fails its own check), fix the draw or the check, keep the ceiling test, and say if generated output changes (it then rides an epoch). Owner (proposed by TODO): Lane 14. Rules: tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.237.
-  Filed by the TODO thread.
-
-- [ ] **TEST.695 Stale or failing tests, group one: point_columns (sky_tier_draws), column round trip (irregular_moons), materials table, command docs (link-neighbors), TODO codes shown, JS unit and raw formatting, web_formulas, multistar registry MS4 and MS6, sql portability, db boundary values, update_database_step, literal insert, old_urls belt_ref, parent_link, container_plan, nebula_shape, object_rows, outline_reach, describe_render, property_sheet, api_link_ids (bug)**
-  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size L; lock-free unless the owner finds a generated value changes. Each is a red row in known-red.csv. Do: for each, decide whether the code or the test is wrong, fix, and keep the test; the owner may split this into smaller items and tell TODO the new numbers. TEST.689 covers property_sheet and may close it first. Owner (proposed by TODO): Lane 14. Rules: tests are
   scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.237.
   Filed by the TODO thread.
