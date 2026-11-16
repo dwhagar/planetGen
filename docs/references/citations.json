@@ -26425,6 +26425,26 @@
       "kind": "paper",
       "label": "Borderies and Goldreich 1984",
       "title": "A simple derivation of capture probabilities for the J+1:J and J+2:J orbit-orbit resonance problems"
+    },
+    "R5289": {
+      "kind": "paper",
+      "label": "Touma and Wisdom 1998",
+      "title": "Resonances in the Early Evolution of the Earth-Moon System"
+    },
+    "R5290": {
+      "kind": "paper",
+      "label": "Spalding et al. 2016",
+      "title": "RESONANT REMOVAL OF EXOMOONS DURING PLANETARY MIGRATION"
+    },
+    "R5291": {
+      "kind": "paper",
+      "label": "Zahnle et al. 2015",
+      "title": "The tethered Moon"
+    },
+    "R5292": {
+      "kind": "paper",
+      "label": "Tjoa et al. 2020",
+      "title": "The subsurface habitability of small, icy exomoons"
     }
   }
 }
