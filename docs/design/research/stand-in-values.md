@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 90 | 16 | 8 | 22 | 13 | 149 |
 | T5 | 107 | 29 | 8 | 2 | 1 | 147 |
-| T6 | 238 | 127 | 34 | 79 | 4 | 482 |
+| T6 | 238 | 126 | 35 | 79 | 4 | 482 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 106 | 41 | 225 |
-| All | 1068 | 383 | 94 | 259 | 60 | 1864 |
+| All | 1068 | 382 | 95 | 259 | 60 | 1864 |
 
 ## How the labels were given
 
@@ -1408,7 +1408,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| MC1 | P | T6 | L1 | belt_member._filling: the filling of a stored member (one minus its porosity) is the compacted density of `compaction` over the compaction's own grain density at the member's rock fraction, applied to the taxon's grain density | the taper endpoints (`compaction.TAPER_START_KG`, `TAPER_END_KG`, stand-ins of decision S9) | members of 1e19 to 1e21 kg | a measured bulk density of a main-belt asteroid of that taxon and mass far from grain density times this filling ([R0666] densities by taxon) | the structure solver and viscous compaction (GEN.429) | the taper closes the pores of the Bierson and Nimmo ice and silicate mix (rock 3500, ice 920 kg/m3); using it as a filling for other grains is ours | predicted only | - | - |
+| MC1 | P | T6 | L2 | belt_member._filling: the filling of a stored member (one minus its porosity) is the compacted density of `compaction` over the compaction's own grain density at the member's rock fraction, applied to the taxon's grain density | the taper endpoints (`compaction.TAPER_START_KG` 1e20 and `TAPER_END_KG` 1e21, stand-ins of decision S9; the start moved from 1e19 under GEN.1637 to fit the measured densities of Varda, Salacia and Orcus, so its tweak level is L2) | members of 1e19 to 1e21 kg (the brittle law whole below 1e20) | a measured bulk density of a main-belt asteroid of that taxon and mass far from grain density times this filling ([R0666] densities by taxon) | the structure solver and viscous compaction (GEN.429) | the taper closes the pores of the Bierson and Nimmo ice and silicate mix (rock 3500, ice 920 kg/m3); using it as a filling for other grains is ours | predicted only | - | - |
 | MC2 | P | T6 | L0 | belt_member._filling: a member under 1e19 kg takes a porosity drawn uniformly in its taxon family's range, 0.25 to 0.55 for the carbonaceous taxa and 0.10 to 0.35 for the rocky ones (`small_body_composition.POROSITY_RANGES`) | the ranges | on-demand members of 1e15 to 1e19 kg | a rubble pile of that size and taxon with a porosity far outside the range [R0544, R0666] | the porosity from the size law and the collisional history of the belt | the ranges are `small_body_composition`'s (parametrisations of [R0544, R0666]); the uniform draw inside them is ours | predicted only | - | - |
 | MC3 | P | T6 | L0 | belt_member._filling: a member's rock fraction for the compaction is its rock and metal, held to the table's 0.3 to 0.95 (`compaction.ROCK_FRACTION_RANGE`), the metal counted with the rock | the metal share counted with the ice instead | every taxon (the iron M taxon is held at 0.95) | a metal-rich member whose compaction filling differs from a rock one's by more than the grain density does | a compaction table with metal as a third component | the habit of `moon_composition.density_kg_m3` | predicted only | - | - |
 
