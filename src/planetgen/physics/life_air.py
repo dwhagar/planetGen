@@ -329,7 +329,7 @@ def _settled_water_mol(body, moles):
 def _with_ledger_gases(body, living, rose, moles, water_mol=None):
     """
     `(new moles, changed)`: the air `moles` with the gases of the ledger rows of `living` (see `apply_gases`). The shares the caps hold are of the air's molecules; `water_mol` is
-    the water vapor the air will hold once stored (None: the water it holds now), so a cap holds in the air that is kept and not in the one before its water settled (TEST.781: a body on a
+    the water vapor the air will hold once stored (None: the water it holds now), so a cap holds in the air that is kept and not in the one before its water settled (a body on a
     climate cliff cools tens of kelvin under its first methane and loses most of its vapor, which put the share of the stored air 0.2 percent over its cap).
     """
     changed = False

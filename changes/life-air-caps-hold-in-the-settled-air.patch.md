@@ -1,0 +1,8 @@
+**Headline:** The methane, hydrogen and hydrogen sulfide caps of life now hold in the air that is kept, not in the air before its water settled, which turned three life-air tests red after Train 38.
+
+### Fixed
+
+- `tests/test_life_air.py` went red on main after Train 38 (3 tests: methane share 3.506 percent over the cap of 3.5, hydrogen and hydrogen sulfide 0.2 percent over theirs). Cause found by running the test before (77 pass) and after the Train 38 merge 0a64f96cc9: GEN.1579 (the moist limit from the air) let the first world of the test's seeds, Aeshuon I (0.78 Earth masses), have a surface ocean at 262 K where it was an ice-covered one at 174 K, so its stored air now holds water vapor (5.4e17 mol of 3.1e20). That world sits on a climate cliff: 3.5 percent methane in place of 12 percent of its carbon dioxide cools it from 262 K to 227 K, `store_air` freezes out most of the vapor (to 1.5e16 mol), and the cap of `life_air.apply_gases`, worked on the air before that, ended 0.17 percent over it in the air that is kept. `apply_gases` now finds the water the new air will hold by storing it on a copy (`_settled_water_mol`), works the caps again with it (`_with_ledger_gases`, `methane_target_mol` takes the molecules as `total_mol`) and repeats until the gases move by under 1e-9 (`SETTLE_PASSES` 4); an air with no water is worked once as before. The tests' bounds are unchanged (77 of 77 pass, and 133 in the other test files that read `life_air`). It moves the methane and hydrogen of life-bearing worlds with water vapor in their air by the share of the vapor that freezes out.
+
+generation-output: changed
+generation-affects: fill
