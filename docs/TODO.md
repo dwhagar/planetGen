@@ -12329,16 +12329,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: DB.101. Related: DB.101, DB.132, DB.133.
   Filed by the TODO thread.
 
-- [ ] **TEST.776 (bug) test_photochemical_loss fails to collect on main: it reads photochemical_loss.YEAR_S, which PR 6718 removed as unused**
-  Lane 03, 7:11 AM EST 2026-11-16 (found while testing PR 6837, GEN.1579), checked by the TODO thread on main 4d16c9fda: src/tests/test_photochemical_loss.py line 13 reads pl.YEAR_S; PR 6718 removed that constant from physics/photochemical_loss.py. Do: read the year from the one unit registry (physics/unit_registry.py), no new local constant. Red on main; Train 38 waits on it.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: GEN.1732, TEST.774.
-  Filed by the TODO thread.
-
-- [ ] **TEST.777 (bug) test_unit_registry_js::test_no_browser_script_declares_a_unit_factor is red on main: unitladder.js (UX.319 HMS formatter, PR 6764) declares YEAR_SECONDS and the 86400 and 3600 factors instead of reading them from unitregistry.js**
-  Lane 03, 7:11 AM EST 2026-11-16 (found while testing PR 6837), checked by the TODO thread on main 4d16c9fda: src/html/static/unitladder.js lines 172, 179 and 184 declare the year and the day and hour factors. Do: read them from unitregistry.js as the test asks (the HMS output Boss asked for stays the same). Red on main; Train 38 waits on it.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: UX.319, TEST.774.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1763 A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources**
   Lane 03, 7:11 AM EST 2026-11-16 (PR 6837, GEN.1579 before and after on 80 systems): 4 bodies were pinned at 375 K; 3 move to class N (489 to 600 K) and 1 to X. One N body has 7,825 bar (5,300 bar CO2 plus 2,300 bar OCS out of the rock) and its greenhouse asks 1,481 K. Do: check the carbonate and sulfur degassing laws at 500 to 600 K against sources (physics found in research wins), and say whether thousands of bar is real or a law used outside its range.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: GEN.1579. Related: GEN.1579, GEN.1580, GEN.1713.

@@ -4943,8 +4943,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.773 | (bug) test_fuzz_cli: two galaxy tests fail in the whole-file run with "RunStopped: the run done before stage 1 was queued" and pass alone (order-dependent) | none | done, PR #6779 (11:17 PM EST 11-15) |
 | TEST.774 | (bug) test_plan_outline::test_the_plan_says_where_its_time_went_step_by_step is red on main: the plan's timing table now prints HMS durations (UX.319, Boss rule) and the test still parses plain seconds | open |
 | TEST.775 | (bug) test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming is red on main for seed 2: a 4.5 Earth-mass body with a 3,000 K surface has Urey ratio 0.13 against the test's floor of 0.2 | done (Train 37, PR 6829, merged 6:34 AM EST 11-16; PR 6807) |
-| TEST.776 | (bug) test_photochemical_loss fails to collect on main: it reads photochemical_loss.YEAR_S, which PR 6718 removed as unused | open |
-| TEST.777 | (bug) test_unit_registry_js::test_no_browser_script_declares_a_unit_factor is red on main: unitladder.js (UX.319 HMS formatter, PR 6764) declares YEAR_SECONDS and the 86400 and 3600 factors instead of reading them from unitregistry.js | open |
+| TEST.776 | (bug) test_photochemical_loss fails to collect on main: it reads photochemical_loss.YEAR_S, which PR 6718 removed as unused | done (PR 6839, Lane 14, merged 7:20 AM EST 11-16: the test reads the year from unit_registry) |
+| TEST.777 | (bug) test_unit_registry_js::test_no_browser_script_declares_a_unit_factor is red on main: unitladder.js (UX.319 HMS formatter, PR 6764) declares YEAR_SECONDS and the 86400 and 3600 factors instead of reading them from unitregistry.js | done (PR 6839, Lane 14, merged 7:20 AM EST 11-16: unitladder.js reads year, day, hour and minute from unitregistry.js) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
