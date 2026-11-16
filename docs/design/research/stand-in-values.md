@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1863 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1864 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1836 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1837 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,7 +48,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 215 | 22 | 12 | 1 | 0 | 250 |
-| T2 | 169 | 71 | 3 | 1 | 0 | 244 |
+| T2 | 170 | 71 | 3 | 1 | 0 | 245 |
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 90 | 16 | 8 | 22 | 13 | 149 |
 | T5 | 107 | 29 | 8 | 2 | 1 | 147 |
@@ -56,7 +56,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 106 | 41 | 225 |
-| All | 1067 | 383 | 94 | 259 | 60 | 1863 |
+| All | 1068 | 383 | 94 | 259 | 60 | 1864 |
 
 ## How the labels were given
 
@@ -2354,6 +2354,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | BHS3 | P | T9 | L3 | belt_history.MASS_LOSS_SCATTER_SHARE 0.5: the share of a belt thrown inward per unit fraction of the star's mass lost, if giants remain | 0.1 to 1 | belts beyond a few au of a star that becomes a white dwarf, with giants left | an N-body run of a giant system losing 80 percent of its mass whose belt scatters a share far from the law | an N-body population synthesis of belts round mass-losing stars ([R1031] for planets only) | educated guess from needed output (the observed 27 to 50 percent of white dwarfs accreting) | predicted only | - | no data |
 | BHS4 | P | T6 | L1 | belt_history.DELIVERY_MYR 100: how long the scattered rock takes to fall on the white dwarf | 20 to 200 Myr (the cooling ages surveyed) | white dwarfs of 20 to 200 Myr cooling age | polluted white dwarfs showing accretion that stops as the delivery time runs out | a delivery time from the scattering rate of the system's own giants | the cooling-age range of [R2415] (READ), the middle in the log | predicted only | - | - |
 | BHS5 | P | T2 | L0 | belt_history.MIN_POLLUTION_RATE_G_S 1e5: the lowest accretion rate seen on a polluted white dwarf | none (measured) | DA white dwarfs of 17 000 to 27 000 K | a white dwarf polluted at a rate well below | a larger survey with a lower detection limit | [R2415] ([R2415], READ): a few 1e5 to a few 1e8 g/s | predicted only | - | - |
+| BHS6 | P | T2 | L0 | belt_history.TYPICAL_POLLUTION_RATE_G_S 1e8: the accretion rate of a polluted white dwarf when no belt of its system gives one (GEN.1231) | none (recalled typical) | polluted white dwarfs | a survey whose typical rate is far from 1e8 g/s | a rate drawn from the measured range once the belts of white dwarf systems give one | [R2415] (recalled typical rate; the survey's few 1e5 to few 1e8 g/s is READ) | predicted only | - | - |
 
 ## 6.124 Stand-ins of the wiring of aluminium-26 at birth
 
