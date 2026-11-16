@@ -82,7 +82,6 @@
  "tests/test_bughunt_db_child_tables.py": 118.0,
  "tests/test_bughunt_galaxy_boundaries.py": 11.0,
  "tests/test_bughunt_render_edges.py": 11.0,
- "tests/test_bughunt_sector_placement.py": 1146.56,
  "tests/test_bughunt_serialization_fuzz.py": 181.0,
  "tests/test_bulk_draw.py": 41.0,
  "tests/test_bulk_structure.py": 12.0,

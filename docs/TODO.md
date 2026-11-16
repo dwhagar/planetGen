@@ -11580,11 +11580,6 @@ clears each one.
   Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
   Lane 11 (as the lane reported 1:30 AM EST on 2026-11-12): the birth luminosity function is PR 6180 (physics/birth_luminosity.py, birth_luminosity_sol(initial_mass_sol, fe_h, age_gy), lock-free, unwired), for GEN.1611 slice 1 (Lane 21). It has a 1.8x step at 1.4 Msun from the track mismatch in GEN.1640.
 
-- [ ] **GEN.1612 (bug) About 40 percent of comets have an orbital period outside their family's period range, because the comet draw never reads the family's range**
-  Lane 22 (as the lane reported 9:06 PM EST on 2026-11-11, while building GEN.1608, PR 6127), confirmed by run: the comet shape draw never reads the family's period range, so about 40 percent of comets sit outside it (GEN.1608 only fixes the 200-year periodic and long-period split the designation uses). Coordinator, 9:14 PM EST on 2026-11-11: file and build under Boss's standing 'fix all the bug work finds for 8.1' (Boss may veto). Do: draw each comet's orbit within its family's period range (or draw the family from the drawn orbit), reusing comet.py _draw_shape and the family table; no second comet pass. Done: a test that every drawn comet's period sits in its family's range over a seeded sample, before and after family and ice-makeup counts. Lock item (changes stored comet values, new epoch). Split (TODO sweep, 2026-11-12): slice 0 lock-free: a check script that counts comets outside their family's range on main; slice 1 lock: the fix.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: GEN.1608. Related: GEN.1608, GEN.595.
-  Filed by the TODO thread. Bug work; approved under Boss's fix-all (veto open).
-
 - [ ] **UX.305 (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212**
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do: read planet_class_text.description instead, and test that each class facet has a tooltip. Lock-free.
   Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1212. Boss's call on the choice where noted.
@@ -11600,12 +11595,6 @@ clears each one.
 - [ ] **GEN.1622 (bug) The climate model gives Venus 586 K (real 735 K) and Titan 114 K (real 94 K): no cloud greenhouse and no haze cooling in thick airs**
   Data audit batch 1, D2 (report reports/data-audit-2026-11-11.md, with file and line). Do: add a cloud greenhouse term and haze anti-greenhouse for thick airs from the research ([R....] ids only), check Venus and Titan analogues. Lock item.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.1586, GEN.1613.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
-- [ ] **GEN.1624 (bug) Old brown dwarfs keep their young radius (13 Jupiter masses stays 1.50 Rjup, should be about 1.0) and their luminosity runs up to 2.4 times high (physics/brown_dwarf.py)**
-  Data audit batch 1, D4 (report reports/data-audit-2026-11-11.md, with file and line). Do: cool and contract brown dwarfs with age from an evolution track (reuse any table already in the datasets). Lock item.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: GEN.1371.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
@@ -11701,14 +11690,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 16. Prerequisites: OPS.169. Related: OPS.169.
   Filed by the TODO thread.
 
-- [ ] **TEST.730 Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s)**
-  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A2). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
-  Filed by the TODO thread.
-
 - [ ] **TEST.737 Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row D). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 15 (moved from the old Lane 03, now Gate, which had not started it). Prerequisites: none. Related: TEST.261.
   Filed by the TODO thread.
 
 - [ ] **OPS.177 A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else**
@@ -11935,21 +11919,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): TODO thread for the text and lint reds; Lane 12 runs the gate. Prerequisites: none. Related: GEN.1693, TEST.738.
   Filed by the TODO thread.
 
-- [ ] **GEN.1762 biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087**
-  Lane 04, 4:38 AM EST 2026-11-16 (PR 6815, GEN.1636): GEN.1636 made surface_pressure.HEAT_FLUX_EARTH_W_M2 (0.0614, the interior model's own Earth twin, row AM33) the one reference for outgassing, life supply and hydrothermal ores; the oxygen balance still scales from 4.4e13 W. Do: make biogenic_oxygen read the same reference (an Earth twin gets 1.0 of Earth's reductant flux), measure oxygen and class changes on fixed seeds; and record in the registry why the model's Earth twin is 0.0614 against the measured 0.087 (the gap is the model's, not a second constant). Lock item (every oxygen balance moves).
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: GEN.1636. Related: GEN.1636, GEN.1733.
-  Filed by the TODO thread.
-
-- [ ] **DB.132 (bug) A planet's forced eccentricity from a resonant chain (oddity_quantities, GEN.1459) is not stored, so a restored planet in a chain that is moved or edited loses the floor settle_orbit keeps**
-  Lane 15, 6:53 AM EST 2026-11-16 (DB.101 audit, /mnt/project-files/reports/db101-storage-audit-2026-11-16.md). Do: store it (a column with its column_units entry, migration from the TODO thread) or rebuild it on load from the stored chain, whichever reuses more; a restored chain planet keeps the same floor. Lock item if stored values change.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: none. Related: GEN.1459, DB.101, DB.133.
-  Filed by the TODO thread.
-
-- [ ] **DB.133 (bug) Stars do not store initial_mass_sol and phase_end_age_gy (bright_stars does), so a restored star has None for both**
-  Lane 15, 6:53 AM EST 2026-11-16 (DB.101 audit). Do: add both columns with column_units entries (one migration with DB.132 if both need one), fill them at save, read them at load; test a restored star against its generated twin.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: none. Related: DB.101, DB.132.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1765 Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt**
   Lane 06, 10:38 AM EST 2026-11-16 (PR 6870, GEN.595): the comet shape is now registered as stand-in rows CMT1 to CMT8 (section 6.303); several are hand-tuned. The nucleus diameter is drawn uniform where the published size law is a steep power law, and the comet count and orbits are not tied to the system's own outer belt. Do: draw the nucleus size from a power law and the comet supply and orbits from the outer belt or disk the system has, then retire or re-tier the CMT rows. Changes generation: lock item.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 06. Prerequisites: GEN.595. Related: GEN.595, GEN.725.
@@ -11968,6 +11937,21 @@ clears each one.
 - [ ] **GEN.1769 Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw**
   Lane 02, 12:23 PM EST 2026-11-16 (GEN.1768 trace, main a756e09b0a, seed 4008): an M dwarf world of recipe row j5 keeps 339 bar of O2 because the crust takes only the drawn share OXYGEN_SINK (0.11 here, drawn 0 to 0.9); the water loss itself is sound. Do: read sources for the crust and magma-ocean oxygen budget, derive the sink from the body's iron, sulfur and magma history, carry it in the GEN.1745 air history as a step term (oxygen and reductant stores at every age), and check OXYGEN_SINK is registered in GEN.725 until then. Report before building; lock item when built.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02. Prerequisites: none. Related: GEN.1768, GEN.1745, GEN.1739, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **TEST.783 (bug) test_star_composition_sweep and test_radius_valley_sweep: the filled-galaxy fixture runs past the hang guard (900 s, 1,500 s in gates) on a 4-core box, so the files error instead of testing**
+  Lane 05 and Lane 06 (2026-11-16, Train 39 gate): both sweep files hit the timeout with fixture errors on a loaded 4-core box. Do: profile the fixture build, make it smaller or cached (see TEST.417) without weakening what the sweeps check, and report run times before and after.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Lock-free. Prerequisites: none. Related: TEST.417, PERF.274.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1770 (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red)**
+  Lane 07, 1:35 PM EST 2026-11-16 (PR 6903): seed 0 has a 0.0031 Earth-mass body with Urey 1,798; 71 of 167 such bodies over 12 seeds had Urey over 1.5. Under the critical Rayleigh number the boundary layer grew past the mantle and the flux fell to 0. Do: the flux is never under conduction through the sphere, 5 k (Tm - Ts) / R. No body over 0.005 Earth masses changes; Urey over 1.5 goes from 71 to 0. Changes output for bodies under 0.005 Earth masses: lock item.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: none. Related: GEN.1510, GEN.1760.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1771 (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more**
+  Lane 03, 3:52 PM EST 2026-11-16 (Train 40 gate, test_radiation_sweep): class N world Akumaus I (seed 15 sweep, extra system 12 of seeds 1015 to 1027; 19 bar, 412 K, 12.7 bar CO2, 2.7 bar H2O). UV-C transmission at fixed ozone: O2 x0.5 2.1e-5, x1 3.7e-5, x2 8.3e-5, x16 3.1e-4; a doubled column passes 13 percent more, also with ground albedo 0. More absorber should not let more UV-C through. About 4e-5 of the light, so no dose moves, but it is a model error. Do: trace the transmission (scattering against absorption, the band integration, or the ozone held fixed while O2 changes the profile) and fix the cause; lock item if output moves.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: none. Related: GEN.1717.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**

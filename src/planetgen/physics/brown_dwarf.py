@@ -21,8 +21,11 @@ one type but dwarfs of one temperature do not all share it. Above L0 it is a lat
 
 Masses follow the substellar mass function of the same census, `dN/dM ~ M^-0.6` (alpha 0.6 +- 0.1).
 
-Left out: the radius of an old brown dwarf of the lightest masses (the table loses them while they are still young and large, so
-the radius is held at that young value, 1.7 Jupiter radii at 13 Jupiter masses; the temperature continues), the L/T transition's cloud-clearing plateau (about 18 K per subtype from L8.75 to T4.75, which the piecewise fit
+The radius of an old brown dwarf of the lightest masses (the table loses them while they are still young and large) shrinks past
+that age as the lightest mass the table still holds does (an old brown dwarf's radius is nearly the same at every mass, 0.09 solar
+radii; GEN.1624: it was held at the young value, 1.7 Jupiter radii at 13 Jupiter masses, and the luminosity ran up to 2.4 times high).
+
+Left out: the L/T transition's cloud-clearing plateau (about 18 K per subtype from L8.75 to T4.75, which the piecewise fit
 already flattens), metallicity and dust opacity, and a gravity-lowered type for a young brown dwarf. Objects between 0.072
 and the top of the range (0.08 solar masses, where the stars' mass function begins: `mass_boundaries`, GEN.936) are above the
 models' own hydrogen-burning limit, so the models make them stable late-M and L dwarfs; they are kept, as the census's L

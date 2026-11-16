@@ -2,6 +2,104 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4396] - 2026-11-16
+
+**Headline:** The pinned civilized test systems hold a civilization again, so the population tests no longer hunt for one.
+
+### Fixed
+- **`test_the_pinned_civilized_seeds_still_qualify` was red on main.** Draw shifts since the last refresh left none of the four pinned candidates (112, 135, 172, 242) with a technological civilization, so the population tests fell back to hunting random systems. The pins are now candidates 5 and 39, found by scanning candidates; the civilization rate is unchanged at about 1.6 percent (2 of 124 scanned now, 4 of the first 243 when the old pins were found).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4395] - 2026-11-16
+
+**Headline:** The belt overlap test now checks the belt's inner edge, the way the spacing pass measures it.
+
+### Fixed
+- TEST.782: `test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt` expected the pushed belt's centre to land at the outer edge of the belt inside it plus the separation. Since GEN.1592 a belt is measured and pushed by its inner edge (`shift_belt` moves the centre and both edges together), so the inner edge lands exactly there and the centre sits half a width further out (2.45 AU for a 0.4 AU belt past 2.25). The test now asserts the inner edge, the kept width and the centre; the generator is unchanged.
+
+generation-output: none
+
+## [8.0.4394] - 2026-11-16
+
+**Headline:** An old brown dwarf of the lightest masses is about one Jupiter radius across, not the 1.5 to 1.7 it kept from its youth, and it is no longer up to 2.4 times too bright.
+
+### Fixed
+
+- GEN.1624: the BHAC15 table loses the lightest brown dwarfs while they are still young and large (13 Jupiter masses after 0.01 Gy), and `baraffe_isochrones.cooling_track` held their last radius for ever, so a 13 Jupiter mass body stayed at 1.7 Jupiter radii at 10 Gy and its luminosity (`R^2 Teff^4`) ran up to 2.4 times high. Past the age the table loses a mass its radius now shrinks as the radius of the lightest mass the table still holds does (an old brown dwarf's radius is nearly the same at every mass, 0.09 solar radii), joined to the next heavier mass's own change as before so the track still has no jump in mass (GEN.1137). A 13 Jupiter mass body at 10 Gy is 0.91 Jupiter radii. Stand-in LM4 now says so.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4393] - 2026-11-16
+
+**Headline:** A comet's period now lies in the period range of its own family.
+
+### Fixed
+- GEN.1612: the comet draw never read its family's period range, so 37 percent of elliptical comets (47 percent of the Jupiter-family, 37 percent of the Halley-type) had a period outside it. The eccentricity is now drawn from the part of the family's range that gives a period in the family's range at the comet's perihelion, and a perihelion that cannot give one is drawn again; a comet whose star's ceiling leaves no such orbit is named for the family whose range holds its period (`period_class_of`, which extends GEN.1608 from the 200-year line to every family). Over 1 500 comets none is now outside, and the families come out at their table weights (0.50, 0.31 and 0.19 of 0.5, 0.3 and 0.2, where the long-period family had been 0.14).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4392] - 2026-11-16
+
+**Headline:** The star property sheet says why it does not show the two columns DB.133 added to the stars table.
+
+### Fixed
+
+- `describe/sheet.py`: `NOT_SHOWN["star"]` gains `initial_mass_sol` and `phase_end_age_gy` with their reasons, so `tests/test_property_sheet.py` finds every column of `stars` shown or excused (a fix for Train 39).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4391] - 2026-11-16
+
+**Headline:** A restored planet or moon keeps the eccentricity a resonance holds it on, and a restored star keeps the mass it was born with and the age its phase ends, so a body or system that is settled or edited again starts from what it was made with.
+
+### Added
+
+- DB.132: `body_history` gains `held_eccentricity` (`_resonance_e`, the floor `settle_orbit` keeps under the tide: a planet of a resonant chain, a moon of a first-order pair or held in the evection resonance) and `forced_eccentricity` (the eccentricity a chain forces on a planet, `oddity_quantities["forced_eccentricity"]`). `body_history.attach` gives them back to a restored body, so the tide of a restored planet settled again cannot wear it below its floor.
+- DB.133: `stars` gains `initial_mass_sol` (the birth mass the population model gave the star) and `phase_end_age_gy` (the age its drawn phase ends; NULL beside a birth mass reads back as infinite, a white dwarf's). A restored star keeps what `remnant_orbits` (the orbits a white dwarf's planets formed on, the engulfment radius) and `place_terms.born_mass_solar` (the companion floor) read.
+- Migration 0268 adds the four columns; a galaxy made earlier has NULL in them, which reads as "not kept" and nothing is backfilled. The columns are left out of the fingerprint.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4390] - 2026-11-16
+
+**Headline:** The CHECK-constraint test knows the shape of the two eccentricity columns DB.132 added to body_history, so it breaks and sees refused a bad value for each.
+
+### Fixed
+
+- `tests/test_db_check_constraints.py`: `_breaking_value` reads `(a is null) or ((a >= 0) and (a < 1))` (`held_eccentricity`, `forced_eccentricity`) and breaks it with 1.0, which the CHECK must refuse (a fix for Train 39).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4389] - 2026-11-16
+
+**Headline:** The air history now gives the surface temperature of a world's air at every step from the star's light and the interior's heat of that age, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 1b: `air_history.run(body, cuts, air_input)` with the input of the body's final air solve gives each step a surface temperature. `aged_setting` is the air solver's input at an age (the star's light and the interior's heat of the age); the steps where the light or the heat has moved by 3 or 25 percent are solved in full from the draws the final air began with (at most 12), and the steps between are read between their two anchors in the starlight absorbed. Reuse: `surface_air.solve` and `Setting`, `runaway_history.light_at`, `interior_heat.heat_at` and `released_by`, `Air.entry_state`. Nothing in the generator reads it yet.
+
+## [8.0.4388] - 2026-11-16
+
+**Headline:** The test that built 12 real large systems to check the sector separation law is retired, about 1,100 s off a full run.
+
+### Removed
+
+- `tests/test_bughunt_sector_placement.py` (3 tests, 1,147 s recorded): it built a pool of real large systems to check that placed pairs keep the Hill-sphere separation, that a full sector raises, and that an explicit position skips the check. The law reads only a body's Hill sphere, and `tests/test_fuzz_sector_placement.py` tests the first two with random Hill sizes (`test_random_placement_stays_inside_and_separated`, `test_full_sector_raises_after_bounded_attempts_not_hang`).
+
+### Added
+
+- `test_explicit_positions_skip_the_separation_check_as_documented` in `tests/test_fuzz_sector_placement.py`: the third retired check, which the fuzz file did not make (two systems given overlapping explicit positions are both kept), with stand-in systems instead of real ones.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4387] - 2026-11-16
 
 **Headline:** two more tests that pinned a seed for a rare case now search seeds for it, so a change to what the seeds draw stops breaking them.

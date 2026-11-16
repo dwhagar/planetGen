@@ -651,6 +651,8 @@ NOT_SHOWN = {
         "slot": "the star's slot in its system; bookkeeping",
         "flags": "bit flags the generator keeps; each one is shown by the row it stands for",
         "cluster_id": "the cluster it belongs to, shown by the Location block",
+        "initial_mass_sol": "the mass the population model gave the star at birth (DB.133), kept so a restored star starts from it; the mass it has now is shown",
+        "phase_end_age_gy": "the age the star leaves the phase it was drawn in (DB.133), kept so a restored star starts from it; the age and the class it has now are shown",
         **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "spin_axis_x", "spin_axis_y",
                    "spin_axis_z", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), _VECTORS),
     },

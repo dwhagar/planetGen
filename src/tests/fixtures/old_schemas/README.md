@@ -38,3 +38,4 @@ Commit each file came from:
 - v264: after DB.112's migration 0264 (sector_system_counts loses quadrant), before GEN.1141's migration 0265 (designations reason `deleted`) (main's schema.sql with its comment and blank lines removed)
 - v265: after GEN.1141's migration 0265 (designations reason `deleted`), before GEN.1753's migration 0266 (body_history birth numbers, lost_moons) (main's schema.sql with its comment and blank lines removed)
 - v266: after GEN.1753's migration 0266 (body_history birth numbers, lost_moons), before GEN.1231's migration 0267 (belt thrown inward) (main's schema.sql with its comment and blank lines removed)
+- v267: after GEN.1231's migration 0267 (belt thrown inward), before DB.132 and DB.133's migration 0268 (stars birth mass and phase end, body_history held and forced eccentricity) (main's schema.sql with its comment and blank lines removed)

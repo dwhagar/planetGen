@@ -77,11 +77,19 @@ def test_earth_numbers_balance_at_the_oxygen_of_earths_air():
     assert bo.EARTH_SURPLUS_MOL_YR == pytest.approx(bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR)
     assert bo.balance_pa(bo.EARTH_SURPLUS_MOL_YR, bo.EARTH_AREA_M2) == pytest.approx(bo.EARTH_O2_PA)
     # GEN.1463: the store is the surplus summed over the 0.714 Gyr after the biomarkers (2.7 Ga) with the reductant at 2.2 times its present value falling to 1.9 times (the model's heat
-    # history of an Earth-mass body, whose heat now is 0.76 of the 44 TW Earth gives off), so the delay at today's reductant is 0.3 to 1 Gyr of the published bracket and shorter than it was when R was held at today's value
+    # history of an Earth-mass body, whose heat now is 1.07 of the model's Earth twin, `EARTH_HEAT_W`, GEN.1762), so the delay at today's reductant is 0.3 to 1 Gyr of the published bracket and shorter than it was when R was held at today's value
     now_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR) / 1e9
-    then_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - 2.2 * 0.76 * bo.EARTH_REDUCTANT_MOL_YR) / 1e9
+    then_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - 2.2 * 1.07 * bo.EARTH_REDUCTANT_MOL_YR) / 1e9
     assert 0.3 < now_delay < 1.0
     assert then_delay == pytest.approx(0.714, abs=0.12)
+
+
+def test_the_earth_twins_heat_is_the_one_reference_of_the_reductant_flux():
+    # GEN.1762: R is Earth's times the heat over the model's Earth twin's (`surface_pressure.HEAT_FLUX_EARTH_W_M2`, row AM33), not over the measured 44 TW: no fourth Earth heat constant
+    from planetgen.physics import surface_pressure
+    assert bo.EARTH_HEAT_W == pytest.approx(surface_pressure.HEAT_FLUX_EARTH_W_M2 * bo.EARTH_AREA_M2)
+    twin = SimpleNamespace(internal_heat_flux_w_m2=surface_pressure.HEAT_FLUX_EARTH_W_M2, tidal_flux_w_m2=0.0, mantle_delta_iw=bo.EARTH_MANTLE_DELTA_IW)
+    assert bo.reductant_flux(twin, bo.EARTH_AREA_M2) == pytest.approx(bo.EARTH_REDUCTANT_MOL_YR, rel=1e-6)
 
 
 def test_a_more_reduced_mantle_puts_out_more_reductants_inside_the_range():

@@ -3871,7 +3871,7 @@
             ],
             [
               "Where it holds",
-              "the one Earth heat-flow reference: the outgassing flux, the life supply's heat share (life_supply.heat_share) and the hydrothermal ores' heat ratio read it (GEN.1636; the Earth's measured 0.087 to 0.09 is not used, the model's heat flows are read against the model's own Earth twin)"
+              "the one Earth heat-flow reference: the outgassing flux, the life supply's heat share (life_supply.heat_share), the hydrothermal ores' heat ratio and the oxygen balance's reductant flux (biogenic_oxygen.EARTH_HEAT_W, 31 TW) read it (GEN.1636, GEN.1762; the Earth's measured 0.087 to 0.09 (44 TW) is not used, the model's heat flows are read against the model's own Earth twin: its Earth twin gives 0.0614 because the stagnant lid it models loses heat less freely than Earth's mobile lid, so the gap is the model's and no second constant carries it)"
             ],
             [
               "What would show it wrong",
@@ -12509,7 +12509,7 @@
           "fields": [
             [
               "What it is",
-              "biogenic_oxygen.EARTH_STORE_MOL 4e21 (5e21 until GEN.1463): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
+              "biogenic_oxygen.EARTH_STORE_MOL 2.4e21 (4e21 until GEN.1762, 5e21 until GEN.1463; GEN.1762 read the Earth twin's heat from the one reference, so R of an Earth-mass body is 1.07 of Earth's and not 0.76, and the store was set again to keep the 0.714 Gyr): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
             ],
             [
               "The range it moves in",
@@ -12540,7 +12540,7 @@
           "tier_code": "T3",
           "tweak": "L1",
           "unread": null,
-          "what": "biogenic_oxygen.EARTH_STORE_MOL 4e21 (5e21 until GEN.1463): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
+          "what": "biogenic_oxygen.EARTH_STORE_MOL 2.4e21 (4e21 until GEN.1762, 5e21 until GEN.1463; GEN.1762 read the Earth twin's heat from the one reference, so R of an Earth-mass body is 1.07 of Earth's and not 0.76, and the store was set again to keep the 0.714 Gyr): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
         },
         {
           "burn_down": [
@@ -24935,7 +24935,7 @@
           "fields": [
             [
               "What it is",
-              "brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 [R0606]"
+              "baraffe_isochrones.cooling_track: the radius of a mass the table loses while it is young shrinks past that age as the lightest mass the table still holds does (the radius of an old brown dwarf is nearly the same at every mass), the temperature continues at t^-0.32 [R0606] (GEN.1624: it was held at its last, young, value, 1.7 Jupiter radii at 13 Jupiter masses at any age, and the luminosity ran up to 2.4 times high)"
             ],
             [
               "The range it moves in",
@@ -24947,7 +24947,7 @@
             ],
             [
               "What would show it wrong",
-              "a radius of a 13 Jupiter mass object at 10 Gy over 1.2 Jupiter radii"
+              "a radius of a 13 Jupiter mass object at 10 Gy outside 0.8 to 1.05 Jupiter radii"
             ],
             [
               "What replaces it",
@@ -24955,7 +24955,7 @@
             ],
             [
               "Evidence",
-              "an inference, kept from the eleven-row table it replaces; the radius is 1.7 Jupiter radii for 13 Jupiter masses"
+              "an inference from the table's own radii: at 0.3 to 1 Gy they lie within 5 percent of each other from 0.04 to 0.07 solar masses"
             ]
           ],
           "id": "LM4",
@@ -24966,7 +24966,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 [R0606]"
+          "what": "baraffe_isochrones.cooling_track: the radius of a mass the table loses while it is young shrinks past that age as the lightest mass the table still holds does (the radius of an old brown dwarf is nearly the same at every mass), the temperature continues at t^-0.32 [R0606] (GEN.1624: it was held at its last, young, value, 1.7 Jupiter radii at 13 Jupiter masses at any age, and the luminosity ran up to 2.4 times high)"
         },
         {
           "burn_down": null,

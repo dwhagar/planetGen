@@ -139,7 +139,7 @@ def test_a_v242_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mys
 def _row(**changes):
     row = {"star_system_id": 1, "body_type": 2, "body_id": 3, "birth_eccentricity": 0.25, "birth_spin_rate": 1.5e-4, "birth_obliquity_deg": 23.0,
            "capture_draw_1": 0.5, "capture_draw_2": 0.75, "formation_distance_au": None, "birth_distance_au": None, "born_index": None,
-           "formula_version": body_history.FORMULA_VERSION}
+           "held_eccentricity": None, "forced_eccentricity": None, "formula_version": body_history.FORMULA_VERSION}
     return {**row, **changes}
 
 
@@ -159,6 +159,22 @@ def test_attach_gives_a_restored_body_where_it_formed_and_a_moon_the_orbit_it_wa
     bare = _Body()
     assert body_history.attach(bare, _row(birth_eccentricity=None, birth_spin_rate=None, birth_obliquity_deg=None, capture_draw_1=None, capture_draw_2=None, formation_distance_au=0.7)) is True
     assert bare.formation_distance_au == 0.7 and bare.build.birth_spin is None and not hasattr(bare, "_birth_distance_au")
+
+
+def test_attach_gives_a_restored_body_the_eccentricity_a_resonance_holds_it_on_and_a_planet_the_one_its_chain_forces():
+    planet = _Body()
+    assert body_history.attach(planet, _row(held_eccentricity=0.031, forced_eccentricity=0.04))
+    assert planet._resonance_e == 0.031 and planet.oddity_quantities == {"forced_eccentricity": 0.04}
+    numbers = body_history.numbers_of(planet)
+    assert numbers["held_eccentricity"] == 0.031 and numbers["forced_eccentricity"] == 0.04
+    other = _Body()
+    other.oddity_quantities = {"tilt_chaotic": 1}
+    assert body_history.attach(other, _row(forced_eccentricity=0.02))
+    assert other.oddity_quantities == {"tilt_chaotic": 1, "forced_eccentricity": 0.02}      # the other quantities of the body are kept
+    plain = _Body()
+    assert body_history.attach(plain, _row())
+    assert not hasattr(plain, "_resonance_e") and not hasattr(plain, "oddity_quantities")      # a body no resonance holds is left as a galaxy before v268 had it
+    assert "held_eccentricity" not in body_history.numbers_of(plain) and "forced_eccentricity" not in body_history.numbers_of(plain)
 
 
 def test_a_row_with_no_new_numbers_leaves_a_body_as_a_galaxy_before_v266_did():
