@@ -12069,11 +12069,6 @@ clears each one.
   Version 8.3. Owner (TODO, 2026-11-14): to be routed when 8.3 opens. Prerequisites: API.49. Related: ADM.155, API.28.
   Filed by the TODO thread.
 
-- [ ] **TEST.751 (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback**
-  Stacked-fixes thread (Fable), 7:30 PM EST on 2026-11-14, with Lane 22 on PR 6510: on main f94663af2 the test passes alone in 1,438 s with the limit raised; under the 900 s limit plus 120 s grace it is ended at about 17 minutes on main as on 6510. The guard's HUNG TEST line goes to the worker's stderr, which the runner does not show. Do: make the row-id check generate less (it builds two galaxies) so it runs well under the limit while still proving row ids do not change the fingerprint; and make the hang guard's line reach the runner's output. No skip, no raised limit as the fix.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 15 (moved from Lane 12, TODO 9:20 AM EST 2026-11-16). Prerequisites: none. Related: GEN.1691.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1727 Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit**
   From GEN.1724 (/mnt/project-files/reports/life-adaptations-climate-2026-11-14.md): the figure is quoted second-hand. Do: read it from the paper or a verified second-hand citation (reports/secondhand-citations-2026-10-24.md if the paper is out of reach) and correct the report and the registry row.
   Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1724, GEN.1723.
