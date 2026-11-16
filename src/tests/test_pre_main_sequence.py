@@ -119,10 +119,13 @@ def test_the_type_text_names_the_stage_without_a_numeral():
 
 
 def test_the_disk_class_follows_the_age():
-    assert [pms.disk_class(age * MYR) for age in (0.1, 0.3, 1.0, 2.9, 3.1, 8.0)] == ["0", "I", "II", "II", "III", "III"]
+    assert [pms.disk_class(age * MYR, 3.0 * MYR) for age in (0.1, 0.3, 1.0, 2.9, 3.1, 8.0)] == ["0", "I", "II", "II", "III", "III"]
+    assert [pms.disk_class(age * MYR, 0.2 * MYR) for age in (0.1, 0.3, 1.0)] == ["0", "I", "III"], "the embedded classes last their ages however soon the disk would go (GEN.1551)"
+    assert [pms.disk_class(age * MYR, 8.0 * MYR) for age in (2.9, 3.1, 7.9, 8.1)] == ["II", "II", "II", "III"], "a disk can outlast the old 3 Myr step"
 
 
-def test_a_disk_has_the_ranges_of_the_note_and_an_inner_edge_inside_it():
+def test_a_disk_has_the_ranges_of_the_note_and_an_inner_edge_inside_it(monkeypatch):
+    monkeypatch.setattr(pms, "dispersal_yr", lambda mass_sol: 3.0 * MYR)       # the time is a star's own (GEN.1551); the ranges are not
     for seed in range(200):
         stream = draw.Stream(f"disk-test:{seed}")
         disk = pms.draw_disk(1.0, 1.0 * MYR, 1.5, stream)
@@ -133,6 +136,27 @@ def test_a_disk_has_the_ranges_of_the_note_and_an_inner_edge_inside_it():
         assert disk["disk_inner_au"] < disk["disk_outer_au"]
     assert pms.draw_disk(1.0, 5.0 * MYR, 1.0) is None  # Class III: the disk is gone
     assert pms.draw_disk(1.0, 0.1 * MYR, 1.5, draw.Stream("a"))["disk_kind"] == "class-0"
+
+
+def test_a_stars_disk_time_is_its_own_and_does_not_move_with_its_age_and_is_held_at_the_planet_cut():
+    for mass in (0.1, 0.3, 0.5, 1.0, 1.4):
+        assert pms.dispersal_yr(mass) == pms.dispersal_yr(mass)
+        assert 0.0 <= pms.dispersal_yr(mass) <= tuning.PLANET_MIN_STAR_AGE_GY * 1.0e9
+        classes = [pms.disk_class(age * MYR, pms.dispersal_yr(mass)) for age in (0.01, 0.2, 0.4, 0.6, 1.0, 2.0, 5.0, 9.0, 11.0)]
+        assert classes == sorted(classes, key=["0", "I", "II", "III"].index), "the class only advances with age"
+    masses = [0.1 + 1.3 * (i + 0.5) / 3000 for i in range(3000)]
+    share = sum(pms.disk_class(3.0 * MYR, pms.dispersal_yr(m)) != "III" for m in masses) / len(masses)
+    assert 0.2 < share < 0.5, "about a third of the stars hold a disk at 3 Myr (exp(-3 / tau) of the mass mix), not all of them as the old fixed step had it"
+    assert any(pms.disk_class(5.0 * MYR, pms.dispersal_yr(m)) == "II" for m in masses), "and some between 3 and 10 Myr, which the old step lost"
+
+
+def test_the_star_and_the_population_state_agree_on_the_disk():
+    draw.set_run_seed(5)
+    for mass in (0.2, 0.5, 0.9):
+        for age_gy in (0.0003, 0.002, 0.004, 0.008):
+            state = evolution.evolve_star(mass, age_gy, fe_h=0.0)
+            star = Star.from_params(evolution.star_params(mass, age_gy, state), SystemConfig(), name="Young")
+            assert (star.disk_kind is None) == (state["disk_class"] == "III"), (mass, age_gy)
 
 
 def test_the_inner_edge_is_where_a_blackbody_grain_sublimates():

@@ -280,7 +280,7 @@ class Star(StellarObject):
         # GEN.242: the disk of a young star, from its own stream like the [Fe/H] above.
         if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
             disk = pre_main_sequence.draw_disk(
-                _kg_to_msun(self.mass), self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
+                self.initial_mass_sol or _kg_to_msun(self.mass), self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
                 draw.Stream(f"disk:{self.mass!r}:{self.age!r}"))
             for name, value in (disk or {}).items():
                 setattr(self, name, value)
