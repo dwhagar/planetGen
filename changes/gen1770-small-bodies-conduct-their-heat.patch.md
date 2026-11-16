@@ -1,5 +1,0 @@
-**Headline:** A small belt planet far from its star now lets its heat out by conduction, where it kept all of it (a heat flow near 1e-10 W/m2 and a Urey ratio up to 2e7).
-
-### Changed
-- GEN.1770: the interior box's heat flux (`interior_heat._flux_w_m2`) is never less than the conduction of a body heated all through, `5 k (Tm - Ts) / R` of the dry radius (`CONDUCTION_SHAPE_FACTOR`, derived: mean temperature rise `H R^2 / (15 k)` and surface flux `H R / 3`). A mantle past the convecting range returned 0 and one under the critical Rayleigh number let its boundary layer grow past the mantle itself, so a body of 0.0003 to 0.005 Earth masses with a cold surface kept all its radiogenic heat. In 167 terrestrial planets over 12 seeds, 71 had a Urey ratio over 1.5 before and none does now (largest 1.09); no body over 0.005 Earth masses changed. Fixes the red `test_migration_interior_heat`.
-- Generation output changes: bodies under about 0.005 Earth masses (heat flow, Urey ratio, and what reads them).
