@@ -3985,7 +3985,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1658 | GEN.570 slice: the three body tables generated from PlanetaryObject.FIELD_UNITS (plus SQL type and nullability columns) | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1659 | Low: settle_giant runs twice per giant and _air_replay is set twice | none | done, Train 33 PR #6741 (5:25 PM EST 11-15), PR #6696 |
 | GEN.1660 | Remove the backward-compat shims and the 13 functions nothing calls | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
-| GEN.1661 | (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt | none | open |
+| GEN.1661 | (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt | none | closed, already fixed on main (Lane 04, 3:07 AM EST 11-16: secular_chain._drive solves a rank-short block by least squares and holds belt rings at a zero fixed point, comment names GEN.1661; the five seeds and 56 more systems give no singular matrix) |
 | GEN.1662 | Bright-star backfill: one Band object and one loop replace the two parallel luminosity and mass pipelines in run_plan and bright_stars (about 85% identical) | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1663 | Sector phenomena: generate_sector_phenomena's five per-kind branches become columns of phenomena/registry.py | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1664 | StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once | GEN.1656 | open |

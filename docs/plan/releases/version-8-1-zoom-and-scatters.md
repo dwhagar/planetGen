@@ -690,7 +690,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | none | Lane 02, 2026-11-12. |
 | GEN.1655 | rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration | GEN.1654 | Lane 02, 2026-11-12. |
 | GEN.1656 | StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles | GEN.1652 | Lane 14, 2026-11-12. |
-| GEN.1661 | (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt | none | Lane 04, 2026-11-12. |
 | GEN.1664 | StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once | GEN.1656 | Lane 14, 2026-11-12. |
 | GEN.1671 | Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4) | none | Fable thread, 2026-11-12. |
 | GEN.1674 | Every body in the Class D size range or larger gets a full planet class, wherever it sits (all round belt members past the 10-per-belt cap, asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues) | GEN.1510 | Lane 06, 2026-11-12. |
