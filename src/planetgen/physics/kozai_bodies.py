@@ -245,6 +245,17 @@ def _mass_solar(kg):
     return _kg_to_msun(kg)
 
 
+def bulge_precession_rad_s(giant, omega, mass_kg, radius_m, axis_m):
+    """
+    `(3/2) J2 n (R / a)^2`, rad/s, of an orbit of axis `axis_m` about a planet of `mass_kg` and `radius_m` spinning at `omega` rad/s, with `J2 = f q` from the rotation parameter
+    `q = omega^2 R^3 / G M` (`J2_PER_ROTATION_PARAMETER_*`, giant or rocky). The one place the bulge's precession is worked out (`oblateness_precession_rad_yr` and the evection resonance, `evection`).
+    """
+    parameter = omega ** 2 * radius_m ** 3 / (constants.G * mass_kg)
+    j2 = (J2_PER_ROTATION_PARAMETER_GIANT if giant else J2_PER_ROTATION_PARAMETER_ROCKY) * parameter
+    motion = math.sqrt(constants.G * mass_kg / axis_m ** 3)
+    return 1.5 * j2 * motion * (radius_m / axis_m) ** 2
+
+
 def oblateness_precession_rad_yr(planet, moon_axis_au):
     """
     The apsidal precession a planet's equatorial bulge gives an orbit of axis `moon_axis_au` about it, `(3/2) J2 n (R / a)^2`, radians per year, with `J2` from the planet's spin
@@ -253,13 +264,9 @@ def oblateness_precession_rad_yr(planet, moon_axis_au):
     hours = getattr(planet, "rotation_period_hours", None)
     if not hours:
         return 0.0
-    radius_m = planet.radius * 1000.0
     omega = 2.0 * math.pi / (hours * 3600.0)
-    parameter = omega ** 2 * radius_m ** 3 / (constants.G * planet.mass)
-    j2 = (J2_PER_ROTATION_PARAMETER_GIANT if planet.body_type == "g" else J2_PER_ROTATION_PARAMETER_ROCKY) * parameter
-    a_m = moon_axis_au * constants.AU_TO_M
-    motion = math.sqrt(constants.G * planet.mass / a_m ** 3) * constants.SECONDS_PER_YEAR
-    return 1.5 * j2 * motion * (radius_m / a_m) ** 2
+    rate = bulge_precession_rad_s(planet.body_type == "g", omega, planet.mass, planet.radius * 1000.0, moon_axis_au * constants.AU_TO_M)
+    return rate * constants.SECONDS_PER_YEAR
 
 
 def laplace_tilt_rad(torque_ratio, obliquity_rad):

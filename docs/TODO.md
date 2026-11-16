@@ -11718,11 +11718,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 06 (with Lane 16 for the measurement), first in Lane 06's queue. Prerequisites: none (builds on PERF.226 once merged). Related: PERF.226, PERF.252, PERF.253.
   Filed by the TODO thread.
 
-- [ ] **GEN.1459 Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down**
-  Boss, 2:58 PM EST on 2026-11-08 ('Everything in a system effects everything else in the system') and 3:00 PM EST ('Ask TODO to review code and all TODO items and plans to integrate this fundamental core idea'); found by the Lane 05 code audit, reports/host-only-audit-2026-11-08.md (a read of the functions named, sizes are guesses): every body acts on every other body of its system by 3D position, orbit-averaged; a host-only or pair-only effect needs a reason registered in GEN.725. Design note: docs/design/generation/system-interactions.md. Audit entry 17: physics/planets.py settle_orbit wears the eccentricity down by the star's tide for the star's age and uses the damped value; the pumping that would keep it up (siblings, a giant's moons, the companion, Kozai) is not set against it. Do: settle_orbit balances the tidal damping of the host and of the body's own moons against the forced eccentricity of the siblings (Laplace-Lagrange of GEN.1450), the companion (GEN.1447) and resonant forcing, and stores the settled value with its cause. Stand-ins registered in GEN.725. Done: a lone planet is unchanged; a planet beside a close giant keeps the expected forced eccentricity; a sample shows the change, with the tidal heating that follows. Lock item (epoch).
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 07 (tides, spin and moons), after GEN.1447 and GEN.1450. Prerequisites: none. Related: GEN.1447, GEN.1450, GEN.1446, GEN.1448.
-  Filed by the TODO thread.
-
 - [ ] **OPS.122 Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier**
   Boss's design thread 'Break all runs into small queued jobs' (2026-11-08, 3:27 PM EST): every part of every run, galaxy generation included, becomes a small job on the queue that can spawn subjobs and is managed for memory and for the steps it needs first. Proposed: build only after Boss approves the design note (DOC.113). Related reports: perf254-dask-assessment-2026-11-08.md, memory-kills-and-dynamic-workers-2026-11-08.md; existing notes docs/design/operations/one-run-per-job.md, redis-and-the-work-queue.md, work-queue-audit.md. Do: a job record (kind, inputs, depends-on jobs, memory claim, state, parent) in the queue; a job may spawn subjobs and finish when they do; a dependency start rule replaces the stage barrier; output unchanged (the work seed does not depend on how work is split). Done: a run of a small galaxy over the new records gives the output of today byte for byte. Lock-free, queue code only. Fair-share rule (Boss, 3:44 PM EST on 2026-11-08: 'we want to use a task scheduler and sharing system time so warmup or other commands do not block the site so all tasks that can run get a chance to run'): jobs are scheduled by a task scheduler that shares system time fairly: fair share across job kinds, priority for work that serves the site, no starvation (aging raises a waiting job's turn), and no command, the warm-up included, can block the site; OPS.130 builds the scheduler. Overlap rule (Boss, 3:55 PM EST on 2026-11-08, 'jobs can overlap if they don't need each other'): the plan is a dependency graph, not a strict stage order: jobs that do not need each other run together (subject to the memory and load gate of PERF.254 and the fair share of OPS.130), and a job starts when the jobs it needs are done. Sizing rule from Boss's decision for the design thread: one command per item of work, with tiny commands packed together.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.215 and OPS.216 (stage 3). Prerequisites: none. Related: DOC.113, OPS.123, OPS.124, OPS.127.
@@ -12744,12 +12739,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: OPS.219, OPS.227. Related: OPS.220, OPS.226, OPS.228.
   Filed by the TODO thread.
 
-- [ ] **GEN.1737 (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems)**
-  Lane 03, 9:12 AM EST 2026-11-15 (GEN.1617, PR #6668, 480 natural systems): of 309 stored ammonia oceans, 216 hold an air (fail the airless gate), 92 are under 190 K and 77 hold under 10 percent ammonia, so class X is never given. Class Y is also 0 because no acid pool is ever stored. Do: check the X gate against the physics of ammonia-water oceans (eutectic near 176 K, whether an air should exclude it) and fix the gate or the stored fields from sources, never forcing a count; say whether Y needs its own item.
-  Boss, 1:03 PM EST 2026-11-15: "Class X, recommendation of 1 approved": class X allows worlds with an air (the GEN.1258 airless gate goes).
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: GEN.1617. Related: GEN.1617, GEN.1557.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1744 Oxygenic life variants 1b and 1c use their own light bands in biogenic_oxygen.active_light_ratio (all use 400 to 700 nm today; Science output changes)**
   Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (biogenic_oxygen owner), lock item. Prerequisites: none. Related: GEN.1739, GEN.1745.
@@ -12789,10 +12778,61 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 04, lock item, after GEN.1744. Prerequisites: none. Related: GEN.1730, GEN.1733.
   Filed by the TODO thread.
 
-- [ ] **GEN.1750 Research and build: moons that cross the evection resonance on their way out (capture eccentricity and the migration rate through it)**
-  Lane 07, 1:56 PM EST 2026-11-15 (GEN.1449 slice 3 measure): in 150 sampled systems, 4 of 116 moons sit inside the evection radius, 6 lie within a factor of 2 and 2 cross it while migrating out; star inclination is already in (Laplace plane) and siblings only nod the plane by degrees, so GEN.1449's done-when is met by slices 1 and 2. Do: research the evection-resonance papers Lane 07 named (add them with scripts/build_references.py) for the capture eccentricity and the escape, then add the crossing with its migration-rate treatment; register stand-ins in GEN.725.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 07, after GEN.1459; lock item for the build. Prerequisites: GEN.1449. Related: GEN.1449, GEN.1447.
+- [ ] **DB.131 (bug) New galaxy run fails in Stage 5 (Neighborhood): unit 67 hits IntegrityError 1062, duplicate star_systems.uq_star_systems_uid for a system of sector 75B000100861**
+  Boss, 8:18 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiCxncUZJKJcFx46npiZq9Gb, log /mnt/project-files/logs/new-galaxy-dup-uid-2026-11-15.log): PlanetGen 8.0.4317, galaxy seed 5AB93AB5DF1A1685B8A4C0F7BF26D3D8, after a wipe; 93 of 94 neighborhood sectors stored, then unit 67 failed with Duplicate entry 0x0075B000100861 for star_systems.uq_star_systems_uid; sector 75B000100861 itself never logged done, so the clash is either two systems of that sector given one uid, or a system written earlier by another sector (or an earlier attempt of the same unit) under that sector's uid. The run is held (Retry held or cancel). Generation blocker; Boss's 5000-system census may hit it too. Do: reproduce with the seed (the neighborhood of the default galaxy), find which rows collide and why (uid allocation, a system placed across a sector edge, or a retried unit re-inserting), fix the cause, add a test; then say whether Retry held finishes the held run or it must be restarted.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 15 (storage, object IDs), top priority, ahead of GEN.1141. Prerequisites: none. Related: DB.75, GEN.1141, OPS.222, OPS.238.
   Filed by the TODO thread.
+
+- [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**
+  Boss, 6:11 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiJqSpmsJfWDRzSDRQYhyor8): "even if they are in an asteroid belt and small, if another class fits better, class always comes last so if we have an odd situation where like a small planet in the asteroid field has air or life, it can have another class on the fudging lines". Standing rule. Today a belt body under roundness ratio 1 is an Asteroid with no class letter (GEN.1160), and small airless rocks are D by size. Do: find every place size, roundness or belt membership decides a class before the finished body is read (GEN.1160's Asteroid rule, the D size gate, belt promotion, on-demand belt planets of GEN.1674); make each a class-fit term that a better-fitting class (an atmosphere, habitable-family or life class) can beat on the existing fit edges, after the body is finished; test with a small belt body given air and with one given life. Lock item (classes move).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 06 (belts and small bodies) with Lane 03 (class fit). Prerequisites: none. Related: GEN.1160, GEN.1674, GEN.1745, GEN.1737.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1753 Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them**
+  Lane 15, 6:32 PM EST 2026-11-15 (GEN.1533, PR #6747): store.load_star_system now attaches each restored body's birth numbers from body_history, but nothing uses them yet (planets.draw_birth_spin always draws). Do: a moved or edited body starts from its own stored birth eccentricity, spin and capture draws; the air history (GEN.1745) reads them for restored bodies. Lock item (changes what an edit produces).
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 15. Prerequisites: GEN.1533. Related: GEN.1497, GEN.1745.
+  Filed by the TODO thread.
+
+- [ ] **UX.319 (bug) Every time output uses standard hours, minutes and seconds, never decimal hours, minutes or seconds ("1.25 minutes", "3.5 days", "seconds=12.3")**
+  Boss, 6:40 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiVhVJNckJb3M7xVAwMh8RGD): "time outputs should be in standard HMS format not decimals". Standing rule for every progress bar, ETA, duration, run time, admin page and log line he reads. Today the shared period ladder (util/format.py format_duration_seconds, UX.14, used by web/admin_pages.format_duration and the Generate estimate "About 1.25 minutes") gives decimals, and some log lines print decimal seconds (db/store.py slow-query seconds=). Do: one shared helper (reuse format_duration_seconds, changed in place, and its JS twin in src/html/static) that writes "1h 23m 45s" (days as "2d 3h 4m" past 24 h, whole seconds, "45s" under a minute; sub-second timings in logs may stay as milliseconds "850 ms"); route every time output through it (Python pages and logs, JS progress and ETA strips, CLI progress); a test that greps for a decimal time unit in output code. No shim, no second helper.
+  Boss's New galaxy log of 8:18 PM EST 2026-11-15 (/mnt/project-files/logs/new-galaxy-dup-uid-2026-11-15.log) still shows "1.93 hours", "7.44 minutes", "1.17 minutes each": the stage banners ("Stage 5 of 19 failed after 1.93 hours"), the per-sector lines and the per-stage progress lines must all go through the helper.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14, ahead of TEST.695. Prerequisites: none. Related: UX.318, UX.14, PERF.147.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1754 Nebular envelopes and their water for bodies of 1 Earth mass and up (the GEN.1748 source stops at 0.3 percent hydrogen)**
+  Lane 04, 7:21 PM EST 2026-11-15 (GEN.1748, PR #6751): the envelope and its water are built for 0.2 to 1 Earth mass from the GEN.1748 source, which covers hydrogen fractions only up to 0.3 percent. Do: find a source for the captured envelope, its loss and the water it makes for 1 Earth mass and up (into the super-Earth range where an envelope may survive), register any stand-in, build it on the same path, and re-measure the class counts. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 04. Prerequisites: GEN.1748. Related: GEN.1745, GEN.1744.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
+  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 4. GEN.909 was closed as a diagnosis (cold by the physics); its option 3 was measured: temperate worlds with at least 10 kPa went from 16 of 45 to 19 or 20 of 45 (G2V) and from 6 of 40 to 6 or 9 of 40 (K5V), the cold share from 60 to 48 or 49 percent (G2V). Small, and it does not recover the zone by itself. Do: source the form (land times min(1, ocean cover over the Earth value 0.71), or a cap of land at Earth's 0.29), register it in GEN.725 with tier and tweak level (an educated guess from physics, L1 inside the published range), build it behind the carbon dioxide step of GEN.1309 and re-measure. Lock item (changes the temperature of nearly every dry world and moves E and W worlds into other classes). Do not start before GEN.1309 steps A and B merge; Boss decides whether to build.
+  Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 7: ocean cover is bimodal (47 of 77 temperate sea worlds at 95 to 100 percent), measured with this lever on and off in GEN.1566; GEN.1565 follows with the oxygen worlds.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 03 (moved up from 8.2 for the Class M fixes), lock item for Train 25. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
+  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+
+- [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N20 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 4, train 21. The giant interior has no
+  ice-giant materials. Do: build them on the species split of GEN.1372.
+  Owner (proposed by TODO, 2026-11-07, confirm with TODO before taking;
+  one lock-free item at a time while waiting): Lane 14. Rules: open the
+  primary or an accepted secondary source of every recalled value before
+  it enters GEN.725; draws through draw.py; every stand-in gets a
+  GEN.725 row with tier and tweak level; every number has a unit or
+  scale and a column_units entry; a change to drawn output carries
+  tests.golden_update --reason ... --affects fill and the next epoch;
+  tests are scripts/test.py changed --resume; no fixed content from the
+  Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1372. Related: GEN.1372.
 
 - [ ] **GEN.1408 Fictional materials part 1: the fiction table (the four fictional materials only: Kyber crystal, Solar crystal, Aurora crystal and Tritanium; each with its kind, default inclusion and default name)**
   Boss, 10:28 AM EST on 2026-11-08: plan for 8.2 a setting for fictional materials inclusion, per material, with the option to create or specify a custom material name for each; this must be done at galaxy generation time; Boss answered the design questions at 10:41 AM EST (option 1 on all seven; defaults in config.json, generation always lets him turn materials on or off per galaxy; a new admin page in 8.2) and ruled at 10:38 AM EST that all real materials always exist. The fictional-materials table. Do: `generation/fictional_materials.py` with `MATERIALS`, one frozen row per material (id, default name, help sentence, needs text) for the four invented materials only: Kyber, Solar crystal, Aurora crystal and Tritanium (section 2; Boss's rule of 10:38 AM EST on 2026-11-08: all real materials, including deuterium, tritium, spodumene and neutron-degenerate matter, always exist and are never settings), and a strict loader (repeated id, default name equal to a real material name or alias, row with no draw: refused; empty table loads). Done: the table loads, tests cover each refusal. Design: /mnt/project-files/design-drafts/fictional-materials-setting-2026-11-08.md (section numbers refer to it); items: /mnt/project-files/design-drafts/fictional-materials-items-2026-11-08.md. Every item runs scripts/test.py changed --resume, adds a changes/*.md note, and registers any stand-in in GEN.725.
