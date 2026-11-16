@@ -116,6 +116,8 @@ def _register(context, monkeypatch, mode, flagged=True, recipe=True):
     _config["config"] = context.mysql_config
     monkeypatch.setattr("tests.test_cut_neutral.PROBE_MODE", mode)
     spec_class = FlaggedSpec if flagged else commands.CommandSpec
+    for kind in flagged_commands():       # the probe tests judge the harness with a registry of the probe alone; the commands really flagged are judged by the gate's own test above
+        monkeypatch.delitem(commands.REGISTRY, kind)
     monkeypatch.setitem(commands.REGISTRY, "cut-probe", spec_class("cut-probe", "A probe stage", unit=("tests.test_cut_neutral", "probe_unit"),
                                                                     expand=("tests.test_cut_neutral", "probe_expand")))
     return {"cut-probe": _probe_recipe()} if recipe else {}

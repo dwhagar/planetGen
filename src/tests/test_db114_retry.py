@@ -125,7 +125,7 @@ def test_a_sky_tier_batch_after_a_deadlock_writes_the_stars_of_an_undisturbed_dr
 
 @pytest.mark.fresh_database
 def test_the_special_phenomena_after_a_deadlock_are_the_rows_of_an_undisturbed_write(mysql_config, monkeypatch):
-    """the `finish-phenomena` unit writes the nucleus and the hypervelocity stars as one retried transaction: a deadlock after the rows
+    """the `write-special-phenomena` unit writes the nucleus and the hypervelocity stars as one retried transaction: a deadlock after the rows
     (and their Object IDs) are written takes them all back and the second try writes each exactly once."""
     from planetgen.queue import wrapper
     monkeypatch.setattr(contention.time, "sleep", lambda seconds: None)
@@ -140,7 +140,7 @@ def test_the_special_phenomena_after_a_deadlock_are_the_rows_of_an_undisturbed_w
     try:
         store.clear_phenomenon_scatter(conn)
         conn.commit()
-        commands.run_alone("finish-phenomena", params)
+        commands.run_alone("write-special-phenomena", params)
         clean = stored()
         assert clean, "the toy galaxy should hold at least the nucleus"
         store.clear_phenomenon_scatter(conn)
@@ -155,7 +155,7 @@ def test_the_special_phenomena_after_a_deadlock_are_the_rows_of_an_undisturbed_w
             return written
 
         monkeypatch.setattr(store, "insert_phenomenon_scatter", deadlocked)
-        commands.run_alone("finish-phenomena", params)
+        commands.run_alone("write-special-phenomena", params)
         assert len(calls) == 3, "the writer should have been killed twice and then landed"
         assert stored() == clean
         assert conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE uid IS NULL").fetchone()["n"] == 0

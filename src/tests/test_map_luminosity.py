@@ -143,7 +143,7 @@ def test_a_fill_cut_into_small_pieces_gives_the_values_of_one_piece(mysql_config
     reported = []
     result = commands.run_alone("fill-map-luminosity", params, lambda done, total: reported.append((done, total)))
     assert result == {"filled": len(massive), "ids": top}
-    assert reported[0][0] == 0 and reported[-1] == (len(run_plan.fill_map_luminosity_pieces(params, 0)),) * 2
+    assert reported[0][0] == 0 and reported[-1] == (top, top), "a piece weighs its ids (OPS.243)"
     assert [row["map_luminosity_sol"] is None for row in _rows(mysql_config)] == [row["mass_solar"] is None for row in written]
     for before, after in zip(written, _rows(mysql_config)):
         if before["mass_solar"] is not None:

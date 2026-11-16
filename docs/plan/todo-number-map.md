@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1754 |
+| GEN | GEN.1755 |
 | PERF | PERF.273 |
-| DB | DB.131 |
+| DB | DB.132 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
 | TEST | TEST.773 |
 | USR | USR.33 |
-| OPS | OPS.264 |
+| OPS | OPS.265 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2253,7 +2253,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1474 | Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities | GEN.1450 | done, closed as a finding (Lane 21 read, 2026-11-09) |
 | GEN.1475 | Disk lifetime of close companions: a companion within a few tens of AU shortens the planet-forming disk, which would change planet counts (needs a source first) | none | done (Train 23, 2026-11-11) |
 | GEN.1476 | Running block totals kept in the database as objects are scattered, at every level (sector, system, region), so no second pass over the galaxy and no block-light rebuild | none | done, PR #5869 |
-| GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | open |
+| GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | done, Train 34 PR #6754 (7:43 PM EST 11-15), PR #6720 |
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | done, PR #5792 |
 | GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) | GEN.1399 | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1431 | Flavor text life subtree: lines for all nine life classes at rungs 2 to 5, gated on the life's solvent medium, energy source, rung and animal grade (replaces the multicellular-only trigger) | GEN.1430 | done, Train 24 PR #6033 (b8a0163b7) |
@@ -3072,6 +3072,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219 | open |
 | OPS.262 | Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget | OPS.196 | open |
 | OPS.263 | (bug) update.sh stops at Stage 4 (math check): "Table 'planetgen_control.engine_runs' doesn't exist" from planrows.record_plan | none | done, PR #6726 (4:21 PM EST 11-15) |
+| OPS.264 | (bug) Every per-piece writer is safe to re-run: scatter shells and scatter phenomena write their 10,000-row batches twice, and unplaced sectors and the system finish piece write a second row, when a piece runs again after its commit | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4056,7 +4057,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1734 | (bug) RecursionError in copy.deepcopy of a Planet in life._trial_copy from run_sector._add_planetary_nebula | none | done, PR #6620 (3:04 AM EST 11-15) |
 | GEN.1735 | Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place) | GEN.1728 | open |
 | GEN.1736 | (bug) Class M's 2 Pa CO2 floor is not rechecked after the CO2 rebalance (seed 30143: class M at 1.4 Pa) | none | done, PR #6670 in Train 32, PR #6714 (2:39 PM EST 11-15) |
-| GEN.1737 | (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems) | GEN.1617 | open |
+| GEN.1737 | (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems) | GEN.1617 | done, Train 34 PR #6754 (7:43 PM EST 11-15), PR #6722 |
 | GEN.1738 | (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip | none | closed, not reproduced: Lane 16 withdrew the report 11:44 AM EST 11-15 (the error text appears only in 10-30 to 11-06 logs); Lane 04 found no negative in about 3,000 systems and 600 fuzzed giants |
 | GEN.1739 | Research: a time-stepped air history for rocky worlds (hydrogen envelope to class M), life ages with mass extinctions and climate swings, a consumes and gives-off ledger for every life class, and the air history stored in the database | none | done, research and design report reports/air-history-design-gen1739-2026-11-15.md; Boss picked option 1 "Full history, events, life ages" 11:23 AM EST 11-15; build filed as GEN.1740-1746 and API.51 |
 | GEN.1740 | Research: a shock-to-kill law for mass extinctions, verifying the published kill curve | none | done, report reports/shock-to-kill-gen1740-2026-11-15.md (trigger: a swing over 5.2 K at over 10 K/Myr; kill size pending) |
@@ -4069,10 +4070,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1747 | (bug) life_ledger.json and three source sites cite R3394 and R3395 (two 2018 aurora papers) for the photoferrotroph iron supply and Earth H2 outgassing; the paper meant is R3393 (Ozaki et al., primitive photosynthesis and Earth's early climate) | none | done, PR #6697 (12:47 PM EST 11-15) |
 | GEN.1748 | Nebular hydrogen envelopes for bodies under 1 Earth mass (source in reports/early-envelope-gen1741-2026-11-15.md): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state | GEN.1741 | open |
 | GEN.1749 | (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant) | none | open |
-| GEN.1750 | Research and build: moons that cross the evection resonance on their way out (capture eccentricity and the migration rate through it) | GEN.1449 | open |
-| GEN.1751 | Check the soft edge of a life class window: Ivivaza IV (seed 30193) carries life class 4 at 445 K, 50 K (over 3 sigma) above the 255 to 395 K window | none | open |
+| GEN.1750 | Research and build: moons that cross the evection resonance on their way out (capture eccentricity and the migration rate through it) | GEN.1449 | done, Train 34 PR #6754 (7:43 PM EST 11-15), PR #6737 |
+| GEN.1751 | Check the soft edge of a life class window: Ivivaza IV (seed 30193) carries life class 4 at 445 K, 50 K (over 3 sigma) above the 255 to 395 K window | none | closed by design, Lane 04 census 7:00 PM EST 11-15: the soft edge is a score in a pick capped by the 0.005 floor (at most 49 K past the edge), 5.4 percent of 316 life bodies outside their window, none under factor 0.02; Ivivaza IV not reproduced on main |
 | GEN.1752 | Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule) | none | open |
 | GEN.1753 | Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them | GEN.1533 | open |
+| GEN.1754 | Nebular envelopes and their water for bodies of 1 Earth mass and up (the GEN.1748 source stops at 0.3 percent hydrogen) | GEN.1748 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -5012,6 +5014,7 @@ Each citation below resolves to one item by its date.
 | DB.128 | One kind-table registry: the twelve hand-written kind-table tuples in store, query, fingerprint and edits become groups of db/kind_tables.KIND_TABLES, and the ten black_holes/neutron_stars special cases become one anchored flag | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | DB.129 | SaveSession dataclass replaces the ten attributes stashed on the database connection during a save | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | DB.130 | system_summary REFRESH_SQL uses the deprecated VALUES() form in ON DUPLICATE KEY UPDATE | none | closed as finding (Fable scan): the VALUES() upserts are a tested choice; the alias form breaks MariaDB (tests/test_sql_portability.py) |
+| DB.131 | (bug) New galaxy run fails in Stage 5 (Neighborhood): unit 67 hits IntegrityError 1062, duplicate star_systems.uq_star_systems_uid for a system of sector 75B000100861 | none | open |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
