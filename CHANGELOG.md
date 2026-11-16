@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4399] - 2026-11-16
+
+**Headline:** Two test files again build their stand-in planets with a build record, so main is green again after GEN.1651.
+
+### Fixed
+- `test_tidal_spin` and `test_radiation_dose_field` made stand-in planets without a `build` record, which `generate_spin` and `update_exposure` now write to (GEN.1651); the stand-ins carry a `BuildRecord()`.
+
+generation-output: unchanged
+
 ## [8.0.4398] - 2026-11-16
 
 **Headline:** the two sweep tests that built their galaxy one system at a time now build it with four workers at once, so they finish inside the hang guard.
