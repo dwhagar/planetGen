@@ -5671,19 +5671,17 @@ CREATE TABLE IF NOT EXISTS designations (
 
 
 -- ---------------------------------------------------------------------
--- sector_system_counts (v82, PERF.74; v181, PERF.208): each sector's system count, system density and Quadrant as of
+-- sector_system_counts (v82, PERF.74; v181, PERF.208; v264, DB.112): each sector's system count and system density as of
 -- the last refresh (`query.refresh_sector_system_counts`), one row for each sector (a sector made since has none yet),
--- so the Sectors list reads these instead of counting every system per request and its sorts by systems, density and
--- position page by key on the three indexes.
+-- so the Sectors list reads these instead of counting every system per request and its sorts by systems and density
+-- page by key on the two indexes.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sector_system_counts (
     sector_id      BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     system_count   INT UNSIGNED NOT NULL,
     system_density DOUBLE NULL,         -- v181: systems per cubic milliparsec of the sector, NULL for a sector with no galaxy position
-    quadrant       VARCHAR(8) NULL,     -- v181: 'I' to 'IV' as `spherical.sector_quadrant` says, NULL for a sector with no galaxy position
     KEY idx_sector_system_counts_count (system_count, sector_id),
-    KEY idx_sector_system_counts_density (system_density, sector_id),
-    KEY idx_sector_system_counts_quadrant (quadrant, sector_id)
+    KEY idx_sector_system_counts_density (system_density, sector_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
