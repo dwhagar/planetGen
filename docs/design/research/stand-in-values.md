@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1874 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1876 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1847 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1849 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 217 | 22 | 12 | 1 | 0 | 252 |
-| T2 | 171 | 72 | 3 | 1 | 0 | 247 |
+| T2 | 171 | 72 | 4 | 1 | 0 | 248 |
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
-| T5 | 108 | 29 | 8 | 2 | 1 | 148 |
+| T5 | 109 | 29 | 8 | 2 | 1 | 149 |
 | T6 | 238 | 127 | 34 | 81 | 4 | 484 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 108 | 41 | 227 |
-| All | 1071 | 384 | 94 | 265 | 60 | 1874 |
+| All | 1072 | 384 | 95 | 265 | 60 | 1876 |
 
 ## How the labels were given
 
@@ -2625,6 +2625,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | WN2 | P | T7 | L1 | a companion with no stored radius, luminosity or X-ray ratio (and not a pulsar) gives no wind, where the host alone falls back to the Earth's wind scaled by the distance | none | systems whose companion is a remnant or a brown dwarf with partial data | a stored wind of such a companion | a wind law for remnants and brown dwarfs | the same rule as RF5: no stored value gives none of that band | predicted only | - | - |
 | WN3 | T | T5 | L0 | `magnetosphere_pressure_pa`: the pressure a moon's field pushes against inside its parent's magnetosphere is the dipole field's `B^2 / (2 mu0)` at the moon's orbit, in place of the wind | none | an airless moon or one with a thin air inside a planet's field | a measured standoff of a moon inside a planet's field that differs from this pressure's by over a factor of 1.5 in radius | a plasma model of the planet's magnetosphere (the plasma pressure adds to the field's) | Ganymede in Jupiter's field comes out at 2.4 radii against the Galileo flybys' about 2 (read from memory, not from the paper) | predicted only | - | - |
 | WN4 | T | T5 | L0 | a moon is inside its parent's magnetosphere when its orbit is closer than the parent's `magnetopause_rp` radii | none | planets with a field | a moon known to sit outside the parent's magnetopause that the test counts inside | the standoff along the moon's local time (the magnetopause is farther on the day side) | the standoff of the wind's balance is the nose; the tail is farther, the flanks about the same | predicted only | - | - |
+| WN5 | P | T1 | L0 | tuning.CORONAL_WIND_X_RAY_EXPONENT 1.29 (`stellar_wind.coronal_mass_loss_solar`, GEN.1625): the mass loss of an A to K dwarf per unit surface area is its X-ray surface flux over the Sun's to this power, so its mass loss is the Sun's times its squared radius times that ratio; one law for the heliosphere, for the black holes the winds feed and for the pressure on a planet's magnetosphere (`magnetism.wind_pressure_pa`) | 1.29 +- 0.16 [R5303]; 1.34 +- 0.18 [R5304] | GK dwarfs below an X-ray flux of 1e6 erg/cm^2/s; used for A to K dwarfs | a measured wind of an A to K dwarf (Lyman-alpha astrosphere, [R5303]) off the law by over an order of magnitude at a flux below the dividing line | the wind from a coronal model of the star's own field (Cohen, Alvarado-Gomez and others, not read) | the fit of [R5303] to the measured GK dwarfs; the Sun's mass loss 2e-14 solar masses a year, its X-ray luminosity 1.4e27 erg/s today (`constants.SOLAR_X_RAY_LUMINOSITY_W`) | predicted only | - | - |
+| WN6 | P | T1 | L0 | tuning.CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S 1e6: the X-ray flux the coronal wind reads is held at the dividing line above which the measured winds are weak, so a saturated K dwarf has 64 times the Sun's wind, not 1,000 | log flux 6.0 [R5303] | stars above the dividing line (young and saturated A to K dwarfs) | a measured wind of an A to K dwarf above the line that is over ten times the held value | no cap, the law of WN5 running over the whole range; or [R5302]'s weaker line (it says the dividing line is weakened by the M dwarfs) | the dividing line of [R5303], which the new M dwarf measurements weaken [R5302] | predicted only | - | - |
+| WN7 | P | T2 | L2 | tuning.M_DWARF_WIND_PER_AREA_SOLAR 3.3: an M dwarf's mass loss is 3.3 times the Sun's per unit surface area, whatever its X-ray flux, so an M5 dwarf (0.2 solar radii) has 0.13 of the Sun's wind (Proxima Centauri's limit is 0.2); the speed is the Sun's 400 km/s scaled by the escape speed [R5302] | 2 to 10 | M dwarfs | a measured M dwarf wind per area that the generated dwarfs miss by over a factor of 30 (the scatter at one flux is two orders of magnitude, [R5302]) | a draw of the scatter on a stream of the star; or [R5302]'s M-dwarf slope 0.77 with a fitted normalisation | the median of the six single M dwarfs of [R5302: Table 3] that have a value (GJ 436 0.37, GJ 205 0.86, GJ 887 2.3, GJ 173 4.3, EV Lac 9.8, YZ CMi 275: mass loss over the squared radius, solar units), read in the report of a reader of the paper | predicted only | - | - |
+| WN8 | P | T5 | L0 | a white dwarf (VII) has no wind (`stellar_wind.wind` gives 0, GEN.1625: it used to get the cool dwarfs' scaled wind) and a wind weaker than the interstellar medium's pressure (2.5e-13 Pa) is held to it in `magnetism.wind_pressure_pa`, so a body's standoff stays finite | none | white dwarfs and very quiet stars | a measured wind of an old white dwarf that is over a tenth of the Sun's mass loss | a radiative wind of a hot white dwarf over 1e5 K (not read) | a white dwarf has no convective envelope to drive a corona and no luminosity to drive a line-driven wind | predicted only | - | - |
 
 ## 6.241 Stand-ins of the dose from the radiation field
 
@@ -3320,10 +3324,3 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CMT6 | P | T6 | L3 | `tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM` (0.5, 20) drawn uniform in diameter | lower end 0.2 to 1 km; upper end 15 to 60 km | star-bound comet nuclei | a measured nucleus size distribution of a star's comets (the cumulative number of nuclei falls steeply with diameter, with an index of about 1.9 for the Jupiter family, recalled, not opened; a uniform draw has index 0) | a truncated power law in diameter with the published cumulative index, its upper end from the belt's largest body | nuclei of 1 to 10 km typical, as the comment in `tuning.py` quotes it, second-hand; the draw's shape is a stand-in | predicted only | - | replace (GEN.1765) |
 | CMT7 | P | T6 | L3 | `tuning.COMET_PERIHELION_DISTANCE_RANGE_AU` (0.05, 5.0) drawn uniform in perihelion | lower end 0.01 to 0.1 AU; upper end 3 to 10 AU | star-bound comets | a comet catalogue whose perihelia are not flat in distance inside the range after the survey bias is removed | the star's radius and tidal limit for the lower end and the activity threshold (CA1) for the upper | physics: for a near-parabolic orbit q = L^2 / (2 G M), and an isotropic cloud that fills its loss cone is flat in L^2, so flat in q; the two ends are hand set | predicted only | - | no data |
 | CMT8 | P | T9 | L3 | `tuning.SYSTEM_COMET_CHANCE` 0.3 and `SYSTEM_COMET_COUNT_RANGE` (1, 3): the share of stars that hold comets and how many of the few the generator models each holds | chance 0.1 to 1; count 1 to 5 | every star's own comets | a star with an outer belt or a cloud that shows no comets, or a comet census per star that is far from this rate | comets present wherever the system has an outer belt, a cloud or a giant, from the supply of CMT5's replacement | design: the code's comment ("most real stars aren't known to host an observed comet population") is an observation limit, not a rate | predicted only | - | replace (GEN.1765) |
-
-## 6.304 Stand-ins of the scatter of a star's own snow line (GEN.1611)
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| SNL1 | P | T1 | L0 | `tuning.SNOW_LINE_SCATTER_DEX` 0.2: the standard deviation, in dex, of a star's snow line around the blackbody position of its disk's luminosity ([R3193: abstract]: an observed 0.4 dex dispersion in accretion rates "naturally leads to a dispersion in snow line locations of about 0.2 dex" at a given age and stellar mass) | 0.15 to 0.25 | every star's own snow line | a measured spread of snow lines at one stellar mass and age outside 0.15 to 0.25 dex | a spread drawn from the accretion rates of the star's own mass and age | the accretion-rate dispersion carried through the snow-line law (Eq. 2 and 4 of [R3193], exponent 4/9 of the accretion rate), read in the open arXiv copy | predicted only | - | - |
-| SNL2 | P | T1 | L0 | `tuning.SNOW_LINE_SCATTER_MAX_SIGMA` 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 2.5 either way ([R3193: Fig. 3] works the snow lines at the median and plus and minus 2 sigma); it was 3.0, a factor of 4 | 1.5 to 3 | every star's own snow line | a star whose measured snow line lies beyond a factor of 2.5 of the blackbody position of its disk's luminosity at its mass and age | a heavier tail from the log-normal of the accretion rates | the range the source works its simulations over; the cut of 3 sigma put 29 of 3,000 stars' lines inside the inner edge of the habitable zone against 25 at 2 sigma (`reports/gen1611-snow-line-scatter-2026-11-16.md`) | predicted only | - | - |
