@@ -67,8 +67,8 @@ asteroid_belts = sa.Table(
     sa.Column('scattered_mass_earth', mysql.DOUBLE(), nullable=True),
     sa.Column('stirred', mysql.TINYINT(), nullable=True),
     sa.Column('origin_history', sa.Text(), nullable=True),
-    sa.Column('flavor_key', sa.String(32), nullable=True),
     sa.Column('origin_sentence', sa.Text(), nullable=True),
+    sa.Column('flavor_key', sa.String(32), nullable=True),
     sa.Column('scatter_fates', sa.Text(), nullable=True),
     sa.Column('makeup', sa.Text(), nullable=True),
     sa.Column('largest_body_km', mysql.DOUBLE(), nullable=True),
@@ -282,6 +282,8 @@ body_history = sa.Table(
     sa.Column('formation_distance_au', mysql.DOUBLE(), nullable=True),
     sa.Column('birth_distance_au', mysql.DOUBLE(), nullable=True),
     sa.Column('born_index', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('held_eccentricity', mysql.DOUBLE(), nullable=True),
+    sa.Column('forced_eccentricity', mysql.DOUBLE(), nullable=True),
     sa.Column('formula_version', mysql.TINYINT(unsigned=True), nullable=False),
     sa.CheckConstraint('((`birth_eccentricity` is null) or (`birth_eccentricity` >= 0))', name='body_history_chk_1'),
     sa.CheckConstraint('((`birth_obliquity_deg` is null) or (`birth_obliquity_deg` between 0 and 180))', name='body_history_chk_2'),
@@ -289,26 +291,9 @@ body_history = sa.Table(
     sa.CheckConstraint('((`capture_draw_2` is null) or (`capture_draw_2` between 0 and 1))', name='body_history_chk_4'),
     sa.CheckConstraint('((`formation_distance_au` is null) or (`formation_distance_au` >= 0))', name='body_history_chk_5'),
     sa.CheckConstraint('((`birth_distance_au` is null) or (`birth_distance_au` >= 0))', name='body_history_chk_6'),
+    sa.CheckConstraint('((`held_eccentricity` is null) or ((`held_eccentricity` >= 0) and (`held_eccentricity` < 1)))', name='body_history_chk_7'),
+    sa.CheckConstraint('((`forced_eccentricity` is null) or ((`forced_eccentricity` >= 0) and (`forced_eccentricity` < 1)))', name='body_history_chk_8'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_body_history_star_system', ondelete='CASCADE'),
-    mysql_engine="InnoDB",
-)
-
-
-lost_moons = sa.Table(
-    'lost_moons',
-    metadata,
-    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('planet_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('born_index', mysql.SMALLINT(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('mass_kg', mysql.DOUBLE(), nullable=False),
-    sa.Column('birth_distance_au', mysql.DOUBLE(), nullable=False),
-    sa.Column('density_kg_m3', mysql.DOUBLE(), nullable=False),
-    sa.Column('retrograde', mysql.TINYINT(unsigned=True), nullable=False),
-    sa.CheckConstraint('(`mass_kg` > 0)', name='lost_moons_chk_1'),
-    sa.CheckConstraint('(`birth_distance_au` > 0)', name='lost_moons_chk_2'),
-    sa.CheckConstraint('(`density_kg_m3` > 0)', name='lost_moons_chk_3'),
-    sa.CheckConstraint('(`retrograde` in (0,1))', name='lost_moons_chk_4'),
-    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_lost_moons_star_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
 
@@ -624,6 +609,7 @@ engine_items = sa.Table(
     sa.Column('updated_at', mysql.DATETIME(fsp=6), nullable=False),
     mysql_engine="InnoDB",
 )
+
 
 engine_piece_results = sa.Table(
     'engine_piece_results',
@@ -1209,6 +1195,25 @@ irregular_sets = sa.Table(
     sa.Column('temporary', mysql.TINYINT(), nullable=False),
     sa.Index('uq_irregular_sets_planet', 'planet_id', unique=True),
     sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_irregular_sets_planet', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+lost_moons = sa.Table(
+    'lost_moons',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('born_index', mysql.SMALLINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), nullable=False),
+    sa.Column('birth_distance_au', mysql.DOUBLE(), nullable=False),
+    sa.Column('density_kg_m3', mysql.DOUBLE(), nullable=False),
+    sa.Column('retrograde', mysql.TINYINT(unsigned=True), nullable=False),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_lost_moons_star_system', ondelete='CASCADE'),
+    sa.CheckConstraint('(`mass_kg` > 0)', name='lost_moons_chk_1'),
+    sa.CheckConstraint('(`birth_distance_au` > 0)', name='lost_moons_chk_2'),
+    sa.CheckConstraint('(`density_kg_m3` > 0)', name='lost_moons_chk_3'),
+    sa.CheckConstraint('(`retrograde` in (0,1))', name='lost_moons_chk_4'),
     mysql_engine="InnoDB",
 )
 
@@ -3979,6 +3984,8 @@ stars = sa.Table(
     sa.Column('parent_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('density_g_cm3', mysql.DOUBLE(), nullable=True),
     sa.Column('binding_energy_j', mysql.DOUBLE(), nullable=True),
+    sa.Column('initial_mass_sol', mysql.DOUBLE(), nullable=True),
+    sa.Column('phase_end_age_gy', mysql.DOUBLE(), nullable=True),
     sa.Index('ft_stars_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_stars_cluster', 'cluster_id'),
     sa.Index('idx_stars_name', 'name'),
@@ -3992,6 +3999,8 @@ stars = sa.Table(
     sa.ForeignKeyConstraint(['cluster_id'], ['galaxy_components.id'], name='fk_stars_cluster', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_stars_star_system', ondelete='CASCADE'),
     sa.CheckConstraint("(`role` in (_utf8mb4'primary',_utf8mb4'secondary',_utf8mb4'single',_utf8mb4'member'))", name='stars_chk_1'),
+    sa.CheckConstraint('((`initial_mass_sol` is null) or (`initial_mass_sol` > 0))', name='stars_chk_2'),
+    sa.CheckConstraint('((`phase_end_age_gy` is null) or (`phase_end_age_gy` > 0))', name='stars_chk_3'),
     mysql_engine="InnoDB",
 )
 
