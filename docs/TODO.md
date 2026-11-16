@@ -8677,24 +8677,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   land colour, MAP.274, has merged).
   Prerequisites: none.
 
-- [ ] **GEN.1231 White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent**
-  From Star 2 (relayed 4:03 PM EDT 2026-10-31 as the lane reported), the
-  follow-up of GEN.1072 (#4430): remnant_orbits.pollution_rate_g_s and
-  belt_history.is_polluted are built and read only by tests. Do: a white
-  dwarf with a belt carries a polluted flag when the belt's scattered
-  rate, read from the belt the generator drew, gives a pollution rate
-  above the detection limit, and the share of white dwarfs flagged falls
-  in the observed 25 to 50 percent band ([R2415, R4918]
-  give the share; a census test checks it); the flag shows on the star's
-  page. Needs the belt birth chain, so a belt exists to scatter. Changes
-  generated output (stored flag), so it rides a train after GEN.1068.
-  Stand-ins go in GEN.725 with tier and tweak level; the wiring-register
-  lines for is_polluted and pollution_rate_g_s name this item. Owner:
-  Star 2.
-  Prerequisites: GEN.1068. Related: GEN.1072, GEN.1068, GEN.725.
-  Folded in (2026-11-07, Boss approved the TODO plan): GEN.1203 Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants.
-  Owner (TODO sweep, 2026-11-12): Lane 06 (belts).
-
 - [ ] **GEN.1292 The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later)**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
   recommendations, option 1 on all five questions
@@ -12033,12 +12015,6 @@ clears each one.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
-- [ ] **GEN.1636 (bug) Two Earth heat-flow references: surface_pressure uses 0.0614 W/m2 for outgassing, life_supply.json and hydrothermal_deposits use the measured 0.087 W/m2, so an exact Earth twin scores 0.6 to 0.7 for life energy and ores**
-  Data audit batch 2, D16 (report reports/data-audit-2026-11-11.md, section "Batch 2"). Do: pick one reference (one constant, registered in GEN.725) and use it in all three places. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.725.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
 - [ ] **GEN.1637 (bug) The small-body density taper (compaction.py, a stand-in) makes 300 to 450 km bodies 20 to 100 percent denser than measured Kuiper belt bodies**
   Data audit batch 2, D17 (report reports/data-audit-2026-11-11.md, section "Batch 2"). Do: start the taper near 1e20 kg (or fit it to the measured bodies) and register the change. Lock item.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: GEN.725.
@@ -12423,11 +12399,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
   Filed by the TODO thread.
 
-- [ ] **GEN.1735 Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place)**
-  Lane 03, 4:39 AM EST 2026-11-15: GEN.1728 (PR #6596) adds physics/ice_growth.py (lid_of) with nothing reading it yet; GEN.1723's refuge term (surface_refuge.under_ice_light_share) reads only the fixed ice shell of an ice-covered ocean, not a lake or a seasonal lid. Wire lid_of into the refuge term for every surface-water place (mean temperature, year swing, absorbed flux), replacing the fixed shell thickness. This item is the wiring-guard owner of ice_growth.py and registry rows IG2 to IG8.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (after GEN.1733; same refuge law as GEN.1723). Prerequisites: GEN.1728. Related: GEN.1723, GEN.1727, GEN.1729.
-  Filed by the TODO thread.
-
 - [ ] **OPS.261 Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in**
   Lane 14, 6:23 AM EST 2026-11-15 (OPS.220, PR #6647): passing failures now retry in the engine with doubling waits inside a per-run budget, but three old paths stay until their replacements land: rq.Retry(max=1) on the killed path (until the supervisor hands out jobs, stage 4), the db.contention retries of the in-transaction layer, and a retried unit restarting at piece 0 (until OPS.219's cursor, PR #6632). Delete each once its replacement is on main; no shim.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: OPS.219, OPS.227. Related: OPS.220, OPS.226, OPS.228.
@@ -12461,11 +12432,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
   Filed by the TODO thread.
 
-- [ ] **GEN.1759 Tidal heating and circularisation of icy bodies use the ice-shell k2/Q outside its domain: interior_heat and ocean_tides read the shell formula where the shell is thicker than the body (no ocean) or where the surface is above ice's melting point, the same wrong domain GEN.1755 and GEN.1756 fixed for spin**
-  Lane 07, 12:21 AM EST 2026-11-16 (found in PR 6787, GEN.1755 and GEN.1756): the spin path now picks solid-ice or rock k2/Q where the shell model does not apply, but tidal heating (interior_heat) and circularisation (ocean_tides) still use the shell formula there, so a solid icy body gets the shell cap of 1.5 where solid ice is about 1e-3 and a warm wet planet gets 0. Do: route both through the same domain choice 6787 added (one shared k2/Q chooser, no second copy), measure tidal heat and eccentricity damping for icy moons and small bodies before and after on fixed seeds. Lock item (heat and orbits move).
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: GEN.1755, GEN.1756. Related: GEN.1755, GEN.1756.
-  Filed by the TODO thread.
-
 - [ ] **TEST.774 (bug) test_plan_outline::test_the_plan_says_where_its_time_went_step_by_step is red on main: the plan's timing table now prints HMS durations (UX.319, Boss rule) and the test still parses plain seconds**
   Lane 16, 12:24 AM EST 2026-11-16 (found while testing PR 6789, OPS.265): red without 6789 too. Do: make the test read the table's durations through the project's HMS parser (or the same formatter's inverse, no second parser) and keep its checks (costliest first, rows add up to the named total, the named steps present). Lock-free, test only.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: UX.319, OPS.265.
@@ -12476,20 +12442,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: OPS.265, OPS.239.
   Filed by the TODO thread.
 
-- [ ] **TEST.775 (bug) test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming is red on main for seed 2: a 4.5 Earth-mass body with a 3,000 K surface has Urey ratio 0.13 against the test's floor of 0.2**
-  Lane 07, 2:21 AM EST 2026-11-16: red on main and on the Train 36 branch, not from PR 6787 or GEN.1759. Do: find whether the body's heat budget is wrong (a hot-surface or composition case outside the Urey model's range) or the floor is; fix the cause in the generator if the heat is wrong, never loosen the test to pass. If generation moves it is a lock item.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: none. Related: GEN.1759.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1760 (bug) Orbits are circularised before the surface temperature is known, so every icy-by-water body is tidally treated as a 100 K ice shell then, and a warm water world keeps an eccentric orbit a rock tide would have worn down (Eltotecius I: e 0.43 at 0.03 AU)**
   Lane 07, 2:21 AM EST 2026-11-16 (found building GEN.1759): warm icy-by-water bodies keep their old tidal heat in GEN.1759 for this reason (the rock regime would give up to 1e5 W/m2 with today's eccentricities). Do: order the build so circularisation and tidal heat read the settled surface temperature (or iterate the two to a fixed point), using GEN.1759's shared k2/Q chooser; measure eccentricities and tidal heat of close-in water worlds before and after on fixed seeds. Lock item (orbits and heat move).
   Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: GEN.1759. Related: GEN.1755, GEN.1756, GEN.1759.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1753 Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them**
-  Lane 15, 6:32 PM EST 2026-11-15 (GEN.1533, PR #6747): store.load_star_system now attaches each restored body's birth numbers from body_history, but nothing uses them yet (planets.draw_birth_spin always draws). Do: a moved or edited body starts from its own stored birth eccentricity, spin and capture draws; the air history (GEN.1745) reads them for restored bodies. Lock item (changes what an edit produces).
-  Lane 15, 10:38 PM EST 2026-11-15: scope found by measuring a moved restored system against its generated twin: planets with moons lose `_born_moons` (moon history restarts from drifted distances, spin wrong), and `formation_distance_au` is stored nowhere, so a restored body's end-stage draw streams (haze, spin, minerals, envelope, isotopes) and its ice-or-rock water fall back to its current distance (one moved planet came out with no class). Migration 0266 adds body_history.formation_distance_au, birth_distance_au and born_index plus a lost born moons table; attach restores all of them.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 15. Prerequisites: GEN.1533. Related: GEN.1497, GEN.1745.
   Filed by the TODO thread.
 
 - [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
