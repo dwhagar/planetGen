@@ -4888,7 +4888,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.711 | A planet built with its climate deferred ends with 1 moon where the test expects 2 (planet class E): red on main (bug) | none | done, PR #5804 |
 | TEST.712 | The unstable wide binary re-roll test no longer finds the expected re-rolled line in the console report: red on main (bug) | none | done, PR #5804 |
 | TEST.713 | (bug) test_a_unit_survives_a_warm_that_outlasts_an_execution_record kills an xdist worker on every parallel run | none | done, PR #5894 |
-| TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | open |
+| TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | done (PR 6898, Lane 14, merged 1:02 PM EST 11-16: the last two pinned rare-case seeds, test_circumbinary_light and test_refinish_rocky, search seeds with first_seed_with; the search-then-skip tests are TEST.737) |
 | TEST.715 | The constants completeness gate: turn the GEN.945 census into a test with a committed baseline of unregistered constant names that may only shrink | none | done, PR #5987 |
 | TEST.716 | The citation check's stop list ignores role words and time zones before a year ("Train Manager, 2026", "9:29 AM EST 2026") | none | done, PR #6053 |
 | TEST.717 | (bug) test_math_gate and test_datasets_gate fail together on main: the status-command subprocess tests see /var/cache/planetgen/datasets from the machine instead of the test's own data directory | none | done, PR #6078 |
@@ -4907,7 +4907,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.730 | Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s) | none | open |
 | TEST.731 | Retire the 29 shape-only downgrade-and-migrate migration tests, keeping each file's save-and-load round trip | TEST.729 | done (PR 6891, Lane 15, merged 12:31 PM EST 11-16: 28 shape-only migration tests retired, 12 files deleted, 16 keep their round trip, 14 more fixtures removed; test_migration_snow_line moves to TEST.733) |
 | TEST.732 | (bug) test_isotope_record.py defines the same test name twice, so the first never runs | none | done, PR #6293 (11-13) |
-| TEST.733 | Retire the 23 data-backfill migration tests (Boss: hard cut, no generation before 8.0 is compatible with 8.0 and above) | none | open |
+| TEST.733 | Retire the 23 data-backfill migration tests (Boss: hard cut, no generation before 8.0 is compatible with 8.0 and above) | none | done (PR 6897, Lane 15, merged 1:01 PM EST 11-16: the backfill migration tests of migrations Boss's server has run are retired, 11 files deleted, and the fixtures TEST.729 took that downgrade_to still loaded are fixed; 25 fixtures remain, all loaded) |
 | TEST.734 | Serialization fuzz cut from 20 seeds to 5 and its two identical tests folded into one (about 400 s) | none | done earlier (commit 805e6ae11e (with TEST.736); found in Lane 07's stale sweep, 11-16) |
 | TEST.735 | Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests | none | done earlier (commit 805e6ae11e (with TEST.736); found in Lane 07's stale sweep, 11-16) |
 | TEST.736 | One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim | none | done, PR #6350 (11-13) |
