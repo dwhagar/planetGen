@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4372] - 2026-11-16
+
+**Headline:** A test now picks a body's tide the way the generator does after GEN.1760, so it no longer expects a warm water body to have none.
+
+### Changed
+- GEN.1760 follow-up: `test_radiogenic` rebuilt the heat of a stored body with no tide for any icy body (`tidal_heating.is_icy`); the generator now leaves the tide out only for an ice-bound one (`interior_heat.is_ice_bound`), so a warm water body carries the rock mantle's tide. The test reads the same chooser. No generated value changes.
+
 ## [8.0.4371] - 2026-11-16
 
 **Headline:** A belt's largest body now matches the largest body in its member list.
