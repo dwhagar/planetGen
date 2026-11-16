@@ -443,15 +443,16 @@ def _nebular_water(body, mass_earth):
     """
     The water, a share of the body's mass, that the hydrogen envelope of a rocky body under `envelope_capture.KEEPS_FROM_MASS_EARTH` made in its magma ocean before it was lost (GEN.1748, Young et al. [R5293]): the
     body captured an envelope in the disk (`envelope_capture.start_of`, the start `planets.apply_envelope` would draw, from the body's own stream, no draw of the run's) and `envelope_capture.nebular_water_fraction` of it is
-    water, added to the delivered water. 0 for a body that is a moon, has no star, mass or formation distance, captured nothing (a late core, a belt member), is too light to hold a nebular envelope
+    water, added to the delivered water. 0 for a body that is a moon, has no star (with a mass), mass or formation distance, captured nothing (a late core, a belt member), is too light to hold a nebular envelope
     (`envelope_capture.MIN_MASS_EARTH`) or is heavy enough to keep its envelope and so is read as a sub-Neptune's. Not added where the Class M abundance tier's water dial decided the class (`dialed`).
     """
     star = getattr(body, "star", None)
+    star_mass = getattr(star, "mass", None)
     distance = _formation_distance_au(body)
-    if (getattr(body, "is_moon", False) or getattr(body, "_late_core", False) or star is None or distance is None
+    if (getattr(body, "is_moon", False) or getattr(body, "_late_core", False) or not star_mass or distance is None
             or not envelope_capture.in_range(mass_earth) or envelope_capture.keeps_envelope(mass_earth)):
         return 0.0
-    return envelope_capture.nebular_water_fraction(envelope_capture.start_of(body.mass, distance, star.mass), host_ratios(star).y_envelope)
+    return envelope_capture.nebular_water_fraction(envelope_capture.start_of(body.mass, distance, star_mass), host_ratios(star).y_envelope)
 
 
 def _icy_water_range(body):
