@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1764 |
+| GEN | GEN.1765 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
@@ -4089,6 +4089,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1761 | Refuge term for lakes and seasonal lids on worlds that are not an ice-covered ocean: store a lake share per body so ice_growth.lid_of can give lakes their own lid (the lake half of GEN.1735) | closed as measured, no change (Lane 04, 6:47 AM EST 11-16: of 728 rocky bodies in 60 systems, only 8 ice worlds have any melting place and all 8 already count as refuges through the melt-hole steps; a lake share could only enlarge an existing refuge, about 1 percent of bodies, so no stored column) |
 | GEN.1762 | biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087 | open |
 | GEN.1763 | A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources | open |
+| GEN.1764 | Wire or delete two unread belt functions left when GEN.1068 and GEN.1072 closed: belt_origin.destroyed_planet and clearance_ledger.log_uniform_quantile | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4948,7 +4949,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.777 | (bug) test_unit_registry_js::test_no_browser_script_declares_a_unit_factor is red on main: unitladder.js (UX.319 HMS formatter, PR 6764) declares YEAR_SECONDS and the 86400 and 3600 factors instead of reading them from unitregistry.js | done (PR 6839, Lane 14, merged 7:20 AM EST 11-16: unitladder.js reads year, day, hour and minute from unitregistry.js) |
 | TEST.778 | (bug) test_haze_in_the_air::test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it is red on main e22ff539e2 | done (PR 6847, Lane 03, merged 8:37 AM EST 11-16: red since GEN.1754 moved the first hazy body with ground to a 257 K body whose air does not settle; the test now replays from the body own draw state and asserts haze is present, 0.5 K bound untouched) |
 | TEST.779 | (bug) test_body_state_fields::test_a_remake_after_an_orbit_change is red on main: the remade body's composition text differs | done (PR 6855, Lane 04, merged 9:31 AM EST 11-16: a belt member at a water share exactly on a level edge grows a trace air and its composition phrase is rewritten from its shares on purpose (GEN.430); the test now checks the phrase against the current shares and allows a change only within 1e-5 of an edge) |
-| TEST.780 | (bug) test_mass_boundaries::test_the_generator_rows_read_the_table is red on main: it multiplies by a hard-coded 317.8 while tuning reads constants.JUPITER_MASS_EARTH (317.83) since GEN.1152 | open |
+| TEST.780 | (bug) test_mass_boundaries::test_the_generator_rows_read_the_table is red on main: it multiplies by a hard-coded 317.8 while tuning reads constants.JUPITER_MASS_EARTH (317.83) since GEN.1152 | done (PR 6860, Lane 15, merged 9:42 AM EST 11-16: the test reads constants.JUPITER_MASS_EARTH) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
