@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4354] - 2026-11-16
+
+**Headline:** A belt's page shows the mass its star's mass loss threw inward, in kilograms.
+
+### Changed
+- `asteroid_belts.thrown_inward_kg` (GEN.1231) has its unit in `db/column_units.py` and a row on the belt's property sheet, beside the other belt mass rows.
+
+generation-affects: none
+
 ## [8.0.4353] - 2026-11-16
 
 **Headline:** The moons of a belt member that became a planet (GEN.1510) are checked to feel the tide of their own dwarf planet and the star the way any planet's moons do; no generated value changes.
