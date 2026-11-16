@@ -9,11 +9,11 @@ A silicate rock stores seven more oxides than SiO2, MgO, CaO, Al2O3 and FeO: Na2
 3. **The core.** The share in the metal is `D c / (D c + 1 - c)`, c the core's share of the dry mass. D is set so the Earth's own core (c = 0.325, FeO 0.0805) has the Earth's share: Cr 0.55, Mn 0.60, Ni 0.93, P 0.94 (the concordance of [R4608]). Ti has none; Na and K have a fixed 5 percent. D falls as the rock's FeO rises, `FeO^(-n/2)` with the valence n of the oxide (Ni, Cr and Mn 2, P 5). The core fraction itself includes the metal the elements add, so `dry_partition` iterates (three passes) from the Earth's core fraction.
 4. **The mantle.** What the core did not take is the rock's oxide.
 
-The Cr, Mn, P, Na and K the core took, and the Ni it took, join the metal; a carbon rock has none of the seven.
+The Cr, Mn, P, Na and K the core took, and the Ni it took, join the metal; a carbon rock holds only its phosphorus of the seven (GEN.1749: the P2O5 the life law reads; the other six stay out).
 
 ## What is stored
 
-Seven columns on `planets`, `moons` and `rogue_planets` (migration 0230): `rock_na2o_fraction`, `rock_k2o_fraction`, `rock_tio2_fraction`, `rock_cr2o3_fraction`, `rock_mno_fraction`, `rock_nio_fraction`, `rock_p2o5_fraction`, each a mass fraction of the rock, NULL for a carbon rock or a body saved before v227. `surface_composition._rock_oxides_of` hands them to `rock_types.rock_oxides`, so the norm and the ground types read them.
+Seven columns on `planets`, `moons` and `rogue_planets` (migration 0230): `rock_na2o_fraction`, `rock_k2o_fraction`, `rock_tio2_fraction`, `rock_cr2o3_fraction`, `rock_mno_fraction`, `rock_nio_fraction`, `rock_p2o5_fraction`, each a mass fraction of the rock, NULL, for a carbon rock all but `rock_p2o5_fraction`, or for a body saved before v227. `surface_composition._rock_oxides_of` hands them to `rock_types.rock_oxides`, so the norm and the ground types read them.
 
 ## Calibration (a test point, never an input)
 

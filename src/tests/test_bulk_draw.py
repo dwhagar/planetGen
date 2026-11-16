@@ -140,6 +140,7 @@ def test_a_compact_remnant_makes_carbon_rock():
     draw.set_run_seed(6)
     bulk_draw.draw_terrestrial(body, True, False)
     assert body.carbon_rock
+    assert body.rock_p2o5_fraction is not None and body.rock_p2o5_fraction > 0.0 and body.rock_na2o_fraction is None     # GEN.1749: the carbon rock holds its phosphorus, none of the other six
 
 
 def test_the_same_seed_makes_the_same_body():
