@@ -72984,14 +72984,14 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1765",
-            "the family weights are chosen so all three families are common; a supply from the outer belt (Jupiter family) and the cloud (the other two) through the giants' scattering replaces them"
+            "no data",
+            "-",
+            "for a star whose outer disk no giant scattered (nearly every star in a 398-star census) the weights stay; a comet census of other systems would replace them, and the answer on tying comets to outer disks decides the rest; tier T9 stays"
           ],
           "fields": [
             [
               "What it is",
-              "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family"
+              "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family, kept for a star with no outer disk a giant scattered; for one with such a disk the shares are read from it (comet_supply.family_weights): the scattered_disk plus centaurs share of the disk is the Jupiter family, the detached share the cloud, split between the Halley-type and long-period families by these weights' ratio 0.6 to 0.4"
             ],
             [
               "The range it moves in",
@@ -73007,11 +73007,11 @@
             ],
             [
               "What replaces it",
-              "a supply from the reservoirs: the outer belt's mass for the Jupiter family, the cloud for the other two, through the giants' scattering"
+              "the supply of every star's reservoirs, once comets are tied to outer disks (the question to Boss, GEN.1765)"
             ],
             [
               "Evidence",
-              "the code's own comment says it is not a population estimate; chosen so the three families are all common"
+              "the code's own comment says it is not a population estimate; the census of GEN.1765 found 2 of 398 stars with scatter fates, so almost every star uses these weights"
             ]
           ],
           "id": "CMT5",
@@ -73022,7 +73022,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family"
+          "what": "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family, kept for a star with no outer disk a giant scattered; for one with such a disk the shares are read from it (comet_supply.family_weights): the scattered_disk plus centaurs share of the disk is the Jupiter family, the detached share the cloud, split between the Halley-type and long-period families by these weights' ratio 0.6 to 0.4"
         },
         {
           "burn_down": null,
@@ -73106,9 +73106,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1765",
-            "comets present wherever the system has an outer belt, a cloud or a giant, from the supply of the reservoirs, replace the flat chance and the count"
+            "no data",
+            "-",
+            "the chance 0.3 and count 1 to 3 stay hand set until Boss says whether comets exist only where a star has an outer disk (a census of 398 stars: 28 percent have comets now, 14 percent an outer-disk belt, 0 a scattered one); tier T9 stays"
           ],
           "fields": [
             [
@@ -73148,14 +73148,14 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1765",
-            "the largest body of the star's own outer belt replaces the hand-set upper end of the nucleus diameter draw (supply slice)"
+            "no data",
+            "-",
+            "the 20 km top stays for a star with no outer disk, and an outer disk's largest body is far above it in most systems, so the cut rarely applies; a comet census of other systems would replace it"
           ],
           "fields": [
             [
               "What it is",
-              "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM upper end 20 km: the largest nucleus the draw gives"
+              "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM upper end 20 km: the largest nucleus the draw gives, cut to the largest body of the star's outer disks where it has them (comet_supply.nucleus_top_km, never under the lower end)"
             ],
             [
               "The range it moves in",
@@ -73171,7 +73171,7 @@
             ],
             [
               "What replaces it",
-              "the largest body of the star's own outer belt (GEN.1765, supply slice)"
+              "the largest body of every star's outer disk"
             ],
             [
               "Evidence",
@@ -73186,7 +73186,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM upper end 20 km: the largest nucleus the draw gives"
+          "what": "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM upper end 20 km: the largest nucleus the draw gives, cut to the largest body of the star's outer disks where it has them (comet_supply.nucleus_top_km, never under the lower end)"
         }
       ],
       "slug": "6-303-stand-ins-of-the-shape-of-a-star-s-own-comets-gen-595",

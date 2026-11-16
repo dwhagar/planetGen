@@ -3279,7 +3279,8 @@ COMET_PERIOD_CLASSES = {
     # i.e. retrograde), and long-period comets (e very close to 1,
     # isotropic inclination -- true Oort Cloud origin, only weakly
     # dynamically processed). `weight` is this family's relative share of
-    # generated elliptical comets, not a physical population estimate.
+    # generated elliptical comets, not a physical population estimate; a star whose outer disk a giant scattered reads the shares from the disk
+    # instead (`physics/comet_supply.family_weights`, GEN.1765).
     # Registry rows: period cuts [Stand-in 6.303 CMT1, tier T2, tweak L0.], outer ends [Stand-in 6.303 CMT2, tier T4, tweak L3.],
     # eccentricity [Stand-in 6.303 CMT3, tier T4, tweak L3.], inclination [Stand-in 6.303 CMT4, tier T2, tweak L1.],
     # weights [Stand-in 6.303 CMT5, tier T9, tweak L3.]

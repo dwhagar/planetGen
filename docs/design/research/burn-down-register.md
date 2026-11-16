@@ -1,13 +1,9 @@
 # The burn-down register: what each hand-tuned stand-in needs before it can go (GEN.946)
-
 Status: hand-kept, checked by `src/tests/test_burn_down_register.py` and shown as the last column of `stand-in-values.md`. Every registry row at tweak level L3 or L4 (hand-tuned against a sweep, or fitted with no source) has a line here with one of three dispositions:
-
 - `no data`: nothing we hold or can reach (primary or secondary) measures the quantity; the row keeps its tier and tweak level, and the reason says why in plain words. A reason is not a promise: the first measurement replaces the row.
 - `replace`: a named open item replaces the number, because the data or the model it needs is that item's work. The item reads the data (Boss, 8:16 PM EDT 2026-10-29: secondary sources accepted) and lowers the row to L0 or L1.
 - `replaced`: the number now comes from data; the line stays one release so the change is findable, and the row is no longer L3 or L4.
-
 The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant needs its disposition in the same change as its registry row, the same completeness rule as TEST.455 for unregistered constants), when a line names a row that is not at L3 or L4 and is not `replaced`, and when a `replace` item is not open in `docs/TODO.md`. The audit of every unregistered constant is GEN.945 (Bug 2); its high-ranked findings join this register as GEN.946 splits them into per-area items.
-
 | row | disposition | item | reason |
 |---|---|---|---|
 | 5.2:BC6 | no data | - | exomoons are not observed; the regular satellites of the four giants are the only moons with a composition and the rule against fixed Solar System content keeps them a check; tier T6 stays |
@@ -338,7 +334,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.282:HO1 | no data | - | hand-set from a sweep of the solve at four temperatures and pressures; no measured limit of the oxygen a hot deep air holds exists |
 | 6.303:CMT2 | no data | - | the short end is the shortest period the Solar System shows and the long end a round number inside a cloud's tidal edge; the outer edge of the cloud from the star's mass and the galactic tide (GEN.1466) replaces the long end, and a census of other systems' comets would replace the short one; tier T4 stays |
 | 6.303:CMT3 | no data | - | the eccentricity ranges keep each family inside its period window and no source was read; the eccentricity a giant's scattering gives replaces them and no measured family eccentricity of another system exists; tier T4 stays |
-| 6.303:CMT5 | replace | GEN.1765 | the family weights are chosen so all three families are common; a supply from the outer belt (Jupiter family) and the cloud (the other two) through the giants' scattering replaces them |
 | 6.303:CMT7 | no data | - | the flat shape follows from an isotropic cloud with a full loss cone; the ends are hand set (the star's radius and tidal limit below, the activity threshold of CA1 above) and no measured perihelion distribution of another system's comets exists |
-| 6.303:CMT8 | replace | GEN.1765 | comets present wherever the system has an outer belt, a cloud or a giant, from the supply of the reservoirs, replace the flat chance and the count |
-| 6.303:CMT9 | replace | GEN.1765 | the largest body of the star's own outer belt replaces the hand-set upper end of the nucleus diameter draw (supply slice) |
+| 6.303:CMT5 | no data | - | for a star whose outer disk no giant scattered (nearly every star in a 398-star census) the weights stay; a comet census of other systems would replace them, and the answer on tying comets to outer disks decides the rest; tier T9 stays |
+| 6.303:CMT8 | no data | - | the chance 0.3 and count 1 to 3 stay hand set until Boss says whether comets exist only where a star has an outer disk (a census of 398 stars: 28 percent have comets now, 14 percent an outer-disk belt, 0 a scattered one); tier T9 stays |
+| 6.303:CMT9 | no data | - | the 20 km top stays for a star with no outer disk, and an outer disk's largest body is far above it in most systems, so the cut rarely applies; a comet census of other systems would replace it |
