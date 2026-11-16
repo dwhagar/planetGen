@@ -27,11 +27,7 @@ from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, mod
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-<<<<<<< HEAD
-from planetgen.physics import (adaptation_traits, planet_classes, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
-=======
-from planetgen.physics import (adaptation_traits, agb_carbon, belt_history, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
->>>>>>> pr6778
+from planetgen.physics import (adaptation_traits, planet_classes, agb_carbon, belt_history, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
                                life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
