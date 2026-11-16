@@ -23,7 +23,7 @@ import contextlib
 import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_final, venus_spin
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_heating, tidal_spin, air_final, venus_spin
 from planetgen.physics import hill_perturbers, planet_moons
 from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
@@ -301,6 +301,19 @@ below it the orbit cannot be told apart. A stand-in, registry row OE14."""
 def is_bare(body):
     """Whether `body` was built without its air, class, spin and moons (`Planet(defer_climate=True)`, GEN.1282) and `Planet.finish_climate` still owes them (GEN.1548)."""
     return getattr(body, "_deferred_climate", None) is not None
+
+
+def settle_warm_icy_orbit(body):
+    """
+    Takes the tides of a water-rich body's orbit again once its surface is known, when that surface is too warm for ice (GEN.1760). `settle_orbit` runs before a body built bare has its air, so
+    its surface is unknown and `interior_heat.icy_shell_top_k` reads the cold fallback: the body flexes as an ice shell and its orbit is worn as one. A body that turns out above the melting point
+    of ice flexes as a rocky mantle under a sea (`interior_heat.icy_regime`), so its orbit is worn again by that tide. The eccentricity only falls (`settle_orbit`), and a body that is not warm
+    and icy, or whose orbit is already circular, is left. The caller makes the air again where the eccentricity moved (`refinish_rocky`).
+
+    Returns:
+        bool: Whether the eccentricity moved by more than `ECCENTRICITY_SETTLE_TOLERANCE`.
+    """
+    return interior_heat.icy_regime(body) == interior_heat.ROCK and tidal_heating.is_icy(body) and settle_orbit(body)
 
 
 def settle_orbit(planet):
