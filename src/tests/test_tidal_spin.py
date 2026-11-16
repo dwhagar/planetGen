@@ -12,6 +12,7 @@ import types
 
 import pytest
 
+from planetgen.generation.build_record import BuildRecord
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import icy_tide, constants as pc
@@ -179,7 +180,7 @@ def test_spin_state_reads_the_two_stored_periods():
 
 
 def _planet(body, au, period_years, eccentricity, age_gyr, is_moon=False):
-    fields = {**vars(body), "star": types.SimpleNamespace(age=age_gyr)}
+    fields = {"build": BuildRecord(), **vars(body), "star": types.SimpleNamespace(age=age_gyr)}
     return types.SimpleNamespace(
         is_moon=is_moon, distance=au, period=period_years, eccentricity=eccentricity, orbital_inclination_deg=1.0,
         orbital_ascending_node_deg=30.0, **fields)
