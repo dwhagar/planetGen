@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1772 |
+| GEN | GEN.1773 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
@@ -3078,7 +3078,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.265 | (bug) plan-skeleton's outline piece (7.5 s) and generate-system's first system (8.5 s) go silent past the 5 s budget on a small galaxy: give each a count inside | none | done (PR 6789, Lane 16, merged 7:30 AM EST 11-16; Gate PASS) |
 | OPS.266 | (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector | none | done (PR 6780, Lane 16, merged 7:03 AM EST 11-16: a sector reports systems and bodies done while it is generated; Gate PASS, galaxy unchanged) |
 | OPS.267 | (bug) planetgen plan --reach-shells 3 ends with a TypeError in log_skeleton_summary: the dials line formats edge when args.edge is None | done (PR 6805, Lane 16, merged 3:00 AM EST 11-16) |
-| OPS.268 | (bug, high) New galaxy neighborhood stage stalls: sectors run one at a time on 5 workers, last 3 of 106 never finish | open (Lane 13) |
+| OPS.268 | (bug, high) New galaxy neighborhood stage stalls: sectors run one at a time on 5 workers, last 3 of 106 never finish | done (PR 6936, Lane 13, merged 6:40 PM EST 11-16) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4098,6 +4098,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1769 | Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw | open |
 | GEN.1770 | (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red) | open |
 | GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | open |
+| GEN.1772 | (bug) Civilizations on worlds whose air the species placement refuses (the air cannot be breathed) | open (Lane 04) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

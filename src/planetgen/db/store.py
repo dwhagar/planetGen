@@ -9990,6 +9990,25 @@ def _neighbor_lock_name(conn):
     return f"planetgen.neighbors.{database}"[:64]
 
 
+def _charted_while_waiting(conn, galaxy_position):
+    """
+    OPS.268: the sector id of the cell `galaxy_position` names when another save of the same cell has committed first, else `None`. The cell's named lock is taken (held until this transaction
+    ends), so a second copy of a sector unit (a retry beside a copy the supervisor queued again, or a restart of a unit that was not dead) waits for the first to commit and then finds the cell charted,
+    instead of stopping on the object IDs the first gave its systems (`uq_star_systems_uid`, the DB.131 error) after a whole sector's work. The check before the sector is generated (DB.131) cannot see
+    a copy that is still running.
+    """
+    if galaxy_position is None:
+        return None
+    address = tuple(galaxy_position.get(key) for key in ("shell_index", "band_index", "wedge_index"))
+    if None in address:
+        return None
+    conn.lock_until_commit(f"planetgen:cell:{address[0]}:{address[1]}:{address[2]}")
+    if chart_ledger.row(conn, address) is None:
+        return None
+    found = conn.execute("SELECT id FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ? ORDER BY id LIMIT 1", address).fetchone()
+    return None if found is None else found["id"]
+
+
 def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_neighbors=True, progress=None,
                 run_id=None, also=None) -> int:
     """
@@ -10027,8 +10046,10 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_nei
         conn.save_progress = progress
         if progress is not None:
             progress.update(completed=0)
-        sector_id = insert_sector(conn, sector, galaxy_position=galaxy_position, link_neighbors=link_neighbors,
-                                  run_id=run_id)
+        sector_id = _charted_while_waiting(conn, galaxy_position)
+        if sector_id is None:
+            sector_id = insert_sector(conn, sector, galaxy_position=galaxy_position, link_neighbors=link_neighbors,
+                                      run_id=run_id)
         if also is not None:
             also(conn, sector_id)
         return sector_id
