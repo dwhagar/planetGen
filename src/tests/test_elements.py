@@ -192,7 +192,7 @@ def test_dyes_energies_add_up_and_the_heat_is_the_energy_less_the_neutrinos():
 
 def test_short_lived_radionuclides_have_a_half_life_and_the_energy_of_a_decay():
     expected_half_life_years = {"Al-26": 7.17e5, "Fe-60": 2.62e6, "Cl-36": 3.01e5, "Be-10": 1.387e6, "Mn-53": 3.7e6,
-                                "Pd-107": 6.5e6, "Hf-182": 8.9e6, "I-129": 1.614e7, "Cm-247": 1.56e7, "Sm-146": 6.8e7,
+                                "Pd-107": 6.5e6, "Hf-182": 8.9e6, "I-129": 1.614e7, "Cm-247": 1.56e7, "Sm-146": 9.2e7,
                                 "Pu-244": 8.0e7, "Ca-41": 9.94e4, "Pb-205": 1.7e7, "Nb-92": 3.47e7}
     for name, years in expected_half_life_years.items():
         isotope = elements.isotope(name)
@@ -201,6 +201,13 @@ def test_short_lived_radionuclides_have_a_half_life_and_the_energy_of_a_decay():
     al26 = elements.isotope("Al-26")
     assert al26.decay_energy_j / KEV_J / 1000 == pytest.approx(3.12, rel=2e-3), "Lichtenberg et al.'s 3.12 MeV per decay"
     assert 1 / al26.decay_constant / (1e6 * 365.25 * 86400) == pytest.approx(1.03, rel=5e-3), "the mean life, 1.03 Myr"
+
+
+def test_samarium_146_has_the_remeasured_half_life_and_not_the_withdrawn_one():
+    # Chiera et al. 2024 [R5295]: 92.0 +- 2.6 Myr; NUBASE2020 still prints the withdrawn 68 +- 7 Myr of Kinoshita et al. 2012 (GEN.1628)
+    isotope = elements.isotope("Sm-146")
+    assert isotope.half_life_s / (1e6 * 365.25 * 86400) == pytest.approx(92.0, rel=1e-6)
+    assert isotope.half_life_uncertainty_s / (1e6 * 365.25 * 86400) == pytest.approx(2.6, rel=1e-6)
 
 
 def test_the_activity_of_a_ppm_of_each_element_is_the_known_figure():
