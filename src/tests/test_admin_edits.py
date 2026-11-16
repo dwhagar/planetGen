@@ -54,14 +54,15 @@ def _saved_system(mysql_config, want=None):
     if want is None:
         def want(system):
             return any(p.body_type != 'a' for p in system.planets)
-    for _ in range(300):
+    for attempt in range(300):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         cfg.PLANETS = True
         cfg.MOONS = True
         cfg.ASTEROID_BELT = True
         cfg.BINARY_SYSTEM = False
-        system = StarSystem(cfg)
+        with draw.bound(f"admin-edits-{attempt}"):      # TEST.737: fixed streams, so the search finds the same system in every run
+            system = StarSystem(cfg)
         if want(system):
             sector = SpaceSector("Edit Sector", edge_ly=10.0)
             sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
@@ -73,7 +74,7 @@ def _saved_system(mysql_config, want=None):
             finally:
                 conn.close()
             return sector_id, system_id
-    pytest.skip("no suitable system generated")
+    pytest.fail("none of 300 fixed streams drew a system the test wants")
 
 
 def _with_moons(system):
@@ -434,14 +435,15 @@ def test_change_star_refuses_bad_types(admin, mysql_config):
 
 
 def test_change_star_refuses_a_binary(mysql_config):
-    for _ in range(200):
+    for attempt in range(200):
         cfg = SystemConfig()
         cfg.BINARY_SYSTEM = True
-        system = StarSystem(cfg)
+        with draw.bound(f"admin-edits-binary-{attempt}"):
+            system = StarSystem(cfg)
         if system.binary_type is not None:
             break
     else:
-        pytest.skip("no binary generated")
+        pytest.fail("none of 200 fixed streams drew a binary")
     with pytest.raises(ValueError, match="single star"):
         adminEdits.change_star(system, "K2V")
 

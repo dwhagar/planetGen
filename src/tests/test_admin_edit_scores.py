@@ -9,6 +9,7 @@ edit leaves a body (or a moon of an edited planet) with a score from before the 
 import pytest
 
 from planetgen.db import store
+from planetgen.util import draw
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -74,12 +75,13 @@ def test_a_star_change_leaves_current_scores_on_every_body(admin, mysql_config):
 
 def _saved_binary_system(mysql_config):
     """A saved binary system with a planet that has a light swing (`flux_variation` above 0), retried until one is made."""
-    for _ in range(400):
+    for attempt in range(400):
         cfg = SystemConfig()
         cfg.PLANETS = True
         cfg.MOONS = True
         cfg.BINARY_SYSTEM = True
-        system = StarSystem(cfg)
+        with draw.bound(f"admin-edit-scores-{attempt}"):      # TEST.737: fixed streams, the same system in every run
+            system = StarSystem(cfg)
         if system.binary_type is None:
             continue
         if not any(p.body_type not in ("a", "g") and (getattr(p, "flux_variation", None) or 0.0) > 0.0 for p in system.planets):
@@ -92,7 +94,7 @@ def _saved_binary_system(mysql_config):
             return conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
         finally:
             conn.close()
-    pytest.skip("no binary system with a rocky planet in a varying light generated")
+    pytest.fail("none of 400 fixed streams drew a binary with a rocky planet in a varying light")
 
 
 def test_an_edit_in_a_binary_system_works_the_light_swing_out_again(admin, mysql_config):  # noqa: F811

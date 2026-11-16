@@ -5,6 +5,7 @@
 import pytest
 
 from planetgen.db import store
+from planetgen.util import draw
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from tests.publicids import pid
@@ -13,12 +14,13 @@ from tests.test_api import client  # noqa: F401
 
 def _save_with_life(mysql_config, scores):
     """Saves a system whose first rocky planet has Class 1a life and the kind `scores`; returns the planet row id."""
-    for _ in range(40):
+    for attempt in range(40):
         config = SystemConfig()
         config.PLANETS = True
         config.MAX_PLANETS = True
         config.BINARY_SYSTEM = False
-        system = StarSystem(system_config=config)
+        with draw.bound(f"api-life-readings-{attempt}"):      # TEST.737: fixed streams, the same system in every run
+            system = StarSystem(system_config=config)
         for planet in system.planets:
             if planet.body_type == "t" and planet.surface_temperature is not None:
                 planet.life_class, planet.life_class_variant, planet.life_stage = 1, "a", "multicellularity"
@@ -31,7 +33,7 @@ def _save_with_life(mysql_config, scores):
                     conn.close()
                 if rows:
                     return rows[0]["id"]
-    pytest.skip("no rocky planet in these draws")
+    pytest.fail("none of 40 fixed streams drew a rocky planet")
 
 
 def test_a_living_planet_has_the_four_kinds_with_their_words(client, mysql_config):

@@ -34,7 +34,7 @@ def make_system(label):
         if len(worlds) >= 3 and any(p.body_type == 'a' for p in system.planets) and any(p.moons for p in worlds):
             break
     else:
-        pytest.skip("no suitable system generated")
+        pytest.fail("no suitable system generated")
     system.star.db_id = 1
     for index, body in enumerate(system.planets):
         body.db_id = (200 if body.body_type == 'a' else 10) + index

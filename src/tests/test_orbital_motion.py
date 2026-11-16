@@ -39,6 +39,7 @@ from planetgen.physics import secular_chain, spin, tide_sources
 from planetgen.physics.planets import generate_orbital_motion_properties
 from planetgen.generation.system import StarSystem
 from planetgen.generation.build_record import BuildRecord
+from planetgen.util import draw
 from tests.tide_support import locking_time_s, rocky
 
 N_SYSTEMS = 20
@@ -603,16 +604,17 @@ def test_planet_hosting_star_reflex_offset_matches_manual_formula(systems_with_m
 def test_star_with_no_planets_has_zero_reflex_offset():
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
-    # Retries a handful of times for a genuinely planet-less roll -- this
-    # config biases toward zero planets but doesn't force it.
-    for _ in range(30):
-        system = StarSystem(system_config=cfg)
+    # Looks through fixed streams for a genuinely planet-less roll -- this
+    # config biases toward zero planets but doesn't force it (TEST.737: the same streams in every run).
+    for attempt in range(30):
+        with draw.bound(f"reflex-offset-{attempt}"):
+            system = StarSystem(system_config=cfg)
         if not [p for p in system.planets if p.body_type != "a"]:
             assert system.primary_star.reflex_offset_x == 0.0
             assert system.primary_star.reflex_offset_y == 0.0
             assert system.primary_star.reflex_offset_z == 0.0
             return
-    pytest.skip("could not roll a planet-less system in 30 attempts")
+    pytest.fail("none of 30 fixed streams rolled a planet-less system")
 
 
 def test_serializable_fields_include_reflex_offset_attributes():

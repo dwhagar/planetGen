@@ -186,7 +186,7 @@ def test_a_class_that_breathes_oxygen_but_makes_none_stops_at_photosynthesis_in_
             assert _ages(body)[2:] == (None, None, None), body.name
             assert body.life_stage in (None, "abiogenesis", "photosynthesis"), body.name
             return
-    pytest.skip("no generated world with an oxygen-breathing class that makes no oxygen")
+    pytest.fail("no generated world with an oxygen-breathing class that makes no oxygen")
 
 
 def test_the_first_light_comes_earlier_for_a_simpler_way_of_harvesting_it():

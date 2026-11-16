@@ -13,12 +13,12 @@ from planetgen.util import draw
 
 def _giants():
     found = []
-    for seed in range(12):
+    for seed in range(24):      # TEST.737: giants are rare; seed 15 is the first of these streams to draw one
         with draw.bound(seed):
             system = StarSystem(SystemConfig())
         found += [planet for planet in system.planets if planet.body_type == "g"]
     if not found:
-        pytest.skip("no giant in the sample systems")
+        pytest.fail("none of the 24 fixed streams drew a giant")
     return found
 
 
