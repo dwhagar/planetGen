@@ -24935,7 +24935,7 @@
           "fields": [
             [
               "What it is",
-              "brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 [R0606]"
+              "baraffe_isochrones.cooling_track: the radius of a mass the table loses while it is young shrinks past that age as the lightest mass the table still holds does (the radius of an old brown dwarf is nearly the same at every mass), the temperature continues at t^-0.32 [R0606] (GEN.1624: it was held at its last, young, value, 1.7 Jupiter radii at 13 Jupiter masses at any age, and the luminosity ran up to 2.4 times high)"
             ],
             [
               "The range it moves in",
@@ -24947,7 +24947,7 @@
             ],
             [
               "What would show it wrong",
-              "a radius of a 13 Jupiter mass object at 10 Gy over 1.2 Jupiter radii"
+              "a radius of a 13 Jupiter mass object at 10 Gy outside 0.8 to 1.05 Jupiter radii"
             ],
             [
               "What replaces it",
@@ -24955,7 +24955,7 @@
             ],
             [
               "Evidence",
-              "an inference, kept from the eleven-row table it replaces; the radius is 1.7 Jupiter radii for 13 Jupiter masses"
+              "an inference from the table's own radii: at 0.3 to 1 Gy they lie within 5 percent of each other from 0.04 to 0.07 solar masses"
             ]
           ],
           "id": "LM4",
@@ -24966,7 +24966,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 [R0606]"
+          "what": "baraffe_isochrones.cooling_track: the radius of a mass the table loses while it is young shrinks past that age as the lightest mass the table still holds does (the radius of an old brown dwarf is nearly the same at every mass), the temperature continues at t^-0.32 [R0606] (GEN.1624: it was held at its last, young, value, 1.7 Jupiter radii at 13 Jupiter masses at any age, and the luminosity ran up to 2.4 times high)"
         },
         {
           "burn_down": null,

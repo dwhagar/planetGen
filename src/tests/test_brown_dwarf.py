@@ -65,7 +65,8 @@ def test_a_track_that_ends_before_10_gy_cools_at_burrows_exponent_and_one_that_r
     Gy; the 0.075 row reaches 10 Gy and holds the hydrogen-burning plateau."""
     assert brown_dwarf.effective_temperature_k(0.05, 5.0) == pytest.approx(1555.0 * (5.0 / 0.625) ** -0.32)
     assert brown_dwarf.effective_temperature_k(0.075, 13.0) == pytest.approx(2037.0)
-    assert brown_dwarf.radius_sol(0.05, 5.0) == pytest.approx(0.099)
+    # GEN.1624: its radius is not held at the young 0.099 but shrinks as the lightest mass the table still holds does (0.09 at 5 Gy).
+    assert brown_dwarf.radius_sol(0.05, 5.0) == pytest.approx(0.09)
 
 
 def test_the_track_is_continuous_in_mass_where_the_table_stops_holding_a_mass_for_longer():
@@ -108,10 +109,15 @@ def test_the_radius_is_about_jupiters_when_old_and_larger_when_young():
     for mass in (0.03, 0.05, 0.07, 0.0764):
         assert 0.7 * jupiter < brown_dwarf.radius_sol(mass, 10.0) < 1.5 * jupiter
     # The table loses a mass when it cools out of the models' range, the lightest (the deuterium limit) after 0.01 Gy, and the
-    # radius it is held at is the young one (1.7 Jupiter radii at 13 Jupiter masses): the models give no old radius there.
-    assert 0.7 * jupiter < brown_dwarf.radius_sol(0.0124, 10.0) < 1.8 * jupiter
+    # radius then shrinks as the lightest mass the table still holds does (GEN.1624: it was held at the young 1.7 Jupiter radii
+    # at 13 Jupiter masses, and the luminosity ran up to 2.4 times high): an old 13 Jupiter mass body is about one Jupiter radius.
+    assert 0.8 * jupiter < brown_dwarf.radius_sol(0.0124, 10.0) < 1.05 * jupiter
+    for mass in (0.0124, 0.02, 0.03, 0.04, 0.05, 0.06):
+        radii = [brown_dwarf.radius_sol(mass, age) for age in (0.01, 0.05, 0.3, 1.0, 3.0, 10.0)]
+        assert radii == sorted(radii, reverse=True), mass
+        assert brown_dwarf.radius_sol(mass, 10.0) < 1.05 * jupiter, mass
     old = [brown_dwarf.radius_sol(mass, 8.0) for mass in (0.03, 0.05, 0.065, 0.075)]
-    assert old == sorted(old, reverse=True)
+    assert max(old) / min(old) < 1.03    # an old brown dwarf's radius is nearly the same at every mass (a degenerate body, 0.09 solar radii)
 
 
 def test_the_luminosity_is_stefan_boltzmann_of_the_tracks_radius_and_temperature():
