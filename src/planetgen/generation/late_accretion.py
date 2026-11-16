@@ -46,11 +46,33 @@ def percent_for(planet, siblings, star_mass_solar):
     return min(max(supply, floor), impact_history.LATE_ACCRETED_PERCENT_MAX)
 
 
-def applies_to(planet):
-    """Whether the planet's air is made again: a rocky planet of a star, with ground, whose air was made here."""
+def is_rocky_of_a_star(planet):
+    """Whether the late accretion reaches the planet's air at all: a rocky planet of a star, with ground (a moon, a giant, a belt and a planet with no star are left)."""
     star = getattr(planet, "star", None)
     return (planet.body_type == "t" and not planet.is_moon and star is not None and not getattr(star, "starless", False)
-            and bool(planet.mass) and bool(planet.radius) and planet_type.has_ground(planet) and getattr(planet, "_air_replay", None) is not None)
+            and bool(planet.mass) and bool(planet.radius) and planet_type.has_ground(planet))
+
+
+def applies_to(planet):
+    """Whether the planet's air is made again: a rocky planet of a star, with ground, whose air was made here."""
+    return is_rocky_of_a_star(planet) and getattr(planet, "_air_replay", None) is not None
+
+
+def percent_in(planet, planets):
+    """The late accretion of `planet` from the planets and belts `planets` of the system (`StarSystem.all_planets`): those of its own star."""
+    siblings = [body for body in planets if body.body_type == "a" and _same_star(body, planet) or body.body_type != "a" and body.star is planet.star]
+    return percent_for(planet, siblings, _kg_to_msun(planet.star.mass))
+
+
+def give_first_air(planets):
+    """
+    Gives every rocky planet whose air is still to be made (`Planet.finish_climate`, GEN.1548) the late accretion the system gives it now (PERF.271), so the air is made once with a number near the final one
+    instead of with the law's draw and again at `apply`: the belts and the planets' orbits are known by then, and what is left to `apply` is what the belts promoted to planets add. The number is the same
+    function (`percent_in`) the later pass uses; `planets.remake_air` still gates the second pass by how far the number moved the carbon and the nitrogen.
+    """
+    for planet in planets:
+        if planet.body_type != "a" and getattr(planet, "_deferred_climate", None) is not None and is_rocky_of_a_star(planet):
+            planet._late_accreted_percent = percent_in(planet, planets)
 
 
 def apply(planets, gate=planet_physics.LATE_ACCRETION_GATE):
@@ -59,9 +81,7 @@ def apply(planets, gate=planet_physics.LATE_ACCRETION_GATE):
     for planet in planets:
         if planet.body_type == "a" or not applies_to(planet):
             continue
-        siblings = [body for body in planets if body.body_type == "a" and _same_star(body, planet) or body.body_type != "a" and body.star is planet.star]
-        star_mass_solar = _kg_to_msun(planet.star.mass)
-        made += planet_physics.remake_air(planet, percent_for(planet, siblings, star_mass_solar), gate)
+        made += planet_physics.remake_air(planet, percent_in(planet, planets), gate)
     return made
 
 
