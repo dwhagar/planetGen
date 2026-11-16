@@ -12715,11 +12715,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: GEN.1755.
   Filed by the TODO thread.
 
-- [ ] **GEN.1757 Check: 742 moons (1.02 percent of bodies, up from 0.8 percent at Train 28) carry no class letter; confirm every one is an Asteroid object (under roundness ratio 1, no air, liquid or life, GEN.1160 and GEN.1752) and none is a classifiable moon left unclassed**
-  Census thread, 10:32 PM EST 2026-11-15 (/mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md). Do: break the 742 down by object type, roundness, air and liquid; any round or aired moon without a letter is a bug to fix.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: GEN.1160, GEN.1752.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1759 Tidal heating and circularisation of icy bodies use the ice-shell k2/Q outside its domain: interior_heat and ocean_tides read the shell formula where the shell is thicker than the body (no ocean) or where the surface is above ice's melting point, the same wrong domain GEN.1755 and GEN.1756 fixed for spin**
   Lane 07, 12:21 AM EST 2026-11-16 (found in PR 6787, GEN.1755 and GEN.1756): the spin path now picks solid-ice or rock k2/Q where the shell model does not apply, but tidal heating (interior_heat) and circularisation (ocean_tides) still use the shell formula there, so a solid icy body gets the shell cap of 1.5 where solid ice is about 1e-3 and a warm wet planet gets 0. Do: route both through the same domain choice 6787 added (one shared k2/Q chooser, no second copy), measure tidal heat and eccentricity damping for icy moons and small bodies before and after on fixed seeds. Lock item (heat and orbits move).
   Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: GEN.1755, GEN.1756. Related: GEN.1755, GEN.1756.
