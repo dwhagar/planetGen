@@ -48,7 +48,7 @@ def test_the_start_is_centered_where_the_valley_was_tuned_and_falls_below_it():
 
 def test_only_bodies_of_a_fifth_to_twenty_earth_masses_draw_a_start_and_the_start_is_capped():
     with draw.bound("envelope-capture:start"):
-        assert envelope_capture.draw_start(0.1) == 0.0 and envelope_capture.draw_start(25.0) == 0.0     # Mars's 0.1 Earth masses: too small before the disk is gone (Young et al. [R5289], GEN.1748)
+        assert envelope_capture.draw_start(0.1) == 0.0 and envelope_capture.draw_start(25.0) == 0.0     # Mars's 0.1 Earth masses: too small before the disk is gone (Young et al. [R5293], GEN.1748)
         assert envelope_capture.draw_start(0.5) > 0.0
         starts = [envelope_capture.draw_start(8.0) for _ in range(400)]
     assert all(0.0 < value <= envelope_capture.MAX_START <= envelope_escape.MAX_ENVELOPE for value in starts)
@@ -209,7 +209,7 @@ def test_the_generated_planets_show_the_radius_valley_a_system_sweep_finds():
 
 
 def test_a_body_under_one_earth_mass_made_water_from_its_envelope_and_keeps_no_envelope():
-    """GEN.1748 (Young et al. [R5289]): 0.2 percent hydrogen makes about an ocean and 0.3 percent 2 to 3; the radius law starts at 1 Earth mass, so a lighter body ends bare."""
+    """GEN.1748 (Young et al. [R5293]): 0.2 percent hydrogen makes about an ocean and 0.3 percent 2 to 3; the radius law starts at 1 Earth mass, so a lighter body ends bare."""
     cases = dict(envelope_capture.YOUNG_WATER_CASES)
     ocean_share = envelope_capture.OCEAN_MASS_KG / (envelope_capture.YOUNG_EMBRYO_MASS_EARTH * constants.EARTH_MASS_TO_KG)
     for hydrogen, oceans in cases.items():

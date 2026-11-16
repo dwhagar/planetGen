@@ -44,29 +44,29 @@ HELIUM_HISTORY_POINTS = 40
 """int: The most steps of the loss history `helium_fractionation` is given (a numerical stand-in of GEN.1527: the loss takes up to thousands of steps)."""
 
 MIN_MASS_EARTH = 0.2
-"""float: The lightest body that captures an envelope: Young, Shahar and Schlichting [R5289] model embryos of 0.3 and 0.5 Earth masses and find their results "not critically dependent on the precise masses
+"""float: The lightest body that captures an envelope: Young, Shahar and Schlichting [R5293] model embryos of 0.3 and 0.5 Earth masses and find their results "not critically dependent on the precise masses
 as long as they exceed ~0.2 Earth masses"; a body of Mars's 0.1 "can only accrete a primary hydrogen-dominated atmosphere from the disk after its surface cooled to 700 K or less", and Mercury's
 progenitor (0.09 to 0.13) is too small to keep one on a molten surface (GEN.1748). Below 1 Earth mass the start is `FLAT_BELOW_MASS_EARTH`'s. [EC3, T1, L0.]"""
 
 FLAT_BELOW_MASS_EARTH = 1.0
 """float: Below this mass the median start stops falling and is the value it has here, 0.0019 of the mass: Young et al.'s favoured solution has "a total H-mass fraction of about 0.2%" for an embryo of
-0.5 Earth masses [R5289], and the paper finds no dependence on mass above ~0.2, so the steep fall of `MASS_EXPONENT` (a stand-in tuned for the valley, which has no planet under 1 Earth mass) does not
+0.5 Earth masses [R5293], and the paper finds no dependence on mass above ~0.2, so the steep fall of `MASS_EXPONENT` (a stand-in tuned for the valley, which has no planet under 1 Earth mass) does not
 continue under 1 Earth mass (GEN.1748). The two agree at 1 Earth mass (0.0019 and 0.002). [EC9, T1, L0.]"""
 
 KEEPS_FROM_MASS_EARTH = 1.0
 """float: The lightest body whose envelope is still on it at the end of its formation, taken from the finished radius: the law of Lopez and Fortney that gives the radius under an envelope is fitted from
-1 Earth mass (`bulk_structure.CLOSED_FORM_RANGES`), and Young et al. [R5289] find that collisions after the gas disk has dissipated "would efficiently remove any residual hydrogen dominated atmospheres" of
+1 Earth mass (`bulk_structure.CLOSED_FORM_RANGES`), and Young et al. [R5293] find that collisions after the gas disk has dissipated "would efficiently remove any residual hydrogen dominated atmospheres" of
 embryos, so a body lighter than this is bare at the end and its envelope is a history (and the water it made, `nebular_water_fraction`), not a radius (GEN.1748). [EC10, T5, L0.]"""
 
 OCEAN_MASS_KG = 1.4e21
-"""float: The mass of the Earth's oceans, kg (the "terrestrial ocean" that Young et al. [R5289] count their water in; 1.39 to 1.40e21 kg). [EC11, T1, L0.]"""
+"""float: The mass of the Earth's oceans, kg (the "terrestrial ocean" that Young et al. [R5293] count their water in; 1.39 to 1.40e21 kg). [EC11, T1, L0.]"""
 
 YOUNG_EMBRYO_MASS_EARTH = 0.5
-"""float: The embryo the cases of `YOUNG_WATER_CASES` are worked for, Earth masses: Young et al.'s fiducial embryo [R5289]; the paper finds the results "virtually identical" at 0.3 and no dependence on mass above ~0.2, so the water
+"""float: The embryo the cases of `YOUNG_WATER_CASES` are worked for, Earth masses: Young et al.'s fiducial embryo [R5293]; the paper finds the results "virtually identical" at 0.3 and no dependence on mass above ~0.2, so the water
 is a share of the body's mass (`nebular_water_fraction`). [EC12, T1, L0.]"""
 
 YOUNG_WATER_CASES = ((0.002, 1.0), (0.003, 2.5))
-"""tuple: `(total H-mass fraction of the body, terrestrial oceans of water the reaction with its magma ocean makes)` for the embryo of `YOUNG_EMBRYO_MASS_EARTH`: Young et al. [R5289] find 0.2 percent hydrogen
+"""tuple: `(total H-mass fraction of the body, terrestrial oceans of water the reaction with its magma ocean makes)` for the embryo of `YOUNG_EMBRYO_MASS_EARTH`: Young et al. [R5293] find 0.2 percent hydrogen
 makes "approximately one terrestrial ocean" and 0.3 percent "about 2 to 3 ocean equivalents" (the middle, 2.5). The water between and below goes as the power of the hydrogen that joins the two points (2.26), and
 above 0.3 percent it is held there: the paper does not go further. [EC12, T1, L1 (2.5 is the middle of the printed 2 to 3).]"""
 
@@ -140,7 +140,7 @@ def start_of(mass_kg, formation_distance_au, star_mass_kg):
 
 def nebular_water_fraction(start, helium_share=0.27):
     """
-    The water, a fraction of the body's mass, that a starting envelope of `start` of the mass made in the magma ocean beneath it (GEN.1748, Young et al. [R5289]: the hydrogen reacts with the oxides of the magma and makes
+    The water, a fraction of the body's mass, that a starting envelope of `start` of the mass made in the magma ocean beneath it (GEN.1748, Young et al. [R5293]: the hydrogen reacts with the oxides of the magma and makes
     water "even if the rocks ... were entirely dry"): the hydrogen of the envelope (its mass without the helium share `helium_share`, the star's) is the paper's total H-mass fraction, and the oceans of water that
     fraction makes (`YOUNG_WATER_CASES`, a power law through the two cases) are that many `OCEAN_MASS_KG` over the embryo's mass. 0 for no envelope.
     """
