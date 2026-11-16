@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4392] - 2026-11-16
+
+**Headline:** The star property sheet says why it does not show the two columns DB.133 added to the stars table.
+
+### Fixed
+
+- `describe/sheet.py`: `NOT_SHOWN["star"]` gains `initial_mass_sol` and `phase_end_age_gy` with their reasons, so `tests/test_property_sheet.py` finds every column of `stars` shown or excused (a fix for Train 39).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4391] - 2026-11-16
 
 **Headline:** A restored planet or moon keeps the eccentricity a resonance holds it on, and a restored star keeps the mass it was born with and the age its phase ends, so a body or system that is settled or edited again starts from what it was made with.
