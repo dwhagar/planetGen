@@ -10,7 +10,8 @@ of its air) and the flow of a spin under them; this module fills it from a body'
 * **Rheology.** A rocky body's `k2/Q` is `tidal_rheology.rock_response` at the semi-diurnal frequency of the tide it feels, so the torque depends
   on how fast the body turns (`spin_torques.rheology_dissipation`), with the mantle temperature, melt and viscosity of `interior_heat` (the
   temperature is `interior_heat.tide_temperature_k`, the same that sets the circularisation and the heat) and the solidus of its pressure. A
-  gas giant and an icy body keep their fixed `k2` and `Q` (`tidal_heating`, GEN.960 gives ice its own).
+  gas giant keeps its fixed `k2` and `Q` (`tidal_heating`). An icy body's depends on what its water makes of it (`interior_heat.icy_regime`, GEN.1755, GEN.1756): the ice shell's own (`icy_tide`, GEN.960) where
+  a shell sits on an ocean, solid ice's (`tidal_rheology.ice_response`) where the shell would be thicker than the body, and the rock's, with the air's thermal tide, where the surface is too warm for ice.
 * **The star.** The first raiser is what the body goes round, a star for a planet and the planet for a moon, on the body's own orbit.
 * **The air.** A rocky planet with an atmosphere feels the thermal tide of its star on it [R2606]: `spin_torques.ThermalTide` with the
   amplitude and relaxation time of the stored surface pressure and the starlight at the body's orbit. Where the thermal and gravitational tides
@@ -40,9 +41,13 @@ def dissipation_of(body, planet):
     """
     if getattr(body, "body_type", None) == "g":
         return spin_torques.constant_dissipation(tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
-    if tidal_heating.is_icy(body):
+    regime = interior_heat.icy_regime(body)
+    if regime == interior_heat.SHELL:
         flux, top = interior_heat.icy_shell_flux_w_m2(body), interior_heat.icy_shell_top_k(body)
         return spin_torques.tabulate(lambda frequency: icy_tide.k2_over_q(planet.mass_kg, planet.radius_m, frequency, flux, top))
+    if regime == interior_heat.FROZEN:
+        # GEN.1755: frozen through, no ocean for the shell model to stand on: the body flexes as the ice of its own temperature does
+        return spin_torques.tabulate(lambda frequency: interior_heat.frozen_response(body, frequency).k2_over_q)
     interior = interior_heat.interior_of(body)
     if interior is None or radiogenic.content_of(body) is None:
         raise interior_heat.InteriorHeatError("a rocky body's spin needs its stored content and mantle draws")
@@ -65,7 +70,7 @@ def starlight_w_m2(body):
 def thermal_tide_of(body, star_raiser):
     """The `spin_torques.ThermalTide` of a rocky planet's air under its star, or `None` for a body with no air, a moon (it is held by its planet) or a body that
     is not rock."""
-    if getattr(body, "body_type", None) != "t" or getattr(body, "is_moon", False) or tidal_heating.is_icy(body):
+    if getattr(body, "body_type", None) != "t" or getattr(body, "is_moon", False) or interior_heat.icy_regime(body) != interior_heat.ROCK:      # an icy body with a shell or ice through it keeps none; one too warm for ice has the air's tide (GEN.1756)
         return None
     pressure_pa = getattr(body, "atmospheric_pressure", None)
     flux = starlight_w_m2(body)

@@ -55,6 +55,10 @@ PAIRS = {
         "scatter-mass", "scatter-phenomena", **SKELETON,
         note="The mass pass writes `bright_stars`, the phenomena scatter `phenomenon_scatter`; both write members, nodes, block light parts and the ids of their own rows (`id_counters`: a counter each, "
              "the stars' and the phenomena's), and each reads the other's table only to give the blocks their light. " + IDS),
+    ("scatter-mass", "draw-nebula-field"): PairRecipe(
+        "scatter-mass", "draw-nebula-field", **SKELETON,
+        note="The mass pass writes the stars, their members and nodes and the block light parts; the nebula field is its own table. They meet only in the epoch rows each stage's end hook stamps "
+             "(`scatter_epochs`, `generator_epoch`) and the shape row (`galaxy_shape`), which each writes for its own stage. " + IDS),
 }
 """dict: `{(first, second): recipe}`, the commands in plan order, one for each pair in `queue/independence.json`."""
 

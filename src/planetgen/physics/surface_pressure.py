@@ -79,8 +79,9 @@ TS_MODERN_K = 289.0
 """float: The preindustrial surface temperature of the Earth [R2628]."""
 
 HEAT_FLUX_EARTH_W_M2 = 0.0614
-"""float: The heat flow of the Earth twin in the interior model (a mid draw of the rheology), the reference of the outgassing flux; it
-is under the Earth's measured 0.09 because the stagnant lid loses heat less freely than a mobile one (`interior_heat`)."""
+"""float: The heat flow of the Earth twin in the interior model (a mid draw of the rheology): the one Earth heat-flow reference of the generator (GEN.1636). It scales the volcanic outgassing flux, the heat a life
+supply stands for (`life_supply.heat_share`) and the heat the hydrothermal ores scale from (`hydrothermal_deposits`), so a body that is the model's Earth twin has a share of 1 in all three. It is under the Earth's
+measured 0.087 to 0.09 W/m2 because the stagnant lid loses heat less freely than a mobile one (`interior_heat`): a modeled body is read against the model's own Earth, not against the measurement (registry AM33)."""
 
 MIN_PCO2_BAR = 1e-12
 """float: The floor of the balance's CO2 pressure (a world whose weathering takes all it is given)."""

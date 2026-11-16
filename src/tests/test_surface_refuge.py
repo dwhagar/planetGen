@@ -5,9 +5,10 @@ Surface refuges for oxygen-making life (GEN.1723, `planetgen.physics.surface_ref
 import copy
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
-from planetgen.physics import biogenic_oxygen as bo, habitability_world, ice_light, life_classes, surface_refuge
+from planetgen.physics import biogenic_oxygen as bo, habitability_world, ice_growth as ig, ice_light, life_classes, surface_refuge
 
 from tests.test_life_classes import world
 
@@ -66,17 +67,40 @@ def test_a_world_under_ice_that_never_melts_has_no_light_class_and_one_that_melt
     assert all(melting[c].score > 0 for c in LIGHT_CLASSES)
 
 
-def test_the_sea_under_a_thin_lid_counts_in_proportion_to_the_light_that_gets_through():
-    def lid(km):
-        return surface_refuge.refuge_of(world(hydrosphere="ice-covered ocean", surface_temperature_k=230.0, ice_shell_km=km, ocean_fraction=0.7))
-    bare, thin, thick = lid(0.0), lid(0.003), lid(0.005)
-    assert bare.area == pytest.approx(0.7 * (1.0 - ice_light.ALBEDO_BARE[ice_light.SEA])) and bare.temperature_k == pytest.approx(surface_refuge.UNDER_ICE_K)
-    assert thin.area == pytest.approx(0.7 * surface_refuge.under_ice_light_share({"hydrosphere": "ice-covered ocean", "ice_shell_km": 0.003}))        # 3 m: a few percent of the light, as the lake mats get
-    assert 0.0 < thick.area < thin.area < bare.area
-    assert lid(0.01) == surface_refuge.NONE          # 10 m lets through less than the light floor
-    assert lid(1.0) == surface_refuge.NONE and lid(None) == surface_refuge.NONE        # a kilometre of ice, or a lid of unknown thickness, lets none through
-    scores = life_classes.score_classes(world(hydrosphere="ice-covered ocean", surface_temperature_k=230.0, ice_shell_km=0.003, ocean_fraction=0.7))
-    assert all(scores[c].score > 0 for c in LIGHT_CLASSES)
+def _frozen_sea(mean_k, luminosity=0.02, **over):
+    """An ice-covered ocean of 0.7 of the surface round a star of `luminosity` of the Sun's (a faint star snows little, `ice_growth.snowfall_m_yr`)."""
+    return world(hydrosphere="ice-covered ocean", surface_temperature_k=mean_k, ocean_fraction=0.7, star_luminosity_w=3.828e26 * luminosity, **over)
+
+
+def test_the_sea_under_a_lid_counts_in_proportion_to_the_light_that_gets_through():
+    """GEN.1735: the lid of each cell is `ice_growth.lid_of` of its own mean temperature, the swing of its year and the starlight it absorbs, not a stored shell: a lid of a metre or so counts, one of
+    several metres lets through less than the light floor, and the snow of a world that snows lets none through."""
+    near, cold = _frozen_sea(270.0), _frozen_sea(260.0)
+    lid = ig.lid_of(270.0, 0.0, surface_refuge._absorbed_w_m2(near), near["internal_heat_flux_w_m2"])
+    thin = surface_refuge.refuge_of(near)
+    assert thin.hours == pytest.approx(0.5 * surface_refuge.YEAR_HOURS) and thin.temperature_k == pytest.approx(surface_refuge.UNDER_ICE_K)
+    assert thin.area == pytest.approx(0.7 * ice_light.transmission(lid.ice_m, lid.snow_m, kind=ice_light.SEA))        # a year that always freezes, a lid of a metre: a hundredth of the light
+    assert 0.0 < thin.area < 0.7
+    assert surface_refuge.refuge_of(cold) == surface_refuge.NONE          # 6.6 m of ice: less than the light floor gets through
+    assert surface_refuge.refuge_of(_frozen_sea(270.0, luminosity=1.0)) == surface_refuge.NONE          # the Sun's snow, 2 m of it, stops the light
+    assert surface_refuge.refuge_of(_frozen_sea(200.0)) == surface_refuge.NONE
+    scores = life_classes.score_classes(_frozen_sea(270.0))
+    assert all("lit_liquid_hours" not in scores[c].failed for c in LIGHT_CLASSES)
+
+
+def test_a_cells_lid_follows_its_own_temperature_and_a_year_that_never_freezes_has_none():
+    values = _frozen_sea(270.0)
+    series = surface_refuge.temperature_coverage.still_series(270.0)
+    through, frozen = surface_refuge.lid_of_cells(values, series.temperature_k)
+    lid = ig.lid_of(270.0, 0.0, surface_refuge._absorbed_w_m2(values), values["internal_heat_flux_w_m2"])
+    assert through.shape == series.temperature_k.shape[:2] and (frozen == 1.0).all()
+    assert through == pytest.approx(ice_light.transmission(lid.ice_m, lid.snow_m, kind=ice_light.SEA))
+    warm = surface_refuge.lid_of_cells(values, surface_refuge.temperature_coverage.still_series(285.0).temperature_k)
+    assert (warm[0] == 0.0).all() and (warm[1] == 0.0).all()
+    seasonal = series.temperature_k + 12.0 * np.sin(np.linspace(0.0, 2.0 * np.pi, series.temperature_k.shape[2], endpoint=False))
+    swing_through, swing_frozen = surface_refuge.lid_of_cells(values, seasonal)
+    assert (0.0 < swing_frozen).all() and (swing_frozen < 1.0).all()          # a year that melts in its summer is frozen for part of it
+    assert (swing_through > through).all()          # and its season leaves a thinner lid than a year that never thaws
 
 
 def test_rooted_plants_reach_a_deeper_water_table_and_more_of_the_land():

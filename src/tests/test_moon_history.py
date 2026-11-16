@@ -158,3 +158,32 @@ def test_a_history_no_integrator_can_finish_leaves_the_moons_as_born(monkeypatch
     assert planet.moons == planet._born_moons
     assert all(m.distance == pytest.approx(m._birth_distance_au) for m in planet.moons)
     assert planet.fallen_moons == () and planet.rotation_period_hours > 0.0
+
+
+def test_a_planet_whose_last_moon_is_gone_early_goes_on_to_the_spin_the_tide_gives_it(monkeypatch):
+    """GEN.1756: a planet that lost its only moon (escaped or fell) a few thousand years in has the rest of its age under its star's tide and the air's, as a planet without moons
+    does, not the spin the moon left it: a close-in planet ends locked, not turning 14 times an orbit."""
+    from planetgen.physics import body_spin, moon_orbits, spin_torques
+
+    planet = _planet_where(lambda p: getattr(p, "_born_moons", None) and not p.is_moon, "a planet with the moons it was born with")
+    host = planet.star.mass
+    age_s = planet.star.age * 1.0e9 * pc.SECONDS_PER_YEAR
+    axis_m = planet.distance * pc.AU_TO_M
+    gone_s = 1.0e-3 * age_s
+    start = 3.0 * spin_torques.orbital_rate(host, axis_m)       # still turning three times an orbit when the moon goes
+    real = moon_orbits.evolve
+
+    def moon_leaves(*args, **kwargs):
+        result = real(*args, **kwargs)
+        fates = tuple(moon_orbits.Fate(f.moon, f.distance_m, "escaped", gone_s) for f in result.moons)
+        return moon_orbits.OrbitResult(start, fates, 0.0, 0.0, gone_s)
+
+    monkeypatch.setattr(moon_orbits, "evolve", moon_leaves)
+    planets.generate_spin(planet, host, birth=planet._birth_spin)
+    expected = body_spin.evolve(planet, host, axis_m, start, age_s - gone_s, getattr(planet, "eccentricity", 0.0) or 0.0, capture_units=planet._birth_spin[2])
+    if expected.ratio is not None:
+        assert planet.rotation_period_hours == pytest.approx(planet.period * pc.SECONDS_PER_YEAR / 3600.0 / expected.ratio, rel=1e-9)
+    else:
+        assert planet.rotation_period_hours == pytest.approx(2.0 * math.pi / abs(expected.rate) / 3600.0, rel=1e-6) or expected.kind == "asynchronous"
+    assert planet.moons == []
+
