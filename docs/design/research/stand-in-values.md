@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1861 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1863 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1834 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1836 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 90 | 16 | 8 | 22 | 13 | 149 |
 | T5 | 107 | 29 | 8 | 2 | 1 | 147 |
-| T6 | 237 | 126 | 34 | 79 | 4 | 480 |
+| T6 | 238 | 127 | 34 | 79 | 4 | 482 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 106 | 41 | 225 |
-| All | 1066 | 382 | 94 | 259 | 60 | 1861 |
+| All | 1067 | 383 | 94 | 259 | 60 | 1863 |
 
 ## How the labels were given
 
@@ -572,6 +572,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IC3 | P | T6 | L1 | icy_tide.LOVE_TEMPERATURE_K 250 (h2 of the tide is 1 plus the k2 of a homogeneous ice sphere at that temperature, 0.25 to 0.5) | 200 to 270 | an icy body | test_icy_tide::test_the_effective_k2_over_q_carries_the_same_power_through_the_peale_law | the h2 of the layered body | the Love number of a Europa with a global ocean is 1.2 | predicted only | - | - |
 | IC4 | P | T6 | L1 | icy_tide.TOP_FALLBACK_K 100 and OWN_FLUX_FALLBACK_W_M2 1e-3 (the surface temperature and radiogenic flux of an icy body before its climate and heat are known, which the circularisation of an icy moon's orbit needs) | 60 to 150 and 3e-4 to 1e-2 | icy moons at generation | test_icy_tide::test_an_icy_body_reads_its_shell_through_the_interior_heat_helpers | the circularisation after the climate | the Galilean moons' 90 to 130 K and 1e-3 to 1e-2 W/m2 | predicted only | - | - |
 | IC5 | P | T5 | L0 | icy_tide.ENERGY_RATIO 9/7 and MAX_K2_OVER_Q 1.5 (the spin tide's strain squared against the eccentricity tide's for the same k2/Q, from the 21/2 of the power and the 3 of the torque; no body has a k2/Q above the fluid Love number over a Q of 1) | none | every icy body | test_icy_tide::test_a_thin_hot_shell_cannot_dissipate_more_than_a_fluid_body_at_a_q_of_one | none | the two standard laws, [R3464] and the despinning torque of [R1584] | predicted only | - | - |
+| IC6 | P | T6 | L1 | body_spin.icy_regime FROZEN (an icy body whose conducting shell, `hydrosphere.ice_shell_thickness_km`, is as thick as its radius or more is ice solid through, with no ocean under it for `icy_tide.k2_over_q` to stand on: its spin's `k2/Q` is `tidal_rheology.ice_response` at the mean of the surface's and the centre's temperature of the conducting profile, `body_spin.frozen_mean_temperature_k`) | none | an icy body of a few hundred kilometres or less, or a cold large one with little heat | test_icy_regime::test_a_body_frozen_through_is_not_given_the_shell_models_k2_over_q | a layered ice and rock body with its own temperature profile | the shell formula's 1.5 against a homogeneous ice sphere's 1e-3 for the same body (measured on the small Class D bodies of 1 to 5 AU, GEN.1755) | predicted only | - | - |
+| IC7 | P | T6 | L0 | body_spin.icy_regime ROCK (an icy body whose surface is at or above the melting point of ice has no shell: the spin's `k2/Q` is the rock mantle's, `tidal_rheology.rock_response`, and the air's thermal tide acts as on any rocky planet; the sea's own tide is left out) | none | an ocean world, or a body with over 1 percent water too warm for ice | test_icy_regime::test_a_water_rich_body_too_warm_for_ice_meets_the_rock_under_its_sea | the ocean's tide dissipation (`ocean_tides`) on the spin | the shell formula gave 0 for these, a planet that never despun (GEN.1756) | predicted only | - | - |
 
 ## 6.24 Stand-ins of the spin torques
 

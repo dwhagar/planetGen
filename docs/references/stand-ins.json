@@ -14809,6 +14809,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "icy_tide.ENERGY_RATIO 9/7 and MAX_K2_OVER_Q 1.5 (the spin tide's strain squared against the eccentricity tide's for the same k2/Q, from the 21/2 of the power and the 3 of the torque; no body has a k2/Q above the fluid Love number over a Q of 1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "body_spin.icy_regime FROZEN (an icy body whose conducting shell, hydrosphere.ice_shell_thickness_km, is as thick as its radius or more is ice solid through, with no ocean under it for icy_tide.k2_over_q to stand on: its spin's k2/Q is tidal_rheology.ice_response at the mean of the surface's and the centre's temperature of the conducting profile, body_spin.frozen_mean_temperature_k)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an icy body of a few hundred kilometres or less, or a cold large one with little heat"
+            ],
+            [
+              "What would show it wrong",
+              "test_icy_regime::test_a_body_frozen_through_is_not_given_the_shell_models_k2_over_q"
+            ],
+            [
+              "What replaces it",
+              "a layered ice and rock body with its own temperature profile"
+            ],
+            [
+              "Evidence",
+              "the shell formula's 1.5 against a homogeneous ice sphere's 1e-3 for the same body (measured on the small Class D bodies of 1 to 5 AU, GEN.1755)"
+            ]
+          ],
+          "id": "IC6",
+          "key": "6.23:IC6",
+          "kind": "P",
+          "slug": "6-23-ic6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "body_spin.icy_regime FROZEN (an icy body whose conducting shell, hydrosphere.ice_shell_thickness_km, is as thick as its radius or more is ice solid through, with no ocean under it for icy_tide.k2_over_q to stand on: its spin's k2/Q is tidal_rheology.ice_response at the mean of the surface's and the centre's temperature of the conducting profile, body_spin.frozen_mean_temperature_k)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "body_spin.icy_regime ROCK (an icy body whose surface is at or above the melting point of ice has no shell: the spin's k2/Q is the rock mantle's, tidal_rheology.rock_response, and the air's thermal tide acts as on any rocky planet; the sea's own tide is left out)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an ocean world, or a body with over 1 percent water too warm for ice"
+            ],
+            [
+              "What would show it wrong",
+              "test_icy_regime::test_a_water_rich_body_too_warm_for_ice_meets_the_rock_under_its_sea"
+            ],
+            [
+              "What replaces it",
+              "the ocean's tide dissipation (ocean_tides) on the spin"
+            ],
+            [
+              "Evidence",
+              "the shell formula gave 0 for these, a planet that never despun (GEN.1756)"
+            ]
+          ],
+          "id": "IC7",
+          "key": "6.23:IC7",
+          "kind": "P",
+          "slug": "6-23-ic7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "body_spin.icy_regime ROCK (an icy body whose surface is at or above the melting point of ice has no shell: the spin's k2/Q is the rock mantle's, tidal_rheology.rock_response, and the air's thermal tide acts as on any rocky planet; the sea's own tide is left out)"
         }
       ],
       "slug": "6-23-stand-ins-of-the-tidal-rheology",
