@@ -27,7 +27,6 @@ from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body
 from planetgen.physics import hill_perturbers, planet_moons
 from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
-from planetgen.generation import irregular_moons
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics import orbits
@@ -1727,6 +1726,7 @@ def drop_unstable_moons(planet):
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept
+    from planetgen.generation import irregular_moons      # imported here: the physics layer must import alone (GEN.1633), and `irregular_moons` reaches `belt_ledger` and so `belt_mass`, which reaches this module
     irregular_moons.keep_stable(planet)      # the irregular moons are held to the same zone (GEN.1084); they do not count in the return, no reflex offset comes of them
     return dropped
 

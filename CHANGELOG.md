@@ -2,6 +2,67 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4368] - 2026-11-16
+
+**Headline:** The belt mass module imports on its own again.
+
+### Fixed
+- GEN.1633: `physics/belt_mass.py` failed to import in a fresh interpreter (a circular import through `collision_outcome`, `planets`, `generation/irregular_moons`, `irregular_population` and `belt_ledger`). `physics/planets.py` now imports `irregular_moons` where it uses it, and `tests/test_physics_imports_alone.py` covers `belt_mass` and the four modules of the cycle. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4367] - 2026-11-16
+
+**Headline:** An asteroid belt's page lists the planets it made, and the designation of a belt body that became a planet leads to that planet.
+
+### Added
+- **The belt's information page has a "Bodies made planets" section (GEN.1511).** It lists the heaviest round bodies of the belt that GEN.1510 made planets, each with its name (a link to its own page), its designation in the belt, class, mass, diameter and distance; `GET /api/objects/<ref>/belt-page` has the same list as `planets`. Their mass is not in the belt's totals.
+- **The old designation still works.** `/object/belt:<ID>/member/<rank>` of a body made a planet goes to that planet's page; `GET /api/objects/<ref>/belt-members/<rank>` answers `promoted` with the planet's reference.
+- **A planet made from a belt names it.** Its property sheet has a "Made from a belt" row with the belt and the designation the body had there.
+- **The system scene names the belt.** `GET /api/systems/<id>/scene` gives a planet made from a belt `made_from_belt` (the belt's `ref`, and the `rank` and `designation` of the body there); no other planet has the key.
+- **A census of belt bodies made planets** (`tests/audit/belt_promotion_census.py`): planets by class and by star class, per belt, the generation time, and the rules of the promotion checked over a sample of systems.
+generation-output: none
+
+## [8.0.4366] - 2026-11-16
+
+**Headline:** The test that every generated number has a database column now covers belts, comets, rogue planets, interstellar comets, asteroid fields, black holes and neutron stars, and every private attribute says why it is not kept.
+
+### Added
+
+- DB.134: `tests/test_stored_outputs.py` (DB.101) checks the public attributes of a generated asteroid belt, comet, rogue planet, interstellar comet, asteroid field, black hole and neutron star against the fields that write and load their rows (`KIND_HOMES` names where an attribute is kept or why it is not), and every private (underscore) attribute of a generated body, star or object against `PRIVATE_HOMES`: working state says why it is not a stored output, and the numbers that are stored (the birth numbers, the held eccentricity) name their columns. A new private attribute fails the test until it has a line. `tilt_chaotic` of `oddity_quantities` stays unstored and says why (a gate read when oddities W6 and W61 are drawn; the oddity ids and the tilt are stored).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4365] - 2026-11-16
+
+**Headline:** the first sector a new version of the generator fills no longer stands for minutes with nothing moving: building the bright-star sampling tables now shows progress.
+
+### Fixed
+
+- PERF.273: `generate-start-sector`, `generate-neighborhood` and `generate-sectors` stood 6 to 9 s on a first run of a code version, and `update.sh` makes every new version a first run. The cause is not a seasonal solve (no single call is long: a sweep of 400 random bodies gives a median of 11 ms and a worst of 1.2 s): a code key no process has seen builds the bright-star sampling tables cold (231 tables on the silence test's galaxy, "about four minutes on a slow machine" by `band_table_cache`'s own note), and each table is hundreds of cells of track evaluations with nothing telling the unit it is alive. The three table builds in `star_population` now start the quiet clock again for every cell they work out (`bodybeat.settled()`; nothing happens outside a unit). Measured cold: the longest quiet stretch of the first sector fell from 8.7 s to under 2 s. The galaxy is the same; no draw is touched.
+- PERF.273: `test_longest_silence.py` runs on a sampling-table folder of its own that is empty when the file starts, so it always measures the cold case (a warm folder from an earlier run on the same code had hidden the stretch and made the test pass or fail by what the box had run before). The three 12 s rows are deleted from `RECORDED_SILENCE`, which is now empty.
+
+## [8.0.4364] - 2026-11-16
+
+**Headline:** The test that haze never cools the ground less than the clear air now replays the same world and skips airs that did not settle, so it tests something and is green again.
+
+### Fixed
+
+- TEST.778: `test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it` was red on main since GEN.1754 (29fb3c4f1c) moved the water of rocky bodies and with it the first hazy body with ground, seed 29 to seed 15, a 257 K ice-covered body whose air did not settle (`Air.converged` False, the knee of GEN.1344: the haze switches on and off between two answers and the stored air is their mean). The bound of 0.5 K is unchanged. Two causes, both of the test: the fixture takes an air that settles (`converged` and not `knee`), and the replay repeats every draw of the body's own solve from `Air.entry_state` (as `air_branches.other_branch` does); before it drew on a stream of its own and ended with a replayed haze of 0.0 in every body tried (seeds 15, 29, 140, 189), so the two airs it compared did not differ and the test passed on nothing. Now the first body is seed 29 (143.60 K with the haze, 144.09 K without: the haze shields the ground by 0.49 K, anti-greenhouse as GEN.851 says) and the test asserts the replay holds the haze (`tau` over 0). Seed 189 gives 117.27 K with and 132.14 K without.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4363] - 2026-11-16
+
+**Headline:** planning a galaxy's skeleton shows a count while its outline is built, so the plan's bar no longer stands still for the 7 seconds its longest part takes.
+
+### Changed
+
+- OPS.265: the `outline` piece of `plan-skeleton` stood 7.4 s with nothing moving on the silence test's small galaxy. Each part of the outline now begins its own second-level count (the shape, the globular clusters, the satellite galaxies, the young open clusters, the walk of the shells), and the longest part, the mean system mass of each cluster's age (8,800 ages, about 4 s), counts each age as it is worked out ("Working out the mean system mass of each age of the cluster field"). The figures are the ones the component field worked out for itself before, found once for each age and handed to it; the field and the galaxy are the same. The longest quiet stretch fell from 7.4 s to 2.2 s.
+- OPS.265: the first system of a process (`generate-system`) stands under the silence test's budget now that a count of bodies runs inside it (OPS.266), so its row is deleted from `RECORDED_SILENCE`; a world's final pass in a system (`_finish_planet`, `_finish_moon`) starts the quiet clock again as each body ends. What is left in the sector commands is one body's seasonal solve that sometimes stands 4 to 6.6 s inside one call: their rows stay, with that reason.
+
 ## [8.0.4362] - 2026-11-16
 
 **Headline:** two tests that were red on main pass again, and the browser's clock formatter now reads its time factors from the unit registry.
