@@ -10,7 +10,7 @@ from planetgen import tuning
 from planetgen.generation import evolution, life
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, biogenic_oxygen as bo, gases, habitability_world, life_air, life_classes, surface_refuge
+from planetgen.physics import atmosphere, biogenic_oxygen as bo, constants, gases, habitability_world, life_air, life_classes, surface_refuge
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -190,7 +190,7 @@ def test_the_oxygen_stands_at_the_plateau_until_the_reductant_sink_is_a_third_of
 
 
 def test_the_oxygen_rises_after_the_delay_and_not_before(monkeypatch):
-    monkeypatch.setattr(bo, "profile_of", lambda body, share=1.0, extra_store_mol=0.0: bo.Profile(2.0 * share, 1.0, 4.0e9 + extra_store_mol, 3.0, 2.0e4, 4.0))
+    monkeypatch.setattr(bo, "profile_of", lambda body, share=1.0, extra_store_mol=0.0, producers=None: bo.Profile(2.0 * (share if producers is None else sum(one for one, _ in producers)), 1.0, 4.0e9 + extra_store_mol, 3.0, 2.0e4, 4.0))
     assert bo.rise_age_gyr(None, [(0.5, 1.0)]) == pytest.approx(4.5)
     assert bo.rise_age_gyr(None, []) is None
 
@@ -363,6 +363,59 @@ def test_air_with_no_gas_over_its_saturation_pressure_is_left_as_it_is():
         assert frozen[formula] == pytest.approx(pascal, rel=1e-6)
 
 
+def _lit_sea_world(temperature_k, luminosity_w=None):
+    """A sea world of Earth's size and warmth under a star of `temperature_k` that gives Earth's bolometric flux at one AU (so only the colour differs)."""
+    star = SimpleNamespace(luminosity=luminosity_w or constants.SOLAR_LUMINOSITY, temperature=temperature_k)
+    return SimpleNamespace(star=star, distance=1.0, hydrosphere="surface ocean", ocean_fraction=0.71, surface_temperature=288.0, radius=6371.0, gravity=1.0)
+
+
+def test_each_oxygenic_class_eats_the_light_of_its_own_band_and_the_sun_gives_class_1a_earths_own():
+    """GEN.1744: `active_light_ratio` of class 1a is 1 under the Sun; 1b (blue, 300 to 500 nm) and 1c (far red, 700 to 800 nm at 0.8) count their own band and efficiency."""
+    from planetgen.physics import life_classes, stellar_spectrum
+    rows = {row.id: row for row in life_classes.CLASSES if row.id in ("1a", "1b", "1c")}
+    sun = _lit_sea_world(constants.SOLAR_TEMPERATURE_K)
+    assert bo.active_light_ratio(sun) == pytest.approx(1.0, rel=1e-6) == pytest.approx(bo.active_light_ratio(sun, bo.band_of(rows["1a"])), rel=1e-6)
+    for name in ("1b", "1c"):
+        band = bo.band_of(rows[name])
+        assert (band.nm, band.efficiency) == (tuple(rows[name].energy["band_nm"]), rows[name].energy["efficiency"])
+        expected = (float(stellar_spectrum.blackbody_fraction(*band.nm, constants.SOLAR_TEMPERATURE_K)) * band.efficiency
+                    / float(stellar_spectrum.blackbody_fraction(*bo.PAR_NM, constants.SOLAR_TEMPERATURE_K)))
+        assert bo.active_light_ratio(sun, band) == pytest.approx(expected, rel=1e-6)
+    blue, red = bo.band_of(rows["1b"]), bo.band_of(rows["1c"])
+    hot, cool = _lit_sea_world(9500.0), _lit_sea_world(3200.0)
+    assert bo.active_light_ratio(hot, blue) > bo.active_light_ratio(hot, red)         # a hot star is rich in blue light, a cool one in the far red
+    assert bo.active_light_ratio(cool, red) > bo.active_light_ratio(cool, blue)
+    assert bo.active_light_ratio(cool, red) / bo.active_light_ratio(sun, red) > 3.0 * bo.active_light_ratio(cool, blue) / bo.active_light_ratio(sun, blue)
+
+
+def test_a_class_makes_oxygen_in_proportion_to_the_light_of_its_band_and_the_classes_add_by_their_shares():
+    area = bo.EARTH_AREA_M2
+    cool = _lit_sea_world(3200.0)
+    blue, red = bo.Band((300.0, 500.0), 1.0), bo.Band((700.0, 800.0), 0.8)
+    assert bo.productivity(cool, area) == bo.productivity(cool, area, bo.PAR_BAND)
+    assert bo.productivity(cool, area, red) > bo.productivity(cool, area, blue)
+    mixed = bo.source_of(cool, area, [(0.25, blue), (0.5, red)])
+    assert mixed == pytest.approx(0.25 * bo.productivity(cool, area, blue) + 0.5 * bo.productivity(cool, area, red))
+    assert bo.source_of(cool, area, [(0.7, bo.PAR_BAND)]) == pytest.approx(0.7 * bo.productivity(cool, area))
+
+
+def test_the_oxygen_rise_counts_each_classs_source_in_its_own_band(monkeypatch):
+    """GEN.1744: a class that eats light the star hardly gives carries a smaller source, so the store fills later."""
+    blue, red = bo.Band((300.0, 500.0), 1.0), bo.Band((700.0, 800.0), 0.8)
+    scale = {bo.PAR_BAND: 2.0, blue: 0.5, red: 4.0}
+
+    def profile(body, share=1.0, extra_store_mol=0.0, producers=None):
+        source = sum(one * scale[band] for one, band in (producers if producers is not None else [(share, bo.PAR_BAND)]))
+        return bo.Profile(source, 1.0, 4.0e9 + extra_store_mol, 3.0, 2.0e4, 4.0)
+
+    monkeypatch.setattr(bo, "profile_of", profile)
+    monkeypatch.setattr(bo, "reductant_history_factor", lambda body, age_gyr: 1.0)
+    assert bo.rise_age_gyr(None, [(0.0, 1.0)]) == pytest.approx(4.0)                  # class 1a's band: S 2, R 1, a store of 4 Gyr of surplus 1
+    assert bo.rise_age_gyr(None, [(0.0, 1.0, red)]) == pytest.approx(4.0 / 3.0)       # S 4: a surplus of 3
+    assert bo.rise_age_gyr(None, [(0.0, 1.0, blue)]) is None                          # S 0.5 under R 1: never
+    assert bo.rise_age_gyr(None, [(0.0, 0.5, red), (2.0, 0.5, blue)]) == pytest.approx(3.6)   # S 2 from the start (a surplus of 1 for 2 Gyr, half the store); the blue class then adds 0.25: the rest fills in 2 / 1.25 Gyr
+
+
 def test_the_balance_pressure_goes_with_the_surplus_per_area_to_the_power_one_over_the_exponent_and_not_with_the_gravity():
     """GEN.1733: weathering follows the oxygen's partial pressure, so a world's balance depends on its surplus per area and not on how heavy it is."""
     exponent, earth = bo.OXIDATIVE_WEATHERING_EXPONENT, bo.EARTH_SURPLUS_MOL_YR
@@ -380,7 +433,7 @@ def test_a_heavy_world_with_earths_balance_holds_the_same_oxygen_pressure_and_no
     for gravity in (0.6, 1.0, 1.5, 2.5):
         body = _Body(gravity=gravity)
         area = bo.area_m2(body)
-        monkeypatch.setattr(bo, "productivity", lambda b, a, s=surplus_per_area: s * a + 0.0)
+        monkeypatch.setattr(bo, "productivity", lambda b, a, band=None, s=surplus_per_area: s * a + 0.0)
         monkeypatch.setattr(bo, "reductant_flux", lambda b, a: 0.0)
         monkeypatch.setattr(bo, "air_moles", lambda b, a=area, g=gravity: {"N2": 1.0e5 * a / (g * 9.80665 * 0.028)})
         pressures.append(bo.profile_of(body).steady_pa)

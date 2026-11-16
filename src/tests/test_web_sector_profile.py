@@ -92,10 +92,10 @@ def test_a_heavy_cell_warns_before_it_runs(client, profiles):
     profiles["profile"] = _profile(unresolved=unresolved, seconds=7300.0)
     html = client.get("/sector/at/40/0/3").get_data(as_text=True)
     assert 'id="heavy-cell"' in html and "more than the 5,000 a cell resolves" in html
-    assert "Filling it takes about 2 h 01 m" in html and "3.0 MB" in html
+    assert "Filling it takes about 2h 1m 40s" in html and "3 MB" in html
     profiles["profile"] = _profile(seconds=HEAVY_CELL_SECONDS + 1)
     html = client.get("/sector/at/40/0/3").get_data(as_text=True)
-    assert 'id="heavy-cell"' in html and "Filling it takes about 2 m 01 s" in html
+    assert 'id="heavy-cell"' in html and "Filling it takes about 2m 1s" in html
 
 
 def test_a_slow_estimate_from_an_unmeasured_server_says_so():

@@ -9573,19 +9573,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows yet.
   Prerequisites: NAV.4. Related: USR.29, POP.21.
 
-- [ ] **DB.112 Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration)**
-  Follow-up of the item that replaces the quadrants with the charted
-  region names (Boss, 6:17 PM EST on 2026-11-05: quadrants are useless).
-  Once nothing reads the quadrant, remove the stored quadrant column on
-  sectors (added with the sector count and density by PERF.208), its
-  index, its writes in the sector fill and the unused quadrant filter
-  code in db/query.py. Lock item: a migration, the old-schema fixture
-  and the storage checksum list change. Done: the migration, the column
-  gone from the schema and the models, the filter code deleted, and the
-  number guard and old-schema tests pass.
-  Prerequisites: UX.272. Related: PERF.208.
-  Owner (TODO sweep, 2026-11-12): Lane 15 (storage).
-
 ## API: The JSON API
   Owner (TODO sweep, 2026-11-12): Lane 15 (storage).
 
@@ -12709,12 +12696,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1724, GEN.1723.
   Filed by the TODO thread.
 
-- [ ] **PERF.271 Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system)**
-  Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing, may move results). PERF.267 finding (3): in a system 52 percent of the time is surface_air.solve, and each planet's air is built twice; 20 percent is gas_equilibrium. The generator is about 60 percent slower than 8.0.3700 (3.4 to 5.4 s a system, about 30 percent of it at the Train 25 merge, release 3992). Reuse rule applies; physics must not change, only the repeat.
-  Correction (Lane 06, 4:00 AM EST 11-15): building the air once saves only about 15 percent (116 first builds at 0.14 s and 7 remakes); the cost is the final-age solve, a fixed point of about 8 steps that redraws the gas mixture each step (mixture_draw 86 s, gas_equilibrium 42 s on 16 systems). The lever: start the final solve from the air the first build found. Still a lock item (values move slightly).
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
-  Filed by the TODO thread.
-
 - [ ] **PERF.272 Promote belt members only when they are read (15 percent of a system's time)**
   Lane 06's PERF.267 analysis, 12:55 AM EST 2026-11-15 (report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md). Lock item (value-changing). PERF.267 finding (3): belt-member promotion takes 15 percent of each system's generation time. Make it on demand where nothing in generation reads the members.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 06. Prerequisites: none. Related: PERF.267, OPS.253.
@@ -12739,11 +12720,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: OPS.219, OPS.227. Related: OPS.220, OPS.226, OPS.228.
   Filed by the TODO thread.
 
-- [ ] **GEN.1744 Oxygenic life variants 1b and 1c use their own light bands in biogenic_oxygen.active_light_ratio (all use 400 to 700 nm today; Science output changes)**
-  Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (biogenic_oxygen owner), lock item. Prerequisites: none. Related: GEN.1739, GEN.1745.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1745 A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts**
   Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
   Boss, 11:25 AM EST 2026-11-15 (research thread): "NO class is assigned until the evolution is finished and we have a finished planet, this way we settle the planet after the physics not before." So nothing in the air history reads a class letter; the class is assigned once from the finished body after the last step; the in-between apply_class calls (generation/life.py 89 and 473, generation/system.py 2410 and 2419) go with this item, and forced requests judge only that final class (report section 5.8.1). Overlaps GEN.1653.
@@ -12762,25 +12738,19 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03, after GEN.1737; lock item. Prerequisites: GEN.1745, GEN.1740. Related: GEN.1739, GEN.1740.
   Filed by the TODO thread.
 
-- [ ] **OPS.262 Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget**
-  Lane 16, 11:43 AM EST 2026-11-15 (OPS.196 part 2): the silence budget test from OPS.196 covers the converted commands one at a time; a run of every command needs a built galaxy per command across many commands, so it is split out of OPS.196.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16, after OPS.196. Prerequisites: OPS.196. Related: OPS.196, OPS.191.
+- [ ] **OPS.264 (bug) Every per-piece writer is safe to re-run: scatter shells and scatter phenomena write their 10,000-row batches twice, and unplaced sectors and the system finish piece write a second row, when a piece runs again after its commit**
+  Lane 15, 8:32 PM EST 2026-11-15 (found while fixing DB.131, PR #6758): a piece that re-runs after its write committed (Boss's run of 8:18 PM EST re-ran a Neighborhood piece) is safe only where the write and the piece's cursor commit together or the piece checks first. By reading: the nebula field draw stops on a duplicate key; scatter shells and scatter phenomena commit 10,000-row batches one by one, so a re-run silently writes the rows twice; unplaced sectors and the system finish piece write a second row; finish-phenomena, backfill, link, sector paths and the clear/empty commands are safe; population and territories not yet read. Do: make each unsafe writer commit its rows with the piece's cursor (as OPS.222 part B did) or check first, read population and territories, and add a re-run test per writer. Lane 13 owns why the engine re-ran the piece.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 15, after DB.131 and ahead of GEN.1141. Prerequisites: none. Related: DB.131, OPS.222, OPS.228.
   Filed by the TODO thread.
 
-- [ ] **GEN.1748 Nebular hydrogen envelopes for bodies under 1 Earth mass (source in reports/early-envelope-gen1741-2026-11-15.md): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state**
-  Research thread "Design planet air history simulation", 12:46 PM EST 2026-11-15 (GEN.1741 report reports/early-envelope-gen1741-2026-11-15.md). Do: give bodies of 0.2 to 1 Earth mass the sourced nebular envelope and its loss, feeding GEN.1745's history; register stand-ins in GEN.725. Changes output (lock item).
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (planet composition), lock item, after GEN.1744. Prerequisites: GEN.1741. Related: GEN.1745, GEN.1741.
-  Boss, 6:09 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiXMTDQXwZf1M4vPEnYyuBPV, "1"): option 1, build both the nebular envelope and the water its hydrogen makes.
+- [ ] **OPS.265 (bug) plan-skeleton's outline piece (7.5 s) and generate-system's first system (8.5 s) go silent past the 5 s budget on a small galaxy: give each a count inside**
+  Lane 16, 9:29 PM EST 2026-11-15 (OPS.262, PR #6762): the all-commands silence run records these with their own budgets in src/tests/test_longest_silence.py (or tests/), so the test stays green while they are open. Boss's standing order (11-13): every long step reports fine-grained progress with real counts. Do: add the inner count, then drop the command's own budget from the silence test so the default 5 s applies.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
   Filed by the TODO thread.
 
-- [ ] **GEN.1749 (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant)**
-  Lane 04, 1:25 PM EST 2026-11-15 (Class M thread's meter of 6645 and 6674 on Train 32): older than 6674, which only made the halite sea that showed it. Do: find why a rocky planet stores no P2O5 at all and fix the composition step so every rocky body carries its rock phosphorus; no default patched in at the reader.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04, lock item, after GEN.1744. Prerequisites: none. Related: GEN.1730, GEN.1733.
-  Filed by the TODO thread.
-
-- [ ] **DB.131 (bug) New galaxy run fails in Stage 5 (Neighborhood): unit 67 hits IntegrityError 1062, duplicate star_systems.uq_star_systems_uid for a system of sector 75B000100861**
-  Boss, 8:18 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiCxncUZJKJcFx46npiZq9Gb, log /mnt/project-files/logs/new-galaxy-dup-uid-2026-11-15.log): PlanetGen 8.0.4317, galaxy seed 5AB93AB5DF1A1685B8A4C0F7BF26D3D8, after a wipe; 93 of 94 neighborhood sectors stored, then unit 67 failed with Duplicate entry 0x0075B000100861 for star_systems.uq_star_systems_uid; sector 75B000100861 itself never logged done, so the clash is either two systems of that sector given one uid, or a system written earlier by another sector (or an earlier attempt of the same unit) under that sector's uid. The run is held (Retry held or cancel). Generation blocker; Boss's 5000-system census may hit it too. Do: reproduce with the seed (the neighborhood of the default galaxy), find which rows collide and why (uid allocation, a system placed across a sector edge, or a retried unit re-inserting), fix the cause, add a test; then say whether Retry held finishes the held run or it must be restarted.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 15 (storage, object IDs), top priority, ahead of GEN.1141. Prerequisites: none. Related: DB.75, GEN.1141, OPS.222, OPS.238.
+- [ ] **OPS.266 (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector**
+  Lane 16, 9:29 PM EST 2026-11-15 (OPS.262, PR #6762): the all-commands silence run records these with their own budgets in src/tests/test_longest_silence.py (or tests/), so the test stays green while they are open. Boss's standing order (11-13): every long step reports fine-grained progress with real counts. Do: add the inner count, then drop the command's own budget from the silence test so the default 5 s applies.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
   Filed by the TODO thread.
 
 - [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**

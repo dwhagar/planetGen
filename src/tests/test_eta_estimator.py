@@ -104,14 +104,14 @@ def test_a_sector_bar_starts_from_the_recorded_rate_only_when_one_exists():
 def test_the_generate_page_never_shows_dashes_for_the_time_left():
     assert generate_page.remaining_label(None, running=True) == "estimating the time left"
     assert generate_page.remaining_label(None, running=False) == ""
-    assert generate_page.remaining_label(100.0) == "about 1 m 28 s to 1 m 54 s left"
+    assert generate_page.remaining_label(100.0) == "about 1m 28s to 1m 55s left"
 
 
 def test_the_queue_page_shows_a_range_or_estimating():
     assert queue_page._eta_text(None, live=True) == "estimating"
     assert queue_page._eta_text(None, live=False) == ""
     assert queue_page._eta_text({"seconds": None}, live=True) == "estimating"
-    assert queue_page._eta_text({"seconds": 100.0}, live=True) == "1 m 28 s to 1 m 54 s"  # PERF.99: the eta is a dict
+    assert queue_page._eta_text({"seconds": 100.0}, live=True) == "1m 28s to 1m 55s"  # PERF.99: the eta is a dict
     assert queue_page._eta_text({"seconds": 100.0, "stalled": True}, live=True) == "waiting on progress"
 
 
@@ -204,13 +204,13 @@ def test_the_overall_bar_still_says_estimating_before_the_step_has_started():
 
 def test_the_queue_page_marks_an_untimed_estimate_with_its_wide_range():
     text = queue_page._eta_text({"seconds": 100.0, "low": 40.0, "high": 300.0, "rough": True}, live=True)
-    assert text == "40.0 s to 5 m 00 s (not timed yet)"
+    assert text == "40s to 5m (not timed yet)"
     assert "rough" not in queue_page._eta_text({"seconds": 100.0, "rough": False}, live=True)
 
 
 def test_a_time_worked_out_from_the_default_speed_is_a_range_marked_not_timed_yet():
     unmeasured = Estimate(sectors=5, systems=50.0, stars=65.0, bytes=1000, seconds=100.0, workers=4, measured=False)
-    assert "40 s to 5 m 00 s (not timed yet on this server)" in unmeasured.summary()
+    assert "40s to 5m (not timed yet on this server)" in unmeasured.summary()
     assert "guess" not in unmeasured.summary()
     measured = Estimate(sectors=5, systems=50.0, stars=65.0, bytes=1000, seconds=100.0, workers=4, measured=True)
     assert "not timed yet" not in measured.summary()

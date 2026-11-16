@@ -401,22 +401,6 @@ def test_parse_designation_only_ever_raises_value_error(text):
 
 # --- zones and quadrants -------------------------------------------------------
 
-@given(finite, finite)
-def test_quadrant_is_always_one_to_four_and_matches_the_angle(x, y):
-    quadrant = spherical.sector_quadrant(x, y)
-    assert quadrant in (1, 2, 3, 4)
-    # Within a rounding error of an axis, atan2 may land on either side.
-    assume(abs(x) > 1e-9 * abs(y) and abs(y) > 1e-9 * abs(x))
-    if x > 0 and y > 0:
-        assert quadrant == 1
-    elif x < 0 < y:
-        assert quadrant == 2
-    elif x < 0 and y < 0:
-        assert quadrant == 3
-    elif y < 0 < x:
-        assert quadrant == 4
-
-
 @given(st.integers(0, 10**6), st.floats(0.1, 1000), st.floats(0.1, 10000))
 def test_zones_are_monotone_in_shell(shell, edge_ly, target):
     assert 0 <= spherical.sector_zone(shell, edge_ly, target) <= spherical.sector_zone(shell + 1, edge_ly, target)

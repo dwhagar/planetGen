@@ -17,7 +17,7 @@ Written 2026-11-08, 3:35 PM EST by the job-queue design thread (DOC.113), for Bo
 
 All [S] unless marked.
 
-**The stage list is fixed in code.** `galaxy_stages(args)` returns, in this order: the sector stages (start and neighborhood, or one sectors stage, picked by flags), `link`, `mass`, `luminosity`, the three phenomena stages (`phenomena`, `phenomena-index`, `nebula-draw`), `block-lights`, `backfill`, `population`, `territories`, `settle`, `run-blocks`. Order is the list order. A stage the request does not need is dropped or marked skipped by an `if` in code, and a run carried on after a stop works by tagging stages `finished_by` (`finish_run.py`).
+**The stage list is fixed in code.** `galaxy_stages(args)` returns, in this order: the sector stages (start and neighborhood, or one sectors stage, picked by flags), `link`, `mass`, `luminosity`, the phenomena stages (`phenomena`, `phenomena-special`, `phenomena-index`, `phenomena-record`) and `nebula-draw`, `block-lights`, `backfill`, `population`, `territories`, `settle`, `run-blocks`. Order is the list order. A stage the request does not need is dropped or marked skipped by an `if` in code, and a run carried on after a stop works by tagging stages `finished_by` (`finish_run.py`).
 
 **The only dependency data is four lines.** `commands.REQUIRES` names four edges (phenomena index after phenomena scatter, territories after population, link and settle after the three sector commands). Those edges are only used to refuse a wrong list (`validate_order`) and to write a "released" line. Nothing runs two stages at once; the doc says so (`redis-and-the-work-queue.md` 5.13: "making two stages run together is a later step").
 
@@ -59,7 +59,7 @@ Boss, 2026-11-08, 3:32 PM EST: all jobs are executed as a sequence of singular c
 | Today | What it does in one go | Becomes, in sequence |
 |---|---|---|
 | `prepare_scatter_phenomena` (built, OPS.123 slice 3) | empties the earlier scatter, then takes off the indexes | `empty-phenomenon-scatter` (built; `clear-scatter` was not reused: it refreshes the block lights and resets the epoch), `drop-phenomenon-indexes` (built) |
-| the `finish-phenomena` command (`finish_phenomena_do`) | draws the special phenomena (nucleus, hypervelocity stars), writes them, builds the table's indexes one at a time, stamps the hypervelocity stars' epoch, records the scatter's seed and mass cut | `draw-special-phenomena`, `write-special-phenomena`, `build-index` (one per index), `stamp-hypervelocity-epoch`, `record-phenomenon-scatter` |
+| the `finish-phenomena` command (`finish_phenomena_do`; built as three commands by OPS.239 part A: `write-special-phenomena` draws and writes the special rows with their classes in two pieces, because the written rows come from the drawn ones through the unit's stored results; `build-phenomenon-indexes` is a piece to an index and the stamp; `record-phenomenon-scatter` is one piece) | draws the special phenomena (nucleus, hypervelocity stars), writes them, builds the table's indexes one at a time, stamps the hypervelocity stars' epoch, records the scatter's seed and mass cut | `draw-special-phenomena`, `write-special-phenomena`, `build-index` (one per index), `stamp-hypervelocity-epoch`, `record-phenomenon-scatter` |
 | `conclude_scatter_phenomena` | counts the phenomena per class and stores them | `store-phenomenon-class-counts` |
 | `prepare_scatter_pass` (built, OPS.123 slice 3), `conclude_scatter_pass` | empties bright stars (or the luminosity pass); stores threshold, seed and mass limit; stores the generator epoch | `clear-bright-stars` (built: one command for both, the stage `mass-clear` or `luminosity-clear`), `store-scatter-limits`, `store-scatter-epoch` |
 | `prepare_draw_nebula_field` (built, OPS.123 slice 3), `conclude_draw_nebula_field` | checks the skeleton and empties the table; links the stored nebulae to their rows and makes the nebula block totals | `empty-nebula-field` (built: the skeleton check and the no-outline guard stay with the step, which is why `clear-scatter` was not reused), `link-nebulae-to-field`, `make-nebula-block-totals` |
@@ -132,7 +132,7 @@ The planner (replacing `galaxy_stages`, `for_command`, `KIND_OF_STAGE`, `build_s
    | scatter-mass | `stars:mass` and the mass limit | `skeleton` |
    | scatter-luminosity (and band) | `stars:bright` | `stars:mass` (it works at the stored mass limit) |
    | scatter-phenomena | `phenomena:shells` | `skeleton` |
-   | finish-phenomena | `phenomena:index` | `phenomena:shells` (existing REQUIRES) |
+   | write-special-phenomena, build-phenomenon-indexes, record-phenomenon-scatter | `phenomena:special`, `phenomena:indexed`, `phenomena:index` (the artifacts `phenomena-special`, `phenomena-indexed`, `phenomena` of `queue/needs.py`) | `phenomena:shells`, then each the one before |
    | draw-nebula-field | `nebula` | `skeleton`, `phenomena:index` [?] |
    | scatter-backfill | `stars:backfill(cell)` | `sector` of the cell's sectors, `stars:mass` |
    | refresh-block-lights, refresh-run-blocks | `blocks` | every fact that writes a block total (PERF.251 already wants it last) |

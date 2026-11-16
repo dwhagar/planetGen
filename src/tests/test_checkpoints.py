@@ -234,11 +234,13 @@ RESUMES = {
     "draw-nebula-field": "one slab of the field for each index from the unit's first, each written to `nebula_field`",
     "link-neighbors": "the unit's chunk of sectors in `store.link_order`, in batches, each batch one transaction under the neighbour lock",
     "settle-sector-paths": "the unit's sectors that still exist, in batches that sit together",
-    "finish-phenomena": "four fixed pieces; the drawn special rows are the first piece's stored result, the write and the record commit through `ctx.commit_piece()` so their data and the cursor land together, the indexes are built only where missing",
+    "write-special-phenomena": "two fixed pieces; the drawn special rows are the first piece's stored result, the write and the classes commit through `ctx.commit_piece()` so their data and the cursor land together",
+    "build-phenomenon-indexes": "a piece to an index and the stamp, each built only where missing, the stamp the same when repeated",
 }
 """dict: The commands that `resumes`, each with why its pieces may be started after a cursor (the three conditions of `commands.CommandSpec`)."""
 
 RESTARTS = {
+    "record-phenomenon-scatter": "one piece",
     "plan-skeleton": "the pieces hand each other the skeleton through ctx.state",
     "refresh-block-lights": "one piece",
     "store-scatter-limits": "one piece",

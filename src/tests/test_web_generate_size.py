@@ -40,7 +40,7 @@ def test_a_form_is_sized_with_the_estimate_the_review_step_shows(site, client, e
     answer = client.get(SIZE, query_string=SHELL_40).get_json()
     assert answer["state"] == "ready" and answer["refused"] is False
     assert answer["line"] == ("About 9 sectors (about 120 star systems, 156 stars), adding about 8.4 MB to the "
-                              "database, taking about 1 m 15 s.")
+                              "database, taking about 1m 15s.")
     assert answer["estimate"]["sectors"] == 9 and answer["estimate"]["bytes"] == 8_400_000
     review = client.post("/admin/generate/task/add-sectors", data={"action": "galaxy", **SHELL_40,
                                                                   "csrf_token": _csrf(client)})
@@ -96,7 +96,7 @@ def test_a_deep_check_is_sized_in_systems_and_time(site, client, monkeypatch):
     monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: {
         "deep_check": True, "systems": 12345, "seconds": 90.0, "measured": True, "refused": False, "refusal": None})
     answer = client.get("/admin/generate/task/check/size", query_string={"action": "check_db", "deep": "1"}).get_json()
-    assert answer["state"] == "ready" and answer["line"] == "Checks about 12,345 star systems, about 1 m 30 s."
+    assert answer["state"] == "ready" and answer["line"] == "Checks about 12,345 star systems, about 1m 30s."
 
 
 def test_a_task_that_makes_several_things_must_have_one_chosen(site, client, estimates):

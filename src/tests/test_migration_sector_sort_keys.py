@@ -1,8 +1,8 @@
 # tests/test_migration_sector_sort_keys.py
 
 """
-PERF.208: `sector_system_counts` holds a count, a density and a Quadrant for every sector. Migration 0181 gives the table of the schema before it the
-two columns and their indexes and fills it again, one row for each sector, the empty ones and the ones with no galaxy position included.
+PERF.208: `sector_system_counts` holds a count and a density for every sector. Migration 0181 gave the table of the schema before it the
+two columns and their indexes (and a Quadrant, which migration 0264 took out again, DB.112) and fills it again, one row for each sector, the empty ones and the ones with no galaxy position included.
 """
 
 import pytest
@@ -43,16 +43,14 @@ def test_the_previous_schemas_table_is_filled_again_with_a_row_for_every_sector(
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         rows = {row["name"]: row for row in conn.execute(
-            "SELECT sec.name, c.system_count, c.system_density, c.quadrant FROM sectors sec "
+            "SELECT sec.name, c.system_count, c.system_density FROM sectors sec "
             "JOIN sector_system_counts c ON c.sector_id = sec.id").fetchall()}
         assert set(rows) == {name for name, _, _ in SECTORS}
         for name, center, count in SECTORS:
             assert rows[name]["system_count"] == count, name
             assert (rows[name]["system_density"] is None) == (center is None), name
         assert rows["North east"]["system_density"] == pytest.approx(2 / 4000 ** 3)
-        assert {name: rows[name]["quadrant"] for name in rows} == {
-            "North east": "I", "North west": "II", "South west": "III", "South east": "IV", "Nowhere": None}
         names = {row["Key_name"] for row in conn.execute("SHOW INDEX FROM sector_system_counts").fetchall()}
-        assert {"idx_sector_system_counts_density", "idx_sector_system_counts_quadrant"} <= names
+        assert "idx_sector_system_counts_density" in names and "idx_sector_system_counts_quadrant" not in names
     finally:
         conn.close()

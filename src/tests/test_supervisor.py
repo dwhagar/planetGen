@@ -53,7 +53,7 @@ def test_an_idle_supervisor_publishes_each_turn_and_ends_after_its_idle_spell():
     assert loop.run() == "idle"
     assert [turn[3] for turn in store.published] == [1, 2, 3, 4, 5, 6], "a turn every 2 s, the sixth at 10 s idle"
     assert {turn[1] for turn in store.published} == {1000.0}, "`since` stays the time of the first turn"
-    assert store.retracted == 1 and "ended (nothing to watch for 10 s, after 6 turn(s))" in lines[-1]
+    assert store.retracted == 1 and "ended (nothing to watch for 10s, after 6 turn(s))" in lines[-1]
 
 
 def test_something_to_watch_keeps_it_alive_and_the_idle_spell_counts_from_when_it_stopped():
