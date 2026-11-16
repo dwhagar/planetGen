@@ -11951,7 +11951,7 @@ clears each one.
 
 - [ ] **GEN.1626 (bug) age_needs.json settling times have no source and drive the 13.8 Gyr age pile-up (sweep finding M6)**
   Data audit batch 1, D6 (report reports/data-audit-2026-11-11.md, with file and line). Do: source the settling times (or register them as stand-ins in GEN.725 with tier and tweak) and check the pile-up. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: GEN.1546.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 07 (moved from Lane 05, TODO 9:20 AM EST 2026-11-16). Prerequisites: none. Related: GEN.1546.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
   Data audit D18 (batch 2): 36 of 270 systems have a star of exactly 13.8 Gyr; more evidence for this item.
@@ -12324,12 +12324,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: none. Related: DB.101, DB.132.
   Filed by the TODO thread.
 
-- [ ] **DB.134 Extend the DB.101 stored-outputs test to belts, comets, phenomena tables and private attributes that outlive a build**
-  Lane 15, 6:53 AM EST 2026-11-16: DB.101's tests/test_stored_outputs.py covers planets, moons and stars only. Do: the same check for the other stored objects; file any gap it finds as a (bug) item.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: DB.101. Related: DB.101, DB.132, DB.133.
-  Filed by the TODO thread.
-  Added (Lane 15, 9:03 AM EST 2026-11-16): tilt_chaotic in oddity_quantities is also unstored; store it here or state why not.
-
 - [ ] **GEN.1763 A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources**
   Lane 03, 7:11 AM EST 2026-11-16 (PR 6837, GEN.1579 before and after on 80 systems): 4 bodies were pinned at 375 K; 3 move to class N (489 to 600 K) and 1 to X. One N body has 7,825 bar (5,300 bar CO2 plus 2,300 bar OCS out of the rock) and its greenhouse asks 1,481 K. Do: check the carbonate and sulfur degassing laws at 500 to 600 K against sources (physics found in research wins), and say whether thousands of bar is real or a law used outside its range.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: GEN.1579. Related: GEN.1579, GEN.1580, GEN.1713.
@@ -12353,7 +12347,7 @@ clears each one.
 
 - [ ] **GEN.1709 Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star)**
   From the hydrogen envelope research (thread "Find why no Class M or Blue worlds", /mnt/project-files/reports/hydrogen-envelopes-habitable-zone-2026-11-14.md, section 7; the envelope law itself passed its check, so no fix there). Measured, not yet traced. The generated counts are inside the low error bars of [R0572: Table 5] but 2 to 4 times under the middle, and would move the Class M rate more than envelopes do. Do: count per star, not per system; check the orbit spacing and planet count laws in that band; report before any change. A fix found is a lock item.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 05 (census). Prerequisites: none. Related: GEN.1704, GEN.1706.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 07 (moved from Lane 05, TODO 9:20 AM EST 2026-11-16) (census). Prerequisites: none. Related: GEN.1704, GEN.1706.
   Filed by the TODO thread.
 
 - [ ] **GEN.1710 (bug) Two different "envelope is gone" cuts: a rocky planet has ground when its stored envelope is under 0.5 percent of its mass, but envelope_escape.BARE_BELOW is 0.2 percent, so envelopes of 0.2 to 0.5 percent vanish silently**
@@ -12383,7 +12377,7 @@ clears each one.
 
 - [ ] **TEST.751 (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback**
   Stacked-fixes thread (Fable), 7:30 PM EST on 2026-11-14, with Lane 22 on PR 6510: on main f94663af2 the test passes alone in 1,438 s with the limit raised; under the 900 s limit plus 120 s grace it is ended at about 17 minutes on main as on 6510. The guard's HUNG TEST line goes to the worker's stderr, which the runner does not show. Do: make the row-id check generate less (it builds two galaxies) so it runs well under the limit while still proving row ids do not change the fingerprint; and make the hang guard's line reach the runner's output. No skip, no raised limit as the fix.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 12. Prerequisites: none. Related: GEN.1691.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 15 (moved from Lane 12, TODO 9:20 AM EST 2026-11-16). Prerequisites: none. Related: GEN.1691.
   Filed by the TODO thread.
 
 - [ ] **GEN.1727 Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit**

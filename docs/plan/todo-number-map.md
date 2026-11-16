@@ -5038,7 +5038,7 @@ Each citation below resolves to one item by its date.
 | DB.131 | (bug) New galaxy run fails in Stage 5 (Neighborhood): unit 67 hits IntegrityError 1062, duplicate star_systems.uq_star_systems_uid for a system of sector 75B000100861 | none | done, PR #6758 (9:07 PM EST 11-15) |
 | DB.132 | (bug) A planet's forced eccentricity from a resonant chain (oddity_quantities, GEN.1459) is not stored, so a restored planet in a chain that is moved or edited loses the floor settle_orbit keeps | open |
 | DB.133 | (bug) Stars do not store initial_mass_sol and phase_end_age_gy (bright_stars does), so a restored star has None for both | open |
-| DB.134 | Extend the DB.101 stored-outputs test to belts, comets, phenomena tables and private attributes that outlive a build | open |
+| DB.134 | Extend the DB.101 stored-outputs test to belts, comets, phenomena tables and private attributes that outlive a build | done (PR 6853, Lane 15, merged 9:20 AM EST 11-16: the stored-outputs test covers belts, comets, rogue planets, interstellar comets, asteroid fields, black holes, neutron stars and private attributes; tilt_chaotic stays unstored with its reason) |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
