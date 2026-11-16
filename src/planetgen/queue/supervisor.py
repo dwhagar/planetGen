@@ -485,7 +485,7 @@ class Launches:
     def _made(self):
         from planetgen.db import store
         from planetgen.queue import jobhost, launcher, scheduler
-        return launcher.Launcher(store.get_control_connection(), jobhost.TemplateSet(), used=lambda: scheduler.usage(self.connection))
+        return launcher.Launcher(store.get_control_connection(), jobhost.TemplateSet(background=True), used=lambda: scheduler.usage(self.connection))
 
     def turn(self):
         """Returns how many jobs it started."""

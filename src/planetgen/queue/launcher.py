@@ -19,10 +19,11 @@ holds the rest, so a launcher that starts over reads `running` rows it does not 
 """
 
 import json
+import os
 import signal
 import time
 
-from planetgen.queue import dispatch, ledger, memorygate, scheduler
+from planetgen.queue import dispatch, jobhost, ledger, memorygate, scheduler
 from planetgen.queue.memorygate import Claim, Holder
 
 RETRIES = 1
@@ -36,6 +37,9 @@ READY_WINDOW = 500
 
 LANES = {"bulk": memorygate.LANE_BULK, "maintenance": memorygate.LANE_MAINTENANCE, "interactive": memorygate.LANE_INTERACTIVE, "long": memorygate.LANE_LONG}
 """dict: The lane of each `job_class` a row can have; any other class is the `other` lane."""
+
+RECOVER_SECONDS = 30.0
+"""float: How often the rows left `running` by a supervisor that ended are looked for."""
 
 HOLDER_NAME = "job-{}"
 
@@ -64,6 +68,10 @@ class Started:
     def drain(self):
         self.said += self.job.messages()
 
+    def skipped(self):
+        """Whether the unit said it did nothing: its run is no longer live, its unit already done or held (`units.run_unit_on` returns `skipped` and writes no attempt)."""
+        return any(message.get("event") == "unit" and (message.get("result") or {}).get("skipped") for message in self.said)
+
     def error(self):
         """The last thing the job said about its failure (`error`), or `None`."""
         for message in reversed(self.said):
@@ -81,6 +89,7 @@ class Launcher:
         self.clock, self.read_host, self.runner = clock, read_host, runner
         self.used = used if used is not None else (lambda: {})
         self.running = {}           # job id -> Started
+        self.recovered_at = None
 
     # -- ends ------------------------------------------------------------------------------------------------------------------
 
@@ -103,7 +112,10 @@ class Launcher:
             started = self.running.pop(found)
             started.drain()
             row = self.control.execute("SELECT state, attempt FROM engine_jobs WHERE id = ?", (found,)).fetchone()
-            if row is not None and row["state"] == "running":
+            if row is not None and row["state"] == "running" and exit_.code == 0 and started.skipped():
+                ledger.set_job_state(self.control, found, "canceled", waited="skipped: the run is no longer live or the unit was already done")
+                self.control.commit()
+            elif row is not None and row["state"] == "running":
                 outcome, kind, text = self._outcome(started, exit_)
                 ledger.end_running(self.control, found, outcome, error_kind=kind, error_text=text)
                 ledger.set_job_state(self.control, found, "ready" if row["attempt"] <= RETRIES else "failed", waited=None if row["attempt"] <= RETRIES else text[:ledger.WAITED_CHARS])
@@ -111,6 +123,37 @@ class Launcher:
             started.job.close()
             done.append(found)
         return done
+
+    def _gone(self, pid):
+        """Whether the process `pid` is not there (a job whose attempt names no process is gone too)."""
+        if not pid:
+            return True
+        try:
+            os.kill(int(pid), 0)
+        except ProcessLookupError:
+            return True
+        except PermissionError:
+            return False
+        return False
+
+    def recover(self):
+        """The rows `running` that this launcher did not start (a supervisor that ended took its launcher's memory with it): one whose attempt's process is gone, or that has no attempt (the supervisor
+        ended between marking it and forking it), is settled like a job that died (its attempt closed `lost`, the job handed out once more, else `failed`). A row whose process is alive is the unit's own to end.
+        Returns the ids settled."""
+        now = self.clock()
+        if self.recovered_at is not None and now - self.recovered_at < RECOVER_SECONDS:
+            return []
+        self.recovered_at = now
+        settled = []
+        for row in self.control.execute("SELECT j.id, j.attempt, a.pid AS pid FROM engine_jobs j LEFT JOIN engine_attempts a ON a.job_id = j.id AND a.attempt = j.attempt WHERE j.state = 'running'").fetchall():
+            if row["id"] in self.running or not self._gone(row["pid"]):
+                continue
+            text = "the supervisor that handed the job out ended and its process is gone"
+            ledger.end_running(self.control, row["id"], "lost", error_kind="lost", error_text=text)
+            ledger.set_job_state(self.control, row["id"], "ready" if row["attempt"] <= RETRIES else "failed", waited=None if row["attempt"] <= RETRIES else text)
+            settled.append(row["id"])
+        self.control.commit()
+        return settled
 
     # -- tickets and dispatch --------------------------------------------------------------------------------------------------
 
@@ -152,6 +195,10 @@ class Launcher:
         self.control.commit()
         try:
             key, forked = self.forker.fork(row["command"], self.runner, self._job_of(row))
+        except jobhost.NotReady as exc:                 # its template is still being built: the row is handed out at a later turn
+            ledger.set_job_state(self.control, row["id"], "ready", waited=str(exc)[:ledger.WAITED_CHARS])
+            self.control.commit()
+            return None
         except Exception as exc:
             ledger.set_job_state(self.control, row["id"], "failed", waited=f"{type(exc).__name__}: {exc}"[:ledger.WAITED_CHARS])
             self.control.commit()
@@ -163,6 +210,7 @@ class Launcher:
     def turn(self):
         """One turn: ends, tickets, dispatch, starts. Returns the ids of the jobs started."""
         self.ended()
+        self.recover()
         waiting, rows = self.tickets()
         if not waiting:
             return []

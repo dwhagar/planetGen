@@ -1,6 +1,7 @@
 """OPS.228, slice A: the launcher (`planetgen/queue/launcher.py`) hands out the ready rows of the ledger by the dispatch rule, writes each attempt before it forks, and closes each attempt with how its process ended.
 The templates are stood in for by a fake forker; the rows are real."""
 
+import os
 import signal
 
 import pytest
@@ -140,3 +141,46 @@ def test_a_job_that_is_running_is_not_handed_out_again(control):
     one = _launcher(control, forker)
     one.turn()
     assert one.turn() == [] and len(forker.forked) == 2
+
+
+def test_a_unit_that_found_its_run_gone_and_skipped_is_canceled_not_handed_out_again(control):
+    run = _ready(control, count=1)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    (job,) = one.turn()
+    forker.forked[0][3].said = [{"event": "unit", "result": {"skipped": True}}]
+    forker.exits = [("plain", jobhost.Exit(1, 1001, code=0))]
+    assert one.turn() == []
+    assert _state(control, run) == [("0", "canceled", 0)] and one.running == {}
+
+
+def test_rows_left_running_by_a_supervisor_that_ended_are_handed_out_again_once_their_process_is_gone(control):
+    run = _ready(control, count=2)
+    control.execute("UPDATE engine_jobs SET state = 'running' WHERE run_id = ? AND item_key <> ''", (run,))
+    control.commit()
+    first, second = [row["id"] for row in control.execute("SELECT id FROM engine_jobs WHERE run_id = ? AND item_key <> '' ORDER BY id", (run,)).fetchall()]
+    ledger.begin_attempt(control, second, pid=os.getpid())                  # alive: its own to end
+    control.commit()
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    assert one.recover() == [first], "no attempt was ever taken: the supervisor ended between marking the row and forking it"
+    assert [row[1] for row in _state(control, run)] == ["ready", "running"]
+    assert one.recover() == [], "looked for once in RECOVER_SECONDS"
+
+
+def test_a_job_whose_template_is_still_being_built_stays_ready_and_is_handed_out_when_it_is_up(control):
+    run = _ready(control, count=1)
+
+    class Warming(FakeForker):
+        building = True
+
+        def fork(self, kind, runner, job=None):
+            if self.building:
+                raise jobhost.NotReady("the template 'plain' is being built")
+            return super().fork(kind, runner, job)
+
+    forker = Warming()
+    one = _launcher(control, forker)
+    assert one.turn() == [] and _state(control, run) == [("0", "ready", 0)]
+    forker.building = False
+    assert len(one.turn()) == 1 and _state(control, run) == [("0", "running", 0)]
