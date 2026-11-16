@@ -233,8 +233,10 @@ def test_without_forcing_the_iron_rich_core_is_rare_among_merged_planets():
 def _venus(tilt=170.0, age=4.5, moons=(), pressure=9.2e6, distance=0.7233):
     """A Venus: its mass, radius, air, orbit and the Sun's luminosity and mass, a given birth tilt and age."""
     star = types.SimpleNamespace(mass=1.98847e30, luminosity=3.828e26, age=age, temperature=5772.0)
-    return _body(mass_kg=4.8675e24, radius=6051.8, distance=distance, eccentricity=0.007, star=star, atmospheric_pressure=pressure, moons=list(moons),
-                 _birth_spin=(1.0e-5, tilt, ()), axial_tilt_deg=tilt, rotation_period_hours=24.0, period=distance ** 1.5)
+    body = _body(mass_kg=4.8675e24, radius=6051.8, distance=distance, eccentricity=0.007, star=star, atmospheric_pressure=pressure, moons=list(moons),
+                 axial_tilt_deg=tilt, rotation_period_hours=24.0, period=distance ** 1.5)
+    body.build.birth_spin = (1.0e-5, tilt, ())
+    return body
 
 
 def _force_w2(body):

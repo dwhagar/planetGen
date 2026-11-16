@@ -32,6 +32,8 @@ and `restore_born`), the moons the history lost as `LostMoon`s; one saved before
 
 import math
 
+from planetgen.generation.build_record import HasBuildRecord
+
 from planetgen.physics import body_spin, constants, evection, hill_perturbers, moon_orbits, moon_resonances, ring_origin, spin, spin_torques
 from planetgen.physics.orbits import calculate_reflex_offset
 
@@ -56,7 +58,7 @@ def density_kg_m3(body):
     return body.mass / (4.0 / 3.0 * math.pi * (body.radius * 1000.0) ** 3)
 
 
-class LostMoon:
+class LostMoon(HasBuildRecord):
     """
     A moon the history of a stored planet took away, kept for the history to run again (GEN.1753, `body_history.lost_rows`): the four numbers `moon_orbits.Moon` reads (its mass, birth orbit, density and
     direction) and nothing else. It is never a body of the system: `apply` lets it take part and drops it again, and one that the history now lets stay is counted with the moons that fell.
@@ -90,7 +92,8 @@ def restore_born(planet, kept, lost):
     Returns:
         bool: Whether the born list was set.
     """
-    if planet.build.birth_spin is None or len(kept) != len(getattr(planet, "moons", ())) or not kept and not lost:
+    record = getattr(planet, "build", None)       # a belt of the system has no record
+    if record is None or record.birth_spin is None or len(kept) != len(getattr(planet, "moons", ())) or not kept and not lost:
         return False
     placed = {place: moon for place, moon in kept}
     for row in lost:
