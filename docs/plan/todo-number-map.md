@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.781 |
+| TEST | TEST.782 |
 | USR | USR.33 |
 | OPS | OPS.268 |
 | DOC | DOC.121 |
@@ -572,7 +572,7 @@ Parents marked "new parent" had no old number of their own.
 | API.41 | Headline of 8.9: remote build: build a galaxy on a local machine, upload it and have the server verify it, with backups and repair as the second feature | none | open |
 | API.42 | Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line | DB.116 | open |
 | API.47 | The linked-sites list for the third project: each linked site has a kind (wiki, surface later) and the body page shows each kind in its own labelled block | API.45 | open |
-| API.48 | API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging | none | open |
+| API.48 | API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging | none | done (PR 6893, Lane 14, merged 12:45 PM EST 11-16: thirty hand-built error returns are ApiError, one helper each for the paging past-the-end answer and the after cursor, facility_list reads through _int_arg; response bodies unchanged) |
 | API.49 | Default system settings as a JSON file format: the inputs a user can set when a system is created (for example the kind of star to look for) | ADM.155 | open |
 | API.50 | Default planet settings as a JSON file format: the inputs a user can set for the planets of a created system | API.49 | open |
 | API.51 | The life-air API and the page chart read the stored air history, every gas | GEN.1745 | open |
@@ -4955,6 +4955,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.778 | (bug) test_haze_in_the_air::test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it is red on main e22ff539e2 | done (PR 6847, Lane 03, merged 8:37 AM EST 11-16: red since GEN.1754 moved the first hazy body with ground to a 257 K body whose air does not settle; the test now replays from the body own draw state and asserts haze is present, 0.5 K bound untouched) |
 | TEST.779 | (bug) test_body_state_fields::test_a_remake_after_an_orbit_change is red on main: the remade body's composition text differs | done (PR 6855, Lane 04, merged 9:31 AM EST 11-16: a belt member at a water share exactly on a level edge grows a trace air and its composition phrase is rewritten from its shares on purpose (GEN.430); the test now checks the phrase against the current shares and allows a change only within 1e-5 of an edge) |
 | TEST.780 | (bug) test_mass_boundaries::test_the_generator_rows_read_the_table is red on main: it multiplies by a hard-coded 317.8 while tuning reads constants.JUPITER_MASS_EARTH (317.83) since GEN.1152 | done (PR 6860, Lane 15, merged 9:42 AM EST 11-16: the test reads constants.JUPITER_MASS_EARTH) |
+| TEST.781 | (bug) test_api::test_update_and_delete_system gets 410 where it expects 404 after a delete, on main | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
