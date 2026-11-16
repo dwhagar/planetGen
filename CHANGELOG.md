@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4332] - 2026-11-16
+
+**Headline:** Every queue command now declares the tables it reads and writes, and a SQL tap test holds those declarations to what the commands really touch.
+
+### Changed
+- New `queue/touches.py` holds the reads and writes of all 66 command kinds and end hooks, the conflict rule (a write another command reads or writes, a shared file or cache), `independence.json` (the proven pairs, empty today) and `plan_edges`, the planner's edges. `planrows.record_plan` takes its `after:` edges from it; with no pair listed each step still waits for the one before it, so a plan is exactly as before.
+- New `queue/sqltap.py` reads the statements a command sends and names the tables each reads and writes. `tests/test_command_touches.py` runs a toy galaxy and the commands around it under the tap and fails a command that touches an undeclared table, a registered command with no declaration, and a command the run never exercised that is not listed with the reason. Output of generation is unchanged.
+
 ## [8.0.4331] - 2026-11-16
 
 **Headline:** The warm-up stages for sectors, systems, phenomena and the Galaxy Map's nodes are now cut into units by the queue engine from the profile and the free resources, as the three galaxy stages already are.
