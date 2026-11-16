@@ -11711,11 +11711,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
   Filed by the TODO thread.
 
-- [ ] **TEST.731 Retire the 29 shape-only downgrade-and-migrate migration tests, keeping each file's save-and-load round trip**
-  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A3). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Covered by test_db_old_schemas (shape) and test_db_column_round_trip.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 15 (moved from the old Lane 03, now Gate, which had not started it). Prerequisites: TEST.729. Related: TEST.261.
-  Filed by the TODO thread.
-
 - [ ] **TEST.733 Retire the 23 data-backfill migration tests for migrations Boss's server has already run, keeping the not-yet-applied ones**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Boss, 3:53 PM EST on 2026-11-12: "Yes I ran the update ... I'm okay with the migration tests for old versions going away ... Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above". So all 23 retire, none held; a migration chain kept only for history may come later, not now.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 15 (moved from the old Lane 03, now Gate, which had not started it). Prerequisites: none. Related: TEST.261.
