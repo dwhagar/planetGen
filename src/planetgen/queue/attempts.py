@@ -50,6 +50,16 @@ class Attempt:
             raise
         galaxy.commit()
 
+    def commit_in(self, galaxy, cursor_key, results=()):
+        """
+        `commit` for a transaction that is not this attempt's to commit (OPS.264: a save that opens a connection of its own): fences it and writes the cursor and the `results` in `galaxy`'s open transaction, and
+        leaves the commit to its owner.
+
+        Raises:
+            Replaced: The row is another attempt's; the owner's transaction is rolled back by the exception.
+        """
+        ledger.commit_item(galaxy, self.row, self.number, cursor_key=cursor_key, results=results)
+
     def resume_point(self):
         """Where this attempt starts (OPS.219): `(cursor, results)`, the pieces the unit's earlier attempts finished and what they returned (`ledger.resume_point`); `(0, [])` for a unit with no database."""
         if self.config is None:

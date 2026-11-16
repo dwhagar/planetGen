@@ -1205,7 +1205,7 @@ def unplaced_sectors_pieces(unit_args, cursor):
 
 def unplaced_sectors_do(unit_args, number, ctx):
     """
-    One sector of a `sector` run: generated and saved (`_unplaced_sector_task`, the save a transaction of its own) on its own stream (`_task_seed`).
+    One sector of a `sector` run: generated and saved (`_unplaced_sector_task`, the save a transaction of its own, which also writes the unit's cursor past the piece: OPS.264) on its own stream (`_task_seed`).
 
     Returns:
         dict: `number`, `sector_id`, `name`, `systems`, `stars`, `density`, `phenomena`, `summary` and `seconds`.
@@ -1214,10 +1214,14 @@ def unplaced_sectors_do(unit_args, number, ctx):
     if "args" not in ctx.state:
         ctx.state["args"] = run_galaxy._sector_args_of(unit_args)
     started = time.monotonic()
+
+    def commit_with_cursor(conn, saved):
+        """The sector's rows and the unit's cursor past this piece in one transaction (OPS.264): a unit run again after the save does not make the sector twice."""
+        saved.update(number=number, seconds=time.monotonic() - started)
+        ctx.commit_piece_in(conn, saved)
+
     with draw.bound(_task_seed(unit_args["run_seed"], number)):
-        saved = _unplaced_sector_task(ctx.state["args"])
-    saved.update(number=number, seconds=time.monotonic() - started)
-    return saved
+        return _unplaced_sector_task(ctx.state["args"], also=commit_with_cursor)
 
 
 def unplaced_sectors_gather(unit_args, results, ctx):
@@ -1261,15 +1265,21 @@ def generate_directed_sector(args, galaxy_seed=None, address=None, **kwargs):
     return sector.name, sector
 
 
-def _unplaced_sector_task(args):
+def _unplaced_sector_task(args, also=None):
     """One `sector` subcommand sector, generated and saved -- a work queue
-    task (see `_fill_sector_task`)."""
+    task (see `_fill_sector_task`). `also(conn, saved)`, when given, is called inside the save's transaction with what the task reports (`store.save_sector`'s `also`)."""
     _sector_name, sector = generate_directed_sector(args)
-    sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
-                                  run_id=getattr(args, "generation_run_id", None))
+    reported = {}
+
+    def report(conn, sector_id):
+        reported.update({
+            "sector_id": sector_id, "name": sector.name, "systems": len(sector.entries),
+            "stars": sector_star_count(sector), "density": run_common._sector_density(args),
+            "phenomena": len(sector.phenomena), "summary": sector_generation_summary_lines(sector, args)})
+        if also is not None:
+            also(conn, reported)
+
+    store.save_sector(sector, config=store.mysql_config_from_args(args),
+                      run_id=getattr(args, "generation_run_id", None), also=report)
     run_common._count_sector(sector)
-    return {
-        "sector_id": sector_id, "name": sector.name, "systems": len(sector.entries),
-        "stars": sector_star_count(sector), "density": run_common._sector_density(args),
-        "phenomena": len(sector.phenomena), "summary": sector_generation_summary_lines(sector, args),
-    }
+    return reported

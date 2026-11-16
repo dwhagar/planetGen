@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1755 |
+| GEN | GEN.1758 |
 | PERF | PERF.273 |
 | DB | DB.132 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.773 |
+| TEST | TEST.774 |
 | USR | USR.33 |
 | OPS | OPS.267 |
 | DOC | DOC.121 |
@@ -1940,7 +1940,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1138 | Designation history part b: the designations table (retired IDs and names), galaxy/designations.py (rules, retire, renumber) and the three rename writers and _rank_chain writing history | none | done, PR #4880 |
 | GEN.1139 | Designation history part c: a read of a retired ID redirects to the current object, a write against it answers 409, a deleted object answers 410 (api/ids.py and the page routes) | none | done, PR #4880 |
 | GEN.1140 | Designation history part d: Formerly lines on the object page, the former_designations API field and search by a past name | none | done, PR #4880 |
-| GEN.1141 | Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete | none | open |
+| GEN.1141 | Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete | none | done, PR #6770 (10:01 PM EST 11-15) |
 | GEN.1142 | Class lines patch for the train 6 epoch: T hydrogen-envelope test ahead of N, N Venus-like sentence and hot, not-hydrogen-dominated rule, K without the under 273 K condition and ordered after P | none | done, PR #4385 |
 | GEN.1143 | Class count script: temperate-ocean bodies per class, hydrogen-rich N bodies under 15 Earth masses, and the E, H and L reach (prints only) | none | done, PR #4243 |
 | GEN.1144 | Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach | none | retired, superseded by the class census (TEST.719, GEN.1549) and the condition-based classes |
@@ -4077,6 +4077,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1752 | Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule) | none | open |
 | GEN.1753 | Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them | GEN.1533 | open |
 | GEN.1754 | Nebular envelopes and their water for bodies of 1 Earth mass and up (the GEN.1748 source stops at 0.3 percent hydrogen) | GEN.1748 | open |
+| GEN.1755 | (bug, measure first) Class D size bodies (under 0.001 Earth masses) at 1 to 5 AU of F, G and K stars are tidally locked 17 to 59 percent of the time, where the standard tide time gives about zero | none | open |
+| GEN.1756 | Check: 12.9 percent of rocky planets of 0.1 Earth masses or more inside 0.1 AU are not tidally locked (free spin 5 to 36 h on 95 to 750 h orbits, at every star age) though the simple tide time locks them all within the star's age | none | open |
+| GEN.1757 | Check: 742 moons (1.02 percent of bodies, up from 0.8 percent at Train 28) carry no class letter; confirm every one is an Asteroid object (under roundness ratio 1, no air, liquid or life, GEN.1160 and GEN.1752) and none is a classifiable moon left unclassed | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4929,6 +4932,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.770 | (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216 | none | done, PR #6716 (2:35 PM EST 11-15) |
 | TEST.771 | (bug) test_cache_warmup (20 tests) is red on main | none | done, PR #6716 (2:35 PM EST 11-15) |
 | TEST.772 | (bug) test_belt_ondemand: a stored belt member made a planet gets no class | none | done, PR #6731 (3:59 PM EST 11-15) |
+| TEST.773 | (bug) test_fuzz_cli: two galaxy tests fail in the whole-file run with "RunStopped: the run done before stage 1 was queued" and pass alone (order-dependent) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
