@@ -2103,7 +2103,7 @@ Primary key `(star_system_id, slot_key)`; unique `(star_system_id, body_number)`
 
 ### `body_history`
 
-Added in v243 (GEN.1497). The numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md` section 4): the eccentricity and the spin it was born with, and the draws that decided its spin. One row a body that has any; a number the body does not have is NULL. It changes no result: the generator keeps the draws on the body (`_orbit_birth`, `_birth_spin`) and this keeps them for the stored galaxy.
+Added in v243 (GEN.1497). The numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md` section 4): the eccentricity and the spin it was born with, and the draws that decided its spin. One row a body that has any; a number the body does not have is NULL. It changes no result: the generator keeps the draws on the body (`_orbit_birth`, `_birth_spin`) and this keeps them for the stored galaxy. Read back (GEN.1533): `store.load_star_system` gives each restored planet and moon its `_orbit_birth` and `_birth_spin` from its row (`body_history.attach`; a row of another `formula_version` is not read; the capture draws are a `FLOAT`, so six digits).
 
 | Column | Type | Null | Notes |
 |---|---|---|---|

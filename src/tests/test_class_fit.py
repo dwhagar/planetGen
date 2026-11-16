@@ -262,7 +262,7 @@ def test_a_nan_quantity_is_no_match_and_classification_refuses_it():
     sound = cf.scores(body())
     nan_gravity = cf.scores(body(gravity_g=float("nan")))
     assert nan_gravity.get("M", 0.0) == 0.0 < sound["M"]
-    assert cf.scores(body(atmospheric_pressure_pa=float("nan"))) == {}      # no side of the air gate
+    assert cf.scores(body(atmospheric_pressure_pa=float("nan"))) == {"X": 0.0}      # no side of the air gate; class X has no gate (GEN.1737) and fits Earth at 0
     with pytest.raises(pc.ClassError, match="not a number"):
         cf.classify(body(gravity_g=float("nan")))
     with pytest.raises(pc.ClassError, match="gravity_g"):
