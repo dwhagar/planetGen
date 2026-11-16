@@ -178,7 +178,7 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
 
 
 def test_a_rocky_body_under_one_earth_mass_adds_the_water_its_nebular_envelope_made():
-    """GEN.1748: the water of the hydrogen envelope a body under 1 Earth mass captured (Young et al. [R5286]) is added to its delivered water; a late core, a moon, a body of 1 Earth mass or more and a body
+    """GEN.1748: the water of the hydrogen envelope a body under 1 Earth mass captured (Young et al. [R5289]) is added to its delivered water; a late core, a moon, a body of 1 Earth mass or more and a body
     of under 0.2 Earth masses get none, and the run's stream does not move."""
     from planetgen.physics import envelope_capture
     mass = lambda earth: earth * constants.EARTH_MASS_TO_KG

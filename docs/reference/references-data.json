@@ -79996,6 +79996,29 @@
    "volume": "36",
    "year": 1985
   },
+  "10.1007/bf01231120": {
+   "authors": [
+    [
+     "Borderies",
+     "N."
+    ],
+    [
+     "Goldreich",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/bf01231120",
+   "editors": [],
+   "journal": "Celestial Mechanics",
+   "page": "127",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A simple derivation of capture probabilities for the J+1:J and J+2:J orbit-orbit resonance problems",
+   "type": "journal-article",
+   "volume": "32",
+   "year": 1984
+  },
   "10.1007/bf01235540": {
    "authors": [
     [
@@ -102211,6 +102234,29 @@
    "volume": "176",
    "year": 2000
   },
+  "10.1016/s0016-7037(01)00685-8": {
+   "authors": [
+    [
+     "Lasaga",
+     "A. C."
+    ],
+    [
+     "Ohmoto",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/s0016-7037(01)00685-8",
+   "editors": [],
+   "journal": "GeCoA",
+   "page": "361",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The oxygen geochemical cycle: dynamics and stability",
+   "type": "journal-article",
+   "volume": "66",
+   "year": 2002
+  },
   "10.1016/s0016-7037(02)00950-x": {
    "authors": [
     [
@@ -124219,6 +124265,33 @@
    "volume": "7",
    "year": 2016
   },
+  "10.1038/ncomms14379": {
+   "authors": [
+    [
+     "Daines",
+     "S. J."
+    ],
+    [
+     "Mills",
+     "B. J. W."
+    ],
+    [
+     "Lenton",
+     "T. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/ncomms14379",
+   "editors": [],
+   "journal": "NatCo",
+   "page": "14379",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Atmospheric oxygen regulation at low Proterozoic levels by incomplete oxidative weathering of sedimentary organic carbon",
+   "type": "journal-article",
+   "volume": "8",
+   "year": 2017
+  },
   "10.1038/ncomms15423": {
    "authors": [
     [
@@ -129455,6 +129528,249 @@
    "title": "A giant planet candidate transiting a white dwarf",
    "type": "journal-article",
    "volume": "585",
+   "year": 2020
+  },
+  "10.1038/s41586-020-2780-0": {
+   "authors": [
+    [
+     "Tian",
+     "H."
+    ],
+    [
+     "Xu",
+     "R."
+    ],
+    [
+     "Canadell",
+     "J. G."
+    ],
+    [
+     "Thompson",
+     "R. L."
+    ],
+    [
+     "Winiwarter",
+     "W."
+    ],
+    [
+     "Suntharalingam",
+     "P."
+    ],
+    [
+     "Davidson",
+     "E. A."
+    ],
+    [
+     "Ciais",
+     "P."
+    ],
+    [
+     "Jackson",
+     "R. B."
+    ],
+    [
+     "Janssens-Maenhout",
+     "G."
+    ],
+    [
+     "Prather",
+     "M. J."
+    ],
+    [
+     "Regnier",
+     "P."
+    ],
+    [
+     "Pan",
+     "N."
+    ],
+    [
+     "Pan",
+     "S."
+    ],
+    [
+     "Peters",
+     "G. P."
+    ],
+    [
+     "Shi",
+     "H."
+    ],
+    [
+     "Tubiello",
+     "F. N."
+    ],
+    [
+     "Zaehle",
+     "S."
+    ],
+    [
+     "Zhou",
+     "F."
+    ],
+    [
+     "Arneth",
+     "A."
+    ],
+    [
+     "Battaglia",
+     "G."
+    ],
+    [
+     "Berthet",
+     "S."
+    ],
+    [
+     "Bopp",
+     "L."
+    ],
+    [
+     "Bouwman",
+     "A. F."
+    ],
+    [
+     "Buitenhuis",
+     "E. T."
+    ],
+    [
+     "Chang",
+     "J."
+    ],
+    [
+     "Chipperfield",
+     "M. P."
+    ],
+    [
+     "Dangal",
+     "S. R. S."
+    ],
+    [
+     "Dlugokencky",
+     "E."
+    ],
+    [
+     "Elkins",
+     "J. W."
+    ],
+    [
+     "Eyre",
+     "B. D."
+    ],
+    [
+     "Fu",
+     "B."
+    ],
+    [
+     "Hall",
+     "B."
+    ],
+    [
+     "Ito",
+     "A."
+    ],
+    [
+     "Joos",
+     "F."
+    ],
+    [
+     "Krummel",
+     "P. B."
+    ],
+    [
+     "Landolfi",
+     "A."
+    ],
+    [
+     "Laruelle",
+     "G. G."
+    ],
+    [
+     "Lauerwald",
+     "R."
+    ],
+    [
+     "Li",
+     "W."
+    ],
+    [
+     "Lienert",
+     "S."
+    ],
+    [
+     "Maavara",
+     "T."
+    ],
+    [
+     "MacLeod",
+     "M."
+    ],
+    [
+     "Millet",
+     "D. B."
+    ],
+    [
+     "Olin",
+     "S."
+    ],
+    [
+     "Patra",
+     "P. K."
+    ],
+    [
+     "Prinn",
+     "R. G."
+    ],
+    [
+     "Raymond",
+     "P. A."
+    ],
+    [
+     "Ruiz",
+     "D. J."
+    ],
+    [
+     "van der Werf",
+     "G. R."
+    ],
+    [
+     "Vuichard",
+     "N."
+    ],
+    [
+     "Wang",
+     "J."
+    ],
+    [
+     "Weiss",
+     "R. F."
+    ],
+    [
+     "Wells",
+     "K. C."
+    ],
+    [
+     "Wilson",
+     "C."
+    ],
+    [
+     "Yang",
+     "J."
+    ],
+    [
+     "Yao",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41586-020-2780-0",
+   "editors": [],
+   "journal": "Nature",
+   "page": "248",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A comprehensive quantification of global nitrous oxide sources and sinks",
+   "type": "journal-article",
+   "volume": "586",
    "year": 2020
   },
   "10.1038/s41586-021-03869-6": {
@@ -239949,6 +240265,29 @@
    "volume": "36",
    "year": 2008
   },
+  "10.1146/annurev.micro.61.080706.093130": {
+   "authors": [
+    [
+     "Knittel",
+     "K."
+    ],
+    [
+     "Boetius",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev.micro.61.080706.093130",
+   "editors": [],
+   "journal": "Annu. Rev. Microbiol.",
+   "page": "311",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Anaerobic Oxidation of Methane: Progress with an Unknown Process",
+   "type": "journal-article",
+   "volume": "63",
+   "year": 2009
+  },
   "10.1146/annurev.ms.04.080174.001351": {
    "authors": [
     [
@@ -243934,6 +244273,25 @@
    "type": "journal-article",
    "volume": "296",
    "year": 1996
+  },
+  "10.2475/ajs.304.5.397": {
+   "authors": [
+    [
+     "Bergman",
+     "N. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.2475/ajs.304.5.397",
+   "editors": [],
+   "journal": "American Journal of Science",
+   "page": "397",
+   "publisher": "American Journal of Science (AJS)",
+   "src": "crossref",
+   "title": "COPSE: A new model of biogeochemical cycling over Phanerozoic time",
+   "type": "journal-article",
+   "volume": "304",
+   "year": 2004
   },
   "10.2514/6.1996-3346": {
    "authors": [
@@ -285723,7 +286081,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5287,
+ "id_next": 5290,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -285967,6 +286325,7 @@
   "10.1007/bf00897085": "R0913",
   "10.1007/bf01042549": "R0387",
   "10.1007/bf01227493": "R4597",
+  "10.1007/bf01231120": "R5288",
   "10.1007/bf01235540": "R1632",
   "10.1007/bf01386217": "R0287",
   "10.1007/bf02424427": "R4128",
@@ -286656,6 +287015,7 @@
   "10.1016/s0012-821x(03)00297-8": "R4891",
   "10.1016/s0012-821x(03)00506-5": "R2926",
   "10.1016/s0012-821x(99)00318-0": "R3170",
+  "10.1016/s0016-7037(01)00685-8": "R5282",
   "10.1016/s0016-7037(02)00950-x": "R1980",
   "10.1016/s0016-7037(02)01407-2": "R1492",
   "10.1016/s0016-7037(03)00259-x": "R2675",
@@ -287338,6 +287698,7 @@
   "10.1038/ncomms11201": "R2772",
   "10.1038/ncomms12808": "R5008",
   "10.1038/ncomms13262": "R3900",
+  "10.1038/ncomms14379": "R5281",
   "10.1038/ncomms15423": "R2489",
   "10.1038/news.2011.205": "R4645",
   "10.1038/ng.3067": "R2748",
@@ -287418,13 +287779,14 @@
   "10.1038/s41586-020-2642-9": "R4611",
   "10.1038/s41586-020-2649-2": "R1823",
   "10.1038/s41586-020-2713-y": "R4494",
+  "10.1038/s41586-020-2780-0": "R5287",
   "10.1038/s41586-021-03869-6": "R0415",
   "10.1038/s41586-021-03912-6": "R2701",
   "10.1038/s41586-021-04095-w": "R3161",
   "10.1038/s41586-021-04286-5": "R4916",
   "10.1038/s41586-022-05591-3": "R0064",
   "10.1038/s41586-022-05629-6": "R3155",
-  "10.1038/s41586-023-05823-0": "R5286",
+  "10.1038/s41586-023-05823-0": "R5289",
   "10.1038/s41586-023-05902-2": "R4437",
   "10.1038/s41586-023-05951-7": "R1678",
   "10.1038/s41586-023-05984-y": "R0301",
@@ -289981,6 +290343,7 @@
   "10.1146/annurev.earth.34.031405.125211": "R5159",
   "10.1146/annurev.earth.36.031207.124214": "R0165",
   "10.1146/annurev.earth.36.031207.124322": "R1465",
+  "10.1146/annurev.micro.61.080706.093130": "R5286",
   "10.1146/annurev.ms.04.080174.001351": "R1394",
   "10.1152/jappl.1985.58.2.564": "R2989",
   "10.1152/jappl.1994.76.3.1113": "R0021",
@@ -290124,6 +290487,7 @@
   "10.2475/001c.118215": "R2694",
   "10.2475/ajs.293.8.758": "R4284",
   "10.2475/ajs.296.1.23": "R2882",
+  "10.2475/ajs.304.5.397": "R5280",
   "10.2514/6.1996-3346": "R4758",
   "10.2514/6.2008-7661": "R0196",
   "10.2514/6.2009-6597": "R0195",
