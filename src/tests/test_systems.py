@@ -272,6 +272,10 @@ def test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt():
     check) can't catch this on its own -- it only asserts the resulting
     gap is AT LEAST the required minimum, which a large overshoot still
     (trivially) satisfies -- so this asserts the exact corrected value.
+
+    Since GEN.1592 a belt is measured, and pushed, by its inner edge: `shift_belt` moves the belt as a whole (centre and both edges) so that its
+    inner edge lands exactly `MIN_ASTEROID_BELT_SEPARATION` past the outer edge of the belt inside it, and its width is kept (TEST.782). The
+    exact value asserted is therefore the inner edge, not the centre.
     """
     system = StarSystem(system_config=make_config("G2V", PLANETS=False))
     belt = AsteroidBelt(system.system_config, system.star, distance=2.0, lower_limit=1.8, upper_limit=2.2)
@@ -279,8 +283,10 @@ def test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt():
 
     system.validate_system([belt, overlapping_belt])
 
-    expected_distance = belt.upper_limit + prog_c.MIN_ASTEROID_BELT_SEPARATION
-    assert overlapping_belt.distance == pytest.approx(expected_distance, rel=1e-9)
+    expected_inner_edge = belt.upper_limit + prog_c.MIN_ASTEROID_BELT_SEPARATION
+    assert overlapping_belt.lower_limit == pytest.approx(expected_inner_edge, rel=1e-9)
+    assert overlapping_belt.upper_limit - overlapping_belt.lower_limit == pytest.approx(0.4, rel=1e-9)      # the width is kept
+    assert overlapping_belt.distance == pytest.approx(expected_inner_edge + 0.2, rel=1e-9)               # the centre moved with the edges, not by the double count of the old bug
 
 
 def _all_planets_and_moons(system):
