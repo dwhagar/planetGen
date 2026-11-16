@@ -12575,6 +12575,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): TODO thread for the text and lint reds; Lane 12 runs the gate. Prerequisites: none. Related: GEN.1693, TEST.738.
   Filed by the TODO thread.
 
+- [ ] **GEN.1761 Refuge term for lakes and seasonal lids on worlds that are not an ice-covered ocean: store a lake share per body so ice_growth.lid_of can give lakes their own lid (the lake half of GEN.1735)**
+  Lane 04, 4:23 AM EST 2026-11-16 (PR 6812, GEN.1735): the sea-under-ice refuge now reads each cell's own lid, but lakes on worlds that are not an ice-covered ocean are not done because no lake share is stored. Do: store a lake share (from the surface water budget and terrain the generator already has, no new draw), feed it through ice_growth.lid_of, and let the refuge term read it; measure refuges gained or lost on fixed seeds. Lock item if refuges move. Life lever (priority 2).
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: GEN.1735. Related: GEN.1723, GEN.1728, GEN.1735.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1704 Class M abundance tier setting (Science, Sparse, Scattered, Plentiful, Abundant) stored with the galaxy and shown on the Generate page; Science is the default and adjusts nothing**
   Boss, 11:17 to 11:19 PM EST on 2026-11-13, phase 2 card on the Class M tier, chose "Build now, calibrate after fixes" (relayed by the thread "Find why no Class M or Blue worlds"). Targets per Sun-like system: Sparse 1 in 1,000, Scattered 1 in 100, Plentiful 1 in 30, Abundant 1 in 10. Dials: the share of habitable-zone candidates given Earth-like water, hydrogen envelope loss, and the request share at the top tiers. Class limits are not a dial; the setting never forces a class or a count. Science changes no output (no epoch). Rides a train only if a non-Science default is stored; otherwise lock-free after GEN.1702.
   Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread. Prerequisites: GEN.1702. Related: GEN.1705, GEN.1706, GEN.1702.
