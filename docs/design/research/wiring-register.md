@@ -221,6 +221,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.kozai_planets | GEN.1645 | the Kozai-Lidov screen of a planet by a companion star or an outer sibling (lock-free slice 0); the wiring in `StarSystem._kozai_pumping` (waits for the stored companion planes of GEN.1500) applies the outcome to the planet's eccentricity and inclination and drops a planet the maximum puts inside the star, and is a lock item |
 | row | 6.284:KZP2 | GEN.1645 | read when `StarSystem._kozai_pumping` runs the planet case |
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
+| module | planetgen.physics.disk_dispersal | GEN.1551 | a star's own disk dispersal time (slice 0, the law and its draw, GEN.1551); slice 1 wires it into the star's disk class and the GEN.1475 gas factor |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |
 | row | 6.289:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |
 | function | planetgen.physics.ice_light.light_below | by design | the light under a lid for a given surface light, the caller's own star: the refuge term reads `transmission` and the light floor, so this is the form the tests and later climate lanes read (GEN.1726) |
@@ -229,3 +230,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.212:DP3 | by design | `magnetic_geometry.OFFSET_CLASS_RP`, a documentary constant: the offset class is drawn by kind (`OFFSET_KINDS`), the 0.15 radii is the limit the sheet text and the source state, and no code reads the constant (GEN.1632 found it) |
 | row | 6.296:SA2 | by design | `starlight_aloft.COVERED_BELOW_CM1`, read inside the module only in the text of the covered range, which `line_opacity.EDGES_CM1` sets; the row names the number the tables stop at (GEN.1632 found it) |
 | row | 6.6c:IR18 | by design | `greenhouse_table.FITTED_UP_TO_K`, a documentary constant: the table is no longer clamped there (GEN.1580), so the 4,000 K is the edge of the fit the row describes and nothing reads it (GEN.1632 found it) |
+| row | 6.264:DZ1 | GEN.1551 | `disk_dispersal.DISPERSAL_TAU_MYR_BY_MASS`, read inside the unwired module until slice 1 wires it |
