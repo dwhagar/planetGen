@@ -42860,9 +42860,9 @@
       "rows": [
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "L3, the median starting envelope 0.1 of the mass was set to the middle of the recipe bracket so that the valley targets and the sweep (45 percent above 2.0 inside 100 days) are met; no measured envelope fraction of the sub-Neptunes of that mass is in hand, and a gas-accretion model of the core replaces it"
+            "GEN.1711: the median starting envelope is now 0.04, the fitted birth value of the Kepler planets ([R3797: Table 1], T1, L0), where it was the 0.1 middle of the recipe bracket (L3); both valley targets hold at it"
           ],
           "fields": [
             [

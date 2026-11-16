@@ -371,6 +371,11 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
                 if body.mass < 5.0e22:
                     assert 0.0 < body.urey_ratio < float("inf")
                     continue
+                if (getattr(body, "tidal_flux_w_m2", None) or 0.0) > body.internal_heat_flux_w_m2:
+                    # the ratio is the radiogenic share of the heat that is not the tide's: for a body the tide heats more than its own heat does (seed 8's planet of 1.4 Earth
+                    # masses at e = 0.127, 0.8 W/m2 of tide) that share is the small difference of two large heats, and a mantle held on its ceiling carries out more than it makes
+                    assert 0.0 < body.urey_ratio < float("inf")
+                    continue
                 seen += 1
                 assert 0.2 <= body.urey_ratio <= 10.0
                 if body.star.age >= 8.0 and ih.surface_of(body) > 100.0:

@@ -51,15 +51,19 @@ def test_a_factor_of_one_draws_exactly_what_was_drawn_before():
     assert planet_kind.draw_formation(5.0, SUN_KG, SNOW_LINE_AU, 0.0, 1.0, draw.Stream(3)) == planet_kind.draw_formation(5.0, SUN_KG, SNOW_LINE_AU, 0.0, 1.0, draw.Stream(3), 1.0)
 
 
+SEEDS = 1000
+"""int: Architectures built per factor. 200 gave 36 and 23 giants (GEN.1709 moved the draws), a ratio of 0.64 against the 0.6 bound, inside the counting noise of 23; 1,000 give 178 and 84 (0.47, noise about 0.05)."""
+
+
 def test_an_architecture_built_with_the_factor_makes_fewer_giants_and_the_rocky_planets_stay():
     def built(factor):
         giants = rocky = 0
-        for seed in range(200):
+        for seed in range(SEEDS):
             architecture = planet_architecture.build(SUN_KG, SNOW_LINE_AU, 1.0, 0.0, 60.0, stream=draw.Stream(seed), gas_factor=factor)
             giants += sum(1 for planet in architecture.planets if planet.runaway)
             rocky += sum(1 for planet in architecture.planets if not planet.runaway)
         return giants, rocky
     full_giants, full_rocky = built(1.0)
     cut_giants, cut_rocky = built(0.34)
-    assert full_giants > 20 and cut_giants < 0.6 * full_giants
+    assert full_giants > 100 and cut_giants < 0.6 * full_giants
     assert cut_rocky >= full_rocky              # a core that finds no gas stays a solid or ice-giant core: no planet is lost
