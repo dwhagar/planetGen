@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4334] - 2026-11-16
+
+**Headline:** The first pair of commands that may overlap, the phenomena scatter and the nebula field draw, is proved and listed; the proof is a test that runs any listed pair overlapped and compares the stored content.
+
+### Changed
+- `queue/independence.json` lists `scatter-phenomena` and `draw-nebula-field` (their end commands included; they share no table). The planner (`touches.plan_edges`) no longer makes the nebula field wait for the phenomena scatter; nothing runs overlapped until the new engine's supervisor starts the jobs the rows leave free, so a run is exactly as before.
+- New `tests/pair_overlap_support.py` and `tests/pair_overlap_recipes.py`: for each listed pair, both stages are cut up front and their units mixed one at a time and on 15 threads, in both orders of who starts first, and the content (row ids left out, the members and nodes of a scatter row compared through its `uid`) must equal plan order's; the SQL tap must see each command touch only the tables it declares, on a galaxy dense enough that every stage stores rows. A control pair that depends on the other (the mass and luminosity passes) must fail the proof.
+- The scatter commands' declarations in `queue/touches.py` were wrong: the toy galaxy of OPS.241 drew no stars, so the tap saw no writes. They now say what the dense toy shows (`bright_stars` or `phenomenon_scatter`, `scatter_members`, `scatter_nodes`, `id_counters`, `galaxy_block_light_parts`); the tap no longer counts a temporary table. An entry in `independence.json` now names the tables its pair shares (`shared`), and a test fails when they change.
+
 ## [8.0.4333] - 2026-11-16
 
 **Headline:** An object that is deleted keeps its ID and name on record, so a link to it answers "gone" (410) and its ID is never issued again.

@@ -8610,27 +8610,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1118, GEN.1111, GEN.58.
   Owner (TODO sweep, 2026-11-12): Lane 16 (galaxy runs).
 
-- [ ] **GEN.1141 Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete**
-  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
-  questions: the small table of retired designations only (not a row per
-  object), retired IDs reserved forever and retired names not reserved
-  (the collision bump may hand a stored object's name to another), a
-  read of a retired ID redirects, a write against it answers 409, a
-  deleted object answers 410. Design:
-  docs/design/architecture/designation-history.md (GEN.1121 part a,
-  merged as #4234), section 5 and 6. Do: when a system or belt changes
-  ID, its bodies, belt members (<belt ID>.<rank hex>) and captured
-  bodies renumber in the same transaction and write their own history
-  rows; a delete in store.delete_* stamps gone_epoch on the object's
-  rows (GEN.1123's audit lists the delete paths). Done: tests that
-  members follow a parent ID change and that a deleted object answers
-  410. Lock-free after part b unless the migration is shared. Where we
-  think it belongs (best guess, can move): Lane 11, train 9.
-  Prerequisites: none. Related: GEN.1121, GEN.1070.
-  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
-  Owner (TODO sweep, 2026-11-12): Lane 15 (storage).
-  From the GEN.1070 audit (Lane 13, /mnt/project-files/reports/gen1070-audit-2026-11-13.md): captured_member, outside_reservoir_member and parse_captured have no reader yet; this item is their reader, and their wiring register rows move here.
-
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
   tests. Train 8 with belts, clearance and the region store. Report
@@ -12735,6 +12714,11 @@ clears each one.
 - [ ] **OPS.266 (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector**
   Lane 16, 9:29 PM EST 2026-11-15 (OPS.262, PR #6762): the all-commands silence run records these with their own budgets in src/tests/test_longest_silence.py (or tests/), so the test stays green while they are open. Boss's standing order (11-13): every long step reports fine-grained progress with real counts. Do: add the inner count, then drop the command's own budget from the silence test so the default 5 s applies.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
+  Filed by the TODO thread.
+
+- [ ] **TEST.773 (bug) test_fuzz_cli: two galaxy tests fail in the whole-file run with "RunStopped: the run done before stage 1 was queued" and pass alone (order-dependent)**
+  Lane 15, 10:24 PM EST 2026-11-15 (on main f1f0c8ac3d): test_galaxy_runs_clean_with_hostile_numbers and test_galaxy_absurd_radius_is_clean[200.0] fail in the full src/tests/test_fuzz_cli.py run (51 pass) and pass alone. A run seen as done before its first stage was queued points at run state leaking between tests (a reused run id or Redis key) or a real engine race; find which, fix the cause (code if the engine can see a fresh run as done), not the test order.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.228, TEST.769.
   Filed by the TODO thread.
 
 - [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**
