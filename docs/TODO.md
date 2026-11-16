@@ -12725,6 +12725,21 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: OPS.265, OPS.239.
   Filed by the TODO thread.
 
+- [ ] **TEST.775 (bug) test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming is red on main for seed 2: a 4.5 Earth-mass body with a 3,000 K surface has Urey ratio 0.13 against the test's floor of 0.2**
+  Lane 07, 2:21 AM EST 2026-11-16: red on main and on the Train 36 branch, not from PR 6787 or GEN.1759. Do: find whether the body's heat budget is wrong (a hot-surface or composition case outside the Urey model's range) or the floor is; fix the cause in the generator if the heat is wrong, never loosen the test to pass. If generation moves it is a lock item.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: none. Related: GEN.1759.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1760 (bug) Orbits are circularised before the surface temperature is known, so every icy-by-water body is tidally treated as a 100 K ice shell then, and a warm water world keeps an eccentric orbit a rock tide would have worn down (Eltotecius I: e 0.43 at 0.03 AU)**
+  Lane 07, 2:21 AM EST 2026-11-16 (found building GEN.1759): warm icy-by-water bodies keep their old tidal heat in GEN.1759 for this reason (the rock regime would give up to 1e5 W/m2 with today's eccentricities). Do: order the build so circularisation and tidal heat read the settled surface temperature (or iterate the two to a fixed point), using GEN.1759's shared k2/Q chooser; measure eccentricities and tidal heat of close-in water worlds before and after on fixed seeds. Lock item (orbits and heat move).
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: GEN.1759. Related: GEN.1755, GEN.1756, GEN.1759.
+  Filed by the TODO thread.
+
+- [ ] **OPS.267 (bug) planetgen plan --reach-shells 3 ends with a TypeError in log_skeleton_summary: the dials line formats edge when args.edge is None**
+  Lane 13, 2:21 AM EST 2026-11-16 (found while proving OPS.228 slice C). Do: print the dials only for values that are set (or the resolved edge the plan used), and add a test that runs the plan with --reach-shells and no --edge. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: OPS.265.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**
   Boss, 6:11 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiJqSpmsJfWDRzSDRQYhyor8): "even if they are in an asteroid belt and small, if another class fits better, class always comes last so if we have an odd situation where like a small planet in the asteroid field has air or life, it can have another class on the fudging lines". Standing rule. Today a belt body under roundness ratio 1 is an Asteroid with no class letter (GEN.1160), and small airless rocks are D by size. Do: find every place size, roundness or belt membership decides a class before the finished body is read (GEN.1160's Asteroid rule, the D size gate, belt promotion, on-demand belt planets of GEN.1674); make each a class-fit term that a better-fitting class (an atmosphere, habitable-family or life class) can beat on the existing fit edges, after the body is finished; test with a small belt body given air and with one given life. Lock item (classes move).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 06 (belts and small bodies) with Lane 03 (class fit). Prerequisites: none. Related: GEN.1160, GEN.1674, GEN.1745, GEN.1737.

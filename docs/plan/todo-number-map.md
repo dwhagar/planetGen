@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1760 |
+| GEN | GEN.1761 |
 | PERF | PERF.274 |
 | DB | DB.132 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.775 |
+| TEST | TEST.776 |
 | USR | USR.33 |
-| OPS | OPS.267 |
+| OPS | OPS.268 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3076,6 +3076,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.264 | (bug) Every per-piece writer is safe to re-run: scatter shells and scatter phenomena write their 10,000-row batches twice, and unplaced sectors and the system finish piece write a second row, when a piece runs again after its commit | none | done, PR #6769 (10:36 PM EST 11-15) |
 | OPS.265 | (bug) plan-skeleton's outline piece (7.5 s) and generate-system's first system (8.5 s) go silent past the 5 s budget on a small galaxy: give each a count inside | none | open |
 | OPS.266 | (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector | none | open |
+| OPS.267 | (bug) planetgen plan --reach-shells 3 ends with a TypeError in log_skeleton_summary: the dials line formats edge when args.edge is None | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4083,6 +4084,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1757 | Check: 742 moons (1.02 percent of bodies, up from 0.8 percent at Train 28) carry no class letter; confirm every one is an Asteroid object (under roundness ratio 1, no air, liquid or life, GEN.1160 and GEN.1752) and none is a classifiable moon left unclassed | none | closed as checked, no bug (Lane 03, 12:31 AM EST 11-16: all 744 unclassed bodies have no air, liquid or life; 172 regenerated from 120 systems are all under roundness ratio 1, so Asteroid objects under GEN.1160 and GEN.1752; the rise to 1.02 percent is the default system mix) |
 | GEN.1758 | (bug, measure first) Gas giants almost never appear in a default system: 1 giant among about 230 planets over 21 seeds, where an older test expected one within 12 systems | none | closed as measured, no change (Lane 04, 11:58 PM EST 11-15: 270 G2V systems give a 50 Me or heavier giant in 16 percent, Jupiter-mass in 11 percent, matching the tuned 0.14 and the observed 10 to 20 percent; the default mix is 77 percent stars under 0.6 solar masses, so about 2 percent is by design) |
 | GEN.1759 | Tidal heating and circularisation of icy bodies use the ice-shell k2/Q outside its domain: interior_heat and ocean_tides read the shell formula where the shell is thicker than the body (no ocean) or where the surface is above ice's melting point, the same wrong domain GEN.1755 and GEN.1756 fixed for spin | open |
+| GEN.1760 | (bug) Orbits are circularised before the surface temperature is known, so every icy-by-water body is tidally treated as a 100 K ice shell then, and a warm water world keeps an eccentric orbit a rock tide would have worn down (Eltotecius I: e 0.43 at 0.03 AU) | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4937,6 +4939,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.772 | (bug) test_belt_ondemand: a stored belt member made a planet gets no class | none | done, PR #6731 (3:59 PM EST 11-15) |
 | TEST.773 | (bug) test_fuzz_cli: two galaxy tests fail in the whole-file run with "RunStopped: the run done before stage 1 was queued" and pass alone (order-dependent) | none | done, PR #6779 (11:17 PM EST 11-15) |
 | TEST.774 | (bug) test_plan_outline::test_the_plan_says_where_its_time_went_step_by_step is red on main: the plan's timing table now prints HMS durations (UX.319, Boss rule) and the test still parses plain seconds | open |
+| TEST.775 | (bug) test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming is red on main for seed 2: a 4.5 Earth-mass body with a 3,000 K surface has Urey ratio 0.13 against the test's floor of 0.2 | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
