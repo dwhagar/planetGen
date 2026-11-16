@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4365] - 2026-11-16
+
+**Headline:** the first sector a new version of the generator fills no longer stands for minutes with nothing moving: building the bright-star sampling tables now shows progress.
+
+### Fixed
+
+- PERF.273: `generate-start-sector`, `generate-neighborhood` and `generate-sectors` stood 6 to 9 s on a first run of a code version, and `update.sh` makes every new version a first run. The cause is not a seasonal solve (no single call is long: a sweep of 400 random bodies gives a median of 11 ms and a worst of 1.2 s): a code key no process has seen builds the bright-star sampling tables cold (231 tables on the silence test's galaxy, "about four minutes on a slow machine" by `band_table_cache`'s own note), and each table is hundreds of cells of track evaluations with nothing telling the unit it is alive. The three table builds in `star_population` now start the quiet clock again for every cell they work out (`bodybeat.settled()`; nothing happens outside a unit). Measured cold: the longest quiet stretch of the first sector fell from 8.7 s to under 2 s. The galaxy is the same; no draw is touched.
+- PERF.273: `test_longest_silence.py` runs on a sampling-table folder of its own that is empty when the file starts, so it always measures the cold case (a warm folder from an earlier run on the same code had hidden the stretch and made the test pass or fail by what the box had run before). The three 12 s rows are deleted from `RECORDED_SILENCE`, which is now empty.
+
 ## [8.0.4364] - 2026-11-16
 
 **Headline:** The test that haze never cools the ground less than the clear air now replays the same world and skips airs that did not settle, so it tests something and is green again.
