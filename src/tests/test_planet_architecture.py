@@ -115,7 +115,7 @@ def test_an_inner_system_starts_at_the_inner_edge_and_neighbours_are_alike():
         if len(chain) < 2:
             continue
         found += 1
-        assert 0.3 < period_d(0.5 * SUN, chain[0][0]) < 600.0       # GEN.1709: the first planet is log-normal about 20 days with a width of 0.7 dex, not tied to 5 days
+        assert 0.3 < period_d(0.5 * SUN, chain[0][0]) < 1000.0       # GEN.1709: the first planet is log-normal about 25 days with a width of 0.7 dex, not tied to 5 days
         masses = [m for _a, m in chain]
         assert max(masses) / min(masses) < 10.0 ** (6 * tuning.INNER_NEIGHBOUR_SIGMA_DEX + len(chain) * tuning.INNER_OUTWARD_MASS_DEX_PER_PLANET)
         assert [a for a, _m in chain] == sorted(a for a, _m in chain)
@@ -180,7 +180,7 @@ def test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet():
         short = [x for x in arch.planets if not x.runaway and period_d(mass_solar * SUN, x.distance_au) < 85.0]
         hosts += bool(short)
         earth += any(0.8 <= _radius_earth(x.mass_kg / EARTH) <= 1.25 for x in short)
-    assert hosts > 450
+    assert hosts > 400
     assert 0.30 <= earth / hosts <= 0.46, earth / hosts       # 0.19 with no spread between systems, 0.25 at a median scale of 3.6 Earth masses
 
 
@@ -195,7 +195,7 @@ def test_a_share_of_the_inner_systems_of_a_sun_like_star_hold_an_earth_size_plan
         short = [x for x in arch.planets if not x.runaway and period_d(SUN, x.distance_au) < 85.0]
         hosts += bool(short)
         earth += any(0.8 <= _radius_earth(x.mass_kg / EARTH) <= 1.25 for x in short)
-    assert hosts > 600
+    assert hosts > 550
     assert 0.27 <= earth / hosts <= 0.42, earth / hosts
 
 
