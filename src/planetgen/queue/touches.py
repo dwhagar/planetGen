@@ -134,7 +134,10 @@ READS = {
     ),
     "rescore-habitability": ("star_systems", "system_summary"),
     "reset-galaxy": ("*",),
-    "run-population": ("moons", "planet_life", "planets", "polities", "population_state", "species", "star_systems", "system_configs"),
+    "scan-species": ("moons", "planet_life", "planets", "polities", "population_state", "species", "star_systems", "system_configs"),
+    "date-civilizations": ("moons", "planet_life", "planets", "polities", "population_state", "species", "star_systems", "system_configs"),
+    "refresh-technology": ("moons", "planet_life", "planets", "polities", "population_state", "species", "star_systems", "system_configs"),
+    "count-population": ("moons", "planet_life", "planets", "polities", "population_state", "species", "star_systems", "system_configs"),
     "run-territories": ("polities", "sectors", "star_systems"),
     "scatter-backfill": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
@@ -230,7 +233,10 @@ WRITES = {
     "refresh-run-blocks": ("galaxy_block_light_parts", "galaxy_block_lights", "galaxy_block_stats", "region_stats", "sector_stats"),
     "rescore-habitability": (),
     "reset-galaxy": ("*",),
-    "run-population": ("population_state", "species", "system_interests"),
+    "scan-species": ("population_state", "species", "system_interests"),
+    "date-civilizations": ("population_state", "species", "system_interests"),
+    "refresh-technology": ("population_state", "species", "system_interests"),
+    "count-population": ("population_state", "species", "system_interests"),
     "run-territories": ("system_owners",),
     "scatter-backfill": (
         "bright_stars", "galaxy_block_light_parts", "id_counters", "scatter_members", "scatter_nodes", "scatter_uid_rank", "scatter_uid_sector", "sector_stats",

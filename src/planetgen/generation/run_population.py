@@ -87,13 +87,13 @@ def scan_species_gather(params, results, ctx):
 
 
 def date_civilizations_gather(params, results, ctx):
-    """The `date-civilizations` unit's result: `dated`, always true."""
-    return {"dated": True}
+    """The `date-civilizations` unit's result: `dated`, always true (and `lines`, what the run says about it)."""
+    return {"dated": True, "lines": ["Population: civilizations dated, polities founded or dissolved."]}
 
 
 def refresh_technology_gather(params, results, ctx):
-    """The `refresh-technology` unit's result: `refreshed`, always true."""
-    return {"refreshed": True}
+    """The `refresh-technology` unit's result: `refreshed`, always true (and `lines`, what the run says about it)."""
+    return {"refreshed": True, "lines": ["Population: the map's technology rows refreshed."]}
 
 
 def count_population_gather(params, results, ctx):
@@ -138,7 +138,7 @@ class PassFollower(followed.Follower):
         self.hold(steps.Step(self.label, self.step_kind, 1, args=self.args, progress=self.progress))
 
     def on_result(self, unit, result):
-        for line in result["lines"]:
+        for line in result.get("lines", ()):
             log.normal(line)
 
 
