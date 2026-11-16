@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1765 |
+| GEN | GEN.1766 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
@@ -4090,6 +4090,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1762 | biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087 | open |
 | GEN.1763 | A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources | open |
 | GEN.1764 | Wire or delete two unread belt functions left when GEN.1068 and GEN.1072 closed: belt_origin.destroyed_planet and clearance_ledger.log_uniform_quantile | done (PR 6868, Lane 06, merged 10:36 AM EST 11-16: belt_origin.destroyed_planet and clearance_ledger.log_uniform_quantile/restricted_quantile deleted with their wiring-register lines and registry row BG10; nothing generated changes) |
+| GEN.1765 | Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
