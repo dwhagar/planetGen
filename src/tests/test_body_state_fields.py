@@ -9,7 +9,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import envelope_share, planets as planet_physics
+from planetgen.physics import bulk_composition, composition_text, envelope_share, planets as planet_physics
 from planetgen.util import draw
 
 
@@ -77,6 +77,12 @@ def test_a_remake_after_an_orbit_change_keeps_every_birth_value_and_works_the_pr
                         continue            # the orbit the test moved; a moon's own orbit follows its parent's change a little (`follow_orbit_change`): the orbit draws keep their first values in GEN.582's draw record
                     if field in AIR_SHARE_FIELDS:       # the air's share comes out of the solid fractions (`envelope_share.fill`), so an air that appears or goes at the new distance moves them a little
                         assert getattr(body, field, None) == pytest.approx(before[id(body)][field], abs=1e-6), (seed, body.name, field)
+                        continue
+                    if field == "composition":      # the phrase states the stored shares (GEN.430), which the air moves a little: it must state the shares the body has now, and it is the first phrase unless a share sat on a level's edge
+                        assert getattr(body, field, None) == composition_text.text(body), (seed, body.name, field)
+                        if getattr(body, field, None) != before[id(body)][field]:
+                            edges = [least for least, _words in composition_text.LEVELS]
+                            assert any(abs(share - edge) < 1e-5 for share in bulk_composition.bulk_fractions(body).shares().values() for edge in edges), (seed, body.name, field)
                         continue
                     assert getattr(body, field, None) == before[id(body)][field], (seed, body.name, field)
                 moved |= {field for field in fields.present_fields(Planet) if getattr(body, field, None) != before[id(body)][field]}
