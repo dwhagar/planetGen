@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1877 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1878 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1850 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1851 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 1 | 148 |
-| T6 | 238 | 126 | 36 | 81 | 4 | 485 |
+| T6 | 238 | 127 | 36 | 81 | 4 | 486 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 107 | 41 | 226 |
-| All | 1073 | 384 | 96 | 264 | 60 | 1877 |
+| All | 1073 | 385 | 96 | 264 | 60 | 1878 |
 
 ## How the labels were given
 
@@ -2781,8 +2781,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | FE1 | T | T6 | L0 | the first-order secular forcing: `e_forced = abs(sum B_c exp(i varpi_c)) / (A_planets + A_relativity + sum A_c)` with exact Laplace coefficients and the factors `(1 - e'^2)^(-3/2)` and `(1 - e'^2)^(-5/2)` of an eccentric companion; about `(5/4) alpha e' / (1 - e'^2)` for a small `alpha` | none | `alpha` below `ALPHA_LIMIT`, `e_forced` below 0.3 | members of a measured belt in a close binary whose eccentricities lack the forced part by more than the free scatter | an N-body integration of test bodies in a binary | Murray and Dermott, Solar System Dynamics, sections 7.2 and 7.3 [R3220], recalled; census `reports/gen1492-belt-forcing-census-2026-11-09.md` | predicted only | - | - |
 | FE2 | P | T6 | L1 | the direction of a companion's periapsis is drawn uniformly per system from a stream of its own (the generator stores none for a star's orbit) | 0 to 2 pi | systems with a companion | a stored orientation of the star orbit, once one exists | the stored orientation | no source: no orientation of a star's orbit is stored; the result of a lone companion does not depend on it, only the stored periapsis angles of the members | predicted only | - | - |
-| FE3 | T | T6 | L0 | the forced inclination is zero: the orbits of stars are coplanar in the generator | none | coplanar star orbits | a mutual inclination of the star orbits, once modelled (filed by TODO) | forced inclination and Kozai pumping from a mutual inclination | design; the generator has no mutual inclination of stars | predicted only | - | - |
+| FE3 | T | T6 | L0 | the forced tilt is the first-order secular theory: the member's orbit normal precesses about the forced axis `n_f = (R z + sum A_c n_c) / abs(R z + sum A_c n_c)`, `R` the nodal rate of the star's planets (`planet_nodal_rate`), `A_c` the companion's rate (`companion_rates`, the same rate for the node as for the periapsis) and `n_c` its orbit normal (`Companion.normal`, GEN.1535); the angle to `n_f` is kept, so the normal stands on a cone about `n_f` at a drawn phase (`tilted_orbit`) | none | `alpha` below `ALPHA_LIMIT`, a forced axis within `INCLINATION_LIMIT_RAD` of the planets' plane | a member of a measured belt in a tilted binary whose plane is not the one the weighted axis gives | a quadrupole integration of the member with the companion and the planets as torques | design from [R3220] (sections 7.2 and 7.3); the star orbits now carry a mutual inclination (GEN.1500) | predicted only | - | - |
 | FE4 | P | T6 | L1 | `belt_forcing.ALPHA_LIMIT` 0.3: the largest `a / a'` the first-order theory is used at | 0.2 to 0.4 | belts cut inside the companion's tide | a belt beyond 0.3 of the companion's axis whose members are measured with a forced part the theory misses | a higher-order expansion in `alpha` | recalled: the series in `alpha` converges slowly beyond a third; no belt of the census (499) lies beyond it | predicted only | - | - |
+| FE5 | P | T6 | L1 | `belt_forcing.INCLINATION_LIMIT_RAD` 0.5 (28.6 degrees): the farthest the forced axis may stand from the planets' plane for the first-order tilt to be used; beyond it a member keeps its drawn orbit | 0.35 to 0.68 (the Kozai-Lidov limit of 39.2 degrees, 0.68) | belts whose companion is tilted by less | a belt in a companion tilted by more than the limit whose members are measured with a steady tilt | Kozai-Lidov pumping (GEN.1447) | recalled: the critical inclination of the quadrupole problem is 39.2 degrees; no belt generated so far is tested against it | predicted only | - | - |
 
 ## 6.258 Stand-ins of the mutual inclination of the orbits of the stars of a multiple
 

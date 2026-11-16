@@ -60,3 +60,19 @@ A belt in a system with a close companion shows a higher mean eccentricity than 
 - Each stored member's eccentricity and periapsis are the vector sum of the drawn orbit and the forced vector at the member's own distance, diluted by the star's planets once the orbits are final; a lone star gives today's members exactly (tested), as does a member outside the theory. Tests: `tests/test_belt_forced_members.py`.
 - Census of 300 generated pairs (499 belts of stars with a companion): 116,575 of 146,892 members move, in 497 belts, mostly slightly; 11 belts (2 percent) have their mean eccentricity raised by half or more (`reports/gen1492-forced-members-census-2026-11-09.md`). The mean eccentricity of the moved belts is 0.317 before and after, since the forced vector has a random direction against the drawn periapsis: the forcing widens the spread and aligns the periapses rather than raising the mean.
 - Not done: the belt's stored rms eccentricity (belt-level field) is not recomputed from the forced members; nothing reads it for the members.
+
+## The tilt (GEN.1492, second part; slice 0 built, slice 1 to wire)
+
+The star orbits now carry a mutual inclination (GEN.1500) and `Companion.normal` is the unit normal of a companion's orbit plane in the planets' frame (GEN.1535), so the inclination the first
+design left out can be built. First-order secular theory again (the nodal rate of a companion on a body of no mass is the same `A_c` that turns its periapsis): the member's orbit normal precesses about
+the **forced axis** `n_f = (R z + sum A_c n_c) / |R z + sum A_c n_c|`, `R` the nodal rate the star's planets give it (`secular_chain.matrices`, the diagonal of `B`; relativity turns no node), `z` the planets'
+plane. A heavy giant holds a belt flat (`R` large, `n_f` near `z`); a bare belt follows the companion (`n_f` near `n_c`). The angle between the member's drawn normal and `n_f` is conserved, so the
+member's normal stands on the cone of that angle about `n_f`, at an azimuth from its own stream: a member drawn in the planets' plane swings between flat and twice the forced inclination.
+
+- Built (slice 0, lock-free, unwired): `belt_forcing.planet_nodal_rate`, `forced_normal` (None for a member outside the theory: beyond `ALPHA_LIMIT`, no companion plane, or a forced axis past
+  `INCLINATION_LIMIT_RAD`, 0.5 rad, near the Kozai-Lidov limit) and `tilted_orbit`; rows FE3 and FE5 of section 6.256.
+- To wire (slice 1, lock item): `AsteroidBelt._force_by_companions` replaces each member's inclination and node by `tilted_orbit` about `forced_normal`, with the phase from the member's own stream
+  and the planets' nodal rate from `give_secular_planets`; a lone star, and a companion with no plane, give today's members exactly. The same companion terms on the planets' matrices are GEN.1499.
+- Left out: Kozai-Lidov pumping of eccentricity for a tilt past the limit (GEN.1447's screen keeps such a system from holding a stable planet or belt that close), the companion's own precession while
+  the disk lasted, and the planets' own tilt by a companion (GEN.1499).
+
