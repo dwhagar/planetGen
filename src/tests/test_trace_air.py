@@ -117,6 +117,7 @@ def test_an_airless_body_and_a_giant_are_left_alone(world):
     assert trace_air.apply(airless) == ()
     giant = copy.deepcopy(world)
     giant.body_type = "g"
+    giant.envelope_mass_fraction = None       # no stored envelope share: the body's type decides, a gas body has no ground (`planet_type.has_ground`); a stored small share would make the world rocky again
     assert trace_air.apply(giant) == ()
 
 
