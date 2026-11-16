@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4343] - 2026-11-16
+
+**Headline:** The third pair of commands that may overlap, the mass scatter and the nebula field, is proved and listed.
+
+### Changed
+- `queue/independence.json` lists `scatter-mass` and `draw-nebula-field`, with the tables they share named in the entry (`galaxy_shape`, `generator_epoch`, `scatter_epochs`: the shape row and the epoch rows each stage's end hook stamps for its own stage). The mass pass writes the stars, their members and nodes and the block light parts; the nebula field writes its own table. Overlapped at 1 and 15 workers in both orders, the stored content (row ids left out, members and nodes compared through the owner's `uid`) equals plan order's. Nothing runs overlapped until the new engine's supervisor starts the jobs the plan leaves free, so a run is as before; output of generation is unchanged.
+
 ## [8.0.4342] - 2026-11-16
 
 **Headline:** Two tests that were red on main are green: the job ledger no longer uses `VALUES()` in its upserts, and no item code shows in the text of a page or a log line.
