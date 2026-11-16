@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1763 |
+| GEN | GEN.1764 |
 | PERF | PERF.274 |
 | DB | DB.135 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.776 |
+| TEST | TEST.778 |
 | USR | USR.33 |
 | OPS | OPS.268 |
 | DOC | DOC.121 |
@@ -4087,6 +4087,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1760 | (bug) Orbits are circularised before the surface temperature is known, so every icy-by-water body is tidally treated as a 100 K ice shell then, and a warm water world keeps an eccentric orbit a rock tide would have worn down (Eltotecius I: e 0.43 at 0.03 AU) | open |
 | GEN.1761 | Refuge term for lakes and seasonal lids on worlds that are not an ice-covered ocean: store a lake share per body so ice_growth.lid_of can give lakes their own lid (the lake half of GEN.1735) | closed as measured, no change (Lane 04, 6:47 AM EST 11-16: of 728 rocky bodies in 60 systems, only 8 ice worlds have any melting place and all 8 already count as refuges through the melt-hole steps; a lake share could only enlarge an existing refuge, about 1 percent of bodies, so no stored column) |
 | GEN.1762 | biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087 | open |
+| GEN.1763 | A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4942,6 +4943,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.773 | (bug) test_fuzz_cli: two galaxy tests fail in the whole-file run with "RunStopped: the run done before stage 1 was queued" and pass alone (order-dependent) | none | done, PR #6779 (11:17 PM EST 11-15) |
 | TEST.774 | (bug) test_plan_outline::test_the_plan_says_where_its_time_went_step_by_step is red on main: the plan's timing table now prints HMS durations (UX.319, Boss rule) and the test still parses plain seconds | open |
 | TEST.775 | (bug) test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming is red on main for seed 2: a 4.5 Earth-mass body with a 3,000 K surface has Urey ratio 0.13 against the test's floor of 0.2 | done (Train 37, PR 6829, merged 6:34 AM EST 11-16; PR 6807) |
+| TEST.776 | (bug) test_photochemical_loss fails to collect on main: it reads photochemical_loss.YEAR_S, which PR 6718 removed as unused | open |
+| TEST.777 | (bug) test_unit_registry_js::test_no_browser_script_declares_a_unit_factor is red on main: unitladder.js (UX.319 HMS formatter, PR 6764) declares YEAR_SECONDS and the 86400 and 3600 factors instead of reading them from unitregistry.js | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
