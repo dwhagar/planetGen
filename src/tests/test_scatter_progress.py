@@ -232,7 +232,7 @@ def test_the_job_view_shows_the_share_and_the_second_bar(generate_page):
     }}
     view = generate_page._job_view(job)
     assert view["progress_text"] == "Bright stars (3 of 81 shells): 25%"
-    assert view["progress_detail_text"] == "Shell 0: stars: 1,200 of 4,000, about 1 m 15 s left"
+    assert view["progress_detail_text"] == "Shell 0: stars: 1,200 of 4,000, about 1m 15s left"
 
 
 def test_the_job_view_counts_plain_bars_and_drops_the_detail_when_finished(generate_page):

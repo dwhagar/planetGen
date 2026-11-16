@@ -116,7 +116,7 @@ def _flux_of(body):
 
 def generate(body):
     """
-    Sets `COLUMN_FIELDS` on a planet or moon from its stored rock, melt, redox, lid and ocean (call after the ground and the water; no draw). `None` for a giant, a carbon rock or a row with no
+    Sets `COLUMN_FIELDS` on a planet or moon from its stored rock, melt, redox, lid and ocean (call after the ground and the water; no draw). `None` for a giant or a row with no
     stored P2O5 (from before GEN.1362); the ocean's phosphate and band are `None` for a body with no liquid ocean.
     """
     for name in COLUMN_FIELDS:

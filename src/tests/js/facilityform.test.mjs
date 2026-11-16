@@ -116,7 +116,7 @@ test("a geostationary distance reads one orbit a sidereal day", async () => {
   const step = (STEPS * Math.log(42164 / EARTH.min)) / Math.log(EARTH.max / EARTH.min);
   f.slider.value = String(step);
   change(f.slider, "input");
-  assert.match(f.readout.textContent, /one orbit every 23\.9 hours, at 3\.07 km\/s/);
+  assert.match(f.readout.textContent, /one orbit every 23h 56m \d+s, at 3\.07 km\/s/);
 });
 
 test("out-of-range slider values are clamped like distance_from_step", async () => {

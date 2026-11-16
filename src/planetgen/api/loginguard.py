@@ -89,7 +89,7 @@ def with_store(operation):
 
 def wait_text(seconds):
     """`seconds` as words for a message, on the duration ladder (`format_duration_seconds`, UX.318), never under one second:
-    `1 s`, `40 s`, `5 minutes`, `3 hours`."""
+    `1s`, `40s`, `5m`, `3h`."""
     return format_duration_seconds(max(1, int(seconds)))
 
 

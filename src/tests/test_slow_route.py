@@ -68,7 +68,7 @@ def test_a_waiting_page_is_the_pages_frame_with_a_bar_and_is_never_cached_or_ind
     assert "<title>Phenomena" in html and '<h1 class="page-title">Phenomena</h1>' in html
     assert 'data-job="0123456789abcdef"' in html and 'data-status-url="/api/page-jobs/0123456789abcdef"' in html
     assert '<progress data-slow-bar max="100"' in html and 'value="30"' in html
-    assert "About 30% (an estimate: 300 of 1,000 rows)" in html and "about 5 s left" in html
+    assert "About 30% (an estimate: 300 of 1,000 rows)" in html and "about 5s left" in html
     assert '<meta name="robots" content="noindex">' in html
     assert '<noscript><meta http-equiv="refresh" content="5"></noscript>' in html
     assert "slowload.js" in html and "Stop waiting" in html
@@ -128,7 +128,7 @@ def test_a_notice_left_on_the_thread_is_not_the_next_pages(client, monkeypatch):
 # --- The words and the bar's value ------------------------------------------------------------------------
 
 def test_the_line_under_the_bar_is_an_estimate_that_says_so():
-    assert slowroute.progress_text(_job()) == "About 30% (an estimate: 300 of 1,000 rows), about 5 s left."
+    assert slowroute.progress_text(_job()) == "About 30% (an estimate: 300 of 1,000 rows), about 5s left."
     assert slowroute.progress_text(_job(eta=None)).endswith("still working.")
     assert slowroute.progress_text(_job("queued", done=0)) == slowroute.STATE_TEXT["queued"]
     assert slowroute.progress_text(_job(done=999, total=1000)).startswith("About 99%")        # never 100 before it is built

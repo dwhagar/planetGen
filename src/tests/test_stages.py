@@ -467,7 +467,7 @@ def test_a_run_on_its_own_counts_its_own_stages(monkeypatch, stage_clock):
     stages.enter("band")
     stages.finish()
     assert lines == ["Stage 1 of 1: Add the dimmer band of bright stars",         # no banner here, so these two are the mentions
-                     "Stage 1 of 1 finished after 0 s"]               # UX.122: and the stage says it finished
+                     "Stage 1 of 1 finished after 0s"]               # UX.122: and the stage says it finished
 
 
 def test_a_step_of_one_stage_under_the_runners_banner_logs_nothing_for_it_but_a_skipped_stage_says_why(monkeypatch):
@@ -598,8 +598,8 @@ def test_every_stage_marker_comes_from_one_formatter():
     from planetgen.util import logrecord
     done = logrecord.stage_record(logrecord.STAGE_FINISH, "job", 4, 12, seconds=30.6, count=9)
     failed = logrecord.stage_record(logrecord.STAGE_FAILED, "job", 2, 12, seconds=4, reason="exited with status 1")
-    assert logrecord.plain_line(done) == "=== Stages 4 to 12 of 12 finished after 30.6 s ==="
-    assert logrecord.plain_line(failed) == "=== Stage 2 of 12 failed after 4 s: exited with status 1 ==="
+    assert logrecord.plain_line(done) == "=== Stages 4 to 12 of 12 finished after 31s ==="
+    assert logrecord.plain_line(failed) == "=== Stage 2 of 12 failed after 4s: exited with status 1 ==="
 
 
 def test_a_stage_announcement_is_one_divider_on_the_console_and_one_record_in_the_record_file(tmp_path, monkeypatch, capsys, stage_clock):
@@ -621,11 +621,11 @@ def test_a_stage_announcement_is_one_divider_on_the_console_and_one_record_in_th
         log.configure(log.NORMAL)
     records = [logrecord.parse_file_line(line) for line in path.read_text().splitlines()]
     assert [(r.event, r.message) for r in records] == [("stage.start", "Stage 1 of 1: Add the dimmer band of bright stars"),
-                                                       ("stage.finish", "Stage 1 of 1 finished after 0 s")]
+                                                       ("stage.finish", "Stage 1 of 1 finished after 0s")]
     assert records[0].fields == {"event": "stage.start", "stage": 1, "stages": 1}
     assert records[1].fields == {"event": "stage.finish", "stage": 1, "stages": 1, "seconds": 0.0}
     assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Add the dimmer band of bright stars ===",
-                                                    "=== Stage 1 of 1 finished after 0 s ==="]
+                                                    "=== Stage 1 of 1 finished after 0s ==="]
 
 
 def test_a_stage_that_fails_says_so_in_the_console_and_the_record_file(tmp_path, monkeypatch, capsys, stage_clock):
@@ -649,9 +649,9 @@ def test_a_stage_that_fails_says_so_in_the_console_and_the_record_file(tmp_path,
     records = [logrecord.parse_file_line(line) for line in path.read_text().splitlines()]
     assert [(r.event, r.severity, r.message) for r in records] == [
         ("stage.start", "info", "Stage 1 of 1: Add the dimmer band of bright stars"),
-        ("stage.failed", "error", "Stage 1 of 1 failed after 0 s: MySQL went away")]
+        ("stage.failed", "error", "Stage 1 of 1 failed after 0s: MySQL went away")]
     assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Add the dimmer band of bright stars ===",
-                                                    "=== Stage 1 of 1 failed after 0 s: MySQL went away ==="]
+                                                    "=== Stage 1 of 1 failed after 0s: MySQL went away ==="]
     assert stages._state["stages"] == [] and stages._state["open"] is None
 
 
@@ -674,7 +674,7 @@ def test_a_command_that_raises_ends_its_open_stage_as_failed(monkeypatch, capsys
             generate.main()
     finally:
         log.configure(log.NORMAL)
-    assert "=== Stage 1 of 1 failed after 0 s: RuntimeError: the sky fell ===" in capsys.readouterr().out
+    assert "=== Stage 1 of 1 failed after 0s: RuntimeError: the sky fell ===" in capsys.readouterr().out
 
 
 def test_the_executor_records_the_speeds_the_units_report_and_builds_the_rows_counts_from_them(monkeypatch):

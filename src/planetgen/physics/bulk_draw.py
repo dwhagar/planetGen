@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import abundance_tier, possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water,
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water, envelope_capture,
                                disk_condensation, elements, formation_snow_line, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
                                volatile_depletion)
 from planetgen.util import draw
@@ -315,7 +315,7 @@ fraction by a few thousandths, so the second pass is within 1e-4 of the fixed po
 
 
 def _minor_oxides(part):
-    """The seven minor oxides of `part` as the `BulkFractions` keywords (all None for a carbon rock, which holds none)."""
+    """The seven minor oxides of `part` as the `BulkFractions` keywords (a carbon rock holds only its phosphorus, GEN.1749; the other six are None)."""
     oxides = part.oxides or {}
     return {f"rock_{name.lower()}": oxides.get(name) for name in mantle_oxides.OXIDE_NAMES}
 
@@ -350,7 +350,7 @@ def dry_partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_r
     the Fe the mantle does not hold, with the star's Ni per Fe, and `light_elements` of the metal's mass as S, Si, O and C.
     A mantle that would take more Fe than the star has takes all of it and the metal is zero. A silicate rock also holds Na2O, K2O, TiO2, Cr2O3, MnO, NiO and P2O5
     (`mantle_oxides`, GEN.1362): the star's ratio of each times the share its volatility keeps at `cut_k`, less what the core took, which joins the metal (Cr, Mn, P, Na, K)
-    or, for nickel, is what the mantle does not keep of the star's Ni. A carbon rock holds none (`oxides` is None).
+    or, for nickel, is what the mantle does not keep of the star's Ni. A carbon rock holds only its phosphorus (GEN.1749: `oxides` is `{"P2O5": ...}` and its core takes the P) and none of the other six.
 
     Args:
         ratios (HostRatios): The star's ratios.
@@ -377,10 +377,9 @@ def _partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock
     shell = mgo + si_mass + ratios.ca * _grams("CaO") + 0.5 * ratios.al * _grams("Al2O3")
     al2o3 = 0.5 * ratios.al * _grams("Al2O3")
     graphite = graphite_over_rock * shell if carbon_rock else 0.0
+    oxide_grams, core_grams, nickel_core = mantle_oxides.oxides(ratios, cut_k, core_fraction, rock_feo)
     if carbon_rock:
-        oxide_grams, core_grams, nickel_core = {}, {}, ratios.ni * _grams("Ni")
-    else:
-        oxide_grams, core_grams, nickel_core = mantle_oxides.oxides(ratios, cut_k, core_fraction, rock_feo)
+        oxide_grams, core_grams, nickel_core = {"P2O5": oxide_grams["P2O5"]}, {"P": core_grams["P"]}, ratios.ni * _grams("Ni")     # GEN.1749: the rock holds its phosphorus, as the silicate rock does (the P2O5 the life law reads), and none of the other six
     rock_no_feo = shell + graphite + sum(oxide_grams.values())
     rock = rock_no_feo / (1.0 - rock_feo)
     n_feo = rock_feo * rock / _grams("FeO")
@@ -435,7 +434,24 @@ def _rocky_water(body):
     dialed = delivered_water.dialed_class(share, abundance_tier.dry_part(body))     # a tier: ONE extra draw; `science` (share 0) draws nothing and leaves the body untouched
     if share > 0.0 or hasattr(body, "_water_dialed"):
         body._water_dialed = dialed         # remembered so the body's air takes the same class (`mixture_subject`); a redraw decides again
-    return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio, dialed=dialed)
+    water = delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio, dialed=dialed)
+    return water if dialed is not None else water + _nebular_water(body, mass_earth)
+
+
+def _nebular_water(body, mass_earth):
+    """
+    The water, a share of the body's mass, that the hydrogen envelope of a rocky body under `envelope_capture.KEEPS_FROM_MASS_EARTH` made in its magma ocean before it was lost (GEN.1748, Young et al. [R5293]): the
+    body captured an envelope in the disk (`envelope_capture.start_of`, the start `planets.apply_envelope` would draw, from the body's own stream, no draw of the run's) and `envelope_capture.nebular_water_fraction` of it is
+    water, added to the delivered water. 0 for a body that is a moon, has no star (with a mass), mass or formation distance, captured nothing (a late core, a belt member), is too light to hold a nebular envelope
+    (`envelope_capture.MIN_MASS_EARTH`) or is heavy enough to keep its envelope and so is read as a sub-Neptune's. Not added where the Class M abundance tier's water dial decided the class (`dialed`).
+    """
+    star = getattr(body, "star", None)
+    star_mass = getattr(star, "mass", None)
+    distance = _formation_distance_au(body)
+    if (getattr(body, "is_moon", False) or getattr(body, "_late_core", False) or not star_mass or distance is None
+            or not envelope_capture.in_range(mass_earth) or envelope_capture.keeps_envelope(mass_earth)):
+        return 0.0
+    return envelope_capture.nebular_water_fraction(envelope_capture.start_of(body.mass, distance, star_mass), host_ratios(star).y_envelope)
 
 
 def _icy_water_range(body):
