@@ -274808,6 +274808,29 @@
    "volume": "3",
    "year": 2022
   },
+  "10.3847/psj/ac68e6": {
+   "authors": [
+    [
+     "Schlichting",
+     "H. E."
+    ],
+    [
+     "Young",
+     "E. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/psj/ac68e6",
+   "editors": [],
+   "journal": "PSJ",
+   "page": "127",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Chemical Equilibrium between Cores, Mantles, and Atmospheres of Super-Earths and Sub-Neptunes and Implications for Their Compositions, Interiors, and Evolution",
+   "type": "journal-article",
+   "volume": "3",
+   "year": 2022
+  },
   "10.3847/psj/acb2ca": {
    "authors": [
     [
@@ -286191,7 +286214,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5294,
+ "id_next": 5295,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -291073,6 +291096,7 @@
   "10.3847/psj/ac2e09": "R1003",
   "10.3847/psj/ac562e": "R1716",
   "10.3847/psj/ac5fb1": "R0501",
+  "10.3847/psj/ac68e6": "R5294",
   "10.3847/psj/acb2ca": "R2955",
   "10.3847/psj/acdef3": "R4425",
   "10.3847/psj/ad6764": "R1276",

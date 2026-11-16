@@ -178,18 +178,18 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
     assert len(seen_classes) >= 3
 
 
-def test_a_rocky_body_under_one_earth_mass_adds_the_water_its_nebular_envelope_made():
-    """GEN.1748: the water of the hydrogen envelope a body under 1 Earth mass captured (Young et al. [R5293]) is added to its delivered water; a late core, a moon, a body of 1 Earth mass or more and a body
-    of under 0.2 Earth masses get none, and the run's stream does not move."""
+def test_a_rocky_body_adds_the_water_its_nebular_envelope_made():
+    """GEN.1748, GEN.1754: the water of the hydrogen envelope a body of 0.2 to 20 Earth masses captured (Young et al. [R5293]) is added to its delivered water, kept or lost; a late core, a moon, a body of under
+    0.2 Earth masses and one of over 20 get none, and the run's stream does not move."""
     from planetgen.physics import envelope_capture
     mass = lambda earth: earth * constants.EARTH_MASS_TO_KG
-    for earth, extra in ((0.5, {}), (0.5, {"_late_core": True}), (0.5, {"is_moon": True}), (1.5, {}), (0.1, {})):
+    for earth, extra in ((0.5, {}), (0.5, {"_late_core": True}), (0.5, {"is_moon": True}), (1.5, {}), (4.0, {}), (25.0, {}), (0.1, {})):
         body = _body(5000.0, mass=mass(earth), **extra)
         draw.set_run_seed(11)
         base = bulk_draw._rocky_water(_body(5000.0, mass=mass(earth), _late_core=True))     # the delivered water alone
         draw.set_run_seed(11)
         water = bulk_draw._rocky_water(body)
-        if earth == 0.5 and not extra:
+        if earth in (0.5, 1.5, 4.0) and not extra:
             start = envelope_capture.start_of(body.mass, 1.0, body.star.mass)
             assert start > 0.0 and water == pytest.approx(base + envelope_capture.nebular_water_fraction(start, bulk_draw.host_ratios(body.star).y_envelope))
         else:

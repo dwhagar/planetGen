@@ -43173,6 +43173,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "envelope_capture.YOUNG_EMBRYO_MASS_EARTH 0.5 and YOUNG_WATER_CASES ((0.002, 1), (0.003, 2.5)): a total H-mass fraction of 0.2 percent makes about 1 terrestrial ocean of water in the magma ocean of a 0.5 Earth-mass embryo, 0.3 percent makes 2 to 3 (the middle, 2.5 is the L1 pick); between, below and held above 0.3 percent as the power of the hydrogen that joins them (2.26)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.in_range 0.2 to MAX_MASS_EARTH 20 for the water (bulk_draw._nebular_water, GEN.1754): the water of the nebular envelope (EC12, a share of the body's mass, held at the 0.3 percent hydrogen case, about 0.12 percent of the mass) is made by every rocky body of 0.2 to 20 Earth masses, whether it keeps the envelope or loses it, as the same share of its mass (Young et al. [R5293] find no dependence on mass above ~0.2 Earth masses); cross-check, Schlichting and Young [R5294]: a 4 Earth-mass planet with 1 to 14 percent hydrogen has about 0.01 percent (reactive metal core) to 0.1 percent (unreactive) water in its silicate mantle, and more water than that in the envelope"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.12 percent of the mass"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies of 1 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a super-Earth of 1 to 20 Earth masses with a water share of its mass that falls outside 0.01 to 0.2 percent from the envelope alone"
+            ],
+            [
+              "What replaces it",
+              "a mass-dependent magma-ocean and hydrogen equilibrium for 1 to 20 Earth masses (the papers' own thermodynamic models)"
+            ],
+            [
+              "Evidence",
+              "Young, Shahar and Schlichting [R5293] (read: abstract and Results); Schlichting and Young [R5294] (read: abstract and Section 3, second-hand summary of the rest)"
+            ]
+          ],
+          "id": "EC13",
+          "key": "6.206:EC13",
+          "kind": "P",
+          "slug": "6-206-ec13",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "envelope_capture.in_range 0.2 to MAX_MASS_EARTH 20 for the water (bulk_draw._nebular_water, GEN.1754): the water of the nebular envelope (EC12, a share of the body's mass, held at the 0.3 percent hydrogen case, about 0.12 percent of the mass) is made by every rocky body of 0.2 to 20 Earth masses, whether it keeps the envelope or loses it, as the same share of its mass (Young et al. [R5293] find no dependence on mass above ~0.2 Earth masses); cross-check, Schlichting and Young [R5294]: a 4 Earth-mass planet with 1 to 14 percent hydrogen has about 0.01 percent (reactive metal core) to 0.1 percent (unreactive) water in its silicate mantle, and more water than that in the envelope"
         }
       ],
       "slug": "6-206-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",

@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5170 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5171 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -4225,6 +4225,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r3959"></a>**R3959** Schlichting, H. E. & Sari, R. 2007, The Effect of Semicollisional Accretion on Planetary Spins, ApJ, 658, 593, doi:10.1086/511129, arXiv:astro-ph/0610093. [paper](https://doi.org/10.1086/511129) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/511129/abstract)
 - <a id="paper-r3960"></a>**R3960** Schlichting, H. E., Sari, R., & Yalinewich, A. 2015, Atmospheric mass loss during planet formation: The importance of planetesimal impacts, Icarus, 247, 81, doi:10.1016/j.icarus.2014.09.053, arXiv:1406.6435. [paper](https://doi.org/10.1016/j.icarus.2014.09.053) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2014.09.053/abstract)
 - <a id="paper-r3961"></a>**R3961** Schlichting, H. E. & Young, E. D. 2021, Chemical equilibrium between Cores, Mantles, and Atmospheres of Super-Earths and Sub-Neptunes, and Implications for their Compositions, Interiors and Evolution, arXiv:2107.10405. [paper](https://arxiv.org/abs/2107.10405) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2107.10405/abstract)
+- <a id="paper-r5294"></a>**R5294** Schlichting, H. E. & Young, E. D. 2022, Chemical Equilibrium between Cores, Mantles, and Atmospheres of Super-Earths and Sub-Neptunes and Implications for Their Compositions, Interiors, and Evolution, PSJ, 3, 127, doi:10.3847/psj/ac68e6. [paper](https://doi.org/10.3847/psj/ac68e6) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/psj/ac68e6/abstract)
 - <a id="paper-r3962"></a>**R3962** Schmidt, M. 1957, 6. The distribution of atomic hydrogen in the inner parts of the Galaxy, Symp. - Int. Astron. Union, 4, 37, doi:10.1017/s0074180900048816. [paper](https://doi.org/10.1017/s0074180900048816) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1017/s0074180900048816/abstract)
 - <a id="paper-r3963"></a>**R3963** Schmidt, M. 1959, The Rate of Star Formation., ApJ, 129, 243, doi:10.1086/146614. [paper](https://doi.org/10.1086/146614) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/146614/abstract)
 - <a id="paper-r3964"></a>**R3964** SCHMIDT, M. 1963, 3C 273 : A Star-Like Object with Large Red-Shift, Nature, 197, 1040, doi:10.1038/1971040a0. [paper](https://doi.org/10.1038/1971040a0) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/1971040a0/abstract)

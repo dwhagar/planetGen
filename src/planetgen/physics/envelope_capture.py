@@ -68,7 +68,7 @@ is a share of the body's mass (`nebular_water_fraction`). [EC12, T1, L0.]"""
 YOUNG_WATER_CASES = ((0.002, 1.0), (0.003, 2.5))
 """tuple: `(total H-mass fraction of the body, terrestrial oceans of water the reaction with its magma ocean makes)` for the embryo of `YOUNG_EMBRYO_MASS_EARTH`: Young et al. [R5293] find 0.2 percent hydrogen
 makes "approximately one terrestrial ocean" and 0.3 percent "about 2 to 3 ocean equivalents" (the middle, 2.5). The water between and below goes as the power of the hydrogen that joins the two points (2.26), and
-above 0.3 percent it is held there: the paper does not go further. [EC12, T1, L1 (2.5 is the middle of the printed 2 to 3).]"""
+above 0.3 percent it is held there: the paper does not go further. A body of 1 to 20 Earth masses makes the same share of its mass (GEN.1754: Young et al. find no dependence on mass, and Schlichting and Young [R5294] have about 0.1 percent water in the mantle of a 4 Earth-mass planet). [EC12, T1, L1 (2.5 is the middle of the printed 2 to 3); EC13, T5, L1.]"""
 
 MAX_MASS_EARTH = 20.0
 """float: The heaviest rocky planet (`planet_kind` turns a heavier core into a giant, whose envelope its interior holds)."""
