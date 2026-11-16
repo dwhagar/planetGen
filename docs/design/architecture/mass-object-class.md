@@ -69,7 +69,7 @@ What it does not remove: the physics modules (`planets.py` 1,263, `rogue_surface
 | Thing | Size | Source |
 |---|---|---|
 | Class D (smallest planet class) | a conditions rule (GEN.1091): surface pressure under 10 Pa and at least 1 percent water or ice by mass (`physics/data/planet_classes.json`); size is not in the rule. Its intended scale is a dwarf planet or a moon, radius 50 to 500 km, so 100 to 1,000 km across (not metres); it covers belt members and dwarf planets as well as moons | `planet_classes.json`, `tuning.PLANET_CLASSES["D"]` [M] |
-| Star-bound comet nucleus | diameter 0.5 to 20 km | `BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM` [M] |
+| Star-bound comet nucleus | diameter 2.5 to 20 km, cumulative power law q = 1.92 | `BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM` [M] |
 | Interstellar comet nucleus | diameter 0.05 to 5 km, so **50 m is the smallest individual body generated** | `INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM` [M] |
 | Asteroid belt, asteroid field | one statistical row each: a density and up to four named components | `belt.py`, `asteroid_field.py` [M] |
 | Moons | smallest are class D, as above | `moon_class_options` [M] |

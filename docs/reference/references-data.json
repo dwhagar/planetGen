@@ -94811,6 +94811,89 @@
    "volume": "226",
    "year": 2013
   },
+  "10.1016/j.icarus.2013.07.021": {
+   "authors": [
+    [
+     "Fernández",
+     "Y."
+    ],
+    [
+     "Kelley",
+     "M."
+    ],
+    [
+     "Lamy",
+     "P."
+    ],
+    [
+     "Toth",
+     "I."
+    ],
+    [
+     "Groussin",
+     "O."
+    ],
+    [
+     "Lisse",
+     "C."
+    ],
+    [
+     "A’Hearn",
+     "M."
+    ],
+    [
+     "Bauer",
+     "J."
+    ],
+    [
+     "Campins",
+     "H."
+    ],
+    [
+     "Fitzsimmons",
+     "A."
+    ],
+    [
+     "Licandro",
+     "J."
+    ],
+    [
+     "Lowry",
+     "S."
+    ],
+    [
+     "Meech",
+     "K."
+    ],
+    [
+     "Pittichová",
+     "J."
+    ],
+    [
+     "Reach",
+     "W."
+    ],
+    [
+     "Snodgrass",
+     "C."
+    ],
+    [
+     "Weaver",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2013.07.021",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "1138",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Thermal properties, sizes, and size distribution of Jupiter-family cometary nuclei",
+   "type": "journal-article",
+   "volume": "226",
+   "year": 2013
+  },
   "10.1016/j.icarus.2013.09.028": {
    "authors": [
     [
@@ -286253,7 +286336,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5296,
+ "id_next": 5297,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286990,6 +287073,7 @@
   "10.1016/j.icarus.2013.06.019": "R3684",
   "10.1016/j.icarus.2013.06.020": "R1126",
   "10.1016/j.icarus.2013.06.027": "R1065",
+  "10.1016/j.icarus.2013.07.021": "R5296",
   "10.1016/j.icarus.2013.09.028": "R2937",
   "10.1016/j.icarus.2013.10.004": "R4341",
   "10.1016/j.icarus.2013.10.013": "R1516",
