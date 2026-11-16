@@ -11741,14 +11741,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: OPS.177, DB.127.
   Filed by the TODO thread.
 
-- [ ] **GEN.1651 BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build**
-  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section G, with file:line, shape, risk and output impact). Output unchanged; makes GEN.1652 and GEN.1654 smaller.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: GEN.1649. Related: GEN.1652, GEN.1654.
-  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
-  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
-  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): a BuildState dataclass declared on the MassObject core (generation/mass_object.py beside KinematicRecord) with a PlanetaryBuildState subclass; not stored. Output unchanged. A prerequisite of GEN.556 and GEN.570.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1652 One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py)**
   Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section A, with file:line, shape, risk and output impact). Fixes bug-sweep H2.3, H3, M1 and M3 at the root. Output changes (fixes): one epoch, rides a train after Train 25.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: GEN.1651. Related: GEN.1653, GEN.1654.
@@ -12070,11 +12062,6 @@ clears each one.
 - [ ] **GEN.1746 Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page**
   Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03, after GEN.1737; lock item. Prerequisites: GEN.1745, GEN.1740. Related: GEN.1739, GEN.1740.
-  Filed by the TODO thread.
-
-- [ ] **TEST.774 (bug) test_plan_outline::test_the_plan_says_where_its_time_went_step_by_step is red on main: the plan's timing table now prints HMS durations (UX.319, Boss rule) and the test still parses plain seconds**
-  Lane 16, 12:24 AM EST 2026-11-16 (found while testing PR 6789, OPS.265): red without 6789 too. Do: make the test read the table's durations through the project's HMS parser (or the same formatter's inverse, no second parser) and keep its checks (costliest first, rows add up to the named total, the named steps present). Lock-free, test only.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: UX.319, OPS.265.
   Filed by the TODO thread.
 
 - [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
