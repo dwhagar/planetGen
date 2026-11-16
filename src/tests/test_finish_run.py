@@ -50,7 +50,7 @@ def _conclude(params, plan, results, seconds):
 
 @pytest.fixture(autouse=True)
 def _commands(monkeypatch):
-    for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "finish-phenomena",
+    for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "write-special-phenomena", "build-phenomenon-indexes", "record-phenomenon-scatter",
                  "empty-phenomenon-scatter", "drop-phenomenon-indexes", "clear-bright-stars", "empty-nebula-field", "draw-nebula-field"):
         monkeypatch.setitem(commands.REGISTRY, kind, commands.CommandSpec(
             kind, "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut")))
@@ -167,12 +167,12 @@ def test_the_special_phenomena_that_stopped_are_carried_on_in_their_own_stage_an
     """OPS.222: finish-run no longer rewinds a stage with the one before it (`REWIND_WITH` is gone): a stage that stopped is carried on from the rows, and the clearing stages the run finished stay finished."""
     steps = [_step("start", "plain"), _step("phenomena-clear", "empty-phenomenon-scatter"),
              _step("phenomena-unindex", "drop-phenomenon-indexes"), _step("phenomena", "scatter-phenomena"),
-             _step("phenomena-index", "finish-phenomena"), _step("blocks", "plain")]
-    run_id = _stopped(conn, steps, "phenomena-index", 0)
+             _step("phenomena-special", "write-special-phenomena"), _step("phenomena-index", "build-phenomenon-indexes"), _step("phenomena-record", "record-phenomenon-scatter"), _step("blocks", "plain")]
+    run_id = _stopped(conn, steps, "phenomena-special", 0)
     found = _plan(conn, run_id)
     assert (found.first, found.stopped) == (4, 4)
-    assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id] * 4 + [None, None]
-    assert [step.params.get(resumed.RESUMES_FROM) for step in found.steps] == [None] * 4 + [run_id, run_id]
+    assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id] * 4 + [None] * 4
+    assert [step.params.get(resumed.RESUMES_FROM) for step in found.steps] == [None] * 4 + [run_id] * 4
 
 
 @pytest.mark.parametrize("stage, kind, before", [
