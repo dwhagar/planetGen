@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4371] - 2026-11-16
+
+**Headline:** A belt's largest body now matches the largest body in its member list.
+
+### Changed
+- GEN.1605: a belt's "largest body" was the size law's heaviest body at the law's density, while its member list sized the same body at its own taxon's density, so the two differed by up to 15 percent in belts that gave no planets. Every belt with members now reports the largest member it holds (promoted belts already did, GEN.1561). The belt's mass and density already follow the star's final age (GEN.1546) and are unchanged.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4370] - 2026-11-16
 
 **Headline:** A body with an ocean that gets less than its runaway flux is no longer held under one fixed 375 K: the hottest surface it can hold is read from its own air, so thick carbon dioxide airs may be hot and class N, and thin nitrogen airs are held near 315 K.
