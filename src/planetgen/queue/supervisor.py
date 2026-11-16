@@ -467,6 +467,41 @@ class RunStarts:
         """Nothing to drop: an ask not answered stays on Redis for the next supervisor."""
 
 
+class Launches:
+    """
+    OPS.228: the hand-out of the units of runs whose stages are cut for forked jobs (`queue.forked_jobs`, `wrapper._forked`). Each turn it asks the launcher (`launcher.Launcher`) to settle what ended and hand out
+    what is ready; nothing happens, and no template is started, until the setting is on. The launcher, its control connection and its templates are made on the first turn that needs them and let go with the
+    supervisor (`clear`: every job's pipe closes, so each finishes and exits at its next safe point).
+
+    Args:
+        connection (redis.Redis): The server the run records are on (what each kind has used lately, for the dispatch rule).
+        make (callable, optional): `make()` returns the launcher; the simulator and the tests pass their own.
+    """
+
+    def __init__(self, connection, make=None):
+        self.connection, self.make = connection, make
+        self.launcher = None
+
+    def _made(self):
+        from planetgen.db import store
+        from planetgen.queue import jobhost, launcher, scheduler
+        return launcher.Launcher(store.get_control_connection(), jobhost.TemplateSet(), used=lambda: scheduler.usage(self.connection))
+
+    def turn(self):
+        """Returns how many jobs it started."""
+        from planetgen.util.settings import get_settings
+        if self.launcher is None:
+            if not get_settings().queue.forked_jobs:
+                return 0
+            self.launcher = (self.make or self._made)()
+        return len(self.launcher.turn())
+
+    def clear(self):
+        if self.launcher is not None:
+            self.launcher.stop()
+            self.launcher = None
+
+
 class Supervisor:
     """
     The supervisor's loop with its dependencies passed in (OPS.207): `clock` (`now()`, `sleep(seconds)`), `store` (`publish(pid, since, now, turns)`,
