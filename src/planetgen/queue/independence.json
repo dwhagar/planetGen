@@ -7,6 +7,66 @@
       "grain": "table",
       "shared": [],
       "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-phenomena-draw-nebula-field]"
+    },
+    {
+      "a": "scatter-mass",
+      "b": "scatter-phenomena",
+      "grain": "table",
+      "shared": [
+        "bright_stars",
+        "galaxy_block_light_parts",
+        "galaxy_shape",
+        "id_counters",
+        "phenomenon_scatter",
+        "scatter_members",
+        "scatter_nodes"
+      ],
+      "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-mass-scatter-phenomena]"
+    },
+    {
+      "a": "scatter-mass",
+      "b": "draw-nebula-field",
+      "grain": "table",
+      "shared": [
+        "galaxy_shape",
+        "generator_epoch",
+        "scatter_epochs"
+      ],
+      "proof": "tests/test_pair_overlap.py::test_pair_is_independent[scatter-mass-draw-nebula-field]"
+    }
+  ],
+  "edges": [
+    {
+      "command": "link-neighbors",
+      "after": [
+        "generate-neighborhood",
+        "generate-sectors",
+        "generate-start-sector",
+        "generate-unplaced-sector"
+      ],
+      "grain": "sector",
+      "needs": "the sector and every placed sector whose center is within twice the half diagonal of a sector's edge plus the nearest-systems search distance of its center (`store._sectors_near`, the sectors `refresh_nearest_systems` reads)",
+      "reach": {
+        "search_pc": 4.0
+      },
+      "unit_params": "the run's own sector ids as `sector_ids` and the unit's sector as `chunk` (never `since`: the sectors saved since a time are the ones saved so far, and `skip` must be the whole run)",
+      "proof": "tests/test_address_edges.py::test_link_and_settle_by_address_store_what_plan_order_stores"
+    },
+    {
+      "command": "settle-sector-paths",
+      "after": [
+        "generate-neighborhood",
+        "generate-sectors",
+        "generate-start-sector",
+        "generate-unplaced-sector"
+      ],
+      "grain": "sector",
+      "needs": "the sector and every placed sector whose center is within `NEIGHBOUR_REACH_EDGES` edges of its center along each axis (`sector_paths._neighbour_centers`, the point masses a body's path sees)",
+      "reach": {
+        "reach_edges": 2.5
+      },
+      "unit_params": "the unit's sector as `sector_ids` with `workers` 1 (the cut's `expand` of the sectors around is the edge's job: each of them is its own unit)",
+      "proof": "tests/test_address_edges.py::test_link_and_settle_by_address_store_what_plan_order_stores"
     }
   ]
 }

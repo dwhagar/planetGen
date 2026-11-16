@@ -8,7 +8,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 
 | kind | name | item | reason |
 |---|---|---|---|
-| dataset | harris_clusters | GEN.297 | the Harris catalog of 157 globular clusters; the calibration of the cluster generator reads it |
+| dataset | harris_clusters | by design | the Harris catalog of 157 globular clusters (Boss, 2026-10-16: its distributions guide the laws, and no real cluster is placed in any galaxy): a reference reader the tests and the design note use, never loaded into a galaxy; the cluster generator's laws (count, mass function, profiles, [Fe/H], King concentration, age spread) were calibrated against it and are typed in (GEN.297, GEN.159) |
 | dataset | noaa_proton_events | by design | the 265 NOAA solar proton events, the calibration reference of the solar particle event rate (`solar_particles.NOAA_CUMULATIVE_COUNTS` are counted from it and `test_the_typed_counts_are_the_counts_of_the_downloaded_list` holds them to it); the generator reads the typed counts, as it reads the fitted constants of the other calibration sets |
 | dataset | hyg_stars | by design | the HYG star database v4.1, a test reference only: the sky calibration (`test_sky_hyg_calibration.py`, VIEW.30) holds the generated sky against it; the generator never reads it |
 | dataset | gaia_nearby | by design | the Gaia DR3 stars within 25 pc, the target the placement share is fitted to (`scripts/fit_sector_separation.py`, `test_sector_separation_fit.py`, GEN.1534); the generator never reads it |

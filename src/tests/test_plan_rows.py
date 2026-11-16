@@ -248,3 +248,21 @@ def test_a_run_before_the_migration_made_the_ledger_tables_still_runs(monkeypatc
             pass
     monkeypatch.setattr(planrows, "control_connection", lambda *args: NoTable())
     _check_plan_kept_in_the_record(monkeypatch, [commands.Step("a", "first", "A", {"x": 1})])
+
+
+def test_the_units_of_a_cut_stage_are_released_for_the_launcher_except_the_ones_skipped(monkeypatch, mysql_config):
+    """OPS.228: `release_units` makes the stage's waiting unit rows ready (not the stage's open or end rows), leaves the numbers in `skip`, and the open row names the Redis run and the stage's index."""
+    _register(monkeypatch, first=_units(3))
+    conn = redisqueue.connect()
+    step = commands.Step("a", "first", "A", {"database": wrapper.database_args(mysql_config)})
+    run_id = runrecord.start_run(conn, "Rows", [runrecord.Stage("a", "A", units=3)], steps=[step.as_dict()])
+    planrows.record_plan(conn, run_id, [step])
+    planrows.record_cut(conn, run_id, 0, "first", [({"n": n}, 1.0) for n in range(3)], 3.0, {})
+    assert planrows.release_units(conn, run_id, 0, skip=[1]) == 2
+    assert planrows.release_units(conn, run_id, 0) == 1, "the unit that was skipped is released by a later call, and the others are not released twice"
+    import json
+    jobs = _jobs(mysql_config, int(runrecord._s(conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD))))
+    assert {job["item_key"]: job["state"] for job in jobs if job["item_key"]} == {"0": "ready", "1": "ready", "2": "ready"}
+    opened = next(job for job in jobs if job["command"] == "open")
+    assert json.loads(opened["arguments"])["run_id"] == run_id and json.loads(opened["arguments"])["index"] == 0
+    assert all(job["state"] == "waiting" for job in jobs if job["command"] != "open" and not job["item_key"])

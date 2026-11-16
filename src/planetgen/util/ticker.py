@@ -8,12 +8,12 @@ A step that works for minutes says where it is every `tuning.PROGRESS_LOG_SECOND
 stage log, `tail -f`, the run log) never goes quiet and never floods. Before this module four places kept their own clock and their own
 constant for it (the block light units, the uncharted index, the download lines and the warm-up lines) and one built its own elapsed stamp.
 
-* `Ticker(label, total, say)`: `tick(done, detail)` says `Label: 1,240 of 4,000 done (31%), 2.1 a second, 4.12 minutes elapsed.` when the cadence has
+* `Ticker(label, total, say)`: `tick(done, detail)` says `Label: 1,240 of 4,000 done (31%), 2.1 a second, 4m 7s elapsed.` when the cadence has
   passed and returns whether it did; `finish(done)` says the last line whatever the clock. `percent=True` is for a counter on a bar's scale (0 to
-  100), where a count and a rate mean nothing: `Label: 37% done, 4.12 minutes elapsed.`
+  100), where a count and a rate mean nothing: `Label: 37% done, 4m 7s elapsed.`
 * `Pulse(say, text)`: a thread that says `text()` every cadence for as long as it runs (a context manager), for a stage whose unit may be silent
   between two counts, such as one long query.
-* `stamp(text, began)`: `text` with the time since `began`, `Text (4.12 minutes elapsed).`, the one form of the hand stamp the block light lines had.
+* `stamp(text, began)`: `text` with the time since `began`, `Text (4m 7s elapsed).`, the one form of the hand stamp the block light lines had.
 
 The clock is `time.monotonic` and can be given, so a test needs no wait. The text is one sentence with a capital and a period (the logging
 standard's message text). Time is `logrecord.duration_text` and the rate `format_rate`, the units code's ladders (UX.318).
@@ -37,7 +37,7 @@ def _seconds(every):
 
 
 def stamp(text, began, clock=time.monotonic):
-    """`text` (a trailing period or ellipsis is dropped) with how long it has been since `began`: `Adding up the levels (4.12 minutes elapsed).`"""
+    """`text` (a trailing period or ellipsis is dropped) with how long it has been since `began`: `Adding up the levels (4m 7s elapsed).`"""
     return f"{text.rstrip('. ')} ({logrecord.duration_text(clock() - began)} elapsed)."
 
 

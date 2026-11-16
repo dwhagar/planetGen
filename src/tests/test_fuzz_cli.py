@@ -42,6 +42,7 @@ from hypothesis import strategies as st
 
 from planetgen.cli import generate as generate_cli
 from planetgen.galaxy import dials
+from planetgen.galaxy import seed as seed_module
 from planetgen.galaxy.spherical import cells_in_band_range
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_system
@@ -91,10 +92,18 @@ def _time_limit(seconds):
 def _deterministic(seed):
     """`main()` seeds `random` from `secrets.randbits`, a new galaxy's seed
     comes from `secrets.token_bytes`, and generation draws from `random`
-    or the galaxy seed (GEN.39): pin both."""
+    or the galaxy seed (GEN.39): pin both. Only a galaxy seed's length is pinned: `secrets.token_hex` (a run's id, a ticket in the
+    line for the machine) calls `token_bytes` too, and ids that repeat from one call of `main` to the next hand a new run the
+    last run's verdict (TEST.773), so every other length stays random."""
     rng = random.Random(seed)
-    with mock.patch.object(secrets, "randbits", rng.getrandbits), \
-            mock.patch.object(secrets, "token_bytes", lambda n: rng.getrandbits(8 * n).to_bytes(n, "big")):
+    real_token_bytes = secrets.token_bytes
+
+    def token_bytes(n=None):
+        if n == seed_module.SEED_BYTES:
+            return rng.getrandbits(8 * n).to_bytes(n, "big")
+        return real_token_bytes(n)
+
+    with mock.patch.object(secrets, "randbits", rng.getrandbits), mock.patch.object(secrets, "token_bytes", token_bytes):
         yield
 
 

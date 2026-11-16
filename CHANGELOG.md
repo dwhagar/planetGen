@@ -2,6 +2,127 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4347] - 2026-11-16
+
+**Headline:** With `queue.forked_jobs` on, the supervisor no longer waits a minute for a template to build, takes back rows a dead supervisor left running, and ends a unit whose run is gone.
+
+### Changed
+- The supervisor builds a lane's warm template in the background (`TemplateSet(background=True)`); a job whose template is not up yet stays `ready` with the reason `the template ... is being built` and is handed out at a later turn.
+- A row left `running` by a supervisor that ended is settled when its attempt's process is gone (or no attempt was taken): handed out once more, then failed. Rows whose process is alive are left to the unit.
+- A unit that skipped itself (its run is no longer live, or the unit was already done) has its row ended `canceled`, not left `running`.
+- The template treats a reset channel as a closed one and exits.
+
+## [8.0.4346] - 2026-11-16
+
+**Headline:** The gas dwarf (class T) text now says its air can be thin, which is true of 1.2 percent of bodies; no bound was added, because it would leave them with no class.
+
+### Changed
+
+- GEN.1616: the phrase of class T (both rows, which share it) in `physics/data/planet_classes.json` no longer says "a thick hydrogen and helium envelope, with no surface to stand on"; it says "an air of mostly hydrogen and helium, thick on most" (the giant row of T shares the phrase, so both changed). The 11-16 census (default settings, 5,000 systems) has 8,458 terrestrial-kind T bodies; 851 of them (1.2 percent of all 73,247 bodies; all plain terrestrial bodies, median 24 K, median 1.1 kPa of pure hydrogen) hold a thin, cold hydrogen air with an envelope under 0.1 percent of the mass. Every other terrestrial row of `planet_class_fit.json` needs under 30 percent hydrogen, so an envelope or pressure bound on the T row would leave those 851 with no class at all; the sentence already said "the air can be thin", and the phrase now agrees. The basis line of the row and the row in `docs/design/habitability/condition-based-planet-classes.md` give the reason and the count.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4345] - 2026-11-16
+
+**Headline:** The link and settle of one sector may start once the sectors they read are saved, and a test now proves it by address.
+
+### Changed
+- `queue/independence.json` lists `edges` (`touches.load_edges`): the unit of `link-neighbors` or `settle-sector-paths` for one sector waits only for the sectors its rule names (the nearest-systems reach for the link, `NEIGHBOUR_REACH_EDGES` for the settle), not for the whole generate stage. `tests/address_edge_support.py` proves it on five sectors in a row: the units run in random orders on one thread and on 15 threads, each released when its sectors are saved, store the same content as plan order; a unit released after its own sector alone does not (the control). Nothing runs overlapped until the supervisor's release-by-needs step uses the edges, so a run is as before; output of generation is unchanged.
+- `queue/touches.py`: `link-neighbors` writes the quadrant of every placed phenomenon (`black_holes`, `nebulae`, `neutron_stars`, `quasars`, `supernova_remnants`, `asteroid_fields`, `interstellar_comets`, `rogue_planets`); the proof found the declaration lacked the others.
+
+## [8.0.4344] - 2026-11-16
+
+**Headline:** A setting runs the units of a generation run as forked jobs handed out by the supervisor, off by default.
+
+### Added
+- `queue.forked_jobs` (off): when on, the cut of a stage of a generation run makes its unit rows `ready` and queues nothing in RQ; the supervisor's new `Launches` duty hands them out with `dispatch.dispatch` and runs each as a job forked from the lane's warm template (OPS.228, slice B). Runs that carry on from an earlier one, and runs with no ledger, stay with the workers.
+- The `open` row of a stage names the Redis run id (`run_id`) beside the stage's index, so the launcher can build the unit's job from the ledger alone; `planrows.release_units` makes a stage's unit rows ready.
+
+### Changed
+- The launcher leaves a unit's attempt to the unit (`units.run_unit_on`, as in a worker), marks a row `running` when it forks, and settles a process that died with its row still `running`: handed out once more, then failed.
+
+## [8.0.4343] - 2026-11-16
+
+**Headline:** The third pair of commands that may overlap, the mass scatter and the nebula field, is proved and listed.
+
+### Changed
+- `queue/independence.json` lists `scatter-mass` and `draw-nebula-field`, with the tables they share named in the entry (`galaxy_shape`, `generator_epoch`, `scatter_epochs`: the shape row and the epoch rows each stage's end hook stamps for its own stage). The mass pass writes the stars, their members and nodes and the block light parts; the nebula field writes its own table. Overlapped at 1 and 15 workers in both orders, the stored content (row ids left out, members and nodes compared through the owner's `uid`) equals plan order's. Nothing runs overlapped until the new engine's supervisor starts the jobs the plan leaves free, so a run is as before; output of generation is unchanged.
+
+## [8.0.4342] - 2026-11-16
+
+**Headline:** Two tests that were red on main are green: the job ledger no longer uses `VALUES()` in its upserts, and no item code shows in the text of a page or a log line.
+
+### Fixed
+- `test_describe_colour` no longer needs a gas giant among twelve default systems (they now almost never appear there); the stale decimal-time examples in docstrings read `4m 7s`.
+- `ledger.begin_attempt`, `ledger.checkpoint` and `resumed._copy_checkpoint` write the new value (or take it from a derived table) instead of `VALUES(col)` in `ON DUPLICATE KEY UPDATE`, which MySQL deprecated.
+- Item codes are cut from strings that reach a page, a sheet or a log line (the sheet's bookkeeping reasons, the redraw kinds, the asteroid vocabulary, a comet recipe label, a carbon-dioxide warning, the habitability table); the comments written into `schema.sql` by `body_fields.py` are registered as not shown.
+
+generation-output: unchanged
+
+## [8.0.4341] - 2026-11-16
+
+**Headline:** Two galaxy fuzz tests no longer fail in a whole-file run: the test harness stopped pinning the random ids of runs and tickets.
+
+### Fixed
+- `test_fuzz_cli` pinned `secrets.token_bytes` for every length to make a new galaxy's seed repeatable; `secrets.token_hex` calls it too, so a run's id and its ticket in the line repeated from one `main` call to the next and a new run was handed the last run's finished verdict ("the run done before stage 1 was queued"). Only the galaxy seed's length is pinned now.
+
+generation-output: unchanged
+
+## [8.0.4340] - 2026-11-16
+
+**Headline:** The second pair of commands that may overlap, the mass scatter and the phenomena scatter, is proved and listed.
+
+### Changed
+- `queue/independence.json` lists `scatter-mass` and `scatter-phenomena`, with the tables they share named in the entry (`bright_stars`, `phenomenon_scatter`, `scatter_members`, `scatter_nodes`, `id_counters`, `galaxy_block_light_parts`, `galaxy_shape`): each writes its own scatter table and the members, nodes, ids and block light parts of its own rows, and reads the other's table only for the light. Overlapped at 1 and 15 workers in both orders, the stored content (row ids left out, members and nodes compared through the owner's `uid`) equals plan order's. Nothing runs overlapped until the new engine's supervisor starts the jobs the plan leaves free, so a run is as before; output of generation is unchanged.
+
+## [8.0.4339] - 2026-11-16
+
+**Headline:** The queue commands' declared reads and writes are now held to a second tap run on a dense galaxy, and the declarations that run showed to be wrong are corrected.
+
+### Changed
+- `tests/test_command_touches.py` runs a second tap test on the galaxy of the bright star scatter tests, dense enough that every scatter draws rows and the sectors hold systems, with `--all` for the habitability and ledger re-scores and `--since` for the link, settle and backfill runs. The first galaxy is too sparse for a command that sends no statement without rows.
+- `queue/touches.py`: `rescore-habitability` and `refill-effect-ledger` declared one table read and none written; they read a whole system (`SYSTEM_RELOAD_READS`) and write `planets`, `moons`, `system_interests` and `system_summary` (the habitability) and `effect_ledger` and `system_summary` (the ledger). `empty-nebula-field` also reads the skeleton and writes `scatter_epochs`. Output of generation is unchanged.
+
+## [8.0.4338] - 2026-11-16
+
+**Headline:** Two more tests that still expected a decimal time now expect the hours, minutes and seconds form.
+
+### Fixed
+- `test_job_view` (a retry hold and an attempt's CPU time) and `test_web_sector_nav` (the stay at each stop) read times as `2m`, `1m 5s` and `30m`.
+
+generation-output: unchanged
+
+## [8.0.4337] - 2026-11-16
+
+**Headline:** The queue commands' declared reads and writes are now held to a second tap run on a dense galaxy, and the declarations that run showed to be wrong are corrected.
+
+### Changed
+- `tests/test_command_touches.py` runs a second tap test on the galaxy of the bright star scatter tests, dense enough that every scatter draws rows and the sectors hold systems, with `--all` for the habitability and ledger re-scores and `--since` for the link, settle and backfill runs. The first galaxy is too sparse for a command that sends no statement without rows.
+- `queue/touches.py`: `rescore-habitability` and `refill-effect-ledger` declared one table read and none written; they read a whole system (`SYSTEM_RELOAD_READS`) and write `planets`, `moons`, `system_interests` and `system_summary` (the habitability) and `effect_ledger` and `system_summary` (the ledger). `empty-nebula-field` also reads the skeleton and writes `scatter_epochs`. Output of generation is unchanged.
+
+## [8.0.4336] - 2026-11-16
+
+**Headline:** The wiring register marks the Harris cluster catalogue as a reference that is never loaded into a galaxy.
+
+### Changed
+
+- GEN.1559: the `harris_clusters` row of `docs/design/research/wiring-register.md` changes from an open item to `by design`, with the reason (Boss, 2026-10-16: its distributions guide the laws and no real cluster is placed in any galaxy; the cluster generator's laws were calibrated against it and are typed in). The other rows that wait on a feature (`dynamical_state`, `formed_at`, `origin_event_id`, `object_uid.is_on_demand`, `region_run.next_units`) keep the open item each waits on, so they come back when it is built.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4335] - 2026-11-16
+
+**Headline:** A scatter, nebula-field, sector or system piece the job engine runs again after its first try wrote its rows no longer writes them a second time.
+
+### Fixed
+
+- OPS.264: the engine marks a piece done after the piece's last commit, so a unit run again after a stop or a lost connection runs a piece whose rows an earlier try already wrote. `scatter_shells_do` (stars) and `scatter_phenomena_do` (phenomena) commit 10,000-row batches one by one and give each row a new Object ID, so a second run wrote every batch it reached again with nothing to refuse it (the unique key is on the new ID); `draw_nebula_field_do` would have stopped on the table's key. A batch is now written only if its first and last row are not in the table already (`scatter_companions.write_once`: each piece draws the same rows from its own random stream, a batch is one transaction, so both rows are in the table or neither is; one in and one out stops the piece), and a nebula-field slab takes back the rows of its first index before it writes them. The population scan (a watermark and a join on `species`), the territories recompute and `finish_phenomena_do` (`ctx.commit_piece`, OPS.222 B) were read and need nothing. The `sector` and `system` commands (`generate-unplaced-sector`, `generate-system`) save through connections of their own and have no key to find the first try's rows by, so they now resume and their save writes the unit's cursor past the piece in its own transaction (`Context.commit_piece_in`, `Attempt.commit_in`, a hook `also` on `store.save_sector` and `save_system`): the rows, the cursor and the stored result land together or not at all, a replaced attempt's save is rolled back, and a `system` unit that starts at its `finish` piece draws the system again from the run's stream. Reuse: `scatter_companions.write_committed` for the write, `star_trees` and `phenomenon_trees` for the systems a skipped batch holds, the scatter tables' address index for the check.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4334] - 2026-11-16
 
 **Headline:** The first pair of commands that may overlap, the phenomena scatter and the nebula field draw, is proved and listed; the proof is a test that runs any listed pair overlapped and compares the stored content.

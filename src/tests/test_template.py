@@ -136,3 +136,22 @@ def test_each_kind_is_forked_from_the_template_of_its_lane_and_a_template_starts
         assert sorted(found.values()) == [0, 0] and {lane for lane, _ in found} == {"plain", "tables"}
     finally:
         templates.stop()
+
+
+def test_a_template_set_that_builds_in_the_background_answers_not_ready_until_the_warm_set_is_built(monkeypatch):
+    monkeypatch.setenv(allowlist.EXTRA_ENV, f"{R}:*")
+    templates = jobhost.TemplateSet(warm_sets={"plain": [f"{R}.warm"]}, ready_seconds=60, background=True)
+    try:
+        started = time.monotonic()
+        with pytest.raises(jobhost.NotReady):
+            templates.fork("generate-system", f"{R}.quick", {"code": 0})
+        assert time.monotonic() - started < 5, "the ask returns at once, the build goes on in the background"
+        deadline, forked = time.monotonic() + 60, None
+        while forked is None and time.monotonic() < deadline:
+            try:
+                forked = templates.fork("generate-system", f"{R}.quick", {"code": 0})
+            except jobhost.NotReady:
+                time.sleep(0.2)
+        assert forked is not None and forked[0] == "plain"
+    finally:
+        templates.stop()

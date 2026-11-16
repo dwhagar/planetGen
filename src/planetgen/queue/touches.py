@@ -49,6 +49,15 @@ SECTOR_WRITES = (
     "sectors", "star_systems", "stars", "system_configs", "system_interests", "system_name_registry", "system_summary",
 )
 
+SYSTEM_RELOAD_READS = (
+    "asteroid_belt_composition", "asteroid_belts", "belt_members", "black_holes", "body_history", "comet_composition", "comets", "dark_members", "facilities",
+    "irregular_moons", "irregular_sets", "moon_deposit_types", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_class_scores",
+    "moon_reflection_spectrum", "moons", "neutron_stars", "orbit_nodes", "planet_deposit_types", "planet_gases", "planet_interior_layers", "planet_isotopes",
+    "planet_life", "planet_life_class_scores", "planet_reflection_spectrum", "planets", "sector_stats", "sectors", "species", "star_systems", "stars",
+    "system_config_slots", "system_configs", "system_interests", "system_summary",
+)
+"""tuple: What a command that loads one whole system reads (`store.refresh_habitability`, `store.refresh_effect_ledger`): the system, its bodies and their parts."""
+
 SCATTER_READS = (
     "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters", "orbit_simulation_state",
     "phenomenon_scatter",
@@ -103,7 +112,7 @@ READS = {
     "conclude-warm-cluster-field": ("*",),
     "draw-nebula-field": ("galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell"),
     "drop-phenomenon-indexes": (),
-    "empty-nebula-field": (),
+    "empty-nebula-field": ("galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "scatter_epochs"),
     "empty-phenomenon-scatter": (),
     "end-map-rebuild-maintenance": (),
     "fill-map-luminosity": ("phenomenon_scatter",),
@@ -134,14 +143,14 @@ READS = {
         "sectors", "star_systems", "supernova_remnants",
     ),
     "plan-skeleton": (),
-    "refill-effect-ledger": ("star_systems", "system_summary"),
+    "refill-effect-ledger": SYSTEM_RELOAD_READS,
     "refresh-block-lights": ("bright_stars", "galaxy_block_light_parts", "galaxy_block_lights", "phenomenon_scatter", "phenomenon_scatter_classes"),
     "refresh-run-blocks": (
         "asteroid_belts", "asteroid_fields", "black_holes", "bright_stars", "chart_ledger", "comets", "galaxy_block_light_parts", "galaxy_block_lights",
         "galaxy_block_stats", "galaxy_shape", "galaxy_shape_pins", "interstellar_comets", "moons", "nebula_block_state", "nebulae", "neutron_stars", "phenomenon_scatter",
         "planets", "quasars", "rogue_planets", "sector_stats", "sectors", "star_systems", "stars",
     ),
-    "rescore-habitability": ("star_systems", "system_summary"),
+    "rescore-habitability": SYSTEM_RELOAD_READS,
     "reset-galaxy": ("*",),
     "run-population": ("moons", "planet_life", "planets", "polities", "population_state", "species", "star_systems", "system_configs"),
     "run-territories": ("polities", "sectors", "star_systems"),
@@ -202,7 +211,7 @@ WRITES = {
     "conclude-warm-cluster-field": (),
     "draw-nebula-field": ("nebula_field",),
     "drop-phenomenon-indexes": ("phenomenon_scatter",),
-    "empty-nebula-field": ("nebula_field",),
+    "empty-nebula-field": ("nebula_field", "scatter_epochs"),
     "empty-phenomenon-scatter": ("phenomenon_scatter", "phenomenon_scatter_classes"),
     "end-map-rebuild-maintenance": (),
     "fill-map-luminosity": ("phenomenon_scatter",),
@@ -225,12 +234,14 @@ WRITES = {
     "generate-start-sector": SECTOR_WRITES,
     "generate-system": SECTOR_WRITES,
     "generate-unplaced-sector": SECTOR_WRITES,
-    "link-neighbors": ("nearest_systems", "rogue_planets"),
+    "link-neighbors": (      # the quadrant of every placed phenomenon (`store._octant_updates`, found by the by-address proof on a toy with a black hole) and the nearest systems
+        "asteroid_fields", "black_holes", "interstellar_comets", "nearest_systems", "nebulae", "neutron_stars", "quasars", "rogue_planets", "supernova_remnants",
+    ),
     "plan-skeleton": ("galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell"),
-    "refill-effect-ledger": (),
+    "refill-effect-ledger": ("effect_ledger", "system_summary"),
     "refresh-block-lights": ("galaxy_block_lights",),
     "refresh-run-blocks": ("galaxy_block_light_parts", "galaxy_block_lights", "galaxy_block_stats", "region_stats", "sector_stats"),
-    "rescore-habitability": (),
+    "rescore-habitability": ("moons", "planets", "system_interests", "system_summary"),
     "reset-galaxy": ("*",),
     "run-population": ("population_state", "species", "system_interests"),
     "run-territories": ("system_owners",),
@@ -270,6 +281,9 @@ INDEPENDENCE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "in
 """str: The pairs of commands a test has run overlapped, in both orders and at 1 and 15 workers, with the same content hashes as the plan-order run (OPS.242 adds a pair with its proof)."""
 
 PAIR_KEYS = ("a", "b", "grain", "shared", "proof")
+EDGE_KEYS = ("command", "after", "grain", "needs", "reach", "unit_params", "proof")
+"""tuple: What an entry of `edges` in `independence.json` names (`load_edges`): the command whose unit for one sector may start when the sectors it needs are saved, the commands that save them, the grain, how the
+needed sectors are found, the numbers of that rule (each is a constant of the code a test holds the entry to), the params the unit is given, and the test that proved it (`tests/test_address_edges.py`)."""
 
 
 def declared(kind):
@@ -351,6 +365,31 @@ def load_pairs(path=None):
         if pair in found:
             raise ValueError(f"independence.json: the pair {sorted(pair)} is listed twice")
         found[pair] = entry
+    return found
+
+
+def load_edges(path=None):
+    """
+    The by-address edges in `independence.json` as `{command: entry}` (OPS.242): the units of `command` for one sector (`grain` `"sector"`) that may start once the sectors `needs` names are saved by
+    one of the `after` commands, with the rest of the galaxy still being made. `{}` for a file with no `edges`.
+
+    Raises:
+        ValueError: For an entry that lacks a key, names an unregistered command, or is listed twice.
+    """
+    from planetgen.queue import commands
+    with open(path or INDEPENDENCE_FILE, encoding="utf-8") as handle:
+        data = json.load(handle)
+    found = {}
+    for entry in data.get("edges", []):
+        missing = [key for key in EDGE_KEYS if key not in entry]
+        if missing:
+            raise ValueError(f"independence.json: an edge lacks {', '.join(missing)}: {entry}")
+        for kind in (entry["command"], *entry["after"]):
+            if kind not in commands.REGISTRY:
+                raise ValueError(f"independence.json: {kind!r} is not a registered command")
+        if entry["command"] in found:
+            raise ValueError(f"independence.json: the edges of {entry['command']!r} are listed twice")
+        found[entry["command"]] = entry
     return found
 
 
