@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1767 |
+| GEN | GEN.1769 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
@@ -4088,10 +4088,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1760 | (bug) Orbits are circularised before the surface temperature is known, so every icy-by-water body is tidally treated as a 100 K ice shell then, and a warm water world keeps an eccentric orbit a rock tide would have worn down (Eltotecius I: e 0.43 at 0.03 AU) | done (Train 38, PR 6864, merged 10:07 AM EST 11-16; PR 6831, Lane 07: a warm icy body's orbit is circularised with its settled surface temperature) |
 | GEN.1761 | Refuge term for lakes and seasonal lids on worlds that are not an ice-covered ocean: store a lake share per body so ice_growth.lid_of can give lakes their own lid (the lake half of GEN.1735) | closed as measured, no change (Lane 04, 6:47 AM EST 11-16: of 728 rocky bodies in 60 systems, only 8 ice worlds have any melting place and all 8 already count as refuges through the melt-hole steps; a lake share could only enlarge an existing refuge, about 1 percent of bodies, so no stored column) |
 | GEN.1762 | biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087 | open |
-| GEN.1763 | A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources | open |
+| GEN.1763 | A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources | closed, no code change (Lane 03, 12:13 PM EST 11-16, report reports/gen1763-hot-wet-body-degassing-2026-11-16.md): no degassing law is wrong at 500 to 600 K; the 7,825 bar body kept its carbon because its ocean was all vapor so weathering was off, and it no longer exists on main after GEN.1754; the dry-surface carbonate buffer is GEN.1767 |
 | GEN.1764 | Wire or delete two unread belt functions left when GEN.1068 and GEN.1072 closed: belt_origin.destroyed_planet and clearance_ledger.log_uniform_quantile | done (PR 6868, Lane 06, merged 10:36 AM EST 11-16: belt_origin.destroyed_planet and clearance_ledger.log_uniform_quantile/restricted_quantile deleted with their wiring-register lines and registry row BG10; nothing generated changes) |
 | GEN.1765 | Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt | open |
 | GEN.1766 | (bug) The life-air caps are worked before the air settles: a life-bearing world whose air holds water vapor can freeze it out when methane cools it, leaving methane, hydrogen or hydrogen sulfide above their caps (3 test_life_air reds after GEN.1579) | open |
+| GEN.1767 | Research a dry-surface carbonate buffer for bodies whose ocean has gone (carbonate-silicate equilibrium on dry rock, limited by the crust's calcium): today weathering switches off when the ocean is all vapor and nothing takes the carbon | open |
+| GEN.1768 | (bug) A hot thick non-steam body holds 339 bar of oxygen in a 374 bar air (Ebge Angus V on main, 180-system run): check where that oxygen comes from in the oxygen balance | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
