@@ -1544,6 +1544,7 @@
 -- v215 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v215. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
 -- v219 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
 -- v221 (GEN.1257): `designations.reason` takes a sixth value, `charted` (`chk_designations_reason`): the name an uncharted star's Object ID spells is kept as a retired name of its system when charting gives the star its own name. No other row or column changes.
+-- v265 (GEN.1141): `designations.reason` takes a seventh value, `deleted` (`chk_designations_reason`): a deleted object keeps its ID as a retired one, reserved for ever, and its rows are stamped with `gone_epoch`. No other row or column changes.
 -- v224 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v224, nothing is backfilled.
 -- v225 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v225, nothing is backfilled.
 -- v226 (GEN.1105): the table `field_members` keeps the individual bodies of an interstellar asteroid field (mass, radius, density, composition shares, status), one row each, heaviest first; `<field ID>.<rank hex>` names a body. A field made before v222 has none, and a field with no ledger (a hand-made or top-up one) has none.
@@ -3480,7 +3481,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
     history_text                TEXT NULL,  -- v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
     host_node_id                SMALLINT NULL,  -- v258 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets`
-    thrown_inward_kg            DOUBLE NULL,  -- v265 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v265
+    thrown_inward_kg            DOUBLE NULL,  -- v266 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v266
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -5664,7 +5665,7 @@ CREATE TABLE IF NOT EXISTS designations (
     KEY idx_designations_name (designation_name, retired_epoch),
     KEY idx_designations_object (object_kind, object_row_id, retired_epoch),
     CONSTRAINT chk_designations_kind CHECK (designation_kind IN ('uid', 'name')),
-    CONSTRAINT chk_designations_reason CHECK (reason IN ('collision bump', 'rename', 'regeneration', 'parent change', 'admin renumber', 'charted')),
+    CONSTRAINT chk_designations_reason CHECK (reason IN ('collision bump', 'rename', 'regeneration', 'parent change', 'admin renumber', 'charted', 'deleted')),
     CONSTRAINT chk_designations_shape CHECK (
         (designation_kind = 'uid' AND designation_uid IS NOT NULL AND designation_name IS NULL)
         OR (designation_kind = 'name' AND designation_name IS NOT NULL AND designation_uid IS NULL))
@@ -6658,8 +6659,8 @@ CREATE TABLE IF NOT EXISTS engine_items (
 
 -- v262 (OPS.253): `sky_tier_draws` gains `part_index` and `part_count` (SMALLINT UNSIGNED, 0 and 0 for a whole sphere): a sphere drawn by several units at once keeps one row for each part (how many batches of its share are written), which never counts in the ledger; the stage's last step records the sphere itself and drops them. The unique key of a draw gains the two columns.
 
--- v265 (GEN.1231): `asteroid_belts.thrown_inward_kg` (DOUBLE, NULL), the mass of the belt the star's mass loss threw inward (`physics/belt_history.py`): the source of the rock
--- that falls on a white dwarf, so the star's page can say the rate at which it accretes. NULL for a belt of no remnant system and for a row made before v265, nothing is backfilled.
+-- v266 (GEN.1231): `asteroid_belts.thrown_inward_kg` (DOUBLE, NULL), the mass of the belt the star's mass loss threw inward (`physics/belt_history.py`): the source of the rock
+-- that falls on a white dwarf, so the star's page can say the rate at which it accretes. NULL for a belt of no remnant system and for a row made before v266, nothing is backfilled.
 
 -- engine_piece_results (v263, OPS.219): what each finished piece of a job returned, in the job's own galaxy, written in the transaction that stores the cursor in `engine_items` and the piece's data. A unit that
 -- stopped part way and is run again starts after its stored cursor and hands its `gather` these results beside the new ones (`planetgen/queue/engine.py`). One row for each piece that returned something.

@@ -2,6 +2,65 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4336] - 2026-11-16
+
+**Headline:** The wiring register marks the Harris cluster catalogue as a reference that is never loaded into a galaxy.
+
+### Changed
+
+- GEN.1559: the `harris_clusters` row of `docs/design/research/wiring-register.md` changes from an open item to `by design`, with the reason (Boss, 2026-10-16: its distributions guide the laws and no real cluster is placed in any galaxy; the cluster generator's laws were calibrated against it and are typed in). The other rows that wait on a feature (`dynamical_state`, `formed_at`, `origin_event_id`, `object_uid.is_on_demand`, `region_run.next_units`) keep the open item each waits on, so they come back when it is built.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4335] - 2026-11-16
+
+**Headline:** A scatter, nebula-field, sector or system piece the job engine runs again after its first try wrote its rows no longer writes them a second time.
+
+### Fixed
+
+- OPS.264: the engine marks a piece done after the piece's last commit, so a unit run again after a stop or a lost connection runs a piece whose rows an earlier try already wrote. `scatter_shells_do` (stars) and `scatter_phenomena_do` (phenomena) commit 10,000-row batches one by one and give each row a new Object ID, so a second run wrote every batch it reached again with nothing to refuse it (the unique key is on the new ID); `draw_nebula_field_do` would have stopped on the table's key. A batch is now written only if its first and last row are not in the table already (`scatter_companions.write_once`: each piece draws the same rows from its own random stream, a batch is one transaction, so both rows are in the table or neither is; one in and one out stops the piece), and a nebula-field slab takes back the rows of its first index before it writes them. The population scan (a watermark and a join on `species`), the territories recompute and `finish_phenomena_do` (`ctx.commit_piece`, OPS.222 B) were read and need nothing. The `sector` and `system` commands (`generate-unplaced-sector`, `generate-system`) save through connections of their own and have no key to find the first try's rows by, so they now resume and their save writes the unit's cursor past the piece in its own transaction (`Context.commit_piece_in`, `Attempt.commit_in`, a hook `also` on `store.save_sector` and `save_system`): the rows, the cursor and the stored result land together or not at all, a replaced attempt's save is rolled back, and a `system` unit that starts at its `finish` piece draws the system again from the run's stream. Reuse: `scatter_companions.write_committed` for the write, `star_trees` and `phenomenon_trees` for the systems a skipped batch holds, the scatter tables' address index for the check.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4334] - 2026-11-16
+
+**Headline:** The first pair of commands that may overlap, the phenomena scatter and the nebula field draw, is proved and listed; the proof is a test that runs any listed pair overlapped and compares the stored content.
+
+### Changed
+- `queue/independence.json` lists `scatter-phenomena` and `draw-nebula-field` (their end commands included; they share no table). The planner (`touches.plan_edges`) no longer makes the nebula field wait for the phenomena scatter; nothing runs overlapped until the new engine's supervisor starts the jobs the rows leave free, so a run is exactly as before.
+- New `tests/pair_overlap_support.py` and `tests/pair_overlap_recipes.py`: for each listed pair, both stages are cut up front and their units mixed one at a time and on 15 threads, in both orders of who starts first, and the content (row ids left out, the members and nodes of a scatter row compared through its `uid`) must equal plan order's; the SQL tap must see each command touch only the tables it declares, on a galaxy dense enough that every stage stores rows. A control pair that depends on the other (the mass and luminosity passes) must fail the proof.
+- The scatter commands' declarations in `queue/touches.py` were wrong: the toy galaxy of OPS.241 drew no stars, so the tap saw no writes. They now say what the dense toy shows (`bright_stars` or `phenomenon_scatter`, `scatter_members`, `scatter_nodes`, `id_counters`, `galaxy_block_light_parts`); the tap no longer counts a temporary table. An entry in `independence.json` now names the tables its pair shares (`shared`), and a test fails when they change.
+
+## [8.0.4333] - 2026-11-16
+
+**Headline:** An object that is deleted keeps its ID and name on record, so a link to it answers "gone" (410) and its ID is never issued again.
+
+### Added
+
+- GEN.1141: `designation_rows.tombstone` and `tombstone_tree` (migration 0265, schema v265: `designations.reason` takes `deleted`). When `DELETE /api/systems/<id>`, `db/edits.delete_phenomenon` or a system edit deletes an object, its current ID (and name) is written as a retired designation and every row of the object is stamped `gone_epoch`; a deleted system takes its bodies' IDs with it and a deleted planet its moons'. The 410 answers of GEN.1139 already read the stamp; nothing wrote it until now. A sector emptied for regeneration is not tombstoned (the cell is made again). Reuse: `body_rows`, `retire_name` and the `designations` table and rules of GEN.1138. The three captured-body functions of `object_uid` (`captured_member`, `outside_reservoir_member`, `parse_captured`) are marked by design in the wiring register: they wait for the captured-asteroid-moon columns; irregular moons print through `irregular_designation`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4332] - 2026-11-16
+
+**Headline:** Every queue command now declares the tables it reads and writes, and a SQL tap test holds those declarations to what the commands really touch.
+
+### Changed
+- New `queue/touches.py` holds the reads and writes of all 66 command kinds and end hooks, the conflict rule (a write another command reads or writes, a shared file or cache), `independence.json` (the proven pairs, empty today) and `plan_edges`, the planner's edges. `planrows.record_plan` takes its `after:` edges from it; with no pair listed each step still waits for the one before it, so a plan is exactly as before.
+- New `queue/sqltap.py` reads the statements a command sends and names the tables each reads and writes. `tests/test_command_touches.py` runs a toy galaxy and the commands around it under the tap and fails a command that touches an undeclared table, a registered command with no declaration, and a command the run never exercised that is not listed with the reason. Output of generation is unchanged.
+
+## [8.0.4331] - 2026-11-16
+
+**Headline:** The warm-up stages for sectors, systems, phenomena and the Galaxy Map's nodes are now cut into units by the queue engine from the profile and the free resources, as the three galaxy stages already are.
+
+### Changed
+- `warm-sectors`, `warm-systems`, `warm-phenomena`, `warm-galaxy-nodes` and `warm-galaxy-deep-nodes` are flagged byte identical (PERF.260 already proves each stores the same cache bytes at two cuts, `tests/cut_neutral_recipes.py`), and their `expand` calls `splitter.cut` (OPS.243) instead of a typed `units.coarsen` size. `OBJECT_CHUNK` and `NODE_CHUNK` stay the suggested size the stage keeps when the profile has nothing usable, in at most `units.MAX_UNITS` units, so a fresh install cuts as it did. The stage plan records the engine's decision.
+
+generation-affects: none
+
 ## [8.0.4330] - 2026-11-16
 
 **Headline:** Every time the pages, progress strips and logs show now reads as hours, minutes and seconds (1h 23m 45s), never as a decimal such as 1.25 minutes.

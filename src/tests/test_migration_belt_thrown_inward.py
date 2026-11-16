@@ -1,7 +1,7 @@
 # tests/test_migration_belt_thrown_inward.py
 
 """
-GEN.1231: migration 0265 adds `asteroid_belts.thrown_inward_kg` (DOUBLE, NULL), the mass of the belt the star's mass loss threw inward. The rows made before keep their figures and get NULL, and the
+GEN.1231: migration 0266 adds `asteroid_belts.thrown_inward_kg` (DOUBLE, NULL), the mass of the belt the star's mass loss threw inward. The rows made before keep their figures and get NULL, and the
 migration can be run over a table that already has the column (a stopped run is started again).
 """
 
@@ -18,7 +18,7 @@ def _has_column(conn):
 
 
 def test_the_column_is_added_empty_and_the_rows_keep_their_figures(mysql_config):
-    load_old_schema(mysql_config, 264)
+    load_old_schema(mysql_config, 265)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert not _has_column(conn)
@@ -39,7 +39,7 @@ def test_the_column_is_added_empty_and_the_rows_keep_their_figures(mysql_config)
 
 
 def test_the_migration_can_be_run_over_a_table_that_has_the_column(mysql_config):
-    load_old_schema(mysql_config, 264)
+    load_old_schema(mysql_config, 265)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("ALTER TABLE asteroid_belts ADD COLUMN thrown_inward_kg DOUBLE NULL")

@@ -1612,7 +1612,7 @@ columns capture the facts the prose always states instead.
 | `lower_limit_km`, `upper_limit_km` | DOUBLE | NOT NULL | The belt's inner/outer boundary. |
 | `density_g_cm3`, `ice_mass_fraction` | DOUBLE | nullable | Added in v199 (GEN.1159). The mean bulk density of the members in g/cm3 and the mean share of their mass that is ice of any kind, from the drawn makeup (`physics/small_body_composition.py`). NULL for a row made before v195. The roundness ratio, strength and binding energy belong to a member, not to the population. |
 | `history_text` | TEXT | nullable | Added in v210 (GEN.1232). What the star's evolution did to the belt, as one paragraph of plain sentences (`physics/belt_history.py`: the part the giant branch engulfed, the share the mass loss threw inward). NULL for a belt nothing happened to and for a row made before v205. |
-| `thrown_inward_kg` | DOUBLE | nullable | Added in v265 (GEN.1231). The mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`, set by `remnant_orbits` on the belts of a white dwarf's system): the source of the rock that falls on the star, whose rate its sheet shows. NULL for a belt of no remnant system and for a row made before v265. |
+| `thrown_inward_kg` | DOUBLE | nullable | Added in v266 (GEN.1231). The mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`, set by `remnant_orbits` on the belts of a white dwarf's system): the source of the rock that falls on the star, whose rate its sheet shows. NULL for a belt of no remnant system and for a row made before v266. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary built the same way as the prose sentence (`asteroidData.py:119-137`), e.g. `"high concentrations of iron, moderate concentrations of nickel, and trace amounts of platinum"` — searchable without a join, alongside the structured breakdown below. |
 | `origin_cause`, `co_causes` | VARCHAR(24), TEXT | nullable | Added in v204 (GEN.1069). What formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet` or `collisional-debris`, `physics/belt_origin.py`) and the other formation causes that coincide with it, a JSON list. NULL for a belt made without an origin. |
@@ -2512,9 +2512,9 @@ Migration 0208 drops `description` from `planets` and `moons`. It held the sente
 
 Migration 0210 adds `history_text` (TEXT, nullable) to `asteroid_belts`: the sentences `physics/belt_history.py` wrote for the events the star's evolution put a belt through (engulfed in part by the giant branch, thrown inward by the mass loss), as one paragraph for the belt's page. A belt nothing happened to keeps NULL, and so does a row made before v210; nothing is backfilled, and a column already there is skipped, so a stopped run can be started again.
 
-### v265 (GEN.1231): the mass a belt's star threw inward
+### v266 (GEN.1231): the mass a belt's star threw inward
 
-Migration 0265 adds `thrown_inward_kg` (DOUBLE, nullable) to `asteroid_belts`: the mass of the belt the star's mass loss threw inward (`physics/belt_history.py`), the rock that falls on a white dwarf. NULL for a belt of no remnant system and for a row made before v265; nothing is backfilled, a regenerated galaxy fills it.
+Migration 0266 adds `thrown_inward_kg` (DOUBLE, nullable) to `asteroid_belts`: the mass of the belt the star's mass loss threw inward (`physics/belt_history.py`), the rock that falls on a white dwarf. NULL for a belt of no remnant system and for a row made before v266; nothing is backfilled, a regenerated galaxy fills it.
 
 ### v203 (GEN.1209): several life classes on one body
 
@@ -2734,6 +2734,10 @@ Migration 0261 creates `engine_items` (see the table section above). Nothing is 
 ### v264 (DB.112): `sector_system_counts` loses `quadrant`
 
 Migration 0264 drops `idx_sector_system_counts_quadrant` and the column `quadrant` of `sector_system_counts` (added by 0181). The Sectors list has no Quadrant filter or position sort any more; the table is derived data and nothing is backfilled.
+
+### v265 (GEN.1141): `designations.reason` takes `deleted`
+
+Migration 0265 replaces the CHECK `chk_designations_reason` with one that lists seven reasons, the new one being `deleted`: when an object is deleted (`DELETE /api/systems/<id>`, `db/edits.delete_phenomenon`, a planet, moon or belt an edit drops) `designation_rows.tombstone_tree` writes its current ID as a retired one (so it is reserved for ever) and its current name, with that reason, and stamps `gone_epoch` on every row of the object, so a link to it answers 410. The bodies of a deleted system and the moons of a deleted planet are recorded first. A sector's contents emptied for regeneration are not tombstoned (the cell is made again). No row changes.
 
 ### v263 (OPS.219): `engine_piece_results`, what the finished pieces of a job returned
 

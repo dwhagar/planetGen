@@ -8610,27 +8610,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1118, GEN.1111, GEN.58.
   Owner (TODO sweep, 2026-11-12): Lane 16 (galaxy runs).
 
-- [ ] **GEN.1141 Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete**
-  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
-  questions: the small table of retired designations only (not a row per
-  object), retired IDs reserved forever and retired names not reserved
-  (the collision bump may hand a stored object's name to another), a
-  read of a retired ID redirects, a write against it answers 409, a
-  deleted object answers 410. Design:
-  docs/design/architecture/designation-history.md (GEN.1121 part a,
-  merged as #4234), section 5 and 6. Do: when a system or belt changes
-  ID, its bodies, belt members (<belt ID>.<rank hex>) and captured
-  bodies renumber in the same transaction and write their own history
-  rows; a delete in store.delete_* stamps gone_epoch on the object's
-  rows (GEN.1123's audit lists the delete paths). Done: tests that
-  members follow a parent ID change and that a deleted object answers
-  410. Lock-free after part b unless the migration is shared. Where we
-  think it belongs (best guess, can move): Lane 11, train 9.
-  Prerequisites: none. Related: GEN.1121, GEN.1070.
-  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
-  Owner (TODO sweep, 2026-11-12): Lane 15 (storage).
-  From the GEN.1070 audit (Lane 13, /mnt/project-files/reports/gen1070-audit-2026-11-13.md): captured_member, outside_reservoir_member and parse_captured have no reader yet; this item is their reader, and their wiring register rows move here.
-
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
   tests. Train 8 with belts, clearance and the region store. Report
@@ -11699,12 +11678,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 13 (with GEN.1430). Prerequisites: GEN.1430. Related: GEN.1430.
   Filed by the TODO thread.
 
-- [ ] **PERF.254 Memory governor for the generation run: admit and shed workers from the live free memory, learn each stage's worker size, and measure the cut of a stage as its own step**
-  Lane 22's write-up: /mnt/project-files/reports/memory-kills-and-dynamic-workers-2026-11-08.md; library research: /mnt/project-files/reports/job-library-research-2026-11-08.md (15 libraries read; none re-reads the host while a run goes); Lane 22's Dask assessment: /mnt/project-files/reports/perf254-dask-assessment-2026-11-08.md. Boss chose option 1 of the research (3:34 PM EST on 2026-11-08, 'Send to todo to build option 1'): keep RQ 2.12.0 (no upgrade to RQ 3.0 in this item) and build our own weighted memory gate in Redis fed by psutil. Dask is dropped as the lead (OPS.125 is dropped unless Boss revives it); a Ray one-stage spike is optional and only if Boss asks. Today every worker size is a number measured once in queue/workers.py (STAGE_WORKER_MEMORY_MB) and nothing reads the host while a run goes. Do: add psutil 7.2.2 (new dependency: requirements.lock and the setup script through update.sh); every job carries a claim_mb; a job starts only when the running claims plus its claim plus a reserve fit the budget taken from MemAvailable, re-read every 5 seconds, with a bounded wait and a fallback to the table cap so a wrong gate cannot stall a run; a log line for every decision; claims start from the table and rise to the largest peak seen (units.peak_resident_mb); a job killed for memory retries once with a larger claim, then the run stops with the job named (the idea comes from Snakemake); the cut of a stage into units runs as a claimed job that reads counts per sky cell (GROUP BY), not rows; scale the figures with galaxy size. The job-model fields (claim, dependencies, subjobs) belong to OPS.122 and OPS.124 and the design thread that owns them; this item builds the gate on today's queue, and OPS.124 carries it onto the job model. Output must stay byte-identical (the work seed does not depend on the worker count). Scope (Boss, 3:34 PM EST on 2026-11-08: 'All jobs operate under dynamic load and memory limits to not overload and kill the machine ALLLLLL JOBS'): the gate covers ALL jobs of every kind, with no exempt type: every RQ queue and lane (bulk stage units, scatters, warm-ups, interactive, long and maintenance lanes, API and page jobs, admin tasks, imports, tests and gates, maps, the cut of a stage, anything the web app starts); one gate and one budget; a claim for every job kind (a default claim for a kind with no measured figure, learned from observed peaks); admission also reads the CPU load, not only MemAvailable, so ordinary workers stay under the host cap; the places reserved for interactive work still hold; a test fails when any job kind has no claim, so nothing slips past the gate. Fair-share rule (Boss, 3:44 PM EST on 2026-11-08: 'we want to use a task scheduler and sharing system time so warmup or other commands do not block the site so all tasks that can run get a chance to run'): jobs are scheduled by a task scheduler that shares system time fairly: fair share across job kinds, priority for work that serves the site, no starvation (aging raises a waiting job's turn), and no command, the warm-up included, can block the site; OPS.130 builds the scheduler. Needs Lane 13's measurement of what the cut holds. Done: a full galaxy run on a 16 GB host finishes past stage 13 with no kernel kill, a job killed for memory is retried once and then named, every job kind has a claim (test), and a run with all lanes busy keeps the host under its cap. Lock-free, queue code only; Boss's order: first, before GEN.1441.
-  Built (Lane 22, PR 5760, merged 2026-11-08): the gate. Leftovers settled (Lane 22, 2026-11-08): the sky-cell GROUP BY is closed without a build, because PERF.252 (PR 5727) already limits the backfill to charted sectors (a galaxy now opens on 23 sectors and 7 sky cells) and the sky units depend only on the set of 50 pc cells, so a count query would save a few MB and risk changing which cells are planned. Left: the 16 GB full-galaxy run past stage 13, which no code settles; it happens on Boss's test server at his next full run, and the gate's wait lines and the kill report show any shortfall. Retire this item when that run passes.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 06 (with Lane 16 for the measurement), first in Lane 06's queue. Prerequisites: none (builds on PERF.226 once merged). Related: PERF.226, PERF.252, PERF.253.
-  Filed by the TODO thread.
-
 - [ ] **OPS.122 Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier**
   Boss's design thread 'Break all runs into small queued jobs' (2026-11-08, 3:27 PM EST): every part of every run, galaxy generation included, becomes a small job on the queue that can spawn subjobs and is managed for memory and for the steps it needs first. Proposed: build only after Boss approves the design note (DOC.113). Related reports: perf254-dask-assessment-2026-11-08.md, memory-kills-and-dynamic-workers-2026-11-08.md; existing notes docs/design/operations/one-run-per-job.md, redis-and-the-work-queue.md, work-queue-audit.md. Do: a job record (kind, inputs, depends-on jobs, memory claim, state, parent) in the queue; a job may spawn subjobs and finish when they do; a dependency start rule replaces the stage barrier; output unchanged (the work seed does not depend on how work is split). Done: a run of a small galaxy over the new records gives the output of today byte for byte. Lock-free, queue code only. Fair-share rule (Boss, 3:44 PM EST on 2026-11-08: 'we want to use a task scheduler and sharing system time so warmup or other commands do not block the site so all tasks that can run get a chance to run'): jobs are scheduled by a task scheduler that shares system time fairly: fair share across job kinds, priority for work that serves the site, no starvation (aging raises a waiting job's turn), and no command, the warm-up included, can block the site; OPS.130 builds the scheduler. Overlap rule (Boss, 3:55 PM EST on 2026-11-08, 'jobs can overlap if they don't need each other'): the plan is a dependency graph, not a strict stage order: jobs that do not need each other run together (subject to the memory and load gate of PERF.254 and the fair share of OPS.130), and a job starts when the jobs it needs are done. Sizing rule from Boss's decision for the design thread: one command per item of work, with tiny commands packed together.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.215 and OPS.216 (stage 3). Prerequisites: none. Related: DOC.113, OPS.123, OPS.124, OPS.127.
@@ -12560,19 +12533,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 16. Prerequisites: OPS.238, stage 4. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
-- [ ] **OPS.241 Job engine stage 5: independence harness (declared reads and writes; a SQL tap test fails undeclared tables); absorbs OPS.131**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G4 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 07. Prerequisites: OPS.238. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.242 Job engine stage 5: overlap pair by pair, each with its proof (skeleton-only commands first, then narrower edges); absorbs OPS.132; one item per pair**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G5); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G5 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size L. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 07. Prerequisites: OPS.241. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
-- [ ] **OPS.243 Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G6 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.238, OPS.161, PERF.261. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.244 Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203**
@@ -12753,6 +12716,26 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
   Filed by the TODO thread.
 
+- [ ] **TEST.773 (bug) test_fuzz_cli: two galaxy tests fail in the whole-file run with "RunStopped: the run done before stage 1 was queued" and pass alone (order-dependent)**
+  Lane 15, 10:24 PM EST 2026-11-15 (on main f1f0c8ac3d): test_galaxy_runs_clean_with_hostile_numbers and test_galaxy_absurd_radius_is_clean[200.0] fail in the full src/tests/test_fuzz_cli.py run (51 pass) and pass alone. A run seen as done before its first stage was queued points at run state leaking between tests (a reused run id or Redis key) or a real engine race; find which, fix the cause (code if the engine can see a fresh run as done), not the test order.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: none. Related: OPS.228, TEST.769.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1755 (bug, measure first) Class D size bodies (under 0.001 Earth masses) at 1 to 5 AU of F, G and K stars are tidally locked 17 to 59 percent of the time, where the standard tide time gives about zero**
+  Census thread, 10:32 PM EST 2026-11-15 (Boss's default 5,000-system census on main 1e50e1dc, /mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md): 58.6 percent locked at 1 to 2 AU, while real planets beyond 1 AU are 0 of 8,332 locked. Do: measure the tide time of these bodies against the lock flag; check the small-body k2 in tidal_rheology and the belt-member spin draw; fix the cause. Lock item if output changes.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: GEN.1752, GEN.1459.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1756 Check: 12.9 percent of rocky planets of 0.1 Earth masses or more inside 0.1 AU are not tidally locked (free spin 5 to 36 h on 95 to 750 h orbits, at every star age) though the simple tide time locks them all within the star's age**
+  Census thread, 10:32 PM EST 2026-11-15 (/mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md): possibly the TR10 cold-Q ceiling (L3) or the thermal tide holding them off lock; cause not traced. Do: trace a sample, say whether it is physics (a thermal-tide or resonance spin state, which is real for some) or a bug, and fix or document it with its stand-in. Lock item if output changes.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: GEN.1755.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1757 Check: 742 moons (1.02 percent of bodies, up from 0.8 percent at Train 28) carry no class letter; confirm every one is an Asteroid object (under roundness ratio 1, no air, liquid or life, GEN.1160 and GEN.1752) and none is a classifiable moon left unclassed**
+  Census thread, 10:32 PM EST 2026-11-15 (/mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md). Do: break the 742 down by object type, roundness, air and liquid; any round or aired moon without a letter is a bug to fix.
+  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: GEN.1160, GEN.1752.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**
   Boss, 6:11 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiJqSpmsJfWDRzSDRQYhyor8): "even if they are in an asteroid belt and small, if another class fits better, class always comes last so if we have an odd situation where like a small planet in the asteroid field has air or life, it can have another class on the fudging lines". Standing rule. Today a belt body under roundness ratio 1 is an Asteroid with no class letter (GEN.1160), and small airless rocks are D by size. Do: find every place size, roundness or belt membership decides a class before the finished body is read (GEN.1160's Asteroid rule, the D size gate, belt promotion, on-demand belt planets of GEN.1674); make each a class-fit term that a better-fitting class (an atmosphere, habitable-family or life class) can beat on the existing fit edges, after the body is finished; test with a small belt body given air and with one given life. Lock item (classes move).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 06 (belts and small bodies) with Lane 03 (class fit). Prerequisites: none. Related: GEN.1160, GEN.1674, GEN.1745, GEN.1737.
@@ -12761,12 +12744,6 @@ clears each one.
 - [ ] **GEN.1753 Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them**
   Lane 15, 6:32 PM EST 2026-11-15 (GEN.1533, PR #6747): store.load_star_system now attaches each restored body's birth numbers from body_history, but nothing uses them yet (planets.draw_birth_spin always draws). Do: a moved or edited body starts from its own stored birth eccentricity, spin and capture draws; the air history (GEN.1745) reads them for restored bodies. Lock item (changes what an edit produces).
   Version 8.1. Owner (TODO, 2026-11-15): Lane 15. Prerequisites: GEN.1533. Related: GEN.1497, GEN.1745.
-  Filed by the TODO thread.
-
-- [ ] **UX.319 (bug) Every time output uses standard hours, minutes and seconds, never decimal hours, minutes or seconds ("1.25 minutes", "3.5 days", "seconds=12.3")**
-  Boss, 6:40 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiVhVJNckJb3M7xVAwMh8RGD): "time outputs should be in standard HMS format not decimals". Standing rule for every progress bar, ETA, duration, run time, admin page and log line he reads. Today the shared period ladder (util/format.py format_duration_seconds, UX.14, used by web/admin_pages.format_duration and the Generate estimate "About 1.25 minutes") gives decimals, and some log lines print decimal seconds (db/store.py slow-query seconds=). Do: one shared helper (reuse format_duration_seconds, changed in place, and its JS twin in src/html/static) that writes "1h 23m 45s" (days as "2d 3h 4m" past 24 h, whole seconds, "45s" under a minute; sub-second timings in logs may stay as milliseconds "850 ms"); route every time output through it (Python pages and logs, JS progress and ETA strips, CLI progress); a test that greps for a decimal time unit in output code. No shim, no second helper.
-  Boss's New galaxy log of 8:18 PM EST 2026-11-15 (/mnt/project-files/logs/new-galaxy-dup-uid-2026-11-15.log) still shows "1.93 hours", "7.44 minutes", "1.17 minutes each": the stage banners ("Stage 5 of 19 failed after 1.93 hours"), the per-sector lines and the per-stage progress lines must all go through the helper.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 14, ahead of TEST.695. Prerequisites: none. Related: UX.318, UX.14, PERF.147.
   Filed by the TODO thread.
 
 - [ ] **GEN.1754 Nebular envelopes and their water for bodies of 1 Earth mass and up (the GEN.1748 source stops at 0.3 percent hydrogen)**
