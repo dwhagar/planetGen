@@ -39,11 +39,12 @@ def test_the_brittle_laws_are_bierson_and_nimmo_table_1():
     assert cp.ICE_GRAIN_KG_M3 == 920.0 and cp.SILICATE_GRAIN_KG_M3 == 3500.0
 
 
-def test_the_taper_is_one_below_1e19_zero_above_1e21_and_linear_in_log_mass():
-    assert cp.taper_weight(1e15) == 1.0 and cp.taper_weight(1e19) == 1.0
+def test_the_taper_is_one_below_1e20_zero_above_1e21_and_linear_in_log_mass():
+    """GEN.1637: the start is 1e20 (it was 1e19)."""
+    assert cp.taper_weight(1e15) == 1.0 and cp.taper_weight(1e20) == 1.0
     assert cp.taper_weight(1e21) == 0.0 and cp.taper_weight(1e24) == 0.0
-    assert cp.taper_weight(1e20) == pytest.approx(0.5)
-    assert cp.taper_weight(6.3e20) == pytest.approx((21 - math.log10(6.3e20)) / 2.0)
+    assert cp.taper_weight(10 ** 20.5) == pytest.approx(0.5)
+    assert cp.taper_weight(6.3e20) == pytest.approx(21 - math.log10(6.3e20))
     with pytest.raises(ValueError):
         cp.taper_weight(0.0)
 
@@ -69,13 +70,20 @@ def test_a_bad_mixture_is_refused():
 # --- the table against the reference integration ------------------------------------------------------------------
 
 def test_the_design_notes_bodies_come_out_of_the_table():
-    # rock fraction 0.70 (taper.py of the design note): Orcus-sized 6.3e20 kg has a radius near 433 km and 1.85 g/cm3
-    assert cp.compacted_radius_km(6.3e20, 0.70) == pytest.approx(433.0, rel=0.02)
-    assert _density(6.3e20, 0.70) == pytest.approx(1847.0, rel=0.02)
+    # rock fraction 0.70 (taper.py of the design note, taper from 1e19 to 1e21): below 1e20 kg the taper has no weight on the porosity in either, so those two agree with the note;
+    # from GEN.1637 the taper starts at 1e20, so the heavier bodies keep more of their pores (Orcus-sized 6.3e20 kg: 438 km and 1.79 g/cm3 where the note had 433 km and 1.85)
+    assert cp.compacted_radius_km(6.3e20, 0.70) == pytest.approx(438.0, rel=0.02)
+    assert _density(6.3e20, 0.70) == pytest.approx(1786.0, rel=0.02)
     assert _density(1e21, 0.70) == pytest.approx(1907.0, rel=0.02)
-    assert _density(3e20, 0.70) == pytest.approx(1739.0, rel=0.02)
+    assert _density(3e20, 0.70) == pytest.approx(1557.0, rel=0.02)
     assert _density(1e19, 0.70) == pytest.approx(815.0, rel=0.04)
-    assert _density(1e20, 0.70) == pytest.approx(1526.0, rel=0.02)
+    assert _density(1e20, 0.70) == pytest.approx(1081.0, rel=0.02)
+
+
+def test_the_taper_fits_the_measured_kuiper_belt_bodies_it_was_moved_for():
+    """GEN.1637 (data audit D17): measured bodies are test targets, never inputs. At a rock fraction of 0.6 the density of Varda, Salacia and Orcus comes out within 15 percent."""
+    for name, radius_km, measured in (("Varda", 370.0, 1230.0), ("Salacia", 423.0, 1500.0), ("Orcus", 455.0, 1530.0)):
+        assert cp.compacted_density_kg_m3(radius_km, 0.6) == pytest.approx(measured, rel=0.15), name
 
 
 def test_the_table_agrees_with_the_integration_at_a_few_masses():
@@ -105,7 +113,7 @@ def test_the_density_is_continuous_in_mass_across_the_taper_and_never_falls_with
             value = _density(min(mass, 1e21), rock)
             assert value >= previous * 0.995, (rock, mass)
             previous = value
-        for edge in (1e19, 1e21):
+        for edge in (1e20, 1e21):
             step = abs(_density(edge * 1.1 if edge < 1e21 else edge, rock) - _density(edge * 0.9, rock)) / _density(edge * 0.9, rock)
             assert step < 0.2, (rock, edge, step)
 

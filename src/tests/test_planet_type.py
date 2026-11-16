@@ -6,7 +6,7 @@ from planetgen.physics import planet_type as pt
 from tests import planet_type_cli as cli
 
 
-@pytest.mark.parametrize("envelope, kind", [(0.0, "terrestrial"), (0.0049, "terrestrial"), (0.005, "transitional"), (0.15, "transitional"),
+@pytest.mark.parametrize("envelope, kind", [(0.0, "terrestrial"), (0.0019, "terrestrial"), (0.002, "transitional"), (0.15, "transitional"),
                                             (0.4999, "transitional"), (0.5, "gas"), (0.95, "gas")])
 def test_the_cuts_are_clean(envelope, kind):
     assert pt.type_of(envelope) == (kind, True)
@@ -40,3 +40,25 @@ def test_a_body_with_no_ground_names_its_pressure_the_reference_level():
     assert pt.pressure_label("terrestrial") == "Surface pressure" and pt.pressure_label(None) == "Surface pressure"
     for kind in ("transitional", "super-puff", "gas"):
         assert pt.pressure_label(kind) == pt.REFERENCE_PRESSURE_LABEL == "Pressure at the 1 bar reference level"
+
+
+def test_the_ground_cut_is_the_escape_laws_bare_cut_and_no_planet_keeps_an_envelope_under_it():
+    # GEN.1710: one rule for "the envelope is gone": a planet the escape law leaves an envelope has no ground, and an envelope under the cut was ended, not kept on a body with ground and no hydrogen in its air
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.physics import envelope_escape
+    from planetgen.util import draw
+
+    assert pt.TERRESTRIAL_MAX_ENVELOPE == envelope_escape.BARE_BELOW
+    kept = 0
+    for seed in range(6):
+        config = SystemConfig()
+        config.PLANETS = True
+        with draw.bound(70000 + seed):
+            system = StarSystem(system_config=config)
+        for planet in system.all_planets:
+            held = (planet.build.captured_envelope or 0.0) if getattr(planet, "body_type", None) == "t" else 0.0
+            if held:
+                kept += 1
+                assert held >= envelope_escape.BARE_BELOW and not pt.has_ground(planet), (seed, planet.name, held)
+    assert kept

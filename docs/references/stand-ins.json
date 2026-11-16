@@ -5707,7 +5707,7 @@
           "fields": [
             [
               "Evidence",
-              "design (an envelope under 0.2 percent of the planet's mass counts as gone: a numerical cutoff of the integration)"
+              "design (an envelope under 0.2 percent of the planet's mass counts as gone: the cutoff of the integration, and since GEN.1710 also the ground rule of planet_type.TERRESTRIAL_MAX_ENVELOPE, PT1)"
             ],
             [
               "What it is",
@@ -17749,7 +17749,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.INNER_INITIAL_COUNT_EXTRA 5.619 and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
+              "tuning.INNER_INITIAL_COUNT_EXTRA 9 (5.619 before GEN.1709) and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
             ],
             [
               "The range it moves in",
@@ -17780,7 +17780,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.INNER_INITIAL_COUNT_EXTRA 5.619 and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
+          "what": "tuning.INNER_INITIAL_COUNT_EXTRA 9 (5.619 before GEN.1709) and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
         },
         {
           "burn_down": [
@@ -18273,6 +18273,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.INNER_FIRST_PERIOD_MEDIAN_DAYS 25 and INNER_FIRST_PERIOD_SIGMA_DEX 0.7 (the period of the first planet of an inner system, log-normal; GEN.1709, with the giant-impact stage of GEN.1560 left to the outer chain, which starts at INNER_SYSTEM_PERIOD_LIMIT_DAYS 400 times OUTER_CHAIN_START_RATIO 1.3)"
+            ],
+            [
+              "The range it moves in",
+              "median 15 to 40 d; width 0.5 to 0.9 dex"
+            ],
+            [
+              "Where it holds",
+              "all hosts with an inner system"
+            ],
+            [
+              "What would show it wrong",
+              "test_planet_architecture::test_the_inner_system_spreads_over_the_periods_the_surveys_see; a planet count of 0.5 to 2.5 Earth radii per factor of 2 in period outside 0.04 to 0.30 between 8 and 128 days, or planets inside 400 days per Sun-like star outside 0.6 to 1.6 (Earth masses of 0.8 or more)"
+            ],
+            [
+              "What replaces it",
+              "a formation model of where the inner disc's chain begins and of the pebble supply beyond it"
+            ],
+            [
+              "Evidence",
+              "[R2020: Table 2] (READ: 0.20 to 0.25 planets of 0.5 to 2.5 Earth radii per star per factor of 2 in period from 4 to 128 days, flat from 8 days; no fall beyond 64 days); the median and width tuned to that shape and to the planets inside 400 days of the occurrence bands (tweak L2)"
+            ]
+          ],
+          "id": "PA19",
+          "key": "6.36:PA19",
+          "kind": "P",
+          "slug": "6-36-pa19",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.INNER_FIRST_PERIOD_MEDIAN_DAYS 25 and INNER_FIRST_PERIOD_SIGMA_DEX 0.7 (the period of the first planet of an inner system, log-normal; GEN.1709, with the giant-impact stage of GEN.1560 left to the outer chain, which starts at INNER_SYSTEM_PERIOD_LIMIT_DAYS 400 times OUTER_CHAIN_START_RATIO 1.3)"
         },
         {
           "burn_down": [
@@ -21447,11 +21485,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature is labelled Yerkes VI)"
+              "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 and tuning.SUBDWARF_MAX_FE_H -0.5 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature and of birth [Fe/H] at or below the second is labelled Yerkes VI; GEN.1635: the deficit alone labelled 13 of 270 ordinary M dwarfs at [Fe/H] -0.1 to -0.34, the model makes them 0.3 to 0.5 dex under)"
             ],
             [
               "The range it moves in",
-              "0.25 to 0.4"
+              "deficit 0.25 to 0.4; [Fe/H] -0.7 to -0.3"
             ],
             [
               "Where it holds",
@@ -21467,7 +21505,7 @@
             ],
             [
               "Evidence",
-              "the model's own offsets: a solar-metallicity M dwarf is 0.17 dex under the sequence (95 percent within 0.23) and metal-poor F and G stars 0.4, K 0.6 and M 1.0 dex under it; the margin sits between them"
+              "the model's own offsets: a solar-metallicity M dwarf is 0.17 dex under the sequence (95 percent within 0.23) and metal-poor F and G stars 0.4, K 0.6 and M 1.0 dex under it; the margin sits between them; the sdM class starts near [Fe/H] -0.5 and esdM near -1 [R1582]"
             ]
           ],
           "id": "PS14",
@@ -21478,7 +21516,7 @@
           "tier_code": "T4",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature is labelled Yerkes VI)"
+          "what": "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 and tuning.SUBDWARF_MAX_FE_H -0.5 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature and of birth [Fe/H] at or below the second is labelled Yerkes VI; GEN.1635: the deficit alone labelled 13 of 270 ordinary M dwarfs at [Fe/H] -0.1 to -0.34, the model makes them 0.3 to 0.5 dex under)"
         }
       ],
       "slug": "6-51-stand-ins-of-the-stars-after-the-main-sequence",
@@ -33651,11 +33689,11 @@
             ],
             [
               "The range it moves in",
-              "the taper endpoints (compaction.TAPER_START_KG, TAPER_END_KG, stand-ins of decision S9)"
+              "the taper endpoints (compaction.TAPER_START_KG 1e20 and TAPER_END_KG 1e21, stand-ins of decision S9; the start moved from 1e19 under GEN.1637 to fit the measured densities of Varda, Salacia and Orcus, so its tweak level is L2)"
             ],
             [
               "Where it holds",
-              "members of 1e19 to 1e21 kg"
+              "members of 1e19 to 1e21 kg (the brittle law whole below 1e20)"
             ],
             [
               "What would show it wrong",
@@ -33676,7 +33714,7 @@
           "slug": "6-115-mc1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L1",
+          "tweak": "L2",
           "unread": null,
           "what": "belt_member._filling: the filling of a stored member (one minus its porosity) is the compacted density of compaction over the compaction's own grain density at the member's rock fraction, applied to the taxon's grain density"
         },
@@ -36715,7 +36753,7 @@
           "fields": [
             [
               "What it is",
-              "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end)"
+              "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.002 (= envelope_escape.BARE_BELOW, row AM82; 0.005 until GEN.1710): an envelope under 0.2 percent of the mass is a terrestrial body (the envelope the escape law does not call gone; the 1.6 Earth radii where rocky planets end came out of it, and a 1 Earth-mass body holds 2,000 bar of hydrogen at 0.2 percent)"
             ],
             [
               "The range it moves in",
@@ -36746,7 +36784,7 @@
           "tier_code": "T9",
           "tweak": "L0",
           "unread": null,
-          "what": "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end)"
+          "what": "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.002 (= envelope_escape.BARE_BELOW, row AM82; 0.005 until GEN.1710): an envelope under 0.2 percent of the mass is a terrestrial body (the envelope the escape law does not call gone; the 1.6 Earth radii where rocky planets end came out of it, and a 1 Earth-mass body holds 2,000 bar of hydrogen at 0.2 percent)"
         },
         {
           "burn_down": null,
@@ -42822,45 +42860,45 @@
       "rows": [
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "L3, the median starting envelope 0.1 of the mass was set to the middle of the recipe bracket so that the valley targets and the sweep (45 percent above 2.0 inside 100 days) are met; no measured envelope fraction of the sub-Neptunes of that mass is in hand, and a gas-accretion model of the core replaces it"
+            "GEN.1711: the median starting envelope is now 0.04, the fitted birth value of the Kepler planets ([R3797: Table 1], T1, L0), where it was the 0.1 middle of the recipe bracket (L3); both valley targets hold at it"
           ],
           "fields": [
             [
               "What it is",
-              "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+              "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
             ],
             [
               "The range it moves in",
-              "0.05 to 0.2"
+              "0.024 to 0.055"
             ],
             [
               "Where it holds",
-              "rocky planets of 3.72 to 20 Earth masses"
+              "rocky planets of 2.7 to 20 Earth masses"
             ],
             [
               "What would show it wrong",
-              "a measured envelope fraction of the sub-Neptunes of that mass that sits outside the bracket"
+              "a measured birth or kept envelope fraction of the sub-Neptunes of that mass whose median is outside 0.024 to 0.055"
             ],
             [
               "What replaces it",
-              "an envelope drawn from a disk gas-accretion model of the core's mass, the disk's life and its opacity"
+              "the sources disagree on the size, not the sense: a kept envelope of 1 percent inferred from masses and radii (periods under 25 days), 3 percent kept [R3500], 5 percent times mass^0.5 as a model assumption [R1734] (9.6 percent at 3.72), all read in reports/hydrogen-envelopes-habitable-zone-2026-11-14.md section 4; the fitted birth population of the same survey [R3797] wins as the value read for this planet class"
             ],
             [
               "Evidence",
-              "both valley targets (slope -0.11, 1.84 Earth radii at 10 days) are inside 2 sigma for the whole bracket (envelope-escape-wiring.md section 1); the generator's 240-system sweep gives 45 percent above 2.0 inside 100 days (reports/gen1323-sub-neptune-envelopes-2026-11-07.md)"
+              "both valley targets are inside 1 sigma at 0.04 (slope z 0.02, radius at 10 days z 0.8, 24 surveys of 4000 planets, envelope-escape-wiring.md section 1); the radius law gives 2.5 to 2.75 Earth radii for 3 to 4 percent on a 4 Earth-mass core against the Kepler sub-Neptunes' 2.1 to 2.6 (reports/gen1711-hz-sub-neptune-radii-2026-11-16.md)"
             ]
           ],
           "id": "EC1",
           "key": "6.206:EC1",
           "kind": "P",
           "slug": "6-206-ec1",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
           "unread": null,
-          "what": "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+          "what": "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
         },
         {
           "burn_down": [
@@ -42871,7 +42909,7 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+              "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
             ],
             [
               "The range it moves in",
@@ -42879,7 +42917,7 @@
             ],
             [
               "Where it holds",
-              "rocky planets of 1 to 3.72 Earth masses"
+              "rocky planets of 1 to 2.7 Earth masses"
             ],
             [
               "What would show it wrong",
@@ -42902,7 +42940,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": null,
-          "what": "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+          "what": "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
         },
         {
           "burn_down": null,
@@ -73098,14 +73136,14 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1765",
-            "the family weights are chosen so all three families are common; a supply from the outer belt (Jupiter family) and the cloud (the other two) through the giants' scattering replaces them"
+            "no data",
+            "-",
+            "for a star whose outer disk no giant scattered (nearly every star in a 398-star census) the weights stay; a comet census of other systems would replace them, and the answer on tying comets to outer disks decides the rest; tier T9 stays"
           ],
           "fields": [
             [
               "What it is",
-              "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family"
+              "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family, kept for a star with no outer disk a giant scattered; for one with such a disk the shares are read from it (comet_supply.family_weights): the scattered_disk plus centaurs share of the disk is the Jupiter family, the detached share the cloud, split between the Halley-type and long-period families by these weights' ratio 0.6 to 0.4"
             ],
             [
               "The range it moves in",
@@ -73121,11 +73159,11 @@
             ],
             [
               "What replaces it",
-              "a supply from the reservoirs: the outer belt's mass for the Jupiter family, the cloud for the other two, through the giants' scattering"
+              "the supply of every star's reservoirs, once comets are tied to outer disks (the question to Boss, GEN.1765)"
             ],
             [
               "Evidence",
-              "the code's own comment says it is not a population estimate; chosen so the three families are all common"
+              "the code's own comment says it is not a population estimate; the census of GEN.1765 found 2 of 398 stars with scatter fates, so almost every star uses these weights"
             ]
           ],
           "id": "CMT5",
@@ -73136,49 +73174,45 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family"
+          "what": "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family, kept for a star with no outer disk a giant scattered; for one with such a disk the shares are read from it (comet_supply.family_weights): the scattered_disk plus centaurs share of the disk is the Jupiter family, the detached share the cloud, split between the Halley-type and long-period families by these weights' ratio 0.6 to 0.4"
         },
         {
-          "burn_down": [
-            "replace",
-            "GEN.1765",
-            "a truncated power law in nucleus diameter with a published cumulative index, its upper end from the belt's largest body, replaces the uniform draw and its ends"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM (0.5, 20) drawn uniform in diameter"
+              "tuning.COMET_NUCLEUS_CUMULATIVE_INDEX 1.92 and the lower end 2.5 km of BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM: a star-bound comet's nucleus diameter is drawn from a power law, the cumulative number above D falling as D^-q, between 2.5 and 20 km (Comet, util.random.sample_power_law)"
             ],
             [
               "The range it moves in",
-              "lower end 0.2 to 1 km; upper end 15 to 60 km"
+              "q 1.72 to 2.12 (the printed error of 0.20); lower end 1 to 2.5 km"
             ],
             [
               "Where it holds",
-              "star-bound comet nuclei"
+              "Jupiter-family nuclei of radius 1.25 km and up, applied to the Halley-type and long-period nuclei too (no size law of those is read)"
             ],
             [
               "What would show it wrong",
-              "a measured nucleus size distribution of a star's comets (the cumulative number of nuclei falls steeply with diameter, with an index of about 1.9 for the Jupiter family, recalled, not opened; a uniform draw has index 0)"
+              "a nucleus sample complete to smaller sizes with another slope, or a turnover above 2.5 km"
             ],
             [
               "What replaces it",
-              "a truncated power law in diameter with the published cumulative index, its upper end from the belt's largest body"
+              "a law with its own break once a sample complete below 2.5 km is read"
             ],
             [
               "Evidence",
-              "nuclei of 1 to 10 km typical, as the comment in tuning.py quotes it, second-hand; the draw's shape is a stand-in"
+              "[R4139] (Snodgrass et al., abstract: q = 1.92 +- 0.20 for radius 1.25 km and up) and [R5296] (abstract: slope about -1.9 of 89 nuclei); only the abstracts were read"
             ]
           ],
           "id": "CMT6",
           "key": "6.303:CMT6",
           "kind": "P",
           "slug": "6-303-cmt6",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
           "unread": null,
-          "what": "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM (0.5, 20) drawn uniform in diameter"
+          "what": "tuning.COMET_NUCLEUS_CUMULATIVE_INDEX 1.92 and the lower end 2.5 km of BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM: a star-bound comet's nucleus diameter is drawn from a power law, the cumulative number above D falling as D^-q, between 2.5 and 20 km (Comet, util.random.sample_power_law)"
         },
         {
           "burn_down": [
@@ -73224,9 +73258,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1765",
-            "comets present wherever the system has an outer belt, a cloud or a giant, from the supply of the reservoirs, replace the flat chance and the count"
+            "no data",
+            "-",
+            "the chance 0.3 and count 1 to 3 stay hand set until Boss says whether comets exist only where a star has an outer disk (a census of 398 stars: 28 percent have comets now, 14 percent an outer-disk belt, 0 a scattered one); tier T9 stays"
           ],
           "fields": [
             [
@@ -73263,6 +73297,48 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.SYSTEM_COMET_CHANCE 0.3 and SYSTEM_COMET_COUNT_RANGE (1, 3): the share of stars that hold comets and how many of the few the generator models each holds"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the 20 km top stays for a star with no outer disk, and an outer disk's largest body is far above it in most systems, so the cut rarely applies; a comet census of other systems would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM upper end 20 km: the largest nucleus the draw gives, cut to the largest body of the star's outer disks where it has them (comet_supply.nucleus_top_km, never under the lower end)"
+            ],
+            [
+              "The range it moves in",
+              "15 to 60 km"
+            ],
+            [
+              "Where it holds",
+              "star-bound comet nuclei"
+            ],
+            [
+              "What would show it wrong",
+              "a comet of a star with a belt whose largest body is far under or over it"
+            ],
+            [
+              "What replaces it",
+              "the largest body of every star's outer disk"
+            ],
+            [
+              "Evidence",
+              "design: wide of the largest measured nuclei, [R2301] gives Halley at about 15 x 8 km"
+            ]
+          ],
+          "id": "CMT9",
+          "key": "6.303:CMT9",
+          "kind": "P",
+          "slug": "6-303-cmt9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM upper end 20 km: the largest nucleus the draw gives, cut to the largest body of the star's outer disks where it has them (comet_supply.nucleus_top_km, never under the lower end)"
         }
       ],
       "slug": "6-303-stand-ins-of-the-shape-of-a-star-s-own-comets-gen-595",

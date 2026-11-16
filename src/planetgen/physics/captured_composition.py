@@ -136,7 +136,7 @@ def compose(window, mass_kg, source_distance_au, luminosity_w, aluminium_26_rati
         mass_kg (float): The body's mass.
         source_distance_au (float): Where it came from (`draw_source_distance`).
         luminosity_w, aluminium_26_ratio (float): The star's luminosity and aluminium-26 over aluminium-27 ratio (`belt_member.member`).
-        u_taxon, u_porosity, u_ice_loss (float): Uniform numbers, 0 to 1: the taxon, the porosity of a body under `compaction.TAPER_START_KG`, the ice loss.
+        u_taxon, u_porosity, u_ice_loss (float): Uniform numbers, 0 to 1: the taxon, the porosity of a body under `compaction.DRAWN_POROSITY_BELOW_KG`, the ice loss.
 
     Raises:
         compaction.OutOfRange: The mass is over `compaction.TAPER_END_KG`.

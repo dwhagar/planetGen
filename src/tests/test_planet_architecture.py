@@ -115,11 +115,31 @@ def test_an_inner_system_starts_at_the_inner_edge_and_neighbours_are_alike():
         if len(chain) < 2:
             continue
         found += 1
-        assert period_d(0.5 * SUN, chain[0][0]) < 30.0
+        assert 0.3 < period_d(0.5 * SUN, chain[0][0]) < 1000.0       # GEN.1709: the first planet is log-normal about 25 days with a width of 0.7 dex, not tied to 5 days
         masses = [m for _a, m in chain]
         assert max(masses) / min(masses) < 10.0 ** (6 * tuning.INNER_NEIGHBOUR_SIGMA_DEX + len(chain) * tuning.INNER_OUTWARD_MASS_DEX_PER_PLANET)
         assert [a for a, _m in chain] == sorted(a for a, _m in chain)
     assert found > 10
+
+
+def test_the_inner_system_spreads_over_the_periods_the_surveys_see():
+    """GEN.1709: small planets are flat per factor of 2 in period from 8 to 128 days ([R2020: Table 2], 0.20 to 0.25 per star at 0.5 to 2.5 Earth radii); the first planet of an
+    inner system is drawn broadly and the planets inside 400 days of a Sun-like star stay near the surveys' count. A build of the architecture, 0.1 to 7 Earth masses for the small ones."""
+    stars = 2000
+    bins = {(8, 16): 0, (16, 32): 0, (32, 64): 0, (64, 128): 0}
+    inside = 0
+    for seed in range(stars):
+        for planet in pa.build(SUN, 2.7, 1.0, 0.0, 50.0, stream=draw.Stream(seed)).planets:
+            period = period_d(SUN, planet.distance_au)
+            mass_earth = planet.mass_kg / EARTH
+            if period < 400.0 and mass_earth >= 0.8:
+                inside += 1
+            for (low, high) in bins:
+                if low <= period < high and 0.1 <= mass_earth < 7.0:
+                    bins[(low, high)] += 1
+    for edges, count in bins.items():
+        assert 0.04 < count / stars < 0.30, (edges, count / stars)
+    assert 0.6 < inside / stars < 1.6
 
 
 def test_a_heavier_disk_builds_heavier_inner_planets():
@@ -160,7 +180,7 @@ def test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet():
         short = [x for x in arch.planets if not x.runaway and period_d(mass_solar * SUN, x.distance_au) < 85.0]
         hosts += bool(short)
         earth += any(0.8 <= _radius_earth(x.mass_kg / EARTH) <= 1.25 for x in short)
-    assert hosts > 500
+    assert hosts > 400
     assert 0.30 <= earth / hosts <= 0.46, earth / hosts       # 0.19 with no spread between systems, 0.25 at a median scale of 3.6 Earth masses
 
 
@@ -175,7 +195,7 @@ def test_a_share_of_the_inner_systems_of_a_sun_like_star_hold_an_earth_size_plan
         short = [x for x in arch.planets if not x.runaway and period_d(SUN, x.distance_au) < 85.0]
         hosts += bool(short)
         earth += any(0.8 <= _radius_earth(x.mass_kg / EARTH) <= 1.25 for x in short)
-    assert hosts > 700
+    assert hosts > 550
     assert 0.27 <= earth / hosts <= 0.42, earth / hosts
 
 
