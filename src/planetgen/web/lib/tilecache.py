@@ -928,6 +928,19 @@ KEPT_FILES = ("stamp.json", "meta.json", ".full")
 """tuple: Files in the cache that `prune` never counts or deletes."""
 
 
+ON_DIRECTORY = None
+"""callable or None: Called once for each folder `cache_files` has walked. The warm-up sets it to the running unit's `moving`, so a walk of a big cache is not a quiet stretch (PERF.274)."""
+
+REWALK_MIN_SECONDS = 1.0
+"""float: A walk of the cache that took at least this long is reused for a while by `cache_is_full` (PERF.274); a quicker one is made again every time, so a small cache is always read as it is."""
+
+REWALK_FACTOR = 10.0
+"""float: A walk that took `t` seconds (`REWALK_MIN_SECONDS` or more) is not repeated by `cache_is_full` for `REWALK_FACTOR * t` seconds, which keeps the looking at the cache to about a tenth of the time of whoever asks (181,000 files took 58 s a time on a cold disk, once for each chunk of nodes)."""
+
+_walked = {}
+"""dict: `{root: (finished at, seconds the walk took, bytes it found)}` of the last walk of each cache `cache_is_full` made."""
+
+
 def cache_files(root):
     """
     Every cache file under `root` that counts against the budget, as `(path, size, mtime, ahead)`: the stamp files
@@ -935,6 +948,8 @@ def cache_files(root):
     """
     found = []
     for dirpath, _dirnames, filenames in os.walk(root):
+        if ON_DIRECTORY is not None:
+            ON_DIRECTORY()
         for name in filenames:
             if name in KEPT_FILES:
                 continue
@@ -949,13 +964,24 @@ def cache_files(root):
 
 def cache_is_full(root=None, max_bytes=None):
     """Whether the files under `root` (default `cache_dir()`) already fill the budget (default `max_cache_bytes()`):
-    the warm-up builds nothing more then (PERF.133). A cache that is off is full."""
+    the warm-up builds nothing more then (PERF.133). A cache that is off is full. A cache whose last walk took `REWALK_MIN_SECONDS`
+    or more is not walked again for `REWALK_FACTOR` times as long (PERF.274); a smaller one is walked each time."""
     root = root or cache_dir()
     if max_bytes is None:
         max_bytes = max_cache_bytes()
     if root is None or max_bytes <= 0:
         return True
-    return sum(size for _path, size, _mtime, _ahead in cache_files(root)) >= max_bytes
+    last = _walked.get(root)
+    if last is not None and time.monotonic() - last[0] < REWALK_FACTOR * last[1]:
+        return last[2] >= max_bytes
+    started = time.monotonic()
+    total = sum(size for _path, size, _mtime, _ahead in cache_files(root))
+    finished = time.monotonic()
+    if finished - started >= REWALK_MIN_SECONDS:
+        _walked[root] = (finished, finished - started, total)
+    else:
+        _walked.pop(root, None)
+    return total >= max_bytes
 
 
 def prune(root, max_bytes=None):

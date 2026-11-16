@@ -29,7 +29,7 @@ from planetgen.api.limiter import PAGE_LIMITS_OFF
 from planetgen.db import nodes, objectindex, store
 from planetgen.galaxy.nodecut import node_cut
 from planetgen.physics.units import ly_to_pc
-from planetgen.queue import commands, splitter
+from planetgen.queue import commands, splitter, unitbeat
 from planetgen.queue import units as units_module
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util import log, logrecord
@@ -203,6 +203,9 @@ reaches more is refused, saying how many nodes it would build, rather than filli
 ZOOM_STEP = 1.3
 """float: The zoom run's camera distance falls by this factor between two cuts; the cut of nodes changes by less than
 the fetch of one step, so every node the map would ask for on the way is in a cut of the run."""
+
+tilecache.ON_DIRECTORY = unitbeat.moving
+"""PERF.274: a walk of the disk cache (`tilecache.cache_is_full`, before each chunk of nodes) moves the running unit's clock for each folder it passes; outside a unit this does nothing."""
 
 NODE_CHUNK = 64
 """int: Nodes one unit of `warm-galaxy-nodes` and `warm-galaxy-deep-nodes` builds (`tilecache.MAX_NODES_PER_REQUEST` is
