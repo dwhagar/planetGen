@@ -155,11 +155,13 @@ LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due",
 
 LEFT_OUT_TABLE_COLUMNS = {
     "star_systems": frozenset({"location"}),
+    "stars": frozenset({"initial_mass_sol", "phase_end_age_gy"}),
     "sectors": frozenset({"leaf_digest", "content_leaf"}),
     "galaxy_shape": frozenset({"version_key", "planetgen_version", "python_version", "platform", "generator_epoch",
                                "fp_spec", "battery_digest", "battery_cases"}),
 }
-"""dict: Columns left out of one table: `location` is written from the
+"""dict: Columns left out of one table: `stars.initial_mass_sol` and `stars.phase_end_age_gy` are the numbers the population model drew the star from, kept so a restored star starts from them (DB.133;
+the fingerprint reads the results they produced); `location` is written from the
 nearest systems, a sector's `leaf_digest` is a digest of the sector (GEN.305), and the galaxy shape's version record
 (OPS.58) says what made the galaxy, not what it holds: it changes with every release, so it would change the plan's
 digest with it."""

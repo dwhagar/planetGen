@@ -165,6 +165,9 @@ class StellarObject(LazySaladName, MassObject):
         # back keeps them, so a text that names its kind ("a young star", `physics.sky_view.kind_of`) says what the generated star said.
         self.state = data.get("state")
         self.decay_age_yr = data.get("decay_age_yr")
+        # DB.133: the birth mass and the end of the drawn phase are stored columns (`stars.initial_mass_sol`, `stars.phase_end_age_gy`; an infinite end is a NULL beside a birth mass), not serialized fields
+        self.initial_mass_sol = data.get("initial_mass_sol")
+        self.phase_end_age_gy = data.get("phase_end_age_gy")
 
 
     def calculate_system_perimeter(self, galactic_center_dist_ly=None):
