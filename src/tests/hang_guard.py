@@ -18,7 +18,10 @@ Past its limit plus `hang_guard_grace` seconds (120 by default):
    starts another; without xdist the run ends with the message.
 
 A test with its own `@pytest.mark.timeout(n)` is held to n; `timeout = 0` (no limit) is not watched. Loaded with
-`-p tests.hang_guard` (`pytest.ini`), like `tests.depmap`. Linux only (children are found in /proc); elsewhere the
+`-p tests.hang_guard` (`pytest.ini`), like `tests.depmap`.
+
+The line it prints reaches the run's output (TEST.751): it is written to a copy of stderr taken before pytest's capture starts, and a worker of an xdist run, whose own streams do not reach the output,
+leaves it in a file that the controller prints (as it comes, and at the end). Linux only (children are found in /proc); elsewhere the
 first step finds none and the second still ends the worker.
 """
 
@@ -79,9 +82,107 @@ def kill_children(pid=None):
     return count
 
 
+def _save_real_stderr():
+    """A copy of the process's own stderr, taken when this module is loaded (`-p`, before pytest starts capturing): pytest's capture points fd 2 at a temporary file for the length of a test, so a line the
+    watcher thread writes to `sys.stderr` meanwhile never reaches the run's output, least of all when the run ends the worker straight after."""
+    try:
+        return os.dup(2)
+    except OSError:
+        return None
+
+
+REAL_STDERR = _save_real_stderr()
+"""int or None: The descriptor `say` writes to; the run's real stderr."""
+
+RELAY_POLL_S = 1.0
+"""float: How often the controller of an xdist run looks for the lines its workers left."""
+
+
+def relay_path(controller_pid):
+    """The file a worker of an xdist run leaves its lines in for the controller (a worker's output does not reach the run's output): one for each controller process."""
+    import tempfile
+    return os.path.join(tempfile.gettempdir(), f"hang_guard_{controller_pid}.log")
+
+
+def is_worker():
+    return bool(os.environ.get("PYTEST_XDIST_WORKER"))
+
+
 def say(text):
-    sys.stderr.write(text + "\n")
-    sys.stderr.flush()
+    """Prints `text` on the run's real stderr and, in an xdist worker, leaves it for the controller, which prints it on its own (the worker's streams do not reach the run's output)."""
+    data = (text + "\n").encode("utf-8", "replace")
+    try:
+        if REAL_STDERR is not None:
+            os.write(REAL_STDERR, data)
+        else:
+            sys.stderr.write(text + "\n")
+            sys.stderr.flush()
+    except OSError:
+        pass
+    if is_worker():
+        try:
+            with open(relay_path(os.getppid()), "ab") as handle:
+                handle.write(data)
+        except OSError:
+            pass
+
+
+class Relay:
+    """The controller's side: prints, on its real stderr, the lines the workers left, as they come and once more at the end of the run."""
+
+    def __init__(self):
+        self.path = relay_path(os.getpid())
+        self.offset = 0
+        self.stop = threading.Event()
+        self.thread = None
+        try:
+            os.unlink(self.path)
+        except OSError:
+            pass
+
+    def drain(self):
+        try:
+            with open(self.path, "rb") as handle:
+                handle.seek(self.offset)
+                data = handle.read()
+        except OSError:
+            return
+        self.offset += len(data)
+        if data and REAL_STDERR is not None:
+            try:
+                os.write(REAL_STDERR, data)
+            except OSError:
+                pass
+
+    def start(self):
+        def loop():
+            while not self.stop.wait(RELAY_POLL_S):
+                self.drain()
+        self.thread = threading.Thread(target=loop, daemon=True)
+        self.thread.start()
+
+    def finish(self):
+        self.stop.set()
+        self.drain()
+        try:
+            os.unlink(self.path)
+        except OSError:
+            pass
+
+
+_RELAY = []
+
+
+def pytest_configure(config):
+    if not is_worker() and getattr(config.option, "numprocesses", None):
+        relay = Relay()
+        relay.start()
+        _RELAY.append(relay)
+
+
+def pytest_unconfigure(config):
+    while _RELAY:
+        _RELAY.pop().finish()
 
 
 class Watch:

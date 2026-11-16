@@ -507,7 +507,7 @@ def test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_na
     """GEN.1580: the surface stops where the main gas of the air is half ionized (`ionization.ceiling_k`), a limit no generated body should reach: the test suite makes
     a body there an error (`PLANETGEN_CEILING_IS_ERROR`, checked first), and in a run it is one normal-log line with the body, the uncapped value, the ceiling and the air.
     The ceiling is the guard of a body that can hold steam; the Earth-like body of the sample is under its runaway limit (GEN.1329 holds such a body under
-    `MOIST_LIMIT_K`), so the test declares it past the limit."""
+    the moist limit of its air, `moist_limit.limit_k`), so the test declares it past the limit."""
     import dataclasses
     import logging
 

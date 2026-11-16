@@ -2,6 +2,71 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4375] - 2026-11-16
+
+**Headline:** Two unused belt functions are removed.
+
+### Changed
+- GEN.1764: `belt_origin.destroyed_planet` (with its `destroyed-planet` cause, its retained-share constant and its origin text) and `clearance_ledger.log_uniform_quantile` (with `restricted_quantile`) had no caller: the generator models no event that destroys a planet and leaves rubble, and no placer reads the clearance ledger's spans yet. Both are deleted with their wiring register lines and registry row BG10; the ledger tests draw from the spans with a helper of their own. Nothing generated changes.
+
+generation-output: none
+
+## [8.0.4374] - 2026-11-16
+
+**Headline:** warming the map no longer goes quiet for a minute while it counts how much disk the tile cache uses, and it counts less often.
+
+### Fixed
+
+- PERF.274: `cache_is_full` walked every folder of the tile cache before each chunk of nodes. On a cold disk with 181,000 files that walk alone took 58 s of silence. The walk now tells the unit beat at each folder it enters (`tilecache.ON_DIRECTORY`, set by the warm-up to `unitbeat.moving`), and a walk that took at least a second is trusted for ten times as long as it took before the next one. Small caches are still read fresh every time, so what the cache says when it is nearly full is unchanged.
+
+## [8.0.4373] - 2026-11-16
+
+**Headline:** A water-rich planet whose surface is too warm for ice now has its orbit worn down by the rock mantle's tide, not by an ice shell's at 100 K, so warm water worlds on close orbits no longer keep an eccentric orbit nothing wears down.
+
+### Changed
+- GEN.1760: `settle_orbit` runs before a body built bare has its air, so its surface temperature is unknown and `interior_heat.icy_shell_top_k` reads the cold fallback (100 K): every body with 1 percent water or more was worn down as an ice shell, including a warm water world that has no shell (GEN.1756). `planets.settle_warm_icy_orbit` now takes the tides of the orbit again once the air has given the surface, for a body that `interior_heat.icy_regime` calls `ROCK`, and `refinish_rocky` makes the air again where the eccentricity moved. It reuses `settle_orbit` and the chooser of GEN.1759; the eccentricity only falls.
+- A water-rich body too warm for ice now has the rock mantle's tide in its heat (`interior_heat.heat_at`, `update_heat`, `eccentricity_tide_w`; `interior_heat.is_ice_bound`), where GEN.1759 left it out until its orbit was circularised.
+- Measured on the same 300 seeds before and after: 35 warm water-rich bodies; the eccentricity of 10 of them fell (largest 0.256 to 0.000 at 0.024 AU; 0.141 to 0.007 at 0.031 AU; 0.049 to 0.006 at 0.076 AU); no other body's eccentricity changed; the surface temperature of one moved by more than 1 K (448 to 444 K). Five of the 35 have a tide of over 1 W/m2, from the tide of a close moon, as 16 of 413 ordinary rocky planets do.
+- Not changed: the air of a body is still solved with the heat read when its surface is unknown (a shell's), as before; only the heat stored afterwards carries the rock tide.
+- Generation output changes: the orbit (and what follows it) and the stored tidal heat of water-rich planets with a surface over the melting point of ice.
+
+## [8.0.4372] - 2026-11-16
+
+**Headline:** A test now picks a body's tide the way the generator does after GEN.1760, so it no longer expects a warm water body to have none.
+
+### Changed
+- GEN.1760 follow-up: `test_radiogenic` rebuilt the heat of a stored body with no tide for any icy body (`tidal_heating.is_icy`); the generator now leaves the tide out only for an ice-bound one (`interior_heat.is_ice_bound`), so a warm water body carries the rock mantle's tide. The test reads the same chooser. No generated value changes.
+
+## [8.0.4371] - 2026-11-16
+
+**Headline:** A belt's largest body now matches the largest body in its member list.
+
+### Changed
+- GEN.1605: a belt's "largest body" was the size law's heaviest body at the law's density, while its member list sized the same body at its own taxon's density, so the two differed by up to 15 percent in belts that gave no planets. Every belt with members now reports the largest member it holds (promoted belts already did, GEN.1561). The belt's mass and density already follow the star's final age (GEN.1546) and are unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4370] - 2026-11-16
+
+**Headline:** A body with an ocean that gets less than its runaway flux is no longer held under one fixed 375 K: the hottest surface it can hold is read from its own air, so thick carbon dioxide airs may be hot and class N, and thin nitrogen airs are held near 315 K.
+
+### Changed
+
+- GEN.1579 (every galaxy; no epoch, a lock item): `surface_air.MOIST_LIMIT_K` (375 K) is gone, with no replacement constant. The steam limit of GEN.1329 (a body under its runaway flux holds no steam) now holds the surface under `moist_limit.limit_k(partials, gravity)`, the temperature where the infrared flux to space of the air's saturated clear-sky column over an ocean (the radiative-convective model with `saturated=True, clear_sky=True`, stand-in IR17) stops rising with the surface: its relative slope first falls under 0.1 percent per K (`moist_limit.SLOPE_FLOOR_PER_K`). The flux is read from `physics/data/moist_limit_table.json`, 3,150 model points on a grid of surface temperature (260 to 600 K), non-condensing gas (0 to 100 bar), carbon dioxide (0 to 300 bar) and gravity (0.5 to 2 g), by interpolation in the logarithm of the pressures and the gravity; `scripts/build_moist_limit_table.py` builds it (about 1.5 hours on three cores with the k-tables) and `moist_limit.table()` refuses a file built from other k-tables, as the greenhouse table does. Ceilings (9.81 m/s2): 1 bar of nitrogen 314 K, 1 bar of nitrogen with 1 bar of carbon dioxide 399 K, 10 bar of carbon dioxide 464 K, 100 bar of carbon dioxide 600 K (the top of the grid, under the 647 K critical point of water); gas other than carbon dioxide and water counts as nitrogen. Registry rows ML1 (new, tier T5, tweak L0) and SV1 (reworded) in `research/gap-filling-plan.md` 6.204; the table's flat top is the model's 315 to 335 W/m2, not the 282 W/m2 of the line-by-line limit, so its temperatures are the model's, not a source value.
+- Before and after, 80 systems (40 G2V, 20 M3V, 20 K1V; 1,359 bodies; seeds 3000 to 3039, 4000 to 4019, 5000 to 5019), the same code but this change: 4 bodies stood at exactly 375 K. Three move to class N (G to N at 600 K and 523 bar, G to N at 489 K and 178 bar, A to N at 600 K and 7,825 bar: with the cap off its 5,300 bar of carbon dioxide and 2,300 bar of carbonyl sulfide come out of the rock and the greenhouse asks for 1,481 K) and one (G, 7.6 bar) falls to X at 222 K and 2.5 bar. Four others changed by their own draws or a branch: X to N at 597 K and 82 bar, and three small shifts (W to W, E to W). 1,351 of 1,359 bodies are unchanged.
+- Cost: the share of air bodies whose answer depends on the start of the solve (`tests/test_surface_air_start_independence.py`, starts of 120, 300 and 600 K, 40 G2V systems) rises from 6 of 55 (11 percent) to 17 of 54 (31 percent): a thick-air body now keeps a hot branch (400 to 600 K) beside its cold one where the 375 K cut it off. The generation stays a function of the setting (one production start); the test bound `MAX_BISTABLE_SHARE` goes from 0.15 to 0.40 with the two measures in its note.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4369] - 2026-11-16
+
+**Headline:** The belt sheet shows the mass its star threw inward only for belts of a white dwarf's system.
+
+### Changed
+- GEN.1231: the "Mass its star's mass loss threw inward" row applied to every belt, but only the belts of a white dwarf's system store it, so the sheet fill check failed whenever its sample held another belt. The row now applies only where the belt stores it.
+
 ## [8.0.4368] - 2026-11-16
 
 **Headline:** The belt mass module imports on its own again.

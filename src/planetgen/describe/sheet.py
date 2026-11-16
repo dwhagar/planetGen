@@ -1089,6 +1089,8 @@ _COMET_RULES = [
 _BELT_RULES = [
     (("history_text",), lambda klass, row: row is None or row.get("history_text") is not None,
      "only a belt the star's evolution acted on (the giant branch engulfed part of it, or the mass loss threw some of it inward) has a history to tell; a belt it left alone has none"),
+    (("thrown_inward_kg",), lambda klass, row: row is None or row.get("thrown_inward_kg") is not None,
+     "only a belt of a white dwarf's system has a mass its star's mass loss threw inward (GEN.1231); the belt of a star that has not lost its envelope has none to count"),
 ]
 
 _ROGUE_RULES = [

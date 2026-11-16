@@ -196,7 +196,7 @@ def test_every_generated_body_stores_one_set_of_concentrations_that_its_heat_and
             from planetgen.physics import planets as planet_physics
             rock = radiogenic.rock_of(body)
             from planetgen.physics import tidal_heating
-            forcing = None if tidal_heating.is_icy(body) else tidal_heating.forcing_of(body)  # GEN.737: the tide of the stored orbit
+            forcing = None if interior_heat.is_ice_bound(body) else tidal_heating.forcing_of(body)  # GEN.737: the tide of the stored orbit; GEN.1760: a warm water body takes the box's
             found = interior_heat.heat_flow(content, interior_heat.interior_of(body), body.mass, body.radius, body.star.age, rock, forcing,
                                             interior_heat.lid_of(body), interior_heat.surface_of(body))
             assert planet_physics.internal_heat_flux_w_m2(body) == pytest.approx(found.own_flux_w_m2)

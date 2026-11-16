@@ -25,3 +25,12 @@ def test_no_belt_or_a_belt_that_gives_too_small_a_rate_leaves_the_typical_rate()
 
 def test_the_typical_rate_is_a_rate_that_pollutes():
     assert belt_history.is_polluted(belt_history.TYPICAL_POLLUTION_RATE_G_S)
+
+
+def test_the_thrown_inward_row_applies_only_to_a_belt_that_stores_it():
+    """GEN.1231: only the belts of a white dwarf's system store the mass its star threw inward, so the sheet row applies to them alone (the fill audit samples any belt)."""
+    from planetgen.describe import sheet
+    assert not sheet.applies("belt", None, "thrown_inward_kg", {"thrown_inward_kg": None})
+    assert sheet.applies("belt", None, "thrown_inward_kg", {"thrown_inward_kg": 0.0})
+    assert sheet.applies("belt", None, "thrown_inward_kg", {"thrown_inward_kg": 1.0e20})
+    assert sheet.applies("belt", None, "mass_kg", {"thrown_inward_kg": None})

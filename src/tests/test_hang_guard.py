@@ -68,7 +68,22 @@ def test_a_test_that_waits_on_no_child_ends_its_worker_under_xdist_and_the_run_g
     output = done.stdout + done.stderr
     assert "crashed while running 'test_case.py::test_stuck_on_nothing_a_child_can_end'" in output
     assert "1 passed" in output and "1 failed" in output
+    assert "HUNG TEST test_case.py::test_stuck_on_nothing_a_child_can_end" in output and "ending the worker" in output      # TEST.751: the line of a worker reaches the run's output
     assert seconds < 90
+
+
+def test_the_line_of_a_pool_killed_in_an_xdist_worker_reaches_the_run_s_output(tmp_path):
+    done, seconds = _run(tmp_path, POOL_TEST, ("-n", "2"))
+    output = done.stdout + done.stderr
+    assert "HUNG TEST test_case.py::test_pool_that_never_ends" in output and "killed 2 child process(es)" in output
+    assert "1 failed, 1 passed" in output
+    assert seconds < 90
+
+
+def test_a_run_without_xdist_that_ends_its_worker_says_why_on_the_real_stderr(tmp_path):
+    done, seconds = _run(tmp_path, STUCK_TEST)
+    assert done.returncode == hang_guard.EXIT_CODE
+    assert "HUNG TEST test_case.py::test_stuck_on_nothing_a_child_can_end" in done.stdout + done.stderr and "ending the worker" in done.stdout + done.stderr
 
 
 def test_a_test_with_no_limit_is_not_watched(tmp_path):
