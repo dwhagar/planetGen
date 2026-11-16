@@ -26,8 +26,8 @@ from planetgen.db import column_units, models
 from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, model, sky_size_rows
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
+from planetgen.galaxy import object_uid, scales
+from planetgen.physics import (adaptation_traits, planet_classes, agb_carbon, belt_history, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
                                life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -328,6 +328,7 @@ _BELT = (
            ("upper_limit_km", "Outer edge")),
     *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members"), ("largest_body_km", "Largest body", "radius"),
            ("primordial_mass_earth", "Mass it formed with"), ("cleared_mass_earth", "Mass the giants cleared"), ("scattered_mass_earth", "Mass an instability scattered"),
+           ("thrown_inward_kg", "Mass its star's mass loss threw inward"),
            ("stirred", "Stirred by a giant", FLAG)),
     *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
            ("chondrite_group", "Nearest meteorite group", TEXT)),
@@ -951,8 +952,8 @@ def _locked(row):
 
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
-    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount"), lambda klass, row: row is None or row.get("roundness_ratio") is None or roundness.is_round(row["roundness_ratio"]),
-     "a body under a roundness ratio of 1 is an Asteroid and has no class letter, digit or match"),
+    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount"), lambda klass, row: row is None or row.get("roundness_ratio") is None or roundness.is_round(row["roundness_ratio"]) or planet_classes.holds_air_liquid_or_life(row),
+     "a body under a roundness ratio of 1 that holds no air, no surface liquid and no life is an Asteroid and has no class letter, digit or match (GEN.1752: one that holds any of them is classed by the fit)"),
     (("runner_up_class",), lambda klass, row: row is None or (row.get("runner_up_match") or 0.0) > 0.0,
      "a runner-up is a second class that fits the body at more than 0 percent; where only one class fits (a class that matches 0 percent is no runner-up, `class_fit.classify`) the column is empty and the match is 0"),
     (("class_fudge_values",), lambda klass, row: row is None or (row.get("class_fudge_amount") or 0.0) > 0.0,
@@ -1189,6 +1190,7 @@ CHEMISTRY_ROWS = {
     "chemistry_core_neon22": ("Central neon-22", "mass fraction"),
     "chemistry_pollutant_class": ("Accreted body", "words"),
     "chemistry_pollutant_ratios": ("Accreted body element ratios to magnesium", "words"),
+    "chemistry_pollution_rate": ("Rock falling on the star", "words"),
 }
 """dict: The star's derived chemistry rows (UX.254, `physics.stellar_composition.star_makeup`) -> `(label, the unit the properties help page names)`: the
 disk population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added; for a carbon-oxygen white dwarf
@@ -1279,6 +1281,22 @@ def _pollutant_rows(conn, row, makeup):
     if ratios:
         rows.append(_chemistry_row("chemistry_pollutant_ratios", [ratios], None))
     return rows
+
+
+def _pollution_rate_rows(conn, row, makeup):
+    """
+    The rate at which rock falls on a polluted white dwarf (GEN.1231): the rate of the mass the star's mass loss threw inward from the belts of its system when that is enough to pollute it,
+    else the typical rate of a polluted white dwarf (`belt_history.rate_on_white_dwarf`). None for a star that is not a polluted white dwarf.
+    """
+    if makeup is None or not makeup.detail.get("polluted"):
+        return []
+    thrown = None
+    if row["star_system_id"] is not None:
+        found = conn.execute("SELECT SUM(thrown_inward_kg) AS thrown FROM asteroid_belts WHERE star_system_id = ?", (row["star_system_id"],)).fetchone()
+        thrown = found["thrown"] if found else None
+    rate = belt_history.rate_on_white_dwarf(thrown)
+    where = "from its belt" if rate != belt_history.TYPICAL_POLLUTION_RATE_G_S else "typical of a polluted white dwarf"
+    return [_chemistry_row("chemistry_pollution_rate", [f"{scientific_text(rate)} g/s, {where}"], rate)]
 
 
 def _star_isotope_rows(makeup, row):
@@ -1386,7 +1404,7 @@ PRESSURE_KEYS = ("atmospheric_pressure_pa", "surface_pressure_pa")
 
 EXTRA_COLUMNS = {
     # table -> the columns the sheet reads beyond its specs' (the row providers below read them)
-    "planets": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k"),      # GEN.1108: the table of the bands; the range on the mean temperature row
+    "planets": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k", "star_system_id", "star_id", "belt_order", "belt_rank"),      # GEN.1108: the table of the bands; the range on the mean temperature row. GEN.1511: the belt a promoted planet came from
     "moons": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k"),
     "asteroid_belts": ("star_system_id", "star_id", "ice_mass_fraction", "distance_km", "formation_snow_line_au"),      # GEN.1420, GEN.1487: the isotope lines of the ices
     "comets": ("star_system_id", "star_id", "ice_mass_fraction", "perihelion_distance_km"),
@@ -1443,6 +1461,20 @@ def _influx_provider(conn, kind, object_id, row):
         yield "dust", _sheet_row(influx_row.INFLUX_KEY, "Belt dust and comets reaching it, a year", [model.qty("mass", arriving, "kg")], raw=arriving)
 
 
+BELT_ORIGIN_KEY = "belt_origin"
+
+
+def _belt_origin_provider(conn, kind, object_id, row):
+    """GEN.1511: the belt a planet was made from (GEN.1510) and its rank there, the parent a promoted planet keeps. The belt is the `belt_order`-th of its star's belts, as `query` counts them."""
+    if row["belt_rank"] is None or row["belt_order"] is None:
+        return
+    belts = conn.execute("SELECT uid FROM asteroid_belts WHERE star_system_id = ? AND star_id <=> ? ORDER BY orbital_index, id", (row["star_system_id"], row["star_id"])).fetchall()
+    if row["belt_order"] >= len(belts) or belts[row["belt_order"]]["uid"] is None:
+        return
+    belt_id = object_uid.from_bytes(belts[row["belt_order"]]["uid"])
+    yield "identity", _sheet_row(BELT_ORIGIN_KEY, "Made from a belt", [f"Belt {object_uid.format_id(belt_id)}, where it was body {object_uid.designation(belt_id, row['belt_rank'])}"])
+
+
 def _star_identity_provider(conn, kind, object_id, row):
     variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
                                    None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"]))
@@ -1468,6 +1500,8 @@ def _star_composition_provider(conn, kind, object_id, row):
         yield "composition", sheet_row
     for sheet_row in _pollutant_rows(conn, row, makeup):
         yield "composition", sheet_row
+    for sheet_row in _pollution_rate_rows(conn, row, makeup):
+        yield "composition", sheet_row
     for key, label, text, ratio in _star_isotope_rows(makeup, row):
         yield "composition", _text_row(key, label, text, ratio)
 
@@ -1480,6 +1514,7 @@ ROW_PROVIDERS = (
     (lambda kind: kind == "moon", _eclipse_provider),
     (lambda kind: True, _module_rows_provider),
     (lambda kind: kind == "planet", _influx_provider),
+    (lambda kind: kind == "planet", _belt_origin_provider),
     (lambda kind: kind == "star", _star_identity_provider),
     (lambda kind: kind == "star", _star_composition_provider),
 )

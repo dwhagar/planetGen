@@ -138,7 +138,8 @@ def test_a_v242_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mys
 
 def _row(**changes):
     row = {"star_system_id": 1, "body_type": 2, "body_id": 3, "birth_eccentricity": 0.25, "birth_spin_rate": 1.5e-4, "birth_obliquity_deg": 23.0,
-           "capture_draw_1": 0.5, "capture_draw_2": 0.75, "formula_version": body_history.FORMULA_VERSION}
+           "capture_draw_1": 0.5, "capture_draw_2": 0.75, "formation_distance_au": None, "birth_distance_au": None, "born_index": None,
+           "formula_version": body_history.FORMULA_VERSION}
     return {**row, **changes}
 
 
@@ -148,6 +149,22 @@ def test_attach_gives_a_restored_body_the_names_a_generated_one_keeps():
     assert body.build.orbit_birth == 0.25 and body.build.birth_spin == (1.5e-4, 23.0, (0.5, 0.75))
     assert body_history.numbers_of(body) == {"birth_eccentricity": 0.25, "birth_spin_rate": 1.5e-4, "birth_obliquity_deg": 23.0,
                                               "capture_draw_1": 0.5, "capture_draw_2": 0.75, "formula_version": body_history.FORMULA_VERSION}
+
+
+def test_attach_gives_a_restored_body_where_it_formed_and_a_moon_the_orbit_it_was_born_on():
+    moon = _Body()
+    assert body_history.attach(moon, _row(formation_distance_au=1.25, birth_distance_au=0.002, born_index=3))
+    assert moon.formation_distance_au == 1.25 and moon._birth_distance_au == 0.002
+    assert body_history.numbers_of(moon)["formation_distance_au"] == 1.25 and body_history.numbers_of(moon)["birth_distance_au"] == 0.002
+    bare = _Body()
+    assert body_history.attach(bare, _row(birth_eccentricity=None, birth_spin_rate=None, birth_obliquity_deg=None, capture_draw_1=None, capture_draw_2=None, formation_distance_au=0.7)) is True
+    assert bare.formation_distance_au == 0.7 and bare.build.birth_spin is None and not hasattr(bare, "_birth_distance_au")
+
+
+def test_a_row_with_no_new_numbers_leaves_a_body_as_a_galaxy_before_v266_did():
+    body = _Body()
+    assert body_history.attach(body, _row())
+    assert not hasattr(body, "formation_distance_au") and not hasattr(body, "_birth_distance_au")
 
 
 def test_attach_gives_the_spin_whole_or_not_at_all_and_nothing_for_another_formula_version():

@@ -5,6 +5,8 @@ GEN.428: the draw of a planet's or moon's bulk composition and the mass solved f
 import math
 from types import SimpleNamespace
 
+from planetgen.generation.build_record import BuildRecord
+
 import pytest
 
 from planetgen.generation.config import SystemConfig
@@ -12,7 +14,6 @@ from planetgen.generation.system import StarSystem
 from planetgen import tuning
 from planetgen.physics import bulk_composition as bc, bulk_draw, bulk_structure, constants, envelope_share
 from planetgen.util import draw
-from planetgen.generation.build_record import BuildRecord
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -27,7 +28,8 @@ def _star(**extra):
 
 def _body(radius_km, icy=False, **extra):
     """A body of the given radius that formed inside the snow line, or (`icy`) well beyond it."""
-    fields = dict(radius=radius_km, mass=None, star=_star(), is_moon=False, distance=20.0 if icy else 1.0, build=BuildRecord())
+    fields = dict(radius=radius_km, mass=None, star=_star(), is_moon=False, distance=20.0 if icy else 1.0)
+    fields["build"] = BuildRecord(late_core=extra.pop("late_core", False))
     fields.update(extra)
     return SimpleNamespace(**fields)
 
@@ -179,18 +181,18 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
     assert len(seen_classes) >= 3
 
 
-def test_a_rocky_body_under_one_earth_mass_adds_the_water_its_nebular_envelope_made():
-    """GEN.1748: the water of the hydrogen envelope a body under 1 Earth mass captured (Young et al. [R5293]) is added to its delivered water; a late core, a moon, a body of 1 Earth mass or more and a body
-    of under 0.2 Earth masses get none, and the run's stream does not move."""
+def test_a_rocky_body_adds_the_water_its_nebular_envelope_made():
+    """GEN.1748, GEN.1754: the water of the hydrogen envelope a body of 0.2 to 20 Earth masses captured (Young et al. [R5293]) is added to its delivered water, kept or lost; a late core, a moon, a body of under
+    0.2 Earth masses and one of over 20 get none, and the run's stream does not move."""
     from planetgen.physics import envelope_capture
     mass = lambda earth: earth * constants.EARTH_MASS_TO_KG
-    for earth, extra in ((0.5, {}), (0.5, {"build": BuildRecord(late_core=True)}), (0.5, {"is_moon": True}), (1.5, {}), (0.1, {})):
+    for earth, extra in ((0.5, {}), (0.5, {"late_core": True}), (0.5, {"is_moon": True}), (1.5, {}), (4.0, {}), (25.0, {}), (0.1, {})):
         body = _body(5000.0, mass=mass(earth), **extra)
         draw.set_run_seed(11)
-        base = bulk_draw._rocky_water(_body(5000.0, mass=mass(earth), build=BuildRecord(late_core=True)))     # the delivered water alone
+        base = bulk_draw._rocky_water(_body(5000.0, mass=mass(earth), late_core=True))     # the delivered water alone
         draw.set_run_seed(11)
         water = bulk_draw._rocky_water(body)
-        if earth == 0.5 and not extra:
+        if earth in (0.5, 1.5, 4.0) and not extra:
             start = envelope_capture.start_of(body.mass, 1.0, body.star.mass)
             assert start > 0.0 and water == pytest.approx(base + envelope_capture.nebular_water_fraction(start, bulk_draw.host_ratios(body.star).y_envelope))
         else:

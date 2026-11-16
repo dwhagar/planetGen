@@ -1731,6 +1731,10 @@ def choice(description, chosen, reason):
         _logger.debug("%s: chose %r (%s).", description, chosen, reason, stacklevel=2)
 
 
+PHASE_ENDED = None
+"""callable or None: Called with the label of each `timed_phase` as it ends; `queue/unitbeat.py` sets it, so the unit that is running starts its quiet clock again (OPS.266)."""
+
+
 @contextmanager
 def timed_phase(label):
     """
@@ -1751,6 +1755,8 @@ def timed_phase(label):
         # The message carries the one duration form; the exact milliseconds ride on the record for a profile to read.
         _logger.debug("Phase %s took %s.", label, logrecord.duration_text(elapsed_ms / 1000),
                       stacklevel=3, extra={"phase": label, "elapsed_ms": elapsed_ms})
+        if PHASE_ENDED is not None:
+            PHASE_ENDED(label)
 
 
 # Sensible default so anything that imports planetgen modules directly

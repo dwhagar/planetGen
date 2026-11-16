@@ -27,7 +27,6 @@ from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body
 from planetgen.physics import hill_perturbers, planet_moons
 from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
-from planetgen.generation import irregular_moons
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics import orbits
@@ -130,10 +129,10 @@ def prepare_class(planet):
 
 
 def classify(planet):
-    """The class letter, its match, the runner-up and the digit of a body `prepare_class` has prepared and whose bands exist (GEN.1587); an Asteroid gets none."""
+    """The class letter, its match, the runner-up and the digit of a body `prepare_class` has prepared and whose bands exist (GEN.1587); an Asteroid (a body under a roundness ratio of 1 that holds no air, liquid or life, GEN.1752) gets none."""
     detail = planet_classes.classify_detail(planet)
     if detail is None:
-        return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
+        return      # GEN.1160/GEN.1752: a body under a roundness ratio of 1 that holds no air, liquid or life is an Asteroid, an object type with no class letter; one that holds any of them is classed like any body
     planet.planet_class = detail.letter
     # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
     planet.class_variant, planet.class_match = detail.digit, detail.match
@@ -1714,6 +1713,7 @@ def drop_unstable_moons(planet):
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept
+    from planetgen.generation import irregular_moons      # imported here: the physics layer must import alone (GEN.1633), and `irregular_moons` reaches `belt_ledger` and so `belt_mass`, which reaches this module
     irregular_moons.keep_stable(planet)      # the irregular moons are held to the same zone (GEN.1084); they do not count in the return, no reflex offset comes of them
     return dropped
 

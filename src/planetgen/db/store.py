@@ -79,7 +79,7 @@ from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, dials, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
-from planetgen.physics import body_history, effect_ledger, isotope_record, light_ledger, ore_deposits
+from planetgen.physics import body_history, effect_ledger, moon_history, isotope_record, light_ledger, ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log, ticker
@@ -638,7 +638,7 @@ BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types", "planet_isotopes", "moon_isotopes", "rogue_planet_isotopes",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
-    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history",
+    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history", "lost_moons",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -3516,6 +3516,8 @@ BELT_FIELDS = (
     # GEN.1232: what the star's evolution did to the belt, as one paragraph (NULL when nothing did), read back as the sentences' one line.
     object_rows.computed("history_text", lambda belt, context: belt_history.history_text(belt) or None,
                          load=lambda row: {"history": [row["history_text"]] if row["history_text"] else []}),
+    # GEN.1231: the mass the star's mass loss threw inward (the belt's `scattered_mass_kg`, set only on the belts of a white dwarf's system), the source of the rock that falls on the star.
+    object_rows.optional("thrown_inward_kg", "scattered_mass_kg"),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 
@@ -4839,19 +4841,56 @@ def insert_body_history(conn, star_system_id, star_system, saved):
     Returns:
         int: The number of rows written.
     """
-    bodies = [body for planet in star_system.all_planets if planet.body_type != "a" for body in (planet, *getattr(planet, "moons", ()))]
-    rows = body_history.rows(star_system_id, bodies, saved)
-    columns = body_history.ROW_FIELDS
-    if rows:
-        marks = ", ".join("?" for _ in columns)
-        sql = f"INSERT INTO body_history ({', '.join(columns)}) VALUES ({marks})"
-        values = [tuple(row[name] for name in columns) for row in rows]
-        if getattr(conn, "_batch", None) is not None:      # held back with the other child rows in a sector save, as `insert_effect_ledger`'s are
+    planets = [planet for planet in star_system.all_planets if planet.body_type != "a"]
+    bodies = [body for planet in planets for body in (planet, *getattr(planet, "moons", ()))]
+    born = {}
+    for planet in planets:
+        born.update(body_history.born_places(planet))
+    rows = body_history.rows(star_system_id, bodies, saved, born)
+    lost = []
+    for planet in planets:
+        where = saved.get(id(planet))
+        if where is not None:
+            lost += body_history.lost_rows(star_system_id, planet, where[1])
+    batch = getattr(conn, "_batch", None) is not None      # held back with the other child rows in a sector save, as `insert_effect_ledger`'s are
+    for table, fields, written in (("body_history", body_history.ROW_FIELDS, rows), ("lost_moons", body_history.LOST_FIELDS, lost)):
+        if not written:
+            continue
+        sql = f"INSERT INTO {table} ({', '.join(fields)}) VALUES ({', '.join('?' for _ in fields)})"
+        values = [tuple(row[name] for name in fields) for row in written]
+        if batch:
             for params in values:
                 conn.execute(sql, params)
         else:
             conn.executemany(sql, values)
     return len(rows)
+
+
+def rewrite_body_history(conn, star_system_id, star_system):
+    """
+    Writes the birth numbers of an edited system again from the bodies it has (GEN.1753): the rows of the bodies the edit kept are what `attach_body_history` gave them (so they come back as they were), those of a body
+    it made again are its own new draws and not the old body's under the same row, and those of a body it deleted go. The `lost_moons` of the system are written with them.
+
+    Args:
+        conn (Connection): An open connection.
+        star_system_id (int): The system's `star_systems.id`.
+        star_system (StarSystem): The edited system, every body saved (it has its `db_id`).
+
+    Returns:
+        int: The number of `body_history` rows written.
+    """
+    conn.execute("DELETE FROM body_history WHERE star_system_id = ?", (star_system_id,))
+    conn.execute("DELETE FROM lost_moons WHERE star_system_id = ?", (star_system_id,))
+    saved = {}
+    for planet in star_system.all_planets:
+        if planet.body_type == "a":
+            continue
+        if getattr(planet, "db_id", None) is not None:
+            saved[id(planet)] = ("planets", planet.db_id)
+        for moon in getattr(planet, "moons", ()):
+            if getattr(moon, "db_id", None) is not None:
+                saved[id(moon)] = ("moons", moon.db_id)
+    return insert_body_history(conn, star_system_id, star_system, saved)
 
 
 def insert_effect_ledger(conn, star_system_id, ledger, saved, floor=None):
@@ -10410,14 +10449,22 @@ def attach_body_history(conn, system, star_system_id):
     stored = {(row["body_type"], row["body_id"]): row for row in conn.execute("SELECT * FROM body_history WHERE star_system_id = ?", (star_system_id,)).fetchall()}
     if not stored:
         return 0
+    lost = {}
+    for row in conn.execute("SELECT * FROM lost_moons WHERE star_system_id = ? ORDER BY planet_id, born_index", (star_system_id,)).fetchall():
+        lost.setdefault(row["planet_id"], []).append(row)
     attached = 0
     for planet in system.all_planets:
         if getattr(planet, "db_id", None) is not None and getattr(planet, "body_type", None) != "a":
             row = stored.get((effect_ledger.BODY_CODES["planets"], planet.db_id))
             attached += bool(row and body_history.attach(planet, row))
+        placed = []
         for moon in getattr(planet, "moons", ()):
             row = stored.get((effect_ledger.BODY_CODES["moons"], getattr(moon, "db_id", None)))
             attached += bool(row and body_history.attach(moon, row))
+            if row and row["born_index"] is not None and row["formula_version"] == body_history.FORMULA_VERSION:
+                placed.append((row["born_index"], moon))
+        if getattr(planet, "db_id", None) is not None:
+            moon_history.restore_born(planet, placed, lost.get(planet.db_id, []))      # GEN.1753: the moons it was born with, for a history run again
     return attached
 
 

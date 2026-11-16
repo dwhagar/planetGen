@@ -625,54 +625,6 @@ with `clamp()`.
   pages and takes load off 8.2.
   Prerequisites: none. Related: DB.79, UX.141, MAP.139, UX.144, MAP.254.
 
-- [ ] **UX.144 Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it**
-  Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2): the
-  dedicated page has "links to where it is (i.e. sector, system, but
-  also if it's in a nebula)". Do: a Location block on every item page
-  (UX.143): the breadcrumb chain from the galaxy down through the sector
-  and system to the item's parent, each a link to that page, and a line
-  'Inside: <nebula, cluster or region name>' linking to the containing
-  nebula, globular cluster, superbubble or other region, from the region
-  query (the region pyramid and cell aggregates), and for a nebula or
-  region page the list of what it contains with links. Done: for a star
-  inside a nebula, a planet of a star in a cluster, a moon, a belt and a
-  free-floating object, the Location block shows the right chain and the
-  containing region (a test per case on a generated galaxy); a link on
-  each name opens that page; an item outside every region says so.
-  Phase: 8.2 phase 2. Owner: Lane 12 (the coordinator, about 4:08 AM EDT
-  2026-10-22 as the lane reported, after Lane 12 went idle; filed from
-  Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21). Order
-  inside Lane 12's queue: after UX.143 (its Location block sits on those
-  pages); it can go before or after MAP.254. The Admin redesign lane
-  builds the admin shell and header palette (ADM.92, ADM.118) and does
-  not touch the item pages or the viewers' info box; if both change the
-  shared header layout, whichever merges second rebases.
-  Lane 12 (relayed 9:33 AM EDT 2026-10-22): next in its queue with the
-  TEST.267 fix (the page-walk test walks stars): the Location block on
-  item, system and phenomenon pages, nebula and remnant pages listing
-  what is inside them, and the new API `GET
-  /api/phenomena/<type>/<id>/contents`. The cluster and region part
-  waits on DB.85, which has since merged (#2582: globular clusters and
-  superbubbles are stored as containers), so it is unblocked.
-  Progress (Lane 12, UX.144 merged in part as #2485, 12:52 PM EDT
-  2026-10-22 as the lane reported): the Location block is on item, system
-  and phenomenon pages (the chain from the galaxy down, each a link), nebula and remnant
-  pages list what is inside them, through the new API `GET
-  /api/phenomena/<type>/<id>/contents`. Still open here: the 'Inside:'
-  line naming a containing globular cluster or superbubble. DB.85
-  merged as #2582 (10:39 PM EDT 2026-10-22 as the coordinator relayed:
-  globular clusters and superbubbles are now stored as containers,
-  schema v130), so this remainder is unblocked and waits only for an
-  owner.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Lane 12
-  held it before; this replaces any earlier owner line).
-  Plan (6:20 PM EST on 2026-11-05): moved from 8.2 to 8.8 (Boss asked
-  for foundations spread back and no version doing all the work, 5:48 PM
-  EST on 2026-11-05): not a foundation of anything; it fits the deep sky
-  pages and takes load off 8.2.
-  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
-
 - [ ] **UX.150 Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
   then D', relayed by the coordinator): 'Let's go with 3, since we're
@@ -1865,26 +1817,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## NAV: Navigation and courses
 
-- [ ] **NAV.4 Save a course**
-  Boss (2026-10-01 20:55Z): "add a to-do item where I can save a course
-  as a user ... Actually just have it save both so the user has either,
-  no matter what they wanted in the first place." Today a course
-  (`/nav?from=...&to=...`, `queryDb.nav_between`) can only be
-  bookmarked as a URL. Done: a signed-in user can save a course under a
-  name. A saved course always keeps both forms:
-  - the direct, point-to-point line (its bearing and mark, NAV.1);
-  - the system-to-system route (the chain of systems it hops through).
-  The user can list, open, rename and delete their saved courses. The
-  saved course shows whichever form the user views, and they can switch
-  between the two. Needs user accounts (USR.1) and their storage.
-  Question (decided below): until user accounts exist, should saving be
-  admin-only, or
-  per browser like bookmarks?
-  Default taken for the open question (pre-planning thread): Default for
-  the open question: per browser now (the same storage and menu as
-  bookmarks), moved into the account when USR.7 lands. NAV.4 then does
-  not wait for user accounts.
-
   - [ ] **NAV.19 Saved courses in the account (after USR.7)**
     Done: the `course` kind of the saved-list store (USR.7's
     `user_saved`, no second table): courses saved per browser can be
@@ -1907,37 +1839,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by side, open, On the map, Rename, Delete); saving again says what
   changed since the first save. NAV.18 is done. This item stays open for
   NAV.19 (saved courses in the account, after USR.7).
-
-- [ ] **NAV.56 Census of overlapping keep-out spheres in a generated galaxy**
-  Count how many pairs of keep-out spheres overlap in a generated
-  galaxy. The answer decides whether NAV.26's cluster fallback ever
-  fires.
-  Needs the whole table (NAV.54) and runs before the planner (NAV.26),
-  so the cluster fallback is built or skipped on the answer (2026-10-16
-  review).
-  Script merged (Lane 12, #5068); real run owed (4:47 AM EST on
-  2026-11-05): scripts/census_keep_out_overlap.py --database <db> counts
-  overlapping keep-out spheres in a generated galaxy (pairs by kind,
-  nested pairs, clusters by size). It has not run on real data (the lane
-  has no generated galaxy). Estimate from the Kroupa mass function and
-  the Hill-radius rule: 24 to 43 percent of star spheres near the Sun
-  overlap another, so NAV.26's cluster fallback is needed. Report
-  reports/nav56-keep-out-overlap-census-2026-11-05.md. Stays open until
-  Lane 02 posts one real run from the census database after
-  train 10 (python scripts/census_keep_out_overlap.py --database
-  planetgen).
-  Correction (Lane 12) (4:55 AM EST on 2026-11-05): The estimate of 24 to
-  43 percent above was wrong for systems: the sector fill keeps systems
-  at least the sum of their Hill radii apart inside a sector. What can
-  still overlap is cross-sector pairs (about 8 to 11 percent of systems,
-  modelled) and the phenomena (black holes, neutron stars, rogue
-  planets, quasars, fields), so the planner's overlap fallback stays but
-  should rarely fire. The real run decides it. NAV.62 (gravity of
-  unresolved stars) is done and is not a prerequisite of NAV.26 (Lane 12,
-  PR #5136); Lane 12 builds the planner mechanics (pure geometry,
-  lock-free).
-  Prerequisites: NAV.54.
-  Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
 
 - [ ] **NAV.57 The Intergalactic Frame in navigation-frames.md and `navigation.py`**
   A frame type and the rule for choosing it (stage 2 of GEN.9).
@@ -5019,136 +4920,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   taxon_kernel TK6 splits. No output change. The wiring stays open here.
   Owner (TODO sweep, 2026-11-12): Lane 04 (composition).
 
-- [ ] **GEN.477 The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug)**
-  Finding F11 of the Body composition research lane (section 14.5 of
-  docs/design/composition/body-composition-research.md, tables E1 to E4; 2026-10-17,
-  1:47 AM EDT as the lane reported, read from the code at the commit it
-  names), filed by the TODO thread. `generate_asteroid_composition`
-  (src/planetgen/generation/belt.py 29-60, called from
-  `AsteroidBelt.__init__`) takes four components by
-  `draw.sample(ASTEROID_COMPONENTS, k=4)` from a flat list of 84 names
-  (tuning.py 196-215: 16 elements including gold and the platinum-group
-  metals, 13 rock-forming and metal minerals, 8 rare-earth, 6
-  platinum-group, 7 uranium and thorium, 7 titanium species, 14 oxides,
-  salts, carbonates and gem minerals, 4 garnets, 2 micas, chrysoberyl
-  and six polycyclic aromatic hydrocarbons), shuffles them and gives
-  them the levels high, moderate, small and trace, so gold or coronene
-  is as likely to be the high component as olivine. The draw does not
-  read the star, the belt's distance, the snow line, the [Fe/H] or the
-  belt's mass; the belt density (dense, sparse, typical) is a separate
-  uniform draw (belt.py 138); only four words are stored
-  (`asteroid_belt_composition`, db/models.py 20-34). Standalone asteroid
-  fields (generation/phenomena/asteroid_field.py) draw one of eight
-  families by frequencies (carbonaceous 30, stony 20, icy 20, mixed 10,
-  metallic 8, dust 5, basaltic 4, collisional 3) that carry no source,
-  then 5 to 9 components uniformly from a per-family list (`mixed` and
-  `collisional` sample the same 84 names). Do, in the gated format of
-  GEN.472: (E1) gate the belt components by object kind and draw the
-  belt's taxon mixture from the taxon table of GEN.457 and GEN.442 (the
-  zone kernel in a / a_snow of the system's own snow line, GEN.458; a
-  flagged `stand-in` until GEN.473 replaces it), with the components
-  following from the taxon's analogue chemistry, the 84-name list kept
-  only as a vocabulary of names; (E2) the belt density follows the
-  belt's mass per area from the disc and not a separate draw; (E3) the
-  eight field families are a gated possibility table whose frequencies
-  are flagged `stand-in` (no source), replaced under GEN.473 by the
-  composition of the system whose bodies the field was stripped from, or
-  by a derived population; (E4) each family's component list comes from
-  the analogue chemistry of its taxon, the family names kept as labels.
-  Stored data (part D 3.6 keeps `composition_summary` as derived text):
-  a belt stores its taxon mass shares and the mass fractions of its main
-  components (iron, nickel, olivine, pyroxene, phyllosilicates, water,
-  carbon, metal; the columns are DB.70), and the four-level words come
-  from those fractions by fixed thresholds (for example above 20 percent
-  of the belt mass high, 5 to 20 moderate, 1 to 5 small, below 1 trace)
-  and not from a draw; exotic minerals (rare-earth, platinum-group,
-  radioactive, gem, polycyclic aromatic hydrocarbons) become accessory
-  species included only when the chemistry supports them (a ppm
-  threshold from part D's chondrite chemistry); the text keeps at most
-  four named lines so the description and database columns still fit.
-  The thresholds, the cap and the ppm limit are stored, flagged
-  parametrisations. Changes stored values, so it ships with a generator
-  epoch bump. Done: no belt or field draws a component from the uniform
-  list; every belt has taxon shares that add up to one, a density that
-  follows its mass, and four-level words that follow its fractions by
-  the stored thresholds; a test says so and that the same galaxy gives
-  the same belts at any worker count. Owner: Lane 14 (proposed, with the
-  composition chain and the small bodies of GEN.442).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Lane 14
-  held it before; this replaces any earlier owner line).
-  Prerequisites: DB.70. Related:
-  GEN.442, GEN.457, GEN.473, GEN.472, GEN.458, DB.70, NAV.62.
-  Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
-  "basically anything an asteroid field or belt can be made of, a planet
-  or moon can be made of too that was my main point there". So there is
-  one shared materials and components table for every object kind
-  (asteroid, belt, field, comet, moon, planet, dwarf planet), each row
-  gated by class; there are no separate component lists per kind. The
-  belt and field components are drawn from the shared table of GEN.427
-  through the class gate, not from a list of their own
-  (`ASTEROID_COMPONENTS` and the per-family lists go).
-  Section 14.6 of the Body composition research lane's note
-  (docs/design/composition/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
-  the lane reported), on Boss's shared-vocabulary point of 1:47 AM EDT,
-  filed by the TODO thread: the belt text keeps its four lines through
-  the same thresholded writer, and its stored shares are the one mixture
-  storage of DB.69 and DB.70.
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC14 belt composition: one belt only (taxon mix against
-  distance, DC13 Table 6), no extrasolar ensemble: rule M, the widest.
-  Zoning boundary at the star's snow line, width 0.3 in log AU
-  (placeholder).
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the
-  84-name list is not kept "as a vocabulary of names": per Boss's
-  shared-vocabulary point (2026-10-17, 1:47 AM EDT)
-  `ASTEROID_COMPONENTS` and the per-family lists go, and component names
-  come from the shared GEN.427 table through the class gate.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
-  lane reported): the field half merged with GEN.442 (#2956, epoch 79):
-  asteroid fields draw a family taxa mixture. The item stays open until
-  the belt half is confirmed against the Done line; Lane K to say what
-  remains.
-  Research (2026-10-09, Update): Lane K (8:56 AM EDT 2026-10-24, as the
-  lane reported): belt half remaining: (E2) belt density from mass per
-  area, which needs a belt mass and a depletion factor against the disc
-  surface density and has no source yet (a design question), and the
-  stored taxon-share and component columns (DB.70). Taxa, four-level
-  words and fields are done.
-  Rescoped (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): this is no longer a research-only item waiting for Boss
-  or a read-only lane. Take the best published value, secondary sources
-  accepted, build it into the generator, and register any stand-in with
-  tier and tweak level (GEN.725). Owner: Sources 1 (new lane, proposed
-  by TODO). Nothing fixed from the Solar System or the Milky Way
-  (standing rule).
-  Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
-  design-drafts/gen465-second-pass; the stand-in registry
-  (stand-in-values.md, 316 rows) lists every constant with its source.
-  Catalog sections 3 and 4.
-  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
-  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
-  from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 6. Brief:
-  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
-  E2 lock-free step merged (2026-10-29 10:51 PM EDT): Sources 2 merged
-  the E2 lock-free step (#3855, as the lane reported 10:51 PM EDT): belt
-  mass from the disc and collisional grinding, registry BM1 and BM2
-  (section 6.43). The wiring step needs a DB.70 mass column plus a
-  migration and moves belt density words only. GEN.477 stays open for
-  the other parts and the wiring.
-  Owner (TODO sweep, 2026-11-12): Lane 06 (belts).
-
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
   reported (findings 11 to 20 and section 3b of
@@ -7501,6 +7272,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none.
   Owner (TODO sweep, 2026-11-12): Lane 06 (comets).
+  Gap (Lane 06 check, TODO 9:40 AM EST 2026-11-16): comet ice is derived (physics/comet_population.py, comet_ice_budget) but the in-system shape is hand set: tuning.COMET_PERIOD_CLASSES weights and ranges, BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM, COMET_PERIHELION_DISTANCE_RANGE_AU, SYSTEM_COMET_CHANCE; only COMET_PARABOLIC_CHANCE is registered (AUD20). Do: derive each or register it as a stand-in with tier and tweak level. Owner (TODO, 2026-11-16): Lane 06.
 
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
   Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
@@ -8329,149 +8101,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   without human review. Times to Boss in EDT only.
   Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
 
-- [ ] **GEN.1068 Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py)**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 7. Design section
-  2.1 and 4 steps 1 to 3: the annulus from the architecture gap or tail,
-  M0 from the disc solids, the formation snow line stored, the giants'
-  chaotic zones and resonance gaps removed, the early-depletion draw.
-  The belt gap map is a clearance entry in the GEN.1014 ledger. Done:
-  tests, a new epoch with --affects, the census re-baselined by the
-  census item. Replaces the slot roll; no backward-compat shim. Where we
-  think it belongs (best guess, can move): Lane 21, train 7 (after
-  the GEN.1014 wiring on train 6 and the ledger, gaps and history
-  modules).
-  Prerequisites: GEN.1014. Related:
-  GEN.728.
-  Belt origins (2026-10-30 4:35 PM EDT): Each belt also stores where we
-  think it came from (the cause from physics/belt_origin.py) and a
-  one-sentence text; stored with the origin and formation columns of
-  GEN.1069.
-  Scatter placement (Boss confirmed 4:37 PM EDT) (2026-10-30 4:40 PM
-  EDT): The scatter sweep (GEN.1089) runs after the giants are placed
-  and before the belts are finalised; this item calls it at that point.
-  Lane 22 (2026-10-30 9:21 PM EDT) (2026-10-30 9:21 PM EDT): takes this
-  item as the build of GEN.1156 (raise the belt share toward 4 to 14
-  percent with the physics route); stacks on the GEN.1014 wiring head.
-  Check with Lane 21 before starting, in case it has begun.
-  Boss belt decisions (relayed by Lane 22) (2026-10-30 10:26 PM EDT): (1)
-  The inner belt is the asteroid belt and counts in the 4 to 14 percent;
-  the outer belt and the Kuiper belt are separate kinds; belts and
-  asteroid fields share one small-body population base (class split,
-  belt and asteroid field branches). (2) Individual bodies above the
-  1e19 kg mass cutoff are stored in belts and asteroid fields: round
-  ones are dwarf planets (Class D), too-small ones are a new object type
-  Asteroid (no class letter), and asteroids can be moons. (3) Class D is
-  airless, round and lighter than the planet minimum (0.1 Earth masses
-  inside the snow line, 0.6 beyond; Lane 22 asked Boss whether to use 0.05
-  instead); Class C is airless at or above it; the water rule is
-  dropped; moons use the same classes. GEN.1068 carries 1 to 3 plus the
-  field member ledger once a field mass rule is agreed.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-  Owner (TODO sweep, 2026-11-12): Lane 06 (belts).
-
-- [ ] **GEN.1069 Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 7. Design section 10
-  item 10: the belt's stored mass is the budget the ledger spends; the
-  density word is derived from mass per area, no shim. New columns
-  registered in db/column_units.py. Done: migration, tests, golden, the
-  page shows the mass and its history. Builds on the GEN.477 wiring
-  (train 6). Where we think it belongs (best guess, can move): Sources
-  2, train 7 (same train as the belt birth).
-  Belt origins (2026-10-30 4:35 PM EDT): Adds the origin, formation and
-  history text columns to the belt record (design belt-origins section
-  4).
-  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
-  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
-  It had no owner; the belt page and the scatter wiring read what it
-  stores. Owner now: Sources 2 (with GEN.1092) (proposed by the TODO
-  thread; the lane says if it cannot take it).
-  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
-  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
-  objects above a mass threshold, a scatter step in the system before
-  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
-  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
-  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
-  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
-  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
-  built, train 8), GEN.1069, GEN.1070 (pages with Lane 12), GEN.1071
-  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
-  Lane 22 as owner, in that order, after GEN.1014 (train 8).
-  Prerequisites: GEN.477, GEN.1068. Related: GEN.477.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-  Owner (TODO sweep, 2026-11-12): Lane 06 (belts).
-
-- [ ] **GEN.1072 White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 7. Design section
-  2.5 and 10 item 13: the belt history module (engulf partly,
-  destabilise a share on mass loss, scatter inward) applied when a star
-  becomes a remnant, with the pollution rate linked to whether a belt or
-  planet survives. New epoch. Done: tests, white dwarf pollution share
-  within the observed 25 to 50 percent band as a census check. Where we
-  think it belongs (best guess, can move): Star 2, train 7.
-  Prerequisites: GEN.1068.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-  Owner (TODO sweep, 2026-11-12): Lane 06 (belts).
-
-- [ ] **GEN.1073 Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 7. Design section 4
-  closing note and 10 item 14: when the star changes epoch (GEN.1006)
-  the belt mass is recomputed from the new age without redrawing the
-  individual members above the grinding scale; the tail changes, the top
-  bodies do not. Done: tests with a before and after epoch, stable
-  ranks. Where we think it belongs (best guess, can move): Lane 04
-  (GEN.1006 chain, GEN.1017 on train 5), train 7 after the GEN.1006
-  chain has merged.
-  Progress (11:40 AM EST on 2026-11-07, as Lane 22 reported): the fields half (GEN.1107, now folded here) is merged in PR 5568: the orbit update ages each asteroid field, its radius and class size follow, and a field past 1 ly is retired by marking (row, Object ID, members and facilities stay). Left here: the belts half, and dropping retired fields from the Phenomena catalog and the route and corridor reads.
- Progress (PR 5591 merged 2026-11-07, 2:14 PM EST, as Lane 22 reported): a retired asteroid field now leaves the Phenomena catalog (every sort and the by-sector walk) and its counts, the nearby search, a cloud's contents and the widest pass-through reach; row, Object ID, page, members and facilities stay. Left: the belts half only. Decision (TODO thread, 2:14 PM EST on 2026-11-07, on the wiring rule that built code needs a caller): hold the belts half until the star rebuild path of the GEN.1006 chain exists, because nothing changes a stored star's age today; then build one pure function that re-solves a belt for a new age and keeps the bodies above the grinding scale, called from that path, with a before and after epoch test. Note for that build: the ledger scales every body by the belt mass, so "top bodies do not change" is a new rule, not what solve_belt does now.
-  Prerequisites: GEN.1069, GEN.1006.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-  Folded in (2026-11-07, Boss approved the TODO plan): GEN.1107 Bring-to-epoch for fields: age advances, radius follows, retirement past 1 ly marks or deletes the row (Boss to pick; default retire). Its Done line: tests with a before and after epoch.
-  Owner (TODO sweep, 2026-11-12): Lane 06 (belts).
-
 - [ ] **GEN.1086 System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space**
   Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
   many moons because a lot of them are former asteroids from the belt,
@@ -8775,24 +8404,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   body pages only; no stored generator value moves. Lock-free (the
   land colour, MAP.274, has merged).
   Prerequisites: none.
-
-- [ ] **GEN.1231 White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent**
-  From Star 2 (relayed 4:03 PM EDT 2026-10-31 as the lane reported), the
-  follow-up of GEN.1072 (#4430): remnant_orbits.pollution_rate_g_s and
-  belt_history.is_polluted are built and read only by tests. Do: a white
-  dwarf with a belt carries a polluted flag when the belt's scattered
-  rate, read from the belt the generator drew, gives a pollution rate
-  above the detection limit, and the share of white dwarfs flagged falls
-  in the observed 25 to 50 percent band ([R2415, R4918]
-  give the share; a census test checks it); the flag shows on the star's
-  page. Needs the belt birth chain, so a belt exists to scatter. Changes
-  generated output (stored flag), so it rides a train after GEN.1068.
-  Stand-ins go in GEN.725 with tier and tweak level; the wiring-register
-  lines for is_polluted and pollution_rate_g_s name this item. Owner:
-  Star 2.
-  Prerequisites: GEN.1068. Related: GEN.1072, GEN.1068, GEN.725.
-  Folded in (2026-11-07, Boss approved the TODO plan): GEN.1203 Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants.
-  Owner (TODO sweep, 2026-11-12): Lane 06 (belts).
 
 - [ ] **GEN.1292 The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later)**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
@@ -9328,28 +8939,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
   Owner (TODO sweep, 2026-11-12): Lane 15 (storage).
   Moved to 8.2 with the barycentre items it needs (GEN.576 to GEN.578), under Boss's 9:19 PM EST plan (TODO, 2026-11-12).
-
-- [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
-  Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
-  database. The physics items moved into 8.1 (GEN.727 to GEN.753,
-  GEN.755, GEN.759 to GEN.763) change or add values (eccentricity and
-  inclination, seasons, tidal heating, spin and day length, magnetic
-  field, rings, escape and delivery history, life timeline stages,
-  spectral labels, white dwarf and neutron star state, climate feedback
-  terms) and not every one has a storage line. This item holds the table
-  in reports/wiring-db-ux-audit-2026-10-24.md (item, new stored value,
-  existing column or new, unit, who ships it) and checks it: each owner
-  adds the column and its db/column_units.py entry in the same PR as the
-  item, and this item's owner reviews the table, names the migration
-  order and fails the gate if a stored value has no column. No shim; the
-  old column is dropped when replaced. Owner: Aux 12 (Lane 4, database),
-  review only; the column itself ships with each item.
-  Prerequisites: none. Related: DB.67, DB.70, DB.71, DB.96, DB.99,
-  DB.100, GEN.754.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 12) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Owner (TODO sweep, 2026-11-12): Lane 15 (storage).
 
 - [ ] **DB.103 Storage for nation-states and cities: tables, Object IDs, column units and the migration**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
@@ -11667,12 +11256,6 @@ clears each one.
   Version 8.2. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): unassigned. Prerequisites: GEN.1430. Related: UX.286, UX.287.
   Filed by the TODO thread.
 
-- [ ] **GEN.1437 Design notes for the chaotic triple-star zone and the dimming star (debris stream or disintegrating planet with irregular transits)**
-  Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: two short design notes in the research tree from report sections 5.3 and 6 of /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md, each ending in the oddity chain items it needs (not built here). Done: both notes merged. Docs only.
-  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): research thread, then Lane 13 or Lane 04. Prerequisites: none. Related: GEN.1433.
-  Filed by the TODO thread.
-  Owner (TODO sweep, 2026-11-12): Lane 16 (multi-star).
-
 - [ ] **GEN.1438 Flavor tree tests: classless gates, quantities exist, every line reachable, coverage per life class and scope, order independence, plain words, settings pruning**
   Boss, 10:58 AM EST on 2026-11-08 (card answers relayed by the coordinator): rebuild the flavor text as a data file after train 18, GEN.1399 lands first as filed; the file is a gated tree that is walked so only options that work are gathered, classless, gates on properties of the planet or system only, life lines for all nine life classes, more kinds of objects covered; the derelict, wreck, megastructure and signal lines become an on/off ancient works setting chosen at galaxy planning; add the physics set only (not unobtainium or spice). Design: /mnt/project-files/design-drafts/flavor-text-gated-tree-2026-11-08.md. Findings: /mnt/project-files/reports/flavor-text-and-sci-fi-anomalies-2026-11-08.md. Lines: /mnt/project-files/reports/flavor-text-rewrites-2026-11-08.md. Do: the seven tests of section 5 of the design: no gate names a class letter, planet_class, a class fit or a derived class field (extend the class-last audit to scan the file); every gate quantity is in the quantity table; a census sample offers every line at least once (rare lines listed with a reason); coverage per medium, energy source, rung and scope; the same body yields the same line in any build order; every line passes the plain-words check with sample slot values; with a setting off, no tagged option is ever offered. Done: the tests pass on the file of GEN.1430. Lock-free, ships with GEN.1430.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 13 (with GEN.1430). Prerequisites: GEN.1430. Related: GEN.1430.
@@ -11713,11 +11296,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.218 (hooks, stage 3) and OPS.239 (bundles, stage 5). Prerequisites: none. Related: OPS.122, OPS.123, OPS.128, DOC.113.
   Filed by the TODO thread.
 
-- [ ] **OPS.131 Independence harness for overlapping jobs: each command declares its reads and writes, a SQL tap test fails any command that touches an undeclared table, and a pair overlaps only after a test proves it**
-  Boss, 3:55 PM EST on 2026-11-08 (design thread, DOC.113): jobs overlap whenever they do not need each other (dependency-driven, under the memory gate of PERF.254 and the fair share of OPS.130); one command per item of work, tiny ones packed. Proposed: build with the job model after Boss approves the design note. Do: every command declares the tables and Redis keys it reads and writes; a SQL tap test fails any command that touches an undeclared table; the planner (OPS.128) derives the dependency edges from the read and write conflicts; a pair of commands may overlap only after it is listed in an independence.json written by a test that runs the pair overlapped in both orders, at 1 and at 15 workers, and matches the plan-order run by content hash. Done: the tap test, the planner edge rule and the pair test exist, and a pair not listed never overlaps. Lock-free if output is unchanged.
-  Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.241 (stage 5). Prerequisites: none. Related: OPS.122, OPS.128, OPS.130, OPS.132, DOC.113.
-  Filed by the TODO thread.
-
 - [ ] **OPS.132 Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell)**
   Boss, 3:55 PM EST on 2026-11-08 (design thread, DOC.113): jobs overlap whenever they do not need each other (dependency-driven, under the memory gate of PERF.254 and the fair share of OPS.130); one command per item of work, tiny ones packed. Proposed: build with the job model after Boss approves the design note. Do: after OPS.131, enable overlap pair by pair, each in its own PR with the pair's overlapped-order proof; start with the commands that need only the skeleton (the sectors, the mass scatter, the phenomena), then narrow the edges so link and settle start per sector and backfill per cell instead of waiting for the whole stage. Done: each pair is listed in independence.json by its test, the full run's time falls by the measured amount and the output is byte for byte the output of today. Lock-free if output is unchanged.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.242 (stage 5). Prerequisites: none. Related: OPS.131, OPS.127, OPS.126, OPS.128, PERF.254.
@@ -11743,12 +11321,6 @@ clears each one.
 - [ ] **DOC.114 Full refresh of all documents of all types against main: READMEs, design notes, plan files, reports, change notes, generated pages and help text**
   Boss, 6:13 PM EST on 2026-11-08 (as the coordinator relayed): 'do a full document update, ALL documents of ALL types, consolidate planning documents, and make sure to do a full refresh, unify all of our planning documents as best you can into one source, and let's also do a script that will build HTML pages that github will serve us up for us from the docs directory, also review and read through every single commit, todo, choice, issue, etc alive or dead, and add past choices and paths and trends to our design documents. Give it its own thread.' Owner: the docs thread (started by the coordinator). Docs only, lock-free; nothing is deleted, only archived; every live item stays with its number and link. Stage 1. Do: read every document under docs/ and the root READMEs, bring each into line with the code on main (names, numbers, versions, paths, finished items), fix broken links, and list what was changed in a report. Done: the docs tests pass and the report lists every file touched. Reuse the existing generators (scripts/build_todo_docs.py and the global docs build).
   Version 8.1. Prerequisites: none. Related: DOC.115, DOC.116, DOC.117.
-  Filed by the TODO thread.
-  Owner (TODO sweep, 2026-11-12): the docs thread.
-
-- [ ] **DOC.115 One unified planning source: the plan files consolidated so that docs/TODO.md stays the item list and every other plan file points at it, with item numbers and links kept**
-  Boss, 6:13 PM EST on 2026-11-08 (as the coordinator relayed): 'do a full document update, ALL documents of ALL types, consolidate planning documents, and make sure to do a full refresh, unify all of our planning documents as best you can into one source, and let's also do a script that will build HTML pages that github will serve us up for us from the docs directory, also review and read through every single commit, todo, choice, issue, etc alive or dead, and add past choices and paths and trends to our design documents. Give it its own thread.' Owner: the docs thread (started by the coordinator). Docs only, lock-free; nothing is deleted, only archived; every live item stays with its number and link. Stage 2. Do: merge the overlapping planning documents (docs/plan/*, release files, lanes, progress ledger, issue groups, execution plans) into one navigable source; keep docs/TODO.md as the item list, keep every item number and link working, archive (never delete) what is superseded. The TODO thread keeps editing the item bookkeeping files (todo-number-map, release files, issue-groups, lanes.md, progress-ledger) while this runs; the docs thread stages changes as small PRs and merges main often to avoid races. Done: one entry point lists every plan; the docs tests and wiring guard pass; no item is lost.
-  Version 8.1. Prerequisites: DOC.114. Related: DOC.116, DOC.117.
   Filed by the TODO thread.
   Owner (TODO sweep, 2026-11-12): the docs thread.
 
@@ -11871,11 +11443,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 06 (belts), with Lane 04 (composition and class). Prerequisites: GEN.1070. Related: GEN.1070, GEN.1259, GEN.1261, GEN.1510, MAP.412.
   Filed by the TODO thread.
 
-- [ ] **GEN.1511 Promoted belt bodies appear as planets in names, pages, lists and maps, and in the census**
-  Boss, 6:08 PM EST on 2026-11-09. Once GEN.1510 stores promoted belt bodies as planets: their name and designation follow the planet rules (not Belt member), the belt page lists them as planets, the system list, 2D map and 3D view show them with the planet look (MAP.412 to MAP.415 draw only the small members), the planet class census counts them, and the API shows them as planets with a belt parent. Add a census report of promoted bodies by class and by star type. Lock-free where it is only display; lock if the API version bumps (follow the API rule).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 06, with Lane 05 for the map. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, MAP.412, MAP.414.
-  Filed by the TODO thread.
-
 - [ ] **MAP.416 Census of cloud and haze data: share of generated planets and moons with cloud_cover or tau_haze above zero, by class**
   Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Read-only report (reports/). It tells us whether the thin haze and cloud look is the code or the data. Lock-free; a waiting lane may take it early, it is the first step of the haze and cloud chain.
   Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 05 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: none. Related: MAP.350, MAP.280.
@@ -11913,13 +11480,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 03, lock item for a train. Prerequisites: GEN.1514. Related: GEN.1473, GEN.1514, GEN.1516, GEN.1517, GEN.1518.
   Filed by the TODO thread.
 
-- [ ] **GEN.1525 Replace the shortlist constants that held data can check or derive: MIST ages, neutron star EOS maxima, Harris clusters, the mass function integral, the occurrence fit, pre-main-sequence tracks**
-  Owner changed (TODO, 2026-11-11): Lane 21 (row 8, REFERENCE_STELLAR_DENSITY_PC3, stays a registered hand value at 0.14 because 0.0985 would cut the black hole rate below the held range; Harris cluster ranges next).
-  Lane 21's GEN.945 audit (reports/gen945-constants-audit-2026-11-11.md), 10:19 AM EST on 2026-11-11: 4,032 numeric constants, 2,261 unregistered, 331 of the generator's own look like tuned numbers (142 in tuning.py). Do: for rows 4, 5, 6, 8, 9 and 12 of the report's shortlist, read the held dataset in place of the number (STAR_FORMATION_AGE_RANGE_GY and COMPACT_REMNANT_AGE_RANGE_GY from disk_history and MIST; the neutron star mass ceiling from the 21 equation-of-state maxima; the globular cluster ranges from the Harris fit; REFERENCE_STELLAR_DENSITY_PC3 from the mass function integral; GIANT_MASS_FUNCTION_SLOPE from the occurrence fit; PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR from MIST and BHAC15), one small PR each, registry rows updated. Several are already named by open items (GEN.935, GEN.743, GEN.968, GEN.297): fold those in rather than duplicating. Each changes what seeds draw, so lock items.
-  Version 8.1. Owner (TODO, proposed 2026-11-11): TODO to assign after GEN.1524 (Lane 04 or Lane 03). Prerequisites: GEN.1524. Related: GEN.945, GEN.935, GEN.743, GEN.968, GEN.297, GEN.725.
-  Filed by the TODO thread.
-  Owner (TODO sweep, 2026-11-12): Lane 14 (audits).
-
 - [ ] **GEN.1528 Effect-ledger storage of dark sources: store the member number and kind of a dark source (brown dwarf, neutron star, black hole) so a planet's ledger share for light includes them**
   Lane 11's GEN.1501 follow-ups (reports/gen1501-follow-ups-2026-11-11.md), 10:59 AM EST on 2026-11-11. The ledger stores only sources with a stored row id; dark members have none, so a planet's ledger share for light omits them (the light itself counts them). Do: store the member number and kind for a dark source in the ledger, one migration. Reuses effect_ledger.add and dark_light.source_of. Lock item.
   Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 05. Prerequisites: GEN.1501. Related: GEN.1501, GEN.725.
@@ -11944,22 +11504,10 @@ clears each one.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the Roche-lobe accretion light as a pure function with tests (unwired); slice 1 lock: wire. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
-- [ ] **GEN.1536 The Cassini state of a planet's tilt from its real precession constant (needs the stored J2 or C22 figure), replacing the log-uniform stand-in**
-  Lane 21 (as the lane reported 2:00 PM EST on 2026-11-11), left out of GEN.1535 (PR 6023). With the fluid Darwin-Radau figure a Mercury-like body gets a precession constant alpha of 5 arcsec/yr, which puts its tilt at 4 to 7 degrees against the real 0.03 degrees, because the real figure is frozen in. So the log-uniform Cassini-state stand-in cannot be replaced until the body's stored J2 or C22 figure (its frozen shape) is available to the precession constant. Build: store or derive that figure, compute alpha from it, set the Cassini-state tilt from it, retire the stand-in in the registry (GEN.725) and say what moved in the change note. Lock item if it adds a column.
-  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 04. Prerequisites: GEN.1535. Related: GEN.1535, GEN.1454, GEN.1447, GEN.725.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1539 Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size**
   Lane 14 (as the lane reported 3:32 PM EST on 2026-11-11), found in the GEN.1520 after-sweep (PR 6035): outer-disk belts start at the fixed tuning.PLANET_OUTER_GROWTH_AU for every star, so every spectral type now shows a median belt at 11.4 au even though the disk edge now scales with the star's mass (100 au x (M/Msun)^0.5). Do: replace the fixed start with a limit that follows the star (the snow line, the disk edge of GEN.1520, or both), register the new constants in GEN.725 at the right tier and tweak level, check the belt census by spectral type before and after, and say in the change note what moved. Lock item (it changes belts).
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 03. Prerequisites: GEN.1520. Related: GEN.1520, GEN.1509, GEN.725.
   Filed by the TODO thread.
-
-- [ ] **GEN.1541 The tide a large asteroid or dwarf planet raises on its own moons (GEN.1464 part C)**
-  Lane 23 (as the lane reported 3:53 PM EST on 2026-11-11), left out of GEN.1464 part B (registry TS7): belt members and dwarf planets are counted inside their belt's mass, so the tide a large asteroid or dwarf planet raises on its own moons is not built. Do: treat a belt member that has moons as a tide source for them (ocean tide, locking, heating) through physics/tide_sources.py, check it against the Pluto and Charon sized cases the generator makes, and register any constant in GEN.725. Lock item.
-  Status (TODO, 3:25 PM EST on 2026-11-11): Lane 23 found the generator makes no moons for belt members or dwarf planets, so there is no body for this tide to act on yet. GEN.1510 (PR 6019, Train 25) promotes the round belt bodies to full planets made by the planet generator, and they then carry moons and the ordinary tide terms of GEN.1446. When GEN.1510 is on main, check whether a promoted body has moons and reads tide_sources like any planet; if it does, this item closes as covered by GEN.1510. What stays open after that is only the small unpromoted members (asteroid binaries), which need their own satellite system with a size law and population statistics: file that as a new item then, with a source.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 07, blocked on GEN.1510 (PR 6019). Prerequisites: GEN.1464 (parts A and B), GEN.1510. Related: GEN.1464, GEN.1446, GEN.1502, GEN.1503, GEN.1509, GEN.1510.
-  Filed by the TODO thread.
-  Split (TODO sweep, 2026-11-12): slice 0 lock-free: the tide of a large asteroid on its moons as a pure function with tests (unwired); slice 1 lock: wire. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
 - [ ] **GEN.1542 Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists**
   Lane 14 (as the lane reported 2:07 PM EST on 2026-11-11), left out of GEN.1425 (PR 6016): V8 and V9 of the Venus sulfur-cloud set stay off by default because V8 needs a per-planet dust supply that is not built. Do: derive the dust a planet can lift into its air from what exists (surface dust and sand from composition and wind, volcanic and impact dust from the activity and age of the body, the air's density and winds), decide the V8 gate from it, register the constants in GEN.725 at the right tier and tweak level, and say in the change note how many bodies gain the V8 layer. Lock item if it changes stored output.
@@ -11978,11 +11526,6 @@ clears each one.
   Filed by the TODO thread.
   Fold (TODO sweep, 2026-11-12): GEN.1553 is retired into this item: add the row 'share of stars with a disk, with bodies, with neither, by age bin 0 to 1, 1 to 3, 3 to 6, 6 to 10 and 10 to 30 Myr, against the survey curve' (Boss, top priority), run after GEN.1551 and GEN.1552, using scripts/class_census.py forced-young mode.
 
-- [ ] **MAP.424 (bug) The Galaxy Map's sector list query (GET /api/galaxy/sectors) hits the 10 s database statement timeout on Boss's server, so /galaxy returns 504 and the cache warm-up fails with QUERY_TIMEOUT**
-  Boss live report (5:20 PM EST on 2026-11-11, on his test server): every call to /api/galaxy/sectors ends in "DB statement_timeout seconds=10.0" on the sectors query that joins each sector to its system count (SELECT sec.id, sec.name, sec.center_x_pc ... COALESCE(counts.n, 0) AS system_count FROM sectors sec LEFT JOIN (SELECT sector_id, ...)), the page /galaxy then gives 504, and the warm-up stage "Warm galaxy-map" stops at unit 0 with the same QUERY_TIMEOUT. /api/galaxy/changes and /api/auth/me answer normally, so the database is up; only this query is too slow at his current row counts. Do: find the plan (missing index on the systems sector column, a full scan of systems per request, or a lock held by a long job), fix the query or add the index (a migration if needed, so it may ride a train), serve the counts from a stored per-sector count if the scan cannot be made fast, and add a test that holds the query to an index plan. Also ask whether the same pattern is in other galaxy-wide list queries.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 14, hotfix, first priority. Related: PERF.226, OPS.118.
-  Filed by the TODO thread. Boss-visible bug.
-
 - [ ] **GEN.1551 Each star gets its own disk dispersal time, drawn once from its own stream: a star holds a class 0, I or II disk only while younger than that time (replaces the fixed 3 Myr step), and a close companion shortens it (GEN.1475 reads this time)**
   Boss, 5:51 PM EST on 2026-11-11 ("fix it, all steps"); research reports/young-stars-disks-no-bodies-2026-11-11.md, "What it would take" step 2. Today every star loses its disk at the same age (tuning.DISK_CLASS_AGES_YR, 3 Myr), which over-counts disks under 3 Myr and misses every disk between 3 and 10 Myr. Do: draw one dispersal time per star from the star's own stream (keyed to the star, not to its current age, so it does not re-roll when the age moves; see GEN.1547), with the survey curve as the stand-in: about 0.8 of stars hold a disk at 1 Myr, about half at 3 Myr, about 0.1 at 5 to 6 Myr, near none by 10 Myr (the repo's phenomena table row holds 0.8 and 0.1; register the curve in GEN.725 with its tier and tweak level, and a lane reads the survey papers later). A star has a class 0, I or II disk while younger than its time and class III after. The close-companion rule of GEN.1475 (a companion inside 47 au disperses two thirds of the gas within 1 Myr) is the same draw: it shortens this time, it is not a second draw. Reuse physics/pre_main_sequence.draw_disk and the GEN.1475 code. Done: the share of stars with a disk by age matches the curve within sampling error; a test that the time does not change when the star's age is moved. Lock item, new epoch, after GEN.1546.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 05. Prerequisites: GEN.1546, GEN.1550. Related: GEN.1475, GEN.1547, GEN.1552, GEN.725.
@@ -12000,18 +11543,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 02 (wrote the CO2 measure). Prerequisites: none. Related: GEN.909, GEN.1403, GEN.725.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the zone-edge research note against the greenhouse spectrum; slice 1 lock: the edge change. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
-- [ ] **UX.302 The single-system generator page has no life-class, class-letter or fudge override on its form**
-  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Needs a generator option first (a request for a life class or class letter with the fudge shown), so it follows that option and is not lock-free. Do: file the generator option as its own item first, then the form control.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 13. Prerequisites: none. Related: UX.283.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1555 (bug) The surface air solver has two stable answers near the moist limit and water's boiling point, and the fixed point flips or never settles (a hot CO2 air against a cool one, or a steam air against a frozen airless body)**
-  Two lane reports, 6:15 PM EST on 2026-11-11 (as the lanes reported). Lane 14, found by GEN.1403 (PR 6062): a body at 2.44 au that sat on MOIST_LIMIT_K (375 K) before goes to frozen and airless (about 230 K colder) after a small change in weathering, and a second body (G2V seed 3085) goes from 313 K to 120 K; less weathering cannot cool a real world, so this is the solver choosing the other branch, not the feedback; seeds G2V 3032 and 3085 on the GEN.1403 branch show it. Lane 21, found by the Train 24 red in test_surface_air: bodies near water's boiling point at a pinned 10 kPa swing between a cool CO2 air (about 459 K, 140 Pa of water) and a steam air (about 600 K, 8.6 kPa of water) every step, so the fixed point never settles; the same cycle shows in the class T and class E cases; unsettled airs are 10 of 132 on main and 8 of 129 on Train 24 (about 6 to 8 percent). Do: find the cause in the fixed-point loop (the guard at MOIST_LIMIT_K and the water-vapor step), make the branch choice a deterministic, physical rule (damped or bracketed solve, or pick the stable branch by energy balance), report how many bodies change, and replace the loosened test cap (a fifth) with a real bound. Lock item (stored output changes), new epoch.
-  Status (TODO, 2026-11-12, Lane 14 as the lane reported 8:04 PM EST on 2026-11-11, branch claude/lane14-gen1555): giants now iterate to a fixed point (a hot giant was 1,381 K from a 120 K start and 1,633 K from a 600 K start) and the recipe regime is kept once the step is near its answer; on a G2V census of 60 systems the start-dependent bodies fall from 42 of 286 (15 percent) to 22 of 285 (8 percent). Rule (TODO, on Lane 14's recommendation, not a Boss ruling): the production start stays fixed and real bistability (snowball against warm) is accepted, so the start-independence xfail is rewritten to the honest statement. The 6 bodies pinned at 375 K are not a solver fault: under their own drawn constants the clamped state is the only answer, so the clamp is untouched; whether the 375 K moist limit is the right physics is a separate question, now in GEN.1568. Registry rows AS2 and AS3 added. Lock item, new epoch (output changes for giants and some air regimes).
-  Status (TODO, 2026-11-12, reports/class-m-audit-2026-11-12/class-m-generation-audit-2026-11-12.md): 157 of 800 Earth analogs sit on the 375 K guard, so the guard decides the temperature of about one in five exact Earth analogs; replacing it is GEN.1579.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 03 (air side), with Lane 04 for the surface-air test. Prerequisites: none. Related: GEN.1403, GEN.993, GEN.1548.
-  Filed by the TODO thread.
 
 - [ ] **GEN.1558 Retire the stepped pressure caps (recipe row d6: d3 = 1 kPa and d4 = 10 kPa) so supply, sinks and escape set the air pressure, with the built energy-limited loss added to the escape subtraction in the same single pass**
   Boss, 6:46 PM EST on 2026-11-11 ("1 is approved, get rid of the caps"), with the condition: no doubling up, no redraw, no double work, so it fits the single forward build and adds no pass. Evidence: reports/class-census-2026-11-11 (137 of 500 natural bodies with air sit pinned at exactly 1 kPa, 56, or 10 kPa, 81; class M is 0 of 2,743; about 1 temperate rocky world in 50 reaches the 50 kPa class M needs). The caps are a design stand-in (register row SH3, tier T7, tweak L3, fitted to Mars, Titan, Venus and Earth), not physics; the cosmic-shoreline odds of the five retention rows are sourced and stay. Do: set the d3 and d4 entries of the d6 table to none in physics/data/atmosphere_recipes.json and scripts/atmosphere_recipes_data.py (d1 and d2, airless and trace, stay as they are, so the shoreline still decides who keeps any air); delete the cap clip in surface_air.py (_retention_cap_pa, near line 782) if nothing else reads it; do NOT wire atmosphere_retention.energy_limited_loss_fraction (a duplicate of production code); first check whether heavy-gas stripping of rocky air is already covered by mixture_escape and thermosphere.kept_shares, and where it is not, reuse thermosphere.energy_limited_mass_loss_kg_s and ion_escape (already in production) in the existing escape subtraction in the same pressure sum, using the star's XUV history from the star state computed once (GEN.1548), no second pass and no redraw; the unread energy_limited_loss_fraction is then retired or marked by design. Register: SH3 and the d6 row in GEN.725 marked retired; GEN.1523 must not wire SH3 as a cap (the loss comes from the production thermosphere code, see above). Measurement: the census thread runs a caps-off sweep on identical seeds (populations, not matched bodies) to size the class shift before the train. Lock item, new epoch, --affects, census re-baseline. If it ships before GEN.1548 as a stopgap it is only the two table entries going to none and the loss term waits for the star state; TODO recommends not shipping a stopgap, so the air changes land in one epoch with the reorder.
@@ -12076,6 +11607,7 @@ clears each one.
   Fold (TODO sweep, 2026-11-12): GEN.1568 (the guard report) is done and retired; this item and GEN.1580 are its builds.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the fitted moist limit as a pure function with tests (unwired), once GEN.1578 reports; slice 1 lock: replace the guard. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
   Status (TODO, 2026-11-12): blocked. GEN.1578's report (/mnt/project-files/reports/moist-limit-method-2026-11-12.md) needs a lookup of outgoing flux against temperature, nitrogen and CO2 column and gravity (about 3,000 radiative-convective runs on the ExoMol k-tables, about 10 GB), fitted once on a machine that holds the tables (the gate machine or Boss's server). Not buildable without it.
+  Built (TODO, 7:20 AM EST 2026-11-16): PR 6837, Lane 03, in the Train 38 queue as a lock item with no epoch. The guard is replaced by a limit read from the air (3,150 radiative-convective points, registry row ML1, SV1 reworded). On 80 systems 3 of the 4 bodies at 375 K move to class N and 1 to X. Start-dependence of the air solve rises from 11 to 31 percent of air bodies (hot branch kept). Extreme degassing on one N body filed as GEN.1763.
 
 - [ ] **GEN.1583 Research the nitrogen budget: nitrogen degasses at efficiency 1.0 with no sink, so an Earth analog holds a median 164 kPa and 37 percent hold over 300 kPa; find why the inventory is so wide and what retention and sinks the papers give**
   Class M audit (coordinator relay, 2026-11-12), reports/class-m-audit-2026-11-12/class-m-generation-audit-2026-11-12.md section 3.3 and fix 2. Measured on 800 Earth-analog trials: median surface 335 K, nitrogen median 164 kPa against Earth's 78, over 300 kPa in 37 percent. The audit did not trace why the inventory is that wide (the recipe draw against the late-accretion share); that is the first step. Do: trace the nitrogen inventory draw to its source in the recipe and late-accretion code, then research mantle and magma-ocean nitrogen retention (nitrogen is siderophile-leaning and partly retained in the mantle and core) and any surface sink (biological and abiotic fixation, burial, nitrogen in sediments), reading papers in full and citing as [R....] ids (secondary sources accepted); propose a degassing share and sink in the way hydrogen's is done (reuse that code and its structure), with a range so the uncertain parts are drawn, not one value. Done: a report (reports/gen1583-nitrogen-budget-...md) with the proposed law and the expected Earth-analog median pressure (target near 80 kPa for an Earth-mass planet at 1 au), the GEN.725 stand-in rows to register, and the before and after on scripts/earth_analog.py (TEST.726). Research only; the build is GEN.1584.
@@ -12091,36 +11623,12 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 03. Prerequisites: GEN.1581, GEN.1584. Related: GEN.1581, GEN.1584, TEST.726.
   Filed by the TODO thread. Class M audit.
 
-- [ ] **GEN.1595 (bug) planets.remake_air (physics/planets.py lines 776-807) skips a body whose first air came out airless, so late accretion can never give it air**
-  Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L2, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1547, GEN.1548.
-  Filed by the TODO thread. Bug sweep.
-
-- [ ] **GEN.1596 (bug) generation/system.py line 557: born_beyond_snow_line uses the present distance while the make-up of the body uses formation_distance_au (planets.formed_beyond_snow_line, lines 192-195), so a migrated planet can carry both 'born inside' and 'made outside'; no guard for a star with no snow line**
-  Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L3, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1546, GEN.1548.
-  Filed by the TODO thread. Bug sweep.
-
-- [ ] **GEN.1600 (bug) system._secular_exchange (lines 2240-2242): problem tuples hold formatted distances, so an unchanged problem can read as new after a tiny move and keep the loop going**
-  Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L7, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1548.
-  Filed by the TODO thread. Bug sweep.
-
-- [ ] **GEN.1603 (bug) bulk_draw._draw_inverse skips iron_branch_ratios; moons with an origin get ice_shares=None**
-  Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L10, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 04. Prerequisites: none. Related: none.
-  Filed by the TODO thread. Bug sweep.
-
 - [ ] **GEN.1605 (bug) A belt keeps the mass, largest body and density of the star's first age: settled once in generation/belt.py line 201, never redone after the age raise or a belt move, so 5 of 25 belts are 2 to 4.5 times off, and largest_body_km disagrees with the rank 1 member by 15 to 40 percent**
   Bug sweep second batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Second batch', M7, confirmed by run. generation/belt.py line 201 settles mass, largest body and density at the star's age when the belt is built; system.py lines 452-476 raise the age afterwards and validation.py lines 225-229 move a belt, and nothing settles it again. Seeds 700 to 739: 5 of 25 belts stored a mass that differs from the same code at the final age (4.5x, 4.3x, 2x, 2x, and 2.2e21 kg against 3.9e12 kg); members are drawn later at the final age, so the members and the stored mass describe two belts; late accretion and the debris disk read the stale mass. With no age change, the stored largest_body_km and the rank 1 member's diameter still disagree by 15 to 40 percent (617 against 502 km, 1,670 against 1,909 km) because they come from different draws. Do: settle the belt at its final age and final place (GEN.1546 removes the age raise; this item covers the move and any remaining order), and take largest_body_km from the rank 1 member (or draw the member from the stored value), reusing the existing settle code; no second belt pass. Done: a test that stored mass equals a fresh settle at the final age and place, and that largest_body_km equals the rank 1 member, before and after belt mass counts. Lock item (changes output, new epoch).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: GEN.1546, GEN.1548, GEN.1592, GEN.1561.
   Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: a check script for stored belt mass and largest body against a fresh settle and the rank 1 member; slice 1 lock: the fix. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
-- [ ] **GEN.1606 (bug) giant_draw._ice_shares uses a giant's present distance against the snow line, so a giant that migrated inward gets no ices in its interior (same theme as GEN.1596); and 'eclipses.light_factor_of(planet) or 1.0' in giant_draw.starlight_w_m2 and settle turns a factor of exactly 0 into 1**
-  Bug sweep second batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Second batch', L13, read only, severity Low. Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1596.
-  Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
+  Narrowed (Lane 06 check on main 2fa3100b3a, TODO 7:12 AM EST 2026-11-16): the mass and density half does not reproduce (unpromoted belts match a fresh settle exactly since GEN.1546 fixed star age at birth; promoted belts differ by design, GEN.1561, and those are the 2 to 4.5 times cases). What remains: in 13 of 59 sampled belts the stored largest body (size law, law density) disagrees by up to 15 percent with the rank 1 member's diameter. Fix: every belt with members reports its largest member (reuse largest_left_km in belt_planets.promote). Lock item: moves stored largest_body_km.
 
 - [ ] **GEN.1611 (bug) The formation snow line follows the star's present brightness: white dwarfs get 0.02 to 0.2 au and giants 13 to 22 au, so ice shares, giant ices, belt type and origins and the disk edge are wrong around evolved stars; and the snow-line scatter allows a factor of 4, putting it inside the habitable zone for 104 of 3,000 stars**
   Bug sweep fourth batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Fourth batch', M9, confirmed by run. generation/star.py lines 346-347 call formation.draw_snow_line_au(self.luminosity, ...) with today's luminosity; generation/belt_birth.py lines 115-117 pass the same value as both present and formation snow line and scale the disk's outer edge from it. From 3,000 drawn stars: a white dwarf born at 4.36 solar masses (0.00005 Sun today) stores 0.02 au, one born at 1.43 (0.0001 Sun) 0.03 au; K4III and K3III giants born at 1.04 and 1.73 solar masses store 21.8 and 13.5 au. Everything that asks 'made beyond the ice line' reads it: ice shares of planets and moons, a giant's ices, icy or rocky belts, belt origins, the disk edge. White dwarfs are 7.5 percent of drawn stars, giants and subgiants about 0.4 percent. Second part: SNOW_LINE_SCATTER_MAX_SIGMA 3.0 x 0.2 dex allows a factor of 4 either way (the docstring says the real spread is 2 to 3), so for 104 of 3,000 stars (mostly M and K dwarfs) the drawn snow line lies inside the inner habitable-zone edge. Do: draw the formation snow line from the star's birth (pre-main-sequence or zero-age) luminosity for its initial mass (reuse the stellar-state tables), store it apart from the present snow line where both are read, and pass the formation one to belt_birth and every 'formed beyond' test; bring the scatter cap to the sourced spread (cite as [R....] ids, register in GEN.725). Done: a test that a white dwarf and a giant get the snow line of their progenitor's birth, the scatter test against the sourced spread, before and after counts of icy planets, belts and disk edges around evolved stars. Lock item (changes output, new epoch). Split (TODO sweep, 2026-11-12): slice 0 lock-free: the birth-luminosity snow line as a pure function with tests (unwired) and the sourced scatter; slice 1 lock: wire it.
@@ -12132,12 +11640,6 @@ clears each one.
   Lane 22 (as the lane reported 9:06 PM EST on 2026-11-11, while building GEN.1608, PR 6127), confirmed by run: the comet shape draw never reads the family's period range, so about 40 percent of comets sit outside it (GEN.1608 only fixes the 200-year periodic and long-period split the designation uses). Coordinator, 9:14 PM EST on 2026-11-11: file and build under Boss's standing 'fix all the bug work finds for 8.1' (Boss may veto). Do: draw each comet's orbit within its family's period range (or draw the family from the drawn orbit), reusing comet.py _draw_shape and the family table; no second comet pass. Done: a test that every drawn comet's period sits in its family's range over a seeded sample, before and after family and ice-makeup counts. Lock item (changes stored comet values, new epoch). Split (TODO sweep, 2026-11-12): slice 0 lock-free: a check script that counts comets outside their family's range on main; slice 1 lock: the fix.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: GEN.1608. Related: GEN.1608, GEN.595.
   Filed by the TODO thread. Bug work; approved under Boss's fix-all (veto open).
-
-- [ ] **GEN.1616 (bug) Class T's terrestrial row (hydrogen 30 percent of air, under 10 Earth masses) has no envelope or pressure bound, so 120 of 1318 stored T bodies are thin hydrogen air, not the thick envelope the page describes**
-  From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do: add an envelope or surface-pressure bound to the terrestrial T row (or a separate thin-hydrogen row) so the page and the class agree; measure the census shift. Lock item.
-  Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: GEN.822, GEN.1557. Boss's call on the choice where noted.
-  Filed by the TODO thread.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: "leave the code bugs alone for now. File them but we are going to revisit them after we apply our other generation fixes"; the shown text was made to match today's code in PR 6142). Do not build until the generation fixes are in.
 
 - [ ] **UX.305 (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212**
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do: read planet_class_text.description instead, and test that each class facet has a tooltip. Lock-free.
@@ -12170,25 +11672,6 @@ clears each one.
   Filed by the TODO thread.
   Data audit D19 (batch 2): M dwarf heliospheres of 127 and 142 AU, larger than the Sun's; more evidence for this item.
 
-- [ ] **GEN.1626 (bug) age_needs.json settling times have no source and drive the 13.8 Gyr age pile-up (sweep finding M6)**
-  Data audit batch 1, D6 (report reports/data-audit-2026-11-11.md, with file and line). Do: source the settling times (or register them as stand-ins in GEN.725 with tier and tweak) and check the pile-up. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: GEN.1546.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-  Data audit D18 (batch 2): 36 of 270 systems have a star of exactly 13.8 Gyr; more evidence for this item.
-
-- [ ] **GEN.1627 (bug) constants.py (about line 99) SOLAR_MASS_LOSS_RATE is wrong by a factor of 1e15 (nothing reads it)**
-  Data audit batch 1, D7 (report reports/data-audit-2026-11-11.md, with file and line). Do: fix or retire the constant (see GEN.1625). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: GEN.1625.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
-- [ ] **GEN.1628 (bug) The Sm-146 half-life of 68 Myr is a retracted value (now 92 to 103 Myr)**
-  Data audit batch 1, D8 (report reports/data-audit-2026-11-11.md, with file and line). Do: replace with the current value and register the source. Lock item if it moves output.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.725.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
 - [ ] **GEN.1629 (bug) 52 of 124 gases have ir null, and the null is handled two different ways**
   Data audit batch 1, D9 (report reports/data-audit-2026-11-11.md, with file and line). Do: one rule for a gas with no infrared data (fill from the k-tables where they exist, else one documented default). Lock item.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.715.
@@ -12198,18 +11681,6 @@ clears each one.
 - [ ] **GEN.1630 (bug) The HCl vapour-pressure curve runs 35 percent high above the triple point**
   Data audit batch 1, D10 (report reports/data-audit-2026-11-11.md, with file and line). Do: refit from the source and test against its table. Lock item.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.725.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
-- [ ] **GEN.1631 (bug) Earth's Th/U of 3.83 sits above the 95th percentile of drawn bodies**
-  Data audit batch 1, D11 (report reports/data-audit-2026-11-11.md, with file and line). Do: check the drawn Th/U spread against the research and widen or recentre it. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.725.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
-- [ ] **GEN.1633 (bug) physics/belt_mass.py cannot be imported on its own**
-  Data audit batch 1, D13 (report reports/data-audit-2026-11-11.md, with file and line). Do: fix the import cycle or missing import; test a bare import. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: GEN.1201.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
@@ -12234,12 +11705,6 @@ clears each one.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
-- [ ] **GEN.1636 (bug) Two Earth heat-flow references: surface_pressure uses 0.0614 W/m2 for outgassing, life_supply.json and hydrothermal_deposits use the measured 0.087 W/m2, so an exact Earth twin scores 0.6 to 0.7 for life energy and ores**
-  Data audit batch 2, D16 (report reports/data-audit-2026-11-11.md, section "Batch 2"). Do: pick one reference (one constant, registered in GEN.725) and use it in all three places. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.725.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
 - [ ] **GEN.1637 (bug) The small-body density taper (compaction.py, a stand-in) makes 300 to 450 km bodies 20 to 100 percent denser than measured Kuiper belt bodies**
   Data audit batch 2, D17 (report reports/data-audit-2026-11-11.md, section "Batch 2"). Do: start the taper near 1e20 kg (or fit it to the measured bodies) and register the change. Lock item.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: GEN.725.
@@ -12248,6 +11713,7 @@ clears each one.
 
 - [ ] **GEN.1639 (bug) The shape-setting temperature has no latent heat or convective loss, so with canonical 26Al every rocky body over about 100 km and every ice-rock body over 200 km comes out round (Proteus, Hyperion, Phoebe and Pallas analogues would be round)**
   Lane 21 (as the lane reported 1:24 AM EST on 2026-11-12), found while wiring GEN.1201 (PR 6175; gap written in gap-filling-plan section 6.162). Do: add latent heat of ice melting and convective (or hydrothermal) heat loss to physics/shape_temperature.py from the research ([R....] ids only), and check the analogues against their measured shapes. Lock item (changes roundness).
+  Measured by Lane 04, 4:27 AM EST 2026-11-16: with the generator's own 26Al draw the sweep is sane (ice-rock round from about 150 km, rock from about 300 km); only canonical 26Al rounds everything from 30 km. Ice latent heat moves the shape temperature about 4 percent, so it cannot fix the canonical case; the deciding physics is heat loss from a melting body (convection, hydrothermal flow) and formation time after the 26Al clock, neither sourced. Parked until Lane 06's small-body population exists to measure on, and until sources for formation time and convective loss are found.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1201. Related: GEN.1201.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
@@ -12264,12 +11730,6 @@ clears each one.
   Deferred (TODO, 2026-11-12): after the generation fixes, with the other deferred code items (Boss, 10:01 PM EST on 2026-11-11).
   Filed by the TODO thread.
 
-- [ ] **GEN.1643 Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues**
-  Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): registry rows 6.121:TJ9, TJ10 and TJ11 sit at L4 with no burn-down line. The Rayleigh scales of `trojan_swarm` (LIBRATION_SIGMA_DEG 10, ECC_SIGMA 0.06, INCLINATION_SIGMA_DEG 12) are recalled, not read. Do: read a proper-element catalogue (secondary sources accepted), fit the three scales, and lower the rows to L1 or L2. The catalogue is a calibration reference only; no fixed Solar System content enters the output.
-  Version 8.1. Owner: Lane 23. Prerequisites: GEN.1150. Related: GEN.1151, GEN.1647.
-  Filed by the TODO thread.
-  Owner (TODO, 2026-11-12): Lane 07. Slice 0 (fit and proposal, lock-free) is PR 6233; slice 1 (lock) sets TJ9 to 13 degrees and lowers the rows, together with GEN.1647.
-
 - [ ] **GEN.1644 Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7)**
   Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): 6.228:SV7 named GEN.1425, which closed with Train 24 while the row is still L3. The cold acid cloud stays liquid to 185 K because the freezing curve of [R4877: figure 1 and section 4.3] is not yet a function. Do: turn that curve into a function, read it where the cloud step places the acid aerosol, and lower SV7 to L0 or L1.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1425, GEN.1307.
@@ -12278,11 +11738,6 @@ clears each one.
 - [ ] **GEN.1645 Wire the planet and sibling-planet Kozai screen (physics/kozai_planets.py, stand-ins KZP1 and KZP2) into generation once the companion planes are stored**
   Lane 23 (as the lane reported 6:54 AM EST on 2026-11-12): GEN.1447 slice 0 (PR 6228, lock-free) built kozai_planets.py, which screens a planet against a companion star or a heavier outer planet; report reports/gen1447-planet-case-2026-11-12.md. Do: read the screen in generation (planets in the Kozai band are driven to high eccentricity or removed, as the screen says), using the stored companion planes of GEN.1500. Lock item: it changes output.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 07. Prerequisites: GEN.1500. Related: GEN.1447, GEN.1352.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1647 Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one**
-  Lane 23 (as the lane reported 7:17 AM EST on 2026-11-12), GEN.1643 slice 0 (PR 6233, reports/gen1643-trojan-scales-2026-11-12.md): about a fifth of the real Jupiter Trojans librate wider than 23.9 degrees, and with the cut there the mean amplitude cannot reach the observed mean of 16.2 degrees; a scale of 13 with the cut at the edge of the zone gives 16.3. Do: cut the swarm draw and split tadpole from horseshoe in trojans.motion at the libration amplitude edge, and fix the falsifier of registry row TJ3. Lock item; built together with GEN.1643 slice 1 in one PR.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 07. Prerequisites: GEN.1643. Related: GEN.1150, GEN.1151.
   Filed by the TODO thread.
 
 - [ ] **OPS.154 Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB**
@@ -12319,16 +11774,6 @@ clears each one.
 
 - [ ] **TEST.733 Retire the 23 data-backfill migration tests for migrations Boss's server has already run, keeping the not-yet-applied ones**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Boss, 3:53 PM EST on 2026-11-12: "Yes I ran the update ... I'm okay with the migration tests for old versions going away ... Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above". So all 23 retire, none held; a migration chain kept only for history may come later, not now.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
-  Filed by the TODO thread.
-
-- [ ] **TEST.734 Serialization fuzz cut from 20 seeds to 5 and its two identical tests folded into one (about 400 s)**
-  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B2). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
-  Filed by the TODO thread.
-
-- [ ] **TEST.735 Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests**
-  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B3). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.261.
   Filed by the TODO thread.
 
@@ -12395,11 +11840,6 @@ clears each one.
   Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): this is populate(host) step one, with GEN.556's signature populate(host, zone, guarantees), and a prerequisite of GEN.556.
   Filed by the TODO thread.
 
-- [ ] **GEN.1661 (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt**
-  Lane 02 (as the lane reported 4:03 PM EST on 2026-11-12), found by Lane 14's redraw census: StarSystem._settle_to_final_age -> _secular_exchange -> secular_chain.evolve -> np.linalg.solve raises LinAlgError "Singular matrix" for 23 of 600 systems generated with a habitable world and an asteroid belt asked (seeds crc32 of 'redraw:world-requested:40', 53, 83, 97, 124); 0 crashes in the ordinary group. It is in the belt secular pull (GEN.1464), which rides Train 25, so Train 25 waits for this fix. Do: find why the matrix is singular (likely two bodies at the same semi-major axis, or a zero-mass row) and treat that case from the physics, not by catching the error. Test: those five seeds generate, and the 600-system redraw group gives 0 crashes.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 04, in Train 25. Prerequisites: none. Related: GEN.1464.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1664 StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N5). Output unchanged, no epoch; lock-free. Slice two of GEN.1656, a prerequisite of GEN.556; check order on the golden.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: GEN.1656. Related: GEN.1656, GEN.556.
@@ -12408,16 +11848,6 @@ clears each one.
 - [ ] **OPS.179 cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N8). Output unchanged, no epoch; lock-free. Low.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as nothing: moot with OPS.235 (RQ removed, stage 4); not started. Prerequisites: none. Related: OPS.178.
-  Filed by the TODO thread.
-
-- [ ] **MAP.427 Sector view: the wireframe stays fixed around the current focus sector, and the user moves to a neighbouring sector through a POI icon at the middle of each sector edge**
-  Boss, 5:21 PM EST on 2026-11-12: "The wireframe around a selected sector in sector view should be static around the current focus sector. User can nevigate to other sectors through POI icons at the middle of each sector edge." Do: in the Sector Map (web/maps/starmap.py and its client), keep the sector wireframe anchored to the focus sector while the view pans, rotates or zooms; place one POI icon at the midpoint of each face edge that has a neighbour sector (named on hover), and clicking it opens that sector as the new focus (reuse the existing sector links and the galactic navigation route data). Edges with no neighbour (galaxy edge) show no icon. Browser test: the wireframe does not move with the camera, and each icon opens the right neighbour. Map drawing only, output unchanged; lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 07, after OPS.176. Prerequisites: none. Related: MAP.426.
-  Filed by the TODO thread.
-
-- [ ] **MAP.428 Wide binaries and multiples read as one system in the nav and sector views: a link line or ring around the group and one shared system label**
-  Boss, 5:28 PM EST on 2026-11-12 (via the coordinator, with screenshots, as Lane 23 relayed): wide binaries and multiples display poorly in the nav and sector views. Example: Ofriggor, a quadruple (A G8V, B M4VI, C M3VI, D M0V) where D sits about 8 AU out and shows as its own point with its own label. Do: as the view approaches a wide binary or multiple, show that the stars are one system (a link line or ring around the group, one shared system label instead of a label per star). Display only, output unchanged; lock-free. One PR with MAP.427.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 07, with MAP.427. Prerequisites: none. Related: MAP.427, MAP.136.
   Filed by the TODO thread.
 
 - [ ] **TEST.738 Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale**
@@ -12451,11 +11881,6 @@ clears each one.
 - [ ] **API.48 API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging**
   From the Fable layered-fixes scan (2026-11-13), structural duplicate, output unchanged; not folded in the scan because the fold changes a public name, a table layout or a route contract. api/routes.py has many return jsonify error, 404 lines where ApiError exists; uncharted_systems and phenomena repeat the past_end pattern; the after integer parsing is repeated; facility_list whole() vs _int_arg. Do: ApiError and one paging helper; the response bodies stay the same (check the API contract tests).
   Version 8.1. Owner (TODO, 2026-11-13): Lane 14 (Boss 3:03 PM EST: every lane working). Lock-free. Prerequisites: none. Related: GEN.1671.
-  Filed by the TODO thread.
-
-- [ ] **UX.315 Galaxy Generate page measures: a Default checkbox beside each text box (Auto when checked), the slider disabled at the default, help under a ? icon, the title above**
-  Boss, 5:34 PM EST 2026-11-13 (as the coordinator relayed), follow-up to UX.307 (PR 6357): "checkboxes on the galaxy gen page, no label but right next to the text box, when checked (Default) the text box is auto. Slider on the bottom is disabled but pre-positioned exactly where the default is. Help text should be hidden under a ? icon to the side, title text above the check/text box combo." Do: for each measure row, the title on its own line; under it the unlabeled checkbox right beside the text box; checked (the starting state) means Default, the text box shows Auto and the slider below is disabled and set exactly at the default value; unchecked frees the text box and slider. The help text moves behind a ? icon at the side (keyboard and screen-reader reachable). Keep the alignment test (test_web_generate_alignment) and the one-unit rule (ADM.127) green; same in light and dark, at 390, 820 and 1280 px. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-13): the galaxy sliders thread (built UX.307). Prerequisites: UX.307. Related: UX.307, ADM.127.
   Filed by the TODO thread.
 
 - [ ] **OPS.188 (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run**
@@ -12585,12 +12010,8 @@ clears each one.
 
 - [ ] **GEN.1698 (bug) H2S and SO2 have no sink on habitable-zone planets (no ocean solution, no pyrite burial), so after the S2 condensation limit they still hold 3,240 to 13,300 kPa of H2S and 172 to 675 kPa of SO2**
   Boss, 10:43 PM EST on 2026-11-13 (thread "Find why no Class M or Blue worlds"): "When you organize your plan, it should be 2 phase, automatically send all bug fixes to TODO to fix, then we can discuss options for things that are outside our scientific window". Phase 1 bug from that investigation (B5; evidence, lines and probes: /mnt/project-files/reports/class-m-blue-levers-2026-11-14/phase1-bugs-for-todo.md; measured on Train 26 head 3eea0c2). Recut by TODO 2026-11-14 with Lane 14: the S2 condensation half (B5 as filed) is done by GEN.1564 slice 1 (Lane 14), which names it. Probe s2cond (applying the unread S2 curve) removed the S2, but H2S at 3,240 to 13,300 kPa and SO2 at 172 to 675 kPa remain on four of the six planets (seeds in the report). H2S is not limited by condensation; it needs a sink. Do: add the H2S and SO2 sinks (solution into the sea and burial as pyrite), reusing the sulfur cycle of GEN.1562 (PR 6339). Lock item.
+  Sized by Lane 03, 1:49 AM EST 2026-11-16: at default water no body of 300 Sun-like systems holds over 100 kPa of H2S, SO2 or S2; only under the Earth-like-water probe do 16 of 5,384 ocean bodies hold 100 to 31,000 kPa. The sinks and ocean solution of GEN.1562 exist; their capacity (one crust of iron or calcium) is 7 to 10 times under the degassed sulfur. Fix is the capacity rule (crust recycling) or a lower degassing share, not a new sink. Deferred until the habitable-zone water question is decided.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 03. Prerequisites: GEN.1562 (PR 6339) merged; GEN.1564 slice 1. Related: GEN.1694, GEN.1695, GEN.1696, GEN.1697, GEN.1698, TEST.739, GEN.1676.
-  Filed by the TODO thread.
-
-- [ ] **TEST.739 (bug) scripts/earth_analog.py (TEST.726) runs the generation steps in the wrong order on one reused body, so its Class M figures (0.6 and 1.75 percent) are wrong; the generator's rate is 2.5 percent (20 of 800)**
-  Boss, 10:43 PM EST on 2026-11-13 (thread "Find why no Class M or Blue worlds"): "When you organize your plan, it should be 2 phase, automatically send all bug fixes to TODO to fix, then we can discuss options for things that are outside our scientific window". Phase 1 bug from that investigation (B6; evidence, lines and probes: /mnt/project-files/reports/class-m-blue-levers-2026-11-14/phase1-bugs-for-todo.md; measured on Train 26 head 3eea0c2). Do: Call the same functions the system calls, in the generator's order, on a fresh body per trial (analog.py in the report folder shows the order). Lock-free (script and test).
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 05. Prerequisites: none. Related: GEN.1694, GEN.1695, GEN.1696, GEN.1697, GEN.1698, TEST.739, GEN.1676.
   Filed by the TODO thread.
 
 - [ ] **TEST.740 (bug) Main reds left after Train 26: fill_order, materials reachability, cli_edges, math lint in reproducible_draws, sql_portability, generation_stats, datasets_gaia_sources, web_generate_size and finish_run_generation**
@@ -12598,14 +12019,34 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): TODO thread for the text and lint reds; Lane 12 runs the gate. Prerequisites: none. Related: GEN.1693, TEST.738.
   Filed by the TODO thread.
 
-- [ ] **GEN.1704 Class M abundance tier setting (Science, Sparse, Scattered, Plentiful, Abundant) stored with the galaxy and shown on the Generate page; Science is the default and adjusts nothing**
-  Boss, 11:17 to 11:19 PM EST on 2026-11-13, phase 2 card on the Class M tier, chose "Build now, calibrate after fixes" (relayed by the thread "Find why no Class M or Blue worlds"). Targets per Sun-like system: Sparse 1 in 1,000, Scattered 1 in 100, Plentiful 1 in 30, Abundant 1 in 10. Dials: the share of habitable-zone candidates given Earth-like water, hydrogen envelope loss, and the request share at the top tiers. Class limits are not a dial; the setting never forces a class or a count. Science changes no output (no epoch). Rides a train only if a non-Science default is stored; otherwise lock-free after GEN.1702.
-  Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread. Prerequisites: GEN.1702. Related: GEN.1705, GEN.1706, GEN.1702.
+- [ ] **GEN.1762 biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087**
+  Lane 04, 4:38 AM EST 2026-11-16 (PR 6815, GEN.1636): GEN.1636 made surface_pressure.HEAT_FLUX_EARTH_W_M2 (0.0614, the interior model's own Earth twin, row AM33) the one reference for outgassing, life supply and hydrothermal ores; the oxygen balance still scales from 4.4e13 W. Do: make biogenic_oxygen read the same reference (an Earth twin gets 1.0 of Earth's reductant flux), measure oxygen and class changes on fixed seeds; and record in the registry why the model's Earth twin is 0.0614 against the measured 0.087 (the gap is the model's, not a second constant). Lock item (every oxygen balance moves).
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: GEN.1636. Related: GEN.1636, GEN.1733.
   Filed by the TODO thread.
 
-- [ ] **GEN.1705 A meter of Class M and Blue worlds per 1,000 Sun-like systems, with the habitable-zone funnel, reusing the repo census**
-  Boss, 11:17 to 11:19 PM EST on 2026-11-13 (the Class M tier card, "Build now, calibrate after fixes"). Do: report Class M and Blue per 1,000 Sun-like systems and each step of the habitable-zone funnel, built on the existing census code (reuse, no second census). Lock-free, output unchanged.
-  Version 8.1. Owner (TODO, 2026-11-14): Class M and Blue thread. Prerequisites: none. Related: GEN.1704, GEN.1706.
+- [ ] **DB.132 (bug) A planet's forced eccentricity from a resonant chain (oddity_quantities, GEN.1459) is not stored, so a restored planet in a chain that is moved or edited loses the floor settle_orbit keeps**
+  Lane 15, 6:53 AM EST 2026-11-16 (DB.101 audit, /mnt/project-files/reports/db101-storage-audit-2026-11-16.md). Do: store it (a column with its column_units entry, migration from the TODO thread) or rebuild it on load from the stored chain, whichever reuses more; a restored chain planet keeps the same floor. Lock item if stored values change.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: none. Related: GEN.1459, DB.101, DB.133.
+  Filed by the TODO thread.
+
+- [ ] **DB.133 (bug) Stars do not store initial_mass_sol and phase_end_age_gy (bright_stars does), so a restored star has None for both**
+  Lane 15, 6:53 AM EST 2026-11-16 (DB.101 audit). Do: add both columns with column_units entries (one migration with DB.132 if both need one), fill them at save, read them at load; test a restored star against its generated twin.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: none. Related: DB.101, DB.132.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1763 A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources**
+  Lane 03, 7:11 AM EST 2026-11-16 (PR 6837, GEN.1579 before and after on 80 systems): 4 bodies were pinned at 375 K; 3 move to class N (489 to 600 K) and 1 to X. One N body has 7,825 bar (5,300 bar CO2 plus 2,300 bar OCS out of the rock) and its greenhouse asks 1,481 K. Do: check the carbonate and sulfur degassing laws at 500 to 600 K against sources (physics found in research wins), and say whether thousands of bar is real or a law used outside its range.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 03. Prerequisites: GEN.1579. Related: GEN.1579, GEN.1580, GEN.1713.
+  Filed by the TODO thread.
+
+- [ ] **PERF.274 (bug) Warming the galaxy lists and stats every tile-cache file once per warm chunk (tilecache.cache_is_full from web/warmup.py line 854): the warm-galaxy-deep-nodes case stood 58 s walking 181,000 files on a cold file cache**
+  Lane 16, 8:43 AM EST 2026-11-16 (found while fixing PERF.273, PR 6820): passes on a quiet box and fails test_longest_silence when the file cache is cold, so it flakes for Gate and costs real time on a big site cache. Do: keep a running size of the tile cache (or check it once per run, not per chunk) so the full check is cheap, and show the deep-nodes case under budget on a cold file cache.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Prerequisites: none. Related: PERF.273, OPS.262.
+  Filed by the TODO thread.
+
+- [ ] **TEST.780 (bug) test_mass_boundaries::test_the_generator_rows_read_the_table is red on main: it multiplies by a hard-coded 317.8 while tuning reads constants.JUPITER_MASS_EARTH (317.83) since GEN.1152**
+  Lane 05, 9:36 AM EST 2026-11-16; checked by the TODO thread on main: src/tests/test_mass_boundaries.py line 55 uses 317.8, and GEN.1152 (commit 47c6c786e, 11-15) made tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH read constants.JUPITER_MASS_EARTH. Do: the test reads the same constant (no second number for Jupiter's mass anywhere in tests). Test only, lock-free.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 15. Prerequisites: none. Related: GEN.1152.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
@@ -12616,7 +12057,7 @@ clears each one.
 
 - [ ] **GEN.1709 Measure-first: habitable-zone planet supply looks 2 to 4 times low (0.205 planets of 0.5 to 1.5 Earth radii and 0.061 of 1.5 to 2.5 per Sun-like system in 0.36 to 1.1 sunlight, against 0.37 to 0.79 and 0.16 to 0.29 per star)**
   From the hydrogen envelope research (thread "Find why no Class M or Blue worlds", /mnt/project-files/reports/hydrogen-envelopes-habitable-zone-2026-11-14.md, section 7; the envelope law itself passed its check, so no fix there). Measured, not yet traced. The generated counts are inside the low error bars of [R0572: Table 5] but 2 to 4 times under the middle, and would move the Class M rate more than envelopes do. Do: count per star, not per system; check the orbit spacing and planet count laws in that band; report before any change. A fix found is a lock item.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 05 (census). Prerequisites: none. Related: GEN.1704, GEN.1706.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 07 (moved from Lane 05, TODO 9:20 AM EST 2026-11-16) (census). Prerequisites: none. Related: GEN.1704, GEN.1706.
   Filed by the TODO thread.
 
 - [ ] **GEN.1710 (bug) Two different "envelope is gone" cuts: a rocky planet has ground when its stored envelope is under 0.5 percent of its mass, but envelope_escape.BARE_BELOW is 0.2 percent, so envelopes of 0.2 to 0.5 percent vanish silently**
@@ -12646,12 +12087,7 @@ clears each one.
 
 - [ ] **TEST.751 (bug) test_one_seed_gives_one_fingerprint_whatever_the_row_ids takes about 24 minutes on the cloud test machine, over pytest.ini's 900 s limit, so the hang guard ends the run with exit 70 and no traceback**
   Stacked-fixes thread (Fable), 7:30 PM EST on 2026-11-14, with Lane 22 on PR 6510: on main f94663af2 the test passes alone in 1,438 s with the limit raised; under the 900 s limit plus 120 s grace it is ended at about 17 minutes on main as on 6510. The guard's HUNG TEST line goes to the worker's stderr, which the runner does not show. Do: make the row-id check generate less (it builds two galaxies) so it runs well under the limit while still proving row ids do not change the fingerprint; and make the hang guard's line reach the runner's output. No skip, no raised limit as the fix.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 12. Prerequisites: none. Related: GEN.1691.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1724 Research: a sourced table of life adaptations to cold, heat, dryness, salt and low light, by climate type and life type, feeding GEN.1721 and GEN.1723**
-  Boss, 9:11 PM EST on 2026-11-14 (as the coordinator relayed): research life adaptations to hot and cold. Research only, no code; report /mnt/project-files/reports/life-adaptations-climate-2026-11-14.md. Sources per the source rules; proposed stand-ins carry tier and tweak level for GEN.725.
-  Version 8.1. Owner (TODO, 2026-11-14): the research thread "Research life adaptations to hot and cold". Prerequisites: none. Related: GEN.1721, GEN.1723, GEN.876.
+  Version 8.1. Owner (TODO, 2026-11-14): Lane 15 (moved from Lane 12, TODO 9:20 AM EST 2026-11-16). Prerequisites: none. Related: GEN.1691.
   Filed by the TODO thread.
 
 - [ ] **GEN.1727 Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit**
@@ -12671,11 +12107,6 @@ clears each one.
   Check also (Class M tiers thread, 12:55 PM EST 2026-11-15): 6 to 25 Pa of methane from life under the ice warms a world 21 to 33 K (Eerosa I 267 to 288 K, Ilrusxohoe I 265 to 298 K); confirm that warming against sources as part of this item.
   Boss, 1:04 PM EST 2026-11-15: "all recommendations in the last 5 hours are approved": build the photochemical NH3/CH4 cap (Lane 02), as a step term of GEN.1745 per the GEN.1739 design.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 02 (after GEN.1718 part 2). Prerequisites: none. Related: GEN.1731, GEN.1720, GEN.1646.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1735 Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place)**
-  Lane 03, 4:39 AM EST 2026-11-15: GEN.1728 (PR #6596) adds physics/ice_growth.py (lid_of) with nothing reading it yet; GEN.1723's refuge term (surface_refuge.under_ice_light_share) reads only the fixed ice shell of an ice-covered ocean, not a lake or a seasonal lid. Wire lid_of into the refuge term for every surface-water place (mean temperature, year swing, absorbed flux), replacing the fixed shell thickness. This item is the wiring-guard owner of ice_growth.py and registry rows IG2 to IG8.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04 (after GEN.1733; same refuge law as GEN.1723). Prerequisites: GEN.1728. Related: GEN.1723, GEN.1727, GEN.1729.
   Filed by the TODO thread.
 
 - [ ] **OPS.261 Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in**
@@ -12701,46 +12132,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 03, after GEN.1737; lock item. Prerequisites: GEN.1745, GEN.1740. Related: GEN.1739, GEN.1740.
   Filed by the TODO thread.
 
-- [ ] **OPS.265 (bug) plan-skeleton's outline piece (7.5 s) and generate-system's first system (8.5 s) go silent past the 5 s budget on a small galaxy: give each a count inside**
-  Lane 16, 9:29 PM EST 2026-11-15 (OPS.262, PR #6762): the all-commands silence run records these with their own budgets in src/tests/test_longest_silence.py (or tests/), so the test stays green while they are open. Boss's standing order (11-13): every long step reports fine-grained progress with real counts. Do: add the inner count, then drop the command's own budget from the silence test so the default 5 s applies.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
+- [ ] **TEST.774 (bug) test_plan_outline::test_the_plan_says_where_its_time_went_step_by_step is red on main: the plan's timing table now prints HMS durations (UX.319, Boss rule) and the test still parses plain seconds**
+  Lane 16, 12:24 AM EST 2026-11-16 (found while testing PR 6789, OPS.265): red without 6789 too. Do: make the test read the table's durations through the project's HMS parser (or the same formatter's inverse, no second parser) and keep its checks (costliest first, rows add up to the named total, the named steps present). Lock-free, test only.
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: UX.319, OPS.265.
   Filed by the TODO thread.
 
-- [ ] **OPS.266 (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector**
-  Lane 16, 9:29 PM EST 2026-11-15 (OPS.262, PR #6762): the all-commands silence run records these with their own budgets in src/tests/test_longest_silence.py (or tests/), so the test stays green while they are open. Boss's standing order (11-13): every long step reports fine-grained progress with real counts. Do: add the inner count, then drop the command's own budget from the silence test so the default 5 s applies.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 16. Prerequisites: none. Related: OPS.262, PERF.147.
+- [ ] **GEN.1760 (bug) Orbits are circularised before the surface temperature is known, so every icy-by-water body is tidally treated as a 100 K ice shell then, and a warm water world keeps an eccentric orbit a rock tide would have worn down (Eltotecius I: e 0.43 at 0.03 AU)**
+  Lane 07, 2:21 AM EST 2026-11-16 (found building GEN.1759): warm icy-by-water bodies keep their old tidal heat in GEN.1759 for this reason (the rock regime would give up to 1e5 W/m2 with today's eccentricities). Do: order the build so circularisation and tidal heat read the settled surface temperature (or iterate the two to a fixed point), using GEN.1759's shared k2/Q chooser; measure eccentricities and tidal heat of close-in water worlds before and after on fixed seeds. Lock item (orbits and heat move).
+  Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: GEN.1759. Related: GEN.1755, GEN.1756, GEN.1759.
   Filed by the TODO thread.
-
-- [ ] **GEN.1755 (bug, measure first) Class D size bodies (under 0.001 Earth masses) at 1 to 5 AU of F, G and K stars are tidally locked 17 to 59 percent of the time, where the standard tide time gives about zero**
-  Census thread, 10:32 PM EST 2026-11-15 (Boss's default 5,000-system census on main 1e50e1dc, /mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md): 58.6 percent locked at 1 to 2 AU, while real planets beyond 1 AU are 0 of 8,332 locked. Do: measure the tide time of these bodies against the lock flag; check the small-body k2 in tidal_rheology and the belt-member spin draw; fix the cause. Lock item if output changes.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: GEN.1752, GEN.1459.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1756 Check: 12.9 percent of rocky planets of 0.1 Earth masses or more inside 0.1 AU are not tidally locked (free spin 5 to 36 h on 95 to 750 h orbits, at every star age) though the simple tide time locks them all within the star's age**
-  Census thread, 10:32 PM EST 2026-11-15 (/mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md): possibly the TR10 cold-Q ceiling (L3) or the thermal tide holding them off lock; cause not traced. Do: trace a sample, say whether it is physics (a thermal-tide or resonance spin state, which is real for some) or a bug, and fix or document it with its stand-in. Lock item if output changes.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 07. Prerequisites: none. Related: GEN.1755.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1757 Check: 742 moons (1.02 percent of bodies, up from 0.8 percent at Train 28) carry no class letter; confirm every one is an Asteroid object (under roundness ratio 1, no air, liquid or life, GEN.1160 and GEN.1752) and none is a classifiable moon left unclassed**
-  Census thread, 10:32 PM EST 2026-11-15 (/mnt/project-files/reports/census-default-5000-2026-11-16/census-default-5000-2026-11-16.md). Do: break the 742 down by object type, roundness, air and liquid; any round or aired moon without a letter is a bug to fix.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 03. Prerequisites: none. Related: GEN.1160, GEN.1752.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1752 Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule)**
-  Boss, 6:11 PM EST 2026-11-15 (message cmsg_01RuNTFUNB92A8cm5CbojQAiJqSpmsJfWDRzSDRQYhyor8): "even if they are in an asteroid belt and small, if another class fits better, class always comes last so if we have an odd situation where like a small planet in the asteroid field has air or life, it can have another class on the fudging lines". Standing rule. Today a belt body under roundness ratio 1 is an Asteroid with no class letter (GEN.1160), and small airless rocks are D by size. Do: find every place size, roundness or belt membership decides a class before the finished body is read (GEN.1160's Asteroid rule, the D size gate, belt promotion, on-demand belt planets of GEN.1674); make each a class-fit term that a better-fitting class (an atmosphere, habitable-family or life class) can beat on the existing fit edges, after the body is finished; test with a small belt body given air and with one given life. Lock item (classes move).
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 06 (belts and small bodies) with Lane 03 (class fit). Prerequisites: none. Related: GEN.1160, GEN.1674, GEN.1745, GEN.1737.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1753 Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them**
-  Lane 15, 6:32 PM EST 2026-11-15 (GEN.1533, PR #6747): store.load_star_system now attaches each restored body's birth numbers from body_history, but nothing uses them yet (planets.draw_birth_spin always draws). Do: a moved or edited body starts from its own stored birth eccentricity, spin and capture draws; the air history (GEN.1745) reads them for restored bodies. Lock item (changes what an edit produces).
-  Lane 15, 10:38 PM EST 2026-11-15: scope found by measuring a moved restored system against its generated twin: planets with moons lose `_born_moons` (moon history restarts from drifted distances, spin wrong), and `formation_distance_au` is stored nowhere, so a restored body's end-stage draw streams (haze, spin, minerals, envelope, isotopes) and its ice-or-rock water fall back to its current distance (one moved planet came out with no class). Migration 0266 adds body_history.formation_distance_au, birth_distance_au and born_index plus a lost born moons table; attach restores all of them.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 15. Prerequisites: GEN.1533. Related: GEN.1497, GEN.1745.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1754 Nebular envelopes and their water for bodies of 1 Earth mass and up (the GEN.1748 source stops at 0.3 percent hydrogen)**
-  Lane 04, 7:21 PM EST 2026-11-15 (GEN.1748, PR #6751): the envelope and its water are built for 0.2 to 1 Earth mass from the GEN.1748 source, which covers hydrogen fractions only up to 0.3 percent. Do: find a source for the captured envelope, its loss and the water it makes for 1 Earth mass and up (into the super-Earth range where an envelope may survive), register any stand-in, build it on the same path, and re-measure the class counts. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 04. Prerequisites: GEN.1748. Related: GEN.1745, GEN.1744.
-  Filed by the TODO thread.
+  Measured (Lane 07, 8:40 AM EST 2026-11-16): the air is solved with the heat known before the surface, which leaves the rock tide out; the stored heat carries it. On 300 seeds, giving the air the rock-box heat for the 35 warm water-rich bodies moved air temperature on 1 body (331.0 to 334.8 K, tide 0.086 W/m2), pressure by under 0.02 percent on 2, class on none; bodies with stored tide over 1 W/m2 are mostly airless. Small; no item. Making the two heats equal on principle needs the air solved after the surface is known (a build-order change).
 
 - [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
   Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 4. GEN.909 was closed as a diagnosis (cold by the physics); its option 3 was measured: temperate worlds with at least 10 kPa went from 16 of 45 to 19 or 20 of 45 (G2V) and from 6 of 40 to 6 or 9 of 40 (K5V), the cold share from 60 to 48 or 49 percent (G2V). Small, and it does not recover the zone by itself. Do: source the form (land times min(1, ocean cover over the Earth value 0.71), or a cap of land at Earth's 0.29), register it in GEN.725 with tier and tweak level (an educated guess from physics, L1 inside the published range), build it behind the carbon dioxide step of GEN.1309 and re-measure. Lock item (changes the temperature of nearly every dry world and moves E and W worlds into other classes). Do not start before GEN.1309 steps A and B merge; Boss decides whether to build.
@@ -12968,13 +12369,6 @@ clears each one.
   changed --resume; no fixed content from the Milky Way or the Solar
   System; built code needs a caller.
   Prerequisites: none (runs after GEN.1356 merges). Related: GEN.1356, GEN.475, GEN.477, TEST.685.
-
-- [ ] **GEN.1387 Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug)**
-  REWORKED: folded into GEN.1397. The redraw storm comes from class E (deep-frozen, GEN.1142) and W still sitting on tuning.HABITABLE_PLANET_CLASSES; GEN.1397 deletes the list, so the storm and this item's test ceiling are fixed there. Close GEN.1387 when GEN.1397 merges and test_barred_world passes. Held for Boss's E/W question: no longer needed (the list goes).
-  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size M; lock-free unless the owner finds a generated value changes. Do: find why the redraw rate is that high (a draw that almost always fails its own check), fix the draw or the check, keep the ceiling test, and say if generated output changes (it then rides an epoch). Owner (proposed by TODO): Lane 14. Rules: tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.237.
-  Filed by the TODO thread.
 
 - [ ] **GEN.1390 Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug)**
   REWORKED: the prevalence habitable_world red may move or vanish with GEN.1397 (the habitable count then reads the life classes). Lane 05: rerun prevalence habitable_world after GEN.1397 before fixing it.

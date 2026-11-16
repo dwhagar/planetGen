@@ -64,7 +64,7 @@ import functools
 import math
 
 from planetgen.galaxy import scales
-from planetgen.generation import band_table_cache
+from planetgen.generation import band_table_cache, bodybeat
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.physics import age_metallicity, alpha_tracks, constants, imf, main_sequence, metallicity, post_main_sequence, wolf_rayet
 from planetgen import tuning
@@ -399,6 +399,7 @@ def _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_b
     running = 0.0
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
     for a, b, alpha, norm in _range_grid((mass_low, mass_high), _grid_cells(fe_bin)):
+        bodybeat.settled()      # PERF.273: a table built cold (a new code key) is hundreds of cells, minutes with nothing else moving
         if (mass_low is not None and b <= mass_low) or (mass_high is not None and a >= mass_high):
             continue
         count = norm * imf.power_law_integral(a, b, alpha)
@@ -425,6 +426,7 @@ def _fraction_terms(mass_range, window, fe_bin):
     living = 0.0
     cells = []
     for a, b, alpha, norm in _range_grid((mass_low, mass_high), _grid_cells(fe_bin, True)):
+        bodybeat.settled()
         count = norm * imf.power_law_integral(a, b, alpha)
         # E[measure] over the cell by stratified IMF quantiles.
         points = _cell_points(a, b, alpha)
@@ -717,6 +719,7 @@ def _build_mass_band_table(mass_range, population, window, fe_bin, reference):
     running = born = living = 0.0
     with_fraction = reference
     for a, b, alpha, norm in _range_grid(mass_range, _grid_cells(fe_bin, reference)):
+        bodybeat.settled()
         count = norm * imf.power_law_integral(a, b, alpha)
         measure = 0.0
         if with_fraction:
