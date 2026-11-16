@@ -10360,6 +10360,27 @@ def _runaway_origin(conn, star_system_id):
     return None
 
 
+def attach_body_history(conn, system, star_system_id):
+    """
+    GEN.1533, the reader of `body_history`: gives each restored planet and moon of `system` the numbers its history left (`physics/body_history.attach`: `_orbit_birth` and `_birth_spin`).
+
+    Returns:
+        int: The bodies that got any.
+    """
+    stored = {(row["body_type"], row["body_id"]): row for row in conn.execute("SELECT * FROM body_history WHERE star_system_id = ?", (star_system_id,)).fetchall()}
+    if not stored:
+        return 0
+    attached = 0
+    for planet in system.all_planets:
+        if getattr(planet, "db_id", None) is not None and getattr(planet, "body_type", None) != "a":
+            row = stored.get((effect_ledger.BODY_CODES["planets"], planet.db_id))
+            attached += bool(row and body_history.attach(planet, row))
+        for moon in getattr(planet, "moons", ()):
+            row = stored.get((effect_ledger.BODY_CODES["moons"], getattr(moon, "db_id", None)))
+            attached += bool(row and body_history.attach(moon, row))
+    return attached
+
+
 def load_star_system(conn, star_system_id) -> StarSystem:
     """
     Reconstructs a full `StarSystem` -- config, star(s), every planet/
@@ -10584,6 +10605,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.node_planets = [_build_object_list([r for r in planet_rows if r["host_node_id"] == host.host_node_no],
                                               [r for r in belt_rows if r["host_node_id"] == host.host_node_no], host)
                            for host in system.node_hosts]
+    attach_body_history(conn, system, star_system_id)
 
     system.system_flavor_text = row["system_flavor_text"]
     system.runaway_class = row["runaway_class"]
