@@ -100,14 +100,14 @@ def test_a_stage_has_one_wording_for_start_finish_and_failure_and_one_divider():
     failed = logrecord.stage_record(logrecord.STAGE_FAILED, "generate", 4, 12, seconds=31, reason="MySQL went away", now=3.0)
     run = logrecord.stage_record(logrecord.STAGE_START, "generate", 4, 12, "Settle", count=9, now=4.0)
     assert [item.message for item in (start, done, failed, run)] == [
-        "Stage 4 of 12: Scatter the massive stars", "Stage 4 of 12 finished after 30.6 s",
-        "Stage 4 of 12 failed after 31 s: MySQL went away", "Stages 4 to 12 of 12: Settle"]
+        "Stage 4 of 12: Scatter the massive stars", "Stage 4 of 12 finished after 31s",
+        "Stage 4 of 12 failed after 31s: MySQL went away", "Stages 4 to 12 of 12: Settle"]
     assert [item.severity for item in (start, done, failed)] == ["info", "info", "error"]
     assert start.fields == {"event": "stage.start", "stage": 4, "stages": 12}
     assert done.fields["seconds"] == 30.6 and run.fields["count"] == 9
     assert logrecord.plain_line(start) == "=== Stage 4 of 12: Scatter the massive stars ==="
     assert logrecord.display_line(failed, NEW_YORK, times=False) == (
-        "ERROR    generate: === Stage 4 of 12 failed after 31 s: MySQL went away ===")
+        "ERROR    generate: === Stage 4 of 12 failed after 31s: MySQL went away ===")
     assert logrecord.parse_file_line(logrecord.file_line(failed)) == failed
     with pytest.raises(ValueError, match="no stage event"):
         logrecord.stage_record("stage.begin", "generate", 1, 2)
@@ -260,8 +260,8 @@ def test_the_raw_form_is_the_message_as_it_is_and_a_syslog_line_has_the_time_the
 
 @pytest.mark.parametrize("seconds, text", [
     (None, "?"), (-1, "?"), (float("nan"), "?"),
-    (0, "0 s"), (0.34, "340 ms"), (1, "1 s"), (12.34, "12.3 s"), (59.94, "59.9 s"),
-    (65, "1.08 minutes"), (247, "4.12 minutes"), (3600, "1 hour"), (3912, "1.09 hours"), (86400, "1 day"),
+    (0, "0s"), (0.34, "340 ms"), (1, "1s"), (12.34, "12s"), (59.94, "1m"),
+    (65, "1m 5s"), (247, "4m 7s"), (3600, "1h"), (3912, "1h 5m 12s"), (86400, "1d"),
 ])
 def test_one_duration_form_for_every_log_line(seconds, text):
     """OPS.173, UX.318: one duration form for every log line, and it is the units code's time ladder (`format_duration_seconds`),

@@ -589,15 +589,15 @@ def test_a_phase_that_built_nothing_says_unchanged_and_one_cut_short_says_how_ma
     tally.add("galaxy-map", {"built": 0, "cached": 4, "warmed": 4, "seconds": 0.5})
     tally.add("lists", {"built": 0, "cached": 20, "warmed": 20, "seconds": 1.0})
     assert tally.start("lists") == []
-    assert tally.start("galaxy-nodes") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 12 s."]
+    assert tally.start("galaxy-nodes") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 12s."]
     now[0] = 14.0
     tally.add("galaxy-nodes", {"built": 3, "cached": 125, "warmed": 128, "seconds": 2.0})
     tally.add("galaxy-deep-nodes", {"built": 0, "cached": 0, "warmed": 0, "left_out": 128, "seconds": 0.0})
     now[0] = 15.0
-    assert tally.start("galaxy-deep-nodes") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 3 s."]
+    assert tally.start("galaxy-deep-nodes") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 3s."]
     tally.add("search", {"built": 0, "cached": 1, "warmed": 1, "seconds": 0.1})
     assert tally.start("search") == [
-        "Phase 3 of 5, deep-nodes: 0 built, 0 already stored, 128 left out in 0 s; stopped at the cache budget."]
+        "Phase 3 of 5, deep-nodes: 0 built, 0 already stored, 128 left out in 0s; stopped at the cache budget."]
     now[0] = 15.1
     assert tally.finish() == ["Phase 5 of 5, search: unchanged, nothing built (1 already stored) in 100 ms."]
     assert tally.finish() == [], "each phase is reported once"

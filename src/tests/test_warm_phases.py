@@ -11,14 +11,23 @@ from planetgen.admin import updateguard
 from planetgen.cli import warm as warm_cli
 from planetgen.queue import redisclient, warmphases, warmstart
 from planetgen.web import warmup
-from tests.test_cache_warmup import _args, script, state_file  # noqa: F401 -- the fixtures
+from tests.test_cache_warmup import _args, named_x, script, state_file  # noqa: F401 -- the fixtures
 from tests.test_queue_page import admin_client, control_config, web_app  # noqa: F401 -- the fixtures
 
 
 @pytest.fixture
 def database(redis_server):
+    """A real galaxy database with the schema, empty: a unit takes its attempt in it (OPS.219, `attempts.begin`)."""
+    import pymysql
+    from planetgen.db import store
+    from tests import conftest, dbpool
     name = f"planetgen_phases_{uuid.uuid4().hex[:8]}"
+    server = conftest._test_server_kwargs()
+    with pymysql.connect(**server) as admin:
+        admin.cursor().execute(f"CREATE DATABASE IF NOT EXISTS `{name}`")
+    store.get_connection(store.MySQLConfig(database=name, **server)).close()
     yield name
+    dbpool.drop_database(server, name)
     client = redisclient.client(decode_responses=True)
     client.delete(warmphases.key(name), warmstart.wanted_key(name), warmstart.lock_key(name))
 
@@ -131,7 +140,7 @@ def test_the_queue_page_shows_each_phase_and_what_the_automatic_start_waits_for(
     try:
         warmphases.begin(database, [name for name, _text, _families in warmup.PHASES], reason="orbits")
         warmphases.finish_phase(database, "opening", {"state": "unchanged", "built": 0, "cached": 3, "left_out": 0,
-                                                       "seconds": 0.2, "line": "Phase 1 of 5, opening: unchanged, nothing built (3 already stored) in 0.2 s."})
+                                                       "seconds": 0.2, "line": "Phase 1 of 5, opening: unchanged, nothing built (3 already stored) in 0s."})
         warmphases.start_phase(database, "built-levels")
         client.hset(warmstart.wanted_key(database), "sector-set", 1)
         monkeypatch.setenv("PLANETGEN_WARM_ON_CHANGE", "1")
@@ -160,7 +169,7 @@ def test_the_queue_page_shows_the_object_index_by_kind_with_its_size(admin_clien
         client.delete(objectindex.state_key(database))
     assert state["size_bytes"] == 3 * 1024 * 1024 and [row["kind"] for row in state["kinds"]] == ["system", "hypervelocity_star"]   # MAP.400: a kind only uncharted objects have is listed after the index's
     assert 'id="warm-index"' in html and "12,345" in html and "refresh" in html
-    assert "Object index (3.0 MB)" in html or "Object index (3 MB)" in html
+    assert "Object index (3.15 MB)" in html
 
 
 def test_a_phase_line_gives_the_time_the_phase_took_not_its_units_seconds_added_up():
@@ -172,7 +181,7 @@ def test_a_phase_line_gives_the_time_the_phase_took_not_its_units_seconds_added_
         tally.add("galaxy-nodes", {"built": 0, "cached": 64, "warmed": 64, "left_out": 0, "seconds": 2.69})
     now[0] = 579.0
     lines = tally.start("galaxy-deep-nodes")
-    assert lines == ["Phase 2 of 5, built-levels: unchanged, nothing built (127,104 already stored) in 579.0 s."]
+    assert lines == ["Phase 2 of 5, built-levels: unchanged, nothing built (127,104 already stored) in 9m 39s."]
     assert tally.result("built-levels")["seconds"] == 579.0 and tally.result("built-levels")["worker_seconds"] > 5000
 
 

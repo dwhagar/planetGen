@@ -22,6 +22,7 @@ warm-up. The folder is rotated by the rule `examples/apache/setup-debug-log.sh` 
 import os
 
 from planetgen.util import joblog, logpaths
+from planetgen.util.format import format_duration_seconds
 
 STARTED_BY_ENV = "PLANETGEN_WARM_STARTED_BY"
 """str: What `scripts/deploy-common.sh` tells a stage's run about itself, for the line that opens the run in `warmup.log`."""
@@ -34,14 +35,8 @@ COMPONENT = "warm"
 
 
 def _words(seconds):
-    """A time limit in words for the opening line: `4 hours`, `90 minutes`, `45 seconds`."""
-    if seconds >= 3600 and seconds % 3600 == 0:
-        count, unit = seconds // 3600, "hour"
-    elif seconds >= 60 and seconds % 60 == 0:
-        count, unit = seconds // 60, "minute"
-    else:
-        count, unit = seconds, "second"
-    return f"{count} {unit}{'' if count == 1 else 's'}"
+    """A time limit for the opening line on the duration ladder: `4h`, `1h 30m`, `45s`."""
+    return format_duration_seconds(seconds)
 
 
 def started_by(reason=None, environ=None):
