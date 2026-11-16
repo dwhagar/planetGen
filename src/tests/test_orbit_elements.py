@@ -297,9 +297,14 @@ def _tide_energy_and_budget_j(planet, birth, eccentricity, age_gy):
     return found.tidal_w * age_gy * 1.0e9 * constants.SECONDS_PER_YEAR, orbit_j * (birth ** 2 - eccentricity ** 2)
 
 
+MELTED_DISTANCE_AU = 0.0104
+"""float: Where the sample-15 body's mantle melts under e = 0.068 once the box conducts (GEN.1770): inside about 0.0112 AU; at 0.0134 AU the conduction a small body has
+now carries the tide and the mantle stays solid (`test_a_small_body_that_conducts_its_tide_out_stays_solid_and_keeps_its_orbit`)."""
+
+
 def test_a_strong_tide_wears_the_orbit_down_until_it_spends_no_more_than_the_orbit_gives_up():
-    """GEN.1351: the cold rheology left e = 0.068 over 1.8 Gyr (a circularisation time of 18 Gyr) while the tide the body really feels spent 2.4e31 J, the whole orbital energy."""
-    planet = _hot_small_planet()
+    """GEN.1351: the cold rheology left e = 0.068 over 1.8 Gyr (a circularisation time of 13 Gyr) while the tide the body really feels spent over 1e30 J, a good part of the orbital energy."""
+    planet = _hot_small_planet(MELTED_DISTANCE_AU)
     assert oe.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance) > 1.0e10
     settled = oe.settled_eccentricity(planet, 0.068, 1.8e9, planet.primary_mass_kg, planet.distance)
     assert 0.0 < settled < 0.03, "the tide that melts the mantle wears the orbit down fast, until the heat it makes is a small tide"
@@ -307,6 +312,17 @@ def test_a_strong_tide_wears_the_orbit_down_until_it_spends_no_more_than_the_orb
     assert spent <= budget
     planet.eccentricity = 0.068
     assert interior_heat.heat_of(planet).tidal_w * 1.8e9 * constants.SECONDS_PER_YEAR > 1.0e30, "the old eccentricity would have spent far more than the orbit holds"
+
+
+def test_a_small_body_that_conducts_its_tide_out_stays_solid_and_keeps_its_orbit():
+    """GEN.1770: at 0.0134 AU the sample-15 body used to melt (a tide of 4e14 W, because a body this small carried none of its heat out); it conducts now, its mantle
+    stays under the solidus at e = 0.068 and the tide it makes is the 1e11 W the conduction carries, so its orbit is worn by less than a twentieth."""
+    planet = _hot_small_planet()
+    settled = oe.settled_eccentricity(planet, 0.068, 1.8e9, planet.primary_mass_kg, planet.distance)
+    assert 0.065 < settled <= 0.068
+    spent, budget = _tide_energy_and_budget_j(planet, 0.068, settled, 1.8)
+    assert spent <= budget
+    assert interior_heat.heat_of(planet).mantle_temperature_k < 1200.0
 
 
 @pytest.mark.parametrize("birth", [0.005, 0.02, 0.068, 0.2, 0.6])
