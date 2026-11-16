@@ -582,7 +582,7 @@ def sector_detail(sector_id):
     try:
         detail = virtual_sector_detail(conn, sector_id) if isinstance(sector_id, tuple) else query_sector_detail(conn, sector_id)
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     detail["superbubble"] = superbubble_of(conn, detail)
     detail["region"] = region_of(conn, (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
                                  if detail.get("placed") else None)
@@ -719,7 +719,7 @@ def system_detail(system_id):
         detail = query_system_detail(conn, system_id)
         detail["region"] = region_of(conn, resolve_object(conn, "system", system_id)["positions"]["galaxy_pc"])
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     detail["former_designations"] = ids.former_designations(conn, "system", system_id)
     return jsonify(detail)
 
@@ -734,7 +734,7 @@ def system_scene(system_id):
     try:
         scene = build_scene(get_db(), system_id)
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     return jsonify(scene)
 
 
@@ -747,7 +747,7 @@ def system_bodies_route(system_id):
     """
     found = system_bodies.build(get_db(), system_id)
     if found is None:
-        return jsonify({"error": f"no such system: {system_id}"}), 404
+        raise ApiError(f"no such system: {system_id}", status_code=404)
     return jsonify(found)
 
 
@@ -768,7 +768,7 @@ def system_sky_route(system_id):
     try:
         built = system_sky.build_system_sky(conn, system_id, limit, tile_stamp=galaxy_tile_stamp(galaxy_content_state(conn)))
     except system_sky.SkyError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     packed = built.pop("packed")
     return jsonify({**built, "format": "PGK1", "data": base64.b64encode(packed).decode("ascii")})
 
@@ -789,7 +789,7 @@ def system_sky_band_route(system_id):
     try:
         built = system_sky.build_system_band(get_db(), system_id, limit)
     except system_sky.SkyError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     data = built.pop("data")
     return jsonify({**built, "data": base64.b64encode(data).decode("ascii")})
 
@@ -806,7 +806,7 @@ def system_description(system_id):
     try:
         return jsonify(describe_system(get_db(), system_id))
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/systems/<uid:system_id>/text")
@@ -823,7 +823,7 @@ def system_text(system_id):
     try:
         content = render_system_text(get_db(), system_id, fmt)
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     return jsonify({"id": system_id, "format": fmt, "content": content})
 
 
@@ -1002,14 +1002,37 @@ def _parse_value_sort(args):
     return found[0] if found else None
 
 
-def _int_arg(query_args, name, default):
+def _int_arg(query_args, name, default, noun="a whole number", blank=False):
+    """A whole number from the query string, `default` when it is missing (or, with `blank`, empty); anything else is an `ApiError` saying `name must be <noun>`."""
     raw = query_args.get(name)
-    if raw is None:
+    if raw is None or (blank and raw == ""):
         return default
     try:
         return int(raw)
     except ValueError:
-        raise ApiError(f"{name} must be a whole number, got {raw!r}")
+        raise ApiError(f"{name} must be {noun}, got {raw!r}") from None
+
+
+def _after_number(raw, what):
+    """The whole number an `after=` page cursor carries (a star id, a scatter id); anything else is an `ApiError` naming what it should be."""
+    try:
+        return int(raw)
+    except ValueError:
+        raise ApiError(f"after must be {what}, got {raw!r}") from None
+
+
+def _past_end_page(items, total, *, start, offset, after, limit, last_page):
+    """
+    The jump-by-value lists' answer past their end (PERF.135): a `from` value after the last row, with nothing on the page, answers the last page (`last_page()`),
+    `total` its length and `past_end` true.
+
+    Returns:
+        tuple: `(items, total, past_end)`.
+    """
+    if start and not items and not offset and after is None and limit is not None:
+        items = last_page()
+        return items, len(items), True
+    return items, total, False
 
 
 def _float_arg(query_args, name):
@@ -1114,9 +1137,9 @@ def nav():
     try:
         result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes, with_graph=with_graph, adjusted=with_adjusted)
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     except NavUnavailable as exc:
-        return jsonify({"error": str(exc)}), 400
+        raise ApiError(str(exc), status_code=400) from exc
     if with_adjusted:   # NAV.27: the legs inside a system, with the bodies where they are when the ship leaves
         nav_system.adjust_legs(get_db(), result)
 
@@ -1160,9 +1183,9 @@ def nav_chart():
     try:
         plan = nav_chart_plan(get_db(), from_ref, to_ref, border=border)
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     except NavUnavailable as exc:
-        return jsonify({"error": str(exc)}), 400
+        raise ApiError(str(exc), status_code=400) from exc
     return jsonify({**plan, "cells": [list(cell) for cell in plan["cells"]], "count": len(plan["cells"]),
                     "confirm_over": tuning.NAV_CHART_CONFIRM_SECTORS})
 
@@ -1671,23 +1694,16 @@ def uncharted_systems():
     sort, descending = _parse_sort(request.args, UNCHARTED_SYSTEM_SORTS)
     if "order" not in request.args:
         descending = sort == "luminosity"
-    after = None
-    if request.args.get("after"):
-        try:
-            after = int(request.args["after"])
-        except ValueError:
-            raise ApiError(f"after must be a star id, got {request.args['after']!r}")
+    after = _after_number(request.args["after"], "a star id") if request.args.get("after") else None
     start = (request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None
     db = get_db()
     try:
         total = count_uncharted_systems(db, start=start, sort=sort, descending=descending)
         items = list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after,
                                        start=start)
-        past_end = False
-        if start and not items and not offset and after is None and limit is not None:
-            past_end = True
-            items = list_uncharted_systems(db, limit=limit, sort=sort, descending=descending, start=start, last=True)
-            total = len(items)
+        items, total, past_end = _past_end_page(
+            items, total, start=start, offset=offset, after=after, limit=limit,
+            last_page=lambda: list_uncharted_systems(db, limit=limit, sort=sort, descending=descending, start=start, last=True))
     except ValueError as exc:
         raise ApiError(str(exc))
     return jsonify({
@@ -1755,7 +1771,7 @@ def uncharted_system(bright_star_id):
     try:
         return jsonify(query_uncharted_system_detail(get_db(), bright_star_id))
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/uncharted-systems/<int:bright_star_id>/generate", methods=["POST"])
@@ -1858,21 +1874,15 @@ def phenomena():
                 raise ApiError(f"after must be a scatter id or <type>:<ID> of a phenomenon, got {request.args['after']!r}")
             after = (type_label, row)
         else:
-            try:
-                after = int(request.args["after"])
-            except ValueError:
-                raise ApiError(f"after must be a scatter id or <type>:<ID> of a phenomenon, got {request.args['after']!r}")
+            after = _after_number(request.args["after"], "a scatter id or <type>:<ID> of a phenomenon")
     start = (request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None
     try:
         total = count_phenomena(db, start=start, **filters)
         items = list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after,
                                start=start, **filters)
-        past_end = False
-        if start and not items and not offset and after is None and limit is not None:
-            past_end = True
-            items = list_phenomena(db, limit=limit, sort=sort, descending=descending, start=start, last=True,
-                                   **filters)
-            total = len(items)
+        items, total, past_end = _past_end_page(
+            items, total, start=start, offset=offset, after=after, limit=limit,
+            last_page=lambda: list_phenomena(db, limit=limit, sort=sort, descending=descending, start=start, last=True, **filters))
     except ValueError as exc:
         raise ApiError(str(exc))
     body = {
@@ -1900,7 +1910,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
     try:
         detail = query_phenomenon_detail(get_db(), phenomenon_type, phenomenon_id)
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     detail["former_designations"] = ids.former_designations(get_db(), phenomenon_type, phenomenon_id)
     return jsonify(detail)
 
@@ -1918,7 +1928,7 @@ def phenomenon_contents(phenomenon_type, phenomenon_id):
         limit = min(max(_int_arg(request.args, "limit", cloudcontents.DEFAULT_LIMIT), 1), 500)
         return jsonify(cloudcontents.cloud_contents(conn, phenomenon_type, phenomenon_id, limit))
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/containers")
@@ -1931,7 +1941,7 @@ def containers_list():
     try:
         return jsonify({"containers": containersDb.listing(get_db(), request.args.get("kind"))})
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        raise ApiError(str(exc), status_code=400) from exc
 
 
 @bp.route("/containers/at")
@@ -1946,7 +1956,7 @@ def containers_at():
         kinds = [request.args["kind"]] if request.args.get("kind") else None
         return jsonify({"containers": containersDb.holding(get_db(), point, kinds)})
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        raise ApiError(str(exc), status_code=400) from exc
 
 
 @bp.route("/containers/<printed_id>")
@@ -1957,9 +1967,9 @@ def container_detail(printed_id):
     try:
         found = containersDb.get(get_db(), uid=printed_id)
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     if found is None:
-        return jsonify({"error": f"no container {printed_id}"}), 404
+        raise ApiError(f"no container {printed_id}", status_code=404)
     return jsonify(found)
 
 
@@ -1978,7 +1988,7 @@ def container_contents(printed_id):
         limit = min(max(_int_arg(request.args, "limit", containersDb.DEFAULT_LIMIT), 1), 500)
         return jsonify(containersDb.contents(conn, found["id"], limit))
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/uncharted-phenomena/<int:scatter_id>")
@@ -1992,7 +2002,7 @@ def uncharted_phenomenon(scatter_id):
     try:
         return jsonify(query_scattered_phenomenon_detail(get_db(), scatter_id))
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/lookup")
@@ -2006,7 +2016,7 @@ def lookup_route():
     try:
         status, body = lookup_module.lookup(get_db(), request.args.get("text"))
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        raise ApiError(str(exc), status_code=400) from exc
     return jsonify(body), status
 
 
@@ -2025,7 +2035,7 @@ def object_ref_route(ref):
         found["former_designations"] = ids.former_designations(get_db(), kind, object_id)
         return jsonify(found)
     except ValueError as exc:  # includes ids.IdError
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 def _body_of(ref):
@@ -2048,7 +2058,7 @@ def _kept_body(ref, kind, noun, info, rank=None):
         args = () if rank is None else (object_uid.parse_rank(rank),)
         return jsonify(info(get_db(), object_id, *args))
     except ValueError as exc:  # includes ids.IdError and the describe modules' *NotFound errors
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/objects/<ref>/sheet")
@@ -2065,7 +2075,7 @@ def object_sheet_route(ref):
         kind, object_id = _body_of(ref)
         return jsonify(object_sheet(get_db(), kind, object_id))
     except ValueError as exc:  # includes ids.IdError
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/objects/<ref>/sensor")
@@ -2080,7 +2090,7 @@ def object_sensor_route(ref):
         kind, object_id = _body_of(ref)
         return jsonify(sensor.sensor_for(get_db(), kind, object_id))
     except ValueError as exc:  # includes ids.IdError
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/objects/<ref>/belt-page")
@@ -2167,9 +2177,9 @@ def object_children_route(ref):
         limit = _int_arg(request.args, "limit", children_db.DEFAULT_LIMIT)
         return jsonify(children_db.children(get_db(), kind, object_id, limit, request.args.get("after") or None))
     except children_db.PageError as exc:
-        return jsonify({"error": str(exc)}), 400
+        raise ApiError(str(exc), status_code=400) from exc
     except ValueError as exc:  # includes ids.IdError
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/nebulae/<uid:nebula_id>/volume")
@@ -2182,7 +2192,7 @@ def nebula_volume_route(nebula_id):
     try:
         packed = nebula_volumes.single_nebula_volume(get_db(), nebula_id)
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
     return jsonify(_volume_answer(packed, id=nebula_id))
 
 
@@ -2197,7 +2207,7 @@ def nebula_surroundings_route(nebula_id):
     try:
         return jsonify(query_nebula_surroundings(get_db(), nebula_id))
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
+        raise ApiError(str(exc), status_code=404) from exc
 
 
 @bp.route("/search")
@@ -3089,15 +3099,6 @@ def facility_list():
     if kind is not None and kind not in tuning.FACILITY_KINDS:
         raise ApiError(f"kind must be one of: {', '.join(sorted(tuning.FACILITY_KINDS))}")
 
-    def whole(name):
-        raw = args.get(name)
-        if raw in (None, ""):
-            return None
-        try:
-            return int(raw)
-        except ValueError:
-            raise ApiError(f"{name} must be an integer, got {raw!r}") from None
-
     def color(name):
         raw = args.get(name)
         if raw in (None, ""):
@@ -3110,7 +3111,8 @@ def facility_list():
     sort, descending = _parse_sort(args, FACILITY_SORTS)
     limit, offset = _paginate(args)
     items, total = list_facilities(
-        get_db(), kind=kind, type_id=whole("type_id"), polity_id=whole("affiliation_polity_id"),
+        get_db(), kind=kind, type_id=_int_arg(args, "type_id", None, "an integer", blank=True),
+        polity_id=_int_arg(args, "affiliation_polity_id", None, "an integer", blank=True),
         affiliation_name=args.get("affiliation_name") or None,
         ratings={name: value for name, value in ratings.items() if value is not None}, overall=color("overall"),
         sort=sort, descending=descending, limit=limit, offset=offset)

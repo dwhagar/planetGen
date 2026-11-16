@@ -10,7 +10,7 @@ from planetgen import tuning
 from planetgen.generation import abundance_tier
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import planet_type
+from planetgen.physics import planet_type, planets
 from planetgen.util import draw
 
 SEED = 20261114
@@ -55,9 +55,21 @@ def test_a_tier_whose_envelope_dial_is_zero_changes_nothing(monkeypatch):
 
 
 def test_at_share_one_no_candidate_keeps_an_envelope_and_the_others_are_not_made_late_cores(monkeypatch):
+    """TEST.785: the decision is made once, in the zone the planet is in when it is drawn (`Planet._draw_body`); a planet that `validate_system` later moves into the ecosphere keeps what it
+    was given (the dial's tuned shares are measured on the finished systems, so the leak is in them). Those planets are named as they move, and the claim is for every other candidate."""
+    moved = []
+    real = planets.reconcile_zone
+
+    def reconcile(planet, *args, **kwargs):
+        changed = real(planet, *args, **kwargs)
+        if changed:
+            moved.append(planet)
+        return changed
+
+    monkeypatch.setattr(planets, "reconcile_zone", reconcile)
     _with_dials(monkeypatch, 1.0)
     dialed = _rocky(_systems("abundant", 18))
-    candidates = [p for p in dialed if abundance_tier.candidate(p)]
+    candidates = [p for p in dialed if abundance_tier.candidate(p) and not any(p is m for m in moved)]
     assert len(candidates) >= 5
     for planet in candidates:
         assert planet.build.late_core

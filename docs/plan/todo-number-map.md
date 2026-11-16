@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1770 |
+| GEN | GEN.1771 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.781 |
+| TEST | TEST.786 |
 | USR | USR.33 |
 | OPS | OPS.268 |
 | DOC | DOC.121 |
@@ -572,7 +572,7 @@ Parents marked "new parent" had no old number of their own.
 | API.41 | Headline of 8.9: remote build: build a galaxy on a local machine, upload it and have the server verify it, with backups and repair as the second feature | none | open |
 | API.42 | Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line | DB.116 | open |
 | API.47 | The linked-sites list for the third project: each linked site has a kind (wiki, surface later) and the body page shows each kind in its own labelled block | API.45 | open |
-| API.48 | API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging | none | open |
+| API.48 | API routes use ApiError and shared helpers instead of hand-built 404s and repeated paging | none | done (PR 6893, Lane 14, merged 12:45 PM EST 11-16: thirty hand-built error returns are ApiError, one helper each for the paging past-the-end answer and the after cursor, facility_list reads through _int_arg; response bodies unchanged) |
 | API.49 | Default system settings as a JSON file format: the inputs a user can set when a system is created (for example the kind of star to look for) | ADM.155 | open |
 | API.50 | Default planet settings as a JSON file format: the inputs a user can set for the planets of a created system | API.49 | open |
 | API.51 | The life-air API and the page chart read the stored air history, every gas | GEN.1745 | open |
@@ -4095,6 +4095,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1767 | Research a dry-surface carbonate buffer for bodies whose ocean has gone (carbonate-silicate equilibrium on dry rock, limited by the crust's calcium): today weathering switches off when the ocean is all vapor and nothing takes the carbon | open |
 | GEN.1768 | (bug) A hot thick non-steam body holds 339 bar of oxygen in a 374 bar air (Ebge Angus V on main, 180-system run): check where that oxygen comes from in the oxygen balance | closed, no code change (Lane 02, 12:23 PM EST 11-16, traced on main a756e09b0a seed 4008): the 339 bar O2 is the abiotic-oxygen recipe row j5, oxygen left by photolyzed ocean water with a drawn crust sink of 0.11; it is under what the body's own water loss implies (about 880 bar), so no ledger error; the weak part, the drawn sink, is GEN.1769 |
 | GEN.1769 | Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw | open |
+| GEN.1770 | (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red) | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4888,7 +4889,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.711 | A planet built with its climate deferred ends with 1 moon where the test expects 2 (planet class E): red on main (bug) | none | done, PR #5804 |
 | TEST.712 | The unstable wide binary re-roll test no longer finds the expected re-rolled line in the console report: red on main (bug) | none | done, PR #5804 |
 | TEST.713 | (bug) test_a_unit_survives_a_warm_that_outlasts_an_execution_record kills an xdist worker on every parallel run | none | done, PR #5894 |
-| TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | open |
+| TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | done (PR 6898, Lane 14, merged 1:02 PM EST 11-16: the last two pinned rare-case seeds, test_circumbinary_light and test_refinish_rocky, search seeds with first_seed_with; the search-then-skip tests are TEST.737) |
 | TEST.715 | The constants completeness gate: turn the GEN.945 census into a test with a committed baseline of unregistered constant names that may only shrink | none | done, PR #5987 |
 | TEST.716 | The citation check's stop list ignores role words and time zones before a year ("Train Manager, 2026", "9:29 AM EST 2026") | none | done, PR #6053 |
 | TEST.717 | (bug) test_math_gate and test_datasets_gate fail together on main: the status-command subprocess tests see /var/cache/planetgen/datasets from the machine instead of the test's own data directory | none | done, PR #6078 |
@@ -4904,10 +4905,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.727 | (bug) test_forced_star::test_a_subdwarf_is_an_old_metal_poor_star fails by draw on main: about 5 percent of forced K5VI draws come out classed V at about 4,400 K, and the test takes 10 draws | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | TEST.728 | (bug) A wide binary's second star reads young star when generated but M-type star after store and load, so test_describe::test_a_stored_system_is_described_like_the_generated_one fails with PYTHONHASHSEED=1 (its seed comes from hash(), so it flakes in gates) | none | done, PR #6184 |
 | TEST.729 | Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run) | none | done (PR 6888, Lane 15, merged 12:12 PM EST 11-16: the old-schema shape test runs from the baseline and the newest three schemas; 84 unused fixtures removed, the rest go with TEST.731 and TEST.733) |
-| TEST.730 | Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s) | none | open |
+| TEST.730 | Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s) | none | done (PR 6900, Lane 15, merged 1:06 PM EST 11-16: test_bughunt_sector_placement retired, about 1,150 s; its explicit-position check moved into test_fuzz_sector_placement) |
 | TEST.731 | Retire the 29 shape-only downgrade-and-migrate migration tests, keeping each file's save-and-load round trip | TEST.729 | done (PR 6891, Lane 15, merged 12:31 PM EST 11-16: 28 shape-only migration tests retired, 12 files deleted, 16 keep their round trip, 14 more fixtures removed; test_migration_snow_line moves to TEST.733) |
 | TEST.732 | (bug) test_isotope_record.py defines the same test name twice, so the first never runs | none | done, PR #6293 (11-13) |
-| TEST.733 | Retire the 23 data-backfill migration tests (Boss: hard cut, no generation before 8.0 is compatible with 8.0 and above) | none | open |
+| TEST.733 | Retire the 23 data-backfill migration tests (Boss: hard cut, no generation before 8.0 is compatible with 8.0 and above) | none | done (PR 6897, Lane 15, merged 1:01 PM EST 11-16: the backfill migration tests of migrations Boss's server has run are retired, 11 files deleted, and the fixtures TEST.729 took that downgrade_to still loaded are fixed; 25 fixtures remain, all loaded) |
 | TEST.734 | Serialization fuzz cut from 20 seeds to 5 and its two identical tests folded into one (about 400 s) | none | done earlier (commit 805e6ae11e (with TEST.736); found in Lane 07's stale sweep, 11-16) |
 | TEST.735 | Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests | none | done earlier (commit 805e6ae11e (with TEST.736); found in Lane 07's stale sweep, 11-16) |
 | TEST.736 | One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim | none | done, PR #6350 (11-13) |
@@ -4955,6 +4956,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.778 | (bug) test_haze_in_the_air::test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it is red on main e22ff539e2 | done (PR 6847, Lane 03, merged 8:37 AM EST 11-16: red since GEN.1754 moved the first hazy body with ground to a 257 K body whose air does not settle; the test now replays from the body own draw state and asserts haze is present, 0.5 K bound untouched) |
 | TEST.779 | (bug) test_body_state_fields::test_a_remake_after_an_orbit_change is red on main: the remade body's composition text differs | done (PR 6855, Lane 04, merged 9:31 AM EST 11-16: a belt member at a water share exactly on a level edge grows a trace air and its composition phrase is rewritten from its shares on purpose (GEN.430); the test now checks the phrase against the current shares and allows a change only within 1e-5 of an edge) |
 | TEST.780 | (bug) test_mass_boundaries::test_the_generator_rows_read_the_table is red on main: it multiplies by a hard-coded 317.8 while tuning reads constants.JUPITER_MASS_EARTH (317.83) since GEN.1152 | done (PR 6860, Lane 15, merged 9:42 AM EST 11-16: the test reads constants.JUPITER_MASS_EARTH) |
+| TEST.781 | (bug) test_api::test_update_and_delete_system gets 410 where it expects 404 after a delete, on main | done (PR 6895, Lane 14, merged 12:48 PM EST 11-16: the API is right, a deleted system is a tombstone that answers 410 Gone since GEN.1141; the stale test now expects 410 and keeps a 404 for an id nobody had) |
+| TEST.782 | (bug) test_systems::test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt gets 2.45 where it expects 2.25 on main | open |
+| TEST.783 | (bug) test_star_composition_sweep and test_radius_valley_sweep: the filled-galaxy fixture runs past the hang guard (900 s, 1,500 s in gates) on a 4-core box, so the files error instead of testing | open |
+| TEST.784 | (bug) test_earth_analog::test_the_stored_baseline_is_well_formed_and_its_first_trials_redraw_the_same is red on main: a stored trial redraws hydrology 'brine seep' where the baseline says 'surface ocean' | open |
+| TEST.785 | (bug) test_envelope_dial::test_at_share_one_no_candidate_keeps_an_envelope_and_the_others_are_not_made_late_cores is red on main: a candidate planet that moved into the ecosphere after the late-core draw keeps its envelope | done (PR 6907, Lane 04, merged 1:53 PM EST 11-16: generation is right, the dial is drawn once in the zone held then and a planet moved later keeps its decision; the test now counts only candidates whose zone did not change) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
