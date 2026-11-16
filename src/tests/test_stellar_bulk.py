@@ -94,7 +94,7 @@ def test_the_rows_of_every_kind_are_stored_with_the_values(mysql_config):
     config = SystemConfig()
     draw.set_run_seed(9)
     sector_id = store.save_sector(SpaceSector("Bulk Sector", edge_ly=10.0), config=mysql_config)
-    rogue, landing = _rogue(9, 1.0, 0)
+    rogue, landing = _rogue(4, 1.0, 0)        # GEN.1710: seed 9 holds 0.2 to 0.5 percent of its mass as envelope, which has no ground and is judged as a giant: seed 4 is the rocky rogue
     with store.get_connection(mysql_config) as conn:
         ids = {
             "black_holes": store.insert_black_hole(conn, BlackHole(config)),
