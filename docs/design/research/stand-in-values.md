@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1860 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1861 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1833 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1834 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 169 | 71 | 3 | 1 | 0 | 244 |
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 90 | 16 | 8 | 22 | 13 | 149 |
-| T5 | 107 | 28 | 8 | 2 | 1 | 146 |
+| T5 | 108 | 28 | 8 | 2 | 1 | 147 |
 | T6 | 237 | 126 | 34 | 79 | 4 | 480 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 106 | 41 | 225 |
-| All | 1066 | 381 | 94 | 259 | 60 | 1860 |
+| All | 1067 | 381 | 94 | 259 | 60 | 1861 |
 
 ## How the labels were given
 
@@ -1839,7 +1839,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| SV1 | P | T5 | L0 | surface_air._steam_possible and MOIST_LIMIT_K 375: a body holds steam only when its effective flux (starlight over 1361 W/m2 plus 4 times its own heat flow over 1361 times one less its albedo) is past `orbits.runaway_greenhouse_flux` of its star's temperature and its mass (the Sun's temperature for a body with no star); under it a body with water has its surface held at 375 K or under, the surface of the radiative-convective model's saturated clear-sky air at its last solution (374.6 K at 330 W/m2, GEN.1194) | MOIST_LIMIT_K 340 to 420; the limit's own range ([R2446] runaway sets, 0.9 to 1.5 S by star and mass) | rocky bodies with surface water, under or near the limit | test_surface_air_steam_limit; a rocky planet under 0.8 of the limit with a steam air of over 1e8 Pa in a generated sample | a radiative-convective table that bounds the outgoing flux of a saturated air (so the fixed point has one answer, as for CC17) | educated guess from physics: a hot steam air cannot radiate less than about 280 W/m2 [R1607, R3236], so a body that absorbs less than the limit cools until its water condenses; the 375 K bound is the model's own moist limit, not a source value | predicted only | - | - |
+| SV1 | P | T5 | L0 | surface_air._steam_possible and the moist limit of the air (`moist_limit.limit_k`, row ML1): a body holds steam only when its effective flux (starlight over 1361 W/m2 plus 4 times its own heat flow over 1361 times one less its albedo) is past `orbits.runaway_greenhouse_flux` of its star's temperature and its mass (the Sun's temperature for a body with no star); under it a body with water has its surface held at or under the moist limit of its air (ML1) | the limit's own range ([R2446] runaway sets, 0.9 to 1.5 S by star and mass) | rocky bodies with surface water, under or near the limit | test_surface_air_steam_limit; a rocky planet under 0.8 of the limit with a steam air of over 1e8 Pa in a generated sample | a radiative-convective table that bounds the outgoing flux of a saturated air (so the fixed point has one answer, as for CC17) | educated guess from physics: a hot steam air cannot radiate less than about 280 W/m2 [R1607, R3236], so a body that absorbs less than the limit cools until its water condenses; the bound is the model's own moist limit of the air (ML1), not a source value | predicted only | - | - |
+| ML1 | P | T5 | L0 | physics/data/moist_limit_table.json and `moist_limit.limit_k` (GEN.1579): the hottest surface a moist state of an air can have, the temperature where the slope of the infrared flux to space of the air's saturated clear-sky column over an ocean (`radiative_convective` with `saturated=True, clear_sky=True`, the humidity 0.77 of the generator's oceans, row IR17) first falls under 0.25 W/m2 per K (`moist_limit.SLOPE_FLOOR_W_M2_K`), read from a table of that flux on a grid of surface temperature (260 to 600 K), non-condensing gas (0 to 100 bar), carbon dioxide (0 to 300 bar) and gravity (0.5 to 2 g) by interpolation in the logarithm of the pressures (plus 10 kPa, `moist_limit.PRESSURE_OFFSET_PA`) and of the gravity, held at the grid's edge outside it; every gas that is neither carbon dioxide nor water counts as nitrogen; built by `scripts/build_moist_limit_table.py`, refused when the k-tables are not the ones it was built from | slope floor 0.1 to 0.5 W/m2 per K (a ceiling several tens of kelvin higher or lower for the airs with a long flat top); the pressure offset 10 kPa (shifts the thin airs' place on the axis, not their values at the grid's points) | rocky bodies with surface water under their runaway flux, air of up to 100 bar of non-condensing gas and 300 bar of carbon dioxide at 0.5 to 2 g (held at the edge beyond) | a line-by-line or three-dimensional model that holds a moist state well above the ceiling of a thin nitrogen air (clouds move it [R1607]), or a flat of the published saturated limit (282 to 296 W/m2 [R1607] [R4773]) at a temperature far from the table's; a body past the ceiling whose air the sources hold stable | a table from a line-by-line or three-dimensional model, the ceiling of each air of the grid | educated guess from physics: the stable branch of a moist climate ends where its outgoing flux stops rising [R1607]; the model's flat top is 315 to 335 W/m2, not the 282 of the line-by-line limit, so the temperature is the model's, not a source value; the slope floor is a design constant and the clouds are left out | predicted only | - | - |
 
 ## 6.205 Stand-ins of the strong-acid anions of a sealed ocean
 

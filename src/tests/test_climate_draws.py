@@ -118,7 +118,7 @@ def test_a_body_held_at_the_ionization_ceiling_stores_the_greenhouse_that_gives_
                         lambda *args: dataclasses.replace(real(*args), surface_temperature_k=1.0e6, factor=1.0e6))
     monkeypatch.delenv("PLANETGEN_CEILING_IS_ERROR")
     with draw.bound(3):
-        # inside the runaway flux, so the steam limit of GEN.1329 (`MOIST_LIMIT_K`) does not hold the surface down
+        # inside the runaway flux, so the steam limit of GEN.1329 (`moist_limit.limit_k`) does not hold the surface down
         planet = Planet(SystemConfig(), host_star, host_star.habitable_zone, 0.4 * host_star.habitable_zone[0],
                         mass=constants.EARTH_MASS_TO_KG, moon_count=0)
     assert planet.atmospheric_pressure > 0.0
