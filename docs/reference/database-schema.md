@@ -1370,6 +1370,8 @@ anything.
 | `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex against the Sun, drawn from its population and its distance from the galactic center; a binary's secondary shares its primary's. NULL on a row generated before v95. |
 | `nuclear_arrival_age_gy` | DOUBLE | nullable | Added in v198 (GEN.1174). For a pre-main-sequence star, the age in Gyr at which MIST's tracks put it on the main sequence (`physics/pre_main_sequence.py`, `nuclear_arrival_yr`). The star counts as pre-main-sequence only until its radius has settled (BHAC15), an earlier age, so both times are kept: that one in `bright_stars.phase_end_age_gy`, this one here. NULL for every other star and for a row made before v195; nothing is backfilled. |
 | `density_g_cm3`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The mean density in g/cm3 and the binding energy in J of the star, white dwarf or remnant standing in for one (`physics/body_strength.py`: the n = 3 polytrope for a star, n = 3/2 for a brown dwarf or white dwarf, [R2573] for a neutron star, -1 for a black hole). NULL for a row made before v196. |
+| `initial_mass_sol` | DOUBLE | nullable | Added in v268 (DB.133). The mass the population model gave the star at birth, solar masses (CHECK above 0): what the orbits a white dwarf's planets formed on, the engulfment radius and the companion floor read (`remnant_orbits`, `place_terms.born_mass_solar`). NULL for a star the model did not make (a forced type) and for a row made before v268; nothing is backfilled. Left out of the fingerprint. |
+| `phase_end_age_gy` | DOUBLE | nullable | Added in v268 (DB.133). The age in Gyr at which the star leaves the evolutionary phase it was drawn in (CHECK above 0); the age it is drawn at stays below it. NULL beside an `initial_mass_sol` means it never does (a white dwarf, loaded as infinity); NULL with no `initial_mass_sol` is a star with none. Left out of the fingerprint. |
 
 ### `planets`
 
@@ -2118,6 +2120,8 @@ Added in v243 (GEN.1497). The numbers a planet's or moon's history leaves that c
 | `formation_distance_au` | DOUBLE | nullable | Added in v266 (GEN.1753). Where the body formed, AU (a moon's is its planet's; CHECK 0 or more): the key of the end-stage draw streams (`draw.body_stream_of`) and the line the water's origin is read against. NULL for a row written before v266. |
 | `birth_distance_au` | DOUBLE | nullable | Added in v266. A moon's orbit when it was born, AU, before the planet's tide moved it (CHECK 0 or more); the moon history of its planet starts from it. NULL for a planet and for a row written before v266. |
 | `born_index` | SMALLINT UNSIGNED | nullable | Added in v266. The moon's place in its planet's list of born moons (`moon_history.born_moons`), which the `lost_moons` rows share. |
+| `held_eccentricity` | DOUBLE | nullable | Added in v268 (DB.132). The eccentricity a resonance holds the body on (`_resonance_e`: a planet of a resonant chain, oddity W5; a moon of a first-order pair or caught in the evection resonance), the floor `settle_orbit` keeps under the tide (CHECK 0 up to 1). NULL for a body no resonance holds and for a row written before v268. |
+| `forced_eccentricity` | DOUBLE | nullable | Added in v268. The eccentricity the planets of a resonant chain force on a planet (`oddity_quantities["forced_eccentricity"]`, `resonant_chains.give_forced_eccentricities`; CHECK 0 up to 1), the quantity oddity W5 reads. NULL for a planet in no chain and for a row written before v268. |
 | `formula_version` | TINYINT UNSIGNED | NOT NULL | `body_history.FORMULA_VERSION` when the row was written. |
 
 Primary key `(star_system_id, body_type, body_id)`; no other index. Left out of the fingerprint (it keeps draws, the results are what a fingerprint reads). A galaxy made before v243 has no rows, which reads as not kept; nothing is backfilled. An edit of a system keeps the rows of the bodies it keeps and deletes those of a planet or moon it deleted (`db/edits.py`).
@@ -2530,6 +2534,10 @@ Migration 0208 drops `description` from `planets` and `moons`. It held the sente
 ### v210 (GEN.1232): the history of a belt
 
 Migration 0210 adds `history_text` (TEXT, nullable) to `asteroid_belts`: the sentences `physics/belt_history.py` wrote for the events the star's evolution put a belt through (engulfed in part by the giant branch, thrown inward by the mass loss), as one paragraph for the belt's page. A belt nothing happened to keeps NULL, and so does a row made before v210; nothing is backfilled, and a column already there is skipped, so a stopped run can be started again.
+
+### v268 (DB.132, DB.133): the birth mass of a star and the eccentricity a resonance holds
+
+Migration 0268 adds `initial_mass_sol` and `phase_end_age_gy` (DOUBLE, nullable) to `stars` and `held_eccentricity` and `forced_eccentricity` (DOUBLE, nullable) to `body_history` (see the table sections above). `store.STAR_FIELDS` writes and loads the star's two; `body_history.attach` gives a restored planet or moon its `_resonance_e` and a planet its `oddity_quantities["forced_eccentricity"]`. Nothing is backfilled: the numbers of a body made before v268 are stored nowhere.
 
 ### v267 (GEN.1231): the mass a belt's star threw inward
 

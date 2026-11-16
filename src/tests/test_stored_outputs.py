@@ -110,8 +110,6 @@ def test_a_home_that_the_body_tables_load_anyway_or_that_no_body_has_is_taken_ou
 STAR_HOMES = {
     "galactic_center_dist_ly": "not stored: worked out from the stored galactic position when the star is loaded",
     "galactic_orbital_speed_kms": "not stored: worked out from the stored galactic velocity; the orbit's period and phase are stored (`galactic_orbital_period_gy`, `galactic_orbital_phase_deg`)",
-    "initial_mass_sol": "not stored on `stars` (`bright_stars` keeps its own): the mass the star was born with, from the population model; a restored star has None and `remnant_orbits` checks for that",
-    "phase_end_age_gy": "not stored on `stars` (`bright_stars` keeps its own): the age the drawn evolutionary phase ends at; a restored star has None",
 }
 """dict: Public attribute of a generated star -> where it is kept when no field of the `stars` row loads it, or why it is not kept."""
 
