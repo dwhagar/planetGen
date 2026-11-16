@@ -195,7 +195,7 @@ def methane_flux_mol_yr(body, life_class, supplies=None):
     area_ratio = biogenic_oxygen.area_m2(body) / biogenic_oxygen.EARTH_AREA_M2
     fuel = methane["fuel"]
     if fuel == "burial":
-        return number("methane_per_buried_carbon") * biogenic_oxygen.productivity(body, biogenic_oxygen.area_m2(body))
+        return number("methane_per_buried_carbon") * biogenic_oxygen.productivity(body, biogenic_oxygen.area_m2(body), biogenic_oxygen.band_of(life_class))
     if supplies is None:
         supplies = life_supply.supplies(habitability_world.values_from_body(body))
     share = supplies.get(fuel, 0.0)
@@ -215,13 +215,13 @@ def methane_target_mol(flux_mol_yr, moles):
 
 
 def _oxygenic(body, living, forever=False):
-    """The `Living` of the oxygenic classes whose producers have begun by the star's age (`forever`: whatever the star's age), as `(age_gyr, share)` pairs."""
+    """The `Living` of the oxygenic classes whose producers have begun by the star's age (`forever`: whatever the star's age), as `(age_gyr, share, band)` tuples: the class's `band` is the light it eats (GEN.1744)."""
     star_age = getattr(getattr(body, "star", None), "age", None)
     pairs = []
     for one in living:
         started = one.started(body)
         if one.life_class.releases_oxygen and started is not None and (forever or (star_age is not None and started <= star_age)):
-            pairs.append((started, one.share))
+            pairs.append((started, one.share, biogenic_oxygen.band_of(one.life_class)))
     return pairs
 
 
@@ -279,7 +279,7 @@ def oxygen_rise_gyr(body, living):
         rise = biogenic_oxygen.rise_age_gyr(body, pairs, extra)
         if rise is None:
             return None
-    profile = biogenic_oxygen.profile_of(body, sum(share for _, share in pairs), extra)
+    profile = biogenic_oxygen.profile_of(body, extra_store_mol=extra, producers=[(share, band) for _, share, band in pairs])
     return rise if profile.delay_gyr is not None else None
 
 
@@ -294,7 +294,7 @@ def oxygen_state(body, living):
         return None, 0.0
     pairs = _oxygenic(body, living)
     extra = 2.0 * standing_methane_mol(body, living, rise)
-    profile = biogenic_oxygen.profile_of(body, sum(share for _, share in pairs), extra)
+    profile = biogenic_oxygen.profile_of(body, extra_store_mol=extra, producers=[(share, band) for _, share, band in pairs])
     return rise, biogenic_oxygen.stage_target_mol(body, profile)
 
 

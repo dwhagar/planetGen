@@ -40,7 +40,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, belt_planets, disk_ejection, abundance_tier, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star
-from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
+from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, moon_resonances, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -537,14 +537,14 @@ class StarSystem:
                 planetLife.decide_flavor_text_alone(star, "star")      # GEN.1433: a star and a comet show a line of their own scopes, like a belt
             for comet in (*self.comets, *getattr(self, "secondary_comets", ())):
                 planetLife.decide_flavor_text_alone(comet, "comet")
+            if self._drop_barred_bodies():    # GEN.1275; GEN.1604: before the tides, so no tide or ledger row of a survivor counts a body that is not in the system
+                self._refresh_wobble()
             self._tide_pass()  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
             # The final pass can change a class, so what the config asked for is judged once, on the finished bodies.
             self.unmet_requirements = self._unmet_requirements()
             if self.unmet_requirements:
                 log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                           f"without {' or '.join(self.unmet_requirements)}")
-        if self._drop_barred_bodies():    # GEN.1275
-            self._refresh_wobble()
         self._fill_light_ledger()      # GEN.1465: the light and ultraviolet each body gets from each star, on the final bodies
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
@@ -2471,6 +2471,17 @@ class StarSystem:
                     self.kozai_outcomes["lost"] += 1
                     log.debug(f"{moon.name}: lost to Kozai-Lidov pumping by {planet.star.name}")
 
+    def _moon_resonances(self):
+        """GEN.1449 slice 2: every moon pair near a first-order period ratio (captured on the way out, `moon_history`, or just close) forces an eccentricity on both (`moon_resonances`). `self.resonance_outcomes`
+        counts the moons screened and the moons raised (a record for the census, not stored)."""
+        self.resonance_outcomes = {"screened": 0, "raised": 0}
+        for _star, planets in validation.star_lists(self):
+            for planet in planets:
+                if planet.body_type == 'a' or len(planet.moons) < 2:
+                    continue
+                self.resonance_outcomes["screened"] += len(planet.moons)
+                self.resonance_outcomes["raised"] += len(moon_resonances.give_forced_eccentricities(planet))
+
     @staticmethod
     def _problem_key(problem):
         """A problem as the secular exchange compares it (GEN.1600): its body and its message with the numbers taken out, because the message quotes distances and a planet that
@@ -2528,10 +2539,12 @@ class StarSystem:
             if respaced and self.binary_type == "wide":
                 self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
             # GEN.1548: the orbits are final, so the air, class and spin of the bodies built bare are made now, once, and their moons (bare, with their orbits) with them
+            late_accretion.give_first_air(self.all_planets)       # PERF.271: the belts and orbits are final, so the first air reads the late accretion the system gives, and the pass at the end finds most planets done
             for obj in self.all_planets:
                 if obj.body_type != 'a':
                     obj.finish_climate()
             self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
+            self._moon_resonances()     # GEN.1449: the eccentricity moons near a first-order ratio force on each other, before the tide wears an eccentricity down
             for obj in self.all_planets:
                 if obj.body_type == 'a':
                     continue
@@ -2555,13 +2568,11 @@ class StarSystem:
     @staticmethod
     def _settle_body(obj, refinish=True):
         """The settle pass for one planet and its moons (`_settle_to_final_age`; and, for a belt member made a planet, `_settle_promoted`): the giant sized again, the tides of the orbit, the envelope, the oddities of a resonant chain and the end stages of a rocky body made again."""
-        if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
-            log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr.")
         for body in (obj, *obj.moons):
             if planetPhysics.settle_orbit(body):
                 log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr.")
-        # the tides above can move a giant's eccentricity, and with it the mean light its radius was sized on (`orbit_elements.flux_distance_au`): size it again
-        # on the final orbit (a giant the tables moved by under `SETTLE_TOLERANCE` is left as it is)
+        # the tides above can move a giant's eccentricity, and with it the mean light its radius is sized on (`orbit_elements.flux_distance_au`): size it once,
+        # on the final orbit (GEN.1659; a giant the tables move by under `SETTLE_TOLERANCE` is left as it is)
         if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
             log.debug(f"{obj.name}: settled again to {obj.radius:.0f} km on its final orbit.")
         if planetPhysics.settle_envelope(obj):

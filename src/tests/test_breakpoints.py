@@ -87,7 +87,7 @@ def test_a_whole_command_declares_itself_and_one_that_declares_nothing_keeps_its
 
 def test_a_command_that_names_no_dependency_takes_the_ones_the_queue_already_holds(monkeypatch):
     assert commands.declaration("run-territories").after == ("run-population",)
-    assert commands.declaration("finish-phenomena").after == ("scatter-phenomena",)
+    assert commands.declaration("write-special-phenomena").after == ("scatter-phenomena",)
 
 
 def _own(params):

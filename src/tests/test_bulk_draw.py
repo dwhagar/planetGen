@@ -140,6 +140,7 @@ def test_a_compact_remnant_makes_carbon_rock():
     draw.set_run_seed(6)
     bulk_draw.draw_terrestrial(body, True, False)
     assert body.carbon_rock
+    assert body.rock_p2o5_fraction is not None and body.rock_p2o5_fraction > 0.0 and body.rock_na2o_fraction is None     # GEN.1749: the carbon rock holds its phosphorus, none of the other six
 
 
 def test_the_same_seed_makes_the_same_body():
@@ -175,6 +176,24 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
                         assert bulk.envelope_helium is not None and bulk.envelope_z is not None
                 seen_classes.add(body.planet_class)
     assert len(seen_classes) >= 3
+
+
+def test_a_rocky_body_under_one_earth_mass_adds_the_water_its_nebular_envelope_made():
+    """GEN.1748: the water of the hydrogen envelope a body under 1 Earth mass captured (Young et al. [R5293]) is added to its delivered water; a late core, a moon, a body of 1 Earth mass or more and a body
+    of under 0.2 Earth masses get none, and the run's stream does not move."""
+    from planetgen.physics import envelope_capture
+    mass = lambda earth: earth * constants.EARTH_MASS_TO_KG
+    for earth, extra in ((0.5, {}), (0.5, {"_late_core": True}), (0.5, {"is_moon": True}), (1.5, {}), (0.1, {})):
+        body = _body(5000.0, mass=mass(earth), **extra)
+        draw.set_run_seed(11)
+        base = bulk_draw._rocky_water(_body(5000.0, mass=mass(earth), _late_core=True))     # the delivered water alone
+        draw.set_run_seed(11)
+        water = bulk_draw._rocky_water(body)
+        if earth == 0.5 and not extra:
+            start = envelope_capture.start_of(body.mass, 1.0, body.star.mass)
+            assert start > 0.0 and water == pytest.approx(base + envelope_capture.nebular_water_fraction(start, bulk_draw.host_ratios(body.star).y_envelope))
+        else:
+            assert water == pytest.approx(base)
 
 
 def test_an_icy_bodys_water_tops_out_at_the_condensed_share_of_its_formation_temperature():

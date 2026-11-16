@@ -13,18 +13,18 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.319 |
+| UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1751 |
+| GEN | GEN.1755 |
 | PERF | PERF.273 |
-| DB | DB.131 |
+| DB | DB.132 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
 | TEST | TEST.773 |
 | USR | USR.33 |
-| OPS | OPS.264 |
+| OPS | OPS.267 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -691,7 +691,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute | none | open |
 | DB.110 | Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units | none | open |
 | DB.111 | Storage for vessels and stations: the vessel table (Object ID, owner, name, kind, speed table entry, state, anchor, course id, departure and arrival time, finished legs) and the owner and free-point columns on facilities if it lacks them | none | open |
-| DB.112 | Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration) | none | open |
+| DB.112 | Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration) | none | done, PR #6734 (9:05 PM EST 11-15) |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -2227,7 +2227,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1446 | Tides between all bodies of a system: every star, planet and moon raises tides on every other by 3D position, joining ocean tides, tidal heating, locking and spin-down | none | done (Train 23, 2026-11-11) |
 | GEN.1447 | Kozai and secular pumping between all bodies: a companion star, sibling planets and the host drive eccentricity and inclination of every planet and moon over the age of the system | none | open |
 | GEN.1448 | Tides and secular census: how many planets, moons and belts change tide, locking, spin, heating and orbit once every body counts | none | done (Train 23, 2026-11-11) |
-| GEN.1449 | Moon systems under every perturber: the Hill limit, stability, resonance and spin of moons count the star, the sibling planets, a companion and the other moons | none | open |
+| GEN.1449 | Moon systems under every perturber: the Hill limit, stability, resonance and spin of moons count the star, the sibling planets, a companion and the other moons | none | done, Train 33 PR #6741 (5:25 PM EST 11-15), PRs #6700, #6710, #6730 |
 | GEN.1450 | Planet chains under every body: mutual Hill spacing, resonance and Laplace-Lagrange secular exchange across all planets, with companion stars in the spacing | none | done, PR #5869 |
 | GEN.1451 | Belts and disks under every body: companion truncation, resonance sweep and scattering by sibling planets in belt and disk edges | none | done, PR #5869 |
 | GEN.1452 | Stellar wind, magnetopause and radiation belts from every star and from the planets for their moons | none | done, PR #5786 |
@@ -2253,7 +2253,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1474 | Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities | GEN.1450 | done, closed as a finding (Lane 21 read, 2026-11-09) |
 | GEN.1475 | Disk lifetime of close companions: a companion within a few tens of AU shortens the planet-forming disk, which would change planet counts (needs a source first) | none | done (Train 23, 2026-11-11) |
 | GEN.1476 | Running block totals kept in the database as objects are scattered, at every level (sector, system, region), so no second pass over the galaxy and no block-light rebuild | none | done, PR #5869 |
-| GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | open |
+| GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | done, Train 34 PR #6754 (7:43 PM EST 11-15), PR #6720 |
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | done, PR #5792 |
 | GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) | GEN.1399 | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1431 | Flavor text life subtree: lines for all nine life classes at rungs 2 to 5, gated on the life's solvent medium, energy source, rung and animal grade (replaces the multicellular-only trigger) | GEN.1430 | done, Train 24 PR #6033 (b8a0163b7) |
@@ -2957,15 +2957,15 @@ Parents marked "new parent" had no old number of their own.
 | PERF.260 | Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned | none | done, PR #6317 (Lane 06, 6:55 PM EST 11-13) |
 | PERF.261 | Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index | PERF.260, OPS.161 | closed as obsolete (Lane 06, 11:45 PM EST 11-14): OPS.154 already removed the Stage 17 uncharted index from main, so there is nothing left to cut |
 | PERF.262 | (bug) Warm lists stops the warm-up: /lists answers 504 because the uncharted class filter's COALESCE(subtype, '') makes the hypervelocity list walk the whole phenomenon_scatter table | none | done, PR #6360 |
-| PERF.263 | The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401 | none | open |
+| PERF.263 | The logged-in page polls /api/auth/me every 3 seconds; poll far less often or only on focus and on a 401 | none | done, PR #6632 (OPS.219, 60 s idle poll; closed 3:46 PM EST 11-15) |
 | PERF.264 | The mass and luminosity scatter passes share the component sector addresses in their planning step | none | done, PR #6413 (11-13) |
 | PERF.265 | The workers' table warm-up starts while the parent plans each scatter pass | PERF.264 | closed as finding (Lane 15): measured 270 s vs 277 s on a 4-core box, within noise; the memory gate lets only one warm-up run beside the cut; patch kept at /mnt/project-files/reports/gen1683-perf265-prewarm-attempt.patch |
 | PERF.266 | (bug) planetgen system got about 55 s slower in a day: the no-database system page test took 88 s on main 75ef1017e and 142 s on 92855b9c7, past its 120 s limit | none | done, PR #6477 (Lane 15, 12:51 AM EST 11-14) |
 | PERF.267 | Stage 5 (the neighborhood) took 21,919 s for 109 sectors on Boss's New galaxy run, about 200 s a sector at 0.0 per s | none | done as analysis (Lane 06, 12:55 AM EST 11-15, report /mnt/project-files/reports/perf267-stage5-time-2026-11-15.md); the fixes are PERF.268 to PERF.272 |
-| PERF.268 | Stage 5 progress and ETA weighed by expected systems per sector, not one per sector | none | open |
+| PERF.268 | Stage 5 progress and ETA weighed by expected systems per sector, not one per sector | none | done, PR #6739 (4:58 PM EST 11-15) |
 | PERF.269 | Supervisor heartbeat reuses one control DB connection instead of opening one every 0.3 s | OPS.207 | done, PR #6671 (9:23 AM EST 11-15) |
 | PERF.270 | A per-sector timing line in the job log for the neighborhood stage | none | done, PR #6618 (2:47 AM EST 11-15) |
-| PERF.271 | Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system) | none | open |
+| PERF.271 | Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system) | none | done, Train 35 PR #6763 (9:35 PM EST 11-15), PR #6743 |
 | PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | open |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
@@ -3046,7 +3046,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.235 | Job engine stage 4: RQ removed (the rq dependency, cli/worker.py, redisqueue queue helpers, reset_jobs RQ parts); makes OPS.179 moot | none | open |
 | OPS.236 | Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill) | none | open |
 | OPS.237 | Job engine stage 4: warm star tables stored as packed arrays so a forked job does not copy them (stage 0: 120 MB copied after 416 stars, 464 MB after 8,336); every drawn star identical (golden), dropped if it cannot be | none | dropped (Lane 14 measured, 11:27 AM EST 11-14): the 391 tables are 6.9 MB as lists; the 1,540 MB figure was a cold build with no band-table cache, the warm template is 166 MB; evidence /mnt/project-files/engine/ops237/ |
-| OPS.238 | Job engine stage 5: needs and makes on every command and a stored plan for every start path (generate, finish-run, maintenance, check, Generate page, API); absorbs OPS.128; split declarations, planner, start paths | none | open |
+| OPS.238 | Job engine stage 5: needs and makes on every command and a stored plan for every start path (generate, finish-run, maintenance, check, Generate page, API); absorbs OPS.128; split declarations, planner, start paths | none | done, PRs #6709, #6712, #6713, #6715, #6735 (last slice 4:28 PM EST 11-15) |
 | OPS.239 | Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle | none | open |
 | OPS.240 | Job engine stage 5: sectors one at a time from a spawner job with a queued window; absorbs OPS.126 | none | open |
 | OPS.241 | Job engine stage 5: independence harness (declared reads and writes; a SQL tap test fails undeclared tables); absorbs OPS.131 | none | open |
@@ -3070,8 +3070,11 @@ Parents marked "new parent" had no old number of their own.
 | OPS.259 | Train gate shards its file list across lanes from the start, and the gate's test durations come from real database runs | none | done, PR #6553 (7:26 PM EST 11-14) |
 | OPS.260 | Job engine stage 2, OPS.218 slice 3: conclude and finish hooks become commands of their own, and the engine stops reading CommandSpec.conclude and finish | none | done, PR #6634 (4:48 AM EST 11-15) |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219 | open |
-| OPS.262 | Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget | OPS.196 | open |
-| OPS.263 | (bug) update.sh stops at Stage 4 (math check): "Table 'planetgen_control.engine_runs' doesn't exist" from planrows.record_plan | none | open |
+| OPS.262 | Job engine guard: an all-commands silence run, each command on a small built galaxy, holding its longest stretch with no movement under the budget | OPS.196 | done, PR #6762 (9:30 PM EST 11-15) |
+| OPS.263 | (bug) update.sh stops at Stage 4 (math check): "Table 'planetgen_control.engine_runs' doesn't exist" from planrows.record_plan | none | done, PR #6726 (4:21 PM EST 11-15) |
+| OPS.264 | (bug) Every per-piece writer is safe to re-run: scatter shells and scatter phenomena write their 10,000-row batches twice, and unplaced sectors and the system finish piece write a second row, when a piece runs again after its commit | none | open |
+| OPS.265 | (bug) plan-skeleton's outline piece (7.5 s) and generate-system's first system (8.5 s) go silent past the 5 s budget on a small galaxy: give each a count inside | none | open |
+| OPS.266 | (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector | none | open |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -3852,7 +3855,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1529 | A standalone neutron star reads its surface temperature from dark_light.surface_temperature_k at the age since collapse, so a neutron star in a tree and a lone one agree | GEN.1501 | open |
 | GEN.1530 | Stripped helium star light: a luminosity from its mass (stellar-state tables) and an XUV share, in dark_light.source_of (stand-in row DL7 notes the gap) | GEN.1501 | open |
 | GEN.1531 | Roche-lobe overflow feeds a black hole: a companion that fills its lobe makes the hole a bright X-ray source (transfer rate from the companion's evolution state) | GEN.1501 | open |
-| GEN.1533 | Give the GEN.1497 body history table a reader: nothing in production code reads the stored history yet | GEN.1497 | open |
+| GEN.1533 | Give the GEN.1497 body history table a reader: nothing in production code reads the stored history yet | GEN.1497 | done, PR #6747 (6:33 PM EST 11-15) |
 | GEN.1534 | A Gaia nearby-stars sample fetched at setup replaces the stand-in separation distribution SEP1 (HYG is incomplete and mixes wide pairs) | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1535 | Obliquity variation, part 3: wire the companion star's mode, store the range (two columns) for the seasonal swing, the Cassini state from the real precession constant, an oddity name for chaotic obliquity | GEN.1454 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1536 | The Cassini state of a planet's tilt from its real precession constant (needs the stored J2 or C22 figure), replacing the log-uniform stand-in | GEN.1535 | open |
@@ -3916,14 +3919,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1594 | (bug) surface_air.solve: the carbon sink record (Air.co2_sink) is only written on steps that weather, so it can be from an earlier step; and if the no-escape fixed point first settles on the last allowed step, the escape pass never runs | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1595 | (bug) planets.remake_air (physics/planets.py lines 776-807) skips a body whose first air came out airless, so late accretion can never give it air | none | open |
 | GEN.1596 | (bug) generation/system.py line 557: born_beyond_snow_line uses the present distance while the make-up of the body uses formation_distance_au (planets.formed_beyond_snow_line, lines 192-195), so a migrated planet can carry both 'born inside' and 'made outside'; no guard for a star with no snow line | none | open |
-| GEN.1597 | (bug) validation.reconcile_moved_planet (lines 176-187) calls generate_spin without birth=, so a moved planet draws a new birth spin, and it updates planet.period after the air is solved so the solve sees the old period | none | open |
+| GEN.1597 | (bug) validation.reconcile_moved_planet (lines 176-187) calls generate_spin without birth=, so a moved planet draws a new birth spin, and it updates planet.period after the air is solved so the solve sees the old period | none | done, Train 33 PR #6741 (5:25 PM EST 11-15), PR #6676 |
 | GEN.1598 | (bug) habitability_world.inventories (about lines 315-321): 'C' is max(hydrogen, carbon...) and 'N' is max(hydrogen, nitrogen...), crediting carbon and nitrogen with the water inventory; looks like a copy slip, confirm intent first | none | done (not a bug, rule pinned by a test), PR #6167 |
 | GEN.1599 | (bug) planets.generate_moons (about line 1557): disk-full rejections count against MOON_REJECTION_LIMIT while too-large rejections count against the passed rejection_limit | none | done, PR #6675 (10:11 AM EST 11-15) |
 | GEN.1600 | (bug) system._secular_exchange (lines 2240-2242): problem tuples hold formatted distances, so an unchanged problem can read as new after a tiny move and keep the loop going | none | open |
 | GEN.1601 | (bug) planet_type.planet_type (lines 37-45) never returns super-puff when given a mapping instead of a body | none | done, PR #6167 |
 | GEN.1602 | (bug) mixture_subject.quantities_of_body line 125: runaway_ratio(insolation, star.temperature) is not guarded for a star with no temperature (a dark primary); the subject's teq_k uses the drawn ice-free albedo | none | closed as finding (Lane 15, 2026-11-12: first half unreachable, temperature_k is NOT NULL; second half by design, teq_k is the bare-rock temperature) |
 | GEN.1603 | (bug) bulk_draw._draw_inverse skips iron_branch_ratios; moons with an origin get ice_shares=None | none | open |
-| GEN.1604 | (bug) _drop_barred_bodies (system.py lines 2355-2380) runs after the tide pass, so tides and ledger rows of the remaining bodies still count a dropped planet or moon | none | open |
+| GEN.1604 | (bug) _drop_barred_bodies (system.py lines 2355-2380) runs after the tide pass, so tides and ledger rows of the remaining bodies still count a dropped planet or moon | none | done, Train 33 PR #6741 (5:25 PM EST 11-15), PR #6683 |
 | GEN.1605 | (bug) A belt keeps the mass, largest body and density of the star's first age: settled once in generation/belt.py line 201, never redone after the age raise or a belt move, so 5 of 25 belts are 2 to 4.5 times off, and largest_body_km disagrees with the rank 1 member by 15 to 40 percent | none | open |
 | GEN.1606 | (bug) giant_draw._ice_shares uses a giant's present distance against the snow line, so a giant that migrated inward gets no ices in its interior (same theme as GEN.1596); and 'eclipses.light_factor_of(planet) or 1.0' in giant_draw.starlight_w_m2 and settle turns a factor of exactly 0 into 1 | none | open |
 | GEN.1607 | (bug) radiation.generate_dose sets dose_helio_mult back to 1.0 on every call, so a body whose life or air is re-applied after the system was placed in a cloud loses the heliosphere multiplier | none | closed as finding (Lane 15, PR #6208: the multiplier is not lost on re-apply; a test now holds it) |
@@ -3978,7 +3981,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1656 | StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles | GEN.1652 | open |
 | GEN.1657 | calculate_atmospheric_conditions: the three post-hoc corrections move into the solver | GEN.1654 | done, PR #6367 (output identical) |
 | GEN.1658 | GEN.570 slice: the three body tables generated from PlanetaryObject.FIELD_UNITS (plus SQL type and nullability columns) | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
-| GEN.1659 | Low: settle_giant runs twice per giant and _air_replay is set twice | none | open |
+| GEN.1659 | Low: settle_giant runs twice per giant and _air_replay is set twice | none | done, Train 33 PR #6741 (5:25 PM EST 11-15), PR #6696 |
 | GEN.1660 | Remove the backward-compat shims and the 13 functions nothing calls | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1661 | (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt | none | open |
 | GEN.1662 | Bright-star backfill: one Band object and one loop replace the two parallel luminosity and mass pipelines in run_plan and bright_stars (about 85% identical) | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
@@ -4049,27 +4052,31 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1727 | Check the lichen 256 K photosynthesis floor in the GEN.1724 report against its source paper before it is used as a refuge limit | none | open |
 | GEN.1728 | A world's ice and snow thickness from a growth law (temperature and snowfall), so the GEN.1726 light law can run on real worlds | none | done, PR #6596 in Train 31, PR #6664 (8:26 AM EST 11-15) |
 | GEN.1729 | Land plants in the oxygen law, on every galaxy including Science: wet land adds to the oxygen source, so desert worlds (class H) can reach 16 kPa | GEN.1723 | done, PR #6655 in Train 32, PR #6714 (2:39 PM EST 11-15) |
-| GEN.1730 | Real-depth desert seas: halite-saturated salt sea instead of a seep brine, on every galaxy (measure first) | GEN.1721 | open |
+| GEN.1730 | Real-depth desert seas: halite-saturated salt sea instead of a seep brine, on every galaxy (measure first) | GEN.1721 | done, Train 33 PR #6741 (5:25 PM EST 11-15), PR #6674 |
 | GEN.1731 | Warm Earth-shaped worlds (289 to 306 K) lose nearly all CO2 to weathering on the tier presets: decision on the warm side | GEN.1720 | closed, no code: Boss 10:36 AM EST 11-15 kept the weathering law |
 | GEN.1732 | Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change | none | open |
-| GEN.1733 | Oxygen on oxygen-rich worlds piles at the 35.5 kPa class limit instead of spreading near Earth's 21 kPa: measure the oxygen law's ceiling | GEN.1723 | open |
+| GEN.1733 | Oxygen on oxygen-rich worlds piles at the 35.5 kPa class limit instead of spreading near Earth's 21 kPa: measure the oxygen law's ceiling | GEN.1723 | done, Train 33 PR #6741 (5:25 PM EST 11-15), PR #6645 |
 | GEN.1734 | (bug) RecursionError in copy.deepcopy of a Planet in life._trial_copy from run_sector._add_planetary_nebula | none | done, PR #6620 (3:04 AM EST 11-15) |
 | GEN.1735 | Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place) | GEN.1728 | open |
 | GEN.1736 | (bug) Class M's 2 Pa CO2 floor is not rechecked after the CO2 rebalance (seed 30143: class M at 1.4 Pa) | none | done, PR #6670 in Train 32, PR #6714 (2:39 PM EST 11-15) |
-| GEN.1737 | (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems) | GEN.1617 | open |
+| GEN.1737 | (bug) Class X never appears: its 190 to 240 K band, airless gate and 10 percent ammonia floor miss every stored ammonia ocean (0 of 309 on 480 systems) | GEN.1617 | done, Train 34 PR #6754 (7:43 PM EST 11-15), PR #6722 |
 | GEN.1738 | (bug) Sector generation stops with ValueError "an abundance must not be negative" (mixture_giant into gas_equilibrium), red in test_db_column_round_trip | none | closed, not reproduced: Lane 16 withdrew the report 11:44 AM EST 11-15 (the error text appears only in 10-30 to 11-06 logs); Lane 04 found no negative in about 3,000 systems and 600 fuzzed giants |
 | GEN.1739 | Research: a time-stepped air history for rocky worlds (hydrogen envelope to class M), life ages with mass extinctions and climate swings, a consumes and gives-off ledger for every life class, and the air history stored in the database | none | done, research and design report reports/air-history-design-gen1739-2026-11-15.md; Boss picked option 1 "Full history, events, life ages" 11:23 AM EST 11-15; build filed as GEN.1740-1746 and API.51 |
 | GEN.1740 | Research: a shock-to-kill law for mass extinctions, verifying the published kill curve | none | done, report reports/shock-to-kill-gen1740-2026-11-15.md (trigger: a swing over 5.2 K at over 10 K/Myr; kill size pending) |
 | GEN.1741 | Research: the early envelope timeline, loss before envelope_escape's 1 Gyr onset and envelopes for 0.2 to 1 Earth mass bodies (research thread report) | none | done, report reports/early-envelope-gen1741-2026-11-15.md; new item GEN.1748 for nebular envelopes under 1 Earth mass |
 | GEN.1742 | Research: the missing life ledger rates (CO eating, aerobic methane eating, denitrification to N2 and N2O, sulfate reduction to H2S, the diffusion-limited hydrogen escape constant) | none | done, report reports/ledger-rates-gen1742-2026-11-15.md (11:32 AM EST 11-15) |
 | GEN.1743 | A balanced C, H, O, N, S reaction ledger for every life class with a balance test, replacing the life_ledger.json rows | GEN.1742 | done, PR #6697 (12:47 PM EST 11-15) |
-| GEN.1744 | Oxygenic life variants 1b and 1c use their own light bands in biogenic_oxygen.active_light_ratio (all use 400 to 700 nm today; Science output changes) | none | open |
+| GEN.1744 | Oxygenic life variants 1b and 1c use their own light bands in biogenic_oxygen.active_light_ratio (all use 400 to 700 nm today; Science output changes) | none | done, Train 35 PR #6763 (9:35 PM EST 11-15), PR #6744 |
 | GEN.1745 | A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts | GEN.1743, GEN.1741 | open |
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | open |
 | GEN.1747 | (bug) life_ledger.json and three source sites cite R3394 and R3395 (two 2018 aurora papers) for the photoferrotroph iron supply and Earth H2 outgassing; the paper meant is R3393 (Ozaki et al., primitive photosynthesis and Earth's early climate) | none | done, PR #6697 (12:47 PM EST 11-15) |
-| GEN.1748 | Nebular hydrogen envelopes for bodies under 1 Earth mass (source in reports/early-envelope-gen1741-2026-11-15.md): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state | GEN.1741 | open |
-| GEN.1749 | (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant) | none | open |
-| GEN.1750 | Research and build: moons that cross the evection resonance on their way out (capture eccentricity and the migration rate through it) | GEN.1449 | open |
+| GEN.1748 | Nebular hydrogen envelopes for bodies under 1 Earth mass (source in reports/early-envelope-gen1741-2026-11-15.md): small rocky bodies capture and lose an envelope in the disk, changing their water and finished state | GEN.1741 | done, Train 35 PR #6763 (9:35 PM EST 11-15), PRs #6751, #6760 |
+| GEN.1749 | (bug) A rocky body with no stored rock P2O5 (rock_p2o5_fraction None) gets ocean phosphate None, so the life law's chemistry term is 0 and any liquid sea on it is lifeless (seed 30391, Oleodzo II, Abundant) | none | done, Train 35 PR #6763 (9:35 PM EST 11-15), PR #6724 |
+| GEN.1750 | Research and build: moons that cross the evection resonance on their way out (capture eccentricity and the migration rate through it) | GEN.1449 | done, Train 34 PR #6754 (7:43 PM EST 11-15), PR #6737 |
+| GEN.1751 | Check the soft edge of a life class window: Ivivaza IV (seed 30193) carries life class 4 at 445 K, 50 K (over 3 sigma) above the 255 to 395 K window | none | closed by design, Lane 04 census 7:00 PM EST 11-15: the soft edge is a score in a pick capped by the 0.005 floor (at most 49 K past the edge), 5.4 percent of 316 life bodies outside their window, none under factor 0.02; Ivivaza IV not reproduced on main |
+| GEN.1752 | Class comes last for small and belt bodies: a finished body with air or life takes the class that fits best on the class-fit edges, not Asteroid or D by size or belt membership (Boss rule) | none | open |
+| GEN.1753 | Restored and edited bodies start from their own stored birth numbers (birth eccentricity, birth spin, capture draws from body_history) instead of drawing new ones, and the GEN.1739 air history reads them | GEN.1533 | open |
+| GEN.1754 | Nebular envelopes and their water for bodies of 1 Earth mass and up (the GEN.1748 source stops at 0.3 percent hydrogen) | GEN.1748 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4918,10 +4925,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.766 | (bug) test_step_registry is red on main: an unused step kind db-check | none | done, PR #6694 (12:00 PM EST 11-15) |
 | TEST.767 | (bug) test_web_adminregistry is red on main: admin_queue_job and admin_queue_jobs are missing from PAGES or EXEMPT | none | done, PR #6694 (12:00 PM EST 11-15) |
 | TEST.768 | (bug) test_constants_completeness is red on main: new constants in galaxy/nebula_*, ice_growth, starlight_aloft, run_galaxy and bright_stars have no registry row, tag or place in the constants module | none | done, PR #6692 (2:43 PM EST 11-15) |
-| TEST.769 | (bug) Six test_web_generate system-page tests are red on main | none | open |
+| TEST.769 | (bug) Six test_web_generate system-page tests are red on main | none | done, PR #6728 (3:45 PM EST 11-15) |
 | TEST.770 | (bug) test_splitter::test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it calls runrecord.read_plan, gone since OPS.216 | none | done, PR #6716 (2:35 PM EST 11-15) |
 | TEST.771 | (bug) test_cache_warmup (20 tests) is red on main | none | done, PR #6716 (2:35 PM EST 11-15) |
-| TEST.772 | (bug) test_belt_ondemand: a stored belt member made a planet gets no class | none | open |
+| TEST.772 | (bug) test_belt_ondemand: a stored belt member made a planet gets no class | none | done, PR #6731 (3:59 PM EST 11-15) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
@@ -5009,6 +5016,7 @@ Each citation below resolves to one item by its date.
 | DB.128 | One kind-table registry: the twelve hand-written kind-table tuples in store, query, fingerprint and edits become groups of db/kind_tables.KIND_TABLES, and the ten black_holes/neutron_stars special cases become one anchored flag | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | DB.129 | SaveSession dataclass replaces the ten attributes stashed on the database connection during a save | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | DB.130 | system_summary REFRESH_SQL uses the deprecated VALUES() form in ON DUPLICATE KEY UPDATE | none | closed as finding (Fable scan): the VALUES() upserts are a tested choice; the alias form breaks MariaDB (tests/test_sql_portability.py) |
+| DB.131 | (bug) New galaxy run fails in Stage 5 (Neighborhood): unit 67 hits IntegrityError 1062, duplicate star_systems.uq_star_systems_uid for a system of sector 75B000100861 | none | done, PR #6758 (9:07 PM EST 11-15) |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
@@ -5097,6 +5105,7 @@ Each citation below resolves to one item by its date.
 | UX.316 | Generate page, all properties: Shape and Rogue planets get an Auto (default) checkbox beside their dropdown (no slider); Galaxy Shape, Neighborhood and the advanced star properties sit under collapsible headers (Neighborhood expanded by default); every property, advanced star scatter options included, has the Auto toggle and the ? help button | UX.315 | done, PR #6441 (9:09 PM EST 11-13) |
 | UX.317 | (bug) The New galaxy page looks messy: units wrap inline beside property titles, and box tops and slider bars do not line up across a row (Shape and Rogue planets rows too) | UX.316 | done, PR #6459 (2:14 AM EST 11-14) |
 | UX.318 | (bug) Every generation log, progress line, queue page and warning shows rates, durations, sizes and memory through the project's units code: a slow rate reads as time per item ("0.0 per s" becomes seconds per sector), and memory never mixes bytes, MB and GB by hand | none | done, PR #6574 (9:10 PM EST 11-14) |
+| UX.319 | (bug) Every time output uses standard hours, minutes and seconds, never decimal hours, minutes or seconds ("1.25 minutes", "3.5 days", "seconds=12.3") | none | open |
 
 ### Code tags `TODO(<area> #N)`
 

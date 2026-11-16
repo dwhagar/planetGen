@@ -83,7 +83,9 @@ def test_the_bar_macro_shows_only_a_bar_that_is_to_be_shown(web_app=None):
     import planetgen.web
     import os
     templates = os.path.join(os.path.dirname(planetgen.web.__file__), "templates")
+    from planetgen.util.format import format_duration_seconds
     env = Environment(loader=FileSystemLoader(templates))
+    env.globals["duration_text"] = format_duration_seconds
     macro = env.get_template("partials/task_bar.html").module.task_bar
     assert macro(None) == "" and macro({"show": False, "percent": 10.0, "eta_seconds": 5.0, "source": "live"}) == ""
     shown = macro(tp.as_dict(tp.progress(250, 1000, 0.0, 50.0, stored_rate=10.0)), "Unit 3")

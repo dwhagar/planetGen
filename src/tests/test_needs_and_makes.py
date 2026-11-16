@@ -75,7 +75,7 @@ def test_the_order_of_a_scatter_run_meets_the_needs_too(scatter):
 def test_what_a_command_waited_for_before_the_declarations_it_still_waits_for():
     """The four requirements `commands.REQUIRES` held (PERF.247) before OPS.238 planned the order from the declarations."""
     sectors = {"generate-start-sector", "generate-neighborhood", "generate-sectors"}
-    assert "scatter-phenomena" in needs.requires_of("finish-phenomena")
+    assert "scatter-phenomena" in needs.requires_of("write-special-phenomena")
     assert "run-population" in needs.requires_of("run-territories")
     assert sectors <= set(needs.requires_of("link-neighbors")) | {"generate-unplaced-sector"} and "generate-sectors" in needs.requires_of("link-neighbors")
     assert {"generate-start-sector", "generate-sectors"} <= set(needs.requires_of("settle-sector-paths"))
@@ -89,3 +89,17 @@ def test_a_list_of_steps_is_refused_where_a_need_is_met_only_after_it():
     with pytest.raises(ValueError, match="needs bright-stars-mass"):
         needs.validate_order([ok[2], ok[1], ok[0]])
     assert needs.validate_order([step("luminosity", "scatter-luminosity")])        # a need no step of the list makes is stored from an earlier run
+
+
+def test_the_checks_and_the_warm_families_need_and_make_no_artifact():
+    """OPS.238: a check reads the database as it is and a warm family builds its own input (`wrapper._ensure_cluster_field`), so none declares an artifact; their lists are in the order the families and checks have (`web/warmup.FAMILIES`, `commands.KIND_OF_CHECK`), and the stored plan of a run of them says each stage waits for the one before."""
+    maintenance = [kind for kind in commands.REGISTRY if kind.startswith(("check-", "warm-")) or kind == commands.END_MAP_REBUILD]
+    assert maintenance and not [kind for kind in maintenance if kind in needs.NEEDS or kind in needs.MAKES]
+
+
+def test_a_need_is_unmet_when_nothing_before_it_in_the_list_and_nothing_stored_makes_it():
+    mass = commands.Step("mass", "scatter-mass", "Mass", {})
+    clear = commands.Step("clear", "clear-bright-stars", "Clear", {})
+    assert needs.unmet([clear, mass], {"skeleton"}) == []
+    assert [(step.key, artifact) for step, artifact in needs.unmet([mass], set())] == [("mass", "skeleton"), ("mass", "bright-stars-cleared")]
+    assert [(step.key, artifact) for step, artifact in needs.unmet([mass, clear], {"skeleton"})] == [("mass", "bright-stars-cleared")], "a maker that comes after has not made it yet"

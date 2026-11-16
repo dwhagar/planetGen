@@ -126,7 +126,7 @@ def test_the_generate_page_counts_the_eta_down(monkeypatch):
     monkeypatch.setattr(generate_page.time, "time", lambda: 1000.0)
     job = {"id": "x", "finished": False, "created_at": 900.0, "elapsed_s": 100,
            "progress": {"completed": 3, "total": 10, "eta_s": 200.0, "updated_at": 990.0}}
-    assert generate_page._job_view(job)["remaining_text"] == "3.17 minutes"
+    assert generate_page._job_view(job)["remaining_text"] == "3m 10s"
     assert generate_page._job_view({**job, "finished": True})["remaining_text"] == ""
     assert generate_page._job_view({**job, "progress": {"completed": 0}})["remaining_text"] == ""
 

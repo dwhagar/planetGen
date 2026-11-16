@@ -167,7 +167,26 @@ export const formatDistancePc = (pc) => formatIn("pc", pc);
 export const formatSpeedMs = (ms) => formatIn("m_s", ms);
 export const formatSpeedKms = (kms) => formatIn("km_s", kms);
 
-export const formatDurationSeconds = (seconds) => formatIn("s", seconds);
+// A time as the clock reads it (UX.319), the mirror of planetgen/util/format.py `format_duration_seconds`: "45s", "12m 34s", "1h 23m 45s", "2d 3h 4m"
+// (no seconds past a day), a zero part at the end left off; under a second the ladder's "850 ms", from a Julian year the ladder's "1.88 years".
+const YEAR_SECONDS = 365.25 * 86400;
+export function formatDurationSeconds(seconds) {
+  if (seconds == null || !isFinite(seconds)) return formatIn("s", seconds);
+  const size = Math.abs(seconds);
+  if (size === 0) return "0s";
+  if (size < 1 || size >= YEAR_SECONDS - 0.5) return formatIn("s", seconds);
+  let parts;
+  if (size >= 86400) {
+    const minutes = Math.floor(size / 60 + 0.5);
+    parts = [[Math.floor(minutes / 1440), "d"], [Math.floor((minutes % 1440) / 60), "h"], [minutes % 60, "m"]];
+  } else {
+    const whole = Math.floor(size + 0.5);
+    parts = [[Math.floor(whole / 3600), "h"], [Math.floor((whole % 3600) / 60), "m"], [whole % 60, "s"]];
+  }
+  while (parts.length > 1 && parts[0][0] === 0) parts.shift();
+  while (parts.length > 1 && parts[parts.length - 1][0] === 0) parts.pop();
+  return (seconds < 0 ? "-" : "") + parts.map(([count, unit]) => count + unit).join(" ");
+}
 export const formatPeriodYears = (years) => formatIn("yr", years);
 
 // A surface temperature with °C and °F beside it, or in K alone.

@@ -79996,6 +79996,29 @@
    "volume": "36",
    "year": 1985
   },
+  "10.1007/bf01231120": {
+   "authors": [
+    [
+     "Borderies",
+     "N."
+    ],
+    [
+     "Goldreich",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/bf01231120",
+   "editors": [],
+   "journal": "Celestial Mechanics",
+   "page": "127",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A simple derivation of capture probabilities for the J+1:J and J+2:J orbit-orbit resonance problems",
+   "type": "journal-article",
+   "volume": "32",
+   "year": 1984
+  },
   "10.1007/bf01235540": {
    "authors": [
     [
@@ -89369,6 +89392,38 @@
    "title": "Experimental constraints on the composition and dynamics of Titan's polar lakes",
    "type": "journal-article",
    "volume": "410",
+   "year": 2015
+  },
+  "10.1016/j.epsl.2015.06.058": {
+   "arxiv": "1508.01467",
+   "authors": [
+    [
+     "Zahnle",
+     "K. J."
+    ],
+    [
+     "Lupu",
+     "R."
+    ],
+    [
+     "Dobrovolskis",
+     "A."
+    ],
+    [
+     "Sleep",
+     "N. H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2015.06.058",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "74",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The tethered Moon",
+   "type": "journal-article",
+   "volume": "427",
    "year": 2015
   },
   "10.1016/j.epsl.2015.09.051": {
@@ -102210,6 +102265,29 @@
    "type": "journal-article",
    "volume": "176",
    "year": 2000
+  },
+  "10.1016/s0016-7037(01)00685-8": {
+   "authors": [
+    [
+     "Lasaga",
+     "A. C."
+    ],
+    [
+     "Ohmoto",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/s0016-7037(01)00685-8",
+   "editors": [],
+   "journal": "GeCoA",
+   "page": "361",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The oxygen geochemical cycle: dynamics and stability",
+   "type": "journal-article",
+   "volume": "66",
+   "year": 2002
   },
   "10.1016/s0016-7037(02)00950-x": {
    "authors": [
@@ -124219,6 +124297,33 @@
    "volume": "7",
    "year": 2016
   },
+  "10.1038/ncomms14379": {
+   "authors": [
+    [
+     "Daines",
+     "S. J."
+    ],
+    [
+     "Mills",
+     "B. J. W."
+    ],
+    [
+     "Lenton",
+     "T. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/ncomms14379",
+   "editors": [],
+   "journal": "NatCo",
+   "page": "14379",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Atmospheric oxygen regulation at low Proterozoic levels by incomplete oxidative weathering of sedimentary organic carbon",
+   "type": "journal-article",
+   "volume": "8",
+   "year": 2017
+  },
   "10.1038/ncomms15423": {
    "authors": [
     [
@@ -130581,6 +130686,33 @@
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "614",
+   "year": 2023
+  },
+  "10.1038/s41586-023-05823-0": {
+   "authors": [
+    [
+     "Young",
+     "E. D."
+    ],
+    [
+     "Shahar",
+     "A."
+    ],
+    [
+     "Schlichting",
+     "H. E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41586-023-05823-0",
+   "editors": [],
+   "journal": "Nature",
+   "page": "306",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Earth shaped by primordial H2 atmospheres",
+   "type": "journal-article",
+   "volume": "616",
    "year": 2023
   },
   "10.1038/s41586-023-05902-2": {
@@ -144167,6 +144299,33 @@
    "volume": "634",
    "year": 2020
   },
+  "10.1051/0004-6361/201937035": {
+   "authors": [
+    [
+     "Tjoa",
+     "J. N. K. Y."
+    ],
+    [
+     "Mueller",
+     "M."
+    ],
+    [
+     "van der Tak",
+     "F. F. S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201937035",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A50",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "The subsurface habitability of small, icy exomoons",
+   "type": "journal-article",
+   "volume": "636",
+   "year": 2020
+  },
   "10.1051/0004-6361/201937151": {
    "arxiv": "1911.08878",
    "authors": [
@@ -155842,6 +156001,29 @@
    "via": "crossref search on author, year and the citing sentences",
    "volume": "99",
    "year": 1995
+  },
+  "10.1086/300312": {
+   "authors": [
+    [
+     "Touma",
+     "J."
+    ],
+    [
+     "Wisdom",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/300312",
+   "editors": [],
+   "journal": "AJ",
+   "page": "1653",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Resonances in the Early Evolution of the Earth-Moon System",
+   "type": "journal-article",
+   "volume": "115",
+   "year": 1998
   },
   "10.1086/300645": {
    "authors": [
@@ -244174,6 +244356,25 @@
    "volume": "296",
    "year": 1996
   },
+  "10.2475/ajs.304.5.397": {
+   "authors": [
+    [
+     "Bergman",
+     "N. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.2475/ajs.304.5.397",
+   "editors": [],
+   "journal": "American Journal of Science",
+   "page": "397",
+   "publisher": "American Journal of Science (AJS)",
+   "src": "crossref",
+   "title": "COPSE: A new model of biogeochemical cycling over Phanerozoic time",
+   "type": "journal-article",
+   "volume": "304",
+   "year": 2004
+  },
   "10.2514/6.1996-3346": {
    "authors": [
     [
@@ -246869,6 +247070,34 @@
    "title": "CHLORINE ABUNDANCES IN COOL STARS",
    "type": "journal-article",
    "volume": "152",
+   "year": 2016
+  },
+  "10.3847/0004-637x/817/1/18": {
+   "arxiv": "1511.09472",
+   "authors": [
+    [
+     "Spalding",
+     "C."
+    ],
+    [
+     "Batygin",
+     "K."
+    ],
+    [
+     "Adams",
+     "F. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/0004-637x/817/1/18",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "18",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "RESONANT REMOVAL OF EXOMOONS DURING PLANETARY MIGRATION",
+   "type": "journal-article",
+   "volume": "817",
    "year": 2016
   },
   "10.3847/0004-637x/817/2/90": {
@@ -285962,7 +286191,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5288,
+ "id_next": 5294,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286206,6 +286435,7 @@
   "10.1007/bf00897085": "R0913",
   "10.1007/bf01042549": "R0387",
   "10.1007/bf01227493": "R4597",
+  "10.1007/bf01231120": "R5288",
   "10.1007/bf01235540": "R1632",
   "10.1007/bf01386217": "R0287",
   "10.1007/bf02424427": "R4128",
@@ -286531,6 +286761,7 @@
   "10.1016/j.epsl.2014.04.040": "R1084",
   "10.1016/j.epsl.2014.07.009": "R1491",
   "10.1016/j.epsl.2014.11.023": "R2776",
+  "10.1016/j.epsl.2015.06.058": "R5291",
   "10.1016/j.epsl.2015.09.051": "R4356",
   "10.1016/j.epsl.2016.03.016": "R1378",
   "10.1016/j.epsl.2016.09.013": "R0518",
@@ -286895,6 +287126,7 @@
   "10.1016/s0012-821x(03)00297-8": "R4891",
   "10.1016/s0012-821x(03)00506-5": "R2926",
   "10.1016/s0012-821x(99)00318-0": "R3170",
+  "10.1016/s0016-7037(01)00685-8": "R5282",
   "10.1016/s0016-7037(02)00950-x": "R1980",
   "10.1016/s0016-7037(02)01407-2": "R1492",
   "10.1016/s0016-7037(03)00259-x": "R2675",
@@ -287577,6 +287809,7 @@
   "10.1038/ncomms11201": "R2772",
   "10.1038/ncomms12808": "R5008",
   "10.1038/ncomms13262": "R3900",
+  "10.1038/ncomms14379": "R5281",
   "10.1038/ncomms15423": "R2489",
   "10.1038/news.2011.205": "R4645",
   "10.1038/ng.3067": "R2748",
@@ -287664,6 +287897,7 @@
   "10.1038/s41586-021-04286-5": "R4916",
   "10.1038/s41586-022-05591-3": "R0064",
   "10.1038/s41586-022-05629-6": "R3155",
+  "10.1038/s41586-023-05823-0": "R5293",
   "10.1038/s41586-023-05902-2": "R4437",
   "10.1038/s41586-023-05951-7": "R1678",
   "10.1038/s41586-023-05984-y": "R0301",
@@ -287899,6 +288133,7 @@
   "10.1051/0004-6361/201936775": "R0373",
   "10.1051/0004-6361/201936804": "R3806",
   "10.1051/0004-6361/201936948": "R4051",
+  "10.1051/0004-6361/201937035": "R5292",
   "10.1051/0004-6361/201937151": "R4448",
   "10.1051/0004-6361/201937381": "R3512",
   "10.1051/0004-6361/202037569": "R1697",
@@ -288245,6 +288480,7 @@
   "10.1086/192096": "R4776",
   "10.1086/192182": "R0023",
   "10.1086/192204": "R3932",
+  "10.1086/300312": "R5289",
   "10.1086/300645": "R1722",
   "10.1086/300647": "R4514",
   "10.1086/300667": "R0639",
@@ -290364,6 +290600,7 @@
   "10.2475/001c.118215": "R2694",
   "10.2475/ajs.293.8.758": "R4284",
   "10.2475/ajs.296.1.23": "R2882",
+  "10.2475/ajs.304.5.397": "R5280",
   "10.2514/6.1996-3346": "R4758",
   "10.2514/6.2008-7661": "R0196",
   "10.2514/6.2009-6597": "R0195",
@@ -290450,6 +290687,7 @@
   "10.3847/0004-6256/152/2/47": "R0029",
   "10.3847/0004-6256/152/6/157": "R2641",
   "10.3847/0004-6256/152/6/196": "R2787",
+  "10.3847/0004-637x/817/1/18": "R5290",
   "10.3847/0004-637x/817/2/90": "R2609",
   "10.3847/0004-637x/818/1/21": "R2631",
   "10.3847/0004-637x/818/1/73": "R4379",
@@ -291444,6 +291682,7 @@
   "arxiv:1507.06982": "R2331",
   "arxiv:1507.08081": "R3916",
   "arxiv:1508.00427": "R1944",
+  "arxiv:1508.01467": "R5291",
   "arxiv:1508.01767": "R1370",
   "arxiv:1508.06274": "R3723",
   "arxiv:1508.07308": "R1279",
@@ -291474,6 +291713,7 @@
   "arxiv:1511.08438": "R0433",
   "arxiv:1511.08804": "R3790",
   "arxiv:1511.08877": "R5133",
+  "arxiv:1511.09472": "R5290",
   "arxiv:1512.00625": "R3849",
   "arxiv:1512.01653": "R3836",
   "arxiv:1512.04341": "R4105",

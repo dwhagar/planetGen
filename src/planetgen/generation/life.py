@@ -405,7 +405,7 @@ def _draw_waits(planet, row, stream=None):
     waits = None
     if stream is None and planet.star.system_config.INTELLIGENT_LIFE is True:
         at_start = _oxidant_at_start(planet, row)
-        delay = biogenic_oxygen.profile_of(planet).delay_gyr if row.oxidant == "o2" and row.releases_oxygen else None
+        delay = biogenic_oxygen.profile_of(planet, producers=[(1.0, biogenic_oxygen.band_of(row))]).delay_gyr if row.oxidant == "o2" and row.releases_oxygen else None
         waits = life_timeline.raised_waits(planet.star.age, factor, delay, at_start)
     if waits is None:
         waits = life_timeline.unit_waits(stream)

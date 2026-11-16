@@ -1036,7 +1036,7 @@ def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkey
     run_galaxy.run_galaxy(args)
     [followers] = runs
     assert [follower.key for follower in followers] == [
-        "start", "neighborhood", "link", "scatter-limits", "backfill", "mass", "luminosity", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-draw",
+        "start", "neighborhood", "link", "scatter-limits", "backfill", "mass", "luminosity", "phenomena-unindex", "phenomena", "phenomena-special", "phenomena-index", "phenomena-record", "nebula-draw",
         "population", "territories", "settle", "run-blocks", "block-lights"]       # OPS.257: a new galaxy holds no scatter, so no clear is planned
     by_key = {follower.key: follower for follower in followers}
     # The limit is read when the stage opens (PERF.212): the followers carry what to read it from, which gives the limit it was given.

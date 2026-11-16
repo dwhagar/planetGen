@@ -308,21 +308,44 @@ def format_speed_ms(ms):
 
 def format_duration_seconds(seconds):
     """
-    Formats a time period or duration in the most meaningful unit on the
-    ladder µs < ms < s < minutes < hours < days < years < kyr < Myr < Gyr
-    (`ladders.TIME`): the largest unit the value is at least 1 of, as
-    `format_distance_m` does. One unit, three significant figures, singular
-    when the shown value is exactly 1 ("1 year", "1 day").
-    `static/unitladder.js` mirrors it.
+    A time period or duration as the clock reads it (UX.319): "45s" under a minute, "12m 34s", "1h 23m 45s", and from a day to a year "2d 3h 4m"
+    (no seconds past a day); a zero part at the end is left off ("2h", "3d 4h"). Under a second the ladder's "850 ms", "12.5 ms"; from a year
+    (the Julian 365.25 days) the ladder's years, "1.88 years", "236 Myr" (`ladders.TIME`), which are no clock time. `None` and NaN give an en dash,
+    an infinity "inf years". `static/unitladder.js` mirrors it (`formatDurationSeconds`), and tests/test_speed_period_format.py checks the two.
 
     Args:
         seconds (float): The duration, in seconds.
 
     Returns:
-        str: e.g. "12.5 ms", "45 minutes", "27.3 days", "1.88 years",
-             "236 Myr". Zero is "0 s"; `None` gives an en dash.
+        str: e.g. "850 ms", "45s", "1h 23m 45s", "2d 3h 4m", "1.88 years". Zero is "0s".
     """
-    return format_quantity(ladders.TIME, seconds)
+    if seconds is None or isinstance(seconds, float) and (math.isnan(seconds) or math.isinf(seconds)):
+        return format_quantity(ladders.TIME, seconds)
+    size = abs(float(seconds))
+    if size == 0:
+        return "0s"
+    if size < 1.0 or size >= YEAR_SECONDS - 0.5:
+        return format_quantity(ladders.TIME, seconds)
+    sign = "-" if seconds < 0 else ""
+    if size >= 86400:
+        minutes = int(size / 60 + 0.5)
+        days, rest = divmod(minutes, 1440)
+        hours, minutes = divmod(rest, 60)
+        parts = [(days, "d"), (hours, "h"), (minutes, "m")]
+    else:
+        whole = int(size + 0.5)
+        hours, rest = divmod(whole, 3600)
+        minutes, secs = divmod(rest, 60)
+        parts = [(hours, "h"), (minutes, "m"), (secs, "s")]
+    while len(parts) > 1 and parts[0][0] == 0:
+        parts.pop(0)
+    while len(parts) > 1 and parts[-1][0] == 0:
+        parts.pop()
+    return sign + " ".join(f"{count}{unit}" for count, unit in parts)
+
+
+YEAR_SECONDS = 365.25 * 86400.0
+"""float: The Julian year (UX.14), where `format_duration_seconds` goes from the clock to the ladder's years."""
 
 
 def format_bytes(count):

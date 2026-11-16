@@ -1014,7 +1014,7 @@ class Connection:
             if isinstance(exc, pymysql.err.OperationalError) and exc.args and exc.args[0] in STATEMENT_TIMEOUT_ERRORS:
                 # PERF.64: the page only says "took too long"; the log says which statement.
                 activity_log.event("DB", "statement_timeout", db=self._config.database if self._config else "?",
-                                   seconds=f"{time.perf_counter() - start:.1f}", sql=_sql_for_log(sql, params)[:800])
+                                   seconds=format_duration_seconds(time.perf_counter() - start), sql=_sql_for_log(sql, params)[:800])
             if traced:
                 log.trace(f"SQL failed after {format_duration_seconds(time.perf_counter() - start)}: "
                           f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", area="sql", stacklevel=4)
@@ -7516,11 +7516,18 @@ def missing_phenomenon_scatter_indexes(conn):
     return [(name, columns) for name, columns in PHENOMENON_SCATTER_INDEXES.items() if name not in present]
 
 
+def add_phenomenon_scatter_index(conn, name):
+    """Builds the index `name` of `phenomenon_scatter` where the table has not got it (OPS.239: one piece of the `build-phenomenon-indexes` unit), and says the beat moved (a build can take a while on a table of millions of rows)."""
+    if name not in phenomenon_scatter_index_names(conn):
+        conn.execute(f"ALTER TABLE phenomenon_scatter ADD KEY {name} ({PHENOMENON_SCATTER_INDEXES[name]})")
+    batched.moving()
+
+
 def add_phenomenon_scatter_indexes(conn, on_index=None):
     """Builds the secondary indexes `drop_phenomenon_scatter_indexes` took off (those missing), one statement per
     index so there is something to count: `on_index(name)` is called after each is built (PERF.101)."""
-    for name, columns in missing_phenomenon_scatter_indexes(conn):
-        conn.execute(f"ALTER TABLE phenomenon_scatter ADD KEY {name} ({columns})")
+    for name, _columns in missing_phenomenon_scatter_indexes(conn):
+        add_phenomenon_scatter_index(conn, name)
         if on_index is not None:
             on_index(name)
 
@@ -8072,6 +8079,30 @@ def sector_centers_since(conn, since):
 def filled_sector_addresses(conn):
     """The `(shell, band, wedge)` of every galaxy sector already filled: the cells of the chart ledger (GEN.1127)."""
     return chart_ledger.charted_addresses(conn)
+
+
+def saved_sector_report(conn, address):
+    """
+    What the charted cell `address` holds (DB.131): the figures a sector unit reports for a sector it saved, read back from the rows, for a unit that
+    finds its cell already charted (a run again after its first try saved the sector and was lost before it said so) and must not fill it twice.
+
+    Returns:
+        dict or None: `sector_id`, `name`, `systems`, `stars`, `planets` and `phenomena` (rows filed in the sector), or `None` when the cell is not charted.
+    """
+    address = tuple(address)
+    if chart_ledger.row(conn, address) is None:
+        return None
+    sector = conn.execute("SELECT id, name FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ? ORDER BY id LIMIT 1", address).fetchone()
+    if sector is None:
+        return None
+    sector_id = sector["id"]
+    counts = {"systems": conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]}
+    for key, table in (("stars", "stars"), ("planets", "planets")):
+        counts[key] = conn.execute(f"SELECT COUNT(*) AS n FROM {table} t JOIN star_systems s ON s.id = t.star_system_id WHERE s.sector_id = ?",
+                                   (sector_id,)).fetchone()["n"]
+    counts["phenomena"] = sum(conn.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
+                              for table in PHENOMENON_UID_TABLES)
+    return {"sector_id": sector_id, "name": sector["name"], **{key: int(value) for key, value in counts.items()}}
 
 
 def _naming_key_of(conn):
@@ -10360,6 +10391,27 @@ def _runaway_origin(conn, star_system_id):
     return None
 
 
+def attach_body_history(conn, system, star_system_id):
+    """
+    GEN.1533, the reader of `body_history`: gives each restored planet and moon of `system` the numbers its history left (`physics/body_history.attach`: `_orbit_birth` and `_birth_spin`).
+
+    Returns:
+        int: The bodies that got any.
+    """
+    stored = {(row["body_type"], row["body_id"]): row for row in conn.execute("SELECT * FROM body_history WHERE star_system_id = ?", (star_system_id,)).fetchall()}
+    if not stored:
+        return 0
+    attached = 0
+    for planet in system.all_planets:
+        if getattr(planet, "db_id", None) is not None and getattr(planet, "body_type", None) != "a":
+            row = stored.get((effect_ledger.BODY_CODES["planets"], planet.db_id))
+            attached += bool(row and body_history.attach(planet, row))
+        for moon in getattr(planet, "moons", ()):
+            row = stored.get((effect_ledger.BODY_CODES["moons"], getattr(moon, "db_id", None)))
+            attached += bool(row and body_history.attach(moon, row))
+    return attached
+
+
 def load_star_system(conn, star_system_id) -> StarSystem:
     """
     Reconstructs a full `StarSystem` -- config, star(s), every planet/
@@ -10584,6 +10636,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.node_planets = [_build_object_list([r for r in planet_rows if r["host_node_id"] == host.host_node_no],
                                               [r for r in belt_rows if r["host_node_id"] == host.host_node_no], host)
                            for host in system.node_hosts]
+    attach_body_history(conn, system, star_system_id)
 
     system.system_flavor_text = row["system_flavor_text"]
     system.runaway_class = row["runaway_class"]

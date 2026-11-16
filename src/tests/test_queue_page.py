@@ -801,7 +801,7 @@ def test_the_supervisor_panel_words_a_dead_supervisor_and_a_missing_answer():
     dead = queue_page._supervisor_view({"alive": False, "recent": []})
     assert dead["alive"] is False and "starts again by itself" in dead["state"]
     live = queue_page._supervisor_view({"alive": True, "pid": 5, "since": 1000.0, "turn_at": 1090.0, "turns": 45, "recent": []}, now=1100.0)
-    assert live["up"] == "1.67 minutes" and live["turn"] == "10 s" and live["turns"] == "45"
+    assert live["up"] == "1m 40s" and live["turn"] == "10s" and live["turns"] == "45"
 
 
 def test_a_running_units_own_bar_and_time_left_show_under_its_counter_only_when_it_has_one(admin_client, conn):

@@ -2,6 +2,280 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4329] - 2026-11-16
+
+**Headline:** A rocky planet's air is made once, with the late accretion its system gives it, instead of with a drawn number and again at the end.
+
+### Changed
+- `late_accretion.give_first_air` sets the late accretion of each rocky planet whose air is still to be made (`Planet.finish_climate`) from the belts and the planets of its star as they stand when the orbits are final, so the first air is made with a number near the one the later pass (`late_accretion.apply`) takes. That pass still makes the air again where the belts promoted to planets move the carbon and the nitrogen past the gate, and no longer for the rest. On 8 systems of five star types the airs made again fell from 9 to 2 and the time from 96.7 s to 80.9 s (16 percent); of 188 bodies 185 are the same and none changed class.
+- The air of a rocky planet that the second pass used to make again now keeps the first, made with the late accretion of the system; it differs only where the promoted belt bodies would have changed the number by under the gate.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4328] - 2026-11-16
+
+**Headline:** A carbon-rock world now holds the phosphorus of its star, so a living sea on one has phosphate to live on.
+
+### Fixed
+
+- GEN.1749 (every galaxy): `bulk_draw._partition` gave a carbon rock no minor oxide at all, so `rock_p2o5_fraction` was NULL, `phosphorus_budget.generate` returned early, the ocean's phosphate was None and the life law's chemistry term was 0 on every carbon-rock world (Oleodzo II, seed 30391, a sea world in light, was one). The carbon rock now keeps the star's phosphorus as P2O5 in its rock and the share the core takes in its metal, by `mantle_oxides.oxides` as a silicate rock does, and holds none of the other six oxides (they stay NULL, so the norm and ground types, which read no carbon rock, are as they were).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4327] - 2026-11-16
+
+**Headline:** Rocky worlds from 0.2 to 1 Earth mass now capture a hydrogen envelope in the disk and make water from it, so their seas hold more.
+
+### Changed
+
+- GEN.1748 (every galaxy): a rocky body of 0.2 to 20 Earth masses draws a nebular envelope (`envelope_capture.MIN_MASS_EARTH` 0.2, from Young et al. [R5293], which finds the result independent of mass above about 0.2); under 1 Earth mass the median start is flat at 0.2 percent of the mass (it fell as the cube of the mass before, with none under 1). A body under 1 Earth mass is bare at the end (`KEEPS_FROM_MASS_EARTH`), its envelope lost with the disk, and the hydrogen it held made water in its magma ocean: `bulk_draw._nebular_water` adds `envelope_capture.nebular_water_fraction` (about 0.9 Earth oceans per Earth mass at the median start, 0 to 5 over the draw) to the delivered water of rocky bodies of 0.2 to 1 Earth mass that are not moons, late cores or belt members, and not where the Class M abundance tier's water dial decided the class. The start comes from the planet's own stream, so no draw of the run's moves.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4326] - 2026-11-16
+
+**Headline:** The blue and far-red oxygenic classes now make oxygen from the light of their own band, not from the 400 to 700 nm of class 1a.
+
+### Changed
+
+- GEN.1744 (every galaxy): `biogenic_oxygen.active_light_ratio`, `productivity` and `refuge_productivity` take the `Band` of the oxygenic class (`band_of`: its `band_nm` and `efficiency` in `life_classes.json`: 1a 400 to 700 nm at 1.0, 1b blue 300 to 500 nm at 1.0, 1c far red 700 to 800 nm at 0.8), where all three used class 1a's 400 to 700 nm. The source `S` of a world is the sum of its oxygenic classes' shares, each counted in its own band (`source_of`, `profile_of(..., producers=...)`), and the oxygen rise (`rise_age_gyr`) takes the same sum. The methane that a burial-fuelled class makes follows its own band's production. Class 1a is unchanged under any star (1.0 under the Sun), so worlds with only class 1a keep their air; a world whose oxygenic life is 1b or 1c now has less or more oxygen by how much of its star's light lies in that band: a hot star is rich in blue, a cool one in far red.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4325] - 2026-11-16
+
+**Headline:** A sector unit that runs again after its first try already saved the sector no longer fills it twice, which stopped a new-galaxy run on a duplicate object ID.
+
+### Fixed
+
+- DB.131: Boss's new galaxy (8.0.4317) stopped in the neighborhood stage on `IntegrityError 1062 Duplicate entry ... for key 'star_systems.uq_star_systems_uid'` (sector 75B000100861, serial 0, body 0). A sector is saved, and its cell charted, in one transaction, and the job engine marks the piece done only afterward; a unit run again after the save committed (a connection lost at the commit, a worker killed just after it) filled the cell a second time, and the second fill's systems took the object IDs the first fill's already held. `run_galaxy.generate_sectors_do` now asks the chart ledger first: a charted cell is reported from the rows (`store.saved_sector_report`: sector id, name, systems, stars, planets, phenomena, `stored` true) and is not filled. The sectors it reports add to the run's counts and are left out of the speed figures (`run_common._count_reported`). A held run that stopped on this error is finished by Retry held once the fix is installed. Reuse: `chart_ledger.row` says whether a cell is charted, as `generate_sectors_pieces` already does for a run begun again.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4324] - 2026-11-16
+
+**Headline:** The Sectors list no longer stores a Quadrant for each sector: the column and its index are dropped, with the `position` sort and the Quadrant filter that had no page left to use them.
+
+### Removed
+
+- DB.112 (schema v264, migration 0264): `sector_system_counts.quadrant` and `idx_sector_system_counts_quadrant` are dropped (the index online, the column instantly; a stopped run can be started again). The Quadrants were taken off the site by UX.272, so nothing filtered by them; `query.list_sectors`, `count_sectors` and `virtual_cells` lose their `quadrants` argument, `SECTOR_SORTS` loses `position` (so `GET /api/sectors?sort=position` is a 400 like any unknown sort), and `refresh_sector_system_counts` no longer works out a Quadrant for every sector. `spherical.sector_quadrant`, which only that column and filter used, is gone with `VIRTUAL_SCAN_ROWS` (the walk of the uncharted cells that filled a page the filter had thinned) and the Quadrant SQL. `star_systems.quadrant` and the octant `quadrant` columns are a different thing and stay. Reuse: the migration uses `helpers.drop_index_online` and `helpers.drop_column_instant`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4323] - 2026-11-16
+
+**Headline:** the end of the phenomena scatter is now three commands of its own, so each can be seen, stopped and carried on by itself and the generated galaxy is the same.
+
+### Changed
+
+- OPS.239, part A: the `finish-phenomena` command is gone. `write-special-phenomena` (stage `phenomena-special`) draws the special phenomena and writes them with their classes in one transaction (the classes were added by the record piece before; a write that is repeated adds them once). `build-phenomenon-indexes` (stage `phenomena-index`) builds the table's indexes, a piece to an index, and stamps the hypervelocity stars' epoch. `record-phenomenon-scatter` (stage `phenomena-record`) records the scatter's seed, mass cut and epoch. `needs.py` declares the chain (`phenomena-shells`, `phenomena-special`, `phenomena-indexed`, `phenomena`), and a galaxy run counts two stages more.
+
+## [8.0.4322] - 2026-11-16
+
+**Headline:** The queue engine now picks the unit size of the link, settle and map luminosity stages from the job profile and the free resources.
+
+### Changed
+- `link-neighbors`, `settle-sector-paths` and `fill-map-luminosity` are flagged byte identical (PERF.260 holds each to the same stored bytes at two cuts), and their `expand` cuts the stage with the new `splitter.cut` instead of a typed size. With a usable profile for the kind the unit is about a fifth of the unit ceiling long (60 s) and fits its share of the free memory, between a quarter and four times the old size; with none, the cut is the old one (`LINK_UNIT_SECTORS`, `SETTLE_UNIT_SECTORS`, `MAP_LUMINOSITY_BATCH_IDS` stay as that suggested size). The decision is written to the stage's plan and the run's log, so a restarted unit has the same cut.
+- A piece of these three stages now weighs the items the cut counts in (its sectors, its ids), so the unit's seconds per item in the profile and the size the engine chooses mean the same thing. The cut-neutral probe tests judge the harness with a registry of the probe alone.
+
+## [8.0.4321] - 2026-11-16
+
+**Headline:** A moon that the planet's bulge brings into the evection resonance (its orbit turning once a year of the star's) is now caught and held there with a high eccentricity, or passes, by how fast the resonance sweeps it.
+
+### Changed
+
+- GEN.1750: `physics/evection.py` (new): the resonance's distance from the planet's spin (`kozai_bodies.bulge_precession_rad_s`, one shared bulge precession), the sweep ratio `rho` of the resonance's coupling against its rate across the moon, and the capture rule (caught at `rho` 1.58 or under, from the likely and unlikely rates of the first analysis, 0.54 and 5.4 for the Earth).
+- `physics/moon_orbits.py` (`evolve`): each prograde moon gets an evection event; at the crossing the moon is caught or passes, and a caught moon is held at the resonance, which moves in with the planet's spin as its tide still brakes the planet (`Fate.held`). `physics/moon_history.py` gives a caught moon the eccentricity it raises (`min(0.5, 1 - 2 R / a)`, kept by `settle_orbit` as a floor) and makes its tide again. Stored values change for the moons the resonance sweeps: their distance, eccentricity and tidal heat.
+- Stand-ins EV1 to EV3 are in GEN.725 (section 6.302); the exit from the resonance is not modelled.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4320] - 2026-11-16
+
+**Headline:** Class X (ammonia-water world) no longer asks for a surface temperature of 190 to 240 K, which no ammonia ocean met, nor for a world with no air: the ocean lies under its lid at the freezing point of its own solution, so neither the surface nor the air above it is a test of it.
+
+### Changed
+- GEN.1737: the two surface temperature conditions of class X are gone. A stored ocean that holds ammonia freezes at 273 K for pure water down to 176 K at 32 percent ammonia, linear between ([R5292]'s Eq. 12 after [R2639]); the least ammonia the class asks, 10 percent of the water's mass (9 percent of the liquid), freezes at about 246 K, inside the family's window whatever the surface is. The stored surfaces of the 380 ammonia oceans drawn run from 3 K to 430 K (median 43 K), so a band on the surface kept every one of them out of the class.
+- Boss, 1:03 PM EST 2026-11-15 (recommendation 1 approved): class X also holds with an air; its air gate is null (`class_fit` accepts a null gate for a terrestrial class; the ocean under the lid does not care what lies above it). The 20 percent liquid cover, the 10 percent ammonia floor and the gravity range are as they were.
+- In 600 natural systems (9,137 bodies) class X goes from 0 to 32 bodies in 26 systems: 18 taken from class C (the dead world with an ice-covered ocean), 8 from T and 6 from E; 11 of the 32 hold an air above 1 kPa. Nothing else moves. These are every one of the 32 stored ammonia oceans (of 380) that reach 10 percent of the water's mass, so no count is forced: the ammonia floor keeps the rest out (the median ocean holds 3.6 percent of the liquid).
+- Class Y has no acid pool in any of 9,137 bodies because a sulfur dioxide air of 3 percent is the rare case (3 bodies, none with oxygen or carbon dioxide to make the acid): that is the sulfur air's supply, not the class gate, and is left as it is.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4319] - 2026-11-16
+
+**Headline:** a planet's eccentricity now settles where its neighbours' pumping and its own tide's wearing-down balance, instead of the tide simply capping what the neighbours gave it.
+
+### Changed
+
+- `physics/secular_chain.py` (GEN.1459): `evolve` takes `damping_per_yr`, each planet's tidal decay rate, and follows `dz/dt = (i A - Gamma) z` for the eccentricity vectors (the matrix exponential, checked against `scipy.linalg.expm`); the inclinations are not damped.
+- `physics/planets.py`: `secular_exchange` starts a planet from its birth eccentricity (`_orbit_birth`) with its cold circularisation rate (`orbit_elements.circularisation_time_yr`) as the damping, over the star's age. `settle_orbit` no longer wears a damped planet from its birth again: it applies only the harder tide of a strong one (the heat softening the mantle), as the share it adds to the cold decay. A planet with no birth value, a lone planet, one outside the theory, and every captured moon keep the old rule.
+- Registry XD1 to XD3 (section 6.244, the secular exchange's table); the design table row for settled eccentricity is updated.
+- Census, 60 systems (538 planets, 470 damped): the stored eccentricity of a planet changes in 358 of them, in both directions (180 up, 178 down), because the secular cycle has run for gigayears and any change of the start or the damping moves its phase at the star's age; the distribution is what moves: mean 0.0457 to 0.0417, median 0.0225 to 0.0171, for planets inside 0.3 AU (352) mean 0.0305 to 0.0237. No system changes its planet count.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4318] - 2026-11-15
+
+**Headline:** A planet or moon loaded from the database now carries the birth eccentricity, spin and capture draws that its history left, so the stored galaxy has the numbers a run has.
+
+### Added
+
+- GEN.1533: `store.load_star_system` reads `body_history` (GEN.1497, written since v243 and read by nothing until now) through `physics/body_history.attach`, which sets `_orbit_birth` and `_birth_spin` on each restored planet and moon, the two names a generated body keeps them under. The spin is attached whole or not at all, and a row written under another `FORMULA_VERSION` is not read. Reuse: the table, the column names and the body codes are GEN.1497's. This changes no stored value and no generated world: nothing that runs on a restored body reads the two names yet (`planets.draw_birth_spin` still draws, which keeps the edits as they are), so the passes that will (the air history of GEN.1739, and a moved body's spin history, a later slice that is a lock item because it changes what an edit produces) start from the real birth numbers instead of a fresh draw. The capture draws are a `FLOAT` column and come back to six digits.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4317] - 2026-11-15
+
+**Headline:** The oxygen a world's life makes now settles at a pressure that does not grow with the world's gravity, so heavy worlds stop piling up at the 35.5 kPa fire limit.
+
+### Changed
+
+- GEN.1733 (every galaxy): the oxidative weathering that balances the oxygen source now goes with the oxygen's partial pressure to the power 1.0, linear (`biogenic_oxygen.OXIDATIVE_WEATHERING_EXPONENT`; the sources run from the square root of the COPSE model [R5280] and the fit of [R5281] to a linear form, and the linear end gives the habitable classes' oxygen window of 16 to 35.5 kPa a width of a factor 2.2 in the surplus instead of 1.5), where it went with the moles of oxygen in the air. A world's balance pressure is Earth's 21.2 kPa times its surplus per area over Earth's (`balance_pa`); the fire limit still caps it. The measure (reports/class-m-tiers-build/oxygen-35kpa-gen1733-2026-11-15.md): 46 of 64 oxygen-making ocean worlds of the Abundant run sat at the limit, all but 4 of them over 1.2 g, because the same oxygen per area gives a pressure in proportion to gravity.
+- A world with Earth's surplus per area now holds 21.2 kPa at any gravity (it held about 22 kPa per g). A world whose surplus is below Earth's holds less oxygen than before and one above it holds more until the fire limit; a refuge world's tiny surplus (GEN.1723) gives a tiny pressure.
+- Measured on 400 Abundant systems (reports/class-m-tiers-build/meter-gen1733-oxygen-fix-2026-11-15.md): of 60 oxygen-making sea worlds, inside the 16 to 35.4 kPa window 24 (11 before the change), at the 35.5 kPa limit 29 (41 before), under 16 kPa 7 (8 before).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4316] - 2026-11-15
+
+**Headline:** A sea of so little water that Earth's salt would saturate it is now a rock-salt sea of real depth, a surface ocean with a water activity of 0.753, and not a puddle of a brine too salty for life.
+
+### Changed
+
+- GEN.1730 (every galaxy): surface water under `hydrosphere.BRINE_MAX_WATER_FRACTION` (2e-5 of the planet's mass, where Earth's salt per planet mass just saturates) is a halite-saturated sea where it is liquid above the sodium chloride eutectic of 252 K: water activity 0.753 (`NACL_SATURATION_ACTIVITY`, a standard value) and the ice melts at 252 K, where it was drawn from 0.30 to 0.65 and a perchlorate eutectic of 198 to 236 K. Such a sea 10 m deep or more (`SEA_MIN_DEPTH_KM`) is a `surface ocean`, not a `brine seep`: the oxygen law counts it as a sunlit sea, and the life law's solvent term at 0.753 is no longer near zero. Colder than 252 K, or shallower, nothing changes: the perchlorate brine and the seep stay. On the 15 desert worlds measured (5 to 20 percent of the surface wet, water mass 4.4e-6 to 2.9e-5) the sea is 0.6 to 2.8 km deep, and 12 of 15 hold more salt than the water dissolves.
+- The Class M tier's own rule for a desert world's small sea (`abundance_tier.desert_sea`, an ordinary salt sea of water activity 0.97 to 0.99) is gone: the same law now makes every such sea, with water activity 0.753. `surface_liquid_world.NACL_SATURATION_ACTIVITY` is now `hydrosphere.NACL_SATURATION_ACTIVITY`.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4315] - 2026-11-15
+
+**Headline:** A giant is sized once, on its final orbit, where it was sized twice.
+
+### Changed
+- `_settle_body` no longer sizes a giant before the tides of its orbit and again after them; the second call, on the final orbit, already gave the final radius (GEN.1659). A close-in giant whose first call moved the radius could feed the tides a different radius, so the generated output may change for a few giants.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4314] - 2026-11-15
+
+**Headline:** A body dropped for the bar on habitable worlds no longer pulls tides on the bodies that stay.
+
+### Changed
+
+- GEN.1604: `generation/system._drop_barred_bodies` ran after the tide pass, so the tides, the heating and the effect-ledger rows of the bodies that stay still counted a planet or moon that was no longer in the system (on the 11-12 generator seed 433 of a bar-habitable system had 40 such rows). It now runs first, so the tide pass and the judgement of what the config asked for see the bodies that are left. Stored ocean tides, heating and the ledger change for a system that drops a body.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4313] - 2026-11-15
+
+**Headline:** A planet that is moved to resolve an overlap keeps the spin it was born with, and its air is solved on the orbital period it has now.
+
+### Changed
+
+- GEN.1597: `generation/validation.reconcile_moved_planet` drew a new birth spin for a moved planet and its moons (`generate_spin` without `birth=`) and set the orbital period after the air was solved, so the air saw the old period. It now passes each body's own `_birth_spin` (the orbit moved, the planet did not), and sets the period before the air. Stored values change for a planet that was moved: its day length, tilt and what follows from them, and the draws after it.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4312] - 2026-11-15
+
+**Headline:** Two moons whose periods closed on a 2:1, 3:2 or 4:3 on the way out are now held in that resonance, and moons near such a ratio force an eccentricity on each other that the planet's tide does not wear away, so an Io and Europa pair is flexed by its neighbour.
+
+### Changed
+
+- GEN.1449 (slice 2): `physics/moon_resonances.py` (new): `capture` holds a pair of moons that swept a first-order resonance on the way out (born above its period ratio, ended below it) at `p/q (1 + 0.002)`, sharing the pair's orbital angular momentum by the resonance condition so the planet's spin is unchanged; a chain of pairs (Io, Europa, Ganymede) is held together; a pair whose heavy outer moon would hold the inner one inside its birth orbit is not captured. `give_forced_eccentricities` gives every moon the eccentricity its neighbours near a first-order ratio force on it (a moon already more eccentric keeps its own).
+- `physics/resonant_chains.py` (reused): `pair_forced_eccentricities` (two bodies are enough) beside `forced_eccentricities` (chains of three), both through one `_forced`; for the Galilean masses and periods it gives Io 0.0051, Europa 0.0082, Ganymede 0.0007 against the observed 0.0041, 0.0094, 0.0015.
+- `physics/moon_history.py`: the capture runs on the survivors after the tide's history and before the clearance pass. `generation/system.py`: `_moon_resonances` gives the forced eccentricity once the orbits are final, before the tide wears one down, and the moon's tide is made again by the final-age refresh. `physics/planets.py`: `settle_orbit` keeps the resonance's eccentricity as a floor. Stored values change for a planet with two or more moons near a first-order ratio: the moons' distances, eccentricities and tidal heat, and what follows from them.
+- Stand-ins HP3 to HP5 are in GEN.725 (section 6.300).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4311] - 2026-11-15
+
+**Headline:** The reference list now includes the capture-probability paper [R5288], so the capture probability row of the moon resonances cites it by its reference ID.
+
+### Changed
+
+- GEN.1449 (slice 2): row HP3 of section 6.300 of the gap plan cites the capture-probability paper as [R5288]; the paper is added to the reference list and the reference and stand-in pages are regenerated. No change to what the generator produces.
+
+## [8.0.4310] - 2026-11-15
+
+**Headline:** A planet's moons now stay inside the part of its Hill sphere that its companion stars and sibling planets leave it, not the host star's alone.
+
+### Changed
+
+- GEN.1449 (slice 1): a moon's outer stability limit, the irregular moons' zone and the Hill escape of the moon history were worked out against the planet's host star alone. They now read the Hill sphere shrunk by the mean tide of the host's companion stars and the other planets of the star (`physics/hill_perturbers.py`, reusing `tide_sources.planet_sources` of GEN.1446, `orbits.calculate_hill_sphere` and the Domingos fit of `clearance_ledger`). A planet with no companion star and no sibling gets exactly the sphere it had, so its moons are unchanged; a planet whose orbit crosses a massive sibling's, or one near a close companion star, loses its far moons. Stand-ins HP1 and HP2 are in GEN.725 (section 6.300). Stored values change for a planet with a companion or sibling: its moons' distances, by a hair in a spaced system (under 0.1% in 200 sampled systems), and the draws after them.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4309] - 2026-11-15
+
+**Headline:** The bar, the estimate and the stuck judge of a sector stage now follow the systems a sector expects, not the number of sectors, so a dense sector counts as the several sparse ones it costs.
+
+### Changed
+- PERF.268: a piece of a unit may carry a `weight` (default 1) and the engine reports weight done of weight in all to the unit's beat (`engine.weight_of`); the cursor, the fence and the done mark still count pieces. The unit's finished figure, which the job profile and the unit rates take as its items, is then in weight too, so the profile's seconds per item and the judge's expected rate are per weight.
+- The sector stages (`generate-start-sector`, `generate-neighborhood`, `generate-sectors`, region runs) weigh each sector by the systems its density expects, at least 1 (`run_galaxy.sector_weights`), put the weights in the unit's arguments when the stage is cut, and cost each unit as their sum. Where the density cannot be read at the cut, a sector weighs 1 as before.
+- Job profile rows and stage rates recorded before this change count sectors, not systems, for these commands; they correct themselves over the next run (the stage's stored rate halves its weight each run).
+
+## [8.0.4308] - 2026-11-15
+
+**Headline:** a run's stored plan now says which of its stages need something that neither an earlier stage of the run nor the galaxy's earlier runs made, and the run logs it when it starts.
+
+### Added
+
+- OPS.238, planner: `planrows.made_artifacts` reads what the ledger's rows say a galaxy has (the artifacts the stages that ended made, in order, forgetting what came before a reset or a new skeleton: `needs.exists_after`). `needs.unmet` lists the needs of a run's steps that no earlier step makes and the rows do not hold; `planrows.record_plan` stores them in the planned rows' `unmet` and `wrapper.run` logs a warning for each when the run starts, instead of the stage finding the gap in the middle of its work. Nothing is refused: a galaxy made before the ledger kept plans has no rows, and the stage still finds its own stored result. A run with no ledger (OPS.263) keeps no rows and says nothing.
+- The checks, the warm families and the map-rebuild step declare no needs or makes (a test says so): a check reads the database as it is and a warm family builds its own input.
+
+## [8.0.4307] - 2026-11-15
+
+**Headline:** `update.sh` no longer stops at the math check on a database that has no job-ledger tables yet.
+
+### Fixed
+- A run whose control database is missing or has no ledger tables yet (the update's math check runs at stage 4, before stage 5 migrates) keeps its plan in its own Redis run record and writes no ledger row; so does a run with no database at all (`generate system --output`). The store is chosen once per run and kept in its record. A run on a database that has the tables is unchanged (OPS.263, TEST.769).
+
+## [8.0.4306] - 2026-11-15
+
+**Headline:** finish-run now decides which stages of a stopped run are finished from the run's ledger rows, so it no longer depends on Redis keeping the run's stage records.
+
+### Changed
+
+- OPS.238, start paths: `finish_run.stage_finished` reads the stage's end rows (`planrows.ended`): a stage is finished when its `release` row is done (its units, conclusion and statistics are done and the next opening was queued). A stage that opens with no unit to wait for (a stage a run carries over from the run before, or one cut to no unit) now marks its three end rows done where `wrapper.advance` passes it, so the rows say it ended as they do for any other stage.
+
+## [8.0.4305] - 2026-11-15
+
+**Headline:** The on-demand belt body tests look for a body that is round enough to have a class letter, as the generator does.
+
+### Changed
+- TEST.772: `test_belt_ondemand` took the body of one rank and wanted a class letter; a body whose planet comes out under a roundness ratio of 1 is an Asteroid, an object type with no letter (GEN.1160), and the belt's status (median strength) can call a body just over the round mass round while its planet draws its own strength. The two tests now take the first body with a letter among the next ranks and hold every body without one to a roundness ratio under 1; the on-demand planet is still the planet `belt_planets.planet_of` makes.
+
+## [8.0.4304] - 2026-11-15
+
+**Headline:** `generate system --output` runs with no database reachable: a run that names no database keeps its plan in its own Redis record.
+
+### Fixed
+- A run whose steps name no database (`system --output`, which touches none) keeps its plan, its end marks and its unit list in its run record in Redis, behind the same `planrows` functions the ledger answers through (`planrows.ledgered` chooses the store once), instead of opening the control database; its units have no rows.
+- `run_galaxy._sector_args_of` takes a unit that names no database.
+- Three web-generate tests keep up with the pages and classes of today: the estimate page's wording ("1.25 minutes", "1 TB"), and "Q", which is a planet class now, so the bad class in the refusal test is "AB".
+
+generation-output: unchanged
+
 ## [8.0.4303] - 2026-11-15
 
 **Headline:** Two checks that were red on main are green: an unused year constant is gone, and one registry row is spelled the way the guide asks.

@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_final, venus_spin
-from planetgen.physics import planet_moons
+from planetgen.physics import hill_perturbers, planet_moons
 from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
@@ -320,7 +320,17 @@ def settle_orbit(planet):
     if birth is None:
         return False
     # never above what the planet has: the spacing of the orbits may have cut it (`validation`) and ages only rise
-    eccentricity = min(planet.eccentricity, orbit_elements.settled_eccentricity(planet, birth, _gyr_to_yr(planet.star.age), planet.primary_mass_kg, planet.distance))
+    age_yr = _gyr_to_yr(planet.star.age)
+    settled = orbit_elements.settled_eccentricity(planet, birth, age_yr, planet.primary_mass_kg, planet.distance)
+    if getattr(planet, "_exchange_damped_yr", None) == age_yr:
+        # GEN.1459: the secular exchange wore this planet's eccentricity with the cold tide all along, against the pumping of its neighbours; only the harder tide of a strong one
+        # (its heat softening the mantle, `settled_eccentricity`) is left to apply, as the share of the cold decay it adds
+        cold = orbit_elements.circularised(birth, age_yr, orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance))
+        settled = planet.eccentricity * (min(settled / cold, 1.0) if cold > 0.0 else 1.0)
+    eccentricity = min(planet.eccentricity, settled)
+    resonance_e = getattr(planet, "_resonance_e", None)
+    if resonance_e:        # GEN.1449 slice 2: the resonance renews the eccentricity the tide wears down
+        eccentricity = max(eccentricity, min(resonance_e, planet.eccentricity))
     if planet.eccentricity - eccentricity <= ECCENTRICITY_SETTLE_TOLERANCE:
         return False
     planet.eccentricity = eccentricity
@@ -445,13 +455,12 @@ def apply_envelope(planet):
     if planet.body_type != "t" or planet.is_moon:
         return False
     mass_earth = _kg_to_mearth(planet.mass)
-    if not envelope_capture.in_range(mass_earth):
-        return False
+    if not envelope_capture.in_range(mass_earth) or not envelope_capture.keeps_envelope(mass_earth):
+        return False                    # a body under 1 Earth mass captured one (and made its water from it, `bulk_draw`), and is bare at the end (GEN.1748)
     if getattr(planet, "_late_core", False):
         start = 0.0                     # a core that finished after the gas disk went captured nothing
     else:
-        stream = draw.Stream(f"envelope-start:{float(planet.mass)!r}:{float(formation_distance_au(planet))!r}:{float(planet.star.mass)!r}")
-        with draw.bound(stream):
+        with draw.bound(envelope_capture.start_stream(planet.mass, formation_distance_au(planet), planet.star.mass)):
             start = envelope_capture.draw_start(mass_earth)
             puff = envelope_capture.draw_puff_start(mass_earth, envelope_capture.period_days(planet))     # GEN.1343 (W15): one sub-Neptune core in 20 starts as a super-puff
             start = puff or start
@@ -1285,13 +1294,18 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and not getattr(p, "is_moon", False) and getattr(p, "period", None) and p.mass and p.distance]
     if len(bodies) < 2 or not host_mass_kg > 0.0 or not age_yr > 0.0:
         return "unchanged"
-    start = []
+    start, damping = [], []
     for body in bodies:
         orbit = body.orbit_from_vector()
-        start.append((orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
+        birth = getattr(body, "_orbit_birth", None)
+        # GEN.1459: the exchange runs from the eccentricity the planet was born on, with its own tide wearing it down all the while (the stored one is already worn for the age it was drawn at)
+        tide_time_yr = orbit_elements.circularisation_time_yr(body, host_mass_kg, body.distance)
+        damped = birth is not None and birth > 0.0 and 0.0 < tide_time_yr < math.inf
+        damping.append(1.0 / tide_time_yr if damped else 0.0)
+        start.append((birth if damped else orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
     ring_axes, ring_masses = belt_rings_of(planets, [b.distance for b in bodies])
     result = secular_chain.evolve([b.distance for b in bodies], [b.mass for b in bodies], host_mass_kg,
-                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses)
+                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses, damping)
     if not result.linear:
         return "outside the theory"
     old = [body.eccentricity for body in bodies]
@@ -1302,6 +1316,8 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     if not moved:
         return "unchanged"
     for i, body in enumerate(bodies):
+        if damping[i] > 0.0:
+            body._exchange_damped_yr = age_yr       # `settle_orbit` does not wear this eccentricity from its birth again: the exchange wore it (GEN.1459)
         if targets[i] < old[i]:
             body.eccentricity = targets[i]
     held = False
@@ -1659,7 +1675,8 @@ def moon_orbit_bounds_km(planet):
     densities), plus 15 atmospheric scale heights (or 100 km with no
     atmosphere) of drag-free margin. Outermost: the prograde stability
     limit of [R1138], a fraction of the Hill radius that the planet's eccentricity lowers
-    (0.4895 on a circular orbit, `clearance_ledger.moon_bounds_km`); past it the star strips the moon.
+    (0.4895 on a circular orbit, `clearance_ledger.moon_bounds_km`) of the Hill sphere against every body that pulls on the planet (GEN.1449, `hill_perturbers`); past it the star
+    (or a companion or a sibling planet) strips the moon.
 
     Returns:
         tuple: `(low_km, high_km)`; `low_km >= high_km` means no room.
@@ -1667,14 +1684,14 @@ def moon_orbit_bounds_km(planet):
     max_moon_radius = planet.radius / (10 ** (1 / 3))
     atmosphere_margin_km = planet.scale_height * 15 if planet.scale_height else 100
     low_km = planet.radius + max_moon_radius + atmosphere_margin_km
-    high_km = clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0)[1]
+    high_km = clearance_ledger.moon_bounds_km(planet.radius, hill_perturbers.tidal_hill_radius_km(planet), getattr(planet, "eccentricity", None) or 0.0)[1]
     return low_km, high_km
 
 
 def moon_stable_limit_km(planet, moon_eccentricity=0.0):
     """The farthest semi-major axis, km from `planet`'s center, a moon of this eccentricity keeps ([R1138]: the
     fit is for the semi-major axis, and the moon's own eccentricity lowers it)."""
-    return clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0,
+    return clearance_ledger.moon_bounds_km(planet.radius, hill_perturbers.tidal_hill_radius_km(planet), getattr(planet, "eccentricity", None) or 0.0,
                                            moon_eccentricity or 0.0)[1]
 
 
