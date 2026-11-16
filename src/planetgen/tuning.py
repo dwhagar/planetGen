@@ -1156,10 +1156,10 @@ CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
 RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
 PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 2.0
 # The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
-# 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
+# 0.5, II until the star's own dispersal time (GEN.1551, `physics/disk_dispersal.py`), and none after; mass 0.01 to 0.3 of the star and outer
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
 # grain sublimates (DISK_DUST_SUBLIMATION_K).
-DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6), ("II", 3.0e6))
+DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6))
 RUNAWAY_HISTORY_START_YR = 30.0e6
 """float: The age the water-loss history starts at (GEN.639): 30 Myr, when the last giant impacts of the rocky planets are
 done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; [R2132]) and a surface

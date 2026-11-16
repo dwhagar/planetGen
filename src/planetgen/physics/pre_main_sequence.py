@@ -36,7 +36,7 @@ import math
 
 from planetgen import tuning
 from planetgen.datasets import baraffe_isochrones, isochrones
-from planetgen.physics import constants, main_sequence, unit_registry as units
+from planetgen.physics import constants, disk_dispersal, main_sequence, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.random import log_uniform as _log_uniform
 
@@ -224,15 +224,26 @@ def state(mass_sol, age_yr, fe_h=0.0):
             "temperature_k": on_track["temperature_k"], "radius_km": None,
             "phase_end_gy": contraction_time_yr(mass_sol, fe_h) / 1.0e9,
             "nuclear_arrival_gy": nuclear_arrival_yr(mass_sol, fe_h) / 1.0e9,
-            "disk_class": disk_class(age_yr)}
+            "disk_class": disk_class(age_yr, dispersal_yr(mass_sol))}
 
 
-def disk_class(age_yr):
-    """The infrared class of a young star by age: "0", "I", "II", and "III" once its disk is gone."""
+def dispersal_yr(mass_sol):
+    """
+    The age at which this star loses its disk, years (GEN.1551): its own time (`disk_dispersal.draw_dispersal_time_yr`), drawn from the stream of its initial mass and no
+    age, so it does not move when the star's age does; held to `tuning.PLANET_MIN_STAR_AGE_GY` until GEN.1552 lets bodies stand once the disk is gone, so that no star holds a disk and
+    planets at once.
+    """
+    own = disk_dispersal.draw_dispersal_time_yr(f"mass:{mass_sol!r}", mass_sol)
+    return min(own, tuning.PLANET_MIN_STAR_AGE_GY * 1.0e9)
+
+
+def disk_class(age_yr, dispersal_age_yr):
+    """The infrared class of a young star by age: "0" and "I" by the ages of `tuning.DISK_CLASS_AGES_YR` (the embedded stages, however soon its disk would go), "II" until `dispersal_age_yr` (the star's own
+    time, `dispersal_yr`, GEN.1551), and "III" once its disk is gone."""
     for name, limit in tuning.DISK_CLASS_AGES_YR:
         if age_yr < limit:
             return name
-    return "III"
+    return "II" if age_yr < dispersal_age_yr else "III"
 
 
 def sublimation_radius_au(luminosity_sol):
@@ -249,7 +260,7 @@ def draw_disk(mass_sol, age_yr, luminosity_sol, rng=draw):
     `disk_outer_au` (log-uniform over `DISK_OUTER_RADIUS_RANGE_AU`), with no bodies in it; None once the disk is gone
     (Class III), and for a star that is no longer contracting.
     """
-    name = disk_class(age_yr)
+    name = disk_class(age_yr, dispersal_yr(mass_sol))
     if name == "III" or stage(mass_sol, age_yr) is None:
         return None
     return {"disk_kind": f"class-{name.lower()}",
@@ -265,4 +276,4 @@ def companion_chance(mass_sol, age_yr):
     """
     if stage(mass_sol, age_yr) != PROTOSTAR:
         return None
-    return tuning.PROTOSTAR_MULTIPLICITY_BY_CLASS.get(disk_class(age_yr))
+    return tuning.PROTOSTAR_MULTIPLICITY_BY_CLASS.get(disk_class(age_yr, dispersal_yr(mass_sol)))
