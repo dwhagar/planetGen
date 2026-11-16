@@ -3481,7 +3481,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
     history_text                TEXT NULL,  -- v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
     host_node_id                SMALLINT NULL,  -- v258 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets`
-    thrown_inward_kg            DOUBLE NULL,  -- v266 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v266
+    thrown_inward_kg            DOUBLE NULL,  -- v267 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v267
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -6659,8 +6659,8 @@ CREATE TABLE IF NOT EXISTS engine_items (
 
 -- v262 (OPS.253): `sky_tier_draws` gains `part_index` and `part_count` (SMALLINT UNSIGNED, 0 and 0 for a whole sphere): a sphere drawn by several units at once keeps one row for each part (how many batches of its share are written), which never counts in the ledger; the stage's last step records the sphere itself and drops them. The unique key of a draw gains the two columns.
 
--- v266 (GEN.1231): `asteroid_belts.thrown_inward_kg` (DOUBLE, NULL), the mass of the belt the star's mass loss threw inward (`physics/belt_history.py`): the source of the rock
--- that falls on a white dwarf, so the star's page can say the rate at which it accretes. NULL for a belt of no remnant system and for a row made before v266, nothing is backfilled.
+-- v267 (GEN.1231): `asteroid_belts.thrown_inward_kg` (DOUBLE, NULL), the mass of the belt the star's mass loss threw inward (`physics/belt_history.py`): the source of the rock
+-- that falls on a white dwarf, so the star's page can say the rate at which it accretes. NULL for a belt of no remnant system and for a row made before v267, nothing is backfilled.
 
 -- engine_piece_results (v263, OPS.219): what each finished piece of a job returned, in the job's own galaxy, written in the transaction that stores the cursor in `engine_items` and the piece's data. A unit that
 -- stopped part way and is run again starts after its stored cursor and hands its `gather` these results beside the new ones (`planetgen/queue/engine.py`). One row for each piece that returned something.

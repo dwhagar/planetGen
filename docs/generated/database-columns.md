@@ -1429,7 +1429,7 @@ asteroid_belts -- belts have no properties-dict data table (asteroidData.py:93-1
 | `largest_body_km` | DOUBLE | NULL | v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass |
 | `history_text` | TEXT | NULL | v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205 |
 | `host_node_id` | SMALLINT | NULL | v258 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets` |
-| `thrown_inward_kg` | DOUBLE | NULL | v266 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v266 |
+| `thrown_inward_kg` | DOUBLE | NULL | v267 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v267 |
 
 ## `asteroid_belt_composition`
 
