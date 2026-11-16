@@ -25,6 +25,7 @@ import concurrent.futures
 import dataclasses
 import math
 import multiprocessing
+import os
 import random
 
 import pytest
@@ -77,12 +78,12 @@ def makeup_of(star):
 
 # --- The stars -------------------------------------------------------------------------------------------------------------------
 
-def _from_sector_star(star, index, region):
-    """A star of a filled sector as the generator stored it."""
+def _from_sector_star(star, key, region):
+    """A star of a filled sector as the generator stored it (`key` names a compact remnant, which has no abundance key of its own)."""
     if isinstance(star, NeutronStar):
-        return Star("sector", sc.NEUTRON_STAR, None, star.age, getattr(star, "mass_solar", 1.4), f"{region}:{index}")
+        return Star("sector", sc.NEUTRON_STAR, None, star.age, getattr(star, "mass_solar", 1.4), key)
     if isinstance(star, BlackHole):
-        return Star("sector", sc.BLACK_HOLE, None, star.age, getattr(star, "mass_solar", 10.0), f"{region}:{index}",
+        return Star("sector", sc.BLACK_HOLE, None, star.age, getattr(star, "mass_solar", 10.0), key,
                     spin=min(max(getattr(star, "spin", 0.0) or 0.0, 0.0), 0.99))
     mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
     kind = sc.kind_of(star.yerkes_class, mass_sol, None, sa.PROTO_Z * 10.0 ** star.metallicity_fe_h)
@@ -91,16 +92,27 @@ def _from_sector_star(star, index, region):
                 teff_k=star.temperature)
 
 
+def _fill_region(name):
+    """TEST.783: the stars of one region's seeded sector, as `(number in its system, Star)` pairs; a worker's job (the fill is bound to the region's own seed, so
+    it does not depend on the other regions or on where it runs). A compact remnant's key is left for the parent, which counts the stars of the regions before."""
+    case = dataclasses.replace(rep.region_cases((name,), 1)[0], num_systems=SYSTEMS_PER_SECTOR)
+    sector = audit.fill_region_sector(case, audit.seed_for(name, 0))
+    return [(number, _from_sector_star(star, None, name)) for entry in sector.entries for number, star in enumerate(entry.star_system.stars)]
+
+
 def sector_stars(patch):
-    """Every star of a few seeded sectors in each region class, filled with the rare kinds' rates boosted."""
+    """Every star of a few seeded sectors in each region class, filled with the rare kinds' rates boosted. The regions are filled at the same time, one worker each
+    (forked, so each keeps the boosted rates and the data the parent read); the stars and their keys are the ones a one-by-one fill makes."""
     rep.boosted_rates(patch)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=min(len(SECTOR_REGIONS), os.cpu_count() or 1),
+                                                mp_context=multiprocessing.get_context("fork")) as pool:
+        filled = list(pool.map(_fill_region, SECTOR_REGIONS))
     found = []
-    for name in SECTOR_REGIONS:
-        case = dataclasses.replace(rep.region_cases((name,), 1)[0], num_systems=SYSTEMS_PER_SECTOR)
-        sector = audit.fill_region_sector(case, audit.seed_for(name, 0))
-        for entry in sector.entries:
-            for number, star in enumerate(entry.star_system.stars):
-                found.append(_from_sector_star(star, f"{len(found)}:{number}", name))
+    for name, stars in zip(SECTOR_REGIONS, filled):
+        for number, star in stars:
+            if star.key is None:
+                star = dataclasses.replace(star, key=f"{name}:{len(found)}:{number}")
+            found.append(star)
     return found
 
 
