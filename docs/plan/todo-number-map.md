@@ -680,7 +680,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.98 | Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test | none | done, PR #2931 |
 | DB.99 | Store the ground colour and the ice fraction on planets and moons | none | dropped (covered by the stored ground_type, grain and ground_*_fraction columns; a colour is derived when a body renderer is built) |
 | DB.100 | Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results | none | done, PR #3184 |
-| DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item | none | open |
+| DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item | none | done (PR 6833, Lane 15, merged 6:55 AM EST 11-16: audit /mnt/project-files/reports/db101-storage-audit-2026-11-16.md, tests/test_stored_outputs.py; gaps filed as DB.132, DB.133, DB.134) |
 | DB.102 | The version key stored with the galaxy seed carries the API version, the database schema and the generator epoch after the release version, with the zero padding shortened to make room | none | done, PR #3323 |
 | DB.103 | Storage for nation-states and cities: tables, Object IDs, column units and the migration | none | open |
 | DB.104 | Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic | none | open |
