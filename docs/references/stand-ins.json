@@ -3871,7 +3871,7 @@
             ],
             [
               "Where it holds",
-              "the reference of the outgassing flux"
+              "the one Earth heat-flow reference: the outgassing flux, the life supply's heat share (life_supply.heat_share) and the hydrothermal ores' heat ratio read it (GEN.1636; the Earth's measured 0.087 to 0.09 is not used, the model's heat flows are read against the model's own Earth twin)"
             ],
             [
               "What would show it wrong",
@@ -44665,11 +44665,11 @@
           "fields": [
             [
               "What it is",
-              "hydrothermal_deposits.EARTH_HEAT_FLUX_W_M2 0.087, EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's mean heat flow, ocean and land share and oxygen pressure, the references the opportunities scale from"
+              "hydrothermal_deposits.EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's ocean and land share and oxygen pressure, the references the opportunities scale from (the heat flow they scale from is AM33's surface_pressure.HEAT_FLUX_EARTH_W_M2, GEN.1636)"
             ],
             [
               "The range it moves in",
-              "heat flow 0.08 to 0.09 W/m2"
+              "ocean share 0.70 to 0.71"
             ],
             [
               "Where it holds",
@@ -44685,7 +44685,7 @@
             ],
             [
               "Evidence",
-              "the Earth's global heat flow (about 87 mW/m2), the hypsometry and the air's oxygen share, recalled; not opened"
+              "the hypsometry and the air's oxygen share, recalled; not opened"
             ]
           ],
           "id": "HT1",
@@ -44696,7 +44696,7 @@
           "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "hydrothermal_deposits.EARTH_HEAT_FLUX_W_M2 0.087, EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's mean heat flow, ocean and land share and oxygen pressure, the references the opportunities scale from"
+          "what": "hydrothermal_deposits.EARTH_OCEAN_FRACTION 0.71, EARTH_LAND_FRACTION 0.29 and EARTH_O2_PA 21278: the Earth's ocean and land share and oxygen pressure, the references the opportunities scale from (the heat flow they scale from is AM33's surface_pressure.HEAT_FLUX_EARTH_W_M2, GEN.1636)"
         },
         {
           "burn_down": [

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from planetgen.physics import constants, hydrothermal_deposits as hd, interior_heat, ore_deposits as od, sedimentary_deposits as sd
+from planetgen.physics import constants, hydrothermal_deposits as hd, interior_heat, life_supply, ore_deposits as od, sedimentary_deposits as sd, surface_pressure
 from planetgen.util import draw
 
 BY_ID = {kind.id: kind for kind in hd.TYPES}
@@ -15,7 +15,7 @@ BY_ID = {kind.id: kind for kind in hd.TYPES}
 def _state(**over):
     """An Earth-like finished body at 4.5 Gyr: mobile lid, oxidized mantle, 71 percent ocean, 35 km crust, heat flow of the Earth's, oxygen of the air, life."""
     base = dict(age_gy=4.5, lid=interior_heat.MOBILE, redox="oxidized", wet=True, ocean=True, ocean_fraction=0.71, land_fraction=0.29, radius_km=constants.EARTH_RADIUS_KM,
-                heat_flux_w_m2=0.087, crust_km=35.0, sulfur_index=0.8, felsic_share=0.3, magma_ratio=1.0, o2_pa=21278.0, reductant=True,
+                heat_flux_w_m2=surface_pressure.HEAT_FLUX_EARTH_W_M2, crust_km=35.0, sulfur_index=0.8, felsic_share=0.3, magma_ratio=1.0, o2_pa=21278.0, reductant=True,
                 crust_ppm=dict(hd.CRUST_PPM), u_ppm=0.0218)
     base.update(over)
     return hd.State(**base)
@@ -84,7 +84,7 @@ def test_the_uranium_grade_is_held_to_the_rock_s_uranium():
 def test_a_larger_hotter_body_has_more_deposits_to_draw_from():
     big = hd._porphyry(_state(radius_km=2 * constants.EARTH_RADIUS_KM)).opportunity
     assert big == pytest.approx(4 * hd._porphyry(_state()).opportunity)
-    assert hd._porphyry(_state(heat_flux_w_m2=10.0)).opportunity == pytest.approx(hd.HEAT_RATIO_CAP * hd._porphyry(_state(heat_flux_w_m2=0.087)).opportunity)
+    assert hd._porphyry(_state(heat_flux_w_m2=10.0)).opportunity == pytest.approx(hd.HEAT_RATIO_CAP * hd._porphyry(_state()).opportunity)
 
 
 def test_the_ids_fit_the_columns_and_do_not_collide_with_other_slices():
@@ -163,3 +163,13 @@ def test_a_generated_body_made_again_has_the_same_rows_and_the_run_stream_does_n
     with draw.bound("hydrothermal-deposits:outer"):
         assert mark == draw.random()
     assert before == planet.deposit_types
+
+
+def test_the_earth_twins_heat_is_the_one_reference_of_the_outgassing_the_life_supply_and_the_ores():
+    """GEN.1636: the interior model's Earth twin has a heat flow of `surface_pressure.HEAT_FLUX_EARTH_W_M2`; it is 1 in the life supply's heat share and in the ores' heat ratio (it was 0.7 against the measured
+    0.087), and the outgassing reads the same number."""
+    earth = surface_pressure.HEAT_FLUX_EARTH_W_M2
+    assert life_supply.heat_share({"internal_heat_flux_w_m2": earth, "tidal_flux_w_m2": 0.0}) == pytest.approx(1.0)
+    assert hd._heat_ratio(_state()) == pytest.approx(1.0)
+    assert hd._heat_ratio(_state(heat_flux_w_m2=2.0 * earth)) == pytest.approx(2.0)
+    assert not hasattr(hd, "EARTH_HEAT_FLUX_W_M2")          # no second Earth heat flow
