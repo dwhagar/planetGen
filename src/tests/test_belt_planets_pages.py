@@ -87,3 +87,21 @@ def test_a_planet_made_from_a_belt_names_that_belt_on_its_sheet(saved_belt):
         plain = sheet_module.sheet(conn, "planet", kept.db_id)
     assert len(rows) == 1 and object_uid.designation(belt_uid, planet.belt_rank) in rows[0]["text"]
     assert not [row for group in plain["groups"] for row in group["rows"] if row["key"] == sheet_module.BELT_ORIGIN_KEY]
+
+
+def test_the_system_scene_names_the_belt_a_planet_was_made_from(saved_belt):
+    """GEN.1511: the planet's own record in the system scene (the API's planet record) names its belt; a planet that was not made from a belt has no such key."""
+    from planetgen.web.maps import systemscene
+    belt_id, made, config = saved_belt
+    with store.get_connection(config) as conn:
+        system_id = conn.execute("SELECT star_system_id FROM asteroid_belts WHERE id = ?", (belt_id,)).fetchone()["star_system_id"]
+        belt_uid = object_uid.from_bytes(conn.execute("SELECT uid FROM asteroid_belts WHERE id = ?", (belt_id,)).fetchone()["uid"])
+        scene = systemscene.build_scene(conn, system_id)
+    by_name = {planet["name"]: planet for planet in scene["planets"]}
+    with store.get_connection(config) as conn:
+        listed = {row["name"]: row for row in belt_info.belt_info(conn, belt_id)["planets"]}      # the planets of this belt (the fixture's `made` may hold another belt's)
+    assert listed
+    for name, row in listed.items():
+        found = by_name[name]["made_from_belt"]
+        assert found == {"ref": f"belt:{belt_id}", "rank": row["rank"], "designation": object_uid.designation(belt_uid, row["rank"])}
+    assert all("made_from_belt" not in planet for planet in scene["planets"] if planet["name"] not in {p.name for p in made})

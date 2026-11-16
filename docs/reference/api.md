@@ -328,7 +328,7 @@ connectivity to that specific schema rather than the default one.
   `null`). An unknown planet or moon is a `404`. Additive: the API version does not change.
 - `GET /api/systems/<id>/scene` — the 3D system view's data (MAP.69):
   `system`, `epoch`/`epoch_unix` (when the stored phases were last
-  advanced, `null` if never), `stars`, `planets` (each with `moons`),
+  advanced, `null` if never), `stars`, `planets` (each with `moons`; a planet made from a belt, GEN.1510, also has `made_from_belt`: the belt's `ref`, and the `rank` and `designation` the body had there, GEN.1511; a new key on those planets only, so the API version stays),
   `tree` (the tree of orbits the stars hang in, GEN.311: `nodes`, one per
   `orbit_nodes` row with its own epoch, `members`, one per star with its
   `parent_node_no`, `slot` and `mass_solar`, and `origin`, the star at the

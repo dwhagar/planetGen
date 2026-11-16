@@ -36,7 +36,8 @@ first star) or `None` for the barycenter. `physics.body_positions.positions_at` 
 
 A star, planet or moon carries `look` (MAP.287), the same body look record the System Map's `data-look` holds
 (`bodylook.star_look`, `bodylook.planet_look`), which the client colours and paints the sphere from; a comet carries
-`color`, its nucleus colour.
+`color`, its nucleus colour. A planet that was made from a belt (GEN.1510) also carries `made_from_belt` (GEN.1511): the `ref` of the belt, the body's `rank` there and the `designation` it had
+(`<belt ID>.<rank hex>`); no other planet has the key.
 """
 
 import dataclasses
@@ -239,6 +240,20 @@ def _belt_members(conn, belt, limit=None):
     return out
 
 
+def _belt_of(planet, belts):
+    """
+    The belt a promoted planet was made from (GEN.1510, GEN.1511) as `{ref, rank, designation}` (`designation` is the one the body had in the belt), or `None` for any other planet.
+    The belt is the `belt_order`-th of its star's belts in orbital order, as `db.query` counts them.
+    """
+    if planet.get("belt_rank") is None or planet.get("belt_order") is None:
+        return None
+    of_star = sorted((belt for belt in belts if belt.get("star_id") == planet.get("star_id")), key=lambda belt: (belt["orbital_index"], belt["id"]))
+    if planet["belt_order"] >= len(of_star) or of_star[planet["belt_order"]].get("uid") is None:
+        return None
+    belt = of_star[planet["belt_order"]]
+    return {"ref": f"belt:{belt['id']}", "rank": planet["belt_rank"], "designation": object_uid.designation(object_uid.parse_id(belt["uid"]), planet["belt_rank"])}
+
+
 def _belt(belt, around, members=()):
     return {
         "ref": f"belt:{belt['id']}", "id": belt["id"], "kind": "belt", "name": belt.get("name"),
@@ -306,6 +321,9 @@ def build_scene(conn, system_id):
     for planet in detail["planets"]:
         item = _planet(planet, _star_around(planet, stars, row, pair_around))
         item["moons"] = [_planet(moon, item["ref"], kind="moon", parent=item["ref"]) for moon in planet["moons"]]
+        made_from = _belt_of(planet, detail["belts"])
+        if made_from is not None:      # GEN.1511: a planet made from a belt names it
+            item["made_from_belt"] = made_from
         planets.append(item)
     epoch, epoch_unix = _epoch(conn)
     return {
