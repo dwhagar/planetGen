@@ -19,20 +19,22 @@ LISTING = """\
   500   500      700 python -m pytest tests/test_workers.py -k planetgen.cli.worker --url redis://127.0.0.1:6379/4
   600   600       30 /usr/bin/python3 -m planetgen.cli.worker --url redis://127.0.0.1:6379/15 planetgen-interactive
   700   700       30 /usr/bin/mysqld --basedir=/usr
+  800   800       20 /usr/bin/python3 -m planetgen.cli.supervisor --url redis://127.0.0.1:6379/5
+  900   900       20 /usr/bin/python3 -m planetgen.cli.supervisor --url redis://127.0.0.1:6379
 garbage line
 """
 
 
 def test_a_worker_is_read_with_its_age_and_the_redis_database_it_names():
     found = {worker["pid"]: worker for worker in stray_workers.parse(LISTING)}
-    assert sorted(found) == [100, 200, 300, 400, 600]                 # the horse (101), pytest, mysqld and noise are not
+    assert sorted(found) == [100, 200, 300, 400, 600, 800, 900]       # the horse (101), pytest, mysqld and noise are not
     assert found[100] == {"pid": 100, "seconds": 5400, "database": 3}
     assert found[200]["database"] == 0 and found[300]["database"] == 0     # a URL with no database is database 0
     assert found[400]["database"] is None
 
 
 def test_only_workers_on_a_private_test_database_are_strays():
-    assert [worker["pid"] for worker in stray_workers.strays(LISTING)] == [100, 600]
+    assert [worker["pid"] for worker in stray_workers.strays(LISTING)] == [100, 600, 800]       # the supervisor on database 5 is one; the machine's own (900) is not
     assert [worker["pid"] for worker in stray_workers.strays(LISTING, databases=[3])] == [100]
     assert [worker["pid"] for worker in stray_workers.strays(LISTING, older_than=60)] == [100]
 
@@ -43,8 +45,8 @@ def test_reap_ends_the_group_and_kills_what_stays():
     found = stray_workers.strays(LISTING)
     count = stray_workers.reap(found, killpg=lambda pid, sig: sent.append((pid, sig)), sleep=lambda seconds: None,
                                exists=lambda pid: pid in alive)
-    assert count == 2
-    assert sent == [(100, signal.SIGTERM), (600, signal.SIGTERM), (100, signal.SIGKILL)]
+    assert count == 3
+    assert sent == [(100, signal.SIGTERM), (600, signal.SIGTERM), (800, signal.SIGTERM), (100, signal.SIGKILL)]
 
 
 def test_a_worker_that_is_already_gone_is_not_counted():
@@ -64,6 +66,24 @@ def test_a_real_worker_process_on_a_test_database_is_found_and_ended():
         while process.pid not in [w["pid"] for w in stray_workers.strays(databases=[14])] and time.monotonic() < deadline:
             time.sleep(0.1)
         assert stray_workers.reap_database("redis://127.0.0.1:6379/14") >= 1
+        assert process.wait(timeout=20) == -signal.SIGTERM
+    finally:
+        if process.poll() is None:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
+
+
+def test_a_supervisor_a_test_left_on_a_test_database_is_found_and_ended():
+    """A supervisor outlives the test that started it by up to its idle time and carries that test's environment; the next test on the database must not meet it."""
+    code = "import time; time.sleep(60)"
+    process = subprocess.Popen([sys.executable, "-c", code, "-m", "planetgen.cli.supervisor", "--url",
+                                "redis://127.0.0.1:6379/13"], start_new_session=True,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        deadline = time.monotonic() + 10
+        while process.pid not in [w["pid"] for w in stray_workers.strays(databases=[13])] and time.monotonic() < deadline:
+            time.sleep(0.1)
+        assert stray_workers.reap_database("redis://127.0.0.1:6379/13") >= 1
         assert process.wait(timeout=20) == -signal.SIGTERM
     finally:
         if process.poll() is None:
