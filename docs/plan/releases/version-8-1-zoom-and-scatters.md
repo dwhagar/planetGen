@@ -623,7 +623,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.786 | (bug) Runaway-start test red: a wet body past the runaway limit keeps a surface ocean | none | Lane 14, 2026-11-16 |
 | TEST.788 | Slow gate files: make each fit inside the hang guard without changing what it checks | none | Lane 16, 2026-11-16 |
 | GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | none | Lane 03, 2026-11-16. |
-| GEN.1777 | Measure whether the CO2 supply needs a tweak | none | Lane 04, 2026-11-16 |
 | GEN.1780 | The GEN.1732 haze loss ramp may have two branches | none | Lane 02, 2026-11-17 |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs | none | Lane 02, 2026-11-17 |
 | GEN.1785 | Class census shifts explained, ranges renewed | GEN.1777 | Lane 04, 2026-11-17 |
