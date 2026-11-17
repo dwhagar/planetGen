@@ -11837,11 +11837,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 02, after GEN.1780. Prerequisites: none. Related: TEST.790, GEN.1732.
   Filed by the TODO thread.
 
-- [ ] **GEN.1782 Class D small bodies do not scale with metallicity: a halo G2V system carries 13.2 against 9.8 in a disk one, while other planets fall from 6.1 to 3.0 (measure first)**
-  Lane 07, 2:47 AM EST 2026-11-17, found while fixing test_gen_kind_factors (PR 7022, 30 G2V systems each): class D bodies (about 1e-4 Earth masses) are more numerous in metal-poor halo systems than in disk ones. A metal-poor disk holds less solid mass, so fewer planetesimals would be expected, unless fewer large planets leave more leftovers. Do: find what sets the class D count (the draw, the solid mass it reads, clearing by larger planets), say from the sources whether more small bodies in the halo is physical, and fix it if not. Report before any change.
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 06. Prerequisites: none. Related: GEN.1674, GEN.1752.
-  Filed by the TODO thread.
-
 - [ ] **PERF.277 Interior cooling of old belt-sized bodies takes up to 770,000 RK4 steps: the stiffness-limited step collapses once the mantle is cold (4 of 489 calls take 7.8 s of a 63 s sector run)**
   Lane 16, 2:45 AM EST 2026-11-17 (PERF.276 profiling): the bodies are 100 to 300 km, surface 2.7 K, age 8 to 12 Gyr; the step in interior_heat cool() is 1/stiffness and shrinks without end near a cold steady state. Do: a step rule that stops shrinking at a steady state (or an implicit step for the stiff part), about 100 times fewer steps; show the heat flow and interior temperatures of a census sample change only within the integrator's tolerance and report the largest change. Lock item (output moves in the last digits); no golden or epoch (Boss, 2026-11-14).
   Version 8.1. Owner (TODO, 2026-11-17): Lane 16 (Lane 04 owns interior_heat and is told). Prerequisites: none. Related: PERF.276.
