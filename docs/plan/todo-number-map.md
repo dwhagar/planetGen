@@ -4098,7 +4098,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1769 | Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw | open |
 | GEN.1770 | (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red) | done (PR 6903, Lane 07, merged in Train 40, PR 6938, 6:47 PM EST 11-16) |
 | GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | open |
-| GEN.1772 | (bug) Civilizations on worlds whose air the species placement refuses (the air cannot be breathed) | open (Lane 04) |
+| GEN.1772 | (bug) Civilizations on worlds whose air the species placement refuses (the air cannot be breathed) | done (PR 6963, Lane 04, merged 9:05 PM EST 11-16) |
 | GEN.1773 | (bug) A body past the runaway limit keeps an ocean (Venus twin at 586 K, 118 bar) | open (Lane 14) |
 | GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | open (Lane 02) |
 | GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | open (Lane 06) |
