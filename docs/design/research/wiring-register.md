@@ -217,6 +217,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.generation.body_state_fields | GEN.565 | the birth and present-state split of the stored fields of stars, planets and moons (GEN.582 light); the Field table of GEN.565 absorbs the list, and the forward build (GEN.1548) reads it when a body is made again |
 | function | planetgen.physics.potassium_depletion.depletion_of | by design | the depletion of one of the six table bodies by name, which the tests hold the table to; generation draws from `draw_depletion` |
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
+| module | planetgen.physics.dust_supply | GEN.1542 | the carbon a planet's cosmic dust lays on it and the floor the V8 layer needs; GEN.1542 slice 1 reads each planet's influx at its fill and passes `carbon_dust` to `sulfur_cloud_set.chemistry` |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |
 | row | 6.289:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |
 | function | planetgen.physics.ice_light.light_below | by design | the light under a lid for a given surface light, the caller's own star: the refuge term reads `transmission` and the light floor, so this is the form the tests and later climate lanes read (GEN.1726) |
@@ -226,3 +227,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.212:DP3 | by design | `magnetic_geometry.OFFSET_CLASS_RP`, a documentary constant: the offset class is drawn by kind (`OFFSET_KINDS`), the 0.15 radii is the limit the sheet text and the source state, and no code reads the constant (GEN.1632 found it) |
 | row | 6.296:SA2 | by design | `starlight_aloft.COVERED_BELOW_CM1`, read inside the module only in the text of the covered range, which `line_opacity.EDGES_CM1` sets; the row names the number the tables stop at (GEN.1632 found it) |
 | row | 6.6c:IR18 | by design | `greenhouse_table.FITTED_UP_TO_K`, a documentary constant: the table is no longer clamped there (GEN.1580), so the 4,000 K is the edge of the fit the row describes and nothing reads it (GEN.1632 found it) |
+| row | 6.306:DUS1 | GEN.1542 | the carbon share of the dust is read by `dust_supply.carbon_flux_kg_m2_yr`; slice 1 of GEN.1542 reads that at each planet's fill |
+| row | 6.306:DUS2 | GEN.1542 | the V8 floor is read by `dust_supply.v8_supplied`; slice 1 of GEN.1542 reads that at each planet's fill |

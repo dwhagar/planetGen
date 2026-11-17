@@ -2,6 +2,121 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4462] - 2026-11-17
+
+**Headline:** A planet's cosmic dust supply is worked out as a pure function of its system's belts and comets, ready for the V8 sulfur-cloud species to read.
+
+### Added
+- **The carbon a planet's dust supplies the V8 layer (GEN.1542 slice 0).** `physics/dust_supply.py` turns the dust a planet takes in each year (`influx.planet_influx_kg_per_yr`, GEN.1543) into the carbon it lays on each square meter (`carbon_flux_kg_m2_yr`) and says whether it reaches the floor the V8 layer of the sulfur-cloud set needs (`v8_supplied`). It is a pure function with tests and is not wired in: `sulfur_cloud_set` still takes `carbon_dust` from its caller, so no stored value moves. New registered stand-ins 6.306 DUS1 (carbon share of the dust, 0.1) and DUS2 (the floor, 1e-9 kg per square meter a year), both T6 and L4 with burn-down lines, and DUS3 (the dust a planet lifts itself is left out and why). Slice 1 will read each planet's influx at its fill and pass `carbon_dust`.
+
+generation-affects: none
+
+generation-output: unchanged
+
+## [8.0.4461] - 2026-11-17
+
+**Headline:** The dust a planet takes in from its system's belts now follows a thin, drifting disk, so a Sun-like system gives the Earth about 1e7 kg a year, the measured order, where the old law gave 45 kg a year.
+
+### Fixed
+- **The belt and comet dust that reaches a planet was spread over a sphere (GEN.1543).** `physics/influx.py` spread a belt's dust as an isotropic stream through the sphere of the planet's orbit, so a Sun with a main-belt sized reservoir gave the Earth about 45 kg a year against the 1e7 kg a year the Earth takes. The dust is a disk that Poynting-Robertson drag carries inward: the planet now takes its focused cross-section times the grains' speed past it, over the annulus the stream fills (thickness 2 a sin i) times the drift speed `2 beta G M / (c a)` (`influx.capture_share`, `influx.radiation_ratio`, `influx.drift_speed_m_s`). The call takes the planet's mass and the star's luminosity too (`planet_influx_kg_per_yr` and the sheet row read them). New registered stand-ins 6.247 IF7 to IF10 (grain size, density, dust eccentricity and inclination); IF1 (the share of a belt's loss that is dust) is 0.03, tuned to the measured Earth influx at those values (tweak L2), and IF3 is the new geometry. The row is worked out when a sheet is made, so no stored value moves, and nothing the air reads changes (`late_accretion` and `late_supply` read only `influx.reach` and the reservoirs). The V8 dust supply of GEN.1542 is not built yet; it will read this influx when it is.
+
+generation-affects: none
+
+generation-output: unchanged
+
+## [8.0.4460] - 2026-11-17
+
+**Headline:** A planet's spin history runs about a third faster: the rock rheology and each raiser's tide constant are worked out once for the planet, not at every one of the hundreds of thousands of torque evaluations.
+
+### Changed
+- PERF.276: `tidal_rheology.k2_over_q_function` holds the rigidity, viscosity, self-gravity pressure and Andrade constants of one body at one temperature and melt share, and gives `k2/Q` of a tide frequency by the same arithmetic in the same order as `response(...).k2_over_q` (a test holds it equal to the last bit). `spin_torques.rheology_dissipation` uses it, and `Torques` keeps `K_g` of each raiser from construction. `body_spin.evolve` over four G2V systems fell from 3.4 s to 2.3 s; the build from 43.8 s to 41.7 s. A digest of every body's mass, distance, eccentricity, day, tilt and temperature, and each moon's, is the same before and after.
+
+generation-output: unchanged
+
+## [8.0.4459] - 2026-11-17
+
+**Headline:** A generation run whose units are forked jobs no longer starts bulk workers that sit idle, and its `--workers` count still limits how many units of a stage run at once.
+
+### Changed
+- A forked run's stages ask for no bulk workers (`wrapper.stage_ensure`), and the opening of a stage no longer asks the other bulk workers to exit (`_clear_the_floor_for_the_opening`): there are none (OPS.228 slice D2b-1).
+- The stage's `open` row records the run's `--workers` count (`cap`), and the launcher hands out no more units of a stage at once than that; without `--workers` the memory gate alone decides, as before.
+
+## [8.0.4458] - 2026-11-17
+
+**Headline:** The interior heat box takes about 14 percent less time on the long runs (small cold bodies of a belt), and its results are the same to the last bit.
+
+### Changed
+- `interior_heat.heat` works out the constants of the flux law once per body (`_flux_function`: the activation energy, the leading products of constants, the lid's drop law and exponent) instead of at each of the hundreds of thousands of temperatures its integration visits, reads the clipped temperature once per rate, and sums the decay terms from a list. Each expression keeps its order of operations, so every result is the one the old code gave (a test compares the function with the law at 11 temperatures, both lids and four bodies).
+
+generation-output: unchanged
+
+## [8.0.4457] - 2026-11-17
+
+**Headline:** The halo planet-count test counts the planets metallicity scales, not the class D tiny bodies it never touched.
+
+### Fixed
+- The test that a metal-poor halo star carries fewer planets than a disk one failed on main (halo mean 17.9 against disk 17.4 over the same 30 systems each) because class D tiny bodies, 13.2 a system in the halo and 9.8 in the disk, were counted in `len(system.planets)`. Without class D and belts the means are 3.0 and 6.1, a ratio of 0.50, and the 0.6 bound is unchanged.
+
+generation-output: unchanged
+
+## [8.0.4456] - 2026-11-17
+
+**Headline:** The cache test expects a deleted system's ID to answer 410 Gone, as the tombstone rule says.
+
+### Fixed
+- `test_cache_invalidation::test_deleting_a_system_is_never_served_again` read 404 for the page of a deleted system; the ID of a deleted object answers 410 (GEN.1141), as `test_api::test_update_and_delete_system` already expects (TEST.781). Test only.
+
+generation-output: unchanged
+
+## [8.0.4455] - 2026-11-17
+
+**Headline:** The greenhouse test now checks that more infrared-active gas never cools a world.
+
+### Changed
+- TEST.790: the radiation sweep gains a controlled form of its greenhouse ranking. The same air with every infrared-active gas at twice its partial pressure, under the same starlight and gravity, must not be cooler at the ground (1 percent tolerance for the table's steps; airs of more than 10 percent hydrogen are left out, since the collision-induced absorption of hydrogen is not an infrared-active gas of the code). The rank test and its floor of 0.3 are unchanged. Test only; no generation output changes.
+
+## [8.0.4454] - 2026-11-17
+
+**Headline:** The end stages after a body's air and the daylight and tide tail now have one helper each, instead of four copies that could drift.
+
+### Changed
+- `planets.end_stages_after_air` (prepare the class, the spin on the birth spin, classify) and `planets.settle_surroundings` (daylight of the moons, optionally the planet's own, then every tide) replace the blocks repeated in `remake_end_stages`, `_remake_what_reads_the_air`, `refinish_rocky` and `validation.reconcile_moved_planet`. Same calls, same order, same streams, so no draw moves (GEN.1652 slice 1; the plan is in reports/gen1652-finish-body-plan-2026-11-16.md).
+
+generation-output: unchanged
+
+## [8.0.4453] - 2026-11-17
+
+**Headline:** A system build is about a tenth faster: the tide sources no longer work out the same orbit means again for every body and every pass.
+
+### Changed
+- PERF.276: `tide_sources.orbit_mean_inverse_cube` and `orbit_mean_inverse_sixth` (a mean over the points of the source's orbit) are cached; they are pure in their three numbers and a build asked for the same pairs again and again (20,095 calls for 1,364 different pairs in three G2V systems, 9.3 s of 90.6 profiled seconds). `planet_sources` fell from 9.3 s to 0.8 s over those three systems, the build from 90.6 s to 83.1 s profiled (45.5 s to 42.1 s plain for four systems). A digest of every body's mass, distance, eccentricity, day, tilt and temperature, and each moon's, is the same before and after.
+
+generation-output: unchanged
+
+## [8.0.4452] - 2026-11-17
+
+**Headline:** The Earth-like envelope tweak now says what data would retire it.
+
+### Fixed
+- GEN.1774 left the envelope keep share (stand-in 6.206 EC10, tier T5, tweak L4) without its line in the burn-down register, which turned main red in `test_burn_down_register`. The line is added: no data, and what would replace it (a measured fraction of 1 to 3 Earth-mass planets that keep an envelope, or a formation model of the late impacts of a core). No generation output changes.
+
+## [8.0.4451] - 2026-11-17
+
+**Headline:** With forked jobs on, the opening of each later stage of a run (its cut into units) is handed out by the supervisor's launcher too, as a job of its own, instead of an RQ job.
+
+### Changed
+- The opening of a stage is a ledger row (`opening`) that claims the cut's memory; the launcher forks it like a unit, writes its attempt (with the process's id) and marks it done, canceled when the run was no longer live, or retried once when its process died (OPS.228 slice D2a).
+
+## [8.0.4450] - 2026-11-17
+
+**Headline:** The secular exchange generation test no longer depends on which test ran before it.
+
+### Fixed
+
+- TEST.789: `test_secular_exchange_generation` failed once under load with an inclination of 1.697 degrees against the stored 0.997. One test of the file moves every planet's plane by 0.7 degrees on the module-shared systems to check how the spin follows, so a test that ran after it on the same worker (the order differs under xdist) saw the moved orbits. That test now builds its own systems (`scratch_systems`); the assertions and bounds are unchanged. Test only.
+
+generation-output: unchanged
+
 ## [8.0.4449] - 2026-11-17
 
 **Headline:** The table of stars the forced-type generator builds takes about 17 percent less time (14.9 s to 12.4 s for one [Fe/H] in a profile); every star is the same.

@@ -43213,7 +43213,11 @@
           "what": "envelope_capture.FLAT_BELOW_MASS_EARTH 1: below 1 Earth mass the median starting envelope stops falling with the mass and is its value at 1 Earth mass, 0.0019 of the mass (Young et al.'s favoured solution: a total H-mass fraction of about 0.2 percent for an embryo of 0.5 Earth masses, the same at 0.3, no dependence on mass above ~0.2)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, the smooth rise of the share of bodies that keep their envelope from 1 to 3 Earth masses (GEN.1774) has no source for its width or its shape: Young et al. [R5293] say giant impacts after the disk is gone remove the gas of embryos, and the Lopez and Fortney radius law is fitted from 1 Earth mass, but no measured fraction of 1 to 3 Earth-mass planets with an envelope is in hand; the first measured fraction by mass (a radius and mass sample of rocky and gas-dwarf planets split at 1 to 3 Earth masses) or a formation model that follows the late impacts of a core replaces the smoothstep"
+          ],
           "fields": [
             [
               "What it is",
@@ -61561,15 +61565,11 @@
       "number": "6.247",
       "rows": [
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "L4, no source prints the share of a belt's collisional mass loss that drifts in past its edge as dust and small bodies; a measured share of a debris belt's loss, or a grain-size cascade with radiation-force and drag lifetimes, replaces the 0.1"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "influx.BELT_DUST_SHARE 0.1: the share of a belt's collisional mass loss (M / t) that reaches the inner system as dust and small bodies"
+              "influx.BELT_DUST_SHARE 0.03: the share of a belt's collisional mass loss (M / t) that reaches the inner system as dust and small bodies"
             ],
             [
               "The range it moves in",
@@ -61589,7 +61589,7 @@
             ],
             [
               "Evidence",
-              "no source: the order of the share of a cascade in grains the radiation forces move; fitted to nothing"
+              "tuned (GEN.1543) to the measured 1e7 kg a year the Earth takes ([R1397], recalled) for a Sun with a main-belt sized reservoir at the grain size and geometry of IF7 to IF10; it was 0.1 while the isotropic sphere gave 45 kg a year"
             ]
           ],
           "id": "IF1",
@@ -61598,9 +61598,9 @@
           "slug": "6-247-if1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L4",
+          "tweak": "L2",
           "unread": null,
-          "what": "influx.BELT_DUST_SHARE 0.1: the share of a belt's collisional mass loss (M / t) that reaches the inner system as dust and small bodies"
+          "what": "influx.BELT_DUST_SHARE 0.03: the share of a belt's collisional mass loss (M / t) that reaches the inner system as dust and small bodies"
         },
         {
           "burn_down": [
@@ -61649,7 +61649,7 @@
           "fields": [
             [
               "What it is",
-              "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+              "a planet takes the dust that drifts in past its orbit as pi R^2 (1 + v_esc^2 / v_rel^2) v_rel / (2 pi a H v_drift) of it (influx.capture_share): its focused cross-section times the grains' speed past it, over the annulus the stream fills (thickness H = 2 a sin i) times the Poynting-Robertson drift speed 2 beta G M / (c a), beta = 3 L / (16 pi G M c rho s); v_rel = v_orbit sqrt(e^2 + i^2)"
             ],
             [
               "The range it moves in",
@@ -61657,19 +61657,19 @@
             ],
             [
               "Where it holds",
-              "streams much faster than the planet's escape speed"
+              "grains of one size in a thin disk, near-circular orbits"
             ],
             [
               "What would show it wrong",
-              "a planet whose escape speed is comparable to the stream's"
+              "a planet whose measured dust influx differs from this share by over a factor of ten with the same supply"
             ],
             [
               "What replaces it",
-              "the focused cross-section R^2 (1 + v_esc^2 / v^2)"
+              "the grains' spread of sizes with their collisional losses on the way in"
             ],
             [
               "Evidence",
-              "derived: a cross-section over a sphere's area"
+              "derived (a stream's mass density and a cross-section, the Poynting-Robertson drift law and the encounter speed of near-circular orbits); replaces the isotropic R^2 / (4 a^2) that gave the Earth 45 kg a year"
             ]
           ],
           "id": "IF3",
@@ -61680,7 +61680,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+          "what": "a planet takes the dust that drifts in past its orbit as pi R^2 (1 + v_esc^2 / v_rel^2) v_rel / (2 pi a H v_drift) of it (influx.capture_share): its focused cross-section times the grains' speed past it, over the annulus the stream fills (thickness H = 2 a sin i) times the Poynting-Robertson drift speed 2 beta G M / (c a), beta = 3 L / (16 pi G M c rho s); v_rel = v_orbit sqrt(e^2 + i^2)"
         },
         {
           "burn_down": null,
@@ -61795,6 +61795,158 @@
           "tweak": "L0",
           "unread": null,
           "what": "the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.GRAIN_RADIUS_M 3e-5: the radius of the one grain size that carries a reservoir's dust inward"
+            ],
+            [
+              "The range it moves in",
+              "1e-5 to 1e-4 m"
+            ],
+            [
+              "Where it holds",
+              "dust in the size range the zodiacal cloud's light and drift are set by"
+            ],
+            [
+              "What would show it wrong",
+              "a measured size distribution of a system's dust that puts its supply in grains much smaller or larger"
+            ],
+            [
+              "What replaces it",
+              "the cascade's spread of sizes with their drift and collisional lifetimes"
+            ],
+            [
+              "Evidence",
+              "no source in the registry: the 10 to 100 micrometer size of the zodiacal cloud, set inside it by IF1"
+            ]
+          ],
+          "id": "IF7",
+          "key": "6.247:IF7",
+          "kind": "P",
+          "slug": "6-247-if7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "influx.GRAIN_RADIUS_M 3e-5: the radius of the one grain size that carries a reservoir's dust inward"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.GRAIN_DENSITY_KG_M3 2500: the density of a grain (stony dust)"
+            ],
+            [
+              "The range it moves in",
+              "1000 to 3500 kg/m3"
+            ],
+            [
+              "Where it holds",
+              "rocky dust"
+            ],
+            [
+              "What would show it wrong",
+              "dust of ice or iron that dominates a system's supply"
+            ],
+            [
+              "What replaces it",
+              "the density of the belt's own composition"
+            ],
+            [
+              "Evidence",
+              "design: the density of stone"
+            ]
+          ],
+          "id": "IF8",
+          "key": "6.247:IF8",
+          "kind": "P",
+          "slug": "6-247-if8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "influx.GRAIN_DENSITY_KG_M3 2500: the density of a grain (stony dust)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.DUST_ECCENTRICITY 0.15: the eccentricity of the dust where it crosses a planet's orbit"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "grains from belts stirred by giants"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose belt dust crosses a planet's orbit on near-circular or much more eccentric orbits"
+            ],
+            [
+              "What replaces it",
+              "the belt's own eccentricity spread"
+            ],
+            [
+              "Evidence",
+              "no source in the registry: the order of the scatter of a stirred belt"
+            ]
+          ],
+          "id": "IF9",
+          "key": "6.247:IF9",
+          "kind": "P",
+          "slug": "6-247-if9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "influx.DUST_ECCENTRICITY 0.15: the eccentricity of the dust where it crosses a planet's orbit"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.DUST_INCLINATION_RAD 0.25: the inclination of the dust to the plane, which sets the disk's thickness 2 a sin i"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5 rad"
+            ],
+            [
+              "Where it holds",
+              "comet-fed dust (10 to 30 degrees)"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose dust sheet is much thinner or thicker"
+            ],
+            [
+              "What replaces it",
+              "the belt's own inclination spread"
+            ],
+            [
+              "Evidence",
+              "no source in the registry: the 10 to 30 degrees of the Solar System's dust, as a number to be replaced"
+            ]
+          ],
+          "id": "IF10",
+          "key": "6.247:IF10",
+          "kind": "P",
+          "slug": "6-247-if10",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "influx.DUST_INCLINATION_RAD 0.25: the inclination of the dust to the plane, which sets the disk's thickness 2 a sin i"
         }
       ],
       "slug": "6-247-stand-ins-of-the-belt-dust-and-comet-influx-of-a-planet",
@@ -74067,6 +74219,136 @@
       ],
       "slug": "6-305-stand-ins-of-how-far-inside-blue-a-species-homeworld-sits-pop-12-gen-1772",
       "title": "Stand-ins of how far inside Blue a species' homeworld sits (POP.12, GEN.1772)"
+    },
+    {
+      "key": "6.306",
+      "number": "6.306",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no source prints the carbon share of the dust that reaches a planet from its system's belts; a measured carbon content of the dust, or the carbon the system's disk gave the belt, replaces the 0.1"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "dust_supply.CARBON_SHARE_OF_DUST 0.1: the share of the infalling dust's mass that is carbon the cloud can take up"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "carbon-rich dust of comets and primitive asteroids"
+            ],
+            [
+              "What would show it wrong",
+              "a measured carbon content of the dust a system's belts send in"
+            ],
+            [
+              "What replaces it",
+              "the carbon share of the belt's own composition (the carbon the system's disk gave it)"
+            ],
+            [
+              "Evidence",
+              "no source in the registry: the order of the organic and carbonaceous share of primitive dust"
+            ]
+          ],
+          "id": "DUS1",
+          "key": "6.306:DUS1",
+          "kind": "P",
+          "slug": "6-306-dus1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "dust_supply.CARBON_SHARE_OF_DUST 0.1: the share of the infalling dust's mass that is carbon the cloud can take up"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "nobody has measured the loss rate of an iron-and-carbon-ring layer in an acid cloud, so the carbon supply it needs has no value to read; a measured loss rate, or a measured carbon flux at a cloud that holds the layer, replaces the 1e-9"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "dust_supply.V8_MIN_CARBON_FLUX_KG_M2_YR 1e-9: the carbon the dust must lay on a planet, kg per square meter a year, for its cloud to keep the V8 layer"
+            ],
+            [
+              "The range it moves in",
+              "1e-10 to 1e-8"
+            ],
+            [
+              "Where it holds",
+              "iron-and-carbon-ring layers in an acid cloud"
+            ],
+            [
+              "What would show it wrong",
+              "a measured loss rate of the layer or a measured carbon flux at a cloud that holds it"
+            ],
+            [
+              "What replaces it",
+              "the layer's photochemical loss rate set against the supply"
+            ],
+            [
+              "Evidence",
+              "no source: nobody has measured the layer's loss; set between a Mars-like and an Earth- or Venus-like flux of a Sun with a main belt"
+            ]
+          ],
+          "id": "DUS2",
+          "key": "6.306:DUS2",
+          "kind": "P",
+          "slug": "6-306-dus2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "dust_supply.V8_MIN_CARBON_FLUX_KG_M2_YR 1e-9: the carbon the dust must lay on a planet, kg per square meter a year, for its cloud to keep the V8 layer"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the supply leaves out the dust a planet lifts itself (surface dust and sand, volcanic and impact dust): no volcanic rate, dust cover or wind field is stored on a body, and the layer sits in the cloud, far above where such dust is lifted on a thick-aired world"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "thick-aired planets with a cloud high above the ground"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose cloud carbon is set by the dust it lifts"
+            ],
+            [
+              "What replaces it",
+              "the lifted dust from the body's activity, age, air density and winds"
+            ],
+            [
+              "Evidence",
+              "design"
+            ]
+          ],
+          "id": "DUS3",
+          "key": "6.306:DUS3",
+          "kind": "T",
+          "slug": "6-306-dus3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the supply leaves out the dust a planet lifts itself (surface dust and sand, volcanic and impact dust): no volcanic rate, dust cover or wind field is stored on a body, and the layer sits in the cloud, far above where such dust is lifted on a thick-aired world"
+        }
+      ],
+      "slug": "6-306-stand-ins-of-the-cosmic-dust-a-planet-s-air-takes-in-for-the-v8-layer-gen-1542",
+      "title": "Stand-ins of the cosmic dust a planet's air takes in for the V8 layer (GEN.1542)"
     }
   ]
 }

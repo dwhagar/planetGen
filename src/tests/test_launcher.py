@@ -184,3 +184,76 @@ def test_a_job_whose_template_is_still_being_built_stays_ready_and_is_handed_out
     assert one.turn() == [] and _state(control, run) == [("0", "ready", 0)]
     forker.building = False
     assert len(one.turn()) == 1 and _state(control, run) == [("0", "running", 0)]
+
+
+def _opening(control):
+    run = ledger.add_run(control, "generate", "g1")
+    ledger.add_jobs(control, run, [{"stage": "fill", "command": "opening", "arguments": {"run_id": "20261115-x", "index": 4}, "claim_mb": 1500}])
+    control.execute("UPDATE engine_jobs SET state = 'ready' WHERE run_id = ?", (run,))
+    control.commit()
+    return run
+
+
+def _opening_state(control, run):
+    row = control.execute("SELECT state, attempt, waited FROM engine_jobs WHERE run_id = ?", (run,)).fetchone()
+    return row["state"], row["attempt"], row["waited"]
+
+
+def test_the_opening_of_a_stage_is_handed_out_as_an_opening_job_with_an_attempt_the_launcher_writes(control):
+    run = _opening(control)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    started = one.turn()
+    assert len(started) == 1
+    kind, _runner, job, held = forker.forked[0]
+    assert kind == "opening" and job == {"opening": True, "run_id": "20261115-x", "stage": 4, "kind": "opening", "row": started[0], "retries_left": 1}
+    assert _opening_state(control, run) == ("running", 1, None)
+    attempt = control.execute("SELECT pid, outcome FROM engine_attempts WHERE job_id = ?", (started[0],)).fetchone()
+    assert (attempt["pid"], attempt["outcome"]) == (held.pid, "running")
+    held.said = [{"event": "unit", "result": {"opened": True}}]
+    forker.exits = [("plain", jobhost.Exit(held.id, held.pid, 0, None))]
+    one.turn()
+    assert _opening_state(control, run)[0] == "done"
+    assert control.execute("SELECT outcome FROM engine_attempts WHERE job_id = ?", (started[0],)).fetchone()["outcome"] == "done"
+
+
+def test_an_opening_of_a_run_that_is_no_longer_live_is_canceled_and_its_attempt_closed(control):
+    run = _opening(control)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    started = one.turn()
+    held = forker.forked[0][3]
+    held.said = [{"event": "unit", "result": {"skipped": True}}]
+    forker.exits = [("plain", jobhost.Exit(held.id, held.pid, 0, None))]
+    one.turn()
+    assert _opening_state(control, run)[0] == "canceled"
+    assert control.execute("SELECT outcome FROM engine_attempts WHERE job_id = ?", (started[0],)).fetchone()["outcome"] == "done"
+
+
+def test_a_stage_runs_no_more_units_at_once_than_its_run_was_asked_to_use(control):
+    run = ledger.add_run(control, "generate", "g1")
+    ledger.add_jobs(control, run, [{"stage": "fill", "command": "open", "arguments": {"index": 0, "plan": {}, "run_id": "20261115-x", "cap": 2}}]
+                    + [{"stage": "fill", "command": "fill-unit", "item_key": str(n), "arguments": {"args": {}, "cost": 1.0}, "claim_mb": 500} for n in range(5)])
+    control.execute("UPDATE engine_jobs SET state = 'done' WHERE run_id = ? AND item_key = ''", (run,))
+    control.execute("UPDATE engine_jobs SET state = 'ready' WHERE run_id = ? AND item_key <> ''", (run,))
+    control.commit()
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    assert len(one.turn()) == 2, "two of the five, the most the run was asked to use"
+    assert len(one.turn()) == 0, "the two are still running"
+    held = forker.forked[0][3]
+    forker.exits = [("plain", jobhost.Exit(held.id, held.pid, 0, None))]
+    held.said = [{"event": "unit", "result": {"seconds": 1.0}}]
+    assert len(one.turn()) == 1, "one ended, one more starts"
+
+
+def test_a_launcher_with_redis_claims_what_the_gate_has_learned_not_the_minimum(control, redis_server, monkeypatch):
+    from planetgen.queue import claims, redisqueue
+    conn = redisqueue.connect(redis_server)
+    monkeypatch.setattr(claims, "unit_table_mb", lambda kind: 3000.0)
+    monkeypatch.setattr(claims, "unit_tokens", lambda kind: ("mysql-write",))
+    run = _ready(control, count=1, mb=None)
+    one = launcher.Launcher(control, FakeForker(), read_host=lambda: HOST, redis=conn)
+    row = control.execute("SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, attempt FROM engine_jobs WHERE run_id = ? AND item_key <> ''", (run,)).fetchone()
+    claim = one.claim(row)
+    assert (claim.kind, claim.mb, claim.cpu, claim.tokens) == ("unit:fill-unit", 3000.0, claims.UNIT_CPU, ("mysql-write",))

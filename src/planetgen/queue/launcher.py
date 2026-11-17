@@ -23,8 +23,9 @@ import os
 import signal
 import time
 
-from planetgen.queue import dispatch, jobhost, ledger, memorygate, scheduler
+from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, planrows, scheduler, workers
 from planetgen.queue.memorygate import Claim, Holder
+from planetgen.util import log
 
 RETRIES = 1
 """int: How many times a unit whose process died without ending its attempt is handed out again (what RQ's `Retry(max=1)` did)."""
@@ -84,12 +85,13 @@ class Launcher:
     """One supervisor's hand-outs. `control` is the control connection; `forker` is a `jobhost.TemplateSet` (`fork(kind, runner, job)`, `poll()`); `galaxy` is `run_id -> connection` for the
     galaxy the run writes to (or `None`)."""
 
-    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER):
-        self.control, self.forker, self.galaxy = control, forker, galaxy
+    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None):
+        self.control, self.forker, self.galaxy, self.redis = control, forker, galaxy, redis
         self.clock, self.read_host, self.runner = clock, read_host, runner
         self.used = used if used is not None else (lambda: {})
         self.running = {}           # job id -> Started
         self.recovered_at = None
+        self._stages = {}           # (ledger run, stage) -> its `open` row's arguments (`_stage_of`)
 
     # -- ends ------------------------------------------------------------------------------------------------------------------
 
@@ -112,8 +114,12 @@ class Launcher:
             started = self.running.pop(found)
             started.drain()
             row = self.control.execute("SELECT state, attempt FROM engine_jobs WHERE id = ?", (found,)).fetchone()
-            if row is not None and row["state"] == "running" and exit_.code == 0 and started.skipped():
-                ledger.set_job_state(self.control, found, "canceled", waited="skipped: the run is no longer live or the unit was already done")
+            opening = started.row["command"] == planrows.OPENING
+            skipped = started.skipped()
+            if row is not None and row["state"] == "running" and exit_.code == 0 and (skipped or opening):
+                ledger.end_running(self.control, found, "done")             # an opening has the launcher's attempt; a unit's attempt is its own (none when it skipped)
+                finished = opening and not skipped
+                ledger.set_job_state(self.control, found, "done" if finished else "canceled", waited=None if finished else "skipped: the run is no longer live or the unit was already done")
                 self.control.commit()
             elif row is not None and row["state"] == "running":
                 outcome, kind, text = self._outcome(started, exit_)
@@ -162,8 +168,71 @@ class Launcher:
         rows = self.control.execute(
             "SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, waited, attempt, UNIX_TIMESTAMP(updated_at) AS since FROM engine_jobs"
             " WHERE state = 'ready' AND (not_before IS NULL OR not_before <= NOW(6)) ORDER BY id LIMIT ?", (READY_WINDOW,)).fetchall()
+        rows = self._within_caps(rows)
         named = {HOLDER_NAME.format(row["id"]): row for row in rows}
-        return [scheduler.Ticket(name, claim_of_row(row), float(row["since"]), 0, "launcher") for name, row in named.items()], named
+        return [scheduler.Ticket(name, self.claim(row), float(row["since"]), 0, "launcher") for name, row in named.items()], named
+
+    def _stage_of(self, row):
+        """What the `open` row of the stage of `row` says (`{"run_id", "index", "cap"}`; `{}` while the stage is not cut). Kept once read, for the cut never changes."""
+        key = (row["run_id"], row["stage"])
+        if key not in self._stages:
+            found = self.control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = 'open' AND item_key = '' AND state = 'done'", key).fetchone()
+            if found is None:
+                return {}
+            self._stages[key] = json.loads(found["arguments"] or "{}") or {}
+        return self._stages[key]
+
+    def _cap_of(self, row):
+        """The most units of the stage of `row` that run at once: the run's own limit (`--workers`, the `cap` of the stage's `open` row) and, with the run's Redis in hand, what a share of the host's memory holds
+        of the stage's units (`workers.stage_worker_cap`, PERF.220), the lesser of the two; `None` when neither limits it."""
+        opened = self._stage_of(row)
+        asked = opened.get("cap")
+        if self.redis is None or row["command"] == planrows.OPENING or "run_id" not in opened:
+            return asked
+        try:
+            held = workers.stage_worker_cap(row["command"], self.redis, opened["run_id"])
+        except Exception as exc:  # noqa: BLE001 -- a figure that cannot be read leaves the memory gate to decide
+            log.swallowed("queue/launcher", "_cap_of", exc)
+            held = None
+        return min(asked, held) if asked and held else (asked or held)
+
+    def claim(self, row):
+        """The claim of the job row: what the gate has learned of its kind (`memorygate.claim_mb`, the job profile's figure once this machine has history) raised from the typed figure, the cores and named
+        resources of its command, the cut's whole lane for an opening; the typed figure of the row alone where the launcher has no Redis to read the learned ones from (the tests)."""
+        if self.redis is None:
+            return claim_of_row(row)
+        opened = self._stage_of(row)
+        token = opened.get("run_id")
+        lane = LANES.get(row["job_class"], memorygate.LANE_OTHER)
+        try:
+            if row["command"] == planrows.OPENING:
+                named = _arguments(row)
+                command = claims.cut_command(self.redis, named["run_id"], named["index"])
+                kind = f"cut:{command or 'unknown'}"
+                return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.CUT_MB, token=named["run_id"]), 1.0, lane, True)
+            kind = f"unit:{row['command']}"
+            return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.unit_table_mb(row["command"]), token=token), claims.UNIT_CPU, lane, False, claims.unit_tokens(row["command"]))
+        except claims.NoClaim:
+            return claim_of_row(row)
+
+    def _within_caps(self, rows):
+        """`rows` less the units the stage's limit holds back (OPS.228): of each stage, no more units run at once than `_cap_of` says."""
+        taken = {}
+        for started in self.running.values():
+            if started.row["command"] != planrows.OPENING:
+                key = (started.row["run_id"], started.row["stage"])
+                taken[key] = taken.get(key, 0) + 1
+        kept = []
+        for row in rows:
+            if row["command"] == planrows.OPENING:
+                kept.append(row)
+                continue
+            key, cap = (row["run_id"], row["stage"]), self._cap_of(row)
+            if cap and taken.get(key, 0) >= cap:
+                continue
+            taken[key] = taken.get(key, 0) + 1
+            kept.append(row)
+        return kept
 
     def holders(self):
         return [Holder(HOLDER_NAME.format(job_id), started.claim, started.job.pid, "launcher", started.claim.mb, started.claim.mb) for job_id, started in self.running.items()]
@@ -179,6 +248,9 @@ class Launcher:
     def _job_of(self, row):
         """What `forkedjob.run` takes for the unit `row`: the Redis run id and the stage's index (from the stage's `open` row, `planrows.record_cut`), the unit's number, command, arguments and cost, and its
         row. A unit is given a retry when it has not had one."""
+        if row["command"] == planrows.OPENING:         # the cut of a stage (`planrows.queue_opening`)
+            named = _arguments(row)
+            return {"opening": True, "run_id": named["run_id"], "stage": named["index"], "kind": row["command"], "row": row["id"], "retries_left": max(0, RETRIES - row["attempt"])}
         opened = self.control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = 'open' AND item_key = ''", (row["run_id"], row["stage"])).fetchone()
         plan = json.loads(opened["arguments"]) if opened and opened["arguments"] else {}
         if "run_id" not in plan or "index" not in plan:
@@ -203,7 +275,9 @@ class Launcher:
             ledger.set_job_state(self.control, row["id"], "failed", waited=f"{type(exc).__name__}: {exc}"[:ledger.WAITED_CHARS])
             self.control.commit()
             raise
-        started = Started(row, forked, key, claim_of_row(row))
+        if row["command"] == planrows.OPENING:          # an opening has no unit to begin its attempt: the launcher does, with the process that runs it
+            ledger.begin_attempt(self.control, row["id"], pid=forked.pid)
+        started = Started(row, forked, key, self.claim(row))
         self.running[row["id"]] = started
         return started
 

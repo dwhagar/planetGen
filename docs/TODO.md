@@ -1987,27 +1987,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## GEN: Generation and physics
 
-- [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
-  Boss (2026-10-01 22:22Z): "see if we can cut down the number of
-  sectors that need to be backfilled by taking the star density
-  calculation and using it to weed out sectors from the star
-  scattering. Might manage probability of getting a region through
-  eliminating x number of sectors from the region so that the region
-  probability matches what we're looking for. One pass would eliminate
-  sectors based on probability, then the back fill would literally have
-  less work to do. We would need to make sure that we don't over-filter
-  though because bright stars in odd places is really neat and
-  realistic." Today the GEN.30 backfill (`backfill_bright_stars_around`
-  in `generate.py`, `brightStars.backfill_cells`) works out the
-  densities and makes a Poisson draw for every unfilled sector of every
-  block in range, most of which get no star. Investigate first; the
-  subitems split the work.
-  Research (2026-10-09, sampling-backfill-and-resume.md): fix the stale
-  code pointers: the backfill is `generation/run_galaxy.py`
-  `backfill_bright_stars_around` and `generation/bright_stars.py`
-  `backfill_cells` (not `generate.py` and `brightStars`), drawn cell by
-  cell in chunks of 200 sectors since GEN.44.
-
   - [ ] **GEN.42 A block-first draw for the backfill (umbrella)**
     One pass over a region (a sector block, or a tier's shell) uses the
     star density calculation (`galaxyDensity.population_densities`) to
@@ -11400,14 +11379,9 @@ clears each one.
 
 - [ ] **GEN.1542 Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists**
   Lane 14 (as the lane reported 2:07 PM EST on 2026-11-11), left out of GEN.1425 (PR 6016): V8 and V9 of the Venus sulfur-cloud set stay off by default because V8 needs a per-planet dust supply that is not built. Do: derive the dust a planet can lift into its air from what exists (surface dust and sand from composition and wind, volcanic and impact dust from the activity and age of the body, the air's density and winds), decide the V8 gate from it, register the constants in GEN.725 at the right tier and tweak level, and say in the change note how many bodies gain the V8 layer. Lock item if it changes stored output.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 03. Prerequisites: GEN.1425. Related: GEN.1425, GEN.725.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 06 (Lane 03 closed). Prerequisites: GEN.1425. Related: GEN.1425, GEN.725.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the per-planet dust supply as a pure function with tests (unwired); slice 1 lock: wire. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
-- [ ] **GEN.1543 (bug) The dust influx of physics/influx.py treats a system's belt and comet dust as an isotropic stream, so the Earth gets about 45 kg a year against 1e7 measured: fix the geometry and the scale, then rewire the V8 sulfur cloud dust to it**
-  Lane 14 (as the lane reported 4:52 PM EST on 2026-11-11), found while building GEN.1542 (PR 6045): physics/influx.py (GEN.1440 and GEN.1453) derives dust from a system's own belts and comets but only as a sheet row, and it spreads the dust as an isotropic stream; for the Earth that gives about 45 kg a year against about 1e7 kg a year measured. GEN.1542 therefore anchors the V8 dust supply on the cosmic-dust influx at the Earth's 28 tonnes a day (stand-ins CV11 to CV14) and does not read influx.py. Do: find the geometry or scale error (dust gathers toward the ecliptic and the inner system, the planet's cross section and gravitational focusing), fix influx.py so the Sun-Earth case lands near the measured influx, register any constant in GEN.725, and then rewire the V8 supply of GEN.1542 to the system's own belts. Lock item if stored sheet values move.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 03, with Lane 06 for the belt side. Prerequisites: GEN.1542. Related: GEN.1542, GEN.1440, GEN.1453, GEN.725.
-  Filed by the TODO thread.
 
 - [ ] **GEN.1549 Census re-tag after the forward build (items 1 to 3): re-measure the class, life, star and age census shares and re-baseline the ranges the new order moved**
   Boss, 6:13 PM EST on 2026-11-11. After GEN.1546 to GEN.1548 land the star ages, the class mix and the life shares move everywhere. Re-run the class, life, star, phenomena and systems censuses, decide each flag (real shift, re-baseline, or fault to file), and report the new age distribution of M dwarfs (the pile at 13.8 Gy should be gone). Same work as GEN.1537.
@@ -11589,14 +11563,6 @@ clears each one.
 - [ ] **DB.126 legacy/ script that bumps a pre-8.0 database to the 8.0 structure in one step**
   Boss, 3:53 PM EST on 2026-11-12: "Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above"; 3:54 PM EST: "Add a folder to the GitHub tree called `legacy`. Write a script that, specifically upon user request, will convert the last version before 8.0 to 8.0. That's all it will do. We don't need a test run. We just need the script to exist and we will put other scripts there as we need. Also add migration code for the database. Same thing: no database structure before 8.0 will be accepted. In `legacy` write a singular script to bump a database to 8.0 and then streamline the code to remove version migrations and tests for anything before 8.0." Lives beside OPS.177; run only by hand.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: OPS.177, DB.127.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1652 One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py)**
-  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section A, with file:line, shape, risk and output impact). Fixes bug-sweep H2.3, H3, M1 and M3 at the root. Output changes (fixes): one epoch, rides a train after Train 25.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: GEN.1651. Related: GEN.1653, GEN.1654.
-  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
-  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
-  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): MassObject.finish(from_step) running a per-family FINISH_STEPS table (PlanetaryObject's is section A's chain with apply_class last; StellarObject's is Star._finish_init and CompactRemnant's copy, optional in the same PR). The stream is an argument defaulting to today's seeds (GEN.556 switches it to seed-derived later). Also: the two-phase build (draw, space, finish) becomes the only path, deleting finish_climate and the air part of reconcile_moved_planet, so moved request-built bodies get their air once. Same epoch.
   Filed by the TODO thread.
 
 - [ ] **GEN.1653 apply_class runs only as the last step of the finish chain (class before bands is the H3 cause)**
@@ -11848,22 +11814,32 @@ clears each one.
 
 - [ ] **GEN.1778 (bug) HABITABLE_WORLD=True can end with no habitable world and the request still at "aim", not "unmet" (K5IV case of test_full_matrix, seen under xdist)**
   Found by Lane 16 on TEST.788, 11:18 PM EST 2026-11-16: test_full_system_generates_with_belt_and_habitable_world_across_every_star_type[K5IV] failed with "HABITABLE_WORLD=True produced no habitable world and did not say so" (habitable_class_count 0, habitable_request "aim"). It passes alone on main c8bfa87b17; the test sets no run seed, so its draws depend on what the worker ran before. Do: find the path where the habitable request ends without a class and without being marked unmet (fix the generator so a request is always met or said unmet), and seed the test so a failure can be replayed (no picking a seed that passes; the assertion stays).
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 14, after the test_class_sample main red. Prerequisites: none. Related: TEST.788, GEN.1773.
-  Filed by the TODO thread.
-
-- [ ] **PERF.276 The air solve is 59 percent of a full system's build: cut repeat gas-equilibrium solves without changing the air (M5IA: 140 of 237 s)**
-  Found by Lane 16 on TEST.788, 11:22 PM EST 2026-11-16 (cProfile, main c8bfa87b17, one M5IA system of 138 planets and moons, 237 s): calculate_atmospheric_conditions 140 s, of which surface_air.solve 134 s (195 solves, 3,544 evaluate calls of 36 ms); inside, mixture_draw.draw_mixture 77 s, gas_equilibrium._solve 54 s (6,503 calls), detmath.matmul 37 s (1.68 million calls, numpy accumulate 25 s); outgassed_mixture 49 s (2,492 calls, likely the same rocky mixture re-solved with the same inputs); remake_air from the late-accretion pass 46 s (23 calls); ir_ktables.reduce_distribution 27.6 s. Do: cache or skip unchanged solves (same inputs, same answer), cut the matmul overhead, and show the air is bit-identical on a census sample; report the time per system before and after. Speeds Boss's runs and test_full_matrix (28m 40s). Lock-free if output is identical.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 16, as part of the TEST.788 work. Prerequisites: none. Related: TEST.788, PERF.275.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1779 (bug, high) A system build got about 2.4 times slower: test_gen1254_scatter_uid takes 1,495 s alone (617 s on record), past the 1,140 s guard on main c8bfa87b17**
-  Found by Lane 14, 11:47 PM EST 2026-11-16: tests/test_gen1254_scatter_uid.py::test_a_system_built_round_a_scatter_star_keeps_its_id_and_the_fill_starts_past_the_stars runs alone with one core busy until the hang guard ends it (computing, not waiting); it also stalls changed-area runs. A loop that never ends in the build can stall a galaxy run too. Do: dump the stack while it spins (faulthandler or py-spy), find the loop and the merge that made it (bisect from the last pass), fix the generator so the loop ends or fails loudly, and keep the test as it is. Lane 14, 12:42 AM EST 2026-11-17: not a loop; stack samples sit in StarSystem.__init__ of each pre-placed scatter star (seasonal_swing._anderson, ir_ktables.reduce_distribution, line_opacity, thermosphere, tide_sources, spin_torques). So: compare one mid-size system on main against the commit of the 617 s record, name the functions and merges whose cost grew, and fix them with Lane 16 (PERF.276), splitting files. The file goes on the gate heavy list meanwhile.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 14, ahead of GEN.1778 (after GEN.1773). Prerequisites: none. Related: GEN.1254, OPS.268.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 05 (moved from Lane 14, 1:50 AM EST). Prerequisites: none. Related: TEST.788, GEN.1773.
   Filed by the TODO thread.
 
 - [ ] **GEN.1780 The GEN.1732 haze loss ramp (215 to 245 K) may have two branches: seed 106's haze-free replay fell from 229 K to 134 K, a 95 K cold branch (measure first)**
   Train Manager, 1:32 AM EST 2026-11-17 (Train 42, fix PR 6991): Lane 02's haze fixture now skips bodies that settle inside the 215 to 245 K loss ramp because a replay without haze can land far from the first answer. Do: measure how many bodies settle inside the ramp, whether the settle has two stable answers there (hysteresis) and which one the build keeps, and whether that is physical (a real haze-temperature feedback) or a solver artifact; report before any change, then fix so the build gives one answer for one body.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 02. Prerequisites: none. Related: GEN.1732.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1781 In hydrogen-rich airs (over 10 percent H2) doubling methane cools the ground (cold gas dwarfs 4 K, one 2,300 K class I body 42 K): is hydrogen pair absorption missing from the infrared-active gases, or is this a real anti-greenhouse? (measure first)**
+  Lane 02, 2:40 AM EST 2026-11-17, found while building TEST.790 (PR 7019): the controlled greenhouse test had to scope out airs with over 10 percent H2 because they cool when methane is doubled; the code does not flag hydrogen collision-induced (pair) absorption as infrared-active. Do: check whether the radiative path counts H2-H2 and H2-He pair absorption (a major greenhouse source in hydrogen airs) and how methane's stratospheric absorption enters (a Titan-like anti-greenhouse is real physics); report which part is physics and which is a gap, then fix the gap so the TEST.790 scope can widen to hydrogen airs. Report before any change that moves output.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 02, after GEN.1780. Prerequisites: none. Related: TEST.790, GEN.1732.
+  Filed by the TODO thread.
+
+- [ ] **PERF.277 Interior cooling of old belt-sized bodies takes up to 770,000 RK4 steps: the stiffness-limited step collapses once the mantle is cold (4 of 489 calls take 7.8 s of a 63 s sector run)**
+  Lane 16, 2:45 AM EST 2026-11-17 (PERF.276 profiling): the bodies are 100 to 300 km, surface 2.7 K, age 8 to 12 Gyr; the step in interior_heat cool() is 1/stiffness and shrinks without end near a cold steady state. Do: a step rule that stops shrinking at a steady state (or an implicit step for the stiff part), about 100 times fewer steps; show the heat flow and interior temperatures of a census sample change only within the integrator's tolerance and report the largest change. Lock item (output moves in the last digits); no golden or epoch (Boss, 2026-11-14).
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 16 (Lane 04 owns interior_heat and is told). Prerequisites: none. Related: PERF.276.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1783 (bug) In a wide binary a planet's apoapsis can pass the stability limit the validator holds it to (F5V+K2V seed 215: reach 0.1919 AU against a_crit 0.1886 AU)**
+  Lane 05, 3:21 AM EST 2026-11-17: test_validation::test_generated_systems_validate[F5V] failed once under xdist (a body past the farthest stable orbit, 6.741 AU); the test leaves BINARY_SYSTEM at its random default, and draw.bound(215) with PLANETS True and MOONS False reproduces the same failure in a wide F5V+K2V pair. Do: find why the planet pass lets a body's apoapsis (not only its semi-major axis) pass the wide-binary a_crit_au that check_star_system uses, make placement and validation use one ceiling, and seed the test's systems so a failure replays (no picking a seed that passes; the assertion stays).
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 05, after GEN.1778. Prerequisites: none. Related: GEN.1778.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1784 The exobase search underestimates the exobase height: median 6 percent low, up to 25 percent for hot light airs on big planets (Earth-like 1,100 K: 421 km against 445 km) (lock)**
+  Lane 07, 3:50 AM EST 2026-11-17, found on PERF.278: the fixed first-order step of 0.25 scale heights in thermosphere.kept_shares lags the profile; checked against a DOP853 integration to 1e-12 over 90 bodies. Do: make the search accurate to a stated tolerance at no more cost for the common short search (a higher-order or corrected step, or a smaller step only where needed), and show the exobase heights, Jeans losses and kept shares of a census sample before and after, with any air or class changes. Lock item; no golden or epoch (Boss, 2026-11-14).
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 07 (Lane 02 owns the thermosphere and is told). Prerequisites: none. Related: PERF.278.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**

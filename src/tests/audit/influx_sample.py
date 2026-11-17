@@ -37,8 +37,9 @@ def system_rows(seed):
         if planet.body_type in ('a', 'g'):
             continue
         mass_solar = star.mass / constants.SOLAR_MASS_TO_KG
-        shielded = influx.planet_influx_kg_per_yr(planet.radius, planet.distance, mass_solar, reservoirs, giants)[0]
-        bare = influx.planet_influx_kg_per_yr(planet.radius, planet.distance, mass_solar, reservoirs, [])[0]
+        luminosity_solar = star.luminosity / constants.SOLAR_LUMINOSITY
+        shielded = influx.planet_influx_kg_per_yr(planet.radius, planet.mass, planet.distance, mass_solar, luminosity_solar, reservoirs, giants)[0]
+        bare = influx.planet_influx_kg_per_yr(planet.radius, planet.mass, planet.distance, mass_solar, luminosity_solar, reservoirs, [])[0]
         rows.append((kind, shielded, bare, len(belts), len(giants)))
     return rows
 

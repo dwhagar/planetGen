@@ -212,6 +212,38 @@ def response(mass_kg, radius_m, frequency_rad_s, temperature_k, eta0_pa_s, activ
     return Response(abs(k2), q if maxwell else min(q, COLD_Q_CEILING))
 
 
+def k2_over_q_function(mass_kg, radius_m, temperature_k, eta0_pa_s, activation_j_mol, melt=0.0, material=ROCK, maxwell=False):
+    """
+    `frequency -> response(...).k2_over_q` of one body at one temperature and melt share, as a function of the tide's angular frequency alone (PERF.276).
+
+    A spin integration asks for it hundreds of thousands of times at different frequencies of the same body, and the rigidity, the viscosity, the self-gravity
+    pressure and the Andrade constants do not depend on the frequency, so they are worked out once here. Every number is the one `response` works out, by the same
+    arithmetic in the same order, so the result is the same to the last bit (`tests/test_tidal_rheology.py` holds it against `response`).
+    """
+    rigidity = rigidity_pa(melt, material)
+    viscosity = viscosity_pa_s(temperature_k, eta0_pa_s, activation_j_mol, melt, material.melt_viscosity_factor)
+    pressure = self_gravity_pressure_pa(mass_kg, radius_m)
+    unrelaxed = 1.0 / rigidity
+    exponent = material.andrade_exponent
+    timescale = material.andrade_ratio * viscosity / rigidity
+    gamma = math.gamma(1.0 + exponent)
+    isfinite, inf = math.isfinite, math.inf
+
+    def k2_over_q(frequency_rad_s):
+        if frequency_rad_s <= 0.0:
+            raise ValueError(f"a tide frequency of {frequency_rad_s} rad/s does not flex a body")
+        creep = 0.0
+        if not maxwell:
+            creep = gamma * (1j * frequency_rad_s * timescale) ** (-exponent)
+        k2 = 1.5 / (1.0 + 9.5 * (1.0 / (unrelaxed * (1.0 + creep) - 1j / (viscosity * frequency_rad_s))) / pressure)
+        lag = -k2.imag
+        q = abs(k2) / lag if lag > 0.0 else inf
+        if not maxwell:
+            q = min(q, COLD_Q_CEILING)
+        return abs(k2) / q if isfinite(q) else 0.0
+    return k2_over_q
+
+
 def tidal_frequency_rad_s(orbital_rate, spin_rate=None):
     """The angular frequency of the tide an orbit raises: the orbital rate for an eccentricity tide on a body locked to it (`spin_rate` omitted),
     `2 |spin - orbital|` for the semi-diurnal tide of a spinning one [R1215]."""
