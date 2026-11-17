@@ -8966,6 +8966,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   recomputing the whole group. Both are optional and off the critical
   path; the parity file is off by default. Owner: Lane 11 when it runs
   dry.
+  Owner (TODO, 2026-11-17): Lane 15, both parts (part 1: prove every fill path leaves no stale parity file, a test per path; part 2: edit paths pass a before-image to ParityStore.put).
   Prerequisites: none.
 
 - [ ] **DB.110 Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units**
