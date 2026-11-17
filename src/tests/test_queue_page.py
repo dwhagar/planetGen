@@ -18,7 +18,7 @@ from html import escape as html_escape
 from planetgen.admin import auth as adminAuth
 from planetgen.api.config import Config
 from planetgen.db import store
-from planetgen.queue import commands, progress_rate, redisqueue, runcontrol, runrecord, units
+from planetgen.queue import commands, ledger, progress_rate, redisqueue, runcontrol, runrecord, units, waiting
 from planetgen.queue.runrecord import Stage
 from planetgen.util.format import format_duration_seconds
 from planetgen.web import csrf, jobs, queue_page
@@ -815,3 +815,72 @@ def test_a_running_units_own_bar_and_time_left_show_under_its_counter_only_when_
     assert html.count('class="task-bar"') == 2
     assert "30%, about 2m left" in html and "1%, about 10m left (from earlier runs)" in html
     assert "50%" not in html
+
+
+def _ledger_jobs(config):
+    """A run of the ledger with two jobs waiting on another, two ready (one told why it has not started), one in another class and one that started; returns the control connection."""
+    control = store.get_control_connection(config)
+    run = ledger.add_run(control, "generate", "g")
+    ledger.add_jobs(control, run, [
+        {"stage": "fill", "command": "sector", "item_key": "a", "job_class": "bulk"}, {"stage": "fill", "command": "sector", "item_key": "b", "job_class": "bulk"},
+        {"stage": "fill", "command": "sector", "item_key": "c", "job_class": "bulk", "needs": ["x"]}, {"stage": "fill", "command": "sector", "item_key": "d", "job_class": "bulk", "needs": ["x"]},
+        {"stage": "site", "command": "page", "item_key": "e", "job_class": "short"}, {"stage": "fill", "command": "sector", "item_key": "f", "job_class": "bulk"}])
+    ids = {row["item_key"]: row["id"] for row in control.execute("SELECT id, item_key FROM engine_jobs WHERE run_id = ?", (run,)).fetchall()}
+    ledger.set_job_state(control, ids["a"], "ready", waited="the memory gate: 3 claims hold 9 GB")
+    ledger.set_job_state(control, ids["b"], "ready", waited="the memory gate: 3 claims hold 9 GB")
+    ledger.set_job_state(control, ids["e"], "ready", waited="a short job waits for a slot")
+    ledger.set_job_state(control, ids["f"], "running")
+    control.execute("INSERT INTO engine_attempts (job_id, attempt, started_at, outcome) VALUES (?, 1, DATE_ADD(NOW(6), INTERVAL 5 SECOND), 'running')", (ids["f"],))
+    control.commit()
+    return control
+
+
+def test_the_waiting_overview_counts_the_jobs_not_started_by_class_with_the_gates_words(control_config):
+    control = _ledger_jobs(control_config)
+    try:
+        body = waiting.overview(control, with_gate=False)
+    finally:
+        control.close()
+    classes = {item["job_class"]: item for item in body["classes"]}
+    assert (classes["bulk"]["waiting"], classes["bulk"]["ready"]) == (2, 2)
+    assert (classes["short"]["waiting"], classes["short"]["ready"]) == (0, 1)
+    assert classes["bulk"]["reasons"] == [{"reason": "the memory gate: 3 claims hold 9 GB", "count": 2}] and classes["bulk"]["more"] == 0
+    assert classes["short"]["reasons"] == [{"reason": "a short job waits for a slot", "count": 1}]
+    assert classes["bulk"]["oldest_waiting_seconds"] >= 0.0 and classes["bulk"]["retry_in_seconds"] is None
+    started = {item["job_class"]: item for item in body["started"]}
+    assert started["bulk"]["count"] == 1 and started["bulk"]["median_seconds"] == started["bulk"]["longest_seconds"] >= 0.0
+
+
+def test_the_waiting_overview_keeps_the_most_common_reasons_and_counts_the_rest(control_config):
+    control = store.get_control_connection(control_config)
+    try:
+        run = ledger.add_run(control, "generate", "g")
+        ledger.add_jobs(control, run, [{"stage": "fill", "command": "sector", "item_key": str(n)} for n in range(waiting.REASONS_PER_CLASS + 3)])
+        for n, row in enumerate(control.execute("SELECT id FROM engine_jobs WHERE run_id = ? ORDER BY id", (run,)).fetchall()):
+            ledger.set_job_state(control, row["id"], "ready", waited=f"reason {n}")
+        control.commit()
+        item = waiting.overview(control, with_gate=False)["classes"][0]
+    finally:
+        control.close()
+    assert len(item["reasons"]) == waiting.REASONS_PER_CLASS and item["more"] == 3 and item["ready"] == waiting.REASONS_PER_CLASS + 3
+
+
+def test_the_waiting_panel_gives_the_times_in_hours_minutes_and_seconds_and_is_empty_when_nothing_waits():
+    assert queue_page._waiting_view(None) is None
+    assert queue_page._waiting_view({"classes": [], "started": [], "gate": ""}) is None
+    view = queue_page._waiting_view({"classes": [{"job_class": "bulk", "waiting": 2, "ready": 1, "oldest_waiting_seconds": 5025.0, "oldest_ready_seconds": 75.0, "retry_in_seconds": None,
+                                                  "reasons": [{"reason": "the gate", "count": 1}], "more": 0}],
+                                     "started": [{"job_class": "bulk", "count": 4, "median_seconds": 3.0, "longest_seconds": 3725.0}], "gate": "the memory gate: none"})
+    row = view["rows"][0]
+    assert (row["oldest_waiting"], row["oldest_ready"], row["retry"]) == ("1h 23m 45s", "1m 15s", "-")
+    assert "the longest 1h 2m 5s" in row["started"] and view["gate"] == "the memory gate: none"
+
+
+def test_the_queue_page_and_its_api_say_why_jobs_wait(admin_client, control_config):
+    control = _ledger_jobs(control_config)
+    control.close()
+    body = admin_client.get("/api/admin/work/waiting").get_json()
+    assert {item["job_class"] for item in body["classes"]} == {"bulk", "short"}
+    html = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert 'id="queue-waiting"' in html and "Why jobs wait" in html
+    assert "2 job(s): the memory gate: 3 claims hold 9 GB" in html and "1 job(s): a short job waits for a slot" in html
