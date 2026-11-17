@@ -4420,12 +4420,12 @@ included."""
 # --- Species environment limits (POP.12) -------------------------------------------------------
 
 SPECIES_LIMIT_MARGIN = {"pressure_factor": 1.5, "temperature_c": 10.0, "wet_bulb_c": 2.0, "dose_factor": 3.0,
-                        "o2_factor": 1.25}
+                        "o2_factor": 1.25, "gas_factor": 1.5}
 """dict: How far inside Blue a species' homeworld sits when its limits are generated from it
 (`species_limits.generated`): the homeworld's pressure is 1.5 times inside the Blue pressure edges, its
 temperature cycle 10 degrees inside the Blue temperature edges, a wet bulb limit 2 degrees above its wet bulb,
-its dose a third of the Blue dose edge, and the chronic inspired O2 limit a quarter above its own. planetGen
-defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
+its dose a third of the Blue dose edge, the chronic inspired O2 limit a quarter above its own, and each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) a third under the chronic edge of
+its own gas band (`gas_factor` 1.5, GEN.1772). planetGen defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
 
 SPECIES_EQUIPMENT_TECH = {
     "cold-weather clothing": 0.0, "cooling clothing": 0.0, "sun-cover clothing": 0.0, "weather clothing": 0.0,

@@ -73381,6 +73381,266 @@
       ],
       "slug": "6-303-stand-ins-of-the-shape-of-a-star-s-own-comets-gen-595",
       "title": "Stand-ins of the shape of a star's own comets (GEN.595)"
+    },
+    {
+      "key": "6.305",
+      "number": "6.305",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its pressure limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"pressure_factor\"] 1.5: the homeworld's pressure is this many times inside the Blue pressure edge (low side or high side)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 3"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL1",
+          "key": "6.305:GL1",
+          "kind": "P",
+          "slug": "6-305-gl1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"pressure_factor\"] 1.5: the homeworld's pressure is this many times inside the Blue pressure edge (low side or high side)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its temperature limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"temperature_c\"] 10.0: the homeworld's hottest and coldest temperature lie this many degrees inside the Blue temperature edges"
+            ],
+            [
+              "The range it moves in",
+              "5 to 15"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL2",
+          "key": "6.305:GL2",
+          "kind": "P",
+          "slug": "6-305-gl2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"temperature_c\"] 10.0: the homeworld's hottest and coldest temperature lie this many degrees inside the Blue temperature edges"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its wet-bulb limit limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"wet_bulb_c\"] 2.0: the species' wet-bulb limit sits this many degrees above the homeworld's"
+            ],
+            [
+              "The range it moves in",
+              "1 to 4"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL3",
+          "key": "6.305:GL3",
+          "kind": "P",
+          "slug": "6-305-gl3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"wet_bulb_c\"] 2.0: the species' wet-bulb limit sits this many degrees above the homeworld's"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its dose limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"dose_factor\"] 3.0: the homeworld's dose is this many times under the Blue dose edge"
+            ],
+            [
+              "The range it moves in",
+              "2 to 10"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL4",
+          "key": "6.305:GL4",
+          "kind": "P",
+          "slug": "6-305-gl4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"dose_factor\"] 3.0: the homeworld's dose is this many times under the Blue dose edge"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its oxygen limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"o2_factor\"] 1.25: the chronic inspired-oxygen limit sits this far above the homeworld's own inspired oxygen"
+            ],
+            [
+              "The range it moves in",
+              "1.1 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL5",
+          "key": "6.305:GL5",
+          "kind": "P",
+          "slug": "6-305-gl5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"o2_factor\"] 1.25: the chronic inspired-oxygen limit sits this far above the homeworld's own inspired oxygen"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its gas limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"gas_factor\"] 1.5: the homeworld's partial pressure of each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) is this many times under the chronic edge of that gas's band, every edge of the band moving by the same factor (GEN.1772)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 3"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL6",
+          "key": "6.305:GL6",
+          "kind": "P",
+          "slug": "6-305-gl6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"gas_factor\"] 1.5: the homeworld's partial pressure of each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) is this many times under the chronic edge of that gas's band, every edge of the band moving by the same factor (GEN.1772)"
+        }
+      ],
+      "slug": "6-305-stand-ins-of-how-far-inside-blue-a-species-homeworld-sits-pop-12-gen-1772",
+      "title": "Stand-ins of how far inside Blue a species' homeworld sits (POP.12, GEN.1772)"
     }
   ]
 }
