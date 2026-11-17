@@ -82,24 +82,24 @@ def test_a_saved_planet_and_moon_keep_the_eccentricity_a_resonance_holds_them_on
     moons = [m for p in planets for m in p.moons]
     assert len(planets) >= 2 and moons, "the seed has the planets and a moon the test holds"
     held_planet, free_planet, held_moon = planets[0], planets[1], moons[0]
-    held_planet._resonance_e, held_planet.oddity_quantities = 0.0625, {"forced_eccentricity": 0.071}
-    held_moon._resonance_e = 0.0123
+    held_planet.build.resonance_e, held_planet.oddity_quantities = 0.0625, {"forced_eccentricity": 0.071}
+    held_moon.build.resonance_e = 0.0123
     _system_id, loaded = _round_trip(mysql_config, system, cfg)
     by_name = {b.name: b for b in _bodies(loaded)}
     restored_planet, restored_moon, restored_free = by_name[held_planet.name], by_name[held_moon.name], by_name[free_planet.name]
-    assert restored_planet._resonance_e == pytest.approx(0.0625, rel=1e-12)
+    assert restored_planet.build.resonance_e == pytest.approx(0.0625, rel=1e-12)
     assert restored_planet.oddity_quantities["forced_eccentricity"] == pytest.approx(0.071, rel=1e-12)
-    assert restored_moon._resonance_e == pytest.approx(0.0123, rel=1e-12)
+    assert restored_moon.build.resonance_e == pytest.approx(0.0123, rel=1e-12)
     assert not getattr(restored_moon, "oddity_quantities", None)
-    assert not getattr(restored_free, "_resonance_e", None) and not (getattr(restored_free, "oddity_quantities", None) or {}).get("forced_eccentricity")
+    assert not restored_free.build.resonance_e and not (getattr(restored_free, "oddity_quantities", None) or {}).get("forced_eccentricity")
 
 
 @pytest.mark.fresh_database
 def test_a_restored_planet_settled_again_stays_on_the_eccentricity_its_resonance_holds(mysql_config, monkeypatch):
     """The tide wears an orbit down (here to nearly nothing); the floor the resonance keeps stops it. The restored planet comes out where the generated one does, and not below the floor."""
-    system, cfg = _find(lambda s: any(p.body_type != "a" and getattr(p, "_orbit_birth", None) is not None for p in s.planets))
-    held = next(p for p in system.planets if p.body_type != "a" and getattr(p, "_orbit_birth", None) is not None)
-    held._resonance_e = 0.08
+    system, cfg = _find(lambda s: any(p.body_type != "a" and p.build.orbit_birth is not None for p in s.planets))
+    held = next(p for p in system.planets if p.body_type != "a" and p.build.orbit_birth is not None)
+    held.build.resonance_e = 0.08
     _system_id, loaded = _round_trip(mysql_config, system, cfg)
     restored = next(p for p in loaded.planets if p.name == held.name)
     monkeypatch.setattr(orbit_elements, "settled_eccentricity", lambda *args, **kwargs: 0.001)
