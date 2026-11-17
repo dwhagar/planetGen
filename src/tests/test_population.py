@@ -257,15 +257,19 @@ def _has_civilization(system):
 
 
 
-def test_the_pinned_civilized_seeds_still_qualify():
-    """TEST.700, TEST.753: every pinned candidate still holds a technological civilization with this generator (a system each, about 25 s). A test that needs
-    two civilized systems takes the first two pins and the rest cover a number that stops qualifying, so a stale pin past the first is a hunt of tens of
-    minutes in the middle of a run (Train 28's epoch left only the first valid and the guard checked only it). When one does not, the pins are old:
-    `python -m tests.civilized_pins refresh --hunt 4` writes them again."""
+def test_the_pinned_civilized_seeds_still_qualify(mysql_config):
+    """TEST.700, TEST.753, TEST.737: every pinned candidate still holds a technological civilization and the population pass will give it a species -- the two things
+    `_civilized_system` (the galaxy fixture) asks of a system (a system each, about 25 s). A test that needs two civilized systems takes the first two pins and the
+    rest cover a number that stops qualifying, so a stale pin past the first is a hunt of tens of minutes in the middle of a run (Train 28's epoch left only the
+    first valid and the guard checked only it). When one does not, the pins are old: `python -m tests.civilized_pins refresh --hunt 4` writes them again."""
     seeds = pinned_seeds()
     assert seeds, "tests/data/civilized_pins.json names no candidate: python -m tests.civilized_pins refresh --hunt 4"
-    stale = [number for number in seeds if not _has_civilization(_candidate(number)[0])]
-    assert not stale, f"candidates {stale} no longer hold a civilization: python -m tests.civilized_pins refresh --hunt 4"
+    stale = []
+    for number in seeds:
+        system, cfg = _candidate(number)
+        if not _has_civilization(system) or qualifies(mysql_config, system, cfg) is None:
+            stale.append(number)
+    assert not stale, f"candidates {stale} no longer hold a civilization with a species: python -m tests.civilized_pins refresh --hunt 4"
 
 
 def _next_candidate_number():
@@ -303,20 +307,29 @@ def _civilized_candidates():
             index += 1
 
 
+def qualifies(mysql_config, system, cfg):
+    """The id of the saved `system` when the population pass will give it a species -- what `_civilized_system` (and so the galaxy fixture) needs, which is more than
+    `_has_civilization` (TEST.737: pins that held a civilization but no species left the fixture hunting for hours) -- else None, the system deleted again."""
+    system_id = store.save_system(system, cfg, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        if _gets_a_species(conn, system_id):
+            return system_id
+        with conn:
+            conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
+        return None
+    finally:
+        conn.close()
+
+
 def _civilized_system(mysql_config):
     """A saved system with a habitable planet that reached a technological civilization and will get a species -- taken from the
     pool of generated ones, since generation is random and slow. A system the pass would leave without a species is deleted again
     (TEST.296: one in a few kept by the old test of the timeline alone, and a test counting the species failed)."""
     for system, cfg in _civilized_candidates():
-        system_id = store.save_system(system, cfg, config=mysql_config)
-        conn = store.get_connection(mysql_config)
-        try:
-            if _gets_a_species(conn, system_id):
-                return system_id
-            with conn:
-                conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
-        finally:
-            conn.close()
+        system_id = qualifies(mysql_config, system, cfg)
+        if system_id is not None:
+            return system_id
     pytest.fail("could not generate a system with a civilization")
 
 
