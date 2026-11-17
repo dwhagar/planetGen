@@ -8758,50 +8758,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
   Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
-- [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
-  Part of the unified orbited-body chain (GEN.550; design note
-  docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
-  coordinator relayed with the wake times converted: E2 tapped
-  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
-  the hybrid approach you outlined, let it to TODO and ship to into the
-  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
-  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
-  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
-  (2026-10-17)). Owners follow Boss's card D7 (Lane 14 chain and classes,
-  Lane 11 storage). Boss tapped 'IDs stay stable' on the object-ID card
-  at 11:49 PM EDT (2026-10-17, as the coordinator relayed with the wake
-  time converted): object IDs (public in URLs) survive a refill that
-  changes how many planets or moons a system gets, and a body that
-  changes parent (a planet that leaves its star) keeps its ID; IDs
-  cannot follow insertion order. Why: Lane 11's audit of main at 5c49fc42
-  (11:50 PM EDT as the lane reported) found object UIDs issued in
-  insertion order (`store.py` 7737 and after), so any 8.4 change to a
-  system's body counts, or a refill that draws a different number,
-  renumbers the bodies after it. No existing item covers this (GEN.401
-  and the identity chain are about the galaxy's identity, not body
-  numbers). Do: a body's number comes from its place in the host chain
-  (the host's seed and the orbit slot of GEN.556) instead of an
-  insertion counter, so a body keeps its number when its siblings
-  change; a body that moves parent keeps its ID and its number; the
-  96-bit scheme (body number 0 for the head of a system or a wanderer, 1
-  and up for the rest) is kept or the number space widened if the slot
-  path needs it; Lane 11 designs and confirms (this slot-path route is
-  the TODO thread's suggestion, inferred, not decided). Done: a test
-  refills a system whose planet count changes and every surviving body
-  keeps its ID, and a planet that leaves its star keeps its ID. Owner:
-  Lane 11 (proposed: the identity chain), 8.4 phase 1.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Lane 11
-  held it before; this replaces any earlier owner line).
-  First part merged as #2568 (Lane 11, 9:50 PM EDT 2026-10-22 as the lane
-  reported; regenerate now keeps the slot's ID). The item stays open for
-  a body that changes parent, which waits on the shared parent link of
-  the 8.4 revision. GEN.564 is an 8.4 item: it stays in the pool, paused
-  until 8.1 is complete (the coordinator, 9:46 PM EDT 2026-10-22).
-  Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
-  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): stays in 8.1 and is designed with GEN.1547: both key a body's draws and number by host seed and orbit slot ({host_seed}:orbit:{slot}), so the later recursion (GEN.556, 8.2) reuses the keys. Owner: Lane 12, keys agreed with Lane 05.
-  Audit (Lane 15, 4:29 AM EST 2026-11-17): partly built (regenerate keeps a slot's ID, PR 2568, body_numbers). Left: DB.75b, key the slot by the host-seed orbit slot (GEN.1547 keys) plus a changed-planet-count test, owner Lane 15; a body that changes parent waits on the 8.4 parent link.
-
 - [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/architecture/unified-system-barycentre.md, decided: Boss's nine cards

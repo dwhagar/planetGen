@@ -654,7 +654,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.72 | The scatter tables hold band_index as SMALLINT, which overflows from shell 20,861 outward, so the whole-sphere scatter stops at 97 percent (bug) | none | done, PR #2060 |
 | DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue | none | done, PR #2863 |
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | none | open |
-| DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | open (Lane 15, DB.75b) |
+| DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | done (DB.75a PR 6378, DB.75b PR 7055, 11-17) |
 | DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | none | done, PR #2487 |
 | DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | done, PR #2534 |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | none | open |
