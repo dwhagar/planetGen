@@ -2580,8 +2580,10 @@ class StarSystem:
                     for moved in validation.space_orbits(planets):
                         if log.debug_log_active():
                             log.debug(f"{getattr(moved, 'name', 'a belt')}: moved to {moved.distance:.4g} AU, the eccentricities having settled.")
-                    # the pass only pushes outward, so it can carry the outermost body past the star's stability ceiling (a wide binary's a_crit) as the first spacing pass can: trimmed the same way
-                    validation.trim_to_orbit_ceiling(planets, validation.orbit_ceiling_au(star))
+                    respaced = True
+                # the pass only pushes outward, so it can carry the outermost body past the star's stability ceiling (a wide binary's a_crit) as the first spacing pass can: trimmed the same way. GEN.1783: so can
+                # an eccentricity the exchange, the resonant chain or the Kozai pump raised (the apoapsis reaches farther with no gap closed), so every star's planets are held to the ceiling here, not only a respaced star's
+                if validation.trim_to_orbit_ceiling(planets, validation.orbit_ceiling_au(star)):
                     respaced = True
             if respaced and self.binary_type == "wide":
                 self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
