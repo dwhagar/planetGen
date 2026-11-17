@@ -74,7 +74,7 @@ def test_a_body_made_again_at_an_older_age_has_the_shell_of_its_cooler_interior(
 
 
 def test_the_ground_is_made_again_from_the_heat_at_the_final_age(monkeypatch):
-    body = next(iter(bodies([12])))
+    body = next(iter(bodies(ICY_SEEDS)))
     seen = []
     real = surface_composition.draw_surface
     monkeypatch.setattr(surface_composition, "draw_surface", lambda inputs: seen.append(inputs.internal_heat_flux_w_m2) or real(inputs))
@@ -84,7 +84,7 @@ def test_the_ground_is_made_again_from_the_heat_at_the_final_age(monkeypatch):
 
 
 def test_no_draw_of_the_runs_stream_moves():
-    body = next(iter(bodies([12])))
+    body = next(iter(bodies(ICY_SEEDS)))
     with draw.bound(draw.Stream("untouched")):
         planets.refresh_at_final_age(body)
         after = draw.random()
@@ -105,7 +105,7 @@ def test_a_giant_a_belt_and_a_body_with_no_water_drawn_are_left_alone():
     class Bare(HasBuildRecord):
         body_type = "g"
     planets.refresh_at_final_age(Bare())
-    body = next(iter(bodies([12])))
+    body = next(iter(bodies(ICY_SEEDS)))
     body.build.surface_w = None
     before = body.ice_shell_km
     planets.refresh_at_final_age(body)
