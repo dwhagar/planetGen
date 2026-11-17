@@ -35,23 +35,17 @@ BULK_QUEUE = "planetgen-bulk"
 rebuild. Its workers serve this queue and no other."""
 
 MAINTENANCE_QUEUE = "planetgen-maintenance"
-"""str: The units of a `MAINTENANCE` or `CHECK` run (the cache warm-up, the database check) and the node prefetch and
-rebuild jobs (PERF.150). Its workers have a cap of their own (`workers.maintenance_cap`) and share the host's worker
-count with the bulk workers, so a generation stage that queued thousands of units on `BULK_QUEUE` never makes this
-work wait for them."""
+"""str: The units of a `MAINTENANCE` run (the cache warm-up) that has no ledger (PERF.150; OPS.229: a run with a ledger has its units handed out by the launcher). Its workers have a cap of their own
+(`workers.maintenance_cap`) and share the host's worker count with the bulk workers."""
 
 CHECK_QUEUE = "planetgen-maintenance-check"
-"""str: The units of a `CHECK` run (the database check, PERF.245). One of the maintenance lane's task types: it has a queue of its
-own, so the thousands of units a cache warm-up queued ahead of it never make it wait (the lane's workers take a job from each
-queue in turn, `maintenance_lane`)."""
+"""str: The units of a `CHECK` run (the database check, PERF.245) that has no ledger (OPS.229). One of the maintenance lane's task types: it has a queue of its own, so the thousands of units a cache
+warm-up queued ahead of it never make it wait."""
 
 def maintenance_lane():
     """
-    The queues of the maintenance lane, one per task type (PERF.245): a `MAINTENANCE` run's units (the cache warm-up), a `CHECK`
-    run's units (the node prefetch is a light job now, `lightjobs`, OPS.230). A maintenance worker serves both and takes one job from each queue
-    in turn (round robin, `cli/worker.worker_class`), so no task type waits behind another's backlog; the lane's worker count
-    (`workers.maintenance_cap`) is shared by them. The first is the lane's name wherever one is needed (the starting count, the
-    live workers: every worker of the lane is registered with both). A function, not a constant, so a test that gives
+    The queues of the maintenance lane, one per task type (PERF.245): a `MAINTENANCE` run's units (the cache warm-up) and a `CHECK` run's units. A run with a ledger does not use them (OPS.229: its units are
+    forked jobs of the supervisor's launcher, class `maintenance`); only a run with no ledger does (OPS.271), each queue with workers of its own (`workers.lane_of`). A function, not a constant, so a test that gives
     `MAINTENANCE_QUEUE` a name of its own gets a lane of its own.
     """
     return (MAINTENANCE_QUEUE, CHECK_QUEUE)

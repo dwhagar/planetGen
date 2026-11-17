@@ -23,9 +23,10 @@ import os
 import signal
 import time
 
-from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, planrows, scheduler, workers
+from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, planrows, runrecord, scheduler, workers
 from planetgen.queue.memorygate import Claim, Holder
 from planetgen.util import log
+from planetgen.util.settings import get_settings
 
 RETRIES = 1
 """int: How many times a unit whose process died without ending its attempt is handed out again (what RQ's `Retry(max=1)` did)."""
@@ -38,6 +39,9 @@ READY_WINDOW = 500
 
 LANES = {"bulk": memorygate.LANE_BULK, "maintenance": memorygate.LANE_MAINTENANCE, "interactive": memorygate.LANE_INTERACTIVE, "long": memorygate.LANE_LONG}
 """dict: The lane of each `job_class` a row can have; any other class is the `other` lane."""
+
+TEMPLATES = {"maintenance": "app"}
+"""dict: The template (`jobhost.WARM_SETS`) a job of a class is forked from when it is not the one its command names (`jobhost.template_key`): the maintenance lane's units build the site's app, which its template holds built (OPS.229)."""
 
 RECOVER_SECONDS = 30.0
 """float: How often the rows left `running` by a supervisor that ended are looked for."""
@@ -216,20 +220,40 @@ class Launcher:
         except claims.NoClaim:
             return claim_of_row(row)
 
+    def _upkeep_limit(self):
+        """The most units of the maintenance class (the cache warm-up and the checks, `planrows.JOB_CLASSES`) that run at once, or `None` for no limit of their own (OPS.229): `queue.maintenance_workers` while a generation run
+        is live, so upkeep never takes more than its guaranteed share from the run (PERF.150); none when no generation run is (the memory gate and the stage's own cap still hold)."""
+        if self.redis is None:
+            return None
+        try:
+            live = runrecord.active_run(self.redis, runrecord.GENERATION)
+        except Exception as exc:  # noqa: BLE001 -- a run that cannot be read leaves the upkeep to the memory gate
+            log.swallowed("queue/launcher", "_upkeep_limit", exc)
+            return None
+        return get_settings().queue.maintenance_workers if live else None
+
     def _within_caps(self, rows):
-        """`rows` less the units the stage's limit holds back (OPS.228): of each stage, no more units run at once than `_cap_of` says."""
-        taken = {}
+        """`rows` less the units the stage's limit holds back (OPS.228): of each stage, no more units run at once than `_cap_of` says; and, of the maintenance class, no more at once than `_upkeep_limit` (OPS.229)."""
+        taken, upkeep = {}, 0
         for started in self.running.values():
             if started.row["command"] != planrows.OPENING:
                 key = (started.row["run_id"], started.row["stage"])
                 taken[key] = taken.get(key, 0) + 1
+            upkeep += started.row["job_class"] == "maintenance"
+        limit = self._upkeep_limit() if any(row["job_class"] == "maintenance" for row in rows) else None
         kept = []
         for row in rows:
+            if limit and row["job_class"] == "maintenance" and row["command"] != planrows.OPENING:
+                if upkeep >= limit:
+                    continue
+                upkeep += 1
             if row["command"] == planrows.OPENING:
                 kept.append(row)
                 continue
             key, cap = (row["run_id"], row["stage"]), self._cap_of(row)
             if cap and taken.get(key, 0) >= cap:
+                if limit and row["job_class"] == "maintenance":
+                    upkeep -= 1
                 continue
             taken[key] = taken.get(key, 0) + 1
             kept.append(row)
@@ -267,7 +291,7 @@ class Launcher:
             return None
         self.control.commit()
         try:
-            key, forked = self.forker.fork(row["command"], self.runner, self._job_of(row))
+            key, forked = self.forker.fork(row["command"], self.runner, self._job_of(row), **({"template": TEMPLATES[row["job_class"]]} if row["job_class"] in TEMPLATES else {}))
         except jobhost.NotReady as exc:                 # its template is still being built: the row is handed out at a later turn
             ledger.set_job_state(self.control, row["id"], "ready", waited=str(exc)[:ledger.WAITED_CHARS])
             self.control.commit()

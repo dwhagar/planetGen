@@ -26,13 +26,14 @@ class FakeJob:
 
 class FakeForker:
     def __init__(self):
-        self.forked, self.exits, self.made = [], [], 0
+        self.forked, self.exits, self.made, self.templates = [], [], 0, []
 
-    def fork(self, kind, runner, job=None):
+    def fork(self, kind, runner, job=None, template=None):
         self.made += 1
         held = FakeJob(self.made, 1000 + self.made)
         self.forked.append((kind, runner, job, held))
-        return "plain", held
+        self.templates.append(template)
+        return template or "plain", held
 
     def poll(self, timeout=0.0):
         found, self.exits = self.exits, []
@@ -174,10 +175,10 @@ def test_a_job_whose_template_is_still_being_built_stays_ready_and_is_handed_out
     class Warming(FakeForker):
         building = True
 
-        def fork(self, kind, runner, job=None):
+        def fork(self, kind, runner, job=None, template=None):
             if self.building:
                 raise jobhost.NotReady("the template 'plain' is being built")
-            return super().fork(kind, runner, job)
+            return super().fork(kind, runner, job, template)
 
     forker = Warming()
     one = _launcher(control, forker)
@@ -257,3 +258,43 @@ def test_a_launcher_with_redis_claims_what_the_gate_has_learned_not_the_minimum(
     row = control.execute("SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, attempt FROM engine_jobs WHERE run_id = ? AND item_key <> ''", (run,)).fetchone()
     claim = one.claim(row)
     assert (claim.kind, claim.mb, claim.cpu, claim.tokens) == ("unit:fill-unit", 3000.0, claims.UNIT_CPU, ("mysql-write",))
+
+
+def _upkeep(control, count=4, name="warm-unit"):
+    """OPS.229: a cache warm-up's rows (class `maintenance`, as `planrows.job_class` gives a run of its kind)."""
+    run = ledger.add_run(control, "maintenance", "g1")
+    ledger.add_jobs(control, run, [{"stage": "warm", "command": "open", "arguments": {"index": 0, "plan": {}, "run_id": "20261115-w"}, "job_class": "maintenance"}]
+                    + [{"stage": "warm", "command": name, "item_key": str(n), "arguments": {"args": {"unit": n}, "cost": 1.0}, "claim_mb": 300, "job_class": "maintenance"} for n in range(count)])
+    control.execute("UPDATE engine_jobs SET state = 'done' WHERE run_id = ? AND item_key = ''", (run,))
+    control.execute("UPDATE engine_jobs SET state = 'ready' WHERE run_id = ? AND item_key <> ''", (run,))
+    control.commit()
+    return run
+
+
+def test_the_units_of_a_warm_up_or_a_check_are_the_maintenance_lanes_and_fork_from_the_template_that_holds_the_app(control):
+    upkeep, bulk = _upkeep(control, count=2), _ready(control, count=1)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    assert len(one.turn()) == 3
+    by_run = {job["row"]: template for (_kind, _runner, job, _held), template in zip(forker.forked, forker.templates)}
+    classes = {row["id"]: (row["run_id"], row["job_class"]) for row in control.execute("SELECT id, run_id, job_class FROM engine_jobs WHERE item_key <> ''").fetchall()}
+    assert {(classes[row][0] == upkeep, template) for row, template in by_run.items()} == {(True, "app"), (False, None)}
+    assert {holder.claim.lane for holder in one.holders() if "warm" in holder.claim.kind} == {memorygate.LANE_MAINTENANCE}
+    assert bulk and all(classes[row][1] == "bulk" for row, template in by_run.items() if template is None)
+
+
+def test_the_maintenance_lane_runs_no_more_than_its_share_while_a_generation_run_is_live_and_what_the_gate_allows_otherwise(control, redis_server, monkeypatch):
+    from planetgen.queue import redisqueue, runrecord
+    conn = redisqueue.connect(redis_server)
+    live = []
+    monkeypatch.setattr(launcher.runrecord, "active_run", lambda connection, kind: "g-run" if live and kind == runrecord.GENERATION else None)
+    import types
+    monkeypatch.setattr(launcher, "get_settings", lambda: types.SimpleNamespace(queue=types.SimpleNamespace(maintenance_workers=2)))
+    _upkeep(control, count=5)
+    forker = FakeForker()
+    one = launcher.Launcher(control, forker, read_host=lambda: HOST, redis=conn)
+    live.append(True)
+    assert len(one.turn()) == 2, "a generation run is live: the upkeep takes its two and no more"
+    assert len(one.turn()) == 0
+    live.clear()
+    assert len(one.turn()) == 3, "no generation run: the three that are left go (the gate is the limit)"

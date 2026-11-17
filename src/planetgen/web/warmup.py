@@ -344,6 +344,12 @@ def build_app(config=None):
     return app
 
 
+def warm_app():
+    """The warm set of the maintenance lane's template (OPS.229, `jobhost.WARM_SETS`): builds the site's app once and drops it, so what it imports and sets up stays in the template and a job forked from it
+    builds its own in 0.07 s, not 6.8 s (PERF.245). Opens no connection or thread, so every job forked from the template shares it safely."""
+    build_app()
+
+
 _KEPT = {}
 """dict: The warm-up app a worker keeps (`keep_app`), under `None`; empty in every process that did not ask to keep one."""
 
