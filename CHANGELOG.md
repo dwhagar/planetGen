@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4432] - 2026-11-17
+
+**Headline:** The units of a generation run are now handed out by the supervisor's launcher and run as jobs forked from a warm template, instead of going to RQ workers.
+
+### Changed
+- `queue.forked_jobs` (environment `PLANETGEN_FORKED_JOBS`) is on by default. A run whose stages are cut into ledger rows opens each stage by adding the arguments to its rows and releasing them to the launcher, and the launcher forks each unit, begins and ends its attempt, and settles the row. Off, every unit goes to a worker as before (OPS.228 slice D1).
+- A run carried on after an update hands its remaining units to the launcher the same way.
+
 ## [8.0.4431] - 2026-11-17
 
 **Headline:** The stand-in moon of the final-air test again carries a build record, so main is green again after the air's kept state moved onto the build record.
