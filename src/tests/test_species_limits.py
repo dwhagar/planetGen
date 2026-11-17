@@ -13,7 +13,7 @@ import pytest
 from tests.population_support import populate
 from planetgen.cli import species_check
 from planetgen.db import species_fit, store
-from planetgen.physics import gases, habitability, species_limits
+from planetgen.physics import equipment, gases, habitability, species_limits
 from planetgen.physics.protection_limits import LIMIT_ROWS, limit
 from tests.publicids import pid
 from tests.test_admin_edits import _saved_system
@@ -100,6 +100,7 @@ HOMEWORLDS = [
     _world(pressure_kpa=101.3, temperature_c=25.0, surface_dose_sv_yr=7.0),
     _world(pressure_kpa=101.3, temperature_c=30.0, relative_humidity=0.95, gases={"O2": 0.21}),
     _world(pressure_kpa=60.0, temperature_c=20.0, flux_variation=0.8),
+    _world(pressure_kpa=1000.0, temperature_c=30.0, gases={"O2": 0.03, "CO2": 0.55, "SO2": 0.002}),       # GEN.1772: the dense CO2 air of the pinned civilized worlds
 ]
 
 
@@ -133,6 +134,28 @@ def test_the_oxygen_limits_follow_the_air_of_the_homeworld():
         limit("inspired_o2_acute_kpa") / limit("inspired_o2_chronic_kpa"))
     assert species_limits.assess(rich, {})["domains"]["Air"][1] != "Blue"
     assert species_limits.assess(rich, overrides)["domains"]["Air"][1] == "Blue"
+
+
+def test_the_gas_bands_follow_the_air_of_the_homeworld_one_gas_at_a_time():
+    """GEN.1772: a species of a dense CO2 and SO2 air has the CO2 and SO2 bands moved out, and the CO and H2S bands (the air has none) left at the human edges."""
+    dense = _world(pressure_kpa=1000.0, gases={"O2": 0.03, "CO2": 0.55, "SO2": 0.002})
+    overrides = species_limits.generated(dense)
+    assert set(overrides) >= {"co2_scale", "so2_scale"} and not {"co_scale", "h2s_scale"} & set(overrides)
+    assert species_limits.assess(dense, {})["domains"]["Air"][1] == "Red"
+    assert species_limits.assess(dense, overrides, native=True)["domains"]["Air"][1] == "Blue"
+    # The scale is the same factor on every edge of the band, so Green and Yellow keep their human width.
+    human = {gas: band for gas, _kpa, band in habitability.gas_inputs(dense)}
+    moved = {gas: band for gas, _kpa, band in habitability.gas_inputs(dense, habitability.bands(overrides).gas_scale)}
+    ratios = {edge / old for edge, old in zip(moved["CO2"], human["CO2"]) if edge is not None}
+    assert max(ratios) / min(ratios) == pytest.approx(1.0) and min(ratios) == pytest.approx(overrides["co2_scale"])
+    assert moved["CO"] == human["CO"] and moved["H2S"] == human["H2S"]
+    # The air a species cannot have is still refused: a species of an Earth-like air does not breathe it.
+    assert species_limits.assess(dense, species_limits.generated(_world()))["domains"]["Air"][1] == "Red"
+    # The gear follows the same limits: the species of the dense air wears no gas filter or scrubber at home, a visitor of the human limits does.
+    at_home = equipment.compute(dense, habitability.bands(overrides))
+    visitor = equipment.compute(dense, habitability.HUMAN)
+    assert (at_home["eq_gas_filter"], at_home["eq_co2_scrub"]) == (0, 0)
+    assert visitor["eq_supply"] >= 2
 
 
 # --- Could it live there? ---------------------------------------------------------------------------------------

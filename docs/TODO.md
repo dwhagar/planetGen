@@ -11920,11 +11920,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02 (moved from Lane 03, whose thread Boss closed at 5:07 PM EST 2026-11-16). Prerequisites: none. Related: GEN.1717.
   Filed by the TODO thread.
 
-- [ ] **GEN.1772 (bug) The generator puts a technological civilization on worlds whose air its own species placement refuses: species_fit.check_homeworld raises PlacementError "the air cannot be breathed" on the civilized pins of main (Areomb Albiris III, Ulmaha Chinor IV)**
-  Lane 15, 6:13 PM EST 2026-11-16 (re-picking the civilized test pins for test_population's galaxy fixture): main's pins 5 and 39 both hold a technological civilization, yet `species_fit.check_homeworld` refuses them with PlacementError ("A species could not live on <planet>: the air cannot be breathed", physics/species_limits.py "Air"). About 500 candidates on the Train 40 head gave none that passes both checks, so a civilization that a species can actually live on is rarer than 1 in 300, and the galaxy fixture hunts for hours. One rule says life rose to a civilization there; the other says no species can breathe there. Do: find which side is wrong (the civilization and life draw ignoring the air the species limits use, or the species air limits being narrower than the life that made the air), make the two read one rule, and measure the civilized-world rate before and after. Lock item if output moves.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 04, lock item. Prerequisites: none. Related: GEN.1699, GEN.1723, POP.40, OPS.239.
-  Filed by the TODO thread.
-
 - [ ] **TEST.786 (bug) test_surface_air_runaway_start::test_a_wet_body_past_the_runaway_limit_holds_its_water_as_steam is red on main and on the Train 41 branch: the body past the runaway limit still has a surface ocean (['surface ocean'] where [] is expected)**
   Lane 14, 7:52 PM EST 2026-11-16 (Train 41 gate; also red on main). Do: find which merge made it (Train 40 and GEN.1745 slice 1b are the suspects), and decide whether the generator is wrong (a body past the runaway limit must hold its water as steam) or the test's body moved; fix the cause, never the assertion alone. Lock item if output moves.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: GEN.1730, GEN.1710, GEN.1745.
