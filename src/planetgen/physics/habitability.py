@@ -111,11 +111,15 @@ shelter from the sun), Red beyond, 0 a decade further out. The score of the Radi
 SINGLE_YEAR_DOSE_SV = limit("dose_single_year_sv")
 """float: ICRP's limit for any one year, 50 mSv."""
 
-Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high uv o2_low")
+Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high uv o2_low gas_scale")
 """namedtuple: The limits the five core domains are scored against: the Armstrong pressure, the least inspired
 O2, the chronic and acute inspired O2 edges, the uncompensable wet bulb, and the pressure, temperature and
-dose bands with `o2_high`, the band of too much O2. `HUMAN` is the visitor's; `bands` builds a species'
+dose bands with `o2_high`, the band of too much O2, and the `gas_scale` of the four gas bands of `gas_inputs`, one factor each for `GAS_ORDER` (all 1 for the human visitor). `HUMAN` is the visitor's; `bands` builds a species'
 (POP.12)."""
+
+
+GAS_ORDER = ("CO2", "CO", "H2S", "SO2")
+"""tuple: The four gases of the Air domain's filter bands, in the order of `Bands.gas_scale` and `gas_inputs`."""
 
 
 def bands(overrides=None):
@@ -139,7 +143,7 @@ def bands(overrides=None):
               value("dose_outer_sv_yr")),
         o2_high=(None, None, None, None, chronic, chronic, acute, acute * 10),
         uv=(None, None, None, None, value("uv_cover_index"), value("uv_suit_index"), value("uv_lethal_index"), value("uv_outer_index")),
-        o2_low=_o2_low_band(value("inspired_o2_min_kpa"), value))
+        o2_low=_o2_low_band(value("inspired_o2_min_kpa"), value), gas_scale=tuple(value(f"{gas.lower()}_scale") for gas in GAS_ORDER))
 
 
 def _o2_low_band(minimum, value):
@@ -492,15 +496,18 @@ def inspired_o2_kpa(world, limits=HUMAN):
     return world.gases.get("O2", 0.0) * max(0.0, world.pressure_kpa - limits.armstrong)
 
 
-def gas_inputs(world):
+def gas_inputs(world, scale=(1.0, 1.0, 1.0, 1.0)):
     """`[(gas, partial kPa, band)]` for the gases the filter rules read (CO2, CO, H2S, SO2): the value
-    and the log band `band_score` scores it in. Shared with the describer (`protection`)."""
+    and the log band `band_score` scores it in. `scale` is one factor for each gas of `GAS_ORDER` that moves every edge of its band out
+    together (a species' `Bands.gas_scale`: the air its homeworld has, GEN.1772); all 1 is the human visitor's. Shared with the describer (`protection`)."""
+    factor = dict(zip(GAS_ORDER, scale))
     chronic, acute = GAS_LIMITS_KPA["CO2"]
-    inputs = [("CO2", world.partial_kpa("CO2"), (None, None, None, None, chronic, CO2_GREEN_KPA, acute, acute * 10))]
+    inputs = [("CO2", world.partial_kpa("CO2"), tuple(None if edge is None else edge * factor["CO2"] for edge in
+                                                       (None, None, None, None, chronic, CO2_GREEN_KPA, acute, acute * 10)))]
     for gas in ("CO", "H2S", "SO2"):
         chronic, acute = GAS_LIMITS_KPA[gas]
-        inputs.append((gas, world.partial_kpa(gas), (None, None, None, None, chronic, chronic,
-                                                     acute * FILTER_FACTOR, acute * FILTER_FACTOR * 10)))
+        inputs.append((gas, world.partial_kpa(gas), (None, None, None, None, chronic * factor[gas], chronic * factor[gas],
+                                                     acute * FILTER_FACTOR * factor[gas], acute * FILTER_FACTOR * 10 * factor[gas])))
     return inputs
 
 
@@ -524,7 +531,7 @@ def _gas_scores(world, limits=HUMAN):
     if world.partial_kpa("O2") < blue_o2_floor_kpa() * limits.o2_min / limit("inspired_o2_min_kpa"):
         low = min(low, CEILING_SCORE["Green"])
     scores["O2"] = min(low, band_score(o2, limits.o2_high, log=True))
-    for gas, kpa, band in gas_inputs(world):
+    for gas, kpa, band in gas_inputs(world, limits.gas_scale):
         scores[gas] = band_score(kpa, band, log=True)
     return scores
 

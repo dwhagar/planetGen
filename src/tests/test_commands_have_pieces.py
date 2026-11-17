@@ -15,5 +15,5 @@ def test_the_commands_converted_last_are_the_clears_the_drops_and_the_reset():
     assert {kind for kind, spec in commands.REGISTRY.items() if spec.pieces is not None} >= {
         "clean-nebula-field", "clear-scatter", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "clear-bright-stars", "empty-nebula-field", "reset-galaxy",
         "plan-skeleton", "write-special-phenomena", "build-phenomenon-indexes", "record-phenomenon-scatter", "refresh-block-lights", "warm-cluster-field", "warm-object-index", "warm-galaxy-map", "warm-galaxy-nodes", "warm-galaxy-deep-nodes",
-        "warm-lists", "warm-sectors", "warm-systems", "warm-phenomena", "warm-search", "end-map-rebuild-maintenance", "run-population", "run-territories",
+        "warm-lists", "warm-sectors", "warm-systems", "warm-phenomena", "warm-search", "end-map-rebuild-maintenance", "scan-species", "date-civilizations", "refresh-technology", "count-population", "run-territories",
         "link-neighbors", "settle-sector-paths", "generate-unplaced-sector"}

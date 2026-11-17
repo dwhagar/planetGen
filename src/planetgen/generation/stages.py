@@ -116,7 +116,7 @@ def galaxy_stages(args):
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
         *PHENOMENA_STAGES,
-        Stage("population", "Run the population pass"),
+        *POPULATION_STAGES,
         Stage("territories", "Recompute the territories"),
         Stage("settle", "Save the sector paths"),
         Stage("run-blocks", "Update the map's block totals"),
@@ -203,6 +203,10 @@ def clear_stages(args):
     return [] if kind is None else [CLEAR_STAGE[kind]]
 
 
+POPULATION_STAGES = (Stage("species", "Scan the planets for species"), Stage("civilizations", "Date the civilizations"),
+                     Stage("technology", "Refresh the technology rows"), Stage("population", "Count the population"))
+"""tuple[Stage]: The stages of the population pass (OPS.239: the commands `scan-species`, `date-civilizations`, `refresh-technology` and `count-population`)."""
+
 SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill the map luminosity"),
                          "rescore-habitability": Stage("habitability", "Re-score the habitability"),
                          "refill-effect-ledger": Stage("ledger", "Refill the effect ledger"),
@@ -212,7 +216,6 @@ SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill th
                          "link": Stage("link", "Link the neighbors"),
                          "backfill": Stage("backfill", "Scatter the massive stars from the neighborhood"),
                          "settle": Stage("settle", "Save the sector paths"),
-                         "population": Stage("population", "Run the population pass"),
                          "territories": Stage("territories", "Recompute the territories")}
 """dict: The commands that do one stage and nothing else (PERF.122, PERF.123), by command name."""
 
@@ -229,6 +232,8 @@ def for_command(command, args):
         return plan_stages(args)
     if command == "scatter":
         return scatter_stages(args)
+    if command == "population":
+        return list(POPULATION_STAGES)
     if command == "clear-scatter":
         return clear_stages(args)
     if command == "fill-map-luminosity":

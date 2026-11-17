@@ -267,7 +267,8 @@ class BinaryStarProxy(StellarObject):
             self._effective_luminosity,
             self.radius, # Using the larger radius as an approximation
             lead.type, # Using primary's type for wind model selection
-            lead.yerkes_class # Using primary's yerkes class for wind model selection
+            lead.yerkes_class, # Using primary's yerkes class for wind model selection
+            self.log_lx_lbol # The pair's combined X-ray share, which a cool dwarf's coronal wind is made from (GEN.1625)
         )
 
     @property

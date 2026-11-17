@@ -19,7 +19,10 @@ and the fill builds them where they are (`phenomenon_scatter`), which `test_phen
 """
 
 import collections
+import concurrent.futures
 import math
+import multiprocessing
+import os
 
 from planetgen import tuning
 from planetgen.galaxy import component_field, profile, remnant_density
@@ -178,15 +181,51 @@ def limited_findings(census, fill, names, rate=BOOSTED_RATE_PER_STAR, k=audit.DE
     return findings
 
 
-def run(monkeypatch, names=None, sectors=SECTORS):
-    """Fills the audit regions with boosted rates; returns `(census, fill, names)`."""
+_JOB = None
+"""tuple or None: `(cases, fill, args)` of the run in progress, for the forked workers of `run` to read (a fork keeps the parent's memory, the boosted rates included)."""
+
+
+def _fill_one(job):
+    """TEST.783: one seeded sector of one case, in a worker: `(case number, stage counts, stars the sector held)`. Each sector is bound to its own seed, so it is the
+    sector a one-by-one run makes, and the stars its phenomena were rolled over are what this worker's `Fill` counted for it."""
+    number, index = job
+    cases, fill, args = _JOB
+    case = cases[number]
+    before = fill.stars[case.name]
+    sector = fill(case, audit.seed_for(case.name, index), args)
+    return number, sector.stage_counts, fill.stars[case.name] - before
+
+
+def run(monkeypatch, names=None, sectors=SECTORS, workers=None):
+    """
+    Fills the audit regions with boosted rates; returns `(census, fill, names)`.
+
+    TEST.783: the sectors are filled at the same time by forked workers (`workers`: how many, `os.cpu_count()` up to 4 by default, 1 to fill them one after another); a
+    sector is bound to its own seed, so the census and the fill's star counts are the ones a one-by-one run gives, the regions in the same order.
+    """
+    global _JOB
     names = tuple(names or REGION_POINTS)
     boosted_rates(monkeypatch)
     fill = Fill(monkeypatch)
     args = audit.default_args()
     args.planets = False     # PERF.241: the audit counts kinds, and the planets of its two systems a sector took most of a run of 2,620 s (170 s without them)
-    census = audit.run_census(region_cases(names, sectors), fill=fill, args=args)
-    return census, fill, names
+    cases = region_cases(names, sectors)
+    workers = min(4, os.cpu_count() or 1) if workers is None else workers
+    if workers <= 1:
+        return audit.run_census(cases, fill=fill, args=args), fill, names
+    jobs = [(number, index) for number, case in enumerate(cases) for index in range(case.sectors)]
+    _JOB = (cases, fill, args)
+    try:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context("fork")) as pool:
+            filled = list(pool.map(_fill_one, jobs, chunksize=4))
+    finally:
+        _JOB = None
+    regions = [audit.RegionCensus(case.name) for case in cases]
+    for number, counts, stars in filled:
+        regions[number].add(counts)
+        fill.stars[cases[number].name] += stars
+        fill.sectors[cases[number].name] += 1
+    return audit.Census(regions), fill, names
 
 
 def report(sectors=SECTORS):

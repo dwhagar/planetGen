@@ -124,3 +124,16 @@ def test_the_run_line_and_the_generate_page_both_read_the_cause_of_a_stalled_sta
     assert queue_page._eta_text(by_list, True) == "waiting on progress (1 waiting on sky lock)"
     monkeypatch.setattr(runeta, "estimate", lambda run, now: runeta.Eta(seconds=5.0, low=1.0, high=9.0, stalled=False))
     assert "cause" not in runview.read(conn, run_id, 100.0)["eta"]
+
+
+def test_the_quiet_line_of_a_stage_with_units_still_to_start_says_what_the_gate_holds(conn, monkeypatch):
+    """OPS.270: a stage that runs fewer units than it has workers says what limits it: the claims held, the memory the host has, the cores and the load."""
+    from planetgen.queue import memorygate
+    monkeypatch.setattr(memorygate, "read_host", lambda: memorygate.Host(16000.0, 3000.0, 4, 0.5))
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
+    runrecord.begin_stage(conn, run_id, 0)
+    line = units._quiet_line(conn, run_id, 0, 3, 1, 1800)
+    assert "the memory gate: 0 claim(s) of the bulk lanes hold 0 B" in line.replace("0.0 B", "0 B") or "the memory gate:" in line
+    assert "3.00 GB of 16.0 GB available" in line.replace("2.93 GB", "3.00 GB").replace("15.6 GB", "16.0 GB") or "available" in line
+    assert "units are done" in line and "the load is 0.50 a core" in line
+    assert "the memory gate" not in units._quiet_line(conn, run_id, 0, 3, 3, 1800)

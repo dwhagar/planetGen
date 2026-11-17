@@ -194,16 +194,16 @@ def _galaxy_run(mysql_config, monkeypatch, sectors=0):
 def test_a_second_identical_galaxy_run_plans_no_scatter_and_no_block_light_stage(mysql_config, monkeypatch):
     _stored(mysql_config, "mass", "luminosity", "phenomena", "nebula-field")
     keys, listed = _galaxy_run(mysql_config, monkeypatch)
-    assert keys == ["sectors", "link", "backfill", "population", "territories", "settle", "run-blocks"]
+    assert keys == ["sectors", "link", "backfill", "species", "civilizations", "technology", "population", "territories", "settle", "run-blocks"]
     assert [key for key, reason in listed.items() if reason] == ["mass-clear", "scatter-limits", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-special", "phenomena-index", "phenomena-record", "nebula-clear", "nebula-draw", "block-lights"]
-    assert list(listed) == ["sectors", "link", "mass-clear", "scatter-limits", "backfill", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-special", "phenomena-index", "phenomena-record", "nebula-clear", "nebula-draw", "population", "territories", "settle",
+    assert list(listed) == ["sectors", "link", "mass-clear", "scatter-limits", "backfill", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-special", "phenomena-index", "phenomena-record", "nebula-clear", "nebula-draw", "species", "civilizations", "technology", "population", "territories", "settle",
                             "run-blocks", "block-lights"], "the stage list keeps every stage, numbered"
 
 
 def test_a_galaxy_run_that_makes_a_sector_keeps_the_block_light_stage_and_a_run_with_a_scatter_missing_plans_it(mysql_config, monkeypatch):
     _stored(mysql_config, "mass", "luminosity", "phenomena", "nebula-field")
     keys, _listed = _galaxy_run(mysql_config, monkeypatch, sectors=2)
-    assert keys == ["sectors", "link", "backfill", "population", "territories", "settle", "run-blocks", "block-lights"]
+    assert keys == ["sectors", "link", "backfill", "species", "civilizations", "technology", "population", "territories", "settle", "run-blocks", "block-lights"]
     conn = store.get_connection(mysql_config)
     try:
         run_plan.store.clear_phenomenon_scatter(conn)
@@ -212,5 +212,5 @@ def test_a_galaxy_run_that_makes_a_sector_keeps_the_block_light_stage_and_a_run_
         conn.close()
     keys, listed = _galaxy_run(mysql_config, monkeypatch)
     # OPS.257: the phenomena were just cleared, so their clear is not planned; the nebula field is still stored, so its clear is
-    assert keys == ["sectors", "link", "backfill", "phenomena-unindex", "phenomena", "phenomena-special", "phenomena-index", "phenomena-record", "nebula-clear", "nebula-draw", "population", "territories", "settle", "run-blocks", "block-lights"]
+    assert keys == ["sectors", "link", "backfill", "phenomena-unindex", "phenomena", "phenomena-special", "phenomena-index", "phenomena-record", "nebula-clear", "nebula-draw", "species", "civilizations", "technology", "population", "territories", "settle", "run-blocks", "block-lights"]
     assert listed["mass"] and listed["luminosity"] and not listed["phenomena"] and not listed["block-lights"]

@@ -830,11 +830,23 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             on_step(None)
 
 
+def _gate_note(conn, seen, units):
+    """` ` and the gate's figures (`memorygate.gate_words`) when units are still to start, so a stage that runs fewer units than it has workers says what limits it (OPS.270); `""` when the gate cannot be read."""
+    if seen >= units:
+        return ""
+    from planetgen.queue import memorygate
+    try:
+        return f" ({memorygate.gate_words(conn)})"
+    except Exception as exc:  # noqa: BLE001 -- the note is an addition to a line that is said anyway
+        log.swallowed("queue/units", "_gate_note", exc)
+        return ""
+
+
 def _quiet_line(conn, run_id, stage, units, seen, quiet_for):
     """The line the log gets when a stage has finished no unit for `quiet_for` seconds (OPS.253): how long, how many units are done, and what the running ones are doing."""
     from planetgen.queue import runview, unitwatch, wrapper
     cause = runview.stall_cause(unitwatch.read(conn, run_id, stage))
-    return f"Stage '{wrapper.stage_name(conn, run_id, stage)}': no unit has finished for {format_duration_seconds(quiet_for)}; {seen} of {units} units are done" + (f", the others: {cause}." if cause else ".")
+    return f"Stage '{wrapper.stage_name(conn, run_id, stage)}': no unit has finished for {format_duration_seconds(quiet_for)}; {seen} of {units} units are done" + (f", the others: {cause}." if cause else ".") + _gate_note(conn, seen, units)
 
 
 def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, on_step=None):
