@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4471] - 2026-11-17
+
+**Headline:** A redraw of a system keeps the effect ledger of its new bodies.
+
+### Fixed
+- **A redraw lost the `effect_ledger` rows of the new bodies and kept those of the old (DB.135).** `replace_star_system_content` moved the body rows to the kept system and left the ledger rows under the stand-in system, which deleting it removed, the way `body_history` and `lost_moons` were lost before DB.75b. The ledger rows now move with the bodies (the same `_SYSTEM_HISTORY_TABLES` step), and the old bodies' rows are deleted.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4470] - 2026-11-17
 
 **Headline:** A body's public ID now follows the place it was born in, so a redraw that trims a planet or a moon leaves every body it keeps with its ID.
