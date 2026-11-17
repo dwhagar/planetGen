@@ -11755,11 +11755,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 04, with Lane 02 for air and life shifts. Prerequisites: GEN.1777 (the lever Boss picks). Related: GEN.1390, GEN.1777, GEN.1732.
   Filed by the TODO thread.
 
-- [ ] **DB.135 A redraw may lose a body's effect_ledger rows, the way it lost body_history rows before DB.75b**
-  Lane 15, 6:41 AM EST 2026-11-17 (DB.75b, PR 7055, fixed the body_history loss on a redraw; effect_ledger rows look to have the same loss, left unchanged). Do: confirm with a test that redraws a system with ledger rows; if lost, move the rows with the bodies the same way DB.75b moves body_history; reuse its code.
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 15, lock-free unless stored output moves. Prerequisites: DB.75b. Related: DB.75b, GEN.1465.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1786 A restored resonant body loses the floor under its eccentricity: since GEN.1651 the held eccentricity lives in build.resonance_e, but body_history still read the old _resonance_e, so held_eccentricity was never saved and a restored body settled without it (bug)**
   Lane 07, 7:15 AM EST 2026-11-17 (test_restored_resonance_and_star_birth red on main, found by Lane 15: its seed search used the old _orbit_birth name). Fix in PR 7057: body_history reads and writes build.resonance_e; the two tests read build.orbit_birth and build.resonance_e; assertions and seed range unchanged. Generation output unchanged; only the saved held_eccentricity column and a restored body settled again move.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 07, lock-free. Prerequisites: none. Related: GEN.1651, DB.75b.
