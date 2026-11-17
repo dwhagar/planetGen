@@ -135,5 +135,140 @@ def test_the_numbers_go_with_the_system_and_are_written_by_a_draw_not_a_first_sa
 
 def test_a_slot_is_written_as_the_path_of_its_host_chain():
     assert store._slot_key(("star", "primary", 0)) == "star:primary:0"
+    assert store._slot_key(("planet", "primary", "orbit:3")) == "planet:primary:orbit:3"
     assert store._slot_key(("planet", "primary", 3)) == "planet:primary:3"
-    assert store._slot_key(("moon", ("planet", "system", 1), 2)) == "moon:planet:system:1:2"
+    assert store._slot_key(("planet", "primary", "belt:1:7")) == "planet:primary:belt:1:7"
+    assert store._slot_key(("belt", "primary", "rank:0")) == "belt:primary:rank:0"
+    assert store._slot_key(("moon", ("planet", "system", "orbit:1"), "born:2")) == "moon:planet:system:orbit:1:born:2"
+
+
+SEARCH = range(1, 120)
+"""range: The seeds searched for a system with the bodies a test needs; a search that finds none fails with the count tried."""
+
+
+@functools.lru_cache(maxsize=None)
+def _seed_with_three_planned_planets():
+    for seed in SEARCH:
+        system, _config = _system(seed)
+        slots = sorted(planet.plan_slot for planet in system.planets if planet.body_type != "a" and planet.plan_slot is not None)
+        if len(slots) >= 3:
+            return seed
+    raise AssertionError(f"none of the {len(SEARCH)} systems tried held three planned planets")
+
+
+@functools.lru_cache(maxsize=None)
+def _seed_with_two_born_moons():
+    for seed in SEARCH:
+        system, _config = _system(seed)
+        for planet in system.planets:
+            born = planet.build.born_moons if planet.body_type != "a" else None
+            kept = [moon for moon in (born or ()) if any(moon is have for have in planet.moons)]
+            if planet.body_type != "a" and planet.plan_slot is not None and len(kept) >= 2:
+                return seed
+    raise AssertionError(f"none of the {len(SEARCH)} systems tried held a planet with two born moons")
+
+
+def test_a_draw_that_trims_a_planet_leaves_the_id_of_every_planet_it_keeps(mysql_config):
+    """DB.75b: the draw keeps one planet fewer, from the middle of the plan, and the planets after it keep their IDs (an index in the list would have moved them up one place)."""
+    seed = _seed_with_three_planned_planets()
+    system, config = _system(seed)
+    system_id = store.save_system(system, config, config=mysql_config)
+    again, _config = _system(seed)
+    planned = [planet for planet in again.planets if planet.body_type != "a" and planet.plan_slot is not None]
+    gone = planned[1]
+    again.planets.remove(gone)
+    conn = store.open_write(mysql_config)
+    try:
+        before = _numbers(conn, system_id)
+        with conn:
+            store.replace_star_system_content(conn, system_id, again, config)
+        after = _numbers(conn, system_id)
+        dropped = {slot for slot in before if slot[0] == "planet" and slot[2] == f"orbit:{gone.plan_slot}"}
+        assert len(dropped) == 1, "the trimmed planet was not found under its slot"
+        kept = {slot for slot in before if slot[0] in ("planet", "belt") and slot not in dropped}
+        assert kept, "no planet was left to keep"
+        for slot in kept:
+            assert after.get(slot) == before[slot], f"{slot} did not keep its ID when {gone.plan_slot} was trimmed"
+        assert not (dropped & set(after)), "the trimmed planet's slot is still held"
+    finally:
+        conn.close()
+
+
+def test_a_draw_that_trims_a_moon_leaves_the_id_of_every_moon_it_keeps(mysql_config):
+    """DB.75b: the draw keeps a planet's first moon out, and the planet's other moons keep their IDs (their place in the born list does not move, their index does)."""
+    seed = _seed_with_two_born_moons()
+    system, config = _system(seed)
+    system_id = store.save_system(system, config, config=mysql_config)
+    again, _config = _system(seed)
+    planet = next(p for p in again.planets if p.body_type != "a" and p.plan_slot is not None
+                  and len([m for m in (p.build.born_moons or ()) if any(m is have for have in p.moons)]) >= 2)
+    planet.moons.remove(planet.moons[0])
+    conn = store.open_write(mysql_config)
+    try:
+        before = _numbers(conn, system_id)
+        with conn:
+            store.replace_star_system_content(conn, system_id, again, config)
+        after = _numbers(conn, system_id)
+        hosts = {slot for slot in before if slot[0] == "planet" and slot[2] == f"orbit:{planet.plan_slot}"}
+        assert len(hosts) == 1, "the planet was not found under its slot"
+        host = hosts.pop()
+        moons = {slot for slot in before if slot[0] == "moon" and slot[1] == host}
+        assert len(moons) >= 2, f"the planet's moons are not stored under {host}"
+        survivors = {slot for slot in moons if slot in after}
+        assert survivors and len(survivors) == len(moons) - 1, "a draw with one moon fewer must keep all the others under their own slots"
+        for slot in survivors:
+            assert after[slot] == before[slot], f"{slot} did not keep its ID"
+    finally:
+        conn.close()
+
+
+def test_the_history_of_a_drawn_system_goes_with_its_bodies(mysql_config):
+    """DB.75b: a draw moves `body_history` and `lost_moons` to the kept system, so the slots a second draw reads are the first draw's."""
+    first = _system(3)
+    second = _system(4)
+    system_id = store.save_system(first[0], first[1], config=mysql_config)
+    conn = store.open_write(mysql_config)
+    try:
+        with conn:
+            store.replace_star_system_content(conn, system_id, second[0], second[1])
+        rows = conn.execute("SELECT body_type, body_id FROM body_history WHERE star_system_id = ?", (system_id,)).fetchall()
+        planets = {row["id"] for row in conn.execute("SELECT id FROM planets WHERE star_system_id = ?", (system_id,)).fetchall()}
+        assert rows, "the drawn system left no body_history"
+        assert {row["body_id"] for row in rows if row["body_type"] == store.effect_ledger.BODY_CODES["planets"]} <= planets
+        assert conn.execute("SELECT COUNT(*) AS n FROM body_history WHERE star_system_id NOT IN (SELECT id FROM star_systems)").fetchone()["n"] == 0
+    finally:
+        conn.close()
+
+
+def test_a_stored_planet_gets_its_slot_in_the_plan_back_so_an_edit_writes_it_again(mysql_config):
+    seed = _seed_with_three_planned_planets()
+    system, config = _system(seed)
+    system_id = store.save_system(system, config, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        loaded = store.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+    made = sorted(planet.plan_slot for planet in system.planets if planet.body_type != "a" and planet.plan_slot is not None)
+    got = sorted(planet.plan_slot for planet in loaded.planets if planet.body_type != "a" and planet.plan_slot is not None)
+    assert made and got == made
+
+
+def test_the_effect_ledger_of_a_drawn_system_goes_with_its_bodies(mysql_config):
+    """DB.135: a draw keeps the ledger rows of the new bodies, and none of the old bodies' (whose rows named bodies that are gone)."""
+    first = _system(3)
+    second = _system(4)
+    system_id = store.save_system(first[0], first[1], config=mysql_config)
+    conn = store.open_write(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM effect_ledger WHERE star_system_id = ?", (system_id,)).fetchone()["n"] > 0, "the first system wrote no ledger rows"
+        with conn:
+            store.replace_star_system_content(conn, system_id, second[0], second[1])
+        rows = conn.execute("SELECT DISTINCT body_type, body_id FROM effect_ledger WHERE star_system_id = ?", (system_id,)).fetchall()
+        assert rows, "the drawn system left no ledger rows"
+        tables = {code: table for table, code in store.effect_ledger.BODY_CODES.items()}
+        for row in rows:
+            held = conn.execute(f"SELECT 1 FROM {tables[row['body_type']]} WHERE id = ? AND star_system_id = ?", (row["body_id"], system_id)).fetchone()
+            assert held is not None, f"a ledger row names {tables[row['body_type']]} {row['body_id']}, which the system does not hold"
+    finally:
+        conn.close()

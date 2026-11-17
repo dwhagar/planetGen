@@ -22,7 +22,6 @@ from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
 OPEN_FUNCTION = "planetgen.queue.units.open_stage"
-EXECUTE_FUNCTION = "planetgen.queue.api_jobs.execute"
 
 UNIT_CPU = 1.0
 """float: The cores a unit keeps busy: a unit is one process computing."""
@@ -54,8 +53,8 @@ FUNCTION_CLAIMS = {
 }
 """dict: The functions a queue runs that need no more than a figure of their own: `{dotted name: (MB, cores)}`. Unmeasured."""
 
-SPECIAL_FUNCTIONS = frozenset({UNIT_FUNCTION, OPEN_FUNCTION, EXECUTE_FUNCTION})
-"""frozenset: The functions whose claim comes from their arguments: a unit's command, the command a cut opens, the API function `execute` calls."""
+SPECIAL_FUNCTIONS = frozenset({UNIT_FUNCTION, OPEN_FUNCTION})
+"""frozenset: The functions whose claim comes from their arguments: a unit's command and the command a cut opens."""
 
 CALLBACKS = frozenset({
     "planetgen.queue.units.unit_failed",
@@ -63,9 +62,10 @@ CALLBACKS = frozenset({
     "planetgen.queue.requires.job_failed",
     "planetgen.queue.requires.job_succeeded",
     "planetgen.queue.forkedjob.run",
+    "planetgen.queue.lightjobs.run",
     "planetgen.queue.units.warm_star_tables",
 })
-"""frozenset: The functions that run inside another claim: a job's callbacks, in the horse of the job they follow, and the runner of a unit forked from a template (OPS.226), which runs inside the unit's claim, and the warm set of a template, which is the template's own to hold and no job's; none takes a claim of its own."""
+"""frozenset: The functions that run inside another claim: a job's callbacks, in the horse of the job they follow, and the runners of a job forked from a template (OPS.226: a unit's, which runs inside the unit's claim; OPS.230: a light job's, inside the claim of the API function it calls, `API_CLAIMS`), and the warm set of a template, which is the template's own to hold and no job's; none takes a claim of its own."""
 
 API_CLAIMS = {
     "planetgen.api.edits:change_star_job": (workers.BULK_WORKER_MEMORY_MB, 1.0),
@@ -97,15 +97,11 @@ class NoClaim(LookupError):
 
 def lane_of(queue_name):
     """The lane of the queue `queue_name`: bulk (a generation run's units, and the first generation queue), maintenance (the three queues of the
-    maintenance lane), interactive, long, or other."""
+    maintenance lane), or other."""
     if queue_name in (redisqueue.BULK_QUEUE, redisqueue.GENERATION_QUEUE):
         return memorygate.LANE_BULK
     if queue_name in redisqueue.maintenance_lane():
         return memorygate.LANE_MAINTENANCE
-    if queue_name == redisqueue.INTERACTIVE_QUEUE:
-        return memorygate.LANE_INTERACTIVE
-    if queue_name == redisqueue.LONG_QUEUE:
-        return memorygate.LANE_LONG
     return memorygate.LANE_OTHER
 
 
@@ -213,10 +209,6 @@ def claim_for(job, conn):
         command = cut_command(conn, job.args[0], job.args[1])
         mb, cpu, exclusive = CUT_MB, 1.0, True
         kind = f"cut:{command or 'unknown'}"
-    elif function == EXECUTE_FUNCTION:
-        reference = job.args[0]
-        (mb, cpu), exclusive = api_table(reference), False
-        kind = f"api:{reference}"
     else:
         (mb, cpu), exclusive = function_table(function), False
         kind = f"fn:{function}"

@@ -4,11 +4,8 @@
 The workers of the shared queues (PERF.95, folding in PERF.40, PERF.78 and ADM.15): who starts them, how
 many there are, and how a running job is stopped. Section 5.4 of docs/design/operations/redis-and-the-work-queue.md.
 
-* Lanes (PERF.151): `redisqueue.BULK_QUEUE` (a run's units), `redisqueue.INTERACTIVE_QUEUE` (short API jobs) and
-  `redisqueue.LONG_QUEUE` (API jobs expected to run long); a worker serves one of them, so a long run never holds up
-  an admin's estimate and the interactive worker (PERF.40, PERF.78) is a separate, mostly idle, warm process, not
-  a priority order. Each lane has its own worker cap: `wanted` for bulk, `queue.interactive_workers` (outside
-  `wanted`, at `INTERACTIVE_NICENESS`) and `queue.long_workers` for the other two.
+* Lanes (PERF.151): `redisqueue.BULK_QUEUE` (a run's units) and the maintenance lane; a worker serves one of them. The site's short and long jobs are
+  light jobs the supervisor forks (`queue/lightjobs.py`, OPS.230), not RQ jobs; the places kept for them are `reserved_places`.
 * Workers are not burst workers: a run's queue is briefly empty at every stage barrier, so a worker waits for
   `IDLE_SECONDS` before it exits. Nothing runs when there is no work, and no service has to be installed.
 * `ensure_workers` starts workers up to `wanted` (the admin's count in `WANTED_KEY`, else `work.worker_count()`),
@@ -119,10 +116,6 @@ is not skipped for ever."""
 IDLE_SECONDS = 60
 """int: How long a worker waits for work before it exits (about 60 s covers every stage barrier)."""
 
-INTERACTIVE_NICENESS = 5
-"""int: How much `os.nice` lowers an interactive worker (the bulk and long workers use `work.WORKER_NICENESS`): the
-short jobs get the CPU before a generation run's units."""
-
 LUDICROUS_SHARE = 0.95
 """float: The share of the host's cores "Ludicrous Speed" aims at (ADM.15)."""
 
@@ -144,26 +137,6 @@ def wanted(connection, mysql_host=None):
         except ValueError:
             pass
     return work.worker_count(mysql_host=mysql_host)
-
-
-def lane_cap(queue_name):
-    """
-    The worker cap of a shared queue that has a lane of its own (PERF.151), from the settings: the interactive
-    queue's reserve and the long queue's; `None` for any other queue, whose cap is `wanted`.
-    """
-    from planetgen.util.settings import get_settings
-    section = get_settings().queue
-    if queue_name == redisqueue.INTERACTIVE_QUEUE:
-        return section.interactive_workers
-    if queue_name == redisqueue.LONG_QUEUE:
-        return section.long_workers
-    return None
-
-
-def niceness(queue_names):
-    """How much a worker for `queue_names` lowers its priority: `INTERACTIVE_NICENESS` for the interactive queue,
-    `work.WORKER_NICENESS` for every other."""
-    return INTERACTIVE_NICENESS if redisqueue.INTERACTIVE_QUEUE in queue_names else work.WORKER_NICENESS
 
 
 process_exists = process.pid_alive
@@ -241,7 +214,7 @@ def start_workers(queue_name, connection=None, url=None, mysql_host=None, count=
     Starts idle-timeout workers for the waiting jobs of the queue `queue_name`, never more than the queue's cap in
     all (those serving the queue and alive, and those started a moment ago and not registered yet). The cap is
     `count` when given (a run's own `--workers`, PERF.97, which leaves the admin's count alone), else the lane's
-    (`lane_cap`, `maintenance_cap`), else `wanted`; the bulk queue's is never more than `wanted` less the maintenance
+    (`maintenance_cap`), else `wanted`; the bulk queue's is never more than `wanted` less the maintenance
     lane's workers (`maintenance_share`), and an ask for the maintenance lane's workers sheds the bulk workers over
     that (`shed_bulk`). Called by the supervisor only (OPS.209), which acts on the nudges `ensure_workers` leaves: one process decides, so there is no lock between deciders.
 
@@ -288,7 +261,7 @@ def _start_missing(queue, names, connection, url, mysql_host, count, waiting):
         cap = count or maintenance_cap(connection, mysql_host)
     else:
         asked = wanted(connection, mysql_host)
-        cap = count or lane_cap(queue_name) or asked
+        cap = count or asked
         if queue_name == redisqueue.BULK_QUEUE:
             cap = min(cap, max(1, asked - maintenance_share(connection, mysql_host)))
             from planetgen.queue import adaptive

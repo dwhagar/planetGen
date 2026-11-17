@@ -67,9 +67,8 @@ def warm(queues=None):
 GATE_REPORT_SECONDS = 5.0
 """float: How long a unit's or an opening's wait at the memory gate must last for the run's log to say so."""
 
-APP_QUEUES = frozenset({*redisqueue.maintenance_lane(), redisqueue.INTERACTIVE_QUEUE, redisqueue.LONG_QUEUE})
-"""frozenset: The queues whose jobs build the site's app (`web/warmup.build_app`): a warm-up unit, a node prefetch, a slow page's answer
-(`queue/pagejobs.build_answer`). Their workers build it once before they fork a horse for a job (PERF.245); building it opens no
+APP_QUEUES = frozenset(redisqueue.maintenance_lane())
+"""frozenset: The queues whose jobs build the site's app (`web/warmup.build_app`): a warm-up unit, a node prefetch. Their workers build it once before they fork a horse for a job (PERF.245); building it opens no
 connection or thread, so the horses share it safely. On a 4-core test box it cost a horse 6.8 s a job and costs a worker 75 MB."""
 
 
@@ -257,8 +256,8 @@ def worker_class(round_robin=False):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="planetgen.cli.worker", description=__doc__.strip().splitlines()[0])
-    parser.add_argument("queues", nargs="*", default=[redisqueue.INTERACTIVE_QUEUE],
-                        help="the queues to serve, first one first (default: the interactive queue; a worker "
+    parser.add_argument("queues", nargs="*", default=[redisqueue.BULK_QUEUE],
+                        help="the queues to serve, first one first (default: the bulk queue; a worker "
                              "serves one kind)")
     parser.add_argument("--burst", action="store_true", help="exit once the queues are empty")
     parser.add_argument("--idle-seconds", type=int, default=workers.IDLE_SECONDS,
@@ -279,7 +278,7 @@ def main(argv=None):
         return updateguard.EX_TEMPFAIL
     log.debug("The worker starts on queues %s (%s) with release %s.", args.queues, "burst" if args.burst else
               f"idle exit after {format_duration_seconds(args.idle_seconds)}", _version.__version__, area="queue")
-    work.lower_priority(workers.niceness(args.queues))
+    work.lower_priority(work.WORKER_NICENESS)
     warm(args.queues)
     connection = redisqueue.connect(args.url, blocking=True)   # RQ blocks on the server; keepalive finds it gone
     queues = [redisqueue.queue(name, connection) for name in args.queues]

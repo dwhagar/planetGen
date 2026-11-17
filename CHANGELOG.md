@@ -2,6 +2,92 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4477] - 2026-11-17
+
+**Headline:** The site's own jobs (a slow page's answer, an API edit, a regeneration, an estimate) are now handed out by the supervisor as processes forked from a warm template, and a page job nobody is waiting for any more is dropped.
+
+### Changed
+- **The interactive and long RQ queues are gone (OPS.230, D5 of the job engine).** `api_jobs.submit` records the job in Redis (`queue/lightjobs.py`: what to call, its arguments, its lane, when it was queued and started, and at the end its result or error) and asks for the supervisor; the supervisor's new duty `LightJobs` takes the pending jobs oldest first, asks the same dispatch rule the bulk lane uses (the site's lanes first, against the places kept for them) which go now, and forks each from the `plain` template. The job's own process writes its result or its failure before it exits, so a supervisor that ends meanwhile loses nothing; a job whose process died without saying how is failed naming the signal, and one that ran past ten times what it was expected to take (the limit RQ's `job_timeout` was) is ended. Status, wait, cancel and the shape of `GET /api/jobs/<id>` are as they were, including the wait for the machine a regeneration reports.
+- **A job nobody is waiting for is dropped, not run (W12 of the audit).** A slow page's answer says it stays wanted for `tuning.SLOW_PAGE_WANTED_SECONDS` (2m) after the last visitor asked after it (the page's poll is the ask); a job that has not started by then fails with a message that says so, and its claim on the request is released so the next visitor starts a new one. A job that began is never dropped, and an edit or a regeneration (no deadline) never is.
+- **One set of templates serves both hand-outs.** `jobhost.TemplateSet.fork` and `poll` take an owner, so the launcher and the light jobs share the supervisor's warm templates and each is told only of the ends of its own jobs; each hand-out is judged against the claims the other holds (`Launcher(also_held=)`). Stop All, the update guard and the supervisor's idle exit see the light jobs.
+- Deleted: `INTERACTIVE_QUEUE`, `LONG_QUEUE`, `api_jobs.lane`, `time_limit` and the RQ calls of `submit`, `status` and `cancel`, `workers.lane_cap`, `niceness` and `INTERACTIVE_NICENESS`, the `execute` entry of the worker allow-list, the API branch of `claims.claim_for`, and the interactive and long queue names in `pause`, `stopall`, `cli/worker.py` and `claims.lane_of`.
+
+generation-affects: none
+
+generation-output: unchanged
+
+## [8.0.4476] - 2026-11-17
+
+**Headline:** The redraw-rate test's ceilings for the moons, planets and belts of systems with 3 to 6 stars are renewed after planets came to every close pair node.
+
+### Fixed
+- `test_no_redraw_rate_is_above_its_registered_ceiling` was red on main for stars-5 `moon.disk_full` (2.5 per system against a ceiling of 0.34). Found by bisecting stars-5 on 40 systems: 0 events at the base of Train 27 and at main before it, 16 at the tip of GEN.332 slice A (circumbinary planets at every close pair node of a tree), 23 at the Train 27 merge. Nothing in moon generation changed: a giant over 5 Earth masses nearly always ends with a full moon disk (8 of 9 calls of `generate_moons` on a giant in 60 single-star systems, 10 of 11 in 60 five-star systems), so the rate follows how many giants are built, and a 5-star system now has 0.18 of them against 0.04 (a single star 0.15). The `moon.too_large`, `planet.hill_spacing_push`, `planet.orbit_ceiling_trim` and belt-spacing kinds rose for the same reason. Train 27 did not re-measure the baseline as the test says a change that moves a rate on purpose must.
+- Re-measured on 150 systems per group (stars-3 to stars-6, seeds `redraw:<group>:0` to `149`): each `moon.*`, `planet.*` and `belt.spacing_push` entry whose measured rate was above its old ceiling now has the measured rate as its baseline, twice it plus one event as its ceiling, and its own `n_ref`; an entry the measurement did not put above its ceiling is as it was. `snow_line.scatter` (GEN.1611) was renewed by its own change. The test, its assertions and the generator are untouched; generated output does not move.
+
+generation-affects: none
+
+generation-output: unchanged
+
+## [8.0.4475] - 2026-11-17
+
+**Headline:** The redraw-rate test now expects the snow line's scatter to redraw at the rate its 2-sigma cut gives, not the 3-sigma rate of before.
+
+### Fixed
+- **`snow_line.scatter` was held to a ceiling measured at the 3-sigma cut (GEN.1611).** GEN.1611 cut the snow line's scatter at 2 sigma, so a draw is thrown away 4.55 percent of the time instead of 0.27, 17.6 times as often per star; `test_no_redraw_rate_is_above_its_registered_ceiling` read the old ceilings and failed (0.4167 redraws per system in `stars-5` against 0.025). The cause is the cut and not a fault: 150 default systems threw away 13 of 210 snow-line draws (0.062 per accepted draw; 0.048 expected from the cut). The nine groups' baselines for the kind are the old ones times 17.6 and the ceilings twice them (`tests/data/redraw_rate_expectations.json`). Test data only.
+
+generation-affects: none
+
+generation-output: unchanged
+
+## [8.0.4474] - 2026-11-17
+
+**Headline:** `test_the_rings_under_one_solar_mass_are_the_near_masses_and_reach_less_far` judges the rings on the sample the sky really draws, not on 40 stars.
+
+### Changed
+- The test took the 40-star sample of `few_samples`. A ring's reach is where 0.5 percent of its stars still show, which is a fifth of a star in 40, so the reach was the brightest star the stream happened to draw and the heavier ring did not always reach farther (38.1 pc for the 0.3 ring against 36.9 for the 0.7 one, since the star table read the birth [Fe/H], GEN.1623). It now builds the rings with the production `RING_SAMPLES` (400 per population): 11, 21, 42, 49 and 68 pc, all assertions unchanged, no bound widened.
+
+generation-output: unchanged
+
+## [8.0.4473] - 2026-11-17
+
+**Headline:** The Queue page says why each job has not started, by class, with how long the oldest has waited.
+
+### Added
+- **A "Why jobs wait" panel on the admin Queue page, and `GET /api/admin/work/waiting` (OPS.233).** For each job class it shows the jobs waiting on another job and the jobs ready that the gate has not let start, the age of the oldest of each, the next retry, the reasons the gate wrote for the ready ones (`engine_jobs.waited`) with how many jobs gave each, how long the jobs that started in the last hour waited from their making to their start, and the memory gate's figures in words (`memorygate.gate_words`). One read of the control database in the new `queue/waiting.py`; it writes nothing. What the controller last did stays in the supervisor panel's list of acts (OPS.214), which the memory controller of OPS.231 will fill. Times show as hours, minutes and seconds. The route is new and nothing is removed, so `API_VERSION` stays; the route snapshot gained the line.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4472] - 2026-11-17
+
+**Headline:** The test suite now runs a generation run's units and openings through the launcher, the way the product does by default.
+
+### Changed
+- Tests set `queue.forked_jobs` on by default (`PLANETGEN_FORKED_JOBS=1` in `tests/conftest.py`); the inline test queue hands a ledger run's ready rows to the launcher with an inline forker whenever the follower asks for workers, and leaves a test's own time limit running for the command, not the unit (OPS.228 slice D2b-2b). Tests that cover the RQ path set it off for themselves.
+
+## [8.0.4471] - 2026-11-17
+
+**Headline:** A redraw of a system keeps the effect ledger of its new bodies.
+
+### Fixed
+- **A redraw lost the `effect_ledger` rows of the new bodies and kept those of the old (DB.135).** `replace_star_system_content` moved the body rows to the kept system and left the ledger rows under the stand-in system, which deleting it removed, the way `body_history` and `lost_moons` were lost before DB.75b. The ledger rows now move with the bodies (the same `_SYSTEM_HISTORY_TABLES` step), and the old bodies' rows are deleted.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4470] - 2026-11-17
+
+**Headline:** A body's public ID now follows the place it was born in, so a redraw that trims a planet or a moon leaves every body it keeps with its ID.
+
+### Changed
+- **A planet's slot is its place in the star's plan, a belt's its rank, a moon's its place among the planet's born moons (DB.75b).** The slot an ID follows (`store._body_slots`, `body_numbers`) was the body's index in the list of its star's orbits or its planet's moons, so a draw that kept one planet fewer from the middle of the plan moved every planet after it up one place and each took the ID of the one before. A planet now carries `plan_slot` (the slot of `planet_architecture.Plan.seed` it was made in, which no trim moves), kept as its `body_history.born_index` (the column already held a moon's place in its born moons, so there is no migration) and given back when the system is loaded; the slot is `planet:<star>:orbit:N`. A planet promoted from a belt is `planet:<star>:belt:O:R` (the belt's number and the member's rank, `planets.belt_order` and `belt_rank`), a belt is `belt:<star>:rank:N` (its rank among the star's belts), a moon is `moon:<planet slot>:born:N` (`body_history.born_index`). A body stored with no such number (a galaxy made before it, a planet a pulsar has) is placed by its index as before. A fresh system numbers its bodies in the order it always did, so no ID changes in a galaxy made by this version. The key stays the star's role, not a seed: the slot-path form of GEN.556 will read the host chain.
+
+### Fixed
+- **A redraw dropped the `body_history` and `lost_moons` rows of the new bodies.** `replace_star_system_content` moved the body rows to the kept system and left the history rows under the stand-in system, which deleting it removed, so a system redrawn once had no birth numbers for its next draw or edit. They now move with the bodies, and the old bodies' rows are deleted.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4469] - 2026-11-17
 
 **Headline:** `test_describe` makes the systems it reads once per process (and the compact-remnant sweeps in parallel) instead of generating the same systems again in each test; every test checks the same systems and keeps its assertions.

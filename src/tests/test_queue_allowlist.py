@@ -101,14 +101,13 @@ def test_the_names_the_program_gives_its_jobs_are_on_the_list():
         assert name in allowlist.FUNCTIONS
     from planetgen.web.lib import tileprefetch
     assert tileprefetch.JOB in allowlist.FUNCTIONS
-    assert f"{api_jobs.execute.__module__}.{api_jobs.execute.__name__}" in allowlist.FUNCTIONS
+    assert "planetgen.queue.lightjobs.run" in allowlist.FUNCTIONS        # the process a light job runs in; the API function it calls is checked by `api_jobs.execute`
 
 
 def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
     """`queue.enqueue(X, ...)`, `enqueue_many([prepare_data(X, ...)])` and `requires.enqueue(queue, X, ...)`: X is a constant
-    on the list, a module constant that is, `api_jobs.execute`, or a helper's own parameter."""
-    known = {"UNIT_FUNCTION": units.UNIT_FUNCTION, "OPEN_FUNCTION": units.OPEN_FUNCTION, "JOB": "planetgen.web.lib.tileprefetch.build_nodes",
-             "execute": "planetgen.queue.api_jobs.execute"}
+    on the list, a module constant that is, or a helper's own parameter."""
+    known = {"UNIT_FUNCTION": units.UNIT_FUNCTION, "OPEN_FUNCTION": units.OPEN_FUNCTION, "JOB": "planetgen.web.lib.tileprefetch.build_nodes"}
     checked = 0
     for module, path, tree in _trees():
         if module == "planetgen.queue.redisqueue":
@@ -128,7 +127,7 @@ def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
             value = argument.value if isinstance(argument, ast.Constant) else known.get(getattr(argument, "id", None))
             assert value in allowlist.FUNCTIONS, f"{path}:{node.lineno} queues {ast.unparse(argument)}"
             checked += 1
-    assert checked >= 4         # the Generate page's job, a node prefetch, a run's units and the API's `execute`
+    assert checked >= 3         # the Generate page's job, a node prefetch and a run's units
 
 
 def test_nothing_calls_requires_enqueue_with_a_function_that_is_not_on_the_list():

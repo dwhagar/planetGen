@@ -751,19 +751,15 @@ def report_wait_for(conn, holder, position):
 def report_wait(holder, position):
     """
     `runline.start_when_free`'s `on_wait`: shows that this run waits, where its bar is read (the Generate page's
-    progress file) and where its job is (the API job's `meta`, which `api_jobs.status` reports as `waiting`), and
+    progress file) and where its job is (the light job's record, which `api_jobs.status` reports as `waiting`), and
     says so in the log. `holder` `None` clears it.
     """
     if holder is not None:
         log.normal(waiting_text(holder, position))
         progress_file.report(0, None, description=waiting_text(holder, position), force=True)
     try:
-        import rq
-        job = rq.get_current_job()
-        if job is not None:
-            job.meta["waiting"] = None if holder is None else {"run": holder, "position": position,
-                                                               "text": waiting_text(holder, position)}
-            job.save_meta()
+        from planetgen.queue import lightjobs
+        lightjobs.report_waiting(None if holder is None else {"run": holder, "position": position, "text": waiting_text(holder, position)})
     except Exception as exc:  # noqa: BLE001 -- showing the wait is a nicety, never a reason to fail the run
         log.swallowed("queue/wrapper", "report_wait", exc)
 

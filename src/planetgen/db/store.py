@@ -4849,6 +4849,8 @@ def insert_body_history(conn, star_system_id, star_system, saved):
     born = {}
     for planet in planets:
         born.update(body_history.born_places(planet))
+        if getattr(planet, "plan_slot", None) is not None:
+            born[id(planet)] = planet.plan_slot      # DB.75b: the slot of the plan the planet was made in, which its ID follows
     rows = body_history.rows(star_system_id, bodies, saved, born)
     lost = []
     for planet in planets:
@@ -8764,6 +8766,9 @@ placement), which `replace_star_system_content` swaps."""
 _SYSTEM_CONTENT_TABLES = kind_tables.tables("body")
 """tuple: The tables holding a system's bodies, keyed by `star_system_id`."""
 
+_SYSTEM_HISTORY_TABLES = ("body_history", "lost_moons", "effect_ledger")
+"""tuple: The tables holding what a system's bodies were made with or by (`physics/body_history.py`, the effect ledger of GEN.1465), keyed by `star_system_id` and body row id; they go with the bodies."""
+
 _SYSTEM_TREE_TABLES = ("orbit_nodes", "dark_members")
 """tuple: The tables holding a system's orbit tree, keyed by `star_system_id`; they go with the stars, not with the system's row."""
 
@@ -8785,36 +8790,43 @@ def system_content_blockers(conn, star_system_id):
 
 def _body_slots(conn, system_id):
     """
-    `{(table, row id): slot}` for the bodies of a system: where each one sits in the system, which is what its ID
-    follows when the system's content is drawn again (DB.75).
+    `{(table, row id): slot}` for the bodies of a system: where each one sits in the system, which is what its ID follows when the system's content is drawn again (DB.75).
 
-    A slot is `(kind, host, index)`: a star's is its role (`primary`, `secondary`, `single`, or `member` with its place
-    among the members); a planet's or a belt's
-    is the role of the star it orbits (`system` for a circumbinary one) and its place in that star's list of orbits; a
-    moon's is its planet's slot and its place among the planet's moons; a comet's is the star it belongs to and its
-    rank among the system's comets.
+    A slot is `(kind, host, place)`: a star's is its role (`primary`, `secondary`, `single`, or `member` with its place among the members); a planet's is the role of the star it orbits (`system` for a
+    circumbinary one) and its place in that star's plan, `orbit:N`, the slot of `Planet.plan_slot` that no trim of the planets moves, so a draw that keeps fewer planets leaves the ones it keeps
+    where they were (DB.75b); a planet promoted from a belt is `belt:O:R`, the belt's number among its star's belts and the member's rank in it (`planets.belt_order`, `belt_rank`); a planet stored with no
+    such number is placed by its index in the star's orbits, `N`. A belt's is its star and its rank among that star's belts, `rank:N`. A moon's is
+    its planet's slot and its place in the planet's born moons, `born:N` (`body_history.born_index`), or the index among the planet's moons, `N`, when it has none; a comet's is the star it belongs to and its rank
+    among the system's comets.
     """
     roles = {row["id"]: row["role"] for row in conn.execute(
         "SELECT id, role FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()}
+    born = {(row["body_type"], row["body_id"]): row["born_index"] for row in conn.execute(
+        "SELECT body_type, body_id, born_index FROM body_history WHERE star_system_id = ? AND born_index IS NOT NULL", (system_id,)).fetchall()}
     seen = collections.Counter()
     slots = {}
     for star_id, role in roles.items():    # ordered by id: a role held by more than one star (`member`) numbers them
         slots[("stars", star_id)] = ("star", role, seen[role])
         seen[role] += 1
     planet_slots = {}
-    for table, kind in (("planets", "planet"), ("asteroid_belts", "belt")):
-        for row in conn.execute(f"SELECT id, star_id, orbital_index FROM {table} WHERE star_system_id = ?",
-                                (system_id,)).fetchall():
-            slot = (kind, roles.get(row["star_id"], "system"), row["orbital_index"])
-            slots[table, row["id"]] = slot
-            if table == "planets":
-                planet_slots[row["id"]] = slot
-    for row in conn.execute("SELECT id, planet_id, orbital_index FROM moons WHERE star_system_id = ?",
-                            (system_id,)).fetchall():
-        slots["moons", row["id"]] = ("moon", planet_slots[row["planet_id"]], row["orbital_index"])
+    for row in conn.execute("SELECT id, star_id, orbital_index, belt_order, belt_rank FROM planets WHERE star_system_id = ?", (system_id,)).fetchall():
+        place = born.get((effect_ledger.BODY_CODES["planets"], row["id"]))
+        if row["belt_rank"] is not None:        # a planet promoted from a belt (GEN.1510) is the belt's member of that rank, whatever the planets round it
+            place = f"belt:{row['belt_order']}:{row['belt_rank']}"
+        else:
+            place = row["orbital_index"] if place is None else f"orbit:{place}"
+        slot = ("planet", roles.get(row["star_id"], "system"), place)
+        slots["planets", row["id"]] = planet_slots[row["id"]] = slot
+    belt_rank = collections.Counter()
+    for row in conn.execute("SELECT id, star_id FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index, id", (system_id,)).fetchall():
+        host = roles.get(row["star_id"], "system")
+        slots["asteroid_belts", row["id"]] = ("belt", host, f"rank:{belt_rank[host]}")
+        belt_rank[host] += 1
+    for row in conn.execute("SELECT id, planet_id, orbital_index FROM moons WHERE star_system_id = ?", (system_id,)).fetchall():
+        place = born.get((effect_ledger.BODY_CODES["moons"], row["id"]))
+        slots["moons", row["id"]] = ("moon", planet_slots[row["planet_id"]], row["orbital_index"] if place is None else f"born:{place}")
     comet_rank = {}
-    for row in conn.execute("SELECT id, star_id FROM comets WHERE star_system_id = ? ORDER BY id",
-                            (system_id,)).fetchall():
+    for row in conn.execute("SELECT id, star_id FROM comets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall():
         host = roles.get(row["star_id"], "system")
         slots["comets", row["id"]] = ("comet", host, comet_rank.get(host, 0))
         comet_rank[host] = comet_rank.get(host, 0) + 1
@@ -8832,9 +8844,8 @@ def _slot_uids(conn, system_id):
 
 
 def _slot_key(slot):
-    """The text of a slot, the path `body_numbers` keeps it under (DB.75): `star:primary:0`, `planet:primary:3`, `moon:planet:primary:3:1`.
-    A planet's or belt's place is the index in its star's orbits (today `orbital_index`); GEN.1548 gives it the trim-stable index of the
-    spacing sequence and the string becomes Lane 05's `{kind}:{host_seed}:orbit:{slot}` in the same change."""
+    """The text of a slot, the path `body_numbers` keeps it under (DB.75): `star:primary:0`, `planet:primary:orbit:3`, `belt:primary:rank:0`, `moon:planet:primary:orbit:3:born:1`. The host is
+    the role of the star the body orbits, the path of the host chain the slot-path form of GEN.556 will read as `{host_seed}:orbit:{slot}`."""
     kind, host, index = slot
     parts = [kind, *(_slot_key(host).split(":") if isinstance(host, tuple) else [str(host)]), str(index)]
     return ":".join(parts)
@@ -8902,6 +8913,9 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     for table in ("moons", "planets", "asteroid_belts", "comets", "stars"):
         conn.execute(f"DELETE FROM {table} WHERE star_system_id = ?", (star_system_id,))
     for table in _SYSTEM_CONTENT_TABLES:
+        conn.execute(f"UPDATE {table} SET star_system_id = ? WHERE star_system_id = ?", (star_system_id, temp_id))
+    for table in _SYSTEM_HISTORY_TABLES:     # what the new bodies' history left goes with them (DB.75b: their slots are read from it); the old bodies' rows are for bodies that are gone
+        conn.execute(f"DELETE FROM {table} WHERE star_system_id = ?", (star_system_id,))
         conn.execute(f"UPDATE {table} SET star_system_id = ? WHERE star_system_id = ?", (star_system_id, temp_id))
     for table in _SYSTEM_TREE_TABLES:      # the orbit tree and its dark members are the new system's too (GEN.229: the old tree kept in place gave the new stars the old stability limits)
         conn.execute(f"DELETE FROM {table} WHERE star_system_id = ?", (star_system_id,))
@@ -10497,6 +10511,8 @@ def attach_body_history(conn, system, star_system_id):
         if getattr(planet, "db_id", None) is not None and getattr(planet, "body_type", None) != "a":
             row = stored.get((effect_ledger.BODY_CODES["planets"], planet.db_id))
             attached += bool(row and body_history.attach(planet, row))
+            if row and row["born_index"] is not None and row["formula_version"] == body_history.FORMULA_VERSION:
+                planet.plan_slot = row["born_index"]      # DB.75b: kept, so an edit that saves the system again writes it again
         placed = []
         for moon in getattr(planet, "moons", ()):
             row = stored.get((effect_ledger.BODY_CODES["moons"], getattr(moon, "db_id", None)))

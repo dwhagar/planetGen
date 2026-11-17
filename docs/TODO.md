@@ -8758,50 +8758,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
   Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
-- [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
-  Part of the unified orbited-body chain (GEN.550; design note
-  docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
-  coordinator relayed with the wake times converted: E2 tapped
-  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
-  the hybrid approach you outlined, let it to TODO and ship to into the
-  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
-  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
-  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
-  (2026-10-17)). Owners follow Boss's card D7 (Lane 14 chain and classes,
-  Lane 11 storage). Boss tapped 'IDs stay stable' on the object-ID card
-  at 11:49 PM EDT (2026-10-17, as the coordinator relayed with the wake
-  time converted): object IDs (public in URLs) survive a refill that
-  changes how many planets or moons a system gets, and a body that
-  changes parent (a planet that leaves its star) keeps its ID; IDs
-  cannot follow insertion order. Why: Lane 11's audit of main at 5c49fc42
-  (11:50 PM EDT as the lane reported) found object UIDs issued in
-  insertion order (`store.py` 7737 and after), so any 8.4 change to a
-  system's body counts, or a refill that draws a different number,
-  renumbers the bodies after it. No existing item covers this (GEN.401
-  and the identity chain are about the galaxy's identity, not body
-  numbers). Do: a body's number comes from its place in the host chain
-  (the host's seed and the orbit slot of GEN.556) instead of an
-  insertion counter, so a body keeps its number when its siblings
-  change; a body that moves parent keeps its ID and its number; the
-  96-bit scheme (body number 0 for the head of a system or a wanderer, 1
-  and up for the rest) is kept or the number space widened if the slot
-  path needs it; Lane 11 designs and confirms (this slot-path route is
-  the TODO thread's suggestion, inferred, not decided). Done: a test
-  refills a system whose planet count changes and every surviving body
-  keeps its ID, and a planet that leaves its star keeps its ID. Owner:
-  Lane 11 (proposed: the identity chain), 8.4 phase 1.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Lane 11
-  held it before; this replaces any earlier owner line).
-  First part merged as #2568 (Lane 11, 9:50 PM EDT 2026-10-22 as the lane
-  reported; regenerate now keeps the slot's ID). The item stays open for
-  a body that changes parent, which waits on the shared parent link of
-  the 8.4 revision. GEN.564 is an 8.4 item: it stays in the pool, paused
-  until 8.1 is complete (the coordinator, 9:46 PM EDT 2026-10-22).
-  Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
-  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): stays in 8.1 and is designed with GEN.1547: both key a body's draws and number by host seed and orbit slot ({host_seed}:orbit:{slot}), so the later recursion (GEN.556, 8.2) reuses the keys. Owner: Lane 12, keys agreed with Lane 05.
-  Audit (Lane 15, 4:29 AM EST 2026-11-17): partly built (regenerate keeps a slot's ID, PR 2568, body_numbers). Left: DB.75b, key the slot by the host-seed orbit slot (GEN.1547 keys) plus a changed-planet-count test, owner Lane 15; a body that changes parent waits on the 8.4 parent link.
-
 - [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/architecture/unified-system-barycentre.md, decided: Boss's nine cards
@@ -11611,12 +11567,8 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 06 (stage 4 chain). Prerequisites: stage 3 (OPS.215-225). Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
-- [ ] **OPS.228 Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane)**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D3 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 13 (moved from Lane 06 at 4:50 AM EST, not started there; queue rework first). In progress: slice A merged, PR #6654 (7:05 AM EST 11-15); OPS.227 done (#6652). Prerequisites: OPS.226, OPS.227. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.229 Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189**
+  TODO, 2026-11-17: also deletes WarmWorker's unit prep, claim expiry and heartbeat, and the gate wait (moved here from OPS.228); after OPS.271.
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D4 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 13 (moved from Lane 06 at 4:50 AM EST, not started there; queue rework first). Prerequisites: OPS.228. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
@@ -11629,11 +11581,6 @@ clears each one.
 - [ ] **OPS.231 Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D6 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.228, OPS.229, OPS.230. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
-- [ ] **OPS.233 Job engine stage 4: Queue page for the new engine (why each job waits, oldest job age per class, ready-to-start time, last controller action); replaces OPS.150**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D8 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: OPS.227, OPS.231. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.234 Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor**
@@ -11799,9 +11746,24 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 04, with Lane 02 for air and life shifts. Prerequisites: GEN.1777 (the lever Boss picks). Related: GEN.1390, GEN.1777, GEN.1732.
   Filed by the TODO thread.
 
-- [ ] **DB.135 A redraw may lose a body's effect_ledger rows, the way it lost body_history rows before DB.75b**
-  Lane 15, 6:41 AM EST 2026-11-17 (DB.75b, PR 7055, fixed the body_history loss on a redraw; effect_ledger rows look to have the same loss, left unchanged). Do: confirm with a test that redraws a system with ledger rows; if lost, move the rows with the bodies the same way DB.75b moves body_history; reuse its code.
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 15, lock-free unless stored output moves. Prerequisites: DB.75b. Related: DB.75b, GEN.1465.
+- [ ] **GEN.1786 A restored resonant body loses the floor under its eccentricity: since GEN.1651 the held eccentricity lives in build.resonance_e, but body_history still read the old _resonance_e, so held_eccentricity was never saved and a restored body settled without it (bug)**
+  Lane 07, 7:15 AM EST 2026-11-17 (test_restored_resonance_and_star_birth red on main, found by Lane 15: its seed search used the old _orbit_birth name). Fix in PR 7057: body_history reads and writes build.resonance_e; the two tests read build.orbit_birth and build.resonance_e; assertions and seed range unchanged. Generation output unchanged; only the saved held_eccentricity column and a restored body settled again move.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 07, lock-free. Prerequisites: none. Related: GEN.1651, DB.75b.
+  Filed by the TODO thread.
+
+- [ ] **OPS.271 Ledgerless runs (`generate system --output` with no database, the update's math check before the migration step) run their units in the CLI process or a forked job without a ledger, so the bulk RQ unit path can be deleted**
+  Lane 13, 7:57 AM EST 2026-11-17 (OPS.228 closed: every run with a ledger runs its bulk lane as forked jobs, PRs 6995, 7011, 7027, 7040, 7062; runs where planrows.ledgered is false still use enqueue_units, run_unit and open_stage). Do: run those units in the CLI process or a forked job with no ledger, reusing the launcher; then delete enqueue_units, run_unit and open_stage. WarmWorker's unit prep, claim expiry and heartbeat, and the gate wait are deleted with OPS.229 once the maintenance and check lanes move.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 13, lock-free. Prerequisites: OPS.228 (done). Related: OPS.229, OPS.228.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1787 Nine version- or library-dependent maths uses in the package (math.dist, math.hypot, the @ operator) fail the GEN.135 reproducible-draws scan; switch them to detmath (bug)**
+  Lane 16, 9:28 AM EST 2026-11-17 (tests/test_reproducible_draws.py::test_no_version_or_library_dependent_maths_in_the_package red on main 28a818f672 and the Train 43 base). Uses: generation/system.py:819 (math.dist), physics/eclipses.py:77, influx.py:123 and kozai_planets.py:146 (math.hypot), obliquity_variation.py:156 and secular_chain.py:213 and 227 (@, BLAS). Do: switch each to detmath.hypot, detmath.dist and detmath.matmul in one PR; measure how far the outputs move (expect the last bit at most) and say so; tell Lane 06 (influx) and Lane 07 (secular chain, kozai, obliquity) what changed in their files. Lock item if any stored value moves.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 16, lock item. Prerequisites: none. Related: GEN.135, PERF.279.
+  Filed by the TODO thread.
+
+- [ ] **UX.320 The Queue page lists waiting light jobs (API jobs and slow-page answers, run as light jobs since OPS.230 slice A) with their reason and age, beside the "Why jobs wait" panel**
+  Lane 06, 10:03 AM EST 2026-11-17 (OPS.230 slice A, PR 7073, moved API jobs and slow-page answers to light jobs with a Redis record; the Queue page and OPS.233's panel read only engine_jobs). Do: add the waiting light jobs to the panel's read (queue/waiting.py) and the page, by class, with reason, age and deadline; reuse OPS.233's code.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 15, lock-free. Prerequisites: OPS.230 slice A (merged). Related: OPS.233, OPS.230.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**

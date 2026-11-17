@@ -7,7 +7,6 @@ import socket
 import time
 from dataclasses import asdict
 
-import rq
 import pytest
 
 from planetgen.queue import api_jobs, commands, redisqueue, runline, runrecord, supervisor, wrapper
@@ -107,36 +106,25 @@ def test_a_waiter_that_was_killed_drops_out_of_the_line(conn):
     assert runrecord.active_run(conn) == run_id
 
 
-def test_a_waiting_api_job_reports_where_it_waits(conn, monkeypatch):
-    class Job:
-        meta = {}
-        saved = 0
-
-        def save_meta(self):
-            Job.saved += 1
-
-    monkeypatch.setattr(rq, "get_current_job", lambda: Job())
-    monkeypatch.setattr(wrapper.progress_file, "report", lambda *a, **k: None)
-    wrapper.report_wait("20260101-000000-abcd", 2)
-    assert Job.meta["waiting"] == {"run": "20260101-000000-abcd", "position": 2,
-                                   "text": "Waiting at position 2 for run 20260101-000000-abcd"}
-    wrapper.report_wait(None, None)
-    assert Job.meta["waiting"] is None and Job.saved == 2
-
-
-def test_the_api_status_of_a_running_job_carries_its_wait(redis_server, monkeypatch):
+def test_a_waiting_api_job_reports_where_it_waits(redis_server, monkeypatch):
+    """The light job's record (`lightjobs.report_waiting`) carries the wait, which `api_jobs.status` reports."""
     import math
+    from planetgen.queue import lightjobs
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)
+    job_id = api_jobs.submit(math.pow, 2, 3)
     connection = redisqueue.connect()
-    queue = redisqueue.queue(api_jobs.QUEUE_NAME, connection)
-    job_id = api_jobs.new_job_id()
-    job = queue.enqueue(math.pow, 2, 3, job_id=api_jobs.QUEUE_PREFIX + job_id, job_timeout=60)
-    job.set_status(rq.job.JobStatus.STARTED)
-    assert api_jobs.status(job_id)["waiting"] is None
-    job.meta["waiting"] = {"run": "r1", "position": 1, "text": "Waiting at position 1 for run r1"}
-    job.save_meta()
-    body = api_jobs.status(job_id)
-    assert body["state"] == "running" and body["waiting"]["position"] == 1
-    job.cancel()
+    connection.hset(lightjobs.job_key(job_id), mapping={"state": "running", "started": "1"})
+    monkeypatch.setattr(wrapper.progress_file, "report", lambda *a, **k: None)
+    lightjobs._current.update(id=job_id, url=None)
+    try:
+        assert api_jobs.status(job_id)["waiting"] is None
+        wrapper.report_wait("20260101-000000-abcd", 2)
+        body = api_jobs.status(job_id)
+        assert body["state"] == "running" and body["waiting"] == {"run": "20260101-000000-abcd", "position": 2, "text": "Waiting at position 2 for run 20260101-000000-abcd"}
+        wrapper.report_wait(None, None)
+        assert api_jobs.status(job_id)["waiting"] is None
+    finally:
+        lightjobs._current.update(id=None, url=None)
 
 
 def test_a_ninth_entry_is_refused_with_the_line_named(conn):

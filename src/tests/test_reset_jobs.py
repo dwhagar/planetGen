@@ -161,12 +161,12 @@ def test_reset_jobs_clears_the_queue_and_the_runs_and_keeps_the_rest(redis_serve
     url = database_of_its_own(redis_server)
     connection = redisqueue.connect(url)
     connection.flushdb()
-    queue = redisqueue.queue(redisqueue.INTERACTIVE_QUEUE, connection)
+    queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
     waiting = queue.enqueue(math.pow, 2, 2, job_timeout=600)
     running_job(queue, connection, "never-registered")
     connection.set(workers.WANTED_KEY, 3)
     connection.set("planetgen:page:kept", "1")
-    connection.set(workers.STARTING_PREFIX + redisqueue.INTERACTIVE_QUEUE, 2)
+    connection.set(workers.STARTING_PREFIX + redisqueue.BULK_QUEUE, 2)
     pause.pause("boss", connection)
     stale_run = runrecord.start_run(connection, "Stale run", [runrecord.Stage("mass", "Mass", units=3)])
     with pytest.raises(runrecord.Busy):
@@ -210,7 +210,7 @@ def test_reset_jobs_kills_a_worker_process_of_this_host(redis_server):
     connection.flushdb()
     sleeper = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(600)"], start_new_session=True)
     try:
-        queue = redisqueue.queue(redisqueue.INTERACTIVE_QUEUE, connection)
+        queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
         register_worker(queue, connection, "sleeper-worker", sleeper.pid)
         lines = []
         assert reset_jobs.reset_jobs(redis_url=url, assume_yes=True, sources=[], write=lines.append)

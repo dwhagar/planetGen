@@ -22,7 +22,7 @@ import time
 import redis
 
 from planetgen.admin import maintenance
-from planetgen.queue import planrows, redisqueue, runline, runrecord
+from planetgen.queue import lightjobs, planrows, redisqueue, runline, runrecord
 from planetgen.util import log, logrecord
 from planetgen.util.format import format_duration_seconds
 
@@ -125,7 +125,7 @@ class RedisStore:
     def busy(self):
         """Whether there is anything for a supervisor to watch: a live run, a run waiting for the machine, or an ask for workers not acted on yet."""
         return bool(self.connection.hlen(nudges_key())) or bool(self.connection.hlen(runline._starts_key())) or any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
-            or bool(self.connection.zcard(runline._line_key()))
+            or bool(self.connection.zcard(runline._line_key())) or bool(self.connection.zcard(lightjobs.pending_key())) or bool(self.connection.scard(lightjobs.running_key()))
 
 
 class SystemClock:
@@ -478,14 +478,21 @@ class Launches:
         make (callable, optional): `make()` returns the launcher; the simulator and the tests pass their own.
     """
 
-    def __init__(self, connection, make=None):
+    def __init__(self, connection, make=None, forker=None, also_held=None):
         self.connection, self.make = connection, make
+        self.forker = forker            # the supervisor's templates, shared with the light jobs (`lightjobs.LightJobs`); the launcher's own where left out
+        self.also_held = also_held
         self.launcher = None
+
+    def holders(self):
+        """The claims of the jobs this duty holds, for the light jobs' dispatch (OPS.230)."""
+        return self.launcher.holders() if self.launcher is not None else []
 
     def _made(self):
         from planetgen.db import store
         from planetgen.queue import jobhost, launcher, scheduler
-        return launcher.Launcher(store.get_control_connection(), jobhost.TemplateSet(background=True), used=lambda: scheduler.usage(self.connection), redis=self.connection)
+        return launcher.Launcher(store.get_control_connection(), self.forker or jobhost.TemplateSet(background=True), used=lambda: scheduler.usage(self.connection), redis=self.connection,
+                                 also_held=self.also_held)
 
     def turn(self):
         """Returns how many jobs it started."""

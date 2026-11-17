@@ -72,7 +72,7 @@ os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
 # OPS.228: the units of a run go to the supervisor's launcher by default. A test run has no supervisor to hand them out, so tests keep the RQ path
 # unless they cover the forked one (`test_forked_job`, `test_launcher`, which turn it on for themselves).
-os.environ.setdefault("PLANETGEN_FORKED_JOBS", "0")
+os.environ.setdefault("PLANETGEN_FORKED_JOBS", "1")
 
 # GEN.1580: a body held at the ionization ceiling of its air is an error in every test that makes one (`air_final.CEILING_IS_ERROR_VARIABLE`), never a state to keep.
 os.environ["PLANETGEN_CEILING_IS_ERROR"] = "1"
@@ -479,18 +479,6 @@ def unit_density_plans(monkeypatch):
     from planetgen.galaxy import shape_draw
     from tests import toy_shape
     monkeypatch.setattr(shape_draw, "plan_shape", toy_shape.plan_at_unit_density(shape_draw.plan_shape))
-    yield
-
-
-@pytest.fixture(autouse=True)
-def _api_jobs_queue_of_its_own(monkeypatch):
-    """The API jobs share one queue and its workers in production (PERF.39); a test, running beside others
-    on one Redis server, gets a queue of its own, so its job is never picked up by another test's worker
-    (which has that test's environment)."""
-    import uuid
-    from planetgen.queue import api_jobs
-    monkeypatch.setattr(api_jobs, "QUEUE_NAME", f"planetgen-api-test-{uuid.uuid4().hex[:12]}")
-    monkeypatch.setattr(api_jobs, "LONG_QUEUE_NAME", f"planetgen-api-test-long-{uuid.uuid4().hex[:12]}")
     yield
 
 

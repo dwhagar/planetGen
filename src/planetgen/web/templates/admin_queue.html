@@ -93,6 +93,33 @@
   {%- endif %}
 </section>
 {%- endif %}
+{%- if why_waiting %}
+<section class="panel" id="queue-waiting" aria-labelledby="queue-waiting-heading">
+  <h2 id="queue-waiting-heading">Why jobs wait</h2>
+  <p>Jobs that have not started, by class. A job that is <em>waiting</em> needs another job to finish first. A job that is <em>ready</em> may start, and the memory gate has not let it; the reasons are the gate's own words.</p>
+  {%- if why_waiting.gate %}
+  <p>{{ why_waiting.gate }}.</p>
+  {%- endif %}
+  {%- if why_waiting.rows %}
+  <div class="table-scroll">
+  <table class="data-table">
+    <caption>Jobs not started, by class</caption>
+    <thead><tr><th scope="col">Class</th><th scope="col">Waiting</th><th scope="col">Oldest waiting</th><th scope="col">Ready</th><th scope="col">Ready for</th><th scope="col">Next retry in</th><th scope="col">Why the ready ones have not started</th><th scope="col">Started in the last hour</th></tr></thead>
+    <tbody>
+    {%- for row in why_waiting.rows %}
+      <tr><th scope="row">{{ row.name }}</th><td>{{ row.waiting }}</td><td>{{ row.oldest_waiting }}</td><td>{{ row.ready }}</td><td>{{ row.oldest_ready }}</td><td>{{ row.retry }}</td>
+        <td>{%- for reason in row.reasons %}{{ reason.count }} job(s): {{ reason.text }}{% if not loop.last %}<br>{% endif %}{%- endfor %}{% if row.more %}<br>and {{ row.more }} more under other reasons{% endif %}</td>
+        <td>{{ row.started }}</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- endif %}
+  {%- for item in why_waiting.quick %}
+  <p>{{ item.name }}: {{ item.text }}, and none waits now.</p>
+  {%- endfor %}
+</section>
+{%- endif %}
 {%- if tuning %}
 <section class="panel" id="queue-tuning" aria-labelledby="queue-tuning-heading">
   <h2 id="queue-tuning-heading">What the queue has learned</h2>

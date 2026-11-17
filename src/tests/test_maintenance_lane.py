@@ -235,10 +235,6 @@ def test_perf185_many_callers_together_never_pass_the_host_cap(lane, monkeypatch
         for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
             workers.ensure_workers(name, connection)
         supervisor.WorkerStarts(connection).turn()
-    assert len(started) == 2        # PERF.245: the cap less the two places kept for the short and long lanes (an interactive start takes one)
+    assert len(started) == 2        # PERF.245: the cap less the two places kept for the short and long lanes
     assert int(connection.get(workers.REFUSED_KEY)) >= 1
-    _queue(connection, redisqueue.INTERACTIVE_QUEUE, 1)
-    assert workers.start_workers(redisqueue.INTERACTIVE_QUEUE, connection, count=1) == 1 and len(started) == 3
-    connection.delete(workers.STARTING_PREFIX + redisqueue.INTERACTIVE_QUEUE)
-    redisqueue.queue(redisqueue.INTERACTIVE_QUEUE, connection).empty()
     assert len(lines) == 1 and "cap is 4" in lines[0]                                 # said once, not at every poll
