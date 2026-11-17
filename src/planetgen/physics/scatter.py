@@ -11,8 +11,11 @@ mass shares and no N-body run (Boss, 2026-10-30). The Solar System is a test tar
 **The rule.**
 
 1. *Swept band.* A giant of mass ratio `q = m / M*` at `a` has a chaotic zone of half-width `w = ZONE_COEFFICIENT a q^(2/7)` ([R4727], [R] recalled) in which bodies are
-   scattered in a few orbits. An outward-migrating giant sweeps the band it crossed, from its starting `a - migration` to `a`, and the zone with it: the disk inside
-   `[a - migration - w, a + w]` is the swept mass. A giant that never moved sweeps only its zone.
+   scattered in a few orbits, and over the age of a system its reach is `REACH_ZONE_WIDTHS` times that (GEN.1788): Neptune destabilizes the Kuiper belt out to a perihelion 5 to 8 AU beyond
+   its orbit, about 10 Hill radii or 2 to 3.5 of its half-widths, in the 4 Gyr of the Solar System ([Morbidelli, Levison and Gomes, the Kuiper belt book chapter]; BG8). The disk of `belt_origin` starts at the
+   edge of one half-width (the zone of the cold, circular disk), so the stretch between that edge and the reach is the part a giant that never moved scatters, and it is the whole of what a Jupiter or a Neptune at its
+   own place gives to the scattered disk and the comets. An outward-migrating giant sweeps the band it crossed, from its starting `a - migration` to `a`, and the reach with it: the disk inside
+   `[a - migration - reach, a + reach]` is the swept mass.
 2. *Resonances.* The giant's outward migration carries its exterior resonances `P:1` outward through the disk (Malhotra): the 3:2 at `a (3/2)^(2/3)` = 1.31 `a` and the 2:1 at 1.59 `a`.
    `RESONANCE_CAPTURE` of the mass in each swept span (beyond the zone) is captured, the resonant share.
 3. *What is left* beyond the band and the resonances stays on cold, low-eccentricity orbits (`cold_classical`); after an instability a share (`HOT_SHARE` times the instability,
@@ -45,6 +48,10 @@ _msun_to_kg = units.converter("Msun", "kg")
 
 ZONE_COEFFICIENT = resonance_gaps.CHAOTIC_ZONE_COEFFICIENT
 """float: The half-width of the chaotic zone over `a q^(2/7)` ([R4727], recalled from the design's table, row SX1; the belt map's `resonance_gaps` holds the number)."""
+
+REACH_ZONE_WIDTHS = 3.0
+"""float: How many chaotic half-widths a giant's scattering reaches over the age of a system (GEN.1788): bodies passing within about 10 Hill radii of Neptune, 5 to 8 AU of it, are unstable over 4 Gyr (Morbidelli, Levison and
+Gomes, Kuiper belt chapter, read), which is 2 to 3.5 of the half-widths `ZONE_COEFFICIENT` gives it. The same number as `belt_origin.STIR_ZONE_WIDTHS` (BG8, [R3175]: the clearing follows out to 3.0 mu^(2/7) a), which reads it from here. [Stand-in 6.83 SX6, tier T2, tweak L0.]"""
 
 DISK_SLOPE = 1.5
 """float: The surface density of the disk goes as `a^-DISK_SLOPE` (the minimum-mass nebula, [R1854], recalled; row SX1)."""
@@ -129,7 +136,7 @@ def scatter_shares(star_mass_solar, giant_mass_earth, giant_au, giant_radius_ear
     if giant_mass_earth <= 0.0:
         shares["cold_classical"] = 1.0
         return shares
-    width = zone_half_width_au(giant_au, giant_mass_earth, star_mass_solar)
+    width = REACH_ZONE_WIDTHS * zone_half_width_au(giant_au, giant_mass_earth, star_mass_solar)
     start = giant_au - max(migration_au, 0.0)
     swept = disk_fraction(start - width, giant_au + width, disk_inner_au, disk_edge_au)
     resonant = 0.0
