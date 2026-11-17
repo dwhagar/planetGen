@@ -9,11 +9,12 @@ or the ice-albedo law's own answer when the setting has one.
 
 import types
 
+from planetgen.generation.build_record import BuildRecord
 from planetgen.physics import air_branches, air_final, surface_air
 
 
 def _moon():
-    return types.SimpleNamespace(is_moon=True, body_type="t", mass=None, star=types.SimpleNamespace(temperature=None))
+    return types.SimpleNamespace(is_moon=True, body_type="t", mass=None, star=types.SimpleNamespace(temperature=None), build=BuildRecord())
 
 
 def test_a_body_with_no_air_keeps_the_temperature_starlight_gives(monkeypatch):

@@ -7664,13 +7664,14 @@ def set_sector_bright_masses(conn, states):
     wedge) -> (mass_solar, level_sol)`, `level_sol` the luminosity floor to
     store with it (the galaxy scatter's, so the sector counts as having its
     own level; `None` leaves the stored level alone)."""
+    by_state = {}
     for address, (mass, level) in sorted(states.items()):
+        by_state.setdefault((mass, level), []).append(address)
+    for (mass, level), addresses in by_state.items():           # PERF.275: the sectors that take one mass and level are written in one statement
         if level is None:
-            conn.execute("UPDATE sector_stats SET bright_mass_sol = ? WHERE shell_index = ? AND band_index = ?"
-                         " AND wedge_index = ?", (mass, *address))
+            _update_sector_stats(conn, "bright_mass_sol = ?", (mass,), addresses)
         else:
-            conn.execute("UPDATE sector_stats SET bright_mass_sol = ?, bright_level_sol = ? WHERE shell_index = ?"
-                         " AND band_index = ? AND wedge_index = ?", (mass, level, *address))
+            _update_sector_stats(conn, "bright_mass_sol = ?, bright_level_sol = ?", (mass, level), addresses)
 
 
 def sector_bright_level_keys(conn):
@@ -7735,13 +7736,28 @@ def lock_sector_stats(conn, entries):
     return levels
 
 
+SECTOR_STATS_UPDATE_ROWS = 500
+"""int: How many sectors one `UPDATE` of `sector_stats` names (PERF.275): the sectors that take the same value are written together, not one statement each (a sky share wrote one statement for each cell it visited)."""
+
+
+def _update_sector_stats(conn, assignment, values, addresses):
+    """`UPDATE sector_stats SET <assignment>` with `values` for `addresses`, `SECTOR_STATS_UPDATE_ROWS` of them to a statement (one value for all of them)."""
+    for start in range(0, len(addresses), SECTOR_STATS_UPDATE_ROWS):
+        chunk = addresses[start:start + SECTOR_STATS_UPDATE_ROWS]
+        keys = ", ".join(["(?, ?, ?)"] * len(chunk))
+        conn.execute(f"UPDATE sector_stats SET {assignment} WHERE (shell_index, band_index, wedge_index) IN ({keys})",
+                     (*values, *(part for address in chunk for part in address)))
+
+
 def set_sector_bright_levels(conn, levels):
     """Records how dim some sectors' stars now go (`(shell, band, wedge) ->
-    L_sun`), inside the transaction `lock_sector_stats` started."""
-    conn.executemany(
-        "UPDATE sector_stats SET bright_level_sol = ? WHERE shell_index = ? AND band_index = ? AND wedge_index = ?",
-        [(level, *address) for address, level in sorted(levels.items())],
-    )
+    L_sun`), inside the transaction `lock_sector_stats` started. The sectors
+    that take one level are written in one statement (PERF.275)."""
+    by_level = {}
+    for address, level in sorted(levels.items()):
+        by_level.setdefault(level, []).append(address)
+    for level, addresses in by_level.items():
+        _update_sector_stats(conn, "bright_level_sol = ?", (level,), addresses)
 
 
 def bright_star_fill_level(conn, shell_index, band_index, wedge_index):

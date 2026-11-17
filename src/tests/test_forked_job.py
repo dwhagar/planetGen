@@ -115,3 +115,20 @@ def test_a_unit_stopped_because_the_supervisor_went_ends_its_job_with_the_gone_c
     from planetgen.queue import forkedjob, template
     monkeypatch.setattr(units, "run_unit_on", lambda *args, **kwargs: {"stopped": True})
     assert forkedjob.run({"run_id": "r1", "stage": 0, "unit": 0, "kind": "x", "args": {}, "redis_url": redis_server}, _Link(gone=True)) == template.EXIT_SUPERVISOR_GONE
+
+
+def test_the_opening_job_runs_the_opening_and_says_how_it_went(monkeypatch, redis_server):
+    from planetgen.queue import forkedjob, template
+    seen = []
+    monkeypatch.setattr(units, "run_opening_on", lambda conn, run_id, index: seen.append((run_id, index)) or {"opened": True})
+    link = _Link()
+    assert forkedjob.run({"opening": True, "run_id": "r1", "stage": 3, "redis_url": redis_server}, link) == 0
+    assert seen == [("r1", 3)] and link.said == [{"event": "unit", "run_id": "r1", "stage": 3, "unit": None, "result": {"opened": True}}]
+
+    def boom(conn, run_id, index):
+        raise ValueError("the cut broke")
+
+    monkeypatch.setattr(units, "run_opening_on", boom)
+    link = _Link()
+    assert forkedjob.run({"opening": True, "run_id": "r1", "stage": 3, "redis_url": redis_server}, link) == template.EXIT_FAILED
+    assert link.said == [{"event": "failed", "error": "ValueError: the cut broke"}]

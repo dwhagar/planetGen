@@ -71,7 +71,7 @@ LOSS_BOUND_WEIGHT = 1.0
 """float: The weight of a scattered body that is neither hit nor thrown out, against a collision weight of 1 (row EJ1, a stand-in)."""
 
 DISK_LIFETIME_YR = 3.0e6
-"""float: The age at which the gas disk is gone and the giants have finished moving, the time of an architecture loss ([R1750], recalled; row EJ2)."""
+"""float: The age at which the gas disk is gone and the giants have finished moving, the time of an architecture loss when the star's own disk time is not given (a star's is `disk_truncation.disk_time_yr`, GEN.1551; a top-up rogue with no star keeps this; [R1750], recalled; row EJ2)."""
 
 POPULATIONS = ("cold_classical", "hot_classical", "resonant", "scattered_disk", "centaurs", "detached", "trojans", "ejected", "implanted_inner_belt", "captured_moons")
 """tuple: The keys of `scatter_shares`."""

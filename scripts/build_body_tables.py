@@ -43,7 +43,7 @@ def main(argv):
     wanted = rewritten(current)
     if "--check" in argv:
         if wanted != current:
-            print("schema.sql is out of date with db/body_fields.py: run python scripts/build_body_tables.py", file=sys.stderr)
+            print("schema.sql is out of date with src/planetgen/db/body_fields.py: run python scripts/build_body_tables.py", file=sys.stderr)
             return 1
         return 0
     if wanted != current:

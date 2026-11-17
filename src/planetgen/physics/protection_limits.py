@@ -62,6 +62,11 @@ LIMIT_ROWS = (
     Limit("heat_shielded_c", 140.0, "C", "hotter than this a mask-only visitor's skin burns at the seal: a heat-shielded suit with a liquid cooling garment", None, 140.0),
     Limit("hot_outer_c", 200.0, "C", "the score reaches 0 here", 200.0, None),
     Limit("wet_bulb_c", 31.0, "C", "uncompensable wet-bulb temperature: cooling garments needed at or above it", 31.0, 30.0, "higher"),
+    # --- Air gases ---
+    Limit("co2_scale", 1.0, "x human", "how far the carbon dioxide bands of the Air domain (`habitability.GAS_LIMITS_KPA`) are moved out, every edge by the same factor; 1 is the human visitor's, a species whose homeworld air holds more of it has a larger one (GEN.1772)", 1.0, None),
+    Limit("co_scale", 1.0, "x human", "how far the carbon monoxide bands of the Air domain (`habitability.GAS_LIMITS_KPA`) are moved out, every edge by the same factor; 1 is the human visitor's, a species whose homeworld air holds more of it has a larger one (GEN.1772)", 1.0, None),
+    Limit("h2s_scale", 1.0, "x human", "how far the hydrogen sulfide bands of the Air domain (`habitability.GAS_LIMITS_KPA`) are moved out, every edge by the same factor; 1 is the human visitor's, a species whose homeworld air holds more of it has a larger one (GEN.1772)", 1.0, None),
+    Limit("so2_scale", 1.0, "x human", "how far the sulfur dioxide bands of the Air domain (`habitability.GAS_LIMITS_KPA`) are moved out, every edge by the same factor; 1 is the human visitor's, a species whose homeworld air holds more of it has a larger one (GEN.1772)", 1.0, None),
     # --- Radiation ---
     Limit("dose_blue_sv_yr", 0.02, "Sv/yr", "the ICRP occupational limit averaged over five years (Blue)", 0.02, None),
     Limit("dose_green_sv_yr", 0.1, "Sv/yr", "a visit is still allowed (Green)", 0.1, None),

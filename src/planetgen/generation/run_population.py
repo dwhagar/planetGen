@@ -6,8 +6,8 @@ Run Population
 
 The `population` and `territories` commands (PERF.125): the population pass (species, civilizations and polities) and
 the territories pass (which polity owns which system), each from what is already stored (`planetgen.population.model`)
-and each its own registered command, `run-population` and `run-territories`, of one unit. A `galaxy` run asks for the
-two as consecutive stages (`run_population_stage`, `run_territories_stage`); neither knows the other.
+and each registered commands of one unit: the population pass is four (`scan-species`, `date-civilizations`, `refresh-technology`, `count-population`, OPS.239) and the territories pass is `run-territories`. A `galaxy` run asks for
+the two as consecutive stages (`run_population_stage`, `run_territories_stage`); neither knows the other.
 """
 
 from planetgen.generation import followed, stages, steps
@@ -16,17 +16,12 @@ from planetgen.queue import commands, engine, unitbeat
 from planetgen.util import log
 
 
-def _population_summary(counts):
-    return (f"{counts['new_species']:,} new species; {counts['species']:,} species in all, "
-            f"{counts['spacefaring']:,} spacefaring; {counts['polities']:,} polities.")
-
-
 def _territories_summary(counts):
     return f"{counts['polities']:,} polities holding {counts['owned_systems']:,} systems."
 
 
 def expand_population(params):
-    """The `run-population` command's stage: one unit, whose pieces the engine runs (`run-territories` cuts its stage the same way)."""
+    """The stage of each of the population pass's commands (`scan-species`, `date-civilizations`, `refresh-technology`, `count-population`): one unit, whose pieces the engine runs (`run-territories` cuts its stage the same way)."""
     return commands.Expansion([(params, 1.0)], {})
 
 
@@ -35,20 +30,35 @@ expand_territories = expand_population
 
 def _reader(params):
     """A connection to read with while the pieces are listed, closed by the caller (the unit's own opens on its first piece)."""
-    return engine.Context("run-population", params, None)
+    return engine.Context("scan-species", params, None)
 
 
-def population_pieces(params, cursor):
+def scan_species_pieces(params, cursor):
     """
-    The `run-population` command's pieces (OPS.203): forget every species for a rescan, scan the planets one batch of ids a piece, drop the
-    species without a civilization, date the civilizations and found or dissolve the polities, refresh the map's technology rows, and count
-    (`model.population_pieces`).
+    The `scan-species` command's pieces (OPS.203, OPS.239; the first of the four commands the `run-population` command was): forget every species for a rescan, then scan the planets one batch of ids a
+    piece (`model.population_pieces`, the pieces of kinds `reset` and `scan`).
     """
     reader = _reader(params)
     try:
-        return model.population_pieces(reader.db, rescan=bool(params.get("rescan")))[cursor:]
+        listed = model.population_pieces(reader.db, rescan=bool(params.get("rescan")))
     finally:
         reader.close()
+    return [piece for piece in listed if piece[0] in ("reset", "scan")][cursor:]
+
+
+def date_civilizations_pieces(params, cursor):
+    """The `date-civilizations` command's pieces (OPS.239): drop the species without a civilization, then date the civilizations and found or dissolve the polities."""
+    return [["drop"], ["civilizations"]][cursor:]
+
+
+def refresh_technology_pieces(params, cursor):
+    """The `refresh-technology` command's pieces (OPS.239): refresh the map's technology rows (MAP.344), one piece."""
+    return [["technology"]][cursor:]
+
+
+def count_population_pieces(params, cursor):
+    """The `count-population` command's pieces (OPS.239): count the species, the spacefaring ones and the polities, one piece."""
+    return [["counts"]][cursor:]
 
 
 def _under_the_lock(ctx, work):
@@ -66,20 +76,33 @@ def _under_the_lock(ctx, work):
 
 
 def population_do(params, piece, ctx):
-    """One piece of the population pass (`model.do_population_piece`), under the pass lock and committed through `ctx.commit()`."""
+    """One piece of the population pass (`model.do_population_piece`), under the pass lock and committed through `ctx.commit()`: the `do` of all four commands of the pass."""
     return _under_the_lock(ctx, lambda: model.do_population_piece(ctx.db, piece))
 
 
-def population_gather(params, results, ctx):
-    """
-    What the unit returns: the counts of the pass and `lines`, what the run says about it (this unit may run in a worker, so the process that started the run
-    logs them).
+def scan_species_gather(params, results, ctx):
+    """The `scan-species` unit's result: `added`, the species the scan found (and `lines`, what the run says about it)."""
+    added = sum(result.get("added", 0) for result in results)
+    return {"added": added, "lines": [f"Population: {added:,} new species scanned."]}
 
-    Returns:
-        dict: `new_species`, `species`, `spacefaring`, `polities` and `lines`.
+
+def date_civilizations_gather(params, results, ctx):
+    """The `date-civilizations` unit's result: `dated`, always true (and `lines`, what the run says about it)."""
+    return {"dated": True, "lines": ["Population: civilizations dated, polities founded or dissolved."]}
+
+
+def refresh_technology_gather(params, results, ctx):
+    """The `refresh-technology` unit's result: `refreshed`, always true (and `lines`, what the run says about it)."""
+    return {"refreshed": True, "lines": ["Population: the map's technology rows refreshed."]}
+
+
+def count_population_gather(params, results, ctx):
     """
-    counts = model.population_counts(results)
-    return {**counts, "lines": [f"Population: {_population_summary(counts)}"]}
+    What the `count-population` unit returns: the counts of the pass (`species`, `spacefaring`, `polities`) and `lines`, what the run says about it (this unit may run in a worker, so the process that
+    started the run logs them).
+    """
+    counts = next(result for result in reversed(results) if "species" in result)
+    return {**counts, "lines": [f"Population: {counts['species']:,} species in all, {counts['spacefaring']:,} spacefaring; {counts['polities']:,} polities."]}
 
 
 def territories_pieces(params, cursor):
@@ -115,13 +138,17 @@ class PassFollower(followed.Follower):
         self.hold(steps.Step(self.label, self.step_kind, 1, args=self.args, progress=self.progress))
 
     def on_result(self, unit, result):
-        for line in result["lines"]:
+        for line in result.get("lines", ()):
             log.normal(line)
 
 
-def population_follower(args):
-    """The follower of the population stage of a run."""
-    return PassFollower(args, "population", "Population pass", "population", {"rescan": bool(getattr(args, "rescan", False))})
+def population_followers(args):
+    """The followers of the population stages of a run: the scan, the dating of the civilizations, the technology rows and the count (OPS.239)."""
+    rescan = {"rescan": bool(getattr(args, "rescan", False))}
+    return [PassFollower(args, "species", "Scan the planets for species", "population", rescan),
+            PassFollower(args, "civilizations", "Date the civilizations", "population", {}),
+            PassFollower(args, "technology", "Refresh the technology rows", "population", {}),
+            PassFollower(args, "population", "Count the population", "population", {})]
 
 
 def territories_follower(args):
@@ -151,13 +178,12 @@ def run_territories(args):
 
 def run_population_stage(args):
     """The population pass as a run of its own (`planetgen population`)."""
-    stages.enter("population")
     followed.run_planned(args, planned_population(args))
 
 
 def planned_population(args):
     """The population pass as a `followed.Planned`."""
-    return followed.Planned([population_follower(args)], "Population pass")
+    return followed.Planned(population_followers(args), "Population pass")
 
 
 def run_territories_stage(args):

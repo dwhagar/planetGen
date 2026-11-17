@@ -207,7 +207,9 @@ def _open(conn, run_id, index):
     queued = expansion.units
     if prior and not commands.spec(step.kind).resumes:          # a unit that cannot resume starts from its first piece, and a command that skips what it saved is told so
         queued = [(dict(args, **{resumed.AGAIN: True}), cost) for args, cost in queued]
-    if _forked(conn, run_id, prior):
+    if forked(conn, run_id):
+        if prior and not commands.spec(step.kind).resumes:        # the rows hold the cut's arguments: a unit that cannot resume is told so on them, as the queued ones are
+            planrows.add_to_unit_args(conn, run_id, index, {resumed.AGAIN: True})
         planrows.release_units(conn, run_id, index, skip=sorted(carried.done))      # OPS.228: the supervisor's launcher hands the units out
         return left
     units.enqueue_units(conn, run_id, index, step.kind, queued, queue_name=queue_of(run_kind(conn, run_id)),
@@ -215,9 +217,9 @@ def _open(conn, run_id, index):
     return left
 
 
-def _forked(conn, run_id, prior):
-    """Whether the units of this run's stage are handed out by the launcher (OPS.228): the setting is on, the run has a ledger, it is a generation run, and it does not carry on from an earlier one."""
-    return (not prior and get_settings().queue.forked_jobs and run_kind(conn, run_id) == runrecord.GENERATION and planrows.ledgered(conn, run_id))
+def forked(conn, run_id):
+    """Whether the units of this run's stage are handed out by the launcher (OPS.228): the setting is on, the run has a ledger and it is a generation run."""
+    return (get_settings().queue.forked_jobs and run_kind(conn, run_id) == runrecord.GENERATION and planrows.ledgered(conn, run_id))
 
 
 def _end_held(conn, earlier):

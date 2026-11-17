@@ -415,6 +415,7 @@ def band_center_pc(shell, band, edge_pc):
     return r * math.sin(colat), r * math.cos(colat)
 
 
+@functools.lru_cache(maxsize=1 << 18)
 def sector_position_pc(shell, band, wedge, edge_pc):
     """
     The `(x, y, z)` center of one sector, in parsecs: on its shell's
@@ -422,6 +423,8 @@ def sector_position_pc(shell, band, wedge, edge_pc):
     longitude. A cap's center is on the axis, at `+/-shell * edge_pc`; the
     core's is the origin. The equatorial band's center is exactly on the
     plane.
+
+    Cached (PERF.275: a sky share asks for the same cell's center again for every tier, and a result is a tuple of numbers that nothing changes).
 
     Raises:
         ValueError: If the address is not a cell of the grid.

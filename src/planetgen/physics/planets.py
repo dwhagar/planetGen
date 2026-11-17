@@ -467,11 +467,13 @@ def apply_envelope(planet):
     if planet.body_type != "t" or planet.is_moon:
         return False
     mass_earth = _kg_to_mearth(planet.mass)
-    if not envelope_capture.in_range(mass_earth) or not envelope_capture.keeps_envelope(mass_earth):
-        return False                    # a body under 1 Earth mass captured one (and made its water from it, `bulk_draw`), and is bare at the end (GEN.1748)
+    if not envelope_capture.in_range(mass_earth) or envelope_capture.keep_share(mass_earth) <= 0.0:
+        return False                    # a body of 1 Earth mass or less captured one (and made its water from it, `bulk_draw`), and is bare at the end (GEN.1748)
     if planet.build.late_core:
         start = 0.0                     # a core that finished after the gas disk went captured nothing
     else:
+        if not envelope_capture.keeps_envelope(planet.mass, formation_distance_au(planet), planet.star.mass):
+            return False                # one of the 1 to 3 Earth masses that the envelope did not stay on (GEN.1774), the share rising with the mass
         with draw.bound(envelope_capture.start_stream(planet.mass, formation_distance_au(planet), planet.star.mass)):
             start = envelope_capture.draw_start(mass_earth)
             puff = envelope_capture.draw_puff_start(mass_earth, envelope_capture.period_days(planet))     # GEN.1343 (W15): one sub-Neptune core in 20 starts as a super-puff
@@ -1304,7 +1306,13 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     from planetgen.physics import secular_chain
 
     bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and not getattr(p, "is_moon", False) and getattr(p, "period", None) and p.mass and p.distance]
-    if len(bodies) < 2 or not host_mass_kg > 0.0 or not age_yr > 0.0:
+    if not bodies or not host_mass_kg > 0.0 or not age_yr > 0.0:
+        return "unchanged"
+    from planetgen.physics import belt_forcing, radiation_field
+    host = getattr(bodies[0], "star", None)
+    pulls = [(c.star.mass, c.axis_au, c.eccentricity, belt_forcing.periapsis_rad(host.mass, c.member_no, c.axis_au), c.normal)
+             for c in (radiation_field.companions_of(host) if host is not None else ()) if getattr(c.star, "mass", None)]
+    if len(bodies) < 2 and not pulls:
         return "unchanged"
     start, damping = [], []
     for body in bodies:
@@ -1316,8 +1324,9 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
         damping.append(1.0 / tide_time_yr if damped else 0.0)
         start.append((birth if damped else orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
     ring_axes, ring_masses = belt_rings_of(planets, [b.distance for b in bodies])
+    stellar = belt_forcing.stellar_terms([b.distance for b in bodies], host_mass_kg, pulls) if pulls else None
     result = secular_chain.evolve([b.distance for b in bodies], [b.mass for b in bodies], host_mass_kg,
-                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses, damping)
+                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses, damping, stellar)
     if not result.linear:
         return "outside the theory"
     old = [body.eccentricity for body in bodies]
@@ -1359,6 +1368,67 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
         if body.eccentricity != old[i] or i in moved:
             stale_air(body)
     return "held by the spacing" if held else "exchanged"
+
+
+def kozai_pump_planets(star, planets, ledger=None):
+    """
+    GEN.1645: the Kozai-Lidov screen of `kozai_planets` read for one star's planets, once their orbits are exchanged and before the tide wears an eccentricity down. A planet whose strongest
+    pull cycles (a companion on a plane 39.2 to 140.8 degrees from its own that nothing faster turns, or a heavier outer sibling) takes the eccentricity of its place in the cycle at the star's age
+    and the mutual inclination it has there (its plane turned about the perturber's, the node about it kept, its spin and its moons carried with it as the secular exchange does), and a planet whose
+    maximum puts its periapsis inside the star or its Roche limit is lost. Its birth eccentricity for the tides (`build.orbit_birth`) becomes the pumped one, so `settle_orbit` wears it down from where
+    the cycle left it; the outcome is kept as `build.kozai`. The ledger gets the rate of every perturber that passed the hierarchy test (effect 5), cycling or not.
+
+    Args:
+        star: The planets' host (a star, or a close pair's proxy), with its companions attached.
+        planets (list): The star's planets and belts in orbital order (belts are left out).
+        ledger (EffectLedger, optional): Notes each perturber's pull on each planet.
+
+    Returns:
+        list: The planets that are lost (the caller removes them, with their moons).
+    """
+    from planetgen.physics import kozai_bodies, kozai_planets
+
+    bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and p.mass and p.distance and p.radius and p.period]
+    host_radius = getattr(star, "radius", None)
+    age = getattr(star, "age", None)
+    if not bodies or not host_radius or not age or not star.mass:
+        return []
+    inputs = [kozai_planets.PlanetInput(index, body.mass, body.radius, body.distance, body.eccentricity or 0.0, math.radians(body.orbital_inclination_deg or 0.0),
+                                        math.radians(body.orbital_ascending_node_deg or 0.0)) for index, body in enumerate(bodies)]
+    companions = kozai_planets.companion_perturbers(star)
+    sources = {perturber.key: source for perturber, source in companions}
+    sources.update({index: body for index, body in enumerate(bodies)})
+    results = kozai_planets.screen_planets(star.mass, host_radius, age * 1.0e9, inputs, [perturber for perturber, _source in companions])
+    plane = {perturber.key: spin.orbit_normal(math.degrees(perturber.inclination_rad), math.degrees(perturber.node_rad)) for perturber, _source in companions}
+    plane.update({index: spin.orbit_normal(body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0) for index, body in enumerate(bodies)})
+    lost = []
+    for body, result in zip(bodies, results):
+        if ledger is not None:
+            for key, rate in result.ledger_rates.items():
+                ledger.add("secular", body, sources[key], rate * kozai_bodies.SECULAR_RATE_UNIT_PER_S)
+        outcome = result.outcome
+        if outcome is None or not outcome.cycles:
+            continue
+        body.build.kozai = outcome
+        if outcome.lost:
+            lost.append(body)
+            continue
+        old_inclination, old_node = body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0
+        orbit = body.orbit_from_vector()
+        phase = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z), old_inclination, old_node)
+        normal = kozai_planets.tilted_normal(spin.orbit_normal(old_inclination, old_node), plane[result.perturber], outcome.inclination_now_rad)
+        inclination, node = kozai_planets.plane_of_normal(normal)
+        if getattr(body, "moons", None):
+            release_moons(body)
+        body.eccentricity = outcome.eccentricity_now
+        body.build.orbit_birth = outcome.eccentricity_now
+        body.orbital_inclination_deg, body.orbital_ascending_node_deg = math.degrees(inclination), math.degrees(node)
+        carry_spin_with_orbit(body, old_inclination, old_node)
+        update_orbital_position(body, phase, math.degrees(orbit["arg_periapsis"]))
+        for moon in getattr(body, "moons", ()):
+            moon.host_eccentricity = body.eccentricity
+        stale_air(body)
+    return lost
 
 
 def draw_birth_spin(planet):

@@ -317,6 +317,11 @@ class StarSystem:
                 (`_drawn_plan`, GEN.631).
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
+        # A bad FORCE_CLASS request is refused here, before any draw: a check made after the star was drawn never ran for the stars that return early (a pulsar's planets, a post-AGB pair, a diskless black hole).
+        if system_config.FORCE_CLASS and system_config.SLOTS:
+            raise ValueError("FORCE_CLASS cannot be combined with SLOTS: a slot already names its class.")
+        if system_config.FORCE_CLASS and system_config.FORCE_CLASS not in tuning.PLANET_CLASSES:
+            raise ValueError(f"FORCE_CLASS {system_config.FORCE_CLASS!r} is not a planet class.")
         # A run's prevalences (GEN.52) decide the measured features' flags
         # for this system before anything is drawn.
         prevalence.resolve(self.system_config)
@@ -719,6 +724,20 @@ class StarSystem:
             if limit is not None:
                 star.a_crit_au = limit
             self._attach_sources(ledger, kind, number, star)
+        self._lose_disks_to_close_companions()
+
+    def _lose_disks_to_close_companions(self):
+        """
+        A young star with a companion inside `disk_truncation.CLOSE_COMPANION_AXIS_AU` loses its disk sooner (GEN.1551, [R5225]: two thirds of such disks are gone within 1 Myr): the star was built before its companions were
+        attached, with the time of a lone star, so a class II disk (`pre_main_sequence.draw_disk`) that the shorter time of the same draw has already ended is taken off it here. Nothing is drawn, so no stream moves; the
+        embedded classes 0 and I are by age and stay.
+        """
+        for star in self.stars:
+            if star.disk_kind != "class-ii" or not disk_truncation.has_close_companion(star):
+                continue
+            mass_sol = getattr(star, "initial_mass_sol", None) or _kg_to_msun(star.mass)
+            if pre_main_sequence.disk_class(star.age * 1.0e9, pre_main_sequence.dispersal_yr(mass_sol, True)) == "III":
+                star.disk_kind = star.disk_mass_solar = star.disk_inner_au = star.disk_outer_au = None
 
     def _make_node_hosts(self, ledger):
         """
@@ -1414,10 +1433,6 @@ class StarSystem:
             self.architectures.append((star, plan.architecture))
 
         forced_class = self.system_config.FORCE_CLASS if apply_guarantees else None
-        if forced_class and self.system_config.SLOTS:
-            raise ValueError("FORCE_CLASS cannot be combined with SLOTS: a slot already names its class.")
-        if forced_class and forced_class not in tuning.PLANET_CLASSES:
-            raise ValueError(f"FORCE_CLASS {forced_class!r} is not a planet class.")
         if forced_class:
             system_objects = max(system_objects, 1)
         slots = (self.system_config.SLOTS or []) if apply_guarantees else []
@@ -2450,10 +2465,30 @@ class StarSystem:
             def keeps(group, baseline=baseline):
                 return all(self._problem_key(problem) in baseline for problem in self._planet_problems(group))
 
-            outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps) if len(bodies) > 1 else "unchanged"
+            outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps) if bodies else "unchanged"
             self.secular_outcomes[star.name] = outcome
             if outcome != "unchanged":
                 log.debug(f"{star.name}: secular exchange of its planets: {outcome}")
+
+    def _kozai_planets(self):
+        """
+        GEN.1645: the planets' own Kozai-Lidov screen (`physics.kozai_planets`): a companion star on a plane 39.2 to 140.8 degrees from a planet's, or a heavier outer sibling on one, pumps its
+        eccentricity and turns its plane when nothing faster turns its orbit (`planets.kozai_pump_planets`). It runs after the secular exchange and the resonant chains and before the tide wears an
+        eccentricity down (`settle_orbit` wears the pumped one). A planet whose maximum puts its periapsis inside the star or its Roche limit is lost with its moons. `self.kozai_planet_outcomes`
+        counts the planets screened and what became of them (a record for the census, not stored).
+        """
+        self.kozai_planet_outcomes = {"screened": 0, "cycling": 0, "lost": 0}
+        for star, planets in validation.star_lists(self):
+            screened = [p for p in planets if p.body_type in ('t', 'g')]
+            if not screened:
+                continue
+            self.kozai_planet_outcomes["screened"] += len(screened)
+            lost = planetPhysics.kozai_pump_planets(star, planets, self.effect_ledger)
+            self.kozai_planet_outcomes["cycling"] += sum(1 for p in screened if p.build.kozai is not None)
+            for planet in lost:
+                planets.remove(planet)
+                self.kozai_planet_outcomes["lost"] += 1
+                log.debug(f"{planet.name}: lost to Kozai-Lidov pumping by {star.name}")
 
     def _kozai_pumping(self):
         """
@@ -2527,6 +2562,7 @@ class StarSystem:
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
             if self.binary_type == "wide":
                 resonant_chains.give_forced_eccentricities(self.secondary_planets, self.secondary_star.mass)
+            self._kozai_planets()       # GEN.1645: a companion's or a heavier sibling's pull on each planet, before the tide wears an eccentricity down
             # GEN.1548: the orbit and the size of every planet, before any air: a body built bare (GEN.1282) takes the tide, the forced eccentricity, the giant's radius and the envelope
             # and has no air to make again; one built whole (a system that bars habitable worlds, GEN.1397) is made again as it always was
             for obj in self.all_planets:
@@ -2747,8 +2783,9 @@ class StarSystem:
         if not history or config.NUM_ORBITS is not None or config.SLOTS:
             return architecture
         stripped = []
+        disk_myr = disk_truncation.disk_time_yr(star) / 1.0e6        # the planets exist from the end of the star's own disk (GEN.1551)
         for seed in architecture.planets:
-            epoch_myr = cluster_unbinding.unbinding_epoch_myr(seed.distance_au, _kg_to_msun(star.mass), history, draw.random())
+            epoch_myr = cluster_unbinding.unbinding_epoch_myr(seed.distance_au, _kg_to_msun(star.mass), history, draw.random(), disk_myr)
             if epoch_myr is not None:
                 stripped.append((seed, epoch_myr * 1.0e6))
         return planet_architecture.strip(architecture, stripped)
@@ -2784,6 +2821,7 @@ class StarSystem:
 
         sublimation_au = planet_architecture.sublimation_au(star.luminosity or 0.0)
         gas_factor = disk_truncation.gas_survival_factor(star)       # a companion inside 47 AU disperses the disk's gas early (GEN.1475)
+        disk_time_yr = disk_truncation.disk_time_yr(star)             # the age the star's disk is gone (GEN.1551): when the build's losses happen
 
         def plan_of(architecture, limit=None):
             floor_au = self._orbit_floor_au(star)
@@ -2792,7 +2830,7 @@ class StarSystem:
             return planet_architecture.Plan(self._strip_by_cluster(star, architecture), star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au, gas_factor)
 
         def built(maximum=False):
-            return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au, gas_factor=gas_factor)
+            return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au, gas_factor=gas_factor, disk_time_yr=disk_time_yr)
 
         if config.PLANETS is False:
             return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0, planet_architecture.Lost(0.0, 0.0, 0, 0.0, 0, (), (), (), 0.0, 0.0, ())), 0), 0

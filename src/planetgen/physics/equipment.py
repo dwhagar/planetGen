@@ -206,14 +206,16 @@ def _corrosive(world):
 
 # --- Filter -------------------------------------------------------------------------------
 
-def _gas_hazard(world):
-    """`(worst ratio to a long-term limit, any gas past its IDLH)` over the table's gases."""
+def _gas_hazard(world, scale=(1.0, 1.0, 1.0, 1.0)):
+    """`(worst ratio to a long-term limit, any gas past its IDLH)` over the table's gases; `scale` moves both limits of each of the four gases of `habitability.GAS_ORDER` out (a species' `Bands.gas_scale`, GEN.1772)."""
     worst, over = 0.0, False
+    factor = dict(zip(habitability.GAS_ORDER, scale))
     for row in TOXIC.values():
         partial = world.partial_kpa(row.gas)
-        if partial > row.chronic_kpa:
-            worst = max(worst, partial / row.chronic_kpa)
-        if partial > row.idlh_kpa:
+        move = factor.get(row.gas, 1.0)
+        if partial > row.chronic_kpa * move:
+            worst = max(worst, partial / (row.chronic_kpa * move))
+        if partial > row.idlh_kpa * move:
             over = True
     return worst, over
 
@@ -230,14 +232,14 @@ def _dust(world):
     return 2 if loading >= limit("dust_required_mg_m3") else 1 if loading >= limit("dust_recommended_mg_m3") else 0
 
 
-def _filters(world):
+def _filters(world, scale=(1.0, 1.0, 1.0, 1.0)):
     """`(dust, gas filter grade, CO2 scrubber, over IDLH or past a filter)`; the scrubber part is 0 or 2 (required), the
     dust part 0, 1 (recommended) or 2 (required)."""
     dust = _dust(world)
-    chronic, acute = habitability.GAS_LIMITS_KPA["CO2"]
+    chronic, acute = (edge * scale[0] for edge in habitability.GAS_LIMITS_KPA["CO2"])
     carbon_dioxide = world.partial_kpa("CO2")
     scrub = 2 if chronic < carbon_dioxide <= acute else 0
-    worst, over = _gas_hazard(world)
+    worst, over = _gas_hazard(world, scale)
     grade = 0 if worst <= 0 else 1 if worst <= HAZARD_RATIOS[0] else 2 if worst <= HAZARD_RATIOS[1] else 3
     return dust, grade, scrub, over or worst > HAZARD_RATIOS[2]
 
@@ -256,7 +258,7 @@ def _supply(world, limits, cold, hot, density, scale, sealed_gas, filtering, bod
     level = 0
     if pressure < low or body_level == 4:
         level = 2
-    if oxygen > limits.o2_acute or world.partial_kpa("CO2") > habitability.GAS_LIMITS_KPA["CO2"][1] or sealed_gas:
+    if oxygen > limits.o2_acute or world.partial_kpa("CO2") > habitability.GAS_LIMITS_KPA["CO2"][1] * limits.gas_scale[0] or sealed_gas:
         level = 2
     if cold < limits.temperature[1] or hot > limit("heat_shielded_c"):
         level = 2
@@ -414,7 +416,7 @@ def compute(world, limits=habitability.HUMAN):
             body_rec, kind_rec = level, elsewhere
     if body_rec <= body:
         body_rec, kind_rec = 0, "none"
-    dust, gas_grade, scrub, sealed_gas = _filters(world)
+    dust, gas_grade, scrub, sealed_gas = _filters(world, limits.gas_scale)
     supply, supply_rec = _supply(world, limits, cold, hot, density, scale, sealed_gas, bool(gas_grade or scrub), body)
     if body >= 5:
         supply = 4

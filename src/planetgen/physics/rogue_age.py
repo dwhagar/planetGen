@@ -13,7 +13,7 @@ drift (`rogue_drift`, which needs the time since ejection) and the history sente
 **The parent's age** is drawn from an `AgeLaw` (`galaxy.age_law`, the star-formation history's rate over the population's age window, GEN.546), so the rogues' ages follow
 the galaxy's star-forming past and not a flat range. The window starts no younger than the shortest ejection delay, since the planet cannot be ejected before it exists.
 
-**The ejection delay** is the time of the loss in the planet architecture: `Loss.time_yr`, the disk lifetime (`scatter.DISK_LIFETIME_YR`, 3 Myr), at which the architecture's
+**The ejection delay** is the time of the loss in the planet architecture: `Loss.time_yr`, the disk lifetime of its star (`disk_truncation.disk_time_yr`, GEN.1551; `scatter.DISK_LIFETIME_YR`, 3 Myr, for a body with no star), at which the architecture's
 scatter step throws a body out. A donor's rogue reads it from the record (`from_record`); a top-up rogue, which has no donor and no record, takes the same time (`EJECTION_TIME_GY`).
 The delay was a power-law draw before (index 1, an even share of each decade from 1 Myr to the parent's age, [R0747]:580 recalled) and that stand-in (RG2) is gone.
 
@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from planetgen.physics import scatter
 
 EJECTION_TIME_GY = scatter.DISK_LIFETIME_YR / 1.0e9
-"""float: When the planet architecture throws a body out, Gy after formation (`Loss.time_yr`): the disk lifetime."""
+"""float: When the planet architecture throws a body out, Gy after formation (`Loss.time_yr`): the disk lifetime of a body with no star of its own (a top-up rogue); a donor's record carries its star's."""
 
 
 class RogueAgeError(ValueError):

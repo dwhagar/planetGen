@@ -84,6 +84,9 @@ MAX_EXOBASE_STEPS = 200_000
 the whole range of bodies swept (radius 1e6 to 7e7 m, gravity 0.5 to 300 m/s2, 2 to 80 amu, mesopause 5 to 400 K, exobase to 5000 K), so
 this bound never acts on a real air; it stops a search that cannot end, and the exobase is then taken at the height reached."""
 
+EXOBASE_MEMORY = 8192
+"""int: Exobase solutions kept by `exobase` (PERF.276): it is a pure function of five numbers, and the loss history of one body asks for the same ones again."""
+
 KINETIC_DIAMETER_PM = {
     "H2": 289.0, "He": 260.0, "Ne": 275.0, "H2O": 265.0, "CH4": 380.0, "CO": 376.0, "N2": 364.0, "O2": 346.0, "Ar": 340.0, "CO2": 330.0,
 }
@@ -162,32 +165,40 @@ def exobase(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k):
     Returns:
         tuple: `(radius of the exobase, m; number density there, m-3; scale height there, m)`.
     """
+    return _exobase_solved(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k, MAX_EXOBASE_RADII, MAX_EXOBASE_STEPS,
+                           BATES_LENGTH_SCALE_HEIGHTS, MESOPAUSE_PRESSURE_PA, COLLISION_CROSS_SECTION_M2)
+
+
+@functools.lru_cache(maxsize=EXOBASE_MEMORY)
+def _exobase_solved(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k, max_radii, max_steps, bates_heights, mesopause_pa, cross_section_m2):
+    """`exobase` for the model's constants as they are passed (so that the memory keeps no answer of other constants)."""
     if not all(math.isfinite(value) and value > 0.0 for value in (radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k)):
         raise ValueError(f"exobase needs finite positive inputs, got radius {radius_m}, gravity {gravity_ms2}, mean mass {mean_mass}, "
                          f"temperature {temperature_k}, mesopause {mesopause_k}")
-    length = BATES_LENGTH_SCALE_HEIGHTS * _K * mesopause_k / (mean_mass * gravity_ms2)
-    log_density = math.log(MESOPAUSE_PRESSURE_PA / (_K * mesopause_k))
-    limit = (MAX_EXOBASE_RADII - 1.0) * radius_m
+    length = bates_heights * _K * mesopause_k / (mean_mass * gravity_ms2)
+    log_density = math.log(mesopause_pa / (_K * mesopause_k))
+    limit = (max_radii - 1.0) * radius_m
     height = 0.0
     rise = temperature_k - mesopause_k
 
-    def profile(height):
-        """`(decay, temperature, scale height)` of the Bates profile at `height`."""
-        decay = math.exp(-height / length)
+    exp = math.exp
+    over_mass_gravity = mean_mass * gravity_ms2
+    boltzmann = _K
+    # the Bates profile at `height` is `decay = exp(-height / length)`, `temperature = T_exo - rise decay` and the scale height
+    # `k T / (m g (r / (r + height))^2)`; it is written out in the loop (the search takes thousands of steps) with the arithmetic of the profile
+    for _ in range(max_steps):
+        decay = exp(-height / length)
         temperature = temperature_k - rise * decay
-        return decay, temperature, _K * temperature / (mean_mass * gravity_ms2 * (radius_m / (radius_m + height)) ** 2)
-
-    for _ in range(MAX_EXOBASE_STEPS):
-        decay, temperature, scale = profile(height)
-        if math.exp(log_density) * COLLISION_CROSS_SECTION_M2 * scale <= 1.0 or height >= limit:
+        scale = boltzmann * temperature / (over_mass_gravity * (radius_m / (radius_m + height)) ** 2)
+        if exp(log_density) * cross_section_m2 * scale <= 1.0 or height >= limit:
             break
         step = 0.25 * min(scale, length)
         gradient = rise * decay / length / temperature
         log_density -= (1.0 / scale + gradient) * step
         height += step
     # past the step bound the air is taken to reach the limit, as for a profile that never closes inside MAX_EXOBASE_RADII
-    scale = profile(height)[2]
-    return radius_m + height, 1.0 / (COLLISION_CROSS_SECTION_M2 * scale), scale
+    scale = boltzmann * (temperature_k - rise * exp(-height / length)) / (over_mass_gravity * (radius_m / (radius_m + height)) ** 2)
+    return radius_m + height, 1.0 / (cross_section_m2 * scale), scale
 
 
 def jeans_parameter(mass_kg, temperature_k, gm_m3_s2, radius_m):

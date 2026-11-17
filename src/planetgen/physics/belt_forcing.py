@@ -195,3 +195,23 @@ def forced_planet_vectors(axes_au, masses_kg, host_mass_kg, companions, ring_axe
     if float(np.max(np.abs(vectors))) > secular_chain.LINEAR_ECCENTRICITY_LIMIT:
         return None
     return tuple(complex(v) for v in vectors)
+
+
+def stellar_terms(axes_au, host_mass_kg, companions):
+    """
+    The `secular_chain.StellarTerms` of `companions` for planets at `axes_au` (GEN.1499): the apsidal rate and the push of `companion_terms`, and, for each companion whose plane is known, the same rate
+    on the node and the push `A_c w_c` of its plane (`w_c = sin(inc_c) exp(i node_c) = -n_y + i n_x` for its unit normal `n`). `companions` are `(mass_kg, axis_au, eccentricity, periapsis_rad, normal)`, the
+    normal a unit vector in the planets' frame or None. A companion with no plane pulls the planets' periapses and no node; the member-of-no-mass theory of `companion_rates` holds for the planets.
+    """
+    apsidal, push = companion_terms(axes_au, host_mass_kg, [c[:4] for c in companions])
+    nodal = [0.0] * len(axes_au)
+    tilt = [0j] * len(axes_au)
+    for mass, companion_axis, eccentricity, _periapsis, normal in companions:
+        if normal is None:
+            continue
+        w = complex(-normal[1], normal[0])
+        for j, axis in enumerate(axes_au):
+            rate, _push = companion_rates(axis, host_mass_kg, mass, companion_axis, eccentricity)
+            nodal[j] += rate
+            tilt[j] += rate * w
+    return secular_chain.StellarTerms(apsidal, push, tuple(nodal), tuple(tilt))

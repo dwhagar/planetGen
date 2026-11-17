@@ -184,3 +184,47 @@ def test_a_job_whose_template_is_still_being_built_stays_ready_and_is_handed_out
     assert one.turn() == [] and _state(control, run) == [("0", "ready", 0)]
     forker.building = False
     assert len(one.turn()) == 1 and _state(control, run) == [("0", "running", 0)]
+
+
+def _opening(control):
+    run = ledger.add_run(control, "generate", "g1")
+    ledger.add_jobs(control, run, [{"stage": "fill", "command": "opening", "arguments": {"run_id": "20261115-x", "index": 4}, "claim_mb": 1500}])
+    control.execute("UPDATE engine_jobs SET state = 'ready' WHERE run_id = ?", (run,))
+    control.commit()
+    return run
+
+
+def _opening_state(control, run):
+    row = control.execute("SELECT state, attempt, waited FROM engine_jobs WHERE run_id = ?", (run,)).fetchone()
+    return row["state"], row["attempt"], row["waited"]
+
+
+def test_the_opening_of_a_stage_is_handed_out_as_an_opening_job_with_an_attempt_the_launcher_writes(control):
+    run = _opening(control)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    started = one.turn()
+    assert len(started) == 1
+    kind, _runner, job, held = forker.forked[0]
+    assert kind == "opening" and job == {"opening": True, "run_id": "20261115-x", "stage": 4, "kind": "opening", "row": started[0], "retries_left": 1}
+    assert _opening_state(control, run) == ("running", 1, None)
+    attempt = control.execute("SELECT pid, outcome FROM engine_attempts WHERE job_id = ?", (started[0],)).fetchone()
+    assert (attempt["pid"], attempt["outcome"]) == (held.pid, "running")
+    held.said = [{"event": "unit", "result": {"opened": True}}]
+    forker.exits = [("plain", jobhost.Exit(held.id, held.pid, 0, None))]
+    one.turn()
+    assert _opening_state(control, run)[0] == "done"
+    assert control.execute("SELECT outcome FROM engine_attempts WHERE job_id = ?", (started[0],)).fetchone()["outcome"] == "done"
+
+
+def test_an_opening_of_a_run_that_is_no_longer_live_is_canceled_and_its_attempt_closed(control):
+    run = _opening(control)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    started = one.turn()
+    held = forker.forked[0][3]
+    held.said = [{"event": "unit", "result": {"skipped": True}}]
+    forker.exits = [("plain", jobhost.Exit(held.id, held.pid, 0, None))]
+    one.turn()
+    assert _opening_state(control, run)[0] == "canceled"
+    assert control.execute("SELECT outcome FROM engine_attempts WHERE job_id = ?", (started[0],)).fetchone()["outcome"] == "done"

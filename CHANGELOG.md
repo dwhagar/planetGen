@@ -2,6 +2,348 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4451] - 2026-11-17
+
+**Headline:** With forked jobs on, the opening of each later stage of a run (its cut into units) is handed out by the supervisor's launcher too, as a job of its own, instead of an RQ job.
+
+### Changed
+- The opening of a stage is a ledger row (`opening`) that claims the cut's memory; the launcher forks it like a unit, writes its attempt (with the process's id) and marks it done, canceled when the run was no longer live, or retried once when its process died (OPS.228 slice D2a).
+
+## [8.0.4450] - 2026-11-17
+
+**Headline:** The secular exchange generation test no longer depends on which test ran before it.
+
+### Fixed
+
+- TEST.789: `test_secular_exchange_generation` failed once under load with an inclination of 1.697 degrees against the stored 0.997. One test of the file moves every planet's plane by 0.7 degrees on the module-shared systems to check how the spin follows, so a test that ran after it on the same worker (the order differs under xdist) saw the moved orbits. That test now builds its own systems (`scratch_systems`); the assertions and bounds are unchanged. Test only.
+
+generation-output: unchanged
+
+## [8.0.4449] - 2026-11-17
+
+**Headline:** The table of stars the forced-type generator builds takes about 17 percent less time (14.9 s to 12.4 s for one [Fe/H] in a profile); every star is the same.
+
+### Changed
+- `alpha_tracks.equivalent_fe_h` is remembered. The table builds 104,137 cells at one [Fe/H] and asked for the same track metallicity 154,206 times (each a sum of four fits). The values are the bits of the law (a test compares the memory with the law across both branches and nine [Fe/H]).
+
+generation-output: unchanged
+
+## [8.0.4448] - 2026-11-17
+
+**Headline:** The civilized test systems hold a civilization with a species again after the Earth-twin envelope change.
+
+### Fixed
+- **`test_the_pinned_civilized_seeds_still_qualify` was red** after GEN.1774 moved the output of the Earth twin class: candidates 48 and 158 no longer hold a civilization with a species. The pins are now candidates 316 and 353, found by `python -m tests.civilized_pins refresh --hunt 4 --from N` (about 210 candidates scanned for two).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4447] - 2026-11-17
+
+**Headline:** A rocky planet of 1 to 3 Earth masses now keeps its hydrogen envelope only some of the time, a share that rises smoothly with the mass, so an Earth-mass planet in the habitable zone is bare again instead of keeping a thin envelope with no ground.
+
+### Changed
+
+- GEN.1774: `envelope_capture.KEEPS_FROM_MASS_EARTH` (row EC10) was a step: every body of 1.0 Earth masses or more kept the envelope it drew and none under 1.0 did, so the Earth twin (1.00003 Earth masses) kept 0.3 percent, was typed transitional with a radius of 8,678 km and classed T, in every seed. The share of bodies that keep their envelope is now `envelope_capture.keep_share`, the smooth step from 0 at 1 Earth mass (`KEEPS_FROM_MASS_EARTH`) to 1 at 3 (`KEEPS_ALL_FROM_MASS_EARTH`), decided by one draw from a stream of the body's own (`keeps_envelope`, no draw of the run's); a body that does not keep it is bare, as a body under 1 Earth mass is. A tweak of EC10 with no source for 1 to 3 Earth masses (tweak L4), not a new modifier. Bodies of 3 Earth masses or more and of 1 or less come out as they did. Reuse: `envelope_capture.start_stream` key style, `planets.apply_envelope`, the Class M tier's `bare_share` dial (already bare under a tier).
+
+generation-output: changed
+
+## [8.0.4446] - 2026-11-17
+
+**Headline:** The air of a warm world now loses its ammonia and methane to starlight over the star's age, so the thick ammonia and methane airs of old worlds thin to what light leaves standing.
+
+### Changed
+
+- GEN.1732: `surface_air.solve` now applies the photochemical loss of NH3 (to N2) and CH4 (to CO2) after the hydrate hold, over the age of the star with the star's far ultraviolet, for every non-giant body, by a share that rises from 0 to 1 across 215 to 245 K of the surface temperature (a ramp, so the solved temperature has no step in it; stand-in row 6.301 PC5, tier T7, tweak L1). Reuse: `photochemical_loss.lose` (PR 6702), `surface_air` damped fixed point unchanged.
+- The conversion between pressure and column in `photochemical_loss` uses the mean molar mass of the air (partial pressures are Dalton, proportional to moles), where the merged module used each gas's own molar mass. Moles are now conserved to the product.
+
+generation-output: changed
+
+## [8.0.4445] - 2026-11-17
+
+**Headline:** A companion star or a heavier outer planet on a tilted orbit can now stretch an inner planet's orbit into a long ellipse, tilt it, or throw it into its star.
+
+### Changed
+
+- GEN.1645: the Kozai-Lidov screen for planets (`physics/kozai_planets.py`) now runs in generation. After the planets have exchanged eccentricity and before the tide wears an orbit down, each planet is screened against the companion stars it sees and against heavier outer siblings. A planet whose strongest pull cycles takes the eccentricity of its place in the cycle at the star's age and the tilt it has there, with its spin and its moons carried along. A planet whose peak eccentricity would put it inside its star or its Roche limit is lost with its moons. The tide then wears the pumped orbit down from where the cycle left it. The pulls are noted in the effect ledger.
+
+## [8.0.4444] - 2026-11-17
+
+**Headline:** A star's own disk time now decides when its planets are thrown out, when its cluster starts to unbind them, how long the pebbles drift, and whether a close companion has already ended its disk.
+
+### Changed
+
+- GEN.1551 slice 2: `scatter.DISK_LIFETIME_YR` (3 Myr, EJ2) and `cluster_unbinding.DISK_LIFETIME_MYR` (CU4) were one disk time for every star; slice 1 gave each star its own. `disk_truncation.disk_time_yr(star)` is that time (shorter for a star with a companion inside 47 AU, the same draw). The planet architecture records its losses at it (`Lost.disk_time_yr`, `planet_architecture.build(disk_time_yr=...)`), `disk_ejection` throws a disk's bodies out then, `cluster_unbinding.unbinding_epoch_myr` counts only the cluster encounters after it (the cluster's history now starts at its formation), and `disk_drift.disk_end_myr(mass_solar)` ends the pebble flux at it. A young star with a close companion that the shorter time has already taken past class II has its disk taken off once the system attaches the companions (`StarSystem._lose_disks_to_close_companions`; no draw). A top-up rogue with no star keeps the 3 Myr reference. Pebble drift reads the lone-star time (it holds no companions).
+
+generation-output: changed
+generation-affects: scatter, fill, population
+
+## [8.0.4443] - 2026-11-17
+
+**Headline:** The black hole overflow test no longer assumes a giant's wind at 5 AU is small against its overflow.
+
+### Fixed
+
+- GEN.1531: `test_dark_light` compared a giant's wind feed at 5 AU against a hundredth of its overflow, which holds only for the wind law of before Train 41's GEN.1625. It now checks that the far feed is under the near feed less the overflow. Test only.
+
+generation-output: unchanged
+
+## [8.0.4442] - 2026-11-17
+
+**Headline:** A star that fills its Roche lobe about a black hole of an orbit tree now feeds it by overflow, so the hole is a bright X-ray source.
+
+### Added
+
+- GEN.1531: a black hole shone only on the winds of its tree's stars (GEN.1501), which left a hole beside a lobe-filling star many orders too faint. `dark_light.overflow_kg_s` gives such a star's overflow at its mass over its own evolution time (the nuclear time of `ms_lifetime` for a donor no heavier than the hole, 1e-10 solar masses a year for a 1 solar mass donor; the Kelvin-Helmholtz time for a heavier one), added to the wind's feed; the disk's light is still held at the Eddington limit. The filling test is `roche.filling_factor` at the separation of the tree. Stand-in row DL10 (the wind row DL7 no longer says a lobe-filler is not a feeder).
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4441] - 2026-11-17
+
+**Headline:** A stripped helium star (a hot subdwarf) in an orbit tree now gives light and XUV to the planets of the star beside it.
+
+### Added
+
+- GEN.1530: `dark_light.source_of` lit a brown dwarf, a neutron star and a black hole but gave a stripped helium star (a Be star's companion, a post-common-envelope partner) nothing. A stripped star of 0.3 solar masses or more now shines as a hot subdwarf: `4 pi R^2 sigma T^4` of its stored radius at 28,000 K (22 solar luminosities for the 0.47 solar mass, 0.2 solar radius star the tree draws), with the share of that blackbody over the hydrogen edge (17 percent) as its XUV, so the field's XUV band and the loss of air and of envelope count it. A lighter stripped star (a semi-degenerate AM CVn donor) still gives no light. It is stored in the effect ledger as `source_type` 11 (`DARK_KIND_CODES`). Stand-in row DL9.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4440] - 2026-11-17
+
+**Headline:** A lone neutron star's surface temperature is now the cooling curve of its age, the same curve a neutron star in an orbit tree reads, so an old one is a few thousand kelvin and not a drawn 50,000 to 3,000,000.
+
+### Changed
+
+- GEN.1529: `NeutronStar` read its surface temperature from a range of 5e4 to 3e6 K at every age (`tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K`, gone); it is now `dark_light.surface_temperature_k` of its age since the collapse, so a lone neutron star and one in a tree agree (4.6 Gy: about 4,600 K; 0.9 Gy: about 10,300 K). Its luminosity, X-rays and habitable zone follow. The plausibility check holds the temperature to the curve (the record carries `age_gy`). The snow line of its disk is read at the light the star had at the end of its neutrino era (`_formation_luminosity_w`, about 1e26 W, stand-in DL8), because the light of an old neutron star today put the snow line at 1e-5 AU and left a system that asks for two bodies with one; the line stays where it was, about an astronomical unit.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4439] - 2026-11-17
+
+**Headline:** A glowing dark member of an orbit tree (a brown dwarf, a neutron star, a black hole with a disk) is now a source in a planet's light ledger, stored by its kind and member number.
+
+### Added
+
+- GEN.1528: the effect ledger stored only sources with a row of a kind table, so the light of a dark member (`dark_light`, GEN.1501) was in the planet's light and missing from its ledger share. `effect_ledger.dark_location` names such a source and `DARK_KIND_CODES` (brown dwarf 8, neutron star 9, black hole 10) stores it with its member number as `source_id`; `EffectLedger.rows` files it, and the refill job writes it again. `source_type` is a plain small integer, so no migration is needed (the item expected one). A dark member's light is a part in 1e11 of its host's when it is a brown dwarf, so in the stored galaxy it is mostly in the summary row under the floor; rows appear where it is near or hot (a young neutron star, a black hole disk).
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4438] - 2026-11-17
+
+**Headline:** A companion star now pulls on the orbits of a star's planets (their periapses, forced eccentricities, and orbit planes); a lone star's planets are unchanged.
+
+### Changed
+- **A companion star forces its star's planets (GEN.1499 slice 1).** `secular_chain.evolve` takes the companion's terms (`secular_chain.StellarTerms`, made by `belt_forcing.stellar_terms`): its `A_c` on the planets' apsidal and nodal diagonals and a push along its periapsis and its orbit plane from one extra held body at rest, so each planet circles the fixed point of the planets' own exchange plus the companion's (the forced eccentricity of GEN.1492 slice 0, now with the planets' own pulls, relativity and the belt rings in it). `planets.secular_exchange` builds them from `radiation_field.companions_of` and now also runs for a star with one planet and a companion. A companion with no known plane turns no node. Reused, not rebuilt: slice 0's `companion_rates`, `forced_planet_vectors` (the closed-form check of the tests), `secular_chain._drive`. A lone star gives today's planets to the last digit (tested). Census of 200 generated pairs (279 stars with a companion, 2,626 planets): the terms move 1,457 planets in 275 stars, the mean eccentricity of a moved star's planets goes from 0.135 to 0.138 and the mean inclination from 10.6 to 14.4 degrees; none of the exchanges turns "outside the theory" (`tests/audit/planet_forced_census.py`). No migration.
+
+generation-affects: fill
+
+generation-output: changed
+
+## [8.0.4437] - 2026-11-17
+
+**Headline:** The members of a belt whose star has a tilted companion star now carry the inclination and node that the companion's secular pull and the planets give them; a lone star's belt is unchanged.
+
+### Changed
+- **A companion star tilts its star's belt members (GEN.1492, second part, slice 1).** `AsteroidBelt._force_by_companions` now turns each member's drawn orbit normal about the forced axis of `physics/belt_forcing.py` (`forced_normal`: the planets' plane weighted by the star's nodal rate on the member, plus each companion's orbit plane weighted by its secular rate), to a phase drawn from one stream of the belt, and keeps the angle to that axis (`tilted_orbit`). A bare belt follows the companion's plane, a belt beside a giant stays near the planets' plane. A lone star, a companion with no known plane, a coplanar companion, a member beyond `ALPHA_LIMIT` of the companion and a forced axis past 0.5 rad from the planets' plane keep their drawn inclination and node exactly. Reused, not rebuilt: slice 0's `belt_forcing`, `secular_chain.matrices`, `radiation_field.companions_of`, `spin.orbit_normal`. The three wiring-register lines are gone as the functions are now read. Census of 300 generated pairs (490 belts of stars with a companion): the tilt moves 127,724 of 143,510 members in 456 belts, and the mean inclination of a tilted belt goes from 22.3 to 24 degrees (`tests/audit/belt_forced_members_census.py`). Registry rows FE3 and FE5 of section 6.256 are unchanged. No migration.
+
+generation-affects: fill
+
+generation-output: changed
+
+## [8.0.4436] - 2026-11-17
+
+**Headline:** A star system builds about 10 percent faster: an equilibrium gas solve that has been made before and an exobase that has been found before are remembered instead of made again. The air is the same to the last bit.
+
+### Changed
+- `gas_equilibrium._solve` remembers its last 8,192 solves, keyed on every input (the abundances, the temperature, the pressure, the held oxygen fugacity and the species list, each as the exact float), and returns a copy of a remembered solve (or raises the remembered `EquilibriumError`). Before: the same gas was solved from scratch each time the air asked for it again (39 percent of the solves of a G5V system were repeats).
+- `thermosphere.exobase` remembers its answers by its five numbers and the model constants it reads, and its step loop is written out with the same arithmetic instead of calling a profile function at each step. Before: the loss history of each body repeated the same searches (26 percent of 8,160 calls on a G5V system) at about 540 function calls apiece.
+- New tests: a repeated solve is equal to a fresh one and its copy can be changed; a temperature one part in 1e12 away or another held oxygen is not served the remembered solve; a failing solve fails each time; a repeated exobase is a cache hit and a refused input is refused each time.
+
+generation-output: unchanged
+
+## [8.0.4435] - 2026-11-17
+
+**Headline:** The galaxy-run stage test names the stages of the population pass as they are now, so main is green again.
+
+### Fixed
+- `test_a_galaxy_run_scatters_the_stars_then_the_phenomena` expected one `population` stage; since OPS.239 part B the pass is the four stages `species`, `civilizations`, `technology` and `population`, and the expected list says so.
+
+generation-output: unchanged
+
+## [8.0.4434] - 2026-11-17
+
+**Headline:** The sky draw of the bright-star backfill is about a fifth faster per cell: sectors that take one level or mass are written in one statement, and a cell's center is worked out once.
+
+### Changed
+- PERF.275: a sky share wrote one `UPDATE` of `sector_stats` for every cell it visited (21,000 statements for 22,000 cells in a profile), and worked out the center of the same cell again for every tier. The cells that take one level, or one mass and level, are now written 500 to a statement (`store.set_sector_bright_levels`, `set_sector_bright_masses`), and `spherical.sector_position_pc` is cached. The same rows are stored and the same stars are drawn. On a toy galaxy, two luminosity tiers over 22,402 cells took 10.1 s against 8.2 s (12.1 s against 15.0 s on a cold first pass), 19 percent less.
+
+generation-output: unchanged
+
+## [8.0.4433] - 2026-11-17
+
+**Headline:** The scatter-id test file is listed as heavy, so the quick test slice leaves it out and a run on a busy box is not ended by the hang guard.
+
+### Changed
+- **`test_gen1254_scatter_uid.py` joins `HEAVY_FILES`** (`src/tests/areas.py`). It builds charted sectors, and a system build is now about 2.4 times slower (GEN.1779, PERF.276): Lane 14 measured the file at 1,495 s alone on a quiet core against 617 s on record, over the 1,140 s hang guard. It is not a hang. The test and the guard stay as they are.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4432] - 2026-11-17
+
+**Headline:** The units of a generation run are now handed out by the supervisor's launcher and run as jobs forked from a warm template, instead of going to RQ workers.
+
+### Changed
+- `queue.forked_jobs` (environment `PLANETGEN_FORKED_JOBS`) is on by default. A run whose stages are cut into ledger rows opens each stage by adding the arguments to its rows and releasing them to the launcher, and the launcher forks each unit, begins and ends its attempt, and settles the row. Off, every unit goes to a worker as before (OPS.228 slice D1).
+- A run carried on after an update hands its remaining units to the launcher the same way.
+
+## [8.0.4431] - 2026-11-17
+
+**Headline:** The stand-in moon of the final-air test again carries a build record, so main is green again after the air's kept state moved onto the build record.
+
+### Fixed
+- `test_air_final` made a stand-in moon without a `build` record, which `air_final.make` writes to (the kept retention cap and carbon sink); the stand-in carries a `BuildRecord()`.
+
+generation-output: unchanged
+
+## [8.0.4430] - 2026-11-17
+
+**Headline:** A bad FORCE_CLASS request is refused whatever star comes up, since the check now runs before the first draw.
+
+### Fixed
+- `StarSystem`: `FORCE_CLASS` combined with `SLOTS`, or naming a letter that is not a planet class, raised only after the star was drawn and only for stars that reach the planet planner, so a pulsar, a post-AGB pair or a diskless black hole accepted it silently (found when `test_class_sample::test_the_switch_refuses_slots_and_unknown_letters` went red on main after a draw moved). The checks are the same, now made once at the start. The test's "unknown letter" was `Q`, which is a planet class now (every letter A to Z is one), so it names `1`.
+
+generation-output: unchanged
+
+## [8.0.4429] - 2026-11-17
+
+**Headline:** the tide-fill test reads systems until its sample holds a circularized body, so it does not depend on which twelve seeds the generator happens to give one.
+
+### Fixed
+
+- `tests/test_sheet_fill.py::test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies` read seeds 7100 to 7111 and needed one body under the 1e-12 eccentricity threshold. Two of 112 bodies were under it on main; after GEN.1645's Kozai screen (PR 6968) moved the draws of those twelve systems none of 110 was, so the test failed on Train 42 (and reads `seen[False] > 0`). It still reads the twelve seeds, then goes on through the seeds up to 7299 until both kinds of body are in the sample. The assertions are unchanged.
+
+## [8.0.4428] - 2026-11-17
+
+**Headline:** The stall line of a stage that still has units to start says what the memory gate holds, and the new `record-phenomenon-scatter` command has a memory figure.
+
+### Added
+- When no unit of a stage has finished for 30 minutes and units are still to start, the log line now ends with the gate's figures: the claims held by the bulk lanes (what they claimed and what their processes hold), the cores they use of the cores the gate allows, the memory the host has available of its total, what the gate keeps back, and the load a core. A stage that runs fewer units than it has workers shows what limits it (OPS.270).
+
+### Fixed
+- `record-phenomenon-scatter` had no memory figure, so `test_every_command_with_units_has_a_memory_figure` failed on main; it claims 700 MB like the other one-unit commands.
+
+## [8.0.4427] - 2026-11-17
+
+**Headline:** The bright-star backfill bar counts the sky tiers as they are drawn, and each sky share's counter is costed the way the stage was planned, so the ETA no longer reads in hundreds of days.
+
+### Fixed
+- OPS.269: a sky unit of the bright-star backfill is one piece, so its own count stood at 0 of 1 until the piece ended and the backfill bar credited nothing for hours of drawing (Boss's run: 1,088 of 7.00e8 after 4.5 hours, an ETA of 194 to 254 days). The sky draw now moves the unit's own count with the share of the tiers it has drawn, which the bar, the Queue page and the stage's ETA read.
+- The counter of a sky share counted the visits of every ring's whole sphere, about three times the walk's visits that the stage's plan (and its bar total) costs; it is now costed by what the walk does, as the plan is.
+
+generation-output: unchanged
+
+## [8.0.4426] - 2026-11-17
+
+**Headline:** The stand-in moon of the Cassini-tilt test again carries a build record, so main is green again after GEN.1651.
+
+### Fixed
+- `test_settle_obliquity` made a stand-in moon without a `build` record, which `settle_moon_tilts` now reads for the moon's frame axis (GEN.1651); the stand-in carries a `BuildRecord()`.
+
+generation-output: unchanged
+
+## [8.0.4425] - 2026-11-17
+
+**Headline:** the population pass is now four commands of its own, so each step can be seen, stopped and carried on by itself and the generated galaxy is the same.
+
+### Changed
+
+- OPS.239, part B: the `run-population` command is gone. `scan-species` (stage `species`) scans the planets for species, after the last one scanned or all of them for a rescan. `date-civilizations` (stage `civilizations`) drops the species with no civilization, dates the civilizations and founds or dissolves the polities. `refresh-technology` (stage `technology`) refreshes the map's civilization rows with their most advanced species' technology level. `count-population` (stage `population`) counts the species, the spacefaring ones and the polities. `needs.py` declares the chain (`sectors`, `species`, `civilizations`, `technology`, `population`), `run-territories` still needs `population`, and a galaxy run counts three stages more.
+
+## [8.0.4424] - 2026-11-17
+
+**Headline:** The air history now follows the oxygen a world's life raises through time, ending at the oxygen the generator already gives it, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 2a: `air_history.oxygen_trajectory(body, living, ages)` and `oxygen_cuts` give the oxygen, mol, of the air at each age as the classes of `living` raise it: as found before the rise, then the plateau or the balance of the source against the reductant sink of that age. Its last value equals what `biogenic_oxygen.apply` puts into the air (9 worlds with a rise in 120 generated systems, all equal). Reuse: `life_air.oxygen_state`, `_oxygenic` and `standing_methane_mol`, `biogenic_oxygen.profile_of`, `burn`, `balance_pa`, `reductant_history_factor`, `_oxygen_mol_at`, `_fire_limit_mol`. Nothing in the generator reads it yet.
+- `air_history._anchor_indices` keeps an anchor at a turning point of the starlight (the pre-main-sequence bump of a young star's light) when it has to drop some, so the steps round the bump are read between it and its neighbours; a world whose light bump had lost its anchor was read up to 3 percent off at the clamp (found by `test_a_temperature_that_follows_the_light_is_read_exactly_between_anchors_and_solved_only_at_them`, which was red on main on the first generated life world). Nothing in the generator reads the history yet.
+
+## [8.0.4423] - 2026-11-17
+
+**Headline:** The civilized test systems now hold a civilization that also gets a species, so the population galaxy tests no longer hunt for hours.
+
+### Fixed
+- **`test_population`'s galaxy fixture hunted for hours** because the pinned candidates held a civilization but not always a species (the fixture's `_civilized_system` needs both). The pin test now saves each pin and runs the fixture's own check (`qualifies`, shared with the fixture), and `python -m tests.civilized_pins refresh --hunt 4` checks the species too (and takes `--from N` to start from another candidate). Pins are now candidates 48 and 158.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4422] - 2026-11-17
+
+**Headline:** A body with no star has no wind again, so a starless host's planet has no magnetopause standoff, and the subdwarf [Fe/H] cut is a signed constant.
+
+### Fixed
+
+- GEN.1625 follow-up: `magnetism.wind_pressure_pa` held every wind at the interstellar medium's pressure, so a rogue planet's starless host (luminosity 0) got a wind and `magnetopause_rp` a value where it was `None` (GEN.1111). A star with no light (a starless host, a black hole nothing feeds) now gives no wind; the floor stays for a quiet star and for a white dwarf. `test_fuzz_utils_and_config` lists `SUBDWARF_MAX_FE_H` (GEN.1635, -0.5) among the constants that are negative by nature.
+
+generation-output: unchanged
+
+## [8.0.4421] - 2026-11-17
+
+**Headline:** A young star up to 1.4 solar masses now has the light, temperature and radius of the published tracks at its age; a Sun-like star at 10 Myr is at 0.46 of its present light, not 0.75.
+
+### Fixed
+
+- GEN.1640: the model's own pre-main-sequence track ran brighter than the BHAC15 tables [R0254] from 0.5 solar masses up: a Sun-like star at 10 Myr had 0.75 solar luminosities against 0.46, and a 1.4 solar mass star 3.35 against 1.95 and reached the main sequence at 9 Myr, where the table has it at 20. The cause is that the model keeps a star at the light it ends on, while the published track dips under it and climbs back. Where the table holds the mass (up to 1.4 solar masses) `pre_main_sequence` now reads its luminosity, temperature and radius at the star's age (ages under its first, 0.5 Myr, read the first), and the radius-settled ages are read on to 1.4 solar masses (47.1, 38.0, 30.6, 24.9, 22.3 and 19.6 Myr at 0.9 to 1.4, from the age the table's radius is within 5 percent of the MIST zero-age radius). The model's own track stays for the stars above the table, scaled onto the 1.4 value, and meets the table with the step at 1.4 solar masses that `birth_luminosity` already names (GEN.553). Registry row LM6 says so.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4420] - 2026-11-17
+
+**Headline:** A cool dwarf's wind now comes from measured stellar winds, one law for its bubble, the black holes it feeds and the pressure on its planets' magnetic fields; an M dwarf's is no longer 2.8 times the Sun's, and a white dwarf has none.
+
+### Fixed
+
+- GEN.1625: `stellar_wind.wind` scaled every cool dwarf from the Sun by `R^2 L^-0.5 M^-1` (cited to a source that is not about stars: R4756 was a book chapter on the use of force), so an M5 dwarf had 2.8 times the Sun's mass loss and a white dwarf had a wind; and `magnetism.wind_pressure_pa` held a second, different wind (X-ray surface flux to the 1.3 power, capped at 10 for A to K and 1 for dwarfs under 0.4 solar masses). There is now one law (`stellar_wind.coronal_mass_loss_solar`). An A to K dwarf's mass loss is the Sun's times its squared radius times its X-ray surface flux over the Sun's to the 1.29 power ([R5303], 1.34 in [R5304]), the flux held at 1e6 erg/cm^2/s, the dividing line above which the measured winds turn weak. An M dwarf's is 3.3 times the Sun's per unit surface area whatever its flux, the median of the six single M dwarfs measured by [R5302] (an M5 dwarf of 0.2 solar radii has 0.13 of the Sun's, under the 0.2 that Proxima Centauri's limit allows). A white dwarf has none. The speed stays the Sun's 400 km/s scaled by the escape speed. The heliosphere, the winds that feed a black hole and the pressure on a planet's magnetosphere (`magnetism.wind_pressure_pa`: the Earth's times the star's mass loss and speed over the Sun's, no less than the interstellar medium's pressure) all read it; `Star._calculate_heliosphere_radius_static` and `stellar_wind.wind` take the star's `log_lx_lbol`, so the heliosphere is sized after the star's activity. Stand-ins WN5 to WN8 say so; the three exponent constants of the old law and `magnetism.WIND_CAP_SOLAR`, `M_DWARF_WIND_CAP` and `M_DWARF_WIND_MASS` are gone.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4419] - 2026-11-17
+
+**Headline:** A young star now holds its disk for its own time, drawn from the surveys' exponential, so disks are found between 3 and 10 Myr and not every disk ends at 3 Myr.
+
+### Changed
+
+- GEN.1551 slice 1: a star's class 0 and I disk ends at the ages the stages have (0.15 and 0.5 Myr) and its class II disk at its own dispersal time (`pre_main_sequence.dispersal_yr`, from `disk_dispersal.draw_dispersal_time_yr`: an exponential of 2.5 Myr at 0.5 solar masses, 3 to 1 Myr by mass), in place of the fixed 3 Myr step (`tuning.DISK_CLASS_AGES_YR` no longer holds the II age). The time is drawn from the stream of the star's initial mass and no age, so it does not move when the age does, and it is held at `tuning.PLANET_MIN_STAR_AGE_GY` (10 Myr) so that no star holds a disk and planets together until GEN.1552 lets the star's own time set the planet cut. `Star` passes its initial mass to `draw_disk`. A 0.5 solar mass star at 5 Myr now has a class II disk; a Sun-like star's disk, 0.29 Myr in this draw, is gone at 0.5 Myr. The close-companion shortening (`CLOSE_COMPANION_TAU_MYR`) is in the law and not yet read: a star's companions are attached after its disk is drawn, so the system step that reads it is GEN.1475's to take.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4418] - 2026-11-17
+
+**Headline:** `test_tidal_spin` makes its seeded systems four at a time, so the file runs in a third of the time.
+
+### Fixed
+
+- TEST.788: `tests/test_tidal_spin.py` made the whole systems of three seeded sweeps one after another (the giant-tilt search up to 300 seeds, 12 seeds of the tide-state check, 24 default systems) and took 1,583 s alone, 1,662 s in a gate. The systems are now made by forked workers, each on its own seed, and the giant-tilt search reads them in seed order and stops at the same seed, so every sample and every bound is the one the one-by-one run used.
+
+## [8.0.4417] - 2026-11-17
+
+**Headline:** The star sheet now marks the cool red-giant-branch stars (M giants) as semiregular variables.
+
+### Added
+
+- GEN.944: the Variability row marked Cepheids, Miras, T Tauri and Herbig stars but left the semiregular variables of the red-giant branch out. A red-giant-branch star cooler than 4,000 K now reads `Semiregular (red giant)` (stand-in VR4). Nothing is stored; the row is worked out from the stored state and temperature. This is the last open part of the item: carbon and S stars (GEN.1026), Ap and Am stars (GEN.1027), the 10 to 13 Gy thick-disc window (GEN.1025), the age-metallicity relation and the alpha shift (GEN.1024) were built before.
+
+generation-output: unchanged
+
 ## [8.0.4416] - 2026-11-17
 
 **Headline:** the census audit fills its sectors with four workers at a time, so the whole-sphere tests no longer run past the hang guard.
