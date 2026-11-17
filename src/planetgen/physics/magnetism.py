@@ -340,6 +340,8 @@ def wind_pressure_pa(star, distance_au):
     Sun's, times the Earth's; a pulsing neutron star's is its pulsar wind's (`pulsar_wind_pressure_pa`)."""
     if getattr(star, "pulsar_type", None) in PULSING_TYPES and distance_au:
         return pulsar_wind_pressure_pa(activity.neutron_star_spin_down_w(star), distance_au)
+    if getattr(star, "luminosity", None) == 0.0:
+        return 0.0         # GEN.1111: no star (a starless host, a black hole nothing feeds) has no wind to hold off; `magnetopause_rp` reads a zero as no standoff
     if getattr(star, "yerkes_class", None) in stellar_wind.WHITE_DWARF_CLASSES:
         return constants.ISM_PRESSURE      # no wind (GEN.1625): a body there sits in the interstellar medium's pressure, which keeps the standoff finite
     if (getattr(star, "radius", None) is None or getattr(star, "luminosity", None) is None
