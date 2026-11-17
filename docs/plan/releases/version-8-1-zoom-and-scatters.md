@@ -653,5 +653,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1783 | (bug) Wide-binary planet apoapsis past the stability limit | none | Lane 05, 2026-11-17 |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
-| PERF.276 | The air solve is 59 percent of a full system build | none | Lane 16, 2026-11-16 |
 | PERF.277 | Interior cooling step collapse in old small bodies | none | Lane 16, 2026-11-17 |
+| PERF.278 | The exobase search step (lock) | none | Lane 07, 2026-11-17 |
