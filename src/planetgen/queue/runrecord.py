@@ -861,6 +861,14 @@ def log(conn, run_id, message, level="info", kind="log", now=None, **fields):
     return _s(conn.xadd(events_key(run_id), entry, maxlen=EVENTS_MAXLEN, approximate=True))
 
 
+def log_said(conn, run_id, message, level="info", kind="log", now=None, **fields):
+    """`log`, and the first line of the message in the job's own log too (OPS.268): what holds, stops or restarts a unit says so where the person who started the run reads, not only in the run's event stream
+    (a run's log page), which a run that has ended may no longer have. Returns the event id."""
+    from planetgen.util import log as job_log
+    job_log.normal(f"{message.splitlines()[0] if message else message}")
+    return log(conn, run_id, message, level, kind, now, **fields)
+
+
 def read_events(conn, run_id, after="0", count=500):
     """The events after stream id `after` (`"0"` for all), oldest first: `[(id, {field: value})]` with text
     values. Follow a run by passing the last id seen."""
