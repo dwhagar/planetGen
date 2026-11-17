@@ -18,7 +18,7 @@ from planetgen.db import dataversion, store
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.queue import pagejobs, redisclient, workers
+from planetgen.queue import lightjobs, pagejobs, redisclient
 from planetgen.web.app import create_app
 from planetgen.web import searchpage
 from planetgen.web.lib import apiclient, slowpages, slowroute
@@ -158,7 +158,7 @@ def test_a_waiting_page_queues_one_job_for_every_visitor_who_asks(slow):  # noqa
 
 def test_the_finished_page_is_served_once_the_job_has_run(slow, monkeypatch):  # noqa: F811
     config = slow.config
-    monkeypatch.setattr(workers, "ensure_workers", slow.run_jobs)           # the tests' inline worker runs the job as it is queued
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: slow.run_jobs(connection, url))           # the tests' inline worker runs the job as it is queued
     real_ensure = pagejobs.ensure
     monkeypatch.setattr(pagejobs, "ensure", lambda db, target, rows=None, expected=None, config=None, retry=False:
                         real_ensure(db, target, rows, expected, slow.config, retry))
@@ -207,7 +207,7 @@ def _add_an_m_class_planet(config):
 def _every_build_is_slow(monkeypatch, slow):
     """The cost rule calls every request slow whatever it measured, and the tests' worker runs a job as it is queued."""
     monkeypatch.setattr(tuning, "SLOW_PAGE_SECONDS", -1)
-    monkeypatch.setattr(workers, "ensure_workers", slow.run_jobs)
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: slow.run_jobs(connection, url))
     real_ensure = pagejobs.ensure
     monkeypatch.setattr(pagejobs, "ensure", lambda db, target, rows=None, expected=None, config=None, retry=False:
                         real_ensure(db, target, rows, expected, slow.config, retry))

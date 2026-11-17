@@ -4480,6 +4480,10 @@ has not been timed itself (`slowpages.cost`). A planetGen default."""
 SLOW_PAGE_JOB_SECONDS = 3600
 """int: How long a slow request's job (its id, progress and finished state) is kept in Redis. A planetGen default."""
 
+SLOW_PAGE_WANTED_SECONDS = 120
+"""int: How long a slow page's job that has not started stays wanted after the last visitor asked after it (a page polls it every second or two, and a browser puts a background tab's timer to sleep for up
+to a minute). A job nobody has asked after for that long is dropped, not run (OPS.230, W12 of the job engine audit). A planetGen default."""
+
 SLOW_PAGE_FAILED_SECONDS = 30
 """int: How long a failed or canceled job is shown to the visitors who ask for the same request, before the next
 one queues a new job. A planetGen default."""

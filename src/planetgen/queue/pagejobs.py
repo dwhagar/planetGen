@@ -4,7 +4,7 @@
 Slow page requests as jobs (PERF.105; design in docs/design/operations/slow-page-answers.md).
 
 A page that expects a slow answer does not build it inside the request. `ensure` queues one job
-(`build_answer`, on the interactive queue like the cache warm-up's) that makes the request the way the page
+(`build_answer`, a light job: `queue/lightjobs.py`) that makes the request the way the page
 would, which stores the answer in the tagged page cache (`web/lib/pagecache.py`) under the tags it read, so an
 edit that touches the answer invalidates it exactly as it does any cached answer. The page gets the job's id at
 once and polls `status` (`GET /api/page-jobs/<id>`) until the answer is there, then reads it from the cache.
@@ -32,6 +32,9 @@ job runs, `done` of `total` rows is the elapsed share of the expected time (neve
 time left (`None` once the expected time has passed), and the status says so (`estimated`). It reaches `done ==
 total` only when the answer is stored.
 
+A job that has not started is dropped once nobody has asked after it for `tuning.SLOW_PAGE_WANTED_SECONDS` (the page asks with every poll): nobody waits for its answer, so it
+is not worth the host's room (OPS.230). A job that has started runs on, and its answer is kept for the next visitor.
+
 An admin cancels a job with `POST /api/page-jobs/<id>/cancel` (`cancel`): a job that has not started is
 removed and one that has not begun its query stops; a query already running finishes, and its answer is kept in the
 cache (it is a correct answer the next visitor gets), but the job reports `canceled`. Every visitor waiting on a
@@ -45,7 +48,7 @@ import time
 import redis
 
 from planetgen import tuning
-from planetgen.queue import api_jobs, redisclient
+from planetgen.queue import api_jobs, lightjobs, redisclient
 from planetgen.util import log
 from planetgen.util.format import format_bytes, format_duration_seconds
 
@@ -207,8 +210,8 @@ def status(job_id):
     elif meta.get("queue_job") or time.time() - (_float(meta, "created") or 0) > api_jobs.RESULT_TTL_SECONDS:
         state, error = "failed", "the job is gone from the queue"
     canceled = meta.get("canceled") == "1"
-    if canceled and state == "failed" and queued is not None and "ended without" in (error or ""):
-        state, error = "canceled", None        # removed from the queue before it started
+    if canceled and state == "failed" and queued is not None and lightjobs.CANCELED_TEXT == error:
+        state, error = "canceled", None        # removed from the pending list before it started
     total = int(meta["rows"]) if meta.get("rows") else None
     expected = _float(meta, "expected") or 0.0
     started, finished = _float(meta, "started"), _float(meta, "finished")
@@ -282,7 +285,8 @@ def ensure(db, target, rows=None, expected=None, config=None, retry=False):
             if time.monotonic() >= deadline:
                 raise NoQueue("another request is queuing this one and did not finish")
         try:
-            queue_job = api_jobs.submit(build_answer, db, target, token, config, expected_seconds=expected)
+            queue_job = api_jobs.submit(build_answer, db, target, token, config, expected_seconds=expected, wanted_seconds=tuning.SLOW_PAGE_WANTED_SECONDS,
+                                        drop_keys=(key, meta_key(token)))      # OPS.230: a visitor who stops asking after the answer takes the job off the line
         except Exception:
             connection.delete(key, meta_key(token))
             raise
