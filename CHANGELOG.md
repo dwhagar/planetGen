@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4429] - 2026-11-17
+
+**Headline:** the tide-fill test reads systems until its sample holds a circularized body, so it does not depend on which twelve seeds the generator happens to give one.
+
+### Fixed
+
+- `tests/test_sheet_fill.py::test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies` read seeds 7100 to 7111 and needed one body under the 1e-12 eccentricity threshold. Two of 112 bodies were under it on main; after GEN.1645's Kozai screen (PR 6968) moved the draws of those twelve systems none of 110 was, so the test failed on Train 42 (and reads `seen[False] > 0`). It still reads the twelve seeds, then goes on through the seeds up to 7299 until both kinds of body are in the sample. The assertions are unchanged.
+
 ## [8.0.4428] - 2026-11-17
 
 **Headline:** The stall line of a stage that still has units to start says what the memory gate holds, and the new `record-phenomenon-scatter` command has a memory figure.
