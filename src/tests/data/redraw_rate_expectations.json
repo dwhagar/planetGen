@@ -243,9 +243,10 @@
      "events": 312
     },
     "moon.too_large": {
-     "baseline": 0.086667,
-     "ceiling": 0.175,
-     "events": 52
+     "baseline": 0.826667,
+     "ceiling": 1.66,
+     "events": 124,
+     "n_ref": 150
     },
     "pair.gravitational_waves": {
      "baseline": 0.013333,
@@ -293,9 +294,10 @@
   "stars-4": {
    "kinds": {
     "belt.spacing_push": {
-     "baseline": 0.04,
-     "ceiling": 0.081667,
-     "events": 24
+     "baseline": 0.093333,
+     "ceiling": 0.193333,
+     "events": 14,
+     "n_ref": 150
     },
     "comet.ceiling": {
      "baseline": 4.658333,
@@ -328,9 +330,10 @@
      "events": 160
     },
     "moon.too_large": {
-     "baseline": 0.096667,
-     "ceiling": 0.195,
-     "events": 58
+     "baseline": 0.466667,
+     "ceiling": 0.94,
+     "events": 70,
+     "n_ref": 150
     },
     "pair.axis_out_of_range": {
      "baseline": 0.1,
@@ -358,19 +361,22 @@
      "events": 430
     },
     "planet.belt_spacing_push": {
-     "baseline": 0.011667,
-     "ceiling": 0.025,
-     "events": 7
+     "baseline": 0.04,
+     "ceiling": 0.086667,
+     "events": 6,
+     "n_ref": 150
     },
     "planet.hill_spacing_push": {
-     "baseline": 1.103333,
-     "ceiling": 2.208333,
-     "events": 662
+     "baseline": 2.213333,
+     "ceiling": 4.433333,
+     "events": 332,
+     "n_ref": 150
     },
     "planet.orbit_ceiling_trim": {
-     "baseline": 0.161667,
-     "ceiling": 0.325,
-     "events": 97
+     "baseline": 0.373333,
+     "ceiling": 0.753333,
+     "events": 56,
+     "n_ref": 150
     },
     "snow_line.scatter": {
      "baseline": 0.117389,
@@ -398,9 +404,10 @@
   "stars-5": {
    "kinds": {
     "belt.spacing_push": {
-     "baseline": 0.036667,
-     "ceiling": 0.075,
-     "events": 22
+     "baseline": 0.126667,
+     "ceiling": 0.26,
+     "events": 19,
+     "n_ref": 150
     },
     "comet.ceiling": {
      "baseline": 3.05,
@@ -423,14 +430,16 @@
      "events": 1
     },
     "moon.disk_full": {
-     "baseline": 0.17,
-     "ceiling": 0.341667,
-     "events": 102
+     "baseline": 1.046667,
+     "ceiling": 2.1,
+     "events": 157,
+     "n_ref": 150
     },
     "moon.too_large": {
-     "baseline": 0.061667,
-     "ceiling": 0.125,
-     "events": 37
+     "baseline": 1.086667,
+     "ceiling": 2.18,
+     "events": 163,
+     "n_ref": 150
     },
     "pair.axis_out_of_range": {
      "baseline": 0.2,
@@ -458,19 +467,22 @@
      "events": 3960
     },
     "planet.belt_spacing_push": {
-     "baseline": 0.015,
-     "ceiling": 0.031667,
-     "events": 9
+     "baseline": 0.066667,
+     "ceiling": 0.14,
+     "events": 10,
+     "n_ref": 150
     },
     "planet.hill_spacing_push": {
-     "baseline": 0.891667,
-     "ceiling": 1.785,
-     "events": 535
+     "baseline": 3.146667,
+     "ceiling": 6.3,
+     "events": 472,
+     "n_ref": 150
     },
     "planet.orbit_ceiling_trim": {
-     "baseline": 0.193333,
-     "ceiling": 0.388333,
-     "events": 116
+     "baseline": 0.52,
+     "ceiling": 1.046667,
+     "events": 78,
+     "n_ref": 150
     },
     "snow_line.scatter": {
      "baseline": 0.205427,
@@ -498,9 +510,10 @@
   "stars-6": {
    "kinds": {
     "belt.spacing_push": {
-     "baseline": 0.015,
-     "ceiling": 0.031667,
-     "events": 9
+     "baseline": 0.133333,
+     "ceiling": 0.273333,
+     "events": 20,
+     "n_ref": 150
     },
     "comet.ceiling": {
      "baseline": 3.475,
@@ -513,14 +526,16 @@
      "events": 547
     },
     "moon.disk_full": {
-     "baseline": 0.153333,
-     "ceiling": 0.308333,
-     "events": 92
+     "baseline": 0.88,
+     "ceiling": 1.766667,
+     "events": 132,
+     "n_ref": 150
     },
     "moon.too_large": {
-     "baseline": 0.041667,
-     "ceiling": 0.085,
-     "events": 25
+     "baseline": 0.56,
+     "ceiling": 1.126667,
+     "events": 84,
+     "n_ref": 150
     },
     "pair.axis_out_of_range": {
      "baseline": 1.1,
@@ -548,19 +563,22 @@
      "events": 9052
     },
     "planet.belt_spacing_push": {
-     "baseline": 0.006667,
-     "ceiling": 0.015,
-     "events": 4
+     "baseline": 0.066667,
+     "ceiling": 0.14,
+     "events": 10,
+     "n_ref": 150
     },
     "planet.hill_spacing_push": {
-     "baseline": 0.778333,
-     "ceiling": 1.558333,
-     "events": 467
+     "baseline": 2.926667,
+     "ceiling": 5.86,
+     "events": 439,
+     "n_ref": 150
     },
     "planet.orbit_ceiling_trim": {
-     "baseline": 0.108333,
-     "ceiling": 0.218333,
-     "events": 65
+     "baseline": 0.626667,
+     "ceiling": 1.26,
+     "events": 94,
+     "n_ref": 150
     },
     "snow_line.scatter": {
      "baseline": 0.234761,
@@ -808,6 +826,7 @@
   "label": "GEN.1521 chain rule",
   "note": "T9 (from needed output), L3 (hand-set against the baseline run): the ceiling is the rate that would double, not a physical limit; GEN.1006's parts lower the baselines, and each part re-measures and tightens them",
   "rebaselined_snow_line_scatter": "GEN.1611 cut the snow line's scatter at 2 sigma (it was 3): a redraw is now 4.55 percent of draws against 0.27, 17.6 times the rate; the baselines are the old ones times 17.6 and the ceilings twice them. Measured on 150 default systems (seeds 5000 to 5149): 13 redraws in 210 snow-line draws, 0.062 per accepted draw against 0.048 expected",
+  "renewed_circumbinary_nodes": "GEN.332 slice A (Train 27) builds planets round every close pair node of a star tree, so a system of 3 or more stars now has giants and the moons, belts and spacing pushes that go with them at nearly the rate of a single star (giants over 5 Earth masses in 5-star systems: 0.18 per system against 0.04; per giant a full moon disk is as sure as in a single-star system: 8 of 9 giant calls of moon generation in 60 single-star systems, 10 of 11 in 60 five-star systems). Each moon.*, planet.* and belt.spacing_push entry of stars-3 to stars-6 whose measured rate on 150 systems per group (seeds redraw:<group>:0 to 149) is above its old ceiling is re-measured: baseline the measured rate, ceiling twice it plus one event, with its own n_ref; an entry the measurement did not put above its ceiling is as it was",
   "seeds": "crc32 of 'redraw:<group>:<number>' (tests.audit.prevalence.seed_for)",
   "tier": "T9",
   "tweak": "L3"
