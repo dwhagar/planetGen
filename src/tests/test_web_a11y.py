@@ -394,6 +394,22 @@ def sample_run(admin_token):
 
 
 @pytest.fixture(scope="module")
+def sample_ledger_job(sample_run):
+    """One job of the sample run in the job ledger (`/admin/queue/<run_id>/job/<job_id>`, OPS.224): the id of its row, which is a number (a Generate job's id, `sample_job`, is not)."""
+    from planetgen.db import store
+    from planetgen.queue import ledger, planrows, redisqueue
+
+    conn, control = redisqueue.connect(), store.get_control_connection()
+    try:
+        ledger_run = planrows.engine_run(conn, sample_run, control)
+        ledger.add_jobs(control, ledger_run, [{"stage": "sectors", "command": "generate-sectors", "item_key": "0", "arguments": {"args": {}, "cost": 1.0}}])
+        control.commit()
+        return control.execute("SELECT id FROM engine_jobs WHERE run_id = ? AND stage = ?", (ledger_run, "sectors")).fetchone()["id"]
+    finally:
+        control.close()
+
+
+@pytest.fixture(scope="module")
 def sample_params(site_app, sample_job, sample_run):
     """
     A value for every URL parameter a page route may take, drawn from the
@@ -492,14 +508,14 @@ def _page_url(app, endpoint, samples):
 
 
 @pytest.fixture(scope="module")
-def page_targets(site_app, sample_params, admin_token):
+def page_targets(site_app, sample_params, sample_ledger_job, admin_token):
     """endpoint -> (path, needs_admin) or (None, reason to skip)."""
     targets = {}
     anonymous = site_app.test_client()
     admin = site_app.test_client()
     admin.set_cookie(SESSION_COOKIE_NAME, admin_token)
     for endpoint in PAGE_ENDPOINTS:
-        path = _page_url(site_app, endpoint, sample_params)
+        path = _page_url(site_app, endpoint, {**sample_params, **({"job_id": sample_ledger_job} if endpoint == "web.admin_queue_job" else {})})   # a ledger job's id is a number, not a Generate job's
         status = anonymous.get(path).status_code
         if status == 200:
             targets[endpoint] = (path, False)

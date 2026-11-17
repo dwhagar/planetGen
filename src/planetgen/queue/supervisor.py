@@ -474,8 +474,8 @@ class RunStarts:
 
 class Launches:
     """
-    OPS.228: the hand-out of the units of runs whose stages are cut for forked jobs (`queue.forked_jobs`, `wrapper._forked`). Each turn it asks the launcher (`launcher.Launcher`) to settle what ended and hand out
-    what is ready; nothing happens, and no template is started, until the setting is on. The launcher, its control connection and its templates are made on the first turn that needs them and let go with the
+    OPS.228: the hand-out of the units of runs whose stages are cut for forked jobs (`wrapper.forked`). Each turn it asks the launcher (`launcher.Launcher`) to settle what ended and hand out
+    what is ready; no template is started until a job needs one. The launcher, its control connection and its templates are made on the first turn that needs them and let go with the
     supervisor (`clear`: every job's pipe closes, so each finishes and exits at its next safe point).
 
     Args:
@@ -483,8 +483,9 @@ class Launches:
         make (callable, optional): `make()` returns the launcher; the simulator and the tests pass their own.
     """
 
-    def __init__(self, connection, make=None, forker=None, also_held=None):
+    def __init__(self, connection, make=None, forker=None, also_held=None, hold=None):
         self.connection, self.make = connection, make
+        self.hold = hold                # the memory controller's `holding` (OPS.231), which the launcher asks before it admits
         self.forker = forker            # the supervisor's templates, shared with the light jobs (`lightjobs.LightJobs`); the launcher's own where left out
         self.also_held = also_held
         self.launcher = None
@@ -497,14 +498,11 @@ class Launches:
         from planetgen.db import store
         from planetgen.queue import jobhost, launcher, scheduler
         return launcher.Launcher(store.get_control_connection(), self.forker or jobhost.TemplateSet(background=True), used=lambda: scheduler.usage(self.connection), redis=self.connection,
-                                 also_held=self.also_held)
+                                 also_held=self.also_held, hold=self.hold)
 
     def turn(self):
         """Returns how many jobs it started."""
-        from planetgen.util.settings import get_settings
         if self.launcher is None:
-            if not get_settings().queue.forked_jobs:
-                return 0
             self.launcher = (self.make or self._made)()
         if self._paused():
             self.launcher.ended()           # a pause lets the jobs that run finish their piece and settles their ends, and forks nothing new (OPS.234)

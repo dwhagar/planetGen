@@ -715,8 +715,12 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 <td>Dark-family nebulae (giant molecular clouds, dark clouds, Bok globules and star-forming cores, classes M-Q) are tens of light-years across, far bigger than a 13 ly sector.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/nebula_shape.py"><code>nebula_shape.py</code></a></td>
-<td>A nebula's irregular shape: a few warped metaballs, its triangle mesh and its containment test (GEN.75).</td>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/gradient_noise.py"><code>gradient_noise.py</code></a></td>
+<td>3D gradient noise from a seeded permutation table, for the nebula density's warp and filaments.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/nebula_density.py"><code>nebula_density.py</code></a></td>
+<td>The density a nebula is drawn from and held by; <code>inside</code> is the containment test (GEN.1267, MAP.365).</td>
 </tr>
 <tr>
 <td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/object_uid.py"><code>object_uid.py</code></a></td>
@@ -1898,6 +1902,10 @@ progress live there (see <a href="../operations/redis-and-the-work-queue.html">r
 <td>The Generate task pages' shape dials: the line under them (disc crest, planned-star share, outline) read from <code>/admin/generate/shape-report</code> (GEN.617, ADM.124).</td>
 </tr>
 <tr>
+<td><code>leversliders.js</code></td>
+<td>The Generate task pages' galaxy measures as sliders: a tick box and the typed box in one row above a bar that rests at where Auto sits in the row's range (<code>Lever.slider_default</code>) and sticks to it; unticked is Auto (blank box, no flag).</td>
+</tr>
+<tr>
 <td><code>generatesize.js</code></td>
 <td>The line under the Add sectors and Check forms: the sectors, systems, stars, database growth and time the run would make, read a moment after each change from <code>/admin/generate/task/&lt;key&gt;/size</code> (ADM.126); the palette adds the same figures to a typed command.</td>
 </tr>
@@ -2263,14 +2271,14 @@ someone answers y to the installer's prompt (Flow 5).</p>
     PopCLI[&quot;planetgen population&lt;br/&gt;run_population&quot;] --&gt; Pass[&quot;population.run_population&quot;]
     After[&quot;planetgen galaxy&lt;br/&gt;run_population_stage&quot;] --&gt; Pass
     Inst[&quot;install.sh / update.sh&lt;br/&gt;offer_population_pass&quot;] -.-&gt; PopCLI
-    Pass --&gt; Scan[&quot;scan_life_worlds&lt;br/&gt;planets past the watermark,&lt;br/&gt;parse_timeline, has_civilization&quot;]
+    Pass --&gt; Scan[&quot;scan pieces&lt;br/&gt;planets past the watermark,&lt;br/&gt;parse_timeline, has_civilization&quot;]
     Scan --&gt; Civ[&quot;refresh_civilizations&lt;br/&gt;era_for_age, found or dissolve polities,&lt;br/&gt;reach_ly&quot;]
     Civ --&gt; Terr[&quot;refresh_territories&lt;br/&gt;store.sectors_reached_by,&lt;br/&gt;add_claims (strongest claim wins)&quot;]
     Scan --&gt; PT[(&quot;species,&lt;br/&gt;population_state&quot;)]
     Civ --&gt; Pol[(&quot;polities&quot;)]
     Terr --&gt; SO[(&quot;system_owners&quot;)]
 </code></pre>
-<p><code>scan_life_worlds</code> reads the planets past a stored watermark
+<p>The scan pieces (<code>_scan_batch</code>, one batch of planet ids each) read the planets past a stored watermark
 (<code>population_state</code>), so a rerun only looks at new planets. It parses each
 life world's evolution text (<code>parse_timeline</code>), seeds its draws from the
 planet id, names the species and, for a civilization, draws an age and an
@@ -2279,7 +2287,7 @@ polity per spacefaring species and sets its reach from its age.
 <code>refresh_territories</code> rebuilds <code>system_owners</code> from scratch: each polity
 claims the systems in the sectors its reach touches, a claim's strength is
 reach over distance, and the strongest claim on a system wins (ties go to
-the lower polity id). <code>planetgen population</code> runs the scan and the polities and <code>--rescan</code> forgets everything and starts over; <code>refresh_territories</code> is <code>planetgen territories</code> (PERF.125).</p>
+the lower polity id). <code>planetgen population</code> runs the scan and the polities and <code>--rescan</code> forgets everything and starts over; <code>refresh_territories</code> is <code>planetgen territories</code> (PERF.125). Both passes are pieces the job engine runs (OPS.203, <code>population.model.population_pieces</code> and <code>territories_pieces</code>): the pass lock, the scan a batch a piece, the drop, the dating, the technology rows and the counts; the model commits nothing and the engine commits after each piece (<code>ctx.commit()</code>).</p>
 <h2 id="flow-2-storing-and-migrating-the-database">Flow 2: storing and migrating the database</h2>
 <p>There are two schemas. The <strong>content schema</strong> (<code>schema.sql</code>) holds one
 galaxy; a server can host several, chosen by name prefix. The <strong>control
@@ -2314,7 +2322,8 @@ Alembic revision (<code>planetgen/db/migrations/versions/</code>, run through
 <code>planetgen.db.alembic_runner</code>) above the stored version, in order. A revision's
 id is its schema version, so <code>SCHEMA_VERSION</code> is the head revision's number.
 Databases older than v130 (the baseline) are refused with <code>SchemaTooOldError</code>
-rather than migrated, and so is a database with tables but no recorded version
+rather than migrated (Boss's hard cut, DB.127: no database structure before 8.0 is accepted; <code>legacy/bump_database_to_8_0.py</code> brings
+one up to the baseline on request, DB.126), and so is a database with tables but no recorded version
 (<code>SchemaVersionMissingError</code>). <code>planetgen.cli.migrate</code> is the CLI wrapper with a progress
 bar. A change to a <code>sectors</code> column rebuilds the whole table, because the FULLTEXT index on <code>sectors.name</code> rules out
 <code>ALGORITHM=INSTANT</code> (DB.84): such changes are batched into as few revisions as possible, each saying in its docstring

@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, failures, held, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, failures, held, jobprofiles, ledger, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 from planetgen.util.format import format_duration_seconds, format_megabytes
 
@@ -191,10 +191,9 @@ def requeue_unit(conn, run_id, stage, index, kind, args, cost, row, queue_name=N
     registry, which share the job id) is removed first.
     """
     queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
-    try:
-        rq.job.Job.fetch(job_id(run_id, stage, index), connection=conn).delete()
-    except rq.exceptions.NoSuchJobError:
-        pass
+    left = redisqueue.fetch_job(job_id(run_id, stage, index), conn)
+    if left is not None:
+        left.delete()
     queue.enqueue_many([_prepared(queue, run_id, stage, index, kind, args, cost, row, unit_timeout(expected_seconds))])
 
 
@@ -327,7 +326,7 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost, row=None, halt=None):
                 latest[0].end(outcome, error_kind=kind_of_error, error_text=f"[{failures.classify(exc)}] {text}", stack_text=text, peak_mb=peak_resident_mb())
             raise
         if latest[0] is not None:
-            latest[0].end("done" if "seconds" in result else "lost", peak_mb=peak_resident_mb())
+            latest[0].end("done" if "seconds" in result else "lost", error_kind=ledger.STOPPED if result.get("stopped") else None, peak_mb=peak_resident_mb())
     return result
 
 
@@ -507,6 +506,9 @@ def enqueue_open(conn, run_id, index, queue_name):
     """
     from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
     if wrapper.forked(conn, run_id):            # OPS.228: the supervisor's launcher hands the opening out as a job
+        if index >= len(runrecord.declared_stages(conn, run_id)):
+            _open_stage(conn, run_id, index)    # no stage is left: the opening only finishes the run, which needs no job (and no stage row to hang one on)
+            return
         planrows.queue_opening(conn, run_id, index)
         return
     queue = redisqueue.queue(queue_name, conn)

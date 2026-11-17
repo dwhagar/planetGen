@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-tuning RAM, timing, worker counts and splits (DOC.120) - planetGen docs</title>
+<meta name="description" content="Status: design note.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/self-tuning-jobs.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/self-tuning-jobs.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="self-tuning-ram-timing-worker-counts-and-splits-doc120">Self-tuning RAM, timing, worker counts and splits (DOC.120)</h1><p class="meta">docs/design/operations/self-tuning-jobs.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#what-exists-today-reuse-reuse-rule">What exists today (reuse, REUSE RULE)</a></li><li style="margin-left:0px"><a href="#what-is-hardcoded-today">What is hardcoded today</a></li><li style="margin-left:0px"><a href="#the-scheme">The scheme</a></li><li style="margin-left:14px"><a href="#one-stored-profile-per-job-kind">One stored profile per job kind</a></li><li style="margin-left:14px"><a href="#record-first-boss-2026-11-12-252-pm-est">Record first (Boss, 2026-11-12, 2:52 PM EST)</a></li><li style="margin-left:14px"><a href="#what-each-consumer-reads">What each consumer reads</a></li><li style="margin-left:14px"><a href="#fallback-when-no-history-exists">Fallback when no history exists</a></li><li style="margin-left:14px"><a href="#safety-rules">Safety rules</a></li><li style="margin-left:0px"><a href="#order-of-work">Order of work</a></li><li style="margin-left:0px"><a href="#open-questions-for-boss">Open questions for Boss</a></li><li style="margin-left:0px"><a href="#items-to-file">Items to file</a></li></ul></details>
+<p>Status: design note. OPS.155 (the recording, step 1) , OPS.156 (the claim from the profile, step 2, <code>queue/profileclaim.py</code>), OPS.157 (worker caps and the adaptive starting limit, step 3), OPS.158 (the Queue page panel, pin and clear, step 4) and OPS.159 (expected seconds and the judge, step 6, <code>queue/profiletime.py</code>) are built: <code>queue/jobprofiles.py</code>, <code>queue/usage.py</code>, control schema v22. The readers are not. Asked by Boss, 2026-11-12, 2:50 PM EST: can the system keep stored values for RAM, process times, worker counts and splits, and work them out itself from the machine's memory and performance? Boss added at 2:51 PM EST: not just Stage 17, every job queue. At 2:52 PM EST he said to start by recording memory per unit and per item together with time per unit and per item, so recording is the first piece and ships alone (see &quot;Record first&quot;).</p>
+<p><strong>Answer: yes, and about half of it already exists.</strong> The gate already learns a peak per job kind, the ETA code already stores times and rates per stage, and the adaptive limit already moves the bulk worker count with memory. What is missing is that the learning is thin (one number, kept only in Redis, never used for the cut) and that the starting figures are typed constants. This note joins the pieces into one stored table per job kind and says what each consumer reads from it.</p>
+<h2 id="what-exists-today-reuse-reuse-rule">What exists today (reuse, REUSE RULE)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Where</th>
+<th>What it already does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Memory claim and learned peak</td>
+<td><code>queue/memorygate.py</code> (<code>learn</code>, <code>claim_mb</code>, <code>grow</code>, <code>forget</code>), <code>queue/claims.py</code> (<code>claim_for</code>)</td>
+<td>Every job of every queue and lane takes a claim. The claim is the typed table figure raised to the largest peak seen for the kind, plus 10 percent. A job killed for memory retries once at 1.5 times. Kept in the Redis hash <code>planetgen:gate:learned</code> as one number per kind (<code>unit:&lt;command&gt;</code>, <code>cut:&lt;command&gt;</code>, <code>api:&lt;ref&gt;</code>, <code>fn:&lt;name&gt;</code>).</td>
+</tr>
+<tr>
+<td>Measured peak per job</td>
+<td><code>queue/units.py</code> (<code>peak_resident_mb</code>, <code>resident_mb</code>), the worker heartbeat (<code>memorygate.refresh</code>)</td>
+<td>Pss of the worker and its horse, shared pages counted once. This is the sample the table would store.</td>
+</tr>
+<tr>
+<td>Stage times and cost per worker second</td>
+<td><code>queue/stagetimes.py</code></td>
+<td>Running average per stage key, newest run weighs half. Redis only.</td>
+</tr>
+<tr>
+<td>Items per second per command</td>
+<td><code>queue/unitrates.py</code>, <code>queue/progress_rate.py</code> (<code>blended_rate</code>)</td>
+<td>Running average per command, folded in when a run ends <code>done</code>. Redis only.</td>
+</tr>
+<tr>
+<td>Longest quiet gap per command</td>
+<td><code>queue/commandgaps.py</code></td>
+<td>Feeds the heartbeat judge.</td>
+</tr>
+<tr>
+<td>Worker count follows memory</td>
+<td><code>queue/adaptive.py</code> (OPS.148, PR 6147; <strong>deleted by OPS.231</strong>, <code>queue/pressure.py</code> is the one memory controller)</td>
+<td>Lowers the bulk limit after a 30 s memory wait or under pressure, raises it after 120 s of quiet when one more claim fits. Short-lived state, 1 hour, list of recent changes.</td>
+</tr>
+<tr>
+<td>Fair share between lanes</td>
+<td><code>queue/scheduler.py</code> (OPS.130)</td>
+<td>Charges cores times seconds per kind.</td>
+</tr>
+<tr>
+<td>Cut by weight</td>
+<td><code>queue/units.py</code> (<code>static_chunks</code>, <code>coarsen</code>, <code>MAX_UNITS</code>, <code>STATIC_UNITS</code>)</td>
+<td>The cut depends on the rows alone, never on the worker count.</td>
+</tr>
+<tr>
+<td>Per-stage unit ceiling</td>
+<td><code>util/settings.py</code> <code>queue.unit_ceiling_seconds</code> (300 s) and <code>CommandSpec.unit_seconds</code> (23 commands declare one)</td>
+<td>A test holds each command's declared longest unit to the ceiling.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="what-is-hardcoded-today">What is hardcoded today</h2>
+<ol>
+<li><strong>Memory per worker.</strong> <code>workers.STAGE_WORKER_MEMORY_MB</code> (the 2,100 / 700 / 3,050 MB classes, measured once on one galaxy), <code>claims.UNIT_BY_NATURE_MB</code>, <code>claims.API_CLAIMS</code>, <code>claims.FUNCTION_CLAIMS</code>, <code>claims.CUT_MB</code> (1,500), <code>claims.SUPERVISOR_MB</code> (700), <code>claims.DEFAULT_MB</code> (1,000). The learned peak can only raise a claim above these, never lower it, so a figure that was too high on this machine stays too high.</li>
+<li><strong>Worker counts.</strong> <code>workers.STAGE_MEMORY_SHARE</code> (0.5), <code>HOST_MEMORY_SHARE</code> (0.6), <code>WORKER_MEMORY_MB</code> (300), four per core, <code>cores + 4</code> floor, the interactive and long lane caps in settings, and the adaptive edges (30 s, 20 s, 120 s, 0.75, 1.25; OPS.151 is already open to tune them by hand).</li>
+<li><strong>Gate edges.</strong> <code>RESERVE_MIN_MB</code> 1,024 and <code>RESERVE_SHARE</code> 0.08, <code>CPU_SHARE</code>, <code>LOAD_LIMIT</code>, <code>MAX_WAIT_SECONDS</code> 300, <code>GROW_FACTOR</code> 1.5, <code>LEARN_MARGIN</code> 1.10, <code>KEEP_MB_PER_PLACE</code> 700.</li>
+<li><strong>Split sizes.</strong> <code>STATIC_UNITS</code> 512, <code>MAX_UNITS</code> 4,000, <code>MAX_SHELLS_PER_CHUNK</code> 64, <code>BACKFILL_CHUNK_SECTORS</code> 200 and <code>BACKFILL_UNIT_CELLS</code> 10,000, <code>LINK_UNIT_SECTORS</code> 500, <code>SETTLE_UNIT_SECTORS</code> 100, <code>MAP_LUMINOSITY_BATCH_IDS</code> 200,000, <code>HABITABILITY_BATCH_SYSTEMS</code> 500, <code>uncharted_index.UNIT_CELLS</code> 300,000 (OPS.153), the sky and bright-star batches, <code>web/warmup.py</code> <code>NODE_CHUNK</code> 64 and <code>OBJECT_CHUNK</code> 250, <code>tileprefetch.CHUNK</code> 16, plus the typed <code>unit_seconds</code> per command. Each was picked for one galaxy size on one machine. The Stage 17 index at about 10k rows per second in one process is the example: the split was fixed by hand after a 40 hour run.</li>
+<li><strong>Times.</strong> The 300 s unit ceiling and <code>roughtime</code> (the &quot;not timed yet&quot; guess).</li>
+</ol>
+<h2 id="the-scheme">The scheme</h2>
+<h3 id="one-stored-profile-per-job-kind">One stored profile per job kind</h3>
+<p>A table <code>job_profiles</code> in the <strong>control database</strong> (not Redis, so it survives a Redis flush and a restart, and a wiped galaxy database does not lose it). Key: job kind (the same <code>unit:&lt;command&gt;</code>, <code>cut:&lt;command&gt;</code>, <code>api:&lt;ref&gt;</code>, <code>fn:&lt;name&gt;</code> strings the gate uses) and a <strong>size bucket</strong> (rows or cells in the unit, in powers of two). Per key it keeps:</p>
+<ul>
+<li>peak MB: the median and the 95th percentile of the last N samples (N about 30), not only the maximum, plus the count and the largest ever seen;</li>
+<li>seconds per unit and items per second, same window;</li>
+<li>how it ended: done, killed for memory, timed out, stuck, so a kill is data;</li>
+<li>the machine it was measured on: total RAM, cores, MySQL buffer pool size, and the code version (epoch). A profile from another machine shape or an older epoch is used at half trust and replaced by the first fresh samples.</li>
+</ul>
+<p>The existing writers feed it (reuse): <code>memorygate.release</code> already knows the peak; <code>unitrates.note</code> and <code>stagetimes.record</code> already know rate and wall time; <code>units.horse_killed</code> already knows a memory kill. No new sampling is added. The Redis hashes stay as the fast cache the running code reads.</p>
+<h3 id="record-first-boss-2026-11-12-252-pm-est">Record first (Boss, 2026-11-12, 2:52 PM EST)</h3>
+<p>Step 1 of the build changes nothing about how jobs run. For every finished unit, of every command and queue, it stores one sample: the kind, the items the unit did (<code>unitbeat</code> already counts them), the unit's own worked seconds (without gate and lock waits, as <code>unitrates.note</code> already measures), the peak MB (<code>peak_resident_mb</code>), and from those <strong>seconds per item</strong> and <strong>MB per item</strong>. The profile keeps per kind both the per-unit figures and the per-item figures, because the two answer different questions: MB per unit sizes a claim for a unit of a known size, MB per item says how memory grows with the split, which is what a later split choice needs. MB per item is read as the slope between size buckets, not peak divided by items alone, since a unit also holds a fixed base (the worker with its tables is about 1.4 GB before the first item). So each sample also carries the unit's size bucket, and the profile fits <code>peak = base + slope x items</code> once a kind has samples from at least two buckets; until then only the per-unit figure is used. Jobs that are not units (API jobs, page jobs, the cut) store their peak and seconds with items left empty.</p>
+<h3 id="what-each-consumer-reads">What each consumer reads</h3>
+<ol>
+<li><strong>Gate reservation (claim).</strong> <code>memorygate.claim_mb</code> becomes: the profile's 95th percentile times a margin that shrinks with more samples (1.25 at 3 samples down to 1.10 at 30), else the typed figure. The typed figure stops being a floor once the profile has enough samples, so an over-generous constant is corrected downward on this machine. A memory kill still wins: the retry at 1.5 times, and the kill is recorded against the bucket so the next run starts higher.</li>
+<li><strong>Worker counts.</strong> <code>workers.stage_worker_cap</code> is worked out from the claim the gate would now make, not from <code>STAGE_WORKER_MEMORY_MB</code>. The share of the host a stage may take stays a setting. <code>adaptive.py</code> keeps its role (react to waits within a run) but its starting limit for a run is the last run's settled limit for the same stage kind, kept in the profile, instead of the configured cap. Its edges are tried against recorded waits (OPS.151) rather than typed.</li>
+<li><strong>Splits.</strong> At plan time (the planner writes the cut into the run record, so it is fixed for the run), a stage asks the profile for a target unit size: the number of items that took about <code>target_seconds</code> at the recorded rate, and whose memory fits <code>claim x the worker count the stage may have</code>. The size is clamped between a floor and a ceiling kept next to the typed constant (the constant becomes the <strong>default and the clamp</strong>, so it is never removed). <code>coarsen</code> and <code>MAX_UNITS</code> still apply last.</li>
+<li><strong>Times.</strong> Unit expected time, the &quot;not timed yet&quot; estimate and the heartbeat judge's expected rate read the profile before <code>roughtime</code>. The 300 s ceiling stays a setting; the profile only picks the size that lands under it.</li>
+<li><strong>Host edges</strong> (reserve, load limit, wait limit): these stay typed. They are safety edges, not workload measurements. The only automatic part is already there (the adaptive lowering under memory pressure).</li>
+</ol>
+<h3 id="fallback-when-no-history-exists">Fallback when no history exists</h3>
+<p>In this order, per field: profile with enough samples (at least 3) on this machine shape, then profile from another shape at half trust, then the typed constant that is in the code today. A fresh install, a new job kind, a wiped control database or a new epoch therefore behaves exactly as the build does now, and the first run measures. <code>forget</code> clears one kind or all. A setting <code>queue.self_tuning</code> (default on once built, off restores today's behaviour exactly) and the existing <code>PLANETGEN_MEMORY_GATE=0</code> switch both turn it off. A reading that is missing or implausible (zero seconds, a peak below <code>MIN_CLAIM_MB</code>) is dropped, never stored.</p>
+<h3 id="safety-rules">Safety rules</h3>
+<ul>
+<li><strong>Output must not change.</strong> <code>work.task_seed</code> keys a task, not a worker, so worker count and order are safe. A changed <strong>cut</strong> is only safe for a stage whose tasks are seeded per item, not per unit index. Every stage gets a flag, <code>cut_neutral</code>, set only after a test shows the stage's golden is byte-identical at two different unit sizes. A stage without the flag keeps its typed split and only tunes memory and workers. This is the one real risk of the scheme and the reason splits come last.</li>
+<li><strong>Frozen per run.</strong> Splits and the claim a run started with are written into the run record at plan time (plan then execute, DOC.113), so a restarted unit uses the same cut and a run is reproducible from its record.</li>
+<li><strong>Slow to move.</strong> A learned figure changes by at most 25 percent per run, and only after the unit finished <code>done</code>. A run that was stopped or failed adds nothing (same rule as <code>unitrates</code>).</li>
+<li><strong>Learning never blocks a job.</strong> Every read and write is wrapped like <code>adaptive.adapt</code>: on any failure the typed figure stands and the job goes on.</li>
+<li><strong>Visible.</strong> The Queue page and admin show, per kind: typed figure, learned figure, samples, last change. A change is logged with the old and new value and the run that caused it. Boss can pin or clear any value by hand.</li>
+</ul>
+<h2 id="order-of-work">Order of work</h2>
+<ol>
+<li><code>job_profiles</code> table (one row per sample, rolled up by a small job so it cannot grow without bound), migration, and the writers fed from the existing release, rate and stage-time paths, storing memory and time per unit and per item as under &quot;Record first&quot;. No reader yet, so nothing changes in a run. Test: a small run fills it for every command it ran. This ships first and alone so the data is gathering while the readers are built.</li>
+<li>Gate claim reads the profile with the fallback chain (memory only). Test: no history gives today's claims; history lowers a claim and a kill raises it.</li>
+<li>Worker caps (<code>stage_worker_cap</code>) and the adaptive starting limit read the profile. Test: caps equal today's with no history.</li>
+<li>Status and admin display, pin and clear (extends OPS.150).</li>
+<li>Planner reads the profile for split targets, <strong>one stage at a time</strong>, each behind its <code>cut_neutral</code> golden test. Start with the stages that already scale by row count: Stage 17 uncharted index, block lights, link, settle, warm-up chunks.</li>
+<li>Times: expected seconds and the heartbeat judge read the profile.</li>
+<li>Retire the typed tables only where the profile has run on Boss's server for a full galaxy; the constants stay as the default and clamp (no shims, but no deletion of the fallback either).</li>
+</ol>
+<h2 id="open-questions-for-boss">Open questions for Boss</h2>
+<ol>
+<li>Table in the control database (recommended) or Redis only? Redis only is simpler and loses everything on a flush.</li>
+<li>Should a profile from a different machine shape count at half trust (recommended, so a rebuilt lane machine is not cold), or start from the typed figures?</li>
+<li>Splits last and only for stages shown cut-neutral (recommended), or tune memory and workers only and leave splits typed?</li>
+</ol>
+<h2 id="items-to-file">Items to file</h2>
+<p>Designations to be given by TODO. Suggested split: DOC (this note); OPS profile table and writers; OPS gate claim from profile; OPS worker caps and adaptive start from profile; OPS Queue page and admin display with pin and clear; PERF per-stage cut-neutral golden test; PERF split targets from profile (one item per stage kind, starting with Stage 17); OPS times from profile; OPS retire typed tables after a full-galaxy run. Related open items: OPS.149, OPS.150, OPS.151, OPS.154.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -36,7 +36,7 @@ rebuild. Its workers serve this queue and no other."""
 
 MAINTENANCE_QUEUE = "planetgen-maintenance"
 """str: The units of a `MAINTENANCE` run (the cache warm-up) that has no ledger (PERF.150; OPS.229: a run with a ledger has its units handed out by the launcher). Its workers have a cap of their own
-(`workers.maintenance_cap`) and share the host's worker count with the bulk workers."""
+(`workers.maintenance_cap`)."""
 
 CHECK_QUEUE = "planetgen-maintenance-check"
 """str: The units of a `CHECK` run (the database check, PERF.245) that has no ledger (OPS.229). One of the maintenance lane's task types: it has a queue of its own, so the thousands of units a cache

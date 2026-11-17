@@ -360,6 +360,11 @@ main{padding:16px 16px 60px}}
 <td>plan (Boss said yes 4:27 PM EDT 2026-10-30, decided 4:34 PM EDT; nothing built)</td>
 </tr>
 <tr>
+<td><a href="systems/planet-size-moons.html">planet-size-moons.md</a></td>
+<td>Moons of planet size around the giants: the disk ceiling (6.4e-4 of the parent), capture by binary exchange (one giant in 70), the proposed wiring</td>
+<td>built; the wiring changes output and rides a train (GEN.1157)</td>
+</tr>
+<tr>
 <td><a href="systems/weird-worlds.html">weird-worlds.md</a></td>
 <td>Physically plausible oddities (Venus-type spin, tilt-driven seasons, iron-rich cores, resonant chains, disintegrating planets, super-puffs, nightside collapse, bistable climates, abiotic oxygen): each a cause at an input of the chain from a gated tail rate, a weirdness dial, an Odd line on the page, and a plausibility harness</td>
 <td>plan (Boss said yes 4:15 PM EDT 2026-10-30; nothing built)</td>
@@ -911,6 +916,11 @@ main{padding:16px 16px 60px}}
 <td>design</td>
 </tr>
 <tr>
+<td><a href="composition/hot-giant-profile.html">hot-giant-profile.md</a></td>
+<td>The temperature-pressure profile of a hot giant: the constant-opacity radiative-equilibrium profile with the heat redistribution factor, its stand-ins and where it is read (GEN.1577)</td>
+<td>built (GEN.1577), registry section 6.288</td>
+</tr>
+<tr>
 <td><a href="composition/body-composition-research.html">body-composition-research.md</a></td>
 <td>The body composition research (GEN.432, GEN.433): what stars, rocky and icy planets, giants, small bodies, moons and the ground are made of, the chain from the star to the derived values, the findings against the code, the five decisions, the work clusters and the invariants a test can assert</td>
 <td>study</td>
@@ -939,6 +949,11 @@ main{padding:16px 16px 60px}}
 <td>partly built (scores built, GEN.84)</td>
 </tr>
 <tr>
+<td><a href="habitability/class-m-abundance-tiers.html">class-m-abundance-tiers.md</a></td>
+<td>The Class M abundance tier of a galaxy: Science (the default, nothing moved), Sparse, Scattered, Plentiful and Abundant; the three dials (Earth-like water, lost envelopes, the habitable request), what a tier may never do, storage and calibration</td>
+<td>being built (GEN.1704 to GEN.1706; Boss, 11:19 PM EST 2026-11-13; dial values first-pass)</td>
+</tr>
+<tr>
 <td><a href="habitability/survival-equipment-fields.html">survival-equipment-fields.md</a></td>
 <td>The survival equipment line: what a human needs on a world, as required and recommended items</td>
 <td>built (GEN.655, DB.93; chips, regional temperatures, toxic rows and dust to come)</td>
@@ -962,6 +977,21 @@ main{padding:16px 16px 60px}}
 <td><a href="habitability/life-timeline-and-oxygen.html">life-timeline-and-oxygen.md</a></td>
 <td>The life timeline (when each life stage is reached from conditions) and the free oxygen that photosynthesis puts into the air</td>
 <td>built (GEN.750, GEN.855)</td>
+</tr>
+<tr>
+<td><a href="habitability/light-through-ice.html">light-through-ice.md</a></td>
+<td>The share of a star's photosynthetic light that reaches the water under ice and snow (two-layer Beer law with an albedo), and the thickest lid that still lets life work</td>
+<td>built (GEN.1726)</td>
+</tr>
+<tr>
+<td><a href="habitability/ice-and-snow-growth.html">ice-and-snow-growth.md</a></td>
+<td>How thick the ice and the snow on a world's water are: Stefan's law with snow for a season, a heat balance for a lid that never thaws, a snowfall from the starlight (the input of the light law)</td>
+<td>built (GEN.1728)</td>
+</tr>
+<tr>
+<td><a href="habitability/life-adaptations.html">life-adaptations.md</a></td>
+<td>The table of adaptations of life to cold, heat, dryness, salt and dim light, and the cold and heat traits drawn from it</td>
+<td>built (GEN.1725)</td>
 </tr>
 <tr>
 <td><a href="habitability/life-class-rules.html">life-class-rules.md</a></td>
@@ -1198,6 +1228,16 @@ main{padding:16px 16px 60px}}
 <td>design note (approved by Boss 6:43 PM EST on 2026-11-08, build order in the note; OPS.130 built, PERF.254 built)</td>
 </tr>
 <tr>
+<td><a href="operations/self-tuning-jobs.html">self-tuning-jobs.md</a></td>
+<td>RAM claims, worker counts, split sizes and times for every job queue learned from a stored per-kind profile of measured peaks and rates, with the typed constants kept as the fallback and clamp; cut-neutral golden test before any split is tuned. Design note, not built.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="operations/dynamic-queue-chain.html">dynamic-queue-chain.md</a></td>
+<td>What a job declares when it enters the queue (suggested break points, a split flag saying whether a dynamic split is byte identical or the suggested split must be used, its dependencies) and how the queue engine chooses and logs the split from the job profile and the free resources, fixed in the run record at plan time (OPS.161). Skeleton built, stages move onto it with PERF.261.</td>
+<td></td>
+</tr>
+<tr>
 <td><a href="operations/logging-standard.html">logging-standard.md</a></td>
 <td>One log record (time, RFC 5424 severity, component, message, fields), its file, JSON and display writings, the one wording of a stage's start, finish and failure, and every place the program logs today</td>
 <td>partly built (the layer is built, UX.121; the places move in UX.122, UX.123, TEST.183)</td>
@@ -1286,6 +1326,16 @@ main{padding:16px 16px 60px}}
 <td>built (table; rates read from papers)</td>
 </tr>
 <tr>
+<td><a href="research/chaotic-triple-star-zone.html">chaotic-triple-star-zone.md</a></td>
+<td>GEN.1437: a planet near the stability edge of a triple star as a derived chaotic zone (position against the Holman and Wiegert limit, flux swing from every star, era length), with the chain items it needs</td>
+<td>design (not built)</td>
+</tr>
+<tr>
+<td><a href="research/dimming-star.html">dimming-star.md</a></td>
+<td>GEN.1437: a star that dims irregularly from dust (a disintegrating planet's tail, a young star's disk, breakup dust) as a stored dimming state, with the chain items it needs</td>
+<td>design (not built)</td>
+</tr>
+<tr>
 <td><a href="research/interstellar-field-sources.html">interstellar-field-sources.md</a></td>
 <td>What the sources say for the interstellar asteroid field modules (GEN.1098): collision speed window, unbound mass share, supernova belt share (registry rows IF1 to IF12)</td>
 <td>built (read report)</td>
@@ -1318,6 +1368,11 @@ main{padding:16px 16px 60px}}
 <tr>
 <td><a href="research/stand-in-values.html">stand-in-values.md</a></td>
 <td>Every stand-in value with its source tier (T1 to T9) and tweak level (L0 to L4), generated from the registry of the gap-filling plan (GEN.725)</td>
+<td>generated (reference)</td>
+</tr>
+<tr>
+<td><a href="research/stand-in-fudge-ranking.html">stand-in-fudge-ranking.md</a></td>
+<td>Every stand-in ranked by its share of the fudge width of each class quantity, with its tier, tweak and unreliability score and how far the width falls if it were exact (GEN.1316), generated from the fudge table</td>
 <td>generated (reference)</td>
 </tr>
 <tr>

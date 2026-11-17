@@ -2,6 +2,70 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4496] - 2026-11-17
+
+**Headline:** A site job is now ended by the clock at a multiple of how long its own kind has taken before, not at a typed ten times the estimate.
+
+### Changed
+- `lightjobs`: once a kind has eight recorded runs, its time limit is three times its longest (never under 30 s); until then the typed limit holds. What was read of a kind is kept five minutes, and a database that does not answer leaves the typed limit.
+- A light job that ends on its own now records its seconds (`jobprofiles.record`); one the clock or a stop request ended does not (it would teach the limit its own value).
+
+### Added
+- `jobprofiles.seconds_of`: the wall seconds of a kind's newest finished runs.
+
+generation-output: unchanged
+
+## [8.0.4495] - 2026-11-17
+
+**Headline:** The supervisor now holds the bulk and upkeep lanes when the database's own answers slow down, as it already does when memory runs short.
+
+### Added
+- `queue/dbsignal.py`: a thread times one ledger read every two seconds; the calm time is learned from the database itself; a read at four times calm (and over 50 ms) presses, ten times (and over 250 ms) starves; a read still out counts as the time it has been out.
+- The hold is the memory controller's own machine with this signal for its look (reused, not copied): after ten seconds in a row nothing of the bulk or upkeep lanes is admitted and thirty seconds of calm lets it go, each change said in the supervisor's list.
+
+### Changed
+- `pressure.Controller` takes the reason it gives for a hold; the memory controller's words are unchanged.
+
+generation-output: unchanged
+
+## [8.0.4494] - 2026-11-17
+
+**Headline:** the rich test galaxy can be built once for every machine that tests the same code, and loaded from a dump by the rest.
+
+### Changed
+- `tests/rich_galaxy_cache.py`: with `PLANETGEN_RICH_GALAXY_CACHE` set to a folder every machine can reach, the first process that needs the `rich_galaxy` of a code state builds it as before and leaves a gzipped `mysqldump` of its database there; the others load the dump in seconds instead of building (about half an hour). `test_db_column_round_trip`, `test_db_check_constraints` and `test_cellkey_motion` each build it, on a merge train on three machines from the same commit. The galaxy is the same galaxy with the same systems (nothing made smaller), a minus zero in a double is kept (`mysqldump` would write it as plus zero), and without the variable nothing changes.
+- The dump is named by a key over every file of the package, the support modules of the build, the system file and `config.json`, the settings in `PLANETGEN_*` variables, the dataset files (names and sizes), and the versions of the database server, Python, numpy and numba; a different commit is a different key. A process that finds the build taken waits for it (up to 3 hours, then builds its own without caching); a lock older than 3 hours is taken over.
+
+generation-output: unchanged
+
+## [8.0.4493] - 2026-11-17
+
+**Headline:** A run whose last stage has units ends as done when those units end, as it does for a run in workers.
+### Fixed
+- A run whose units are handed out by the supervisor's launcher (OPS.228) and whose last stage held units tried to queue an opening for a stage that does not exist, failed six times, and ended the run as failed. The end of the last stage now finishes the run in place (OPS.271).
+- The launcher read a job's row from the snapshot of an earlier look, so a unit that had finished in its own process could still read as running when its process ended, and was handed out a second time (it ended as skipped). It looks again before it settles a job.
+
+## [8.0.4492] - 2026-11-17
+
+**Headline:** The `queue.forked_jobs` setting is removed: a run that has a job ledger always hands its units to the supervisor's launcher.
+### Changed
+- `queue.forked_jobs` (and `PLANETGEN_FORKED_JOBS`) is gone, since the launcher path is the only one that is kept for a run with a ledger (OPS.271). A run with no ledger (the control database does not answer or is not migrated yet) still goes to workers until they are removed.
+
+## [8.0.4491] - 2026-11-17
+
+**Headline:** One controller now watches the host's memory: on lasting pressure the supervisor stops admitting bulk and upkeep jobs, and if the host stays starved it asks the youngest bulk job to stop at its next piece and puts it back, with no retry used.
+
+### Changed
+- **One memory controller (OPS.231, D6 of the job engine).** `queue/pressure.py` reads the kernel's memory pressure (PSI) or, where there is none, the host's available memory against the gate's reserve, and runs a hold, yield, cooldown and release cycle in the supervisor. While held, the launcher and the light jobs' duty admit only the site's lanes and say why the rest waits. While starved, it asks the youngest bulk job (a command that resumes before one that does not) to stop at its next piece through the job pipe (`Launcher.yield_youngest`). The row goes back to *ready*; the attempt is stored as `lost` with `error_kind="stopped"` (`ledger.STOPPED`) and does not count against the retry limit. The edges are stand-ins that the job engine's H4 learns.
+- **The Queue page** words a yielded attempt as a stop on request, not as a loss (`jobview.attempt_words`).
+- A unit that is stopped by request ends its attempt with `error_kind="stopped"` (`units._do_unit`, a one-line change).
+
+### Removed
+- **The adaptive worker limit** (`queue/adaptive.py`, OPS.148): the lowering and raising by waits at the gate, its start limit per stage kind, `memorygate._adapt_to_wait`, the `adaptive:settled` profile entry and the log of recent changes.
+- **The lend rule and the per-lane places** in `queue/workers.py`: `shed_bulk`, `staying_bulk_workers`, `maintenance_share`, `reserved_places` and the lent-worker keys; `wrapper` no longer asks the bulk workers to go before a stage opens. Each of the lane's workers is held by the host cap and the stage's own cap alone, and memory is the controller's.
+
+generation-affects: none
+
 ## [8.0.4490] - 2026-11-17
 
 **Headline:** An edit to a sector now updates its parity group from a before-image instead of reading every other sector of the group, and three writers that marked a sector without telling the parity file now do.

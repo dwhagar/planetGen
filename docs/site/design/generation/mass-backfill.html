@@ -79,6 +79,11 @@ row stores <code>NULL</code> for its infinite lifespan and phase end, and <code>
 <code>NULL</code> back as infinity for class VII.</p>
 <p>At a galaxy with no scatter at all there is no L and no M: the backfill places every star born at or
 above the ring's mass, at any luminosity.</p>
+<p><strong>Order (2026-11-13, Boss).</strong> The backfill runs right after the link stage and before the mass and luminosity scatters
+(sectors, link, clear, backfill, mass scatter, luminosity scatter, phenomena, rest). Because the backfill needs L and M, the one
+clear that opens the scatters also records the floor, the mass limit and the seed first (<code>prepare</code> on the clear unit), so the
+backfill is bounded by the limits the scatters then fill to, and a prepared luminosity pass drops its own clear. The tiny-run
+comparison of the orders is in reports/generation-order-2026-11-13/report.md.</p>
 <h2 id="per-sector-state">Per sector state</h2>
 <p><code>sector_stats.bright_mass_sol</code> (new, <code>NULL</code> = never backfilled by mass) records how far down a
 sector was taken. When a scatter exists the same transaction also sets <code>bright_level_sol</code> to the

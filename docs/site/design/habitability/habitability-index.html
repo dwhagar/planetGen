@@ -100,8 +100,8 @@ separately as <code>habitable_class</code> (the &quot;Habitable class&quot; chip
 habitable world (<code>+habitable_world</code>) raises the odds of a body that meets its conditions (<code>generation/habitable_request.py</code>, GEN.1130) and steers by no class list or score, so the world it gives may not score Blue
 or Green; <code>StarSystem.habitable_class_count</code> is a report column only, and
 <code>StarSystem.habitable_request</code> says whether the finished system met the
-request's conditions (&quot;aim&quot;) or not (&quot;unmet&quot;; GEN.1248: it is answered from
-the same <code>habitable_request.count</code> the draws use, and there is no fallback).</li>
+request (&quot;aim&quot;: a body meets its conditions and has life on it, <code>habitable_request.count_living</code>) or not (&quot;unmet&quot;; GEN.1248: there is no fallback;
+GEN.1778: a temperate ocean world whose life never began, as on a 50 Myr star, is not a habitable world, so the answer is never &quot;aim&quot; over a <code>habitable_class_count</code> of 0).</li>
 <li><strong>Rogue planets</strong> already have internal heat flux, a surface regime,
 ice-shell thickness and ocean depth (<code>rogue_surface.py</code>); nothing in a
 star system has these. A terrestrial rogue is scored from its surface too (<code>rogue_habitability.py</code>, <a href="../systems/rogue-planet-surface.html">rogue-planet-surface.md</a>).</li>
@@ -141,7 +141,7 @@ the colour gates below.</p>
 <tr>
 <td>Pressure, kPa</td>
 <td>50 to 250</td>
-<td>14.3 to 400</td>
+<td>33.7 to 400</td>
 <td>6.3 to 10,000</td>
 <td>beyond (0 a decade out)</td>
 </tr>
@@ -162,9 +162,9 @@ the colour gates below.</p>
 <tr>
 <td>Inspired O<sub>2</sub>, F(P - 6.3) kPa</td>
 <td>8 to 50</td>
-<td>under 8 (a mask works)</td>
-<td>50 to 160</td>
-<td>over 160</td>
+<td>5.7 to 8 (low side)</td>
+<td>50 to 160 (high side); 4 to 5.7 on the low side</td>
+<td>over 160; under 4 on the low side (0 at 1)</td>
 </tr>
 <tr>
 <td>CO<sub>2</sub>, kPa</td>
@@ -215,8 +215,7 @@ the least pressure at which a pure-oxygen mask still gives the 8 kPa of
 inspired O<sub>2</sub> consciousness needs (6.3 + 8); 400 kPa is where nitrogen
 narcosis starts; 31 C wet bulb is the uncompensable limit (Vecellio et al.
 2022); 122 C is the limit of carbon-based life; gas limits are the
-Atmospheric Toxicity table's chronic and acute values, and a filtering
-respirator (NIOSH APF 10) makes Yellow out to ten times the acute limit;
+Atmospheric Toxicity table's chronic and acute values, and gas limits stand on the body alone, with no credit for a respirator;
 CO<sub>2</sub> can't be filtered, so its Yellow ends at the acute 5 kPa (scrubbers);
 0.605 and 73.8 kJ/kg are the water-activity and chaotropicity limits for
 cell division; the dose bands are ICRP's (GEN.148, Boss's defaults of
@@ -385,8 +384,8 @@ unless given.</p>
 <tr>
 <td>Hycean</td>
 <td>2 MPa, 60 C, H<sub>2</sub> 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes</td>
-<td>Yellow / Yellow / Green / Blue / Blue / Yellow</td>
-<td>0.68</td>
+<td>Yellow / Yellow / Red / Blue / Blue / Yellow</td>
+<td>0.61</td>
 <td>0.97</td>
 <td>0</td>
 <td>environment suit</td>
@@ -412,7 +411,7 @@ unless given.</p>
 <tr>
 <td>Mars-analog brine</td>
 <td>0.6 kPa, -60 C, CO<sub>2</sub> 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life</td>
-<td>Red / Red / Green / Red / Yellow / Red</td>
+<td>Red / Red / Red / Red / Yellow / Red</td>
 <td>0</td>
 <td>0.01</td>
 <td>0</td>
@@ -465,9 +464,10 @@ formula.</li>
 Sv/yr) then scores 1, not the table's 0.65. Mars is held back by its
 solvent and chemistry instead.</li>
 <li>One threshold each: CO chronic 0.005 kPa, acute 0.1, and T_metazoa's
-0.01 scale; CO<sub>2</sub> chronic 0.93, Green 2.0, acute 5.0; the mask band is
-14.3 to 400 kPa (Green), with 6.3 to 14.3 kPa needing a counterpressure
-suit (Yellow).</li>
+0.01 scale; CO<sub>2</sub> chronic 0.93, Green 2.0, acute 5.0; the Green band of the
+pressure score is 33.7 to 400 kPa (GEN.1676: the score reads the body's own
+air, not what a mask allows); the mask band (gear, <code>mask_min_kpa</code>) is 14.3
+to 400 kPa, with 6.3 to 14.3 kPa needing a counterpressure suit.</li>
 <li>Other stars (GEN.86, GEN.87): F stars act like G with a shorter
 saturated phase (about 50 Myr); A, B and O stars have no flare term but
 a high UV flux; white dwarfs and giants use their own luminosity and
@@ -970,7 +970,7 @@ temperature, dose and oxygen bands from them, and <code>habitability.phi4</code>
 <code>core_scores</code>, <code>equipment.compute</code> and the domain functions take those bands (the human
 <code>HUMAN</code> by default), so the six domains are scored by the same code with the
 species' edges. Nothing else about the score changes: the Water and Suitability
-rungs, the toxic gases and PHI_bio are the human visitor's.</p>
+rungs and PHI_bio are the human visitor's. The four gas bands of the Air domain (CO<sub>2</sub>, CO, H<sub>2</sub>S, SO<sub>2</sub>) have one scale row each (<code>co2_scale</code>, <code>co_scale</code>, <code>h2s_scale</code>, <code>so2_scale</code>, 1 for the human visitor) that moves every edge of that gas's band together.</p>
 <p><strong>Generated from the homeworld</strong> (Boss's default of 2026-10-15: every species
 passes its own homeworld). <code>species_limits.generated(world)</code> leaves a band alone
 when the human limits already hold the homeworld inside Blue with a margin
@@ -982,7 +982,9 @@ extreme 10 degrees inside, the wet-bulb limit sits 2 degrees above the
 homeworld's, all the dose edges scale so the homeworld's dose is a third of the
 Blue edge, and the inspired oxygen limits follow the homeworld's air (the
 minimum a half of it, the chronic limit a quarter above it, the acute limit in
-the human ratio). A species with an Earth-like homeworld has no overrides.</p>
+the human ratio), and each gas band moves out by the factor that puts the homeworld's
+partial pressure of that gas 1.5 times under its chronic edge, when the air holds
+more of it than the human limit (GEN.1772: a species of a dense CO<sub>2</sub> air breathes it). A species with an Earth-like homeworld has no overrides.</p>
 <p><strong>What could live where.</strong> <code>species_limits.assess(world, overrides, tech_level)</code>
 scores the six domains. A species could live there <strong>unaided</strong> when no domain is
 Red. It could live there <strong>with equipment</strong> when Water is not Red and its tech

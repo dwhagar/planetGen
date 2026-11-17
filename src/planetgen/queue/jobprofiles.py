@@ -166,6 +166,22 @@ def peaks(kind, limit=30, conn=None):
             conn.close()
 
 
+def seconds_of(kind, limit=60, conn=None):
+    """
+    The wall seconds of the newest `limit` finished rows of `kind` (newest first): the reading of `lightjobs.learned_limit` (OPS.251). Raises on a database that cannot answer, and the caller falls back.
+    """
+    own = conn is None
+    if own:
+        from planetgen.db import store
+        conn = store.get_control_connection()
+    try:
+        return [float(row["seconds"]) for row in conn.execute("SELECT seconds FROM job_profiles WHERE kind = ? AND outcome = 'done' AND seconds IS NOT NULL ORDER BY id DESC LIMIT ?",
+                                                              (kind, int(limit))).fetchall()]
+    finally:
+        if own:
+            conn.close()
+
+
 def unit_rows(kind, limit=60, conn=None):
     """
     The newest `limit` finished rows of `kind` that hold seconds per item (newest first), as dicts with the items, size bucket, peak MB and the machine shape and epoch that measured

@@ -124,6 +124,10 @@ def run_light_jobs(connection=None, url=None):
     return ran
 
 
+FORKER = InlineForker
+"""callable: What `run_ready_rows` hands the ready rows to; a test of the real fork (tests/test_forked_job.py) puts its own here."""
+
+
 def run_ready_rows():
     """Hands out the ready rows of the job ledger and runs each unit here until none is ready (the launcher with an inline forker); returns how many units it ran. Nothing happens for a run with no ledger."""
     from planetgen.db import store
@@ -132,7 +136,7 @@ def run_ready_rows():
         control = store.get_control_connection()
     except Exception:  # noqa: BLE001 -- a test with no control database has no ledger rows to hand out
         return 0
-    forker = InlineForker()
+    forker = FORKER()
     one = launcher.Launcher(control, forker, read_host=lambda: memorygate.Host(10 ** 6, 10 ** 6, 64, 0.0))
     ran = 0
     try:

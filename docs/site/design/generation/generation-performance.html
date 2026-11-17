@@ -727,7 +727,7 @@ supervisor's serial expansion (4) and the map-luminosity update (5) are filed as
 unit by nature. The ceiling bounds how long a worker keeps its place when a lane that needs it asks for it (the lend rule of
 PERF.150) and how long a cancel waits for a running unit. It is held three ways:</p>
 <ul>
-<li>Every queued command in <code>queue/commands.py</code> is either <code>whole=True</code> (the stage is one unit: the skeleton plan, the clear of a
+<li>Every queued command in <code>queue/commands.py</code> is either <code>breaks=ONE_UNIT</code> (the stage is one unit: the skeleton plan, the clear of a
 scatter, one system, the cache-warm families, the database checks) or declares <code>unit_seconds</code>, the seconds its longest unit
 runs at the default galaxy size. <code>test_unit_ceiling.py</code> fails for a command that is neither, and for one whose figure is over
 the setting's default.</li>

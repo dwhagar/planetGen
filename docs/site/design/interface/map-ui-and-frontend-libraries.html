@@ -607,7 +607,7 @@ sphere: soft toward the middle, a sharp limb, blind to the irregular shape.</li>
 <li><strong>Colours.</strong> <code>NEBULA_LOOKS</code> (core/edge opacity): diffuse <code>#e3a6c8</code> 0.47/0.14, emission
 <code>#ff6f91</code> 0.69/0.25, reflection <code>#6fa8ff</code> 0.63/0.22, planetary <code>#5be8c9</code> 0.66/0.24,
 dark <code>#1c1c24</code> 0.91/0.56, shared with <code>starmap.py</code>.</li>
-<li><strong>Shape.</strong> <code>planetgen/galaxy/nebula_shape.py</code>: metaballs with kernel <code>(1 - d^2/r^2)^2</code>,
+<li><strong>Shape</strong> (historical; GEN.1267 removed it, a nebula is the density contour of <code>galaxy/nebula_density.py</code>). <code>planetgen/galaxy/nebula_shape.py</code>: metaballs with kernel <code>(1 - d^2/r^2)^2</code>,
 domain-warped, marching cubes (<code>MESH_LODS</code> low 10, full 28 cells per axis). The scalar
 field <code>F</code> exists server side but is not served.</li>
 </ul>

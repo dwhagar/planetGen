@@ -16,8 +16,8 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1788 |
-| PERF | PERF.280 |
+| GEN | GEN.1789 |
+| PERF | PERF.281 |
 | DB | DB.136 |
 | API | API.52 |
 | ADM | ADM.156 |
@@ -2304,7 +2304,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1388 | RoguePlanet has no temp_livable_share (test_rogue_habitability fails) (bug) | none | done, PR #5688 |
 | GEN.1389 | Determinism-rule violations: math.dist in db/sky_tier_ledger.py line 52 and generation/sky_charting.py lines 316 and 324; the @ operator in galaxy/stellar_table.py lines 177, 191, 192 and 194 (bug) | none | done, PR #5688 |
 | TEST.695 | Stale or failing tests, group one: point_columns (sky_tier_draws), column round trip (irregular_moons), materials table, command docs (link-neighbors), TODO codes shown, JS unit and raw formatting, web_formulas, multistar registry MS4 and MS6, sql portability, db boundary values, update_database_step, literal insert, old_urls belt_ref, parent_link, container_plan, nebula_shape, object_rows, outline_reach, describe_render, property_sheet, api_link_ids (bug) | none | done, PR #6782 (11:26 PM EST 11-15; 16 rows green on main, nebula_shape file gone, test_db_column_round_trip not confirmed) |
-| GEN.1390 | Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug) | none | open |
+| GEN.1390 | Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug) | none | folded into GEN.1785 (Lane 14 sweep done 12:36 PM EST 11-17: every sanity red green or fixed in PR 7051 except the three census tests, whose ranges predate generation changes) |
 | TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) | none | open |
 | TEST.697 | test_sweep_life.test_an_index_that_reads_the_letter_is_reported fails on main: the class-blind score check no longer reports an index that reads the letter (bug) | none | done, PR #5700 |
 | TEST.698 | test_systems position-in-plane check stale since GEN.1352: moons are set in the system frame, their inclination and node stay in the equator frame (bug) | none | done, PR #5703 |
@@ -2974,6 +2974,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.277 | Interior cooling of old belt-sized bodies takes up to 770,000 steps: stop the step collapse | done (Train 43, PR 7084, 11-17) |
 | PERF.278 | The exobase search takes 15 percent of a build: a fixed 0.25 scale-height step (lock) | closed, not worth it as speed (Lane 07, 3:50 AM EST 11-17: 2.6 percent of a build after the cache); accuracy fault is GEN.1784 |
 | PERF.279 | Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes) | TEST.788 | open (Lane 16) |
+| PERF.280 | Stage 9 skip or batch near-empty sky cells (design and measure first) | OPS.270 | open (Lane 07) |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | done, PR #6336 (11:34 PM EST 11-14) |
@@ -3046,7 +3047,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.228 | Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane) | none | done (PRs 6995, 7011, 7027, 7040, 7062; 7:58 AM EST 11-17: every ledgered run's bulk lane runs as forked jobs; deleting the RQ unit path moves to OPS.271 then OPS.229) |
 | OPS.229 | Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189 | none | done (PR 7082, 11-17; RQ deletion moved to OPS.271) |
 | OPS.230 | Job engine stage 4: the site's lanes move as light jobs with deadlines (interactive and long RQ queues deleted) | none | done (slice A PR 7073, slice B PR 7076 merged 10:29 AM EST 11-17: API jobs, slow pages and node prefetch run as light jobs; interactive, long and nodes RQ queues deleted) |
-| OPS.231 | Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot | none | open |
+| OPS.231 | Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot | none | done (PR 7088 merged 11:49 AM EST 11-17: one memory controller in the supervisor; adaptive.py, shed_bulk, maintenance_share and reserved_places deleted) |
 | OPS.232 | Job engine stage 4: named resources (tokens mysql_write, alone, one per warm set; pause.hold_solo stops being a special case) | none | done, PR #6653 (6:38 AM EST 11-15) |
 | OPS.233 | Job engine stage 4: Queue page for the new engine (why each job waits, oldest job age per class, ready-to-start time, last controller action); replaces OPS.150 | none | done (PR 7064 merged 8:26 AM EST 11-17: Queue page 'Why jobs wait' panel and GET /api/admin/work/waiting) |
 | OPS.234 | Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor | none | open (Lane 15) |
@@ -3063,7 +3064,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | open |
 | OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | open |
 | OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | open |
-| OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | open |
+| OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | done (PR 7094 merged 12:41 PM EST 11-17: ledger-read latency is a second signal for the memory controller's hold) |
 | OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | open |
 | OPS.250 | Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160 | none | open |
 | OPS.251 | Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace | none | open |
@@ -4111,7 +4112,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | done (Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6978: smooth keep share 1 to 3 Earth masses, registered tweak) |
 | GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | done (Train 43, PR 7084, 11-17) |
 | GEN.1776 | Civilizations arise only in CO2-rich air (19 to 792 kPa), none Earth-like | closed, measured, no code change (Lane 04, 9:49 PM EST 11-16; linked to GEN.1720 and GEN.1731; Boss kept the life clock stand-ins, 9:51 PM EST) |
-| GEN.1777 | (high) No Class M family at Plentiful: funnel and a tunable CO2 lever. Measure whether the CO2 supply needs a tweak (report first, Boss decides) | open (Lane 04) |
+| GEN.1777 | (high) No Class M family at Plentiful: funnel and a tunable CO2 lever. Measure whether the CO2 supply needs a tweak (report first, Boss decides) | done, decided (Boss 4:49 PM EST 11-17: oxygen rise next, GEN.1745 slice 3) |
 | GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | done (PR 7042, 4:13 AM EST 11-17: aim only when a world meets the conditions and has life; F5V case is GEN.1783) |
 | GEN.1779 | (bug, high) A system build got about 2.4 times slower (test_gen1254_scatter_uid past its guard) | closed, not a regression (Lane 14, 2:16 AM EST 11-17: 144 s on main against 161 s on the 617 s commit; heavy list kept; speed work in PERF.276) |
 | GEN.1780 | The GEN.1732 haze loss ramp may have two branches (seed 106: 229 K to 134 K) | open (Lane 02) |
@@ -4122,6 +4123,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1785 | Class census shifts since 8656686b7: explain each, fix faults, renew ranges | GEN.1390 | open (Lane 04) |
 | GEN.1786 | Held resonance eccentricity not saved or restored since GEN.1651 (bug) | GEN.1651 | done (PR 7057, 11-17) |
 | GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | open (Lane 16) |
+| GEN.1788 | Review giant scattering physics; comets follow (Science comets 0 percent) | GEN.1775 | open (Lane 06) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

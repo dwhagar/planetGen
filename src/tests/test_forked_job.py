@@ -14,37 +14,51 @@ pytestmark = [pytest.mark.fresh_database]
 R = "tests.template_runners"
 
 
+class _RealForker:
+    """The forker of `inline_queue.run_ready_rows` for this test: each ready row is forked as a job process from a real template (`jobhost.JobHost`) and waited for, so the launcher finds it ended at its next look."""
+
+    def __init__(self, host, record, url):
+        self.host, self.record, self.url, self.exits, self.made = host, record, url, [], 0
+
+    def fork(self, kind, runner, job=None):
+        handed = dict(job, redis_url=self.url, prefix=runrecord.PREFIX, gate_prefix=memorygate.PREFIX, bulk_queue=redisqueue.BULK_QUEUE, maintenance_queue=redisqueue.MAINTENANCE_QUEUE)
+        held = self.host.fork(f"{R}.unit_in_the_tests_queue", handed)      # the key prefix and queue names of the test's own queue go with the job
+        exit_ = []
+        while not exit_:
+            exit_ = self.host.poll(0.5)
+        said = held.messages()
+        self.record.append((job.get("unit"), exit_[0].code, said))        # an opening has no unit
+        self.exits.append(("t", exit_[0]))
+        return "t", _Said(held, said)
+
+    def poll(self, timeout=0.0):
+        found, self.exits = self.exits, []
+        return found
+
+
+class _Said:
+    """A forked job as the launcher reads it after it ended: what it said is what was read when it ended."""
+
+    def __init__(self, held, said):
+        self.held, self.said, self.pid, self.id = held, said, held.pid, held.id
+
+    def messages(self):
+        said, self.said = self.said, []
+        return said
+
+    def close(self):
+        self.held.close()
+
+
 @pytest.fixture
-def forking(monkeypatch):
-    """The test's queue with the units of a run taken off it and run in jobs forked from a template; the other jobs (the openings) run in a worker as before."""
+def forking(monkeypatch, redis_server):
+    """The units of a run handed out by the launcher and forked as job processes from a real template (OPS.226, OPS.228); each is recorded as `(unit, exit code, what it said)`."""
+    from tests import inline_queue
     monkeypatch.setenv(allowlist.EXTRA_ENV, f"{R}:*")
     host = jobhost.JobHost()
     host.start(ready_seconds=60)
     forked = []
-    inline = workers.ensure_workers          # the test queue's stand-in for a worker (`tests/inline_queue.py`)
-
-    def ensure(name, connection=None, url=None, mysql_host=None, count=None):
-        connection = connection or redisqueue.connect(url)
-        queue = redisqueue.queue(name, connection)
-        while True:
-            waiting = [job for job in queue.jobs if job.func_name == units.UNIT_FUNCTION]
-            if not waiting:
-                break
-            for job in waiting:
-                queue.remove(job)
-                run_id, stage, unit, kind, args, cost, row = job.args
-                handed = {"run_id": run_id, "stage": stage, "unit": unit, "kind": kind, "args": args, "cost": cost, "row": row, "redis_url": url,
-                          "prefix": runrecord.PREFIX, "gate_prefix": memorygate.PREFIX, "bulk_queue": redisqueue.BULK_QUEUE, "maintenance_queue": redisqueue.MAINTENANCE_QUEUE}
-                held = host.fork(f"{R}.unit_in_the_tests_queue", handed)
-                exit_ = []
-                while not exit_:
-                    exit_ = host.poll(0.5)
-                forked.append((unit, exit_[0].code, held.messages()))
-                held.close()
-            inline(name, connection, url, mysql_host, count)           # whatever else is waiting: the opening the unit's end queued
-        return 0
-
-    monkeypatch.setattr(workers, "ensure_workers", ensure)
+    monkeypatch.setattr(inline_queue, "FORKER", lambda: _RealForker(host, forked, redis_server))
     yield forked
     host.stop()
 
@@ -55,8 +69,9 @@ def test_a_run_whose_units_are_forked_jobs_ends_as_a_run_in_a_worker_does(mysql_
     conn = redisqueue.connect(redis_server)
     ours = [run for run in (runrecord.read_run(conn, run_id) for run_id in runrecord.recent_runs(conn)) if run and run["database"] == mysql_config.database]
     assert [(run["title"], run["state"]) for run in ours] == [("Reset the galaxy", "done")]
-    assert [(unit, code) for unit, code, _said in forking] == [(0, 0)], "the unit ran in a forked job, once, and ended well"
-    said = forking[0][2]
+    units_run = [entry for entry in forking if entry[0] is not None]
+    assert [(unit, code) for unit, code, _said in units_run] == [(0, 0)], "the unit ran in a forked job, once, and ended well"
+    said = units_run[0][2]
     assert said and said[0]["event"] == "unit" and said[0]["unit"] == 0 and "seconds" in said[0]["result"]
 
 
