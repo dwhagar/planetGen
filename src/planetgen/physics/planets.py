@@ -1304,7 +1304,13 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     from planetgen.physics import secular_chain
 
     bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and not getattr(p, "is_moon", False) and getattr(p, "period", None) and p.mass and p.distance]
-    if len(bodies) < 2 or not host_mass_kg > 0.0 or not age_yr > 0.0:
+    if not bodies or not host_mass_kg > 0.0 or not age_yr > 0.0:
+        return "unchanged"
+    from planetgen.physics import belt_forcing, radiation_field
+    host = getattr(bodies[0], "star", None)
+    pulls = [(c.star.mass, c.axis_au, c.eccentricity, belt_forcing.periapsis_rad(host.mass, c.member_no, c.axis_au), c.normal)
+             for c in (radiation_field.companions_of(host) if host is not None else ()) if getattr(c.star, "mass", None)]
+    if len(bodies) < 2 and not pulls:
         return "unchanged"
     start, damping = [], []
     for body in bodies:
@@ -1316,8 +1322,9 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
         damping.append(1.0 / tide_time_yr if damped else 0.0)
         start.append((birth if damped else orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
     ring_axes, ring_masses = belt_rings_of(planets, [b.distance for b in bodies])
+    stellar = belt_forcing.stellar_terms([b.distance for b in bodies], host_mass_kg, pulls) if pulls else None
     result = secular_chain.evolve([b.distance for b in bodies], [b.mass for b in bodies], host_mass_kg,
-                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses, damping)
+                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses, damping, stellar)
     if not result.linear:
         return "outside the theory"
     old = [body.eccentricity for body in bodies]

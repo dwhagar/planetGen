@@ -222,3 +222,53 @@ def test_a_planet_the_others_keep_pumping_settles_above_the_decay_of_its_own_tid
     pair["masses_kg"] = [3e24, 1.0]
     alone = sc.evolve(**pair, years=years, damping_per_yr=[rate, 0.0]).eccentricity[0]
     assert alone == pytest.approx(wear_only, rel=5e-3)
+
+
+# GEN.1499: a companion star's pull on the planets (`StellarTerms`, `belt_forcing.stellar_terms`)
+COMPANION = (0.5 * SUN_KG, 120.0, 0.5, 1.2, None)       # mass kg, axis AU, eccentricity, periapsis radians, plane normal
+
+
+def _stellar(axes, companions):
+    from planetgen.physics import belt_forcing
+    return belt_forcing.stellar_terms(axes, SUN_KG, companions)
+
+
+def test_no_companion_and_an_empty_one_give_the_planets_exchange_to_the_last_digit():
+    base = sc.evolve(SOLAR_A[:3], SOLAR_M[:3], SUN_KG, [0.05, 0.02, 0.01], [1.0, 2.0, 3.0], [0.02, 0.01, 0.03], [0.5, 1.0, 2.0], 1.0e8)
+    zero = sc.evolve(SOLAR_A[:3], SOLAR_M[:3], SUN_KG, [0.05, 0.02, 0.01], [1.0, 2.0, 3.0], [0.02, 0.01, 0.03], [0.5, 1.0, 2.0], 1.0e8, stellar=_stellar(SOLAR_A[:3], []))
+    for field in ("eccentricity", "periapsis_longitude", "inclination", "node_longitude"):
+        assert getattr(zero, field) == pytest.approx(getattr(base, field), rel=1e-9, abs=1e-12)
+
+
+def test_planets_started_on_the_forced_fixed_point_stay_there():
+    import numpy as np
+    from planetgen.physics import belt_forcing
+    axes, masses = [4.0, 8.0], [2.0e26, 5.0e26]
+    forced = belt_forcing.forced_planet_vectors(axes, masses, SUN_KG, [COMPANION[:4]])
+    assert forced is not None
+    result = sc.evolve(axes, masses, SUN_KG, [abs(z) for z in forced], [float(np.angle(z)) % (2 * math.pi) for z in forced], [0.0, 0.0], [0.0, 0.0], 3.0e8, stellar=_stellar(axes, [COMPANION]))
+    assert result.eccentricity == pytest.approx([abs(z) for z in forced], rel=1e-6)
+
+
+def test_a_circular_planet_beside_a_companion_swings_up_to_twice_the_forced_eccentricity():
+    from planetgen.physics import belt_forcing
+    axes = [4.0]
+    forced = belt_forcing.forced_planet_vectors(axes, [1.0e26], SUN_KG, [COMPANION[:4]])
+    top = max(sc.evolve(axes, [1.0e26], SUN_KG, [0.0], [0.0], [0.0], [0.0], years, stellar=_stellar(axes, [COMPANION])).eccentricity[0] for years in [x * 2.0e5 for x in range(1, 400)])
+    assert top == pytest.approx(2.0 * abs(forced[0]), rel=0.05)
+
+
+def test_a_bare_planet_follows_a_tilted_companions_plane_and_a_flat_one_changes_nothing():
+    from planetgen.physics import spin
+    tilted = (COMPANION[0], 120.0, 0.0, 0.0, spin.orbit_normal(20.0, 40.0))
+    flat = (COMPANION[0], 120.0, 0.0, 0.0, (0.0, 0.0, 1.0))
+    axes = [4.0]
+    top = max(sc.evolve(axes, [1.0e26], SUN_KG, [0.0], [0.0], [0.0], [0.0], years, stellar=_stellar(axes, [tilted])).inclination[0] for years in [x * 2.0e5 for x in range(1, 400)])
+    assert math.sin(top) == pytest.approx(2.0 * math.sin(math.radians(20.0)), rel=0.03)           # twice the companion's sin(20 degrees), from a flat start (the vector `w = sin(inc) exp(i node)` swings)
+    held = sc.evolve(axes, [1.0e26], SUN_KG, [0.0], [0.0], [0.0], [0.0], 1.0e8, stellar=_stellar(axes, [flat]))
+    assert held.inclination[0] == pytest.approx(0.0, abs=1e-9)
+
+
+def test_a_companion_with_no_plane_turns_no_node():
+    terms = _stellar([4.0, 9.0], [COMPANION])
+    assert terms.nodal == (0.0, 0.0) and terms.inclination_push == (0j, 0j) and all(a > 0.0 for a in terms.apsidal)

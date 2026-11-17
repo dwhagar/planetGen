@@ -77,9 +77,11 @@ member's normal stands on the cone of that angle about `n_f`, at an azimuth from
   the disk lasted, and the planets' own tilt by a companion (GEN.1499).
 
 
-## Planets (GEN.1499, slice 0 built, slice 1 to wire)
+## Planets (GEN.1499, slices 0 and 1 built)
 
 The same theory for a planet: the companion adds `A_c` to the planet's apsidal rate (the diagonal of `secular_chain`'s `A`) and pushes its eccentricity vector along the companion's periapsis with `B_c exp(i varpi_c)`.
 `belt_forcing.companion_terms` gives both for planets at given axes and `belt_forcing.forced_planet_vectors` solves the planets' fixed point `(A + diag A_c) z = g` with relativity and the star's belt rings in
-`A`, so one planet gives `forced_vector` exactly and a giant beside it dilutes and couples the forcing. Slice 1 (lock item) makes `secular_chain.evolve` circle each planet's free vector about that fixed
-point (the `_drive` shape, with a constant push) and add `-A_c` to the nodal diagonal and the companion's plane to the inclination drive; a lone star gives today's numbers.
+`A`, so one planet gives `forced_vector` exactly and a giant beside it dilutes and couples the forcing. Slice 1 (lock item): `belt_forcing.stellar_terms` gives `secular_chain.evolve` (its `stellar` argument, `secular_chain.StellarTerms`) the companion's `A_c` on the apsidal and nodal diagonals and a push from one extra
+held body at rest, so `_drive` circles each planet's free vector about the fixed point `A^-1 g` (and the node about the point between the planets' plane and the companion's, `A_c w_c` over `R + A_c`, a companion with no known plane giving none of the node's terms).
+`planets.secular_exchange` builds the terms from `radiation_field.companions_of` and now also runs for a star with one planet when it has a companion; a lone star with no companion gives today's numbers
+to the last digit. The exchange keeps its own limits: a forced eccentricity or tilt past the first-order limits turns the star's exchange into "outside the theory" and the planets keep their orbits.

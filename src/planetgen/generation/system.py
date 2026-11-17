@@ -2446,7 +2446,7 @@ class StarSystem:
             def keeps(group, baseline=baseline):
                 return all(self._problem_key(problem) in baseline for problem in self._planet_problems(group))
 
-            outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps) if len(bodies) > 1 else "unchanged"
+            outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps) if bodies else "unchanged"
             self.secular_outcomes[star.name] = outcome
             if outcome != "unchanged":
                 log.debug(f"{star.name}: secular exchange of its planets: {outcome}")
