@@ -6,8 +6,8 @@ Resets every job and the queue: for the day a job is stuck somewhere and nothing
 
     python3 -m planetgen.cli.reset_jobs [--yes] [--dry-run] [--mysql-* ...]
 
-It stops what the update guard lists (Generate jobs, runs in the run record, queued jobs, registered command-line runs),
-kills the queue workers on this host, then removes what is left:
+It stops what the update guard lists (Generate jobs, runs in the run record, queued jobs, registered command-line runs), asks the supervisor to stop every job process it forked and ends the
+ledger's rows (OPS.234: `controls.stop_everything`, the rows ended here when no supervisor is alive), kills the queue workers on this host, then removes what is left:
 
 * **Redis**: every RQ key (`rq:*`: the queues, their registries, the jobs, the workers), every run record
   (`planetgen:run:*`, with the active-run keys and event streams), the counters of workers being started and the
@@ -26,11 +26,9 @@ import socket
 import sys
 import time
 
-import rq
-
 from planetgen.admin import updateguard
-from planetgen.queue import pause, redisqueue, runrecord, workers
-from planetgen.util import log
+from planetgen.queue import controls, pause, redisqueue, runrecord, workers
+from planetgen.util import log, process
 from planetgen.util.format import format_duration_seconds
 
 STOP_SECONDS = 20
@@ -52,12 +50,17 @@ def _redis(url):
         return None
 
 
+QUEUE_PREFIX, STARTED_PREFIX, WORKER_PREFIX = "rq:queue:", "rq:wip:", "rq:worker:"
+"""str: The names of the keys RQ left in Redis (the queue's list, its registry of started jobs, a worker's record). Read as keys, not through RQ: this command removes them all (`KEY_PATTERNS`), and
+RQ is going (OPS.235), so what an older run left behind is still found and removed."""
+
+
 def _count_queues(connection):
-    """`{queue name: (waiting, running)}` for every queue Redis knows."""
+    """`{queue name: (waiting, running)}` for every queue Redis has a key for."""
     found = {}
-    for queue in rq.Queue.all(connection=connection):
-        made = redisqueue.queue(queue.name, connection)
-        found[queue.name] = (made.count, len(made.started_job_registry.get_job_ids(cleanup=False)))
+    for key in connection.scan_iter(match=QUEUE_PREFIX + "*", count=500):
+        name = runrecord._s(key)[len(QUEUE_PREFIX):]
+        found[name] = (connection.llen(key), connection.zcard(STARTED_PREFIX + name))
     return found
 
 
@@ -69,13 +72,14 @@ def _redis_keys(connection):
 
 
 def _local_workers(connection):
-    """The registered workers whose process runs on this host: `(worker, pid)`."""
+    """The registered workers whose process runs on this host: `(worker name, pid)`."""
     here = socket.gethostname()
     found = []
-    for worker in rq.Worker.all(connection=connection):
-        pid = getattr(worker, "pid", None)
-        if worker.hostname == here and isinstance(pid, int) and workers.process_exists(pid):
-            found.append((worker, pid))
+    for key in connection.scan_iter(match=WORKER_PREFIX + "*", count=500):
+        record = {runrecord._s(field): runrecord._s(value) for field, value in connection.hgetall(key).items()}
+        pid = int(record["pid"]) if record.get("pid", "").isdigit() else None
+        if record.get("hostname") == here and pid is not None and process.pid_alive(pid):
+            found.append((runrecord._s(key)[len(WORKER_PREFIX):], pid))
     return found
 
 
@@ -147,8 +151,11 @@ def reset_jobs(redis_url=None, assume_yes=False, dry_run=False, sources=None, wr
             for line in updateguard.describe(left):
                 write(line)
     if connection is not None:
-        for worker, pid in _local_workers(connection):
-            write(f"Killing worker {worker.name} (process {pid})")
+        stopped = controls.stop_everything(connection, who="reset-jobs")
+        if stopped["jobs"] or stopped["rows"]:
+            write(f"The supervisor stopped {stopped['jobs']} job process(es); {stopped['rows']} job row(s) of the ledger ended.")
+        for name, pid in _local_workers(connection):
+            write(f"Killing worker {name} (process {pid})")
             _kill_worker(pid, write)
         deadline = time.monotonic() + 5
         while _local_workers(connection) and time.monotonic() < deadline:

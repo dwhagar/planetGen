@@ -15,13 +15,16 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, waiting, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import controls, held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, waiting, warmphases, work as workQueue, workers as queueWorkers
 from planetgen.util import log
 
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body
 from .routes import _paginate
 from .schemas import QueueAction, RunAction, TuningAction, WorkerCount, parse_body
+
+PAUSE_WAIT_SECONDS = 5.0
+"""float: How long the Queue page's Pause and Resume wait for the supervisor to answer before they do it themselves."""
 
 bp = Blueprint("workqueue", __name__, url_prefix="/api/admin/work")
 
@@ -369,8 +372,12 @@ def queue():
             audit("work.queue.resume-all", target="queue")
         return jsonify({"ok": ok})
     connection = _redis()
-    if action == "pause":
-        ok = queuePause.pause(g.admin_user["username"], connection)
+    who = g.admin_user["username"]
+    asked = controls.ask(connection, action, who, wait=PAUSE_WAIT_SECONDS)          # OPS.234: the supervisor writes the flag and notes it as its act; with none alive the page does it
+    if asked is not None and not asked.get("pending"):
+        ok = bool(asked.get("ok"))
+    elif action == "pause":
+        ok = queuePause.pause(who, connection)
     else:
         ok = queuePause.resume(connection)
     if ok:
