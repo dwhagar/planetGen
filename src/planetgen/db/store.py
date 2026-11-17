@@ -8766,8 +8766,8 @@ placement), which `replace_star_system_content` swaps."""
 _SYSTEM_CONTENT_TABLES = kind_tables.tables("body")
 """tuple: The tables holding a system's bodies, keyed by `star_system_id`."""
 
-_SYSTEM_HISTORY_TABLES = ("body_history", "lost_moons")
-"""tuple: The tables holding the numbers a system's planets and moons were made with (`physics/body_history.py`), keyed by `star_system_id` and body row id; they go with the bodies."""
+_SYSTEM_HISTORY_TABLES = ("body_history", "lost_moons", "effect_ledger")
+"""tuple: The tables holding what a system's bodies were made with or by (`physics/body_history.py`, the effect ledger of GEN.1465), keyed by `star_system_id` and body row id; they go with the bodies."""
 
 _SYSTEM_TREE_TABLES = ("orbit_nodes", "dark_members")
 """tuple: The tables holding a system's orbit tree, keyed by `star_system_id`; they go with the stars, not with the system's row."""

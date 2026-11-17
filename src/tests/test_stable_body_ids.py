@@ -252,3 +252,23 @@ def test_a_stored_planet_gets_its_slot_in_the_plan_back_so_an_edit_writes_it_aga
     made = sorted(planet.plan_slot for planet in system.planets if planet.body_type != "a" and planet.plan_slot is not None)
     got = sorted(planet.plan_slot for planet in loaded.planets if planet.body_type != "a" and planet.plan_slot is not None)
     assert made and got == made
+
+
+def test_the_effect_ledger_of_a_drawn_system_goes_with_its_bodies(mysql_config):
+    """DB.135: a draw keeps the ledger rows of the new bodies, and none of the old bodies' (whose rows named bodies that are gone)."""
+    first = _system(3)
+    second = _system(4)
+    system_id = store.save_system(first[0], first[1], config=mysql_config)
+    conn = store.open_write(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM effect_ledger WHERE star_system_id = ?", (system_id,)).fetchone()["n"] > 0, "the first system wrote no ledger rows"
+        with conn:
+            store.replace_star_system_content(conn, system_id, second[0], second[1])
+        rows = conn.execute("SELECT DISTINCT body_type, body_id FROM effect_ledger WHERE star_system_id = ?", (system_id,)).fetchall()
+        assert rows, "the drawn system left no ledger rows"
+        tables = {code: table for table, code in store.effect_ledger.BODY_CODES.items()}
+        for row in rows:
+            held = conn.execute(f"SELECT 1 FROM {tables[row['body_type']]} WHERE id = ? AND star_system_id = ?", (row["body_id"], system_id)).fetchone()
+            assert held is not None, f"a ledger row names {tables[row['body_type']]} {row['body_id']}, which the system does not hold"
+    finally:
+        conn.close()
