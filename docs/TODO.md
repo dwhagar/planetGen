@@ -11856,11 +11856,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16, as part of the TEST.788 work. Prerequisites: none. Related: TEST.788, PERF.275.
   Filed by the TODO thread.
 
-- [ ] **GEN.1779 (bug, high) A system build got about 2.4 times slower: test_gen1254_scatter_uid takes 1,495 s alone (617 s on record), past the 1,140 s guard on main c8bfa87b17**
-  Found by Lane 14, 11:47 PM EST 2026-11-16: tests/test_gen1254_scatter_uid.py::test_a_system_built_round_a_scatter_star_keeps_its_id_and_the_fill_starts_past_the_stars runs alone with one core busy until the hang guard ends it (computing, not waiting); it also stalls changed-area runs. A loop that never ends in the build can stall a galaxy run too. Do: dump the stack while it spins (faulthandler or py-spy), find the loop and the merge that made it (bisect from the last pass), fix the generator so the loop ends or fails loudly, and keep the test as it is. Lane 14, 12:42 AM EST 2026-11-17: not a loop; stack samples sit in StarSystem.__init__ of each pre-placed scatter star (seasonal_swing._anderson, ir_ktables.reduce_distribution, line_opacity, thermosphere, tide_sources, spin_torques). So: compare one mid-size system on main against the commit of the 617 s record, name the functions and merges whose cost grew, and fix them with Lane 16 (PERF.276), splitting files. The file goes on the gate heavy list meanwhile.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 14, ahead of GEN.1778 (after GEN.1773). Prerequisites: none. Related: GEN.1254, OPS.268.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1780 The GEN.1732 haze loss ramp (215 to 245 K) may have two branches: seed 106's haze-free replay fell from 229 K to 134 K, a 95 K cold branch (measure first)**
   Train Manager, 1:32 AM EST 2026-11-17 (Train 42, fix PR 6991): Lane 02's haze fixture now skips bodies that settle inside the 215 to 245 K loss ramp because a replay without haze can land far from the first answer. Do: measure how many bodies settle inside the ramp, whether the settle has two stable answers there (hysteresis) and which one the build keeps, and whether that is physical (a real haze-temperature feedback) or a solver artifact; report before any change, then fix so the build gives one answer for one body.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 02. Prerequisites: none. Related: GEN.1732.
