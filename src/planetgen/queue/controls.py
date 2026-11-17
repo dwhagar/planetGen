@@ -17,6 +17,9 @@ supervisor is gone finishes its piece and exits, `template.EXIT_SUPERVISOR_GONE`
   `canceled`; an attempt that was running is closed `lost` with the kind `canceled`. Stop All's reply comes when the last process is gone, so the process scan that follows it (`stopall`, kept as the
   second line) has nothing of the engine's to find.
 
+* `stop_unit` (the stuck-unit follower, `unitstuck`) kills the one job process that runs a unit the judge found stuck, and closes its attempt `stuck` with the reason and the stack the follower had it
+  write (a file the attempt's row names); the launcher settles the process's end as it settles any other, the row going back to `ready` for one more try.
+
 Nothing here decides which run to cancel or how its Redis record ends: that stays with `runcontrol`, which asks this for the ledger's half.
 """
 
@@ -25,10 +28,10 @@ import json
 import time
 import uuid
 
-from planetgen.queue import ledger, planrows, runrecord, supervisor
+from planetgen.queue import attemptlog, ledger, planrows, runrecord, supervisor
 from planetgen.util import log
 
-OPS = ("pause", "resume", "stop_jobs", "stop_all")
+OPS = ("pause", "resume", "stop_jobs", "stop_all", "stop_unit")
 """tuple: What a request can ask."""
 
 ASK_SECONDS = 30.0
@@ -258,7 +261,8 @@ class Controls:
             log.swallowed("queue/controls", "_take", exc)
             return
         try:
-            handler = {"pause": self._pause, "resume": self._resume, "stop_jobs": self._stop_jobs, "stop_all": self._stop_all}[op]
+            handler = {"pause": self._pause, "resume": self._resume, "stop_jobs": self._stop_jobs, "stop_all": self._stop_all,
+                       "stop_unit": self._stop_unit}[op]
             body = handler(request, request.get("arguments") or {}, request.get("who"))
         except Exception as exc:  # noqa: BLE001 -- a request that failed is answered, and the next one is taken
             log.swallowed("queue/controls", f"the request {op!r}", exc)
@@ -293,6 +297,29 @@ class Controls:
     def _stop_all(self, request, _arguments, who):
         with self._control_connection() as control:
             return self._end(request, control, None, who, "everything", wait_for_reply=True)
+
+    def _stop_unit(self, request, arguments, who):
+        """Kills the job process that runs unit `unit` of stage `stage` of run `run_id` and closes its attempt `stuck` (`reason`, and the `stack` kept in a file). The job is not asked politely: a unit that
+        shows no sign of life will not stop between two pieces. The row stays `running` for the launcher, which sees the process end and hands the unit out again while it has a try left."""
+        run_id, stage, unit = arguments["run_id"], int(arguments["stage"]), str(arguments["unit"])
+        engine = engine_run_of(self.connection, run_id)
+        if engine is None:
+            return {"ok": True, "jobs": 0}
+        key = planrows._stage_key(self.connection, run_id, stage)
+        with self._control_connection(run_id) as control:
+            row = control.execute("SELECT id, attempt FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key = ? AND state = 'running'", (engine, key, unit)).fetchone()
+            if row is None:
+                return {"ok": True, "jobs": 0}
+            launcher = self._launcher()
+            started = launcher.running.get(row["id"]) if launcher is not None else None
+            if started is not None:
+                with contextlib.suppress(Exception):
+                    started.job.kill()
+            ledger.end_running(control, row["id"], "stuck", error_kind="stuck", error_text=arguments.get("reason") or "stuck",
+                               stack_file=attemptlog.keep_stack(row["id"], row["attempt"], arguments.get("stack")))
+            control.commit()
+        self._act(f"stopped unit {unit} of run {run_id}", f"found stuck: {arguments.get('reason') or 'no reason given'}")
+        return {"ok": True, "jobs": 1 if started is not None else 0}
 
     def _end(self, request, control, engine, who, what, wait_for_reply):
         """Asks every job process of the ledger run `engine` (all of them, for `None`) to stop and ends its rows. Returns the reply, or `None` when it is sent once the processes are gone."""
