@@ -645,4 +645,3 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
 | PERF.277 | Interior cooling step collapse in old small bodies | none | Lane 16, 2026-11-17 |
 | PERF.279 | Habitability seasonal solve per pre-placed system | none | Lane 16, 2026-11-17 |
-| DB.135 | Redraw keeps effect_ledger rows | DB.75b | Lane 15, 2026-11-17 |
