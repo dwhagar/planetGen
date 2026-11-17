@@ -1491,6 +1491,8 @@ class StarSystem:
                 # normal random/forced generation logic below.
                 if slot_spec is not None:
                     obj = self.generate_slot_object(star, slot_spec, estimated_distance, planets=planets)
+                    if obj.body_type != "a":
+                        obj.plan_slot = i       # DB.75b: a belt of a slot list is not a planet of the plan
                     planets.append(obj)
                     if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
                         planets.pop()
@@ -1502,6 +1504,7 @@ class StarSystem:
                     planet = self._planet_in_ecosphere(star, habitable_zone, estimated_distance, **given)
                 else:
                     planet = Planet(self.system_config, star, habitable_zone, estimated_distance, defer_climate=True, **given)   # GEN.1282: its air and moons come once the spacing has settled
+                planet.plan_slot = i       # DB.75b: the place the plan drew it in, which the trims of the planets after this leave alone
                 planets.append(planet)
 
                 if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
