@@ -11567,12 +11567,8 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 06 (stage 4 chain). Prerequisites: stage 3 (OPS.215-225). Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
-- [ ] **OPS.228 Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane)**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D3 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 13 (moved from Lane 06 at 4:50 AM EST, not started there; queue rework first). In progress: slice A merged, PR #6654 (7:05 AM EST 11-15); OPS.227 done (#6652). Prerequisites: OPS.226, OPS.227. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.229 Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189**
+  TODO, 2026-11-17: also deletes WarmWorker's unit prep, claim expiry and heartbeat, and the gate wait (moved here from OPS.228); after OPS.271.
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D4 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 13 (moved from Lane 06 at 4:50 AM EST, not started there; queue rework first). Prerequisites: OPS.228. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
@@ -11758,6 +11754,11 @@ clears each one.
 - [ ] **GEN.1786 A restored resonant body loses the floor under its eccentricity: since GEN.1651 the held eccentricity lives in build.resonance_e, but body_history still read the old _resonance_e, so held_eccentricity was never saved and a restored body settled without it (bug)**
   Lane 07, 7:15 AM EST 2026-11-17 (test_restored_resonance_and_star_birth red on main, found by Lane 15: its seed search used the old _orbit_birth name). Fix in PR 7057: body_history reads and writes build.resonance_e; the two tests read build.orbit_birth and build.resonance_e; assertions and seed range unchanged. Generation output unchanged; only the saved held_eccentricity column and a restored body settled again move.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 07, lock-free. Prerequisites: none. Related: GEN.1651, DB.75b.
+  Filed by the TODO thread.
+
+- [ ] **OPS.271 Ledgerless runs (`generate system --output` with no database, the update's math check before the migration step) run their units in the CLI process or a forked job without a ledger, so the bulk RQ unit path can be deleted**
+  Lane 13, 7:57 AM EST 2026-11-17 (OPS.228 closed: every run with a ledger runs its bulk lane as forked jobs, PRs 6995, 7011, 7027, 7040, 7062; runs where planrows.ledgered is false still use enqueue_units, run_unit and open_stage). Do: run those units in the CLI process or a forked job with no ledger, reusing the launcher; then delete enqueue_units, run_unit and open_stage. WarmWorker's unit prep, claim expiry and heartbeat, and the gate wait are deleted with OPS.229 once the maintenance and check lanes move.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 13, lock-free. Prerequisites: OPS.228 (done). Related: OPS.229, OPS.228.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
