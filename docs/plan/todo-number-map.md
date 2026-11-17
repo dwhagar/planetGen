@@ -654,7 +654,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.72 | The scatter tables hold band_index as SMALLINT, which overflows from shell 20,861 outward, so the whole-sphere scatter stops at 97 percent (bug) | none | done, PR #2060 |
 | DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue | none | done, PR #2863 |
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | none | open |
-| DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | open |
+| DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | open (Lane 15, DB.75b) |
 | DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | none | done, PR #2487 |
 | DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | done, PR #2534 |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | none | open |
@@ -2283,17 +2283,17 @@ Parents marked "new parent" had no old number of their own.
 | TEST.694 | scripts/test.py: full --check refuses on main; --resume reuses nothing after UTC midnight; .pytest-deps.json is partial after a resume; xdist stops replacing OOM-killed workers; tests rewrite tracked .test-reports/*-latest.md (bug) | none | done, PR #5688 |
 | OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) | none | done, PR #5688 |
 | OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) | none | done, PR #5666 |
-| OPS.122 | Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier | none | open |
-| OPS.123 | Stage opening (the cut), conclude and finish hooks become single-purpose commands of their own instead of running inside the last unit's horse | none | open |
-| OPS.124 | Memory broker: a per-job memory claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) | none | open |
+| OPS.122 | Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier | none | done (delivered as OPS.215 and OPS.216; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.123 | Stage opening (the cut), conclude and finish hooks become single-purpose commands of their own instead of running inside the last unit's horse | none | done (delivered as OPS.218; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.124 | Memory broker: a per-job memory claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) | none | folded into OPS.231 (dispatch and tokens built as OPS.227 and OPS.232; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
 | OPS.125 | DROPPED (revive only if Boss asks): optional Dask distributed engine behind a switch for the generation stages (PERF.254 step 2) | none | retired (dropped by Boss's job design; revive only if Boss asks) |
-| OPS.126 | Sector generation as single-sector jobs fed by a spawner | none | open |
-| OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today | none | open |
-| OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) | none | open |
-| OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook | none | open |
+| OPS.126 | Sector generation as single-sector jobs fed by a spawner | none | folded into OPS.240 (Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today | none | folded into OPS.225 (Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) | none | folded into OPS.239 (other half built as OPS.238; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook | none | folded into OPS.239 (other half built as OPS.218; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
 | OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site | none | done, PR #5763 |
 | OPS.131 | Independence harness for overlapping jobs: each command declares its reads and writes, a SQL tap test fails any command that touches an undeclared table, and a pair overlaps only after a test proves it | none | done earlier (built as OPS.241 (PRs 6766, 6771, 6775, 6777, 6792, 6794, 6823); found in Lane 07's stale sweep, 11-16) |
-| OPS.132 | Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell) | none | open |
+| OPS.132 | Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell) | none | done (delivered as OPS.242; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | done, PR #5688 |
 | UX.289 | Any step that takes more than 5 seconds shows a progress bar from the 5-second mark: one shared mechanism for generation stages, the uncharted-sector index, the upper-level roll-up and every long step | none | done, PR #5701 |
 | UX.290 | The System Map loses the selected body's info panel (#sysmap-info h3) after the time buttons (play, faster, now) (bug) | none | done, PR #5688 |
