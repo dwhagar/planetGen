@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4452] - 2026-11-17
+
+**Headline:** The Earth-like envelope tweak now says what data would retire it.
+
+### Fixed
+- GEN.1774 left the envelope keep share (stand-in 6.206 EC10, tier T5, tweak L4) without its line in the burn-down register, which turned main red in `test_burn_down_register`. The line is added: no data, and what would replace it (a measured fraction of 1 to 3 Earth-mass planets that keep an envelope, or a formation model of the late impacts of a core). No generation output changes.
+
 ## [8.0.4451] - 2026-11-17
 
 **Headline:** With forked jobs on, the opening of each later stage of a run (its cut into units) is handed out by the supervisor's launcher too, as a job of its own, instead of an RQ job.
