@@ -1987,27 +1987,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## GEN: Generation and physics
 
-- [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
-  Boss (2026-10-01 22:22Z): "see if we can cut down the number of
-  sectors that need to be backfilled by taking the star density
-  calculation and using it to weed out sectors from the star
-  scattering. Might manage probability of getting a region through
-  eliminating x number of sectors from the region so that the region
-  probability matches what we're looking for. One pass would eliminate
-  sectors based on probability, then the back fill would literally have
-  less work to do. We would need to make sure that we don't over-filter
-  though because bright stars in odd places is really neat and
-  realistic." Today the GEN.30 backfill (`backfill_bright_stars_around`
-  in `generate.py`, `brightStars.backfill_cells`) works out the
-  densities and makes a Poisson draw for every unfilled sector of every
-  block in range, most of which get no star. Investigate first; the
-  subitems split the work.
-  Research (2026-10-09, sampling-backfill-and-resume.md): fix the stale
-  code pointers: the backfill is `generation/run_galaxy.py`
-  `backfill_bright_stars_around` and `generation/bright_stars.py`
-  `backfill_cells` (not `generate.py` and `brightStars`), drawn cell by
-  cell in chunks of 200 sectors since GEN.44.
-
   - [ ] **GEN.42 A block-first draw for the backfill (umbrella)**
     One pass over a region (a sector block, or a tier's shell) uses the
     star density calculation (`galaxyDensity.population_densities`) to
