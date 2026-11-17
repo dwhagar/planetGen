@@ -187,9 +187,8 @@ def test_an_anchor_is_the_air_the_body_has_now_solved_under_the_light_and_heat_o
 
 
 @functools.lru_cache(maxsize=None)
-@functools.lru_cache(maxsize=None)
 def _a_world_the_oxygen_rises_on():
-    """`(body, living, rise_gyr)` of a generated rocky world on which class 1a producers of 0.3 Gyr raise the oxygen before the star's age (cached: the search generates up to 60 systems, about 4 minutes)."""
+    """`(body, living, rise_gyr)` of a generated rocky world on which class 1a producers of 0.3 Gyr raise the oxygen before the star's age."""
     from planetgen.physics import biogenic_oxygen, life_air, life_classes
     living = [life_air.Living(life_classes.BY_ID["1a"], 1.0, 0.3)]
     for body in _worlds(60, HABITABLE_WORLD=True):
