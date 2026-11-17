@@ -90,7 +90,7 @@ def test_the_disk_is_taken_at_the_innermost_stable_orbit():
 
 
 def test_an_unlit_kind_or_a_member_with_no_mass_or_age_gives_none():
-    assert dl.source_of(_member("stripped-helium", 1.0), 5.0) is None
+    assert dl.source_of(_member("stripped-helium", 0.47), 5.0) is None, "no radius"
     assert dl.source_of(_member("neutron-star", 1.4), 5.0) is None, "no radius"
     assert dl.source_of(_member("brown-dwarf", 0.05), None) is None
     assert dl.source_of(_member("brown-dwarf", 0.0), 5.0) is None
@@ -101,6 +101,21 @@ def test_a_dark_source_is_a_source_of_the_field_with_the_bands_it_has():
     per = radiation_field._per_au(source)
     assert per["bolometric_w_m2"] == pytest.approx(source.luminosity / (4 * math.pi * constants.AU_M ** 2))
     assert per["xuv_flux_earth"] is None and per["exposure_index"] is None and per["flare_irradiation_index"] is None
+
+
+def test_a_stripped_helium_star_glows_as_a_hot_subdwarf_with_its_xuv_and_a_semi_degenerate_donor_does_not():
+    radius_au = 0.2 * constants.SOLAR_RADIUS_M / constants.AU_M
+    star = dl.source_of(_member("stripped-helium", 0.47, radius_au=radius_au), 5.0)
+    assert star.temperature == dl.STRIPPED_HELIUM_TEMPERATURE_K and star.state == "stripped-helium"
+    assert star.luminosity == pytest.approx(4 * math.pi * (0.2 * constants.SOLAR_RADIUS_M) ** 2 * constants.STEFAN_BOLTZMANN_CONSTANT * 28000.0 ** 4, rel=1e-3)
+    assert 10.0 < star.luminosity / constants.SOLAR_LUMINOSITY < 100.0, "a hot subdwarf is 10 to 100 suns"
+    assert 0.05 < star.l_xuv_w / star.luminosity < 0.4, "a good share of a 28,000 K blackbody is over the hydrogen edge"
+    assert dl.source_of(_member("stripped-helium", 0.47, radius_au=2 * radius_au), 5.0).luminosity == pytest.approx(4 * star.luminosity), "the light follows the radius squared"
+    donor = _member("stripped-helium", 0.05, radius_au=0.02 * constants.SOLAR_RADIUS_M / constants.AU_M)
+    assert dl.source_of(donor, 5.0) is None, "an AM CVn donor does not burn helium"
+    per = radiation_field._per_au(star)
+    assert per["xuv_flux_earth"] == pytest.approx(star.l_xuv_w / (4 * math.pi * constants.AU_M ** 2) / constants.EARTH_XUV_FLUX_W_M2)
+    assert per["exposure_index"] is None and per["flare_irradiation_index"] is None
 
 
 def _system_with_a_brown_dwarf():
@@ -144,6 +159,18 @@ def test_a_neutron_star_in_the_tree_lights_the_planets_of_the_star_beside_it_and
     assert radiation_field.starlight_w_m2(host, 1.0) == pytest.approx(before + sum(
         radiation_field.field_at(host, 1.0).bolometric_w_m2.by_source.get(c.member_no, 0.0) for c in neutron) - 0.0, rel=1.0)       # the total is the sum of its parts
     assert not any(c.dark for c in radiation_field.companions_of(_lone_star()))
+
+
+def test_a_stripped_helium_star_in_the_tree_puts_xuv_on_the_planets_of_the_star_beside_it():
+    import dataclasses
+    system = _system_with_a_brown_dwarf()
+    host = system.star
+    radius_au = 0.2 * constants.SOLAR_RADIUS_M / constants.AU_M
+    system.dark_members = (dataclasses.replace(system.dark_members[0], kind="stripped-helium", mass_solar=0.47, radius_au=radius_au),) + tuple(system.dark_members[1:])
+    system.build_ledger()
+    found = [c for c in radiation_field.companions_of(host) if c.dark and c.star.state == "stripped-helium"]
+    assert found and found[0].star.l_xuv_w > 0.0
+    assert radiation_field.xuv_emitters(host, 1.0), "the loss of air and of envelope follows it"
 
 
 def _lone_star():
