@@ -52,11 +52,26 @@ def test_the_drawn_line_has_the_median_and_scatter_stated():
     with draw.bound(458):
         logs = sorted(math.log10(formation.draw_snow_line_au(luminosity) / center) for _ in range(20000))
     assert statistics.median(logs) == pytest.approx(0.0, abs=0.01)
-    # 0.2 dex, a little under it for the cut at 3 sigma
-    assert statistics.pstdev(logs) == pytest.approx(tuning.SNOW_LINE_SCATTER_DEX, abs=0.005)
+    # 0.2 dex, under it for the cut: the standard deviation of a normal draw cut at plus and minus k sigma is sigma sqrt(1 - 2 k phi(k) / (2 Phi(k) - 1))
+    k = tuning.SNOW_LINE_SCATTER_MAX_SIGMA
+    phi = math.exp(-0.5 * k * k) / math.sqrt(2.0 * math.pi)
+    cut_sd = tuning.SNOW_LINE_SCATTER_DEX * math.sqrt(1.0 - 2.0 * k * phi / math.erf(k / math.sqrt(2.0)))
+    assert statistics.pstdev(logs) == pytest.approx(cut_sd, abs=0.004)
     limit = tuning.SNOW_LINE_SCATTER_DEX * tuning.SNOW_LINE_SCATTER_MAX_SIGMA
     assert -limit <= logs[0] and logs[-1] <= limit
-    assert logs[0] < -0.5 and logs[-1] > 0.5, "the tails are reached"
+    assert logs[0] < -0.9 * limit and logs[-1] > 0.9 * limit, "the tails are reached"
+
+
+def test_the_cut_is_the_two_sigma_range_of_the_papers_snow_lines_a_factor_of_two_and_a_half():
+    """GEN.1611, rows SNL1 and SNL2: [R3193] takes a 0.2 dex dispersion and works its snow lines at the median and plus and minus 2 sigma; the cut was 3 sigma, a factor of 4."""
+    assert tuning.SNOW_LINE_SCATTER_DEX == 0.2 and tuning.SNOW_LINE_SCATTER_MAX_SIGMA == 2.0
+    factor = 10.0 ** (tuning.SNOW_LINE_SCATTER_DEX * tuning.SNOW_LINE_SCATTER_MAX_SIGMA)
+    assert 2.0 <= factor <= 3.0
+    luminosity = constants.SOLAR_LUMINOSITY
+    center = formation.snow_line_au(luminosity)
+    with draw.bound(1611):
+        lines = [formation.draw_snow_line_au(luminosity) for _ in range(5000)]
+    assert max(lines) <= center * factor * (1.0 + 1e-9) and min(lines) >= center / factor * (1.0 - 1e-9)
 
 
 def test_the_same_star_draws_the_same_line_from_its_own_stream():

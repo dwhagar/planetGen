@@ -15,7 +15,7 @@ not repeated here so that there is one stand-in for it). Pure: no draw.
   that age (verified, solar metallicity, so `fe_h` does not enter). Below the lightest mass of the table the lightest row stands (the snow line of such an object is under the
   floor of the disk model anyway). Ages younger than the grid's first (0.5 Myr) read the first.
 * Above 1.4 solar masses `stellar_evolution.evolve_star` gives the star's state at the age asked or just after its arrival on the main sequence, whichever is earlier: the
-  zero-age luminosity of a star that has settled by then, so a star that has died by that age (30 solar masses live 6 Myr) is read as it began. The model track is brighter than BHAC15 at 10 Myr from 0.5 solar masses up (a Sun-like star: 0.75 against 0.46), so the two meet with a
+  zero-age luminosity of a star that has settled by then, so a star that has died by that age (30 solar masses live 6 Myr) is read as it began. The model's own pre-main-sequence track was brighter than BHAC15 at 10 Myr from 0.5 solar masses up (a Sun-like star: 0.75 against 0.46); `pre_main_sequence` now reads the table too up to 1.4 solar masses (GEN.1640), so the two meet with a
   step at 1.4 solar masses (3.35 against 1.95 solar luminosities, a factor of 1.3 in the snow line) that this function does not hide; it is the model's step, listed on GEN.553.
 """
 

@@ -137,7 +137,8 @@ def black_hole_captured_kg_s(black_hole_kg, feeders):
         if not (luminosity and radius and getattr(star, "mass", None)):
             continue
         try:
-            wind_kg_s, wind_m_s = stellar_wind.wind(star.mass, luminosity, radius, getattr(star, "type", "") or "", getattr(star, "yerkes_class", "") or "")
+            wind_kg_s, wind_m_s = stellar_wind.wind(star.mass, luminosity, radius, getattr(star, "type", "") or "", getattr(star, "yerkes_class", "") or "",
+                                                  getattr(star, "log_lx_lbol", None))
         except (ValueError, ZeroDivisionError, TypeError):
             continue
         total += wind_capture_kg_s(black_hole_kg, separation_au, wind_kg_s, wind_m_s, star.mass)
