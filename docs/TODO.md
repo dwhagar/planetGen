@@ -11822,11 +11822,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 05 (moved from Lane 14, 1:50 AM EST). Prerequisites: none. Related: TEST.788, GEN.1773.
   Filed by the TODO thread.
 
-- [ ] **PERF.276 The air solve is 59 percent of a full system's build: cut repeat gas-equilibrium solves without changing the air (M5IA: 140 of 237 s)**
-  Found by Lane 16 on TEST.788, 11:22 PM EST 2026-11-16 (cProfile, main c8bfa87b17, one M5IA system of 138 planets and moons, 237 s): calculate_atmospheric_conditions 140 s, of which surface_air.solve 134 s (195 solves, 3,544 evaluate calls of 36 ms); inside, mixture_draw.draw_mixture 77 s, gas_equilibrium._solve 54 s (6,503 calls), detmath.matmul 37 s (1.68 million calls, numpy accumulate 25 s); outgassed_mixture 49 s (2,492 calls, likely the same rocky mixture re-solved with the same inputs); remake_air from the late-accretion pass 46 s (23 calls); ir_ktables.reduce_distribution 27.6 s. Do: cache or skip unchanged solves (same inputs, same answer), cut the matmul overhead, and show the air is bit-identical on a census sample; report the time per system before and after. Speeds Boss's runs and test_full_matrix (28m 40s). Lock-free if output is identical.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 16, as part of the TEST.788 work. Prerequisites: none. Related: TEST.788, PERF.275.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1780 The GEN.1732 haze loss ramp (215 to 245 K) may have two branches: seed 106's haze-free replay fell from 229 K to 134 K, a 95 K cold branch (measure first)**
   Train Manager, 1:32 AM EST 2026-11-17 (Train 42, fix PR 6991): Lane 02's haze fixture now skips bodies that settle inside the 215 to 245 K loss ramp because a replay without haze can land far from the first answer. Do: measure how many bodies settle inside the ramp, whether the settle has two stable answers there (hysteresis) and which one the build keeps, and whether that is physical (a real haze-temperature feedback) or a solver artifact; report before any change, then fix so the build gives one answer for one body.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 02. Prerequisites: none. Related: GEN.1732.
@@ -11845,6 +11840,11 @@ clears each one.
 - [ ] **GEN.1783 (bug) In a wide binary a planet's apoapsis can pass the stability limit the validator holds it to (F5V+K2V seed 215: reach 0.1919 AU against a_crit 0.1886 AU)**
   Lane 05, 3:21 AM EST 2026-11-17: test_validation::test_generated_systems_validate[F5V] failed once under xdist (a body past the farthest stable orbit, 6.741 AU); the test leaves BINARY_SYSTEM at its random default, and draw.bound(215) with PLANETS True and MOONS False reproduces the same failure in a wide F5V+K2V pair. Do: find why the planet pass lets a body's apoapsis (not only its semi-major axis) pass the wide-binary a_crit_au that check_star_system uses, make placement and validation use one ceiling, and seed the test's systems so a failure replays (no picking a seed that passes; the assertion stays).
   Version 8.1. Owner (TODO, 2026-11-17): Lane 05, after GEN.1778. Prerequisites: none. Related: GEN.1778.
+  Filed by the TODO thread.
+
+- [ ] **PERF.278 The exobase search in thermosphere.kept_shares takes 9.7 of 64 s of a G2V build: a fixed first-order step of 0.25 scale heights over up to 200,000 steps (lock)**
+  Lane 16, 3:43 AM EST 2026-11-17 (PERF.276 closing note): the step is fixed and first order, so a better rule (adaptive or higher order, or a closed form where the profile allows) would cut it many times but moves the exobase by about the old step's own size. Do: replace the step with one whose error is measured against a fine reference, show the exobase height and the escape-driven kept shares of a census sample before and after (largest change, any class or air changes), and report the build time before and after. Lock item; no golden or epoch (Boss, 2026-11-14).
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 07 (Lane 02 owns the thermosphere and is told). Prerequisites: none. Related: PERF.276, PERF.277.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
