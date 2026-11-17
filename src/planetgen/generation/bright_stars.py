@@ -1431,9 +1431,7 @@ def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
     rows = 0
     if math.sqrt(sum(float(c) * float(c) for c in center_pc)) <= radius_pc + 1e-9 and (part is None or part[0] == 0):
         addresses.append((0, 0, 0))                 # the core cell is no row
-    for shell_index, band_index, count, first, length in sphere_rows(center_pc, radius_pc, edge_pc):
-        if not in_part(shell_index, band_index, part):
-            continue
+    for shell_index, band_index, count, first, length in sphere_rows(center_pc, radius_pc, edge_pc, None if part is None else (lambda shell, band: in_part(shell, band, part))):
         rows += 1
         terms = None
         dense = False
