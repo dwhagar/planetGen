@@ -1025,25 +1025,6 @@
           "x-slider": null,
           "x-summary": "A unit that runs again writes a debug log of its own."
         },
-        "forked_jobs": {
-          "default": true,
-          "description": "The units of a generation run's stages are handed out by the supervisor's launcher and run as jobs forked from a warm template (OPS.228), in place of RQ's workers. Off, every unit goes to a worker as before.",
-          "title": "Forked Jobs",
-          "type": "boolean",
-          "x-advanced": false,
-          "x-choice-labels": null,
-          "x-control": null,
-          "x-editable": true,
-          "x-env": "PLANETGEN_FORKED_JOBS",
-          "x-group": "speed",
-          "x-label": "Run units as forked jobs",
-          "x-min_role": "admin",
-          "x-multiline": false,
-          "x-restart": false,
-          "x-secret": false,
-          "x-slider": null,
-          "x-summary": "Generation units run as jobs forked from a warm template, handed out by the supervisor."
-        },
         "interactive_workers": {
           "default": 1,
           "description": "How many workers are kept for short jobs: edits, estimates and slow page answers. They are never counted in the bulk worker count, so a generation run on every core leaves them be, and they run at a higher priority than the bulk workers.",
@@ -2345,7 +2326,6 @@
       "$ref": "#/$defs/Queue",
       "default": {
         "debug_restarts": true,
-        "forked_jobs": true,
         "interactive_workers": 1,
         "long_job_seconds": 60.0,
         "long_workers": 1,

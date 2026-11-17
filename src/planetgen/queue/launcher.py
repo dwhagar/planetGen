@@ -128,6 +128,7 @@ class Launcher:
                 continue
             started = self.running.pop(found)
             started.drain()
+            self.control.commit()                                       # a new look: the job's own last writes (its attempt done, its row done) are what this reads, not the snapshot of an earlier read
             row = self.control.execute("SELECT state, attempt FROM engine_jobs WHERE id = ?", (found,)).fetchone()
             opening = started.row["command"] == planrows.OPENING
             skipped = started.skipped()

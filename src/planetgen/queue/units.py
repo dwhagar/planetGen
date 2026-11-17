@@ -507,6 +507,9 @@ def enqueue_open(conn, run_id, index, queue_name):
     """
     from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
     if wrapper.forked(conn, run_id):            # OPS.228: the supervisor's launcher hands the opening out as a job
+        if index >= len(runrecord.declared_stages(conn, run_id)):
+            _open_stage(conn, run_id, index)    # no stage is left: the opening only finishes the run, which needs no job (and no stage row to hang one on)
+            return
         planrows.queue_opening(conn, run_id, index)
         return
     queue = redisqueue.queue(queue_name, conn)

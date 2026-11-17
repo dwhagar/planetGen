@@ -469,8 +469,8 @@ class RunStarts:
 
 class Launches:
     """
-    OPS.228: the hand-out of the units of runs whose stages are cut for forked jobs (`queue.forked_jobs`, `wrapper._forked`). Each turn it asks the launcher (`launcher.Launcher`) to settle what ended and hand out
-    what is ready; nothing happens, and no template is started, until the setting is on. The launcher, its control connection and its templates are made on the first turn that needs them and let go with the
+    OPS.228: the hand-out of the units of runs whose stages are cut for forked jobs (`wrapper.forked`). Each turn it asks the launcher (`launcher.Launcher`) to settle what ended and hand out
+    what is ready; no template is started until a job needs one. The launcher, its control connection and its templates are made on the first turn that needs them and let go with the
     supervisor (`clear`: every job's pipe closes, so each finishes and exits at its next safe point).
 
     Args:
@@ -497,10 +497,7 @@ class Launches:
 
     def turn(self):
         """Returns how many jobs it started."""
-        from planetgen.util.settings import get_settings
         if self.launcher is None:
-            if not get_settings().queue.forked_jobs:
-                return 0
             self.launcher = (self.make or self._made)()
         return len(self.launcher.turn())
 
