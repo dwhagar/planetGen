@@ -2667,7 +2667,7 @@ class StarSystem:
         # settled and the bodies made again at the star's final age), so it is made again from the final ones.
         for planet in self.all_planets:
             if planet.body_type != "a":
-                validation.refresh_planet_reflex(planet)
+                validation.refresh_planet_reflex(planet, force=True)      # a planet whose moons all went since (Kozai-Lidov, a bar on habitable worlds) has no wobble left
         if self.binary_type == "close":
             # Circumbinary planets orbit the merged proxy, not either
             # individual star (star_id IS NULL -- see schema.sql), so their

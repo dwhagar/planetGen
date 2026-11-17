@@ -54,14 +54,15 @@ def _generate_systems_with_moons(n=N_SYSTEMS):
     """Generates `n` independent systems biased toward having moons,
     retrying (bounded) any generation that comes up moonless."""
     systems = []
-    for _ in range(n * 3):
+    for attempt in range(n * 3):
         if len(systems) >= n:
             break
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         cfg.MOONS = True
         cfg.MAX_PLANETS = True
-        system = StarSystem(system_config=cfg)
+        with draw.bound(f"orbital-motion:{attempt}"):      # a failure replays: the same attempt number makes the same system
+            system = StarSystem(system_config=cfg)
         planets = [obj for obj in system.planets if obj.body_type != "a"]
         if any(p.moons for p in planets):
             systems.append(system)
@@ -690,3 +691,16 @@ def test_wide_binary_primary_and_secondary_positions_sum_to_mutual_position():
         assert 0.0 < mu < 1.0
         assert pair.secondary_mass_fraction == pytest.approx(mu)
         assert pair.primary_position_x_au == pytest.approx(-mu * pair.position_x_au)
+
+
+def test_a_planet_whose_moons_all_went_loses_the_wobble_they_gave_it():
+    """The wobble was made when the moons were: a planet that loses every one of them after (a Kozai-Lidov loss, a bar on habitable worlds, moons that no longer fit) carried
+    the old offset (3.0e-5 AU in a moonless planet of `test_moonless_planet_and_every_moon_has_zero_reflex_offset`). `StarSystem._refresh_wobble` makes it again from the moons that are left."""
+    from types import SimpleNamespace
+    planet = SimpleNamespace(body_type="p", moons=[], mass=6.0e24, position_x=1.0, position_y=0.0, position_z=0.0,
+                             reflex_offset_x=3.0e-5, reflex_offset_y=-2.0e-5, reflex_offset_z=1.0e-6)
+    star = SimpleNamespace(mass=2.0e30, reflex_offset_x=0.0, reflex_offset_y=0.0, reflex_offset_z=0.0)
+    system = SimpleNamespace(all_planets=[planet], planets=[planet], secondary_planets=[], binary_type=None, star=star, primary_star=star,
+                             member_hosts=lambda: [], _reflex_children=StarSystem._reflex_children)
+    StarSystem._refresh_wobble(system)
+    assert (planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z) == (0.0, 0.0, 0.0)
