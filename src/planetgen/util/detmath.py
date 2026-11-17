@@ -85,8 +85,24 @@ def dot(a, b):
     `a @ b` for a vector `b` of length n: two vectors give a float, an array `a` of shape (..., n) gives the array of its dot products with `b`. Summed over
     n left to right by `matmul`, so it has the same bits.
     """
-    out = matmul(a, np.asarray(b, dtype=float)[:, None])[..., 0]
-    return float(out) if out.ndim == 0 else out
+    out = matmul(a, np.asarray(b)[:, None])[..., 0]
+    return out.item() if out.ndim == 0 else out
+
+
+def _complex_matmul(a, b):
+    """
+    `matmul` for complex arrays. numpy's own complex product is not fixed (its vector loops fuse the multiplications and additions on some shapes and processors), so each product is formed from real
+    ones, as the definition: the real part `ar*br - ai*bi` and the imaginary part `ar*bi + ai*br`, each a plain IEEE operation, and the products are added left to right (the real and imaginary parts separately).
+    """
+    ar, ai, br, bi = a.real, a.imag, b.real, b.imag
+    real = ar[..., 0:1] * br[0] - ai[..., 0:1] * bi[0]
+    imaginary = ar[..., 0:1] * bi[0] + ai[..., 0:1] * br[0]
+    for k in range(1, b.shape[0]):
+        real = real + (ar[..., k:k + 1] * br[k] - ai[..., k:k + 1] * bi[k])
+        imaginary = imaginary + (ar[..., k:k + 1] * bi[k] + ai[..., k:k + 1] * br[k])
+    out = np.empty(real.shape, dtype=complex)
+    out.real, out.imag = real, imaginary
+    return out
 
 
 def matmul(a, b):
@@ -98,8 +114,10 @@ def matmul(a, b):
     adds them with `numpy.add.accumulate`, which adds in order and never pairwise (`numpy.add.reduce` does), so the bits
     are those of the loop (`tests/test_detmath.py` compares them on random shapes).
     """
-    a = np.asarray(a, dtype=float)
-    b = np.asarray(b, dtype=float)
+    a, b = np.asarray(a), np.asarray(b)
+    if np.iscomplexobj(a) or np.iscomplexobj(b):
+        return _complex_matmul(a.astype(complex, copy=False), b.astype(complex, copy=False))
+    a, b = a.astype(float, copy=False), b.astype(float, copy=False)
     inner = b.shape[0]
     if inner >= _ACCUMULATE_FROM and a.size * b.shape[1] <= _ACCUMULATE_LIMIT:
         return np.add.accumulate(a[..., :, None] * b, axis=-2)[..., -1, :]

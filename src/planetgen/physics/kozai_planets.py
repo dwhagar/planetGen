@@ -26,7 +26,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.physics import constants, kozai_bodies, radiation_field, rings, secular_chain, spin, stability
-from planetgen.util import draw
+from planetgen.util import detmath, draw
 from planetgen.physics import unit_registry as units
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -143,7 +143,7 @@ def plane_of_normal(normal):
     """`(inclination, node)` in radians of the orbit plane whose unit normal is `normal` in the system's frame (the inverse of `spin.orbit_normal`; the node is 0 for a plane that is the reference plane)."""
     x, y, z = normal
     inclination = math.acos(max(-1.0, min(1.0, z)))
-    node = math.atan2(x, -y) % (2.0 * math.pi) if math.hypot(x, y) > 1.0e-12 else 0.0
+    node = math.atan2(x, -y) % (2.0 * math.pi) if detmath.hypot(x, y) > 1.0e-12 else 0.0
     return inclination, node
 
 

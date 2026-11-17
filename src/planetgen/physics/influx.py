@@ -33,6 +33,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.physics import constants, scatter
+from planetgen.util import detmath
 
 BELT_DUST_SHARE = 0.03
 """float: The share of a belt's collisional mass loss that reaches the inner system as dust and small bodies. A stand-in, in the range of the share of a cascade's mass that is in grains small enough for
@@ -120,7 +121,7 @@ def capture_share(radius_km, mass_kg, planet_au, star_mass_solar, star_luminosit
     a_m = planet_au * constants.AU_TO_M
     star_kg = star_mass_solar * constants.SOLAR_MASS_TO_KG
     v_orbit = math.sqrt(constants.G * star_kg / a_m)
-    v_rel = v_orbit * math.hypot(DUST_ECCENTRICITY, DUST_INCLINATION_RAD)
+    v_rel = v_orbit * detmath.hypot(DUST_ECCENTRICITY, DUST_INCLINATION_RAD)
     radius_m = radius_km * 1000.0
     v_escape_sq = 2.0 * constants.G * mass_kg / radius_m
     cross_section = math.pi * radius_m ** 2 * (1.0 + v_escape_sq / v_rel ** 2)

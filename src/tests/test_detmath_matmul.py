@@ -75,3 +75,47 @@ def test_a_long_gram_matrix_is_bit_for_bit_the_loops():
     """The seasonal swing's case: 6 series of 138,240 values, whose products do not fit at once."""
     a = np.random.default_rng(5).standard_normal((6, 138240)) * 10.0
     assert detmath.matmul(a, a.T).tobytes() == loop(a, a.T).tobytes()
+
+
+def complex_loop(a, b):
+    """The definition for complex numbers: each product from real ones (`ar*br - ai*bi`, `ar*bi + ai*br`), added left to right, one inner index at a time."""
+    a = np.asarray(a, dtype=complex)
+    b = np.asarray(b, dtype=complex)
+    real, imaginary = None, None
+    for k in range(b.shape[0]):
+        re = a[..., k:k + 1].real * b[k].real - a[..., k:k + 1].imag * b[k].imag
+        im = a[..., k:k + 1].real * b[k].imag + a[..., k:k + 1].imag * b[k].real
+        real, imaginary = (re, im) if real is None else (real + re, imaginary + im)
+    return _join(real, imaginary)
+
+
+def _join(real, imaginary):
+    out = np.empty(real.shape, dtype=complex)
+    out.real, out.imag = real, imaginary
+    return out
+
+
+@pytest.mark.parametrize("seed", range(30))
+def test_a_complex_sum_is_bit_for_bit_the_complex_loops(seed):
+    """GEN.1787: the secular chain's modes are complex (`V @ (exp(i w t) * (V^-1 @ z))`); `matmul` and `dot` take them, with the real and imaginary parts formed as numpy forms them."""
+    rng = np.random.default_rng(500 + seed)
+    inner = int(rng.integers(1, 30))
+    columns = int(rng.integers(1, 8))
+    a = rng.standard_normal((int(rng.integers(1, 9)), inner)) + 1j * rng.standard_normal((1, inner)) * 10.0 ** rng.integers(-5, 5)
+    b = rng.standard_normal((inner, columns)) * (1.0 + 2.0j)
+    got, want = detmath.matmul(a, b), complex_loop(a, b)
+    assert got.dtype == complex and got.tobytes() == want.tobytes()
+    vector = b[:, 0]
+    assert detmath.dot(a, vector).tobytes() == complex_loop(a, vector[:, None])[..., 0].tobytes()
+
+
+def test_a_real_matrix_times_a_complex_vector_keeps_the_imaginary_part():
+    a, z = np.array([[1.0, 2.0], [3.0, 4.0]]), np.array([1.0 + 1.0j, -2.0j])
+    assert np.array_equal(detmath.dot(a, z), np.array([1.0 + 1.0j - 4.0j, 3.0 + 3.0j - 8.0j]))
+    long_a, long_z = np.arange(1.0, 41.0).reshape(1, 40), (np.arange(40) + 1j)[:, None]
+    assert detmath.matmul(long_a, long_z).tobytes() == complex_loop(long_a, long_z).tobytes()
+
+
+def test_a_dot_of_two_vectors_is_a_python_number():
+    assert detmath.dot(np.array([1.0, 2.0]), np.array([3.0, 4.0])) == 11.0 and isinstance(detmath.dot(np.array([1.0, 2.0]), np.array([3.0, 4.0])), float)
+    assert detmath.dot(np.array([1j, 2.0]), np.array([1j, 1.0])) == -1.0 + 2.0 + 0.0j
