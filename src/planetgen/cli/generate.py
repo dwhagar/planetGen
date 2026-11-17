@@ -581,7 +581,7 @@ def add_shared_generation_options(parser):
     parser.add_argument('--prevalence', type=prevalence_setting, action='append', default=None,
                         metavar='FEATURE=PERCENT',
                         help="How much more or less often every system gets FEATURE than by chance, as a "
-                             "percentage: comets=+50 is 1.5 times as often, comets=-100 never. Repeat "
+                             "percentage: moons=+50 is 1.5 times as often, moons=-100 never (comets scale the chance of the galaxy's comet abundance tier, so they move nothing on science). Repeat "
                              "for more features: " + ", ".join(prevalence.FEATURES) + ".")
     parser.add_argument('--stars', type=int, default=None, action=SingleSystemOnlyAction, help=argparse.SUPPRESS)
     parser.add_argument('--max-stars', type=int, default=None, metavar='N', help=MAX_STARS_HELP)

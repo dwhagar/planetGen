@@ -3415,7 +3415,7 @@ PREVALENCE_FORCED_HIT_RATES = {
 # Each is a share of the things in its comment, not always of systems.
 # Remeasure with PREVALENCE_BASE_SHARES.
 PREVALENCE_DRAW_SHARES = {
-    "comets": 0.321,            # systems with comets (each star of a wide pair draws)
+    "comets": 0.321,            # systems with comets at the `plentiful` comet abundance tier (GEN.1775: the flat chance of before, each star of a wide pair draws); the default `science` tier gives a far smaller share, so the Generate page no longer starts a field at it
     "binary_system": 0.315,     # systems with a pair (the two stars of a system of more than two count)
     "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
