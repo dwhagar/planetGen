@@ -29,8 +29,25 @@ def _halt(link):
     return halt
 
 
+def run_opening(job, link):
+    """Runs the opening of a stage that `job` names (`units.run_opening_on`) and returns the exit code of the job process. A failure of the cut is the run's failure, said with the stage named (`units._open_stage`)."""
+    conn = redisqueue.connect(job.get("redis_url"))
+    try:
+        result = units.run_opening_on(conn, job["run_id"], job["stage"])
+    except template.SupervisorGone:
+        raise
+    except Exception as exc:  # noqa: BLE001 -- the run is already failed by the opening; the job ends failed
+        log.swallowed("forkedjob", f"the opening of stage {job['stage']} of run {job['run_id']}", exc)
+        link.send({"event": "failed", "error": f"{type(exc).__name__}: {exc}"[:500]})
+        return template.EXIT_FAILED
+    link.send({"event": "unit", "run_id": job["run_id"], "stage": job["stage"], "unit": None, "result": result})
+    return 0
+
+
 def run(job, link):
-    """Runs the unit `job` names and returns the exit code of the job process."""
+    """Runs the unit `job` names (or the opening of a stage, for a job that says `opening`) and returns the exit code of the job process."""
+    if job.get("opening"):
+        return run_opening(job, link)
     conn = redisqueue.connect(job.get("redis_url"))
     run_id, stage, unit, kind = job["run_id"], job["stage"], job["unit"], job["kind"]
     try:

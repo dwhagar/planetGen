@@ -505,6 +505,10 @@ def enqueue_open(conn, run_id, index, queue_name):
     learned per command), has the time limit of a job with no estimate, and is retried once if its horse is killed for memory, with a larger
     claim (`horse_killed`).
     """
+    from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
+    if wrapper.forked(conn, run_id):            # OPS.228: the supervisor's launcher hands the opening out as a job
+        planrows.queue_opening(conn, run_id, index)
+        return
     queue = redisqueue.queue(queue_name, conn)
     queue.enqueue(OPEN_FUNCTION, args=(run_id, index), job_id=open_job_id(run_id, index), job_timeout=redisqueue.job_timeout(None), result_ttl=0,
                   failure_ttl=FAILED_KEEP_SECONDS, retry=rq.Retry(max=1), on_failure=Callback(OPEN_FAILURE_FUNCTION),
@@ -520,6 +524,17 @@ def open_stage(run_id, index):
         dict: `opened`, or `skipped`.
     """
     conn = rq.get_current_job().connection
+    live, wanted = _run_settings(conn, run_id)
+    if not live or conn.exists(runrecord.opened_key(run_id, index)):
+        return {"skipped": True}
+    return _relayed(conn, run_id, wanted, lambda: _open_stage(conn, run_id, index))
+
+
+def run_opening_on(conn, run_id, index):
+    """
+    The opening of stage `index` run on the Redis connection `conn` by a job process the launcher forked (OPS.228): what `open_stage` does for an RQ job. A run that is no longer live, or a stage already opened, is
+    left alone. Returns `{"opened": True}` or `{"skipped": True}`.
+    """
     live, wanted = _run_settings(conn, run_id)
     if not live or conn.exists(runrecord.opened_key(run_id, index)):
         return {"skipped": True}
