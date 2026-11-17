@@ -77,6 +77,13 @@ class SystemConfig:
     carries no field of it, and a seeded system and its golden digest are what they were before the tier existed. Not saved with the system.
     """
 
+    COMET_TIER = None
+    """
+    str or None: The comet abundance tier the system is made under (GEN.1775, `generation.comet_abundance.TIERS`: "sparse", "scattered", "plentiful" or "abundant"), which gives a star with no scattered
+    outer disk the chance `tuning.SYSTEM_COMET_CHANCE` times the tier's multiplier of holding comets. None is "science": only the stars the physics gives comets have them. A class attribute like
+    `ABUNDANCE_TIER`, so a config holds it only when it is set: a galaxy sector sets it from the galaxy's stored choice when that is not science. Not saved with the system.
+    """
+
     def __init__(self):
         self.system_flavor_count = 0
         self.used_flavor_ids = [] # The flavor line ids this system has shown, so no line shows twice (GEN.1430; it replaces the recency list)

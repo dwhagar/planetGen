@@ -37,7 +37,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, belt_planets, disk_ejection, abundance_tier, habitable_request, cosmic_dust, late_accretion, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, belt_planets, comet_abundance, disk_ejection, abundance_tier, habitable_request, cosmic_dust, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star
 from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, comet_supply, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, moon_resonances, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
@@ -950,8 +950,10 @@ class StarSystem:
         once per star, honoring `SystemConfig.COMETS`'s tri-state contract
         the same way `ASTEROID_BELT`/`HABITABLE_WORLD` do elsewhere:
         `True` forces at least `tuning.SYSTEM_COMET_COUNT_RANGE[0]`
-        comets, `False` forces none, `None` rolls
-        `tuning.SYSTEM_COMET_CHANCE`.
+        comets, `False` forces none, `None` rolls the chance of
+        `comet_abundance.presence_chance` (GEN.1775): certain for a star with
+        an outer disk a giant scattered, else `tuning.SYSTEM_COMET_CHANCE`
+        times the galaxy's comet abundance tier (none on `science`).
 
         Args:
             star: The `Star` or `BinaryStarProxy` this comet population is
@@ -979,16 +981,18 @@ class StarSystem:
         if self.system_config.COMETS is False:
             return []
 
-        has_comets = self.system_config.COMETS is True or draw.random() < prevalence.scaled_chance(
-            self.system_config, "comets", tuning.SYSTEM_COMET_CHANCE)
+        belts = [body for body in planets if body.body_type == 'a']
+        family_weights = comet_supply.family_weights(belts)
+        # GEN.1775: a star holds comets where its own outer disk was scattered (the physics); the tier of the galaxy (`comet_abundance`) gives the others the registered stand-in chance times its multiplier, none on science
+        chance = comet_abundance.presence_chance(self.system_config, family_weights is not None)
+        has_comets = self.system_config.COMETS is True or draw.random() < prevalence.scaled_chance(self.system_config, "comets", chance)
         if not has_comets:
             return []
 
         count = draw.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
         primary_mass_solar = _kg_to_msun(star.mass)
         giant_au = comet_control.controlling_giant_au(planets)
-        belts = [body for body in planets if body.body_type == 'a']
-        supply = {"family_weights": comet_supply.family_weights(belts), "nucleus_top_km": comet_supply.nucleus_top_km(belts)}       # GEN.1765: read from the star's outer disks where it has them
+        supply = {"family_weights": family_weights, "nucleus_top_km": comet_supply.nucleus_top_km(belts)}       # GEN.1765: read from the star's outer disks where it has them
         if ceiling_au is None:
             # A closed orbit stays inside the star's own Hill sphere (GEN.591); a parabolic comet leaves it by design.
             hill_au = validation.orbit_ceiling_au(star)

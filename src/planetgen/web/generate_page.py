@@ -686,7 +686,6 @@ def scatter_steps(generate, form, kinds=("mass", "luminosity", "phenomena")):
 PREVALENCE_LABELS = {
     "habitable_world": "Habitable worlds (% of systems)",
     "asteroid_belt": "Asteroid belts (% of systems)",
-    "comets": "Comets (% of systems)",
     "large_star": "Large stars (% of systems)",
     "moons": "Moons (% of planets with any)",
     "max_planets": "Most planets a star can hold (% of stars)",
@@ -709,8 +708,14 @@ def _usual_percent(feature):
 STAR_MIX_FEATURES = ("binary_system", "wide_binary")
 """tuple[str]: The features the star mix replaces on the page (ADM.45)."""
 
+TIER_FEATURES = ("comets",)
+"""tuple[str]: The features a galaxy's own setting replaces on the page (GEN.1775): the comet abundance tier (`comet_abundance` on the New galaxy page, kept in the galaxy's pins and read by every sector
+added later) decides how many stars hold comets, and its Science default gives a share of systems far from the 32.1 percent this field once started at, so a percentage of a usual share would mislead."""
+
+_PAGE_REPLACED = STAR_MIX_FEATURES + TIER_FEATURES
+
 PREVALENCE_FIELDS = tuple((f"prevalence_{feature}", PREVALENCE_LABELS[feature], _usual_percent(feature))
-                          for feature in prevalence.FEATURES if feature not in STAR_MIX_FEATURES)
+                          for feature in prevalence.FEATURES if feature not in _PAGE_REPLACED)
 """tuple: `(field name, label, usual share in percent)` for each
 prevalence field, in `prevalence.FEATURES` order. Each field starts at
 its feature's usual share (Boss, 2026-10-08: "the page needs to have
@@ -718,7 +723,7 @@ meaningful information at all times")."""
 
 
 PREVALENCE_LIMITS = {f"prevalence_{feature}": f"{prevalence.reachable_share(feature) * 100:.3g}"
-                     for feature in prevalence.FEATURES if feature not in STAR_MIX_FEATURES and prevalence.reachable_share(feature) < 1.0}
+                     for feature in prevalence.FEATURES if feature not in _PAGE_REPLACED and prevalence.reachable_share(feature) < 1.0}
 """dict: The most a prevalence field can give, in percent, for a feature a run only asks for (GEN.1322: a habitable world); the page says so beside the
 field. A feature made as asked has no entry."""
 

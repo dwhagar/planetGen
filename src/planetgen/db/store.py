@@ -9549,6 +9549,9 @@ def get_galaxy_shape(conn, light=False):
     tier = dials.choice_pinned(pins, "class_m")     # the Census dial's Class M abundance tier: what each system made here takes as its tier
     if tier is not None:
         shape = shape._replace(abundance_tier=tier)
+    comet_tier = dials.choice_pinned(pins, "comet_abundance")     # the Census dial's comet abundance tier (GEN.1775)
+    if comet_tier is not None:
+        shape = shape._replace(comet_tier=comet_tier)
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
