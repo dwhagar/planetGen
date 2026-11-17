@@ -209,7 +209,7 @@ def reconcile_moved_planet(planet):
     # v20: planet.reflex_offset_x/y/z (this planet's own wobble from its moons -- see Planet.reflex_offset_x's docstring) depends on
     # every moon's own mass/position, any of which the reconciliation above may just have moved. Recomputed unconditionally here,
     # the same "cheap, always recompute from current state" treatment store.advance_orbital_phases gives this same value.
-    refresh_planet_reflex(planet)
+    refresh_planet_reflex(planet, force=True)      # the reconciliation can have dropped every moon (`planets.drop_unstable_moons`): the wobble goes with them
 
     # GEN.904: the spin, the orbital period or the class above can be new, and the day and night shares were worked out from the
     # old ones (or went with a regenerated body): they follow the geometry the planet and its moons have now (no draws).
@@ -662,7 +662,7 @@ def stabilize_lunar_system(planet):
             refresh_moon_orbit(moon, planet)
             moved.append(moon)
         inner.append(moon)
-    refresh_planet_reflex(planet)
+    refresh_planet_reflex(planet, force=True)
     return moved
 
 
