@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1884 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1885 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1857 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1858 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 1 | 148 |
-| T6 | 238 | 127 | 36 | 81 | 4 | 486 |
+| T6 | 238 | 128 | 36 | 81 | 4 | 487 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 41 | 232 |
-| All | 1073 | 385 | 96 | 270 | 60 | 1884 |
+| All | 1073 | 386 | 96 | 270 | 60 | 1885 |
 
 ## How the labels were given
 
@@ -2440,6 +2440,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | VR1 | P | T6 | L1 | variability.MIRA_MAX_TEMPERATURE_K 3500 (an asymptotic-giant star cooler than this is a Mira or semiregular variable; Miras run from about 2,500 to 3,500 K) | 3200 to 3800 | asymptotic-giant stars | a measured asymptotic-giant population whose cool stars are mostly not variable, or whose variables reach 4,000 K | a pulsation model of the asymptotic-giant branch (period-luminosity-temperature) | test_variability::test_only_a_cool_asymptotic_giant_is_a_mira | predicted only | - | - |
 | VR2 | P | T6 | L0 | variability.HERBIG_MIN_MASS_SOL 2 (a pre-main-sequence star of this mass or more is a Herbig Ae/Be star, under it a T Tauri star) | 1.5 to 2.5 | pre-main-sequence stars | a catalogue split of the two classes by spectral type that puts the boundary more than 0.5 solar masses away | the spectral-type definition of the classes | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | predicted only | - | - |
 | VR3 | P | T6 | L0 | variability.HERBIG_MAX_MASS_SOL 8 (a pre-main-sequence star of this mass or more is neither: it reaches the main sequence still accreting) | 6 to 10 | pre-main-sequence stars | a Herbig Be star of more than 10 solar masses on a pre-main-sequence track | a massive-star accretion model | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | predicted only | - | - |
+| VR4 | P | T6 | L1 | variability.RGB_SEMIREGULAR_MAX_TEMPERATURE_K 4000 (a red-giant-branch star cooler than this is a small-amplitude semiregular variable; the M giants are the catalogued semiregulars, the K giants mostly steady) | 3600 to 4400 | red-giant-branch stars | a measured red-giant population whose M giants are mostly steady, or whose variables reach 4,600 K | a period-luminosity-amplitude model of the red-giant branch | test_variability::test_only_a_cool_red_giant_branch_star_is_a_semiregular_variable | predicted only | - | - |
 
 ## 6.139 Stand-ins of the carbon and S stars
 

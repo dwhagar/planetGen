@@ -18,19 +18,19 @@
       "T3": 213,
       "T4": 150,
       "T5": 148,
-      "T6": 486,
+      "T6": 487,
       "T7": 146,
       "T8": 7,
       "T9": 232
     },
     "by_tweak": {
       "L0": 1073,
-      "L1": 385,
+      "L1": 386,
       "L2": 96,
       "L3": 270,
       "L4": 60
     },
-    "rows": 1884
+    "rows": 1885
   },
   "tiers": [
     [
@@ -113,7 +113,7 @@
     },
     "educated_guess_from_physics": {
       "percent": 42,
-      "rows": 787
+      "rows": 788
     },
     "fitted_to_a_result": {
       "percent": 23,

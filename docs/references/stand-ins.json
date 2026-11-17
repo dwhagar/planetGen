@@ -55021,6 +55021,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "variability.HERBIG_MAX_MASS_SOL 8 (a pre-main-sequence star of this mass or more is neither: it reaches the main sequence still accreting)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "variability.RGB_SEMIREGULAR_MAX_TEMPERATURE_K 4000 (a red-giant-branch star cooler than this is a small-amplitude semiregular variable; the M giants are the catalogued semiregulars, the K giants mostly steady)"
+            ],
+            [
+              "The range it moves in",
+              "3600 to 4400"
+            ],
+            [
+              "Where it holds",
+              "red-giant-branch stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured red-giant population whose M giants are mostly steady, or whose variables reach 4,600 K"
+            ],
+            [
+              "What replaces it",
+              "a period-luminosity-amplitude model of the red-giant branch"
+            ],
+            [
+              "Evidence",
+              "test_variability::test_only_a_cool_red_giant_branch_star_is_a_semiregular_variable"
+            ]
+          ],
+          "id": "VR4",
+          "key": "6.138:VR4",
+          "kind": "P",
+          "slug": "6-138-vr4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "variability.RGB_SEMIREGULAR_MAX_TEMPERATURE_K 4000 (a red-giant-branch star cooler than this is a small-amplitude semiregular variable; the M giants are the catalogued semiregulars, the K giants mostly steady)"
         }
       ],
       "slug": "6-138-stand-ins-of-the-variable-star-kinds",

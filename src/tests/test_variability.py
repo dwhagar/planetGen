@@ -12,7 +12,6 @@ def test_a_cepheid_is_a_classical_cepheid():
 def test_only_a_cool_asymptotic_giant_is_a_mira():
     assert v.kind_of("asymptotic-giant", "III", 3200.0, 1.5) == v.MIRA
     assert v.kind_of("asymptotic-giant", "III", 3800.0, 1.5) is None
-    assert v.kind_of("red-giant", "III", 3200.0, 1.5) is None
 
 
 def test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass():
@@ -27,3 +26,10 @@ def test_an_ordinary_star_has_no_kind():
     for state, letter in (("main-sequence", "V"), ("subgiant", "IV"), ("white-dwarf", "VII"), ("supergiant", "IB")):
         assert v.kind_of(state, letter, 5800.0, 1.0) is None
     assert v.kind_of(None, None, None, None) is None
+
+
+def test_only_a_cool_red_giant_branch_star_is_a_semiregular_variable():
+    assert v.kind_of("red-giant", "III", 3600.0, 1.2) == v.SEMIREGULAR
+    assert v.kind_of("red-giant", "III", 4500.0, 1.2) is None, "a K giant is mostly steady"
+    assert v.kind_of("helium-burning", "III", 3600.0, 1.2) is None, "the red clump is not on the branch"
+    assert v.kind_of("red-giant", "III", None, 1.2) is None
