@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4496] - 2026-11-17
+
+**Headline:** A site job is now ended by the clock at a multiple of how long its own kind has taken before, not at a typed ten times the estimate.
+
+### Changed
+- `lightjobs`: once a kind has eight recorded runs, its time limit is three times its longest (never under 30 s); until then the typed limit holds. What was read of a kind is kept five minutes, and a database that does not answer leaves the typed limit.
+- A light job that ends on its own now records its seconds (`jobprofiles.record`); one the clock or a stop request ended does not (it would teach the limit its own value).
+
+### Added
+- `jobprofiles.seconds_of`: the wall seconds of a kind's newest finished runs.
+
+generation-output: unchanged
+
 ## [8.0.4495] - 2026-11-17
 
 **Headline:** The supervisor now holds the bulk and upkeep lanes when the database's own answers slow down, as it already does when memory runs short.
