@@ -11861,9 +11861,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 02. Prerequisites: none. Related: GEN.1732.
   Filed by the TODO thread.
 
-- [ ] **TEST.790 Add a controlled greenhouse test: double each rocky body's infrared-active gases, solve the air again, and the greenhouse factor must not fall (test_radiation_sweep's rank test swings 0.22 to 0.56 with the sample)**
-  Lane 02, 1:54 AM EST 2026-11-17: test_the_greenhouse_rises_with_the_infrared_active_column is green on main 4f0bca6bf2 (0.56 on 46 bodies) after Train 42 moved the sample, but over other seeds it read 0.22, 0.40 and 0.24 against the 0.3 floor, because bodies under 150 K (most of the sample) take their greenhouse factor from pressure and temperature more than from the column (rank 0.03 to 0.16 there, 0.65 to 0.74 above 230 K). Do: add the controlled test (every rocky body with air, infrared-active gases doubled, greenhouse factor does not fall, no floor to tune). Keep the existing rank test and its 0.3 floor as they are.
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 02, after GEN.1780. Prerequisites: none. Related: GEN.1732.
+- [ ] **GEN.1781 In hydrogen-rich airs (over 10 percent H2) doubling methane cools the ground (cold gas dwarfs 4 K, one 2,300 K class I body 42 K): is hydrogen pair absorption missing from the infrared-active gases, or is this a real anti-greenhouse? (measure first)**
+  Lane 02, 2:40 AM EST 2026-11-17, found while building TEST.790 (PR 7019): the controlled greenhouse test had to scope out airs with over 10 percent H2 because they cool when methane is doubled; the code does not flag hydrogen collision-induced (pair) absorption as infrared-active. Do: check whether the radiative path counts H2-H2 and H2-He pair absorption (a major greenhouse source in hydrogen airs) and how methane's stratospheric absorption enters (a Titan-like anti-greenhouse is real physics); report which part is physics and which is a gap, then fix the gap so the TEST.790 scope can widen to hydrogen airs. Report before any change that moves output.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 02, after GEN.1780. Prerequisites: none. Related: TEST.790, GEN.1732.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
