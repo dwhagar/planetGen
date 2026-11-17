@@ -17,21 +17,23 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.web.app import create_app
 from planetgen.web.maps.systemscene import build_scene
+from planetgen.util import draw
 from tests.publicids import pid
 
 
 def _system(want_binary):
-    for _ in range(400):
+    for attempt in range(400):
         cfg = SystemConfig()
         cfg.PLANETS = True
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = want_binary
-        system = StarSystem(system_config=cfg)
+        with draw.bound(f"scene-{want_binary}-{attempt}"):      # TEST.737: the same streams in every run, so the search finds the same system
+            system = StarSystem(system_config=cfg)
         if want_binary and len(system.stars) < 2:
             continue
         if any(getattr(p, "moons", None) for p in system.planets) and system.comets:
             return system, cfg
-    pytest.skip("no suitable system generated")
+    pytest.fail("none of 400 fixed streams drew a system with moons and comets")
 
 
 @pytest.fixture
@@ -39,11 +41,8 @@ def saved(mysql_config):
     sector = SpaceSector("Scene Sector", edge_ly=11.5)
     single, cfg_a = _system(False)
     sector.add_system(single, position=(1.0, 1.0, 1.0), system_config=cfg_a)
-    try:
-        binary, cfg_b = _system(True)
-        sector.add_system(binary, position=(-2.0, 0.5, 3.0), system_config=cfg_b)
-    except pytest.skip.Exception:
-        pass
+    binary, cfg_b = _system(True)
+    sector.add_system(binary, position=(-2.0, 0.5, 3.0), system_config=cfg_b)
     store.save_sector(sector, config=mysql_config)
     conn = store.get_connection(mysql_config)
     try:
@@ -125,8 +124,7 @@ def test_every_orbit_ring_lies_in_the_plane_its_body_moves_in(saved):
 
 def test_a_binary_pair_is_two_positioned_stars_with_a_mutual_orbit(saved):
     config, ids = saved
-    if len(ids) < 2:
-        pytest.skip("no binary generated")
+    assert len(ids) >= 2, "the fixture saves a single system and a binary"
     conn = store.get_connection(config)
     try:
         scene = build_scene(conn, ids[1])

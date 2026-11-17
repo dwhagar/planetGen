@@ -13,6 +13,7 @@ configured/reachable.
 import pytest
 
 from planetgen.db import store
+from planetgen.util import draw
 from planetgen.galaxy import object_uid
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
@@ -75,12 +76,13 @@ def test_a_placed_object_saved_on_its_own_takes_its_id_when_it_gets_one(mysql_co
 
 def test_a_remnant_core_gets_its_own_object_id(mysql_config):
     from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
-    for _ in range(200):
-        remnant = SupernovaRemnant(SystemConfig())
+    for attempt in range(200):
+        with draw.bound(f"remnant-core-{attempt}"):      # TEST.737: fixed streams, the same remnant in every run
+            remnant = SupernovaRemnant(SystemConfig())
         if remnant.compact_remnant is not None:
             break
     else:
-        pytest.skip("no remnant with a core drawn")
+        pytest.fail("none of 200 fixed streams drew a remnant with a core")
     assert remnant.compact_remnant.name == f"{remnant.name} Core"
     sector = SpaceSector("Halfway Sector", edge_ly=11.5)
     sector.add_phenomenon(remnant, "supernova-remnant", position=(1.0, 2.5, 1.0))

@@ -48,7 +48,7 @@ def _living_planet_system(mysql_config, monkeypatch, client):
                     shown = client.get(f"/api/planets/{pid('planet', rows[0]['id'])}/life-air").get_json().get("life_air")
                     if shown and "CH4" in {gas["formula"] for gas in shown["gases"]}:
                         return system_id, rows[0]["id"]
-    pytest.skip("no airy rocky planet in these draws")
+    pytest.fail("no airy rocky planet in these draws")
 
 
 def test_a_living_planets_air_history_has_the_steps_and_stages(client, mysql_config, monkeypatch):
@@ -72,14 +72,20 @@ def test_a_planet_without_a_living_class_has_no_history(client, mysql_config):
     config = SystemConfig()
     config.PLANETS = True
     config.MAX_PLANETS = True
-    system_id = store.save_system(StarSystem(system_config=config), config, config=mysql_config)
+    for attempt in range(40):
+        with draw.bound(f"life-air-no-class-{attempt}"):      # TEST.737: fixed streams, the same system in every run
+            system = StarSystem(system_config=config)
+        if any(p.body_type != "a" and p.life_stage is None for p in system.planets):
+            break
+    else:
+        pytest.fail("none of 40 fixed streams drew a system with a planet that has no life stage")
+    system_id = store.save_system(system, config, config=mysql_config)
     conn = store.get_connection(mysql_config)
     try:
         planet_id = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND life_stage IS NULL LIMIT 1", (system_id,)).fetchone()
     finally:
         conn.close()
-    if planet_id is None:
-        pytest.skip("every planet drawn has a life stage")
+    assert planet_id is not None
     body = client.get(f"/api/planets/{pid('planet', planet_id['id'])}/life-air").get_json()
     assert body["life_class_id"] is None and body["life_air"] is None
 

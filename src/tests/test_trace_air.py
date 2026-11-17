@@ -14,15 +14,27 @@ from planetgen.util import draw
 from tests.test_life_air import _worlds
 
 
+def _draws_a_trace_gas(body):
+    """Whether some draw of the 60 the tests make (`_drawn`) gives the air of `body` (at the life stage the `world` fixture gives it) a trace gas."""
+    for seed in range(60):
+        other = copy.deepcopy(body)
+        other.life_stage = "multicellularity"
+        other.mass = body.mass * (1.0 + seed * 1e-3)
+        if trace_air.apply(other):
+            return True
+    return False
+
+
 @pytest.fixture(scope="module")
 def airy_world():
-    """A generated rocky world with a nitrogen, oxygen and carbon dioxide air of its own making stored on it."""
-    for body in _worlds(range(0, 12)):
+    """A generated rocky world with a nitrogen, oxygen and carbon dioxide air of its own making stored on it (TEST.737: the first of the fixed streams whose world the trace gases are drawn for, which depends on the generator)."""
+    for body in _worlds(range(0, 80)):
         if (body.atmospheric_pressure or 0) > 20000.0 and body.surface_temperature and body.greenhouse_factor is not None:
             body = copy.deepcopy(body)
             bo.store_air(body, {"N2": 78000.0, "O2": 20000.0, "CO2": 300.0, "Ar": 900.0})
-            return body
-    pytest.skip("no world with air in these seeds")
+            if _draws_a_trace_gas(body):
+                return body
+    pytest.fail("none of 80 fixed streams made a world with air that the trace gases are drawn for")
 
 
 @pytest.fixture
