@@ -120,6 +120,30 @@ def test_a_stripped_helium_star_glows_as_a_hot_subdwarf_with_its_xuv_and_a_semi_
     assert per["exposure_index"] is None and per["flare_irradiation_index"] is None
 
 
+def test_a_star_that_fills_its_lobe_feeds_a_black_hole_by_overflow_and_one_that_does_not_gives_only_its_wind():
+    hole_kg = 10.0 * SOLAR_MASS
+    yr = 365.25 * 86400.0
+    giant = _Star(mass_sol=1.0, luminosity_sol=800.0, radius_km=50.0 * 695700.0)
+    inside = dl.overflow_kg_s(hole_kg, giant, 0.02)       # the lobe of 1 solar mass about 10 is ~0.2 of 0.02 AU: far under the giant
+    outside = dl.overflow_kg_s(hole_kg, giant, 5.0)
+    assert outside == 0.0, "a lobe far wider than the star is not filled"
+    assert inside == pytest.approx(SOLAR_MASS / (dl.ms_lifetime.lifetime_gy(1.0) * 1e9 * yr), rel=1e-2), "a donor lighter than the hole is fed on its nuclear time"
+    assert 0.5e-10 < inside * yr / SOLAR_MASS < 2e-10, "1e-10 solar masses a year: a low-mass X-ray binary"
+    assert dl.black_hole_captured_kg_s(hole_kg, [(giant, 0.02)]) > inside, "the wind adds to it"
+    assert dl.black_hole_captured_kg_s(hole_kg, [(giant, 5.0)]) < inside / 100, "far off, only the wind is left"
+    light = dl.source_of(_member("black-hole", 10.0), 5.0, [(giant, 0.02)])
+    assert light is not None and light.luminosity / constants.SOLAR_LUMINOSITY > 50.0, "a bright X-ray source, which the wind alone never made"
+
+
+def test_a_donor_heavier_than_the_hole_overflows_on_its_thermal_time_and_the_light_stops_at_the_eddington_limit():
+    hole_kg = 5.0 * SOLAR_MASS
+    donor = _Star(mass_sol=10.0, luminosity_sol=1e4, radius_km=5.0 * 695700.0)
+    rate = dl.overflow_kg_s(hole_kg, donor, 0.05)
+    assert rate == pytest.approx(donor.mass / (constants.G * donor.mass ** 2 / (donor.radius * 1e3 * donor.luminosity)), rel=1e-9)
+    light = dl.source_of(_member("black-hole", 5.0), 0.02, [(donor, 0.05)])
+    assert light.luminosity == pytest.approx(dl.EDDINGTON_W_PER_SOLAR_MASS * 5.0, rel=1e-6)
+
+
 def _system_with_a_brown_dwarf():
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem

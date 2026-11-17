@@ -15,23 +15,25 @@ dose of a planet near one count them. Nothing is drawn here: every figure comes 
 * **A black hole** shines only while it is fed. The stars of the tree feed it by their winds (`stellar_wind.wind`, the same law that sizes a star's bubble): the Bondi-Hoyle-Lyttleton capture
   `Mdot = (G M)^2 Mdot_wind / (a^2 v_w (v_w^2 + v_orb^2)^1.5)` of a star at the separation `a` from it, capped by the wind itself, turned to light at `DISK_EFFICIENCY` and capped by the
   Eddington limit. The disk's colour is that of a blackbody at the innermost stable orbit (`3 R_s`). A black hole with no wind to take gives nothing (its Hawking glow is a part in 10^20).
-  Feeding by overflow of a star that fills its Roche lobe is not modelled; that needs the star's evolution, and its absence leaves the light of such a black hole at the wind's.
+  A star that fills its Roche lobe (GEN.1531, `roche.filling_factor` at the separation of the tree) feeds the hole by overflow as well (`overflow_kg_s`): the donor's mass over its own
+  evolution time, the nuclear one (`ms_lifetime`) for a donor lighter than the hole and the thermal one (`G M^2 / R L`) for a heavier, which is the X-ray binary the wind alone would miss by many orders.
 * **A stripped helium star** (a hot subdwarf, GEN.1530) burns helium in its core under a thin hydrogen skin: its light is that of a blackbody of the stored radius at the temperature of a hot subdwarf
   (`STRIPPED_HELIUM_TEMPERATURE_K`), `4 pi R^2 sigma T^4` (22 solar luminosities for the 0.47 solar mass, 0.2 solar radius star the tree draws), and the share of that light over the hydrogen edge is its
   XUV (`activity.blackbody_fraction_above`, the same step a white dwarf's photosphere takes), which the field then gives the planets near it. A stripped star lighter than `STRIPPED_BURNING_MIN_MASS_SOL` (the
   semi-degenerate donor of an AM CVn pair) does not burn and gives no light here. The star is not aged: a hot subdwarf lives about 1e8 yr and a stripped star older than that has cooled to a white dwarf.
 
-Stand-ins are the rows DL1 to DL7 and DL9 of section 6.259 of the gap plan.
+Stand-ins are the rows DL1 to DL7, DL9 and DL10 of section 6.259 of the gap plan.
 """
 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import activity, brown_dwarf, constants, stellar_wind
+from planetgen.physics import activity, brown_dwarf, constants, ms_lifetime, roche, stellar_wind
 from planetgen.physics import unit_registry as units
 
 _au_to_m = units.converter("au", "m")
 _m_to_km = units.converter("m", "km")
+_m_to_au = units.converter("m", "au")
 _msun_to_kg = units.converter("Msun", "kg")
 _kg_to_msun = units.converter("kg", "Msun")
 
@@ -61,6 +63,10 @@ ISCO_SCHWARZSCHILD_RADII = 3.0
 
 EDDINGTON_W_PER_SOLAR_MASS = 1.26e31
 """float: The Eddington luminosity per solar mass, W (`4 pi G M m_p c / sigma_T`). [DL6, T1, L0.]"""
+
+STABLE_TRANSFER_MASS_RATIO = 1.0
+"""float: The donor-to-hole mass ratio over which overflow runs on the donor's thermal time and under which on its nuclear time: a donor heavier than its accretor shrinks its own lobe as it loses mass, so the transfer
+runs away to the thermal time, and a lighter one swells it and settles on the donor's evolution (the classical critical ratio for a radiative donor is near 1; a giant's is a little higher). [DL10, T7, L1.]"""
 
 STRIPPED_HELIUM_TEMPERATURE_K = 28000.0
 """float: The surface temperature of a stripped helium star that burns helium, K: the hot subdwarfs of the field sit at 20,000 to 40,000 K, most of them near 28,000 K [R1875]. [DL9, T2, L0.]"""
@@ -141,13 +147,32 @@ def feeders_of(stars, separations_au):
     return [(star, separations_au[index]) for index, star in enumerate(stars) if index < len(separations_au) and separations_au[index]]
 
 
+def overflow_kg_s(black_hole_kg, star, separation_au):
+    """
+    What a star that fills its Roche lobe about a black hole of `black_hole_kg` at `separation_au` gives it, kg/s, or 0 when the star's radius is under its lobe's (GEN.1531): the star's mass over
+    its own evolution time, `ms_lifetime.lifetime_gy` of its mass when it is no heavier than the hole (`STABLE_TRANSFER_MASS_RATIO`) and its Kelvin-Helmholtz time `G M^2 / (R L)` when it is heavier.
+    The light the disk makes of it is capped at the Eddington limit by `disk_luminosity_w`.
+    """
+    luminosity, radius_km, mass = getattr(star, "luminosity", None), getattr(star, "radius", None), getattr(star, "mass", None)
+    if not (luminosity and radius_km and mass and black_hole_kg > 0 and separation_au and separation_au > 0):
+        return 0.0
+    if roche.filling_factor(_m_to_au(radius_km * 1.0e3), separation_au, mass, black_hole_kg) < 1.0:
+        return 0.0
+    if mass / black_hole_kg > STABLE_TRANSFER_MASS_RATIO:
+        time_s = constants.G * mass ** 2 / (radius_km * 1.0e3 * luminosity)
+    else:
+        time_s = ms_lifetime.lifetime_gy(_kg_to_msun(mass)) * 1.0e9 * 365.25 * 86400.0
+    return mass / time_s
+
+
 def black_hole_captured_kg_s(black_hole_kg, feeders):
-    """What a black hole takes in from the winds of `feeders` (`[(star, separation_au)]`), kg/s, summed."""
+    """What a black hole takes in from the winds of `feeders` (`[(star, separation_au)]`) and from the overflow of those that fill their lobes, kg/s, summed."""
     total = 0.0
     for star, separation_au in feeders:
         luminosity, radius = getattr(star, "luminosity", None), getattr(star, "radius", None)
         if not (luminosity and radius and getattr(star, "mass", None)):
             continue
+        total += overflow_kg_s(black_hole_kg, star, separation_au)
         try:
             wind_kg_s, wind_m_s = stellar_wind.wind(star.mass, luminosity, radius, getattr(star, "type", "") or "", getattr(star, "yerkes_class", "") or "",
                                                   getattr(star, "log_lx_lbol", None))
