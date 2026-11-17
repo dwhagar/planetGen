@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1780 |
+| GEN | GEN.1781 |
 | PERF | PERF.277 |
 | DB | DB.135 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.789 |
+| TEST | TEST.790 |
 | USR | USR.33 |
 | OPS | OPS.271 |
 | DOC | DOC.121 |
@@ -3830,7 +3830,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1496 | (bug) Rogue planets store a day and a daylight as if a star lit them: day share 0.5, daylight of half a rotation, latitude bands in 'polar day and night' | none | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1497 | The effect ledger's kind-4 per-body numbers: store the history numbers that cannot be recomputed | none | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1498 | The refill-effect-ledger job: fill ledger rows for systems drawn before the ledger existed, changing no result | GEN.1497 | done, Train 24 PR #6033 (b8a0163b7) |
-| GEN.1499 | Planets forced by a companion star: the companion's stellar term in the planets' secular exchange | GEN.1492 | open |
+| GEN.1499 | Planets forced by a companion star: the companion's stellar term in the planets' secular exchange | GEN.1492 | done (slice 1 wired in Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6961) |
 | GEN.1500 | Mutual inclination of the orbits of the stars in a binary or triple, so a companion can force inclination and Kozai pumping has an input | none | open |
 | GEN.1501 | Dark members of the orbit tree give light: neutron star cooling, black hole accretion disk, brown dwarf cooling, into the radiation field and the sky text | GEN.1443 | done, Train 24 PR #6033 (b8a0163b7) |
 | GEN.1502 | Tidal locking and spin-down torques from every body of a system, not only the host (GEN.1446 part 2) | GEN.1446 | done (Train 23, 2026-11-11) |
@@ -3859,10 +3859,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1525 | Replace the shortlist constants that held data can check or derive: MIST ages, neutron star EOS maxima, Harris clusters, the mass function integral, the occurrence fit, pre-main-sequence tracks | GEN.1524 | done earlier (Lane 21, 11-11: registry rows AUD4 to AUD23 checked against held data, values unchanged, tests added; found stale by Lane 04, 4:56 AM EST 11-16) |
 | GEN.1526 | One definition for repeated physical constants: ICE_DENSITY_KG_M3, BAND_COUNT, AVOGADRO, GAS_CONSTANT, LIQUID_WATER_DENSITY_KG_M3, WATER_MELTING_K | none | done, PR #5989 |
 | GEN.1527 | Wire helium fractionation (W16): the envelope-loss history reaches the envelope mixture's helium budget at the capture step | none | done, Train 24 PR #6033 (b8a0163b7) |
-| GEN.1528 | Effect-ledger storage of dark sources: store the member number and kind of a dark source (brown dwarf, neutron star, black hole) so a planet's ledger share for light includes them | GEN.1501 | open |
-| GEN.1529 | A standalone neutron star reads its surface temperature from dark_light.surface_temperature_k at the age since collapse, so a neutron star in a tree and a lone one agree | GEN.1501 | open |
-| GEN.1530 | Stripped helium star light: a luminosity from its mass (stellar-state tables) and an XUV share, in dark_light.source_of (stand-in row DL7 notes the gap) | GEN.1501 | open |
-| GEN.1531 | Roche-lobe overflow feeds a black hole: a companion that fills its lobe makes the hole a bright X-ray source (transfer rate from the companion's evolution state) | GEN.1501 | open |
+| GEN.1528 | Effect-ledger storage of dark sources: store the member number and kind of a dark source (brown dwarf, neutron star, black hole) so a planet's ledger share for light includes them | GEN.1501 | done (Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6958) |
+| GEN.1529 | A standalone neutron star reads its surface temperature from dark_light.surface_temperature_k at the age since collapse, so a neutron star in a tree and a lone one agree | GEN.1501 | done (Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6956) |
+| GEN.1530 | Stripped helium star light: a luminosity from its mass (stellar-state tables) and an XUV share, in dark_light.source_of (stand-in row DL7 notes the gap) | GEN.1501 | done (Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6962) |
+| GEN.1531 | Roche-lobe overflow feeds a black hole: a companion that fills its lobe makes the hole a bright X-ray source (transfer rate from the companion's evolution state) | GEN.1501 | done (Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6965) |
 | GEN.1533 | Give the GEN.1497 body history table a reader: nothing in production code reads the stored history yet | GEN.1497 | done, PR #6747 (6:33 PM EST 11-15) |
 | GEN.1534 | A Gaia nearby-stars sample fetched at setup replaces the stand-in separation distribution SEP1 (HYG is incomplete and mixes wide pairs) | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1535 | Obliquity variation, part 3: wire the companion star's mode, store the range (two columns) for the seasonal swing, the Cassini state from the real precession constant, an oddity name for chaotic obliquity | GEN.1454 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
@@ -3881,7 +3881,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1548 | Forward build, item 3: reorder the system build so each thing is made once (star, bare bodies, spacing, trims and belts, orbits settled, air, water and surface on the final orbit, class and life last) | GEN.1546, GEN.1547 | done, PR #6451 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1549 | Census re-tag after the forward build (items 1 to 3): re-measure the class, life, star and age census shares and re-baseline the ranges the new order moved | GEN.1548 | open |
 | GEN.1550 | (bug) StarSystem._set_debris_disk clears a young star's class 0, I or II disk before its class check, so a young star that gets a belt loses its disk | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
-| GEN.1551 | Each star gets its own disk dispersal time, drawn once from its own stream: a star holds a class 0, I or II disk only while younger than that time, and a close companion shortens it (GEN.1475 reads this time) | GEN.1546, GEN.1550 | open |
+| GEN.1551 | Each star gets its own disk dispersal time, drawn once from its own stream: a star holds a class 0, I or II disk only while younger than that time, and a close companion shortens it (GEN.1475 reads this time) | GEN.1546, GEN.1550 | done (slices 0 to 2; slice 2 in Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6975; the 10 Myr planet cut stays GEN.1552) |
 | GEN.1552 | Bodies appear only once the star's own disk is gone: the fixed 10 Myr planet cut becomes the star's own dispersal time, with belts as the debris that follows | GEN.1551, GEN.1546 | open |
 | GEN.1553 | Census (add to GEN.1549): share of stars with a disk, with bodies, with neither, by age bin 0 to 1, 1 to 3, 3 to 6, 6 to 10 and 10 to 30 Myr, against the survey curve | GEN.1549, GEN.1551, GEN.1552 | retired, folded into GEN.1549 (the disk-age census row) |
 | GEN.1554 | K and M dwarf zone edges against the greenhouse spectrum: K5V worlds are cold in the inner third of the zone | none | open |
@@ -3975,7 +3975,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1642 | Real-gas fugacity coefficients in gas_equilibrium.solve (Peng-Robinson for the species with critical constants, stand-ins for the rest), replacing the GEN.1613 fO2 clamp | GEN.1613 | open |
 | GEN.1643 | Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues | GEN.1150 | done earlier (commit 3087e7baf6: TJ9 to TJ11 fitted to debiased Jupiter proper elements, rows at L1 and L2; found stale by Lane 07, 6:50 AM EST 11-16) |
 | GEN.1644 | Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7) | none | open |
-| GEN.1645 | Wire the planet and sibling-planet Kozai screen (physics/kozai_planets.py, stand-ins KZP1 and KZP2) into generation once the companion planes are stored | GEN.1500 | open |
+| GEN.1645 | Wire the planet and sibling-planet Kozai screen (physics/kozai_planets.py, stand-ins KZP1 and KZP2) into generation once the companion planes are stored | GEN.1500 | done (Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6968) |
 | GEN.1646 | Trace the nitrogen air excess left after GEN.1583 A, B and C (Earth-analog N2 median about 134 kPa against about 80); first suspect the dry carbon bracket middle (0.056 wt% CO2 against the bulk silicate Earth 0.042) | GEN.1583 | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1647 | Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one | GEN.1643 | done earlier (commit 3087e7baf6: TADPOLE_LIMIT_DEG is an amplitude of 78.05 degrees, read by trojan_swarm and trojans.motion; found stale by Lane 07, 6:45 AM EST 11-16) |
 | GEN.1648 | Planets around a black hole with no accretion disk: 18 of 40 seeds carry planets (up to 7), while a test and its comment say the snow-line physics leaves none; decide from physics which is right | none | done, PR #6366 in Train 27, PR #6485 (11:13 AM EST 11-14) |
@@ -4104,12 +4104,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | open |
 | GEN.1772 | (bug) Civilizations on worlds whose air the species placement refuses (the air cannot be breathed) | done (PR 6963, Lane 04, merged 9:05 PM EST 11-16) |
 | GEN.1773 | (bug) A body past the runaway limit keeps an ocean (Venus twin at 586 K, 118 bar) | open (Lane 14) |
-| GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | open (Lane 02) |
+| GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | done (Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6978: smooth keep share 1 to 3 Earth masses, registered tweak) |
 | GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | open (Lane 06) |
 | GEN.1776 | Civilizations arise only in CO2-rich air (19 to 792 kPa), none Earth-like | closed, measured, no code change (Lane 04, 9:49 PM EST 11-16; linked to GEN.1720 and GEN.1731; Boss kept the life clock stand-ins, 9:51 PM EST) |
 | GEN.1777 | (high) No Class M family at Plentiful: funnel and a tunable CO2 lever. Measure whether the CO2 supply needs a tweak (report first, Boss decides) | open (Lane 04) |
 | GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | open (Lane 14) |
 | GEN.1779 | (bug, high) A system build got about 2.4 times slower (test_gen1254_scatter_uid past its guard) | open (Lane 14) |
+| GEN.1780 | The GEN.1732 haze loss ramp may have two branches (seed 106: 229 K to 134 K) | open (Lane 02) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4978,6 +4979,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.786 | (bug) Runaway-start test red: a wet body past the runaway limit keeps a surface ocean | open (Lane 14) |
 | TEST.787 | (bug) Main reds: test_class_after_bands (T for M) and test_gen_node_planets stream test | done (PR 6949, Lane 07, merged 8:23 PM EST 11-16; class_after_bands half moved to GEN.1774) |
 | TEST.788 | Slow gate files (test_db_column_round_trip, test_full_matrix, test_order_independence, test_describe, test_tidal_spin) | open (Lane 16) |
+| TEST.789 | test_secular_exchange_generation fails under load: find the load-order effect | open (Lane 05) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
