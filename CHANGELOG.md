@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4448] - 2026-11-17
+
+**Headline:** The civilized test systems hold a civilization with a species again after the Earth-twin envelope change.
+
+### Fixed
+- **`test_the_pinned_civilized_seeds_still_qualify` was red** after GEN.1774 moved the output of the Earth twin class: candidates 48 and 158 no longer hold a civilization with a species. The pins are now candidates 316 and 353, found by `python -m tests.civilized_pins refresh --hunt 4 --from N` (about 210 candidates scanned for two).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4447] - 2026-11-17
 
 **Headline:** A rocky planet of 1 to 3 Earth masses now keeps its hydrogen envelope only some of the time, a share that rises smoothly with the mass, so an Earth-mass planet in the habitable zone is bare again instead of keeping a thin envelope with no ground.
