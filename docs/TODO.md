@@ -11597,11 +11597,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 07 (moved from Lane 14, closed). Prerequisites: stage 4. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
-- [ ] **OPS.248 Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit)**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row H3 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: OPS.231, OPS.232. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.249 Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row H4 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.231, OPS.247. Related: OPS.191, OPS.207, OPS.212.
@@ -11613,6 +11608,7 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **OPS.251 Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace**
+  TODO, 12:42 PM EST 2026-11-17: Lane 14's slice 1 accepted: the light job clock limit becomes the learned per-kind figure plus a liveness notice (a job that still beats is never ended by the clock; a dead one ends at once), and the two STARTING waits (workers 90 s, supervisor 20 s) end on the child's exit notice. beatjudge QUIET_FLOOR and WAITING_LIMIT stay flags.
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row H6 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: stage 4. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
@@ -11736,6 +11732,7 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **OPS.261 Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in**
+  TODO, 12:42 PM EST 2026-11-17: waits for OPS.271 slice 2 (it deletes enqueue_units and enqueue_open with their rq.Retry). Then Lane 14 deletes the db.contention retries and the DB.113 exclusive scatter-ids grant in one PR with a deadlock kill test.
   Lane 14, 6:23 AM EST 2026-11-15 (OPS.220, PR #6647): passing failures now retry in the engine with doubling waits inside a per-run budget, but three old paths stay until their replacements land: rq.Retry(max=1) on the killed path (until the supervisor hands out jobs, stage 4), the db.contention retries of the in-transaction layer, and a retried unit restarting at piece 0 (until OPS.219's cursor, PR #6632). Delete each once its replacement is on main; no shim.
   Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: OPS.219, OPS.227. Related: OPS.220, OPS.226, OPS.228.
   Filed by the TODO thread.
