@@ -54,9 +54,14 @@ FLAT_BELOW_MASS_EARTH = 1.0
 continue under 1 Earth mass (GEN.1748). The two agree at 1 Earth mass (0.0019 and 0.002). [EC9, T1, L0.]"""
 
 KEEPS_FROM_MASS_EARTH = 1.0
-"""float: The lightest body whose envelope is still on it at the end of its formation, taken from the finished radius: the law of Lopez and Fortney that gives the radius under an envelope is fitted from
+"""float: The lightest body whose envelope can still be on it at the end of its formation, taken from the finished radius: the law of Lopez and Fortney that gives the radius under an envelope is fitted from
 1 Earth mass (`bulk_structure.CLOSED_FORM_RANGES`), and Young et al. [R5293] find that collisions after the gas disk has dissipated "would efficiently remove any residual hydrogen dominated atmospheres" of
-embryos, so a body lighter than this is bare at the end and its envelope is a history (and the water it made, `nebular_water_fraction`), not a radius (GEN.1748). [EC10, T5, L0.]"""
+embryos, so a body lighter than this is bare at the end and its envelope is a history (and the water it made, `nebular_water_fraction`), not a radius (GEN.1748). [Stand-in 6.206 EC10, tier T5, tweak L4.]"""
+
+KEEPS_ALL_FROM_MASS_EARTH = 3.0
+"""float: The mass, Earth masses, from which a body keeps the envelope it drew (GEN.1774): between `KEEPS_FROM_MASS_EARTH` and this the share of bodies that keep it rises smoothly from 0 to 1 (`keep_share`). The step at 1 Earth mass
+that EC10 was (every body of 1.00003 Earth masses kept its 0.2 to 0.3 percent, and none of 0.99) is a limit of the radius law's fit, not a measured one; no source gives the share of 1 to 3 Earth-mass bodies that keep their envelope (the sources of
+the radius valley and of the post-disk impacts reach 2 to 20 Earth masses and the embryos of 0.3 to 0.5). This end is where the law of Lopez and Fortney is well inside its range. A tweak of EC10 with no source for 1 to 3 Earth masses. [Stand-in 6.206 EC10, tier T5, tweak L4.]"""
 
 OCEAN_MASS_KG = 1.4e21
 """float: The mass of the Earth's oceans, kg (the "terrestrial ocean" that Young et al. [R5293] count their water in; 1.39 to 1.40e21 kg). [EC11, T1, L0.]"""
@@ -127,9 +132,26 @@ def draw_start(mass_earth):
     return min(median_start(mass_earth) * math.exp(START_SPREAD * draw.gauss()), MAX_START)
 
 
-def keeps_envelope(mass_earth):
-    """Whether a planet of `mass_earth` Earth masses still has its envelope at the end of its formation: `KEEPS_FROM_MASS_EARTH` and up (a lighter body is bare, GEN.1748)."""
-    return mass_earth >= KEEPS_FROM_MASS_EARTH
+def keep_share(mass_earth):
+    """The share of bodies of `mass_earth` Earth masses that still have their envelope at the end of their formation (GEN.1774): 0 up to `KEEPS_FROM_MASS_EARTH`, 1 from `KEEPS_ALL_FROM_MASS_EARTH`, the smooth step between."""
+    if mass_earth <= KEEPS_FROM_MASS_EARTH:
+        return 0.0
+    if mass_earth >= KEEPS_ALL_FROM_MASS_EARTH:
+        return 1.0
+    x = (mass_earth - KEEPS_FROM_MASS_EARTH) / (KEEPS_ALL_FROM_MASS_EARTH - KEEPS_FROM_MASS_EARTH)
+    return x * x * (3.0 - 2.0 * x)
+
+
+def keeps_envelope(mass_kg, formation_distance_au, star_mass_kg):
+    """
+    Whether a planet of `mass_kg` that formed at `formation_distance_au` round a star of `star_mass_kg` still has its envelope at the end of its formation (GEN.1774): one draw against `keep_share` from a stream of the planet's
+    own (the key is its mass, formation distance and star, so every pass, the settle at the final age among them, decides the same; the run's stream does not move). No draw for a body that no mass can keep or every one keeps.
+    """
+    share = keep_share(_kg_to_mearth(mass_kg))
+    if share <= 0.0 or share >= 1.0:
+        return share >= 1.0
+    with draw.bound(draw.Stream(f"envelope-keep:{float(mass_kg)!r}:{float(formation_distance_au)!r}:{float(star_mass_kg)!r}")):
+        return draw.random() < share
 
 
 def start_stream(mass_kg, formation_distance_au, star_mass_kg):
