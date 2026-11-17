@@ -63233,6 +63233,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "compact_remnant.NeutronStar._formation_luminosity_w (GEN.1529): the light the snow line of a neutron star's disk is read at is the star's light at the end of its neutrino era (dark_light.NEUTRON_STAR_PHOTON_ERA_YR, about 1e26 W for a 12 km star), not its light today, which is 1e17 W at 5 Gy and puts the snow line at 1e-5 AU"
+            ],
+            [
+              "The range it moves in",
+              "1e26 W at 1e5 yr (the old drawn range of 5e4 to 3e6 K gave 1e22 to 1e27 W, snow lines of 0.1 to 3 AU)"
+            ],
+            [
+              "Where it holds",
+              "planets and belts of a lone neutron star or one that anchors a system"
+            ],
+            [
+              "What would show it wrong",
+              "a measured fallback disk or planet system of a neutron star whose ices begin well inside or outside 1 AU"
+            ],
+            [
+              "What replaces it",
+              "a disk model of a supernova fallback disk (not in the generator)"
+            ],
+            [
+              "Evidence",
+              "design: the disk is made at the collapse, so its snow line follows the light of the star then (the same reading as GEN.1611 for a star, birth_luminosity); the surface temperature itself is the cooling curve DL1 and DL2"
+            ]
+          ],
+          "id": "DL8",
+          "key": "6.259:DL8",
+          "kind": "P",
+          "slug": "6-259-dl8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "compact_remnant.NeutronStar._formation_luminosity_w (GEN.1529): the light the snow line of a neutron star's disk is read at is the star's light at the end of its neutrino era (dark_light.NEUTRON_STAR_PHOTON_ERA_YR, about 1e26 W for a 12 km star), not its light today, which is 1e17 W at 5 Gy and puts the snow line at 1e-5 AU"
         }
       ],
       "slug": "6-259-stand-ins-of-the-bright-sources-in-a-body-s-sky",

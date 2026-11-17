@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1875 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1876 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1848 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1849 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -53,10 +53,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 1 | 148 |
 | T6 | 238 | 127 | 34 | 81 | 4 | 484 |
-| T7 | 69 | 35 | 10 | 32 | 0 | 146 |
+| T7 | 70 | 35 | 10 | 32 | 0 | 147 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 108 | 41 | 227 |
-| All | 1071 | 385 | 94 | 265 | 60 | 1875 |
+| All | 1072 | 385 | 94 | 265 | 60 | 1876 |
 
 ## How the labels were given
 
@@ -2806,6 +2806,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DL5 | P | T2 | L0 | `dark_light.ISCO_SCHWARZSCHILD_RADII` = 3: the disk's light comes from the innermost stable orbit of a non-rotating hole, 6 G M / c^2 (3 Schwarzschild radii), which gives the disk's size and colour | 1 to 3 | a non-rotating hole | a measured disk whose inner edge is far from this | the radius from the spin | derived: the innermost stable orbit of the Schwarzschild metric | predicted only | - | - |
 | DL6 | P | T1 | L0 | `dark_light.EDDINGTON_W_PER_SOLAR_MASS` = 1.26e31 W: the light of a disk never passes the Eddington limit, `4 pi G M m_p c / sigma_T` | none | ionised hydrogen | a measured source that stays over it | none | derived: the balance of radiation and gravity on a proton | predicted only | - | - |
 | DL7 | P | T7 | L1 | a black hole shines only on what the winds of the stars of its tree give it: `dark_light.wind_capture_kg_s`, the Bondi-Hoyle-Lyttleton rate `(G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5)` of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (`brown_dwarf.state`) | none | winds of 1e-14 to 1e-5 solar masses a year | a black hole beside a giant that overflows its lobe, which would be far brighter | the feed from the evolution of the star (overflow) | design: the wind law of `stellar_wind` is the one that sizes the star's bubble, so a star's feed and its heliosphere agree | predicted only | - | - |
+| DL8 | P | T7 | L0 | `compact_remnant.NeutronStar._formation_luminosity_w` (GEN.1529): the light the snow line of a neutron star's disk is read at is the star's light at the end of its neutrino era (`dark_light.NEUTRON_STAR_PHOTON_ERA_YR`, about 1e26 W for a 12 km star), not its light today, which is 1e17 W at 5 Gy and puts the snow line at 1e-5 AU | 1e26 W at 1e5 yr (the old drawn range of 5e4 to 3e6 K gave 1e22 to 1e27 W, snow lines of 0.1 to 3 AU) | planets and belts of a lone neutron star or one that anchors a system | a measured fallback disk or planet system of a neutron star whose ices begin well inside or outside 1 AU | a disk model of a supernova fallback disk (not in the generator) | design: the disk is made at the collapse, so its snow line follows the light of the star then (the same reading as GEN.1611 for a star, `birth_luminosity`); the surface temperature itself is the cooling curve DL1 and DL2 | predicted only | - | - |
 
 ## 6.260 Stand-ins of the tide raised by every body of a system
 

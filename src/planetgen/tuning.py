@@ -2702,12 +2702,7 @@ MAGNETAR_YOUNG_STAR_SHARE = 0.0018
 # A scattered magnetar's age: from the first century to the end of its active life.
 MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 
-# Neutron star surface temperature range in Kelvin, from thermal
-# X-ray emission measurements of young-to-middle-aged isolated
-# neutron stars ([R3590], A&A Rev 28:3, cooling-curve
-# review) -- hotter shortly after formation, cooling over ~10^5-10^6
-# years toward the low end of this range.
-NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K = (5e4, 3e6)
+# A neutron star's surface temperature is the cooling curve's of its age (physics/dark_light.py, GEN.1529); the range it was drawn from is gone.
 
 # Age since the core-collapse supernova that formed the compact
 # remnant, in billions of years -- capped well below

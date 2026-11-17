@@ -42,7 +42,7 @@ first version.
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import activity, constants, formation, magnetic_geometry, neutron_star, relations, remnant_mass, spin
+from planetgen.physics import activity, constants, dark_light, formation, magnetic_geometry, neutron_star, relations, remnant_mass, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -158,6 +158,10 @@ class CompactRemnant(StellarObject):
                                   getattr(config, "AGE_LAW", None))
         return age, float('inf')
 
+    def _formation_luminosity_w(self):
+        """The luminosity, W, whose light the remnant's disk saw (the snow line is read at it): the remnant's own today; a neutron star's is its light at the end of the neutrino era (GEN.1529)."""
+        return self.luminosity
+
     def _finish_init(self, galactic_orbital_phase_deg=None):
         """
         Computes the derived attributes every `Star`-like object needs,
@@ -181,7 +185,7 @@ class CompactRemnant(StellarObject):
         self.set_galactic_motion(self.galactic_center_dist_ly, galactic_orbital_phase_deg)
         # GEN.458: this remnant's own snow line, from its own stream like a star's.
         self.snow_line_au = formation.draw_snow_line_au(
-            self.luminosity, draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
+            self._formation_luminosity_w(), draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
         # GEN.104: the spin axis, a Rayleigh tilt from the galactic pole.
         self.rotation_period_hours = self._rotation_period_hours()
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
@@ -406,14 +410,17 @@ class NeutronStar(CompactRemnant):
         self.mass_solar = mass_solar or remnant_mass.draw_mass_sol("neutron-star", mass_range)
         self.mass = _msun_to_kg(self.mass_solar)
         self.radius = neutron_star.radius_km(self.mass_solar, draw.gauss())
-        self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
-        self.temperature = self.surface_temperature_k
         if age_gy is None and magnetar:
             self.age, self.lifespan = draw.uniform(*tuning.MAGNETAR_AGE_RANGE_GY), float('inf')
         elif age_gy is None:
             self.age, self.lifespan = self._generate_remnant_age_and_lifespan("neutron-star")
         else:
             self.age, self.lifespan = age_gy, float('inf')
+
+        # GEN.1529: the surface temperature is the cooling curve's at the age since the collapse (`dark_light.surface_temperature_k`), the curve a neutron star of an orbit tree reads, so
+        # a lone one and one in a tree agree; it was drawn from a range of 5e4 to 3e6 K at every age.
+        self.surface_temperature_k = dark_light.surface_temperature_k(self.age)
+        self.temperature = self.surface_temperature_k
 
         # A star younger than a magnetar's active life may have been born one (a
         # scattered magnetar is one by its row); failing that it pulses by the age-dependent chance, and an old one
@@ -471,6 +478,11 @@ class NeutronStar(CompactRemnant):
         self.yerkes_class = "NS"
 
         self._finish_init(galactic_orbital_phase_deg)
+
+    def _formation_luminosity_w(self):
+        """GEN.1529: the light of the neutron star at the end of its neutrino era (`dark_light.NEUTRON_STAR_PHOTON_ERA_YR`, about 1e26 W), the light a disk at its collapse saw: a cold old star's
+        light today is no measure of where its planets' ices formed, and the surface temperature used to be drawn from a range of 5e4 to 3e6 K at every age, so the line stays where it was."""
+        return dark_light.neutron_star_luminosity_w(self.radius, dark_light.NEUTRON_STAR_PHOTON_ERA_YR * 1.0e-9)
 
     def _rotation_period_hours(self):
         """`spin_period_ms` in hours."""
