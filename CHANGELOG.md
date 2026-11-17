@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4443] - 2026-11-17
+
+**Headline:** The black hole overflow test no longer assumes a giant's wind at 5 AU is small against its overflow.
+
+### Fixed
+
+- GEN.1531: `test_dark_light` compared a giant's wind feed at 5 AU against a hundredth of its overflow, which holds only for the wind law of before Train 41's GEN.1625. It now checks that the far feed is under the near feed less the overflow. Test only.
+
+generation-output: unchanged
+
 ## [8.0.4442] - 2026-11-17
 
 **Headline:** A star that fills its Roche lobe about a black hole of an orbit tree now feeds it by overflow, so the hole is a bright X-ray source.
