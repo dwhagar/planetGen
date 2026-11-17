@@ -28,6 +28,7 @@ winding number of `R e_s - d e_r`): a source farther out than the receiver (a co
 body's spin to: a body locked to its host feels an outer sibling's tide move and an inner sibling's stand still.
 """
 
+import functools
 import math
 from dataclasses import dataclass
 
@@ -75,12 +76,14 @@ def circles_mean_inverse_sixth(a, b):
     return ((a * a + b * b) ** 2 + 2.0 * a * a * b * b) / gap2 ** 5
 
 
+@functools.lru_cache(maxsize=1 << 16)
 def orbit_mean_inverse_sixth(receiver_axis, source_axis, source_eccentricity):
-    """`< 1 / d^6 >` between a receiver on the circle `receiver_axis` and a source of semi-major axis `source_axis` and eccentricity `source_eccentricity`, the circles' mean over the source's orbit."""
+    """`< 1 / d^6 >` between a receiver on the circle `receiver_axis` and a source of semi-major axis `source_axis` and eccentricity `source_eccentricity`, the circles' mean over the source's orbit. Cached (PERF.276: every body of a host asks for each pair again in each pass; the answer is a pure function of the three numbers)."""
     radii = radiation_field.separations_au(source_axis, source_eccentricity or 0.0)
     return float(np.mean([circles_mean_inverse_sixth(receiver_axis, radius) for radius in radii]))
 
 
+@functools.lru_cache(maxsize=1 << 16)
 def orbit_mean_inverse_cube(receiver_axis, source_axis, source_eccentricity):
     """`< 1 / d^3 >` between a receiver on the circle `receiver_axis` and a source of semi-major axis `source_axis` and eccentricity `source_eccentricity` about the same primary
     (all in one length unit): the circles' mean averaged over the source's radius at the points of `radiation_field.separations_au`."""
