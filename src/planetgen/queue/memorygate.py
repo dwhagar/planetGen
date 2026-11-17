@@ -281,6 +281,21 @@ def holders(conn, now=None):
     return found
 
 
+def gate_words(conn, host=None, held=None):
+    """
+    The gate's figures in one sentence, for a log line that says why fewer workers run than were asked for (OPS.270): the claims held (how many, what they claim and what their processes hold), what
+    the host has available of its memory, what the gate keeps back, the cores the claims may add up to and what they hold, and the load. `host` and `held` are read when not given.
+    """
+    host = read_host() if host is None else host
+    held = holders(conn) if held is None else held
+    bulk = [holder for holder in held if holder.claim.lane not in SHORT_LANES]
+    claimed, really = sum(holder.claim.mb for holder in bulk), sum(holder.held_mb for holder in bulk)
+    cap = host.cores * CPU_SHARE - kept_cores(held, host)
+    return (f"the memory gate: {len(bulk)} claim(s) of the bulk lanes hold {format_megabytes(really)} (they claimed {format_megabytes(claimed)}) and use {sum(holder.claim.cpu for holder in bulk):g} of "
+            f"{cap:g} core(s); the host has {format_megabytes(host.available_mb)} of {format_megabytes(host.total_mb)} available, keeps {format_megabytes(reserve_mb(host))} back, and the load is "
+            f"{host.load_per_core:.2f} a core")
+
+
 def reserve_mb(host):
     """The memory the gate keeps back of `host`'s, MB."""
     return max(RESERVE_MIN_MB, RESERVE_SHARE * host.total_mb)
