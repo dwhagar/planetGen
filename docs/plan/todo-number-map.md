@@ -688,7 +688,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.106 | Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration | none | open |
 | DB.107 | Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b) | none | done, PR #3383 |
 | DB.108 | Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e) | none | done, PR #3465 |
-| DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute | none | open (Lane 15) |
+| DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute | none | done (PR 7086, 11-17) |
 | DB.110 | Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units | none | open |
 | DB.111 | Storage for vessels and stations: the vessel table (Object ID, owner, name, kind, speed table entry, state, anchor, course id, departure and arrival time, finished legs) and the owner and free-point columns on facilities if it lacks them | none | open |
 | DB.112 | Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration) | none | done, PR #6734 (9:05 PM EST 11-15) |

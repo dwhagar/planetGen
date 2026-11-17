@@ -8957,18 +8957,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.798. Related: DB.70, DB.101.
 
-- [ ] **DB.109 Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute**
-  Lane 11's suggestion at the end of DB.46 to DB.48 (#3451, #3456,
-  #3460): (1) planetgen refresh-parity runs after a generation run
-  finishes when parity.enabled is on, so the file is never stale after a
-  fill; (2) the edit paths (admin and the property sheet edits) keep a
-  before-image of the sector so the parity updates by a delta instead of
-  recomputing the whole group. Both are optional and off the critical
-  path; the parity file is off by default. Owner: Lane 11 when it runs
-  dry.
-  Owner (TODO, 2026-11-17): Lane 15, both parts (part 1: prove every fill path leaves no stale parity file, a test per path; part 2: edit paths pass a before-image to ParityStore.put).
-  Prerequisites: none.
-
 - [ ] **DB.110 Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units**
   Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
   design in
