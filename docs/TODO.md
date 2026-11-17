@@ -7879,42 +7879,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
 
-- [ ] **GEN.944 Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars)**
-  Audit findings L3 and L4 (low urgency). [Fe/H] is drawn first but is
-  independent of age inside each population window (0 to 0.1, 0.1 to 3,
-  3 to 10 Gy, one mean each), the old population ends at 10 Gy (no
-  thick-disk stars from 10 to 13 Gy), and the alpha-enhanced branch is
-  drawn separately; Cepheids, Mira and other long-period variables,
-  carbon and S stars, T Tauri naming and Ap/Am stars have no class or
-  flag (carbon-star abundances exist in the composition code). Do:
-  later, with Lane 04's age work; cheap flags once the post-main-sequence
-  tracks land. Not in the long-term epoch unless Lane 04 says it is cheap.
-  Owner: none yet (Lane 04 later). Version 8.1.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Star 2 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Train 5 merged (#4321, 11:34 PM EDT) (2026-10-30 11:38 PM EDT): The
-  age-metallicity relation inside each population merged with Star 2
-  #4077. The variable-star flag refresh (#4082) stays open.
-  Variability row merged (2026-10-31 4:25 AM EDT): The cheap flags of
-  the variable-star part merged as #4082 (lock-free): the star sheet has
-  a derived Variability row for classical Cepheid, Mira or semiregular,
-  T Tauri and Herbig Ae/Be stars (physics/variability.py, stand-ins VR1
-  to VR3 in section 6.138, design note
-  docs/design/systems/variability.md). Still open: carbon and S stars
-  (GEN.1026, needs the thermal-pulse count), Ap and Am stars,
-  red-giant-branch semiregulars, and the alpha-shift wiring (GEN.1024).
-  Prerequisites: none. Related: GEN.922.
-  Owner (TODO sweep, 2026-11-12): Lane 05 (stars).
-
 - [ ] **GEN.1006 Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards**
   Boss (2026-10-30, 10:51 AM EDT): merge the quick fix for the missing
   third star (GEN.1004, PR #4026, train 4) but build the deeper, more
