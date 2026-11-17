@@ -317,6 +317,11 @@ class StarSystem:
                 (`_drawn_plan`, GEN.631).
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
+        # A bad FORCE_CLASS request is refused here, before any draw: a check made after the star was drawn never ran for the stars that return early (a pulsar's planets, a post-AGB pair, a diskless black hole).
+        if system_config.FORCE_CLASS and system_config.SLOTS:
+            raise ValueError("FORCE_CLASS cannot be combined with SLOTS: a slot already names its class.")
+        if system_config.FORCE_CLASS and system_config.FORCE_CLASS not in tuning.PLANET_CLASSES:
+            raise ValueError(f"FORCE_CLASS {system_config.FORCE_CLASS!r} is not a planet class.")
         # A run's prevalences (GEN.52) decide the measured features' flags
         # for this system before anything is drawn.
         prevalence.resolve(self.system_config)
@@ -1410,10 +1415,6 @@ class StarSystem:
             self.architectures.append((star, plan.architecture))
 
         forced_class = self.system_config.FORCE_CLASS if apply_guarantees else None
-        if forced_class and self.system_config.SLOTS:
-            raise ValueError("FORCE_CLASS cannot be combined with SLOTS: a slot already names its class.")
-        if forced_class and forced_class not in tuning.PLANET_CLASSES:
-            raise ValueError(f"FORCE_CLASS {forced_class!r} is not a planet class.")
         if forced_class:
             system_objects = max(system_objects, 1)
         slots = (self.system_config.SLOTS or []) if apply_guarantees else []
