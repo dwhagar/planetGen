@@ -152,14 +152,15 @@ def _poisson(mean, source):
     return k
 
 
-def inner_chain(star_mass_kg, scatter, fe_h, stream=None, force=False, extra_sigmas=0.0, floor_au=0.0):
+def inner_chain(star_mass_kg, scatter, fe_h, stream=None, force=False, extra_sigmas=0.0, floor_au=0.0, limit_au=None):
     """
     The oligarchs of a Kepler-like inner system as `[distance_au, mass_kg]` lists, or `[]` for a star without one (module docstring).
     Draws, in this order: whether the star has one (`inner_system_fraction`), the number of planets before the thinning
     (`1 + Poisson(INNER_INITIAL_COUNT_EXTRA * exp(INNER_COUNT_SIGMA_LN * N(0, 1)))`), the system's mass scale, its spacing, the period of the first planet, then per planet its
     mass about the scale and its spacing from the last. The first planet is no closer than `floor_au`. `force` gives the star an inner system whatever the share (it then draws no
     uniform for it), and `extra_sigmas` raises the mean of the starting count by that many widths of its spread (the most a star can
-    hold, `build`'s `maximum`). Neighbours are alike in mass (`INNER_NEIGHBOUR_SIGMA_DEX`, peas in a pod,
+    hold, `build`'s `maximum`). The chain ends at `limit_au` (`build` gives the snow line or the 400 days of an inner system, whichever is nearer: past either, the planets are the outer chain's, and a core past
+    the snow line may take gas). Neighbours are alike in mass (`INNER_NEIGHBOUR_SIGMA_DEX`, peas in a pod,
     [R4660]) and the outer one is on average a little heavier (`INNER_OUTWARD_MASS_DEX_PER_PLANET`).
     """
     source = stream or draw
@@ -172,10 +173,11 @@ def inner_chain(star_mass_kg, scatter, fe_h, stream=None, force=False, extra_sig
                 * scatter ** tuning.INNER_PLANET_MASS_DISK_EXPONENT * 10.0 ** (tuning.INNER_PLANET_MASS_METALLICITY_EXPONENT * fe_h)) * _EARTH_KG
     scale_kg *= 10.0 ** (tuning.INNER_SYSTEM_SCALE_SIGMA_DEX * source.gauss(0.0, 1.0))      # GEN.1335: the system's own scale about the median
     separation = planet_mass.draw_separation(tuning.INNER_SEPARATION_MEDIAN, source)
-    distance = max(period_to_au(tuning.OLIGARCH_INNER_EDGE_PERIOD_DAYS
-                                * 10.0 ** (tuning.OLIGARCH_INNER_EDGE_SIGMA_DEX * source.gauss(0.0, 1.0)), star_mass_kg), floor_au)
+    distance = first_distance_au(star_mass_kg, source, floor_au, tuning.INNER_FIRST_PERIOD_MEDIAN_DAYS, tuning.INNER_FIRST_PERIOD_SIGMA_DEX)
     chain = []
     for i in range(count):
+        if limit_au is not None and distance > limit_au:
+            break
         offset = (i - (count - 1) / 2.0) * tuning.INNER_OUTWARD_MASS_DEX_PER_PLANET
         mass = scale_kg * 10.0 ** (offset + tuning.INNER_NEIGHBOUR_SIGMA_DEX * source.gauss(0.0, 1.0))
         chain.append([distance, mass])
@@ -331,12 +333,14 @@ def sublimation_au(luminosity_w):
     return (_SOLAR_BLACKBODY_1AU_K / tuning.DUST_SUBLIMATION_K) ** 2 * math.sqrt(max(luminosity_w, 0.0) / constants.SOLAR_LUMINOSITY)
 
 
-def first_distance_au(star_mass_kg, stream=None, floor_au=0.0):
+def first_distance_au(star_mass_kg, stream=None, floor_au=0.0, median_days=None, sigma_dex=None):
     """Where a chain that has to start from nothing begins: the inner edge of the disk, a period near `OLIGARCH_INNER_EDGE_PERIOD_DAYS`
-    (log-normal in dex by `OLIGARCH_INNER_EDGE_SIGMA_DEX`, [R3193, R3196]), no closer than `floor_au`. One normal from the stream."""
+    (log-normal in dex by `OLIGARCH_INNER_EDGE_SIGMA_DEX`, [R3193, R3196]), no closer than `floor_au`; an inner system gives its own median and width
+    (`INNER_FIRST_PERIOD_MEDIAN_DAYS`, GEN.1709). One normal from the stream."""
     source = stream or draw
-    return max(period_to_au(tuning.OLIGARCH_INNER_EDGE_PERIOD_DAYS * 10.0 ** (tuning.OLIGARCH_INNER_EDGE_SIGMA_DEX * source.gauss(0.0, 1.0)),
-                            star_mass_kg), floor_au)
+    median = tuning.OLIGARCH_INNER_EDGE_PERIOD_DAYS if median_days is None else median_days
+    sigma = tuning.OLIGARCH_INNER_EDGE_SIGMA_DEX if sigma_dex is None else sigma_dex
+    return max(period_to_au(median * 10.0 ** (sigma * source.gauss(0.0, 1.0)), star_mass_kg), floor_au)
 
 
 def next_distance_au(distance_au, mass_kg, star_mass_kg, separation=None):
@@ -411,14 +415,14 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
         chain_inner = []
     else:
         chain_inner = inner_chain(star_mass_kg, scatter, fe_h, source, force=bool(inner) or maximum, extra_sigmas=2.0 if maximum else 0.0,
-                                  floor_au=floor_au)
+                                  floor_au=floor_au, limit_au=min(snow_line_au, period_to_au(tuning.INNER_SYSTEM_PERIOD_LIMIT_DAYS, star_mass_kg)))
     separation = planet_mass.draw_separation(tuning.OLIGARCH_SEPARATION_MEDIAN, source)
     start_au = max(period_to_au(tuning.INNER_SYSTEM_PERIOD_LIMIT_DAYS * tuning.OUTER_CHAIN_START_RATIO, star_mass_kg), floor_au)
     if chain_inner:
         start_au = max(start_au, chain_inner[-1][0] * tuning.OUTER_CHAIN_START_RATIO)
     chain = chain_inner + oligarch_chain(star_mass_kg, snow_line_au, metal_ratio, scatter, separation, start_au, outer_au)
     sculpted = sculpt(chain, star_mass_kg, tuning.SCULPT_AGE_YR, source)
-    sculpted = giant_impacts(sculpted, star_mass_kg, min(snow_line_au, tuning.GIANT_IMPACT_END_AU), tuning.PLANET_ROCKY_ZONE_START_AU, tuning.GIANT_IMPACT_SPACING)
+    sculpted = giant_impacts(sculpted, star_mass_kg, min(snow_line_au, tuning.GIANT_IMPACT_END_AU), start_au, tuning.GIANT_IMPACT_SPACING)
     merge_debris = sum(body[1] for body in chain) - sum(body[1] for body in sculpted)
     merges = sum(body[2] for body in sculpted) - len(sculpted)
     thinned, small = [], []

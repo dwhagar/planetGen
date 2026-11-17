@@ -8,7 +8,7 @@ import pytest
 
 from planetgen.generation import tuning_harness as th
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import envelope_escape, radius_valley as rv
+from planetgen.physics import envelope_capture, envelope_escape, radius_valley as rv
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.util import draw
 
@@ -45,7 +45,7 @@ def test_a_sparse_survey_has_no_valley():
 
 
 def test_the_valley_slope_and_location_follow_the_published_values_across_the_recipe_bracket():
-    for f_env0 in (0.05, CENTER, 0.2):
+    for f_env0 in (envelope_capture.MEDIAN_START, 0.05, CENTER, 0.2):       # GEN.1711: the birth median of [R3797], 0.04, sits under the bracket and holds both targets
         assert _compare("e1-valley-slope", f_env0, "slope").passed, f_env0
         assert _compare("e1-valley-radius", f_env0, "radius_10d").passed, f_env0
 

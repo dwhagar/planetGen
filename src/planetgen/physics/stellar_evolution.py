@@ -237,7 +237,8 @@ def yerkes_class_of(state):
     is a subdwarf (`VI`). The cut is judged at the temperature the star is stored with (rounded to the nearest hundred kelvin, `star_params`): a
     star 39 K cooler once rounded sits 0.02 dex nearer the dwarf sequence, and the class has to hold for the numbers the page shows (TEST.727)."""
     temperature = round(state["temperature_k"], tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED)
-    if state["yerkes_class"] == "V" and is_subdwarf(state["luminosity_sol"], temperature):
+    if (state["yerkes_class"] == "V" and state["metallicity_fe_h"] <= tuning.SUBDWARF_MAX_FE_H
+            and is_subdwarf(state["luminosity_sol"], temperature)):
         return "VI"
     return state["yerkes_class"]
 

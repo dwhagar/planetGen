@@ -371,6 +371,11 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
                 if body.mass < 5.0e22:
                     assert 0.0 < body.urey_ratio < float("inf")
                     continue
+                if (getattr(body, "tidal_flux_w_m2", None) or 0.0) > body.internal_heat_flux_w_m2:
+                    # the ratio is the radiogenic share of the heat that is not the tide's: for a body the tide heats more than its own heat does (seed 8's planet of 1.4 Earth
+                    # masses at e = 0.127, 0.8 W/m2 of tide) that share is the small difference of two large heats, and a mantle held on its ceiling carries out more than it makes
+                    assert 0.0 < body.urey_ratio < float("inf")
+                    continue
                 seen += 1
                 assert 0.2 <= body.urey_ratio <= 10.0
                 if body.star.age >= 8.0 and ih.surface_of(body) > 100.0:
@@ -454,6 +459,28 @@ def test_a_mobile_lid_with_no_drop_carries_no_heat():
     assert ih._flux_w_m2(300.0, MID, 9.8, 3.0e6, ih.MOBILE, 300.0) == 0.0
     assert ih._flux_w_m2(250.0, MID, 9.8, 3.0e6, ih.MOBILE, 300.0) == 0.0
     assert ih._flux_w_m2(1500.0, MID, 9.8, 3.0e6, ih.MOBILE, 300.0) > 0.0
+
+
+def test_a_mantle_that_does_not_convect_still_conducts_its_heat_out():
+    """A mantle under the critical Rayleigh number (a small body, a cold one) carries heat by conduction; the boundary-layer law's layer would grow past the
+    mantle itself and carry next to nothing, 0 once the viscosity is past the convecting range. A sphere heated all through conducts 5 k (Tm - Ts) / R."""
+    thickness_m, radius_m, surface_k = 2.0e5, 5.0e5, 24.0
+    floor = ih.CONDUCTION_SHAPE_FACTOR * ih.MANTLE_CONDUCTIVITY / radius_m
+    cold = ih._flux_w_m2(50.0, MID, 0.3, thickness_m, ih.STAGNANT, surface_k, radius_m)       # Ea / R T is about 480 for this interior: viscous but in range
+    assert cold == pytest.approx(floor * (50.0 - surface_k))
+    dead = ih._flux_w_m2(10.0, ih.Interior(1.0e12, 390.0), 0.3, thickness_m, ih.STAGNANT, 5.0, radius_m)     # Ea / R T is 4,700: no convection at all
+    assert dead == pytest.approx(floor * 5.0)
+    assert ih._flux_w_m2(1500.0, MID, 9.8, 3.0e6, ih.STAGNANT, 273.0, 6.371e6) > ih.CONDUCTION_SHAPE_FACTOR * ih.MANTLE_CONDUCTIVITY * 1227.0 / 6.371e6    # an Earth convects
+
+
+def test_a_small_body_far_from_its_star_carries_out_about_what_it_makes():
+    """A dwarf-planet size body at 24 K of surface (a belt planet of the outer system) once kept its heat: its mantle did not convect and the box let none out
+    (a Urey ratio of 1,800 to 20 million). It conducts it, and after 4.5 Gy its heat out is within a factor of two or three of its radiogenic heat (the bigger ones still give up their birth heat)."""
+    for mass, radius in ((9.4e20, 470.0), (1.9e22, 1100.0), (7.3e22, 1737.0)):
+        for interior in CORNERS + [MID]:
+            found = ih.heat_flow(_bulk_silicate_earth(), interior, mass, radius, EARTH_AGE_GY, EARTH_ROCK, None, ih.STAGNANT, 24.0)
+            assert 0.3 < found.urey_ratio < 1.5, (mass, interior)
+            assert found.flux_w_m2 > 1.0e-4, (mass, interior)
 
 
 def test_a_mantle_still_warming_under_a_great_tide_keeps_its_radiogenic_heat_as_its_own():

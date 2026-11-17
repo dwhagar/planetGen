@@ -42,6 +42,7 @@ from planetgen.physics import body_strength, bulk_draw, comet_activity, comet_co
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
+from planetgen.util.random import sample_power_law
 from planetgen.util import log
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
@@ -68,17 +69,28 @@ periodic (`P/`); every other star-bound comet is `C/` -- the IAU's own
 split (GEN.13, v40)."""
 
 
+def family_of_period(period_years):
+    """
+    The comet family whose period range (`tuning.COMET_PERIOD_CLASSES`) holds `period_years`: the ranges follow each other, each taking its lower end, so a period of exactly 200 years is a
+    long-period comet. A period under the shortest range is the first family's, one over the longest range the last family's.
+    """
+    families = sorted(tuning.COMET_PERIOD_CLASSES.items(), key=lambda item: item[1]["period_range_years"][0])
+    for name, data in families:
+        if period_years < data["period_range_years"][1]:
+            return name
+    return families[-1][0]
+
+
 def period_class_of(drawn_class, period_years):
     """
-    The period class of a comet of `drawn_class` whose orbit has come out with `period_years` (GEN.1608). The class is drawn before the orbit, and the orbit is cut by the star's orbit ceiling and drawn from
-    eccentricity ranges, so a comet drawn `long_period` can have a period of tens of years and `comet_designation` calls it periodic (`P/`). The two sides of `PERIODIC_COMET_MAX_PERIOD_YEARS` follow the
-    designation: a `long_period` comet under it is `halley_type` (the family next to it), and a `jupiter_family` or `halley_type` comet at or over it is `long_period`; every other class is kept.
+    The period class of a comet of `drawn_class` whose orbit has come out with `period_years` (GEN.1608, GEN.1612). The orbit is drawn within the family's period range where the perihelion allows it
+    (`Comet._period_window`); where no eccentricity of the family's range and the star's ceiling gives a period in it, the class is the family whose range does (`family_of_period`), so every comet's
+    period lies in the range of its own family. A period of 200 years or more is the long-period family, as `comet_designation` calls it (`C/`), and a shorter one is periodic (`P/`).
     """
-    if drawn_class == "long_period" and period_years < PERIODIC_COMET_MAX_PERIOD_YEARS:
-        return "halley_type"
-    if drawn_class != "long_period" and period_years >= PERIODIC_COMET_MAX_PERIOD_YEARS:
-        return "long_period"
-    return drawn_class
+    low, high = tuning.COMET_PERIOD_CLASSES[drawn_class]["period_range_years"]
+    if low <= period_years < high:
+        return drawn_class
+    return family_of_period(period_years)
 
 
 def comet_designation(host_name, index, comet):
@@ -225,7 +237,7 @@ class Comet(SmallBody):
     flavor_key = None
     """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
 
-    def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None, ceiling_au=None, star=None, giant_au=None):
+    def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None, ceiling_au=None, star=None, giant_au=None, family_weights=None, nucleus_top_km=None):
         """
         Initializes a Comet object.
 
@@ -251,6 +263,10 @@ class Comet(SmallBody):
                 is then one whose Tisserand parameter about that giant is in the family's range: its elements are drawn again until it is (up to
                 `tuning.COMET_CEILING_ATTEMPTS` times), and a comet no orbit of which that giant can control is of another family. Without a giant the
                 orbit is as it was.
+            family_weights (dict, optional): `{family: weight}` over the keys of `tuning.COMET_PERIOD_CLASSES` (`physics/comet_supply.family_weights`, GEN.1765): the
+                weights the family is drawn by when the star's outer disk was scattered by a giant. Without it the table's own weights.
+            nucleus_top_km (float, optional): The largest body of the star's outer disks (`physics/comet_supply.nucleus_top_km`): the top of the nucleus draw is cut to it,
+                never under the draw's lower end. Without it the range's own top.
         """
         # The name is a placeholder: `store.insert_star_system` replaces it with the
         # comet's designation (`comet_designation`, v40).
@@ -268,7 +284,10 @@ class Comet(SmallBody):
             log.choice("Comet orbit type", self.orbit_type,
                        f"roll against COMET_PARABOLIC_CHANCE ({tuning.COMET_PARABOLIC_CHANCE})")
 
-        self.nucleus_diameter_km = draw.uniform(*tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM)
+        nucleus_low_km, nucleus_high_km = tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM
+        if nucleus_top_km is not None:
+            nucleus_high_km = max(nucleus_low_km, min(nucleus_high_km, nucleus_top_km))
+        self.nucleus_diameter_km = sample_power_law(nucleus_low_km, nucleus_high_km, tuning.COMET_NUCLEUS_CUMULATIVE_INDEX)
 
         self.perihelion_distance_au = draw.uniform(*tuning.COMET_PERIHELION_DISTANCE_RANGE_AU)
         self.arg_periapsis_deg = draw.uniform(0, 360)
@@ -276,7 +295,7 @@ class Comet(SmallBody):
 
         if self.orbit_type == "elliptical":
             class_names = list(tuning.COMET_PERIOD_CLASSES.keys())
-            weights = [tuning.COMET_PERIOD_CLASSES[c]["weight"] for c in class_names]
+            weights = [family_weights[c] if family_weights else tuning.COMET_PERIOD_CLASSES[c]["weight"] for c in class_names]
             self.period_class = draw.choices(class_names, weights=weights, k=1)[0]
             log.choice("Comet period class", self.period_class,
                        f"weighted draw among {class_names} (weights {weights})")
@@ -330,16 +349,63 @@ class Comet(SmallBody):
         spin.set_spin(self, spin.orbit_normal(self.inclination_deg, self.ascending_node_deg),
                       spin.yorp_tilt_deg())
 
+    def _period_window(self, period_range_years):
+        """
+        The eccentricities (low, high) at which a comet of this perihelion distance has a period inside `period_range_years` about its star (GEN.1612), or `None` where none does (a perihelion at or
+        beyond the semi-major axis of the longest period). The semi-major axis is `q / (1 - e)`, and it scales with the period as the 2/3 power (Kepler's third law, `calculate_orbital_period_years`).
+        """
+        mass_kg = _msun_to_kg(self.primary_mass_solar)
+        unit_period = calculate_orbital_period_years(1.0, mass_kg)
+        axis_low, axis_high = ((period / unit_period) ** (2.0 / 3.0) for period in period_range_years)
+        perihelion_au = self.perihelion_distance_au
+        if axis_high <= perihelion_au:
+            return None
+        return max(1.0 - perihelion_au / axis_low, 0.0), 1.0 - perihelion_au / axis_high
+
     def _draw_shape(self, class_data, ceiling_au):
         """The eccentricity and inclination of a comet of the family `class_data` about its perihelion: the family's ranges, the eccentricity cut so that the aphelion stays inside `ceiling_au`."""
+        low, high = self._eccentricity_range(class_data, ceiling_au)
+        if low is None:
+            # GEN.1612: no eccentricity of the family puts this perihelion's period in the family's range; the perihelion is drawn again where one does (a comet of 0.2 AU cannot have a 3-year period at an
+            # eccentricity under 0.75, nor one of 5 AU a period under the longest of the range), and when the ceiling leaves none the orbit is the ceiling's and `period_class_of` names the family
+            self._redraw_perihelion(class_data)
+            low, high = self._eccentricity_range(class_data, ceiling_au)
+            if low is None:
+                low, high = self._eccentricity_range(class_data, ceiling_au, window=False)
+        self.eccentricity = draw.uniform(low, high)
+        self.inclination_deg = draw.uniform(0, class_data["inclination_max_deg"])
+
+    def _eccentricity_range(self, class_data, ceiling_au, window=True):
+        """
+        The eccentricities `(low, high)` a comet of the family `class_data` can have about its perihelion: the family's range cut so that the aphelion stays inside `ceiling_au` (a range that lies wholly
+        above the cut gives the cut itself) and, with `window`, to those that put the period in the family's period range (GEN.1612); `(None, None)` where the two leave nothing.
+        """
         low, high = class_data["eccentricity_range"]
         if ceiling_au is not None:
             # aphelion q (1 + e) / (1 - e) <= ceiling  <=>  e <= (ceiling - q) / (ceiling + q)
             perihelion_au = self.perihelion_distance_au
             high = max(min(high, (ceiling_au - perihelion_au) / (ceiling_au + perihelion_au)), 0.0)
             low = min(low, high)
-        self.eccentricity = draw.uniform(low, high)
-        self.inclination_deg = draw.uniform(0, class_data["inclination_max_deg"])
+        if not window:
+            return low, high
+        reach = self._period_window(class_data["period_range_years"])
+        if reach is None or max(low, reach[0]) > min(high, reach[1]):
+            return None, None
+        return max(low, reach[0]), min(high, reach[1])
+
+    def _redraw_perihelion(self, class_data):
+        """
+        Draws the perihelion again among those at which the family's eccentricity range gives a period in the family's period range (GEN.1612): the semi-major axis `q / (1 - e)` of the shortest period
+        and the largest eccentricity bound `q` from below, that of the longest period and the smallest eccentricity from above. Keeps the perihelion where no such distance is in the perihelion range.
+        """
+        mass_kg = _msun_to_kg(self.primary_mass_solar)
+        unit_period = calculate_orbital_period_years(1.0, mass_kg)
+        axis_low, axis_high = ((period / unit_period) ** (2.0 / 3.0) for period in class_data["period_range_years"])
+        e_low, e_high = class_data["eccentricity_range"]
+        range_low, range_high = tuning.COMET_PERIHELION_DISTANCE_RANGE_AU
+        low, high = max(range_low, axis_low * (1.0 - e_high)), min(range_high, axis_high * (1.0 - e_low))
+        if low <= high:
+            self.perihelion_distance_au = draw.uniform(low, high)
 
     def _place_under_giant(self, giant_au, ceiling_au, class_names, weights):
         """
@@ -357,6 +423,8 @@ class Comet(SmallBody):
         if comet_control.controls(giant_au, self.perihelion_distance_au, self.eccentricity, self.inclination_deg):
             return
         others = [(name, weight) for name, weight in zip(class_names, weights) if name != "jupiter_family"]
+        if not sum(weight for _, weight in others) > 0.0:       # a disk that scattered only inward: the others by the table's weights
+            others = [(name, tuning.COMET_PERIOD_CLASSES[name]["weight"]) for name, _ in others]
         self.period_class = draw.choices([name for name, _ in others], weights=[weight for _, weight in others], k=1)[0]
         log.choice("Comet period class", self.period_class, f"no Jupiter-family orbit about a giant at {giant_au:.4g} AU; weighted draw among {[name for name, _ in others]}")
         self._draw_shape(tuning.COMET_PERIOD_CLASSES[self.period_class], ceiling_au)

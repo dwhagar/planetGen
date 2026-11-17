@@ -107,10 +107,14 @@ MOBILE_CRITICAL_RAYLEIGH = CRITICAL_RAYLEIGH
 SURFACE_TEMPERATURE_K = 273.0
 """float: The surface the boundary layer is measured against, the same table."""
 
+CONDUCTION_SHAPE_FACTOR = 5.0
+"""float: A sphere heated all through at H per volume and held at the surface temperature has the mean temperature rise H R^2 / (15 k) and the surface flux H R / 3, so
+its flux is 5 k (Tm - Ts) / R of its mean temperature: the conduction of a body too small or too cold to convect (derived, not read)."""
+
 MAX_VISCOSITY_EXPONENT = 600.0
 """float: `Ea / R T` beyond which the mantle does not convect (a viscosity of 1e260 times the prefactor): a body with a cold surface, a
-small one far from its star, starts at that temperature and warms with its radiogenic heat until convection starts; the conduction that
-carries heat out of a mantle that does not convect is not modelled."""
+small one far from its star, starts at that temperature and warms with its radiogenic heat until convection starts; the heat it carries
+out meanwhile is the conduction across the mantle (`_flux_w_m2`)."""
 
 TIDE_NEGLIGIBLE_SHARE = 1.0e-3
 """float: A tide under this share of the body's own heat is added to the output without running the box again (it moves the mantle's
@@ -308,14 +312,19 @@ def cmb_pressure_gpa(mass_kg, radius_km, rock):
     return core_heat.cmb_pressure_gpa(metal_kg, silicate_kg, dry_m * (metal_kg / (metal_kg + silicate_kg)) ** 0.5, dry_m)
 
 
-def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
+def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K, radius_m=None):
     """`qu`, W/m2, at the mantle temperature. A stagnant lid loses heat across the boundary layer's viscous temperature scale `dT = a_rh R
     Tm^2 / Ea` (the lid is cold and rigid, the convection under it only has that drop to work with); a mobile lid's plates carry the
-    whole drop from the mantle to the surface, `dT = Tm - Ts`, with the viscosity of the mantle at `Tm` and a mobile `beta`."""
+    whole drop from the mantle to the surface, `dT = Tm - Ts`, with the viscosity of the mantle at `Tm` and a mobile `beta`. Under either the flux is
+    never less than the conduction of a body heated all through (`CONDUCTION_SHAPE_FACTOR`) of the dry body's `radius_m` (the mantle's `thickness_m` for a
+    caller who gives none)."""
     activation = interior.activation_kj_mol * 1000.0
     exponent_of_viscosity = activation / (GAS_CONSTANT * temperature_k)
+    # a mantle that does not convect (a small body, a cold one: the Rayleigh number under the critical) still conducts its heat out: the boundary-layer law
+    # lets the layer grow past the mantle itself and carries next to nothing, so the flux is never less than the conduction
+    conduction = CONDUCTION_SHAPE_FACTOR * MANTLE_CONDUCTIVITY * max(temperature_k - surface_k, 0.0) / (radius_m if radius_m is not None else thickness_m)
     if exponent_of_viscosity > MAX_VISCOSITY_EXPONENT:
-        return 0.0
+        return conduction
     viscosity = interior.eta0_pa_s * math.exp(exponent_of_viscosity)
     if lid == MOBILE:
         drop, critical, exponent = temperature_k - surface_k, MOBILE_CRITICAL_RAYLEIGH, MOBILE_HEAT_FLOW_EXPONENT
@@ -326,7 +335,7 @@ def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surf
         return 0.0      # no temperature difference to carry heat across: a mobile lid whose mantle is at its surface's temperature
     rayleigh = MANTLE_EXPANSIVITY * MANTLE_DENSITY * gravity * drop * thickness_m ** 3 / (MANTLE_DIFFUSIVITY * viscosity)
     layer = thickness_m * (critical / rayleigh) ** exponent
-    return MANTLE_CONDUCTIVITY * drop / layer
+    return max(MANTLE_CONDUCTIVITY * drop / layer, conduction)
 
 
 def _tide_w(forcing, mantle, kelvin, interior):
@@ -418,7 +427,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         return _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, tide_w if forcing is not None else None)
 
     def conduction_w(kelvin):
-        return _flux_w_m2(kelvin, interior, gravity, thickness_m, lid, surface_k) * area_dry_m2
+        return _flux_w_m2(kelvin, interior, gravity, thickness_m, lid, surface_k, dry_m) * area_dry_m2
 
     def cool(tide=None, ceiling_k=cap_k):
         """
@@ -450,7 +459,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         # the radiogenic power at the start of a step is that at the end of the one before, and the two middle stages share one time;
         # the flux at the start is the one the last step ended with (PERF.201: the same values, each worked out once)
         radiogenic_start = radiogenic_w(0.0)
-        flux = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)
+        flux = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k, dry_m)
         while t < age_gy:
             # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
             stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
@@ -480,7 +489,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
                 if core_steps == CORE_STRIDE or t + h >= age_gy:
                     core.advance(core_from_t, core_h, core_from_k, temperature)
                     core_steps = 0
-            flux_end = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)
+            flux_end = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k, dry_m)
             if raw_k < surface_k:
                 # the step wanted a mantle cooler than its surface: it ends on the floor, and what it released is the heat it made and the heat it gave up on the way down
                 # (energy kept), not the flux law's, which at the floor carries more than the body makes (TEST.775: a 4.5 Earth-mass planet at 3,032 K released 7 times its radiogenic)

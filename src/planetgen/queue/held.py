@@ -51,7 +51,7 @@ def hold_unit(conn, run_id, stage, unit, row, error, killed=False):
     """
     from planetgen.queue import wrapper         # the wrapper queues units and imports this file's callers
     conn.hset(runrecord.held_key(run_id, stage), unit, f"{row}|{error}"[:1000])
-    runrecord.log(conn, run_id, f"unit {unit} of stage {wrapper.stage_name(conn, run_id, stage)} is held: {error}", level="error", kind="unit.held", stage=stage, unit=unit)
+    runrecord.log_said(conn, run_id, f"unit {unit} of stage {wrapper.stage_name(conn, run_id, stage)} is held: {error}", level="error", kind="unit.held", stage=stage, unit=unit)
     _mark_job(conn, run_id, row, "failed")
     if killed:
         runrecord.mark_killed(conn, run_id, error)

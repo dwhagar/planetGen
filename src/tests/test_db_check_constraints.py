@@ -36,6 +36,8 @@ _NULL_OR_ABOVE_ZERO = re.compile(r"^`?(\w+)`?\s+is\s+null\)?\s+or\s+\(`?\1`?\s*>
 """`(a is null) or (a > 0)`: a nullable column that may not be zero or below (the effect ledger's largest value, GEN.1465)."""
 _NULL_OR_BETWEEN = re.compile(r"^`?(\w+)`?\s+is\s+null\)?\s+or\s+\(`?\1`?\s+between\s+(-?\d+)\s+and\s+(-?\d+)$", re.IGNORECASE)
 """`(a is null) or (a between m and n)`: a nullable column held inside a range (the birth tilt and capture draws of `body_history`, GEN.1497)."""
+_NULL_OR_HALF_OPEN_UNIT = re.compile(r"^`?(\w+)`?\s+is\s+null\)?\s+or\s+\(+`?\1`?\s*>=\s*0\)?\s+and\s+\(?`?\1`?\s*<\s*1$", re.IGNORECASE)
+"""`(a is null) or ((a >= 0) and (a < 1))`: a nullable eccentricity, bound or not (the held and forced eccentricities of `body_history`, DB.132)."""
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
 _EMPTY_TABLE_ROWS = {
@@ -191,6 +193,9 @@ def _breaking_value(conn, table, clause, row):
     match = _NULL_OR_ABOVE_ZERO.match(clause)
     if match:
         return match[1], -1.0
+    match = _NULL_OR_HALF_OPEN_UNIT.match(clause)
+    if match:
+        return match[1], 1.0
     match = _NULL_TOGETHER.search(clause)
     if match:
         column = match[1]

@@ -16,8 +16,8 @@ CURRENT LANES (TODO sweep, 8:10 PM EST 2026-11-13; supersedes the older rows bel
 |---|---|---|
 | 00 TODO | Sweep; merges lock-free PRs on lane greens | Retire items as PRs merge |
 | 01 Train Manager | Train 29 gate (6522, 6540, 6541, 6547) | Train 30: 6565 GEN.1623, OPS.253 B |
-| 02 Air and climate | GEN.1720 first (CO2 split, no Class M on Abundant); GEN.1716 and GEN.1718 part 1 in Train 29 | GEN.1718 rest |
-| 03 Atmosphere classes | Train 29 gate share; GEN.1722 research (life levers) | GEN.1698, GEN.1617 (after GEN.1716 and GEN.1717) |
+| 02 Air and climate | GEN.1745 slice 2 (full air history for every world with air); GEN.1732 wiring PR for Train 41 | GEN.1771, GEN.1746, GEN.1767 (after Boss picks the buffer) |
+| 03 Atmosphere classes | CLOSED by Boss 5:07 PM EST 2026-11-16 | Items moved: GEN.1767, GEN.1771, GEN.1746 to Lane 02; GEN.1698 deferred, no owner |
 | 04 Planet composition | OPS.202 part 2 | GEN.1723 (life will find a way, lock) |
 | 05 Oddities and census | 6565 GEN.1623 (Train 30) | TEST.752, TEST.739, then GEN.1717 A and B |
 | 06 Belts and small bodies | PERF.267 (log analysis) | Train 31 gate share; PERF.268; then OPS.229-231, 235, 243, 249, 250 |

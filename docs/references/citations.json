@@ -6773,7 +6773,7 @@
     },
     "R1355": {
       "kind": "paper",
-      "label": "Fernández et al. 2013",
+      "label": "Fernández et al. 2013a",
       "title": "A PILOT FOR A VERY LARGE ARRAY H I DEEP FIELD"
     },
     "R1356": {
@@ -26460,6 +26460,26 @@
       "kind": "paper",
       "label": "Chiera et al. 2024",
       "title": "The $$^{146}\\text{Sm}$$ half-life re-measured: consolidating the chronometer for events in the early Solar System"
+    },
+    "R5296": {
+      "kind": "paper",
+      "label": "Fernández et al. 2013b",
+      "title": "Thermal properties, sizes, and size distribution of Jupiter-family cometary nuclei"
+    },
+    "R5305": {
+      "kind": "paper",
+      "label": "Ribas et al. 2013",
+      "title": "Disk evolution in the solar neighborhood"
+    },
+    "R5306": {
+      "kind": "paper",
+      "label": "Richert et al. 2018",
+      "title": "Circumstellar disc lifetimes in numerous galactic young stellar clusters"
+    },
+    "R5307": {
+      "kind": "paper",
+      "label": "Mamajek et al. 2009",
+      "title": "Initial Conditions of Planet Formation: Lifetimes of Primordial Disks"
     }
   }
 }

@@ -48,11 +48,13 @@ def test_the_letter_ranges_are_the_map_bands_of_the_constants():
 
 
 def test_the_sun_is_not_a_subdwarf_and_a_metal_poor_star_is():
-    sun = {"yerkes_class": "V", "luminosity_sol": 1.0, "temperature_k": 5772.0}
+    sun = {"yerkes_class": "V", "luminosity_sol": 1.0, "temperature_k": 5772.0, "metallicity_fe_h": 0.0}
     assert stellar_evolution.yerkes_class_of(sun) == "V"
-    poor = dict(sun, luminosity_sol=0.3)
+    poor = dict(sun, luminosity_sol=0.3, metallicity_fe_h=-1.2)
     assert stellar_evolution.yerkes_class_of(poor) == "VI"
     assert stellar_evolution.yerkes_class_of(dict(poor, yerkes_class="III")) == "III"
+    # GEN.1635: under-luminous but only a little metal-poor is an ordinary dwarf, not a subdwarf.
+    assert stellar_evolution.yerkes_class_of(dict(poor, metallicity_fe_h=-0.2)) == "V"
 
 
 @pytest.mark.real_datasets

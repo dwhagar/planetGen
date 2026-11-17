@@ -61,3 +61,122 @@ def test_the_companions_periapsis_is_the_same_for_the_same_system_and_in_a_turn(
 
 def test_the_planet_rate_of_a_lone_star_is_relativity_alone():
     assert belt_forcing.planet_rate(3.0, [], [], SUN) == pytest.approx(secular_chain.relativistic_rates_rad_yr([3.0], SUN, [0.0])[0])
+
+
+# --- the tilt (GEN.1492, second part) -----------------------------------------------------------------------------------------------------------
+
+def _normal(inclination_deg, node_deg=0.0):
+    from planetgen.physics import spin
+    return spin.orbit_normal(inclination_deg, node_deg)
+
+
+def _inclination_of(axis):
+    return math.degrees(math.acos(axis[2]))
+
+
+def test_a_bare_belt_precesses_about_the_companions_own_plane():
+    axis = belt_forcing.forced_normal(3.0, SUN, [(0.5 * SUN, 100.0, 0.2, _normal(20.0, 40.0))], 0.0)
+    assert axis == pytest.approx(_normal(20.0, 40.0), abs=1e-9)
+
+
+def test_a_coplanar_companion_gives_no_tilt():
+    axis = belt_forcing.forced_normal(3.0, SUN, [(0.5 * SUN, 100.0, 0.2, (0.0, 0.0, 1.0))], 0.0)
+    assert axis == pytest.approx((0.0, 0.0, 1.0), abs=1e-12)
+
+
+def test_a_heavy_giant_holds_the_belt_flat_and_a_light_one_less():
+    companion = [(0.5 * SUN, 100.0, 0.2, _normal(20.0))]
+    bare = _inclination_of(belt_forcing.forced_normal(3.0, SUN, companion, 0.0))
+    giant = belt_forcing.planet_nodal_rate(3.0, [5.2], [JUPITER], SUN)
+    held = _inclination_of(belt_forcing.forced_normal(3.0, SUN, companion, giant))
+    heavy = _inclination_of(belt_forcing.forced_normal(3.0, SUN, companion, 100.0 * giant))
+    assert heavy < held < bare
+    assert heavy < 0.5
+
+
+def test_equal_pulls_put_the_axis_half_way():
+    rate, _ = belt_forcing.companion_rates(3.0, SUN, 0.5 * SUN, 100.0, 0.2)
+    axis = belt_forcing.forced_normal(3.0, SUN, [(0.5 * SUN, 100.0, 0.2, _normal(20.0))], rate)
+    assert _inclination_of(axis) == pytest.approx(10.0, abs=0.1)
+
+
+def test_a_companion_out_of_the_theory_or_with_no_plane_changes_nothing():
+    assert belt_forcing.forced_normal(3.0, SUN, [(0.5 * SUN, 5.0, 0.2, _normal(20.0))], 0.0) is None       # alpha beyond ALPHA_LIMIT
+    assert belt_forcing.forced_normal(3.0, SUN, [(0.5 * SUN, 100.0, 0.2, None)], 0.0) is None
+    assert belt_forcing.forced_normal(3.0, SUN, [], 1.0) is None
+    assert belt_forcing.forced_normal(3.0, SUN, [(0.5 * SUN, 100.0, 0.2, _normal(60.0))], 0.0) is None     # a tilt in the Kozai-Lidov range keeps the drawn orbit
+
+
+def test_a_lone_planet_gives_no_nodal_rate_without_planets_and_a_positive_one_with():
+    assert belt_forcing.planet_nodal_rate(3.0, [], [], SUN) == 0.0
+    assert belt_forcing.planet_nodal_rate(3.0, [5.2], [JUPITER], SUN) > 0.0
+
+
+@pytest.mark.parametrize("phase", [0.0, 1.0, 2.5, 4.0])
+def test_the_angle_to_the_forced_axis_is_kept_whatever_the_phase(phase):
+    axis = _normal(20.0, 40.0)
+    drawn = _normal(3.0, 200.0)
+    inclination, node = belt_forcing.tilted_orbit(3.0, 200.0, axis, phase)
+    turned = _normal(inclination, node)
+    assert sum(a * b for a, b in zip(turned, axis)) == pytest.approx(sum(a * b for a, b in zip(drawn, axis)), abs=1e-9)
+
+
+def test_a_flat_member_swings_between_flat_and_twice_the_forced_inclination():
+    axis = _normal(20.0, 40.0)
+    seen = [belt_forcing.tilted_orbit(0.0, 10.0, axis, 2.0 * math.pi * k / 72.0)[0] for k in range(72)]
+    assert min(seen) == pytest.approx(0.0, abs=0.5)
+    assert max(seen) == pytest.approx(40.0, abs=0.5)
+    assert 20.0 < sum(seen) / len(seen) < 30.0         # the angle to the plane is not linear in the phase: about 25 degrees on average
+
+
+def test_an_axis_on_the_planets_plane_keeps_the_inclination_and_turns_only_the_node():
+    inclination, node = belt_forcing.tilted_orbit(5.0, 100.0, (0.0, 0.0, 1.0), 1.0)
+    assert inclination == pytest.approx(5.0, abs=1e-9)
+    assert node == pytest.approx((100.0 + math.degrees(1.0)) % 360.0, abs=1e-6)
+
+
+def test_the_inclination_spreads_between_the_difference_and_the_sum_of_the_two_angles():
+    axis = _normal(20.0, 0.0)
+    drawn = _normal(5.0, 77.0)
+    angle = math.degrees(math.acos(sum(a * b for a, b in zip(drawn, axis))))
+    seen = [belt_forcing.tilted_orbit(5.0, 77.0, axis, 2.0 * math.pi * k / 72.0)[0] for k in range(72)]
+    assert min(seen) >= abs(20.0 - angle) - 1e-6 and max(seen) <= 20.0 + angle + 1e-6
+    assert min(seen) < abs(20.0 - angle) + 0.5 and max(seen) > 20.0 + angle - 0.5
+
+
+COMPANION = (0.5 * 1.989e30, 100.0, 0.5, 1.2)       # mass kg, axis AU, eccentricity, periapsis radians
+
+
+def test_companion_terms_of_a_planet_are_the_member_rates_summed():
+    apsidal, forcing = belt_forcing.companion_terms([5.0, 30.0], 1.989e30, [COMPANION])
+    rate, push = belt_forcing.companion_rates(5.0, 1.989e30, COMPANION[0], COMPANION[1], COMPANION[2])
+    assert apsidal[0] == pytest.approx(rate) and forcing[0] == pytest.approx(push * complex(math.cos(1.2), math.sin(1.2)))
+    assert apsidal[1] > apsidal[0] > 0.0                   # the farther planet is turned faster by the companion
+    assert belt_forcing.companion_terms([5.0], 1.989e30, []) == ((0.0,), (0j,))
+
+
+def test_a_lone_planet_is_forced_as_a_member_of_no_mass_is():
+    axis, host = 4.0, 1.989e30
+    vector = belt_forcing.forced_planet_vectors([axis], [1e-9 * host], host, [COMPANION])
+    other = belt_forcing.planet_rate(axis, [], [], host)
+    assert vector is not None and vector[0] == pytest.approx(belt_forcing.forced_vector(axis, host, [COMPANION], other), rel=1e-6)
+
+
+def test_a_companion_that_does_not_reach_the_planets_or_a_lone_star_forces_nothing():
+    host = 1.989e30
+    assert belt_forcing.forced_planet_vectors([5.0, 9.0], [1e-3 * host] * 2, host, []) is None
+    assert belt_forcing.forced_planet_vectors([5.0, 9.0], [1e-3 * host] * 2, host, [(0.5 * host, 10.0, 0.5, 0.0)]) is None     # alpha 0.5 and more
+
+
+def test_an_outer_giant_dilutes_the_forcing_of_an_inner_planet_and_the_planets_stay_coupled():
+    host = 1.989e30
+    bare = belt_forcing.forced_planet_vectors([4.0], [1e-9 * host], host, [COMPANION])
+    held = belt_forcing.forced_planet_vectors([4.0, 6.0], [1e-9 * host, 1e-3 * host], host, [COMPANION])
+    assert bare is not None and held is not None and len(held) == 2
+    assert abs(held[0]) != pytest.approx(abs(bare[0]), rel=1e-3)          # the giant's own exchange moves the inner planet's fixed point
+    assert all(abs(v) < secular_chain.LINEAR_ECCENTRICITY_LIMIT for v in held)
+
+
+def test_a_forced_eccentricity_past_the_linear_limit_is_outside_the_theory():
+    host = 1.989e30
+    assert belt_forcing.forced_planet_vectors([20.0], [1e-9 * host], host, [(host, 100.0, 0.9, 0.0)]) is None
