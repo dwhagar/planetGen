@@ -11913,11 +11913,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02. Prerequisites: none. Related: GEN.1768, GEN.1745, GEN.1739, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **TEST.783 (bug) test_star_composition_sweep and test_radius_valley_sweep: the filled-galaxy fixture runs past the hang guard (900 s, 1,500 s in gates) on a 4-core box, so the files error instead of testing**
-  Lane 05 and Lane 06 (2026-11-16, Train 39 gate): both sweep files hit the timeout with fixture errors on a loaded 4-core box. Do: profile the fixture build, make it smaller or cached (see TEST.417) without weakening what the sweeps check, and report run times before and after.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 16. Lock-free. Prerequisites: none. Related: TEST.417, PERF.274.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1771 (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more**
   Lane 03, 3:52 PM EST 2026-11-16 (Train 40 gate, test_radiation_sweep): class N world Akumaus I (seed 15 sweep, extra system 12 of seeds 1015 to 1027; 19 bar, 412 K, 12.7 bar CO2, 2.7 bar H2O). UV-C transmission at fixed ozone: O2 x0.5 2.1e-5, x1 3.7e-5, x2 8.3e-5, x16 3.1e-4; a doubled column passes 13 percent more, also with ground albedo 0. More absorber should not let more UV-C through. About 4e-5 of the light, so no dose moves, but it is a model error. Do: trace the transmission (scattering against absorption, the band integration, or the ozone held fixed while O2 changes the profile) and fix the cause; lock item if output moves.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02 (moved from Lane 03, whose thread Boss closed at 5:07 PM EST 2026-11-16). Prerequisites: none. Related: GEN.1717.
