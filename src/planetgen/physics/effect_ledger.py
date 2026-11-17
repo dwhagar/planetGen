@@ -27,8 +27,8 @@ only light and UV, whose sources are stars across the neighbourhood, keep rows a
 the body; the rows begin where a second source matters (a binary or a multiple). The sources of light and UV are the stars of the body's own system
 (`radiation_field`), not the neighbouring stars of the galaxy, so "the largest" is the largest of the system and not of the sky.
 
-**A glowing dark member is a source of light** (GEN.1528): a brown dwarf, a neutron star or a black hole with a disk in the system's tree (`dark_light`, GEN.1501) has no row of a kind table, so its rows are stored with
-`source_type` 8, 9 or 10 (`DARK_KIND_CODES`) and its member number in the tree as `source_id`; with the host star they make two sources, so a planet round a star with a brown dwarf beside it has light rows.
+**A glowing dark member is a source of light** (GEN.1528): a brown dwarf, a neutron star, a stripped helium star or a black hole with a disk in the system's tree (`dark_light`, GEN.1501) has no row of a kind table, so its rows are stored with
+`source_type` 8 to 11 (`DARK_KIND_CODES`) and its member number in the tree as `source_id`; with the host star they make two sources, so a planet round a star with a brown dwarf beside it has light rows.
 
 **Edits and deletes:** deleting a system deletes its rows (`ON DELETE CASCADE`); an edit of a system (`edits.save_system_edits`) clears the system's rows, because the edited
 body's shares are no longer the ones generation noted, and they stay empty until the system's ledger is refilled; a standalone phenomenon deleted alone takes its rows as
@@ -69,10 +69,10 @@ BODY_TABLES = ("stars", "planets", "moons", "asteroid_belts", "comets", "black_h
 BODY_CODES = {table: index + 1 for index, table in enumerate(BODY_TABLES)}
 """dict: A body's kind table to its code in the ledger (0 is the summary row's source)."""
 
-DARK_KIND_CODES = {"brown-dwarf": 8, "neutron-star": 9, "black-hole": 10}
+DARK_KIND_CODES = {"brown-dwarf": 8, "neutron-star": 9, "black-hole": 10, "stripped-helium": 11}
 """dict: A glowing dark member of an orbit tree (`dark_light.DarkSource`, GEN.1501) as a source of the ledger (GEN.1528): its kind to the `source_type` it is stored under, with its member number in the
 tree as `source_id`. A dark member has no row of its own in a kind table (it is a row of `dark_members`), so it is named by the system and its number. The codes come after the kind tables' (1 to 7); nothing
-reads `source_type` back into a table, and the column is a plain small integer, so no migration is needed. A stripped helium star gives no light (GEN.1530) and has no code yet."""
+reads `source_type` back into a table, and the column is a plain small integer, so no migration is needed. A stripped helium star (GEN.1530) is 11."""
 
 ROW_FIELDS = ("star_system_id", "body_type", "body_id", "effect", "source_type", "source_id", "share", "n_below", "largest_value")
 """tuple: The columns of an `effect_ledger` row, in table order."""

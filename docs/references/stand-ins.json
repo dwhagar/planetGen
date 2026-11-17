@@ -63499,6 +63499,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.STRIPPED_HELIUM_TEMPERATURE_K = 28,000 K and STRIPPED_BURNING_MIN_MASS_SOL = 0.3: a stripped helium star of the tree (kind stripped-helium, 0.3 to 0.5 solar masses, radius from tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47) glows as a hot subdwarf, 4 pi R^2 sigma T^4 at the temperature the hot subdwarfs of the field cluster at (20,000 to 40,000 K, most near 28,000 K [R1875]), 22 solar luminosities for the 0.47 solar mass star; its XUV is the share of that blackbody over 13.6 eV (activity.blackbody_fraction_above, 17 percent), the step a white dwarf's photosphere takes; a stripped star under 0.3 solar masses (a semi-degenerate AM CVn donor) gives no light, and the star is not aged"
+            ],
+            [
+              "The range it moves in",
+              "temperature 20,000 to 40,000 K"
+            ],
+            [
+              "Where it holds",
+              "stripped helium companions of Be stars and of post-common-envelope pairs"
+            ],
+            [
+              "What would show it wrong",
+              "a hot subdwarf of 0.47 solar masses and 0.2 solar radii measured outside 10 to 100 solar luminosities, or one with an XUV share far from the blackbody's"
+            ],
+            [
+              "What replaces it",
+              "an evolution track of a helium star by mass and age (the hot-subdwarf lifetime of about 1e8 yr, then the cooling of a white dwarf) and the light of an AM CVn donor"
+            ],
+            [
+              "Evidence",
+              "physics: a core that burns helium under a thin envelope shines near the blackbody of its own surface; the temperature is the review's typical one, not read from a table of this paper"
+            ]
+          ],
+          "id": "DL9",
+          "key": "6.259:DL9",
+          "kind": "P",
+          "slug": "6-259-dl9",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dark_light.STRIPPED_HELIUM_TEMPERATURE_K = 28,000 K and STRIPPED_BURNING_MIN_MASS_SOL = 0.3: a stripped helium star of the tree (kind stripped-helium, 0.3 to 0.5 solar masses, radius from tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47) glows as a hot subdwarf, 4 pi R^2 sigma T^4 at the temperature the hot subdwarfs of the field cluster at (20,000 to 40,000 K, most near 28,000 K [R1875]), 22 solar luminosities for the 0.47 solar mass star; its XUV is the share of that blackbody over 13.6 eV (activity.blackbody_fraction_above, 17 percent), the step a white dwarf's photosphere takes; a stripped star under 0.3 solar masses (a semi-degenerate AM CVn donor) gives no light, and the star is not aged"
         }
       ],
       "slug": "6-259-stand-ins-of-the-bright-sources-in-a-body-s-sky",
