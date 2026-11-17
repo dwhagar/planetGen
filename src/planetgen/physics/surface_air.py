@@ -45,7 +45,7 @@ from scipy.optimize import brentq
 
 from planetgen.physics import (
     ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, continental_weathering, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
-    mixture_escape, mixture_rocky, moist_limit,
+    mixture_escape, mixture_rocky, moist_limit, photochemical_loss,
     mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, starlight_aloft, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
 from planetgen import tuning
@@ -541,6 +541,32 @@ def _hold_in_hydrate(partials_pa, temperature_k, setting, skin_m, standing=()):
     return {formula: pressure - held.get(_STORED_OF.get(formula), 0.0) for formula, pressure in partials_pa.items()}
 
 
+PHOTOCHEMICAL_MIN_K = 230.0
+"""float: The surface temperature, K, at the middle of the ramp (`PHOTOCHEMICAL_RAMP_K` wide) from which the star's light takes the ammonia and methane out of a rocky air (GEN.1732). Under it the two are held in ices, hydrates and lakes that resupply the air faster than the light takes them (the methane of Titan's air stands against its photolysis that way), so the air keeps what the equilibrium stored. [Stand-in 6.301 PC5, tier T7, tweak L1.]"""
+
+PHOTOCHEMICAL_RAMP_K = 30.0
+"""float: The width, K, of the ramp from no loss to the whole loss, centered on `PHOTOCHEMICAL_MIN_K`. The loss is a blend of the air the light leaves and the air it does not touch, by a share that goes from 0 to 1 over the ramp, so the temperature the fixed point
+solves has no step in it (a step at 230 K held the iterate on the edge: the loss on above it warms the air under it, and the air under it, without the loss, warms back, the no-steady-state of GEN.1718). [Stand-in 6.301 PC5, tier T7, tweak L1.]"""
+
+
+def _photolysed(partials_pa, setting, temperature_k):
+    """
+    The air of a rocky body after the star's far ultraviolet has worked on its ammonia and methane for the body's age (`photochemical_loss.lose`, GEN.1732): what the equilibrium stored is the inventory the body's volcanoes and comets gave over its age,
+    and the light leaves of it what a source of that inventory over the age stands at against the photolysis rate, at most all of it; what is lost leaves nitrogen and carbon dioxide. The air is the blend of the air as it was and the air after the loss, by a share of the loss that rises from 0 to 1 across
+    `PHOTOCHEMICAL_RAMP_K` around `PHOTOCHEMICAL_MIN_K`, so each gas moves by a share of what the loss takes and moles are kept. A giant, a body with no star's light (`far_uv` None), an air with no ammonia or methane, and an air under the ramp are returned as they were. The loss is part of the air each step of the fixed
+    point, so the greenhouse of the gases it leaves is the one the temperature is solved with.
+    """
+    if setting.giant or setting.far_uv is None or not setting.age_gy:
+        return partials_pa
+    share = min(1.0, max(0.0, (temperature_k - PHOTOCHEMICAL_MIN_K) / PHOTOCHEMICAL_RAMP_K + 0.5))
+    if share <= 0.0 or not any(partials_pa.get(formula, 0.0) > 0.0 for formula in photochemical_loss.PHOTOLYSED):
+        return partials_pa
+    after = photochemical_loss.lose(partials_pa, setting.gravity_m_s2, setting.age_gy * GY_S, setting.far_uv, setting.star_temperature_k)
+    if share >= 1.0:
+        return after
+    return {formula: (1.0 - share) * partials_pa.get(formula, 0.0) + share * after.get(formula, 0.0) for formula in set(partials_pa) | set(after)}
+
+
 def _damped(damping, residual, previous, tolerance):
     """The damping of one variable after a step: halved (down to `MIN_DAMPING`) when the change has the sign opposite to the last one's
     (the solution was overshot) by more than the tolerance, so noise under the tolerance does not slow the others."""
@@ -898,6 +924,7 @@ def solve(setting, start_temperature_k):
                 partials = {f: p * cap / new_pressure for f, p in partials.items()}
                 new_pressure = cap
             partials = _hold_in_hydrate(partials, temperature, setting, skin_m, standing=ices)
+            partials = _photolysed(partials, setting, temperature)
             new_pressure = math.fsum(partials.values())
         floor = new_pressure * STORE_MIN_FRACTION
         partials = {f: p for f, p in partials.items() if p >= floor and p > 0.0}

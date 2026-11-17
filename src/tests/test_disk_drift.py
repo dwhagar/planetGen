@@ -5,9 +5,24 @@ import math
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import disk_condensation as dc, disk_drift as dd, mixture_giant
+from planetgen.physics import disk_condensation as dc, disk_drift as dd, mixture_giant, pre_main_sequence
 
 SUN_SNOW_LINE_AU = 2.3
+DISK_TIME_YR = 3.0e6
+_STAR_DISK_TIME = pre_main_sequence.dispersal_yr
+
+
+@pytest.fixture(autouse=True)
+def _a_disk_of_three_myr(monkeypatch):
+    """The drift's arithmetic is tested on a disk that lasts 3 Myr; a star's own time (GEN.1551) is read in `test_the_end_of_the_disk_is_the_stars_own_time`."""
+    monkeypatch.setattr(pre_main_sequence, "dispersal_yr", lambda mass_sol, close_companion=False: DISK_TIME_YR)
+
+
+def test_the_end_of_the_disk_is_the_stars_own_time(monkeypatch):
+    monkeypatch.setattr(pre_main_sequence, "dispersal_yr", _STAR_DISK_TIME)
+    for mass in (0.2, 1.0, 2.0):
+        assert dd.disk_end_myr(mass) == pytest.approx(_STAR_DISK_TIME(mass) / 1.0e6)
+    assert len({dd.disk_end_myr(1.0 + 0.001 * k) for k in range(8)}) > 1, "each star has its own"
 
 
 def test_the_front_and_its_inverse_agree_and_the_pebble_flux_tapers_as_the_front_reaches_the_edge():
@@ -23,7 +38,7 @@ def test_the_front_and_its_inverse_agree_and_the_pebble_flux_tapers_as_the_front
     assert dd.pebble_taper(1e-6, SUN_SNOW_LINE_AU) == pytest.approx(1.0, abs=1e-3)
     assert dd.pebble_taper(0.5 * reached, SUN_SNOW_LINE_AU) > dd.pebble_taper(reached, SUN_SNOW_LINE_AU) > dd.pebble_taper(2.0 * reached, SUN_SNOW_LINE_AU) > 0.0
     assert dd.tapered_ratio(0.05, SUN_SNOW_LINE_AU) == pytest.approx(dd.instant_ratio(0.05) * dd.pebble_taper(0.05, SUN_SNOW_LINE_AU))
-    assert dd.disk_end_myr() == pytest.approx(3.0)
+    assert dd.disk_end_myr(1.0) == pytest.approx(3.0)
 
 
 def test_the_enrichment_ratio_is_the_design_notes_two_to_three_for_the_sun():
@@ -50,7 +65,7 @@ def test_a_species_has_no_pebbles_before_the_front_arrives_and_fewer_and_fewer_a
     assert 0.5 < middle < dd.instant_ratio(0.5 * (arrival + reached))                # the taper has already cut the flux a little when the front is near the edge
     after = [dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU) for age in (reached, 2.0 * reached, 5.0 * reached)]
     assert after[0] > after[1] > after[2] > 0.0                                      # no step: the flux fades as the taper does (GEN.1514)
-    assert dd.enrichment_ratio("CO2", dd.disk_end_myr(), SUN_SNOW_LINE_AU) == 0.0     # the disk is gone
+    assert dd.enrichment_ratio("CO2", dd.disk_end_myr(1.0), SUN_SNOW_LINE_AU) == 0.0     # the disk is gone
     assert dd.enrichment_ratio("H2O", 0.01, SUN_SNOW_LINE_AU) > 1.0                  # the water line is crossed first
 
 
@@ -160,7 +175,7 @@ def test_ice_weights_hold_only_the_lines_between_the_edge_and_the_place():
 def test_a_giant_gathers_its_gas_when_the_pebbles_have_built_the_critical_core_and_not_later_than_the_pebbles_end():
     age = dd.gathering_age_myr(500.0, SUN_SNOW_LINE_AU)
     place = dd.place_au(500.0, SUN_SNOW_LINE_AU)
-    assert dd.arrival_myr(place) < age < dd.disk_end_myr()
+    assert dd.arrival_myr(place) < age < dd.disk_end_myr(1.0)
     # the pebble mass that passed the place by then is what the core needs at its accretion efficiency (GEN.1518)
     coefficient = (dd.PEBBLE_FLUX_EARTH_MASSES_PER_YR * (dd.solids_over_gas() / dd.REFERENCE_SOLIDS_OVER_GAS) ** dd.PEBBLE_FLUX_Z_EXPONENT * dd.MYR_YR * 1.5)
     decay = dd.FRONT_AU_AT_1_MYR / dd.edge_au(SUN_SNOW_LINE_AU)                      # the flux is tapered by exp(-front / edge) = exp(-decay x age^(2/3)) (GEN.1514)
@@ -171,17 +186,16 @@ def test_a_giant_gathers_its_gas_when_the_pebbles_have_built_the_critical_core_a
 def test_a_core_the_tapered_pebbles_cannot_build_gathers_its_gas_as_the_disk_goes_and_sees_few_pebbles():
     # the Sun's pebbles inside the edge add up to about 48 Earth masses, a core at 5 AU needs 148
     age = dd.gathering_age_myr(150.0, SUN_SNOW_LINE_AU)
-    assert age == pytest.approx(dd.disk_end_myr())
+    assert age == pytest.approx(dd.disk_end_myr(1.0))
     assert dd.enrichment_ratio("H2O", age, SUN_SNOW_LINE_AU) < 0.01                  # the flux has all but gone
     total = dd.PEBBLE_FLUX_EARTH_MASSES_PER_YR * dd.MYR_YR * 1.5 / (dd.FRONT_AU_AT_1_MYR / dd.edge_au(SUN_SNOW_LINE_AU))
     assert total < dd.pebble_mass_for_core(dd.place_au(150.0, SUN_SNOW_LINE_AU), dd.CRITICAL_CORE_EARTH)
 
 
 def test_the_gathering_age_is_capped_at_the_disk_lifetime_and_is_a_function_of_the_inputs_only():
-    from planetgen.physics import scatter
     for mass in (0.1, 0.3, 1.0, 1.5, 2.5):
         age = dd.gathering_age_myr(200.0, SUN_SNOW_LINE_AU * mass, mass)
-        assert 0.0 < age <= scatter.DISK_LIFETIME_YR / dd.MYR_YR
+        assert 0.0 < age <= DISK_TIME_YR / dd.MYR_YR
         assert age == dd.gathering_age_myr(200.0, SUN_SNOW_LINE_AU * mass, mass)
 
 

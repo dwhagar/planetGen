@@ -33525,7 +33525,7 @@
           "fields": [
             [
               "What it is",
-              "cluster_unbinding.history_of: a cluster's life from the end of its disk (3 Myr) to its age is cut into HISTORY_PIECES 8 equal pieces, each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
+              "cluster_unbinding.history_of: a cluster's life from its formation to its age is cut into HISTORY_PIECES 8 equal pieces (a star's planets feel only the part after the end of the star's own disk, unbinding_epoch_myr, GEN.1551), each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
             ],
             [
               "The range it moves in",
@@ -33556,7 +33556,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "cluster_unbinding.history_of: a cluster's life from the end of its disk (3 Myr) to its age is cut into HISTORY_PIECES 8 equal pieces, each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
+          "what": "cluster_unbinding.history_of: a cluster's life from its formation to its age is cut into HISTORY_PIECES 8 equal pieces (a star's planets feel only the part after the end of the star's own disk, unbinding_epoch_myr, GEN.1551), each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
         },
         {
           "burn_down": null,
@@ -43217,11 +43217,11 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.KEEPS_FROM_MASS_EARTH 1: a body lighter than this is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); its envelope is a history and the water it made"
+              "envelope_capture.KEEPS_FROM_MASS_EARTH 1 and KEEPS_ALL_FROM_MASS_EARTH 3: a body of 1 Earth mass or less is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); from 3 Earth masses it keeps the envelope it drew; between, the share of bodies that keep it rises as the smooth step of the mass (GEN.1774: the old step at 1 Earth mass had every body of 1.00003 Earth masses keep 0.2 to 0.3 percent and none of 0.99; no source gives the share of 1 to 3 Earth-mass bodies that keep theirs, so the shape is a tweak of EC10 and not a new modifier)"
             ],
             [
               "The range it moves in",
-              "0.5 to 1.5"
+              "1 to 3 Earth masses for the end of the rise (0.5 to 1.5 for the start)"
             ],
             [
               "Where it holds",
@@ -43229,7 +43229,7 @@
             ],
             [
               "What would show it wrong",
-              "a body under 1 Earth mass whose observed radius needs an envelope"
+              "a body under 1 Earth mass whose observed radius needs an envelope, or a sample of 1 to 3 Earth-mass planets at periods over 100 days whose radii give the share that keep one"
             ],
             [
               "What replaces it",
@@ -43246,9 +43246,9 @@
           "slug": "6-206-ec10",
           "tier": "T5",
           "tier_code": "T5",
-          "tweak": "L0",
+          "tweak": "L4",
           "unread": null,
-          "what": "envelope_capture.KEEPS_FROM_MASS_EARTH 1: a body lighter than this is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); its envelope is a history and the water it made"
+          "what": "envelope_capture.KEEPS_FROM_MASS_EARTH 1 and KEEPS_ALL_FROM_MASS_EARTH 3: a body of 1 Earth mass or less is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); from 3 Earth masses it keeps the envelope it drew; between, the share of bodies that keep it rises as the smooth step of the mass (GEN.1774: the old step at 1 Earth mass had every body of 1.00003 Earth masses keep 0.2 to 0.3 percent and none of 0.99; no source gives the share of 1 to 3 Earth-mass bodies that keep theirs, so the shape is a tweak of EC10 and not a new modifier)"
         },
         {
           "burn_down": null,
@@ -57797,7 +57797,7 @@
           "fields": [
             [
               "What it is",
-              "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
+              "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build when the star's own disk time is not given (a star's is disk_truncation.disk_time_yr, GEN.1551, read by planet_architecture.build and disk_ejection; a top-up rogue with no star keeps this one)"
             ],
             [
               "The range it moves in",
@@ -57828,7 +57828,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
+          "what": "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build when the star's own disk time is not given (a star's is disk_truncation.disk_time_yr, GEN.1551, read by planet_architecture.build and disk_ejection; a top-up rogue with no star keeps this one)"
         }
       ],
       "slug": "6-127-stand-ins-of-the-architecture-s-losses",
@@ -63467,7 +63467,7 @@
           "fields": [
             [
               "What it is",
-              "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
+              "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe feeds it by overflow as well (DL10), and a brown dwarf is read at the age of its system (brown_dwarf.state)"
             ],
             [
               "The range it moves in",
@@ -63479,7 +63479,7 @@
             ],
             [
               "What would show it wrong",
-              "a black hole beside a giant that overflows its lobe, which would be far brighter"
+              "a black hole beside a star that fills its lobe, which DL10 now adds"
             ],
             [
               "What replaces it",
@@ -63498,7 +63498,121 @@
           "tier_code": "T7",
           "tweak": "L1",
           "unread": null,
-          "what": "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
+          "what": "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe feeds it by overflow as well (DL10), and a brown dwarf is read at the age of its system (brown_dwarf.state)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "compact_remnant.NeutronStar._formation_luminosity_w (GEN.1529): the light the snow line of a neutron star's disk is read at is the star's light at the end of its neutrino era (dark_light.NEUTRON_STAR_PHOTON_ERA_YR, about 1e26 W for a 12 km star), not its light today, which is 1e17 W at 5 Gy and puts the snow line at 1e-5 AU"
+            ],
+            [
+              "The range it moves in",
+              "1e26 W at 1e5 yr (the old drawn range of 5e4 to 3e6 K gave 1e22 to 1e27 W, snow lines of 0.1 to 3 AU)"
+            ],
+            [
+              "Where it holds",
+              "planets and belts of a lone neutron star or one that anchors a system"
+            ],
+            [
+              "What would show it wrong",
+              "a measured fallback disk or planet system of a neutron star whose ices begin well inside or outside 1 AU"
+            ],
+            [
+              "What replaces it",
+              "a disk model of a supernova fallback disk (not in the generator)"
+            ],
+            [
+              "Evidence",
+              "design: the disk is made at the collapse, so its snow line follows the light of the star then (the same reading as GEN.1611 for a star, birth_luminosity); the surface temperature itself is the cooling curve DL1 and DL2"
+            ]
+          ],
+          "id": "DL8",
+          "key": "6.259:DL8",
+          "kind": "P",
+          "slug": "6-259-dl8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "compact_remnant.NeutronStar._formation_luminosity_w (GEN.1529): the light the snow line of a neutron star's disk is read at is the star's light at the end of its neutrino era (dark_light.NEUTRON_STAR_PHOTON_ERA_YR, about 1e26 W for a 12 km star), not its light today, which is 1e17 W at 5 Gy and puts the snow line at 1e-5 AU"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.STRIPPED_HELIUM_TEMPERATURE_K = 28,000 K and STRIPPED_BURNING_MIN_MASS_SOL = 0.3: a stripped helium star of the tree (kind stripped-helium, 0.3 to 0.5 solar masses, radius from tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47) glows as a hot subdwarf, 4 pi R^2 sigma T^4 at the temperature the hot subdwarfs of the field cluster at (20,000 to 40,000 K, most near 28,000 K [R1875]), 22 solar luminosities for the 0.47 solar mass star; its XUV is the share of that blackbody over 13.6 eV (activity.blackbody_fraction_above, 17 percent), the step a white dwarf's photosphere takes; a stripped star under 0.3 solar masses (a semi-degenerate AM CVn donor) gives no light, and the star is not aged"
+            ],
+            [
+              "The range it moves in",
+              "temperature 20,000 to 40,000 K"
+            ],
+            [
+              "Where it holds",
+              "stripped helium companions of Be stars and of post-common-envelope pairs"
+            ],
+            [
+              "What would show it wrong",
+              "a hot subdwarf of 0.47 solar masses and 0.2 solar radii measured outside 10 to 100 solar luminosities, or one with an XUV share far from the blackbody's"
+            ],
+            [
+              "What replaces it",
+              "an evolution track of a helium star by mass and age (the hot-subdwarf lifetime of about 1e8 yr, then the cooling of a white dwarf) and the light of an AM CVn donor"
+            ],
+            [
+              "Evidence",
+              "physics: a core that burns helium under a thin envelope shines near the blackbody of its own surface; the temperature is the review's typical one, not read from a table of this paper"
+            ]
+          ],
+          "id": "DL9",
+          "key": "6.259:DL9",
+          "kind": "P",
+          "slug": "6-259-dl9",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dark_light.STRIPPED_HELIUM_TEMPERATURE_K = 28,000 K and STRIPPED_BURNING_MIN_MASS_SOL = 0.3: a stripped helium star of the tree (kind stripped-helium, 0.3 to 0.5 solar masses, radius from tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47) glows as a hot subdwarf, 4 pi R^2 sigma T^4 at the temperature the hot subdwarfs of the field cluster at (20,000 to 40,000 K, most near 28,000 K [R1875]), 22 solar luminosities for the 0.47 solar mass star; its XUV is the share of that blackbody over 13.6 eV (activity.blackbody_fraction_above, 17 percent), the step a white dwarf's photosphere takes; a stripped star under 0.3 solar masses (a semi-degenerate AM CVn donor) gives no light, and the star is not aged"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.STABLE_TRANSFER_MASS_RATIO = 1 and overflow_kg_s: a star whose radius reaches its Roche lobe about a black hole (roche.filling_factor of [R1222], at the separation of the tree) feeds it by overflow at the donor's mass over its own evolution time: ms_lifetime.lifetime_gy of its mass when it is no heavier than the hole (1e-10 solar masses a year for a 1 solar mass donor, the rate of a low-mass X-ray binary), the Kelvin-Helmholtz time G M^2 / (R L) when it is heavier (a runaway; the disk light is then held at the Eddington limit by DL6); added to the wind's feed of DL7"
+            ],
+            [
+              "The range it moves in",
+              "critical ratio 0.8 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "black holes with a lobe-filling companion at the separation of the tree"
+            ],
+            [
+              "What would show it wrong",
+              "a measured black hole X-ray binary whose luminosity is more than a factor of 30 from the figure this gives for its donor and period, or a donor under the critical ratio whose lobe-filling transfer is persistent at the thermal rate"
+            ],
+            [
+              "What replaces it",
+              "a binary-evolution grid of the transfer rate by donor mass, hole mass and period, and the separation at the orbit's closest approach for an eccentric pair"
+            ],
+            [
+              "Evidence",
+              "physics: a donor that fills its lobe loses the mass its radius growth demands, which is the nuclear time for a lighter donor and the thermal time for a heavier one; the ratio is the classical estimate, not read from a table of this paper"
+            ]
+          ],
+          "id": "DL10",
+          "key": "6.259:DL10",
+          "kind": "P",
+          "slug": "6-259-dl10",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "dark_light.STABLE_TRANSFER_MASS_RATIO = 1 and overflow_kg_s: a star whose radius reaches its Roche lobe about a black hole (roche.filling_factor of [R1222], at the separation of the tree) feeds it by overflow at the donor's mass over its own evolution time: ms_lifetime.lifetime_gy of its mass when it is no heavier than the hole (1e-10 solar masses a year for a 1 solar mass donor, the rate of a low-mass X-ray binary), the Kelvin-Helmholtz time G M^2 / (R L) when it is heavier (a runaway; the disk light is then held at the Eddington limit by DL6); added to the wind's feed of DL7"
         }
       ],
       "slug": "6-259-stand-ins-of-the-bright-sources-in-a-body-s-sky",
@@ -67133,7 +67247,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1645",
+          "unread": null,
           "what": "kozai_planets.SIBLING_MASS_RATIO 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis"
         }
       ],
@@ -72871,8 +72985,46 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1745",
+          "unread": null,
           "what": "photochemical_loss.LOST_TO: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_air.PHOTOCHEMICAL_MIN_K and PHOTOCHEMICAL_RAMP_K: the loss acts in full on a rocky air whose surface is 245 K or warmer, in none under 215 K, and by a share between (the middle of the ramp 230 K, 30 K wide; a step there held the fixed point on the edge); under it the ammonia and methane stand in ices, hydrates and lakes that resupply the air faster than the light takes them"
+            ],
+            [
+              "The range it moves in",
+              "230 K within 200 to 260 K and a ramp of 30 K within 10 to 60 K (the nitrogen-ice and methane-lake worlds sit well under it, the temperate ones well over)"
+            ],
+            [
+              "Where it holds",
+              "a rocky body with a thick enough air to hold surface temperature"
+            ],
+            [
+              "What would show it wrong",
+              "a measured cold air (Titan: 94 K) whose methane stands at the photolysis loss without resupply, or a warm air whose ammonia ice resupplies it"
+            ],
+            [
+              "What replaces it",
+              "the history's own phase balance of the ices (GEN.1745)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (Titan's methane is resupplied by its lakes against a 10 to 100 Myr photolysis life)"
+            ]
+          ],
+          "id": "PC5",
+          "key": "6.301:PC5",
+          "kind": "P",
+          "slug": "6-301-pc5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_air.PHOTOCHEMICAL_MIN_K and PHOTOCHEMICAL_RAMP_K: the loss acts in full on a rocky air whose surface is 245 K or warmer, in none under 215 K, and by a share between (the middle of the ramp 230 K, 30 K wide; a step there held the fixed point on the edge); under it the ammonia and methane stand in ices, hydrates and lakes that resupply the air faster than the light takes them"
         }
       ],
       "slug": "6-301-stand-ins-of-the-photochemical-loss-of-ammonia-and-methane-gen-1732",

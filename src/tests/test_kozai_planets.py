@@ -85,3 +85,52 @@ def test_bad_inputs_are_refused():
     with pytest.raises(ValueError):
         kp.screen_planets(0.0, SUN_RADIUS_KM, AGE, [planet()])
     assert kp.screen_planets(SUN_KG, SUN_RADIUS_KM, AGE, []) == []
+
+
+# GEN.1645: the screen wired into generation
+
+
+def test_the_plane_of_a_normal_is_the_plane_it_came_from():
+    from planetgen.physics import spin
+    for inclination, node in ((0.3, 1.0), (2.0, 4.0), (0.0, 0.0)):
+        got_i, got_node = kp.plane_of_normal(spin.orbit_normal(math.degrees(inclination), math.degrees(node)))
+        assert got_i == pytest.approx(inclination)
+        if inclination > 0.0:
+            assert got_node == pytest.approx(node)
+
+
+def test_a_tilted_normal_is_at_the_asked_angle_from_the_perturbers_and_on_the_planets_side():
+    from planetgen.physics import spin
+    planet_normal = spin.orbit_normal(20.0, 40.0)
+    perturber_normal = spin.orbit_normal(70.0, 100.0)
+    tilted = kp.tilted_normal(planet_normal, perturber_normal, math.radians(85.0))
+    assert math.sqrt(sum(c * c for c in tilted)) == pytest.approx(1.0)
+    assert sum(a * b for a, b in zip(tilted, perturber_normal)) == pytest.approx(math.cos(math.radians(85.0)))
+    # on the planet's side: the three normals share a plane (their triple product is nil) and the tilted one leans toward the planet's
+    a, b, c = planet_normal, perturber_normal, tilted
+    triple = a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0])
+    assert triple == pytest.approx(0.0, abs=1e-9)
+    assert sum(x * y for x, y in zip(tilted, planet_normal)) > 0.0
+
+
+def test_a_tilt_of_a_plane_on_the_perturbers_is_left_alone():
+    normal = (0.0, 0.0, 1.0)
+    assert kp.tilted_normal(normal, normal, 1.0) == normal
+
+
+def test_a_planet_a_companion_pumps_keeps_the_cycle_and_the_eccentricity_it_left_it_with():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    cfg = SystemConfig()
+    cfg.STARS = 2
+    with draw.bound(26):
+        system = StarSystem(system_config=cfg)
+    assert system.kozai_planet_outcomes["screened"] > 0
+    pumped = [p for p in system.all_planets if p.body_type != "a" and p.build.kozai is not None]
+    assert pumped and system.kozai_planet_outcomes["cycling"] >= len(pumped)
+    for body in pumped:
+        outcome = body.build.kozai
+        assert outcome.cycles and not outcome.lost
+        assert body.build.orbit_birth == pytest.approx(outcome.eccentricity_now)
+        assert body.eccentricity <= outcome.eccentricity_now + 1.0e-9      # the tide only wears it down
