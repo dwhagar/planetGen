@@ -129,8 +129,9 @@ def test_a_star_that_fills_its_lobe_feeds_a_black_hole_by_overflow_and_one_that_
     assert outside == 0.0, "a lobe far wider than the star is not filled"
     assert inside == pytest.approx(SOLAR_MASS / (dl.ms_lifetime.lifetime_gy(1.0) * 1e9 * yr), rel=1e-2), "a donor lighter than the hole is fed on its nuclear time"
     assert 0.5e-10 < inside * yr / SOLAR_MASS < 2e-10, "1e-10 solar masses a year: a low-mass X-ray binary"
-    assert dl.black_hole_captured_kg_s(hole_kg, [(giant, 0.02)]) > inside, "the wind adds to it"
-    assert dl.black_hole_captured_kg_s(hole_kg, [(giant, 5.0)]) < inside / 100, "far off, only the wind is left"
+    near, far = dl.black_hole_captured_kg_s(hole_kg, [(giant, 0.02)]), dl.black_hole_captured_kg_s(hole_kg, [(giant, 5.0)])
+    assert near > inside, "the wind adds to it"
+    assert far < near - inside, "far off, only the wind is left, and the wind falls with the separation"
     light = dl.source_of(_member("black-hole", 10.0), 5.0, [(giant, 0.02)])
     assert light is not None and light.luminosity / constants.SOLAR_LUMINOSITY > 50.0, "a bright X-ray source, which the wind alone never made"
 
