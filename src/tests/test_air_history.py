@@ -183,3 +183,49 @@ def test_an_anchor_is_the_air_the_body_has_now_solved_under_the_light_and_heat_o
     now = air_history._solved_temperature(air_history.aged_setting(setting, body, body.star.age), start_k, state)
     assert final is not None and now == pytest.approx(final.temperature_k, abs=0.5)
     assert air_history._solved_temperature(air_history.aged_setting(setting, body, 0.1), start_k, state) != now
+
+
+@functools.lru_cache(maxsize=None)
+def _a_world_the_oxygen_rises_on():
+    """`(body, living, rise_gyr)` of a generated rocky world on which class 1a producers of 0.3 Gyr raise the oxygen before the star's age."""
+    from planetgen.physics import life_air, life_classes
+    living = [life_air.Living(life_classes.BY_ID["1a"], 1.0, 0.3)]
+    for body in _worlds(60, HABITABLE_WORLD=True):
+        if body.body_type != "t" or not body.star.age or not getattr(body, "radius", None):
+            continue
+        rise, _ = life_air.oxygen_state(body, living)
+        if rise is not None:
+            return body, living, rise
+    pytest.fail("no generated rocky world on which the oxygen of class 1a rises")
+
+
+def test_the_oxygen_trajectory_is_the_air_as_found_until_the_rise_and_never_falls_after_it():
+    """GEN.1745 slice 2a: before the rise the oxygen the air has (the abiotic oxygen, none for most), from the rise the plateau then the balance as the reductant sink falls with the interior's heat."""
+    from planetgen.physics import biogenic_oxygen
+    body, living, rise = _a_world_the_oxygen_rises_on()
+    cuts = air_history.oxygen_cuts(body, living)
+    assert rise in cuts and 0.3 in cuts
+    ages = air_history.schedule(body.star.age, cuts)
+    trajectory = air_history.oxygen_trajectory(body, living, ages)
+    have = biogenic_oxygen.air_moles(body).get("O2", 0.0)
+    assert [age for age, _ in trajectory] == ages
+    assert all(value == have for age, value in trajectory if age < rise)
+    after = [value for age, value in trajectory if age >= rise]
+    assert after and all(b >= a - 1e-9 * max(a, 1.0) for a, b in zip(after, after[1:]))        # the reductant only falls, so the oxygen never does
+    assert after[-1] > have                                                                       # the rise put oxygen into the air
+
+
+def test_the_oxygen_trajectory_ends_at_the_oxygen_the_air_is_given_at_the_star_s_age():
+    """The last value is what `stage_target_mol` gives, held to the fire limit and not under what the burnt air holds (what `biogenic_oxygen.apply` puts in); a world with no rise stays as found."""
+    from planetgen.physics import biogenic_oxygen, life_air
+    body, living, rise = _a_world_the_oxygen_rises_on()
+    ages = air_history.schedule(body.star.age, air_history.oxygen_cuts(body, living))
+    last = air_history.oxygen_trajectory(body, living, ages)[-1][1]
+    rise_again, target = life_air.oxygen_state(body, living)
+    burnt, _ = biogenic_oxygen.burn(biogenic_oxygen.air_moles(body))
+    assert rise_again == rise
+    assert last == pytest.approx(max(burnt.get("O2", 0.0), min(target, biogenic_oxygen._fire_limit_mol(body, burnt))), rel=1e-9)
+    none = [life_air.Living(living[0].life_class, 1.0, 1.0e3)]            # producers older than the star can be: no rise
+    assert air_history.oxygen_cuts(body, none) == []
+    flat = air_history.oxygen_trajectory(body, none, ages)
+    assert len({value for _, value in flat}) == 1
