@@ -15,6 +15,8 @@ import contextlib
 import os
 import uuid
 
+import pymysql
+
 _active = []
 """list: One entry per context entered; a context inside another does nothing."""
 
@@ -22,6 +24,80 @@ _active = []
 def _server():
     from tests.conftest import _test_server_kwargs
     return _test_server_kwargs()
+
+
+class _Link:
+    """What `forkedjob.run` takes of its pipe, for a unit run in this process: nothing asks it to stop, the supervisor is never gone, what it says is kept."""
+
+    gone = False
+    stop_requested = False
+
+    def __init__(self):
+        self.sent = []
+
+    def requests(self):
+        return []
+
+    def send(self, message):
+        self.sent.append(message)
+
+
+class _InlineJob:
+    def __init__(self, job_id, link):
+        self.id, self.pid, self.link = job_id, os.getpid(), link
+
+    def messages(self):
+        said, self.link.sent = list(self.link.sent), []
+        return said
+
+    def close(self):
+        pass
+
+
+class InlineForker:
+    """The forker of a `launcher.Launcher` for the tests (OPS.228): `fork` runs the unit at once, in this process, through `forkedjob.run` as a job process would, so a ledger run's units are done where an RQ
+    unit is: when the follower asks for workers."""
+
+    def __init__(self):
+        self.exits, self.made = [], 0
+
+    def fork(self, kind, runner, job=None):
+        from planetgen.queue import forkedjob, jobhost
+        self.made += 1
+        link = _Link()
+        code = forkedjob.run(job, link)
+        self.exits.append(("inline", jobhost.Exit(self.made, os.getpid(), code=code)))
+        return "inline", _InlineJob(self.made, link)
+
+    def poll(self, timeout=0.0):
+        found, self.exits = self.exits, []
+        return found
+
+
+def run_ready_rows():
+    """Hands out the ready rows of the job ledger and runs each unit here until none is ready (the launcher with an inline forker); returns how many units it ran. Nothing happens for a run with no ledger."""
+    from planetgen.db import store
+    from planetgen.queue import launcher, memorygate
+    try:
+        control = store.get_control_connection()
+    except Exception:  # noqa: BLE001 -- a test with no control database has no ledger rows to hand out
+        return 0
+    forker = InlineForker()
+    one = launcher.Launcher(control, forker, read_host=lambda: memorygate.Host(10 ** 6, 10 ** 6, 64, 0.0))
+    ran = 0
+    try:
+        while True:
+            started = one.turn()
+            ran += len(started)
+            if not started:
+                break
+        one.ended()
+    except pymysql.err.ProgrammingError as exc:
+        if exc.args[0] != 1146:             # the control database of this test has no ledger tables: no run of it has rows
+            raise
+    finally:
+        control.close()
+    return ran
 
 
 @contextlib.contextmanager
@@ -55,6 +131,8 @@ def inline_queue(monkeypatch=None):
         connection = connection or redisqueue.connect(url)
         rq.SimpleWorker([redisqueue.queue(name, connection)], connection=connection, serializer=redisqueue.JsonSerializer,
                         job_class=allowlist.GuardedJob).work(burst=True, logging_level="WARNING")     # SEC.45: the real worker's guard
+        if name == queue_name:
+            run_ready_rows()            # OPS.228: the units a ledger run released for the launcher
         return 0
 
     server = _server()
