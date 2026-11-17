@@ -20,6 +20,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.physics.constants import SOLAR_MASS_TO_KG
 from planetgen.db import store
 from planetgen.population import model as population
+from tests import rich_galaxy_cache
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 from tests.db_schema_support import scratch_database
@@ -46,7 +47,15 @@ def scratch_rich_galaxy():
     one per test process, TEST.417: the build is four minutes and the modules that use it only read it) holds it; tests
     must leave it as they found it (roll back)."""
     with scratch_database(store.MySQLConfig(database="", **_test_server_kwargs())) as config:
-        build_rich_galaxy(config)
+        folder = rich_galaxy_cache.cache_folder()
+        if folder is None:
+            build_rich_galaxy(config)
+        else:
+            # TEST.788: with a shared folder, one process builds the galaxy of a code state and the rest load its dump (`tests/rich_galaxy_cache.py`)
+            here = os.path.dirname(os.path.abspath(__file__))
+            key = rich_galaxy_cache.key_of(config, os.path.join(here, "..", "planetgen"), here, os.environ.get("PLANETGEN_DATA_DIR"),
+                                           extra_files=(SYSTEM_FILE, os.path.join(here, "..", "..", "config.json")))
+            rich_galaxy_cache.build_or_load(config, lambda: build_rich_galaxy(config), folder, key)
         yield config
 
 
