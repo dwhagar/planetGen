@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4423] - 2026-11-17
+
+**Headline:** The civilized test systems now hold a civilization that also gets a species, so the population galaxy tests no longer hunt for hours.
+
+### Fixed
+- **`test_population`'s galaxy fixture hunted for hours** because the pinned candidates held a civilization but not always a species (the fixture's `_civilized_system` needs both). The pin test now saves each pin and runs the fixture's own check (`qualifies`, shared with the fixture), and `python -m tests.civilized_pins refresh --hunt 4` checks the species too (and takes `--from N` to start from another candidate). Pins are now candidates 48 and 158.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4422] - 2026-11-17
 
 **Headline:** A body with no star has no wind again, so a starless host's planet has no magnetopause standoff, and the subdwarf [Fe/H] cut is a signed constant.
