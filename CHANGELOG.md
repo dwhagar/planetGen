@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4425] - 2026-11-17
+
+**Headline:** the population pass is now four commands of its own, so each step can be seen, stopped and carried on by itself and the generated galaxy is the same.
+
+### Changed
+
+- OPS.239, part B: the `run-population` command is gone. `scan-species` (stage `species`) scans the planets for species, after the last one scanned or all of them for a rescan. `date-civilizations` (stage `civilizations`) drops the species with no civilization, dates the civilizations and founds or dissolves the polities. `refresh-technology` (stage `technology`) refreshes the map's civilization rows with their most advanced species' technology level. `count-population` (stage `population`) counts the species, the spacefaring ones and the polities. `needs.py` declares the chain (`sectors`, `species`, `civilizations`, `technology`, `population`), `run-territories` still needs `population`, and a galaxy run counts three stages more.
+
 ## [8.0.4424] - 2026-11-17
 
 **Headline:** The air history now follows the oxygen a world's life raises through time, ending at the oxygen the generator already gives it, with no change to any generated world.
