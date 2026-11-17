@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1899 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1902 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1872 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1875 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 2 | 149 |
-| T6 | 239 | 131 | 37 | 81 | 3 | 491 |
+| T6 | 240 | 131 | 37 | 81 | 5 | 494 |
 | T7 | 70 | 37 | 10 | 32 | 0 | 149 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 41 | 232 |
-| All | 1080 | 391 | 98 | 270 | 60 | 1899 |
+| All | 1081 | 391 | 98 | 270 | 62 | 1902 |
 
 ## How the labels were given
 
@@ -3359,3 +3359,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | GL4 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["dose_factor"]` 3.0: the homeworld's dose is this many times under the Blue dose edge | 2 to 10 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | no data |
 | GL5 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["o2_factor"]` 1.25: the chronic inspired-oxygen limit sits this far above the homeworld's own inspired oxygen | 1.1 to 1.5 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | no data |
 | GL6 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["gas_factor"]` 1.5: the homeworld's partial pressure of each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) is this many times under the chronic edge of that gas's band, every edge of the band moving by the same factor (GEN.1772) | 1.2 to 3 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | no data |
+
+## 6.306 Stand-ins of the cosmic dust a planet's air takes in for the V8 layer (GEN.1542)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| DUS1 | P | T6 | L4 | `dust_supply.CARBON_SHARE_OF_DUST` 0.1: the share of the infalling dust's mass that is carbon the cloud can take up | 0.03 to 0.3 | carbon-rich dust of comets and primitive asteroids | a measured carbon content of the dust a system's belts send in | the carbon share of the belt's own composition (the carbon the system's disk gave it) | no source in the registry: the order of the organic and carbonaceous share of primitive dust | predicted only | - | no data |
+| DUS2 | P | T6 | L4 | `dust_supply.V8_MIN_CARBON_FLUX_KG_M2_YR` 1e-9: the carbon the dust must lay on a planet, kg per square meter a year, for its cloud to keep the V8 layer | 1e-10 to 1e-8 | iron-and-carbon-ring layers in an acid cloud | a measured loss rate of the layer or a measured carbon flux at a cloud that holds it | the layer's photochemical loss rate set against the supply | no source: nobody has measured the layer's loss; set between a Mars-like and an Earth- or Venus-like flux of a Sun with a main belt | predicted only | - | no data |
+| DUS3 | T | T6 | L0 | the supply leaves out the dust a planet lifts itself (surface dust and sand, volcanic and impact dust): no volcanic rate, dust cover or wind field is stored on a body, and the layer sits in the cloud, far above where such dust is lifted on a thick-aired world | none | thick-aired planets with a cloud high above the ground | a body whose cloud carbon is set by the dust it lifts | the lifted dust from the body's activity, age, air density and winds | design | predicted only | - | - |
