@@ -118,8 +118,9 @@ class Controller:
     `holding()` is what the launcher and the light jobs' duty ask before they admit: the reason the host is held, or `None`.
     """
 
-    def __init__(self, launcher=None, look=read, clock=time.time):
+    def __init__(self, launcher=None, look=read, clock=time.time, why="the host is short of memory"):
         self.launcher, self.look, self.clock = launcher or (lambda: None), look, clock
+        self.why = why    # the reason the hold gives: the database's signal (`dbsignal`, OPS.248) is this same machine with its own look
         self.supervisor = None
         self.held_since = None      # when the hold began
         self.pressed_since = None   # when the level last rose to pressed or more (None while calm)
@@ -139,7 +140,7 @@ class Controller:
         """Why nothing of the bulk or maintenance lanes is admitted, or `None`."""
         if self.held_since is None:
             return None
-        return f"admission is held: the host is short of memory ({self.last.words() if self.last else 'pressure'}); the site's jobs still go"
+        return f"admission is held: {self.why} ({self.last.words() if self.last else 'pressure'}); the site's jobs still go"
 
     def turn(self):
         """One look: moves the state by what the host reads, and asks a job to stop when the rule says so. Returns the job asked (its id) or `None`."""

@@ -16,7 +16,8 @@ import signal
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import jobhost, lightjobs, pressure, redisqueue, supervisor
+from planetgen.db import store
+from planetgen.queue import dbsignal, jobhost, lightjobs, pressure, redisqueue, supervisor
 from planetgen.util import log
 
 
@@ -46,12 +47,16 @@ def main(argv=None):
     templates = jobhost.TemplateSet(background=True)        # one set of warm templates for both hand-outs
     lights = lightjobs.LightJobs(connection, forker=templates)
     controller = pressure.Controller(launcher=lambda: launches.launcher)      # OPS.231: the one memory controller; it looks first each turn, so both hand-outs ask it before they admit
-    launches = supervisor.Launches(connection, forker=templates, also_held=lights.holders, hold=controller.holding)
+    prober = dbsignal.Prober(store.get_control_connection).start()
+    database = dbsignal.controller(prober)      # OPS.248: the same hold with the database's latency for its signal
+    hold = lambda: controller.holding() or database.holding()      # noqa: E731 -- either says why nothing of the bulk or upkeep lanes is admitted
+    launches = supervisor.Launches(connection, forker=templates, also_held=lights.holders, hold=hold)
     lights.also_held = launches.holders      # each hand-out is judged against the claims of the other (OPS.230)
-    lights.hold = controller.holding
-    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), supervisor.WorkerStarts(connection), controller, lights, launches)
+    lights.hold = hold
+    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), supervisor.WorkerStarts(connection), controller, database, lights, launches)
     reason = supervisor.Supervisor(supervisor.SystemClock(), supervisor.RedisStore(connection), supervisor.ProcessTable(), duties=duties,
                                    stop=lambda: bool(stopping) or updateguard.is_updating(), idle_seconds=args.idle_seconds).run()
+    prober.close()
     log.debug("The supervisor exits: %s.", reason, area="queue")
     lock.close()
     return 0
