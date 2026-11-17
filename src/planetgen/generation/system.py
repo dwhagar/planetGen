@@ -158,7 +158,7 @@ class StarSystem:
         moon_count (int): The total number of moons in the system.
         hab_count (int): The total number of habitable worlds (overall PHI-6 Blue or Green, `habitability.is_habitable`).
         habitable_class_count (int): The planets and moons of a class that can carry life (`count_habitable_class_worlds`).
-        habitable_request (str or None): How the system answers `system_config.HABITABLE_WORLD` (`habitable_request_status`): `"aim"` when a body meets the request's conditions, else `"unmet"`.
+        habitable_request (str or None): How the system answers `system_config.HABITABLE_WORLD` (`habitable_request_status`): `"aim"` when a body meets the request's conditions and has life on it, else `"unmet"`.
         m_count (int): The total number of Class M worlds.
         system_flavor_count (int): Tracks the total number of flavor texts added across the system.
         system_flavor_text (str or None): The system-level flavor text sentence,
@@ -2411,13 +2411,15 @@ class StarSystem:
     def habitable_request_status(self, planets=None):
         """
         How the system answers a request for a habitable world (`system_config.HABITABLE_WORLD`), `None` when none was made:
-        `"aim"` when a planet or moon meets the request's conditions (`habitable_request.count`: temperate, air, a surface ocean),
-        else `"unmet"`. A report only (GEN.1130, GEN.1248): the request raises the odds of a world that meets those conditions
-        and steers by no score, so `"unmet"` is an ordinary answer, and it is the answer exactly when no body meets them.
+        `"aim"` when a planet or moon meets the request's conditions (temperate, air, a surface ocean) and has life on it
+        (`habitable_request.count_living`), else `"unmet"`. A report only (GEN.1130, GEN.1248): the request raises the odds of a world that meets those
+        conditions and steers by no score, so `"unmet"` is an ordinary answer, and it is the answer exactly when no body meets them with life on it
+        (GEN.1778: a world with the conditions whose life never began is not a habitable world, so the system answers `"unmet"` and `habitable_class_count`
+        agrees with the answer, never `"aim"` over a count of 0).
         """
         if getattr(getattr(self, "system_config", None), "HABITABLE_WORLD", None) is not True:
             return None
-        return "aim" if habitable_request.count(self.all_planets if planets is None else planets) > 0 else "unmet"
+        return "aim" if habitable_request.count_living(self.all_planets if planets is None else planets) > 0 else "unmet"
 
     def _finish_planet(self, obj):
         """The end of a planet's making, after the system is whole (the life data pass): the thermal history, the final-age refresh, the class,

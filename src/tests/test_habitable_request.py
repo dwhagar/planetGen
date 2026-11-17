@@ -163,16 +163,16 @@ def test_a_requested_habitable_world_that_does_not_come_out_is_said_to_be_unmet_
         draw.set_run_seed(seed)
         built = StarSystem(system_config=cfg)
         assert "a habitable world" not in built.unmet_requirements           # an odds-only request is never a failed requirement
-        met = hr.count(built.planets) > 0
+        met = hr.count_living(built.planets) > 0
         answers.add(met)
         assert built.habitable_request == ("aim" if met else "unmet")
     assert answers                                                          # some draws may come out unmet; none is forced
 
 
-def test_the_answer_is_aim_exactly_when_a_body_meets_the_conditions_of_the_request():
+def test_the_answer_is_aim_exactly_when_a_body_meets_the_conditions_of_the_request_with_life_on_it():
     """GEN.1248: the answer came from the PHI-6 index while the request steers by conditions, so a system with a world said
-    `unmet` and one without said `fallback`. It is now `aim` when `count` finds a body and `unmet` otherwise; a system with no
-    request has no answer, and a moon of a giant counts as a body."""
+    `unmet` and one without said `fallback`. It is now `aim` when `count_living` finds a body (GEN.1778: one that meets the conditions and has life) and `unmet` otherwise;
+    a system with no request has no answer, and a moon of a giant counts as a body."""
     for seed in range(12):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V" if seed % 2 else "K5V"
@@ -180,19 +180,54 @@ def test_the_answer_is_aim_exactly_when_a_body_meets_the_conditions_of_the_reque
         cfg.HABITABLE_WORLD = True
         draw.set_run_seed(seed)
         built = StarSystem(system_config=cfg)
-        found = hr.count(built.all_planets) > 0
+        found = hr.count_living(built.all_planets) > 0
         assert built.habitable_request == ("aim" if found else "unmet"), (seed, found)
+        assert (built.habitable_class_count >= 1) or built.habitable_request == "unmet", seed
     plain = SystemConfig()
     plain.STAR_TYPE = "K5V"
     plain.BINARY_SYSTEM = False
     draw.set_run_seed(0)
     assert StarSystem(system_config=plain).habitable_request is None
-    moon = types.SimpleNamespace(body_type="t", surface_temperature=288.0, atmospheric_pressure=1.0e5, hydrosphere="surface ocean", ocean_fraction=0.7, moons=[])
+    moon = types.SimpleNamespace(body_type="t", surface_temperature=288.0, atmospheric_pressure=1.0e5, hydrosphere="surface ocean", ocean_fraction=0.7, moons=[], life_class="1a")
     giant = types.SimpleNamespace(body_type="g", moons=[moon])
     holder = types.SimpleNamespace(system_config=types.SimpleNamespace(HABITABLE_WORLD=True), all_planets=[giant])
     assert StarSystem.habitable_request_status(holder) == "aim"
     holder.all_planets = [types.SimpleNamespace(body_type="g", moons=[])]
     assert StarSystem.habitable_request_status(holder) == "unmet"
+
+
+def test_a_world_with_the_conditions_and_no_life_is_not_a_habitable_world_and_the_request_says_unmet():
+    """GEN.1778: the answer was `aim` when a body met the conditions, but a body whose life never began (a 50 Myr star is younger than the first step of every class)
+    is not a habitable world (`habitable_class_count` counts life), so a finished system said `aim` over a count of 0. `aim` now needs the life too."""
+    lifeless = _body()
+    lifeless.life_class = None
+    living = _body()
+    living.life_class = "1a"
+    hot_life = _body(temperature=400.0)
+    hot_life.life_class = "1a"
+    assert hr.count([lifeless]) == 1 and hr.count_living([lifeless]) == 0
+    assert hr.count_living([lifeless, hot_life]) == 0         # the conditions and the life must be on one body
+    assert hr.count_living([lifeless, living]) == 1
+    holder = types.SimpleNamespace(system_config=types.SimpleNamespace(HABITABLE_WORLD=True), all_planets=[lifeless])
+    assert StarSystem.habitable_request_status(holder) == "unmet"
+    holder.all_planets = [lifeless, living]
+    assert StarSystem.habitable_request_status(holder) == "aim"
+    holder.system_config.HABITABLE_WORLD = False
+    assert StarSystem.habitable_request_status(holder) is None
+
+
+def test_a_young_k_subgiant_with_a_temperate_sea_world_and_no_life_answers_the_request_unmet():
+    """GEN.1778, the K5IV system of `test_full_matrix` that Lane 16 saw fail under xdist: seed 63 of this configuration is a 50 Myr star whose one temperate ocean world has no life."""
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "K5IV"
+    cfg.BINARY_SYSTEM = False
+    cfg.ASTEROID_BELT = True
+    cfg.HABITABLE_WORLD = True
+    cfg.LARGE_STAR = True
+    with draw.bound(63):
+        built = StarSystem(system_config=cfg)
+    assert built.habitable_class_count >= 1 or built.habitable_request == "unmet"
+    assert built.habitable_request == ("aim" if hr.count_living(built.all_planets) > 0 else "unmet")
 
 
 def test_a_barred_habitable_world_leaves_no_habitable_body_anywhere_in_the_system():

@@ -11,6 +11,7 @@ import json
 
 import pytest
 
+from planetgen.galaxy import sector as galaxy_sector
 from planetgen.admin import edits, plans
 from planetgen.admin.plans import (
     Add, Move, Plan, PlanError, PlanStale, PlanStateError, Ref, Regenerate, Remove, SetAspect, World)
@@ -188,13 +189,15 @@ def test_a_system_moves_inside_its_sector_and_clear_of_its_neighbours(world):
     change = fields_of(plan, "s1")["position"]
     assert change.before == (10.0, 10.0, 10.0) and change.after == (30.0, 20.0, 10.0) and not change.indirect
     assert world.placements["s1"] == (10.0, 10.0, 10.0)
-    for position, message in (((EDGE + 1, 0.0, 0.0), "outside the sector"), ((60.0, 60.0, 60.5), "Hill")):
+    needed = galaxy_sector.required_separation_ly(world.systems["s1"], world.systems["s2"])        # GEN.1534: a share of the Hill radii, so the gap that is too close is half of what the rule asks
+    close = (60.0, 60.0, 60.0 + needed / 2)
+    for position, message in (((EDGE + 1, 0.0, 0.0), "outside the sector"), (close, "Hill")):
         bad = Plan()
         bad.add(Move(Ref("s1"), position=position))
         with pytest.raises(PlanError, match=message):
             bad.propose(world, *ADMIN)
     crowded = Plan()
-    crowded.add(Move(Ref("s1"), position=(60.0, 60.0, 60.5), forced=True))
+    crowded.add(Move(Ref("s1"), position=close, forced=True))
     crowded.propose(world, *ADMIN)
     with pytest.raises(PlanError, match="three coordinates"):
         planned(world, Move(Ref("s1")))

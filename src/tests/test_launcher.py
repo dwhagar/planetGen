@@ -245,3 +245,15 @@ def test_a_stage_runs_no_more_units_at_once_than_its_run_was_asked_to_use(contro
     forker.exits = [("plain", jobhost.Exit(held.id, held.pid, 0, None))]
     held.said = [{"event": "unit", "result": {"seconds": 1.0}}]
     assert len(one.turn()) == 1, "one ended, one more starts"
+
+
+def test_a_launcher_with_redis_claims_what_the_gate_has_learned_not_the_minimum(control, redis_server, monkeypatch):
+    from planetgen.queue import claims, redisqueue
+    conn = redisqueue.connect(redis_server)
+    monkeypatch.setattr(claims, "unit_table_mb", lambda kind: 3000.0)
+    monkeypatch.setattr(claims, "unit_tokens", lambda kind: ("mysql-write",))
+    run = _ready(control, count=1, mb=None)
+    one = launcher.Launcher(control, FakeForker(), read_host=lambda: HOST, redis=conn)
+    row = control.execute("SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, attempt FROM engine_jobs WHERE run_id = ? AND item_key <> ''", (run,)).fetchone()
+    claim = one.claim(row)
+    assert (claim.kind, claim.mb, claim.cpu, claim.tokens) == ("unit:fill-unit", 3000.0, claims.UNIT_CPU, ("mysql-write",))

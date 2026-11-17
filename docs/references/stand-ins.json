@@ -74219,6 +74219,136 @@
       ],
       "slug": "6-305-stand-ins-of-how-far-inside-blue-a-species-homeworld-sits-pop-12-gen-1772",
       "title": "Stand-ins of how far inside Blue a species' homeworld sits (POP.12, GEN.1772)"
+    },
+    {
+      "key": "6.306",
+      "number": "6.306",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no source prints the carbon share of the dust that reaches a planet from its system's belts; a measured carbon content of the dust, or the carbon the system's disk gave the belt, replaces the 0.1"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "dust_supply.CARBON_SHARE_OF_DUST 0.1: the share of the infalling dust's mass that is carbon the cloud can take up"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "carbon-rich dust of comets and primitive asteroids"
+            ],
+            [
+              "What would show it wrong",
+              "a measured carbon content of the dust a system's belts send in"
+            ],
+            [
+              "What replaces it",
+              "the carbon share of the belt's own composition (the carbon the system's disk gave it)"
+            ],
+            [
+              "Evidence",
+              "no source in the registry: the order of the organic and carbonaceous share of primitive dust"
+            ]
+          ],
+          "id": "DUS1",
+          "key": "6.306:DUS1",
+          "kind": "P",
+          "slug": "6-306-dus1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "dust_supply.CARBON_SHARE_OF_DUST 0.1: the share of the infalling dust's mass that is carbon the cloud can take up"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "nobody has measured the loss rate of an iron-and-carbon-ring layer in an acid cloud, so the carbon supply it needs has no value to read; a measured loss rate, or a measured carbon flux at a cloud that holds the layer, replaces the 1e-9"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "dust_supply.V8_MIN_CARBON_FLUX_KG_M2_YR 1e-9: the carbon the dust must lay on a planet, kg per square meter a year, for its cloud to keep the V8 layer"
+            ],
+            [
+              "The range it moves in",
+              "1e-10 to 1e-8"
+            ],
+            [
+              "Where it holds",
+              "iron-and-carbon-ring layers in an acid cloud"
+            ],
+            [
+              "What would show it wrong",
+              "a measured loss rate of the layer or a measured carbon flux at a cloud that holds it"
+            ],
+            [
+              "What replaces it",
+              "the layer's photochemical loss rate set against the supply"
+            ],
+            [
+              "Evidence",
+              "no source: nobody has measured the layer's loss; set between a Mars-like and an Earth- or Venus-like flux of a Sun with a main belt"
+            ]
+          ],
+          "id": "DUS2",
+          "key": "6.306:DUS2",
+          "kind": "P",
+          "slug": "6-306-dus2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "dust_supply.V8_MIN_CARBON_FLUX_KG_M2_YR 1e-9: the carbon the dust must lay on a planet, kg per square meter a year, for its cloud to keep the V8 layer"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the supply leaves out the dust a planet lifts itself (surface dust and sand, volcanic and impact dust): no volcanic rate, dust cover or wind field is stored on a body, and the layer sits in the cloud, far above where such dust is lifted on a thick-aired world"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "thick-aired planets with a cloud high above the ground"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose cloud carbon is set by the dust it lifts"
+            ],
+            [
+              "What replaces it",
+              "the lifted dust from the body's activity, age, air density and winds"
+            ],
+            [
+              "Evidence",
+              "design"
+            ]
+          ],
+          "id": "DUS3",
+          "key": "6.306:DUS3",
+          "kind": "T",
+          "slug": "6-306-dus3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the supply leaves out the dust a planet lifts itself (surface dust and sand, volcanic and impact dust): no volcanic rate, dust cover or wind field is stored on a body, and the layer sits in the cloud, far above where such dust is lifted on a thick-aired world"
+        }
+      ],
+      "slug": "6-306-stand-ins-of-the-cosmic-dust-a-planet-s-air-takes-in-for-the-v8-layer-gen-1542",
+      "title": "Stand-ins of the cosmic dust a planet's air takes in for the V8 layer (GEN.1542)"
     }
   ]
 }

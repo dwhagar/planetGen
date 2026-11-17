@@ -4110,7 +4110,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | open (Lane 06) |
 | GEN.1776 | Civilizations arise only in CO2-rich air (19 to 792 kPa), none Earth-like | closed, measured, no code change (Lane 04, 9:49 PM EST 11-16; linked to GEN.1720 and GEN.1731; Boss kept the life clock stand-ins, 9:51 PM EST) |
 | GEN.1777 | (high) No Class M family at Plentiful: funnel and a tunable CO2 lever. Measure whether the CO2 supply needs a tweak (report first, Boss decides) | open (Lane 04) |
-| GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | open (Lane 05) |
+| GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | done (PR 7042, 4:13 AM EST 11-17: aim only when a world meets the conditions and has life; F5V case is GEN.1783) |
 | GEN.1779 | (bug, high) A system build got about 2.4 times slower (test_gen1254_scatter_uid past its guard) | closed, not a regression (Lane 14, 2:16 AM EST 11-17: 144 s on main against 161 s on the 617 s commit; heavy list kept; speed work in PERF.276) |
 | GEN.1780 | The GEN.1732 haze loss ramp may have two branches (seed 106: 229 K to 134 K) | open (Lane 02) |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs: pair absorption missing or real anti-greenhouse? | open (Lane 02) |

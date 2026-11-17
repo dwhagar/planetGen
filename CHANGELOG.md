@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4464] - 2026-11-17
+
+**Headline:** A request for a habitable world now says "unmet" when its one temperate ocean world has no life, instead of "aim" over a count of 0.
+
+### Fixed
+
+- GEN.1778: `test_full_system_generates_with_belt_and_habitable_world_across_every_star_type[K5IV]` failed under xdist with "HABITABLE_WORLD=True produced no habitable world and did not say so". The cause is not shared state: about 1 K5IV system in 75 is a 50 Myr star (younger than the first step of every life class) whose one world meets the request's conditions (301.6 K, 56 kPa, a surface ocean over 71 percent), so the request read "aim" while no world had life and `habitable_class_count` was 0. The request is now answered "aim" only when a body meets the conditions and has life on it (`habitable_request.count_living`), else "unmet", so a finished system always holds a habitable world or says it does not. No draw changes: the odds the request raises, the bodies and the life pass are as they were; only the report answer of that case moves.
+- `test_full_matrix` now binds a run seed of its own for each star type, so a failure replays alone or under xdist. The assertion is as it was, and no seed was picked for passing.
+
+generation-output: unchanged
+
+## [8.0.4463] - 2026-11-17
+
+**Headline:** The launcher that hands out a forked run's units now claims for each unit what the memory gate has learned of its command, and holds each stage to its share of the host's memory, instead of claiming the 150 MB minimum.
+
+### Fixed
+- A unit row had no memory figure, so the launcher claimed `MIN_CLAIM_MB` for every unit and the gate would have let as many 3 GB units start as there were cores. A unit now claims the typed figure raised or lowered to the job profile's (as the RQ path's `claims.claim_for` did), its cores and named resources (`unit_tokens`), and an opening claims the cut's whole lane (OPS.228 slice D2b-2a).
+- A stage runs at most `workers.stage_worker_cap` units at once (PERF.220's share of the host's memory in units of the stage's figure), besides its run's `--workers` count; the supervisor gives its launcher its Redis to read the learned figures from.
+
+## [8.0.4462] - 2026-11-17
+
+**Headline:** A planet's cosmic dust supply is worked out as a pure function of its system's belts and comets, ready for the V8 sulfur-cloud species to read.
+
+### Added
+- **The carbon a planet's dust supplies the V8 layer (GEN.1542 slice 0).** `physics/dust_supply.py` turns the dust a planet takes in each year (`influx.planet_influx_kg_per_yr`, GEN.1543) into the carbon it lays on each square meter (`carbon_flux_kg_m2_yr`) and says whether it reaches the floor the V8 layer of the sulfur-cloud set needs (`v8_supplied`). It is a pure function with tests and is not wired in: `sulfur_cloud_set` still takes `carbon_dust` from its caller, so no stored value moves. New registered stand-ins 6.306 DUS1 (carbon share of the dust, 0.1) and DUS2 (the floor, 1e-9 kg per square meter a year), both T6 and L4 with burn-down lines, and DUS3 (the dust a planet lifts itself is left out and why). Slice 1 will read each planet's influx at its fill and pass `carbon_dust`.
+
+generation-affects: none
+
+generation-output: unchanged
+
 ## [8.0.4461] - 2026-11-17
 
 **Headline:** The dust a planet takes in from its system's belts now follows a thin, drifting disk, so a Sun-like system gives the Earth about 1e7 kg a year, the measured order, where the old law gave 45 kg a year.
