@@ -8957,18 +8957,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.798. Related: DB.70, DB.101.
 
-- [ ] **DB.109 Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute**
-  Lane 11's suggestion at the end of DB.46 to DB.48 (#3451, #3456,
-  #3460): (1) planetgen refresh-parity runs after a generation run
-  finishes when parity.enabled is on, so the file is never stale after a
-  fill; (2) the edit paths (admin and the property sheet edits) keep a
-  before-image of the sector so the parity updates by a delta instead of
-  recomputing the whole group. Both are optional and off the critical
-  path; the parity file is off by default. Owner: Lane 11 when it runs
-  dry.
-  Owner (TODO, 2026-11-17): Lane 15, both parts (part 1: prove every fill path leaves no stale parity file, a test per path; part 2: edit paths pass a before-image to ParityStore.put).
-  Prerequisites: none.
-
 - [ ] **DB.110 Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units**
   Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
   design in
@@ -11570,7 +11558,7 @@ clears each one.
 
 - [ ] **OPS.234 Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D9); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D9 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: OPS.228. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 15 (moved from Lane 13 at 11:45 AM EST, not started there; Lane 13 has OPS.271). Earlier owner (TODO, 2026-11-14): Lane 13. Prerequisites: OPS.228. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.235 Job engine stage 4: RQ removed (the rq dependency, cli/worker.py, redisqueue queue helpers, reset_jobs RQ parts); makes OPS.179 moot**
