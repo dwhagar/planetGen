@@ -13,13 +13,13 @@ pytestmark = pytest.mark.real_queue
 
 
 def test_each_task_type_of_the_maintenance_lane_has_a_queue_of_its_own():
-    assert redisqueue.maintenance_lane() == (redisqueue.MAINTENANCE_QUEUE, redisqueue.CHECK_QUEUE, redisqueue.NODES_QUEUE)
-    assert len(set(redisqueue.maintenance_lane())) == 3 and set(redisqueue.maintenance_lane()) <= set(redisqueue.QUEUES)
+    assert redisqueue.maintenance_lane() == (redisqueue.MAINTENANCE_QUEUE, redisqueue.CHECK_QUEUE)
+    assert len(set(redisqueue.maintenance_lane())) == 2 and set(redisqueue.maintenance_lane()) <= set(redisqueue.QUEUES)
     assert wrapper.queue_of(runrecord.MAINTENANCE) == redisqueue.MAINTENANCE_QUEUE
     assert wrapper.queue_of(runrecord.CHECK) == redisqueue.CHECK_QUEUE
     assert wrapper.queue_of(runrecord.GENERATION) == redisqueue.BULK_QUEUE
     for name in redisqueue.maintenance_lane():
-        assert redisqueue.serializer_for(name) is redisqueue.JsonSerializer      # one serializer, so one worker can serve all three
+        assert redisqueue.serializer_for(name) is redisqueue.JsonSerializer      # one serializer, so one worker can serve both
 
 
 def test_a_worker_for_any_queue_of_the_lane_serves_the_whole_lane():

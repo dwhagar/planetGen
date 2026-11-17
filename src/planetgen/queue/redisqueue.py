@@ -45,23 +45,19 @@ CHECK_QUEUE = "planetgen-maintenance-check"
 own, so the thousands of units a cache warm-up queued ahead of it never make it wait (the lane's workers take a job from each
 queue in turn, `maintenance_lane`)."""
 
-NODES_QUEUE = "planetgen-maintenance-nodes"
-"""str: The node prefetch and rebuild jobs a visit or a change queues (`web/lib/tileprefetch.py`, PERF.245). One of the maintenance
-lane's task types: a visitor's nodes are built in turn with the warm-up's units, not after all of them."""
-
 def maintenance_lane():
     """
     The queues of the maintenance lane, one per task type (PERF.245): a `MAINTENANCE` run's units (the cache warm-up), a `CHECK`
-    run's units and the node prefetch and rebuild jobs. A maintenance worker serves all of them and takes one job from each queue
+    run's units (the node prefetch is a light job now, `lightjobs`, OPS.230). A maintenance worker serves both and takes one job from each queue
     in turn (round robin, `cli/worker.worker_class`), so no task type waits behind another's backlog; the lane's worker count
     (`workers.maintenance_cap`) is shared by them. The first is the lane's name wherever one is needed (the starting count, the
-    live workers: every worker of the lane is registered with all three). A function, not a constant, so a test that gives
+    live workers: every worker of the lane is registered with both). A function, not a constant, so a test that gives
     `MAINTENANCE_QUEUE` a name of its own gets a lane of its own.
     """
-    return (MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QUEUE)
+    return (MAINTENANCE_QUEUE, CHECK_QUEUE)
 
 
-QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QUEUE)
+QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, CHECK_QUEUE)
 """tuple: Every shared queue."""
 
 def redis_url():

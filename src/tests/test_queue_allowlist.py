@@ -100,14 +100,14 @@ def test_the_names_the_program_gives_its_jobs_are_on_the_list():
                  requires.SUCCEEDED_FUNCTION):
         assert name in allowlist.FUNCTIONS
     from planetgen.web.lib import tileprefetch
-    assert tileprefetch.JOB in allowlist.FUNCTIONS
+    assert tileprefetch.JOB in allowlist.API_FUNCTIONS        # a light job of the maintenance lane, called by `api_jobs.execute`
     assert "planetgen.queue.lightjobs.run" in allowlist.FUNCTIONS        # the process a light job runs in; the API function it calls is checked by `api_jobs.execute`
 
 
 def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
     """`queue.enqueue(X, ...)`, `enqueue_many([prepare_data(X, ...)])` and `requires.enqueue(queue, X, ...)`: X is a constant
     on the list, a module constant that is, or a helper's own parameter."""
-    known = {"UNIT_FUNCTION": units.UNIT_FUNCTION, "OPEN_FUNCTION": units.OPEN_FUNCTION, "JOB": "planetgen.web.lib.tileprefetch.build_nodes"}
+    known = {"UNIT_FUNCTION": units.UNIT_FUNCTION, "OPEN_FUNCTION": units.OPEN_FUNCTION, "JOB": "planetgen.web.lib.tileprefetch:build_nodes"}
     checked = 0
     for module, path, tree in _trees():
         if module == "planetgen.queue.redisqueue":

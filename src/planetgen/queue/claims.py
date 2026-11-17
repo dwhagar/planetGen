@@ -49,7 +49,6 @@ Unmeasured: first claims by what the command reads, until the gate has learned t
 
 FUNCTION_CLAIMS = {
     "planetgen.web.job_runner.run": (SUPERVISOR_MB, 0.5),
-    "planetgen.web.lib.tileprefetch.build_nodes": (700, 1.0),
 }
 """dict: The functions a queue runs that need no more than a figure of their own: `{dotted name: (MB, cores)}`. Unmeasured."""
 
@@ -83,6 +82,7 @@ API_CLAIMS = {
     "planetgen.queue.api_jobs:run_command": (SUPERVISOR_MB, 0.5),
     "planetgen.queue.pagejobs:build_answer": (700, 1.0),
     "planetgen.web.lib.estimatejob:work": (SUPERVISOR_MB, 0.5),
+    "planetgen.web.lib.tileprefetch:build_nodes": (700, 1.0),
 }
 """dict: What each function the API's dispatcher (`api_jobs.execute`) may call claims, `{module:name: (MB, cores)}`. Unmeasured, except that a
 sector or a star drawn in the job is the stage figure of the same work."""

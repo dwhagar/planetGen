@@ -74,7 +74,7 @@ def test_the_lane_of_each_queue():
 def test_claim_for_a_unit_a_page_job_and_a_cut(conn):
     unit = types.SimpleNamespace(func_name=claims.UNIT_FUNCTION, args=("r", 3, 0, "scatter-mass", {}, 1.0), origin=redisqueue.BULK_QUEUE, id="r-s3-u0")
     assert claims.claim_for(unit, conn) == Claim("unit:scatter-mass", float(workers.SCATTER_WORKER_MEMORY_MB), 1.0, "bulk")
-    page = types.SimpleNamespace(func_name="planetgen.web.lib.tileprefetch.build_nodes", args=(), origin=redisqueue.NODES_QUEUE, id="n")
+    page = types.SimpleNamespace(func_name="planetgen.web.job_runner.run", args=(), origin=redisqueue.MAINTENANCE_QUEUE, id="n")
     assert claims.claim_for(page, conn).lane == "maintenance"
     steps = [commands.Step("a", "link-neighbors", "A").as_dict(), commands.Step("b", "scatter-backfill", "B").as_dict()]
     conn.hset(runrecord.run_key("r"), mapping={"stages": json.dumps([{"key": "a", "label": "A"}, {"key": "b", "label": "B"}]), "steps": json.dumps(steps)})
