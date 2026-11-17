@@ -403,9 +403,13 @@ def test_wide_binary_system_generates_and_stays_within_bounds(star_type):
 
 
 def test_wide_binary_stars_share_one_age_within_both_lifespans():
-    system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, MAX_PLANETS=True))
-    if system.binary_type != "wide":
-        pytest.skip("random draw landed on close binary")
+    for seed in range(40):
+        with draw.bound(f"wide-binary-age-{seed}"):      # TEST.737: fixed streams, so the search finds the same wide pair in every run
+            system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, MAX_PLANETS=True))
+        if system.binary_type == "wide":
+            break
+    else:
+        pytest.fail("none of 40 fixed streams drew a wide binary")
     # The pair shares one age (GEN.53), and it stays within both stars'
     # own (possibly different) lifespans.
     assert system.primary_star.age == system.secondary_star.age

@@ -10,6 +10,7 @@ import math
 import pytest
 
 from planetgen.api.config import Config
+from planetgen.util import draw
 from planetgen.db import store
 from planetgen.galaxy import objectref
 from planetgen.galaxy.sector import SpaceSector
@@ -30,7 +31,14 @@ def galaxy(mysql_config):
     cfg.PLANETS = True
     cfg.MAX_PLANETS = True
     cfg.BINARY_SYSTEM = False
-    sector.add_system(StarSystem(system_config=cfg), position=(1.0, 1.0, 1.0), system_config=cfg)
+    for attempt in range(40):
+        with draw.bound(f"facility-pages-{attempt}"):      # TEST.737: fixed streams, the same system in every run
+            system = StarSystem(system_config=cfg)
+        if any(p.body_type == "t" for p in system.planets):
+            break
+    else:
+        pytest.fail("none of 40 fixed streams drew a system with a rocky planet")
+    sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
     store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
         "galactic_radius_pc": math.hypot(*center), "shell_index": 10, "band_index": 0, "wedge_index": 3})
@@ -38,7 +46,7 @@ def galaxy(mysql_config):
     try:
         planet = conn.execute("SELECT id FROM planets WHERE body_type = 't' ORDER BY id LIMIT 1").fetchone()
         if planet is None:
-            pytest.skip("no rocky planet generated")
+            pytest.fail("no rocky planet generated")
         sector_id = conn.execute("SELECT id FROM sectors ORDER BY id LIMIT 1").fetchone()["id"]
         store.add_facility(conn, "New Hope", "colony", "terrestrial", "planet", planet["id"], description="A first colony.")
         store.add_facility(conn, "Lone Light", "station", "standalone", "space", sector_id)

@@ -690,7 +690,7 @@ def test_an_air_that_settles_without_the_escape_on_its_last_allowed_step_still_g
         again = _escape_flags(monkeypatch, seed, max_steps=settled_at)
         assert len(again) > settled_at and True in again, (seed, settled_at, len(again))
         return
-    pytest.skip("no seed of the three needs an escape pass")
+    pytest.fail("no seed of the three needs an escape pass")
 
 
 def test_the_carbon_sink_of_an_air_is_the_last_steps_and_none_when_the_last_step_does_not_weather(monkeypatch):

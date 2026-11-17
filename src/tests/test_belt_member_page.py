@@ -34,7 +34,7 @@ def belt(site_db):
     finally:
         conn.close()
     if found is None or not found[1]:
-        pytest.skip("the sample galaxy holds no asteroid belt with stored bodies")
+        pytest.fail("the sample galaxy holds no asteroid belt with stored bodies")
     return found
 
 
@@ -120,7 +120,7 @@ def rich_belt(site_db):
                 return f"belt:{pid('belt', row['id'], conn)}", belt.members, total
     finally:
         conn.close()
-    pytest.skip("the sample galaxy holds no belt with more bodies at the class D size than it stores")
+    pytest.fail("the sample galaxy holds no belt with more bodies at the class D size than it stores")
 
 
 def test_a_body_past_the_stored_ones_has_a_page_and_a_class_made_when_asked(client, rich_belt):

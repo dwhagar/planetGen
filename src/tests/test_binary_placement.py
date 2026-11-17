@@ -5,6 +5,7 @@ import math
 import pytest
 
 from planetgen.db import query
+from planetgen.util import draw
 from planetgen.db import store as _db
 from planetgen.galaxy.frame import BINARY_PAIR_DIRECTION, binary_companion_offset_pc
 from planetgen.galaxy.spherical import sector_address_at
@@ -24,14 +25,15 @@ def _link(name, **params):
 
 
 def _binary_system():
-    for _ in range(400):
+    for attempt in range(400):
         cfg = SystemConfig()
         cfg.BINARY_SYSTEM = True
         cfg.PLANETS = False
-        system = StarSystem(system_config=cfg)
+        with draw.bound(f"binary-placement-{attempt}"):      # TEST.737: fixed streams, the same pair in every run
+            system = StarSystem(system_config=cfg)
         if system.binary_type == "close":
             return system, cfg
-    pytest.skip("no close binary generated")
+    pytest.fail("none of 400 fixed streams drew a close binary")
 
 
 @pytest.fixture

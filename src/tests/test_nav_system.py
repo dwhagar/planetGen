@@ -35,7 +35,7 @@ def saved(mysql_config, monkeypatch):
     finally:
         conn.close()
     if len(planets) < 2:
-        pytest.skip("the generated system has fewer than two planets")
+        pytest.fail("the generated system has fewer than two planets")
     real_build = systemscene.build_scene
 
     def scene_with_the_star_between(conn, sid):

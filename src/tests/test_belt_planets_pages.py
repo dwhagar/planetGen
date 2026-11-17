@@ -70,7 +70,7 @@ def test_a_member_that_stayed_still_has_its_page(saved_belt):
     with store.get_connection(config) as conn:
         page = belt_info.belt_info(conn, belt_id)
         if not page["bodies"]:
-            pytest.skip("the belt kept no member")
+            pytest.fail("the belt kept no member")
         answer = belt_member_info.member_info(conn, belt_id, page["bodies"][0]["rank"])
     assert "member" in answer and "promoted" not in answer
 

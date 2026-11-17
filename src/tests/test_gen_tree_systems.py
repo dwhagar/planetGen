@@ -122,7 +122,7 @@ def test_members_a_build_cannot_hold_stay_in_the_plan_as_dark_members_and_the_no
         if tree.member_count >= 3 and any(m.kind in stored_trees.UNBUILT_KINDS for m in tree.members):
             break
     else:
-        pytest.skip("no tree with a brown dwarf or remnant among three or more members")
+        pytest.fail("no tree with a brown dwarf or remnant among three or more members")
     plan = stored_trees.drawn(tree)
     assert len(plan.members) == tree.member_count and len(plan.nodes) == len(tree.nodes)
     assert {m.member_no for m in plan.dark_members} == {m.member_no for m in tree.members if m.kind in stored_trees.UNBUILT_KINDS}
