@@ -661,8 +661,14 @@ def conclude_backfill(params, plan, results, seconds):
     return {"sky_spheres_recorded": recorded}
 
 
-def _progress_into(ctx, name):
-    """An `on_progress(done, total)` that counts into the unit's second level (OPS.192): the first call names the count, each after it adds what was done since."""
+def _progress_into(ctx, name, whole_unit=False):
+    """
+    An `on_progress(done, total)` that counts into the unit's second level (OPS.192): the first call names the count, each after it adds what was done since.
+
+    Args:
+        whole_unit (bool): The count is all the unit's work (a unit of one piece, whose own count stands at 0 of 1 until the piece ends, OPS.269): the unit's own count follows it too, as the share
+            of the count done, so what follows the unit (the backfill bar, the queue page, the stage's ETA) sees it move.
+    """
     last = [None]
 
     def progress(done, total):
@@ -671,6 +677,8 @@ def _progress_into(ctx, name):
             last[0] = 0
         ctx.advance(done - last[0])
         last[0] = done
+        if whole_unit and total > 0.0:
+            ctx.report(min(max(done / total, 0.0), 1.0), 1.0)
 
     return progress
 
@@ -750,7 +758,7 @@ def _sky_cell(unit_args, ctx):
     from planetgen.generation import sky_charting
     sky = unit_args["sky"]
     before, opened, ticked = None, 0.0, 0.0
-    progress = _progress_into(ctx, "Sky tiers")
+    progress = _progress_into(ctx, "Sky tiers", whole_unit=True)
 
     for attempt in range(1, SKY_UNIT_CONNECTION_TRIES + 1):
         conn = ctx.db
