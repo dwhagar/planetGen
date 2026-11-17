@@ -63,7 +63,8 @@ def test_a_wet_body_past_the_runaway_limit_holds_its_water_as_steam(venus_twins)
     # bodies the test speaks of are the ones no cap holds, and the capped ones are held to their cap.
     wet = [p for p in venus_twins if p.water_mass_fraction > 1.0e-3 and p.build.retention_cap_pa is None]
     assert wet, "the sample holds no wet body, so it says nothing"
-    assert [p.hydrosphere for p in venus_twins if p.hydrosphere == "surface ocean"] == []
+    # A body with less water than that (GEN.1748's nebular water gave seed 10 1.4e-4, about 0.6 oceans) can hold a hot ocean under water's critical point (647 K), so only the wet bodies are held to steam.
+    assert [p.hydrosphere for p in wet if p.hydrosphere == "surface ocean"] == []
     for planet in (p for p in venus_twins if p.build.retention_cap_pa is not None):
         assert planet.atmospheric_pressure <= planet.build.retention_cap_pa * (1.0 + 1e-9)
     for planet in wet:
