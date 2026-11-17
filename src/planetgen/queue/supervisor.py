@@ -92,6 +92,11 @@ def nudges_key():
     return runrecord._k("supervisor", "nudges")
 
 
+def requests_key():
+    """The list of the requests for the supervisor (OPS.234: pause, resume, Stop All, the end of a run's jobs), each a JSON line; `controls.Controls` takes them at each turn."""
+    return runrecord._k("supervisor", "requests")
+
+
 def starting_key():
     """The string a caller sets to say it is starting the supervisor, so the callers that follow do not."""
     return runrecord._k("supervisor", "starting")
@@ -124,7 +129,7 @@ class RedisStore:
 
     def busy(self):
         """Whether there is anything for a supervisor to watch: a live run, a run waiting for the machine, or an ask for workers not acted on yet."""
-        return bool(self.connection.hlen(nudges_key())) or bool(self.connection.hlen(runline._starts_key())) or any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
+        return bool(self.connection.hlen(nudges_key())) or bool(self.connection.llen(requests_key())) or bool(self.connection.hlen(runline._starts_key())) or any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
             or bool(self.connection.zcard(runline._line_key())) or bool(self.connection.zcard(lightjobs.pending_key())) or bool(self.connection.scard(lightjobs.running_key()))
 
 
@@ -501,7 +506,17 @@ class Launches:
             if not get_settings().queue.forked_jobs:
                 return 0
             self.launcher = (self.make or self._made)()
+        if self._paused():
+            self.launcher.ended()           # a pause lets the jobs that run finish their piece and settles their ends, and forks nothing new (OPS.234)
+            self.launcher.recover()
+            return 0
         return len(self.launcher.turn())
+
+    def _paused(self):
+        """Whether the queues are paused by hand (`pause`; a solo hold for one restarted unit is not a pause of the hand-outs)."""
+        from planetgen.queue import pause
+        held = pause.state(self.connection)
+        return held["paused"] and held["solo"] is None
 
     def clear(self):
         if self.launcher is not None:

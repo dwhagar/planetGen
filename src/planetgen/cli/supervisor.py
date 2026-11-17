@@ -16,7 +16,7 @@ import signal
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import jobhost, lightjobs, redisqueue, supervisor
+from planetgen.queue import controls, jobhost, lightjobs, redisqueue, supervisor
 from planetgen.util import log
 
 
@@ -47,7 +47,8 @@ def main(argv=None):
     lights = lightjobs.LightJobs(connection, forker=templates)
     launches = supervisor.Launches(connection, forker=templates, also_held=lights.holders)
     lights.also_held = launches.holders      # each hand-out is judged against the claims of the other (OPS.230)
-    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), supervisor.WorkerStarts(connection), lights, launches)
+    requests = controls.Controls(connection, launches=launches)     # before the launcher: a request to stop is seen before the next hand-out (OPS.234)
+    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), supervisor.WorkerStarts(connection), requests, lights, launches)
     reason = supervisor.Supervisor(supervisor.SystemClock(), supervisor.RedisStore(connection), supervisor.ProcessTable(), duties=duties,
                                    stop=lambda: bool(stopping) or updateguard.is_updating(), idle_seconds=args.idle_seconds).run()
     log.debug("The supervisor exits: %s.", reason, area="queue")

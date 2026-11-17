@@ -46,6 +46,8 @@ def _report(summary):
         lines.append("Everything was already on hold; stopped again.")
     lines.append(f"Canceled {summary['runs']} live run(s)" + (" and the Generate page's job" if summary["job"] else "")
                  + f"; removed {summary['queued']} queued job(s); ended {summary['killed']} process(es).")
+    if summary.get("jobs"):
+        lines.append(f"The supervisor stopped {summary['jobs']} job process(es) it had started.")
     if summary["survivors"]:
         lines.append(f"These processes could not be ended by this user (run it as root): "
                      f"{', '.join(str(pid) for pid in summary['survivors'])}")
