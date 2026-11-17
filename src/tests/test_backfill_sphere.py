@@ -70,6 +70,16 @@ def test_sphere_rows_list_the_cells_enumerate_lists(name):
     assert len(listed) >= len(kept)
 
 
+@pytest.mark.parametrize("name", sorted(CENTERS))
+def test_sphere_rows_keep_walks_only_the_rows_it_keeps(name):
+    """PERF.280: a part's walk does not work out the windows of the rows other parts own, and the rows it keeps are the ones the whole walk lists, in the same order."""
+    center, radius = CENTERS[name]
+    everything = list(spherical.sphere_rows(center, radius, EDGE_PC))
+    for part in ((0, 3), (2, 3)):
+        kept = list(spherical.sphere_rows(center, radius, EDGE_PC, lambda shell, band: brightStars.in_part(shell, band, part)))
+        assert kept == [row for row in everything if brightStars.in_part(row[0], row[1], part)]
+
+
 def test_sphere_rows_refuse_a_bad_sphere():
     with pytest.raises(ValueError):
         list(spherical.sphere_rows((0.0, 0.0, 0.0), -1.0, EDGE_PC))
