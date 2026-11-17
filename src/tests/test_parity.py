@@ -15,7 +15,7 @@ import pytest
 from planetgen.db import edits, parity, parity_file as pfile, sector_export, storage_checksum as sc, store
 from planetgen.util import rscodec
 
-from tests.test_storage_checksum import _sector_with_system
+from tests.test_storage_checksum import _sector_with_system, _system
 
 K, M = 4, 2
 
@@ -488,3 +488,201 @@ def test_the_refresh_command_is_registered_and_makes_the_parity_current(conn, on
         assert on.file.valid_end == before                 # the record already held these rows: only the flag was cleared
         assert os.path.getsize(on.file.path) == on.file.valid_end
     assert "compacted to 1 group record" in capsys.readouterr().out
+
+
+# -- every writer leaves the file current (DB.109) ---------------------------------------------------------------
+
+def _assert_current(conn, on):
+    """The file holds exactly the database's sectors, every one sealed and healthy: nothing waits for `refresh-parity`."""
+    ids = [row["id"] for row in conn.execute("SELECT id FROM sectors ORDER BY id").fetchall()]
+    conn.commit()
+    assert on.members() == set(ids)
+    for sector_id in ids:
+        row = conn.execute("SELECT parity_dirty AS d, storage_checksum AS c FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+        conn.commit()
+        assert not row["d"] and row["c"] is not None, f"sector {sector_id} was left marked"
+        assert parity.member_state(conn, sector_id, on) == parity.HEALTHY, f"sector {sector_id}'s record is behind its rows"
+
+
+def _first_planet(conn, system_id):
+    return conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND body_type <> 'a' ORDER BY id LIMIT 1",
+                        (system_id,)).fetchone()["id"]
+
+
+def _rename_system(conn, sector_id, system_id):
+    assert store.rename_star_system(conn, system_id, "Renamed Parity System")
+
+
+def _rename_star(conn, sector_id, system_id):
+    star = conn.execute("SELECT id FROM stars WHERE star_system_id = ?", (system_id,)).fetchone()["id"]
+    assert store.rename_star(conn, star, "Renamed Parity Star")
+
+
+def _rename_body(conn, sector_id, system_id):
+    assert store.rename_body(conn, "planets", _first_planet(conn, system_id), "Renamed Parity Planet")
+
+
+def _touch_system(conn, sector_id, system_id):
+    store.touch_star_system(conn, system_id)
+
+
+def _touch_sector(conn, sector_id, system_id):
+    store.touch_sector(conn, sector_id)
+
+
+def _sector_uid(conn, sector_id, system_id):
+    conn.execute("UPDATE sectors SET uid = NULL WHERE id = ?", (sector_id,))
+    store.set_sector_uid(conn, sector_id)
+
+
+def _system_uid(conn, sector_id, system_id):
+    conn.execute("UPDATE star_systems SET uid = NULL WHERE id = ?", (system_id,))
+    store.give_system_uid(conn, system_id, bytes(range(12)))
+
+
+def _add_facility(conn, sector_id, system_id):
+    store.add_facility(conn, "Relay", "station", "orbital", "planet", _first_planet(conn, system_id))
+
+
+def _delete_facility(conn, sector_id, system_id):
+    facility = store.add_facility(conn, "Relay", "station", "orbital", "planet", _first_planet(conn, system_id))
+    conn.commit()
+    assert store.delete_facility(conn, facility["id"] if isinstance(facility, dict) else facility)
+
+
+def _save_edits(conn, sector_id, system_id):
+    loaded = store.load_star_system(conn, system_id)
+    edits.save_system_edits(conn, system_id, loaded, stars=[loaded.star])
+
+
+def _replace_content(conn, sector_id, system_id):
+    from tests.test_storage_checksum import _system
+    system, cfg = _system()
+    assert store.replace_star_system_content(conn, system_id, system, cfg)
+
+
+def _insert_system(conn, sector_id, system_id):
+    from tests.test_storage_checksum import _system
+    system, cfg = _system()
+    store.insert_star_system(conn, system, cfg, sector_id=sector_id)
+
+
+def _topup_rogues(conn, sector_id, system_id):
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.rogue import RoguePlanet
+    store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=sector_id,
+                              placement={"center_x_pc": 1.0, "center_y_pc": 1.0, "center_z_pc": 1.0, "galactic_radius_pc": 1.7})
+    conn.commit()
+    assert store.delete_topup_rogues(conn, sector_id) == 1
+
+
+def _empty_sector(conn, sector_id, system_id):
+    assert edits.empty_sector(conn, sector_id) is not None
+
+
+def _delete_sector(conn, sector_id, system_id):
+    assert edits.delete_sector_with_contents(conn, sector_id) is not None
+
+
+WRITE_PATHS = [_rename_system, _rename_star, _rename_body, _touch_system, _touch_sector, _sector_uid, _system_uid,
+               _add_facility, _delete_facility, _save_edits, _replace_content, _insert_system, _topup_rogues,
+               _empty_sector, _delete_sector]
+
+
+@pytest.mark.parametrize("write", WRITE_PATHS, ids=lambda write: write.__name__.lstrip("_"))
+def test_a_write_path_leaves_the_parity_file_current(conn, on, write):
+    """Each way a sector's rows change, run for real with parity on and the sector already in a group: once it commits, the
+    file is current and no sector waits for `refresh-parity`."""
+    sector_id, system_id = _sector_with_system(conn, "Written")
+    _sector_with_system(conn, "Neighbour")
+    _assert_current(conn, on)
+    with conn:
+        write(conn, sector_id, system_id)
+    _assert_current(conn, on)
+
+
+def _assert_every_group_is_a_fresh_encode(conn, on):
+    """The parity of every group is what a fresh encode of its members' rows gives: a delta that went wrong would show here."""
+    with on.file.locked():
+        group_ids = sorted({located[0] for located in on.file.sector_group.values()})
+        records = [on.file.read(group_id) for group_id in group_ids]
+    for record in records:
+        exports = [sector_export.export_sector(conn, member.sector_id)[0] if member.sector_id != pfile.EMPTY else b""
+                   for member in record.members]
+        conn.commit()
+        assert record.parity == _fresh(exports, record.k, record.m), f"group {record.group_id}"
+
+
+DELTA_PATHS = [_rename_system, _rename_star, _rename_body, _add_facility, _delete_facility, _save_edits, _replace_content,
+               _empty_sector, _delete_sector]
+
+
+@pytest.mark.parametrize("write", DELTA_PATHS, ids=lambda write: write.__name__.lstrip("_"))
+def test_an_edit_is_a_parity_delta_and_never_reads_the_other_sectors(conn, on, monkeypatch, write):
+    """DB.109: the edit paths take the sector's export before they write, so the commit updates the group's parity from it
+    (`put` or `release` say `delta`) instead of reading every other member to make the group again."""
+    sector_id, system_id = _sector_with_system(conn, "Edited")
+    neighbour, _ = _sector_with_system(conn, "Neighbour")
+    with on.file.locked():
+        assert on.member(sector_id)[0] == on.member(neighbour)[0]
+    modes = []
+    for name in ("put", "release"):
+        real = getattr(parity.ParityStore, name)
+        monkeypatch.setattr(parity.ParityStore, name,
+                            lambda self, *args, _real=real, **kwargs: modes.append(_real(self, *args, **kwargs)) or modes[-1])
+    with conn:
+        write(conn, sector_id, system_id)
+    assert modes and set(modes) == {"delta"}, modes
+    _assert_current(conn, on)
+    _assert_every_group_is_a_fresh_encode(conn, on)
+
+
+def test_a_sector_edited_twice_in_one_transaction_is_still_a_delta(conn, on, monkeypatch):
+    """The second edit finds the sector already looked at, so the image stays the one from before the first write."""
+    sector_id, system_id = _sector_with_system(conn, "Twice")
+    _sector_with_system(conn, "Neighbour")
+    modes = []
+    real = parity.ParityStore.put
+    monkeypatch.setattr(parity.ParityStore, "put", lambda self, *args, **kwargs: modes.append(real(self, *args, **kwargs)) or modes[-1])
+    with conn:
+        _rename_system(conn, sector_id, system_id)
+        _rename_body(conn, sector_id, system_id)
+    assert modes == ["delta"]
+    _assert_every_group_is_a_fresh_encode(conn, on)
+
+
+def test_an_edit_after_an_unprotected_one_is_made_again_from_the_rows_not_a_delta(conn, on):
+    """A sector still marked (its record is behind its rows) has no before-image to give: the group is made again."""
+    sector_id, system_id = _sector_with_system(conn, "Behind")
+    _sector_with_system(conn, "Neighbour")
+    conn.execute("UPDATE sectors SET parity_dirty = 1 WHERE id = ?", (sector_id,))
+    conn.commit()
+    with conn:
+        conn.parity_before("id = ?", (sector_id,))
+        assert conn._parity_before == {sector_id: None}
+    with conn:
+        _rename_system(conn, sector_id, system_id)
+    _assert_current(conn, on)
+    _assert_every_group_is_a_fresh_encode(conn, on)
+
+
+def test_a_before_image_is_dropped_with_a_rollback_and_with_a_commit_nothing_touched(conn, on):
+    sector_id, system_id = _sector_with_system(conn, "Dropped")
+    with pytest.raises(RuntimeError):
+        with conn:
+            conn.parity_before("id = ?", (sector_id,))
+            assert conn._parity_before[sector_id] is not None
+            raise RuntimeError("fail")
+    assert conn._parity_before == {}
+    with conn:
+        conn.parity_before("id = ?", (sector_id,))
+    assert conn._parity_before == {}
+
+
+def test_nothing_is_read_while_parity_is_off(conn, tmp_path, monkeypatch):
+    monkeypatch.setattr(parity, "get_settings", lambda: types.SimpleNamespace(parity=types.SimpleNamespace(
+        enabled=False, dir=str(tmp_path), group_size=K, parity_blocks=M)))
+    sector_id, _system_id = _sector_with_system(conn, "Off")
+    with conn:
+        conn.parity_before("id = ?", (sector_id,))
+    assert conn._parity_before == {}
