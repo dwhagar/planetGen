@@ -227,7 +227,7 @@ def test_a_body_under_one_earth_mass_made_water_from_its_envelope_and_keeps_no_e
     assert envelope_capture.nebular_water_fraction(0.0) == 0.0
     assert envelope_capture.nebular_water_fraction(0.001) < envelope_capture.nebular_water_fraction(0.002) < envelope_capture.nebular_water_fraction(0.003)
     assert envelope_capture.nebular_water_fraction(0.05) == envelope_capture.nebular_water_fraction(0.01)             # held at the paper's top case
-    assert not envelope_capture.keeps_envelope(0.9) and envelope_capture.keeps_envelope(1.0)
+    assert envelope_capture.keep_share(0.9) == 0.0 and envelope_capture.keep_share(1.0) == 0.0
 
 
 def test_the_start_the_water_reads_is_the_start_the_planet_draws(sun):
@@ -237,3 +237,25 @@ def test_the_start_the_water_reads_is_the_start_the_planet_draws(sun):
         first = envelope_capture.start_of(mass, 1.0, sun.mass)
     with draw.bound(envelope_capture.start_stream(mass, 1.0, sun.mass)):
         assert envelope_capture.draw_start(0.6) == first > 0.0
+
+
+def test_the_share_of_bodies_that_keep_their_envelope_rises_smoothly_from_one_earth_mass_to_three():
+    """GEN.1774: the step at 1 Earth mass (every body of 1.00003 Earth masses kept its envelope, none of 0.99) is a smooth rise from 0 at 1 to 1 at 3 Earth masses."""
+    assert envelope_capture.keep_share(0.5) == envelope_capture.keep_share(1.0) == 0.0
+    assert envelope_capture.keep_share(3.0) == envelope_capture.keep_share(10.0) == 1.0
+    assert envelope_capture.keep_share(2.0) == pytest.approx(0.5)
+    masses = [1.0 + 0.05 * k for k in range(41)]
+    shares = [envelope_capture.keep_share(m) for m in masses]
+    assert all(b >= a for a, b in zip(shares, shares[1:]))                         # monotonic
+    assert shares[1] < 0.01 and shares[-2] > 0.99                                  # flat at both ends (the slope is 0 there)
+    assert envelope_capture.keep_share(1.00003) < 1.0e-8                           # the Earth twin of the class tests keeps nothing
+
+
+def test_one_body_decides_the_same_on_every_pass_and_a_share_of_them_keep_it(sun):
+    """The keep decision comes from a stream of the body's own (mass, formation distance, star): the same on every pass, no draw of the run's, and over many masses the kept share follows `keep_share`."""
+    mass = 2.0 * EARTH
+    first = envelope_capture.keeps_envelope(mass, 1.0, sun.mass)
+    assert all(envelope_capture.keeps_envelope(mass, 1.0, sun.mass) == first for _ in range(3))
+    assert not envelope_capture.keeps_envelope(0.99 * EARTH, 1.0, sun.mass) and envelope_capture.keeps_envelope(3.0 * EARTH, 1.0, sun.mass)
+    kept = sum(envelope_capture.keeps_envelope((1.9 + 0.2 * k / 400.0) * EARTH, 1.0, sun.mass) for k in range(400))
+    assert 120 < kept < 280                                                        # about half of the bodies of 1.9 to 2.1 Earth masses

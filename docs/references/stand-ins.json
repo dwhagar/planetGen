@@ -43217,11 +43217,11 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.KEEPS_FROM_MASS_EARTH 1: a body lighter than this is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); its envelope is a history and the water it made"
+              "envelope_capture.KEEPS_FROM_MASS_EARTH 1 and KEEPS_ALL_FROM_MASS_EARTH 3: a body of 1 Earth mass or less is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); from 3 Earth masses it keeps the envelope it drew; between, the share of bodies that keep it rises as the smooth step of the mass (GEN.1774: the old step at 1 Earth mass had every body of 1.00003 Earth masses keep 0.2 to 0.3 percent and none of 0.99; no source gives the share of 1 to 3 Earth-mass bodies that keep theirs, so the shape is a tweak of EC10 and not a new modifier)"
             ],
             [
               "The range it moves in",
-              "0.5 to 1.5"
+              "1 to 3 Earth masses for the end of the rise (0.5 to 1.5 for the start)"
             ],
             [
               "Where it holds",
@@ -43229,7 +43229,7 @@
             ],
             [
               "What would show it wrong",
-              "a body under 1 Earth mass whose observed radius needs an envelope"
+              "a body under 1 Earth mass whose observed radius needs an envelope, or a sample of 1 to 3 Earth-mass planets at periods over 100 days whose radii give the share that keep one"
             ],
             [
               "What replaces it",
@@ -43246,9 +43246,9 @@
           "slug": "6-206-ec10",
           "tier": "T5",
           "tier_code": "T5",
-          "tweak": "L0",
+          "tweak": "L4",
           "unread": null,
-          "what": "envelope_capture.KEEPS_FROM_MASS_EARTH 1: a body lighter than this is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); its envelope is a history and the water it made"
+          "what": "envelope_capture.KEEPS_FROM_MASS_EARTH 1 and KEEPS_ALL_FROM_MASS_EARTH 3: a body of 1 Earth mass or less is bare at the end of its formation (the radius law of Lopez and Fortney is fitted from 1 Earth mass, and collisions after the gas disk has dissipated \"would efficiently remove any residual hydrogen dominated atmospheres\" of embryos, Young et al. [R5293]); from 3 Earth masses it keeps the envelope it drew; between, the share of bodies that keep it rises as the smooth step of the mass (GEN.1774: the old step at 1 Earth mass had every body of 1.00003 Earth masses keep 0.2 to 0.3 percent and none of 0.99; no source gives the share of 1 to 3 Earth-mass bodies that keep theirs, so the shape is a tweak of EC10 and not a new modifier)"
         },
         {
           "burn_down": null,
