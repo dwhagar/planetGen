@@ -16,7 +16,7 @@ REPORT_NAME = "belt-forced-members-census-latest.md"
 
 
 def system_rows(seed):
-    """`[(seed, members, moved, mean_e_before, mean_e_after, over_half)]` of the belts of the stars with companions of one pair of stars."""
+    """`[(seed, members, moved, mean_e_before, mean_e_after, over_half, tilted, mean_i_before, mean_i_after)]` of the belts of the stars with companions of one pair of stars."""
     from planetgen.generation import belt as belt_module
     from planetgen.generation.belt import AsteroidBelt
     from planetgen.generation.config import SystemConfig
@@ -49,7 +49,9 @@ def system_rows(seed):
         moved = sum(1 for a, b in zip(bare, forced) if a["eccentricity"] != b["eccentricity"])
         before = statistics.fmean(r["eccentricity"] for r in bare)
         after = statistics.fmean(r["eccentricity"] for r in forced)
-        rows.append((seed, len(bare), moved, before, after, after > 1.5 * before))
+        tilted = sum(1 for a, b in zip(bare, forced) if a["inclination_deg"] != b["inclination_deg"])
+        rows.append((seed, len(bare), moved, before, after, after > 1.5 * before, tilted,
+                     statistics.fmean(r["inclination_deg"] for r in bare), statistics.fmean(r["inclination_deg"] for r in forced)))
     return rows
 
 
@@ -62,7 +64,11 @@ def run(seeds=SEEDS, workers=None):
 def summarize(rows):
     """The numbers of the report from the rows `system_rows` gives."""
     reached = [row for row in rows if row[2] > 0]
+    tilted = [row for row in rows if row[6] > 0]
     return {"belts": len(rows), "moved_belts": len(reached), "members": sum(row[1] for row in rows), "moved_members": sum(row[2] for row in rows),
+            "tilted_belts": len(tilted), "tilted_members": sum(row[6] for row in rows),
+            "inc_before": statistics.fmean(row[7] for row in tilted) if tilted else float("nan"),
+            "inc_after": statistics.fmean(row[8] for row in tilted) if tilted else float("nan"),
             "before": statistics.fmean(row[3] for row in reached) if reached else float("nan"),
             "after": statistics.fmean(row[4] for row in reached) if reached else float("nan"),
             "over_half": sum(1 for row in reached if row[5])}
@@ -78,12 +84,15 @@ def format_report(rows, heading):
         f"| belts whose members the forcing moves | {s['moved_belts']} |",
         f"| members of those belts moved | {s['moved_members']} of {s['members']} (in all {s['belts']} belts) |",
         f"| mean eccentricity of a moved belt: before and after | {s['before']:.3g} and {s['after']:.3g} |",
+        f"| belts whose members the tilt moves | {s['tilted_belts']} |",
+        f"| members tilted | {s['tilted_members']} of {s['members']} |",
+        f"| mean inclination of a tilted belt, degrees: before and after | {s['inc_before']:.3g} and {s['inc_after']:.3g} |",
         f"| belts whose mean eccentricity rises by half or more | {s['over_half']} ({100.0 * s['over_half'] / n:.0f} percent of the moved) |", ""])
 
 
 def main():
     rows = run()
-    text = format_report(rows, "The forced members census (GEN.1492 slice 1)")
+    text = format_report(rows, "The forced members census (GEN.1492)")
     directory = os.environ.get("PLANETGEN_REPORT_DIR", ".")
     os.makedirs(directory, exist_ok=True)
     with open(os.path.join(directory, REPORT_NAME), "w", encoding="utf-8") as handle:
