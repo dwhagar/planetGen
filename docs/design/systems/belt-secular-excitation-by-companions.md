@@ -76,3 +76,10 @@ member's normal stands on the cone of that angle about `n_f`, at an azimuth from
 - Left out: Kozai-Lidov pumping of eccentricity for a tilt past the limit (GEN.1447's screen keeps such a system from holding a stable planet or belt that close), the companion's own precession while
   the disk lasted, and the planets' own tilt by a companion (GEN.1499).
 
+
+## Planets (GEN.1499, slice 0 built, slice 1 to wire)
+
+The same theory for a planet: the companion adds `A_c` to the planet's apsidal rate (the diagonal of `secular_chain`'s `A`) and pushes its eccentricity vector along the companion's periapsis with `B_c exp(i varpi_c)`.
+`belt_forcing.companion_terms` gives both for planets at given axes and `belt_forcing.forced_planet_vectors` solves the planets' fixed point `(A + diag A_c) z = g` with relativity and the star's belt rings in
+`A`, so one planet gives `forced_vector` exactly and a giant beside it dilutes and couples the forcing. Slice 1 (lock item) makes `secular_chain.evolve` circle each planet's free vector about that fixed
+point (the `_drive` shape, with a constant push) and add `-A_c` to the nodal diagonal and the companion's plane to the inclination drive; a lone star gives today's numbers.

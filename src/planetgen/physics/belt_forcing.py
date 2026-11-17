@@ -155,3 +155,43 @@ def tilted_orbit(inclination_deg, node_deg, axis, phase_rad):
     inclination = math.degrees(math.acos(max(-1.0, min(1.0, z))))
     node = math.degrees(math.atan2(x, -y)) % 360.0 if inclination > 0.0 else node_deg
     return inclination, node
+
+
+def companion_terms(axes_au, host_mass_kg, companions):
+    """
+    `(apsidal, forcing)` of a companion star on planets at `axes_au` (GEN.1499): for each planet the sum of the companions' `A_c` (radians per year, what the companion adds to the planet's own
+    apsidal rate, the diagonal of `secular_chain`'s `A`) and the sum of `B_c exp(i varpi_c)` (the push along the companions' periapses, a complex number, radians per year). `companions` is as for
+    `forced_vector`. A planet beyond `ALPHA_LIMIT` of a companion gets nothing from it (`companion_rates`). The pull is that of a body of no mass (`companion_rates`): a planet's own mass changes the companion's pull on it by the planet-to-host mass ratio, left out at first order.
+    """
+    apsidal = [0.0] * len(axes_au)
+    forcing = [0j] * len(axes_au)
+    for j, axis in enumerate(axes_au):
+        for mass, companion_axis, eccentricity, periapsis in companions:
+            rate, push = companion_rates(axis, host_mass_kg, mass, companion_axis, eccentricity)
+            apsidal[j] += rate
+            forcing[j] += push * complex(math.cos(periapsis), math.sin(periapsis))
+    return tuple(apsidal), tuple(forcing)
+
+
+def forced_planet_vectors(axes_au, masses_kg, host_mass_kg, companions, ring_axes_au=(), ring_masses_kg=()):
+    """
+    The forced eccentricity vectors `z_eq` (complex, one for each planet) of planets at `axes_au` with masses `masses_kg` under `companions` (GEN.1499): the fixed point `A z = g` of the planets'
+    secular exchange (`secular_chain.matrices`, relativity and the rings of the star's belts included) with the companions' `A_c` added to its diagonal and their push `g` (`companion_terms`) on the
+    right. One planet and no rings give `forced_vector` exactly. The planets stay circling `z_eq` with their free eccentricity as it was; `None` for a system the theory does not reach: no
+    companion pull on any planet, a singular exchange, or a forced eccentricity past `secular_chain.LINEAR_ECCENTRICITY_LIMIT` for any planet.
+    """
+    apsidal, forcing = companion_terms(axes_au, host_mass_kg, companions)
+    if not any(abs(f) > 0.0 for f in forcing):
+        return None
+    count = len(axes_au)
+    ring_axes, ring_masses = secular_chain.clear_rings(list(ring_axes_au), list(ring_masses_kg), list(axes_au))
+    A, _B = secular_chain.matrices([*axes_au, *ring_axes], [*masses_kg, *ring_masses], host_mass_kg, rows=count)
+    block = A[:count, :count] + np.diag(apsidal)
+    push = np.array(forcing, dtype=complex)
+    # the rings are held at rest (zero eccentricity, as in `secular_chain._drive`): they pull on the planets and are not moved by them, so they only add to the planets' diagonal
+    if np.linalg.matrix_rank(block) < count:
+        return None
+    vectors = np.linalg.solve(block, push)
+    if float(np.max(np.abs(vectors))) > secular_chain.LINEAR_ECCENTRICITY_LIMIT:
+        return None
+    return tuple(complex(v) for v in vectors)
