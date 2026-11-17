@@ -9,7 +9,10 @@ fresh system or one rebuilt from the database, be plain JSON, and carry no
 Markdown or HTML.
 """
 
+import concurrent.futures
 import json
+import multiprocessing
+import os
 import zlib
 
 import pytest
@@ -48,11 +51,41 @@ def _config(**overrides):
     return config
 
 
+POOL_SIZE = 8
+"""int: The most systems of one variant a test reads (`_systems(8)`)."""
+
+_pool = {}
+
+
+def _build_variant(overrides):
+    """The first `POOL_SIZE` systems of a variant, drawn one after the other from the variant's seed."""
+    draw.set_run_seed(zlib.crc32(repr(sorted(overrides.items())).encode()) & 0xFFFF)
+    return [StarSystem(system_config=_config(**overrides)) for _ in range(POOL_SIZE)]
+
+
+def _variant_systems(overrides):
+    """
+    The first `POOL_SIZE` systems of a variant, kept for the process (TEST.788). Every test of the file reads the same systems of each variant again
+    (`_systems(n)` is the first n of that run, and `describe` draws nothing and changes nothing: the document of a system is the same when it is asked for again,
+    and of a system that was made before or after others were described, and of one that went through `pickle`), so they are made once instead of by each test
+    that reads them. No test of the file changes a system it is given.
+    """
+    key = repr(sorted(overrides.items()))
+    if key not in _pool:
+        _pool[key] = _build_variant(overrides)
+    return _pool[key]
+
+
 def _systems(count=3):
+    """The first `count` systems of each variant; the variants not made yet are made by forked workers at the same time (each draws from its own seed)."""
+    missing = [overrides for overrides in _VARIANTS if repr(sorted(overrides.items())) not in _pool]
+    if len(missing) > 1:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=min(WORKERS, len(missing)), mp_context=multiprocessing.get_context("fork")) as workers:
+            for overrides, systems in zip(missing, workers.map(_build_variant, missing)):
+                _pool[repr(sorted(overrides.items()))] = systems
     for overrides in _VARIANTS:
-        draw.set_run_seed(zlib.crc32(repr(sorted(overrides.items())).encode()) & 0xFFFF)
-        for _ in range(count):
-            yield overrides, StarSystem(system_config=_config(**overrides))
+        for system in _variant_systems(overrides)[:count]:
+            yield overrides, system
 
 
 def _plain(inline):
@@ -82,62 +115,79 @@ def _all_sections(document):
 
 @pytest.mark.parametrize("overrides", _VARIANTS)
 def test_every_variant_gives_a_checked_json_document(overrides):
-    draw.set_run_seed(zlib.crc32(repr(sorted(overrides.items())).encode()) & 0xFFFF)
-    for _ in range(4):
-        document = describe(StarSystem(system_config=_config(**overrides)))
+    for system in _variant_systems(overrides)[:4]:
+        document = describe(system)
         model.check(document)
         assert json.loads(json.dumps(document, allow_nan=False)) == document
 
 
+WORKERS = min(4, os.cpu_count() or 1)
+"""int: TEST.788: how many systems of a seeded sweep are made at the same time."""
+
+
+def _each_seed(function, seeds, *extra):
+    """`[function(seed, *extra) for seed in seeds]`, the seeds made by forked workers (each system draws from the seed it sets itself, so they are the same systems
+    as one after another, and an assertion inside a worker reaches the test)."""
+    with concurrent.futures.ProcessPoolExecutor(max_workers=WORKERS, mp_context=multiprocessing.get_context("fork")) as pool:
+        return list(pool.map(function, seeds, *([extra_value] * len(seeds) for extra_value in extra)))
+
+
+def _remnant_described(seed, remnant_class, kind):
+    draw.set_run_seed(seed)
+    config = SystemConfig()
+    remnant = remnant_class(config)
+    document = describe(StarSystem(system_config=config, compact_remnant=remnant))
+    model.check(document)
+    section = next(s for s in model.sections(document) if s["kind"] == kind)
+    assert _TABLE_KEYS[kind] <= _fact_keys(section)
+    text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
+                    for sentence in block["text"])
+    assert "white dwarf" not in text and "main sequence" not in text
+    overview = " ".join(inline_text(sentence) for sentence in document["sections"][0]["blocks"][0]["text"])
+    assert "heliosphere" not in overview and "0 km" not in overview
+
+
 @pytest.mark.parametrize("remnant_class, kind", [(BlackHole, "black-hole"), (NeutronStar, "neutron-star")])
 def test_a_system_anchored_by_a_compact_remnant_is_described_as_one(remnant_class, kind):
-    for seed in range(6):
-        draw.set_run_seed(seed)
-        config = SystemConfig()
-        remnant = remnant_class(config)
-        document = describe(StarSystem(system_config=config, compact_remnant=remnant))
-        model.check(document)
-        section = next(s for s in model.sections(document) if s["kind"] == kind)
-        assert _TABLE_KEYS[kind] <= _fact_keys(section)
-        text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
-                        for sentence in block["text"])
-        assert "white dwarf" not in text and "main sequence" not in text
-        overview = " ".join(inline_text(sentence) for sentence in document["sections"][0]["blocks"][0]["text"])
-        assert "heliosphere" not in overview and "0 km" not in overview
+    _each_seed(_remnant_described, range(6), remnant_class, kind)
+
+
+def _black_hole_told(seed):
+    draw.set_run_seed(seed)
+    config = SystemConfig()
+    hole = BlackHole(config)
+    section = next(s for s in model.sections(describe(StarSystem(system_config=config, compact_remnant=hole)))
+                   if s["kind"] == "black-hole")
+    text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
+                    for sentence in block["text"])
+    if hole.mass_class == "supermassive":
+        assert "center of the galaxy" in text
+    else:
+        assert ("collapsed core" in text) or ("intermediate-mass" in text)
+        assert ("accretion disk of infalling matter" in text) == bool(hole.has_accretion_disk)
 
 
 def test_a_black_hole_says_how_it_formed_and_whether_it_feeds():
-    for seed in range(12):
-        draw.set_run_seed(seed)
-        config = SystemConfig()
-        hole = BlackHole(config)
-        section = next(s for s in model.sections(describe(StarSystem(system_config=config, compact_remnant=hole)))
-                       if s["kind"] == "black-hole")
-        text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
-                        for sentence in block["text"])
-        if hole.mass_class == "supermassive":
-            assert "center of the galaxy" in text
-        else:
-            assert ("collapsed core" in text) or ("intermediate-mass" in text)
-            assert ("accretion disk of infalling matter" in text) == bool(hole.has_accretion_disk)
+    _each_seed(_black_hole_told, range(12))
+
+
+def _pulsar_named(seed):
+    draw.set_run_seed(seed)
+    config = SystemConfig()
+    config.POPULATION = "young"    # a young population's neutron stars still pulse (GEN.553); an old one's do not
+    star = NeutronStar(config)
+    section = next(s for s in model.sections(describe(StarSystem(system_config=config, compact_remnant=star)))
+                   if s["kind"] == "neutron-star")
+    text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
+                    for sentence in block["text"])
+    expected = {"magnetar": "It is a magnetar", "non-pulsing": "no longer sweeps"}.get(
+        star.pulsar_type, f"It is a {star.pulsar_type} pulsar")
+    assert expected in text
+    return star.pulsar_type
 
 
 def test_a_neutron_star_names_its_pulsar_type():
-    seen = set()
-    for seed in range(60):
-        draw.set_run_seed(seed)
-        config = SystemConfig()
-        config.POPULATION = "young"    # a young population's neutron stars still pulse (GEN.553); an old one's do not
-        star = NeutronStar(config)
-        section = next(s for s in model.sections(describe(StarSystem(system_config=config, compact_remnant=star)))
-                       if s["kind"] == "neutron-star")
-        text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
-                        for sentence in block["text"])
-        expected = {"magnetar": "It is a magnetar", "non-pulsing": "no longer sweeps"}.get(
-            star.pulsar_type, f"It is a {star.pulsar_type} pulsar")
-        assert expected in text
-        seen.add(star.pulsar_type)
-    assert len(seen) >= 2
+    assert len(set(_each_seed(_pulsar_named, range(60)))) >= 2
 
 
 def test_no_markup_reaches_the_document():
