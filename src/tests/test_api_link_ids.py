@@ -130,18 +130,25 @@ AUDITED_ENDPOINTS = (
 """tuple: The endpoints `test_every_endpoint_answer_carries_object_ids_only` fetches."""
 
 
+SEARCH = 400
+"""int: How many systems `_build` makes at most to find a binary one with comets and a planet with moons."""
+
+
 def _build(mysql_config):
     center = (5.0, 5.0, 5.0)
     address = spherical.sector_address_at(center, ly_to_pc(DEFAULT_SECTOR_EDGE_LY))
     sector = SpaceSector("Audit Sector", edge_ly=DEFAULT_SECTOR_EDGE_LY)
-    for _ in range(400):
+    for tried in range(1, SEARCH + 1):
         config = SystemConfig()
         config.PLANETS = True
         config.MAX_PLANETS = True
         config.BINARY_SYSTEM = True
+        config.COMETS = True        # GEN.1775: a star holds comets only where its outer disk was scattered, so the comets are asked for
         system = StarSystem(system_config=config)
         if len(system.stars) > 1 and system.comets and any(getattr(p, "moons", None) for p in system.planets):
             break
+    else:
+        raise AssertionError(f"none of {SEARCH} binary systems held comets and a planet with moons")
     sector.add_system(system, position=(0.5, 0.5, 0.5), system_config=config)
     bare = SystemConfig()
     bare.PLANETS = False

@@ -232,9 +232,9 @@ def test_less_common_settings_sit_in_a_folded_advanced_block(client, site):
     # ADM.108: the prevalence, star mix and override settings fold under Advanced on their task's page.
     sectors = _task_html(client, "add-sectors")
     block = re.search(r'<details class="generate-advanced">(.*?)</details>', sectors, re.S).group(1)
-    assert 'name="prevalence_comets"' in block and 'name="star_mix_single"' in block and 'name="directive_systems"' in block
+    assert 'name="prevalence_moons"' in block and 'name="star_mix_single"' in block and 'name="directive_systems"' in block
     new_galaxy = _task_html(client, "new-galaxy")
-    assert 'name="bright_min_luminosity"' in new_galaxy and 'name="prevalence_comets"' in new_galaxy
+    assert 'name="bright_min_luminosity"' in new_galaxy and 'name="prevalence_moons"' in new_galaxy
     assert 'name="stellar_mass"' in new_galaxy or 'name="mass"' in new_galaxy
     assert "data-customize" not in sectors + new_galaxy
 
@@ -911,14 +911,14 @@ def test_the_page_has_no_backfill_checkbox_and_the_run_backfills_from_the_edge(s
 def test_a_changed_share_reaches_the_galaxy_run_as_a_percentage(site, client, no_spawn, action):
     usual = generate_page.prevalence.USUAL_SHARES
     assert _post(client, action=action, confirm=DB, estimate_ok="1",
-                 prevalence_habitable_world="0", prevalence_comets=f"{usual['comets'] * 150:g}",
+                 prevalence_habitable_world="0", prevalence_max_planets=f"{usual['max_planets'] * 150:g}",
                  prevalence_moons=f"{usual['moons'] * 100:g}").status_code == 303
     (job,) = no_spawn
     argv = _argv(next(step for step in _work_steps(job) if _argv(step)[0] == "sectors"))
     given = dict(argv[i + 1].split("=") for i, arg in enumerate(argv) if arg == "--prevalence")
-    assert set(given) == {"habitable_world", "comets"}  # moons left at its usual share
+    assert set(given) == {"habitable_world", "max_planets"}  # moons left at its usual share
     assert float(given["habitable_world"]) == -100
-    assert float(given["comets"]) == pytest.approx(50)
+    assert float(given["max_planets"]) == pytest.approx(50)
 
 
 @pytest.mark.parametrize("form", [{}, {f"prevalence_{f}": "" for f in generate_page.prevalence.FEATURES}])
@@ -932,10 +932,10 @@ def test_usual_or_blank_shares_add_nothing(site, client, no_spawn, form):
 
 @pytest.mark.parametrize("value", ["-1", "101", "lots", "nan"])
 def test_a_share_must_be_a_number_from_0_to_100(site, client, no_spawn, value):
-    resp = _post(client, action="galaxy", estimate_ok="1", prevalence_comets=value)
+    resp = _post(client, action="galaxy", estimate_ok="1", prevalence_moons=value)
     assert resp.status_code == 400
     assert no_spawn == []
-    assert "Comets (% of systems)" in resp.get_data(as_text=True)
+    assert "Moons (% of planets with any)" in resp.get_data(as_text=True)
 
 
 def test_page_starts_every_prevalence_field_at_its_usual_share(site, client):
@@ -945,9 +945,18 @@ def test_page_starts_every_prevalence_field_at_its_usual_share(site, client):
     assert re.search(rf'<sl-input name="prevalence_habitable_world"[^>]* value="{tuning.PREVALENCE_BASE_SHARES["habitable_world"] * 100:g}"', html)
 
 
+def test_the_comet_share_is_the_galaxys_setting_not_a_percentage_field(site, client):
+    # GEN.1775: how many stars hold comets is the galaxy's comet abundance tier, so the page has no comet share to start at the old 32.1 percent.
+    html = _forms_html(client)
+    assert 'name="prevalence_comets"' not in html and "Comets (% of systems)" not in html
+    assert "prevalence_comets" not in [name for name, _label, _usual in generate_page.PREVALENCE_FIELDS]
+    new_galaxy = _task_html(client, "new-galaxy")
+    assert 'name="comet_abundance"' in new_galaxy
+
+
 def test_the_generator_accepts_the_prevalence_argv():
     from planetgen.cli import generate as generate_cli
-    features = [f for f in generate_page.prevalence.FEATURES if f not in generate_page.STAR_MIX_FEATURES]
+    features = [f for f in generate_page.prevalence.FEATURES if f not in generate_page.STAR_MIX_FEATURES + generate_page.TIER_FEATURES]
     form = {f"prevalence_{f}": "1" for f in features}
     form.update(star_mix_single="50", star_mix_close_pair="30", star_mix_wide_pair="20")
     args = generate_cli.build_parser()[0].parse_args(["galaxy", *generate_page.prevalence_argv(form)])

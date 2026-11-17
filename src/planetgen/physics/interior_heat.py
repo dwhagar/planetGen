@@ -133,6 +133,11 @@ CORE_STRIDE = 4
 STEP_GROWTH = 1.15
 """float: The factor steps grow by."""
 
+FLOOR_STIFFNESS_MARGIN = 3.0
+"""float: The factor `cool` puts on the conduction floor's own rate of change when it takes the step from it (PERF.277): the viscous estimate it replaces
+is an overestimate of about three of the flux's true rate of change, which is the safety the step has against the integrator's stability limit
+(`h` times the rate of change about 2.8 for the fourth-order rule), so the floor, whose rate of change is known exactly, takes the same margin."""
+
 
 class InteriorHeatError(ValueError):
     """A body this model cannot follow."""
@@ -355,6 +360,9 @@ def _flux_function(interior, gravity, thickness_m, lid=STAGNANT, surface_k=SURFA
     critical, exponent = (MOBILE_CRITICAL_RAYLEIGH, MOBILE_HEAT_FLOW_EXPONENT) if mobile else (CRITICAL_RAYLEIGH, HEAT_FLOW_EXPONENT)
     exp = math.exp
 
+    def conduction_of(temperature_k):
+        return conduction_scale * max(temperature_k - surface_k, 0.0) / length
+
     def flux(temperature_k):
         exponent_of_viscosity = activation / (GAS_CONSTANT * temperature_k)
         conduction = conduction_scale * max(temperature_k - surface_k, 0.0) / length
@@ -368,6 +376,8 @@ def _flux_function(interior, gravity, thickness_m, lid=STAGNANT, surface_k=SURFA
         layer = thickness_m * (critical / rayleigh) ** exponent
         return max(MANTLE_CONDUCTIVITY * drop / layer, conduction)
 
+    flux.conduction = conduction_of
+    flux.conduction_slope = conduction_scale / length
     return flux
 
 
@@ -500,7 +510,13 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         flux = flux_at(temperature)
         while t < age_gy:
             # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
-            stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
+            if flux <= flux_at.conduction(temperature):
+                # PERF.277: a flux that is the conduction floor changes with the temperature by the floor's own slope, not by the viscosity law's
+                # (which a flux it does not set cannot be taken to follow): a cold small body sits on the floor for most of its life, and the
+                # viscous estimate there, `Ea / (R T^2)` at a few kelvin, shrank its step to 1e-5 Gy and took 770,000 steps where 900 do
+                stiffness = FLOOR_STIFFNESS_MARGIN * GY_S * area_dry_m2 / capacity * flux_at.conduction_slope
+            else:
+                stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
             h = min(step, age_gy - t, 1.0 / stiffness if stiffness > 0.0 else step)
             k1 = rate(radiogenic_start, temperature, flux * area_dry_m2 if surface_k <= temperature <= top_k else None)
             if tide is not None and k1 != 0.0 and not (temperature >= top_k and k1 > 0.0):   # a mantle held on its ceiling goes no further

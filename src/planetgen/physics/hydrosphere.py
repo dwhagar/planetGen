@@ -371,6 +371,19 @@ def generate_hydrosphere(body, internal_flux_w_m2, surface_w):
     aquifers.generate(body, surface_w, internal_flux_w_m2)
 
 
+def _all_vapor(body, water_kg, temperature_k, gravity_m_s2):
+    """
+    Whether the surface water would all stand as vapor in the air at `temperature_k` (GEN.1773): the pressure the whole of it makes (its weight over the area) is under water's
+    saturation pressure there, so the air cannot be saturated and no liquid stays at the surface. Under a thick air an ocean does not boil (`water_boiling_k` reads the total
+    pressure), yet a body past its runaway limit with a little water settles warm with all of it in the air; the air's own fixed point says the same (`surface_air.Air.ocean_present`),
+    so the hydrosphere agrees with it. A body at or past water's critical point has no liquid and no saturation curve, and is left to `water_boiling_k`.
+    """
+    if temperature_k >= gases.gas("H2O").critical_temperature_k or not gravity_m_s2:
+        return False
+    area_m2 = 4.0 * math.pi * (body.radius * 1000.0) ** 2
+    return water_kg * gravity_m_s2 / area_m2 < saturation.pressure_pa("H2O", temperature_k)
+
+
 def _generate_surface(body, internal_flux_w_m2, surface_w):
     """The surface part of `generate_hydrosphere`: the ocean, its ice and its chemistry; returns `surface_w`."""
     w = body.water_mass_fraction
@@ -393,7 +406,7 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
     water_kg = surface_w * body.mass
     salt = None
     if temperature >= WATER_MELTING_K:
-        if temperature >= water_boiling_k(pressure):
+        if temperature >= water_boiling_k(pressure) or _all_vapor(body, water_kg, temperature, gravity):
             body.hydrosphere = "vapor"
             body.ocean_fraction, body.land_fraction = 0.0, 1.0
             return surface_w

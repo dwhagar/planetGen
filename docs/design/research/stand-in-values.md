@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1902 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1904 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1875 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1877 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,13 +52,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 221 | 22 | 12 | 1 | 0 | 256 |
 | T2 | 174 | 73 | 4 | 1 | 0 | 252 |
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
-| T4 | 89 | 16 | 8 | 24 | 13 | 150 |
+| T4 | 89 | 16 | 8 | 24 | 14 | 151 |
 | T5 | 108 | 29 | 8 | 2 | 2 | 149 |
 | T6 | 240 | 131 | 37 | 81 | 5 | 494 |
 | T7 | 70 | 37 | 10 | 32 | 0 | 149 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 52 | 20 | 6 | 113 | 41 | 232 |
-| All | 1081 | 391 | 98 | 270 | 62 | 1902 |
+| T9 | 52 | 20 | 6 | 113 | 42 | 233 |
+| All | 1081 | 391 | 98 | 270 | 64 | 1904 |
 
 ## How the labels were given
 
@@ -165,6 +165,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | `--richness` | 1 to 3 systems per solar mass | bracket | T3 | L0 | the derived mean system mass runs 0.47 (old stars) to 0.79 solar masses (stars just formed), 1.3 to 2.1 systems per solar mass (the generator's own laws); the band 1 to 3 widens it by about a factor of 1.4 | predicted only | - | - |
 | `--rogues` | none, few, normal, many | placeholder | T4 | L3 | Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to 10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS) | predicted only | - | no data |
 | `--class-m` | science, sparse, scattered, plentiful, abundant | placeholder | T4 | L4 | Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census | predicted only | - | no data |
+| `--comet-abundance` | science, sparse, scattered, plentiful, abundant | placeholder | T4 | L4 | Boss, 8:43 PM EST 2026-11-16 (physics at Science, a scale beside it, as the Class M abundance and Rogue planets); the factors behind each word are first-pass stand-ins (tuning.COMET_TIER_MULTIPLIERS) | predicted only | - | no data |
 | `--arm-count` | 1 to 10 | placeholder | T4 | L0 | [R1836] counts 1 to 5 or more arms; the ceiling of 10 is a placeholder | predicted only | - | - |
 | `--pitch-angle-deg` | -90 to 90 degrees, at least 1 away from 0 | placeholder | T4 | L0 | [R1836] draws 10 to 40; the full quarter turn is a placeholder; under 1 degree from 0 is refused because a flat pitch divides by zero (density-limits report, 10-21) | predicted only | - | - |
 | `--arm-contrast` | 0 to 1 | placeholder | T4 | L0 | 0 to 1 because the density cannot go negative (theory); the 0.4 default is the first plan's hand value, no source | predicted only | - | - |
@@ -3339,8 +3340,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CMT5 | P | T9 | L3 | `tuning.COMET_PERIOD_CLASSES` weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family, kept for a star with no outer disk a giant scattered; for one with such a disk the shares are read from it (`comet_supply.family_weights`): the `scattered_disk` plus `centaurs` share of the disk is the Jupiter family, the `detached` share the cloud, split between the Halley-type and long-period families by these weights' ratio 0.6 to 0.4 | each 0.1 to 0.6 | stars that hold comets | a comet census of a system with the shares of its outer belt, giants and cloud | the supply of every star's reservoirs, once comets are tied to outer disks (the question to Boss, GEN.1765) | the code's own comment says it is not a population estimate; the census of GEN.1765 found 2 of 398 stars with scatter fates, so almost every star uses these weights | predicted only | - | no data |
 | CMT6 | P | T1 | L0 | `tuning.COMET_NUCLEUS_CUMULATIVE_INDEX` 1.92 and the lower end 2.5 km of `BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM`: a star-bound comet's nucleus diameter is drawn from a power law, the cumulative number above D falling as D^-q, between 2.5 and 20 km (`Comet`, `util.random.sample_power_law`) | q 1.72 to 2.12 (the printed error of 0.20); lower end 1 to 2.5 km | Jupiter-family nuclei of radius 1.25 km and up, applied to the Halley-type and long-period nuclei too (no size law of those is read) | a nucleus sample complete to smaller sizes with another slope, or a turnover above 2.5 km | a law with its own break once a sample complete below 2.5 km is read | [R4139] (Snodgrass et al., abstract: q = 1.92 +- 0.20 for radius 1.25 km and up) and [R5296] (abstract: slope about -1.9 of 89 nuclei); only the abstracts were read | predicted only | - | - |
 | CMT7 | P | T6 | L3 | `tuning.COMET_PERIHELION_DISTANCE_RANGE_AU` (0.05, 5.0) drawn uniform in perihelion | lower end 0.01 to 0.1 AU; upper end 3 to 10 AU | star-bound comets | a comet catalogue whose perihelia are not flat in distance inside the range after the survey bias is removed | the star's radius and tidal limit for the lower end and the activity threshold (CA1) for the upper | physics: for a near-parabolic orbit q = L^2 / (2 G M), and an isotropic cloud that fills its loss cone is flat in L^2, so flat in q; the two ends are hand set | predicted only | - | no data |
-| CMT8 | P | T9 | L3 | `tuning.SYSTEM_COMET_CHANCE` 0.3 and `SYSTEM_COMET_COUNT_RANGE` (1, 3): the share of stars that hold comets and how many of the few the generator models each holds | chance 0.1 to 1; count 1 to 5 | every star's own comets | a star with an outer belt or a cloud that shows no comets, or a comet census per star that is far from this rate | comets present wherever the system has an outer belt, a cloud or a giant, from the supply of CMT5's replacement | design: the code's comment ("most real stars aren't known to host an observed comet population") is an observation limit, not a rate | predicted only | - | no data |
+| CMT8 | P | T9 | L3 | `tuning.SYSTEM_COMET_CHANCE` 0.3 and `SYSTEM_COMET_COUNT_RANGE` (1, 3): the chance a star with no scattered outer disk holds comets, when a comet abundance tier gives it one (CMT10's factors; none on `science`, GEN.1775), and how many of the few the generator models each holds | chance 0.1 to 1; count 1 to 5 | every star's own comets | a star with an outer belt or a cloud that shows no comets, or a comet census per star that is far from this rate | comets present wherever the system has an outer belt, a cloud or a giant, from the supply of CMT5's replacement | design: the code's comment ("most real stars aren't known to host an observed comet population") is an observation limit, not a rate | predicted only | - | no data |
 | CMT9 | P | T6 | L3 | `tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM` upper end 20 km: the largest nucleus the draw gives, cut to the largest body of the star's outer disks where it has them (`comet_supply.nucleus_top_km`, never under the lower end) | 15 to 60 km | star-bound comet nuclei | a comet of a star with a belt whose largest body is far under or over it | the largest body of every star's outer disk | design: wide of the largest measured nuclei, [R2301] gives Halley at about 15 x 8 km | predicted only | - | no data |
+| CMT10 | P | T9 | L4 | `tuning.COMET_TIER_MULTIPLIERS` 0.25, 0.5, 1 and 2 (`sparse`, `scattered`, `plentiful`, `abundant`): the factor a galaxy's comet abundance tier puts on CMT8's chance for a star with no scattered outer disk (`comet_abundance.presence_chance`); `science`, the default, is the physics and has no factor | each factor 0.1 to 3 | stars with no outer disk a giant scattered, in a galaxy made under a tier | a measured count of comets per star far from 30 percent times the factor of the tier a galaxy is asked for | a comet census of other stars, or a dynamical lifetime ratio read from the supply of CMT5's replacement | Boss, 8:43 PM EST 2026-11-16 (a scale beside the physics, like the Class M abundance and Rogue planets); the factors are first-pass words, the stand-in they scale is CMT8 and nothing in the physics is changed; test_comet_abundance | predicted only | - | no data |
 
 ## 6.304 Stand-ins of the scatter of a star's own snow line (GEN.1611)
 
