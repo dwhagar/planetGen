@@ -124,7 +124,11 @@ def test_a_ring_with_no_star_under_the_cap_has_an_empty_sample_and_no_reach(clea
     assert tiers_module.ring_reach_pc(top[0], top[1], 7.5, clear) == 0.0
 
 
-def test_the_rings_under_one_solar_mass_are_the_near_masses_and_reach_less_far(clear, few_samples):
+def test_the_rings_under_one_solar_mass_are_the_near_masses_and_reach_less_far(clear):
+    # The sample the sky really draws (`RING_SAMPLES`, 400 stars per population), not the 40 of `few_samples`: a ring reaches as far as 0.5 percent of its stars
+    # still show (`RING_MIN_YIELD`), which is a fifth of a star in 40, so the reach of 40 stars is the brightest one drawn, a pre-main-sequence or
+    # evolved star the stream happened to give, and the order of the rings follows those draws (38.1 pc for the 0.3 ring, 36.9 for the 0.7 one). At 400 stars the rings
+    # run 11, 21, 42, 49 and 68 pc, and at 100 and 200 stars they still rise. It takes 7 s to build.
     table = build(SUN, 7.5, EDGE, curve=clear)
     near = [ring for ring in table.rings if ring.key < 1.0]
     assert near and [ring.key for ring in near] == sorted(ring.key for ring in near)
