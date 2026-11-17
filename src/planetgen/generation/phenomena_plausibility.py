@@ -37,7 +37,7 @@ Two-tier "sane range" design (mirrors `plausibility.py` exactly):
 import math
 from collections import Counter, defaultdict
 
-from planetgen.physics import constants as pc, neutron_star, relations
+from planetgen.physics import constants as pc, dark_light, neutron_star, relations
 from planetgen import tuning as prog_c
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar, hawking_luminosity_w
@@ -236,6 +236,7 @@ def _extract_record(phenomenon_type, obj):
             "magnetic_field_gauss": obj.magnetic_field_gauss,
             "pulsar_type": obj.pulsar_type,
             "surface_temperature_k": obj.surface_temperature_k,
+            "age_gy": obj.age,
             "luminosity_w": obj.luminosity,
         })
     elif phenomenon_type == "nebula":
@@ -389,12 +390,8 @@ def check_hard_invariants(record):
         radius_lo, radius_hi = neutron_star.radius_limits_km(record["mass_solar"])
         if not (radius_lo - 1e-9 <= record["radius_km"] <= radius_hi + 1e-9):
             issues.append(f"radius_km={record['radius_km']!r} outside {(radius_lo, radius_hi)} for its mass")
-        temp_lo, temp_hi = prog_c.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K
-        if not (temp_lo <= record["surface_temperature_k"] <= temp_hi):
-            issues.append(
-                f"surface_temperature_k={record['surface_temperature_k']!r} outside "
-                f"{prog_c.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K}"
-            )
+        # GEN.1529: the surface temperature is the cooling curve's at the age since the collapse.
+        _isclose_or_flag(issues, "surface_temperature_k", record["surface_temperature_k"], dark_light.surface_temperature_k(record["age_gy"]))
         if record["pulsar_type"] not in ("young", "millisecond", "magnetar", "non-pulsing"):
             issues.append(f"pulsar_type={record['pulsar_type']!r} is not a recognized value")
         radius_m = _km_to_m(record["radius_km"])

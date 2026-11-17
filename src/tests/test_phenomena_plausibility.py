@@ -30,7 +30,7 @@ import pytest
 from planetgen.generation import phenomena_plausibility as pp
 from planetgen.generation.phenomena.compact_remnant import hawking_luminosity_w
 from planetgen.generation.phenomena.supernova_remnant import sedov_taylor_radius_ly
-from planetgen.physics import constants as pc
+from planetgen.physics import constants as pc, dark_light
 from planetgen import tuning as prog_c
 
 # Small on purpose -- see module docstring. Large enough to exercise each
@@ -102,7 +102,8 @@ _BLACK_HOLE_EVENT_HORIZON_KM = (
 ) / 1000
 
 _NEUTRON_STAR_RADIUS_KM = 12.0
-_NEUTRON_STAR_SURFACE_TEMPERATURE_K = 5e5
+_NEUTRON_STAR_AGE_GY = 4.0e-4
+_NEUTRON_STAR_SURFACE_TEMPERATURE_K = dark_light.surface_temperature_k(_NEUTRON_STAR_AGE_GY)      # GEN.1529: the cooling curve's at its age since the collapse
 _NEUTRON_STAR_LUMINOSITY_W = (
     pc.STEFAN_BOLTZMANN_CONSTANT * 4 * math.pi * (_NEUTRON_STAR_RADIUS_KM * pc.KM_TO_M_FACTOR) ** 2
     * _NEUTRON_STAR_SURFACE_TEMPERATURE_K ** 4
@@ -132,7 +133,7 @@ def _base_record(phenomenon_type, **overrides):
         "neutron-star": {
             "mass_solar": 1.4, "radius_km": _NEUTRON_STAR_RADIUS_KM, "spin_period_ms": 100.0,
             "magnetic_field_gauss": 1e11, "pulsar_type": "young",
-            "surface_temperature_k": _NEUTRON_STAR_SURFACE_TEMPERATURE_K,
+            "surface_temperature_k": _NEUTRON_STAR_SURFACE_TEMPERATURE_K, "age_gy": _NEUTRON_STAR_AGE_GY,
             "luminosity_w": _NEUTRON_STAR_LUMINOSITY_W,
         },
         "nebula": {
@@ -213,6 +214,12 @@ def test_check_hard_invariants_flags_black_hole_disk_luminosity_mismatch():
 def test_check_hard_invariants_flags_a_diskless_black_hole_not_at_its_hawking_luminosity():
     issues = pp.check_hard_invariants(_base_record("black-hole", luminosity_w=0.0))
     assert any("luminosity_w" in issue for issue in issues)
+
+
+def test_check_hard_invariants_flags_a_neutron_star_off_the_cooling_curve():
+    issues = pp.check_hard_invariants(_base_record("neutron-star", surface_temperature_k=2.0 * _NEUTRON_STAR_SURFACE_TEMPERATURE_K,
+                                                   luminosity_w=16.0 * _NEUTRON_STAR_LUMINOSITY_W))
+    assert any("surface_temperature_k" in issue for issue in issues)
 
 
 def test_check_hard_invariants_flags_neutron_star_luminosity_mismatch():

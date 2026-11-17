@@ -221,3 +221,18 @@ def test_the_truncation_of_a_disk_does_not_count_a_glowing_dark_member():
     without = disk_truncation.star_truncation_au(star)
     radiation_field.attach(star, stars_only + dark_only)
     assert disk_truncation.star_truncation_au(star) == without
+
+
+def test_a_lone_neutron_star_is_on_the_cooling_curve_a_tree_member_reads():
+    """GEN.1529: the lone phenomenon's temperature and a tree member's are one curve, and the snow line of a lone star's disk is read at the light it had at the end of the neutrino era."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.compact_remnant import NeutronStar
+    from planetgen.util import draw
+    for seed in range(5):
+        draw.set_run_seed(seed)
+        star = NeutronStar(SystemConfig())
+        assert star.surface_temperature_k == pytest.approx(dl.surface_temperature_k(star.age))
+        member = dl.source_of(_member("neutron-star", star.mass_solar, radius_au=star.radius / constants.AU_TO_KM), star.age + dl.NEUTRON_STAR_PROGENITOR_LIFE_GY)
+        assert member.temperature == pytest.approx(star.surface_temperature_k, rel=1e-9)
+        assert star._formation_luminosity_w() == pytest.approx(dl.neutron_star_luminosity_w(star.radius, dl.NEUTRON_STAR_PHOTON_ERA_YR * 1e-9))
+        assert star.snow_line_au > 0.05, "an old, cold star's disk had its ices out at an astronomical unit or so, not at 1e-5 AU"
