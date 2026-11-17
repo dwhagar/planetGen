@@ -72,7 +72,7 @@ os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
 # OPS.228: the units of a run go to the supervisor's launcher by default. A test run has no supervisor to hand them out, so tests keep the RQ path
 # unless they cover the forked one (`test_forked_job`, `test_launcher`, which turn it on for themselves).
-os.environ.setdefault("PLANETGEN_FORKED_JOBS", "0")
+os.environ.setdefault("PLANETGEN_FORKED_JOBS", "1")
 
 # GEN.1580: a body held at the ionization ceiling of its air is an error in every test that makes one (`air_final.CEILING_IS_ERROR_VARIABLE`), never a state to keep.
 os.environ["PLANETGEN_CEILING_IS_ERROR"] = "1"
