@@ -229,13 +229,14 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
         summary = {"kind": kind, "units": len(units), "cost": cost, "detail": plan_detail}
         if split is not None:
             summary["split"] = split
+        opened = {"index": index, "plan": summary, "run_id": run_id, "cap": runrecord.declared_stages(conn, run_id)[index].get("cap")}      # the most units of it that run at once, when the run was asked
         try:
-            ledger.add_jobs(control, run, [{"stage": stage, "command": OPEN, "arguments": {"index": index, "plan": summary, "run_id": run_id}}]
+            ledger.add_jobs(control, run, [{"stage": stage, "command": OPEN, "arguments": opened}]
                             + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}
                                for number, (args, unit_cost) in enumerate(units)]
                             + _end_jobs(stage, kind))
             control.execute("UPDATE engine_jobs SET state = 'done', arguments = ?, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''",
-                            (ledger._text({"index": index, "plan": summary, "run_id": run_id}), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
+                            (ledger._text(opened), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
             control.commit()
         except Exception:
             control.rollback()
