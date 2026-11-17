@@ -43,6 +43,7 @@
   "/api/admin/work/supervisor GET",
   "/api/admin/work/tuning GET",
   "/api/admin/work/tuning POST",
+  "/api/admin/work/waiting GET",
   "/api/admin/work/warm GET",
   "/api/admin/work/workers GET",
   "/api/admin/work/workers POST",

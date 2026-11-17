@@ -15,11 +15,11 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, waiting, warmphases, work as workQueue, workers as queueWorkers
 from planetgen.util import log
 
 from .authz import audit, require_admin
-from .common import ApiError, require_json_body
+from .common import ApiError, get_control_db, require_json_body
 from .routes import _paginate
 from .schemas import QueueAction, RunAction, TuningAction, WorkerCount, parse_body
 
@@ -437,6 +437,15 @@ def supervisor_state():
     connection = _redis()
     supervisor.ensure_started(connection)
     return jsonify(supervisor.overview(connection))
+
+
+@bp.route("/waiting", methods=["GET"])
+@require_admin()
+def waiting_state():
+    """`GET /api/admin/work/waiting` -- why jobs have not started (OPS.233, `queue/waiting.py`): `classes` (for each job class with a job not started: `waiting` and `ready` counts, the age of the
+    oldest of each in seconds, `retry_in_seconds`, `reasons` as `{reason, count}`, `more`), `started` (each class's starts in the last hour: `count`, `median_seconds`, `longest_seconds`) and `gate`
+    (the memory gate's figures in words)."""
+    return jsonify(waiting.overview(get_control_db()))
 
 
 @bp.route("/tuning", methods=["GET"])
