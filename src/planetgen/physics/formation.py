@@ -45,10 +45,10 @@ def draw_snow_line_au(luminosity_w, stream=None):
     One star's own snow line, in AU (GEN.458): the blackbody position
     (`snow_line_au`) times 10 to a normal draw of `tuning.SNOW_LINE_SCATTER_DEX`
     dex, redrawn while it lies beyond `tuning.SNOW_LINE_SCATTER_MAX_SIGMA`
-    sigma, a factor of 4 either way (the factor 2 to 3 is how far real lines
-    are said to move with the accretion history and the dust, Mulders et al.
-    2015; the cut is wider than that on purpose, so it clips only the tail of
-    the draw). Drawn once for a star and stored with it.
+    sigma: the plus and minus 2 sigma (a factor of 2.5 either way) over which
+    [R3193: Fig. 3] works the snow lines of stars of one mass and age (GEN.1611;
+    the cut was 3 sigma, a factor of 4, wider than the factor 2 to 3 the real
+    lines are said to move), so it clips the tail of the draw. Drawn once for a star and stored with it.
 
     Args:
         luminosity_w (float): The star's luminosity, in Watts.

@@ -18,6 +18,11 @@ Three inputs (`tuning`, GEN.529) are fitted to the published BHAC15 tracks [R025
 Hayashi temperature and its mass slope, the birthline radius and its slope, and the energy factor above. Past the
 table's 1.4 solar masses they are extended by the same power laws.
 
+The model's track is brighter than the tables' from 0.5 solar masses up (GEN.1640: a Sun-like star at 10 Myr 0.75 solar luminosities against 0.46, a 1.4 solar mass star reaching the main sequence at 9 Myr
+against 20), because it keeps a star at the luminosity it ends on while the published track dips below it and climbs back. So where the BHAC15 isochrones hold the mass (0.01 to 1.4 solar masses, `datasets.baraffe_isochrones`,
+verified, solar metallicity) the star's luminosity, temperature and radius are theirs at its age (`_table_state`; ages under their first, 0.5 Myr, read the first), and the model above is the stand-in only
+for a star the table does not hold. The two meet with a step at 1.4 solar masses (the model's, listed on GEN.553) that this does not hide.
+
 Two times (GEN.1174, Boss 5:25 AM EDT 2026-10-31: both times, the class by the radius). `radius_settled_yr` is the age at which the radius
 has settled to within 5 percent of its main-sequence value in the BHAC15 tracks, the time a star stops contracting; the model's clock
 is stretched onto it, the star is pre-main-sequence until then, and its track ends on the main sequence at that age.
@@ -30,8 +35,8 @@ import functools
 import math
 
 from planetgen import tuning
-from planetgen.datasets import isochrones
-from planetgen.physics import constants, main_sequence, unit_registry as units
+from planetgen.datasets import baraffe_isochrones, isochrones
+from planetgen.physics import constants, disk_dispersal, main_sequence, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.random import log_uniform as _log_uniform
 
@@ -40,11 +45,14 @@ _msun_to_kg = units.converter("Msun", "kg")
 RADIUS_SETTLED_MYR = (
     (0.07, 1010.4), (0.08, 830.5), (0.09, 506.6), (0.10, 402.4), (0.11, 355.5), (0.13, 279.2), (0.15, 240.1), (0.17, 216.1),
     (0.20, 187.5), (0.30, 130.2), (0.40, 105.5), (0.50, 88.2), (0.60, 74.8), (0.70, 62.2), (0.80, 50.3),
+    (0.90, 47.1), (1.00, 38.0), (1.10, 30.6), (1.20, 24.9), (1.30, 22.3), (1.40, 19.6),
 )
 """tuple: `(initial mass in solar masses, Myr)`: the age at which the radius of the BHAC15 track ([R0254], solar metallicity,
 `BHAC15_tracks+structure`) first falls within 5 percent of its value at 5 Gyr, read for GEN.1174 (the report `gen1169-pre-main-sequence-share-2026-10-31.md`
-and its script). Above 0.8 solar masses the radius of the track goes through a minimum and the criterion stops meaning the same thing, so the model's
-own Kelvin-Helmholtz time is carried on at the 0.8 ratio (`radius_settled_yr`); registry row LM6 of 6.66."""
+and its script), 0.07 to 0.8 solar masses. Above 0.8 solar masses the radius of the track goes through a minimum and a star is evolved by 5 Gyr, so
+from 0.9 to 1.4 (GEN.1640) it is the age at which the radius of the BHAC15 isochrones (`datasets.baraffe_isochrones`, read finely in age) first falls within 5 percent of the
+radius of the MIST zero-age main sequence the star contracts onto (`main_sequence.zams_state`; the two give the same luminosity there to within 4 percent). Above 1.4 the model's own
+Kelvin-Helmholtz time is carried on at the 1.4 ratio (`radius_settled_yr`); registry row LM6 of 6.66."""
 
 PROTOSTAR = "protostar"
 PRE_MAIN_SEQUENCE = "PMS"
@@ -113,8 +121,8 @@ def _track(mass_sol, fe_h=0.0):
 def radius_settled_yr(mass_sol, fe_h=0.0, own_yr=None):
     """
     The age at which a star of this initial mass has contracted to the main sequence, years (GEN.1174): the BHAC15 age at which its radius settles
-    to within 5 percent (`RADIUS_SETTLED_MYR`, log-log between the masses, flat below 0.07 solar masses); above 0.8 solar masses the model's own
-    Kelvin-Helmholtz time (`own_yr`, worked out when not given) scaled by the ratio the two have at 0.8. The tracks are for solar metallicity; the
+    to within 5 percent (`RADIUS_SETTLED_MYR`, log-log between the masses, flat below 0.07 solar masses); above 1.4 solar masses the model's own
+    Kelvin-Helmholtz time (`own_yr`, worked out when not given) scaled by the ratio the two have at 1.4. The tracks are for solar metallicity; the
     time is taken for every [Fe/H] (`fe_h` is only here for the callers' sake).
     """
     masses = [m for m, _ in RADIUS_SETTLED_MYR]
@@ -167,9 +175,22 @@ def stage(mass_sol, age_yr, fe_h=0.0):
     return PROTOSTAR if age_yr < tuning.PROTOSTAR_MAX_AGE_YR else PRE_MAIN_SEQUENCE
 
 
+def _table_state(mass_sol, age_yr):
+    """The BHAC15 luminosity (solar), temperature and radius (solar) of a star of this mass and age (GEN.1640), or None where the table does not hold the mass
+    (above 1.4 solar masses). An age under the table's first reads the first."""
+    grid = baraffe_isochrones.isochrones()
+    found = baraffe_isochrones.interpolate(max(mass_sol, float(grid[0].mass_solar[0])), max(age_yr * 1.0e-9, grid[0].age_gyr), grid)
+    if found is None:
+        return None
+    return {"luminosity_sol": 10.0 ** found["log_luminosity_solar"], "temperature_k": found["teff_k"], "radius_sol": found["radius_solar"]}
+
+
 def _track_state(mass_sol, age_yr, fe_h=0.0):
     """The luminosity (solar), temperature and radius (solar) of a star on the track at this age, any age up to its
-    contraction time, with no regard to the stage limits of `stage`."""
+    contraction time, with no regard to the stage limits of `stage`: the BHAC15 table's where it holds the mass (`_table_state`), else the model's."""
+    published = _table_state(mass_sol, age_yr)
+    if published is not None:
+        return published
     track = _track(mass_sol, fe_h)
     t = _yr_to_s(age_yr) / track["scale"]   # the model's time, stretched onto MIST's arrival
     if t <= track["t1"]:
@@ -203,15 +224,26 @@ def state(mass_sol, age_yr, fe_h=0.0):
             "temperature_k": on_track["temperature_k"], "radius_km": None,
             "phase_end_gy": contraction_time_yr(mass_sol, fe_h) / 1.0e9,
             "nuclear_arrival_gy": nuclear_arrival_yr(mass_sol, fe_h) / 1.0e9,
-            "disk_class": disk_class(age_yr)}
+            "disk_class": disk_class(age_yr, dispersal_yr(mass_sol))}
 
 
-def disk_class(age_yr):
-    """The infrared class of a young star by age: "0", "I", "II", and "III" once its disk is gone."""
+def dispersal_yr(mass_sol):
+    """
+    The age at which this star loses its disk, years (GEN.1551): its own time (`disk_dispersal.draw_dispersal_time_yr`), drawn from the stream of its initial mass and no
+    age, so it does not move when the star's age does; held to `tuning.PLANET_MIN_STAR_AGE_GY` until GEN.1552 lets bodies stand once the disk is gone, so that no star holds a disk and
+    planets at once.
+    """
+    own = disk_dispersal.draw_dispersal_time_yr(f"mass:{mass_sol!r}", mass_sol)
+    return min(own, tuning.PLANET_MIN_STAR_AGE_GY * 1.0e9)
+
+
+def disk_class(age_yr, dispersal_age_yr):
+    """The infrared class of a young star by age: "0" and "I" by the ages of `tuning.DISK_CLASS_AGES_YR` (the embedded stages, however soon its disk would go), "II" until `dispersal_age_yr` (the star's own
+    time, `dispersal_yr`, GEN.1551), and "III" once its disk is gone."""
     for name, limit in tuning.DISK_CLASS_AGES_YR:
         if age_yr < limit:
             return name
-    return "III"
+    return "II" if age_yr < dispersal_age_yr else "III"
 
 
 def sublimation_radius_au(luminosity_sol):
@@ -228,7 +260,7 @@ def draw_disk(mass_sol, age_yr, luminosity_sol, rng=draw):
     `disk_outer_au` (log-uniform over `DISK_OUTER_RADIUS_RANGE_AU`), with no bodies in it; None once the disk is gone
     (Class III), and for a star that is no longer contracting.
     """
-    name = disk_class(age_yr)
+    name = disk_class(age_yr, dispersal_yr(mass_sol))
     if name == "III" or stage(mass_sol, age_yr) is None:
         return None
     return {"disk_kind": f"class-{name.lower()}",
@@ -244,4 +276,4 @@ def companion_chance(mass_sol, age_yr):
     """
     if stage(mass_sol, age_yr) != PROTOSTAR:
         return None
-    return tuning.PROTOSTAR_MULTIPLICITY_BY_CLASS.get(disk_class(age_yr))
+    return tuning.PROTOSTAR_MULTIPLICITY_BY_CLASS.get(disk_class(age_yr, dispersal_yr(mass_sol)))

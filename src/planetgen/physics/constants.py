@@ -224,9 +224,8 @@ float: One milliparsec (1/1000 parsec), in Astronomical Units (AU).
 # --- Physics-Model Constants (heliosphere / stellar wind) ---
 KM_TO_M_FACTOR = 1000
 ESCAPE_VELOCITY_CONSTANT = 2
-RADIUS_SOL_EXPONENT = 2
-LUMINOSITY_SOL_EXPONENT = -0.5
-MASS_SOL_EXPONENT = -1.0
+SOLAR_X_RAY_LUMINOSITY_W = 1.4e20  # The Sun's X-ray luminosity today (1.4e27 erg/s, what `physics.activity` gives at 4.57 Gyr): the unit of a star's X-ray flux and of its wind
+ERG_CM2_S_TO_W_M2 = 1e-3  # 1 erg per second per square centimetre is 1e-3 watts per square metre
 DAYS_PER_YEAR = 365.25  # the Julian year, days: the one copy the period conversions read
 SECONDS_PER_YEAR = 31_557_600.0  # the Julian year, 365.25 days
 HOURS_PER_YEAR = SECONDS_PER_YEAR / 3600.0  # 8766 hours, the Julian year the dose, gear and sky-clock code counts in

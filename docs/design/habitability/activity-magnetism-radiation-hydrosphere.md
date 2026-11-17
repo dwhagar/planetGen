@@ -291,7 +291,7 @@ mass fraction c (Earth 0.325) and lid regime:
    `magnetopause_rp` (the standoff in radii of the body itself, `R_planet` in the unit registry: Earth's 9.75 Earth radii scaled by the
    field and the wind, then divided by the body's own radius, GEN.843). The wind is the sum of the winds of every star of the system (GEN.1452,
    `magnetism.wind_pressure_at`: the host's plus each companion's wind at 1 AU times the mean `1/d^2` between it and the body, the geometry that adds the
-   companions' light, `physics/radiation_field.py`); a lone star gives the number of before. A moon that orbits inside its parent's magnetopause
+   companions' light, `physics/radiation_field.py`); a lone star gives the number of before. A star's own wind is the one law that sizes its heliosphere (GEN.1625, `physics/stellar_wind.py`): the pressure at 1 AU is the Earth's times the star's mass loss times its wind speed over the Sun's (an A to K dwarf's from its surface X-ray flux to the 1.29 power, held at the flux of 1e6 erg/cm^2/s where measured winds turn weak [R5303]; an M dwarf's 3.3 solar mass loss per area, [R5302]; a white dwarf none, so the interstellar medium's pressure). A moon that orbits inside its parent's magnetopause
    is not in the wind: its own standoff is set against the pressure of the parent's field at its orbit, `B^2 / (2 mu0)` with `B = mu0 M / (4 pi r^3)`
    (`magnetism.apply_parent_magnetosphere`; Ganymede's standoff in Jupiter's field comes out at 2.4 radii). The belts of the parent already read the parent's
    field and now the summed wind (`radiation_belts.belts_of_body`).
@@ -695,8 +695,7 @@ when paper access is allowed:
 2. The [R3355] equation, gamma = 0.2 and the `F`
    definition; the `Ro_l` = 0.12 threshold and Earth's 0.09.
 3. The Sanz-Forcada/Chadney `L_EUV` relation (4.80, 0.860) and Ribas's
-   4.6 erg/cm2/s; [R4781]'s slope for fully convective stars; [R4756]
-   wind scaling and the cap values.
+   4.6 erg/cm2/s; [R4781]'s slope for fully convective stars.
 4. Young solar-type flare rates (all non-anchor cells of the 2.4 table) and the
    SEP scaling (20 mSv/yr, the square-root exponent, `R0` = 0.2 GV from the
    1956 event, the 5.4 Sv/day Europa figure).

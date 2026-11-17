@@ -7879,42 +7879,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
 
-- [ ] **GEN.944 Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars)**
-  Audit findings L3 and L4 (low urgency). [Fe/H] is drawn first but is
-  independent of age inside each population window (0 to 0.1, 0.1 to 3,
-  3 to 10 Gy, one mean each), the old population ends at 10 Gy (no
-  thick-disk stars from 10 to 13 Gy), and the alpha-enhanced branch is
-  drawn separately; Cepheids, Mira and other long-period variables,
-  carbon and S stars, T Tauri naming and Ap/Am stars have no class or
-  flag (carbon-star abundances exist in the composition code). Do:
-  later, with Lane 04's age work; cheap flags once the post-main-sequence
-  tracks land. Not in the long-term epoch unless Lane 04 says it is cheap.
-  Owner: none yet (Lane 04 later). Version 8.1.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Star 2 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Train 5 merged (#4321, 11:34 PM EDT) (2026-10-30 11:38 PM EDT): The
-  age-metallicity relation inside each population merged with Star 2
-  #4077. The variable-star flag refresh (#4082) stays open.
-  Variability row merged (2026-10-31 4:25 AM EDT): The cheap flags of
-  the variable-star part merged as #4082 (lock-free): the star sheet has
-  a derived Variability row for classical Cepheid, Mira or semiregular,
-  T Tauri and Herbig Ae/Be stars (physics/variability.py, stand-ins VR1
-  to VR3 in section 6.138, design note
-  docs/design/systems/variability.md). Still open: carbon and S stars
-  (GEN.1026, needs the thermal-pulse count), Ap and Am stars,
-  red-giant-branch semiregulars, and the alpha-shift wiring (GEN.1024).
-  Prerequisites: none. Related: GEN.922.
-  Owner (TODO sweep, 2026-11-12): Lane 05 (stars).
-
 - [ ] **GEN.1006 Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards**
   Boss (2026-10-30, 10:51 AM EDT): merge the quick fix for the missing
   third star (GEN.1004, PR #4026, train 4) but build the deeper, more
@@ -11491,6 +11455,7 @@ clears each one.
 - [ ] **GEN.1551 Each star gets its own disk dispersal time, drawn once from its own stream: a star holds a class 0, I or II disk only while younger than that time (replaces the fixed 3 Myr step), and a close companion shortens it (GEN.1475 reads this time)**
   Boss, 5:51 PM EST on 2026-11-11 ("fix it, all steps"); research reports/young-stars-disks-no-bodies-2026-11-11.md, "What it would take" step 2. Today every star loses its disk at the same age (tuning.DISK_CLASS_AGES_YR, 3 Myr), which over-counts disks under 3 Myr and misses every disk between 3 and 10 Myr. Do: draw one dispersal time per star from the star's own stream (keyed to the star, not to its current age, so it does not re-roll when the age moves; see GEN.1547), with the measured exponential as the law (Boss, 8:41 PM EST 2026-11-16, chose it over the gentler survey curve first written here): about 0.67 of stars hold a disk at 1 Myr, 0.30 at 3 Myr, 0.11 at 5 Myr (at 0.5 solar masses), near none by 10 Myr (the repo's phenomena table row holds 0.8 and 0.1; register the curve in GEN.725 with its tier and tweak level, and a lane reads the survey papers later). A star has a class 0, I or II disk while younger than its time and class III after. The close-companion rule of GEN.1475 (a companion inside 47 au disperses two thirds of the gas within 1 Myr) is the same draw: it shortens this time, it is not a second draw. Reuse physics/pre_main_sequence.draw_disk and the GEN.1475 code. Done: the share of stars with a disk by age matches the curve within sampling error; a test that the time does not change when the star's age is moved. Lock item, new epoch, after GEN.1546.
   TODO, 6:24 PM EST 2026-11-16 (Lane 05, slice 1 is PR 6934, lock): slice 2 (Lane 05, lock) reads the law everywhere it is still fixed: the close-companion shortening (the law has it but companions are attached after the disk is drawn, so the order must change or the draw moves after them), scatter.DISK_LIFETIME_YR (EJ2) and cluster_unbinding CU4, which still use a fixed 3 Myr. The 10 Myr planet cut is GEN.1552. After slice 1 merges, the share-by-age census row of GEN.1549 and GEN.1553 can run.
+  Slice 1 merged in Train 41 (PR 6934, PR 6971, 9:38 PM EST 2026-11-16); slice 2 open (Lane 05).
   Version 8.1. Owner (TODO, 2026-11-11): Lane 05. Prerequisites: GEN.1546, GEN.1550. Related: GEN.1475, GEN.1547, GEN.1552, GEN.725.
   Filed by the TODO thread. Top priority (Boss).
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the dispersal time draw law and its source as a pure function with tests (unwired); slice 1 lock: wire. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
@@ -11576,12 +11541,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 03. Prerequisites: GEN.1581, GEN.1584. Related: GEN.1581, GEN.1584, TEST.726.
   Filed by the TODO thread. Class M audit.
 
-- [ ] **GEN.1611 (bug) The formation snow line follows the star's present brightness: white dwarfs get 0.02 to 0.2 au and giants 13 to 22 au, so ice shares, giant ices, belt type and origins and the disk edge are wrong around evolved stars; and the snow-line scatter allows a factor of 4, putting it inside the habitable zone for 104 of 3,000 stars**
-  Bug sweep fourth batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Fourth batch', M9, confirmed by run. generation/star.py lines 346-347 call formation.draw_snow_line_au(self.luminosity, ...) with today's luminosity; generation/belt_birth.py lines 115-117 pass the same value as both present and formation snow line and scale the disk's outer edge from it. From 3,000 drawn stars: a white dwarf born at 4.36 solar masses (0.00005 Sun today) stores 0.02 au, one born at 1.43 (0.0001 Sun) 0.03 au; K4III and K3III giants born at 1.04 and 1.73 solar masses store 21.8 and 13.5 au. Everything that asks 'made beyond the ice line' reads it: ice shares of planets and moons, a giant's ices, icy or rocky belts, belt origins, the disk edge. White dwarfs are 7.5 percent of drawn stars, giants and subgiants about 0.4 percent. Second part: SNOW_LINE_SCATTER_MAX_SIGMA 3.0 x 0.2 dex allows a factor of 4 either way (the docstring says the real spread is 2 to 3), so for 104 of 3,000 stars (mostly M and K dwarfs) the drawn snow line lies inside the inner habitable-zone edge. Do: draw the formation snow line from the star's birth (pre-main-sequence or zero-age) luminosity for its initial mass (reuse the stellar-state tables), store it apart from the present snow line where both are read, and pass the formation one to belt_birth and every 'formed beyond' test; bring the scatter cap to the sourced spread (cite as [R....] ids, register in GEN.725). Done: a test that a white dwarf and a giant get the snow line of their progenitor's birth, the scatter test against the sourced spread, before and after counts of icy planets, belts and disk edges around evolved stars. Lock item (changes output, new epoch). Split (TODO sweep, 2026-11-12): slice 0 lock-free: the birth-luminosity snow line as a pure function with tests (unwired) and the sourced scatter; slice 1 lock: wire it.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 04 (composition chain; Lane 05 for the stellar-state birth luminosity). Prerequisites: none. Related: GEN.1596, GEN.1606, GEN.1539, GEN.1520, GEN.1546.
-  Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
-  Lane 11 (as the lane reported 1:30 AM EST on 2026-11-12): the birth luminosity function is PR 6180 (physics/birth_luminosity.py, birth_luminosity_sol(initial_mass_sol, fe_h, age_gy), lock-free, unwired), for GEN.1611 slice 1 (Lane 21). It has a 1.8x step at 1.4 Msun from the track mismatch in GEN.1640.
-
 - [ ] **UX.305 (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212**
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do: read planet_class_text.description instead, and test that each class facet has a tooltip. Lock-free.
   Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1212. Boss's call on the choice where noted.
@@ -11599,13 +11558,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.1586, GEN.1613.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
-
-- [ ] **GEN.1625 (bug) The cool-dwarf wind law in generation/star.py (about lines 150-235) has no source: an M5 dwarf gets 2.8 times the Sun's mass loss, white dwarfs get a wind, and magnetism.wind_pressure_pa holds a second, different wind**
-  Data audit batch 1, D5 (report reports/data-audit-2026-11-11.md, with file and line). Do: one sourced wind law used by both places; white dwarfs no wind. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: GEN.1441, GEN.1452.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-  Data audit D19 (batch 2): M dwarf heliospheres of 127 and 142 AU, larger than the Sun's; more evidence for this item.
 
 - [ ] **GEN.1629 (bug) 52 of 124 gases have ir null, and the null is handled two different ways**
   Data audit batch 1, D9 (report reports/data-audit-2026-11-11.md, with file and line). Do: one rule for a gas with no infrared data (fill from the k-tables where they exist, else one documented default). Lock item.
@@ -11638,12 +11590,6 @@ clears each one.
   Lane 21 (as the lane reported 1:24 AM EST on 2026-11-12), found while wiring GEN.1201 (PR 6175; gap written in gap-filling-plan section 6.162). Do: add latent heat of ice melting and convective (or hydrothermal) heat loss to physics/shape_temperature.py from the research ([R....] ids only), and check the analogues against their measured shapes. Lock item (changes roundness).
   Measured by Lane 04, 4:27 AM EST 2026-11-16: with the generator's own 26Al draw the sweep is sane (ice-rock round from about 150 km, rock from about 300 km); only canonical 26Al rounds everything from 30 km. Ice latent heat moves the shape temperature about 4 percent, so it cannot fix the canonical case; the deciding physics is heat loss from a melting body (convection, hydrothermal flow) and formation time after the 26Al clock, neither sourced. Parked until Lane 06's small-body population exists to measure on, and until sources for formation time and convective loss are found.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1201. Related: GEN.1201.
-  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
-  Filed by the TODO thread.
-
-- [ ] **GEN.1640 (bug) The pre-main-sequence luminosity is brighter than BHAC15 at 10 Myr from 0.5 solar masses up (1.0 Msun gives 0.75 Lsun against 0.46), and 1.4 Msun stars reach the main sequence at 8.6 Myr**
-  Lane 11 (as the lane reported 1:30 AM EST on 2026-11-12): the contraction track (pre_main_sequence._track_state, GEN.242) gives 0.75 Lsun for 1.0 Msun at 10 Myr against 0.46 in BHAC15 [R0254] (1.2 Msun: 1.67 against 0.85; 0.5 Msun: 0.161 against 0.123; 0.3 Msun and below within 6 percent), and has 1.4 Msun stars on the main sequence at 8.6 Myr where BHAC15 still has them at 1.95 against 3.4 Lsun. This is why birth_luminosity has a 1.8x step at 1.4 Msun. Do: refit the Hayashi-to-radiative join (the radiative-stage luminosity plateau) so the luminosity at 1, 3 and 10 Myr and at the radius-settled time follows BHAC15 from 0.5 to 1.4 Msun. Done: a test against the BHAC15 rows at 3 ages and 6 masses; before and after counts of pre-main-sequence luminosity. Lock item (changes every pre-main-sequence star, new epoch). Low priority (stars under about 40 Myr only).
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: GEN.242, GEN.1174, GEN.553, GEN.1611.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 

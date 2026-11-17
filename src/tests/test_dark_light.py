@@ -18,20 +18,22 @@ def _member(kind, mass, radius_au=None, number=2):
 
 class _Star:
     """A star as the wind law reads it."""
-    def __init__(self, mass_sol=1.0, luminosity_sol=1.0, radius_km=695700.0, type="G2V Yellow Main Sequence Star", yerkes_class="V"):
+    def __init__(self, mass_sol=1.0, luminosity_sol=1.0, radius_km=695700.0, type="G2V Yellow Main Sequence Star", yerkes_class="V",
+                 log_lx_lbol=math.log10(constants.SOLAR_X_RAY_LUMINOSITY_W / constants.SOLAR_LUMINOSITY)):
         self.mass = mass_sol * SOLAR_MASS
         self.luminosity = luminosity_sol * constants.SOLAR_LUMINOSITY
         self.radius = radius_km
         self.type = type
         self.yerkes_class = yerkes_class
+        self.log_lx_lbol = log_lx_lbol
 
 
 def test_the_wind_law_is_the_one_the_heliosphere_uses():
     from planetgen.generation.star import Star
     sun = _Star()
-    mdot, speed = stellar_wind.wind(sun.mass, sun.luminosity, sun.radius, sun.type, sun.yerkes_class)
+    mdot, speed = stellar_wind.wind(sun.mass, sun.luminosity, sun.radius, sun.type, sun.yerkes_class, sun.log_lx_lbol)
     assert 1e8 < mdot < 1e11 and 2e5 < speed < 1e6, "about the Sun's wind: 1e9 kg/s at a few hundred km/s"
-    assert Star._calculate_heliosphere_radius_static(sun.mass, sun.luminosity, sun.radius, sun.type, sun.yerkes_class) > 0
+    assert Star._calculate_heliosphere_radius_static(sun.mass, sun.luminosity, sun.radius, sun.type, sun.yerkes_class, sun.log_lx_lbol) > 0
 
 
 def test_a_neutron_star_cools_with_age_and_the_curve_is_continuous_at_the_end_of_the_neutrino_era():
