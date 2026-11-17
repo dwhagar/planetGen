@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4415] - 2026-11-17
+
+**Headline:** The node-planet stream test compares what settling leaves alone (masses) and two regenerations, since settling can respace a planet's orbit.
+
+### Changed
+- TEST.787: `test_a_nodes_planets_are_drawn_from_a_stream_of_its_own` compared the regenerated planets' distances with the stored ones, which have been through the settle pass; settling spaces the orbits again once the eccentricities are final and, with GEN.1709's wider inner systems, moves one planet of the sample from 71.8 to 122.3 AU. It now compares the masses with the stored planets' and two regenerations' distances with each other.
+- Tests only; no generation output changes.
+
 ## [8.0.4414] - 2026-11-17
 
 **Headline:** The functions for a companion star's pull on a star's planets (apsidal rate and forced eccentricity) are built, not wired yet.
