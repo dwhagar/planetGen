@@ -11848,7 +11848,7 @@ clears each one.
 
 - [ ] **GEN.1778 (bug) HABITABLE_WORLD=True can end with no habitable world and the request still at "aim", not "unmet" (K5IV case of test_full_matrix, seen under xdist)**
   Found by Lane 16 on TEST.788, 11:18 PM EST 2026-11-16: test_full_system_generates_with_belt_and_habitable_world_across_every_star_type[K5IV] failed with "HABITABLE_WORLD=True produced no habitable world and did not say so" (habitable_class_count 0, habitable_request "aim"). It passes alone on main c8bfa87b17; the test sets no run seed, so its draws depend on what the worker ran before. Do: find the path where the habitable request ends without a class and without being marked unmet (fix the generator so a request is always met or said unmet), and seed the test so a failure can be replayed (no picking a seed that passes; the assertion stays).
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 14, after the test_class_sample main red. Prerequisites: none. Related: TEST.788, GEN.1773.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 05 (moved from Lane 14, 1:50 AM EST). Prerequisites: none. Related: TEST.788, GEN.1773.
   Filed by the TODO thread.
 
 - [ ] **PERF.276 The air solve is 59 percent of a full system's build: cut repeat gas-equilibrium solves without changing the air (M5IA: 140 of 237 s)**
