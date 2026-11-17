@@ -1,5 +1,5 @@
 """
-GEN.1334: a planet with a hydrogen-helium envelope of 0.5 percent of its mass or more has no ground (design: docs/design/composition/radius-valley-tuning.md section 8).
+GEN.1334: a planet with a hydrogen-helium envelope the escape law leaves it (0.2 percent of its mass or more, `envelope_escape.BARE_BELOW`, GEN.1710; it was 0.5 percent) has no ground (design: docs/design/composition/radius-valley-tuning.md section 8).
 
 `planet_type.has_ground` is the one test. A planet under a deep envelope (a sub-Neptune, a gas dwarf) has its air solved at the 1 bar level as a giant's is (a hydrogen and helium
 mixture with its metals), holds no ocean, land, ground, surface dose or liquid, and is scored for no life.
@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import (atmosphere, habitability_world, hydrosphere, life_classes, planet_type, radiation, regional_temperature, surface_composition,
+from planetgen.physics import (atmosphere, envelope_escape, habitability_world, hydrosphere, life_classes, planet_type, radiation, regional_temperature, surface_composition,
                                surface_liquid_world)
 from planetgen.util import draw
 
@@ -42,9 +42,12 @@ def sample():
     return bodies
 
 
-def test_a_body_has_ground_unless_it_is_a_giant_or_holds_half_a_percent_of_its_mass_as_envelope():
+def test_a_body_has_ground_unless_it_is_a_giant_or_holds_the_escape_laws_bare_cut_of_its_mass_as_envelope():
+    """GEN.1710: the cut is `envelope_escape.BARE_BELOW`, 0.2 percent: an envelope under it is gone, one over it is kept and has no ground under it."""
+    assert envelope_escape.BARE_BELOW == planet_type.TERRESTRIAL_MAX_ENVELOPE == 0.002
     assert planet_type.has_ground({"body_type": "t", "envelope_mass_fraction": 0.0})
-    assert planet_type.has_ground({"body_type": "t", "envelope_mass_fraction": 0.004999})
+    assert planet_type.has_ground({"body_type": "t", "envelope_mass_fraction": 0.001999})
+    assert not planet_type.has_ground({"body_type": "t", "envelope_mass_fraction": 0.002})
     assert not planet_type.has_ground({"body_type": "t", "envelope_mass_fraction": 0.005})
     assert not planet_type.has_ground({"body_type": "t", "envelope_mass_fraction": 0.2})
     assert not planet_type.has_ground({"body_type": "g", "envelope_mass_fraction": 0.9})

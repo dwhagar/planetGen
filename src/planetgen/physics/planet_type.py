@@ -7,7 +7,7 @@ The type of a planet or moon: terrestrial, transitional or gas (GEN.1219; design
 The first qualification of a body (Boss, 10:31 AM EDT 2026-10-31), before any class: how its mass is shared between a core and an atmosphere.
 The one number that cuts is the envelope's share of the mass, `envelope_mass_fraction` (the hydrogen-helium envelope of `bulk_structure`, [R2741]):
 
-* **terrestrial**: under `TERRESTRIAL_MAX_ENVELOPE` (0.5 percent, about the 1.6 Earth radii of the rocky limit): mostly rock; any air is secondary and may be
+* **terrestrial**: under `TERRESTRIAL_MAX_ENVELOPE` (0.2 percent, `envelope_escape.BARE_BELOW`: an envelope the escape law does not call gone): mostly rock; any air is secondary and may be
   absent (Venus's 92 bar is 1e-4 of its mass);
 * **transitional**: from there up to `GAS_MIN_ENVELOPE`: a real core under a real envelope (sub-Neptunes, gas dwarfs and, by Boss's choice of 10:36 AM EDT,
   the ice giants);
@@ -20,7 +20,7 @@ The type is stored on every planet and moon as `planet_type` (`fill`, called wit
 every body (`envelope_share`, GEN.1226), so a hydrogen-air dwarf is typed correctly. `tests/planet_type_cli.py` prints how a generated sample splits.
 """
 
-from planetgen.physics import constants, super_puff
+from planetgen.physics import constants, envelope_escape, super_puff
 from planetgen.physics import unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -31,8 +31,9 @@ GAS = "gas"
 SUPER_PUFF = "super-puff"
 TYPES = (TERRESTRIAL, TRANSITIONAL, SUPER_PUFF, GAS)
 
-TERRESTRIAL_MAX_ENVELOPE = 0.005
-"""float: STAND-IN PT1 (Boss's choice, L0): an envelope under this share of the mass is a terrestrial body (about 1.6 Earth radii; [R1477, R3800])."""
+TERRESTRIAL_MAX_ENVELOPE = envelope_escape.BARE_BELOW
+"""float: STAND-IN PT1: an envelope under this share of the mass is a terrestrial body: the value is `envelope_escape.BARE_BELOW`, 0.002, the one cut of a rocky body's envelope (GEN.1710; it was a separate 0.005, Boss's choice for
+the 1.6 Earth radii where rocky planets end, [R1477, R3800], which left envelopes of 0.2 to 0.5 percent on bodies with ground). The 1.6 Earth radii it stood for come out of the envelope the escape law leaves."""
 GAS_MIN_ENVELOPE = 0.5
 """float: STAND-IN PT2 (Boss's choice, L0): an envelope of this share of the mass or more is a gas body (the line of `bulk_structure.GIANT_ENVELOPE_FRACTION`)."""
 

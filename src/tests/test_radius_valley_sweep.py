@@ -108,7 +108,7 @@ def test_no_puffed_planet_escapes_the_super_puff_type(sweep):
 def test_the_super_puff_share_of_the_inner_sub_neptunes_is_counted_inside_a_hundred_days(sweep):
     """Row PF3 is a share of the 2 to 10 Earth-mass sub-Neptunes inside 100 days; with the type free of the period the count is made inside 100 days here, not by the type."""
     inner = [row for row in sweep if row.days <= INNER_DAYS and 2.0 <= row.mass <= 10.0 and row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE]
-    assert len(inner) >= 10
+    assert len(inner) >= 6        # 8 since GEN.1711 (the median start of 0.04 leaves fewer envelopes over the type's edge), 10 or more before: a guard on the sample size
     share = sum(row.planet_type == planet_type.SUPER_PUFF for row in inner) / len(inner)
     assert share <= 4.0 * super_puff.START_SHARE, (len(inner), share)        # one planet in a sweep this small is a tenth: a guard against the type sweeping up the sub-Neptunes, not a measurement of the row
 

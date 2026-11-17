@@ -17,8 +17,9 @@ give the brittle law, with the pressure `P` in megapascals: ice grains close the
 silicate grains as `min(0.6 P^-0.11, 0.6)`. The paper's own text says the law is a lower bound on the density above about 200
 to 500 km radius, where viscous compaction decides, and the law alone leaves the density 1.3 to 1.8 times low up to 3e23 kg
 (design note section 4.2). Boss's decision S9 (card tapped 8:13 PM EDT on 2026-10-21): the porosity is multiplied by a weight
-that falls from 1 at `TAPER_START_KG` (1e19) to 0 at `TAPER_END_KG` (1e21) in log mass, so the density is continuous in mass
-and a body above 1e21 kg has no macroporosity; the endpoints are flagged stand-ins until viscous compaction replaces them.
+that falls from 1 at `TAPER_START_KG` (1e20) to 0 at `TAPER_END_KG` (1e21) in log mass, so the density is continuous in mass
+and a body above 1e21 kg has no macroporosity; the endpoints are flagged stand-ins until viscous compaction replaces them. The start was 1e19 until GEN.1637 (data audit D17: bodies of 300 to 450 km
+came out 20 to 100 percent denser than 2002 UX25, Varda, Salacia and Orcus, which keep their pores to about 5e20 kg); at 1e20 three of the four come out within 15 percent at a rock fraction of 0.6 (2002 UX25 stays 44 percent over).
 
 The reference integration (a uniform sphere in hydrostatic balance, grains compressed by third-order Birch-Murnaghan
 equations of state, the porosity laws mixed by grain volume) is `scripts/build_compaction_table.py`; it writes
@@ -49,9 +50,12 @@ ICE_GRAIN_KG_M3 = 920.0
 SILICATE_GRAIN_KG_M3 = 3500.0
 """float: The grain densities of [R0390: Table 1]."""
 
-TAPER_START_KG = 1e19
+TAPER_START_KG = 1e20
 TAPER_END_KG = 1e21
-"""float: Where the porosity starts to close and where it is closed (stand-ins, decision S9)."""
+"""float: Where the porosity starts to close and where it is closed (stand-ins: decision S9 set 1e19 and 1e21; GEN.1637 moved the start to 1e20 against measured Kuiper belt bodies)."""
+
+DRAWN_POROSITY_BELOW_KG = 1e19
+"""float: Below this mass a body is not one a belt stores (`belt_ledger.L1_MASS_KG`) and takes the porosity its taxon's family draws (`belt_member`); from here to `TAPER_START_KG` the brittle law holds whole."""
 
 SOURCE_STATE = "stand-in"
 """str: The taper endpoints are a stand-in until viscous compaction (Bierson and Nimmo Eq. 3 with its sign checked) replaces them."""
