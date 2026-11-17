@@ -75,11 +75,11 @@ release is stamped.</p>
 </tr>
 <tr>
 <td>GEN</td>
-<td>GEN.1788</td>
+<td>GEN.1789</td>
 </tr>
 <tr>
 <td>PERF</td>
-<td>PERF.280</td>
+<td>PERF.281</td>
 </tr>
 <tr>
 <td>DB</td>
@@ -13609,7 +13609,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>GEN.1390</td>
 <td>Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug)</td>
 <td>none</td>
-<td>open</td>
+<td>folded into GEN.1785 (Lane 14 sweep done 12:36 PM EST 11-17: every sanity red green or fixed in PR 7051 except the three census tests, whose ranges predate generation changes)</td>
 </tr>
 <tr>
 <td>TEST.696</td>
@@ -17626,6 +17626,12 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>open (Lane 16)</td>
 </tr>
 <tr>
+<td>PERF.280</td>
+<td>Stage 9 skip or batch near-empty sky cells (design and measure first)</td>
+<td>OPS.270</td>
+<td>open (Lane 07)</td>
+</tr>
+<tr>
 <td>OPS.159</td>
 <td>Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime</td>
 <td>OPS.155</td>
@@ -18061,7 +18067,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.231</td>
 <td>Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7088 merged 11:49 AM EST 11-17: one memory controller in the supervisor; adaptive.py, shed_bulk, maintenance_share and reserved_places deleted)</td>
 </tr>
 <tr>
 <td>OPS.232</td>
@@ -18079,7 +18085,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.234</td>
 <td>Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor</td>
 <td>none</td>
-<td>open (Lane 15)</td>
+<td>done (PRs 7098 and 7099, 11-17)</td>
 </tr>
 <tr>
 <td>OPS.235</td>
@@ -18163,7 +18169,7 @@ to 7.42.0), so no status says &quot;next release&quot; any more.</p>
 <td>OPS.248</td>
 <td>Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit)</td>
 <td>none</td>
-<td>open</td>
+<td>done (PR 7094 merged 12:41 PM EST 11-17: ledger-read latency is a second signal for the memory controller's hold)</td>
 </tr>
 <tr>
 <td>OPS.249</td>
@@ -23812,6 +23818,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).</p>
 <tr>
 <td>GEN.1787</td>
 <td>Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug)</td>
+</tr>
+<tr>
+<td>GEN.1788</td>
+<td>Review giant scattering physics; comets follow (Science comets 0 percent)</td>
 </tr>
 <tr>
 <td>GEN.1532</td>
