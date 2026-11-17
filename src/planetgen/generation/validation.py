@@ -27,7 +27,7 @@ from collections import namedtuple
 
 from planetgen.generation import life as planetLife
 from planetgen.physics import (
-    clearance_ledger, constants, daylight, ocean_tides, orbit_elements, planet_classes, planets as planetPhysics)
+    clearance_ledger, constants, orbit_elements, planet_classes, planets as planetPhysics)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
@@ -203,10 +203,7 @@ def reconcile_moved_planet(planet):
     for moon in planet.moons:
         planetPhysics.reconcile_zone(moon, planet.mass, distance_override=planet.distance)
         planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
-        planetPhysics.prepare_class(moon)
-        # GEN.704: the moon's star distance changed, so the dose, UV and score `generate_spin` ends with are re-run as a moved planet's are.
-        planetPhysics.generate_spin(moon, planet.mass, birth=moon.build.birth_spin)
-        planetPhysics.classify(moon)
+        planetPhysics.end_stages_after_air(moon, planet.mass)        # GEN.704: the moon's star distance changed, so the dose, UV and score the spin ends with are re-run as a moved planet's are
     planetPhysics.orient_moons(planet)
 
     # v20: planet.reflex_offset_x/y/z (this planet's own wobble from its moons -- see Planet.reflex_offset_x's docstring) depends on
@@ -216,13 +213,7 @@ def reconcile_moved_planet(planet):
 
     # GEN.904: the spin, the orbital period or the class above can be new, and the day and night shares were worked out from the
     # old ones (or went with a regenerated body): they follow the geometry the planet and its moons have now (no draws).
-    daylight.generate(planet)
-    for moon in planet.moons:
-        daylight.generate(moon, planet)
-    # GEN.1034: and the tide its sea raises, from the orbits and spins as they are now
-    ocean_tides.generate(planet)
-    for moon in planet.moons:
-        ocean_tides.generate(moon, planet)
+    planetPhysics.settle_surroundings(planet, own_daylight=True)       # GEN.1034: and the tide its sea raises, from the orbits and spins as they are now
 
 
 def refresh_planet_reflex(planet, force=False):
