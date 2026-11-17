@@ -15,6 +15,9 @@ import sys
 
 from planetgen.util import draw
 from planetgen.cli import orbits
+from planetgen.generation.comet import Comet, comet_designation
+from planetgen.generation.config import SystemConfig
+from planetgen.physics.constants import SOLAR_MASS_TO_KG
 from planetgen.db import store
 from planetgen.population import model as population
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
@@ -82,6 +85,7 @@ def _build(config):
         run_cli("phenomenon", ["--type", kind, "--quiet"] + extra + target)
     for kind in ("black-hole", "neutron-star"):
         run_cli("phenomenon", ["--type", kind, "--anchor-system", "--quiet"] + target)
+    _add_parabolic_comet(config)
     _add_polity_and_facilities(config)
     for _ in range(2):  # the first only records a starting time
         _run_update_orbits(target)
@@ -95,6 +99,24 @@ def _run_update_orbits(target):
         orbits.main()
     finally:
         sys.argv = argv
+
+
+def _add_parabolic_comet(config):
+    """A parabolic comet on the first star system's first star, when the galaxy's comets hold none: a star holds comets only where its outer disk was scattered (GEN.1775) and 3 in 10
+    comets are parabolic, so the few comets a seeded galaxy makes may all be elliptical, and `comets.parabolic_mean_anomaly` would be NULL in every row."""
+    conn = store.get_connection(config)
+    try:
+        if conn.execute("SELECT 1 FROM comets WHERE parabolic_mean_anomaly IS NOT NULL LIMIT 1").fetchone() is not None:
+            return
+        host = conn.execute("SELECT s.id AS star_id, s.star_system_id, s.mass_kg, ss.name AS system_name FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id"
+                            " ORDER BY s.id LIMIT 1").fetchone()
+        comet = Comet(SystemConfig(), host["mass_kg"] / SOLAR_MASS_TO_KG, orbit_type="parabolic")
+        count = conn.execute("SELECT COUNT(*) AS n FROM comets WHERE star_system_id = ?", (host["star_system_id"],)).fetchone()["n"]
+        comet.name = comet_designation(host["system_name"], count + 1, comet)
+        store.insert_comet(conn, comet, host["star_system_id"], host["star_id"])
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def _add_polity_and_facilities(config):
