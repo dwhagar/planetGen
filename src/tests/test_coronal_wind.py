@@ -77,3 +77,13 @@ def test_a_white_dwarfs_planet_sits_in_the_interstellar_pressure_and_its_bubble_
     assert magnetism.wind_pressure_pa(white_dwarf, 1.0) == constants.ISM_PRESSURE      # it used to get the Earth's wind
     radius_au = Star._calculate_heliosphere_radius_static(white_dwarf.mass, white_dwarf.luminosity, white_dwarf.radius, white_dwarf.type, "VII", None)
     assert 0.0 <= radius_au < 1e-3
+
+
+def test_a_star_with_no_light_has_no_wind_and_so_no_standoff():
+    """A starless host (a rogue planet's) and a black hole nothing feeds give no light and no wind; the interstellar floor is for a quiet star, not for no star at all (GEN.1111)."""
+    nothing = SimpleNamespace(mass=0.0, luminosity=0.0, radius=0.0, type="", yerkes_class="", log_lx_lbol=None)
+    assert magnetism.wind_pressure_pa(nothing, 1.0) == 0.0
+    planet = SimpleNamespace(magnetic_moment_a_m2=8.0e22, star=nothing, radius=6371.0)
+    assert magnetism.magnetopause_rp(planet, 1.0) is None
+    quiet = _star(0.3, 0.001, 0.3, "M5V", log_lx_lbol=-9.0)
+    assert magnetism.wind_pressure_pa(quiet, 1.0) >= constants.ISM_PRESSURE > 0.0
