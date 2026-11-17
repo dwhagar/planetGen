@@ -13,6 +13,7 @@ built by `run_cli`) runs before that one, so `bughunt_support.run_cli` applies i
 
 import contextlib
 import os
+import signal
 import uuid
 
 import pymysql
@@ -65,7 +66,12 @@ class InlineForker:
         from planetgen.queue import forkedjob, jobhost
         self.made += 1
         link = _Link()
-        code = forkedjob.run(job, link)
+        paused = signal.alarm(0)            # a test's own time limit (tests/test_fuzz_cli.py) is for the command, as it was with the RQ worker beside it: the unit's time is not counted
+        try:
+            code = forkedjob.run(job, link)
+        finally:
+            if paused:
+                signal.alarm(paused)
         self.exits.append(("inline", jobhost.Exit(self.made, os.getpid(), code=code)))
         return "inline", _InlineJob(self.made, link)
 
@@ -118,7 +124,7 @@ def inline_queue(monkeypatch=None):
     import redis
     import rq
 
-    from planetgen.queue import allowlist, memorygate, redisqueue, runrecord, workers
+    from planetgen.queue import allowlist, memorygate, redisqueue, runrecord, workers, wrapper
 
     token = uuid.uuid4().hex[:12]
     prefix = f"planetgen-test:{token}"
@@ -135,6 +141,20 @@ def inline_queue(monkeypatch=None):
             run_ready_rows()            # OPS.228: the units a ledger run released for the launcher
         return 0
 
+    real_stage_ensure = wrapper.stage_ensure
+
+    def inline_stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
+        """The `ensure` of a stage, and, for a run whose units go to the launcher (no worker to ask for), the hand-out of its ready rows here: the follower's ask for workers is when the units run."""
+        ensure = real_stage_ensure(conn, url, kind, step_kind, workers_count, run_id)
+
+        def ask():
+            started = ensure()
+            if wrapper.queue_of(kind) == queue_name:
+                run_ready_rows()
+                used.append(True)
+            return started
+        return ask
+
     server = _server()
     _active.append(True)
     try:
@@ -145,6 +165,7 @@ def inline_queue(monkeypatch=None):
             patch.setattr(redisqueue, "BULK_QUEUE", queue_name)
             patch.setattr(redisqueue, "MAINTENANCE_QUEUE", maintenance_name)
             patch.setattr(workers, "ensure_workers", run_waiting_units)
+            patch.setattr(wrapper, "stage_ensure", inline_stage_ensure)
             for name, value in (("HOST", server["host"]), ("PORT", server["port"]), ("USER", server["user"]),
                                 ("PASSWORD", server["password"])):
                 patch.setenv(f"PLANETGEN_MYSQL_{name}", str(value))
