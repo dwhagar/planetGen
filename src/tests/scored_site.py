@@ -27,7 +27,10 @@ from tests.habitability_site import EDGE_MPC, HABITABLE_ADDRESS, _config_for
 from tests.served import served
 
 SYSTEMS = 4
-"""int: How many systems the sample holds (the pages of the browser tests show 50 bodies, so the sample stays small)."""
+"""int: How many systems the sample holds at least (the pages of the browser tests show 50 bodies, so the sample stays small)."""
+
+MAX_SYSTEMS = 6
+"""int: The most systems it grows to while a stored value is still short of `MOONS_WANTED` moons."""
 
 FIRST_SEED = 11
 LAST_SEED = 80
@@ -37,7 +40,7 @@ sample whose moons lack an ocean, an air or a dose skipped the range and sort se
 MIN_MOONS = 3
 """int: The moons that make a system worth keeping."""
 
-MOONS_WANTED = 3
+MOONS_WANTED = 4
 """int: How many moons must hold each stored value the range and sort searches read."""
 
 MOON_VALUE_COLUMNS = ("gravity_g", "surface_temperature_k", "atmospheric_pressure_pa", "surface_dose_msv_yr", "ocean_depth_km", "period_years")
@@ -104,7 +107,7 @@ def scored_galaxy(_mysql_server_available):
                 if len(moons) < MIN_MOONS and not any(getattr(moon, "ocean_depth_km", None) for moon in moons):
                     continue
                 system_ids.append(store.insert_star_system(conn, system, cfg, sector_id=sector_id))
-                if len(system_ids) == SYSTEMS:
+                if len(system_ids) >= MAX_SYSTEMS or (len(system_ids) >= SYSTEMS and _moons_are_enough(conn)):
                     break
             if len(system_ids) < SYSTEMS or not _moons_are_enough(conn):
                 pytest.fail(f"seeds {FIRST_SEED} to {LAST_SEED} gave {len(system_ids)} of {SYSTEMS} systems with {MIN_MOONS} moons, holding {MOONS_WANTED} moons with each of {MOON_VALUE_COLUMNS}")
