@@ -55,7 +55,7 @@ def test_the_ammonia_of_a_warm_air_is_gone_under_the_quiet_sun_and_the_nitrogen_
     after = pl.lose(air, EARTH_G, 4.5 * GYR_S, SUN_AT_1_AU, SUN_T_K)
     assert after["NH3"] < 1e-6 * air["NH3"] and after["CH4"] < 1e-3 * air["CH4"]
     assert after["H2O"] == air["H2O"] and after["N2"] > air["N2"] and after["CO2"] > air["CO2"]
-    moles = lambda gas, pa: pa / gases.gas(gas).molar_mass
+    moles = lambda gas, pa: pa          # a partial pressure is proportional to the moles of the air
     nitrogen_before = 2.0 * moles("N2", air["N2"]) + moles("NH3", air["NH3"])
     nitrogen_after = 2.0 * moles("N2", after["N2"]) + moles("NH3", after["NH3"])
     assert nitrogen_after == pytest.approx(nitrogen_before, rel=1e-9)
@@ -76,8 +76,12 @@ def test_a_young_body_or_a_dim_star_keeps_more_and_no_far_ultraviolet_keeps_all(
 
 
 def test_the_columns_and_pressures_go_both_ways():
-    column = pl.column_mol_m2(1000.0, "NH3", EARTH_G)
-    assert column == pytest.approx(1000.0 / (EARTH_G * gases.gas("NH3").molar_mass))
-    assert pl.partial_pa_of(column, "NH3", EARTH_G) == pytest.approx(1000.0)
+    air = {"N2": 7.0e4, "CO2": 2.9e4, "NH3": 1000.0}
+    mass = pl.mean_molar_mass_kg_mol(air)
+    assert mass == pytest.approx((7.0e4 * gases.gas("N2").molar_mass + 2.9e4 * gases.gas("CO2").molar_mass + 1000.0 * gases.gas("NH3").molar_mass) / 1.0e5)
+    column = pl.column_mol_m2(1000.0, EARTH_G, mass)
+    assert column == pytest.approx(1000.0 / (EARTH_G * mass))
+    assert pl.partial_pa_of(column, EARTH_G, mass) == pytest.approx(1000.0)
+    assert pl.mean_molar_mass_kg_mol({}) == 0.0
     assert pl.light_limit("CH4", None, SUN_T_K) == math.inf
     assert 0.0 < pl.light_limit("CH4", SUN_AT_1_AU, SUN_T_K) < math.inf

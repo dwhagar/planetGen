@@ -72719,8 +72719,46 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
-          "unread": "GEN.1745",
+          "unread": null,
           "what": "photochemical_loss.LOST_TO: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_air.PHOTOCHEMICAL_MIN_K and PHOTOCHEMICAL_RAMP_K: the loss acts in full on a rocky air whose surface is 245 K or warmer, in none under 215 K, and by a share between (the middle of the ramp 230 K, 30 K wide; a step there held the fixed point on the edge); under it the ammonia and methane stand in ices, hydrates and lakes that resupply the air faster than the light takes them"
+            ],
+            [
+              "The range it moves in",
+              "230 K within 200 to 260 K and a ramp of 30 K within 10 to 60 K (the nitrogen-ice and methane-lake worlds sit well under it, the temperate ones well over)"
+            ],
+            [
+              "Where it holds",
+              "a rocky body with a thick enough air to hold surface temperature"
+            ],
+            [
+              "What would show it wrong",
+              "a measured cold air (Titan: 94 K) whose methane stands at the photolysis loss without resupply, or a warm air whose ammonia ice resupplies it"
+            ],
+            [
+              "What replaces it",
+              "the history's own phase balance of the ices (GEN.1745)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (Titan's methane is resupplied by its lakes against a 10 to 100 Myr photolysis life)"
+            ]
+          ],
+          "id": "PC5",
+          "key": "6.301:PC5",
+          "kind": "P",
+          "slug": "6-301-pc5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_air.PHOTOCHEMICAL_MIN_K and PHOTOCHEMICAL_RAMP_K: the loss acts in full on a rocky air whose surface is 245 K or warmer, in none under 215 K, and by a share between (the middle of the ramp 230 K, 30 K wide; a step there held the fixed point on the edge); under it the ammonia and methane stand in ices, hydrates and lakes that resupply the air faster than the light takes them"
         }
       ],
       "slug": "6-301-stand-ins-of-the-photochemical-loss-of-ammonia-and-methane-gen-1732",
