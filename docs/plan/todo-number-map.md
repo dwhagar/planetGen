@@ -654,7 +654,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.72 | The scatter tables hold band_index as SMALLINT, which overflows from shell 20,861 outward, so the whole-sphere scatter stops at 97 percent (bug) | none | done, PR #2060 |
 | DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue | none | done, PR #2863 |
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | none | open |
-| DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | open |
+| DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | open (Lane 15, DB.75b) |
 | DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | none | done, PR #2487 |
 | DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | done, PR #2534 |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | none | open |
@@ -2283,17 +2283,17 @@ Parents marked "new parent" had no old number of their own.
 | TEST.694 | scripts/test.py: full --check refuses on main; --resume reuses nothing after UTC midnight; .pytest-deps.json is partial after a resume; xdist stops replacing OOM-killed workers; tests rewrite tracked .test-reports/*-latest.md (bug) | none | done, PR #5688 |
 | OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) | none | done, PR #5688 |
 | OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) | none | done, PR #5666 |
-| OPS.122 | Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier | none | open |
-| OPS.123 | Stage opening (the cut), conclude and finish hooks become single-purpose commands of their own instead of running inside the last unit's horse | none | open |
-| OPS.124 | Memory broker: a per-job memory claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) | none | open |
+| OPS.122 | Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier | none | done (delivered as OPS.215 and OPS.216; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.123 | Stage opening (the cut), conclude and finish hooks become single-purpose commands of their own instead of running inside the last unit's horse | none | done (delivered as OPS.218; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.124 | Memory broker: a per-job memory claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) | none | folded into OPS.231 (dispatch and tokens built as OPS.227 and OPS.232; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
 | OPS.125 | DROPPED (revive only if Boss asks): optional Dask distributed engine behind a switch for the generation stages (PERF.254 step 2) | none | retired (dropped by Boss's job design; revive only if Boss asks) |
-| OPS.126 | Sector generation as single-sector jobs fed by a spawner | none | open |
-| OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today | none | open |
-| OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) | none | open |
-| OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook | none | open |
+| OPS.126 | Sector generation as single-sector jobs fed by a spawner | none | folded into OPS.240 (Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today | none | folded into OPS.225 (Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) | none | folded into OPS.239 (other half built as OPS.238; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
+| OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook | none | folded into OPS.239 (other half built as OPS.218; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
 | OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site | none | done, PR #5763 |
 | OPS.131 | Independence harness for overlapping jobs: each command declares its reads and writes, a SQL tap test fails any command that touches an undeclared table, and a pair overlaps only after a test proves it | none | done earlier (built as OPS.241 (PRs 6766, 6771, 6775, 6777, 6792, 6794, 6823); found in Lane 07's stale sweep, 11-16) |
-| OPS.132 | Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell) | none | open |
+| OPS.132 | Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell) | none | done (delivered as OPS.242; Lane 15 audit 4:29 AM EST 11-17, reports/lane15-ops-audit-db75-db109-2026-11-17.md) |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | done, PR #5688 |
 | UX.289 | Any step that takes more than 5 seconds shows a progress bar from the 5-second mark: one shared mechanism for generation stages, the uncharted-sector index, the upper-level roll-up and every long step | none | done, PR #5701 |
 | UX.290 | The System Map loses the selected body's info panel (#sysmap-info h3) after the time buttons (play, faster, now) (bug) | none | done, PR #5688 |
@@ -4110,7 +4110,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | open (Lane 06) |
 | GEN.1776 | Civilizations arise only in CO2-rich air (19 to 792 kPa), none Earth-like | closed, measured, no code change (Lane 04, 9:49 PM EST 11-16; linked to GEN.1720 and GEN.1731; Boss kept the life clock stand-ins, 9:51 PM EST) |
 | GEN.1777 | (high) No Class M family at Plentiful: funnel and a tunable CO2 lever. Measure whether the CO2 supply needs a tweak (report first, Boss decides) | open (Lane 04) |
-| GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | open (Lane 05) |
+| GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | done (PR 7042, 4:13 AM EST 11-17: aim only when a world meets the conditions and has life; F5V case is GEN.1783) |
 | GEN.1779 | (bug, high) A system build got about 2.4 times slower (test_gen1254_scatter_uid past its guard) | closed, not a regression (Lane 14, 2:16 AM EST 11-17: 144 s on main against 161 s on the 617 s commit; heavy list kept; speed work in PERF.276) |
 | GEN.1780 | The GEN.1732 haze loss ramp may have two branches (seed 106: 229 K to 134 K) | open (Lane 02) |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs: pair absorption missing or real anti-greenhouse? | open (Lane 02) |
@@ -4933,7 +4933,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.734 | Serialization fuzz cut from 20 seeds to 5 and its two identical tests folded into one (about 400 s) | none | done earlier (commit 805e6ae11e (with TEST.736); found in Lane 07's stale sweep, 11-16) |
 | TEST.735 | Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests | none | done earlier (commit 805e6ae11e (with TEST.736); found in Lane 07's stale sweep, 11-16) |
 | TEST.736 | One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim | none | done, PR #6350 (11-13) |
-| TEST.737 | Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips | none | open |
+| TEST.737 | Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips | none | done (PR 7038, 4:31 AM EST 11-17: about 60 skips became fixed streams or clear failures with the tried count; assertion bounds unchanged; the oxygen-breather test builds its class 4a by hand) |
 | TEST.738 | Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale | none | open |
 | TEST.739 | (bug) scripts/earth_analog.py (TEST.726) runs the generation steps in the wrong order on one reused body, so its Class M figures (0.6 and 1.75 percent) are wrong; the generator's rate is 2.5 percent (20 of 800) | none | done earlier (PR 6452 (earth_analog.py runs the steps in order); found in Lane 07's stale sweep, 11-16) |
 | TEST.740 | (bug) Main reds left after Train 26: fill_order, materials reachability, cli_edges, math lint in reproducible_draws, sql_portability, generation_stats, datasets_gaia_sources, web_generate_size and finish_run_generation | none | open |

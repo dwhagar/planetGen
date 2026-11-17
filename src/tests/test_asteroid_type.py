@@ -7,6 +7,7 @@ GEN.1160: a body under a roundness ratio of 1 is an Asteroid, with no class lett
 import pytest
 
 from planetgen.db import store
+from planetgen.util import draw
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
@@ -21,13 +22,14 @@ def _has_asteroid_moon(system):
 
 
 def _saved_with_asteroid(mysql_config):
-    for _ in range(300):
+    for attempt in range(300):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         cfg.PLANETS = True
         cfg.MOONS = True
         cfg.BINARY_SYSTEM = False
-        system = StarSystem(cfg)
+        with draw.bound(f"asteroid-type-{attempt}"):      # TEST.737: fixed streams, the same system in every run
+            system = StarSystem(cfg)
         if _has_asteroid_moon(system):
             assert not validation.check_star_system(system)
             sector = SpaceSector("Asteroid Sector", edge_ly=10.0)
@@ -39,7 +41,7 @@ def _saved_with_asteroid(mysql_config):
             finally:
                 conn.close()
             return system_id
-    pytest.skip("no system with an asteroid moon generated")
+    pytest.fail("none of 300 fixed streams drew a system with an asteroid moon")
 
 
 def test_an_asteroid_moon_is_stored_without_a_class_and_every_page_of_its_system_draws(client, mysql_config):  # noqa: F811

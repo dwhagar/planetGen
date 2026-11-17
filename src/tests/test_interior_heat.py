@@ -496,10 +496,14 @@ def test_a_mantle_still_warming_under_a_great_tide_keeps_its_radiogenic_heat_as_
 
 
 def test_equal_heat_flow_calls_give_the_one_stored_result_and_the_bits_of_the_uncached_run():
-    system = StarSystem(system_config=SystemConfig())          # PERF.198: a body the tide loops ask about twice
-    rocky = [p for p in system.planets if radiogenic.content_of(p) is not None and ih.interior_of(p) is not None]
-    if not rocky:
-        pytest.skip("this system drew no rocky planet with a stored interior")
+    for seed in range(40):
+        with draw.bound(f"equal-heat-calls-{seed}"):      # TEST.737: fixed streams, the same system in every run
+            system = StarSystem(system_config=SystemConfig())          # PERF.198: a body the tide loops ask about twice
+        rocky = [p for p in system.planets if radiogenic.content_of(p) is not None and ih.interior_of(p) is not None]
+        if rocky:
+            break
+    else:
+        pytest.fail("none of 40 fixed streams drew a rocky planet with a stored interior")
     body = rocky[0]
     args = (radiogenic.content_of(body), ih.interior_of(body), body.mass, body.radius, body.star.age, radiogenic.rock_of(body), None, ih.STAGNANT,
             ih.SURFACE_TEMPERATURE_K)

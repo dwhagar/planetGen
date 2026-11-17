@@ -36,7 +36,7 @@ OXYGENIC_WORLDS_WANTED = 1
 FIRST_SEEDS = 4
 """int: The seeds always drawn; more follow until `OXYGENIC_WORLDS_WANTED` worlds hold oxygen their life built."""
 
-LAST_SEED = 80
+LAST_SEED = 200
 """int: The seed after which the sample stops growing (the tests then fail on the missing oxygenic worlds)."""
 
 DECISIONS = {}
@@ -65,7 +65,7 @@ def worlds():
     try:
         held = list(_worlds(range(0, FIRST_SEEDS)))
         seed = FIRST_SEEDS
-        while seed < LAST_SEED and sum(1 for w in held if _makes_oxygen(w)) < OXYGENIC_WORLDS_WANTED:
+        while seed < LAST_SEED and sum(1 for w in held if _makes_oxygen(w) and atmosphere.partial_kpa(w, "o2") > 1.0) < OXYGENIC_WORLDS_WANTED:
             held += list(_worlds([seed]))
             seed += 1
     finally:
@@ -242,7 +242,7 @@ def test_the_stored_air_stays_one_air_after_the_oxygen_goes_in(worlds):
             assert not (set(partials) & set(bo.REDUCED_GASES)) or partials["O2"] < 1e-3 * sum(partials.values())
             assert all(gases.gas(f) for f in partials)
             return
-    pytest.skip("no oxygen made in these seeds")
+    pytest.fail("no oxygen made in these seeds")
 
 
 def test_an_oxygenic_class_eats_light():

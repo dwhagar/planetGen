@@ -79,7 +79,7 @@ def _single_star_system(conn, sector_id):
         system = store.load_star_system(conn, row["id"])
         if system.binary_type is None and not hasattr(system.star, "event_horizon_radius_km"):
             return row["id"], system
-    pytest.skip("the generated sector holds no single-star system")
+    pytest.fail("the generated sector holds no single-star system")
 
 
 def test_a_generated_sector_and_the_blocks_above_it_are_right_to_start_with(galaxy):

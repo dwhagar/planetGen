@@ -9,6 +9,7 @@ import re
 import pytest
 
 from planetgen.api.config import Config
+from planetgen.util import draw
 from planetgen.db import store
 from planetgen.galaxy import uid as sector_uid
 from planetgen.galaxy.sector import SpaceSector
@@ -85,16 +86,17 @@ def bodies(mysql_config):
     """A client over a sector holding a wide binary with planets, moons and a comet, one facility on a planet,
     and one hand-made sector with no grid address and no stored ID."""
     sector = SpaceSector("Body Sector", edge_ly=11.5)
-    for _ in range(400):
+    for attempt in range(400):
         cfg = SystemConfig()
         cfg.PLANETS = True
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = True
-        system = StarSystem(system_config=cfg)
+        with draw.bound(f"api-object-ids-{attempt}"):      # TEST.737: fixed streams, the same system in every run
+            system = StarSystem(system_config=cfg)
         if len(system.stars) > 1 and system.comets and any(getattr(p, "moons", None) for p in system.planets):
             break
     else:
-        pytest.skip("no suitable system generated")
+        pytest.fail("none of 400 fixed streams drew a binary with comets and a moon")
     sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
     store.save_sector(sector, config=mysql_config)
     conn = store.get_connection(mysql_config)

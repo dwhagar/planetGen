@@ -15,13 +15,17 @@ from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 
 
-def make_system(star_type="G2V", **overrides):
+def make_system(star_type="G2V", seed=None, **overrides):
+    """A system of `star_type`; with a `seed` it is drawn from that fixed stream, so a test that looks for a kind of system finds the same one in every run (TEST.737)."""
     cfg = SystemConfig()
     cfg.STAR_TYPE = star_type
     cfg.MOONS = False
     for key, value in overrides.items():
         setattr(cfg, key, value)
-    return StarSystem(cfg)
+    if seed is None:
+        return StarSystem(cfg)
+    with draw.bound(f"validation-{seed}"):
+        return StarSystem(cfg)
 
 
 @pytest.fixture
@@ -167,10 +171,13 @@ def test_check_lunar_system_reports_a_moon_outside_the_stable_range(star):
 
 
 def test_stabilize_star_system_fixes_a_crowded_system():
-    system = make_system("G2V", PLANETS=True, MAX_PLANETS=True)
-    planets = [p for p in system.planets if p.body_type != 'a']
-    if len(planets) < 2:
-        pytest.skip("needs two planets")
+    for seed in range(40):
+        system = make_system("G2V", seed=seed, PLANETS=True, MAX_PLANETS=True)
+        planets = [p for p in system.planets if p.body_type != 'a']
+        if len(planets) >= 2:
+            break
+    else:
+        pytest.fail("none of 40 fixed streams drew a system with two planets")
     planets[1].distance = planets[0].distance * 1.0001
     report = validation.stabilize_star_system(system)
     assert report.moved
@@ -179,9 +186,12 @@ def test_stabilize_star_system_fixes_a_crowded_system():
 
 
 def test_stabilize_reports_rather_than_removes_by_default():
-    system = make_system("G2V", PLANETS=True)
-    if not system.planets:
-        pytest.skip("needs a body")
+    for seed in range(40):
+        system = make_system("G2V", seed=seed, PLANETS=True)
+        if system.planets:
+            break
+    else:
+        pytest.fail("none of 40 fixed streams drew a system with a body")
     outer = system.planets[-1]
     ceiling = validation.orbit_ceiling_au(system.star)
     if outer.body_type == 'a':
@@ -217,14 +227,14 @@ def test_generation_ceiling_is_the_stable_orbit_cut_by_the_survival_limit():
 
 
 def test_a_body_past_the_survival_limit_but_inside_the_stable_orbit_validates():
-    for _ in range(40):
-        system = make_system("G2V", PLANETS=True)
+    for seed in range(40):
+        system = make_system("G2V", seed=seed, PLANETS=True)
         star = system.star
         survival = place_terms.planet_limit_au(place_terms.SOLAR_NEIGHBOURHOOD, star.age)
         if validation.orbit_ceiling_au(star) > survival * 2:
             break
     else:
-        pytest.skip("no star with a stable orbit past the survival limit drawn")
+        pytest.fail("none of 40 fixed streams drew a star with a stable orbit past the survival limit")
     system.planets[:] = [planet_at(star, survival * 1.5, GIANT_EARTH)]
     assert not any("beyond" in p.message for p in validation.check_star_system(system))
 

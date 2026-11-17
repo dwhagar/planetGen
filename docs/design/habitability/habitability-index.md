@@ -58,8 +58,8 @@ recommendation. Informs: GEN.83 to GEN.92.
   habitable world (`+habitable_world`) raises the odds of a body that meets its conditions (`generation/habitable_request.py`, GEN.1130) and steers by no class list or score, so the world it gives may not score Blue
   or Green; `StarSystem.habitable_class_count` is a report column only, and
   `StarSystem.habitable_request` says whether the finished system met the
-  request's conditions ("aim") or not ("unmet"; GEN.1248: it is answered from
-  the same `habitable_request.count` the draws use, and there is no fallback).
+  request ("aim": a body meets its conditions and has life on it, `habitable_request.count_living`) or not ("unmet"; GEN.1248: there is no fallback;
+  GEN.1778: a temperate ocean world whose life never began, as on a 50 Myr star, is not a habitable world, so the answer is never "aim" over a `habitable_class_count` of 0).
 - **Rogue planets** already have internal heat flux, a surface regime,
   ice-shell thickness and ocean depth (`rogue_surface.py`); nothing in a
   star system has these. A terrestrial rogue is scored from its surface too (`rogue_habitability.py`, [rogue-planet-surface.md](../systems/rogue-planet-surface.md)).
