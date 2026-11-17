@@ -288,7 +288,7 @@ WRITERS = {
     ("db/store.py", "give_system_uid"): MARKS,
     ("db/store.py", "rename_star_system"): MARKS,
     ("db/store.py", "rename_star"): MARKS,
-    ("db/store.py", "reserve_sector_name"): MARKS,
+    ("db/store.py", "reserve_sector_name"): SET_NAME,
     ("db/store.py", "insert_asteroid_belt"): INSERT,
     ("db/store.py", "insert_comet"): INSERT,
     ("db/store.py", "insert_nebula"): INSERT,

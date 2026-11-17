@@ -21,6 +21,12 @@ members (`G - 1` reads, only an edit or a deletion pays it). A member whose rows
 is damage, not a change: nothing is recomputed over it (that would bake the damage into the parity) and the group is left for
 the repair.
 
+**The edit's before-image.** The edit paths take the sector's export before they write (`Connection.parity_before`, which calls
+`before_image`), and the commit's `protect_sectors` hands it to `ParityStore.put` or `release`, so an edit or a deletion of a
+sector in a group is a delta, `G - 1` fewer reads than the recompute. The image is only taken from a sector that is sealed and whose
+rows still hash to the checksum the record holds; anything else (an earlier edit not yet protected, damage, a sector the file lacks)
+gives none, and the recompute above stays the fallback.
+
 **Order and crashes.** The writers only mark a sector (`storage_checksum.mark_*`: `parity_dirty = 1`) and commit. After the
 commit `protect_sector` takes the sector's row lock, exports it, writes the parity record and then seals the sector (stores
 the checksum, clears the flag). A crash before the record leaves the flag set; between the record and the seal it leaves the
@@ -384,6 +390,28 @@ def member_state(conn, sector_id, parity_store=None):
     return classify(storage_checksum.checksum(conn, sector_id) == stored, record_sum, stored, record_ok)
 
 
+def before_image(conn, sector_id, parity_store=None):
+    """
+    The export of a sector as it is before an edit, for `ParityStore.put` and `release` to make the edit a delta.
+
+    Returns:
+        tuple or None: `(export, checksum)` when the file holds the sector, the sector is sealed (no flag, a checksum stored), its
+        rows hash to that checksum and the record holds the same one; `None` otherwise (the edit then pays the recompute).
+    """
+    parity_store = parity_store or store()
+    row = conn.execute("SELECT parity_dirty AS d, storage_checksum AS c FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    if row is None or row["d"] or row["c"] is None:
+        return None
+    with parity_store.file.locked():
+        located = parity_store.member(sector_id)
+    if located is None or bytes(located[2].checksum) != bytes(row["c"]):
+        return None
+    export, checksum = sector_export.export_sector(conn, sector_id)
+    if checksum != bytes(row["c"]) or len(export) != located[2].length:
+        return None
+    return export, checksum
+
+
 def _read_member(conn):
     def read(other_id):
         row = conn.execute("SELECT parity_dirty AS d, storage_checksum AS c FROM sectors WHERE id = ?", (other_id,)).fetchone()
@@ -421,7 +449,7 @@ def protect_sector(conn, sector_id, parity_store=None, before=None):
                        (sector_id,)).fetchone()
     try:
         if row is None:
-            result = _release(conn, sector_id, parity_store)
+            result = _release(conn, sector_id, parity_store, before)
             conn.commit()
             return result
         data, checksum = sector_export.export_sector(conn, sector_id)
@@ -449,18 +477,20 @@ def protect_sector(conn, sector_id, parity_store=None, before=None):
         raise
 
 
-def _release(conn, sector_id, parity_store):
+def _release(conn, sector_id, parity_store, before=None):
     try:
-        parity_store.release(sector_id, read_member=_read_member(conn))
+        parity_store.release(sector_id, before=before, read_member=_read_member(conn))
     except (MemberUnreadable, pfile.RecordDamaged) as exc:
         log.error(f"Parity: sector {sector_id} is gone but its group could not be made again: {exc}")
         return UNPROTECTABLE
     return RELEASED
 
 
-def protect_sectors(config, sector_ids):
+def protect_sectors(config, sector_ids, befores=None):
     """`protect_sector` for each of `sector_ids`, on a connection of its own; a failure is logged and never raised (the sector
-    stays marked and a later `refresh` finishes it). Returns `{result: count}`."""
+    stays marked and a later `refresh` finishes it). `befores` maps a sector id to its `before_image`, taken before the edit.
+    Returns `{result: count}`."""
+    befores = befores or {}
     from planetgen.db import store as dbStore
     counts = {}
     conn = dbStore.get_connection(config)
@@ -468,7 +498,7 @@ def protect_sectors(config, sector_ids):
         parity_store = store()
         for sector_id in sorted(set(sector_ids)):
             try:
-                result = protect_sector(conn, sector_id, parity_store)
+                result = protect_sector(conn, sector_id, parity_store, before=befores.get(sector_id))
             except Exception as exc:  # noqa: BLE001 -- the writer has committed; the parity catches up at the next refresh
                 log.error(f"Parity: sector {sector_id} could not be protected: {type(exc).__name__}: {exc}")
                 result = "failed"

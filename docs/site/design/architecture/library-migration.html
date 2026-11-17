@@ -376,8 +376,8 @@ is unchanged (reproducible-galaxies.md):</p>
 <li>Number and distance formatting: <code>utils.format_distance_*</code> and
 <code>fmt.format_distance_*</code> into <code>planetgen.util.format</code>; <code>planetgen.web.lib.fmt</code>
 keeps only the HTML helpers.</li>
-<li><code>sector_quadrant</code> and <code>sector_zone</code>: galaxymap calls
-<code>planetgen.galaxy.geometry</code>'s.</li>
+<li><code>sector_zone</code>: galaxymap calls
+<code>planetgen.galaxy.geometry</code>'s (<code>sector_quadrant</code> went with DB.112).</li>
 <li><code>_log_uniform</code> (generate.py, compactRemnant, quasarData,
 stellarEvolution, rogueSurface): one <code>planetgen.util.random.log_uniform</code>
 where the draws match; a copy whose draw order differs stays local,

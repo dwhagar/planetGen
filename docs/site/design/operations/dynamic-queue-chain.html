@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The dynamic queue chain: jobs declare, the engine splits (OPS.161) - planetGen docs</title>
+<meta name="description" content="Status: skeleton and profile reader built (declaration, engine, reader of the OPS.155 rows, logging); no stage uses it yet.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/dynamic-queue-chain.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/dynamic-queue-chain.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-dynamic-queue-chain-jobs-declare-the-engine-splits-ops161">The dynamic queue chain: jobs declare, the engine splits (OPS.161)</h1><p class="meta">docs/design/operations/dynamic-queue-chain.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#what-a-job-declares">What a job declares</a></li><li style="margin-left:0px"><a href="#what-the-engine-does">What the engine does</a></li><li style="margin-left:0px"><a href="#the-profile-contract-ops155">The profile contract (OPS.155)</a></li><li style="margin-left:0px"><a href="#what-is-not-built">What is not built</a></li></ul></details>
+<p>Status: skeleton and profile reader built (declaration, engine, reader of the OPS.155 rows, logging); no stage uses it yet. Asked by Boss, 2026-11-12, 3:00 PM EST (&quot;a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue&quot;), with his rulings of 3:01 to 3:04 PM EST. It is the second half of <a href="self-tuning-jobs.html">self-tuning-jobs.md</a> (DOC.120: what is recorded and learned) and uses the plan-then-execute job model of <a href="job-graph-and-memory-broker.html">job-graph-and-memory-broker.md</a> (DOC.113).</p>
+<h2 id="what-a-job-declares">What a job declares</h2>
+<p>Every job entering the queue declares three things, as plain data (<code>queue/breakpoints.py</code>, <code>Declaration</code>, named by <code>CommandSpec.breaks</code>):</p>
+<ol>
+<li><strong>Suggested break points.</strong> The cut the job would make today (<code>suggested</code>), the item positions a cut may fall at (<code>boundaries</code>, any position when unset) and spans of items that must stay in one unit (<code>whole</code>). What is left is <code>legal_cuts</code>. The typed split of a stage stays: it is the default, the clamp (a unit holds a quarter to four times the suggested unit unless the job sets <code>floor_items</code> and <code>ceiling_items</code>), and the cut whenever the engine has nothing to go on.</li>
+<li><strong>A split flag</strong> (Boss, 3:02 PM EST: &quot;dynamic split is byte identical, or use the suggested split in the job information&quot;). <code>byte-identical</code> says the job's output is the same at any legal cut, so the engine may choose the cut; <code>suggested</code> says the output depends on the cut, so the engine uses the suggested cut exactly. A job that declares nothing is <code>suggested</code>. PERF.260's test holds a job flagged <code>byte-identical</code> to identical output at two cut sizes; until a job has passed it, it stays <code>suggested</code>.</li>
+<li><strong>Its dependencies</strong> (Boss, 3:01 PM EST: &quot;what depends on what&quot;). <code>after</code> are the kinds of command that must be done first (a command that names none takes <code>commands.REQUIRES</code>, the edges of PERF.247, so nothing is declared twice); <code>reads</code> and <code>writes</code> are the tables, files and named facts the job uses and changes. <code>breakpoints.may_overlap</code> says two jobs may run together when neither writes what the other reads or writes. A job that declares neither is unknown, not free: it runs in plan order, as today. Whether a pair really is independent is still proven byte for byte by OPS.131/OPS.132 before it overlaps; the declaration is what that proof starts from. A dependency inside a job (one item needs the one before) is a span that stays whole, so the engine never cuts across it.</li>
+</ol>
+<p>A command that is one unit by nature (<code>breaks=commands.ONE_UNIT</code>, which names <code>breakpoints.whole_job</code>) declares itself: one item, no cut. A command that declares nothing is <code>None</code> in <code>commands.declaration</code> and keeps its typed split. The migration of the registry to declarations goes with PERF.261, one stage at a time.</p>
+<h2 id="what-the-engine-does">What the engine does</h2>
+<p><code>queue/splitter.py</code>, <code>choose(kind, declaration, reading, resources)</code>, is pure:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Cut</th>
+<th>Reason logged</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>flag <code>suggested</code> (or nothing declared)</td>
+<td>the suggested cut</td>
+<td>its output depends on the cut</td>
+</tr>
+<tr>
+<td>flag <code>byte-identical</code>, no usable reading (fewer than 3 samples, no time per item, no trust)</td>
+<td>the suggested cut</td>
+<td>the profile has nothing usable for the kind yet</td>
+</tr>
+<tr>
+<td>flag <code>byte-identical</code>, usable reading</td>
+<td>units of about <code>TARGET_SHARE</code> (a fifth) of <code>queue.unit_ceiling_seconds</code> at the profile's seconds per item; fewer items if <code>mb_base + mb_per_item x items</code> would not fit <code>MEMORY_SHARE</code> (a half) of the host's free memory over the workers the stage may have; kept between the job's floor and ceiling; at least one unit per worker where the floor allows; at most <code>MAX_UNITS</code> units; every cut snapped to a legal position (the largest at or before the aim, else the next after it)</td>
+<td>which of time, memory, floor, ceiling or workers limited the unit</td>
+</tr>
+</tbody>
+</table></div>
+<p>The decision (<code>Decision</code>) carries the flag, the old and new unit counts and sizes, the samples behind it, the figures it was made from and the limit that bound. The same inputs give the same cut.</p>
+<p><strong>The cut is fixed at plan time.</strong> <code>commands.Expansion.split</code> is the decision an <code>expand</code> function made with <code>splitter.decide(kind, declaration)</code>; <code>wrapper._open</code> writes it into the stage's plan (<code>plan[&quot;split&quot;]</code>, with the chosen cuts) and into the run's log (<code>kind=split.decided</code>: the job, the flag, <code>by</code>, the old and new units and items, the samples and the limit as fields) before the units are queued. A restarted unit reads the stored plan, so it has the cut it started with; the planner never cuts a stage twice.</p>
+<p><strong>Everything is logged</strong> (Boss, 3:03 PM EST: &quot;ALL of this is logged including decisions when the queue changes values&quot;): a stage whose engine kept the suggested split says so with the reason, and a stage whose split changed says what it changed from and to and why. The Queue page shows the run's log, so the recent decisions are on it; OPS.158 adds the per-kind table.</p>
+<h2 id="the-profile-contract-ops155">The profile contract (OPS.155)</h2>
+<p><code>queue/splitprofile.py</code> reads the <code>job_profiles</code> rows of <code>jobprofiles</code> (<code>unit_rows</code>, kind <code>unit:&lt;command&gt;</code>, finished units with seconds per item). <code>lookup(kind)</code> gives a <code>Reading(seconds_per_item, mb_base, mb_per_item, samples, trust)</code>: the median seconds per item, and a memory line through the lowest and highest size bucket's median peaks (one bucket gives the raw peak over the items and no base, which overstates the slope and so never cuts a unit too large). Rows from this machine's shape and epoch (the rule of <code>profileclaim._shape_of</code>, reused) count in full at 3 samples or more; otherwise rows from elsewhere count at half trust (0.5); fewer than 3 of either gives <code>None</code>, so the job keeps its suggested split. <code>PLANETGEN_SELF_TUNING=0</code> or <code>PLANETGEN_JOB_PROFILES=0</code> (the test default) turns the reading off, and any failure to read leaves the suggested split. The same table feeds the gate claim (OPS.156) and the worker caps (OPS.157).</p>
+<h2 id="what-is-not-built">What is not built</h2>
+<ul>
+<li>Declarations for the registered commands and the use of <code>splitter.decide</code> in their <code>expand</code> functions: PERF.261, starting with the Stage 17 uncharted index (<code>uncharted_index.shell_runs</code>), then block lights, link, settle and the warm-up chunks; each behind PERF.260's byte-identical test.</li>
+<li>The overlap of declared independent jobs (OPS.131/OPS.132): the declaration carries the data (<code>reads</code>, <code>writes</code>, <code>after</code>); the executor does not use it yet.</li>
+<li>A learned figure that moves at most 25 percent per run (the design note's rule) applies to the stored profile, not to this engine.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

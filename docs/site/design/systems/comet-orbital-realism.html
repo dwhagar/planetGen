@@ -107,6 +107,11 @@ Tisserand parameter <code>T = a_g / a + 2 cos i sqrt((a / a_g)(1 - e^2))</code> 
 weights. A star with no giant, and every other family, draw exactly as before. The ceiling cut of a wide pair (GEN.228, GEN.591) is
 applied to every redraw. 67P (a = 3.46 AU, e = 0.64, i = 7.0 degrees, giant at 5.2 AU) gives T = 2.75, inside the range. Left out: a
 lighter giant that also holds part of the family, the giant's own eccentricity and drift, and the galactic tide on the far cloud (GEN.1466).</li>
+<li><strong>A scattered outer disk sets the shares and the top (GEN.1765).</strong> A star whose outer-disk belt a giant scattered (<code>scatter_fates</code>) draws its comets' families by the disk's
+shares: the <code>scattered_disk</code> plus <code>centaurs</code> share is the Jupiter family, the <code>detached</code> share the cloud split between the Halley-type and long-period families by the table's
+weights, each disk weighted by the mass it had (<code>physics/comet_supply.family_weights</code>), and no nucleus is larger than the largest body of the star's outer disks
+(<code>nucleus_top_km</code>). Every other star keeps the table's weights and the range's top. The chance of any comets (0.3) and the count stay hand set: in a census of 398 stars none had a
+scattered outer disk and 14 percent an outer-disk belt at all, so a rule of comets only where a disk was scattered would leave almost every star without any. Rows CMT5 to CMT9.</li>
 <li>The class's <code>period_range_years</code> is not used by generation. Because the
 period is computed from <code>q</code> and <code>e</code>, a comet tagged Jupiter-family can come
 out with a period outside 3.3 to 20 years. The tag is descriptive only.</li>

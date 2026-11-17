@@ -121,6 +121,11 @@ main{padding:16px 16px 60px}}
 <td><code>tail -f /var/log/planetgen/error.log</code>; <a href="../design/operations/logging-standard.html"><code>logging-standard.md</code></a>, The error log.</td>
 </tr>
 <tr>
+<td>A restarted unit's files</td>
+<td>A unit that runs again writes <code>job&lt;job&gt;-unit&lt;unit&gt;-attempt&lt;n&gt;.log</code>, every debug area, opening with how the attempt before it ended and its stack, and a failed or stopped attempt leaves <code>job&lt;job&gt;-attempt&lt;n&gt;-stack.txt</code> (a traceback, or the stack the follower had the horse write); both in the <code>unit-debug</code> folder of the log folder, and the run's log names the debug file. <code>queue.debug_restarts</code> (on) turns the debug files off; each is capped at 20 MB and the folder keeps the newest 400 files.</td>
+<td>The attempt's row in the job ledger (<code>engine_attempts.stack_file</code>) names its stack file; <code>tail</code> the file.</td>
+</tr>
+<tr>
 <td>The activity log</td>
 <td>Sign-ins, refusals and other events in the one shape that fail2ban matches: <code>2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ip=203.0.113.5 user=&quot;admin&quot;</code>. It keeps this shape on purpose; <code>test_activity_log.py</code> holds it to the filter.</td>
 <td><a href="config.html"><code>config.md</code></a>, The activity log.</td>

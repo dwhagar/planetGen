@@ -36,6 +36,7 @@ from flask import Blueprint, current_app, g, jsonify, request
 
 from planetgen.db import search_values
 from planetgen.db import children as children_db
+from planetgen.db import storage_checksum
 from planetgen.api import gravity as gravity_api, nav_system, system_bodies, system_sky
 from planetgen.describe import belt_info, belt_member_info, field_member_info, irregular_moon_info
 from planetgen.describe.sheet import sheet as object_sheet
@@ -2389,7 +2390,9 @@ def update_sector(sector_id):
             # real, unchanged sector as "not found".
             if conn.execute("SELECT id FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
                 raise ApiError(f"no such sector: {sector_id}", status_code=404)
-            conn.execute(f"UPDATE sectors SET {', '.join(set_clauses)}, parity_dirty = 1 WHERE id = ?", tuple(params))
+            conn.parity_before("id = ?", (sector_id,))
+            conn.execute(f"UPDATE sectors SET {', '.join(set_clauses)} WHERE id = ?", tuple(params))
+            storage_checksum.mark_sector(conn, sector_id)
     finally:
         conn.close()
 
@@ -2895,6 +2898,8 @@ def delete_system(system_id):
     try:
         with conn:
             row = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+            if row is not None:
+                conn.parity_before("id = ?", (row["sector_id"],))
             designation_rows.tombstone_tree(conn, "star_systems", system_id)     # GEN.1141: the system's and its bodies' IDs stay reserved and a link to them answers 410
             deleted = conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,)).rowcount > 0
             if deleted:

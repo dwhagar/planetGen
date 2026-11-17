@@ -256,7 +256,7 @@ files (downloaded apart from the pinned packages), <code>offensive_words.txt</co
 and any name lists, and <code>requirements.lock</code>. The word list itself goes in
 the settings file (section 7).</p>
 <p>The OS, architecture and Python digits do not cover everything that moves
-a float. Generation also uses numpy and scipy (<code>galaxy/nebula_shape.py</code>,
+a float. Generation also uses numpy and scipy (<code>galaxy/gradient_noise.py</code>,
 <code>physics/sector_path.py</code>, <code>physics/kepler.py</code>), scikit-image (marching cubes)
 and astropy (<code>physics/constants.py</code>), the lock pins a different version of
 each per Python leg, and the C maths library and BLAS kernel depend on the
@@ -330,7 +330,7 @@ and 3.12, so one seed gives different sectors on the 3.9 CI leg and the
 others. Generation code uses <code>planetgen/util/detmath.py</code> (<code>hypot</code>, <code>dist</code>,
 <code>fsum</code>) instead, <code>test_reproducible_draws.py</code>'s scan flags the builtins,
 astropy-derived constants become literals, and <code>@</code> (BLAS) leaves
-<code>nebula_shape.py</code> and <code>sector_path.py</code>. The change alters stored values, so it
+<code>gradient_noise.py</code> and <code>sector_path.py</code>. The change alters stored values, so it
 bumps the epoch. It must land before TEST.77 or that test fails on 3.9.
 Rules and measurements: <a href="generation-determinism.html">generation-determinism.md</a>
 sections 2 and 3.</li>
@@ -370,10 +370,13 @@ one, read as &quot;the code changed&quot; when the structure differs and &quot;t
 <code>diff -u</code>), and <code>galaxy.json</code> (tier B: the galaxy of seed <code>5EED00000000A1B2C3D4E5F607182930</code>, <code>planetgen galaxy --shells 1 --num-systems 4</code>, so the run's own scatter, backfill and settle are in it, at one worker and at four:
 the two must agree, and the fingerprint of the plan, of every sector and, for a sector with systems, of each named
 section must equal the file). Tier C is the hash-seed and locale probe of <code>test_reproducible_draws.py</code>. The files hold no epoch
-number (it is numbered at merge); <code>bump_version.py --check-pr</code> ties a change to them to the epoch bump and the note's
-<code>generation-output: changed</code> line. <code>python -m tests.golden_update --reason &quot;...&quot;</code> rewrites them (about ten minutes,
-it needs the test database) and bumps the epoch; after a conflict in them, take main's files and run it again. The
-test is not on CI (there is none, Boss's rule).
+number (it is numbered at merge). <strong>Testing mode (OPS.258, Boss 2026-11-14, until the 8.1 release gate):</strong> an ordinary run of
+the test is a smoke test (the battery, the Rosetta text and the pinned galaxy must be built whole; nothing is compared with the
+files), and <code>bump_version.py --check-pr</code> no longer ties a change of output to the golden files and the epoch bump: a PR says
+<code>generation-output: changed</code> and <code>generation-affects:</code> in its note and touches neither. At the end-of-version gate
+(<code>PLANETGEN_VERSION_GATE</code>, <code>scripts/test.py full</code>) the files are compared exactly, and are renewed ONCE before it, with
+<code>python -m tests.golden_update --reason &quot;...&quot;</code> (about fifteen minutes, it needs the test database), which also bumps the epoch;
+after a conflict in them, take main's files and run it again. The test is not on CI (there is none, Boss's rule).
 Original design: a fixed seed builds a small galaxy (plan, a
 few sectors, a scatter, a backfill) at 1 and 4 workers on every CI
 Python leg, and its fingerprint must match the one pinned in

@@ -484,7 +484,8 @@ measurement is <code>fmt.quantity_html(Quantity)</code> or <code>fmt.measured_ht
 traceback), which the system pages, the object lists, the profile age labels, the population ages and the body radius
 ratio use. Text is unchanged: 380 generated Documents rendered in four formats were identical before and after, and the
 Document's numbers differ by at most 3e-16 relative (the AU to km step and the light-day product round differently).
-Left for later: <code>dose</code> has no registry kind, so <code>describe/quantity.py</code> still writes mSv by a factor of 1000; the thin
+The dose rate is built (Boss, 2026-11-11): the registry kind <code>dose_rate</code> (base Sv/s; nSv/yr to MSv/yr, keyed as the column unit <code>mSv/yr</code>) and the ladder <code>DOSE_RATE</code>, so a surface dose reads &quot;13.2 Sv/yr&quot; and not &quot;1.32 × 10⁴ mSv/yr&quot;; the Document's <code>dose</code> kind and its factor of 1000 are gone, and the stored column stays in mSv/yr.
+Left for later: the thin
 <code>format_distance_km</code>-style wrappers stay (they hold no factor); the class pages' ranges already hold their numbers in the
 unit they print, so they convert nothing.</p>
 <p>The column registry (<code>db/column_units.py</code>) no longer has its own <code>light-day</code>: <code>broad_line_region_light_days</code> is declared in the registry's <code>ld</code>, so a unit lives in one place.</p>

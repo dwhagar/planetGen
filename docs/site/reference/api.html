@@ -143,13 +143,12 @@ listing).</li>
 <code>null</code> together for an unplaced sector, plus a <code>placed</code> bool), nearest
 the galactic core first, then unplaced sectors by name
 (<code>queryDb.list_sectors</code>/<code>count_sectors</code>). The Sectors table (UX.41) also
-takes <code>sort</code> (<code>name</code>, <code>systems</code>, <code>density</code>, <code>position</code>, <code>distance</code>) with
-<code>order=asc|desc</code> (unplaced sectors sort last for <code>density</code>, <code>distance</code> and
-<code>position</code>; ties follow the sort's direction by sector ID). Each item carries <code>region</code>, the named region its sector lies in (<code>{&quot;name&quot;, &quot;parent&quot;}</code>, UX.231), or <code>null</code> for an unplaced sector or a galaxy with no naming key. There is no <code>quadrant</code> filter and no <code>facets</code> (UX.272: the galaxy's four quadrants are gone from the site; a request that still sends them has them ignored). <code>total</code> counts the sectors; a bad <code>sort</code> or
+takes <code>sort</code> (<code>name</code>, <code>systems</code>, <code>density</code>, <code>distance</code>) with
+<code>order=asc|desc</code> (unplaced sectors sort last for <code>density</code> and <code>distance</code>; ties follow the sort's direction by sector ID). Each item carries <code>region</code>, the named region its sector lies in (<code>{&quot;name&quot;, &quot;parent&quot;}</code>, UX.231), or <code>null</code> for an unplaced sector or a galaxy with no naming key. There is no <code>quadrant</code> filter and no <code>facets</code> (UX.272: the galaxy's four quadrants are gone from the site; a request that still sends them has them ignored). <code>total</code> counts the sectors; a bad <code>sort</code> or
 <code>order</code> is a 400. <code>after=&lt;sector ID&gt;</code> (PERF.137, PERF.208) starts the page after that
 sector in every sort and ignores <code>offset</code>, so a page costs the same at any depth: the
 placed sectors are read by the distance index and the unplaced ones after them by name; the
-systems, density and position sorts read the stored count, density and Quadrant
+systems and density sorts read the stored count and density
 (<code>sector_system_counts</code>) by index, with the sectors that have no galaxy position last, and
 sectors that tie follow the sort's direction by id; a sector made since the last refresh of
 those figures follows the others. An <code>after</code> that is not a sector ID is a 400.
@@ -157,7 +156,13 @@ MAP.403: <code>coverage=charted|all|uncharted</code> picks which sectors are lis
 a rogue planet, a waiting bright star or a scattered phenomenon made in a cell nothing was generated in) and <code>empty=1</code> keeps the uncharted sectors nothing is
 known to be in (no rogue planet filed in them, no waiting star, no unbuilt scattered phenomenon), which are left out by default; it has no effect on <code>charted</code>.
 <code>total</code> counts the sectors listed and <code>charted_total</code>, <code>uncharted_total</code> and <code>empty_total</code> count each kind whatever is listed; the answer echoes <code>coverage</code> and
-<code>show_empty</code>. Another <code>coverage</code> is a 400. Changed: the default listing no longer includes the uncharted placeholders.</li>
+<code>show_empty</code>. Another <code>coverage</code> is a 400. Changed: the default listing no longer includes the uncharted placeholders.
+OPS.154: a cell that holds a waiting object (a bright star or an unbuilt scattered phenomenon) and has no chart-ledger entry needs no sector row of its own: with <code>coverage=uncharted|all</code>
+the listing goes on, after the rows, into those cells by distance (shell, band, wedge; read by key from the block light parts), once the uncharted placeholder rows are few
+(at most 100,000). Such an item has <code>virtual: true</code> and the cell's sector ID as <code>id</code> (its designation, which <code>GET /api/sectors/&lt;id&gt;</code> and <code>after=&lt;sector ID&gt;</code> accept though no row has it);
+it has no systems (the <code>systems</code> and <code>density</code> sorts count it as zero, so these follow the rows).
+<code>uncharted_total</code> and <code>total</code> include these cells. A cell with a row (a rogue planet's) is listed once, as its row.
+Migration 0254 deletes the placeholder rows nothing lives in and no stage makes them, so these cells are all of the waiting cells that no rogue planet holds a row for. A sector search (<code>sector_q</code>) with <code>coverage=uncharted|all</code> finds such a cell when the whole designation is typed (<code>virtual: true</code>).</li>
 <li><code>GET /api/sectors/&lt;id&gt;</code> — one sector's full display detail: the same
 fields as the listing above, plus <code>systems</code> (every system placed in
 it, nearest the sector's center first: <code>id</code>, <code>name</code>, <code>quadrant</code>, <code>location</code>, <code>is_binary</code>, <code>binary_type</code>,
@@ -344,7 +349,7 @@ above 0.1 Pa is left out),
 <code>null</code>). An unknown planet or moon is a <code>404</code>. Additive: the API version does not change.</li>
 <li><code>GET /api/systems/&lt;id&gt;/scene</code> — the 3D system view's data (MAP.69):
 <code>system</code>, <code>epoch</code>/<code>epoch_unix</code> (when the stored phases were last
-advanced, <code>null</code> if never), <code>stars</code>, <code>planets</code> (each with <code>moons</code>),
+advanced, <code>null</code> if never), <code>stars</code>, <code>planets</code> (each with <code>moons</code>; a planet made from a belt, GEN.1510, also has <code>made_from_belt</code>: the belt's <code>ref</code>, and the <code>rank</code> and <code>designation</code> the body had there, GEN.1511; a new key on those planets only, so the API version stays),
 <code>tree</code> (the tree of orbits the stars hang in, GEN.311: <code>nodes</code>, one per
 <code>orbit_nodes</code> row with its own epoch, <code>members</code>, one per star with its
 <code>parent_node_no</code>, <code>slot</code> and <code>mass_solar</code>, and <code>origin</code>, the star at the
@@ -439,15 +444,28 @@ sector, a system, a phenomenon), is a <code>404</code>.</li>
 diameter, distance, eccentricity, inclination, density, <code>taxon</code>, <code>analogue</code>, composition shares, the <code>status</code> word with Soter's mu, and the <code>population</code>
 of a member the giants scattered), <code>bins</code> (the rest of the belt mass by diameter: count, mass, share of the belt, <code>tier</code> (<code>on demand</code> or <code>total only</code>),
 typical composition and density), <code>density_factor</code> (<code>by_diameter</code>: the objects per square AU above 1, 10 and 100 km; <code>mass</code>: kilograms per square AU)
-and <code>totals</code> (the belt, the listed bodies and the bins, which add up). Every number is <code>{value, unit, text}</code>. A new route, so the API version stays; a
-reference that is not a belt, or names nothing, is a <code>404</code>.</li>
+<code>totals</code> (the belt, the listed bodies and the bins, which add up) and <code>planets</code> (GEN.1511: the planets the belt made of its heaviest round bodies, GEN.1510, each with
+its <code>rank</code>, <code>designation</code>, <code>name</code>, <code>ref</code>, <code>planet_class</code>, <code>mass</code>, <code>diameter</code> and <code>distance</code>; empty when it made none; their mass is not in <code>totals</code>). Every number is
+<code>{value, unit, text}</code>. A new route, so the API version stays; a reference that is not a belt, or names nothing, is a <code>404</code>.</li>
+<li><code>GET /api/objects/&lt;ref&gt;/irregular-moons</code> — the irregular moons a planet keeps (GEN.1086, <code>describe/irregular_moon_info.py</code>): <code>planet</code> (<code>designation</code>, <code>name</code>, <code>star</code>, <code>mass</code>,
+<code>hill_radius</code>), <code>moons</code> (heaviest first, each with <code>rank</code> (the page address), <code>designation</code> (<code>&lt;planet ID&gt;.&lt;rank hex&gt;</code>, the rank being the stored rank plus one, or the belt's
+designation <code>&lt;belt ID&gt;.&lt;rank hex&gt;</code> for a body caught from an inner belt, with <code>belt_designation</code> true), <code>window</code> (<code>gas</code>, <code>encounter</code> or <code>exchange</code>), <code>retrograde</code>, <code>mass</code>,
+<code>diameter</code>, <code>density</code>, <code>taxon</code>, <code>analogue</code>, <code>composition</code> shares, the <code>distance</code> about the planet, <code>eccentricity</code>, <code>inclination</code> and <code>hill_fraction</code>) and <code>not_stored</code>
+(<code>remainder</code>, <code>above_floor</code>, <code>lost</code>, <code>temporary</code>). Every number is <code>{value, unit, text}</code>. A new route, so the API version stays; a reference that is not a planet is a <code>404</code>.</li>
+<li><code>GET /api/objects/&lt;ref&gt;/irregular-moons/&lt;rank&gt;</code> — one irregular moon of a planet, <code>rank</code> written as a designation writes it (hex, at least four digits): <code>designation</code>,
+<code>rank</code>, <code>moon</code> (the entry above), <code>orbit</code> (the six elements about the planet, the <code>closest_distance</code>, <code>farthest_distance</code>, <code>period</code>, <code>retrograde</code> and <code>hill_fraction</code>),
+<code>planet</code> and the <code>previous</code> (heavier) and <code>next</code> (lighter) neighbours as <code>{rank, designation}</code>; ranks can have gaps where a smaller body was lost. A new route, so the API
+version stays. A reference that is not a planet, a rank not written canonically, or a body the planet does not keep is a <code>404</code>.</li>
+<li><code>GET /api/systems/&lt;id&gt;</code> (GEN.1086) — each planet also has <code>irregular_moons</code>, the bodies it caught, heaviest first (an empty list for a planet that keeps none), each <code>{rank, designation, window, mass_kg, radius_km, density_g_cm3, taxon, rock_fraction, metal_fraction, water_fraction, ice_fraction, distance_km, eccentricity, inclination_deg, ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, retrograde}</code> with the orbit about the planet as saved; the System Map draws its irregular-moon scene from them. A new key, so the API version
+stays.</li>
 <li><code>GET /api/objects/&lt;ref&gt;/belt-members/&lt;rank&gt;</code> — one body an asteroid belt keeps individually (GEN.1070, <code>describe/belt_member_info.py</code>), <code>rank</code> written as the
 designation writes it (hex, at least four digits; 1 is the heaviest): <code>designation</code>, <code>rank</code>, <code>member</code> (the entry of <code>bodies</code> in the belt's information page:
 mass, diameter, density, <code>taxon</code>, composition, <code>status</code>, <code>population</code>), <code>orbit</code> (<code>semi_major_axis</code>, <code>eccentricity</code>, <code>inclination</code>, <code>ascending_node</code>,
 <code>argument_of_periapsis</code>, <code>mean_anomaly</code>, and the <code>closest_distance</code>, <code>farthest_distance</code> and <code>period</code> they and the star's mass give), <code>share</code> of the belt's mass,
 <code>belt</code> (its <code>designation</code>, <code>star</code>, <code>origin</code> and <code>history</code> sentences, <code>history_text</code> and <code>individual_count</code>) and the <code>previous</code> (heavier) and <code>next</code> (lighter)
 designations. Every number is <code>{value, unit, text}</code>. A new route, so the API version stays. A reference that is not a belt, a rank not written as the
-designation writes it, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page yet) is a <code>404</code>.</li>
+designation writes it, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page yet) is a <code>404</code>. The rank of a body
+that was made a planet (GEN.1510) answers <code>designation</code>, <code>rank</code> and <code>promoted</code> (that planet's <code>ref</code>, <code>name</code>, <code>planet_class</code>, <code>mass</code>, <code>diameter</code> and <code>distance</code>) in place of the member page.</li>
 <li><code>GET /api/objects/&lt;ref&gt;/field-members</code> — the bodies an interstellar asteroid field keeps individually (GEN.1105, <code>describe/field_member_info.py</code>): <code>field</code> (its
 <code>designation</code>, <code>name</code> and <code>mass</code>), <code>count</code> and <code>bodies</code>, heaviest first, each with its <code>rank</code>, <code>designation</code> (<code>&lt;field ID&gt;.&lt;rank hex&gt;</code>), <code>mass</code>, <code>diameter</code>,
 <code>density</code>, <code>composition</code> shares and <code>status</code> word. Every number is <code>{value, unit, text}</code>. A field with no ledger keeps none (<code>count</code> 0). A new route, so the
@@ -1050,8 +1068,27 @@ per running unit of the followed stage: <code>&quot;stage&quot;</code>, <code>&q
 <code>&quot;rate&quot;</code>, <code>&quot;projected_finish_seconds&quot;</code>, <code>&quot;still_seconds&quot;</code>, <code>&quot;over_limit&quot;</code>,
 <code>&quot;phase&quot;</code>, <code>&quot;waiting_on&quot;</code>, <code>&quot;done&quot;</code>, <code>&quot;estimate&quot;</code>, <code>&quot;restarts&quot;</code>,
 <code>&quot;resident_mb&quot;</code>, <code>&quot;beat_age_seconds&quot;</code>, <code>&quot;running_seconds&quot;</code>, as the process
-that follows the run last judged them; empty once the run is over.</li>
-<li><code>POST /api/admin/work/&lt;id&gt;/control</code> <code>{&quot;action&quot;: &quot;cancel&quot;|&quot;clear&quot;}</code> —
+that follows the run last judged them; empty once the run is over.
+<code>GET /api/admin/work/&lt;id&gt;/jobs</code> (OPS.224) answers one run's jobs from the job
+ledger, in the order they were planned: <code>{&quot;engine_run&quot;, &quot;counts&quot;: {state: n}, &quot;total&quot;, &quot;items&quot;: [{&quot;id&quot;, &quot;stage&quot;, &quot;command&quot;, &quot;item&quot;, &quot;state&quot; (&quot;waiting&quot;, &quot;ready&quot;, &quot;running&quot;, &quot;done&quot;, &quot;failed&quot; or &quot;canceled&quot;), &quot;attempts&quot;, &quot;class&quot;, &quot;claim_mb&quot;, &quot;waits&quot;, &quot;last&quot;, &quot;created&quot;, &quot;updated&quot;}], &quot;limit&quot;, &quot;offset&quot;}</code>.
+<code>waits</code> says why a job that is not running is not (the memory gate's own
+words a worker that held it was given, a retry hold with how long is left and
+how the last attempt ended, or what it still needs; <code>&quot;&quot;</code> for a job that is
+running or over); <code>last</code> is the newest attempt (<code>&quot;outcome&quot;</code>, <code>&quot;words&quot;</code>,
+<code>&quot;error_kind&quot;</code>, <code>&quot;peak_mb&quot;</code>, <code>&quot;cpu_seconds&quot;</code>, <code>&quot;started&quot;</code>, <code>&quot;ended&quot;</code>). The query
+takes <code>state</code>, <code>stage</code>, <code>command</code>, <code>limit</code> and <code>offset</code>; 404 for a run that
+has not been cut yet. <code>GET /api/admin/work/&lt;id&gt;/jobs/&lt;job id&gt;</code> answers the job
+as above with <code>&quot;arguments&quot;</code> and <code>&quot;attempt_rows&quot;</code>, every attempt oldest first
+(<code>&quot;attempt&quot;</code>, <code>&quot;pid&quot;</code>, <code>&quot;outcome&quot;</code>, <code>&quot;words&quot;</code>, <code>&quot;started&quot;</code>, <code>&quot;ended&quot;</code>,
+<code>&quot;peak_mb&quot;</code>, <code>&quot;cpu_seconds&quot;</code>, <code>&quot;error_kind&quot;</code>, <code>&quot;error_text&quot;</code>, <code>&quot;stack_file&quot;</code>).
+<code>GET /api/admin/work/history</code> answers the runs the ledger holds, newest first:
+<code>{&quot;available&quot;, &quot;total&quot;, &quot;items&quot;: [{&quot;id&quot;, &quot;kind&quot;, &quot;galaxy&quot;, &quot;state&quot; (&quot;waiting&quot;, &quot;running&quot;, &quot;held&quot;, &quot;done&quot; or &quot;canceled&quot;), &quot;held_reason&quot;, &quot;created&quot;, &quot;started&quot;, &quot;finished&quot;, &quot;jobs&quot;: {state: n}, &quot;attempts&quot;}], &quot;facets&quot;: {&quot;state&quot;: {value: runs}, &quot;kind&quot;: {...}}, &quot;limit&quot;, &quot;offset&quot;}</code>, filtered by <code>state</code>, <code>kind</code>
+and <code>galaxy</code>.</li>
+<li><code>POST /api/admin/work/&lt;id&gt;/control</code> <code>{&quot;action&quot;: &quot;cancel&quot;|&quot;clear&quot;|&quot;retry-held&quot;}</code> —
+retry-held (OPS.221) carries a run that is held for a person on: it takes
+the machine back, queues each held unit again as it was cut and answers
+<code>{&quot;ok&quot;: true, &quot;requeued&quot;: n}</code>; <code>{&quot;ok&quot;: false}</code> for a run that is not held,
+409 when another run owns the machine. cancel also ends a held run.
 cancel stops a live run now: its waiting units are taken off the queue,
 its started units are sent RQ's stop command, and the machine is free
 (measured under a second for a run of 4,000 units); clear ends a run that
