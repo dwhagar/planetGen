@@ -11745,6 +11745,7 @@ clears each one.
 
 - [ ] **TEST.788 Slow gate files: test_db_column_round_trip 3,725 s, test_full_matrix 1,913 s, test_order_independence 1,872 s, test_describe 1,817 s and test_tidal_spin 1,662 s under gate load (Trains 39 to 41); make each fit well inside the hang guard without changing what it checks**
   Lane 16, 8:30 PM EST 2026-11-16 (gate results reports/train39 to 41, r-lane*.txt; times under gate load, 3 workers on a box). Next tier over 1,000 s: test_gen_debris_disk 1,501 s, test_golden_seed 1,434 s, test_snow_line 1,397 s, test_galaxy_gen 1,332 s, test_moons 1,148 s, test_finish_run_generation 1,076 s, test_star_population 1,022 s. test_tidal_spin also failed once on a slow run. Do: time each alone, profile the fixture, speed it up the way TEST.783 did (forked workers, shared fixtures, no repeated builds), one PR per file, starting with test_tidal_spin; never shrink a sample, loosen a bound or pick seeds.
+  Progress (Lane 16, 11-17): test_describe done (PR 7053, 2,634 s to 1,057 s serial); test_db_column_round_trip's cost is the rich_galaxy fixture's sectors step, filed as PERF.279; test_order_independence stays as it is (515 s alone, not forkable because of the shared Redis queue).
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16, lock-free. Prerequisites: none. Related: TEST.783.
   Filed by the TODO thread.
 
@@ -11786,6 +11787,11 @@ clears each one.
 - [ ] **GEN.1784 The exobase search underestimates the exobase height: median 6 percent low, up to 25 percent for hot light airs on big planets (Earth-like 1,100 K: 421 km against 445 km) (lock)**
   Lane 07, 3:50 AM EST 2026-11-17, found on PERF.278: the fixed first-order step of 0.25 scale heights in thermosphere.kept_shares lags the profile; checked against a DOP853 integration to 1e-12 over 90 bodies. Do: make the search accurate to a stated tolerance at no more cost for the common short search (a higher-order or corrected step, or a smaller step only where needed), and show the exobase heights, Jeans losses and kept shares of a census sample before and after, with any air or class changes. Lock item; no golden or epoch (Boss, 2026-11-14).
   Version 8.1. Owner (TODO, 2026-11-17): Lane 07 (Lane 02 owns the thermosphere and is told). Prerequisites: none. Related: PERF.278.
+  Filed by the TODO thread.
+
+- [ ] **PERF.279 The habitability seasonal solve per pre-placed system: `sectors --shell 1 --band 0 --limit 3 --num-systems 6` takes over 30 minutes, mostly in _add_preplaced_systems, belt promotion and seasonal_swing._anderson; measure per-step counts and cut the cost without changing output**
+  Lane 16, 5:58 AM EST 2026-11-17 (TEST.788: the session fixture rich_galaxy of test_db_column_round_trip is this one step). Do: count calls and time per pre-placed system for each of the three steps, find repeated solves (the same world solved more than once, or a solve that could reuse a cached result), and fix the cause; if the fix is in seasonal_swing (Lane 07's file), agree it with Lane 07 first. Output must not move (golden seed passes); if it does, it is a lock item.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 16, with Lane 07 for seasonal_swing. Prerequisites: none. Related: TEST.788, PERF.276.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
