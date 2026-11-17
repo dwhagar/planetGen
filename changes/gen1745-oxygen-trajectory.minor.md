@@ -1,0 +1,6 @@
+**Headline:** The air history now follows the oxygen a world's life raises through time, ending at the oxygen the generator already gives it, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 2a: `air_history.oxygen_trajectory(body, living, ages)` and `oxygen_cuts` give the oxygen, mol, of the air at each age as the classes of `living` raise it: as found before the rise, then the plateau or the balance of the source against the reductant sink of that age. Its last value equals what `biogenic_oxygen.apply` puts into the air (9 worlds with a rise in 120 generated systems, all equal). Reuse: `life_air.oxygen_state`, `_oxygenic` and `standing_methane_mol`, `biogenic_oxygen.profile_of`, `burn`, `balance_pa`, `reductant_history_factor`, `_oxygen_mol_at`, `_fire_limit_mol`. Nothing in the generator reads it yet.
+- `air_history._anchor_indices` keeps an anchor at a turning point of the starlight (the pre-main-sequence bump of a young star's light) when it has to drop some, so the steps round the bump are read between it and its neighbours; a world whose light bump had lost its anchor was read up to 3 percent off at the clamp (found by `test_a_temperature_that_follows_the_light_is_read_exactly_between_anchors_and_solved_only_at_them`, which was red on main on the first generated life world). Nothing in the generator reads the history yet.
