@@ -116,8 +116,13 @@ def test_a_nodes_planets_are_drawn_from_a_stream_of_its_own():
     system, _cfg = _with_node_planets()
     host = system.node_hosts[0]
     again = system._generate_node_planets(host)
-    assert [body.distance for body in again] == [body.distance for body in system.node_planets[0]]
+    # The stored planets went through the settle pass, which spaces orbits again once the eccentricities are final (`validation.space_orbits`) and can move a planet out
+    # (TEST.787: with GEN.1709's wider inner systems one of this sample's planets goes from 71.8 to 122.3 AU), so the drawn distances are not compared with the stored ones: the
+    # draw is shown stream-owned by a second regeneration giving the same distances, and the masses, which settling never changes, agree with the stored planets'.
     assert [body.mass for body in again if body.body_type != "a"] == [body.mass for body in system.node_planets[0] if body.body_type != "a"]
+    twice = system._generate_node_planets(host)
+    assert [body.distance for body in twice] == [body.distance for body in again]
+    assert [body.body_type for body in twice] == [body.body_type for body in system.node_planets[0]]
 
 
 def test_a_system_without_such_a_node_has_no_node_planets():

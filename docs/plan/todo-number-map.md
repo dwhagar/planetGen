@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1773 |
+| GEN | GEN.1775 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.786 |
+| TEST | TEST.788 |
 | USR | USR.33 |
 | OPS | OPS.269 |
 | DOC | DOC.121 |
@@ -3052,7 +3052,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.239 | Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle | none | open |
 | OPS.240 | Job engine stage 5: sectors one at a time from a spawner job with a queued window; absorbs OPS.126 | none | open |
 | OPS.241 | Job engine stage 5: independence harness (declared reads and writes; a SQL tap test fails undeclared tables); absorbs OPS.131 | none | done, PR #6766 (9:46 PM EST 11-15) |
-| OPS.242 | Job engine stage 5: overlap pair by pair, each with its proof (skeleton-only commands first, then narrower edges); absorbs OPS.132; one item per pair | none | open |
+| OPS.242 | Job engine stage 5: overlap pair by pair, each with its proof (skeleton-only commands first, then narrower edges); absorbs OPS.132; one item per pair | none | done (Lane 07: PRs 6771, 6777, 6792, 6794 and 6823, each overlap pair with its proof, merged 11-15 and 11-16; OPS.241's touches fix 6814) |
 | OPS.243 | Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261 | none | done, PRs #6757, #6767 (9:45 PM EST 11-15) |
 | OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | open |
 | OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | open |
@@ -4099,6 +4099,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1770 | (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red) | done (PR 6903, Lane 07, merged in Train 40, PR 6938, 6:47 PM EST 11-16) |
 | GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | open |
 | GEN.1772 | (bug) Civilizations on worlds whose air the species placement refuses (the air cannot be breathed) | open (Lane 04) |
+| GEN.1773 | (bug) A body past the runaway limit keeps an ocean (Venus twin at 586 K, 118 bar) | open (Lane 14) |
+| GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | open (Lane 02) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4964,6 +4966,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.783 | (bug) test_star_composition_sweep and test_radius_valley_sweep: the filled-galaxy fixture runs past the hang guard (900 s, 1,500 s in gates) on a 4-core box, so the files error instead of testing | open |
 | TEST.784 | (bug) test_earth_analog::test_the_stored_baseline_is_well_formed_and_its_first_trials_redraw_the_same is red on main: a stored trial redraws hydrology 'brine seep' where the baseline says 'surface ocean' | done (PR 6912, Lane 03, merged 2:16 PM EST 11-16: GEN.1730 moved the first trials on purpose, brine seep to surface ocean; the Earth analog baseline is renewed on main) |
 | TEST.785 | (bug) test_envelope_dial::test_at_share_one_no_candidate_keeps_an_envelope_and_the_others_are_not_made_late_cores is red on main: a candidate planet that moved into the ecosphere after the late-core draw keeps its envelope | done (PR 6907, Lane 04, merged 1:53 PM EST 11-16: generation is right, the dial is drawn once in the zone held then and a planet moved later keeps its decision; the test now counts only candidates whose zone did not change) |
+| TEST.786 | (bug) Runaway-start test red: a wet body past the runaway limit keeps a surface ocean | open (Lane 14) |
+| TEST.787 | (bug) Main reds: test_class_after_bands (T for M) and test_gen_node_planets stream test | done (PR 6949, Lane 07, merged 8:23 PM EST 11-16; class_after_bands half moved to GEN.1774) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

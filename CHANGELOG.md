@@ -2,6 +2,40 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4415] - 2026-11-17
+
+**Headline:** The node-planet stream test compares what settling leaves alone (masses) and two regenerations, since settling can respace a planet's orbit.
+
+### Changed
+- TEST.787: `test_a_nodes_planets_are_drawn_from_a_stream_of_its_own` compared the regenerated planets' distances with the stored ones, which have been through the settle pass; settling spaces the orbits again once the eccentricities are final and, with GEN.1709's wider inner systems, moves one planet of the sample from 71.8 to 122.3 AU. It now compares the masses with the stored planets' and two regenerations' distances with each other.
+- Tests only; no generation output changes.
+
+## [8.0.4414] - 2026-11-17
+
+**Headline:** The functions for a companion star's pull on a star's planets (apsidal rate and forced eccentricity) are built, not wired yet.
+
+### Changed
+- GEN.1499 (slice 0): `physics/belt_forcing.py` gains `companion_terms` (a companion's `A_c` and push `B_c exp(i varpi)` on each planet) and `forced_planet_vectors` (the forced eccentricity of every planet, from the planets' own exchange with relativity and the belt rings plus the companions' terms; one planet gives `forced_vector` exactly). Reuses `companion_rates`, `secular_chain.matrices` and `secular_chain.clear_rings`; no second model. Wiring-register lines and a design section. Nothing reads them yet, so nothing generated changes; slice 1 (lock item) wires them into `secular_chain.evolve`.
+
+generation-output: none
+
+## [8.0.4413] - 2026-11-17
+
+**Headline:** the two late-accretion air tests read the planets that have a ground again, so they pass on main.
+
+### Fixed
+
+- Since GEN.1710 (the ground cut reads `envelope_escape.BARE_BELOW`), an Earth-mass planet of a G star at 1 AU that keeps an envelope has no ground: its air is solved at the 1 bar level like a giant's and the late accretion is not drawn for it. `tests/test_late_accretion.py` took the last draw of every such planet and raised `IndexError` for seeds 1, 3 and 5. `_earth_like` now gives `None` for the percent of a planet with no draw, the replay test skips those and reads seeds 1 to 10 (still at least 3 checked), and the temperate-air search takes only planets with a draw. What the tests assert is unchanged.
+
+## [8.0.4412] - 2026-11-17
+
+**Headline:** The functions for a companion star's tilt of a belt are built, not wired yet.
+
+### Changed
+- GEN.1492 (second part, slice 0): `physics/belt_forcing.py` gains `planet_nodal_rate`, `forced_normal` and `tilted_orbit`: the axis a belt member's orbit plane precesses about under a tilted companion and the star's planets (a heavy giant holds the belt flat, a bare belt follows the companion), and the member's inclination and node on the cone about it. Registry rows FE3 (now the tilt theory) and FE5 (the 0.5 rad limit), wiring register lines and a design section. Nothing reads them yet, so nothing generated changes; slice 1 (lock item) wires them into the belt's members.
+
+generation-output: none
+
 ## [8.0.4411] - 2026-11-16
 
 **Headline:** The radiation sweep test draws more systems until it finds a giant, and no longer asks a band that is almost dark to pass less light under a thicker air.
