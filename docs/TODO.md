@@ -11694,6 +11694,7 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **PERF.280 Stage 9 (scatter the massive stars from the neighborhood): skip or batch sky cells expected to hold almost no bright stars; a design and measurement item that shows how the placed star set changes before anything merges**
+  Progress: fix A merged (PR 7101, 6:01 PM EST 11-17, identical stars; the walk over 16 parts drops 8 to 33 percent). Boss, 6:43 PM EST 2026-11-17: "Build B next train": one Poisson count per sky row from the tight bound; a lock item that changes which stars are placed (new random streams, same statistics). Lane 07 builds it for the next generation train; report star counts and a brightest-star list of a full neighborhood against today in the train notes.
   Boss, 4:49 PM EST 2026-11-17 (Stage 9 card, "File it"), after his 11-16 run estimated about 5 hours for the bright-star backfill. Do: (1) from the sky model, the expected bright-star count per cell; (2) design a skip or batch rule for cells expected to hold almost none; (3) measure on a full neighborhood how the placed star set changes (count, positions, brightest stars) against today, and the time saved; report to Boss before any merge. Reuse the OPS.269 bar and the PERF.275 share costs.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 07, report first, lock item if output moves. Prerequisites: none. Related: OPS.270, PERF.275, OPS.269.
   Filed by the TODO thread.
