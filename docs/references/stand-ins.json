@@ -25049,7 +25049,7 @@
           "fields": [
             [
               "What it is",
-              "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between); above 0.8 the model's own Kelvin-Helmholtz time scaled to the 0.8 value"
+              "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between), and from 0.9 to 1.4 (GEN.1640) the age at which the BHAC15 isochrone radius falls within 5 percent of the MIST zero-age radius (47.1, 38.0, 30.6, 24.9, 22.3 and 19.6 Myr; the isochrone light there is within 4 percent of the zero-age light); above 1.4 the model's own Kelvin-Helmholtz time scaled to the 1.4 value"
             ],
             [
               "The range it moves in",
@@ -25069,7 +25069,7 @@
             ],
             [
               "Evidence",
-              "READ (Sources 2, gen1169 report, BHAC15_tracks+structure): GEN.1174 (Boss, 5:25 AM EDT 2026-10-31: both times, class by radius): a star is pre-main-sequence until its radius has settled; MIST's nuclear arrival (GEN.947) is kept as nuclear_arrival_yr and is 3 to 4 times longer for 0.1 to 0.3 solar masses; above 0.8 solar masses the radius of the track passes through a minimum and the criterion stops meaning the same thing"
+              "READ (Sources 2, gen1169 report, BHAC15_tracks+structure): GEN.1174 (Boss, 5:25 AM EDT 2026-10-31: both times, class by radius): a star is pre-main-sequence until its radius has settled; MIST's nuclear arrival (GEN.947) is kept as nuclear_arrival_yr and is 3 to 4 times longer for 0.1 to 0.3 solar masses; above 0.8 solar masses the radius of the track passes through a minimum and the criterion stops meaning the same thing, so the age is read against the zero-age radius there (GEN.1640, which also takes the star's light, temperature and radius from the table up to 1.4 solar masses: the model's own track was 0.75 against 0.46 solar luminosities for the Sun at 10 Myr)"
             ]
           ],
           "id": "LM6",
@@ -25080,7 +25080,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between); above 0.8 the model's own Kelvin-Helmholtz time scaled to the 0.8 value"
+          "what": "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between), and from 0.9 to 1.4 (GEN.1640) the age at which the BHAC15 isochrone radius falls within 5 percent of the MIST zero-age radius (47.1, 38.0, 30.6, 24.9, 22.3 and 19.6 Myr; the isochrone light there is within 4 percent of the zero-age light); above 1.4 the model's own Kelvin-Helmholtz time scaled to the 1.4 value"
         }
       ],
       "slug": "6-66-stand-ins-of-the-low-mass-main-sequence-and-the-star-brown-dwarf-boundary",
@@ -55021,6 +55021,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "variability.HERBIG_MAX_MASS_SOL 8 (a pre-main-sequence star of this mass or more is neither: it reaches the main sequence still accreting)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "variability.RGB_SEMIREGULAR_MAX_TEMPERATURE_K 4000 (a red-giant-branch star cooler than this is a small-amplitude semiregular variable; the M giants are the catalogued semiregulars, the K giants mostly steady)"
+            ],
+            [
+              "The range it moves in",
+              "3600 to 4400"
+            ],
+            [
+              "Where it holds",
+              "red-giant-branch stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured red-giant population whose M giants are mostly steady, or whose variables reach 4,600 K"
+            ],
+            [
+              "What replaces it",
+              "a period-luminosity-amplitude model of the red-giant branch"
+            ],
+            [
+              "Evidence",
+              "test_variability::test_only_a_cool_red_giant_branch_star_is_a_semiregular_variable"
+            ]
+          ],
+          "id": "VR4",
+          "key": "6.138:VR4",
+          "kind": "P",
+          "slug": "6-138-vr4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "variability.RGB_SEMIREGULAR_MAX_TEMPERATURE_K 4000 (a red-giant-branch star cooler than this is a small-amplitude semiregular variable; the M giants are the catalogued semiregulars, the K giants mostly steady)"
         }
       ],
       "slug": "6-138-stand-ins-of-the-variable-star-kinds",
@@ -59633,6 +59671,158 @@
           "tweak": "L0",
           "unread": null,
           "what": "a moon is inside its parent's magnetosphere when its orbit is closer than the parent's magnetopause_rp radii"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORONAL_WIND_X_RAY_EXPONENT 1.29 (stellar_wind.coronal_mass_loss_solar, GEN.1625): the mass loss of an A to K dwarf per unit surface area is its X-ray surface flux over the Sun's to this power, so its mass loss is the Sun's times its squared radius times that ratio; one law for the heliosphere, for the black holes the winds feed and for the pressure on a planet's magnetosphere (magnetism.wind_pressure_pa)"
+            ],
+            [
+              "The range it moves in",
+              "1.29 +- 0.16 [R5303]; 1.34 +- 0.18 [R5304]"
+            ],
+            [
+              "Where it holds",
+              "GK dwarfs below an X-ray flux of 1e6 erg/cm^2/s; used for A to K dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a measured wind of an A to K dwarf (Lyman-alpha astrosphere, [R5303]) off the law by over an order of magnitude at a flux below the dividing line"
+            ],
+            [
+              "What replaces it",
+              "the wind from a coronal model of the star's own field (Cohen, Alvarado-Gomez and others, not read)"
+            ],
+            [
+              "Evidence",
+              "the fit of [R5303] to the measured GK dwarfs; the Sun's mass loss 2e-14 solar masses a year, its X-ray luminosity 1.4e27 erg/s today (constants.SOLAR_X_RAY_LUMINOSITY_W)"
+            ]
+          ],
+          "id": "WN5",
+          "key": "6.240:WN5",
+          "kind": "P",
+          "slug": "6-240-wn5",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CORONAL_WIND_X_RAY_EXPONENT 1.29 (stellar_wind.coronal_mass_loss_solar, GEN.1625): the mass loss of an A to K dwarf per unit surface area is its X-ray surface flux over the Sun's to this power, so its mass loss is the Sun's times its squared radius times that ratio; one law for the heliosphere, for the black holes the winds feed and for the pressure on a planet's magnetosphere (magnetism.wind_pressure_pa)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S 1e6: the X-ray flux the coronal wind reads is held at the dividing line above which the measured winds are weak, so a saturated K dwarf has 64 times the Sun's wind, not 1,000"
+            ],
+            [
+              "The range it moves in",
+              "log flux 6.0 [R5303]"
+            ],
+            [
+              "Where it holds",
+              "stars above the dividing line (young and saturated A to K dwarfs)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured wind of an A to K dwarf above the line that is over ten times the held value"
+            ],
+            [
+              "What replaces it",
+              "no cap, the law of WN5 running over the whole range; or [R5302]'s weaker line (it says the dividing line is weakened by the M dwarfs)"
+            ],
+            [
+              "Evidence",
+              "the dividing line of [R5303], which the new M dwarf measurements weaken [R5302]"
+            ]
+          ],
+          "id": "WN6",
+          "key": "6.240:WN6",
+          "kind": "P",
+          "slug": "6-240-wn6",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S 1e6: the X-ray flux the coronal wind reads is held at the dividing line above which the measured winds are weak, so a saturated K dwarf has 64 times the Sun's wind, not 1,000"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.M_DWARF_WIND_PER_AREA_SOLAR 3.3: an M dwarf's mass loss is 3.3 times the Sun's per unit surface area, whatever its X-ray flux, so an M5 dwarf (0.2 solar radii) has 0.13 of the Sun's wind (Proxima Centauri's limit is 0.2); the speed is the Sun's 400 km/s scaled by the escape speed [R5302]"
+            ],
+            [
+              "The range it moves in",
+              "2 to 10"
+            ],
+            [
+              "Where it holds",
+              "M dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a measured M dwarf wind per area that the generated dwarfs miss by over a factor of 30 (the scatter at one flux is two orders of magnitude, [R5302])"
+            ],
+            [
+              "What replaces it",
+              "a draw of the scatter on a stream of the star; or [R5302]'s M-dwarf slope 0.77 with a fitted normalisation"
+            ],
+            [
+              "Evidence",
+              "the median of the six single M dwarfs of [R5302: Table 3] that have a value (GJ 436 0.37, GJ 205 0.86, GJ 887 2.3, GJ 173 4.3, EV Lac 9.8, YZ CMi 275: mass loss over the squared radius, solar units), read in the report of a reader of the paper"
+            ]
+          ],
+          "id": "WN7",
+          "key": "6.240:WN7",
+          "kind": "P",
+          "slug": "6-240-wn7",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.M_DWARF_WIND_PER_AREA_SOLAR 3.3: an M dwarf's mass loss is 3.3 times the Sun's per unit surface area, whatever its X-ray flux, so an M5 dwarf (0.2 solar radii) has 0.13 of the Sun's wind (Proxima Centauri's limit is 0.2); the speed is the Sun's 400 km/s scaled by the escape speed [R5302]"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a white dwarf (VII) has no wind (stellar_wind.wind gives 0, GEN.1625: it used to get the cool dwarfs' scaled wind) and a wind weaker than the interstellar medium's pressure (2.5e-13 Pa) is held to it in magnetism.wind_pressure_pa, so a body's standoff stays finite"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "white dwarfs and very quiet stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured wind of an old white dwarf that is over a tenth of the Sun's mass loss"
+            ],
+            [
+              "What replaces it",
+              "a radiative wind of a hot white dwarf over 1e5 K (not read)"
+            ],
+            [
+              "Evidence",
+              "a white dwarf has no convective envelope to drive a corona and no luminosity to drive a line-driven wind"
+            ]
+          ],
+          "id": "WN8",
+          "key": "6.240:WN8",
+          "kind": "P",
+          "slug": "6-240-wn8",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a white dwarf (VII) has no wind (stellar_wind.wind gives 0, GEN.1625: it used to get the cool dwarfs' scaled wind) and a wind weaker than the interstellar medium's pressure (2.5e-13 Pa) is held to it in magnetism.wind_pressure_pa, so a body's standoff stays finite"
         }
       ],
       "slug": "6-240-stand-ins-of-the-stellar-wind-of-a-system-and-a-moon-in-its-parent-s-field",
@@ -63277,7 +63467,7 @@
           "fields": [
             [
               "What it is",
-              "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
+              "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe feeds it by overflow as well (DL10), and a brown dwarf is read at the age of its system (brown_dwarf.state)"
             ],
             [
               "The range it moves in",
@@ -63289,7 +63479,7 @@
             ],
             [
               "What would show it wrong",
-              "a black hole beside a giant that overflows its lobe, which would be far brighter"
+              "a black hole beside a star that fills its lobe, which DL10 now adds"
             ],
             [
               "What replaces it",
@@ -63308,7 +63498,7 @@
           "tier_code": "T7",
           "tweak": "L1",
           "unread": null,
-          "what": "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
+          "what": "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe feeds it by overflow as well (DL10), and a brown dwarf is read at the age of its system (brown_dwarf.state)"
         },
         {
           "burn_down": null,
@@ -63347,6 +63537,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "compact_remnant.NeutronStar._formation_luminosity_w (GEN.1529): the light the snow line of a neutron star's disk is read at is the star's light at the end of its neutrino era (dark_light.NEUTRON_STAR_PHOTON_ERA_YR, about 1e26 W for a 12 km star), not its light today, which is 1e17 W at 5 Gy and puts the snow line at 1e-5 AU"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.STRIPPED_HELIUM_TEMPERATURE_K = 28,000 K and STRIPPED_BURNING_MIN_MASS_SOL = 0.3: a stripped helium star of the tree (kind stripped-helium, 0.3 to 0.5 solar masses, radius from tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47) glows as a hot subdwarf, 4 pi R^2 sigma T^4 at the temperature the hot subdwarfs of the field cluster at (20,000 to 40,000 K, most near 28,000 K [R1875]), 22 solar luminosities for the 0.47 solar mass star; its XUV is the share of that blackbody over 13.6 eV (activity.blackbody_fraction_above, 17 percent), the step a white dwarf's photosphere takes; a stripped star under 0.3 solar masses (a semi-degenerate AM CVn donor) gives no light, and the star is not aged"
+            ],
+            [
+              "The range it moves in",
+              "temperature 20,000 to 40,000 K"
+            ],
+            [
+              "Where it holds",
+              "stripped helium companions of Be stars and of post-common-envelope pairs"
+            ],
+            [
+              "What would show it wrong",
+              "a hot subdwarf of 0.47 solar masses and 0.2 solar radii measured outside 10 to 100 solar luminosities, or one with an XUV share far from the blackbody's"
+            ],
+            [
+              "What replaces it",
+              "an evolution track of a helium star by mass and age (the hot-subdwarf lifetime of about 1e8 yr, then the cooling of a white dwarf) and the light of an AM CVn donor"
+            ],
+            [
+              "Evidence",
+              "physics: a core that burns helium under a thin envelope shines near the blackbody of its own surface; the temperature is the review's typical one, not read from a table of this paper"
+            ]
+          ],
+          "id": "DL9",
+          "key": "6.259:DL9",
+          "kind": "P",
+          "slug": "6-259-dl9",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dark_light.STRIPPED_HELIUM_TEMPERATURE_K = 28,000 K and STRIPPED_BURNING_MIN_MASS_SOL = 0.3: a stripped helium star of the tree (kind stripped-helium, 0.3 to 0.5 solar masses, radius from tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47) glows as a hot subdwarf, 4 pi R^2 sigma T^4 at the temperature the hot subdwarfs of the field cluster at (20,000 to 40,000 K, most near 28,000 K [R1875]), 22 solar luminosities for the 0.47 solar mass star; its XUV is the share of that blackbody over 13.6 eV (activity.blackbody_fraction_above, 17 percent), the step a white dwarf's photosphere takes; a stripped star under 0.3 solar masses (a semi-degenerate AM CVn donor) gives no light, and the star is not aged"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.STABLE_TRANSFER_MASS_RATIO = 1 and overflow_kg_s: a star whose radius reaches its Roche lobe about a black hole (roche.filling_factor of [R1222], at the separation of the tree) feeds it by overflow at the donor's mass over its own evolution time: ms_lifetime.lifetime_gy of its mass when it is no heavier than the hole (1e-10 solar masses a year for a 1 solar mass donor, the rate of a low-mass X-ray binary), the Kelvin-Helmholtz time G M^2 / (R L) when it is heavier (a runaway; the disk light is then held at the Eddington limit by DL6); added to the wind's feed of DL7"
+            ],
+            [
+              "The range it moves in",
+              "critical ratio 0.8 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "black holes with a lobe-filling companion at the separation of the tree"
+            ],
+            [
+              "What would show it wrong",
+              "a measured black hole X-ray binary whose luminosity is more than a factor of 30 from the figure this gives for its donor and period, or a donor under the critical ratio whose lobe-filling transfer is persistent at the thermal rate"
+            ],
+            [
+              "What replaces it",
+              "a binary-evolution grid of the transfer rate by donor mass, hole mass and period, and the separation at the orbit's closest approach for an eccentric pair"
+            ],
+            [
+              "Evidence",
+              "physics: a donor that fills its lobe loses the mass its radius growth demands, which is the nuclear time for a lighter donor and the thermal time for a heavier one; the ratio is the classical estimate, not read from a table of this paper"
+            ]
+          ],
+          "id": "DL10",
+          "key": "6.259:DL10",
+          "kind": "P",
+          "slug": "6-259-dl10",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "dark_light.STABLE_TRANSFER_MASS_RATIO = 1 and overflow_kg_s: a star whose radius reaches its Roche lobe about a black hole (roche.filling_factor of [R1222], at the separation of the tree) feeds it by overflow at the donor's mass over its own evolution time: ms_lifetime.lifetime_gy of its mass when it is no heavier than the hole (1e-10 solar masses a year for a 1 solar mass donor, the rate of a low-mass X-ray binary), the Kelvin-Helmholtz time G M^2 / (R L) when it is heavier (a runaway; the disk light is then held at the Eddington limit by DL6); added to the wind's feed of DL7"
         }
       ],
       "slug": "6-259-stand-ins-of-the-bright-sources-in-a-body-s-sky",
@@ -64301,7 +64567,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1551",
+          "unread": null,
           "what": "disk_dispersal.DISPERSAL_TAU_MYR_BY_MASS ((0.08, 3.0), (0.5, 2.5), (1.3, 1.0)) (GEN.1551): the characteristic time in Myr of the exponential fall of the share of stars holding a primordial disk, by mass (log-linear between the knots, flat outside); a star's own dispersal time is -tau ln u from its own draw"
         },
         {
@@ -73457,6 +73723,350 @@
       ],
       "slug": "6-303-stand-ins-of-the-shape-of-a-star-s-own-comets-gen-595",
       "title": "Stand-ins of the shape of a star's own comets (GEN.595)"
+    },
+    {
+      "key": "6.304",
+      "number": "6.304",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SNOW_LINE_SCATTER_DEX 0.2: the standard deviation, in dex, of a star's snow line around the blackbody position of its disk's luminosity ([R3193: abstract]: an observed 0.4 dex dispersion in accretion rates \"naturally leads to a dispersion in snow line locations of about 0.2 dex\" at a given age and stellar mass)"
+            ],
+            [
+              "The range it moves in",
+              "0.15 to 0.25"
+            ],
+            [
+              "Where it holds",
+              "every star's own snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a measured spread of snow lines at one stellar mass and age outside 0.15 to 0.25 dex"
+            ],
+            [
+              "What replaces it",
+              "a spread drawn from the accretion rates of the star's own mass and age"
+            ],
+            [
+              "Evidence",
+              "the accretion-rate dispersion carried through the snow-line law (Eq. 2 and 4 of [R3193], exponent 4/9 of the accretion rate), read in the open arXiv copy"
+            ]
+          ],
+          "id": "SNL1",
+          "key": "6.304:SNL1",
+          "kind": "P",
+          "slug": "6-304-snl1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.SNOW_LINE_SCATTER_DEX 0.2: the standard deviation, in dex, of a star's snow line around the blackbody position of its disk's luminosity ([R3193: abstract]: an observed 0.4 dex dispersion in accretion rates \"naturally leads to a dispersion in snow line locations of about 0.2 dex\" at a given age and stellar mass)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SNOW_LINE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 2.5 either way ([R3193: Fig. 3] works the snow lines at the median and plus and minus 2 sigma); it was 3.0, a factor of 4"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "every star's own snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a star whose measured snow line lies beyond a factor of 2.5 of the blackbody position of its disk's luminosity at its mass and age"
+            ],
+            [
+              "What replaces it",
+              "a heavier tail from the log-normal of the accretion rates"
+            ],
+            [
+              "Evidence",
+              "the range the source works its simulations over; the cut of 3 sigma put 29 of 3,000 stars' lines inside the inner edge of the habitable zone against 25 at 2 sigma (reports/gen1611-snow-line-scatter-2026-11-16.md)"
+            ]
+          ],
+          "id": "SNL2",
+          "key": "6.304:SNL2",
+          "kind": "P",
+          "slug": "6-304-snl2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.SNOW_LINE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 2.5 either way ([R3193: Fig. 3] works the snow lines at the median and plus and minus 2 sigma); it was 3.0, a factor of 4"
+        }
+      ],
+      "slug": "6-304-stand-ins-of-the-scatter-of-a-star-s-own-snow-line-gen-1611",
+      "title": "Stand-ins of the scatter of a star's own snow line (GEN.1611)"
+    },
+    {
+      "key": "6.305",
+      "number": "6.305",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its pressure limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"pressure_factor\"] 1.5: the homeworld's pressure is this many times inside the Blue pressure edge (low side or high side)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 3"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL1",
+          "key": "6.305:GL1",
+          "kind": "P",
+          "slug": "6-305-gl1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"pressure_factor\"] 1.5: the homeworld's pressure is this many times inside the Blue pressure edge (low side or high side)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its temperature limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"temperature_c\"] 10.0: the homeworld's hottest and coldest temperature lie this many degrees inside the Blue temperature edges"
+            ],
+            [
+              "The range it moves in",
+              "5 to 15"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL2",
+          "key": "6.305:GL2",
+          "kind": "P",
+          "slug": "6-305-gl2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"temperature_c\"] 10.0: the homeworld's hottest and coldest temperature lie this many degrees inside the Blue temperature edges"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its wet-bulb limit limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"wet_bulb_c\"] 2.0: the species' wet-bulb limit sits this many degrees above the homeworld's"
+            ],
+            [
+              "The range it moves in",
+              "1 to 4"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL3",
+          "key": "6.305:GL3",
+          "kind": "P",
+          "slug": "6-305-gl3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"wet_bulb_c\"] 2.0: the species' wet-bulb limit sits this many degrees above the homeworld's"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its dose limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"dose_factor\"] 3.0: the homeworld's dose is this many times under the Blue dose edge"
+            ],
+            [
+              "The range it moves in",
+              "2 to 10"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL4",
+          "key": "6.305:GL4",
+          "kind": "P",
+          "slug": "6-305-gl4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"dose_factor\"] 3.0: the homeworld's dose is this many times under the Blue dose edge"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its oxygen limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"o2_factor\"] 1.25: the chronic inspired-oxygen limit sits this far above the homeworld's own inspired oxygen"
+            ],
+            [
+              "The range it moves in",
+              "1.1 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL5",
+          "key": "6.305:GL5",
+          "kind": "P",
+          "slug": "6-305-gl5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"o2_factor\"] 1.25: the chronic inspired-oxygen limit sits this far above the homeworld's own inspired oxygen"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its gas limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"gas_factor\"] 1.5: the homeworld's partial pressure of each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) is this many times under the chronic edge of that gas's band, every edge of the band moving by the same factor (GEN.1772)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 3"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL6",
+          "key": "6.305:GL6",
+          "kind": "P",
+          "slug": "6-305-gl6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"gas_factor\"] 1.5: the homeworld's partial pressure of each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) is this many times under the chronic edge of that gas's band, every edge of the band moving by the same factor (GEN.1772)"
+        }
+      ],
+      "slug": "6-305-stand-ins-of-how-far-inside-blue-a-species-homeworld-sits-pop-12-gen-1772",
+      "title": "Stand-ins of how far inside Blue a species' homeworld sits (POP.12, GEN.1772)"
     }
   ]
 }
