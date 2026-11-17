@@ -657,6 +657,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1767 | Research a dry-surface carbonate buffer for bodies whose ocean has gone (carbonate-silicate equilibrium on dry rock, limited by the crust's calcium): today weathering switches off when the ocean is all vapor and nothing takes the carbon | GEN.1763 | Lane 03, 2026-11-16. |
 | GEN.1769 | Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw | none | Lane 02, 2026-11-16. |
 | TEST.786 | (bug) Runaway-start test red: a wet body past the runaway limit keeps a surface ocean | none | Lane 14, 2026-11-16 |
+| TEST.788 | Slow gate files: make each fit inside the hang guard without changing what it checks | none | Lane 16, 2026-11-16 |
 | GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | none | Lane 03, 2026-11-16. |
 | GEN.1772 | (bug) Civilizations on worlds whose air the species placement refuses | none | Lane 04, 2026-11-16 |
 | GEN.1773 | (bug) A body past the runaway limit keeps an ocean | none | Lane 14, 2026-11-16 |
