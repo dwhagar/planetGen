@@ -319,7 +319,7 @@ def population_counts(results):
 def run_population(conn, rescan=False, commit=None):
     """
     The population pass outside the job engine (a bring-to-epoch redo, a test): the pieces of `population_pieces`, `commit` after each, the pass lock let go at the
-    end. The queue's `run-population` command runs the same pieces through the engine (`generation.run_population`).
+    end. The queue's four population commands (`scan-species`, `date-civilizations`, `refresh-technology`, `count-population`) run the same pieces through the engine (`generation.run_population`).
 
     Args:
         conn (Connection): A write connection.

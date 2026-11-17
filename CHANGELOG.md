@@ -2,6 +2,52 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4428] - 2026-11-17
+
+**Headline:** The stall line of a stage that still has units to start says what the memory gate holds, and the new `record-phenomenon-scatter` command has a memory figure.
+
+### Added
+- When no unit of a stage has finished for 30 minutes and units are still to start, the log line now ends with the gate's figures: the claims held by the bulk lanes (what they claimed and what their processes hold), the cores they use of the cores the gate allows, the memory the host has available of its total, what the gate keeps back, and the load a core. A stage that runs fewer units than it has workers shows what limits it (OPS.270).
+
+### Fixed
+- `record-phenomenon-scatter` had no memory figure, so `test_every_command_with_units_has_a_memory_figure` failed on main; it claims 700 MB like the other one-unit commands.
+
+## [8.0.4427] - 2026-11-17
+
+**Headline:** The bright-star backfill bar counts the sky tiers as they are drawn, and each sky share's counter is costed the way the stage was planned, so the ETA no longer reads in hundreds of days.
+
+### Fixed
+- OPS.269: a sky unit of the bright-star backfill is one piece, so its own count stood at 0 of 1 until the piece ended and the backfill bar credited nothing for hours of drawing (Boss's run: 1,088 of 7.00e8 after 4.5 hours, an ETA of 194 to 254 days). The sky draw now moves the unit's own count with the share of the tiers it has drawn, which the bar, the Queue page and the stage's ETA read.
+- The counter of a sky share counted the visits of every ring's whole sphere, about three times the walk's visits that the stage's plan (and its bar total) costs; it is now costed by what the walk does, as the plan is.
+
+generation-output: unchanged
+
+## [8.0.4426] - 2026-11-17
+
+**Headline:** The stand-in moon of the Cassini-tilt test again carries a build record, so main is green again after GEN.1651.
+
+### Fixed
+- `test_settle_obliquity` made a stand-in moon without a `build` record, which `settle_moon_tilts` now reads for the moon's frame axis (GEN.1651); the stand-in carries a `BuildRecord()`.
+
+generation-output: unchanged
+
+## [8.0.4425] - 2026-11-17
+
+**Headline:** the population pass is now four commands of its own, so each step can be seen, stopped and carried on by itself and the generated galaxy is the same.
+
+### Changed
+
+- OPS.239, part B: the `run-population` command is gone. `scan-species` (stage `species`) scans the planets for species, after the last one scanned or all of them for a rescan. `date-civilizations` (stage `civilizations`) drops the species with no civilization, dates the civilizations and founds or dissolves the polities. `refresh-technology` (stage `technology`) refreshes the map's civilization rows with their most advanced species' technology level. `count-population` (stage `population`) counts the species, the spacefaring ones and the polities. `needs.py` declares the chain (`sectors`, `species`, `civilizations`, `technology`, `population`), `run-territories` still needs `population`, and a galaxy run counts three stages more.
+
+## [8.0.4424] - 2026-11-17
+
+**Headline:** The air history now follows the oxygen a world's life raises through time, ending at the oxygen the generator already gives it, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 2a: `air_history.oxygen_trajectory(body, living, ages)` and `oxygen_cuts` give the oxygen, mol, of the air at each age as the classes of `living` raise it: as found before the rise, then the plateau or the balance of the source against the reductant sink of that age. Its last value equals what `biogenic_oxygen.apply` puts into the air (9 worlds with a rise in 120 generated systems, all equal). Reuse: `life_air.oxygen_state`, `_oxygenic` and `standing_methane_mol`, `biogenic_oxygen.profile_of`, `burn`, `balance_pa`, `reductant_history_factor`, `_oxygen_mol_at`, `_fire_limit_mol`. Nothing in the generator reads it yet.
+- `air_history._anchor_indices` keeps an anchor at a turning point of the starlight (the pre-main-sequence bump of a young star's light) when it has to drop some, so the steps round the bump are read between it and its neighbours; a world whose light bump had lost its anchor was read up to 3 percent off at the clamp (found by `test_a_temperature_that_follows_the_light_is_read_exactly_between_anchors_and_solved_only_at_them`, which was red on main on the first generated life world). Nothing in the generator reads the history yet.
+
 ## [8.0.4423] - 2026-11-17
 
 **Headline:** The civilized test systems now hold a civilization that also gets a species, so the population galaxy tests no longer hunt for hours.

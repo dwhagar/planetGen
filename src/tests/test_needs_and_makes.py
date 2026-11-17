@@ -76,7 +76,7 @@ def test_what_a_command_waited_for_before_the_declarations_it_still_waits_for():
     """The four requirements `commands.REQUIRES` held (PERF.247) before OPS.238 planned the order from the declarations."""
     sectors = {"generate-start-sector", "generate-neighborhood", "generate-sectors"}
     assert "scatter-phenomena" in needs.requires_of("write-special-phenomena")
-    assert "run-population" in needs.requires_of("run-territories")
+    assert "count-population" in needs.requires_of("run-territories")
     assert sectors <= set(needs.requires_of("link-neighbors")) | {"generate-unplaced-sector"} and "generate-sectors" in needs.requires_of("link-neighbors")
     assert {"generate-start-sector", "generate-sectors"} <= set(needs.requires_of("settle-sector-paths"))
 

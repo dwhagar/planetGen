@@ -65,7 +65,7 @@ Boss, 2026-11-08, 3:32 PM EST: all jobs are executed as a sequence of singular c
 | `prepare_draw_nebula_field` (built, OPS.123 slice 3), `conclude_draw_nebula_field` | checks the skeleton and empties the table; links the stored nebulae to their rows and makes the nebula block totals | `empty-nebula-field` (built: the skeleton check and the no-outline guard stay with the step, which is why `clear-scatter` was not reused), `link-nebulae-to-field`, `make-nebula-block-totals` |
 | `conclude_field` (`warm-cluster-field`) | makes the field from rows and parts, and publishes the file | `make-cluster-field`, `publish-cluster-field-file` |
 | `_ensure_cluster_field`, called by the wrapper before a stage that reads the galaxy's shape | makes the file if absent | `make-cluster-field`, planned before the commands that need it (a declared fact: `cluster-field`) |
-| `population_unit` (`run-population`) | scans the life worlds, drops species with no civilization, dates the civilizations, founds or dissolves polities | `scan-life-worlds`, `drop-civilization-less-species`, `date-civilizations`, `update-polities` |
+| `population_unit` (the `run-population` command; built as four commands by OPS.239 part B) | scans the life worlds, drops species with no civilization, dates the civilizations, founds or dissolves polities, refreshes the map's technology, counts | `scan-species` (stage `species`, makes `species`), `date-civilizations` (drops the civilization-less species, dates, founds or dissolves; stage `civilizations`), `refresh-technology` (stage `technology`), `count-population` (stage `population`, makes `population`). Each is one unit of several pieces; the drop and the dating stay in one command (`date-civilizations`). |
 | `conclude_rescore_habitability` | makes the blocks' habitable totals follow the sector counts | `make-habitable-block-totals` |
 | `expand_*` (every cut) | reads the database and decides the items | `cut-<command>`: one thing, makes the item list |
 | `generate_sectors_unit` | draws a sector and saves it in one transaction, and builds the log summary | stays **one command**, `generate-sector` (draw and save are one effect: making a sector exist; splitting them would move a whole sector through Redis). The summary lines are bookkeeping and move to the executor. Boss may overrule. |
@@ -136,7 +136,7 @@ The planner (replacing `galaxy_stages`, `for_command`, `KIND_OF_STAGE`, `build_s
    | draw-nebula-field | `nebula` | `skeleton`, `phenomena:index` [?] |
    | scatter-backfill | `stars:backfill(cell)` | `sector` of the cell's sectors, `stars:mass` |
    | refresh-block-lights, refresh-run-blocks | `blocks` | every fact that writes a block total (PERF.251 already wants it last) |
-   | run-population | `population` | `sector` (all) |
+   | scan-species, date-civilizations, refresh-technology, count-population (OPS.239 part B; was `run-population`) | `species`, `civilizations`, `technology`, `population` (a chain) | `sector` (all) for the first, then the one before |
    | run-territories | `territories` | `population` (existing REQUIRES) |
 
 2. **Subtracts what already exists.** A fact already stored for this galaxy (same seed, same build) needs no job. This is what `skip`, `finished_by`, `_refuse_stored_scatter` and "run again after a stop" each do by hand today. One rule replaces them: *a job whose `makes` are all present is not planned.* A run carried on after a stop is just a new plan over the facts that were saved.

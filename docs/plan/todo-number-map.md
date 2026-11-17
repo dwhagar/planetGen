@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1777 |
-| PERF | PERF.275 |
+| GEN | GEN.1778 |
+| PERF | PERF.276 |
 | DB | DB.135 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
 | TEST | TEST.789 |
 | USR | USR.33 |
-| OPS | OPS.269 |
+| OPS | OPS.271 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2969,6 +2969,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | open |
 | PERF.273 | (bug) One body's seasonal solve stalls 4 to 6.6 s inside a single call (seasonal_swing.temperature_series from refresh_at_final_age of a pre-placed system's moon) on 4 of 7 runs, where its mean is 66 ms; the three sector commands keep 12 s rows in RECORDED_SILENCE for it | done (PR 6820, Lane 16, merged 9:06 AM EST 11-16: the bright-star sampling table builds report per cell; the three 12 s silence rows are gone; Gate PASS) |
 | PERF.274 | (bug) Warming the galaxy lists and stats every tile-cache file once per warm chunk (tilecache.cache_is_full from web/warmup.py line 854): the warm-galaxy-deep-nodes case stood 58 s walking 181,000 files on a cold file cache | done (PR 6866, Lane 16, merged 10:33 AM EST 11-16: the tile-cache size walk reports each folder to the unit beat, and a walk of 1 s or more is reused for ten times its length, so the 58 s silence on a cold disk is gone) |
+| PERF.275 | (high) A Stage 9 sky share takes about 5 hours: profile and cut | open (Lane 07) |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | done, PR #6336 (11:34 PM EST 11-14) |
@@ -3079,6 +3080,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.266 | (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector | none | done (PR 6780, Lane 16, merged 7:03 AM EST 11-16: a sector reports systems and bodies done while it is generated; Gate PASS, galaxy unchanged) |
 | OPS.267 | (bug) planetgen plan --reach-shells 3 ends with a TypeError in log_skeleton_summary: the dials line formats edge when args.edge is None | done (PR 6805, Lane 16, merged 3:00 AM EST 11-16) |
 | OPS.268 | (bug, high) New galaxy neighborhood stage stalls: sectors run one at a time on 5 workers, last 3 of 106 never finish | done (PR 6936, Lane 13, merged 6:40 PM EST 11-16) |
+| OPS.269 | (bug, high) Bright-star backfill: 1,088 of 7.00e8 sectors in 4.5 h, ETA 194 to 254 days | done (PR 6982, the bar counts the sky draw; Stage 7 label fixed by OPS.268) |
+| OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | open (Lane 13) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4102,7 +4105,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1773 | (bug) A body past the runaway limit keeps an ocean (Venus twin at 586 K, 118 bar) | open (Lane 14) |
 | GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | open (Lane 02) |
 | GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | open (Lane 06) |
-| GEN.1776 | Civilizations arise only in CO2-rich air (19 to 792 kPa), none Earth-like | open (Lane 04) |
+| GEN.1776 | Civilizations arise only in CO2-rich air (19 to 792 kPa), none Earth-like | closed, measured, no code change (Lane 04, 9:49 PM EST 11-16; linked to GEN.1720 and GEN.1731; Boss kept the life clock stand-ins, 9:51 PM EST) |
+| GEN.1777 | (high) No Class M family at Plentiful: funnel and a tunable CO2 lever. Measure whether the CO2 supply needs a tweak (report first, Boss decides) | open (Lane 04) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
