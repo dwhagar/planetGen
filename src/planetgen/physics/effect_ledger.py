@@ -27,6 +27,9 @@ only light and UV, whose sources are stars across the neighbourhood, keep rows a
 the body; the rows begin where a second source matters (a binary or a multiple). The sources of light and UV are the stars of the body's own system
 (`radiation_field`), not the neighbouring stars of the galaxy, so "the largest" is the largest of the system and not of the sky.
 
+**A glowing dark member is a source of light** (GEN.1528): a brown dwarf, a neutron star or a black hole with a disk in the system's tree (`dark_light`, GEN.1501) has no row of a kind table, so its rows are stored with
+`source_type` 8, 9 or 10 (`DARK_KIND_CODES`) and its member number in the tree as `source_id`; with the host star they make two sources, so a planet round a star with a brown dwarf beside it has light rows.
+
 **Edits and deletes:** deleting a system deletes its rows (`ON DELETE CASCADE`); an edit of a system (`edits.save_system_edits`) clears the system's rows, because the edited
 body's shares are no longer the ones generation noted, and they stay empty until the system's ledger is refilled; a standalone phenomenon deleted alone takes its rows as
 receiver and source (`edits.forget_ledger_rows`).
@@ -65,6 +68,11 @@ BODY_TABLES = ("stars", "planets", "moons", "asteroid_belts", "comets", "black_h
 
 BODY_CODES = {table: index + 1 for index, table in enumerate(BODY_TABLES)}
 """dict: A body's kind table to its code in the ledger (0 is the summary row's source)."""
+
+DARK_KIND_CODES = {"brown-dwarf": 8, "neutron-star": 9, "black-hole": 10}
+"""dict: A glowing dark member of an orbit tree (`dark_light.DarkSource`, GEN.1501) as a source of the ledger (GEN.1528): its kind to the `source_type` it is stored under, with its member number in the
+tree as `source_id`. A dark member has no row of its own in a kind table (it is a row of `dark_members`), so it is named by the system and its number. The codes come after the kind tables' (1 to 7); nothing
+reads `source_type` back into a table, and the column is a plain small integer, so no migration is needed. A stripped helium star gives no light (GEN.1530) and has no code yet."""
 
 ROW_FIELDS = ("star_system_id", "body_type", "body_id", "effect", "source_type", "source_id", "share", "n_below", "largest_value")
 """tuple: The columns of an `effect_ledger` row, in table order."""
@@ -111,6 +119,14 @@ def split_sources(contributions, floor=None):
             n_below += 1
             rest += share
     return {"n_sources": len(pairs), "largest": largest, "largest_value": largest_value, "stored": stored, "n_below": n_below, "rest_share": rest}
+
+
+def dark_location(source):
+    """`(kind, member number)` of a glowing dark member (`dark_light.DarkSource`) that is a source of the ledger, `None` for any other object (GEN.1528): the pair the rows store, with `DARK_KIND_CODES` for the
+    kind. A dark member is named by the system it is in and its number in the system's tree."""
+    if getattr(source, "yerkes_class", None) == "DARK" and getattr(source, "kind", None) in DARK_KIND_CODES and getattr(source, "member_no", None) is not None:
+        return (source.kind, source.member_no)
+    return None
 
 
 class EffectLedger:
@@ -172,7 +188,7 @@ class EffectLedger:
                     continue
                 known = []
                 for source, value in pairs:
-                    there = ids.get(id(source))
+                    there = ids.get(id(source)) or dark_location(source)
                     if there is None:
                         self.missing += 1
                     else:
@@ -184,7 +200,7 @@ class EffectLedger:
                     continue      # a lone source is implied: it is the body's host star and the flux is on the body, so a lone-star system stores no light or UV row (Lane 13)
                 body = {"star_system_id": star_system_id, "body_type": BODY_CODES[where[0]], "body_id": where[1], "effect": code}
                 for (table, row_id), share in split["stored"]:
-                    out.append({**body, "source_type": BODY_CODES[table], "source_id": row_id, "share": share, "n_below": None, "largest_value": None})
+                    out.append({**body, "source_type": BODY_CODES.get(table) or DARK_KIND_CODES[table], "source_id": row_id, "share": share, "n_below": None, "largest_value": None})
                 out.append({**body, "source_type": SUMMARY_SOURCE[0], "source_id": SUMMARY_SOURCE[1], "share": split["rest_share"], "n_below": split["n_below"],
                             "largest_value": split["largest_value"]})
         return out
