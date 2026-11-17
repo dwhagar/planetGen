@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1879 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1880 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1852 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1853 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -53,10 +53,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 1 | 148 |
 | T6 | 238 | 127 | 36 | 81 | 4 | 486 |
-| T7 | 69 | 35 | 10 | 32 | 0 | 146 |
+| T7 | 69 | 36 | 10 | 32 | 0 | 147 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 107 | 41 | 226 |
-| All | 1074 | 385 | 96 | 264 | 60 | 1879 |
+| All | 1074 | 386 | 96 | 264 | 60 | 1880 |
 
 ## How the labels were given
 
@@ -2807,8 +2807,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DL4 | P | T4 | L0 | `dark_light.DISK_EFFICIENCY` = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk [R4037], up to 0.42 for a maximally rotating one | 0.057 to 0.42 | thin disks | an accretion rate that gives a luminosity far from a measured one for the same rate | the efficiency from the hole's spin | 2ND-HAND (textbook value of the thin disk) | predicted only | - | - |
 | DL5 | P | T2 | L0 | `dark_light.ISCO_SCHWARZSCHILD_RADII` = 3: the disk's light comes from the innermost stable orbit of a non-rotating hole, 6 G M / c^2 (3 Schwarzschild radii), which gives the disk's size and colour | 1 to 3 | a non-rotating hole | a measured disk whose inner edge is far from this | the radius from the spin | derived: the innermost stable orbit of the Schwarzschild metric | predicted only | - | - |
 | DL6 | P | T1 | L0 | `dark_light.EDDINGTON_W_PER_SOLAR_MASS` = 1.26e31 W: the light of a disk never passes the Eddington limit, `4 pi G M m_p c / sigma_T` | none | ionised hydrogen | a measured source that stays over it | none | derived: the balance of radiation and gravity on a proton | predicted only | - | - |
-| DL7 | P | T7 | L1 | a black hole shines only on what the winds of the stars of its tree give it: `dark_light.wind_capture_kg_s`, the Bondi-Hoyle-Lyttleton rate `(G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5)` of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (`brown_dwarf.state`) | none | winds of 1e-14 to 1e-5 solar masses a year | a black hole beside a giant that overflows its lobe, which would be far brighter | the feed from the evolution of the star (overflow) | design: the wind law of `stellar_wind` is the one that sizes the star's bubble, so a star's feed and its heliosphere agree | predicted only | - | - |
+| DL7 | P | T7 | L1 | a black hole shines only on what the winds of the stars of its tree give it: `dark_light.wind_capture_kg_s`, the Bondi-Hoyle-Lyttleton rate `(G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5)` of each star at its separation, capped by the wind; a star that fills its Roche lobe feeds it by overflow as well (DL10), and a brown dwarf is read at the age of its system (`brown_dwarf.state`) | none | winds of 1e-14 to 1e-5 solar masses a year | a black hole beside a star that fills its lobe, which DL10 now adds | the feed from the evolution of the star (overflow) | design: the wind law of `stellar_wind` is the one that sizes the star's bubble, so a star's feed and its heliosphere agree | predicted only | - | - |
 | DL9 | P | T2 | L0 | `dark_light.STRIPPED_HELIUM_TEMPERATURE_K` = 28,000 K and `STRIPPED_BURNING_MIN_MASS_SOL` = 0.3: a stripped helium star of the tree (kind `stripped-helium`, 0.3 to 0.5 solar masses, radius from `tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47`) glows as a hot subdwarf, `4 pi R^2 sigma T^4` at the temperature the hot subdwarfs of the field cluster at (20,000 to 40,000 K, most near 28,000 K [R1875]), 22 solar luminosities for the 0.47 solar mass star; its XUV is the share of that blackbody over 13.6 eV (`activity.blackbody_fraction_above`, 17 percent), the step a white dwarf's photosphere takes; a stripped star under 0.3 solar masses (a semi-degenerate AM CVn donor) gives no light, and the star is not aged | temperature 20,000 to 40,000 K | stripped helium companions of Be stars and of post-common-envelope pairs | a hot subdwarf of 0.47 solar masses and 0.2 solar radii measured outside 10 to 100 solar luminosities, or one with an XUV share far from the blackbody's | an evolution track of a helium star by mass and age (the hot-subdwarf lifetime of about 1e8 yr, then the cooling of a white dwarf) and the light of an AM CVn donor | physics: a core that burns helium under a thin envelope shines near the blackbody of its own surface; the temperature is the review's typical one, not read from a table of this paper | predicted only | - | - |
+| DL10 | P | T7 | L1 | `dark_light.STABLE_TRANSFER_MASS_RATIO` = 1 and `overflow_kg_s`: a star whose radius reaches its Roche lobe about a black hole (`roche.filling_factor` of [R1222], at the separation of the tree) feeds it by overflow at the donor's mass over its own evolution time: `ms_lifetime.lifetime_gy` of its mass when it is no heavier than the hole (1e-10 solar masses a year for a 1 solar mass donor, the rate of a low-mass X-ray binary), the Kelvin-Helmholtz time `G M^2 / (R L)` when it is heavier (a runaway; the disk light is then held at the Eddington limit by DL6); added to the wind's feed of DL7 | critical ratio 0.8 to 1.5 | black holes with a lobe-filling companion at the separation of the tree | a measured black hole X-ray binary whose luminosity is more than a factor of 30 from the figure this gives for its donor and period, or a donor under the critical ratio whose lobe-filling transfer is persistent at the thermal rate | a binary-evolution grid of the transfer rate by donor mass, hole mass and period, and the separation at the orbit's closest approach for an eccentric pair | physics: a donor that fills its lobe loses the mass its radius growth demands, which is the nuclear time for a lighter donor and the thermal time for a heavier one; the ratio is the classical estimate, not read from a table of this paper | predicted only | - | - |
 
 ## 6.260 Stand-ins of the tide raised by every body of a system
 
