@@ -227,3 +227,33 @@ def test_a_held_oxygen_fugacity_the_solve_settles_at_is_kept():
 def test_an_unheld_solve_that_fails_still_raises():
     with pytest.raises(ge.EquilibriumError):
         ge.solve({"Xx": 1.0}, 1000.0, 1.0)
+
+
+def test_a_repeated_solve_is_the_remembered_one_and_a_copy_that_the_caller_may_change():
+    """PERF.276: the same inputs are not solved again, and what the caller does with its result does not reach the next one."""
+    first = ge.solve({"H": 1.0, "C": 0.1, "O": 0.3}, 1000.0, 2.0)
+    fresh = ge._solve_fresh({"H": 1.0, "C": 0.1, "O": 0.3}, 1000.0, 2.0)
+    assert first.mole_fractions == fresh.mole_fractions and first.moles == fresh.moles
+    first.mole_fractions.clear()
+    first.moles["H2"] = -1.0
+    again = ge.solve({"H": 1.0, "C": 0.1, "O": 0.3}, 1000.0, 2.0)
+    assert again.mole_fractions == fresh.mole_fractions and again.moles == fresh.moles
+
+
+def test_a_nearby_temperature_or_held_oxygen_is_not_taken_for_the_remembered_solve():
+    base = ge.solve({"H": 1.0, "O": 0.45}, 1000.0, 2.0)
+    warmer = ge.solve({"H": 1.0, "O": 0.45}, 1000.0 * (1.0 + 1e-12), 2.0)
+    assert warmer.mole_fractions == ge._solve_fresh({"H": 1.0, "O": 0.45}, 1000.0 * (1.0 + 1e-12), 2.0).mole_fractions
+    assert base.mole_fractions == ge._solve_fresh({"H": 1.0, "O": 0.45}, 1000.0, 2.0).mole_fractions
+    gas = {"H": 1.0, "C": 0.1}
+    held_low = ge.solve(gas, 1000.0, 2.0, fixed_o2_log_fugacity=-24.0)
+    held_high = ge.solve(gas, 1000.0, 2.0, fixed_o2_log_fugacity=-18.0)
+    assert held_low.mole_fractions == ge._solve_fresh(gas, 1000.0, 2.0, fixed_o2_log_fugacity=-24.0).mole_fractions
+    assert held_high.mole_fractions == ge._solve_fresh(gas, 1000.0, 2.0, fixed_o2_log_fugacity=-18.0).mole_fractions
+    assert held_low.mole_fractions != held_high.mole_fractions
+
+
+def test_a_solve_that_fails_fails_the_same_way_each_time():
+    for _ in range(2):
+        with pytest.raises(ge.EquilibriumError):
+            ge.solve({"Zz": 1.0}, 1000.0, 1.0)
