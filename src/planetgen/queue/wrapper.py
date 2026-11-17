@@ -790,8 +790,8 @@ def stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
     that asked to finish their unit and exit (`workers.shed_bulk`), so the workers an earlier stage left do not all
     scatter at once. A stage with ordinary workers is not limited.
     """
-    if run_id is not None and queue_of(kind) == redisqueue.BULK_QUEUE and forked(conn, run_id):
-        return lambda: 0                # OPS.228: the supervisor's launcher forks each unit when the gate has room; no worker waits for the stage
+    if run_id is not None and forked(conn, run_id):
+        return lambda: 0                # OPS.228, OPS.229: the supervisor's launcher forks each unit when the gate has room (a generation run's, a warm-up's, a check's); no worker waits for the stage
     cap = workers.stage_worker_cap(step_kind, conn, run_id)       # OPS.157: sized by the claim the gate makes from the job profile (the typed figure with no history)
     count = workers_count if cap is None else min(workers_count or cap, cap)
     if cap is not None:
