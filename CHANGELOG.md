@@ -2,6 +2,20 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4477] - 2026-11-17
+
+**Headline:** The site's own jobs (a slow page's answer, an API edit, a regeneration, an estimate) are now handed out by the supervisor as processes forked from a warm template, and a page job nobody is waiting for any more is dropped.
+
+### Changed
+- **The interactive and long RQ queues are gone (OPS.230, D5 of the job engine).** `api_jobs.submit` records the job in Redis (`queue/lightjobs.py`: what to call, its arguments, its lane, when it was queued and started, and at the end its result or error) and asks for the supervisor; the supervisor's new duty `LightJobs` takes the pending jobs oldest first, asks the same dispatch rule the bulk lane uses (the site's lanes first, against the places kept for them) which go now, and forks each from the `plain` template. The job's own process writes its result or its failure before it exits, so a supervisor that ends meanwhile loses nothing; a job whose process died without saying how is failed naming the signal, and one that ran past ten times what it was expected to take (the limit RQ's `job_timeout` was) is ended. Status, wait, cancel and the shape of `GET /api/jobs/<id>` are as they were, including the wait for the machine a regeneration reports.
+- **A job nobody is waiting for is dropped, not run (W12 of the audit).** A slow page's answer says it stays wanted for `tuning.SLOW_PAGE_WANTED_SECONDS` (2m) after the last visitor asked after it (the page's poll is the ask); a job that has not started by then fails with a message that says so, and its claim on the request is released so the next visitor starts a new one. A job that began is never dropped, and an edit or a regeneration (no deadline) never is.
+- **One set of templates serves both hand-outs.** `jobhost.TemplateSet.fork` and `poll` take an owner, so the launcher and the light jobs share the supervisor's warm templates and each is told only of the ends of its own jobs; each hand-out is judged against the claims the other holds (`Launcher(also_held=)`). Stop All, the update guard and the supervisor's idle exit see the light jobs.
+- Deleted: `INTERACTIVE_QUEUE`, `LONG_QUEUE`, `api_jobs.lane`, `time_limit` and the RQ calls of `submit`, `status` and `cancel`, `workers.lane_cap`, `niceness` and `INTERACTIVE_NICENESS`, the `execute` entry of the worker allow-list, the API branch of `claims.claim_for`, and the interactive and long queue names in `pause`, `stopall`, `cli/worker.py` and `claims.lane_of`.
+
+generation-affects: none
+
+generation-output: unchanged
+
 ## [8.0.4476] - 2026-11-17
 
 **Headline:** The redraw-rate test's ceilings for the moons, planets and belts of systems with 3 to 6 stars are renewed after planets came to every close pair node.
