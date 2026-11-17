@@ -658,4 +658,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1773 | (bug) A body past the runaway limit keeps an ocean | none | Lane 14, 2026-11-16 |
 | GEN.1774 | Check the envelope escape law against the radius valley | none | Lane 02, 2026-11-16 |
 | GEN.1775 | Comet abundance setting, default Science (physics), tiers scale it | GEN.1765 | Lane 06, 2026-11-16 |
+| GEN.1777 | Measure whether the CO2 supply needs a tweak | none | Lane 04, 2026-11-16 |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
+| OPS.269 | (bug, high) Bright-star backfill denominator and speed, honest ETA | none | Lane 07, 2026-11-16 |

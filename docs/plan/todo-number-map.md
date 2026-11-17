@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1777 |
+| GEN | GEN.1778 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.51 |
 | TEST | TEST.789 |
 | USR | USR.33 |
-| OPS | OPS.269 |
+| OPS | OPS.270 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3079,6 +3079,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.266 | (bug) A sector is one piece with no count inside it: generate-start-sector, generate-neighborhood and generate-sectors go silent 18 to 42 s per sector even for one-system sectors; report systems and bodies done inside the sector | none | done (PR 6780, Lane 16, merged 7:03 AM EST 11-16: a sector reports systems and bodies done while it is generated; Gate PASS, galaxy unchanged) |
 | OPS.267 | (bug) planetgen plan --reach-shells 3 ends with a TypeError in log_skeleton_summary: the dials line formats edge when args.edge is None | done (PR 6805, Lane 16, merged 3:00 AM EST 11-16) |
 | OPS.268 | (bug, high) New galaxy neighborhood stage stalls: sectors run one at a time on 5 workers, last 3 of 106 never finish | done (PR 6936, Lane 13, merged 6:40 PM EST 11-16) |
+| OPS.269 | (bug, high) Bright-star backfill: 1,088 of 7.00e8 sectors in 4.5 h, ETA 194 to 254 days | open (Lane 07) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4103,6 +4104,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | open (Lane 02) |
 | GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | open (Lane 06) |
 | GEN.1776 | Civilizations arise only in CO2-rich air (19 to 792 kPa), none Earth-like | closed, measured, no code change (Lane 04, 9:49 PM EST 11-16; linked to GEN.1720 and GEN.1731; Boss kept the life clock stand-ins, 9:51 PM EST) |
+| GEN.1777 | Measure whether the CO2 supply needs a tweak (report first, Boss decides) | open (Lane 04) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
