@@ -7,7 +7,7 @@ import pytest
 from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import planets as planetPhysics
+from planetgen.physics import planets as planetPhysics, radiation_field
 from planetgen.util import draw
 
 
@@ -33,10 +33,10 @@ def test_every_star_reports_an_outcome_the_exchange_knows(systems):
     assert seen - {"unchanged"}, "ten full systems should hold a multi-planet star the exchange acts on"
 
 
-def test_a_star_with_one_planet_is_left_as_it_was(systems):
+def test_a_lone_star_with_one_planet_is_left_as_it_was(systems):
     for system in systems:
         for star, planets in validation.star_lists(system):
-            if len([p for p in planets if p.body_type != 'a']) < 2:
+            if len([p for p in planets if p.body_type != 'a']) < 2 and not radiation_field.companions_of(star):
                 assert system.secular_outcomes[star.name] == "unchanged"
 
 
