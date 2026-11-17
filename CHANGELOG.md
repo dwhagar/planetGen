@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4472] - 2026-11-17
+
+**Headline:** The test suite now runs a generation run's units and openings through the launcher, the way the product does by default.
+
+### Changed
+- Tests set `queue.forked_jobs` on by default (`PLANETGEN_FORKED_JOBS=1` in `tests/conftest.py`); the inline test queue hands a ledger run's ready rows to the launcher with an inline forker whenever the follower asks for workers, and leaves a test's own time limit running for the command, not the unit (OPS.228 slice D2b-2b). Tests that cover the RQ path set it off for themselves.
+
 ## [8.0.4471] - 2026-11-17
 
 **Headline:** A redraw of a system keeps the effect ledger of its new bodies.
