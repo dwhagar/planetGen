@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4430] - 2026-11-17
+
+**Headline:** A bad FORCE_CLASS request is refused whatever star comes up, since the check now runs before the first draw.
+
+### Fixed
+- `StarSystem`: `FORCE_CLASS` combined with `SLOTS`, or naming a letter that is not a planet class, raised only after the star was drawn and only for stars that reach the planet planner, so a pulsar, a post-AGB pair or a diskless black hole accepted it silently (found when `test_class_sample::test_the_switch_refuses_slots_and_unknown_letters` went red on main after a draw moved). The checks are the same, now made once at the start. The test's "unknown letter" was `Q`, which is a planet class now (every letter A to Z is one), so it names `1`.
+
+generation-output: unchanged
+
 ## [8.0.4429] - 2026-11-17
 
 **Headline:** the tide-fill test reads systems until its sample holds a circularized body, so it does not depend on which twelve seeds the generator happens to give one.
