@@ -164,7 +164,7 @@ def test_attach_gives_a_restored_body_where_it_formed_and_a_moon_the_orbit_it_wa
 def test_attach_gives_a_restored_body_the_eccentricity_a_resonance_holds_it_on_and_a_planet_the_one_its_chain_forces():
     planet = _Body()
     assert body_history.attach(planet, _row(held_eccentricity=0.031, forced_eccentricity=0.04))
-    assert planet._resonance_e == 0.031 and planet.oddity_quantities == {"forced_eccentricity": 0.04}
+    assert planet.build.resonance_e == 0.031 and planet.oddity_quantities == {"forced_eccentricity": 0.04}
     numbers = body_history.numbers_of(planet)
     assert numbers["held_eccentricity"] == 0.031 and numbers["forced_eccentricity"] == 0.04
     other = _Body()
@@ -173,7 +173,7 @@ def test_attach_gives_a_restored_body_the_eccentricity_a_resonance_holds_it_on_a
     assert other.oddity_quantities == {"tilt_chaotic": 1, "forced_eccentricity": 0.02}      # the other quantities of the body are kept
     plain = _Body()
     assert body_history.attach(plain, _row())
-    assert not hasattr(plain, "_resonance_e") and not hasattr(plain, "oddity_quantities")      # a body no resonance holds is left as a galaxy before v268 had it
+    assert plain.build.resonance_e is None and not hasattr(plain, "oddity_quantities")      # a body no resonance holds is left as a galaxy before v268 had it
     assert "held_eccentricity" not in body_history.numbers_of(plain) and "forced_eccentricity" not in body_history.numbers_of(plain)
 
 
