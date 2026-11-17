@@ -277,8 +277,8 @@ def test_the_run_page_lists_the_running_units_with_their_beat_counter_phase_and_
     assert "Running units" in html and "3 units: 1 working, 1 slow, 1 quiet" in html
     assert html.index("unit-quiet") < html.index("unit-slow") < html.index("unit-working")
     assert "1,200 of 4,000" in html and "drawing tier 3" in html and "12.5 a second" in html and "812 MB" in html
-    assert "waiting (waiting on gate)" in html and "no counter" in html and "6.67 minutes ago" in html and "to be stopped" in html
-    assert "50 s each" in html and "1 hour" in html
+    assert "waiting (waiting on gate)" in html and "no counter" in html and "6m 40s ago" in html and "to be stopped" in html
+    assert "50s each" in html and "1h" in html
 
 
 def test_the_run_page_has_no_unit_table_without_running_units_or_once_the_run_is_over(admin_client, conn):
@@ -813,5 +813,5 @@ def test_a_running_units_own_bar_and_time_left_show_under_its_counter_only_when_
     _publish_unit(conn, run_id, 2, done=1.0, estimate=100.0, progress={"show": True, "percent": 1.0, "eta_seconds": 600.0, "source": "stored"})
     html = admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
     assert html.count('class="task-bar"') == 2
-    assert "30%, about 2 minutes left" in html and "1%, about 10 minutes left (from earlier runs)" in html
+    assert "30%, about 2m left" in html and "1%, about 10m left (from earlier runs)" in html
     assert "50%" not in html
