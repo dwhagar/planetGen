@@ -3823,7 +3823,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1489 | Cosmic-ray production of cosmogenic isotopes on airless and ocean-covered surfaces, and beryllium-10 and aluminium-26 in air | none | done, PR #5869 |
 | GEN.1490 | Mantle against ocean isotope split, and the xenon excess from iodine-129 and plutonium-244 | none | settled by the derive-not-store decision |
 | GEN.1491 | Comet activity distance scales with the host's luminosity, not a fixed Sun-based constant | GEN.1444 | done (Train 22 or earlier, 2026-11-11) |
-| GEN.1492 | A companion star's secular excitation of a belt: forced eccentricity and inclination of belt members from the other stars of the system | GEN.1451, GEN.1450 | open |
+| GEN.1492 | A companion star's secular excitation of a belt: forced eccentricity and inclination of belt members from the other stars of the system | GEN.1451, GEN.1450 | done (eccentricity and periapsis forcing earlier; tilt functions PR 6940; tilt wired in Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6946) |
 | GEN.1493 | The air reads the dust and comet influx: late accretion from the belts and giants of the system feeds the planet's atmosphere, which needs the planet and belt generation order changed | GEN.1440, GEN.1453 | open |
 | GEN.1494 | Giant planet density read: is the generated giants' median density (1.4 to 1.8 g/cm3) too dense against observed giants | none | done, closed as a finding (Lane 21 read, 2026-11-09) |
 | GEN.1495 | (bug) Giant air: the ice caps do not settle for some giants (MixtureError in mixture_giant.cap_ices, seed 533), one in 700 systems | none | done, PR #5867 |
@@ -4062,7 +4062,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1729 | Land plants in the oxygen law, on every galaxy including Science: wet land adds to the oxygen source, so desert worlds (class H) can reach 16 kPa | GEN.1723 | done, PR #6655 in Train 32, PR #6714 (2:39 PM EST 11-15) |
 | GEN.1730 | Real-depth desert seas: halite-saturated salt sea instead of a seep brine, on every galaxy (measure first) | GEN.1721 | done, Train 33 PR #6741 (5:25 PM EST 11-15), PR #6674 |
 | GEN.1731 | Warm Earth-shaped worlds (289 to 306 K) lose nearly all CO2 to weathering on the tier presets: decision on the warm side | GEN.1720 | closed, no code: Boss 10:36 AM EST 11-15 kept the weathering law |
-| GEN.1732 | Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change | none | open |
+| GEN.1732 | Reduced airs (NH3, CH4, H2) on oxidized-mantle worlds: measure why before any change | none | done (loss ramp 215 to 245 K in surface_air.solve, rows PC1 to PC5, Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6957; the loss as an air-history step is GEN.1745 slice 2c; ramp branches GEN.1780) |
 | GEN.1733 | Oxygen on oxygen-rich worlds piles at the 35.5 kPa class limit instead of spreading near Earth's 21 kPa: measure the oxygen law's ceiling | GEN.1723 | done, Train 33 PR #6741 (5:25 PM EST 11-15), PR #6645 |
 | GEN.1734 | (bug) RecursionError in copy.deepcopy of a Planet in life._trial_copy from run_sector._add_planetary_nebula | none | done, PR #6620 (3:04 AM EST 11-15) |
 | GEN.1735 | Refuge term reads ice_growth.lid_of for lakes and seasonal lids (mean temperature, year swing, absorbed flux per surface-water place) | GEN.1728 | done (Train 37, PR 6829, merged 6:34 AM EST 11-16; PR 6812; lakes are GEN.1761) |
