@@ -65,11 +65,12 @@ how many oligarchs merged into it, whether it migrated in to a hot Jupiter orbit
 composition reads, the snow line it was born past)."""
 
 Lost = collections.namedtuple("Lost", ("chain_mass_kg", "merge_debris_kg", "merges", "capped_kg", "capped", "small", "swept", "thrown", "snow_line_au",
-                                       "star_mass_kg", "stripped"))
+                                       "star_mass_kg", "stripped", "disk_time_yr"), defaults=(scatter_rule.DISK_LIFETIME_YR,))
 """What the build lost, raw, for `losses` to class: the chain's whole mass in kilograms (what the planets and the losses must add up to), the mass
 the merges did not keep and their number, the mass the core cap of a planet without gas cut off and the number of planets cut, the chain bodies
 below the planet minimum as `[distance_au, mass_kg]`, the planets a giant swept as `(seed, giant)`, the planets a crowded giant threw out as
-`(seed, heavier)`, the star's snow line (AU) and mass (kg), and the planets its birth cluster pulled off (`strip`) as `(seed, time_yr)`."""
+`(seed, heavier)`, the star's snow line (AU) and mass (kg), the planets its birth cluster pulled off (`strip`) as `(seed, time_yr)`, and the age at which the star's disk is gone (`disk_time_yr`,
+GEN.1551: the time the architecture's losses are recorded at; `scatter.DISK_LIFETIME_YR` for a star whose own time is not given)."""
 
 Architecture = collections.namedtuple("Architecture", ("planets", "disk_scatter", "separation", "oligarchs", "lost"))
 """The planets in order of distance, the factor the disk's solids were scattered by, the spacing the oligarchs formed at (mutual Hill
@@ -389,7 +390,7 @@ class Plan:
         return self.seeds[i]
 
 
-def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, inner=None, maximum=False, floor_au=0.0, gas_factor=1.0):
+def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, inner=None, maximum=False, floor_au=0.0, gas_factor=1.0, disk_time_yr=scatter_rule.DISK_LIFETIME_YR):
     """
     The planets of a star (module docstring). Draws, in this order: the disk scatter, the inner system, the outer spacing, the thinning,
     then, for each core past the critical mass beyond the snow line, the gas and migration draws.
@@ -405,6 +406,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
         maximum (bool): The most the disk holds: an inner system, and a starting count two widths of its spread above the mean.
         floor_au (float): The closest a body forms or migrates to, in AU (`sublimation_au`).
         gas_factor (float): The factor on the chance a core finds gas (`disk_truncation.gas_survival_factor`, GEN.1475); 1 for a star with no companion inside 47 AU.
+        disk_time_yr (float): The age at which the star's disk is gone, years (`disk_truncation.disk_time_yr`, GEN.1551): the time every loss of the build is recorded at.
 
     Returns:
         Architecture: The planets by distance, and what built them.
@@ -449,7 +451,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
     seeds.sort(key=lambda s: s.distance_au)
     seeds, swept, thrown = _clear_split(seeds, star_mass_kg)
     lost = Lost(sum(body[1] for body in chain), merge_debris, merges, capped_kg, capped, tuple((body[0], body[1]) for body in small), tuple(swept), tuple(thrown),
-                snow_line_au, star_mass_kg, ())
+                snow_line_au, star_mass_kg, (), disk_time_yr)
     return Architecture(tuple(seeds), scatter, separation, len(chain), lost)
 
 
@@ -482,9 +484,9 @@ def _seed_radius_earth(seed):
     return bulk_structure.envelope_radius_earth(mass_earth, max(0.0, 1.0 - seed.core_kg / seed.mass_kg))
 
 
-def _loss(kind, count, mass_kg, core_kg, distance_au, formation_au, perturber_au, perturber_mass_kg, theta, hill_au, ice_rich, fates):
+def _loss(time_yr, kind, count, mass_kg, core_kg, distance_au, formation_au, perturber_au, perturber_mass_kg, theta, hill_au, ice_rich, fates):
     ejected, collided, bound = fates
-    return Loss(kind, count, mass_kg, core_kg, distance_au, formation_au, scatter_rule.DISK_LIFETIME_YR, perturber_au, perturber_mass_kg, theta, hill_au,
+    return Loss(kind, count, mass_kg, core_kg, distance_au, formation_au, time_yr, perturber_au, perturber_mass_kg, theta, hill_au,
                 ice_rich, ejected, collided, bound)
 
 
@@ -524,7 +526,7 @@ def losses(architecture):
         for seed, recorded in pairs:
             perturber = scatterer(seed, recorded)
             theta, fates = encounter(perturber, seed.distance_au)
-            result.append(_loss(kind, 1, seed.mass_kg, seed.core_kg, seed.distance_au, seed.formation_au, perturber.distance_au, perturber.mass_kg, theta,
+            result.append(_loss(lost.disk_time_yr, kind, 1, seed.mass_kg, seed.core_kg, seed.distance_au, seed.formation_au, perturber.distance_au, perturber.mass_kg, theta,
                                 scatter_rule.hill_radius_au(seed.mass_kg / _EARTH_KG, seed.distance_au, star_solar), seed.formation_au > lost.snow_line_au, fates))
     free_count, free_mass = 0, 0.0
     bands = [(scatter_rule.reach_band_au(p.distance_au, p.formation_au, p.mass_kg / _EARTH_KG, star_solar), p) for p in architecture.planets]
@@ -539,7 +541,7 @@ def losses(architecture):
             continue
         perturber = max(reach, key=lambda p: encounter(p, distance)[0])
         theta, fates = encounter(perturber, distance)
-        result.append(_loss("sub_minimum", 1, mass, mass, distance, distance, perturber.distance_au, perturber.mass_kg, theta,
+        result.append(_loss(lost.disk_time_yr, "sub_minimum", 1, mass, mass, distance, distance, perturber.distance_au, perturber.mass_kg, theta,
                             scatter_rule.hill_radius_au(mass / _EARTH_KG, distance, star_solar), distance > lost.snow_line_au, fates))
     if free_count:
         result.append(Loss("sub_minimum", free_count, free_mass, free_mass, None, None, None, None, None, None, None, False, 0.0, 0.0, 1.0))

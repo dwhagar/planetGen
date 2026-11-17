@@ -719,6 +719,20 @@ class StarSystem:
             if limit is not None:
                 star.a_crit_au = limit
             self._attach_sources(ledger, kind, number, star)
+        self._lose_disks_to_close_companions()
+
+    def _lose_disks_to_close_companions(self):
+        """
+        A young star with a companion inside `disk_truncation.CLOSE_COMPANION_AXIS_AU` loses its disk sooner (GEN.1551, [R5225]: two thirds of such disks are gone within 1 Myr): the star was built before its companions were
+        attached, with the time of a lone star, so a class II disk (`pre_main_sequence.draw_disk`) that the shorter time of the same draw has already ended is taken off it here. Nothing is drawn, so no stream moves; the
+        embedded classes 0 and I are by age and stay.
+        """
+        for star in self.stars:
+            if star.disk_kind != "class-ii" or not disk_truncation.has_close_companion(star):
+                continue
+            mass_sol = getattr(star, "initial_mass_sol", None) or _kg_to_msun(star.mass)
+            if pre_main_sequence.disk_class(star.age * 1.0e9, pre_main_sequence.dispersal_yr(mass_sol, True)) == "III":
+                star.disk_kind = star.disk_mass_solar = star.disk_inner_au = star.disk_outer_au = None
 
     def _make_node_hosts(self, ledger):
         """
@@ -2764,8 +2778,9 @@ class StarSystem:
         if not history or config.NUM_ORBITS is not None or config.SLOTS:
             return architecture
         stripped = []
+        disk_myr = disk_truncation.disk_time_yr(star) / 1.0e6        # the planets exist from the end of the star's own disk (GEN.1551)
         for seed in architecture.planets:
-            epoch_myr = cluster_unbinding.unbinding_epoch_myr(seed.distance_au, _kg_to_msun(star.mass), history, draw.random())
+            epoch_myr = cluster_unbinding.unbinding_epoch_myr(seed.distance_au, _kg_to_msun(star.mass), history, draw.random(), disk_myr)
             if epoch_myr is not None:
                 stripped.append((seed, epoch_myr * 1.0e6))
         return planet_architecture.strip(architecture, stripped)
@@ -2801,6 +2816,7 @@ class StarSystem:
 
         sublimation_au = planet_architecture.sublimation_au(star.luminosity or 0.0)
         gas_factor = disk_truncation.gas_survival_factor(star)       # a companion inside 47 AU disperses the disk's gas early (GEN.1475)
+        disk_time_yr = disk_truncation.disk_time_yr(star)             # the age the star's disk is gone (GEN.1551): when the build's losses happen
 
         def plan_of(architecture, limit=None):
             floor_au = self._orbit_floor_au(star)
@@ -2809,7 +2825,7 @@ class StarSystem:
             return planet_architecture.Plan(self._strip_by_cluster(star, architecture), star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au, gas_factor)
 
         def built(maximum=False):
-            return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au, gas_factor=gas_factor)
+            return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au, gas_factor=gas_factor, disk_time_yr=disk_time_yr)
 
         if config.PLANETS is False:
             return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0, planet_architecture.Lost(0.0, 0.0, 0, 0.0, 0, (), (), (), 0.0, 0.0, ())), 0), 0
