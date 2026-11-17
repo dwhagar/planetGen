@@ -70,8 +70,11 @@ RECOVER_SECONDS = 30.0
 NO_PID_SECONDS = 20.0
 """float: How long a job that is `running` with no process named is waited for before it is called lost: the supervisor marks it and then forks it."""
 
-PROCESS_NICE = {LANE_INTERACTIVE: 5, LANE_LONG: work.WORKER_NICENESS}
-"""dict: How much `os.nice` lowers the process of a light job of each lane: the visitor's job a little (the short jobs get the CPU before a generation run's units), a long job as a bulk worker is."""
+LANE_MAINTENANCE = memorygate.LANE_MAINTENANCE
+
+PROCESS_NICE = {LANE_INTERACTIVE: 5, LANE_LONG: work.WORKER_NICENESS, LANE_MAINTENANCE: work.WORKER_NICENESS}
+"""dict: How much `os.nice` lowers the process of a light job of each lane: the visitor's job a little (the short jobs get the CPU before a generation run's units), a long job and the upkeep a visit asks for (the
+node prefetch, `LANE_MAINTENANCE`) as a bulk worker is."""
 
 
 class NoQueue(Exception):
@@ -128,7 +131,7 @@ def lane_of(expected_seconds=None):
 
 # -- the submitter's side ------------------------------------------------------------------------------------------------------
 
-def add_job(connection, reference, args, expected_seconds=None, wanted_seconds=None, drop_keys=(), url=None):
+def add_job(connection, reference, args, expected_seconds=None, wanted_seconds=None, drop_keys=(), url=None, lane=None, limit_seconds=None):
     """
     Records a job and puts it on the pending list. The supervisor is asked for (`ask_supervisor`) by the caller (`api_jobs.submit`).
 
@@ -140,14 +143,16 @@ def add_job(connection, reference, args, expected_seconds=None, wanted_seconds=N
         wanted_seconds (float, optional): How long the job stays wanted once nobody asks about it (the deadline); a job without it is never dropped.
         drop_keys (iterable): Keys the supervisor deletes when it drops the job (the page job's claim on its request).
         url (str, optional): The Redis server the job process writes its end to; the default one.
+        lane (str, optional): The lane the job goes by when it is not the one its expected time gives (`LANE_MAINTENANCE`: the node prefetch is upkeep that serves a visitor).
+        limit_seconds (int, optional): The time limit when it is not `time_limit(expected_seconds)` (a chunk of nodes has a floor of its own).
 
     Returns:
         str: The job's id.
     """
     job_id = secrets.token_hex(8)
     now = round(time.time(), 3)
-    lane = lane_of(expected_seconds)
-    limit = time_limit(expected_seconds)
+    lane = lane or lane_of(expected_seconds)
+    limit = limit_seconds or time_limit(expected_seconds)
     fields = {"function": reference, "args": json.dumps(args), "lane": lane, "state": "queued", "created": f"{now:.3f}", "limit": f"{limit:.0f}",
               "expected": "" if expected_seconds is None else f"{float(expected_seconds):.3f}", "wanted": "" if not wanted_seconds else f"{float(wanted_seconds):.3f}",
               "wanted_until": "" if not wanted_seconds else f"{now + float(wanted_seconds):.3f}", "drop_keys": json.dumps(list(drop_keys)), "url": url or ""}
@@ -157,6 +162,17 @@ def add_job(connection, reference, args, expected_seconds=None, wanted_seconds=N
     pipe.zadd(pending_key(), {job_id: now})
     pipe.execute()
     return job_id
+
+
+def pending_count(connection, reference, scan=1000):
+    """How many of the oldest `scan` pending jobs call `reference` (the node prefetch's depth rule: nothing is added while enough of its jobs wait)."""
+    found = [_text(item) for item in connection.zrange(pending_key(), 0, scan - 1)]
+    if not found:
+        return 0
+    pipe = connection.pipeline(transaction=False)
+    for job_id in found:
+        pipe.hget(job_key(job_id), "function")
+    return sum(1 for name in pipe.execute() if name is not None and _text(name) == reference)
 
 
 def status(connection, job_id, ask=True):

@@ -70,6 +70,10 @@ def decode_argument(value):
     return value
 
 
+OWN_BEAT = frozenset({"planetgen.web.lib.tileprefetch:build_nodes"})
+"""frozenset: The API functions that write a beat of their own (`jobbeat.beating` of a kind and label that say more than `api`): `execute` does not beat for them."""
+
+
 def execute(reference, args):
     """
     What a worker runs for a queued job: the function named by `reference`
@@ -85,6 +89,8 @@ def execute(reference, args):
     module, _, name = allowlist.check_reference(reference).partition(":")      # SEC.45: only the API's own functions
     function = getattr(importlib.import_module(module), name)
     try:
+        if reference in OWN_BEAT:                                               # the function beats under its own kind and label
+            return {"result": function(*[decode_argument(arg) for arg in args])}
         with jobbeat.beating("api", lightjobs.current_id(), label=name):        # OPS.142: the Queue page sees this job is alive
             return {"result": function(*[decode_argument(arg) for arg in args])}
     except Exception as exc:  # noqa: BLE001 -- anything but a refusal is re-raised
@@ -117,7 +123,7 @@ def recorded_task_seconds(kind, config=None, workers=1):
         return None
 
 
-def submit(function, *args, expected_seconds=None, wanted_seconds=None, drop_keys=()):
+def submit(function, *args, expected_seconds=None, wanted_seconds=None, drop_keys=(), lane=None, limit_seconds=None):
     """
     Queues `function(*args)` (a module-level function on `allowlist.API_FUNCTIONS`; its arguments and return value travel as JSON, `encode_argument`) as a light job
     (`lightjobs.add_job`) and asks for the supervisor that hands it out. A job expected to run longer than `queue.long_job_seconds` is on the long lane; it is ended after
@@ -127,6 +133,8 @@ def submit(function, *args, expected_seconds=None, wanted_seconds=None, drop_key
         expected_seconds (float, optional): How long it is expected to take.
         wanted_seconds (float, optional): How long it stays wanted once nobody asks after it: a job that has not started by then is dropped (W12 of the audit); without it the job is never dropped.
         drop_keys (iterable): Redis keys deleted when the job is dropped.
+        lane (str, optional): The lane when it is not the one the expected time gives (`lightjobs.LANE_MAINTENANCE`, the node prefetch).
+        limit_seconds (int, optional): The time limit when it is not the one the expected time gives.
 
     Returns:
         str: The job's id, for `status`.
@@ -143,7 +151,7 @@ def submit(function, *args, expected_seconds=None, wanted_seconds=None, drop_key
     try:
         connection.ping()
         job_id = lightjobs.add_job(connection, function_reference(function), [encode_argument(arg) for arg in args], expected_seconds=expected_seconds,
-                                   wanted_seconds=wanted_seconds, drop_keys=drop_keys)
+                                   wanted_seconds=wanted_seconds, drop_keys=drop_keys, lane=lane, limit_seconds=limit_seconds)
     except (redis.exceptions.RedisError, OSError) as exc:
         raise NoQueue(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); start Redis to run this: {exc}") from exc
     lightjobs.ask_supervisor(connection, url)

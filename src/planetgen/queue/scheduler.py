@@ -61,7 +61,7 @@ far apart they are against `FAIR_PENALTY` and `AGING_RATE`."""
 SOLO_WEIGHT = 1000.0
 """float: The weight of the solo claim (OPS.145), above every class: the restarted unit that runs alone goes before any other job that waits at the gate."""
 
-SITE_KINDS = {"fn:planetgen.web.lib.tileprefetch.build_nodes": 90.0}
+SITE_KINDS = {"api:planetgen.web.lib.tileprefetch:build_nodes": 90.0}
 """dict: A kind of job on a lane of upkeep that serves a visitor all the same (the nodes of the page they opened), with the weight it goes by."""
 
 AGING_BOUND_SECONDS = 600.0

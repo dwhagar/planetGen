@@ -99,17 +99,15 @@ def test_nothing_starts_while_everything_is_stopped(tmp_path, monkeypatch):
     assert worker_cli.main(["--burst"]) == updateguard.EX_TEMPFAIL
 
 
-def test_the_tile_prefetch_queues_nothing_while_stopped():
-    class Queue:
-        queued = 0
-
-        def enqueue(self, *args, **kwargs):
-            Queue.queued += 1
-    tileprefetch._enqueue_chunks(Queue(), "db", ["a"], "prefetch")
-    assert Queue.queued == 1
+def test_the_tile_prefetch_queues_nothing_while_stopped(monkeypatch):
+    from planetgen.queue import lightjobs
+    added = []
+    monkeypatch.setattr(lightjobs, "add_job", lambda *args, **kwargs: added.append(args) or "0" * 16)
+    assert tileprefetch._add_chunks(None, "db", "gen", ["a"]) == 1
+    assert len(added) == 1
     stopall._write_hold("boss")
-    tileprefetch._enqueue_chunks(Queue(), "db", ["b"], "prefetch")
-    assert Queue.queued == 1
+    assert tileprefetch._add_chunks(None, "db", "gen", ["b"]) == 0
+    assert len(added) == 1
 
 
 def test_find_targets_takes_workers_and_everything_they_started_and_spares_the_rest():

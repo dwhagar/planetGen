@@ -165,6 +165,29 @@ def test_a_light_jobs_claim_is_its_api_functions_figure_on_its_lane(duty):
     assert other.kind == "fn:planetgen.nothing:here" and other.mb == 1000.0 and other.lane == "interactive"
 
 
+def test_a_prefetch_chunk_is_a_maintenance_job_the_scheduler_weighs_as_the_sites_and_is_dropped_with_its_claims(duty):
+    """OPS.230 slice B: the node prefetch's chunks are light jobs on the maintenance lane, claimed as the API function (`api:` kind, `scheduler.SITE_KINDS`), wanted for `CLAIM_SECONDS`, and a
+    chunk nobody started in that time goes with the claims of its nodes."""
+    from planetgen.queue import scheduler
+    from planetgen.web.lib import tileprefetch
+    connection, clock, _forker, _held = duty.test
+    keys = [f"n{number}" for number in range(tileprefetch.CHUNK + 4)]
+    for key in keys:
+        connection.set(tileprefetch._claim_name("db", "gen", key), "1")
+    assert tileprefetch._add_chunks(connection, "db", "gen", keys) == len(keys)
+    assert lightjobs.pending_count(connection, tileprefetch.JOB) == 2 and lightjobs.pending_count(connection, "math:pow") == 0
+    tickets, records = duty.tickets()
+    assert [ticket.claim.lane for ticket in tickets] == ["maintenance", "maintenance"]
+    assert {ticket.claim.kind for ticket in tickets} == {f"api:{tileprefetch.JOB}"} and set(scheduler.SITE_KINDS) == {f"api:{tileprefetch.JOB}"}
+    assert scheduler.weight(tickets[0].claim) == scheduler.SITE_KINDS[f"api:{tileprefetch.JOB}"]
+    job_id, record = next(iter(records.values()))
+    assert float(record["wanted"]) == tileprefetch.CLAIM_SECONDS and int(record["limit"]) >= tileprefetch.MIN_JOB_SECONDS
+    clock.now += tileprefetch.CLAIM_SECONDS + 1
+    assert len(duty.drop()) == 2
+    assert all(connection.get(tileprefetch._claim_name("db", "gen", key)) is None for key in keys)
+    assert lightjobs.pending_count(connection, tileprefetch.JOB) == 0
+
+
 def test_the_lane_follows_the_expected_time_and_the_setting(redis_server, monkeypatch):
     monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)
     from planetgen.util.settings import get_settings

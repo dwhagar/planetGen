@@ -174,7 +174,7 @@ def live_worker_count(queue):
 
 def lane_of(queue_name):
     """
-    The queues one worker started for `queue_name` serves (PERF.245): the maintenance lane's three (`redisqueue.maintenance_lane()`,
+    The queues one worker started for `queue_name` serves (PERF.245): the maintenance lane's two (`redisqueue.maintenance_lane()`,
     one per task type, taken in turn) for any of them, else just the queue itself.
     """
     return redisqueue.maintenance_lane() if queue_name in redisqueue.maintenance_lane() else (queue_name,)

@@ -65,7 +65,7 @@ def test_a_run_goes_on_the_queue_of_its_kind():
     assert wrapper.queue_of(runrecord.GENERATION) == redisqueue.BULK_QUEUE
     assert wrapper.queue_of(runrecord.MAINTENANCE) == redisqueue.MAINTENANCE_QUEUE      # PERF.245: a queue for each task type of the lane
     assert wrapper.queue_of(runrecord.CHECK) == redisqueue.CHECK_QUEUE
-    assert redisqueue.NODES_QUEUE in redisqueue.QUEUES and redisqueue.CHECK_QUEUE in redisqueue.QUEUES
+    assert redisqueue.CHECK_QUEUE in redisqueue.QUEUES
     assert redisqueue.serializer_for(redisqueue.MAINTENANCE_QUEUE) is redisqueue.JsonSerializer
     assert redisqueue.MAINTENANCE_QUEUE in redisqueue.QUEUES
 
