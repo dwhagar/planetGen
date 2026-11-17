@@ -229,8 +229,12 @@ def test_resuming_queues_the_opening_of_a_stage_the_hold_skipped(conn, run, rows
     conn.hset(runrecord.stage_key(run, 0), "ended", 1.0)
     held.drain_run(conn, run)
     held.retry_held(conn, run)
-    queue = redisqueue.queue(wrapper.queue_of(runrecord.GENERATION), conn)
-    assert units.open_job_id(run, 1) in queue.get_job_ids()
+    control = planrows.control_connection(conn, run)
+    try:
+        opening = control.execute("SELECT state FROM engine_jobs WHERE run_id = ? AND command = ? AND item_key = ''", (jobview.engine_run(conn, run), planrows.OPENING)).fetchall()
+    finally:
+        control.close()
+    assert [row["state"] for row in opening] == ["ready"], "the opening of stage 1 is a ready job for the launcher to hand out (OPS.228)"
 
 
 def test_the_end_of_an_update_carries_a_drained_run_on_under_the_same_generator(conn, run, rows):

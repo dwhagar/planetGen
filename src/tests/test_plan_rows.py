@@ -65,20 +65,20 @@ def test_a_cut_that_fails_while_inserting_leaves_no_rows_and_no_done_mark(monkey
     assert len(planrows.record_cut(conn, run_id, 0, "first", [({}, 1.0), ({}, 1.0)], 2.0, {})) == 2
 
 
-def test_each_unit_is_handed_to_the_queue_with_its_row(monkeypatch, mysql_config):
-    seen = []
-    real = units.enqueue_units
+def test_each_unit_is_handed_to_the_launcher_with_its_row(monkeypatch, mysql_config):
+    released = []
+    real = planrows.release_units
 
-    def spy(conn, run_id, stage, kind, unit_list, queue_name=None, expected_seconds=None, rows=None, skip=frozenset()):
-        seen.append(rows)
-        return real(conn, run_id, stage, kind, unit_list, queue_name=queue_name, expected_seconds=expected_seconds, rows=rows, skip=skip)
+    def spy(conn, run_id, index, skip=()):
+        released.append(real(conn, run_id, index, skip=skip))
+        return released[-1]
 
-    monkeypatch.setattr(units, "enqueue_units", spy)
+    monkeypatch.setattr(planrows, "release_units", spy)
     run_id = _run(monkeypatch, mysql_config, 3)
     conn = redisqueue.connect()
     ledger_run = int(runrecord._s(conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)))
-    unit_ids = [job["id"] for job in _jobs(mysql_config, ledger_run) if job["command"] == "first"]
-    assert seen == [unit_ids] and len(unit_ids) == 3
+    unit_rows = [job for job in _jobs(mysql_config, ledger_run) if job["command"] == "first"]
+    assert released == [3] and len(unit_rows) == 3, "the rows of the three units were released to the supervisor's launcher (OPS.228), each unit its own row"
 
 
 def test_a_stage_with_no_unit_still_has_its_plan_as_a_row(monkeypatch, mysql_config):

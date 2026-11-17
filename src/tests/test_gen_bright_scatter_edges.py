@@ -22,6 +22,7 @@ import random
 
 import pytest
 
+from planetgen.generation import scatter_companions
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_plan
 from planetgen.db import store
@@ -221,7 +222,10 @@ def _yielded_rows(scatter_shell):
     the real `scatter_shell`."""
     template = list(scatter_shell(SHAPE, HEAVIEST_SHELL, 3, EDGE_PC, E_VALUE, THRESHOLD, 5))
     assert template
-    return list(itertools.islice(itertools.cycle(template), ROWS_BEFORE_FAILURE))
+    seed = scatter_companions._STAR_COLUMN["seed"]
+    # Each round of the template has its own seeds: a batch of rows whose first and last were already stored is taken for one a stopped try wrote and is not written again (`write_once`, OPS.264).
+    return [row[:seed] + ((row[seed] + 7919 * (number // len(template))) % (1 << 63),) + row[seed + 1:]
+            for number, row in enumerate(itertools.islice(itertools.cycle(template), ROWS_BEFORE_FAILURE))]
 
 
 def heaviest_shell_fails_after_commits(real):
@@ -271,12 +275,9 @@ def test_a_scatter_that_fails_after_two_commits_keeps_them_and_no_seed(mysql_con
     _seed_galaxy(mysql_config)
     yielded = _interrupt_after_commits(mysql_config, monkeypatch)
     stored = _stored_rows(mysql_config)
-    # The heaviest shell keeps its two commits and loses the rest. With one
-    # worker the run stops there; with more, the shells other workers were
-    # drawing at the time finish and keep their stars.
+    # The heaviest shell keeps its two commits and loses the rest. The unit that failed is held and the run goes on (OPS.221, OPS.228), so the other shells finish and keep their stars.
     assert _comparable(_shell_rows(stored, HEAVIEST_SHELL)) == _comparable(yielded[:20_000])
-    if worker_patches.workers() == 1:
-        assert len(stored) == 20_000
+    assert len(stored) >= 20_000
     # The threshold and seed are written only once every shell is in.
     assert _settings(mysql_config) is None
 
@@ -414,8 +415,6 @@ def test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star(mysql_c
     # may finish too; the failing shell itself holds nothing.
     shells = {address[0] for address in leftovers}
     assert leftovers and {8, 7} <= shells and FAILING_SHELL not in shells
-    if worker_patches.workers() == 1:
-        assert shells == {8, 7}
     last_leftover = _count(mysql_config, "SELECT MAX(id) AS n FROM bright_stars")
     # The filled cell is the equator cell whose ring holds a leftover cell taken down to the lightest mass (the nearest step: hundreds of stars where the
     # heavier steps draw one star or none), so that the cell filled next has a star built from the backfill; of those the one with the most leftovers
@@ -461,8 +460,8 @@ def test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers(mysql_
     address = min((cell for cell in leftovers if cell[1] == 0), key=lambda cell: (leftovers[cell], cell))
     neighbor = _nearest([cell for cell in _backfill_steps(mysql_config, address) if cell in leftovers], address)
     last_leftover = _count(mysql_config, "SELECT MAX(id) AS n FROM bright_stars")
-    # With more workers, the shells drawn beside the heaviest left theirs too.
-    assert last_leftover == 20_000 if worker_patches.workers() == 1 else last_leftover >= 20_000
+    # The shells drawn beside the heaviest left theirs too (the failed unit is held, the run goes on).
+    assert last_leftover >= 20_000
     _sector_id, _name, sector = _fill(mysql_config, address)
     assert [entry for entry in sector.entries if _is_built_star(entry)] == []
     _backfill_around(mysql_config, address)
