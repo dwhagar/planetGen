@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4450] - 2026-11-17
+
+**Headline:** The secular exchange generation test no longer depends on which test ran before it.
+
+### Fixed
+
+- TEST.789: `test_secular_exchange_generation` failed once under load with an inclination of 1.697 degrees against the stored 0.997. One test of the file moves every planet's plane by 0.7 degrees on the module-shared systems to check how the spin follows, so a test that ran after it on the same worker (the order differs under xdist) saw the moved orbits. That test now builds its own systems (`scratch_systems`); the assertions and bounds are unchanged. Test only.
+
+generation-output: unchanged
+
 ## [8.0.4449] - 2026-11-17
 
 **Headline:** The table of stars the forced-type generator builds takes about 17 percent less time (14.9 s to 12.4 s for one [Fe/H] in a profile); every star is the same.
