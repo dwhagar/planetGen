@@ -42,18 +42,14 @@ def test_a_live_redis_reports_its_settings():
     assert isinstance(info["workers"], int) and info["workers"] >= 0
 
 
-def test_workers_are_counted_when_one_is_registered_here_and_one_is_dead(monkeypatch):
-    """A worker whose process is gone is not counted, one on another host is (the health check once named a
-    helper that had moved, so any registered worker made the Stats page say Redis was not answering)."""
-    import socket
+def test_workers_are_the_job_processes_the_ledger_says_run_and_whose_process_exists():
+    """A job whose process is gone is not counted (OPS.234: the supervisor forks the jobs, there is no worker to register in Redis)."""
     import types
 
-    here = socket.gethostname()
-    registered = [types.SimpleNamespace(hostname=here, pid=os.getpid()),
-                  types.SimpleNamespace(hostname=here, pid=2 ** 22 + 12345),
-                  types.SimpleNamespace(hostname="elsewhere.example", pid=1)]
-    monkeypatch.setattr(redishealth.rq.Worker, "all", staticmethod(lambda connection=None, **_: registered))
-    assert redishealth._live_workers(object()) == 2
+    here, gone = os.getpid(), 2 ** 22 + 12345
+    rows = [{"pid": here}, {"pid": gone}, {"pid": None}]
+    control = types.SimpleNamespace(execute=lambda sql: types.SimpleNamespace(fetchall=lambda: rows), close=lambda: None)
+    assert redishealth._live_workers(control) == 1
 
 
 def test_the_page_row_says_what_matters():

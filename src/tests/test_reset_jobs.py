@@ -273,3 +273,20 @@ def test_update_sh_knows_the_flag_and_says_so_in_its_help_and_the_deployment_not
     assert "--reset-jobs) RESET_JOBS=1" in text and "[--yes] [--reset-jobs]" in text
     with open(os.path.join(REPO, "docs", "deployment", "README.md"), encoding="utf-8") as handle:
         assert "--reset-jobs" in handle.read()
+
+
+def test_reset_jobs_has_the_supervisor_stop_its_job_processes_and_says_how_many(redis_server, monkeypatch):
+    """OPS.234: the ledger's jobs are stopped through the supervisor (`controls.stop_everything`), after the update guard's sources and before the workers are killed."""
+    url = database_of_its_own(redis_server)
+    connection = redisqueue.connect(url)
+    connection.flushdb()
+    asked = []
+    monkeypatch.setattr(reset_jobs.controls, "stop_everything", lambda conn, who=None: asked.append(who) or {"jobs": 2, "rows": 5})
+    try:
+        connection.set("planetgen:run:x", "1")
+        lines = []
+        assert reset_jobs.reset_jobs(redis_url=url, assume_yes=True, sources=[], write=lines.append)
+        assert asked == ["reset-jobs"]
+        assert "The supervisor stopped 2 job process(es); 5 job row(s) of the ledger ended." in lines
+    finally:
+        connection.flushdb()

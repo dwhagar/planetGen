@@ -6,10 +6,12 @@ still for far longer than this command has ever stood still (`beatjudge`: dead a
 
 1. **dumped**: the follower sends its horse `unitbeat.DUMP_SIGNAL`, which has `faulthandler` write the stack of every thread to the unit's stack file (from the signal handler in C, so
    it answers even when the work loop holds the interpreter), and reads what was written;
-2. **stopped**: RQ's stop command (`rq.command.send_stop_job_command`), the way a cancel stops one;
-3. **queued again, once**: RQ does not retry a job that was stopped on purpose, so this module does it: it takes the job out of the registry it sits in, clears the unit's stale beat
+2. **stopped**: for a run in the ledger, a request to the supervisor (`controls.ask`, `stop_unit`), which kills the job process it forked and closes the attempt `stuck` in the ledger with the
+   reason and the stack (OPS.234); for a run with no rows in the ledger (until OPS.271), RQ's stop command (`rq.command.send_stop_job_command`), the way a cancel stops one;
+3. **queued again, once**: for a ledgered run the launcher hands the unit out once more when it settles the process's end (the row goes back to `ready`), and this module only clears the unit's
+   stale beat when it sees that; RQ does not retry a job that was stopped on purpose, so for the others this module does it: it takes the job out of the registry it sits in, clears the beat
    and queues the same job (`redisqueue.requeue_job`) once the horse is gone;
-4. **run alone (OPS.145)**: the queue is held (`pause.hold_solo`, the one pause flag, naming the reason and the run) so that every other task waits, and the memory gate and the
+4. **run alone (OPS.145; RQ runs only, the launcher's hand-outs do not read a solo hold)**: the queue is held (`pause.hold_solo`, the one pause flag, naming the reason and the run) so that every other task waits, and the memory gate and the
    scheduler give the restarted unit the host (`memorygate.Claim.solo`); the hold lifts when the unit completes or the run ends, here or, if this follower is gone, when the unit's
    job has ended (`pause.state`), and an admin can lift it from the Queue page;
 5. **failed, the second time**: a unit that is stuck again on its second attempt fails the run, with both stacks in the message.
@@ -100,6 +102,7 @@ class Stuck:
         self._record_error = record_error
         self._forget = forget
         self._solo = solo
+        self._ledger = None
 
     # --- one pass, made at every poll -----------------------------------------------------------------------
 
@@ -125,7 +128,7 @@ class Stuck:
             if not self._live():
                 return
             if verdicts[unit].state == beatjudge.DEAD and self._waiting_to_run(unit):
-                continue        # OPS.268: its horse is gone because the attempt failed and RQ has queued the retry: it is waiting for a worker, not dead, and queuing it again would run it twice
+                continue        # OPS.268: its horse is gone because the attempt failed and the retry is queued (RQ's, or the ledger's `ready`): it is waiting for a worker, not dead, and queuing it again would run it twice
             self._act(unit, record, now, verdicts[unit])
 
     def _lift_when_over(self, done, live):
@@ -137,6 +140,26 @@ class Stuck:
             if pause.lift_solo(self.run_id, self.stage, solo["unit"], self.conn):
                 runrecord.log_said(self.conn, self.run_id, f"unit {solo['unit']} is {'complete' if live else 'no longer running'}: the queue is released", "info", "unit-solo-over",
                               stage=self.stage, unit=solo["unit"])
+
+    def _ledgered(self):
+        """Whether the run has rows in the ledger (its units are forked jobs the supervisor holds), as against one whose units are RQ jobs."""
+        if self._ledger is None:
+            from planetgen.queue import controls
+            self._ledger = controls.engine_run_of(self.conn, self.run_id) is not None
+        return self._ledger
+
+    def _ledger_row(self, unit):
+        """`{"id", "state", "attempt"}` of the unit's newest job row in the ledger, or `None`."""
+        from planetgen.queue import planrows
+        engine = self.conn.hget(runrecord.run_key(self.run_id), planrows.ENGINE_RUN_FIELD)
+        if not engine:
+            return None
+        control = planrows.control_connection(self.conn, self.run_id)
+        try:
+            return control.execute("SELECT id, state, attempt FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key = ? ORDER BY id DESC LIMIT 1",
+                                   (int(runrecord._s(engine)), planrows._stage_key(self.conn, self.run_id, self.stage), str(unit))).fetchone()
+        finally:
+            control.close()
 
     def _hold_for_solo_run(self, unit, job):
         """Holds the queue for the restarted `unit` (unless it is turned off or the queue is paused already, by hand or for another unit) and says so in the run log."""
@@ -171,16 +194,26 @@ class Stuck:
         attempts = int(record.get("attempts", 0)) if record else 0
         reason = f"unit {unit} is {verdict.state}: {verdict.reason}"
         stack = self._dump(raw) if verdict.state != "dead" or alive(raw.get("pid"), raw.get("host")) else "(no stack: the process is gone)"
-        self._stop_quietly(unit)
-        self._end_attempt(unit, reason, stack)
+        if self._ledgered():
+            self._stop_in_ledger(unit, reason, stack)
+        else:
+            self._stop_quietly(unit)
+            self._end_attempt(unit, reason, stack)
         if attempts >= 1:
             self._fail(unit, reason, record.get("dump", ""), stack, now)
             return
-        self.conn.hset(self.key, unit, json.dumps({"attempts": 1, "phase": "stopping", "at": now, "reason": reason, "dump": stack}))
+        found = self._ledger_row(unit) if self._ledgered() else None
+        self.conn.hset(self.key, unit, json.dumps({"attempts": 1, "phase": "stopping", "at": now, "reason": reason, "dump": stack,
+                                                   **({"attempt": found["attempt"]} if found is not None else {})}))
         runrecord.mark_killed(self.conn, self.run_id, reason)
         runrecord.log_said(self.conn, self.run_id, f"{reason}; its stack is below, it is being stopped and will be queued again once\n{stack}", "warning", "unit-stuck",
                       stage=self.stage, unit=unit)
         self._to_error_log(f"run {self.run_id} stage {self.stage}: {reason}; stopped, to be queued again once\n{stack}", unit)
+
+    def _stop_in_ledger(self, unit, reason, stack):
+        """Asks the supervisor to kill the unit's job process and close its attempt `stuck` (`controls`, `stop_unit`); the launcher then hands the unit out again. Not waited for: `_follow_stop` looks at the row."""
+        from planetgen.queue import controls
+        controls.ask(self.conn, "stop_unit", "the stuck-unit follower", wait=0, run_id=self.run_id, stage=self.stage, unit=unit, reason=reason, stack=stack)
 
     def _end_attempt(self, unit, reason, stack):
         """OPS.223: the stopped attempt's row in the ledger ends `stuck`, with why and the stack the horse wrote (kept in a file the row names). A horse that is stopped cannot write its own end."""
@@ -194,6 +227,9 @@ class Stuck:
             log.swallowed("queue/unitstuck", "_end_attempt", exc)
 
     def _follow_stop(self, unit, record, now):
+        if self._ledgered():
+            self._follow_ledger_stop(unit, record, now)
+            return
         job = self._job(unit)
         status = None if job is None else job.get_status(refresh=True)
         raw = self._beat_record(unit)
@@ -202,6 +238,19 @@ class Stuck:
             self._requeue(unit, record, job)
         elif job is None or now - float(record.get("at", now)) > STOP_WAIT_SECONDS:
             reason = f"unit {unit} could not be stopped (job {'missing' if job is None else status}) within {format_duration_seconds(STOP_WAIT_SECONDS)} of being found stuck: {record.get('reason', '')}"
+            self._fail(unit, reason, record.get("dump", ""), "", now)
+
+    def _follow_ledger_stop(self, unit, record, now):
+        """A ledgered unit is stopped when its row is no longer the `running` one the supervisor was asked to kill: back to `ready` (or already handed out again: a later attempt), or over."""
+        row = self._ledger_row(unit)
+        if row is not None and (row["state"] != "running" or row["attempt"] > int(record.get("attempt", row["attempt"]))):
+            self.conn.hdel(runrecord.progress_key(self.run_id, self.stage), unit)       # the beat of the stopped attempt would read as dead beside the new one
+            self.conn.hset(self.key, unit, json.dumps({**record, "phase": "requeued"}))
+            if self._forget is not None:
+                self._forget(unit)
+            runrecord.log_said(self.conn, self.run_id, f"unit {unit} was stopped and is handed out again", "warning", "unit-requeued", stage=self.stage, unit=unit)
+        elif row is None or now - float(record.get("at", now)) > STOP_WAIT_SECONDS:
+            reason = f"unit {unit} could not be stopped (job {'missing' if row is None else row['state']}) within {format_duration_seconds(STOP_WAIT_SECONDS)} of being found stuck: {record.get('reason', '')}"
             self._fail(unit, reason, record.get("dump", ""), "", now)
 
     def _requeue(self, unit, record, job):
@@ -231,6 +280,9 @@ class Stuck:
 
     def _waiting_to_run(self, unit):
         """Whether the unit's RQ job is waiting for a worker (queued, scheduled or deferred), as a retry of a failed attempt is, so the old attempt's silent beat is not a unit that died."""
+        if self._ledgered():
+            row = self._ledger_row(unit)
+            return row is not None and row["state"] in ("ready", "waiting")
         job = self._job(unit)
         if job is None:
             return False
