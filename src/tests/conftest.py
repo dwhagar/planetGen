@@ -483,18 +483,6 @@ def unit_density_plans(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _api_jobs_queue_of_its_own(monkeypatch):
-    """The API jobs share one queue and its workers in production (PERF.39); a test, running beside others
-    on one Redis server, gets a queue of its own, so its job is never picked up by another test's worker
-    (which has that test's environment)."""
-    import uuid
-    from planetgen.queue import api_jobs
-    monkeypatch.setattr(api_jobs, "QUEUE_NAME", f"planetgen-api-test-{uuid.uuid4().hex[:12]}")
-    monkeypatch.setattr(api_jobs, "LONG_QUEUE_NAME", f"planetgen-api-test-long-{uuid.uuid4().hex[:12]}")
-    yield
-
-
-@pytest.fixture(autouse=True)
 def _wanted_workers_of_its_own(monkeypatch):
     """The admin's wanted worker count is one key on the Redis server, which every test process reads when it counts
     the workers a queue should have; a test that sets it (the admin's page, `set_wanted`) beside one that counts them

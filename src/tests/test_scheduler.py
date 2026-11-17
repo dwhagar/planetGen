@@ -47,7 +47,7 @@ def ticket(name, kind="unit:x", mb=500.0, lane="bulk", since=0.0, cpu=1.0, exclu
 def test_the_site_goes_before_a_run_and_a_run_before_the_upkeep():
     interactive = ticket("a", "api:x", lane="interactive")
     long_job = ticket("b", "api:y", lane="long")
-    prefetch = ticket("c", "fn:planetgen.web.lib.tileprefetch.build_nodes", lane="maintenance")
+    prefetch = ticket("c", "api:planetgen.web.lib.tileprefetch:build_nodes", lane="maintenance")
     unit = ticket("d", "unit:scatter-mass", lane="bulk")
     upkeep = ticket("e", "unit:warm-search", lane="maintenance")
     order = [t.name for t in scheduler.rank([upkeep, unit, prefetch, long_job, interactive], now=0.0, used={})]

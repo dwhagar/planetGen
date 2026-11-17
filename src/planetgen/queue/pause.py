@@ -7,8 +7,7 @@ already running finishes. The flag holds who paused and when, as JSON, so the pa
 `paused` column of `work_lease` (control schema v21 dropped that table, PERF.100), which only the old executor ever read.
 
 Pause is for the bulk and maintenance lanes (the units of a run, the cache warm-up, the database check). The
-interactive and long lanes (`redisqueue.INTERACTIVE_QUEUE`, `LONG_QUEUE`) are never held: an admin who pauses the
-generation must still be able to edit and resume.
+site's light jobs (`queue/lightjobs.py`) are never held: an admin who pauses the generation must still be able to edit and resume.
 
 **A solo hold (OPS.145, Boss 5:29 PM EST on 2026-11-09)** is the same flag with two more fields, `reason` and `solo` (the unit whose job is let through). After the
 heartbeat's stuck action (`unitstuck`, OPS.140) stops a unit and queues it again, the follower holds every other task so the restarted unit runs alone: the workers take
@@ -32,9 +31,8 @@ def key():
     return runrecord._k("queue", "paused")
 
 
-NEVER_HELD = (redisqueue.INTERACTIVE_QUEUE, redisqueue.LONG_QUEUE, "planetgen-web-", "planetgen-api-")
-"""tuple: The queues (by name prefix) whose workers never wait for the flag: the two API lanes, the Generate page's
-job queues (a paused queue must not hold the page's own starter) and the API queues the tests name."""
+NEVER_HELD = ("planetgen-web-",)
+"""tuple: The queues (by name prefix) whose workers never wait for the flag: the Generate page's job queues (a paused queue must not hold the page's own starter)."""
 
 WAIT_SECONDS = 2.0
 """float: How often a worker whose queue is paused looks at the flag again."""

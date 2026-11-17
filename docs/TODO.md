@@ -11570,22 +11570,12 @@ clears each one.
 - [ ] **OPS.229 Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189**
   TODO, 2026-11-17: also deletes WarmWorker's unit prep, claim expiry and heartbeat, and the gate wait (moved here from OPS.228); after OPS.271.
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D4 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 13 (moved from Lane 06 at 4:50 AM EST, not started there; queue rework first). Prerequisites: OPS.228. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
-- [ ] **OPS.230 Job engine stage 4: the site's lanes move as light jobs with deadlines (interactive and long RQ queues deleted)**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D5); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D5 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.228. Related: OPS.191, OPS.207, OPS.212.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 06 (moved from Lane 13 at 10:30 AM EST so it runs beside OPS.271; Lane 06 moved the maintenance lane's node work in OPS.230 slice B). The lane moves go first; the WarmWorker, claim expiry and gate wait deletion waits on Lane 13's OPS.271. Prerequisites: OPS.228 (done), OPS.271 for the deletion. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.231 Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D6 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.228, OPS.229, OPS.230. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
-- [ ] **OPS.233 Job engine stage 4: Queue page for the new engine (why each job waits, oldest job age per class, ready-to-start time, last controller action); replaces OPS.150**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D8 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: OPS.227, OPS.231. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
 - [ ] **OPS.234 Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor**
@@ -11751,14 +11741,19 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 04, with Lane 02 for air and life shifts. Prerequisites: GEN.1777 (the lever Boss picks). Related: GEN.1390, GEN.1777, GEN.1732.
   Filed by the TODO thread.
 
-- [ ] **GEN.1786 A restored resonant body loses the floor under its eccentricity: since GEN.1651 the held eccentricity lives in build.resonance_e, but body_history still read the old _resonance_e, so held_eccentricity was never saved and a restored body settled without it (bug)**
-  Lane 07, 7:15 AM EST 2026-11-17 (test_restored_resonance_and_star_birth red on main, found by Lane 15: its seed search used the old _orbit_birth name). Fix in PR 7057: body_history reads and writes build.resonance_e; the two tests read build.orbit_birth and build.resonance_e; assertions and seed range unchanged. Generation output unchanged; only the saved held_eccentricity column and a restored body settled again move.
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 07, lock-free. Prerequisites: none. Related: GEN.1651, DB.75b.
-  Filed by the TODO thread.
-
 - [ ] **OPS.271 Ledgerless runs (`generate system --output` with no database, the update's math check before the migration step) run their units in the CLI process or a forked job without a ledger, so the bulk RQ unit path can be deleted**
   Lane 13, 7:57 AM EST 2026-11-17 (OPS.228 closed: every run with a ledger runs its bulk lane as forked jobs, PRs 6995, 7011, 7027, 7040, 7062; runs where planrows.ledgered is false still use enqueue_units, run_unit and open_stage). Do: run those units in the CLI process or a forked job with no ledger, reusing the launcher; then delete enqueue_units, run_unit and open_stage. WarmWorker's unit prep, claim expiry and heartbeat, and the gate wait are deleted with OPS.229 once the maintenance and check lanes move.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 13, lock-free. Prerequisites: OPS.228 (done). Related: OPS.229, OPS.228.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1787 Nine version- or library-dependent maths uses in the package (math.dist, math.hypot, the @ operator) fail the GEN.135 reproducible-draws scan; switch them to detmath (bug)**
+  Lane 16, 9:28 AM EST 2026-11-17 (tests/test_reproducible_draws.py::test_no_version_or_library_dependent_maths_in_the_package red on main 28a818f672 and the Train 43 base). Uses: generation/system.py:819 (math.dist), physics/eclipses.py:77, influx.py:123 and kozai_planets.py:146 (math.hypot), obliquity_variation.py:156 and secular_chain.py:213 and 227 (@, BLAS). Do: switch each to detmath.hypot, detmath.dist and detmath.matmul in one PR; measure how far the outputs move (expect the last bit at most) and say so; tell Lane 06 (influx) and Lane 07 (secular chain, kozai, obliquity) what changed in their files. Lock item if any stored value moves.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 16, lock item. Prerequisites: none. Related: GEN.135, PERF.279.
+  Filed by the TODO thread.
+
+- [ ] **UX.320 The Queue page lists waiting light jobs (API jobs and slow-page answers, run as light jobs since OPS.230 slice A) with their reason and age, beside the "Why jobs wait" panel**
+  Lane 06, 10:03 AM EST 2026-11-17 (OPS.230 slice A, PR 7073, moved API jobs and slow-page answers to light jobs with a Redis record; the Queue page and OPS.233's panel read only engine_jobs). Do: add the waiting light jobs to the panel's read (queue/waiting.py) and the page, by class, with reason, age and deadline; reuse OPS.233's code.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 15, lock-free. Prerequisites: OPS.230 slice A (merged). Related: OPS.233, OPS.230.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**

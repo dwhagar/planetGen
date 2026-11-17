@@ -1,73 +1,35 @@
 # planetgen/queue/api_jobs.py
 
 """
-Long API work on the Redis queue (PERF.24 step 4): a route that would
-hold a web worker for minutes queues the work with `submit`, answers
-`202 Accepted` with the job's id at once, and the client reads the
-outcome from `GET /api/jobs/<id>` (`status`).
+Long API work as light jobs (PERF.24 step 4, OPS.230): a route that would hold a web worker for minutes queues the work with `submit`, answers
+`202 Accepted` with the job's id at once, and the client reads the outcome from `GET /api/jobs/<id>` (`status`).
 
-The jobs share two queues, the interactive one (`QUEUE_NAME`) for short jobs and
-the long one (`LONG_QUEUE_NAME`) for jobs expected to run longer than
-`queue.long_job_seconds` (PERF.151), each served by workers started
-detached from the web server (`workers.ensure_workers`), as the admin
-Generate page's jobs do (`planetgen.web.jobs`): a request timeout or a
-graceful reload of the web server doesn't stop them, and a worker exits
-after `workers.IDLE_SECONDS` without work. A job starts a worker only while
-fewer than its lane's cap serve the queue (`queue.interactive_workers`,
-`queue.long_workers`), so a batch of uploads doesn't start a process (and its
-imports) per job (PERF.39) and a long job never holds a worker kept for short
-ones. The result is kept for `RESULT_TTL_SECONDS`.
+The jobs are light jobs (`queue/lightjobs.py`): a record in Redis that the supervisor hands out, as a process forked from a warm template, when the
+host has room for the job's claim (a short job on the interactive lane, a job expected to run longer than `queue.long_job_seconds` on the long lane,
+PERF.151). The supervisor is started by the submit and by every status poll that finds the job waiting. A restart or reload of the web server does not
+stop a job, and a job that outlives its time limit (`lightjobs.time_limit`) is ended. The result is kept for `RESULT_TTL_SECONDS`.
 """
 
 import importlib
-import math
 import os
-import re
-import secrets
 import sys
 import time
 
+import redis
 
 from planetgen.admin import updateguard
-from planetgen.queue import jobbeat, redisqueue, workers
+from planetgen.queue import jobbeat, lightjobs, redisqueue
 from planetgen.util import log, secrets_mask
 from planetgen.util.format import format_duration_seconds
 
-QUEUE_PREFIX = "planetgen-api-"
-"""str: A job's id in RQ is this plus its own id."""
-
-QUEUE_NAME = redisqueue.INTERACTIVE_QUEUE
-"""str: The queue a short job goes on, and its workers serve."""
-
-LONG_QUEUE_NAME = redisqueue.LONG_QUEUE
-"""str: The queue a job expected to run longer than `queue.long_job_seconds` goes on (PERF.151)."""
-
-RESULT_TTL_SECONDS = 86400
+RESULT_TTL_SECONDS = lightjobs.RESULT_TTL_SECONDS
 """int: How long a finished job's result or error is kept."""
 
-UNESTIMATED_SECONDS = 3600
-"""int: The time limit of a job with no estimate (PERF.144): a one-system edit, a
-regenerate of one sector. A fixed ceiling, not an estimate."""
-
-ESTIMATED_CEILING_SECONDS = 7 * 86400
-"""int: The longest limit of a job with an estimate (a neighbourhood of a great many sectors can run for days)."""
-
-JOB_ID_RE = re.compile(r"^[0-9a-f]{16}$")
+JOB_ID_RE = lightjobs.JOB_ID_RE
 """re.Pattern: A job id. Checked before any id from a URL reaches Redis."""
 
-_STATES = {
-    "queued": "queued", "deferred": "queued", "scheduled": "queued",
-    "started": "running", "finished": "succeeded",
-    "failed": "failed", "stopped": "failed", "canceled": "failed",
-}
-"""dict: RQ's job states -> the API's."""
-
-class NoQueue(Exception):
-    """No Redis server answers, so nothing can be queued."""
-
-
-def new_job_id():
-    return secrets.token_hex(8)
+NoQueue = lightjobs.NoQueue
+"""Exception: No Redis server answers, or an update is running, so nothing can be queued."""
 
 
 SHORT_WAIT_SECONDS = 8.0
@@ -108,11 +70,8 @@ def decode_argument(value):
     return value
 
 
-def _current_job_id():
-    """The id of the job this worker is running without the prefix, or `?` outside a worker."""
-    import rq
-    job = rq.get_current_job()
-    return (job.id if job is not None else "?").removeprefix(QUEUE_PREFIX)
+OWN_BEAT = frozenset({"planetgen.web.lib.tileprefetch:build_nodes"})
+"""frozenset: The API functions that write a beat of their own (`jobbeat.beating` of a kind and label that say more than `api`): `execute` does not beat for them."""
 
 
 def execute(reference, args):
@@ -130,7 +89,9 @@ def execute(reference, args):
     module, _, name = allowlist.check_reference(reference).partition(":")      # SEC.45: only the API's own functions
     function = getattr(importlib.import_module(module), name)
     try:
-        with jobbeat.beating("api", _current_job_id(), label=name):        # OPS.142: the Queue page sees this job is alive
+        if reference in OWN_BEAT:                                               # the function beats under its own kind and label
+            return {"result": function(*[decode_argument(arg) for arg in args])}
+        with jobbeat.beating("api", lightjobs.current_id(), label=name):        # OPS.142: the Queue page sees this job is alive
             return {"result": function(*[decode_argument(arg) for arg in args])}
     except Exception as exc:  # noqa: BLE001 -- anything but a refusal is re-raised
         common = sys.modules.get("planetgen.api.common")
@@ -142,12 +103,6 @@ def execute(reference, args):
 def _connection(url=None):
     """The shared client (`redisclient`) for `submit`, `status` and `wait`."""
     return redisqueue.connect(url or redisqueue.redis_url())
-
-
-def time_limit(expected_seconds=None):
-    """The seconds RQ lets an API job run (PERF.144): `redisqueue.job_timeout` of `expected_seconds`, at most
-    `ESTIMATED_CEILING_SECONDS`, and `UNESTIMATED_SECONDS` for a job with no estimate."""
-    return redisqueue.job_timeout(expected_seconds, ceiling=ESTIMATED_CEILING_SECONDS, unestimated=UNESTIMATED_SECONDS)
 
 
 def recorded_task_seconds(kind, config=None, workers=1):
@@ -168,34 +123,18 @@ def recorded_task_seconds(kind, config=None, workers=1):
         return None
 
 
-def is_long(expected_seconds):
-    """Whether a job expected to take `expected_seconds` goes to the long lane (PERF.151): more than
-    `queue.long_job_seconds`. A job with no estimate counts as short."""
-    from planetgen.util.settings import get_settings
-    if expected_seconds is None or not math.isfinite(expected_seconds):
-        return False
-    return expected_seconds > get_settings().queue.long_job_seconds
-
-
-def lane(expected_seconds=None):
+def submit(function, *args, expected_seconds=None, wanted_seconds=None, drop_keys=(), lane=None, limit_seconds=None):
     """
-    The queue and the worker cap of a job expected to take `expected_seconds`: `(LONG_QUEUE_NAME, queue.long_workers)`
-    when `is_long`, else `(QUEUE_NAME, queue.interactive_workers)`.
-    """
-    from planetgen.util.settings import get_settings
-    section = get_settings().queue
-    if is_long(expected_seconds):
-        return LONG_QUEUE_NAME, section.long_workers
-    return QUEUE_NAME, section.interactive_workers
+    Queues `function(*args)` (a module-level function on `allowlist.API_FUNCTIONS`; its arguments and return value travel as JSON, `encode_argument`) as a light job
+    (`lightjobs.add_job`) and asks for the supervisor that hands it out. A job expected to run longer than `queue.long_job_seconds` is on the long lane; it is ended after
+    `lightjobs.time_limit(expected_seconds)`, so a job that hangs does not hold its claim.
 
-
-def submit(function, *args, expected_seconds=None):
-    """
-    Queues `function(*args)` (a module-level function; its arguments and
-    return value travel as JSON, `encode_argument`) on its lane (`lane`: a job expected to run
-    longer than `queue.long_job_seconds` goes to the long queue) and starts a worker for it unless
-    enough are serving the queue already (`workers.ensure_workers`). RQ ends the job after
-    `time_limit(expected_seconds)`, so a job whose worker was killed expires.
+    Args:
+        expected_seconds (float, optional): How long it is expected to take.
+        wanted_seconds (float, optional): How long it stays wanted once nobody asks after it: a job that has not started by then is dropped (W12 of the audit); without it the job is never dropped.
+        drop_keys (iterable): Redis keys deleted when the job is dropped.
+        lane (str, optional): The lane when it is not the one the expected time gives (`lightjobs.LANE_MAINTENANCE`, the node prefetch).
+        limit_seconds (int, optional): The time limit when it is not the one the expected time gives.
 
     Returns:
         str: The job's id, for `status`.
@@ -211,25 +150,12 @@ def submit(function, *args, expected_seconds=None):
     connection = _connection(url)
     try:
         connection.ping()
-    except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise NoQueue(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); "
-                      f"start Redis to run this: {exc}") from exc
-    job_id = new_job_id()
-    queue_name, cap = lane(expected_seconds)
-    redisqueue.queue(queue_name, connection).enqueue(
-        execute, args=(function_reference(function), [encode_argument(arg) for arg in args]), job_id=QUEUE_PREFIX + job_id,
-        job_timeout=time_limit(expected_seconds),
-        result_ttl=RESULT_TTL_SECONDS, failure_ttl=RESULT_TTL_SECONDS,
-    )
-    workers.ensure_workers(queue_name, connection, url, count=cap)
+        job_id = lightjobs.add_job(connection, function_reference(function), [encode_argument(arg) for arg in args], expected_seconds=expected_seconds,
+                                   wanted_seconds=wanted_seconds, drop_keys=drop_keys, lane=lane, limit_seconds=limit_seconds)
+    except (redis.exceptions.RedisError, OSError) as exc:
+        raise NoQueue(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); start Redis to run this: {exc}") from exc
+    lightjobs.ask_supervisor(connection, url)
     return job_id
-
-
-def _cap_of(queue_name):
-    """The worker cap of the lane whose queue is `queue_name`."""
-    from planetgen.util.settings import get_settings
-    section = get_settings().queue
-    return section.long_workers if queue_name == LONG_QUEUE_NAME else section.interactive_workers
 
 
 def wait(job_id, seconds=SHORT_WAIT_SECONDS):
@@ -247,7 +173,7 @@ def wait(job_id, seconds=SHORT_WAIT_SECONDS):
 
 def cancel(job_id):
     """
-    Removes job `job_id` from the queue if no worker has taken it yet (PERF.105).
+    Removes job `job_id` from the pending list if the supervisor has not taken it yet (PERF.105).
 
     Returns:
         bool: Whether it was removed; a job already running, finished or unknown is left alone.
@@ -255,16 +181,10 @@ def cancel(job_id):
     Raises:
         NoQueue: No Redis server answers.
     """
-    if not isinstance(job_id, str) or not JOB_ID_RE.match(job_id):
-        return False
     try:
-        job = redisqueue.fetch_job(QUEUE_PREFIX + job_id, _connection(), redisqueue.serializer_for(QUEUE_NAME))
-    except redisqueue.Unavailable as exc:
+        return lightjobs.cancel(_connection(), job_id)
+    except (redis.exceptions.RedisError, OSError) as exc:
         raise NoQueue(str(exc)) from exc
-    if job is None or _STATES.get(job.get_status(refresh=True)) != "queued":
-        return False
-    job.cancel()
-    return True
 
 
 def status(job_id):
@@ -272,45 +192,17 @@ def status(job_id):
     One job's state.
 
     Returns:
-        dict | None: `id`, `state` (`queued`, `running`, `succeeded` or
-            `failed`), `result` (what the function returned, once it
-            succeeded), `error` (the refusal, or the last line of the
-            error text, once it failed), `error_status` (the HTTP
-            status of a refusal, else `None`) and `waiting` (PERF.153: for a running job that waits in line for the generation run in front of
-            it, `{"run", "position", "text"}`, else `None`). `None` for an unknown or expired id, or a bad one.
+        dict | None: `id`, `state` (`queued`, `running`, `succeeded` or `failed`), `result` (what the function returned, once it succeeded), `error` (the refusal, or the last line of
+            the error text, once it failed), `error_status` (the HTTP status of a refusal, else `None`) and `waiting` (PERF.153: for a running job that waits in line for the generation run in
+            front of it, `{"run", "position", "text"}`, else `None`). `None` for an unknown or expired id, or a bad one. Asking after a queued job that has a deadline keeps it wanted.
 
     Raises:
         NoQueue: No Redis server answers.
     """
-    if not isinstance(job_id, str) or not JOB_ID_RE.match(job_id):
-        return None
     try:
-        connection = _connection()
-        job = redisqueue.fetch_job(QUEUE_PREFIX + job_id, connection, redisqueue.serializer_for(QUEUE_NAME))
-    except redisqueue.Unavailable as exc:
+        return lightjobs.status(_connection(), job_id)
+    except (redis.exceptions.RedisError, OSError) as exc:
         raise NoQueue(str(exc)) from exc
-    if job is None:
-        return None
-    state = _STATES.get(job.get_status(refresh=True), "failed")
-    if state == "queued":
-        # A worker that was about to exit when the job arrived leaves it waiting: whoever asks starts another.
-        try:
-            workers.ensure_workers(job.origin, connection, count=_cap_of(job.origin))
-        except Exception as swallowed_exc:  # noqa: BLE001 -- a status read does not fail for want of a worker
-            log.swallowed("queue/api_jobs", "status", swallowed_exc)
-    body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None,
-            "waiting": job.meta.get("waiting") if state == "running" else None}
-    if state == "succeeded":
-        outcome = job.return_value()
-        if "refused" in outcome:
-            body.update(state="failed", error=outcome["refused"], error_status=outcome["status"])
-        else:
-            body["result"] = outcome["result"]
-    elif state == "failed":
-        latest = job.latest_result()
-        text = (latest.exc_string if latest is not None else None) or "the job ended without finishing"
-        body["error"] = text.strip().splitlines()[-1]
-    return body
 
 
 def generate_neighborhood(sector_id, radius_ly, config, disregard_missing_data=False):

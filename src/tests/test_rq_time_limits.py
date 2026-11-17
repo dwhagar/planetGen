@@ -321,16 +321,18 @@ def test_a_job_the_queue_ends_for_its_limit_stops_its_step_and_says_why(tmp_path
         pytest.fail("the step kept running after its job was ended")
 
 
-def test_an_api_job_gets_the_routes_estimate_else_a_fixed_limit(redis_server, limits):
+def test_an_api_job_gets_the_routes_estimate_else_a_fixed_limit(redis_server, monkeypatch):
+    """OPS.230: the supervisor ends a light job after the limit its record holds (`lightjobs.time_limit`), the one RQ's `job_timeout` was."""
+    from planetgen.queue import lightjobs
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)
     connection = redisqueue.connect(redis_server)
+    ids = [api_jobs.submit(math.pow, 2, 3), api_jobs.submit(math.pow, 2, 3, expected_seconds=10), api_jobs.submit(math.pow, 2, 3, expected_seconds=10 ** 9)]
     try:
-        api_jobs.submit(math.pow, 2, 3)
-        api_jobs.submit(math.pow, 2, 3, expected_seconds=10)
-        api_jobs.submit(math.pow, 2, 3, expected_seconds=10 ** 9)
+        limits = [int(connection.hget(lightjobs.job_key(job_id), "limit")) for job_id in ids]
     finally:
-        redisqueue.queue(api_jobs.QUEUE_NAME, connection).empty()
-    assert [timeout for _name, _func, timeout in limits] == [
-        api_jobs.UNESTIMATED_SECONDS, redisqueue.MIN_TIMEOUT_SECONDS, api_jobs.ESTIMATED_CEILING_SECONDS]
+        for job_id in ids:
+            lightjobs.cancel(connection, job_id)
+    assert limits == [lightjobs.UNESTIMATED_SECONDS, redisqueue.MIN_TIMEOUT_SECONDS, lightjobs.ESTIMATED_CEILING_SECONDS]
 
 
 def test_an_api_jobs_estimate_is_read_from_the_recorded_task_seconds(monkeypatch):
@@ -349,14 +351,18 @@ def test_an_api_jobs_estimate_is_read_from_the_recorded_task_seconds(monkeypatch
     assert api_jobs.recorded_task_seconds("sector") is None
 
 
-def test_a_node_chunk_gets_a_limit_from_its_size(redis_server, limits):
+def test_a_node_chunk_gets_a_limit_from_its_size(redis_server):
+    """OPS.230: the node prefetch's jobs are light jobs; the limit the supervisor ends one by is on its record."""
+    from planetgen.queue import lightjobs
     assert tileprefetch.chunk_timeout(1) == tileprefetch.MIN_JOB_SECONDS
     assert tileprefetch.chunk_timeout(10 ** 6) == redisqueue.MAX_TIMEOUT_SECONDS
     connection = redisqueue.connect(redis_server)
-    queue = redisqueue.queue(f"test-timeout-{secrets.token_hex(6)}", connection)
+    before = set(connection.zrange(lightjobs.pending_key(), 0, -1))
     try:
-        tileprefetch._enqueue_chunks(queue, "db", [f"t{n}" for n in range(tileprefetch.CHUNK + 1)], "prefetch")
+        assert tileprefetch._add_chunks(connection, "db", "gen", [f"t{n}" for n in range(tileprefetch.CHUNK + 1)]) == tileprefetch.CHUNK + 1
+        ids = [item for item in connection.zrange(lightjobs.pending_key(), 0, -1) if item not in before]
+        found = sorted((int(connection.hget(lightjobs.job_key(job_id.decode() if isinstance(job_id, bytes) else job_id), "limit")) for job_id in ids))
     finally:
-        queue.delete(delete_jobs=True)
-    assert [timeout for _name, _func, timeout in limits] == [tileprefetch.chunk_timeout(tileprefetch.CHUNK),
-                                                             tileprefetch.chunk_timeout(1)]
+        for job_id in ids:
+            lightjobs.cancel(connection, job_id.decode() if isinstance(job_id, bytes) else job_id)
+    assert found == sorted([tileprefetch.chunk_timeout(tileprefetch.CHUNK), tileprefetch.chunk_timeout(1)])

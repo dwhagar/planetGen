@@ -40,9 +40,8 @@ FUNCTIONS = frozenset({
     "planetgen.queue.units.warm_star_tables",           # the warm set of a template (OPS.226): the sampling tables every job forked from it shares
     "planetgen.queue.requires.job_failed",              # the callbacks every job gets (PERF.247)
     "planetgen.queue.requires.job_succeeded",
-    "planetgen.queue.api_jobs.execute",                 # the API's long operations (dispatches through `API_FUNCTIONS`)
+    "planetgen.queue.lightjobs.run",                    # a light job as a process the template forked (OPS.230): the API's long operations, dispatched through `API_FUNCTIONS`
     "planetgen.web.job_runner.run",                     # a Generate page job
-    "planetgen.web.lib.tileprefetch.build_nodes",       # a visitor's node prefetch and rebuild
 })
 """frozenset: The dotted names a queued job or callback may name."""
 
@@ -62,6 +61,7 @@ API_FUNCTIONS = frozenset({
     "planetgen.queue.api_jobs:run_command",
     "planetgen.queue.pagejobs:build_answer",
     "planetgen.web.lib.estimatejob:work",               # the Generate size estimate (ADM.141)
+    "planetgen.web.lib.tileprefetch:build_nodes",       # a visitor's node prefetch and rebuild (OPS.230: a light job on the maintenance lane)
 })
 """frozenset: The `module:name` references `api_jobs.execute` may call."""
 

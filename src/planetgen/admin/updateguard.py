@@ -323,8 +323,8 @@ class _RedisSource:
 
 
 class QueuedJobSource(_RedisSource):
-    """The jobs waiting or running on the shared queues (`queue/redisqueue.py`: bulk, interactive and
-    generation). A run's own queue belongs to the run and is canceled with it. Canceled with
+    """The jobs waiting or running on the shared queues (`queue/redisqueue.py`: bulk, maintenance and
+    generation) and the site's light jobs (`queue/lightjobs.py`). A run's own queue belongs to the run and is canceled with it. Canceled with
     `workers.cancel_now`. A job whose worker is gone is cleared before the listing (`workers.reap_dead_jobs`), so
     it does not hold the update for ever."""
 
@@ -354,10 +354,24 @@ class QueuedJobSource(_RedisSource):
                                   "started": _iso(started) if started else None,
                                   "holds": f"the {name} queue", "queued": state == "queued", "queue": name,
                                   "protect": name == redisqueue.GENERATION_QUEUE})
+        found += self._light_jobs(connection)
         return found
 
+    def _light_jobs(self, connection):
+        """The site's light jobs (`queue/lightjobs.py`) that wait or run: they are not on a queue."""
+        from planetgen.queue import lightjobs
+        try:
+            return [{"source": self.name, "kind": "light", "id": item["id"], "title": item["function"] or item["id"], "started": _iso(datetime.fromtimestamp(item["started"], timezone.utc)) if item["started"] else None,
+                     "holds": f"the {item['lane']} lane", "queued": item["state"] == "queued", "queue": "light", "protect": False} for item in lightjobs.live(connection)]
+        except Exception as exc:  # noqa: BLE001 -- a list that cannot be read lists nothing
+            log.swallowed("admin/updateguard", "QueuedJobSource._light_jobs", exc)
+            return []
+
     def cancel(self, item):
-        from planetgen.queue import redisqueue, workers
+        from planetgen.queue import lightjobs, redisqueue, workers
+        if item.get("queue") == "light":
+            lightjobs.request_stop(self._connection(), item["id"])
+            return True
         workers.cancel_now(item["id"], self._connection(), redisqueue.serializer_for(item["queue"]))
         return True
 

@@ -60,24 +60,21 @@ def test_a_kind_with_no_figure_is_refused_by_the_table_and_gets_the_default_at_t
         claims.unit_table_mb("link-neighbors-but-not")
     with pytest.raises(claims.NoClaim):
         claims.api_table("planetgen.api.nothing:job")
-    job = types.SimpleNamespace(func_name="planetgen.nothing.here", origin=redisqueue.INTERACTIVE_QUEUE)
-    assert claims.default_claim(job) == Claim("fn:planetgen.nothing.here", float(claims.DEFAULT_MB), 1.0, "interactive")
+    job = types.SimpleNamespace(func_name="planetgen.nothing.here", origin=redisqueue.MAINTENANCE_QUEUE)
+    assert claims.default_claim(job) == Claim("fn:planetgen.nothing.here", float(claims.DEFAULT_MB), 1.0, "maintenance")
 
 
 def test_the_lane_of_each_queue():
     assert claims.lane_of(redisqueue.BULK_QUEUE) == "bulk" and claims.lane_of(redisqueue.GENERATION_QUEUE) == "bulk"
     for name in redisqueue.maintenance_lane():
         assert claims.lane_of(name) == "maintenance"
-    assert claims.lane_of(redisqueue.INTERACTIVE_QUEUE) == "interactive" and claims.lane_of(redisqueue.LONG_QUEUE) == "long"
     assert claims.lane_of("something-else") == "other"
 
 
-def test_claim_for_a_unit_an_api_job_a_page_job_and_a_cut(conn):
+def test_claim_for_a_unit_a_page_job_and_a_cut(conn):
     unit = types.SimpleNamespace(func_name=claims.UNIT_FUNCTION, args=("r", 3, 0, "scatter-mass", {}, 1.0), origin=redisqueue.BULK_QUEUE, id="r-s3-u0")
     assert claims.claim_for(unit, conn) == Claim("unit:scatter-mass", float(workers.SCATTER_WORKER_MEMORY_MB), 1.0, "bulk")
-    api = types.SimpleNamespace(func_name=claims.EXECUTE_FUNCTION, args=("planetgen.queue.api_jobs:regenerate_sector", {}), origin=redisqueue.LONG_QUEUE, id="j")
-    assert claims.claim_for(api, conn) == Claim("api:planetgen.queue.api_jobs:regenerate_sector", float(workers.SECTOR_WORKER_MEMORY_MB), 1.0, "long")
-    page = types.SimpleNamespace(func_name="planetgen.web.lib.tileprefetch.build_nodes", args=(), origin=redisqueue.NODES_QUEUE, id="n")
+    page = types.SimpleNamespace(func_name="planetgen.web.job_runner.run", args=(), origin=redisqueue.MAINTENANCE_QUEUE, id="n")
     assert claims.claim_for(page, conn).lane == "maintenance"
     steps = [commands.Step("a", "link-neighbors", "A").as_dict(), commands.Step("b", "scatter-backfill", "B").as_dict()]
     conn.hset(runrecord.run_key("r"), mapping={"stages": json.dumps([{"key": "a", "label": "A"}, {"key": "b", "label": "B"}]), "steps": json.dumps(steps)})
@@ -320,6 +317,6 @@ def test_a_job_that_is_not_part_of_a_run_is_only_learned_from(conn, fake_host):
     memorygate.acquire(conn, Claim("api:x", 700.0), "w1", job="j", pid=6001)
     fake_host.held[6001] = 900.0
     memorygate.refresh(conn, "w1")
-    job = types.SimpleNamespace(args=(), connection=conn, func_name=claims.EXECUTE_FUNCTION, id="j", worker_name="w1", retries_left=0)
+    job = types.SimpleNamespace(args=(), connection=conn, func_name="planetgen.web.job_runner.run", id="j", worker_name="w1", retries_left=0)
     units.horse_killed(job, 4242, -signal.SIGKILL, None)
     assert memorygate.claim_mb(conn, "api:x", 700.0) == pytest.approx(700.0 * 1.5, rel=1e-3)       # the next job of the kind claims more

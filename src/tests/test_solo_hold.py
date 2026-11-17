@@ -2,6 +2,7 @@
 other job, the gate gives the unit the host, the scheduler does not charge its time to its kind, and the hold lifts by itself."""
 
 import json
+import math
 import os
 import subprocess
 import sys
@@ -12,7 +13,7 @@ import uuid
 import pytest
 import rq
 
-from planetgen.queue import api_jobs, memorygate, pause, redisqueue, runrecord, scheduler, tokens
+from planetgen.queue import memorygate, pause, redisqueue, runrecord, scheduler, tokens
 from planetgen.queue.memorygate import Claim, Holder, Host
 
 
@@ -173,12 +174,11 @@ def test_the_jobs_held_during_a_solo_run_go_at_once_when_it_ends_and_keep_the_wa
 
 
 def _sleeping_job(queue, seconds):
-    return queue.enqueue(api_jobs.execute, args=(api_jobs.function_reference(api_jobs.run_command), [["sleep", str(seconds)], dict(os.environ), "/", 30, False]), job_timeout=60)
+    return queue.enqueue(time.sleep, seconds, job_timeout=60)       # `time:*` is on the tests' own allow-list
 
 
 def _quick_job(queue, at_front=False):
-    return queue.enqueue(api_jobs.execute, args=(api_jobs.function_reference(api_jobs.run_command), [["true"], dict(os.environ), "/", 30, False]), job_timeout=60,
-                         at_front=at_front)
+    return queue.enqueue(math.pow, 2, 3, job_timeout=60, at_front=at_front)
 
 
 def _worker(name, redis_url):

@@ -71,6 +71,13 @@ def unit_in_the_tests_queue(job, link):
     return forkedjob.run(job, link)
 
 
+def light_job_in_the_tests_queue(job, link):
+    """`lightjobs.run` for a test: the key prefix the test's own queue uses (`tests/inline_queue.py`) is the process's own setting in production, so a test hands it over."""
+    from planetgen.queue import lightjobs, runrecord
+    runrecord.PREFIX = job["prefix"]
+    return lightjobs.run(job, link)
+
+
 def _pss_mb():
     with open("/proc/self/smaps_rollup", encoding="ascii") as handle:
         for line in handle:

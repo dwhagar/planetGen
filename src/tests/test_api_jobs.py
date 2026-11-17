@@ -1,9 +1,9 @@
 # tests/test_api_jobs.py
 
 """
-Queued API jobs (PERF.24 step 4): `planetgen.queue.api_jobs` runs a
-function on its own queue with a detached burst worker, and
-`GET /api/jobs/<id>` reports it; the neighborhood route answers `202`.
+Queued API jobs (PERF.24 step 4, OPS.230): `planetgen.queue.api_jobs` records a function as a light job the supervisor hands out
+(`planetgen.queue.lightjobs`), and `GET /api/jobs/<id>` reports it; the neighborhood route answers `202`. A test runs the supervisor's duty in
+its own process (`tests/inline_queue.run_light_jobs`) when a job is submitted or asked after.
 """
 
 import math
@@ -12,17 +12,7 @@ import time
 import pytest
 
 from planetgen.queue import api_jobs
-from planetgen.util.settings import get_settings
 from tests.test_api import admin_client, client, default_admin_client, first_admin_password  # noqa: F401
-
-pytestmark = pytest.mark.real_queue
-
-
-@pytest.fixture(autouse=True)
-def _the_supervisor_acts_at_once(monkeypatch):
-    """OPS.209: a submit and a status poll leave an ask for workers, which the supervisor acts on a moment later. These tests run real workers and have no supervisor, so the ask is acted on in place."""
-    from planetgen.queue import workers
-    monkeypatch.setattr(workers, "ensure_workers", workers.start_workers)
 
 
 def _wait(job_id, timeout=60):
@@ -237,75 +227,32 @@ def test_a_deeply_nested_json_body_is_a_400_not_a_500(admin_client):
         assert "nested too deeply" in response.get_json()["error"]
 
 
-def test_a_batch_of_jobs_starts_no_more_workers_than_the_cap(redis_server, monkeypatch):
-    """PERF.39: one worker process per job used to be started, each paying the imports again."""
-    started = []
-    monkeypatch.setattr(api_jobs.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
-    monkeypatch.setattr(api_jobs.workers.work, "worker_count", lambda *a, **k: 8)         # the bulk count is not the cap
-    monkeypatch.setattr(get_settings().queue, "interactive_workers", 2)
-    ids = [api_jobs.submit(math.pow, 2, n) for n in range(6)]
-    assert len(started) == 2
-    assert all(api_jobs.QUEUE_NAME in argv for argv in started)
-    # A job nobody serves is picked up by the next one who asks (a worker that was just exiting): the
-    # workers started a moment ago still count, so asking again starts none.
-    assert api_jobs.status(ids[0])["state"] == "queued" and len(started) == 2
-
-
-def test_a_waiting_job_with_no_worker_gets_one_when_its_status_is_read(redis_server, monkeypatch):
-    started = []
-    monkeypatch.setattr(api_jobs.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
-    monkeypatch.setattr(api_jobs.workers.work, "worker_count", lambda *a, **k: 1)
+def test_a_job_waits_for_the_supervisor_and_runs_when_it_is_asked_for(redis_server, monkeypatch):
+    """OPS.230: a submit records the job and asks for a supervisor; it is the supervisor's duty that hands it out."""
+    from planetgen.queue import lightjobs
+    from tests import inline_queue
+    asked = []
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: asked.append(True))
     job_id = api_jobs.submit(math.pow, 2, 2)
-    assert len(started) == 1
-    api_jobs._connection().delete(api_jobs.workers.STARTING_PREFIX + api_jobs.QUEUE_NAME)  # that worker never came up
-    assert api_jobs.status(job_id)["state"] == "queued"
-    assert len(started) == 2
+    assert asked == [True] and api_jobs.status(job_id)["state"] == "queued"
+    assert len(asked) == 2                                            # a poll of a job that waits asks for a supervisor again: one that was about to end leaves it waiting
+    assert inline_queue.run_light_jobs() == 1
+    assert api_jobs.status(job_id)["state"] == "succeeded" and len(asked) == 2        # a job that ended asks for nothing
 
 
-def _register_worker_run_by(pid):
-    """Registers an RQ worker for the API queue the way a real one does, owned by process `pid` (no real worker
-    runs: this is what a worker that was killed leaves behind in Redis)."""
-    import rq
-    connection = api_jobs._connection()
-    queue = api_jobs.redisqueue.queue(api_jobs.QUEUE_NAME, connection)
-    worker = rq.Worker([queue], connection=connection)
-    worker.register_birth()
-    connection.hset(worker.key, "pid", pid)
-    return queue, worker
-
-
-def _a_process_that_has_been_killed():
-    import signal
-    import subprocess
-    import sys
-    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(300)"])
-    child.send_signal(signal.SIGKILL)
-    child.wait()
-    return child.pid
-
-
-def test_a_killed_worker_is_not_counted_and_a_replacement_runs_the_queued_job(redis_server, monkeypatch):
-    """PERF.93: `rq.Worker.count` kept a worker killed with kill -9 for as long as its registry entry lived, so with
-    a cap of one nothing replaced it and a queued job waited on a worker that was gone."""
-    queue, worker = _register_worker_run_by(_a_process_that_has_been_killed())
-    import rq
-    assert rq.Worker.count(queue=queue) == 1                  # the registry still says so
-    assert api_jobs.workers.live_worker_count(queue) == 0
-    assert rq.Worker.count(queue=queue) == 0 and not queue.connection.exists(worker.key)   # and is cleaned
-
-    queue, worker = _register_worker_run_by(_a_process_that_has_been_killed())
-    monkeypatch.setattr(api_jobs.workers.work, "worker_count", lambda *a, **k: 1)
-    job = _wait(api_jobs.submit(math.pow, 2, 5))              # a real worker is started in its place
-    assert job["state"] == "succeeded" and job["result"] == 32.0
-
-
-def test_a_live_worker_and_a_worker_whose_key_expired_are_told_apart(redis_server):
-    import os
-    queue, live = _register_worker_run_by(os.getpid())
-    _queue, expired = _register_worker_run_by(os.getpid())
-    queue.connection.delete(expired.key)                      # its key time-to-live ran out; the set still lists it
-    assert api_jobs.workers.live_worker_count(queue) == 1
-    assert queue.connection.exists(live.key)
+def test_a_job_is_taken_off_the_line_by_cancel_until_it_starts(redis_server, monkeypatch):
+    from planetgen.queue import lightjobs
+    from tests import inline_queue
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)
+    job_id = api_jobs.submit(math.pow, 2, 3)
+    assert api_jobs.cancel(job_id) is True
+    assert inline_queue.run_light_jobs() == 0
+    body = api_jobs.status(job_id)
+    assert body["state"] == "failed" and body["error"] == lightjobs.CANCELED_TEXT
+    done = api_jobs.submit(math.pow, 2, 4)
+    assert inline_queue.run_light_jobs() == 1
+    assert api_jobs.status(done)["state"] == "succeeded" and api_jobs.cancel(done) is False        # a job that ran is left alone
+    assert api_jobs.cancel("0" * 16) is False and api_jobs.cancel("nope") is False
 
 
 def test_running_a_job_does_not_import_the_api():

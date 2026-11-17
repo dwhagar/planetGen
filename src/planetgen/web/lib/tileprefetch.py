@@ -7,12 +7,13 @@ docs/design/operations/cache-warm-up.md).
 A request for nodes (`GET /galaxy/nodes`, `schedule` runs when its response has gone) names the blocks the visitor's
 view holds. The nodes the next move needs are, for each requested node (the request lists its nodes nearest first), its
 children (the next level inside it) and then its parent and the parent's other children (`candidates`), for a visitor
-who zooms in or out or pans. Those that are not stored are queued as low-priority background jobs on the bulk queue
-(never the interactive one, so an admin's work is never behind them), a chunk of `CHUNK` nodes to a job, and a worker
-builds them into the same disk cache a visitor's request fills (`build_nodes`, `tilecache.fetch_nodes`).
+who zooms in or out or pans. Those that are not stored are added as light jobs (`lightjobs`, OPS.230) on the maintenance lane, a chunk of
+`CHUNK` nodes to a job, which the supervisor starts when the machine has room (the scheduler weighs them as the site's, `scheduler.SITE_KINDS`, so an admin's
+work is never behind them and they are never behind the upkeep); the job builds them into the same disk cache a visitor's request fills
+(`build_nodes`, `tilecache.fetch_nodes`). A job nobody has started within `CLAIM_SECONDS` is dropped with its claims.
 
 It stays small by rules, all named settings of `tile_cache`: at most `prefetch_per_visit` nodes queued for one request,
-`prefetch_per_minute` in all, nothing while `prefetch_max_queued` jobs wait on the bulk queue, nothing while the
+`prefetch_per_minute` in all, nothing while `prefetch_max_queued` of its jobs wait, nothing while the
 cache is full (`prune` has just deleted files, `full`), nothing during an update; a node already stored or already
 claimed by an earlier visit (a Redis key per node and generation, `claim`) is not queued again, so a visit to an
 area that is built queues nothing and a second visitor to the same area causes no build. Everything fails open: a
@@ -26,7 +27,7 @@ import redis
 
 from planetgen.admin import updateguard
 from planetgen.galaxy.drill import drill_children, drill_parent, format_drill_key, parse_node_key
-from planetgen.queue import redisclient, redisqueue, stopall, workers
+from planetgen.queue import api_jobs, lightjobs, redisclient, redisqueue, stopall
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import tilecache
@@ -59,8 +60,8 @@ FULL_FILE = ".full"
 FULL_SECONDS = 600
 """int: How long after a prune that deleted files the cache counts as full."""
 
-JOB = "planetgen.web.lib.tileprefetch.build_nodes"
-"""str: The function a worker runs for a queued chunk of nodes (a string, the queue carries JSON)."""
+JOB = "planetgen.web.lib.tileprefetch:build_nodes"
+"""str: The API function the light job of a chunk of nodes calls (`allowlist.API_FUNCTIONS`: `module:name`, the record carries it as text)."""
 
 SOCKET_SECONDS = 0.5
 """float: How long one Redis call may take before it counts as unreachable."""
@@ -127,21 +128,27 @@ def _claim(connection, db, generation, keys):
     return [key for key, won in zip(keys, pipe.execute()) if won]
 
 
+def chunk_seconds(count):
+    """The seconds a job of `count` nodes is expected to take: `JOB_START_SECONDS` and `NODE_SECONDS` a node (an estimate of the size of the work)."""
+    return JOB_START_SECONDS + NODE_SECONDS * count
+
+
 def chunk_timeout(count):
-    """The seconds RQ lets a job of `count` nodes run (PERF.144): `redisqueue.job_timeout` of the size of its work,
-    `JOB_START_SECONDS` and `NODE_SECONDS` a node; at least `MIN_JOB_SECONDS`."""
-    return redisqueue.job_timeout(JOB_START_SECONDS + NODE_SECONDS * count, floor=MIN_JOB_SECONDS)
+    """The seconds the supervisor lets a job of `count` nodes run (PERF.144): `redisqueue.job_timeout` of `chunk_seconds`; at least `MIN_JOB_SECONDS`."""
+    return redisqueue.job_timeout(chunk_seconds(count), floor=MIN_JOB_SECONDS)
 
 
-def _enqueue_chunks(queue, db, keys, what):
-    """Queues `keys` as jobs of `CHUNK` nodes each on `queue`, `what` ("prefetch" or "rebuild") in their description.
-    Nothing is queued while everything is stopped (PERF.186)."""
+def _add_chunks(connection, db, generation, keys):
+    """Adds `keys` as light jobs of `CHUNK` nodes each on the maintenance lane (`lightjobs.add_job`: a visit's upkeep, weighted as the site's by `scheduler.SITE_KINDS`). A job stays wanted for
+    `CLAIM_SECONDS`, as long as its nodes stay claimed: one that has not started by then is dropped with its claims (W12). Nothing is added while everything is stopped (PERF.186). Returns how many nodes."""
     if stopall.is_stopped():
-        return
+        return 0
     for start in range(0, len(keys), CHUNK):
         chunk = keys[start:start + CHUNK]
-        queue.enqueue(JOB, args=(db, chunk), job_timeout=chunk_timeout(len(chunk)), result_ttl=0, failure_ttl=600,
-                      description=f"{what} {len(chunk)} nodes")
+        lightjobs.add_job(connection, JOB, [api_jobs.encode_argument(db), api_jobs.encode_argument(chunk)], expected_seconds=chunk_seconds(len(chunk)),
+                          wanted_seconds=CLAIM_SECONDS, drop_keys=[_claim_name(db, generation, key) for key in chunk], lane=lightjobs.LANE_MAINTENANCE,
+                          limit_seconds=chunk_timeout(len(chunk)))
+    return len(keys)
 
 
 def schedule(db, keys):
@@ -180,8 +187,7 @@ def schedule(db, keys):
         return 0
     try:
         connection = _redis()
-        queue = redisqueue.queue(redisqueue.NODES_QUEUE, connection)
-        if queue.count >= settings.prefetch_max_queued:
+        if lightjobs.pending_count(connection, JOB) >= settings.prefetch_max_queued:
             return 0
         claimed = _claim(connection, db, generation, missing)
         if not claimed:
@@ -193,10 +199,10 @@ def schedule(db, keys):
         for key in claimed[room:]:
             connection.delete(_claim_name(db, generation, key))
         claimed = claimed[:room]
-        _enqueue_chunks(queue, db, claimed, "prefetch")
-        if claimed:
-            workers.ensure_workers(redisqueue.NODES_QUEUE, connection, redisqueue.redis_url())
-        return len(claimed)
+        added = _add_chunks(connection, db, generation, claimed)
+        if added:
+            lightjobs.ask_supervisor(connection, redisqueue.redis_url())
+        return added
     except (redis.RedisError, OSError, redisqueue.Unavailable) as exc:
         log.debug(f"Node prefetch: not queued ({exc}).")
         return 0
@@ -232,12 +238,11 @@ def rebuild(db, generation, keys):
     ordered = sorted(keys, key=lambda key: (-parse_node_key(key).m, key))[:REBUILD_MAX]
     try:
         connection = _redis()
-        queue = redisqueue.queue(redisqueue.NODES_QUEUE, connection)
         claimed = _claim(connection, db, generation, ordered)
-        _enqueue_chunks(queue, db, claimed, "rebuild")
-        if claimed:
-            workers.ensure_workers(redisqueue.NODES_QUEUE, connection, redisqueue.redis_url())
-        return len(claimed)
+        added = _add_chunks(connection, db, generation, claimed)
+        if added:
+            lightjobs.ask_supervisor(connection, redisqueue.redis_url())
+        return added
     except (redis.RedisError, OSError, redisqueue.Unavailable) as exc:
         log.debug(f"Node rebuild: not queued ({exc}).")
         return 0
@@ -254,9 +259,7 @@ def build_nodes(db, keys):
     """
     from planetgen.queue import jobbeat
     from planetgen.web import warmup
-    import rq
-    current = rq.get_current_job()
-    with jobbeat.beating("tile-prefetch", current.id if current is not None else "?", label=f"{len(keys)} nodes of {db}"):      # OPS.142
+    with jobbeat.beating("tile-prefetch", lightjobs.current_id(), label=f"{len(keys)} nodes of {db}"):      # OPS.142
         app = warmup.build_app()
         with app.test_request_context("/"):
             result = tilecache.fetch_nodes(db, list(keys), ahead=True)

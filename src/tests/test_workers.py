@@ -10,7 +10,7 @@ import uuid
 import pytest
 import rq
 
-from planetgen.queue import api_jobs, redisqueue, workers
+from planetgen.queue import redisqueue, workers
 
 pytestmark = pytest.mark.real_queue
 
@@ -27,10 +27,9 @@ def _register_worker(queue, pid):
     return worker
 
 
-def test_the_two_shared_queues_carry_json_and_a_worker_serves_one():
-    assert redisqueue.BULK_QUEUE == "planetgen-bulk" and redisqueue.INTERACTIVE_QUEUE == "planetgen-interactive"
+def test_the_shared_queues_carry_json_and_a_worker_serves_one():
+    assert redisqueue.BULK_QUEUE == "planetgen-bulk"
     assert redisqueue.serializer_for(redisqueue.BULK_QUEUE) is redisqueue.JsonSerializer
-    assert api_jobs.QUEUE_NAME.startswith("planetgen-api-test-")        # the tests' own; production uses:
 
 
 def test_the_wanted_count_is_the_admins_else_the_machines(redis_server, monkeypatch):
@@ -119,40 +118,43 @@ def test_a_worker_that_registers_stops_counting_as_starting(redis_server, monkey
 
 
 def test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs(redis_server, monkeypatch):
-    """PERF.95: kill -9 a real worker; the next job (or status poll) starts another, which runs it."""
+    """PERF.95: kill -9 a real worker; the next ask (a job queued, a poll) starts another, which runs it."""
     monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 1)
     connection = redisqueue.connect()
     connection.delete(workers.WANTED_KEY)
-    queue = redisqueue.queue(api_jobs.QUEUE_NAME, connection)
+    name = _queue_name()
+    queue = redisqueue.queue(name, connection)
     try:
-        first = api_jobs.submit(math.pow, 2, 3)
-        assert _finished(first)["result"] == 8.0
+        first = queue.enqueue(math.pow, 2, 3, job_timeout=600)
+        assert _finished(first, name)["result"] == 8.0
         victims = workers.live_workers(queue)
         assert len(victims) == 1
         os.kill(victims[0].pid, signal.SIGKILL)
         deadline = time.monotonic() + 10
         while workers.process_exists(victims[0].pid) and time.monotonic() < deadline:
             time.sleep(0.05)
-        second = api_jobs.submit(math.pow, 2, 5)                 # counts only live workers: starts a replacement
-        assert _finished(second)["result"] == 32.0
+        second = queue.enqueue(math.pow, 2, 5, job_timeout=600)                 # counts only live workers: starts a replacement
+        assert _finished(second, name)["result"] == 32.0
         assert [worker.pid for worker in workers.live_workers(queue)] != [victims[0].pid]
     finally:
         for worker in workers.live_workers(queue):
             workers.command.send_shutdown_command(connection, worker.name)
+        queue.empty()
 
 
-def _finished(job_id, timeout=90):
-    """Waits for the job; the test's own `WorkerStarts` turn is the supervisor (OPS.209: a submit and a status poll only leave an ask, which the supervisor acts on)."""
+def _finished(job, name, timeout=90):
+    """Waits for the RQ job on queue `name`; the test's own `WorkerStarts` turn is the supervisor (OPS.209: an ask for workers is acted on by the supervisor)."""
     from planetgen.queue import supervisor
-    starts = supervisor.WorkerStarts(redisqueue.connect())
+    connection = redisqueue.connect()
+    starts = supervisor.WorkerStarts(connection)
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        job = api_jobs.status(job_id)
+        workers.ensure_workers(name, connection)
         starts.turn()
-        if job["state"] in ("succeeded", "failed"):
-            return job
+        if job.get_status(refresh=True) in ("finished", "failed"):
+            return {"state": job.get_status(), "result": job.return_value()}
         time.sleep(0.2)
-    raise AssertionError(f"job {job_id} did not finish: {job}")
+    raise AssertionError(f"job {job.id} did not finish: {job.get_status()}")
 
 
 def test_cancel_now_cancels_a_waiting_job_and_stops_a_running_one(redis_server, monkeypatch):

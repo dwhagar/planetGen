@@ -1496,6 +1496,12 @@ def admin_work_supervisor(cookie_header):
     return body
 
 
+def admin_work_waiting(cookie_header):
+    """`GET /api/admin/work/waiting` -- why jobs have not started, by job class: counts, the age of the oldest, the reasons the gate gave, recent start delays and the gate's figures (OPS.233)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/work/waiting", cookie_header=cookie_header)
+    return body
+
+
 def admin_work_tuning(cookie_header):
     """`GET /api/admin/work/tuning` -- what the queue has learned per job kind and its latest changes (OPS.158)."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/work/tuning", cookie_header=cookie_header)

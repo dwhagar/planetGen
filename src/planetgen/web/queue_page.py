@@ -430,6 +430,31 @@ def _supervisor_view(body, now=None):
             "state": ""}
 
 
+def _waiting_view(body):
+    """
+    The panel of why jobs have not started (OPS.233): for each job class the jobs waiting on another job and the jobs ready that the gate has not let start, the age of the oldest of each, the reasons
+    with how many jobs gave each, the next retry, and how long the jobs that started in the last hour waited from their making to their start. `None` when the API gave nothing or no job waits and
+    none started lately, so the page loads without it.
+    """
+    if not body:
+        return None
+    started = {item["job_class"]: item for item in body.get("started", [])}
+    rows = [{"name": item["job_class"], "waiting": f"{item['waiting']:,}", "ready": f"{item['ready']:,}",
+             "oldest_waiting": format_duration_seconds(item["oldest_waiting_seconds"]) if item["waiting"] else "-",
+             "oldest_ready": format_duration_seconds(item["oldest_ready_seconds"]) if item["ready"] else "-",
+             "retry": format_duration_seconds(item["retry_in_seconds"]) if item.get("retry_in_seconds") is not None else "-",
+             "reasons": [{"text": reason["reason"], "count": f"{reason['count']:,}"} for reason in item["reasons"]],
+             "more": f"{item['more']:,}" if item.get("more") else "",
+             "started": (f"{started[item['job_class']]['count']:,} started, the middle one after {format_duration_seconds(started[item['job_class']]['median_seconds'])}, "
+                         f"the longest {format_duration_seconds(started[item['job_class']]['longest_seconds'])}") if item["job_class"] in started else ""}
+             for item in body.get("classes", [])]
+    quick = [{"name": item["job_class"], "text": f"{item['count']:,} started, the middle one after {format_duration_seconds(item['median_seconds'])}, the longest {format_duration_seconds(item['longest_seconds'])}"}
+             for item in body.get("started", []) if item["job_class"] not in {row["name"] for row in rows}]
+    if not rows and not quick:
+        return None
+    return {"rows": rows, "quick": quick, "gate": body.get("gate") or ""}
+
+
 def _beating_view(body):
     """The panel of jobs that are not units of a run (OPS.142), or `None` when none is running."""
     jobs = (body or {}).get("jobs") or []
@@ -456,7 +481,7 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = history_table = None
-    workers = warm = held = beating = tuning = supervisor = None
+    workers = warm = held = beating = tuning = supervisor = waiting = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
@@ -474,6 +499,10 @@ def admin_queue():
             supervisor = _supervisor_view(apiclient.admin_work_supervisor(cookie_header))
         except apiclient.ApiError:
             supervisor = None
+        try:
+            waiting = _waiting_view(apiclient.admin_work_waiting(cookie_header))
+        except apiclient.ApiError:
+            waiting = None
         try:
             tuning = _tuning_view(apiclient.admin_work_tuning(cookie_header))
         except apiclient.ApiError:
@@ -497,7 +526,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, history_table=history_table, workers=workers, held=held, beating=beating, tuning=tuning, supervisor=supervisor,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, history_table=history_table, workers=workers, held=held, beating=beating, tuning=tuning, supervisor=supervisor, why_waiting=waiting,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )

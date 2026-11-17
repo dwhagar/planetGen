@@ -29,11 +29,11 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.physics.units import ly_to_pc
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util.settings import get_settings
-from planetgen.queue import allowlist, commands, redisclient, redisqueue, runrecord, units, wrapper
+from planetgen.queue import allowlist, commands, lightjobs, redisclient, redisqueue, runrecord, units, wrapper
 from planetgen.web import warmup
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient, tilecache
-from tests import conftest, dbpool
+from tests import conftest, dbpool, inline_queue
 from tests.publicids import pid
 from tests.test_api import _place_sector, seeded_sector  # noqa: F401 -- the fixture
 
@@ -642,8 +642,7 @@ ASKED = "81.2.1.1"
 
 @pytest.fixture
 def prefetch(galaxy, monkeypatch):
-    """The background build on the seeded galaxy, with the nodes it queues built in this process on a queue of its
-    own, and the limits as told."""
+    """The background build on the seeded galaxy, with the nodes it queues (light jobs, OPS.230) built in this process when a test runs them (`_run_queued`), and the limits as told."""
     from planetgen.web.lib import tileprefetch
     real = warmup.build_app
     monkeypatch.setattr(warmup, "build_app", lambda config=None: real(galaxy.config))
@@ -653,7 +652,7 @@ def prefetch(galaxy, monkeypatch):
         prefetch_per_visit, prefetch_per_minute, prefetch_max_queued = 20, 100, 8
     monkeypatch.setattr(tileprefetch, "get_settings", lambda: types.SimpleNamespace(tile_cache=Rules))
     ran = []
-    monkeypatch.setattr(tileprefetch.workers, "ensure_workers", lambda *args, **kwargs: ran.append(kwargs) or 0)
+    monkeypatch.setattr(tileprefetch.lightjobs, "ask_supervisor", lambda *args, **kwargs: ran.append(args) or None)      # the jobs wait until `_run_queued`
     token = uuid.uuid4().hex[:12]           # this test's own claims and minute counters on the shared Redis
     monkeypatch.setattr(tileprefetch, "CLAIM_KEY", f"planetgen-test:{token}:claim:")
     monkeypatch.setattr(tileprefetch, "MINUTE_KEY", f"planetgen-test:{token}:minute:")
@@ -663,28 +662,24 @@ def prefetch(galaxy, monkeypatch):
         with real(galaxy.config).test_request_context("/"):
             return tileprefetch.schedule(galaxy.config.database, keys)
     Rules.schedule = staticmethod(schedule)
-    nodes_queue = redisqueue.queue(redisqueue.NODES_QUEUE, redisqueue.connect())
-    nodes_queue.empty()                 # PERF.245: the nodes the earlier tests of the run queued are not this test's to count
+    connection = redisqueue.connect()
+    connection.delete(lightjobs.pending_key())         # the nodes the earlier tests of the run queued are not this test's to count
     yield Rules
-    nodes_queue.empty()
+    connection.delete(lightjobs.pending_key())
     client = redisclient.client(decode_responses=True)
     for key in client.scan_iter(f"planetgen-test:{token}:*"):
         client.delete(key)
 
 
 def _run_queued(prefetch):
-    import rq
-    connection = redisqueue.connect()
-    done = rq.SimpleWorker([redisqueue.queue(redisqueue.NODES_QUEUE, connection)], connection=connection,
-                           serializer=redisqueue.JsonSerializer, job_class=allowlist.GuardedJob)
-    done.work(burst=True, logging_level="WARNING")
+    inline_queue.run_light_jobs(redisqueue.connect())
 
 
 def test_a_visit_queues_the_nodes_around_it_and_they_are_then_stored(galaxy, prefetch):
     with warmup.build_app().test_request_context("/"):
         tilecache.fetch_nodes(prefetch.db, [ASKED])          # the visit: the map asked for this node
     queued = prefetch.schedule([ASKED])
-    assert queued == 20 and prefetch.ran and "count" not in prefetch.ran[0], "the maintenance lane sets its own cap"
+    assert queued == 20 and prefetch.ran, "the supervisor was asked for"
     _run_queued(prefetch)
     around = list(prefetch.module.candidates([ASKED]))[:20]
     with warmup.build_app().test_request_context("/"):
@@ -722,7 +717,7 @@ def test_the_background_build_waits_while_the_cache_is_full_or_the_queue_busy(ga
     os.unlink(os.path.join(root, prefetch.module.FULL_FILE))
     prefetch.prefetch_max_queued = 1
     assert prefetch.schedule([ASKED]) == 20      # one job per 16 nodes: two wait now
-    assert prefetch.schedule(["243.1.1.1"]) == 0, "bulk work is waiting"
+    assert prefetch.schedule(["243.1.1.1"]) == 0, "its jobs are waiting"
 
 
 def test_an_answered_request_for_nodes_queues_the_nodes_around_it(galaxy, prefetch, monkeypatch):
