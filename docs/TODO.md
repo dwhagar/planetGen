@@ -11842,9 +11842,9 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 05, after GEN.1778. Prerequisites: none. Related: GEN.1778.
   Filed by the TODO thread.
 
-- [ ] **PERF.278 The exobase search in thermosphere.kept_shares takes 9.7 of 64 s of a G2V build: a fixed first-order step of 0.25 scale heights over up to 200,000 steps (lock)**
-  Lane 16, 3:43 AM EST 2026-11-17 (PERF.276 closing note): the step is fixed and first order, so a better rule (adaptive or higher order, or a closed form where the profile allows) would cut it many times but moves the exobase by about the old step's own size. Do: replace the step with one whose error is measured against a fine reference, show the exobase height and the escape-driven kept shares of a census sample before and after (largest change, any class or air changes), and report the build time before and after. Lock item; no golden or epoch (Boss, 2026-11-14).
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 07 (Lane 02 owns the thermosphere and is told). Prerequisites: none. Related: PERF.276, PERF.277.
+- [ ] **GEN.1784 The exobase search underestimates the exobase height: median 6 percent low, up to 25 percent for hot light airs on big planets (Earth-like 1,100 K: 421 km against 445 km) (lock)**
+  Lane 07, 3:50 AM EST 2026-11-17, found on PERF.278: the fixed first-order step of 0.25 scale heights in thermosphere.kept_shares lags the profile; checked against a DOP853 integration to 1e-12 over 90 bodies. Do: make the search accurate to a stated tolerance at no more cost for the common short search (a higher-order or corrected step, or a smaller step only where needed), and show the exobase heights, Jeans losses and kept shares of a census sample before and after, with any air or class changes. Lock item; no golden or epoch (Boss, 2026-11-14).
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 07 (Lane 02 owns the thermosphere and is told). Prerequisites: none. Related: PERF.278.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
