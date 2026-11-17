@@ -49,8 +49,8 @@ def test_density_and_radius_follow_the_loss_and_the_filling():
     body = cc.compose("encounter", 1e17, 25.0, LUMINOSITY, AL26, 0.1, 0.5, 1.0)
     assert body.density_kg_m3 == pytest.approx(body.makeup.grain_density_kg_m3 * body.member.filling)
     assert body.radius_km == pytest.approx((3.0 * 1e17 / (4.0 * 3.141592653589793 * body.density_kg_m3)) ** (1.0 / 3.0) / 1.0e3)
-    heavier = cc.compose("encounter", 1e20, 25.0, LUMINOSITY, AL26, 0.1, 0.5, 1.0)
-    assert heavier.density_kg_m3 >= body.density_kg_m3 or heavier.member.filling >= body.member.filling      # the taper closes pores for a heavy body
+    heavier = cc.compose("encounter", 7e20, 25.0, LUMINOSITY, AL26, 0.1, 0.5, 1.0)
+    assert heavier.density_kg_m3 >= body.density_kg_m3 or heavier.member.filling >= body.member.filling      # the taper (1e20 to 1e21 kg, GEN.1637) closes pores for a heavy body
     with pytest.raises(compaction.OutOfRange):
         cc.compose("exchange", 1e23, 25.0, LUMINOSITY, AL26, 0.1, 0.5, 0.5)
 

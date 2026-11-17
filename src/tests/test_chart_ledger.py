@@ -159,3 +159,21 @@ def test_a_sector_with_no_resident_is_deleted_by_emptying_it(mysql_config):
         assert counts["kept"] is False and _sector_id(conn, first) is None
     finally:
         conn.close()
+
+
+def test_a_second_save_of_a_cell_charted_while_it_waited_returns_the_first_sector_and_writes_nothing(mysql_config):
+    """OPS.268: two copies of a sector unit generate the same cell; the one that saves second finds it charted and returns the first's sector, not an IntegrityError on the object IDs."""
+    first, _second = _addresses()
+    one = _save(mysql_config, first)
+    conn = store.get_connection(mysql_config)
+    try:
+        before = (conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"], len(_rogues(conn)))
+    finally:
+        conn.close()
+    two = _save(mysql_config, first)
+    conn = store.get_connection(mysql_config)
+    try:
+        assert two == one
+        assert (conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"], len(_rogues(conn))) == before
+    finally:
+        conn.close()

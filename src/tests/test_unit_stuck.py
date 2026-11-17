@@ -273,3 +273,18 @@ def test_a_unit_queued_again_in_the_pass_that_finds_it_stopped_is_not_acted_on_w
     action = unitstuck.Stuck(conn, run_id, 0, dump=lambda raw: "STACK", stop=stopped.append, record_error=lambda *a, **k: None, forget=lambda unit: verdicts.pop(unit, None))
     action.step([1], verdicts)         # requeues, forgets the unit, and must not look the old verdict up
     assert action.records()[1]["phase"] == "requeued" and len(stopped) == 1
+
+
+def test_a_dead_beat_of_a_unit_whose_retry_waits_in_the_queue_is_not_acted_on(conn, run_id):
+    """OPS.268: an attempt that raised leaves a beat that goes silent, and RQ has queued the retry; stopping and queuing it again would run the unit twice at once."""
+    stopped = []
+    action = _stuck(conn, run_id, stopped=stopped)
+    _beat(conn, run_id, 1)
+    assert _job(conn, run_id, 1).get_status(refresh=True) == rq.job.JobStatus.QUEUED
+    action.step([1], {1: beatjudge.Verdict(beatjudge.DEAD, reason="no beat for 30.2 s (limit 30 s)")})
+    assert stopped == [] and action.records() == {} and pause.solo_of(conn) is None
+    queue = redisqueue.queue(redisqueue.BULK_QUEUE, conn)
+    queue.remove(_job(conn, run_id, 1).id)
+    _job(conn, run_id, 1).set_status(rq.job.JobStatus.STARTED)
+    action.step([1], {1: beatjudge.Verdict(beatjudge.DEAD, reason="no beat for 30.2 s (limit 30 s)")})
+    assert action.records()[1]["attempts"] == 1, "a job that was running when its beat went silent is dead, as before"
