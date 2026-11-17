@@ -493,7 +493,7 @@ class LightJobs:
             if not record.get("wanted_until") or float(record["wanted_until"]) > now:
                 continue
             if not self.connection.zrem(pending_key(), job_id):
-                continue            # cancelled, or taken, between the reads
+                continue            # canceled, or taken, between the reads
             keys = json.loads(record.get("drop_keys") or "[]")
             if keys:
                 self.connection.delete(*keys)

@@ -61,6 +61,7 @@ def _drawn(settings, seed, count):
     for _ in range(count):
         config = SystemConfig()
         config.PREVALENCE = dict(settings)
+        config.COMET_TIER = "plentiful"        # GEN.1775: the tier that keeps the chance the comet share was measured at (`SYSTEM_COMET_CHANCE` for a star with no scattered outer disk); on science a star with none has no comets and the prevalence has nothing to scale
         for feature, present in _features(StarSystem(system_config=config)).items():
             totals[feature] = totals.get(feature, 0) + present
     return {feature: n / count for feature, n in totals.items()}

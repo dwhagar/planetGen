@@ -11,7 +11,8 @@ systems with it, -100 none, and 0 (the default) leaves it alone.
 A feature decided by one draw (comets, a binary companion, a wide pair,
 a planet's moons, the most orbits a star can hold, and intelligent life:
 the population pass's `CIVILIZATION_CHANCE`) has that draw's chance
-scaled (`scaled_chance`). `multi_star` (GEN.267) scales the chance of five
+scaled (`scaled_chance`); the comet draw (GEN.1775) is the registered chance times the galaxy's comet abundance tier, so a comets prevalence moves a tier's chance and moves nothing on `science`
+(where the physics alone gives a star its comets), and the Generate page leaves the comet share to the tier. `multi_star` (GEN.267) scales the chance of five
 or more stars, the columns of the `star-count` table the member-tree draw
 reads (`multi_star_scale`). A feature that comes out of many draws (a
 habitable world, an asteroid belt, a large star, any planets at all) has

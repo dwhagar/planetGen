@@ -79,10 +79,14 @@ COLLISION_CROSS_SECTION_M2 = 2e-19
 MAX_EXOBASE_RADII = 10.0
 """float: The exobase is held inside this many body radii (a numerical bound for a hot air over a small body)."""
 
-MAX_EXOBASE_STEPS = 200_000
-"""int: The most steps the exobase search takes (GEN.841). A profile that reaches `MAX_EXOBASE_RADII` takes up to about 15,000 steps over
-the whole range of bodies swept (radius 1e6 to 7e7 m, gravity 0.5 to 300 m/s2, 2 to 80 amu, mesopause 5 to 400 K, exobase to 5000 K), so
-this bound never acts on a real air; it stops a search that cannot end, and the exobase is then taken at the height reached."""
+EXOBASE_PANEL_SCALE_HEIGHTS = 1.0
+"""float: The width of a panel of the exobase search, in the smaller of the local scale height, the Bates length and the length over which the temperature changes (GEN.1784). The log of the density is
+integrated across each panel by four-point Gauss-Lobatto quadrature and the exobase is then found inside the panel that crosses `n sigma H = 1`. At 1 the exobase altitude is within 2e-4 of a DOP853 integration of
+the same profile (largest of 2,200 airs of a G2V census 1.4e-4, median 1.6e-7); the fixed step of 0.25 scale heights it replaces was 6 percent low in the median and up to 25 percent."""
+
+MAX_EXOBASE_PANELS = 100_000
+"""int: The most panels the exobase search takes (GEN.841). A profile that reaches `MAX_EXOBASE_RADII` takes up to a few thousand over the whole range of bodies swept (radius 1e6 to 7e7 m, gravity 0.5 to 300 m/s2,
+2 to 80 amu, mesopause 5 to 400 K, exobase to 5000 K), so this bound never acts on a real air; it stops a search that cannot end, and the exobase is then taken at the height reached."""
 
 EXOBASE_MEMORY = 8192
 """int: Exobase solutions kept by `exobase` (PERF.276): it is a pure function of five numbers, and the loss history of one body asks for the same ones again."""
@@ -165,39 +169,106 @@ def exobase(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k):
     Returns:
         tuple: `(radius of the exobase, m; number density there, m-3; scale height there, m)`.
     """
-    return _exobase_solved(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k, MAX_EXOBASE_RADII, MAX_EXOBASE_STEPS,
+    return _exobase_solved(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k, MAX_EXOBASE_RADII, MAX_EXOBASE_PANELS,
                            BATES_LENGTH_SCALE_HEIGHTS, MESOPAUSE_PRESSURE_PA, COLLISION_CROSS_SECTION_M2)
 
 
 @functools.lru_cache(maxsize=EXOBASE_MEMORY)
-def _exobase_solved(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k, max_radii, max_steps, bates_heights, mesopause_pa, cross_section_m2):
-    """`exobase` for the model's constants as they are passed (so that the memory keeps no answer of other constants)."""
+def _exobase_solved(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k, max_radii, max_panels, bates_heights, mesopause_pa, cross_section_m2):
+    """
+    `exobase` for the model's constants as they are passed (so that the memory keeps no answer of other constants).
+
+    The profile is `T(z)` of the Bates form and the density follows from hydrostatic balance, `d ln n / dz = -(1 / H + T' / T)` with `1 / H = m g R^2 / (k (R + z)^2 T)`, so
+    `ln n (z) = ln n0 - I(z) - ln (T / T0)` with `I` the integral of `1 / H`. The exobase is the first height at which `f = ln (n sigma H)` falls to zero; `f' = 2 / (R + z) - 1 / H`.
+    `I` is integrated over panels of `EXOBASE_PANEL_SCALE_HEIGHTS` of the smaller of `H`, the Bates length and `T / T'` (and of half the radius from the center), by Gauss-Lobatto of four points that
+    share their end values with the next panel, until a panel ends at or under zero; the root inside it is found by Newton steps kept inside a bracket (bisection where one leaves it), the integral
+    carried from the nearer end. The step this replaced was first order, a fixed 0.25 of a scale height, and lagged the profile (GEN.1784).
+    """
     if not all(math.isfinite(value) and value > 0.0 for value in (radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k)):
         raise ValueError(f"exobase needs finite positive inputs, got radius {radius_m}, gravity {gravity_ms2}, mean mass {mean_mass}, "
                          f"temperature {temperature_k}, mesopause {mesopause_k}")
-    length = bates_heights * _K * mesopause_k / (mean_mass * gravity_ms2)
-    log_density = math.log(mesopause_pa / (_K * mesopause_k))
-    limit = (max_radii - 1.0) * radius_m
-    height = 0.0
-    rise = temperature_k - mesopause_k
-
-    exp = math.exp
     over_mass_gravity = mean_mass * gravity_ms2
-    boltzmann = _K
-    # the Bates profile at `height` is `decay = exp(-height / length)`, `temperature = T_exo - rise decay` and the scale height
-    # `k T / (m g (r / (r + height))^2)`; it is written out in the loop (the search takes thousands of steps) with the arithmetic of the profile
-    for _ in range(max_steps):
-        decay = exp(-height / length)
-        temperature = temperature_k - rise * decay
-        scale = boltzmann * temperature / (over_mass_gravity * (radius_m / (radius_m + height)) ** 2)
-        if exp(log_density) * cross_section_m2 * scale <= 1.0 or height >= limit:
-            break
-        step = 0.25 * min(scale, length)
-        gradient = rise * decay / length / temperature
-        log_density -= (1.0 / scale + gradient) * step
-        height += step
-    # past the step bound the air is taken to reach the limit, as for a profile that never closes inside MAX_EXOBASE_RADII
-    scale = boltzmann * (temperature_k - rise * exp(-height / length)) / (over_mass_gravity * (radius_m / (radius_m + height)) ** 2)
+    length = bates_heights * _K * mesopause_k / over_mass_gravity
+    inv_length = 1.0 / length
+    limit = (max_radii - 1.0) * radius_m
+    rise = temperature_k - mesopause_k
+    exp, log = math.exp, math.log
+    coefficient = over_mass_gravity * radius_m ** 2 / _K                     # `1 / H = coefficient / ((R + z)^2 T)`
+    log_offset = log(mesopause_pa / (_K * mesopause_k)) + log(mesopause_k) + log(cross_section_m2)       # `f = log_offset - I - ln T - ln (1 / H)`
+    panel_scale = EXOBASE_PANEL_SCALE_HEIGHTS
+    inner = math.sqrt(0.2)                                                  # Gauss-Lobatto of four points: nodes -1, -1/sqrt(5), 1/sqrt(5), 1 with weights 1/6, 5/6, 5/6, 1/6
+
+    z = integral = 0.0
+    decay = 1.0
+    temperature = mesopause_k
+    inverse_height = coefficient / (radius_m * radius_m * temperature)
+    value = log_offset - log(temperature) - log(inverse_height)
+    height = None
+    if value <= 0.0:
+        height = 0.0
+    else:
+        bracket = None
+        for _ in range(max_panels):
+            rise_decay = rise * decay
+            width = min(1.0 / inverse_height, length, 0.5 * (radius_m + z))
+            if rise_decay > 0.0:
+                width = min(width, temperature * length / rise_decay)
+            z_end = min(z + panel_scale * width, limit)
+            half = 0.5 * (z_end - z)
+            middle = z + half
+            offset = inner * half
+            z_a, z_b = middle - offset, middle + offset
+            t_a = temperature_k - rise * exp(-z_a * inv_length)
+            t_b = temperature_k - rise * exp(-z_b * inv_length)
+            decay_end = exp(-z_end * inv_length)
+            t_end = temperature_k - rise * decay_end
+            radius_end = radius_m + z_end
+            inverse_end = coefficient / (radius_end * radius_end * t_end)
+            integral_end = integral + half * ((inverse_height + inverse_end) / 6.0
+                                              + (5.0 / 6.0) * (coefficient / ((radius_m + z_a) ** 2 * t_a) + coefficient / ((radius_m + z_b) ** 2 * t_b)))
+            value_end = log_offset - integral_end - log(t_end) - log(inverse_end)
+            if value_end <= 0.0:
+                bracket = (z, integral, value, z_end, integral_end, value_end)
+                break
+            if z_end >= limit:
+                break
+            z, decay, temperature, inverse_height, integral, value = z_end, decay_end, t_end, inverse_end, integral_end, value_end
+        if bracket is None:
+            height = limit         # the profile does not close inside `MAX_EXOBASE_RADII` (or the panels ran out): the air is taken to reach the limit
+            if z_end < limit:
+                height = z_end
+        else:
+            low_z, low_i, low_f, high_z, high_i, high_f = bracket
+            height = high_z
+            for _ in range(100):
+                base_z, base_i, base_f = (high_z, high_i, high_f) if abs(high_f) < abs(low_f) else (low_z, low_i, low_f)
+                base_t = temperature_k - rise * exp(-base_z * inv_length)
+                base_inverse = coefficient / ((radius_m + base_z) ** 2 * base_t)
+                slope = 2.0 / (radius_m + base_z) - base_inverse
+                x = base_z - base_f / slope if slope != 0.0 else 0.5 * (low_z + high_z)
+                if not low_z < x < high_z:
+                    x = 0.5 * (low_z + high_z)
+                half = 0.5 * (x - base_z)
+                middle = base_z + half
+                offset = inner * half
+                z_a, z_b = middle - offset, middle + offset
+                t_a = temperature_k - rise * exp(-z_a * inv_length)
+                t_b = temperature_k - rise * exp(-z_b * inv_length)
+                t_x = temperature_k - rise * exp(-x * inv_length)
+                inverse_x = coefficient / ((radius_m + x) ** 2 * t_x)
+                integral_x = base_i + half * ((base_inverse + inverse_x) / 6.0
+                                              + (5.0 / 6.0) * (coefficient / ((radius_m + z_a) ** 2 * t_a) + coefficient / ((radius_m + z_b) ** 2 * t_b)))
+                value_x = log_offset - integral_x - log(t_x) - log(inverse_x)
+                if value_x > 0.0:
+                    low_z, low_i, low_f = x, integral_x, value_x
+                else:
+                    high_z, high_i, high_f = x, integral_x, value_x
+                converged = abs(x - height) <= 1e-12 * x or high_z - low_z <= 1e-12 * high_z or value_x == 0.0
+                height = x
+                if converged:
+                    break
+    temperature_at = temperature_k - rise * exp(-height / length)
+    scale = _K * temperature_at / (over_mass_gravity * (radius_m / (radius_m + height)) ** 2)
     return radius_m + height, 1.0 / (cross_section_m2 * scale), scale
 
 

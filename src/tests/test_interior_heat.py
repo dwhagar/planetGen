@@ -522,3 +522,35 @@ def test_the_flux_function_of_a_body_is_the_flux_law_to_the_last_bit(lid):
             flux = ih._flux_function(interior, gravity, thickness_m, lid, surface_k, radius_m)
             for kelvin in (1.0, 2.7, 10.0, 80.0, 273.0, 300.0, 600.0, 1100.0, 1650.0, 2300.0, 5000.0):
                 assert flux(kelvin) == ih._flux_w_m2(kelvin, interior, gravity, thickness_m, lid, surface_k, radius_m)
+
+
+COLD_SMALL_BODIES = [
+    # (mass kg, radius km, age Gy, Interior, mantle temperature K, flux W/m2, released J) as the integrator gave them with a step of 1e-5 Gy (770,000 steps), 2.725 K surface
+    (1.22e20, 294.1, 11.4, ih.Interior(2.8e10, 307.0), 5.295504475175981, 0.00017480479259952272, 4.5937404062911194e+26),
+    (2.65e20, 365.6, 8.4, ih.Interior(5.3e10, 379.0), 8.734142160998248, 0.00032872768933250813, 9.281401291128133e+26),
+]
+
+
+@pytest.mark.parametrize("mass, radius, age, interior, temperature, flux, released", COLD_SMALL_BODIES)
+def test_a_cold_small_body_on_the_conduction_floor_takes_few_steps_and_reaches_the_temperature_the_small_steps_gave(
+        monkeypatch, mass, radius, age, interior, temperature, flux, released):
+    """PERF.277: the step of a flux that is the conduction floor follows the floor's own slope, not the viscosity law's (a few kelvin gave a step of 1e-5 Gy and
+    770,000 steps for 11 Gy); the temperature and flux are those of the small steps to a few parts in a million and the heat released to a few parts in a thousand."""
+    calls = []
+    real = ih._flux_function
+
+    def counting(*args, **kwargs):
+        found = real(*args, **kwargs)
+
+        def flux_at(kelvin):
+            calls.append(kelvin)
+            return found(kelvin)
+        flux_at.conduction, flux_at.conduction_slope = found.conduction, found.conduction_slope
+        return flux_at
+
+    monkeypatch.setattr(ih, "_flux_function", counting)
+    found = ih.heat(radiogenic.heat_terms(_bulk_silicate_earth(), EARTH_ROCK.aluminium), interior, mass, radius, age, EARTH_ROCK, None, ih.STAGNANT, 2.725)
+    assert len(calls) < 20_000
+    assert found.mantle_temperature_k == pytest.approx(temperature, rel=1e-5)
+    assert found.flux_w_m2 == pytest.approx(flux, rel=1e-5)
+    assert found.released_j == pytest.approx(released, rel=5e-3)

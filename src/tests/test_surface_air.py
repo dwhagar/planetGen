@@ -407,16 +407,24 @@ def test_the_swing_of_a_fixed_point_is_told_from_a_creep_and_from_a_settling():
     assert not sa._swings([5.0, -4.0, 6.0])                                          # too few steps to say
 
 
+SWING_KEYS = (20, 26, 86, 244, 146)
+"""tuple: Seeded keys of `_first_air_of` whose first air takes many steps to settle (30 or more) and has a steady state, on the star table and the thermosphere of the day. Key 20 (a K2V planet of 0.62 Earth masses, on a carbon switch where the step map falls 375 K to 240 K over 1.1 K of iterate, GEN.1718) is the first; it lost its air to the exobase of GEN.1784, which sits where the profile puts it and not 6 percent low, so the test takes the first of the list that still has the air and fails if none does (a scan of keys 0 to 260 lists them by `steps`: 81 and 156 are `CREEP_KEYS`, then 26, 86, 244, 146)."""
+
+
 def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the_start(monkeypatch):
     """GEN.1718: key 20 (a K2V planet, 0.62 Earth masses) sat on a carbon switch where the step map falls 375 K to 240 K over 1.1 K of iterate: the damped step went round it for
     60 steps from every start and stored a temperature that moved by 35 K with the start. The root find of the temperature, with the pressure following it, settles it, to the same
     temperature from a cold, a warm and a hot start (the step has a 0.6 K step in it at the root, `ROOT_RESIDUAL_K`)."""
-    setting, first = _first_air_of(20, monkeypatch)
-    assert first.converged and not first.jump
+    for key in SWING_KEYS:
+        setting, first = _first_air_of(key, monkeypatch)
+        if first.entry_state is not None and first.converged and not first.jump and first.steps >= 30:
+            break
+    else:
+        pytest.fail(f"none of the keys {SWING_KEYS} has an air that takes 30 steps or more to settle any more: refresh SWING_KEYS")
     for start in (150.0, 250.0, 500.0):
         draw.setstate(first.entry_state)
         again = sa.solve(setting, start)
-        assert again.converged and again.temperature_k == pytest.approx(first.temperature_k, abs=0.5), start
+        assert again.converged and again.temperature_k == pytest.approx(first.temperature_k, abs=0.5), (key, start)
 
 
 NO_STEADY_STATE_KEYS = (126, 387, 468, 96, 366, 459)

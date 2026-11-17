@@ -13,9 +13,10 @@ Comets are the planetesimals of a star's outer disk that a giant has thrown abou
 2. **The top of the nucleus draw.** No nucleus is larger than the largest body the star's outer disks hold (`largest_body_km`), so the top of
    `tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM` is cut to it, never under the draw's lower end.
 
-A star with no outer disk that a giant scattered keeps the default weights and the default top. The chance that a star has comets at all and how many it has stay the hand-set
-`SYSTEM_COMET_CHANCE` and `SYSTEM_COMET_COUNT_RANGE`: the census of GEN.1765 found no star in 398 with a scattered outer disk and a giant to scatter it, so a rule of "comets only
-where a disk was scattered" would leave nearly every star without any.
+A star with no outer disk that a giant scattered keeps the default weights and the default top. Whether a star has comets at all is the physics too (GEN.1775, Boss, 8:43 PM EST 2026-11-16): it has them
+exactly where `family_weights` is not `None`, and a star without such a disk has none on the default `science` tier. The census of GEN.1765 found nearly every star without a scattered outer disk, so
+`science` galaxies hold few comets; a comet abundance tier (`generation/comet_abundance`) gives the others the registered chance `SYSTEM_COMET_CHANCE` times its factor. How many comets a star that has
+any holds stays the hand-set `SYSTEM_COMET_COUNT_RANGE`.
 
 Use:
 

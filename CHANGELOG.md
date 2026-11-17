@@ -2,6 +2,90 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4489] - 2026-11-17
+
+**Headline:** The seeded test galaxy and the API link audit no longer depend on a star holding comets by chance.
+
+### Fixed
+- **Two test fixtures assumed comets are common (GEN.1775 made them rarer).** `rich_galaxy_support` adds one parabolic comet when the seeded galaxy's few comets are all elliptical (`comets.parabolic_mean_anomaly` was NULL in every row, so `test_every_column_is_written` failed), and `test_api_link_ids` asks for comets (`COMETS = True`) and fails with the count tried instead of running 400 systems for 43 minutes and indexing a planetless one.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4488] - 2026-11-17
+
+**Headline:** A test that reads the stored galaxy shape back now skips the comet tier pin the way it skips the Class M tier pin.
+
+### Fixed
+- **`test_galaxy_density_shape_serializes_the_stored_skeleton` read a field the map's shape does not carry (GEN.1775).** `GalaxyShape.comet_tier` is a pin kept for the systems made here and is dropped from the map's JSON like `abundance_tier`; the test now skips it too. Test only.
+
+generation-affects: none
+
+generation-output: unchanged
+
+## [8.0.4487] - 2026-11-17
+
+**Headline:** A planet that loses all its moons after they were made no longer keeps the wobble they gave it.
+
+### Fixed
+- A planet's reflex offset (its own wobble from its moons) was made when the moons were and left alone when the planet had none, so a planet whose moons all went afterwards (a Kozai-Lidov loss in `_kozai_moons`, moons that no longer fit after its class changed, `drop_unstable_moons`, a bar on habitable worlds) still carried the old offset, for example 3.0e-5 AU (an Earth-Moon pair is about 3e-5 AU) on a moonless planet. `StarSystem._refresh_wobble` and the two refreshes in `validation` now make it again from the moons that are left, and zero it with none. Only the stored `reflex_offset_*` of such a planet moves (to zero); 0 of 75 seeded G2V systems made with moons forced had one on the old code, so it is rare. A test of `_refresh_wobble` holds it; `test_orbital_motion` generates each of its systems under a stated seed (`orbital-motion:N`) so a failure replays.
+
+generation-affects: fill
+
+generation-output: changed
+
+## [8.0.4486] - 2026-11-17
+
+**Headline:** Small cold bodies (belt members and small moons far from their star) finish their interior heat in hundreds of steps instead of up to 770,000, which takes a long sector run from about 63 s to about 55 s; interior heat flows change by at most 3 parts in a million.
+
+### Changed
+- `interior_heat.heat`: when a body's heat flux is the conduction floor (a cold mantle whose viscosity law carries next to nothing), the step is taken from the floor's own rate of change (`FLOOR_STIFFNESS_MARGIN` times the slope of the conduction) instead of the viscosity law's `Ea / (R T^2)`, which at a few kelvin shrank the step to 1e-5 Gy. A 294 km body at a 2.7 K surface took 770,000 steps for 11.4 Gy and now takes about 300. On a sample of 40 systems (499 bodies) no flag or name changes; the internal heat flow and the Urey ratio change by at most 2.8e-6 of their value, the tidal heat flux by 1.7e-5, the heat released by up to 2e-3 on the slowest bodies (cold small bodies only), and the largest change of any stored number is 2 percent in the longest day of one slowly spinning body (a difference of two nearly equal periods that amplifies a 2e-7 change in its spin).
+
+generation-output: changed within the integrator's tolerance (no golden, no epoch, lock item Train 43)
+
+## [8.0.4485] - 2026-11-17
+
+**Headline:** The exobase search now finds the exobase where the profile puts it: the fixed first-order step had put it 6 percent too low in the median, and several radii too low for a hot young air, so a world's air was kept far more easily than the model says.
+
+### Fixed
+- **The exobase height was underestimated (GEN.1784).** `thermosphere._exobase_solved` stepped up the profile in fixed steps of 0.25 scale heights with a first-order update of the log density, which lags the profile: Earth-like 1,100 K gave 421 km against 445 km, the median altitude was 6 percent low over a sweep of 90 bodies, and a hot young air (4,700 K over a 92 K mesopause on a 0.86 Earth-radius body) stopped at 0.85 radii where the same profile puts it at 8.5; an air whose profile does not close stopped at its 200,000-step bound (1.0028e6 m for a 1e6 m body) short of the 10 radii it should be held to. The search now integrates `1 / H` across panels of one scale height (the smaller of the scale height, the Bates length and `T / T'`) by four-point Gauss-Lobatto quadrature and finds the root inside the crossing panel by Newton steps kept in a bracket. Against a DOP853 integration of the same profile the altitude is within 2e-4 (largest of 2,200 airs of a G2V census 1.4e-4, median 1.6e-7); `EXOBASE_PANEL_SCALE_HEIGHTS` and `MAX_EXOBASE_PANELS` replace `MAX_EXOBASE_STEPS`. The search costs about 2.6 times what it did (it is 2.6 percent of a build). A higher exobase means more Jeans escape through a larger area at a smaller escape energy over thermal energy, so a hot young air loses more: in a census of 40 systems (692 bodies, four star types) 7 bodies change class, 16 airs change in words, 62 pressures change, and the exobase altitude of 2,628 matched calls moves by a median 3 percent (95th percentile 77 percent, where the young hot phase is). See the PR for the census.
+
+generation-affects: fill
+
+generation-output: changed
+
+## [8.0.4484] - 2026-11-17
+
+**Headline:** A planet of a wide binary's star can no longer end with its orbit reaching past the star's stability limit.
+
+### Fixed
+
+- GEN.1783: `test_generated_systems_validate[F5V]` failed once under xdist with a body beyond the farthest stable orbit (6.741 AU). It is a wide-binary case, not shared state: F5V seed 215 (a pair with a stability limit of 0.1886 AU) ended with a planet whose apoapsis plus its own five Hill radii reached 0.1919 AU, and seed 217 with one at 41.17 AU. The planets are trimmed to the star's ceiling when they are placed and again when the settle pass has to respace a star, but an eccentricity the settle pass raised (the secular exchange, a resonant chain, the Kozai pump) can carry the apoapsis past the ceiling with no gap closed, so the second trim never ran. Every star's planets are now held to the same ceiling (`validation.orbit_ceiling_au`, the one placement and the check use) after the settle pass, whether or not the star was respaced. A system that already held the ceiling is unchanged; one that broke it loses its outermost planet, the way the first trim already does.
+- `test_validation` builds each of its generated systems from a run seed of its own, so a failure replays alone or under xdist; the assertions are as they were.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4483] - 2026-11-17
+
+**Headline:** A new galaxy now has a comet abundance setting: the default, Science, gives comets only to stars whose own outer disk a giant scattered, and four higher tiers give the other stars a chance of holding comets.
+
+### Changed
+- **Comets follow the star's own outer disk, with a scale setting (GEN.1775).** `StarSystem._generate_comets` no longer rolls the flat 30 percent for every star. On the default tier, `science`, a star holds comets exactly where the generator's own laws put them: where it has an outer-disk belt that a giant scattered (`comet_supply.family_weights`), and nowhere else (a census of 398 stars in GEN.1765 found nearly every star without one). A new Census dial, Comet abundance (`--comet-abundance`, lever `comet_abundance`; `science`, `sparse`, `scattered`, `plentiful`, `abundant`), is shaped like the Class M abundance and the Rogue planets: it is a lever of `galaxy.dials` (so the New galaxy page, the plan's `galaxy_shape_pins` and `--comet-abundance` on a single system take it), the galaxy's stored choice reaches each system as `SystemConfig.COMET_TIER` (`GalaxyShape.comet_tier`), and `generation/comet_abundance.py` gives the chance. A tier multiplies the registered stand-in `SYSTEM_COMET_CHANCE` (CMT8) by 0.25, 0.5, 1 and 2 (`tuning.COMET_TIER_MULTIPLIERS`, new row CMT10, tier T9, tweak L4) for the stars the physics gave none; a star the physics gave comets keeps them on every tier and the physics rate is never scaled. `plentiful` is the chance the generator used before. How many comets a star holds and the shape of each are as they were. `+comets` still forces the draw, and a comets prevalence scales a tier's chance (it moves nothing on `science`). The Generate page no longer has a Comets percent field that started at 32.1 percent; how many stars hold comets is the galaxy's tier, set on the New galaxy page and kept for every sector added later. Census of 150 generated systems per tier: the share of systems with comets is 0 on `science` (a census of 300 default systems found 227 with a belt, 52 with an outer disk, 8 with a giant and 4 whose outer disk a giant was checked against, all four giants too small or too far to scatter any of it out of the cold classical belt, so none had a scattered outer disk), 7.3 percent on `sparse`, 12.7 on `scattered`, 34.7 on `plentiful` and 60.0 on `abundant`. No migration: the choice is a pin of the plan.
+
+generation-affects: fill
+
+generation-output: changed
+
+## [8.0.4482] - 2026-11-17
+
+**Headline:** A hot body whose water would not saturate its air now holds it all as vapor, so a steam-start Venus twin no longer ends with a 586 K ocean.
+
+### Fixed
+- `hydrosphere`: a body at a temperature under water's critical point whose whole surface water makes less pressure than water's saturation pressure there has no liquid at the surface (`vapor`), as the air's own fixed point already said (`Air.ocean_present` False). Before, only the boiling point against the total pressure was read, so 1.4e20 kg of water at 586 K under 118 bar of air was called a `surface ocean` (GEN.1773, found by TEST.786).
+
+generation-output: changed
+
 ## [8.0.4481] - 2026-11-17
 
 **Headline:** The cache warm-up and the database check now run as jobs the supervisor hands out from a warm template, the way a generation run's units do, and the maintenance lane's round-robin worker is gone.

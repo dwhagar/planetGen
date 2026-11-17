@@ -186,16 +186,68 @@ def test_the_xuv_flux_comes_from_the_stored_value_else_from_the_star_and_is_zero
     assert ts.xuv_flux_earth(far) == pytest.approx(ts.xuv_flux_earth(sun) * 0.25, rel=1e-6)
 
 
-# --- GEN.841: the exobase search is bounded and the caches change no value ---------------------------------------------------
+# --- GEN.841: the exobase search is bounded and the caches change no value; GEN.1784: it is accurate -------------------------------------------------------
 
-@pytest.mark.parametrize("args, expected", [
-    ((6.371e6, 9.81, 4.65e-26, 1100.0, 200.0), (6792504.786904568, 132120832223323.83, 37844.14551331694)),
-    ((3.4e6, 3.7, 7.3e-26, 400.0, 150.0), (3681795.8243822805, 208540182732463.34, 23976.19458507194)),
-    ((7e7, 25.0, 3.3e-27, 3000.0, 100.0), (76238023.20909084, 8395996362979.754, 595521.9349601399)),
-    ((1e6, 0.5, 7.3e-26, 5000.0, 30.0), (1002836.95, 21407076186867.75, 233567.62765516146)),   # reaches MAX_EXOBASE_RADII, the longest search
-])
-def test_the_exobase_search_gives_the_values_it_gave_before_it_was_bounded(args, expected):
-    assert ts.exobase(*args) == pytest.approx(expected, rel=1e-12)
+def _exobase_by_integration(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k):
+    """The exobase height by DOP853 on `ln n` of the same Bates profile (rtol 1e-13, `n sigma H = 1` as the event), independent of the search's quadrature and root solve."""
+    from scipy import integrate
+    length = ts.BATES_LENGTH_SCALE_HEIGHTS * ts._K * mesopause_k / (mean_mass * gravity_ms2)
+    rise = temperature_k - mesopause_k
+    limit = (ts.MAX_EXOBASE_RADII - 1.0) * radius_m
+
+    def scale_and_slope(z):
+        decay = math.exp(-z / length)
+        t = temperature_k - rise * decay
+        return ts._K * t / (mean_mass * gravity_ms2 * (radius_m / (radius_m + z)) ** 2), rise * decay / length / t
+
+    def rhs(z, y):
+        scale, slope = scale_and_slope(z)
+        return [-(1.0 / scale + slope)]
+
+    def closed(z, y):
+        return y[0] + math.log(ts.COLLISION_CROSS_SECTION_M2 * scale_and_slope(z)[0])
+    closed.terminal, closed.direction = True, -1
+    start = math.log(ts.MESOPAUSE_PRESSURE_PA / (ts._K * mesopause_k))
+    if closed(0.0, [start]) <= 0.0:
+        return 0.0
+    run = integrate.solve_ivp(rhs, (0.0, limit), [start], method="DOP853", rtol=1e-13, atol=1e-13, events=closed)
+    return float(run.t_events[0][0]) if len(run.t_events[0]) else limit
+
+
+EXOBASE_ALTITUDE_TOLERANCE = 2.0e-4
+"""float: How near the integration the search's exobase altitude must be, as a share of the altitude (GEN.1784; the search's own largest over 2,200 airs of a G2V census is 1.4e-4)."""
+
+AIRS = [
+    (6.371e6, 9.81, 4.65e-26, 1100.0, 200.0),      # Earth-like, 1,100 K
+    (3.4e6, 3.7, 7.3e-26, 400.0, 150.0),           # Mars-like
+    (7e7, 25.0, 3.3e-27, 3000.0, 100.0),           # a hot hydrogen envelope on a giant
+    (1e6, 0.5, 7.3e-26, 5000.0, 30.0),             # a small cold body under a hot exobase: the profile does not close inside MAX_EXOBASE_RADII
+    (6.4e6, 9.81, 4.65e-26, 5000.0, 30.0),
+    (1.5e7, 30.0, 3.3e-27, 5000.0, 400.0),
+    (9.44e5, 0.559, 4.9e-26, 28.04, 27.99),        # a nearly isothermal air with a scale height of a third of the radius
+    (6.12e6, 7.11, 3.0e-26, 4677.0, 91.7),         # the largest error of a census sample
+]
+
+
+@pytest.mark.parametrize("args", AIRS)
+def test_the_exobase_altitude_is_the_integrations_to_the_stated_tolerance(args):
+    """GEN.1784: the fixed first-order step of 0.25 scale heights was 3.5e-3 of the radius low at Earth (421 km against 445 km), 6 percent of the altitude in the median and up to 25 percent."""
+    radius = args[0]
+    found = ts.exobase(*args)[0] - radius
+    expected = _exobase_by_integration(*args)
+    assert found == pytest.approx(expected, rel=EXOBASE_ALTITUDE_TOLERANCE, abs=1.0)
+
+
+def test_the_earth_like_exobase_is_where_the_profile_puts_it():
+    radius, density, scale = ts.exobase(6.371e6, 9.81, 4.65e-26, 1100.0, 200.0)
+    assert (radius - 6.371e6) / 1e3 == pytest.approx(445.5, abs=0.1)         # the old step gave 421 km
+    assert density * ts.COLLISION_CROSS_SECTION_M2 * scale == pytest.approx(1.0, rel=1e-12)       # n sigma H = 1 where it stops
+
+
+def test_the_exobase_of_a_profile_that_does_not_close_is_the_limit():
+    """The old search stopped at 1.0028e6 m for this air, at its 200,000 steps, short of the 10 radii it should have been held to."""
+    radius, _density, _scale = ts.exobase(1e6, 0.5, 7.3e-26, 5000.0, 30.0)
+    assert radius == pytest.approx(ts.MAX_EXOBASE_RADII * 1e6, rel=1e-12)
 
 
 @pytest.mark.parametrize("bad", [float("nan"), float("inf"), 0.0, -3.0])
@@ -208,19 +260,20 @@ def test_an_exobase_of_a_non_finite_or_non_positive_input_is_an_error_and_not_a_
         ts.exobase(*args)
 
 
-def test_the_exobase_search_stops_at_its_step_bound_and_returns_the_height_it_reached(monkeypatch):
-    monkeypatch.setattr(ts, "MAX_EXOBASE_STEPS", 3)
+def test_the_exobase_search_stops_at_its_panel_bound_and_returns_the_height_it_reached(monkeypatch):
+    monkeypatch.setattr(ts, "MAX_EXOBASE_PANELS", 3)
     radius, density, scale = ts.exobase(6.371e6, 9.81, 4.65e-26, 1100.0, 200.0)
-    assert 6.371e6 < radius < 6.371e6 * 1.01     # three steps of 0.25 scale heights up from the surface, and not the 6.79e6 m it closes at
+    assert 6.371e6 < radius < 6.371e6 * 1.01     # three panels up from the surface, and not the 6.82e6 m it closes at
     assert math.isfinite(density) and density > 0.0 and math.isfinite(scale) and scale > 0.0
 
 
-def test_no_air_in_the_swept_range_comes_near_the_step_bound(monkeypatch):
+def test_no_air_in_the_swept_range_comes_near_the_panel_bound(monkeypatch):
     """The corners of the sweep that has the longest searches give the same exobase with a tenth of the bound as with the bound."""
     corners = [(6.4e6, 3.0, 4.65e-26, 5000.0, 100.0), (7e7, 0.5, 7.3e-26, 5000.0, 100.0), (1e6, 30.0, 2.7e-26, 5000.0, 100.0),
                (3e7, 0.5, 7.3e-26, 5000.0, 100.0), (6.4e6, 0.5, 7.3e-26, 1000.0, 30.0)]
     full = [ts.exobase(*c) for c in corners]
-    monkeypatch.setattr(ts, "MAX_EXOBASE_STEPS", ts.MAX_EXOBASE_STEPS // 10)
+    monkeypatch.setattr(ts, "MAX_EXOBASE_PANELS", ts.MAX_EXOBASE_PANELS // 10)
+    ts._exobase_solved.cache_clear()
     assert [ts.exobase(*c) for c in corners] == full
 
 
