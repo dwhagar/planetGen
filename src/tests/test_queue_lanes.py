@@ -1,5 +1,5 @@
-"""PERF.245: the maintenance lane has a queue for each task type served in turn, the places kept for the short and long job lanes, and the
-app a worker builds once for the jobs that need it."""
+"""PERF.245, OPS.229: the maintenance lane has a queue for each task type (a worker serves one), the places kept for the short and long job lanes, and the
+app the lane's template builds once for the units that need it."""
 
 import math
 
@@ -19,18 +19,14 @@ def test_each_task_type_of_the_maintenance_lane_has_a_queue_of_its_own():
     assert wrapper.queue_of(runrecord.CHECK) == redisqueue.CHECK_QUEUE
     assert wrapper.queue_of(runrecord.GENERATION) == redisqueue.BULK_QUEUE
     for name in redisqueue.maintenance_lane():
-        assert redisqueue.serializer_for(name) is redisqueue.JsonSerializer      # one serializer, so one worker can serve both
+        assert redisqueue.serializer_for(name) is redisqueue.JsonSerializer      # one serializer for the whole lane
 
 
-def test_a_worker_for_any_queue_of_the_lane_serves_the_whole_lane():
-    for name in redisqueue.maintenance_lane():
-        assert workers.lane_of(name) == redisqueue.maintenance_lane()
-    assert workers.lane_of(redisqueue.BULK_QUEUE) == (redisqueue.BULK_QUEUE,)
-
-
-def test_a_worker_of_several_queues_takes_one_job_from_each_in_turn():
-    plain, turns = worker_cli.worker_class(), worker_cli.worker_class(round_robin=True)
-    assert issubclass(turns, rq.worker.RoundRobinWorker) and not issubclass(plain, rq.worker.RoundRobinWorker)
+def test_a_worker_serves_one_queue_and_the_round_robin_worker_is_gone():
+    for name in (*redisqueue.maintenance_lane(), redisqueue.BULK_QUEUE):
+        assert workers.lane_of(name) == (name,)
+    assert not issubclass(worker_cli.worker_class(), rq.worker.RoundRobinWorker)
+    assert not hasattr(worker_cli, "RoundRobinWorker") and not hasattr(worker_cli, "APP_QUEUES")
 
 
 def test_the_short_and_long_lanes_keep_places_the_bulk_and_maintenance_lanes_may_not_take(monkeypatch):
@@ -56,7 +52,7 @@ def lane_queues(redis_server):
     connection.delete(*(workers.STARTING_PREFIX + name for name in names))
 
 
-def test_a_job_on_any_queue_of_the_lane_starts_workers_that_serve_all_of_them(lane_queues, monkeypatch):
+def test_a_job_on_a_queue_of_the_lane_starts_a_worker_for_that_queue_only(lane_queues, monkeypatch):
     started = []
     monkeypatch.setattr(workers.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
     monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 2)
@@ -65,8 +61,8 @@ def test_a_job_on_any_queue_of_the_lane_starts_workers_that_serve_all_of_them(la
     redisqueue.queue(redisqueue.CHECK_QUEUE, lane_queues).enqueue(math.pow, 2, 3, job_timeout=600)      # only the check queue has work
     assert workers.start_workers(redisqueue.CHECK_QUEUE, lane_queues) == 1
     argv = started[0]
-    assert all(name in argv for name in redisqueue.maintenance_lane())
-    assert int(lane_queues.get(workers.STARTING_PREFIX + redisqueue.MAINTENANCE_QUEUE)) == 1       # counted once, under the lane's name
+    assert redisqueue.CHECK_QUEUE in argv and redisqueue.MAINTENANCE_QUEUE not in argv
+    assert int(lane_queues.get(workers.STARTING_PREFIX + redisqueue.CHECK_QUEUE)) == 1
 
 
 def test_a_host_whose_places_the_warm_up_used_up_starts_no_more_of_its_workers(lane_queues, monkeypatch):
@@ -81,9 +77,12 @@ def test_a_host_whose_places_the_warm_up_used_up_starts_no_more_of_its_workers(l
     assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE, lane_queues) == 0 and started == []
 
 
-def test_the_workers_whose_jobs_build_the_site_app_build_it_once_before_they_fork():
-    assert worker_cli.APP_QUEUES == set(redisqueue.maintenance_lane())
-    assert redisqueue.BULK_QUEUE not in worker_cli.APP_QUEUES
+def test_the_template_of_the_maintenance_lane_builds_the_site_app_once_and_no_other_does():
+    from planetgen.queue import allowlist, jobhost, launcher
+    assert jobhost.WARM_SETS["app"] == ("planetgen.web.warmup.warm_app",)
+    assert launcher.TEMPLATES == {"maintenance": "app"} and all(key in jobhost.WARM_SETS for key in launcher.TEMPLATES.values())
+    assert jobhost.WARM_SETS["plain"] == () and "planetgen.web.warmup.warm_app" not in jobhost.WARM_SETS["tables"]
+    allowlist.check_function("planetgen.web.warmup.warm_app", "a template's warm set")
 
 
 def test_the_whole_map_build_leaves_cores_to_the_short_lanes(monkeypatch):

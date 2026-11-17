@@ -242,9 +242,11 @@ class JobHost:
 
 WARM_SETS = {
     "tables": ("planetgen.queue.units.warm_star_tables",),
+    "app": ("planetgen.web.warmup.warm_app",),
     "plain": (),
 }
-"""dict: The warm set of each template of a `TemplateSet`: the lane whose units draw stars (`units.TABLE_KINDS`) has the sampling tables built once, every other lane has nothing to warm."""
+"""dict: The warm set of each template of a `TemplateSet`: the lane whose units draw stars (`units.TABLE_KINDS`) has the sampling tables built once, the maintenance lane (the warm-up and the checks, which build the site's app,
+OPS.229) has the app built once, every other lane has nothing to warm."""
 
 
 def template_key(kind):
@@ -303,9 +305,10 @@ class TemplateSet:
         self.hosts[key] = made
         return made
 
-    def fork(self, kind, runner, job=None, owner=None):
-        """Forks the unit of `kind` from its template. `owner` names who asked (the launcher forks units, `lightjobs.LightJobs` the site's jobs): only its owner's `poll` is told how the job ended. Returns `(key, Job)`."""
-        key = template_key(kind)
+    def fork(self, kind, runner, job=None, owner=None, template=None):
+        """Forks the unit of `kind` from its template (`template`, a key of `WARM_SETS`, when the caller names it: the maintenance lane's units are forked from `app`). `owner` names who asked (the launcher forks units,
+        `lightjobs.LightJobs` the site's jobs): only its owner's `poll` is told how the job ended. Returns `(key, Job)`."""
+        key = template or template_key(kind)
         held = self.host(key).fork(runner, job)
         self._owners[(key, held.id)] = owner
         return key, held

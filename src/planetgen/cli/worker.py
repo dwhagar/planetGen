@@ -20,7 +20,6 @@ import time
 
 import rq
 from rq.intermediate_queue import IntermediateQueue
-from rq.worker import RoundRobinWorker
 
 from planetgen import _version
 from planetgen.admin import updateguard
@@ -53,24 +52,18 @@ def warm(queues=None):
     its horse forks (`units.warm_unit`, `units.warm_star_tables`), and a worker that holds them starts itself over before a
     unit that does not (`WarmWorker.prepare_execution`).
 
+    OPS.229: the site's app, which a worker of the maintenance lane built once here (PERF.245), is the warm set of the maintenance lane's template now (`jobhost.WARM_SETS`, `warmup.warm_app`).
+
     Args:
-        queues (iterable, optional): The queue names served; a worker of `APP_QUEUES` also builds the site's app once (PERF.245).
+        queues (iterable, optional): The queue names served (nothing here depends on them now).
     """
     import importlib
     for name in WARM_MODULES:
         importlib.import_module(name)
-    if APP_QUEUES.intersection(queues or ()):
-        from planetgen.web import warmup
-        warmup.build_app()      # PERF.245: made once here and dropped; what it imports and sets up stays, so a horse's build_app takes 0.07 s, not 6.8 s
 
 
 GATE_REPORT_SECONDS = 5.0
 """float: How long a unit's or an opening's wait at the memory gate must last for the run's log to say so."""
-
-APP_QUEUES = frozenset(redisqueue.maintenance_lane())
-"""frozenset: The queues whose jobs build the site's app (`web/warmup.build_app`): a warm-up unit, a node prefetch. Their workers build it once before they fork a horse for a job (PERF.245); building it opens no
-connection or thread, so the horses share it safely. On a 4-core test box it cost a horse 6.8 s a job and costs a worker 75 MB."""
-
 
 def code_version_on_disk():
     """The release in `_version.py` as it is on disk now (the loaded module
@@ -90,7 +83,7 @@ def stale(loaded=None, on_disk=None):
     return on_disk is not None and on_disk != (loaded or _version.__version__)
 
 
-def worker_class(round_robin=False):
+def worker_class():
     """
     RQ's worker class with PERF.42's guard: a worker that pre-imports its
     code would keep serving the old release after an update (a horse used to
@@ -117,11 +110,10 @@ def worker_class(round_robin=False):
     TEST.371: when it registers, it stops counting among the workers `ensure_workers` is waiting for
     (`workers.registered`), so one killed soon after it started is replaced at once.
 
-    PERF.245: a worker of several queues (`round_robin`, the maintenance lane's `redisqueue.maintenance_lane()`) is RQ's
-    `RoundRobinWorker`: it takes one job from each queue in turn, so a cache warm-up that queued thousands of units never makes a
-    database check or a visitor's node wait behind them; with one queue it is the plain `rq.Worker`.
+    OPS.229: a worker serves one queue. The maintenance lane's units (the cache warm-up and the checks) are forked jobs of the supervisor's launcher now, and the one-queue-per-worker rule is RQ's reliable dequeue
+    back (a worker killed between taking a job and starting it no longer loses the job).
     """
-    base = RoundRobinWorker if round_robin else rq.Worker
+    base = rq.Worker
 
     class WarmWorker(base):
         def register_birth(self):
@@ -283,7 +275,7 @@ def main(argv=None):
     connection = redisqueue.connect(args.url, blocking=True)   # RQ blocks on the server; keepalive finds it gone
     queues = [redisqueue.queue(name, connection) for name in args.queues]
     workers.reap_dead_jobs(connection)      # the jobs a killed worker left "running"
-    worker = worker_class(round_robin=len(queues) > 1)(queues, connection=connection, name=args.name, serializer=redisqueue.JsonSerializer,
+    worker = worker_class()(queues, connection=connection, name=args.name, serializer=redisqueue.JsonSerializer,
                             job_class=allowlist.GuardedJob,       # SEC.45: a job naming a function off the list is refused, not run
                             work_horse_killed_handler=units.horse_killed,     # PERF.106: a killed unit fails its run now (PERF.254: after one retry)
                             job_monitoring_interval=int(memorygate.POLL_SECONDS))     # PERF.254: the claim is renewed and sampled this often

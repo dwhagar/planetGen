@@ -63,6 +63,7 @@ CALLBACKS = frozenset({
     "planetgen.queue.forkedjob.run",
     "planetgen.queue.lightjobs.run",
     "planetgen.queue.units.warm_star_tables",
+    "planetgen.web.warmup.warm_app",
 })
 """frozenset: The functions that run inside another claim: a job's callbacks, in the horse of the job they follow, and the runners of a job forked from a template (OPS.226: a unit's, which runs inside the unit's claim; OPS.230: a light job's, inside the claim of the API function it calls, `API_CLAIMS`), and the warm set of a template, which is the template's own to hold and no job's; none takes a claim of its own."""
 

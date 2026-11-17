@@ -91,6 +91,19 @@ def end_rows(kind):
     return {role: (role if kind is None or role == RELEASE else commands.end_name(kind, role)) for role in END_ROLES}
 
 
+JOB_CLASSES = {runrecord.GENERATION: "bulk", runrecord.MAINTENANCE: "maintenance", runrecord.CHECK: "maintenance"}
+"""dict: The job class of the rows of a run of each kind (OPS.229): the warm-up and the checks are the maintenance lane, which the launcher claims on its own lane and holds to its own cap."""
+
+
+def job_class(conn, run_id):
+    """The class of the rows of the run: `JOB_CLASSES` of its kind (`bulk` for a kind it does not know)."""
+    return JOB_CLASSES.get(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind")), "bulk")
+
+
+def _classed(jobs, name):
+    return [{**job, "job_class": name} for job in jobs]
+
+
 def _kind_of(conn, run_id, index):
     """The command of stage `index` of the run, from the steps its record holds (`None` for a run begun by hand, which holds none)."""
     key = _stage_key(conn, run_id, index)
@@ -195,7 +208,7 @@ def record_plan(conn, run_id, steps):
             extra = {"unmet": lacking[step.key]} if step.key in lacking else {}
             jobs.append({"stage": step.key, "command": OPEN, "arguments": {"index": index, "kind": step.kind, "label": step.label, "planned": True, **extra},
                          "needs": [AFTER + key for key in dict.fromkeys(earlier)], "makes": list(needs.makes_of(step.kind))})
-        ledger.add_jobs(control, run, jobs)
+        ledger.add_jobs(control, run, _classed(jobs, job_class(conn, run_id)))
         control.commit()
     except Exception:
         control.rollback()
@@ -231,10 +244,10 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
             summary["split"] = split
         opened = {"index": index, "plan": summary, "run_id": run_id, "cap": runrecord.declared_stages(conn, run_id)[index].get("cap")}      # the most units of it that run at once, when the run was asked
         try:
-            ledger.add_jobs(control, run, [{"stage": stage, "command": OPEN, "arguments": opened}]
-                            + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}
-                               for number, (args, unit_cost) in enumerate(units)]
-                            + _end_jobs(stage, kind))
+            ledger.add_jobs(control, run, _classed([{"stage": stage, "command": OPEN, "arguments": opened}]
+                                                    + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}
+                                                       for number, (args, unit_cost) in enumerate(units)]
+                                                    + _end_jobs(stage, kind), job_class(conn, run_id)))
             control.execute("UPDATE engine_jobs SET state = 'done', arguments = ?, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''",
                             (ledger._text(opened), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
             control.commit()
@@ -277,7 +290,7 @@ def queue_opening(conn, run_id, index):
     control = control_connection(conn, run_id)
     try:
         run, stage = engine_run(conn, run_id, control), _stage_key(conn, run_id, index)
-        ledger.add_jobs(control, run, [{"stage": stage, "command": OPENING, "arguments": {"run_id": run_id, "index": index}, "claim_mb": claims.CUT_MB}])
+        ledger.add_jobs(control, run, [{"stage": stage, "command": OPENING, "arguments": {"run_id": run_id, "index": index}, "claim_mb": claims.CUT_MB, "job_class": job_class(conn, run_id)}])
         control.execute("UPDATE engine_jobs SET state = 'ready', waited = NULL, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, OPENING))
         found = control.execute("SELECT id FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, OPENING)).fetchone()["id"]
         control.commit()

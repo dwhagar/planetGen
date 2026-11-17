@@ -62,7 +62,7 @@ class InlineForker:
     def __init__(self):
         self.exits, self.made = [], 0
 
-    def fork(self, kind, runner, job=None):
+    def fork(self, kind, runner, job=None, template=None):
         from planetgen.queue import forkedjob, jobhost
         self.made += 1
         link = _Link()
@@ -87,7 +87,7 @@ class InlineLightForker:
     def __init__(self):
         self.exits, self.made = [], 0
 
-    def fork(self, kind, runner, job=None, owner=None):
+    def fork(self, kind, runner, job=None, owner=None, template=None):
         from planetgen.queue import jobhost, lightjobs
         self.made += 1
         link = _Link()
@@ -181,8 +181,7 @@ def inline_queue(monkeypatch=None):
         connection = connection or redisqueue.connect(url)
         rq.SimpleWorker([redisqueue.queue(name, connection)], connection=connection, serializer=redisqueue.JsonSerializer,
                         job_class=allowlist.GuardedJob).work(burst=True, logging_level="WARNING")     # SEC.45: the real worker's guard
-        if name == queue_name:
-            run_ready_rows()            # OPS.228: the units a ledger run released for the launcher
+        run_ready_rows()            # OPS.228, OPS.229: the units a ledger run released for the launcher, whatever its kind
         return 0
 
     real_stage_ensure = wrapper.stage_ensure
@@ -193,9 +192,8 @@ def inline_queue(monkeypatch=None):
 
         def ask():
             started = ensure()
-            if wrapper.queue_of(kind) == queue_name:
-                run_ready_rows()
-                used.append(True)
+            run_ready_rows()                # OPS.229: a warm-up or a check has its units handed out by the launcher too
+            used.append(True)
             return started
         return ask
 

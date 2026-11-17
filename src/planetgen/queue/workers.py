@@ -174,10 +174,10 @@ def live_worker_count(queue):
 
 def lane_of(queue_name):
     """
-    The queues one worker started for `queue_name` serves (PERF.245): the maintenance lane's two (`redisqueue.maintenance_lane()`,
-    one per task type, taken in turn) for any of them, else just the queue itself.
+    The queues one worker started for `queue_name` serves: just the queue itself (OPS.229: a worker serves one queue; the maintenance lane's workers took one job from each of its two queues in turn, RQ's
+    `RoundRobinWorker`, until its runs moved to the launcher).
     """
-    return redisqueue.maintenance_lane() if queue_name in redisqueue.maintenance_lane() else (queue_name,)
+    return (queue_name,)
 
 
 def reserved_places(queue_name):

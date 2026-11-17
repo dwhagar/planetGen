@@ -218,8 +218,9 @@ def _open(conn, run_id, index):
 
 
 def forked(conn, run_id):
-    """Whether the units of this run's stage are handed out by the launcher (OPS.228): the setting is on, the run has a ledger and it is a generation run."""
-    return (get_settings().queue.forked_jobs and run_kind(conn, run_id) == runrecord.GENERATION and planrows.ledgered(conn, run_id))
+    """Whether the units of this run's stage are handed out by the launcher (OPS.228, OPS.229): the run has a ledger and it is of a kind the launcher serves (a generation run, a cache warm-up or a
+    database check: `planrows.JOB_CLASSES`)."""
+    return run_kind(conn, run_id) in planrows.JOB_CLASSES and planrows.ledgered(conn, run_id)
 
 
 def _end_held(conn, earlier):
