@@ -839,7 +839,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.37 | 97% of planets land in the cold zone (bug) | none | done, PR #350 |
 | GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | done, PR #415 |
 | GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | done, PR #381 |
-| GEN.40 | Weed out sectors by star density before the bright-star backfill | none | open |
+| GEN.40 | Weed out sectors by star density before the bright-star backfill | none | done (closed 3:17 AM EST 11-17 on Lane 07's review: delivered as the block-first candidate draw GEN.308/309, epoch 75, 3.9 ms to 0.19 ms a sparse cell; literal weeding was shown wrong by GEN.42 and GEN.102 found no sector to weed; the backfill cost is the sky draw, OPS.269/PERF.275) |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | none | done, PR #812 |
 | GEN.42 | A block-first draw for the backfill (umbrella) | none | open |
 | GEN.43 | Don't over-filter: keep bright stars in odd places | none | done, PR #812 |
