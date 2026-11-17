@@ -349,3 +349,47 @@ def test_a_light_job_killed_from_outside_fails_naming_the_signal_and_one_over_it
     connection.hset(lightjobs.job_key(slow), "limit", "1")
     body = _turns(forking, connection, slow, ("failed",))
     assert body["error"] == "the job ran past its time limit of 1 s and was ended"
+
+
+def test_a_kind_with_enough_recorded_runs_is_held_to_a_multiple_of_its_longest_and_one_with_few_to_the_typed_limit(duty, monkeypatch):
+    """OPS.251: the limit is the kind's own figure once it has a history; the typed one is only what a kind with none is held to."""
+    from planetgen.queue import jobprofiles
+    assert lightjobs.learned_limit([10.0] * (lightjobs.LEARNED_SAMPLES - 1)) is None
+    assert lightjobs.learned_limit([10.0] * lightjobs.LEARNED_SAMPLES) == lightjobs.LEARNED_FLOOR_SECONDS, "three times ten is under the clamp"
+    assert lightjobs.learned_limit([10.0] * 7 + [100.0]) == lightjobs.LEARNED_MULTIPLE * 100.0
+    connection, clock, forker, _held = duty.test
+    seen = []
+    monkeypatch.setattr(jobprofiles, "seconds_of", lambda kind, limit=60, conn=None: seen.append(kind) or [10.0] * lightjobs.LEARNED_SAMPLES)
+    job_id = _submit(connection, expected_seconds=None)
+    connection.hset(lightjobs.job_key(job_id), "limit", "100000")
+    duty.turn()
+    assert duty.running[job_id].limit == lightjobs.LEARNED_FLOOR_SECONDS and len(seen) == 1
+    clock.now += lightjobs.LEARNED_FLOOR_SECONDS + 1
+    assert duty.limits() == [job_id]
+    other = _submit(connection, expected_seconds=None)
+    connection.hset(lightjobs.job_key(other), "limit", "100000")
+    duty.turn()
+    assert len(seen) == 1, "what was read of the kind is kept"
+    monkeypatch.setattr(jobprofiles, "seconds_of", lambda kind, limit=60, conn=None: [10.0])
+    duty.learned.clear()
+    third = _submit(connection, expected_seconds=None)
+    connection.hset(lightjobs.job_key(third), "limit", "777")
+    duty.turn()
+    assert duty.running[third].limit == 777.0, "too few recorded runs: the typed limit"
+
+
+def test_a_job_that_ends_on_its_own_leaves_its_seconds_for_its_kind_and_one_the_clock_ended_does_not(duty, monkeypatch):
+    from planetgen.queue import jobprofiles
+    connection, clock, forker, _held = duty.test
+    kept = []
+    monkeypatch.setattr(jobprofiles, "record", lambda kind, **figures: kept.append((kind, figures["seconds"])))
+    monkeypatch.setattr(jobprofiles, "seconds_of", lambda kind, limit=60, conn=None: [])
+    fine, slow = _submit(connection), _submit(connection)
+    connection.hset(lightjobs.job_key(slow), "limit", "5")
+    duty.turn()
+    clock.now += 7
+    duty.limits()
+    forker.end(slow, number=signal.SIGKILL)
+    forker.end(fine)
+    duty.turn()
+    assert len(kept) == 1 and kept[0][1] == 7.0 and kept[0][0].startswith(("api:", "fn:"))

@@ -10,7 +10,7 @@ the duplicates) and must add no MySQL write to the site's fast path. So they are
   longer than `queue.long_job_seconds`), when it was queued, started and ended, and, once it ends, its result or its error. Kept `RESULT_TTL_SECONDS` after the end. The list of those not yet
   started is `pending_key` (oldest first), and of those running `running_key`.
 * **The supervisor's duty `LightJobs`** takes the pending jobs oldest first, asks the dispatch rule (`dispatch.dispatch`, which serves the site's lanes before every other and keeps their places
-  clear) which go now, and forks each from the `plain` template (`jobhost.TemplateSet`) running `run`. It ends what ran past its time limit (ten times what it was expected to take, as RQ's limit was,
+  clear) which go now, and forks each from the `plain` template (`jobhost.TemplateSet`) running `run`. It ends what ran past its time limit (OPS.251: `LEARNED_MULTIPLE` times the longest of the kind's own recorded runs once it has `LEARNED_SAMPLES` of them; until then ten times what it was expected to take, as RQ's limit was,
   `time_limit`), settles a job whose process ended without saying how it ended, and drops a job nobody is waiting for.
 * **A deadline** (W12 of the audit): a job that says how long it stays wanted (`wanted_seconds`: a page's answer) is dropped, if it has not started, once nobody has asked about it for that long.
   Every `status` is such an ask. A job that began is never dropped: it ends, and its answer is kept for the next visitor. A job that says nothing (an edit, a regeneration) is never dropped.
@@ -41,6 +41,18 @@ UNESTIMATED_SECONDS = 3600
 
 ESTIMATED_CEILING_SECONDS = 7 * 86400
 """int: The longest limit of a job with an estimate (a neighbourhood of a great many sectors can run for days)."""
+
+LEARNED_SAMPLES = 8
+"""int: How many finished runs of a kind (`jobprofiles.seconds_of`) its time limit needs before the limit is the kind's own figure and not the typed one (OPS.251). Stand-in."""
+
+LEARNED_MULTIPLE = 3.0
+"""float: The learned time limit is this many times the longest of the kind's recorded runs. Stand-in; OPS.249 (H4) learns the edges of the controllers from recorded runs, this one is for it to take too."""
+
+LEARNED_FLOOR_SECONDS = 30.0
+"""float: The least a learned limit is, so a kind that always finishes in a blink is not ended by one slow moment of the host. A clamp, not an estimate."""
+
+LEARNED_KEEP_SECONDS = 300.0
+"""float: How long the supervisor keeps what it read of a kind, so a start reads the database once in this time and not at every job."""
 
 JOB_ID_RE = re.compile(r"^[0-9a-f]{16}$")
 """re.Pattern: A job id. Checked before any id from a URL reaches Redis."""
@@ -115,6 +127,14 @@ def time_limit(expected_seconds=None):
     """The seconds a job may run before the supervisor ends it (PERF.144): `redisqueue.job_timeout` of `expected_seconds`, at most `ESTIMATED_CEILING_SECONDS`, and `UNESTIMATED_SECONDS` for a job
     with no estimate."""
     return redisqueue.job_timeout(expected_seconds, ceiling=ESTIMATED_CEILING_SECONDS, unestimated=UNESTIMATED_SECONDS)
+
+
+def learned_limit(seconds):
+    """The time limit a kind's own recorded run times give (OPS.251), or `None` while it has fewer than `LEARNED_SAMPLES` of them: `LEARNED_MULTIPLE` times the longest, at least `LEARNED_FLOOR_SECONDS`.
+    The typed limit (`time_limit`) stays what a kind with no history is held to."""
+    if len(seconds) < LEARNED_SAMPLES:
+        return None
+    return max(LEARNED_FLOOR_SECONDS, LEARNED_MULTIPLE * max(seconds))
 
 
 def is_long(expected_seconds):
@@ -377,6 +397,7 @@ class LightJobs:
         self.hold = hold or (lambda: None)      # the memory controller's `holding` (OPS.231): the site's own lanes still go, the upkeep a visit asked for (the node prefetch) waits
         self.held_mb = held_mb
         self.running = {}
+        self.learned = {}       # kind -> (when read, the limit its recorded runs give or None): OPS.251
         self.recovered_at = None
         self.supervisor = None
 
@@ -424,7 +445,10 @@ class LightJobs:
         return done
 
     def _learn(self, started):
-        """What the job's processes held at most is what the next claim of its kind starts from (`memorygate.learn`), as a worker's was."""
+        """What the job's processes held at most is what the next claim of its kind starts from (`memorygate.learn`), as a worker's was. How long it took is kept for the kind's time limit (OPS.251), unless the clock ended it."""
+        if not started.killed:
+            from planetgen.queue import jobprofiles
+            jobprofiles.record(started.claim.kind, seconds=self.clock() - started.started, peak_mb=started.peak_mb or None)
         if started.peak_mb > 0:
             try:
                 memorygate.learn(self.connection, started.claim.kind, started.peak_mb)
@@ -557,9 +581,23 @@ class LightJobs:
             return None
         self.connection.hset(job_key(job_id), "pid", forked.pid)
         started = Started(job_id, forked, key, claim, now)
-        started.limit = float(record["limit"]) if record.get("limit") else None
+        started.limit = self._limit_of(claim.kind, float(record["limit"]) if record.get("limit") else None)
         self.running[job_id] = started
         return started
+
+    def _limit_of(self, kind, typed):
+        """The job's time limit: the kind's own (`learned_limit` of what it took before), else the typed one the job was added with. What was read of a kind is kept `LEARNED_KEEP_SECONDS`; a database that does not answer leaves the typed limit."""
+        found = self.learned.get(kind)
+        now = self.clock()
+        if found is None or now - found[0] > LEARNED_KEEP_SECONDS:
+            try:
+                from planetgen.queue import jobprofiles
+                found = (now, learned_limit(jobprofiles.seconds_of(kind)))
+            except Exception as exc:  # noqa: BLE001 -- the typed limit holds
+                log.swallowed("queue/lightjobs", "_limit_of", exc)
+                found = (now, None)
+            self.learned[kind] = found
+        return found[1] if found[1] is not None else typed
 
     def _back(self, job_id, record, reason):
         """A job that could not be forked yet goes back to the pending list with its first place and a reason."""
