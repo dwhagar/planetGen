@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1775 |
+| GEN | GEN.1776 |
 | PERF | PERF.275 |
 | DB | DB.135 |
 | API | API.52 |
@@ -4091,7 +4091,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1762 | biogenic_oxygen.EARTH_HEAT_W (4.4e13 W) is a fourth Earth heat reference, so an Earth twin gets 0.7 of Earth's reductant flux; read the one Earth heat reference GEN.1636 settled on, and say why the interior model's Earth twin gives 0.0614 W/m2 against the measured 0.087 | done (Train 39, PR 6909, merged 2:01 PM EST 11-16; item PR 6842, Lane 04) |
 | GEN.1763 | A body freed from the 375 K guard (GEN.1579) can degas thousands of bar of CO2 and OCS at 600 K: one class N body in Lane 03's 80-system run has 7,825 bar and a greenhouse asking 1,481 K; check carbonate and sulfur degassing at that heat against sources | closed, no code change (Lane 03, 12:13 PM EST 11-16, report reports/gen1763-hot-wet-body-degassing-2026-11-16.md): no degassing law is wrong at 500 to 600 K; the 7,825 bar body kept its carbon because its ocean was all vapor so weathering was off, and it no longer exists on main after GEN.1754; the dry-surface carbonate buffer is GEN.1767 |
 | GEN.1764 | Wire or delete two unread belt functions left when GEN.1068 and GEN.1072 closed: belt_origin.destroyed_planet and clearance_ledger.log_uniform_quantile | done (PR 6868, Lane 06, merged 10:36 AM EST 11-16: belt_origin.destroyed_planet and clearance_ledger.log_uniform_quantile/restricted_quantile deleted with their wiring-register lines and registry row BG10; nothing generated changes) |
-| GEN.1765 | Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt | done (PRs 6876 and 6879, Lane 06, merged in Train 40, PR 6938, 6:47 PM EST 11-16) |
+| GEN.1765 | Draw a star's own comets from physics instead of the hand-set shape of GEN.595: a power-law nucleus size and a supply from the system's outer belt | done (PRs 6876 and 6879, Lane 06, merged in Train 40, PR 6938, 6:47 PM EST 11-16); Boss 8:43 PM EST 11-16: physics with a scale setting, GEN.1775 |
 | GEN.1766 | (bug) The life-air caps are worked before the air settles: a life-bearing world whose air holds water vapor can freeze it out when methane cools it, leaving methane, hydrogen or hydrogen sulfide above their caps (3 test_life_air reds after GEN.1579) | done (PR 6880, Lane 03, merged in Train 40, PR 6938, 6:47 PM EST 11-16) |
 | GEN.1767 | Research a dry-surface carbonate buffer for bodies whose ocean has gone (carbonate-silicate equilibrium on dry rock, limited by the crust's calcium): today weathering switches off when the ocean is all vapor and nothing takes the carbon | open |
 | GEN.1768 | (bug) A hot thick non-steam body holds 339 bar of oxygen in a 374 bar air (Ebge Angus V on main, 180-system run): check where that oxygen comes from in the oxygen balance | closed, no code change (Lane 02, 12:23 PM EST 11-16, traced on main a756e09b0a seed 4008): the 339 bar O2 is the abiotic-oxygen recipe row j5, oxygen left by photolyzed ocean water with a drawn crust sink of 0.11; it is under what the body's own water loss implies (about 880 bar), so no ledger error; the weak part, the drawn sink, is GEN.1769 |
@@ -4101,6 +4101,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1772 | (bug) Civilizations on worlds whose air the species placement refuses (the air cannot be breathed) | open (Lane 04) |
 | GEN.1773 | (bug) A body past the runaway limit keeps an ocean (Venus twin at 586 K, 118 bar) | open (Lane 14) |
 | GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | open (Lane 02) |
+| GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | open (Lane 06) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
