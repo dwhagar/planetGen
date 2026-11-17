@@ -43213,7 +43213,11 @@
           "what": "envelope_capture.FLAT_BELOW_MASS_EARTH 1: below 1 Earth mass the median starting envelope stops falling with the mass and is its value at 1 Earth mass, 0.0019 of the mass (Young et al.'s favoured solution: a total H-mass fraction of about 0.2 percent for an embryo of 0.5 Earth masses, the same at 0.3, no dependence on mass above ~0.2)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, the smooth rise of the share of bodies that keep their envelope from 1 to 3 Earth masses (GEN.1774) has no source for its width or its shape: Young et al. [R5293] say giant impacts after the disk is gone remove the gas of embryos, and the Lopez and Fortney radius law is fitted from 1 Earth mass, but no measured fraction of 1 to 3 Earth-mass planets with an envelope is in hand; the first measured fraction by mass (a radius and mass sample of rocky and gas-dwarf planets split at 1 to 3 Earth masses) or a formation model that follows the late impacts of a core replaces the smoothstep"
+          ],
           "fields": [
             [
               "What it is",
