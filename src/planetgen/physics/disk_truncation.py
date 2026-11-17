@@ -21,7 +21,7 @@ coplanar (a mutual inclination only moves the cut further out); the factor does 
 
 import math
 
-from planetgen.physics import radiation_field
+from planetgen.physics import constants, pre_main_sequence, radiation_field
 
 TRUNCATION_OF_ROCHE_LOBE = 0.733
 """float: The share of the host's Roche lobe at periastron where a circumstellar disk ends (disks of binaries truncate at about 0.7 of the Roche lobe in simulations of the disk's tidal
@@ -51,12 +51,27 @@ def star_companion_axis_au(star):
     return axis
 
 
+def has_close_companion(star):
+    """Whether `star` has a companion inside `CLOSE_COMPANION_AXIS_AU` (the companions the system attached, `star_companion_axis_au`)."""
+    return star_companion_axis_au(star) < CLOSE_COMPANION_AXIS_AU
+
+
+def disk_time_yr(star):
+    """
+    The age at which `star` loses its disk, years (GEN.1551, `pre_main_sequence.dispersal_yr`): the star's own time from its initial mass, the shorter one when it has a close companion (`has_close_companion`). The
+    reader of the end of the disk for the star's bodies: the time a thrown-out body leaves (`planet_architecture.build`, `disk_ejection`), and when its planets exist for the cluster that unbinds them.
+    """
+    holder = star.stars[0] if getattr(star, "stars", None) else star          # a close pair's proxy keeps its primary's mass
+    mass_sol = getattr(holder, "initial_mass_sol", None) or holder.mass / constants.SOLAR_MASS_TO_KG
+    return pre_main_sequence.dispersal_yr(mass_sol, has_close_companion(star))
+
+
 def gas_survival_factor(star):
     """
     The factor on the chance a core of `star` finds gas (GEN.1475): `CLOSE_COMPANION_GAS_SHARE` for a star with a companion inside `CLOSE_COMPANION_AXIS_AU` (its disk is gone within 1 Myr in two thirds of such systems, with no gas
     for a core to find), 1 for every other star, so a lone star or a wide pair draws exactly as before.
     """
-    return CLOSE_COMPANION_GAS_SHARE if star_companion_axis_au(star) < CLOSE_COMPANION_AXIS_AU else 1.0
+    return CLOSE_COMPANION_GAS_SHARE if has_close_companion(star) else 1.0
 
 
 def roche_lobe_share(mass_ratio):

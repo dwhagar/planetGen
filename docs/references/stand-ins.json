@@ -33525,7 +33525,7 @@
           "fields": [
             [
               "What it is",
-              "cluster_unbinding.history_of: a cluster's life from the end of its disk (3 Myr) to its age is cut into HISTORY_PIECES 8 equal pieces, each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
+              "cluster_unbinding.history_of: a cluster's life from its formation to its age is cut into HISTORY_PIECES 8 equal pieces (a star's planets feel only the part after the end of the star's own disk, unbinding_epoch_myr, GEN.1551), each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
             ],
             [
               "The range it moves in",
@@ -33556,7 +33556,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "cluster_unbinding.history_of: a cluster's life from the end of its disk (3 Myr) to its age is cut into HISTORY_PIECES 8 equal pieces, each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
+          "what": "cluster_unbinding.history_of: a cluster's life from its formation to its age is cut into HISTORY_PIECES 8 equal pieces (a star's planets feel only the part after the end of the star's own disk, unbinding_epoch_myr, GEN.1551), each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
         },
         {
           "burn_down": null,
@@ -57797,7 +57797,7 @@
           "fields": [
             [
               "What it is",
-              "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
+              "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build when the star's own disk time is not given (a star's is disk_truncation.disk_time_yr, GEN.1551, read by planet_architecture.build and disk_ejection; a top-up rogue with no star keeps this one)"
             ],
             [
               "The range it moves in",
@@ -57828,7 +57828,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
+          "what": "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build when the star's own disk time is not given (a star's is disk_truncation.disk_time_yr, GEN.1551, read by planet_architecture.build and disk_ejection; a top-up rogue with no star keeps this one)"
         }
       ],
       "slug": "6-127-stand-ins-of-the-architecture-s-losses",

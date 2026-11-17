@@ -23,17 +23,17 @@ DENSE = ((100.0, 1.0e5, 20.0),)
 """A history that unbinds every planet beyond a few AU: 100 Myr at 1e5 solar masses per cubic parsec and 20 km/s."""
 
 
-def test_a_clusters_history_is_pieces_from_the_end_of_the_disk_to_its_age_with_a_density_that_falls():
+def test_a_clusters_history_is_pieces_from_its_formation_to_its_age_with_a_density_that_falls():
     history = cu.history_of(300.0, 3.0, 0.2)
     assert len(history) == cu.HISTORY_PIECES
-    assert sum(piece[0] for piece in history) == pytest.approx(200.0 - cu.DISK_LIFETIME_MYR)
+    assert sum(piece[0] for piece in history) == pytest.approx(200.0)
     densities = [piece[1] for piece in history]
     assert densities == sorted(densities, reverse=True) and densities[0] > 10.0 * densities[-1]
     assert history[-1][1] == pytest.approx(cu.half_mass_density(300.0, 3.0))       # the radius has stopped growing by then: the present one
 
 
-def test_a_cluster_no_older_than_the_disk_has_no_history():
-    assert cu.history_of(300.0, 3.0, 0.002) == ()
+def test_a_cluster_of_no_age_has_no_history():
+    assert cu.history_of(300.0, 3.0, 0.0) == ()
 
 
 def test_the_virial_dispersion_of_a_plummer_cluster_is_the_textbook_one():
@@ -44,27 +44,41 @@ def test_the_draws_that_unbind_a_planet_are_the_share_the_history_unbinds_over_i
     history = cu.history_of(3000.0, 2.0, 0.1)
     a, mass = 1000.0, 1.0
     draws = [(k + 0.5) / 2000.0 for k in range(2000)]
-    gone = sum(1 for u in draws if cu.unbinding_epoch_myr(a, mass, history, u) is not None) / len(draws)
+    gone = sum(1 for u in draws if cu.unbinding_epoch_myr(a, mass, history, u, 0.0) is not None) / len(draws)
     soft = tuple(piece for piece in history if cu.soft(a, mass, piece[2]))
     assert soft and gone == pytest.approx(cu.unbound_fraction(a, soft), abs=2e-3)
 
 
 def test_the_time_a_planet_is_pulled_off_grows_with_its_draw_and_lies_inside_the_clusters_life():
     history = cu.history_of(3000.0, 2.0, 0.1)
-    times = [cu.unbinding_epoch_myr(1000.0, 1.0, history, u) for u in (0.01, 0.1, 0.3, 0.5)]
+    times = [cu.unbinding_epoch_myr(1000.0, 1.0, history, u, 3.0) for u in (0.01, 0.1, 0.3, 0.5)]
     times = [t for t in times if t is not None]
-    assert len(times) >= 2 and times == sorted(times) and all(cu.DISK_LIFETIME_MYR <= t <= 100.0 for t in times)
+    assert len(times) >= 2 and times == sorted(times) and all(3.0 <= t <= 100.0 for t in times)
+
+
+def test_the_planets_feel_only_the_part_of_the_history_after_the_end_of_their_stars_disk():
+    """GEN.1551: a star whose disk lasts longer meets fewer encounters as a planet, so the cluster takes fewer of its planets, and none is taken before the disk is gone."""
+    history = cu.history_of(3000.0, 2.0, 0.1)
+    a, mass = 1000.0, 1.0
+    draws = [(k + 0.5) / 400.0 for k in range(400)]
+    shares = []
+    for start in (0.0, 3.0, 30.0, 90.0):
+        times = [cu.unbinding_epoch_myr(a, mass, history, u, start) for u in draws]
+        assert all(t >= start for t in times if t is not None)
+        shares.append(sum(1 for t in times if t is not None))
+    assert shares == sorted(shares, reverse=True) and shares[0] > shares[-1]
+    assert all(cu.unbinding_epoch_myr(a, mass, history, u, 100.0) is None for u in draws), "the cluster is gone before the disk"
 
 
 def test_a_tight_orbit_is_hard_against_the_cluster_and_is_never_pulled_off():
     history = cu.history_of(300.0, 3.0, 0.2)
     assert not cu.soft(1.0, 1.0, history[-1][2])
-    assert all(cu.unbinding_epoch_myr(1.0, 1.0, history, u) is None for u in (0.1, 0.5, 0.99))
+    assert all(cu.unbinding_epoch_myr(1.0, 1.0, history, u, 3.0) is None for u in (0.1, 0.5, 0.99))
 
 
 def test_a_draw_outside_zero_to_one_is_refused():
     with pytest.raises(cu.ClusterUnbindingError):
-        cu.unbinding_epoch_myr(1000.0, 1.0, DENSE, 1.0)
+        cu.unbinding_epoch_myr(1000.0, 1.0, DENSE, 1.0, 3.0)
 
 
 def _seed(distance, mass_earth):

@@ -13,7 +13,7 @@ import pytest
 from planetgen.generation import belt as belt_module, belt_birth, disk_ejection, irregular_moons
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import scatter, swept_hand_on, unit_registry as units
+from planetgen.physics import disk_truncation, scatter, swept_hand_on, unit_registry as units
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy, first_seed_with
@@ -50,7 +50,7 @@ def test_a_disk_loss_is_a_thrown_planets_record_with_the_giant_as_its_scatterer(
     belt = types.SimpleNamespace(body_type='a', swept_kg={"ejected": 3.0 * EARTH_KG}, scatter_giant_kg=1.9e27, scatter_giant_radius_km=7.0e4, scatter_giant_au=5.2, distance=40.0, lower_limit=30.0)
     [loss] = disk_ejection.disk_losses([belt], star)
     assert loss.kind == "disk" and loss.count == 2 and loss.mass_kg == pytest.approx(0.4 * EARTH_KG) and loss.ejected == 1.0
-    assert loss.perturber_au == 5.2 and loss.perturber_mass_kg == 1.9e27 and loss.ice_rich and loss.time_yr == disk_ejection.DISK_EJECTION_TIME_YR and loss.theta > 0.0 and loss.hill_radius_au > 0.0
+    assert loss.perturber_au == 5.2 and loss.perturber_mass_kg == 1.9e27 and loss.ice_rich and loss.time_yr == disk_truncation.disk_time_yr(star) and loss.theta > 0.0 and loss.hill_radius_au > 0.0
     assert disk_ejection.disk_losses([types.SimpleNamespace(body_type='a', swept_kg=None)], star) == []
 
 
