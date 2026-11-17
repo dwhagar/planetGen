@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1778 |
+| GEN | GEN.1779 |
 | PERF | PERF.276 |
 | DB | DB.135 |
 | API | API.52 |
@@ -4107,6 +4107,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | open (Lane 06) |
 | GEN.1776 | Civilizations arise only in CO2-rich air (19 to 792 kPa), none Earth-like | closed, measured, no code change (Lane 04, 9:49 PM EST 11-16; linked to GEN.1720 and GEN.1731; Boss kept the life clock stand-ins, 9:51 PM EST) |
 | GEN.1777 | (high) No Class M family at Plentiful: funnel and a tunable CO2 lever. Measure whether the CO2 supply needs a tweak (report first, Boss decides) | open (Lane 04) |
+| GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | open (Lane 14) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
