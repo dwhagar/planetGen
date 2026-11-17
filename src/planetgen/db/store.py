@@ -999,6 +999,9 @@ class Connection:
         self._parity_touched = set()
         """set: The sector ids this transaction marked `parity_dirty`, for the parity file to catch up after the commit
         (`parity_touch`); empty when `parity.enabled` is off."""
+        self._parity_before = {}
+        """dict: `sector_id -> (export, checksum)`, the before-images the edit paths took (`parity_before`) for the parity file to
+        make an edit a delta; dropped at commit and rollback."""
         self._flagged = set()
         """set: The `(kind, id)` of sectors and systems this transaction has already marked `parity_dirty` for an INSERT
         (DB.45), and the systems it inserted itself (their sector was marked by the INSERT); cleared at commit and rollback."""
@@ -1294,9 +1297,25 @@ class Connection:
             self._after_commit.append(self._protect_touched)
         self._parity_touched |= found
 
+    def parity_before(self, where, params=()):
+        """
+        Takes the export of each sector `WHERE where` selects, as it is now, so that the parity file can make the edit this
+        transaction is about to write a delta (`parity.before_image`). Call it before the first write of the edit; a sector the
+        transaction already touched, one the file does not hold and one that is not sealed are skipped (the parity then makes
+        the group again from its rows, as it always could). Does nothing unless `parity.enabled` is on.
+        """
+        if not parity.enabled():
+            return
+        for row in self._run(f"SELECT id FROM sectors WHERE {where}", tuple(params)).fetchall():
+            sector_id = row["id"]
+            if sector_id in self._parity_before or sector_id in self._parity_touched:
+                continue
+            self._parity_before[sector_id] = parity.before_image(self, sector_id)     # None: looked at once, no image to give
+
     def _protect_touched(self):
         touched, self._parity_touched = self._parity_touched, set()
-        parity.protect_sectors(self._config, touched)
+        befores, self._parity_before = self._parity_before, {}
+        parity.protect_sectors(self._config, touched, {key: image for key, image in befores.items() if image is not None})
 
     def commit(self):
         self.flush()
@@ -1312,6 +1331,7 @@ class Connection:
             except Exception as exc:  # noqa: BLE001 -- the transaction is durable; what follows it must not undo that
                 name = getattr(callback, "__qualname__", None) or repr(callback)       # OPS.164: which step, and where it broke
                 log.exception(f"After-commit step {name} failed: {type(exc).__name__}: {exc}")
+        self._parity_before = {}        # an image no touch followed is of no use to the next transaction
 
     def rollback(self):
         if log.debug_log_active():
@@ -1322,6 +1342,7 @@ class Connection:
         self._flagged.clear()
         self._after_commit = []
         self._parity_touched = set()
+        self._parity_before = {}
         try:
             self._conn.rollback()
         except pymysql.err.InterfaceError:
@@ -2139,6 +2160,7 @@ def rename_star_system(conn, star_system_id, new_name, reason="rename"):
                        (star_system_id,)).fetchone()
     if row is None:
         return False
+    conn.parity_before("id = (SELECT sector_id FROM star_systems WHERE id = ?)", (star_system_id,))
     designation_rows.set_name(conn, "star_systems", star_system_id, new_name, reason, old_name=row["name"],
                               extra_set="modified_at = CURRENT_TIMESTAMP(3)")
     storage_checksum.mark_system(conn, star_system_id)
@@ -2167,6 +2189,7 @@ def rename_star(conn, star_id, new_name):
         return False
     if row["role"] == "single":
         return rename_star_system(conn, row["star_system_id"], new_name)
+    conn.parity_before("id = (SELECT sector_id FROM star_systems WHERE id = ?)", (row["star_system_id"],))
     designation_rows.set_name(conn, "stars", star_id, new_name, "rename", old_name=row["name"])
     storage_checksum.mark_system(conn, row["star_system_id"])
     # Since GEN.62 a wide pair's planets carry one word of their star's
@@ -2205,6 +2228,7 @@ def rename_body(conn, table, body_id, new_name):
     row = conn.execute(f"SELECT star_system_id FROM {table} WHERE id = ?", (body_id,)).fetchone()
     if row is None:
         return False
+    conn.parity_before("id = (SELECT sector_id FROM star_systems WHERE id = ?)", (row["star_system_id"],))
     designation_rows.set_name(conn, table, body_id, new_name, "rename")
     touch_star_system(conn, row["star_system_id"])
     return True
@@ -2354,8 +2378,7 @@ def reserve_sector_name(conn, candidate_name, sector_id):
             # and accents).
             old_name, renamed_to = resolve_greek_roman_collision(row["base_name"], existing_count)[1]
             for holder in conn.execute("SELECT id, name FROM sectors WHERE name = ? AND id <> ?", (old_name, sector_id)).fetchall():
-                designation_rows.set_name(conn, "sectors", holder["id"], renamed_to, "collision bump", old_name=holder["name"],
-                                          extra_set="parity_dirty = 1")
+                designation_rows.set_name(conn, "sectors", holder["id"], renamed_to, "collision bump", old_name=holder["name"])
 
         return new_name, base
 
@@ -2410,6 +2433,7 @@ def rename_phenomenon(conn, table, object_id, new_name, reason="rename"):
     row = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (object_id,)).fetchone()
     if row is None:
         return False
+    conn.parity_before(f"id = (SELECT sector_id FROM {table} WHERE id = ?)", (object_id,))
     designation_rows.set_name(conn, table, object_id, new_name, reason, old_name=row["name"])
     if table == "supernova_remnants":
         core = conn.execute(
@@ -6218,6 +6242,8 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
     if birth_sector_id is None and columns.get("star_system_id") is not None:
         row = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (columns["star_system_id"],)).fetchone()
         birth_sector_id = None if row is None else row["sector_id"]
+    if birth_sector_id is not None:
+        conn.parity_before("id = ?", (birth_sector_id,))
     [facility_uid] = _runtime_uids(conn, _sector_birth_address(conn, birth_sector_id), 1)   # born now (GEN.172)
     cur = conn.execute(
         """
@@ -6280,6 +6306,8 @@ def delete_facility(conn, facility_id):
     row = conn.execute("SELECT star_system_id FROM facilities WHERE id = ?", (facility_id,)).fetchone()
     if row is None:
         return False
+    conn.parity_before("id = (SELECT COALESCE(f.sector_id, ss.sector_id) FROM facilities f"
+                       " LEFT JOIN star_systems ss ON ss.id = f.star_system_id WHERE f.id = ?)", (facility_id,))
     storage_checksum.mark_rows(conn, "facilities", [facility_id])
     conn.execute("DELETE FROM facilities WHERE id = ?", (facility_id,))
     if row["star_system_id"] is not None:
@@ -8458,7 +8486,8 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     # final, collision-free name. See `reserve_sector_name`.
     final_name, _name_base = reserve_sector_name(conn, sector.name, sector_id)
     if final_name != sector.name:
-        conn.execute("UPDATE sectors SET name = ?, parity_dirty = 1 WHERE id = ?", (final_name, sector_id))
+        conn.execute("UPDATE sectors SET name = ? WHERE id = ?", (final_name, sector_id))
+        storage_checksum.mark_sector(conn, sector_id)
     sector.name = final_name
 
     # Every system and uniquely named phenomenon in the sector reserves
@@ -8901,6 +8930,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     row = conn.execute("SELECT name FROM star_systems WHERE id = ?", (star_system_id,)).fetchone()
     if row is None:
         return False
+    conn.parity_before("id = (SELECT sector_id FROM star_systems WHERE id = ?)", (star_system_id,))
     storage_checksum.mark_system(conn, star_system_id)
     # Saved standalone first (the registry gives it a temporary name),
     # then its bodies are moved under the kept row and the stand-in row
@@ -9689,7 +9719,8 @@ def set_sector_uid(conn, sector_id):
         return
     address = (row["shell_index"], row["band_index"], row["wedge_index"])
     uid = galaxyUid.sector_uid(*address) if None not in address else galaxyUid.unplaced_sector_uid(sector_id)
-    conn.execute("UPDATE sectors SET uid = ?, parity_dirty = 1, modified_at = modified_at WHERE id = ?", (uid, sector_id))
+    conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?", (uid, sector_id))
+    storage_checksum.mark_sector(conn, sector_id)
 
 
 _UID_ISSUED_TABLES = frozenset(("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets",
@@ -10868,7 +10899,8 @@ def touch_sector(conn, sector_id):
     """
     if sector_id is None:
         return
-    conn.execute("UPDATE sectors SET modified_at = CURRENT_TIMESTAMP(3), parity_dirty = 1 WHERE id = ?", (sector_id,))
+    conn.execute("UPDATE sectors SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (sector_id,))
+    storage_checksum.mark_sector(conn, sector_id)
 
 
 def _schema_version(conn):

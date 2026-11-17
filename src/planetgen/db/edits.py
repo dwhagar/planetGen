@@ -170,6 +170,8 @@ def save_star(conn, star):
     """UPDATEs a loaded star's row (`star.db_id`) from the object; its
     system's galactic speed may have changed, so the next orbit update works
     out the system's due time again (GEN.106)."""
+    conn.parity_before("id = (SELECT sector_id FROM star_systems WHERE id = (SELECT star_system_id FROM stars WHERE id = ?))",
+                       (star.db_id,))
     conn.execute(
         f"UPDATE stars SET {', '.join(f'{c} = ?' for c in _STAR_COLUMNS)}"
         " WHERE id = ?",
@@ -195,6 +197,7 @@ def save_system_edits(conn, system_id, system, stars=()):
         system (StarSystem): The edited system.
         stars (iterable): Loaded `Star`s (with `db_id`) to update.
     """
+    conn.parity_before("id = (SELECT sector_id FROM star_systems WHERE id = ?)", (system_id,))     # DB.109: the parity file makes the edit a delta, not a recompute of the sector's group
     insolation.refresh_system(system)   # ADM.132: the light each body sums over the stars, from the orbits the edit left
     conn.execute("DELETE FROM effect_ledger WHERE star_system_id = ?", (system_id,))   # GEN.1465: an edited body's shares are no longer the ones generation noted; the ledger stays empty until the system's `refill-effect-ledger`
     conn.execute("UPDATE system_summary SET ledger_stamp = NULL WHERE star_system_id = ?", (system_id,))   # GEN.1498: not current any more, so `refill-effect-ledger` writes its light and ultraviolet rows again
@@ -306,6 +309,7 @@ def replace_phenomenon_content(conn, phenomenon_type, phenomenon_id, phenomenon)
         raise EditError("not found")
     if row.get("star_id") is not None:
         raise EditError("this is the star of a star system; regenerate the system instead")
+    conn.parity_before("id = ?", (row.get("sector_id"),))
     inserter = store._PHENOMENON_INSERTERS[GENERATOR_TYPES[phenomenon_type]]
     placement = {key: row.get(key) for key in ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc")}
     # A throwaway name for the stand-in row, so reserving it never
@@ -339,6 +343,7 @@ def delete_phenomenon(conn, phenomenon_type, phenomenon_id):
     if row.get("star_id") is not None:
         raise EditError("this is the star of a star system; delete the system instead")
     table = PHENOMENON_TABLES[phenomenon_type]
+    conn.parity_before("id = ?", (row.get("sector_id"),))
     designation_rows.tombstone(conn, table, phenomenon_id)      # GEN.1141: its ID stays reserved and a link to it answers 410
     conn.execute("DELETE FROM nearest_systems WHERE object_table = ? AND object_id = ?", (table, phenomenon_id))
     forget_ledger_rows(conn, table, "id = ?", (phenomenon_id,))
@@ -457,6 +462,7 @@ def empty_sector(conn, sector_id):
                        " FROM sectors WHERE id = ?", (sector_id,)).fetchone()
     if row is None:
         return None
+    conn.parity_before("id = ?", (sector_id,))       # DB.109: the sector leaves its group as a delta
     conn.parity_touch("id = ?", (sector_id,))        # DB.46: once this commits, the parity file lets the sector go
     counts = delete_sector_birth_contents(conn, sector_id)
     kept = bool(sector_residents(conn, sector_id)) or bool(restricting_rows(conn, sector_id))      # a row a RESTRICT key still points at stays too

@@ -1868,6 +1868,33 @@ def test_create_sector_then_get_update_delete(admin_client):
     assert response.status_code == 404
 
 
+def test_patching_a_sector_brings_the_parity_file_up_to_date(admin_client, mysql_config, tmp_path, monkeypatch):
+    """DB.109: the sector PATCH marked the sector without telling the parity file, which stayed behind until `refresh-parity`."""
+    import types
+    from planetgen.db import parity
+    settings = types.SimpleNamespace(enabled=True, dir=str(tmp_path), group_size=4, parity_blocks=2)
+    monkeypatch.setattr(parity, "get_settings", lambda: types.SimpleNamespace(parity=settings))
+    parity._STORES.clear()
+    try:
+        response = admin_client.post("/api/sectors", json={"name": "Parity Patch", "edge_ly": 10.0})
+        assert response.status_code == 201
+        public_id = response.get_json()["id"]
+        conn = _db.get_connection(mysql_config)
+        try:
+            sector_id = conn.execute("SELECT id FROM sectors WHERE name = ?", ("Parity Patch",)).fetchone()["id"]
+            conn.commit()
+            assert admin_client.patch(f"/api/sectors/{public_id}", json={"name": "Parity Patched"}).status_code == 200
+            row = conn.execute("SELECT parity_dirty AS d FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+            conn.commit()
+            assert not row["d"]
+            assert sector_id in parity.store().members()
+            assert parity.member_state(conn, sector_id) == parity.HEALTHY
+        finally:
+            conn.close()
+    finally:
+        parity._STORES.clear()
+
+
 def test_create_sector_validates_request_body(admin_client):
     response = admin_client.post("/api/sectors", json={"name": "Test"})
     assert response.status_code == 400
