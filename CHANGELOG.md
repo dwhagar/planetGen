@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4468] - 2026-11-17
+
+**Headline:** The air history's oxygen tests now stand on a world whose oxygen the producers can raise, so they hold when the only world with a rise already carries more oxygen than the balance gives.
+
+### Changed
+- `test_air_history.py`: `_a_world_the_oxygen_rises_on` takes the same world without its abiotic oxygen when the world found holds more oxygen than the balance gives (6.6e19 mol, the oxygen of its lost water: a rise date with nothing to raise, where the trajectory rightly stays as found since it never takes oxygen out). Only 1 of 793 rocky worlds of 60 systems has a rise since GEN.1732. The assertions of `test_the_oxygen_trajectory_is_the_air_as_found_until_the_rise_and_never_falls_after_it` are unchanged. Test only.
+
+generation-output: unchanged
+
 ## [8.0.4467] - 2026-11-17
 
 **Headline:** Three tests that found no body at seed 12, the unknown class letter test and the Earth analog baseline are green on main again.
