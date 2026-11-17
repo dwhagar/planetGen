@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4492] - 2026-11-17
+
+**Headline:** The `queue.forked_jobs` setting is removed: a run that has a job ledger always hands its units to the supervisor's launcher.
+### Changed
+- `queue.forked_jobs` (and `PLANETGEN_FORKED_JOBS`) is gone, since the launcher path is the only one that is kept for a run with a ledger (OPS.271). A run with no ledger (the control database does not answer or is not migrated yet) still goes to workers until they are removed.
+
 ## [8.0.4491] - 2026-11-17
 
 **Headline:** One controller now watches the host's memory: on lasting pressure the supervisor stops admitting bulk and upkeep jobs, and if the host stays starved it asks the youngest bulk job to stop at its next piece and puts it back, with no retry used.
