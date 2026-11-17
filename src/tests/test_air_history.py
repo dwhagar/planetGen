@@ -2,6 +2,7 @@
 
 """GEN.1745 slice 1: the step schedule and the clocks of a world's air history (`physics/air_history.py`)."""
 
+import copy
 import functools
 
 import pytest
@@ -9,7 +10,7 @@ import pytest
 from planetgen.generation import evolution
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import air_history, runaway_history
+from planetgen.physics import air_history, atmosphere, runaway_history
 from tests.fuzz_support import deterministic_entropy
 
 
@@ -188,14 +189,23 @@ def test_an_anchor_is_the_air_the_body_has_now_solved_under_the_light_and_heat_o
 @functools.lru_cache(maxsize=None)
 def _a_world_the_oxygen_rises_on():
     """`(body, living, rise_gyr)` of a generated rocky world on which class 1a producers of 0.3 Gyr raise the oxygen before the star's age."""
-    from planetgen.physics import life_air, life_classes
+    from planetgen.physics import biogenic_oxygen, life_air, life_classes
     living = [life_air.Living(life_classes.BY_ID["1a"], 1.0, 0.3)]
     for body in _worlds(60, HABITABLE_WORLD=True):
         if body.body_type != "t" or not body.star.age or not getattr(body, "radius", None):
             continue
         rise, _ = life_air.oxygen_state(body, living)
-        if rise is not None:
+        if rise is None:
+            continue
+        have = biogenic_oxygen.air_moles(body).get("O2", 0.0)
+        ages = air_history.schedule(body.star.age, air_history.oxygen_cuts(body, living))
+        if air_history.oxygen_trajectory(body, living, ages)[-1][1] > have:
             return body, living, rise
+        # a rise date with nothing to raise: the air already holds more oxygen than the balance gives (the oxygen of its lost water, 6.6e19 mol on the only world of 60 systems that has a rise
+        # since GEN.1732), and the trajectory rightly stays at what the air has, since it never takes oxygen out; the same world with no abiotic oxygen is the world the rise acts on
+        bare = copy.copy(body)
+        setattr(bare, atmosphere.GAS_FIELD, {formula: pascal for formula, pascal in atmosphere.gas_partials_pa(body).items() if formula != "O2"})
+        return bare, living, rise
     pytest.fail("no generated rocky world on which the oxygen of class 1a rises")
 
 
