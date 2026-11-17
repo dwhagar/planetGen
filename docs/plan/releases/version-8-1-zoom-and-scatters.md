@@ -663,5 +663,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1779 | (bug, high) A system build got about 2.4 times slower | none | Lane 14, 2026-11-16 |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
-| PERF.275 | (high) A Stage 9 sky share takes about 5 hours | none | Lane 07, 2026-11-16 |
 | PERF.276 | The air solve is 59 percent of a full system build | none | Lane 16, 2026-11-16 |

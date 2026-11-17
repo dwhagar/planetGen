@@ -11903,11 +11903,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 13, priority 1. Prerequisites: none. Related: OPS.269, PERF.275.
   Filed by the TODO thread.
 
-- [ ] **PERF.275 (high) A sky share of the Stage 9 bright-star backfill takes about 5 hours (1.43e7 walk visits): profile the sky draw and cut its cost**
-  Found by Lane 07 on OPS.269 (PR 6982): Boss's run drew 1.18e7 visits in 4.5 h per share, 16 shares for 2 observer cells. Do: profile one share (sky_charting.chart_part and the ring walk), find what a visit costs and why, cut it without changing the stars drawn (or say plainly what moves), and report time per share before and after. Lock-free unless output moves.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 07, priority 1. Prerequisites: none. Related: OPS.269, OPS.270.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1778 (bug) HABITABLE_WORLD=True can end with no habitable world and the request still at "aim", not "unmet" (K5IV case of test_full_matrix, seen under xdist)**
   Found by Lane 16 on TEST.788, 11:18 PM EST 2026-11-16: test_full_system_generates_with_belt_and_habitable_world_across_every_star_type[K5IV] failed with "HABITABLE_WORLD=True produced no habitable world and did not say so" (habitable_class_count 0, habitable_request "aim"). It passes alone on main c8bfa87b17; the test sets no run seed, so its draws depend on what the worker ran before. Do: find the path where the habitable request ends without a class and without being marked unmet (fix the generator so a request is always met or said unmet), and seed the test so a failure can be replayed (no picking a seed that passes; the assertion stays).
   Version 8.1. Owner (TODO, 2026-11-16): Lane 14, after the test_class_sample main red. Prerequisites: none. Related: TEST.788, GEN.1773.
