@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4469] - 2026-11-17
+
+**Headline:** `test_describe` makes the systems it reads once per process (and the compact-remnant sweeps in parallel) instead of generating the same systems again in each test; every test checks the same systems and keeps its assertions.
+
+### Changed
+- The systems of the file's seven variants (the first eight of each variant's seeded run, which `_systems(n)` already read as its first n) are made once per process, by forked workers at the same time, and shared by the tests that read them. The documents of a system do not change when it is described again, after other systems, or after a `pickle` round trip (checked on 14 systems); no test changes a system it is given.
+- The three compact-remnant tests (6, 12 and 60 seeded systems) make their systems in forked workers, each on its own seed; an assertion inside a worker reaches the test, and the set of pulsar types is gathered as before.
+
+generation-output: unchanged
+
 ## [8.0.4468] - 2026-11-17
 
 **Headline:** The air history's oxygen tests now stand on a world whose oxygen the producers can raise, so they hold when the only world with a rise already carries more oxygen than the balance gives.
