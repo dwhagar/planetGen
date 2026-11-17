@@ -442,11 +442,12 @@ DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 # The scatter of a star's own snow line around the blackbody position for its
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
 # 0.4 dex scatter of accretion rates carried through the steady-disk snow-line
-# law ([R3193, R3196], [R3193]). The draw is cut at
-# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way (wider than the
-# factor 2 to 3 the observed lines are said to move, so it clips only the tail).
+# law ([R3193, R3196], [R3193: abstract]; row SNL1). The draw is cut at
+# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma: 2, the plus and minus 2 sigma (a factor of 2.5
+# either way) over which [R3193: Fig. 3] works its snow lines (GEN.1611; it was 3, a
+# factor of 4, which put the line inside the habitable zone's inner edge; row SNL2).
 SNOW_LINE_SCATTER_DEX = 0.2
-SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
+SNOW_LINE_SCATTER_MAX_SIGMA = 2.0
 
 # The farthest a planet zone in a hierarchy of stars reaches (GEN.314,
 # `physics.planet_zones`): a protoplanetary disk around a star or a pair is
@@ -736,6 +737,14 @@ SUBDWARF_LUMINOSITY_DEFICIT_DEX = 0.3
 # red dwarfs of the thin disk), so the deficit alone labelled 13 of 270 ordinary M dwarfs Subdwarf; a star is labelled VI only at or
 # below this birth [Fe/H] as well.
 SUBDWARF_MAX_FE_H = -0.5
+# The coronal wind of a cool dwarf (GEN.1625, `physics.stellar_wind.coronal_mass_loss_solar`). The mass loss of an A to K dwarf per unit surface area rises with its
+# X-ray surface flux to the 1.29 power [R5303] (1.34 +- 0.18 in [R5304]; the fit holds below an X-ray flux of 1e6 erg/cm^2/s, the "dividing line"
+# above which the winds measured are weak [R5303]), so the flux is held at the line. The measured winds of M dwarfs do not follow their flux (two orders of
+# magnitude of scatter at one flux, [R5302]); their mass loss per unit area, in the Sun's, is the median of the six single M dwarfs of its Table 3 that have
+# a value (0.37, 0.86, 2.3, 4.3, 9.8 and 275 from GJ 436, GJ 205, GJ 887, GJ 173, EV Lac and YZ CMi: mass loss over the squared radius).
+CORONAL_WIND_X_RAY_EXPONENT = 1.29
+CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S = 1.0e6
+M_DWARF_WIND_PER_AREA_SOLAR = 3.3
 # A forced star type (GEN.941, generation/forced_star.py) is a star the model
 # makes. A subdwarf (Yerkes VI) is a main-sequence star under-luminous for its
 # temperature (SUBDWARF_LUMINOSITY_DEFICIT_DEX), which a metal-poor star of the
@@ -1147,10 +1156,10 @@ CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
 RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
 PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 2.0
 # The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
-# 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
+# 0.5, II until the star's own dispersal time (GEN.1551, `physics/disk_dispersal.py`), and none after; mass 0.01 to 0.3 of the star and outer
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
 # grain sublimates (DISK_DUST_SUBLIMATION_K).
-DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6), ("II", 3.0e6))
+DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6))
 RUNAWAY_HISTORY_START_YR = 30.0e6
 """float: The age the water-loss history starts at (GEN.639): 30 Myr, when the last giant impacts of the rocky planets are
 done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; [R2132]) and a surface
@@ -4420,12 +4429,12 @@ included."""
 # --- Species environment limits (POP.12) -------------------------------------------------------
 
 SPECIES_LIMIT_MARGIN = {"pressure_factor": 1.5, "temperature_c": 10.0, "wet_bulb_c": 2.0, "dose_factor": 3.0,
-                        "o2_factor": 1.25}
+                        "o2_factor": 1.25, "gas_factor": 1.5}
 """dict: How far inside Blue a species' homeworld sits when its limits are generated from it
 (`species_limits.generated`): the homeworld's pressure is 1.5 times inside the Blue pressure edges, its
 temperature cycle 10 degrees inside the Blue temperature edges, a wet bulb limit 2 degrees above its wet bulb,
-its dose a third of the Blue dose edge, and the chronic inspired O2 limit a quarter above its own. planetGen
-defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
+its dose a third of the Blue dose edge, the chronic inspired O2 limit a quarter above its own, and each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) a third under the chronic edge of
+its own gas band (`gas_factor` 1.5, GEN.1772). planetGen defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
 
 SPECIES_EQUIPMENT_TECH = {
     "cold-weather clothing": 0.0, "cooling clothing": 0.0, "sun-cover clothing": 0.0, "weather clothing": 0.0,

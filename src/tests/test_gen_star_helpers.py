@@ -53,14 +53,15 @@ def test_heliosphere_is_a_positive_finite_au_value(star_type):
 def test_heliosphere_delegates_to_the_static_helper():
     star = make_star("K1V")
     assert star.calculate_heliosphere() == Star._calculate_heliosphere_radius_static(
-        star.mass, star.luminosity, star.radius, star.type, star.yerkes_class)
+        star.mass, star.luminosity, star.radius, star.type, star.yerkes_class, star.log_lx_lbol)
 
 
-def test_heliosphere_rejects_zero_luminosity_cleanly():
-    """The cool-dwarf wind scales with a negative power of luminosity, so
-    zero is out of domain: a clean ValueError, not a ZeroDivisionError."""
-    with pytest.raises(ValueError, match="_calculate_heliosphere_radius_static: input out of range"):
-        Star._calculate_heliosphere_radius_static(constants.SOLAR_MASS_TO_KG, 0.0, 696000.0, "G2V", "V")
+def test_a_star_with_no_luminosity_has_no_coronal_wind_and_the_smallest_bubble():
+    """GEN.1625: the coronal wind rises with the star's X-ray luminosity, so a luminosity of zero is no wind (the old law divided by a
+    power of it and raised a ValueError): the bubble is the floor one, the same as a white dwarf's."""
+    dark = Star._calculate_heliosphere_radius_static(constants.SOLAR_MASS_TO_KG, 0.0, 696000.0, "G2V", "V", -6.0)
+    white_dwarf = Star._calculate_heliosphere_radius_static(constants.SOLAR_MASS_TO_KG, constants.SOLAR_LUMINOSITY, 696000.0, "DA", "VII")
+    assert dark == white_dwarf > 0.0
 
 
 def test_heliosphere_grows_with_a_stronger_wind():
@@ -75,7 +76,7 @@ def test_hot_dwarf_wind_beats_a_cool_dwarf_of_the_same_size():
     """The O/B radiation-driven tier applies only to spectral class O or B."""
     args = (2 * constants.SOLAR_MASS_TO_KG, 20 * constants.SOLAR_LUMINOSITY, 1.5e6)
     hot = Star._calculate_heliosphere_radius_static(*args, "B5V", "V")
-    cool = Star._calculate_heliosphere_radius_static(*args, "A5V", "V")
+    cool = Star._calculate_heliosphere_radius_static(*args, "A5V", "V", -8.0)
     assert hot > cool
 
 
@@ -87,8 +88,8 @@ def test_hypergiant_wind_is_faster_than_a_supergiants():
 
 def test_empty_star_type_falls_to_the_cool_dwarf_tier():
     args = (constants.SOLAR_MASS_TO_KG, constants.SOLAR_LUMINOSITY, 696000.0)
-    assert (Star._calculate_heliosphere_radius_static(*args, "", "V")
-            == Star._calculate_heliosphere_radius_static(*args, "G2V", "V"))
+    assert (Star._calculate_heliosphere_radius_static(*args, "", "V", -6.4)
+            == Star._calculate_heliosphere_radius_static(*args, "G2V", "V", -6.4))
 
 
 @pytest.mark.parametrize("arg_index", [0, 1, 2])
@@ -97,13 +98,13 @@ def test_heliosphere_rejects_non_finite_inputs(arg_index, bad):
     args = [constants.SOLAR_MASS_TO_KG, constants.SOLAR_LUMINOSITY, 696000.0]
     args[arg_index] = bad
     with pytest.raises(ValueError, match="must be a finite number"):
-        Star._calculate_heliosphere_radius_static(*args, "G2V", "V")
+        Star._calculate_heliosphere_radius_static(*args, "G2V", "V", -6.4)
 
 
 def test_heliosphere_rejects_a_zero_radius():
     with pytest.raises(ValueError, match="_calculate_heliosphere_radius_static: input out of range"):
         Star._calculate_heliosphere_radius_static(constants.SOLAR_MASS_TO_KG,
-                                                  constants.SOLAR_LUMINOSITY, 0.0, "G2V", "V")
+                                                  constants.SOLAR_LUMINOSITY, 0.0, "G2V", "V", -6.4)
 
 
 # --- population-model star path -------------------------------------------

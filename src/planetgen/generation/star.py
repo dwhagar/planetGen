@@ -111,7 +111,7 @@ class Star(StellarObject):
 
     @staticmethod
     @finite_domain()
-    def _calculate_heliosphere_radius_static(mass, luminosity, radius_km, star_type, yerkes_class):
+    def _calculate_heliosphere_radius_static(mass, luminosity, radius_km, star_type, yerkes_class, log_lx_lbol=None):
         """
         Estimates the radius of the star's heliosphere (astrosphere).
 
@@ -126,8 +126,8 @@ class Star(StellarObject):
         physical models are applied: an
         empirical mass-loss fit for every evolved star (giants through
         hypergiants), a radiation-driven-wind power law for hot O/B dwarfs,
-        and an empirical coronal-wind scaling for cool main-sequence dwarfs
-        (and white dwarfs) -- chosen to ensure physically plausible results
+        and a coronal wind from the X-ray flux (A to K) or a measured mass loss per area (M) for cool main-sequence dwarfs
+        (a white dwarf has none) -- chosen to ensure physically plausible results
         across the stellar spectrum.
 
         The heliopause radius is then calculated based on the balance between
@@ -143,11 +143,13 @@ class Star(StellarObject):
                              within the main-sequence tier.
             yerkes_class (str): The star's Yerkes luminosity class (e.g., 'V',
                                 'III', '0'), which selects the wind/mass-loss model.
+            log_lx_lbol (float, optional): log10 of the star's X-ray luminosity over its luminosity, which a cool dwarf's
+                                           coronal wind is made from (GEN.1625); not needed for any other star.
 
         Returns:
             float: The estimated radius of the heliosphere in Astronomical Units (AU).
         """
-        mass_loss_rate_kgs, wind_velocity = stellar_wind.wind(mass, luminosity, radius_km, star_type, yerkes_class)
+        mass_loss_rate_kgs, wind_velocity = stellar_wind.wind(mass, luminosity, radius_km, star_type, yerkes_class, log_lx_lbol)
 
         # The heliopause radius is where the stellar wind's momentum flux balances the ISM pressure.
         # R = sqrt( (M-dot * v_inf) / (4 * pi * P_ism) )
@@ -171,7 +173,7 @@ class Star(StellarObject):
         Returns:
             float: The estimated radius of the heliosphere in Astronomical Units (AU).
         """
-        return Star._calculate_heliosphere_radius_static(self.mass, self.luminosity, self.radius, self.type, self.yerkes_class)
+        return Star._calculate_heliosphere_radius_static(self.mass, self.luminosity, self.radius, self.type, self.yerkes_class, self.log_lx_lbol)
 
     def __init__(self, system_config: SystemConfig, name=None, **kwargs):
         """
@@ -247,7 +249,6 @@ class Star(StellarObject):
         self.age, self.lifespan = self._model_age_lifespan
         self.habitable_zone = calculate_habitable_zone(self.luminosity, self.temperature)
         self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
-        self.heliosphere_radius = self.calculate_heliosphere()
         self.set_galactic_motion(self.galactic_center_dist_ly, kwargs.get('galactic_orbital_phase_deg'))
         # GEN.104: the spin, last so nothing above draws differently.
         # GEN.846: a stored star keeps the period its row has, so the row and the star agree.
@@ -258,6 +259,8 @@ class Star(StellarObject):
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
         # GEN.86: coronal X-rays, XUV and flares, from mass and age.
         activity.generate_activity(self)
+        # GEN.1625: the heliosphere is sized by the wind, a cool dwarf's from its X-ray luminosity, so after the activity.
+        self.heliosphere_radius = self.calculate_heliosphere()
         # GEN.158: [Fe/H], from its own stream so no older draw moves.
         self.metallicity_fe_h = kwargs.get('metallicity_fe_h')
         if self.metallicity_fe_h is None:
@@ -280,7 +283,7 @@ class Star(StellarObject):
         # GEN.242: the disk of a young star, from its own stream like the [Fe/H] above.
         if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
             disk = pre_main_sequence.draw_disk(
-                _kg_to_msun(self.mass), self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
+                self.initial_mass_sol or _kg_to_msun(self.mass), self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
                 draw.Stream(f"disk:{self.mass!r}:{self.age!r}"))
             for name, value in (disk or {}).items():
                 setattr(self, name, value)

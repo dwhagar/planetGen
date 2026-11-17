@@ -555,7 +555,7 @@ temperature, dose and oxygen bands from them, and `habitability.phi4`,
 `core_scores`, `equipment.compute` and the domain functions take those bands (the human
 `HUMAN` by default), so the six domains are scored by the same code with the
 species' edges. Nothing else about the score changes: the Water and Suitability
-rungs, the toxic gases and PHI_bio are the human visitor's.
+rungs and PHI_bio are the human visitor's. The four gas bands of the Air domain (CO2, CO, H2S, SO2) have one scale row each (`co2_scale`, `co_scale`, `h2s_scale`, `so2_scale`, 1 for the human visitor) that moves every edge of that gas's band together.
 
 **Generated from the homeworld** (Boss's default of 2026-10-15: every species
 passes its own homeworld). `species_limits.generated(world)` leaves a band alone
@@ -568,7 +568,9 @@ extreme 10 degrees inside, the wet-bulb limit sits 2 degrees above the
 homeworld's, all the dose edges scale so the homeworld's dose is a third of the
 Blue edge, and the inspired oxygen limits follow the homeworld's air (the
 minimum a half of it, the chronic limit a quarter above it, the acute limit in
-the human ratio). A species with an Earth-like homeworld has no overrides.
+the human ratio), and each gas band moves out by the factor that puts the homeworld's
+partial pressure of that gas 1.5 times under its chronic edge, when the air holds
+more of it than the human limit (GEN.1772: a species of a dense CO2 air breathes it). A species with an Earth-like homeworld has no overrides.
 
 **What could live where.** `species_limits.assess(world, overrides, tech_level)`
 scores the six domains. A species could live there **unaided** when no domain is
