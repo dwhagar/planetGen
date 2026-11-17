@@ -5,10 +5,14 @@ Why jobs wait (OPS.233): what the Queue page shows of the engine's ledger. For e
 start and the supervisor's gate has not let it), the age of the oldest of each, how many jobs gave each reason for not starting (the words the gate wrote into `engine_jobs.waited`, `Launcher._note`), when
 the next retry may start, and how long the jobs that started in the last hour waited from their making to their start. One read of the control database; it writes nothing and changes no job.
 
-The page reads this through `GET /api/admin/work/waiting`. What the controller last did is the supervisor panel's list of acts (OPS.214), which the memory controller of OPS.231 fills.
+The site's own jobs (an API job, a slow page's answer, a visitor's prefetch) are light jobs with a record in Redis and no row in the ledger (OPS.230, `queue/lightjobs.py`); `light_overview` lists the ones that
+have not started, by lane (UX.320). The page reads both through `GET /api/admin/work/waiting`. What the controller last did is the supervisor panel's list of acts (OPS.214), which the memory controller of OPS.231 fills.
 """
 
-from planetgen.queue import memorygate
+import collections
+import time
+
+from planetgen.queue import lightjobs, memorygate
 from planetgen.util import log
 
 STARTED_WINDOW_SECONDS = 3600
@@ -75,3 +79,52 @@ def overview(conn, with_gate=True):
             "started": [{"job_class": name, "count": len(times), "median_seconds": times[len(times) // 2], "longest_seconds": times[-1]} for name, times in sorted(started.items())],
             "gate": gate}
 
+
+LIGHT_WINDOW = 500
+"""int: How many of the oldest pending light jobs `light_overview` reads (a bound on the work of a poll; `total` says how many wait)."""
+
+LIGHT_FUNCTIONS_PER_LANE = 4
+"""int: How many different functions a lane lists, the most common first."""
+
+NO_REASON = "no reason yet: the supervisor has not looked at it"
+"""str: What a pending light job that the dispatch rule has not judged yet says."""
+
+
+def light_overview(connection, now=None):
+    """
+    The light jobs that have not started (UX.320), by lane. Reads the pending list and each record once; writes nothing.
+
+    Args:
+        connection (redis.Redis): The server the supervisor reads.
+        now (float, optional): The time now in Unix seconds (a test gives it).
+
+    Returns:
+        dict: `lanes` (one dict for each lane with a job waiting: `lane`, `count`, `oldest_seconds`, `deadline_seconds` the least time any job of the lane has left before it is dropped for want of anyone
+            asking (negative: it is due, `None`: no job of the lane has a deadline), `reasons` as `{"reason", "count"}` biggest first, `functions` as `{"function", "count"}` biggest first), `total`
+            (how many jobs wait) and `shown` (how many of them were read).
+    """
+    now = time.time() if now is None else now
+    ids = [lightjobs._text(item) for item in connection.zrange(lightjobs.pending_key(), 0, LIGHT_WINDOW - 1)]
+    total = int(connection.zcard(lightjobs.pending_key()))
+    pipe = connection.pipeline(transaction=False)
+    for job_id in ids:
+        pipe.hmget(lightjobs.job_key(job_id), "state", "lane", "function", "created", "wanted_until", "waited")
+    lanes = {}
+    for found in pipe.execute():
+        state, lane, function, created, wanted_until, waited = [None if value is None else lightjobs._text(value) for value in found]
+        if state != "queued":
+            continue
+        item = lanes.setdefault(lane or lightjobs.LANE_INTERACTIVE, {"lane": lane or lightjobs.LANE_INTERACTIVE, "count": 0, "oldest_seconds": 0.0, "deadline_seconds": None,
+                                                                     "reasons": collections.Counter(), "functions": collections.Counter()})
+        item["count"] += 1
+        if created:
+            item["oldest_seconds"] = max(item["oldest_seconds"], now - float(created))
+        if wanted_until:
+            left = float(wanted_until) - now
+            item["deadline_seconds"] = left if item["deadline_seconds"] is None else min(item["deadline_seconds"], left)
+        item["reasons"][waited or NO_REASON] += 1
+        item["functions"][(function or "?").rpartition(":")[2]] += 1
+    for item in lanes.values():
+        item["reasons"] = [{"reason": reason, "count": count} for reason, count in item["reasons"].most_common(REASONS_PER_CLASS)]
+        item["functions"] = [{"function": name, "count": count} for name, count in item["functions"].most_common(LIGHT_FUNCTIONS_PER_LANE)]
+    return {"lanes": sorted(lanes.values(), key=lambda item: item["lane"]), "total": total, "shown": len(ids)}

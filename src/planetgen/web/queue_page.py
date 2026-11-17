@@ -450,9 +450,28 @@ def _waiting_view(body):
              for item in body.get("classes", [])]
     quick = [{"name": item["job_class"], "text": f"{item['count']:,} started, the middle one after {format_duration_seconds(item['median_seconds'])}, the longest {format_duration_seconds(item['longest_seconds'])}"}
              for item in body.get("started", []) if item["job_class"] not in {row["name"] for row in rows}]
-    if not rows and not quick:
+    light = _light_view(body.get("light"))
+    if not rows and not quick and light is None:
         return None
-    return {"rows": rows, "quick": quick, "gate": body.get("gate") or ""}
+    return {"rows": rows, "quick": quick, "gate": body.get("gate") or "", "light": light}
+
+
+def _light_view(body):
+    """
+    The site's light jobs that have not started (UX.320), by lane: how many, how long the oldest has waited, how long until the first of them is dropped for want of anyone asking (its deadline), the
+    reasons and the functions. `None` when none waits or Redis gave nothing.
+    """
+    if not body or not body.get("lanes"):
+        return None
+    rows = []
+    for item in body["lanes"]:
+        left = item.get("deadline_seconds")
+        rows.append({"name": item["lane"], "count": f"{item['count']:,}", "oldest": format_duration_seconds(item["oldest_seconds"]),
+                     "deadline": "none" if left is None else ("due now" if left <= 0 else f"in {format_duration_seconds(left)}"),
+                     "reasons": [{"text": reason["reason"], "count": f"{reason['count']:,}"} for reason in item["reasons"]],
+                     "functions": ", ".join(f"{function['function']} ({function['count']:,})" for function in item["functions"])})
+    more = body.get("total", 0) - body.get("shown", 0)
+    return {"rows": rows, "total": f"{body.get('total', 0):,}", "more": f"{more:,}" if more > 0 else ""}
 
 
 def _beating_view(body):

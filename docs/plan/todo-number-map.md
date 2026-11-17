@@ -688,7 +688,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.106 | Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration | none | open |
 | DB.107 | Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b) | none | done, PR #3383 |
 | DB.108 | Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e) | none | done, PR #3465 |
-| DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute | none | open |
+| DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute | none | open (Lane 15) |
 | DB.110 | Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units | none | open |
 | DB.111 | Storage for vessels and stations: the vessel table (Object ID, owner, name, kind, speed table entry, state, anchor, course id, departure and arrival time, finished legs) and the owner and free-point columns on facilities if it lacks them | none | open |
 | DB.112 | Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration) | none | done, PR #6734 (9:05 PM EST 11-15) |
@@ -3004,7 +3004,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.186 | (bug) A finished stage can fail to advance: if the horse running units._end_stage is killed with a retry left, or enqueue_open raises, the retry skips, unit_failed says the run goes on and no opening is queued, so the starter waits for ever | none | done, job engine stage 2 stack, PR #6571 (4:23 AM EST 11-15; squash of PRs 6443 to 6571) |
 | OPS.187 | (bug) open_failed has no already-done guard, so an RQ housekeeping failure after a finished cut fails the run | none | done, job engine stage 2 stack, PR #6571 (4:23 AM EST 11-15; squash of PRs 6443 to 6571) |
 | OPS.188 | (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run | none | open |
-| OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | open |
+| OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | done (closed by OPS.229, PR 7082, 11-17) |
 | OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | open |
 | OPS.191 | Job engine stage 1: the engine owns the loop (CommandSpec pieces and do; units._do_unit counts pieces into the beat and checks pause and stop between pieces) | none | done, PR #6478 (4:29 PM EST 11-14) |
 | OPS.192 | Job engine stage 1: second-level counts (ctx.step and ctx.advance; a second bar with real numbers and rate on the Queue and Generate pages) | none | done, PR #6482 (4:56 PM EST 11-14) |
@@ -3044,7 +3044,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.226 | Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side | none | open |
 | OPS.227 | Job engine stage 4: the dispatch rule over the whole backlog (site lanes first against kept places, then scheduler.judge; reservations last until used; each job's last reason stored); absorbs OPS.124 with OPS.231 and OPS.232 | none | done, PR #6652 (6:34 AM EST 11-15) |
 | OPS.228 | Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane) | none | done (PRs 6995, 7011, 7027, 7040, 7062; 7:58 AM EST 11-17: every ledgered run's bulk lane runs as forked jobs; deleting the RQ unit path moves to OPS.271 then OPS.229) |
-| OPS.229 | Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189 | none | open (Lane 06) |
+| OPS.229 | Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189 | none | done (PR 7082, 11-17; RQ deletion moved to OPS.271) |
 | OPS.230 | Job engine stage 4: the site's lanes move as light jobs with deadlines (interactive and long RQ queues deleted) | none | done (slice A PR 7073, slice B PR 7076 merged 10:29 AM EST 11-17: API jobs, slow pages and node prefetch run as light jobs; interactive, long and nodes RQ queues deleted) |
 | OPS.231 | Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot | none | open |
 | OPS.232 | Job engine stage 4: named resources (tokens mysql_write, alone, one per warm set; pause.hold_solo stops being a special case) | none | done, PR #6653 (6:38 AM EST 11-15) |
@@ -5173,7 +5173,7 @@ Each citation below resolves to one item by its date.
 | UX.317 | (bug) The New galaxy page looks messy: units wrap inline beside property titles, and box tops and slider bars do not line up across a row (Shape and Rogue planets rows too) | UX.316 | done, PR #6459 (2:14 AM EST 11-14) |
 | UX.318 | (bug) Every generation log, progress line, queue page and warning shows rates, durations, sizes and memory through the project's units code: a slow rate reads as time per item ("0.0 per s" becomes seconds per sector), and memory never mixes bytes, MB and GB by hand | none | done, PR #6574 (9:10 PM EST 11-14) |
 | UX.319 | (bug) Every time output uses standard hours, minutes and seconds, never decimal hours, minutes or seconds ("1.25 minutes", "3.5 days", "seconds=12.3") | none | done, PR #6764 (9:38 PM EST 11-15) |
-| UX.320 | Queue page lists waiting light jobs | OPS.230 | open (Lane 15) |
+| UX.320 | Queue page lists waiting light jobs | OPS.230 | done (PR 7079, 11-17) |
 
 ### Code tags `TODO(<area> #N)`
 

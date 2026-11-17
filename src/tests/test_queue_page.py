@@ -18,7 +18,7 @@ from html import escape as html_escape
 from planetgen.admin import auth as adminAuth
 from planetgen.api.config import Config
 from planetgen.db import store
-from planetgen.queue import commands, ledger, progress_rate, redisqueue, runcontrol, runrecord, units, waiting
+from planetgen.queue import commands, ledger, lightjobs, progress_rate, redisqueue, runcontrol, runrecord, units, waiting
 from planetgen.queue.runrecord import Stage
 from planetgen.util.format import format_duration_seconds
 from planetgen.web import csrf, jobs, queue_page
@@ -884,3 +884,54 @@ def test_the_queue_page_and_its_api_say_why_jobs_wait(admin_client, control_conf
     html = admin_client.get("/admin/queue").get_data(as_text=True)
     assert 'id="queue-waiting"' in html and "Why jobs wait" in html
     assert "2 job(s): the memory gate: 3 claims hold 9 GB" in html and "1 job(s): a short job waits for a slot" in html
+
+
+def _light_jobs(conn):
+    """Three pending light jobs: two for the interactive lane (one with a deadline and a reason from the dispatch rule) and a long one; returns their ids."""
+    first = lightjobs.add_job(conn, "planetgen.api.jobs:one", [], expected_seconds=2.0, wanted_seconds=60.0)
+    second = lightjobs.add_job(conn, "planetgen.api.jobs:two", [])
+    long_one = lightjobs.add_job(conn, "planetgen.api.jobs:three", [], expected_seconds=lightjobs.ESTIMATED_CEILING_SECONDS)
+    conn.hset(lightjobs.job_key(first), "waited", "the memory gate keeps the lane's place clear")
+    return first, second, long_one
+
+
+def test_the_light_jobs_overview_lists_the_pending_ones_by_lane_with_age_deadline_and_reason(conn):
+    first, second, long_one = _light_jobs(conn)
+    created = float(conn.hget(lightjobs.job_key(first), "created"))
+    body = waiting.light_overview(conn, now=created + 100.0)
+    lanes = {item["lane"]: item for item in body["lanes"]}
+    assert (body["total"], body["shown"]) == (3, 3) and set(lanes) == {lightjobs.LANE_INTERACTIVE, lightjobs.LANE_LONG}
+    interactive = lanes[lightjobs.LANE_INTERACTIVE]
+    assert interactive["count"] == 2 and 99.0 <= interactive["oldest_seconds"] <= 101.0
+    assert -41.0 <= interactive["deadline_seconds"] <= -39.0, "the job with a deadline of 60 s has been asked about 100 s ago: it is due 40 s ago"
+    assert {(item["reason"], item["count"]) for item in interactive["reasons"]} == {("the memory gate keeps the lane's place clear", 1), (waiting.NO_REASON, 1)}
+    assert {item["function"] for item in interactive["functions"]} == {"one", "two"}
+    assert lanes[lightjobs.LANE_LONG]["count"] == 1 and lanes[lightjobs.LANE_LONG]["deadline_seconds"] is None
+
+
+def test_the_light_jobs_overview_leaves_out_a_job_that_has_started_and_says_nothing_when_none_waits(conn):
+    assert waiting.light_overview(conn)["lanes"] == []
+    first, second, _long = _light_jobs(conn)
+    conn.hset(lightjobs.job_key(second), "state", "running")
+    body = waiting.light_overview(conn)
+    assert sum(item["count"] for item in body["lanes"]) == 2
+
+
+def test_the_waiting_panel_words_the_light_jobs_and_the_deadline():
+    view = queue_page._waiting_view({"classes": [], "started": [], "gate": "",
+                                     "light": {"lanes": [{"lane": "interactive", "count": 3, "oldest_seconds": 75.0, "deadline_seconds": 12.0,
+                                                          "reasons": [{"reason": "the gate", "count": 3}], "functions": [{"function": "one", "count": 2}, {"function": "two", "count": 1}]},
+                                                         {"lane": "long", "count": 1, "oldest_seconds": 5.0, "deadline_seconds": -3.0, "reasons": [], "functions": []}],
+                                              "total": 9, "shown": 4}})
+    rows = {row["name"]: row for row in view["light"]["rows"]}
+    assert rows["interactive"]["oldest"] == "1m 15s" and rows["interactive"]["deadline"] == "in 12s" and rows["interactive"]["functions"] == "one (2), two (1)"
+    assert rows["long"]["deadline"] == "due now" and view["light"]["more"] == "5"
+    assert queue_page._waiting_view({"classes": [], "started": [], "gate": "", "light": {"lanes": [], "total": 0, "shown": 0}}) is None
+
+
+def test_the_queue_page_lists_the_waiting_light_jobs(admin_client, conn):
+    _light_jobs(conn)
+    body = admin_client.get("/api/admin/work/waiting").get_json()
+    assert sum(item["count"] for item in body["light"]["lanes"]) == 3
+    html = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert "Light jobs not started, by lane" in html and "the memory gate keeps the lane" in html and waiting.NO_REASON in html

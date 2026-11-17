@@ -2,6 +2,29 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4481] - 2026-11-17
+
+**Headline:** The cache warm-up and the database check now run as jobs the supervisor hands out from a warm template, the way a generation run's units do, and the maintenance lane's round-robin worker is gone.
+
+### Changed
+- **The maintenance and check lanes move to the launcher (OPS.229, D4 of the job engine).** A cache warm-up or a database check that has a ledger writes its rows with the class `maintenance` (`planrows.job_class`), and `wrapper.forked` gives the units of every such run to the supervisor's launcher instead of RQ's queues. The launcher claims them on the maintenance lane, holds them to the share the setting `queue.maintenance_workers` gives upkeep while a generation run is live (none otherwise: the memory gate and the stage's own cap are the limit), and forks each from a template that holds the site's app built (`jobhost.WARM_SETS` `app`, `warmup.warm_app`), which a worker of the lane built for itself before (PERF.245).
+- **A worker serves one queue.** RQ's `RoundRobinWorker` and the lane's queue-in-turn rule are deleted (`cli/worker.py`, `workers.lane_of`), so RQ's reliable dequeue holds for every queue that is left (closes OPS.189). The lane's two queues serve only a run with no ledger, which OPS.271 moves.
+- Deleted: `cli/worker.APP_QUEUES` and the app a worker built once; `worker_class(round_robin=)`.
+
+generation-affects: none
+
+generation-output: unchanged
+
+## [8.0.4480] - 2026-11-17
+
+**Headline:** The Queue page lists the site's waiting light jobs, by lane, with why they wait, how long and when they are dropped.
+
+### Added
+- **The "Why jobs wait" panel lists the waiting light jobs (UX.320).** An API job, a slow page's answer and a visitor's prefetch run as light jobs since OPS.230: a record in Redis, no row in the ledger, so the panel of OPS.233 did not see them. `queue/waiting.py` gains `light_overview` (the pending list and each record, one pass, nothing written, the 500 oldest) and `GET /api/admin/work/waiting` a `light` key: for each lane (`interactive`, `long`) how many wait, how long the oldest has, the least time any has left before it is dropped for want of anyone asking (the deadline), the reasons the dispatch rule gave and what the jobs are. A job the dispatch rule has not judged yet says so. Times show as hours, minutes and seconds. Redis not answering leaves the ledger's half of the panel as it was.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4479] - 2026-11-17
 
 **Headline:** The Galaxy Map's background node build (the nodes around a visit, and the nodes a change touched) is now handed out by the supervisor as light jobs, and a chunk nobody started within 15 minutes is dropped with its claims.
