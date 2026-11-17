@@ -66943,7 +66943,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1645",
+          "unread": null,
           "what": "kozai_planets.SIBLING_MASS_RATIO 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis"
         }
       ],
