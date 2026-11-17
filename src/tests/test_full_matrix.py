@@ -37,6 +37,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
+from planetgen.util import draw
 from planetgen import tuning as prog_c
 from planetgen.physics.constants import G
 from tests import render_support
@@ -149,7 +150,8 @@ def test_full_system_generates_with_belt_and_habitable_world_across_every_star_t
     if cfg.HABITABLE_WORLD is True and cfg.ASTEROID_BELT is True:
         cfg.LARGE_STAR = True
 
-    system = StarSystem(system_config=cfg)
+    with draw.bound(draw.Stream(f"full-matrix-system:{star_type}")):    # GEN.1778: a run seed of its own for each star type, so a failure replays under xdist or alone
+        system = StarSystem(system_config=cfg)
 
     assert render_support.text(system).strip()
     assert system.belt_count >= 1, f"{star_type}: no asteroid belt generated"

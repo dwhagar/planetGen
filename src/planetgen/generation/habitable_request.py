@@ -15,6 +15,10 @@ The request only raises the odds (GEN.1130, `util.request_odds`): the star, the 
 drawn as they would be, and a draw without the conditions is kept one time in `tuning.REQUEST_ODDS` (the host star, `physics.stellar_evolution`;
 the planet, `StarSystem._planet_in_ecosphere`; a system with no rocky planet in the ecosphere, `StarSystem._habitable_request_stands`). Nothing is placed, aimed or adapted, and
 a system the request did not reach says `"unmet"` (`StarSystem.habitable_request_status`).
+
+The request is reached when a body that meets the conditions also has life on it (`count_living`, GEN.1778): a temperate ocean world whose life never began (a star too young for the
+first step of any class, or no class its air supports) is not a habitable world, and a system whose only such body is lifeless says `"unmet"` instead of `"aim"`, so a finished
+system holds a habitable world (`StarSystem.habitable_class_count`) or says it did not.
 """
 
 from planetgen import tuning
@@ -43,4 +47,10 @@ def carries_life(body):
 def count(planets):
     """The planets and moons of `planets` (belts skipped) that meet the request (`meets`)."""
     return sum(1 for planet in planets if planet.body_type != "a" for body in (planet, *planet.moons) if meets(body))
+
+
+def count_living(planets):
+    """The planets and moons of `planets` (belts skipped) that meet the request (`meets`) and have life on them (`carries_life`): the habitable worlds a request for one is
+    answered with (GEN.1778). Meaningful only once the life pass has run on every body."""
+    return sum(1 for planet in planets if planet.body_type != "a" for body in (planet, *planet.moons) if meets(body) and carries_life(body))
 
