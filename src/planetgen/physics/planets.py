@@ -1368,6 +1368,67 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     return "held by the spacing" if held else "exchanged"
 
 
+def kozai_pump_planets(star, planets, ledger=None):
+    """
+    GEN.1645: the Kozai-Lidov screen of `kozai_planets` read for one star's planets, once their orbits are exchanged and before the tide wears an eccentricity down. A planet whose strongest
+    pull cycles (a companion on a plane 39.2 to 140.8 degrees from its own that nothing faster turns, or a heavier outer sibling) takes the eccentricity of its place in the cycle at the star's age
+    and the mutual inclination it has there (its plane turned about the perturber's, the node about it kept, its spin and its moons carried with it as the secular exchange does), and a planet whose
+    maximum puts its periapsis inside the star or its Roche limit is lost. Its birth eccentricity for the tides (`build.orbit_birth`) becomes the pumped one, so `settle_orbit` wears it down from where
+    the cycle left it; the outcome is kept as `build.kozai`. The ledger gets the rate of every perturber that passed the hierarchy test (effect 5), cycling or not.
+
+    Args:
+        star: The planets' host (a star, or a close pair's proxy), with its companions attached.
+        planets (list): The star's planets and belts in orbital order (belts are left out).
+        ledger (EffectLedger, optional): Notes each perturber's pull on each planet.
+
+    Returns:
+        list: The planets that are lost (the caller removes them, with their moons).
+    """
+    from planetgen.physics import kozai_bodies, kozai_planets
+
+    bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and p.mass and p.distance and p.radius and p.period]
+    host_radius = getattr(star, "radius", None)
+    age = getattr(star, "age", None)
+    if not bodies or not host_radius or not age or not star.mass:
+        return []
+    inputs = [kozai_planets.PlanetInput(index, body.mass, body.radius, body.distance, body.eccentricity or 0.0, math.radians(body.orbital_inclination_deg or 0.0),
+                                        math.radians(body.orbital_ascending_node_deg or 0.0)) for index, body in enumerate(bodies)]
+    companions = kozai_planets.companion_perturbers(star)
+    sources = {perturber.key: source for perturber, source in companions}
+    sources.update({index: body for index, body in enumerate(bodies)})
+    results = kozai_planets.screen_planets(star.mass, host_radius, age * 1.0e9, inputs, [perturber for perturber, _source in companions])
+    plane = {perturber.key: spin.orbit_normal(math.degrees(perturber.inclination_rad), math.degrees(perturber.node_rad)) for perturber, _source in companions}
+    plane.update({index: spin.orbit_normal(body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0) for index, body in enumerate(bodies)})
+    lost = []
+    for body, result in zip(bodies, results):
+        if ledger is not None:
+            for key, rate in result.ledger_rates.items():
+                ledger.add("secular", body, sources[key], rate * kozai_bodies.SECULAR_RATE_UNIT_PER_S)
+        outcome = result.outcome
+        if outcome is None or not outcome.cycles:
+            continue
+        body.build.kozai = outcome
+        if outcome.lost:
+            lost.append(body)
+            continue
+        old_inclination, old_node = body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0
+        orbit = body.orbit_from_vector()
+        phase = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z), old_inclination, old_node)
+        normal = kozai_planets.tilted_normal(spin.orbit_normal(old_inclination, old_node), plane[result.perturber], outcome.inclination_now_rad)
+        inclination, node = kozai_planets.plane_of_normal(normal)
+        if getattr(body, "moons", None):
+            release_moons(body)
+        body.eccentricity = outcome.eccentricity_now
+        body.build.orbit_birth = outcome.eccentricity_now
+        body.orbital_inclination_deg, body.orbital_ascending_node_deg = math.degrees(inclination), math.degrees(node)
+        carry_spin_with_orbit(body, old_inclination, old_node)
+        update_orbital_position(body, phase, math.degrees(orbit["arg_periapsis"]))
+        for moon in getattr(body, "moons", ()):
+            moon.host_eccentricity = body.eccentricity
+        stale_air(body)
+    return lost
+
+
 def draw_birth_spin(planet):
     """The spin a planet or moon is born with, `(rate rad/s, tilt degrees, capture units)`: a rocky planet's from the giant impacts that built it
     (`spin.accretion_spin`), a moon's or giant's at a rate from `spin.planet_day_hours` with a Rayleigh tilt (GEN.104, GEN.979). The capture units are one uniform

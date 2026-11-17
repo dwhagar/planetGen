@@ -2451,6 +2451,26 @@ class StarSystem:
             if outcome != "unchanged":
                 log.debug(f"{star.name}: secular exchange of its planets: {outcome}")
 
+    def _kozai_planets(self):
+        """
+        GEN.1645: the planets' own Kozai-Lidov screen (`physics.kozai_planets`): a companion star on a plane 39.2 to 140.8 degrees from a planet's, or a heavier outer sibling on one, pumps its
+        eccentricity and turns its plane when nothing faster turns its orbit (`planets.kozai_pump_planets`). It runs after the secular exchange and the resonant chains and before the tide wears an
+        eccentricity down (`settle_orbit` wears the pumped one). A planet whose maximum puts its periapsis inside the star or its Roche limit is lost with its moons. `self.kozai_planet_outcomes`
+        counts the planets screened and what became of them (a record for the census, not stored).
+        """
+        self.kozai_planet_outcomes = {"screened": 0, "cycling": 0, "lost": 0}
+        for star, planets in validation.star_lists(self):
+            screened = [p for p in planets if p.body_type in ('t', 'g')]
+            if not screened:
+                continue
+            self.kozai_planet_outcomes["screened"] += len(screened)
+            lost = planetPhysics.kozai_pump_planets(star, planets, self.effect_ledger)
+            self.kozai_planet_outcomes["cycling"] += sum(1 for p in screened if p.build.kozai is not None)
+            for planet in lost:
+                planets.remove(planet)
+                self.kozai_planet_outcomes["lost"] += 1
+                log.debug(f"{planet.name}: lost to Kozai-Lidov pumping by {star.name}")
+
     def _kozai_pumping(self):
         """
         GEN.1447: every moon is the inner body of the triple (its planet, the moon, the planet's star): the star's torque, averaged over both orbits, pumps the moon's eccentricity when their
@@ -2523,6 +2543,7 @@ class StarSystem:
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
             if self.binary_type == "wide":
                 resonant_chains.give_forced_eccentricities(self.secondary_planets, self.secondary_star.mass)
+            self._kozai_planets()       # GEN.1645: a companion's or a heavier sibling's pull on each planet, before the tide wears an eccentricity down
             # GEN.1548: the orbit and the size of every planet, before any air: a body built bare (GEN.1282) takes the tide, the forced eccentricity, the giant's radius and the envelope
             # and has no air to make again; one built whole (a system that bars habitable worlds, GEN.1397) is made again as it always was
             for obj in self.all_planets:
