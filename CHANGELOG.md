@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4435] - 2026-11-17
+
+**Headline:** The galaxy-run stage test names the stages of the population pass as they are now, so main is green again.
+
+### Fixed
+- `test_a_galaxy_run_scatters_the_stars_then_the_phenomena` expected one `population` stage; since OPS.239 part B the pass is the four stages `species`, `civilizations`, `technology` and `population`, and the expected list says so.
+
+generation-output: unchanged
+
 ## [8.0.4434] - 2026-11-17
 
 **Headline:** The sky draw of the bright-star backfill is about a fifth faster per cell: sectors that take one level or mass are written in one statement, and a cell's center is worked out once.
