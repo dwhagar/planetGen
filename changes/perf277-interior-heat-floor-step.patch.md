@@ -1,6 +1,0 @@
-**Headline:** Small cold bodies (belt members and small moons far from their star) finish their interior heat in hundreds of steps instead of up to 770,000, which takes a long sector run from about 63 s to about 55 s; interior heat flows change by at most 3 parts in a million.
-
-### Changed
-- `interior_heat.heat`: when a body's heat flux is the conduction floor (a cold mantle whose viscosity law carries next to nothing), the step is taken from the floor's own rate of change (`FLOOR_STIFFNESS_MARGIN` times the slope of the conduction) instead of the viscosity law's `Ea / (R T^2)`, which at a few kelvin shrank the step to 1e-5 Gy. A 294 km body at a 2.7 K surface took 770,000 steps for 11.4 Gy and now takes about 300. On a sample of 40 systems (499 bodies) no flag or name changes; the internal heat flow and the Urey ratio change by at most 2.8e-6 of their value, the tidal heat flux by 1.7e-5, the heat released by up to 2e-3 on the slowest bodies (cold small bodies only), and the largest change of any stored number is 2 percent in the longest day of one slowly spinning body (a difference of two nearly equal periods that amplifies a 2e-7 change in its spin).
-
-generation-output: changed within the integrator's tolerance (no golden, no epoch, lock item Train 43)
