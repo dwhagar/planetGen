@@ -43,7 +43,7 @@ UNIT_BY_NATURE_MB = {
     "check-math": 700, "check-datasets": 700, "check-revision": 700, "check-tables": 700, "check-tables-extended": 1000, "check-orphans": 1000,
     "check-ids": 700, "check-values": 1000, "check-counts": 700, "check-version-keys": 700, "check-storage": 700, "check-systems": 1000,
     "check-object-index": 1000, "warm-object-index": 1000, "warm-galaxy-map": 1000, "warm-lists": 700, "warm-search": 1000,
-    "end-map-rebuild-maintenance": 700,
+    "end-map-rebuild-maintenance": 700, "record-phenomenon-scatter": 700,
 }
 """dict: What a unit of a command that is one unit by nature (`CommandSpec.one_unit`) claims, MB, where `workers.STAGE_WORKER_MEMORY_MB` has no figure.
 Unmeasured: first claims by what the command reads, until the gate has learned the kind."""
