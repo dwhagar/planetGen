@@ -17,7 +17,7 @@ import signal
 from planetgen import _version
 from planetgen.admin import updateguard
 from planetgen.db import store
-from planetgen.queue import dbsignal, jobhost, lightjobs, pressure, redisqueue, supervisor
+from planetgen.queue import controls, dbsignal, jobhost, lightjobs, pressure, redisqueue, supervisor
 from planetgen.util import log
 
 
@@ -53,7 +53,8 @@ def main(argv=None):
     launches = supervisor.Launches(connection, forker=templates, also_held=lights.holders, hold=hold)
     lights.also_held = launches.holders      # each hand-out is judged against the claims of the other (OPS.230)
     lights.hold = hold
-    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), supervisor.WorkerStarts(connection), controller, database, lights, launches)
+    requests = controls.Controls(connection, launches=launches)     # before the launcher: a request to stop is seen before the next hand-out (OPS.234)
+    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), supervisor.WorkerStarts(connection), controller, database, requests, lights, launches)
     reason = supervisor.Supervisor(supervisor.SystemClock(), supervisor.RedisStore(connection), supervisor.ProcessTable(), duties=duties,
                                    stop=lambda: bool(stopping) or updateguard.is_updating(), idle_seconds=args.idle_seconds).run()
     prober.close()

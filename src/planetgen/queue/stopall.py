@@ -339,17 +339,18 @@ def stop_all(who=None, connection=None, kill=True, hold=True):
             out while it runs, and the site works again after it, but nothing the update left running survives it.
 
     Returns:
-        dict: `{"already": the hold was on, "runs": canceled, "queued": jobs removed from the queues, "job": a page
-            job was stopped, "killed": processes ended, "survivors": pids this user could not signal}`.
+        dict: `{"already": the hold was on, "runs": canceled, "queued": jobs removed from the queues and rows of the ledger
+            canceled, "job": a page job was stopped, "jobs": job processes the supervisor stopped, "killed": processes ended by the scan,
+            "survivors": pids this user could not signal}`.
     """
-    from planetgen.queue import pause, redisqueue
+    from planetgen.queue import controls, pause, redisqueue
 
     already = (not _write_hold(who)) if hold else is_stopped()
     if connection is None:
         with contextlib.suppress(Exception):
             connection = redisqueue.connect()
             connection.ping()
-    summary = {"already": already, "runs": 0, "queued": 0, "job": 0, "killed": 0, "survivors": []}
+    summary = {"already": already, "runs": 0, "queued": 0, "job": 0, "jobs": 0, "killed": 0, "survivors": []}
     job_roots = []
     try:
         summary["job"], job_roots = _stop_jobs()
@@ -362,6 +363,9 @@ def stop_all(who=None, connection=None, kill=True, hold=True):
         summary["runs"] = _cancel_runs(connection, who)
         with contextlib.suppress(Exception):
             summary["queued"] = _empty_queues(connection)
+        with contextlib.suppress(Exception):
+            stopped = controls.stop_everything(connection, who)     # OPS.234: the supervisor ends every job process it forked, and the rows of the ledger; the scan below is the second line
+            summary["jobs"], summary["queued"] = stopped["jobs"], summary["queued"] + stopped["rows"]
     if kill:
         summary.update(kill_processes())
     if connection is not None:
