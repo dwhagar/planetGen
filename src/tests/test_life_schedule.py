@@ -181,12 +181,18 @@ def test_a_class_whose_own_air_leaves_it_too_little_carbon_dioxide_does_not_live
 
 
 def test_a_class_that_breathes_oxygen_but_makes_none_stops_at_photosynthesis_in_an_air_without_it():
-    for body in _bodies(60, HABITABLE_WORLD=True):
-        if body.life_class and _short_of_oxygen(body):
-            assert _ages(body)[2:] == (None, None, None), body.name
-            assert body.life_stage in (None, "abiogenesis", "photosynthesis"), body.name
-            return
-    pytest.fail("no generated world with an oxygen-breathing class that makes no oxygen")
+    """Built by hand (TEST.737): generation seldom makes this world (class 4a is about 1 in 1,400 life worlds, and the ones made hold plenty of oxygen), so the test does not wait for one.
+    A class 4a is dated on a generated world whose air has under the oxygen complex cells need, as `_date` dates the classes of a body: its first two steps come, the rest never do."""
+    body = next((b for b in _bodies(60, HABITABLE_WORLD=True) if b.life_class and atmosphere.partial_kpa(b, "o2") * 1000.0 < biogenic_oxygen.EUKARYOTE_MINIMUM_PA), None)
+    assert body is not None, "none of 60 fixed streams made a world with life and a thin air"
+    row = life_classes.describe("4a")
+    assert row.oxidant == "o2" and not row.releases_oxygen
+    cand = planet_life._Cand(row, life_classes.ClassScore("4a", 1.0, {}, [], [], [], npp=1.0))
+    cand.waits = planet_life._draw_waits(body, row, draw.Stream("oxygen-breather-without-oxygen"))
+    planet_life._date(body, [cand])
+    assert all(age is not None for age in cand.ages[:2]) and cand.ages[2:] == (None, None, None), cand.ages
+    stage = evolution.get_evolutionary_state(body.star, cand.ages)["stage"]
+    assert stage in (None, "abiogenesis", "photosynthesis"), stage
 
 
 def test_the_first_light_comes_earlier_for_a_simpler_way_of_harvesting_it():

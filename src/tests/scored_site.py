@@ -26,8 +26,22 @@ from tests.conftest import _test_server_kwargs
 from tests.habitability_site import EDGE_MPC, HABITABLE_ADDRESS, _config_for
 from tests.served import served
 
-SEEDS = (11, 12, 13, 53)
-"""tuple: The seed of each of the systems (TEST.737: 53 adds four moons with an ocean depth, which the moon range search needs; the other three have one)."""
+SYSTEMS = 4
+"""int: How many systems the sample holds (the pages of the browser tests show 50 bodies, so the sample stays small)."""
+
+FIRST_SEED = 11
+LAST_SEED = 80
+"""int: The seeds tried, in turn, from `FIRST_SEED`: a system is kept when it has `MIN_MOONS` moons or one with an ocean, until `SYSTEMS` are (TEST.737: the moons a seed makes change with the generator, and a
+sample whose moons lack an ocean, an air or a dose skipped the range and sort searches, or failed them, whenever the generator moved)."""
+
+MIN_MOONS = 3
+"""int: The moons that make a system worth keeping."""
+
+MOONS_WANTED = 3
+"""int: How many moons must hold each stored value the range and sort searches read."""
+
+MOON_VALUE_COLUMNS = ("gravity_g", "surface_temperature_k", "atmospheric_pressure_pa", "surface_dose_msv_yr", "ocean_depth_km", "period_years")
+"""tuple: The moon columns the searches of `test_search_values` read."""
 
 PHI4_CYCLE = (1.2, 0.9, 0.5, 0.1)
 """tuple: The overall PHI-6 score given to the bodies in turn: Blue, Green, Yellow, Red."""
@@ -53,6 +67,12 @@ def _score(conn, table):
         conn.execute(f"UPDATE {table} SET {marks} WHERE id = ?", (*sets.values(), body_id))
 
 
+def _moons_are_enough(conn):
+    """Whether each of `MOON_VALUE_COLUMNS` is stored on `MOONS_WANTED` moons (and so on that many bodies the searches have to pick between)."""
+    counts = conn.execute("SELECT " + ", ".join(f"COUNT({column}) AS {column}" for column in MOON_VALUE_COLUMNS) + " FROM moons").fetchone()
+    return all(counts[column] >= MOONS_WANTED for column in MOON_VALUE_COLUMNS)
+
+
 @pytest.fixture(scope="module")
 def scored_galaxy(_mysql_server_available):
     kwargs = _test_server_kwargs()
@@ -72,7 +92,7 @@ def scored_galaxy(_mysql_server_available):
                          ("Scored", EDGE_MPC, *HABITABLE_ADDRESS))
             sector_id = conn.execute("SELECT id FROM sectors WHERE name = 'Scored'").fetchone()["id"]
             system_ids = []
-            for seed in SEEDS:
+            for seed in range(FIRST_SEED, LAST_SEED):
                 cfg = SystemConfig()
                 cfg.STAR_TYPE = "G2V"
                 cfg.PLANETS = True
@@ -80,7 +100,14 @@ def scored_galaxy(_mysql_server_available):
                 cfg.BINARY_SYSTEM = False
                 with draw.bound(seed):
                     system = StarSystem(system_config=cfg)
+                moons = [moon for planet in system.planets if planet.body_type != "a" for moon in planet.moons]
+                if len(moons) < MIN_MOONS and not any(getattr(moon, "ocean_depth_km", None) for moon in moons):
+                    continue
                 system_ids.append(store.insert_star_system(conn, system, cfg, sector_id=sector_id))
+                if len(system_ids) == SYSTEMS:
+                    break
+            if len(system_ids) < SYSTEMS or not _moons_are_enough(conn):
+                pytest.fail(f"seeds {FIRST_SEED} to {LAST_SEED} gave {len(system_ids)} of {SYSTEMS} systems with {MIN_MOONS} moons, holding {MOONS_WANTED} moons with each of {MOON_VALUE_COLUMNS}")
             store.assign_uids(conn, system_ids=system_ids)
             for table in ("planets", "moons"):
                 _score(conn, table)

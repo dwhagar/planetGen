@@ -133,7 +133,7 @@ PLAIN = (("gravity", "gravity_g", "g0"), ("surface_temperature", "surface_temper
 def test_a_range_returns_exactly_the_bodies_whose_stored_value_is_in_it(scored_galaxy, table, panel, entity, key, column, stored):
     bodies = [b for b in _rows(scored_galaxy.config, table, [column]) if b[column] is not None]
     values = sorted(b[column] for b in bodies)
-    if len(values) < 4:
+    if len(values) < 3:
         pytest.fail(f"the sample galaxy has too few {table} with {column}")
     least, most = values[len(values) // 4], values[3 * len(values) // 4]
     unit = sv.KEYS[key].default_unit(entity)

@@ -48,7 +48,8 @@ def test_the_page_lists_the_bodies_by_designation_and_links_back_to_the_belt(cli
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert 'id="belt-bodies"' in page and 'id="belt-sizes"' in page and 'id="belt-density"' in page
-    assert page.count("<code>") == members
+    planets = client.get(f"/api/objects/{ref}/belt-page").get_json()["planets"]
+    assert page.count("<code>") == members + len(planets), "a designation in a <code> for each body of the belt and for each planet that was a body of it"
     assert f'href="/object/{ref}"' in page
 
 
