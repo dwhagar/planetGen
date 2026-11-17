@@ -180,7 +180,7 @@ def _exobase_solved(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k
 
     The profile is `T(z)` of the Bates form and the density follows from hydrostatic balance, `d ln n / dz = -(1 / H + T' / T)` with `1 / H = m g R^2 / (k (R + z)^2 T)`, so
     `ln n (z) = ln n0 - I(z) - ln (T / T0)` with `I` the integral of `1 / H`. The exobase is the first height at which `f = ln (n sigma H)` falls to zero; `f' = 2 / (R + z) - 1 / H`.
-    `I` is integrated over panels of `EXOBASE_PANEL_SCALE_HEIGHTS` of the smaller of `H`, the Bates length and `T / T'` (and of half the radius from the centre), by Gauss-Lobatto of four points that
+    `I` is integrated over panels of `EXOBASE_PANEL_SCALE_HEIGHTS` of the smaller of `H`, the Bates length and `T / T'` (and of half the radius from the center), by Gauss-Lobatto of four points that
     share their end values with the next panel, until a panel ends at or under zero; the root inside it is found by Newton steps kept inside a bracket (bisection where one leaves it), the integral
     carried from the nearer end. The step this replaced was first order, a fixed 0.25 of a scale height, and lagged the profile (GEN.1784).
     """
