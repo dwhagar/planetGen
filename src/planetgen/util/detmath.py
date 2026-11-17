@@ -79,6 +79,26 @@ the loop over the inner index is cheaper than the larger array."""
 _ACCUMULATE_LIMIT = 4_000_000
 """int: The most products `matmul` forms at once; a larger product is added one output at a time (PERF.246) or goes through the loop."""
 
+_KERNEL_FROM = 100_000
+"""int: The number of products (rows of `a` times the inner index times the columns of `b`) from which `matmul` adds with the compiled kernel (`detmath_kernel`, PERF.279); fewer go through numpy."""
+
+_KERNEL_CHAINS = 64
+"""int: Up to this many outputs the kernel advances every output's chain at each step of the index (a Gram row, a few dot products); more, it adds a whole row of outputs at each step (a few terms over a long vector)."""
+
+_kernel_module = []
+"""list: The kernel module once imported (one entry), or `[None]` where numba cannot be imported and `matmul` keeps the numpy way."""
+
+
+def _kernel():
+    """The compiled kernels, imported on first use; `None` if numba is not there or cannot cache in this code tree (the numpy way gives the same bits)."""
+    if not _kernel_module:
+        try:
+            from planetgen.util import detmath_kernel
+            _kernel_module.append(detmath_kernel)
+        except Exception:  # noqa: BLE001 -- numba missing, or no writable cache folder: the slower sum has the same bits
+            _kernel_module.append(None)
+    return _kernel_module[0]
+
 
 def dot(a, b):
     """
@@ -101,6 +121,19 @@ def matmul(a, b):
     a = np.asarray(a, dtype=float)
     b = np.asarray(b, dtype=float)
     inner = b.shape[0]
+    if inner and a.size * b.shape[1] >= _KERNEL_FROM:
+        kernel = _kernel()
+        if kernel is not None:
+            # PERF.279: the same sums, every output's products added left to right, in one compiled pass (no array of products, the chains of the outputs advance together)
+            flat = np.ascontiguousarray(a.reshape(-1, inner))
+            outputs = flat.shape[0] * b.shape[1]
+            if outputs > _KERNEL_CHAINS:
+                out = kernel.wide(flat, b)
+            elif flat.shape[0] > b.shape[1]:
+                out = kernel.chains(b.T, flat.T).T          # a product commutes exactly, so the output is the same and its few chains run along the longer side
+            else:
+                out = kernel.chains(flat, b)
+            return out.reshape(a.shape[:-1] + (b.shape[1],))
     if inner >= _ACCUMULATE_FROM and a.size * b.shape[1] <= _ACCUMULATE_LIMIT:
         return np.add.accumulate(a[..., :, None] * b, axis=-2)[..., -1, :]
     rows = a.size // inner if inner else 0
