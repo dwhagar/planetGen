@@ -3631,3 +3631,11 @@ Baseline: PR #1817.
 | GEN.1543 | 8.1 | TODO sweep |
 | GEN.1778 | 8.1 | TODO sweep |
 | TEST.737 | 8.1 | TODO sweep |
+| OPS.122 | 8.1 | TODO sweep |
+| OPS.123 | 8.1 | TODO sweep |
+| OPS.132 | 8.1 | TODO sweep |
+| OPS.124 | 8.1 | TODO sweep |
+| OPS.126 | 8.1 | TODO sweep |
+| OPS.127 | 8.1 | TODO sweep |
+| OPS.128 | 8.1 | TODO sweep |
+| OPS.129 | 8.1 | TODO sweep |
