@@ -338,6 +338,39 @@ def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surf
     return max(MANTLE_CONDUCTIVITY * drop / layer, conduction)
 
 
+def _flux_function(interior, gravity, thickness_m, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K, radius_m=None):
+    """
+    `_flux_w_m2` of one body as a function of the mantle temperature alone (PERF.276): everything that does not change with the temperature is worked
+    out once (the activation energy in J/mol, the products of the constants that lead the law's expressions, the lid's drop law and exponent), and
+    each expression keeps the order of its operations, so the function returns the bits of `_flux_w_m2` at every temperature.
+    """
+    activation = interior.activation_kj_mol * 1000.0
+    eta0 = interior.eta0_pa_s
+    length = radius_m if radius_m is not None else thickness_m
+    conduction_scale = CONDUCTION_SHAPE_FACTOR * MANTLE_CONDUCTIVITY
+    viscosity_scale = VISCOSITY_SCALE_COEFFICIENT * GAS_CONSTANT
+    expansion = MANTLE_EXPANSIVITY * MANTLE_DENSITY * gravity
+    cube = thickness_m ** 3
+    mobile = lid == MOBILE
+    critical, exponent = (MOBILE_CRITICAL_RAYLEIGH, MOBILE_HEAT_FLOW_EXPONENT) if mobile else (CRITICAL_RAYLEIGH, HEAT_FLOW_EXPONENT)
+    exp = math.exp
+
+    def flux(temperature_k):
+        exponent_of_viscosity = activation / (GAS_CONSTANT * temperature_k)
+        conduction = conduction_scale * max(temperature_k - surface_k, 0.0) / length
+        if exponent_of_viscosity > MAX_VISCOSITY_EXPONENT:
+            return conduction
+        viscosity = eta0 * exp(exponent_of_viscosity)
+        drop = temperature_k - surface_k if mobile else viscosity_scale * temperature_k ** 2 / activation
+        if drop <= 0.0:
+            return 0.0
+        rayleigh = expansion * drop * cube / (MANTLE_DIFFUSIVITY * viscosity)
+        layer = thickness_m * (critical / rayleigh) ** exponent
+        return max(MANTLE_CONDUCTIVITY * drop / layer, conduction)
+
+    return flux
+
+
 def _tide_w(forcing, mantle, kelvin, interior):
     """The tide's power, W, in a body of this `mantle` (its rock, with the water taken off) with the mantle at `kelvin`: the eccentricity tide at the orbital rate
     and, for a planet, the tides of its moons against its spin (`_moons_w`), each with `tidal_rheology`'s `k2/Q` at its frequency, the melt `kelvin` makes
@@ -413,8 +446,10 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
     area_dry_m2 = 4.0 * math.pi * dry_m ** 2
     capacity = silicate_kg * MANTLE_SPECIFIC_HEAT + metal_kg * CORE_SPECIFIC_HEAT
 
+    decay_terms, fsum, exp = tuple(terms), math.fsum, math.exp
+
     def radiogenic_w(t_gy):
-        return silicate_kg * math.fsum(a * math.exp(-rate * t_gy) for a, rate in terms)
+        return silicate_kg * fsum([a * exp(-rate * t_gy) for a, rate in decay_terms])
 
     energy_j = binding_energy_j(dry_kg, dry_m, metal_kg, core_m)
     activation = interior.activation_kj_mol * 1000.0
@@ -426,8 +461,10 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
     if surface_k >= cap_k:
         return _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, tide_w if forcing is not None else None)
 
+    flux_at = _flux_function(interior, gravity, thickness_m, lid, surface_k, dry_m)
+
     def conduction_w(kelvin):
-        return _flux_w_m2(kelvin, interior, gravity, thickness_m, lid, surface_k, dry_m) * area_dry_m2
+        return flux_at(kelvin) * area_dry_m2
 
     def cool(tide=None, ceiling_k=cap_k):
         """
@@ -443,9 +480,10 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
             return min(max(kelvin, surface_k), top_k)
 
         def rate(radiogenic, kelvin, conduction=None):
+            held_k = min(max(kelvin, surface_k), top_k)      # `clipped(kelvin)`, once
             if conduction is None:
-                conduction = conduction_w(clipped(kelvin))
-            return GY_S * (radiogenic + (tide(clipped(kelvin)) if tide is not None else 0.0) - conduction) / capacity
+                conduction = flux_at(held_k) * area_dry_m2
+            return GY_S * (radiogenic + (tide(held_k) if tide is not None else 0.0) - conduction) / capacity
 
         start_k = surface_k + energy_j / capacity
         temperature = min(start_k, top_k)
@@ -459,7 +497,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         # the radiogenic power at the start of a step is that at the end of the one before, and the two middle stages share one time;
         # the flux at the start is the one the last step ended with (PERF.201: the same values, each worked out once)
         radiogenic_start = radiogenic_w(0.0)
-        flux = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k, dry_m)
+        flux = flux_at(temperature)
         while t < age_gy:
             # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
             stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
@@ -489,7 +527,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
                 if core_steps == CORE_STRIDE or t + h >= age_gy:
                     core.advance(core_from_t, core_h, core_from_k, temperature)
                     core_steps = 0
-            flux_end = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k, dry_m)
+            flux_end = flux_at(temperature)
             if raw_k < surface_k:
                 # the step wanted a mantle cooler than its surface: it ends on the floor, and what it released is the heat it made and the heat it gave up on the way down
                 # (energy kept), not the flux law's, which at the floor carries more than the body makes (TEST.775: a 4.5 Earth-mass planet at 3,032 K released 7 times its radiogenic)

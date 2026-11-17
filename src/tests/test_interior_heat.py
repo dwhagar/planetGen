@@ -508,3 +508,13 @@ def test_equal_heat_flow_calls_give_the_one_stored_result_and_the_bits_of_the_un
     assert first is second
     assert ih.heat_flow.cache_info().hits >= 1
     assert first == ih.heat_flow.__wrapped__(*args)
+
+
+@pytest.mark.parametrize("lid", [ih.STAGNANT, ih.MOBILE])
+def test_the_flux_function_of_a_body_is_the_flux_law_to_the_last_bit(lid):
+    """PERF.276: `_flux_function` works out what does not change with the temperature once; at every temperature it returns what `_flux_w_m2` does."""
+    for interior in CORNERS + [MID]:
+        for gravity, thickness_m, surface_k, radius_m in ((9.8, 2.9e6, 273.0, 6.37e6), (0.2, 1.1e5, 2.725, 2.9e5), (1.6, 8.0e5, 150.0, None), (24.0, 4.0e6, 900.0, 1.1e7)):
+            flux = ih._flux_function(interior, gravity, thickness_m, lid, surface_k, radius_m)
+            for kelvin in (1.0, 2.7, 10.0, 80.0, 273.0, 300.0, 600.0, 1100.0, 1650.0, 2300.0, 5000.0):
+                assert flux(kelvin) == ih._flux_w_m2(kelvin, interior, gravity, thickness_m, lid, surface_k, radius_m)
