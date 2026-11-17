@@ -354,3 +354,14 @@ def test_gen1573_a_heavy_ocean_sinks_its_basins_and_keeps_the_continents_dry_unt
 def test_gen1573_the_ice_of_a_frozen_body_does_not_sink_its_basins():
     assert hy.ocean_fraction(6.0, constants.EARTH_GRAVITY, icy=True) > 0.95
     assert hy.ocean_fraction(6.0, constants.EARTH_GRAVITY) < 0.75
+
+
+def test_a_little_water_under_a_thick_hot_air_stands_as_vapor_and_a_deep_sea_does_not():
+    """GEN.1773: 1.4e20 kg of water on a Venus-mass body (about 26 bar if it were all vapor) at 586 K is under water's saturation pressure there (about 75 bar), so it is all
+    vapor even under 118 bar of air that keeps it from boiling; the same body with an Earth ocean's mass per area (about 270 bar) is saturated and keeps its sea."""
+    venus = types.SimpleNamespace(mass=4.867e24, radius=6052.0)
+    gravity = 8.87
+    area = 4.0 * 3.141592653589793 * (venus.radius * 1000.0) ** 2
+    assert hy._all_vapor(venus, 1.36e20, 586.0, gravity)
+    assert not hy._all_vapor(venus, 270e5 * area / gravity, 586.0, gravity)
+    assert not hy._all_vapor(venus, 1.36e20, 700.0, gravity)        # past the critical point there is no saturation curve to compare with
