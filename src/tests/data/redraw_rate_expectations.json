@@ -73,9 +73,9 @@
      "events": 61
     },
     "snow_line.scatter": {
-     "baseline": 0.003333,
-     "ceiling": 0.008333,
-     "events": 2
+     "baseline": 0.058686,
+     "ceiling": 0.117372,
+     "events": 35
     },
     "star.model_redraw": {
      "baseline": 0.01,
@@ -143,9 +143,9 @@
      "events": 36
     },
     "snow_line.scatter": {
-     "baseline": 0.003333,
-     "ceiling": 0.008333,
-     "events": 2
+     "baseline": 0.058686,
+     "ceiling": 0.117372,
+     "events": 35
     },
     "star.model_redraw": {
      "baseline": 0.006667,
@@ -203,9 +203,9 @@
      "events": 157
     },
     "snow_line.scatter": {
-     "baseline": 0.001667,
-     "ceiling": 0.005,
-     "events": 1
+     "baseline": 0.029352,
+     "ceiling": 0.058704,
+     "events": 18
     },
     "star.model_redraw": {
      "baseline": 0.006667,
@@ -278,9 +278,9 @@
      "events": 145
     },
     "snow_line.scatter": {
-     "baseline": 0.006667,
-     "ceiling": 0.015,
-     "events": 4
+     "baseline": 0.117389,
+     "ceiling": 0.234778,
+     "events": 70
     },
     "star.model_redraw": {
      "baseline": 0.006667,
@@ -373,9 +373,9 @@
      "events": 97
     },
     "snow_line.scatter": {
-     "baseline": 0.006667,
-     "ceiling": 0.015,
-     "events": 4
+     "baseline": 0.117389,
+     "ceiling": 0.234778,
+     "events": 70
     },
     "star.model_redraw": {
      "baseline": 0.006667,
@@ -473,9 +473,9 @@
      "events": 116
     },
     "snow_line.scatter": {
-     "baseline": 0.011667,
-     "ceiling": 0.025,
-     "events": 7
+     "baseline": 0.205427,
+     "ceiling": 0.410854,
+     "events": 123
     },
     "star.model_redraw": {
      "baseline": 0.006667,
@@ -563,9 +563,9 @@
      "events": 65
     },
     "snow_line.scatter": {
-     "baseline": 0.013333,
-     "ceiling": 0.028333,
-     "events": 8
+     "baseline": 0.234761,
+     "ceiling": 0.469522,
+     "events": 141
     },
     "star.model_redraw": {
      "baseline": 0.006667,
@@ -668,9 +668,9 @@
      "events": 41
     },
     "snow_line.scatter": {
-     "baseline": 0.011667,
-     "ceiling": 0.025,
-     "events": 7
+     "baseline": 0.205427,
+     "ceiling": 0.410854,
+     "events": 123
     },
     "star.model_redraw": {
      "baseline": 0.001667,
@@ -773,9 +773,9 @@
      "events": 5584
     },
     "snow_line.scatter": {
-     "baseline": 0.001733,
-     "ceiling": 0.005199,
-     "events": 1
+     "baseline": 0.030514,
+     "ceiling": 0.061028,
+     "events": 18
     },
     "star.model_redraw": {
      "baseline": 0.055459,
@@ -807,6 +807,7 @@
   "kind": "stand-in: the redraw rate before the overlap-free build measured",
   "label": "GEN.1521 chain rule",
   "note": "T9 (from needed output), L3 (hand-set against the baseline run): the ceiling is the rate that would double, not a physical limit; GEN.1006's parts lower the baselines, and each part re-measures and tightens them",
+  "rebaselined_snow_line_scatter": "GEN.1611 cut the snow line's scatter at 2 sigma (it was 3): a redraw is now 4.55 percent of draws against 0.27, 17.6 times the rate; the baselines are the old ones times 17.6 and the ceilings twice them. Measured on 150 default systems (seeds 5000 to 5149): 13 redraws in 210 snow-line draws, 0.062 per accepted draw against 0.048 expected",
   "seeds": "crc32 of 'redraw:<group>:<number>' (tests.audit.prevalence.seed_for)",
   "tier": "T9",
   "tweak": "L3"
