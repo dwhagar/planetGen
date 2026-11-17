@@ -436,7 +436,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | held for job-engine stage 3, 2026-11-13. |
 | OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | Lane 13, 2026-11-14. |
 | OPS.226 | Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side | none | Lane 13, 2026-11-15. |
-| OPS.228 | Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane) | none | Lane 13, 2026-11-15. |
 | OPS.229 | Job engine stage 4: the maintenance and check lanes move (RoundRobinWorker deleted); closes OPS.189 | none | Lane 06, 2026-11-14. |
 | OPS.230 | Job engine stage 4: the site's lanes move as light jobs with deadlines (interactive and long RQ queues deleted) | none | Lane 06, 2026-11-14. |
 | OPS.231 | Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot | none | Lane 06, 2026-11-14. |
@@ -643,5 +642,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1786 | Restored resonant bodies keep their held eccentricity | none | Lane 07, 2026-11-17 |
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
+| OPS.271 | Ledgerless runs leave RQ; bulk RQ unit path deleted | OPS.228 | Lane 13, 2026-11-17 |
 | PERF.277 | Interior cooling step collapse in old small bodies | none | Lane 16, 2026-11-17 |
 | PERF.279 | Habitability seasonal solve per pre-placed system | none | Lane 16, 2026-11-17 |
