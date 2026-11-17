@@ -199,6 +199,8 @@ def test_a_slow_unit_is_never_stopped_however_long_it_takes(conn, clock, run_id)
 def test_a_unit_whose_beat_stops_is_dead_after_thirty_seconds_and_stopped_after_two_checks(conn, clock, run_id):
     watch, sink = make_watch(conn, run_id)
     horse = Horse(conn, run_id, clock)
+    started = redisqueue.fetch_job(units.job_id(run_id, 0, 0), conn, redisqueue.JsonSerializer)
+    started.set_status(rq.job.JobStatus.STARTED)        # the horse began the unit: a job still queued would be a retry waiting for a worker, not a unit that died (OPS.268)
     run_for(120, horse, watch, rate=1.0)
     assert state_of(watch).state == beatjudge.WORKING
     run_for(20, horse, watch, rate=1.0, beating=False, step=10.0)       # the process is gone: nothing is written any more

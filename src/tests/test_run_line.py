@@ -69,7 +69,7 @@ def test_the_wait_ends_after_the_bound_and_names_the_run(conn):
     clock = Clock()
     with pytest.raises(runrecord.Busy) as refused:
         runline.start_when_free(conn, _start(), 120, _ask(conn), clock=clock.time, sleep=clock.sleep)
-    assert holder in str(refused.value) and "waited 2 minutes" in str(refused.value)
+    assert holder in str(refused.value) and "waited 2m" in str(refused.value)
     assert runline.entries(conn) == [] and runrecord.active_run(conn) == holder
 
 
