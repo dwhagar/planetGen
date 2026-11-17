@@ -1,4 +1,0 @@
-**Headline:** The greenhouse test now checks that more infrared-active gas never cools a world.
-
-### Changed
-- TEST.790: the radiation sweep gains a controlled form of its greenhouse ranking. The same air with every infrared-active gas at twice its partial pressure, under the same starlight and gravity, must not be cooler at the ground (1 percent tolerance for the table's steps; airs of more than 10 percent hydrogen are left out, since the collision-induced absorption of hydrogen is not an infrared-active gas of the code). The rank test and its floor of 0.3 are unchanged. Test only; no generation output changes.

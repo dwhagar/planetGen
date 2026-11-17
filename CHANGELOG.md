@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4455] - 2026-11-17
+
+**Headline:** The greenhouse test now checks that more infrared-active gas never cools a world.
+
+### Changed
+- TEST.790: the radiation sweep gains a controlled form of its greenhouse ranking. The same air with every infrared-active gas at twice its partial pressure, under the same starlight and gravity, must not be cooler at the ground (1 percent tolerance for the table's steps; airs of more than 10 percent hydrogen are left out, since the collision-induced absorption of hydrogen is not an infrared-active gas of the code). The rank test and its floor of 0.3 are unchanged. Test only; no generation output changes.
+
 ## [8.0.4454] - 2026-11-17
 
 **Headline:** The end stages after a body's air and the daylight and tide tail now have one helper each, instead of four copies that could drift.
