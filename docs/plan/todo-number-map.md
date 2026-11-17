@@ -16,9 +16,9 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1785 |
+| GEN | GEN.1786 |
 | PERF | PERF.280 |
-| DB | DB.135 |
+| DB | DB.136 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
@@ -4118,6 +4118,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1782 | Class D small bodies do not scale with metallicity (more in the halo) | closed, not a bug (Lane 06, 3:33 AM EST 11-17: 11.2 disk against 11.9 halo over 130 systems each, within noise; the count is pinned at ten per belt; cap question stays GEN.1674) |
 | GEN.1783 | (bug) A wide-binary planet's apoapsis passes the stability limit the validator uses | open (Lane 05) |
 | GEN.1784 | The exobase search underestimates the exobase height (median 6 percent, up to 25) (lock) | open (Lane 07) |
+| GEN.1785 | Class census shifts since 8656686b7: explain each, fix faults, renew ranges | GEN.1390 | open (Lane 04) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -5079,6 +5080,7 @@ Each citation below resolves to one item by its date.
 | DB.132 | (bug) A planet's forced eccentricity from a resonant chain (oddity_quantities, GEN.1459) is not stored, so a restored planet in a chain that is moved or edited loses the floor settle_orbit keeps | done (Train 39, PR 6909, merged 2:01 PM EST 11-16; item PR 6850, Lane 15, migration 0268) |
 | DB.133 | (bug) Stars do not store initial_mass_sol and phase_end_age_gy (bright_stars does), so a restored star has None for both | done (Train 39, PR 6909, merged 2:01 PM EST 11-16; item PR 6850, Lane 15, migration 0268) |
 | DB.134 | Extend the DB.101 stored-outputs test to belts, comets, phenomena tables and private attributes that outlive a build | done (PR 6853, Lane 15, merged 9:20 AM EST 11-16: the stored-outputs test covers belts, comets, rogue planets, interstellar comets, asteroid fields, black holes, neutron stars and private attributes; tilt_chaotic stays unstored with its reason) |
+| DB.135 | A redraw may lose effect_ledger rows | DB.75b | open (Lane 15) |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
