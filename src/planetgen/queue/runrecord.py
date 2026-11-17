@@ -111,6 +111,7 @@ class Stage:
         unit_seconds (float, optional): What the job profile says a unit of the stage's command takes on this machine (OPS.159, `profiletime`), which the untimed
             estimate (`roughtime`) uses in place of its typed 20 s.
         workers (int): Workers the stage runs on, for the ETA's time constant.
+        cap (int, optional): The most units of the stage that run at once, as the run was asked (`--workers`); none when it was not asked (the gate decides).
         row (dict, optional): The `generation_stage_runs` row the unit that completes the stage writes (PERF.106:
             `command`, `n`, `total`, `label` and `settings`; `generation.stages.hand_over_open_stage`); none for a
             stage that stores no row.
@@ -125,6 +126,7 @@ class Stage:
     worker_rate: float = None
     unit_seconds: float = None
     workers: int = 1
+    cap: int = None
     row: dict = None
 
 

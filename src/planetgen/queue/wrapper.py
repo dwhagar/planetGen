@@ -147,7 +147,7 @@ def _clear_the_floor_for_the_opening(conn, run_id):
     the run of 2026-11-08 held 15 workers at 15,128 MB of 15,992 when the cut of the stage after the block lights was killed. The
     run's `ensure` starts the next stage's workers again once the cut is done (`_await_plan` holds it back until then).
     """
-    if queue_of(run_kind(conn, run_id)) == redisqueue.BULK_QUEUE:
+    if queue_of(run_kind(conn, run_id)) == redisqueue.BULK_QUEUE and not forked(conn, run_id):         # OPS.228: a forked run has no bulk workers holding what their last unit left
         workers.shed_bulk(conn, 1)
 
 
@@ -793,6 +793,8 @@ def stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
     that asked to finish their unit and exit (`workers.shed_bulk`), so the workers an earlier stage left do not all
     scatter at once. A stage with ordinary workers is not limited.
     """
+    if run_id is not None and queue_of(kind) == redisqueue.BULK_QUEUE and forked(conn, run_id):
+        return lambda: 0                # OPS.228: the supervisor's launcher forks each unit when the gate has room; no worker waits for the stage
     cap = workers.stage_worker_cap(step_kind, conn, run_id)       # OPS.157: sized by the claim the gate makes from the job profile (the typed figure with no history)
     count = workers_count if cap is None else min(workers_count or cap, cap)
     if cap is not None:
@@ -860,7 +862,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     by_key = {step.key: step for step in steps}
     recorded = [by_key.get(step.key, step) for step in (listing or steps)]
     times = stagetimes.lookup(conn, [step.key for step in steps])
-    stages = [runrecord.Stage(step.key, step.label, workers=workers_count or 1,
+    stages = [runrecord.Stage(step.key, step.label, workers=workers_count or 1, cap=workers_count,
                               expected_seconds=(expected_seconds(step, (rows or {}).get(step.key))
                                                 or times.get(step.key, {}).get("seconds")),
                               worker_rate=times.get(step.key, {}).get("worker_rate"),
