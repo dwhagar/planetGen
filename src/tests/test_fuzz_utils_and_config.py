@@ -700,7 +700,7 @@ _PAIRS_THAT_ARE_NOT_RANGES = {
 }
 """dict: The two-number constants that are not (low, high) ranges, so the ordered-pair check leaves them alone, each with why."""
 
-_EXPONENT_OR_SIGNED = re.compile(r"EXPONENT|ROUND_|DEFAULT_M$|_OFFSET|_DELTA|_SLOPE|_INTERCEPT")
+_EXPONENT_OR_SIGNED = re.compile(r"EXPONENT|ROUND_|DEFAULT_M$|_OFFSET|_DELTA|_SLOPE|_INTERCEPT|SUBDWARF_MAX_FE_H")      # SUBDWARF_MAX_FE_H (GEN.1635) is a [Fe/H], negative by nature
 
 
 @pytest.mark.parametrize("module", [physical_constants, tuning], ids=lambda m: m.__name__)

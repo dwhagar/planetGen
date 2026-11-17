@@ -2,6 +2,67 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4422] - 2026-11-17
+
+**Headline:** A body with no star has no wind again, so a starless host's planet has no magnetopause standoff, and the subdwarf [Fe/H] cut is a signed constant.
+
+### Fixed
+
+- GEN.1625 follow-up: `magnetism.wind_pressure_pa` held every wind at the interstellar medium's pressure, so a rogue planet's starless host (luminosity 0) got a wind and `magnetopause_rp` a value where it was `None` (GEN.1111). A star with no light (a starless host, a black hole nothing feeds) now gives no wind; the floor stays for a quiet star and for a white dwarf. `test_fuzz_utils_and_config` lists `SUBDWARF_MAX_FE_H` (GEN.1635, -0.5) among the constants that are negative by nature.
+
+generation-output: unchanged
+
+## [8.0.4421] - 2026-11-17
+
+**Headline:** A young star up to 1.4 solar masses now has the light, temperature and radius of the published tracks at its age; a Sun-like star at 10 Myr is at 0.46 of its present light, not 0.75.
+
+### Fixed
+
+- GEN.1640: the model's own pre-main-sequence track ran brighter than the BHAC15 tables [R0254] from 0.5 solar masses up: a Sun-like star at 10 Myr had 0.75 solar luminosities against 0.46, and a 1.4 solar mass star 3.35 against 1.95 and reached the main sequence at 9 Myr, where the table has it at 20. The cause is that the model keeps a star at the light it ends on, while the published track dips under it and climbs back. Where the table holds the mass (up to 1.4 solar masses) `pre_main_sequence` now reads its luminosity, temperature and radius at the star's age (ages under its first, 0.5 Myr, read the first), and the radius-settled ages are read on to 1.4 solar masses (47.1, 38.0, 30.6, 24.9, 22.3 and 19.6 Myr at 0.9 to 1.4, from the age the table's radius is within 5 percent of the MIST zero-age radius). The model's own track stays for the stars above the table, scaled onto the 1.4 value, and meets the table with the step at 1.4 solar masses that `birth_luminosity` already names (GEN.553). Registry row LM6 says so.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4420] - 2026-11-17
+
+**Headline:** A cool dwarf's wind now comes from measured stellar winds, one law for its bubble, the black holes it feeds and the pressure on its planets' magnetic fields; an M dwarf's is no longer 2.8 times the Sun's, and a white dwarf has none.
+
+### Fixed
+
+- GEN.1625: `stellar_wind.wind` scaled every cool dwarf from the Sun by `R^2 L^-0.5 M^-1` (cited to a source that is not about stars: R4756 was a book chapter on the use of force), so an M5 dwarf had 2.8 times the Sun's mass loss and a white dwarf had a wind; and `magnetism.wind_pressure_pa` held a second, different wind (X-ray surface flux to the 1.3 power, capped at 10 for A to K and 1 for dwarfs under 0.4 solar masses). There is now one law (`stellar_wind.coronal_mass_loss_solar`). An A to K dwarf's mass loss is the Sun's times its squared radius times its X-ray surface flux over the Sun's to the 1.29 power ([R5303], 1.34 in [R5304]), the flux held at 1e6 erg/cm^2/s, the dividing line above which the measured winds turn weak. An M dwarf's is 3.3 times the Sun's per unit surface area whatever its flux, the median of the six single M dwarfs measured by [R5302] (an M5 dwarf of 0.2 solar radii has 0.13 of the Sun's, under the 0.2 that Proxima Centauri's limit allows). A white dwarf has none. The speed stays the Sun's 400 km/s scaled by the escape speed. The heliosphere, the winds that feed a black hole and the pressure on a planet's magnetosphere (`magnetism.wind_pressure_pa`: the Earth's times the star's mass loss and speed over the Sun's, no less than the interstellar medium's pressure) all read it; `Star._calculate_heliosphere_radius_static` and `stellar_wind.wind` take the star's `log_lx_lbol`, so the heliosphere is sized after the star's activity. Stand-ins WN5 to WN8 say so; the three exponent constants of the old law and `magnetism.WIND_CAP_SOLAR`, `M_DWARF_WIND_CAP` and `M_DWARF_WIND_MASS` are gone.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4419] - 2026-11-17
+
+**Headline:** A young star now holds its disk for its own time, drawn from the surveys' exponential, so disks are found between 3 and 10 Myr and not every disk ends at 3 Myr.
+
+### Changed
+
+- GEN.1551 slice 1: a star's class 0 and I disk ends at the ages the stages have (0.15 and 0.5 Myr) and its class II disk at its own dispersal time (`pre_main_sequence.dispersal_yr`, from `disk_dispersal.draw_dispersal_time_yr`: an exponential of 2.5 Myr at 0.5 solar masses, 3 to 1 Myr by mass), in place of the fixed 3 Myr step (`tuning.DISK_CLASS_AGES_YR` no longer holds the II age). The time is drawn from the stream of the star's initial mass and no age, so it does not move when the age does, and it is held at `tuning.PLANET_MIN_STAR_AGE_GY` (10 Myr) so that no star holds a disk and planets together until GEN.1552 lets the star's own time set the planet cut. `Star` passes its initial mass to `draw_disk`. A 0.5 solar mass star at 5 Myr now has a class II disk; a Sun-like star's disk, 0.29 Myr in this draw, is gone at 0.5 Myr. The close-companion shortening (`CLOSE_COMPANION_TAU_MYR`) is in the law and not yet read: a star's companions are attached after its disk is drawn, so the system step that reads it is GEN.1475's to take.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4418] - 2026-11-17
+
+**Headline:** `test_tidal_spin` makes its seeded systems four at a time, so the file runs in a third of the time.
+
+### Fixed
+
+- TEST.788: `tests/test_tidal_spin.py` made the whole systems of three seeded sweeps one after another (the giant-tilt search up to 300 seeds, 12 seeds of the tide-state check, 24 default systems) and took 1,583 s alone, 1,662 s in a gate. The systems are now made by forked workers, each on its own seed, and the giant-tilt search reads them in seed order and stops at the same seed, so every sample and every bound is the one the one-by-one run used.
+
+## [8.0.4417] - 2026-11-17
+
+**Headline:** The star sheet now marks the cool red-giant-branch stars (M giants) as semiregular variables.
+
+### Added
+
+- GEN.944: the Variability row marked Cepheids, Miras, T Tauri and Herbig stars but left the semiregular variables of the red-giant branch out. A red-giant-branch star cooler than 4,000 K now reads `Semiregular (red giant)` (stand-in VR4). Nothing is stored; the row is worked out from the stored state and temperature. This is the last open part of the item: carbon and S stars (GEN.1026), Ap and Am stars (GEN.1027), the 10 to 13 Gy thick-disc window (GEN.1025), the age-metallicity relation and the alpha shift (GEN.1024) were built before.
+
+generation-output: unchanged
+
 ## [8.0.4416] - 2026-11-17
 
 **Headline:** the census audit fills its sectors with four workers at a time, so the whole-sphere tests no longer run past the hang guard.

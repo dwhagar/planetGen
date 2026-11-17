@@ -17,18 +17,18 @@ from planetgen.util import draw
 FIELDS = ("disk_kind", "disk_mass_solar", "disk_inner_au", "disk_outer_au")
 
 
-def _young(age_gy):
+def _young(age_gy, mass=1.0):
     draw.set_run_seed(5)
-    return Star.from_params(evolution.star_params(1.0, age_gy, evolution.evolve_star(1.0, age_gy)), SystemConfig(), name="Young")
+    return Star.from_params(evolution.star_params(mass, age_gy, evolution.evolve_star(mass, age_gy)), SystemConfig(), name="Young")
 
 
 def _set(star):
     StarSystem.__new__(StarSystem)._set_debris_disk([], star)
 
 
-@pytest.mark.parametrize("age_gy, kind", [(0.00005, "class-0"), (0.0003, "class-i"), (0.002, "class-ii")])
-def test_a_young_stars_own_disk_survives_the_debris_step(age_gy, kind):
-    star = _young(age_gy)
+@pytest.mark.parametrize("age_gy, mass, kind", [(0.00005, 1.0, "class-0"), (0.0003, 1.0, "class-i"), (0.002, 0.5, "class-ii")])      # 0.5 solar masses holds its disk to 5.6 Myr (GEN.1551: each star has its own time)
+def test_a_young_stars_own_disk_survives_the_debris_step(age_gy, mass, kind):
+    star = _young(age_gy, mass)
     assert star.disk_kind == kind
     before = tuple(getattr(star, name) for name in FIELDS)
     _set(star)
