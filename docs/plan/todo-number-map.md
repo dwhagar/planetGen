@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.788 |
+| TEST | TEST.789 |
 | USR | USR.33 |
 | OPS | OPS.269 |
 | DOC | DOC.121 |
@@ -4968,6 +4968,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.785 | (bug) test_envelope_dial::test_at_share_one_no_candidate_keeps_an_envelope_and_the_others_are_not_made_late_cores is red on main: a candidate planet that moved into the ecosphere after the late-core draw keeps its envelope | done (PR 6907, Lane 04, merged 1:53 PM EST 11-16: generation is right, the dial is drawn once in the zone held then and a planet moved later keeps its decision; the test now counts only candidates whose zone did not change) |
 | TEST.786 | (bug) Runaway-start test red: a wet body past the runaway limit keeps a surface ocean | open (Lane 14) |
 | TEST.787 | (bug) Main reds: test_class_after_bands (T for M) and test_gen_node_planets stream test | done (PR 6949, Lane 07, merged 8:23 PM EST 11-16; class_after_bands half moved to GEN.1774) |
+| TEST.788 | Slow gate files (test_db_column_round_trip, test_full_matrix, test_order_independence, test_describe, test_tidal_spin) | open (Lane 16) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
