@@ -15,11 +15,13 @@ from planetgen.util import draw
 
 BELT = influx.Reservoir("belt", 1.0e21, 2.2, 3.2, 4.6e9)
 EARTH_KM = 6371.0
+EARTH_KG = 5.972e24
+MAIN_BELT = influx.Reservoir("belt", 2.4e21, 2.2, 3.2, 4.6e9)
 JUPITER = influx.Giant(317.8, 11.2, 1.8)
 
 
 def flux(planet_au, reservoirs=(BELT,), giants=()):
-    return influx.planet_influx_kg_per_yr(EARTH_KM, planet_au, 1.0, list(reservoirs), list(giants))[0]
+    return influx.planet_influx_kg_per_yr(EARTH_KM, EARTH_KG, planet_au, 1.0, 1.0, list(reservoirs), list(giants))[0]
 
 
 def test_a_belt_sends_its_collisional_loss_to_the_planets_inside_it():
@@ -28,11 +30,34 @@ def test_a_belt_sends_its_collisional_loss_to_the_planets_inside_it():
     assert flux(10.0) == 0.0, "nothing is sent outward"
 
 
-def test_the_influx_falls_as_the_square_of_the_distance_and_grows_with_the_planet_and_the_belt():
-    assert flux(0.5) == pytest.approx(4.0 * flux(1.0))
+def test_the_influx_grows_with_the_belt_and_the_planets_size_and_falls_with_distance():
     big = influx.Reservoir("belt", 2.0e21, 2.2, 3.2, 4.6e9)
     assert flux(1.0, [big]) == pytest.approx(2.0 * flux(1.0))
-    assert influx.planet_influx_kg_per_yr(2.0 * EARTH_KM, 1.0, 1.0, [BELT], [])[0] == pytest.approx(4.0 * flux(1.0))
+    assert influx.planet_influx_kg_per_yr(2.0 * EARTH_KM, 8.0 * EARTH_KG, 1.0, 1.0, 1.0, [BELT], [])[0] > 4.0 * flux(1.0), "a bigger planet takes more than its cross-section"
+    assert flux(0.5) > flux(1.0) > flux(1.5) > 0.0, "the stream thins outward"
+
+
+def test_a_sun_with_the_main_belt_gives_the_earth_about_the_measured_influx():
+    # GEN.1543: the isotropic sphere gave 45 kg a year against the 1e7 measured (28 tonnes a day, [R1397] recalled). A Sun and a main-belt sized reservoir are the test input, not a content of the generator.
+    earth = influx.planet_influx_kg_per_yr(EARTH_KM, EARTH_KG, 1.0, 1.0, 1.0, [MAIN_BELT], [])[0]
+    assert 3.0e6 < earth < 3.0e7
+    assert influx.planet_influx_kg_per_yr(EARTH_KM, EARTH_KG, 1.0, 1.0, 1.0, [MAIN_BELT], [influx.Giant(317.8, 11.2, 5.2)])[0] == earth, "a Jupiter beyond the belt shields nothing of it"
+
+
+def test_the_grains_drift_in_at_the_poynting_robertson_speed_the_star_gives_them():
+    beta = influx.radiation_ratio(1.0, 1.0)
+    assert 0.005 < beta < 0.012    # 3 L / (16 pi G M c rho s) for a 30 micrometer, 2500 kg per cubic meter grain
+    assert influx.drift_speed_m_s(1.0, 1.0, 1.0) == pytest.approx(2.0 * beta * 1.32712e20 / (2.99792458e8 * 1.495978707e11), rel=1e-3)
+    assert influx.drift_speed_m_s(2.0, 1.0, 1.0) == pytest.approx(influx.drift_speed_m_s(1.0, 1.0, 1.0) / 2.0), "the drift falls as 1 / a"
+    assert influx.radiation_ratio(1.0, 4.0) == pytest.approx(4.0 * beta), "a brighter star pushes harder"
+
+
+def test_a_planet_with_a_stronger_pull_takes_a_larger_share_by_focusing():
+    light = influx.capture_share(EARTH_KM, 0.1 * EARTH_KG, 1.0, 1.0, 1.0)
+    heavy = influx.capture_share(EARTH_KM, 10.0 * EARTH_KG, 1.0, 1.0, 1.0)
+    assert 0.0 < light < heavy
+    assert influx.capture_share(EARTH_KM, EARTH_KG, 1.0, 1.0, 0.0) == 0.0, "a star with no light drives no drift to read"
+    assert influx.capture_share(EARTH_KM, EARTH_KG, 1.0, 1.0, 1.0) <= 1.0
 
 
 def test_a_planet_inside_the_ring_gets_the_part_of_the_ring_outside_its_orbit():
@@ -57,7 +82,7 @@ def test_a_comet_reaches_a_planet_its_perihelion_passes_inside():
 
 
 def test_a_system_with_nothing_to_send_gives_nothing():
-    assert influx.planet_influx_kg_per_yr(EARTH_KM, 1.0, 1.0, [], [JUPITER])[0] == 0.0
+    assert influx.planet_influx_kg_per_yr(EARTH_KM, EARTH_KG, 1.0, 1.0, 1.0, [], [JUPITER])[0] == 0.0
 
 
 def _saved_system(mysql_config):
@@ -69,9 +94,11 @@ def _saved_system(mysql_config):
     for seed in range(1, 60):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)
-        if any(b.body_type == 'a' for b in system.planets) and any(b.body_type not in ('a', 'g') for b in system.planets):
+        belts = [b for b in system.planets if b.body_type == 'a' and b.mass_kg]
+        # a small planet the belt's dust reaches: one inside its outer edge (a planet beyond it gets nothing from it)
+        if any(b.body_type not in ('a', 'g') and b.distance < belt.upper_limit for b in system.planets for belt in belts):
             return store.save_system(system, config, config=mysql_config)
-    pytest.fail("no system with a belt and a small planet in 59 seeds")
+    pytest.fail("no system with a belt that reaches a small planet in 59 seeds")
 
 
 def test_a_small_planet_of_a_stored_system_with_a_belt_has_the_row_on_its_sheet(mysql_config):
