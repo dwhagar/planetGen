@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1872 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1873 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1845 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1846 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -53,10 +53,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 1 | 148 |
 | T6 | 238 | 127 | 34 | 81 | 4 | 484 |
-| T7 | 69 | 35 | 10 | 32 | 0 | 146 |
+| T7 | 69 | 36 | 10 | 32 | 0 | 147 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 108 | 41 | 227 |
-| All | 1069 | 384 | 94 | 265 | 60 | 1872 |
+| All | 1069 | 385 | 94 | 265 | 60 | 1873 |
 
 ## How the labels were given
 
@@ -3288,7 +3288,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | PC1 | D | T5 | L0 | `photochemical_loss.advance` and `standing_from_inventory`: a source S against a loss `k N` leaves `N(t) = N e^(-k t) + (S / k)(1 - e^(-k t))`, `S / k` when the age is over a few lives, and never more than the inventory | none | any gas whose loss is first order in its amount | an air whose ammonia or methane stands over the source over the rate at a measured loss | none | the solution of the linear balance; the rates are GEN.496's own | predicted only | - | - |
 | PC2 | P | T7 | L1 | `photochemical_loss.standing_from_inventory`: the source of an air's ammonia and methane is the inventory it holds over the age of the body, constant in time | the inventory over the age is the mean supply; the heat that drives the volcanoes was 2 to 10 times higher when the body was young (`interior_heat.heat_at`), which moves the standing amount by the same ratio at the age of the loss | a body whose air gas stands for the life of the star | a measured standing amount of ammonia or methane on a world whose supply history is known and differs by more than a factor of 3 | the history's own supply at each step (GEN.1745) | educated guess from physics: the mean of the supply is what a constant source gives | predicted only | - | - |
 | PC3 | B | T5 | L0 | `photochemical_loss.light_limit`: the light breaks no more than the column of one optical depth times the rate (`photolysis.photon_limited_flux_mol_m2_s`, Hu's critical pressure rule [R2026]); a source above it is not destroyed as it comes | the column within a factor of 2 (row SL6) | NH3 and CH4 in a thick air | a modelled methane photolysis rate of Titan's air more than a factor of 3 off the column's | a photochemical column model with the cross sections by wavelength | row SL6; [R2026] table 6 | predicted only | - | - |
-| PC4 | P | T7 | L1 | `photochemical_loss.LOST_TO`: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes) | the carbon may stay as CO or organics for a time in an air with no oxygen; every mole as CO2 is the long-run state | an air with water and the escape of hydrogen of `thermosphere` | a measured air at a world with the ultraviolet and water where the products are other than N2 and CO2 | the hydrogen escape and the photochemical network of the history's step | educated guess from physics ([R0692], Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2) | predicted only | GEN.1745 | - |
+| PC4 | P | T7 | L1 | `photochemical_loss.LOST_TO`: a mole of ammonia lost leaves half a mole of nitrogen (the hydrogen escapes); a mole of methane lost leaves a mole of carbon dioxide (the carbon stays, the oxygen is the water's, the hydrogen escapes) | the carbon may stay as CO or organics for a time in an air with no oxygen; every mole as CO2 is the long-run state | an air with water and the escape of hydrogen of `thermosphere` | a measured air at a world with the ultraviolet and water where the products are other than N2 and CO2 | the hydrogen escape and the photochemical network of the history's step | educated guess from physics ([R0692], Zahnle and others 2020: the end state of ammonia is N2 and of methane is CO2) | predicted only | - | - |
+| PC5 | P | T7 | L1 | `surface_air.PHOTOCHEMICAL_MIN_K` and `PHOTOCHEMICAL_RAMP_K`: the loss acts in full on a rocky air whose surface is 245 K or warmer, in none under 215 K, and by a share between (the middle of the ramp 230 K, 30 K wide; a step there held the fixed point on the edge); under it the ammonia and methane stand in ices, hydrates and lakes that resupply the air faster than the light takes them | 230 K within 200 to 260 K and a ramp of 30 K within 10 to 60 K (the nitrogen-ice and methane-lake worlds sit well under it, the temperate ones well over) | a rocky body with a thick enough air to hold surface temperature | a measured cold air (Titan: 94 K) whose methane stands at the photolysis loss without resupply, or a warm air whose ammonia ice resupplies it | the history's own phase balance of the ices (GEN.1745) | educated guess from physics (Titan's methane is resupplied by its lakes against a 10 to 100 Myr photolysis life) | predicted only | - | - |
 
 ## 6.302 Stand-ins of a moon swept by the evection resonance (GEN.1750)
 
