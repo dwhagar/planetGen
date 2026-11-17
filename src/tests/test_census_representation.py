@@ -96,3 +96,19 @@ def test_the_report_command_prints_and_writes_the_report(tmp_path, capsys):
     written = path.read_text(encoding="utf-8")
     assert written.startswith("Census audit") and written in printed       # the fills' own log lines come before it
     assert "Placement-limited kinds" in written
+
+
+def test_the_sectors_filled_at_the_same_time_are_the_sectors_filled_one_after_another():
+    """TEST.783: `run` fills the sectors with forked workers; each sector is bound to its own seed, so the census (every sector's counts, in order) and the stars
+    the fill counted per region are the ones a one-by-one run gives."""
+    names = ("thin-disk-arm", "halo")
+    results = {}
+    for workers in (1, 3):
+        patch = pytest.MonkeyPatch()
+        try:
+            census, fill, _names = rep.run(patch, names=names, sectors=3, workers=workers)
+            results[workers] = ([(region.name, region.per_sector) for region in census], dict(fill.stars), dict(fill.sectors))
+        finally:
+            patch.undo()
+    assert results[3] == results[1]
+    assert results[1][2] == {"thin-disk-arm": 3, "halo": 3}

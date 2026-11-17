@@ -2,6 +2,32 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4418] - 2026-11-17
+
+**Headline:** `test_tidal_spin` makes its seeded systems four at a time, so the file runs in a third of the time.
+
+### Fixed
+
+- TEST.788: `tests/test_tidal_spin.py` made the whole systems of three seeded sweeps one after another (the giant-tilt search up to 300 seeds, 12 seeds of the tide-state check, 24 default systems) and took 1,583 s alone, 1,662 s in a gate. The systems are now made by forked workers, each on its own seed, and the giant-tilt search reads them in seed order and stops at the same seed, so every sample and every bound is the one the one-by-one run used.
+
+## [8.0.4417] - 2026-11-17
+
+**Headline:** The star sheet now marks the cool red-giant-branch stars (M giants) as semiregular variables.
+
+### Added
+
+- GEN.944: the Variability row marked Cepheids, Miras, T Tauri and Herbig stars but left the semiregular variables of the red-giant branch out. A red-giant-branch star cooler than 4,000 K now reads `Semiregular (red giant)` (stand-in VR4). Nothing is stored; the row is worked out from the stored state and temperature. This is the last open part of the item: carbon and S stars (GEN.1026), Ap and Am stars (GEN.1027), the 10 to 13 Gy thick-disc window (GEN.1025), the age-metallicity relation and the alpha shift (GEN.1024) were built before.
+
+generation-output: unchanged
+
+## [8.0.4416] - 2026-11-17
+
+**Headline:** the census audit fills its sectors with four workers at a time, so the whole-sphere tests no longer run past the hang guard.
+
+### Fixed
+
+- TEST.783: `tests.audit.representation.run` filled every seeded sector of every region one after another, and `test_census_component_wholesphere` (30 sectors in each region) ran past the hang guard (1,500 s in a gate). It now fills the sectors with forked workers (`workers`, up to 4 by default, 1 for the old one-by-one run). Each sector is bound to its own seed, so the census and the star counts of the fill are the same; a new test in `test_census_representation.py` compares a run with 1 worker and one with 3 (every sector's counts and the fill's star and sector counts). `test_census_representation` uses the same `run` and gets the same speedup.
+
 ## [8.0.4415] - 2026-11-17
 
 **Headline:** The node-planet stream test compares what settling leaves alone (masses) and two regenerations, since settling can respace a planet's orbit.

@@ -4,7 +4,9 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1884 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
+
+There are 1891 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1857 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1864 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
 | T5 | 109 | 29 | 8 | 2 | 1 | 149 |
-| T6 | 238 | 127 | 36 | 81 | 4 | 486 |
+| T6 | 238 | 128 | 36 | 81 | 4 | 487 |
 | T7 | 69 | 35 | 10 | 32 | 0 | 146 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 52 | 20 | 6 | 107 | 41 | 226 |
-| All | 1078 | 385 | 97 | 264 | 60 | 1884 |
+| T9 | 52 | 20 | 6 | 113 | 41 | 232 |
+| All | 1078 | 386 | 97 | 270 | 60 | 1891 |
 
 ## How the labels were given
 
@@ -2438,6 +2440,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | VR1 | P | T6 | L1 | variability.MIRA_MAX_TEMPERATURE_K 3500 (an asymptotic-giant star cooler than this is a Mira or semiregular variable; Miras run from about 2,500 to 3,500 K) | 3200 to 3800 | asymptotic-giant stars | a measured asymptotic-giant population whose cool stars are mostly not variable, or whose variables reach 4,000 K | a pulsation model of the asymptotic-giant branch (period-luminosity-temperature) | test_variability::test_only_a_cool_asymptotic_giant_is_a_mira | predicted only | - | - |
 | VR2 | P | T6 | L0 | variability.HERBIG_MIN_MASS_SOL 2 (a pre-main-sequence star of this mass or more is a Herbig Ae/Be star, under it a T Tauri star) | 1.5 to 2.5 | pre-main-sequence stars | a catalogue split of the two classes by spectral type that puts the boundary more than 0.5 solar masses away | the spectral-type definition of the classes | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | predicted only | - | - |
 | VR3 | P | T6 | L0 | variability.HERBIG_MAX_MASS_SOL 8 (a pre-main-sequence star of this mass or more is neither: it reaches the main sequence still accreting) | 6 to 10 | pre-main-sequence stars | a Herbig Be star of more than 10 solar masses on a pre-main-sequence track | a massive-star accretion model | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | predicted only | - | - |
+| VR4 | P | T6 | L1 | variability.RGB_SEMIREGULAR_MAX_TEMPERATURE_K 4000 (a red-giant-branch star cooler than this is a small-amplitude semiregular variable; the M giants are the catalogued semiregulars, the K giants mostly steady) | 3600 to 4400 | red-giant-branch stars | a measured red-giant population whose M giants are mostly steady, or whose variables reach 4,600 K | a period-luminosity-amplitude model of the red-giant branch | test_variability::test_only_a_cool_red_giant_branch_star_is_a_semiregular_variable | predicted only | - | - |
 
 ## 6.139 Stand-ins of the carbon and S stars
 
@@ -3337,3 +3340,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | SNL1 | P | T1 | L0 | `tuning.SNOW_LINE_SCATTER_DEX` 0.2: the standard deviation, in dex, of a star's snow line around the blackbody position of its disk's luminosity ([R3193: abstract]: an observed 0.4 dex dispersion in accretion rates "naturally leads to a dispersion in snow line locations of about 0.2 dex" at a given age and stellar mass) | 0.15 to 0.25 | every star's own snow line | a measured spread of snow lines at one stellar mass and age outside 0.15 to 0.25 dex | a spread drawn from the accretion rates of the star's own mass and age | the accretion-rate dispersion carried through the snow-line law (Eq. 2 and 4 of [R3193], exponent 4/9 of the accretion rate), read in the open arXiv copy | predicted only | - | - |
 | SNL2 | P | T1 | L0 | `tuning.SNOW_LINE_SCATTER_MAX_SIGMA` 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 2.5 either way ([R3193: Fig. 3] works the snow lines at the median and plus and minus 2 sigma); it was 3.0, a factor of 4 | 1.5 to 3 | every star's own snow line | a star whose measured snow line lies beyond a factor of 2.5 of the blackbody position of its disk's luminosity at its mass and age | a heavier tail from the log-normal of the accretion rates | the range the source works its simulations over; the cut of 3 sigma put 29 of 3,000 stars' lines inside the inner edge of the habitable zone against 25 at 2 sigma (`reports/gen1611-snow-line-scatter-2026-11-16.md`) | predicted only | - | - |
+
+## 6.305 Stand-ins of how far inside Blue a species' homeworld sits (POP.12, GEN.1772)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| GL1 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["pressure_factor"]` 1.5: the homeworld's pressure is this many times inside the Blue pressure edge (low side or high side) | 1.2 to 3 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | no data |
+| GL2 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["temperature_c"]` 10.0: the homeworld's hottest and coldest temperature lie this many degrees inside the Blue temperature edges | 5 to 15 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | no data |
+| GL3 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["wet_bulb_c"]` 2.0: the species' wet-bulb limit sits this many degrees above the homeworld's | 1 to 4 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | no data |
+| GL4 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["dose_factor"]` 3.0: the homeworld's dose is this many times under the Blue dose edge | 2 to 10 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | no data |
+| GL5 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["o2_factor"]` 1.25: the chronic inspired-oxygen limit sits this far above the homeworld's own inspired oxygen | 1.1 to 1.5 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | no data |
+| GL6 | P | T9 | L3 | `tuning.SPECIES_LIMIT_MARGIN["gas_factor"]` 1.5: the homeworld's partial pressure of each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) is this many times under the chronic edge of that gas's band, every edge of the band moving by the same factor (GEN.1772) | 1.2 to 3 | the limits generated for a species from its homeworld | a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused | limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725) | hand set; `species_limits.generated`, `tests/test_species_limits.py` | predicted only | - | no data |
