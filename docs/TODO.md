@@ -11379,14 +11379,9 @@ clears each one.
 
 - [ ] **GEN.1542 Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists**
   Lane 14 (as the lane reported 2:07 PM EST on 2026-11-11), left out of GEN.1425 (PR 6016): V8 and V9 of the Venus sulfur-cloud set stay off by default because V8 needs a per-planet dust supply that is not built. Do: derive the dust a planet can lift into its air from what exists (surface dust and sand from composition and wind, volcanic and impact dust from the activity and age of the body, the air's density and winds), decide the V8 gate from it, register the constants in GEN.725 at the right tier and tweak level, and say in the change note how many bodies gain the V8 layer. Lock item if it changes stored output.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 03. Prerequisites: GEN.1425. Related: GEN.1425, GEN.725.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 06 (Lane 03 closed). Prerequisites: GEN.1425. Related: GEN.1425, GEN.725.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the per-planet dust supply as a pure function with tests (unwired); slice 1 lock: wire. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
-- [ ] **GEN.1543 (bug) The dust influx of physics/influx.py treats a system's belt and comet dust as an isotropic stream, so the Earth gets about 45 kg a year against 1e7 measured: fix the geometry and the scale, then rewire the V8 sulfur cloud dust to it**
-  Lane 14 (as the lane reported 4:52 PM EST on 2026-11-11), found while building GEN.1542 (PR 6045): physics/influx.py (GEN.1440 and GEN.1453) derives dust from a system's own belts and comets but only as a sheet row, and it spreads the dust as an isotropic stream; for the Earth that gives about 45 kg a year against about 1e7 kg a year measured. GEN.1542 therefore anchors the V8 dust supply on the cosmic-dust influx at the Earth's 28 tonnes a day (stand-ins CV11 to CV14) and does not read influx.py. Do: find the geometry or scale error (dust gathers toward the ecliptic and the inner system, the planet's cross section and gravitational focusing), fix influx.py so the Sun-Earth case lands near the measured influx, register any constant in GEN.725, and then rewire the V8 supply of GEN.1542 to the system's own belts. Lock item if stored sheet values move.
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 06 (Lane 03 closed; Lane 02 told). Prerequisites: GEN.1542. Related: GEN.1542, GEN.1440, GEN.1453, GEN.725.
-  Filed by the TODO thread.
 
 - [ ] **GEN.1549 Census re-tag after the forward build (items 1 to 3): re-measure the class, life, star and age census shares and re-baseline the ranges the new order moved**
   Boss, 6:13 PM EST on 2026-11-11. After GEN.1546 to GEN.1548 land the star ages, the class mix and the life shares move everywhere. Re-run the class, life, star, phenomena and systems censuses, decide each flag (real shift, re-baseline, or fault to file), and report the new age distribution of M dwarfs (the pile at 13.8 Gy should be gone). Same work as GEN.1537.
