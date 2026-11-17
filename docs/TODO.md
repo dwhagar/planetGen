@@ -11949,11 +11949,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02. Prerequisites: none. Related: GEN.1710, GEN.1748, TEST.783.
   Filed by the TODO thread.
 
-- [ ] **TEST.787 (bug) Two reds on main from the Train 41 gate: test_class_after_bands (two tests give class T where M is expected) and test_gen_node_planets::test_a_nodes_planets_are_drawn_from_a_stream_of_its_own (index 9 differs; red on the Train 40 head too)**
-  Train Manager, 7:59 PM EST 2026-11-16 (Train 41 gate, red on main too, so not the train's). Do: bisect each to the merge that made it, decide whether the generator or the test's sample moved, and fix the cause (never loosen the assertion or pick seeds); file a GEN bug if the generator is wrong.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 07. Prerequisites: none. Related: TEST.786, GEN.1752.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
   Boss, 11:17 to 11:19 PM EST on 2026-11-13 (the Class M tier card, "Build now, calibrate after fixes"). Do: after GEN.1694 to GEN.1698 merge, set each tier's dial values from the GEN.1705 meter; first-pass values are registered as stand-ins in GEN.725 with tier and tweak level. Measured by the Class M thread on PR 6469 (2026-11-14): first-pass tier rates per 1,000 Sun-like systems are 0, 0, 2.5, 5.0 and 12.5 against targets none, 1, 10, 33 and 100; the water dial at share 1 reaches about 46 percent of final-zone candidates (icy-origin ones and planets moved into the ecosphere after their body is drawn are not reached), so calibration must decide whether the dials also act on moved planets.
   Boss, 9:28 PM EST on 2026-11-14: "increase sparse to be 1 in 500, and crawl up from there"; 9:30 PM EST: "So let's say 1 in 10 for top end, split the rest logarithmically from Sparse to Abundrant". New tier targets (in PR 6575, GEN.1721 slice 1): Sparse 1 in 500, Scattered 1 in 135, Plentiful 1 in 37, Abundant 1 in 10 Sun-like systems (were 1,000, 100, 30, 10). Calibrate to these against the Science baseline of 1 in 2,800 (95 percent 0.1 to 2.0 per 1,000; census /mnt/project-files/reports/train28-census-2026-11-14/five-classes-2800.md). Blocked in practice by GEN.1720.
