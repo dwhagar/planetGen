@@ -221,7 +221,7 @@ def test_renaming_a_system_rebuilds_its_page_and_its_sectors_not_another_sector(
 def test_deleting_a_system_is_never_served_again(site):
     _visit(site)
     assert site.client.delete(f"/api/systems/{site.system_pids[0]}").status_code == 200
-    assert site.client.get(f"/system/{site.system_pids[0]}").status_code == 404
+    assert site.client.get(f"/system/{site.system_pids[0]}").status_code == 410      # GEN.1141: the ID of a deleted object answers 410 Gone
     pages = site.client.get(f"/sector/{site.sector_pid}").get_data(as_text=True)
     assert site.system_pids[0] not in pages
 
