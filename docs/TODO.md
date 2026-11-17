@@ -1987,27 +1987,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## GEN: Generation and physics
 
-- [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
-  Boss (2026-10-01 22:22Z): "see if we can cut down the number of
-  sectors that need to be backfilled by taking the star density
-  calculation and using it to weed out sectors from the star
-  scattering. Might manage probability of getting a region through
-  eliminating x number of sectors from the region so that the region
-  probability matches what we're looking for. One pass would eliminate
-  sectors based on probability, then the back fill would literally have
-  less work to do. We would need to make sure that we don't over-filter
-  though because bright stars in odd places is really neat and
-  realistic." Today the GEN.30 backfill (`backfill_bright_stars_around`
-  in `generate.py`, `brightStars.backfill_cells`) works out the
-  densities and makes a Poisson draw for every unfilled sector of every
-  block in range, most of which get no star. Investigate first; the
-  subitems split the work.
-  Research (2026-10-09, sampling-backfill-and-resume.md): fix the stale
-  code pointers: the backfill is `generation/run_galaxy.py`
-  `backfill_bright_stars_around` and `generation/bright_stars.py`
-  `backfill_cells` (not `generate.py` and `brightStars`), drawn cell by
-  cell in chunks of 200 sectors since GEN.44.
-
   - [ ] **GEN.42 A block-first draw for the backfill (umbrella)**
     One pass over a region (a sector block, or a tier's shell) uses the
     star density calculation (`galaxyDensity.population_densities`) to
@@ -11406,7 +11385,7 @@ clears each one.
 
 - [ ] **GEN.1543 (bug) The dust influx of physics/influx.py treats a system's belt and comet dust as an isotropic stream, so the Earth gets about 45 kg a year against 1e7 measured: fix the geometry and the scale, then rewire the V8 sulfur cloud dust to it**
   Lane 14 (as the lane reported 4:52 PM EST on 2026-11-11), found while building GEN.1542 (PR 6045): physics/influx.py (GEN.1440 and GEN.1453) derives dust from a system's own belts and comets but only as a sheet row, and it spreads the dust as an isotropic stream; for the Earth that gives about 45 kg a year against about 1e7 kg a year measured. GEN.1542 therefore anchors the V8 dust supply on the cosmic-dust influx at the Earth's 28 tonnes a day (stand-ins CV11 to CV14) and does not read influx.py. Do: find the geometry or scale error (dust gathers toward the ecliptic and the inner system, the planet's cross section and gravitational focusing), fix influx.py so the Sun-Earth case lands near the measured influx, register any constant in GEN.725, and then rewire the V8 supply of GEN.1542 to the system's own belts. Lock item if stored sheet values move.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 03, with Lane 06 for the belt side. Prerequisites: GEN.1542. Related: GEN.1542, GEN.1440, GEN.1453, GEN.725.
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 06 (Lane 03 closed; Lane 02 told). Prerequisites: GEN.1542. Related: GEN.1542, GEN.1440, GEN.1453, GEN.725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1549 Census re-tag after the forward build (items 1 to 3): re-measure the class, life, star and age census shares and re-baseline the ranges the new order moved**
@@ -11589,14 +11568,6 @@ clears each one.
 - [ ] **DB.126 legacy/ script that bumps a pre-8.0 database to the 8.0 structure in one step**
   Boss, 3:53 PM EST on 2026-11-12: "Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above"; 3:54 PM EST: "Add a folder to the GitHub tree called `legacy`. Write a script that, specifically upon user request, will convert the last version before 8.0 to 8.0. That's all it will do. We don't need a test run. We just need the script to exist and we will put other scripts there as we need. Also add migration code for the database. Same thing: no database structure before 8.0 will be accepted. In `legacy` write a singular script to bump a database to 8.0 and then streamline the code to remove version migrations and tests for anything before 8.0." Lives beside OPS.177; run only by hand.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: OPS.177, DB.127.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1652 One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py)**
-  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section A, with file:line, shape, risk and output impact). Fixes bug-sweep H2.3, H3, M1 and M3 at the root. Output changes (fixes): one epoch, rides a train after Train 25.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: GEN.1651. Related: GEN.1653, GEN.1654.
-  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
-  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
-  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): MassObject.finish(from_step) running a per-family FINISH_STEPS table (PlanetaryObject's is section A's chain with apply_class last; StellarObject's is Star._finish_init and CompactRemnant's copy, optional in the same PR). The stream is an argument defaulting to today's seeds (GEN.556 switches it to seed-derived later). Also: the two-phase build (draw, space, finish) becomes the only path, deleting finish_climate and the air part of reconcile_moved_planet, so moved request-built bodies get their air once. Same epoch.
   Filed by the TODO thread.
 
 - [ ] **GEN.1653 apply_class runs only as the last step of the finish chain (class before bands is the H3 cause)**
@@ -11866,14 +11837,14 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 02, after GEN.1780. Prerequisites: none. Related: TEST.790, GEN.1732.
   Filed by the TODO thread.
 
-- [ ] **GEN.1782 Class D small bodies do not scale with metallicity: a halo G2V system carries 13.2 against 9.8 in a disk one, while other planets fall from 6.1 to 3.0 (measure first)**
-  Lane 07, 2:47 AM EST 2026-11-17, found while fixing test_gen_kind_factors (PR 7022, 30 G2V systems each): class D bodies (about 1e-4 Earth masses) are more numerous in metal-poor halo systems than in disk ones. A metal-poor disk holds less solid mass, so fewer planetesimals would be expected, unless fewer large planets leave more leftovers. Do: find what sets the class D count (the draw, the solid mass it reads, clearing by larger planets), say from the sources whether more small bodies in the halo is physical, and fix it if not. Report before any change.
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 06. Prerequisites: none. Related: GEN.1674, GEN.1752.
-  Filed by the TODO thread.
-
 - [ ] **PERF.277 Interior cooling of old belt-sized bodies takes up to 770,000 RK4 steps: the stiffness-limited step collapses once the mantle is cold (4 of 489 calls take 7.8 s of a 63 s sector run)**
   Lane 16, 2:45 AM EST 2026-11-17 (PERF.276 profiling): the bodies are 100 to 300 km, surface 2.7 K, age 8 to 12 Gyr; the step in interior_heat cool() is 1/stiffness and shrinks without end near a cold steady state. Do: a step rule that stops shrinking at a steady state (or an implicit step for the stiff part), about 100 times fewer steps; show the heat flow and interior temperatures of a census sample change only within the integrator's tolerance and report the largest change. Lock item (output moves in the last digits); no golden or epoch (Boss, 2026-11-14).
   Version 8.1. Owner (TODO, 2026-11-17): Lane 16 (Lane 04 owns interior_heat and is told). Prerequisites: none. Related: PERF.276.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1783 (bug) In a wide binary a planet's apoapsis can pass the stability limit the validator holds it to (F5V+K2V seed 215: reach 0.1919 AU against a_crit 0.1886 AU)**
+  Lane 05, 3:21 AM EST 2026-11-17: test_validation::test_generated_systems_validate[F5V] failed once under xdist (a body past the farthest stable orbit, 6.741 AU); the test leaves BINARY_SYSTEM at its random default, and draw.bound(215) with PLANETS True and MOONS False reproduces the same failure in a wide F5V+K2V pair. Do: find why the planet pass lets a body's apoapsis (not only its semi-major axis) pass the wide-binary a_crit_au that check_star_system uses, make placement and validation use one ceiling, and seed the test's systems so a failure replays (no picking a seed that passes; the assertion stays).
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 05, after GEN.1778. Prerequisites: none. Related: GEN.1778.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**

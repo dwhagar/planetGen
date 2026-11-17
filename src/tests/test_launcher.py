@@ -228,3 +228,20 @@ def test_an_opening_of_a_run_that_is_no_longer_live_is_canceled_and_its_attempt_
     one.turn()
     assert _opening_state(control, run)[0] == "canceled"
     assert control.execute("SELECT outcome FROM engine_attempts WHERE job_id = ?", (started[0],)).fetchone()["outcome"] == "done"
+
+
+def test_a_stage_runs_no_more_units_at_once_than_its_run_was_asked_to_use(control):
+    run = ledger.add_run(control, "generate", "g1")
+    ledger.add_jobs(control, run, [{"stage": "fill", "command": "open", "arguments": {"index": 0, "plan": {}, "run_id": "20261115-x", "cap": 2}}]
+                    + [{"stage": "fill", "command": "fill-unit", "item_key": str(n), "arguments": {"args": {}, "cost": 1.0}, "claim_mb": 500} for n in range(5)])
+    control.execute("UPDATE engine_jobs SET state = 'done' WHERE run_id = ? AND item_key = ''", (run,))
+    control.execute("UPDATE engine_jobs SET state = 'ready' WHERE run_id = ? AND item_key <> ''", (run,))
+    control.commit()
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    assert len(one.turn()) == 2, "two of the five, the most the run was asked to use"
+    assert len(one.turn()) == 0, "the two are still running"
+    held = forker.forked[0][3]
+    forker.exits = [("plain", jobhost.Exit(held.id, held.pid, 0, None))]
+    held.said = [{"event": "unit", "result": {"seconds": 1.0}}]
+    assert len(one.turn()) == 1, "one ended, one more starts"

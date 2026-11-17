@@ -90,6 +90,7 @@ class Launcher:
         self.used = used if used is not None else (lambda: {})
         self.running = {}           # job id -> Started
         self.recovered_at = None
+        self._caps = {}             # (ledger run, stage) -> the most units of it that run at once (`_cap_of`)
 
     # -- ends ------------------------------------------------------------------------------------------------------------------
 
@@ -166,8 +167,38 @@ class Launcher:
         rows = self.control.execute(
             "SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, waited, attempt, UNIX_TIMESTAMP(updated_at) AS since FROM engine_jobs"
             " WHERE state = 'ready' AND (not_before IS NULL OR not_before <= NOW(6)) ORDER BY id LIMIT ?", (READY_WINDOW,)).fetchall()
+        rows = self._within_caps(rows)
         named = {HOLDER_NAME.format(row["id"]): row for row in rows}
         return [scheduler.Ticket(name, claim_of_row(row), float(row["since"]), 0, "launcher") for name, row in named.items()], named
+
+    def _cap_of(self, row):
+        """The most units of the stage of `row` that run at once, as its run was asked (`--workers`: the `cap` its `open` row holds); `None` when none was. Kept once read, for the cut never changes."""
+        key = (row["run_id"], row["stage"])
+        if key not in self._caps:
+            found = self.control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = 'open' AND item_key = '' AND state = 'done'", key).fetchone()
+            if found is None:
+                return None             # the stage is not cut yet; asked again at the next turn
+            self._caps[key] = (json.loads(found["arguments"] or "{}") or {}).get("cap")
+        return self._caps[key]
+
+    def _within_caps(self, rows):
+        """`rows` less the units the run's own limit holds back (OPS.228): of each stage, no more units run at once than its run was asked to use (`--workers`)."""
+        taken = {}
+        for started in self.running.values():
+            if started.row["command"] != planrows.OPENING:
+                key = (started.row["run_id"], started.row["stage"])
+                taken[key] = taken.get(key, 0) + 1
+        kept = []
+        for row in rows:
+            if row["command"] == planrows.OPENING:
+                kept.append(row)
+                continue
+            key, cap = (row["run_id"], row["stage"]), self._cap_of(row)
+            if cap and taken.get(key, 0) >= cap:
+                continue
+            taken[key] = taken.get(key, 0) + 1
+            kept.append(row)
+        return kept
 
     def holders(self):
         return [Holder(HOLDER_NAME.format(job_id), started.claim, started.job.pid, "launcher", started.claim.mb, started.claim.mb) for job_id, started in self.running.items()]

@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1783 |
+| GEN | GEN.1784 |
 | PERF | PERF.278 |
 | DB | DB.135 |
 | API | API.52 |
@@ -839,7 +839,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.37 | 97% of planets land in the cold zone (bug) | none | done, PR #350 |
 | GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | done, PR #415 |
 | GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | done, PR #381 |
-| GEN.40 | Weed out sectors by star density before the bright-star backfill | none | open |
+| GEN.40 | Weed out sectors by star density before the bright-star backfill | none | done (closed 3:17 AM EST 11-17 on Lane 07's review: delivered as the block-first candidate draw GEN.308/309, epoch 75, 3.9 ms to 0.19 ms a sparse cell; literal weeding was shown wrong by GEN.42 and GEN.102 found no sector to weed; the backfill cost is the sky draw, OPS.269/PERF.275) |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | none | done, PR #812 |
 | GEN.42 | A block-first draw for the backfill (umbrella) | none | open |
 | GEN.43 | Don't over-filter: keep bright stars in odd places | none | done, PR #812 |
@@ -3874,7 +3874,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1540 | (bug) A rare captured moon's position radius is outside its allowed range (a wrong or stale frame), so test_orbital_motion fails by draw luck | none | done, Train 24 PR #6033 (b8a0163b7) |
 | GEN.1541 | The tide a large asteroid or dwarf planet raises on its own moons (GEN.1464 part C) | GEN.1464 | done, covered by GEN.1510 (promoted belt planets carry moons and read tide_sources like any planet; PR 6824 pins it with tests, merged 6:24 AM EST 11-16; unpromoted asteroid binaries wait on a satellite size law source) |
 | GEN.1542 | Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists | GEN.1425 | open |
-| GEN.1543 | (bug) The dust influx of physics/influx.py treats a system's belt and comet dust as an isotropic stream, so the Earth gets about 45 kg a year against 1e7 measured: fix the geometry and the scale, then rewire the V8 sulfur cloud dust to it | GEN.1542 | open |
+| GEN.1543 | (bug) The dust influx of physics/influx.py treats a system's belt and comet dust as an isotropic stream, so the Earth gets about 45 kg a year against 1e7 measured: fix the geometry and the scale, then rewire the V8 sulfur cloud dust to it | GEN.1542 | open (Lane 06) |
 | GEN.1544 | (bug) A planet's cosmogenic isotope rows (Al-26, Be-10) are first made before its magnetic field exists, so they use a field factor of 1.0 until the final-age pass remakes them | none | done, PR #6048 in Train 31, PR #6664 (8:26 AM EST 11-15) |
 | GEN.1545 | (bug) A star whose age is raised for its planets is not evolved again, so its light, temperature, radius, type, X-rays, flares and spin stay at the first-guess age | none | retired, folded into GEN.1546 (no age raise, so no re-evolve) |
 | GEN.1546 | Forward build, item 1: remove the age floor (age_needs, the age-raising code, the trim and belt rebuild after the bump, its retry reason) so the star is made once at its final age | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
@@ -3983,7 +3983,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1649 | Lock-free cleanup: the request bookkeeping list built once, not appended, removed and re-appended | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1650 | Planet.__init__: drop the dead moves, the dead distance_override and the relic comment; one build path | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1651 | BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build | GEN.1649 | done (PR 6871, Lane 14, merged 10:47 AM EST 11-16: the twenty private attributes a build stashed on bodies are the fields of one BuildRecord, body.build; body values on seeds 0 to 13 identical to main) |
-| GEN.1652 | One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py) | GEN.1651 | open |
+| GEN.1652 | One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py) | GEN.1651 | done (slice 1 PR 7018; Lane 14, 3:06 AM EST 11-17: the tide disagreement is overwritten by the final tide pass (4 of 40 seeds moved only at 1e-10), daylight is made by generate_spin in each copy, the life copy changed 0 of 62 classes over seeds 0 to 174; slice 3 already true through _finish_motion_and_moons) |
 | GEN.1653 | apply_class runs only as the last step of the finish chain (class before bands is the H3 cause) | GEN.1652 | open |
 | GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | none | open |
 | GEN.1655 | rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration | GEN.1654 | open |
@@ -4113,7 +4113,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1779 | (bug, high) A system build got about 2.4 times slower (test_gen1254_scatter_uid past its guard) | closed, not a regression (Lane 14, 2:16 AM EST 11-17: 144 s on main against 161 s on the 617 s commit; heavy list kept; speed work in PERF.276) |
 | GEN.1780 | The GEN.1732 haze loss ramp may have two branches (seed 106: 229 K to 134 K) | open (Lane 02) |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs: pair absorption missing or real anti-greenhouse? | open (Lane 02) |
-| GEN.1782 | Class D small bodies do not scale with metallicity (more in the halo) | open (Lane 06) |
+| GEN.1782 | Class D small bodies do not scale with metallicity (more in the halo) | closed, not a bug (Lane 06, 3:33 AM EST 11-17: 11.2 disk against 11.9 halo over 130 systems each, within noise; the count is pinned at ten per belt; cap question stays GEN.1674) |
+| GEN.1783 | (bug) A wide-binary planet's apoapsis passes the stability limit the validator uses | open (Lane 05) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

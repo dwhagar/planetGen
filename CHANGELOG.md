@@ -2,6 +2,32 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4460] - 2026-11-17
+
+**Headline:** A planet's spin history runs about a third faster: the rock rheology and each raiser's tide constant are worked out once for the planet, not at every one of the hundreds of thousands of torque evaluations.
+
+### Changed
+- PERF.276: `tidal_rheology.k2_over_q_function` holds the rigidity, viscosity, self-gravity pressure and Andrade constants of one body at one temperature and melt share, and gives `k2/Q` of a tide frequency by the same arithmetic in the same order as `response(...).k2_over_q` (a test holds it equal to the last bit). `spin_torques.rheology_dissipation` uses it, and `Torques` keeps `K_g` of each raiser from construction. `body_spin.evolve` over four G2V systems fell from 3.4 s to 2.3 s; the build from 43.8 s to 41.7 s. A digest of every body's mass, distance, eccentricity, day, tilt and temperature, and each moon's, is the same before and after.
+
+generation-output: unchanged
+
+## [8.0.4459] - 2026-11-17
+
+**Headline:** A generation run whose units are forked jobs no longer starts bulk workers that sit idle, and its `--workers` count still limits how many units of a stage run at once.
+
+### Changed
+- A forked run's stages ask for no bulk workers (`wrapper.stage_ensure`), and the opening of a stage no longer asks the other bulk workers to exit (`_clear_the_floor_for_the_opening`): there are none (OPS.228 slice D2b-1).
+- The stage's `open` row records the run's `--workers` count (`cap`), and the launcher hands out no more units of a stage at once than that; without `--workers` the memory gate alone decides, as before.
+
+## [8.0.4458] - 2026-11-17
+
+**Headline:** The interior heat box takes about 14 percent less time on the long runs (small cold bodies of a belt), and its results are the same to the last bit.
+
+### Changed
+- `interior_heat.heat` works out the constants of the flux law once per body (`_flux_function`: the activation energy, the leading products of constants, the lid's drop law and exponent) instead of at each of the hundreds of thousands of temperatures its integration visits, reads the clipped temperature once per rate, and sums the decay terms from a list. Each expression keeps its order of operations, so every result is the one the old code gave (a test compares the function with the law at 11 temperatures, both lids and four bodies).
+
+generation-output: unchanged
+
 ## [8.0.4457] - 2026-11-17
 
 **Headline:** The halo planet-count test counts the planets metallicity scales, not the class D tiny bodies it never touched.
