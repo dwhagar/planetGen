@@ -28,6 +28,7 @@ HOMES = {
     "isotopes": "`planet_isotopes` and `moon_isotopes`",
     "gas_partials_pa": "`planet_gases` and `moon_gases` (DB.71): the air as partial pressures",
     "moons": "the `moons` table, one row a moon with its planet's row id as parent",
+    "plan_slot": "`body_history.born_index` of the planet (DB.75b): the slot of the star's plan it was made in, which its public ID follows",
     "formation_distance_au": "`body_history.formation_distance_au` (GEN.1753): where the body formed, which keys its end-stage draw streams",
     # not a column of the body: the row says it, or the parent does
     "is_moon": "which table the row is in (`planets` or `moons`)",

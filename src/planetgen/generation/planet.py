@@ -284,6 +284,11 @@ class Planet(PlanetaryObject):
     collision_count = 0
     """int: The mergers the planet architecture recorded for this planet (see `__init__`); 0 for a body made without them."""
 
+    plan_slot = None
+    """int or None: The slot of the star's planet plan the planet was made in (`StarSystem._generate_planets`, `physics.planet_architecture.Plan.seed`), which a trim of the planets (an
+    instability, a merger, a planet over the orbit ceiling) leaves alone, so it names the planet's place in the star's orbits as the plan drew it (DB.75b). Stored as the planet's `body_history.born_index`;
+    `None` for a planet made outside a plan (a pulsar's) and for one stored before the number was kept."""
+
     belt_member = None
     """dict or None: While a belt member promoted to a planet is being made, the member's record (`AsteroidBelt.members`); never stored (the planet keeps `belt_order` and `belt_rank`)."""
 

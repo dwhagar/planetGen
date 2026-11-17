@@ -17,7 +17,7 @@ keeps `_birth_spin`, `planets.generate_orbit_shape` keeps `_orbit_birth`) for th
 | `capture_draw_1`, `capture_draw_2` | fraction | one uniform for each resonance the spin can pass without being caught (`spin_torques.CAPTURE_RATIOS`, in that order; `_birth_spin[2]`): they decide the tide history of the spin |
 | `formation_distance_au` | AU | where the body formed (`Planet.formation_distance_au`; a moon's is its planet's): the key of the end-stage draw streams (`draw.body_stream_of`) and the line the water's origin is read against, so a body that moves keeps drawing what it drew |
 | `birth_distance_au` | AU | a moon's orbit when it was born, before the planet's tide moved it (`_birth_distance_au`); the moon history of the planet starts from it |
-| `born_index` | count | the place of a moon in its planet's list of born moons (`_born_moons`), which the lost moons share |
+| `born_index` | count | the place of a moon in its planet's list of born moons (`_born_moons`), which the lost moons share; the place of a planet in its star's plan (`Planet.plan_slot`), which no trim of the planets moves. Both name the body's slot, so its ID follows it (DB.75b) |
 | `held_eccentricity` | fraction | the eccentricity a resonance holds the body on (`_resonance_e`: a planet of a resonant chain, oddity W5; a moon of a first-order pair or caught in the evection resonance), the floor `settle_orbit` keeps under the tide (DB.132) |
 | `forced_eccentricity` | fraction | the eccentricity the planets of a resonant chain force on a planet (`oddity_quantities["forced_eccentricity"]`, `resonant_chains.give_forced_eccentricities`), the quantity the oddity of the chain reads (DB.132) |
 | `formula_version` | count | `FORMULA_VERSION`: which set of formulas wrote the row, so a later change to them can tell the rows it must not refill from the rows it can |
@@ -49,7 +49,7 @@ COLUMNS = (
     ("capture_draw_2", None, "the uniform that decides whether the spin is caught in the second resonance (`spin_torques.CAPTURE_RATIOS[1]`)"),
     ("formation_distance_au", "au", "where the body formed, which keys its end-stage draw streams"),
     ("birth_distance_au", "au", "the orbit a moon was born on, before the planet's tide moved it"),
-    ("born_index", None, "the place of a moon in its planet's list of born moons"),
+    ("born_index", None, "the place of a moon in its planet's list of born moons, or of a planet in its star's plan"),
     ("held_eccentricity", None, "the eccentricity a resonance holds the body on, the floor its tide cannot wear below"),
     ("forced_eccentricity", None, "the eccentricity the planets of a resonant chain force on a planet"),
     ("formula_version", None, "the version of the formulas that wrote the row"),
@@ -150,7 +150,7 @@ def rows(star_system_id, bodies, ids, born=None):
         star_system_id (int): The system's `star_systems.id`.
         bodies (iterable): The system's generated planets and moons.
         ids (dict): `id(object)` to `(table, row id)` of the saved bodies (`object_rows.logged_rows`); a body with no entry was not saved and is skipped.
-        born (dict, optional): `id(moon)` to its place in its planet's born moons (`born_places`); a moon with none has no `born_index`.
+        born (dict, optional): `id(body)` to its `born_index`: a moon's place in its planet's born moons (`born_places`), a planet's slot in its star's plan (`Planet.plan_slot`); a body with none has no `born_index`.
 
     Returns:
         list: One dict of `ROW_FIELDS` for each body that has any number; a number the body lacks is `None`.
