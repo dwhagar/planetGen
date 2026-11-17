@@ -641,6 +641,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | OPS.261 | Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in | OPS.219, OPS.227 | Lane 14, 2026-11-15 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
 | OPS.271 | Ledgerless runs leave RQ; bulk RQ unit path deleted | OPS.228 | Lane 13, 2026-11-17 |
-| UX.320 | Queue page lists waiting light jobs | OPS.230 | Lane 15, 2026-11-17 |
 | PERF.277 | Interior cooling step collapse in old small bodies | none | Lane 16, 2026-11-17 |
 | PERF.279 | Habitability seasonal solve per pre-placed system | none | Lane 16, 2026-11-17 |
