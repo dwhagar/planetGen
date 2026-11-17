@@ -399,6 +399,9 @@ def add_system_arguments(parser):
                         help="Make the system under this Class M abundance tier (a galaxy carries its own, set when it is planned). "
                              "Default: science, which moves nothing.")
 
+    parser.add_argument('--comet-abundance', type=dials.lever("comet_abundance").parse, metavar="{" + ",".join(dials.lever("comet_abundance").choices) + "}",
+                        help="Make the system under this comet abundance tier (a galaxy carries its own, set when it is planned). Default: science, comets only where the star's own outer disk puts them.")
+
     _add_flavor_arguments(parser)
 
 

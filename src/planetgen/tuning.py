@@ -3355,6 +3355,13 @@ PARABOLIC_COMET_INCLINATION_MAX_DEG = 180.0
 # this stays well under 1.0 rather than guaranteeing every system gets
 # one. [Stand-in 6.303 CMT8, tier T9, tweak L3, with SYSTEM_COMET_COUNT_RANGE.]
 SYSTEM_COMET_CHANCE = 0.3
+"""float: The chance a star with no scattered outer disk has native comets under a comet abundance tier (GEN.1775, `generation.comet_abundance`): `COMET_TIER_MULTIPLIERS` times this. A star the
+physics gives comets (an outer-disk belt a giant scattered) has them whatever it is, and on `science` the others have none."""
+
+COMET_TIER_MULTIPLIERS = {"sparse": 0.25, "scattered": 0.5, "plentiful": 1.0, "abundant": 2.0}
+"""dict: Comet abundance tier -> the factor on `SYSTEM_COMET_CHANCE` for a star with no scattered outer disk (GEN.1775: Boss, 8:43 PM EST 2026-11-16, "Use physics but provide a scale option ... with a default
+of Science"). `science`, the default, is not a row: the stand-in does not act. `plentiful` is the chance the generator held before the tier. FIRST-PASS values, not calibrated. A planetGen stand-in past known
+science (tier T9 "from needed output", tweak L4; registry row 6.303:CMT10)."""
 
 # --- Prevalence (generation/prevalence.py, GEN.52) ---
 # The share of systems that come out with each feature that no single draw

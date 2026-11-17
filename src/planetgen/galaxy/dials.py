@@ -407,6 +407,16 @@ LEVERS = (
         source="Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins "
                "(tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census", status="placeholder", tweak="L4"),
     Lever(
+        name="comet_abundance", flag="--comet-abundance", dial="census", label="Comet abundance", kind="enum", unit="", minimum=None, maximum=None, step=None,
+        choices=("science", "sparse", "scattered", "plentiful", "abundant"),
+        law="how many stars hold comets: on science only those whose outer disk a giant scattered, the physics; a higher tier gives the others the hand-set chance of a star holding comets "
+            "times the tier's factor (0.25, 0.5, 1 and 2), and never changes what the physics gives (generation/comet_abundance)",
+        auto_text="science (comets only where the star's own outer disk puts them)",
+        help="How common comets are. Science is the physics: a star holds comets only where its own outer disk was scattered by a giant. Sparse, Scattered, Plentiful and Abundant also give the "
+             "stars without one a chance of holding comets (0.25, 0.5, 1 and 2 times 30 percent). Auto is the same as Science.",
+        source="Boss, 8:43 PM EST 2026-11-16 (physics at Science, a scale beside it, as the Class M abundance and Rogue planets); the factors behind each word are first-pass stand-ins "
+               "(tuning.COMET_TIER_MULTIPLIERS)", status="placeholder", tweak="L4"),
+    Lever(
         name="arm_count", typical=2, flag="--arm-count", dial="pattern", label="Spiral arms", kind="int", unit="",
         minimum=1, maximum=10, step=1,
         law="the number of spiral arms",

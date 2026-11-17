@@ -2347,6 +2347,28 @@
           "fields": [
             [
               "The range",
+              "science, sparse, scattered, plentiful, abundant"
+            ],
+            [
+              "Source",
+              "Boss, 8:43 PM EST 2026-11-16 (physics at Science, a scale beside it, as the Class M abundance and Rogue planets); the factors behind each word are first-pass stand-ins (tuning.COMET_TIER_MULTIPLIERS)"
+            ]
+          ],
+          "id": "--comet-abundance",
+          "key": "6.3a:--comet-abundance",
+          "kind": "P",
+          "slug": "6-3a-comet-abundance",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": null,
+          "what": "--comet-abundance: science, sparse, scattered, plentiful, abundant"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "The range",
               "1 to 10"
             ],
             [
@@ -73298,12 +73320,12 @@
           "burn_down": [
             "no data",
             "-",
-            "the chance 0.3 and count 1 to 3 stay hand set until Boss says whether comets exist only where a star has an outer disk (a census of 398 stars: 28 percent have comets now, 14 percent an outer-disk belt, 0 a scattered one); tier T9 stays"
+            "Boss decided (8:43 PM EST 2026-11-16): comets come from the star's own scattered outer disk and the chance 0.3 only acts under a comet abundance tier (GEN.1775); the count 1 to 3 stays hand set (a census of 398 stars found 14 percent with an outer-disk belt and none with a scattered one); tier T9 stays"
           ],
           "fields": [
             [
               "What it is",
-              "tuning.SYSTEM_COMET_CHANCE 0.3 and SYSTEM_COMET_COUNT_RANGE (1, 3): the share of stars that hold comets and how many of the few the generator models each holds"
+              "tuning.SYSTEM_COMET_CHANCE 0.3 and SYSTEM_COMET_COUNT_RANGE (1, 3): the chance a star with no scattered outer disk holds comets, when a comet abundance tier gives it one (CMT10's factors; none on science, GEN.1775), and how many of the few the generator models each holds"
             ],
             [
               "The range it moves in",
@@ -73334,7 +73356,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.SYSTEM_COMET_CHANCE 0.3 and SYSTEM_COMET_COUNT_RANGE (1, 3): the share of stars that hold comets and how many of the few the generator models each holds"
+          "what": "tuning.SYSTEM_COMET_CHANCE 0.3 and SYSTEM_COMET_COUNT_RANGE (1, 3): the chance a star with no scattered outer disk holds comets, when a comet abundance tier gives it one (CMT10's factors; none on science, GEN.1775), and how many of the few the generator models each holds"
         },
         {
           "burn_down": [
@@ -73377,6 +73399,48 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM upper end 20 km: the largest nucleus the draw gives, cut to the largest body of the star's outer disks where it has them (comet_supply.nucleus_top_km, never under the lower end)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the tier factors are Boss's words (a scale beside the physics, 8:43 PM EST 2026-11-16) given first-pass numbers; no comet census of other stars exists to fit them; tier T9 stays"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_TIER_MULTIPLIERS 0.25, 0.5, 1 and 2 (sparse, scattered, plentiful, abundant): the factor a galaxy's comet abundance tier puts on CMT8's chance for a star with no scattered outer disk (comet_abundance.presence_chance); science, the default, is the physics and has no factor"
+            ],
+            [
+              "The range it moves in",
+              "each factor 0.1 to 3"
+            ],
+            [
+              "Where it holds",
+              "stars with no outer disk a giant scattered, in a galaxy made under a tier"
+            ],
+            [
+              "What would show it wrong",
+              "a measured count of comets per star far from 30 percent times the factor of the tier a galaxy is asked for"
+            ],
+            [
+              "What replaces it",
+              "a comet census of other stars, or a dynamical lifetime ratio read from the supply of CMT5's replacement"
+            ],
+            [
+              "Evidence",
+              "Boss, 8:43 PM EST 2026-11-16 (a scale beside the physics, like the Class M abundance and Rogue planets); the factors are first-pass words, the stand-in they scale is CMT8 and nothing in the physics is changed; test_comet_abundance"
+            ]
+          ],
+          "id": "CMT10",
+          "key": "6.303:CMT10",
+          "kind": "P",
+          "slug": "6-303-cmt10",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "tuning.COMET_TIER_MULTIPLIERS 0.25, 0.5, 1 and 2 (sparse, scattered, plentiful, abundant): the factor a galaxy's comet abundance tier puts on CMT8's chance for a star with no scattered outer disk (comet_abundance.presence_chance); science, the default, is the physics and has no factor"
         }
       ],
       "slug": "6-303-stand-ins-of-the-shape-of-a-star-s-own-comets-gen-595",
