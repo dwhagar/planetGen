@@ -282,6 +282,28 @@ def release_units(conn, run_id, index, skip=()):
         control.close()
 
 
+def add_to_unit_args(conn, run_id, index, extra):
+    """
+    Adds the keys of `extra` to the `args` of the unit rows of stage `index` that are still `waiting` (OPS.228): what a run that carries on from an earlier one tells a unit that cannot resume (`resumed.AGAIN`),
+    which the RQ path puts on the arguments it queues. A run with no ledger has no rows. Returns how many rows it changed.
+    """
+    if not ledgered(conn, run_id):
+        return 0
+    control = control_connection(conn, run_id)
+    try:
+        run, stage = engine_run(conn, run_id, control), _stage_key(conn, run_id, index)
+        changed = 0
+        for row in control.execute("SELECT id, arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key <> '' AND state = 'waiting'", (run, stage)).fetchall():
+            body = json.loads(row["arguments"]) if row["arguments"] else {}
+            body["args"] = {**body.get("args", {}), **extra}
+            control.execute("UPDATE engine_jobs SET arguments = ? WHERE id = ?", (json.dumps(body), row["id"]))
+            changed += 1
+        control.commit()
+        return changed
+    finally:
+        control.close()
+
+
 def _cut_row(control, run, stage):
     return control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = ? AND item_key = '' AND state = 'done'", (run, stage, OPEN)).fetchone()
 
