@@ -20,7 +20,14 @@ star's planets as a body of no mass among them (`secular_chain.matrices`); a hea
 The forced parts of several companions add as vectors (linear theory). The member's orbit at the star's age is the vector sum of its drawn free eccentricity (`e_free`, its drawn
 periapsis `varpi_free`) and the forced vector: `combined`.
 
-**What it leaves out (stated; stand-in rows in the gap plan, section 6.256).** Inclination (the orbits of stars are coplanar here, so the forced inclination is zero); Kozai-Lidov pumping; resonances with the
+**The tilt (GEN.1492, second part).** A companion whose orbit plane is tilted to the belt's turns each member's orbit plane round the companion's own orbit normal at the nodal rate
+`A_c` (the same first-order rate as the apsidal one, `companion_rates`), while the star's planets turn it round the planets' plane at their nodal rate `R` (`planet_nodal_rate`). To first order in the angles the two pulls
+add as the rate-weighted sum of the two normals, so the member's plane precesses round the **forced axis** `n_f = (R z + sum A_c n_c) / |R z + sum A_c n_c|` (`z` the planets' plane, `n_c` the companion's normal,
+`Companion.normal`): a heavy giant holds a belt flat and a bare belt follows the companion. The angle between the member's drawn orbit normal and `n_f` does not change as it precesses, so after a long time the normal
+stands anywhere on the cone of that half-angle about `n_f`, at an azimuth the draw gives it (`tilted_orbit`): the member's inclination is no longer a draw about the planets' plane alone. A forced axis farther than
+`INCLINATION_LIMIT_RAD` from `z` is outside the first-order theory (and near the Kozai-Lidov limit), and the member keeps its drawn orbit.
+
+**What it leaves out (stated; stand-in rows in the gap plan, section 6.256).** Kozai-Lidov pumping (a tilt past the limit above); resonances with the
 companion; the orbit the companion had while the disk lasted; planets are not forced by the companion here. The theory is held to `alpha` of `ALPHA_LIMIT` and an `e_forced` under
 `secular_chain.LINEAR_ECCENTRICITY_LIMIT`; past them a member keeps its drawn orbit (`forced_vector` gives zero).
 """
@@ -29,7 +36,7 @@ import math
 
 import numpy as np
 
-from planetgen.physics import constants, resonant_chains, secular_chain
+from planetgen.physics import constants, resonant_chains, secular_chain, spin, vec3
 from planetgen.util import draw
 
 ALPHA_LIMIT = 0.3
@@ -90,3 +97,101 @@ def combined(e_free, varpi_free_rad, vector):
     """`(e, varpi)` of the member: the vector sum of the free part and the forced `vector`, `varpi` in [0, 2 pi)."""
     total = e_free * complex(math.cos(varpi_free_rad), math.sin(varpi_free_rad)) + vector
     return abs(total), math.atan2(total.imag, total.real) % (2.0 * math.pi)
+
+
+INCLINATION_LIMIT_RAD = 0.5
+"""float: The farthest the forced axis may stand from the planets' plane (radians, 28.6 degrees) for the first-order theory of the tilt to be used; a companion tilted more than this is near the limit
+(39.2 degrees) past which the Kozai-Lidov pumping of eccentricity replaces a steady precession, which this module does not model. A member of such a belt keeps its drawn orbit. [Stand-in 6.256 FE5, tier T6, tweak L1.]"""
+
+
+def planet_nodal_rate(a_au, planet_axes_au, planet_masses_kg, host_mass_kg, ring_axes_au=(), ring_masses_kg=()):
+    """The nodal rate, radians per year (a positive number), the star's planets give a member of no mass at `a_au`: the diagonal of the nodal matrix `B` of `secular_chain.matrices` with the member as a
+    body of no mass, the rings of the star's belts counted as in `planet_rate`. Zero without planets or rings; relativity does not turn a node."""
+    ring_axes, ring_masses = secular_chain.clear_rings(list(ring_axes_au), list(ring_masses_kg), [a_au])
+    if not planet_axes_au and not ring_axes:
+        return 0.0
+    _A, B = secular_chain.matrices([a_au, *planet_axes_au, *ring_axes], [0.0, *planet_masses_kg, *ring_masses], host_mass_kg, rows=1)
+    return abs(float(B[0, 0]))
+
+
+def forced_normal(a_au, host_mass_kg, companions, planet_nodal_rate_rad_yr):
+    """
+    The unit normal `(x, y, z)` of the plane a member at `a_au` precesses about (the forced axis), from `companions` (each `(mass_kg, axis_au, eccentricity, normal)`, the normal a unit vector in the
+    planets' frame) and the nodal rate the planets give it. `None` for a member the theory does not reach: no companion with a normal, none inside `ALPHA_LIMIT`, or a forced axis farther than
+    `INCLINATION_LIMIT_RAD` from the planets' plane (the member keeps its drawn orbit).
+    """
+    pull = (0.0, 0.0, max(planet_nodal_rate_rad_yr, 0.0))
+    pulled = False
+    for mass, axis, eccentricity, normal in companions:
+        if normal is None:
+            continue
+        rate, _push = companion_rates(a_au, host_mass_kg, mass, axis, eccentricity)
+        if rate > 0.0:
+            pull = vec3.add(pull, vec3.scale(normal, rate))
+            pulled = True
+    if not pulled or not vec3.norm(pull) > 0.0:
+        return None
+    axis = vec3.unit(pull)
+    if axis[2] <= 0.0 or math.acos(min(axis[2], 1.0)) > INCLINATION_LIMIT_RAD:
+        return None
+    return axis
+
+
+def tilted_orbit(inclination_deg, node_deg, axis, phase_rad):
+    """
+    `(inclination_deg, node_deg)` of a member whose drawn orbit (`inclination_deg`, `node_deg`, against the planets' plane) has precessed about the forced `axis` for a long time, at `phase_rad` round it: the
+    member's orbit normal on the cone about `axis` that holds its drawn normal. The angle to `axis` is kept, so an `axis` of `(0, 0, 1)` gives back the drawn inclination and a phase-turned node.
+    """
+    normal = spin.orbit_normal(inclination_deg, node_deg)
+    along = vec3.dot(normal, axis)
+    across = vec3.add(normal, vec3.scale(axis, -along))
+    reach = vec3.norm(across)
+    if not reach > 0.0:
+        return inclination_deg, node_deg
+    first = vec3.scale(across, 1.0 / reach)
+    second = vec3.cross(axis, first)
+    turned = vec3.add(vec3.scale(axis, along), vec3.add(vec3.scale(first, reach * math.cos(phase_rad)), vec3.scale(second, reach * math.sin(phase_rad))))
+    x, y, z = vec3.unit(turned)
+    inclination = math.degrees(math.acos(max(-1.0, min(1.0, z))))
+    node = math.degrees(math.atan2(x, -y)) % 360.0 if inclination > 0.0 else node_deg
+    return inclination, node
+
+
+def companion_terms(axes_au, host_mass_kg, companions):
+    """
+    `(apsidal, forcing)` of a companion star on planets at `axes_au` (GEN.1499): for each planet the sum of the companions' `A_c` (radians per year, what the companion adds to the planet's own
+    apsidal rate, the diagonal of `secular_chain`'s `A`) and the sum of `B_c exp(i varpi_c)` (the push along the companions' periapses, a complex number, radians per year). `companions` is as for
+    `forced_vector`. A planet beyond `ALPHA_LIMIT` of a companion gets nothing from it (`companion_rates`). The pull is that of a body of no mass (`companion_rates`): a planet's own mass changes the companion's pull on it by the planet-to-host mass ratio, left out at first order.
+    """
+    apsidal = [0.0] * len(axes_au)
+    forcing = [0j] * len(axes_au)
+    for j, axis in enumerate(axes_au):
+        for mass, companion_axis, eccentricity, periapsis in companions:
+            rate, push = companion_rates(axis, host_mass_kg, mass, companion_axis, eccentricity)
+            apsidal[j] += rate
+            forcing[j] += push * complex(math.cos(periapsis), math.sin(periapsis))
+    return tuple(apsidal), tuple(forcing)
+
+
+def forced_planet_vectors(axes_au, masses_kg, host_mass_kg, companions, ring_axes_au=(), ring_masses_kg=()):
+    """
+    The forced eccentricity vectors `z_eq` (complex, one for each planet) of planets at `axes_au` with masses `masses_kg` under `companions` (GEN.1499): the fixed point `A z = g` of the planets'
+    secular exchange (`secular_chain.matrices`, relativity and the rings of the star's belts included) with the companions' `A_c` added to its diagonal and their push `g` (`companion_terms`) on the
+    right. One planet and no rings give `forced_vector` exactly. The planets stay circling `z_eq` with their free eccentricity as it was; `None` for a system the theory does not reach: no
+    companion pull on any planet, a singular exchange, or a forced eccentricity past `secular_chain.LINEAR_ECCENTRICITY_LIMIT` for any planet.
+    """
+    apsidal, forcing = companion_terms(axes_au, host_mass_kg, companions)
+    if not any(abs(f) > 0.0 for f in forcing):
+        return None
+    count = len(axes_au)
+    ring_axes, ring_masses = secular_chain.clear_rings(list(ring_axes_au), list(ring_masses_kg), list(axes_au))
+    A, _B = secular_chain.matrices([*axes_au, *ring_axes], [*masses_kg, *ring_masses], host_mass_kg, rows=count)
+    block = A[:count, :count] + np.diag(apsidal)
+    push = np.array(forcing, dtype=complex)
+    # the rings are held at rest (zero eccentricity, as in `secular_chain._drive`): they pull on the planets and are not moved by them, so they only add to the planets' diagonal
+    if np.linalg.matrix_rank(block) < count:
+        return None
+    vectors = np.linalg.solve(block, push)
+    if float(np.max(np.abs(vectors))) > secular_chain.LINEAR_ECCENTRICITY_LIMIT:
+        return None
+    return tuple(complex(v) for v in vectors)

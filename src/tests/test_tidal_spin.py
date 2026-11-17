@@ -6,12 +6,18 @@ Love number and quality factor, and the spin-orbit resonances it can be caught i
 Earth, a hot Jupiter and the Moon.
 """
 
+import collections
+import concurrent.futures
+import itertools
 import math
+import multiprocessing
+import os
 import statistics
 import types
 
 import pytest
 
+from planetgen.generation.build_record import BuildRecord
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import icy_tide, constants as pc
@@ -179,7 +185,7 @@ def test_spin_state_reads_the_two_stored_periods():
 
 
 def _planet(body, au, period_years, eccentricity, age_gyr, is_moon=False):
-    fields = {**vars(body), "star": types.SimpleNamespace(age=age_gyr)}
+    fields = {"build": BuildRecord(), **vars(body), "star": types.SimpleNamespace(age=age_gyr)}
     return types.SimpleNamespace(
         is_moon=is_moon, distance=au, period=period_years, eccentricity=eccentricity, orbital_inclination_deg=1.0,
         orbital_ascending_node_deg=30.0, **fields)
@@ -209,27 +215,45 @@ def test_generate_spin_stores_the_state_the_tide_leaves(monkeypatch):
     assert spin.spin_state(hot.rotation_period_hours, hot.period) == ("locked", 1.0)
 
 
+WORKERS = min(4, os.cpu_count() or 1)
+"""int: TEST.788: how many systems of a seeded sweep are made at the same time."""
+
+
+def _workers():
+    """TEST.788: the systems of a seeded sweep are made by forked workers, each on its own seed (the same systems as one after another)."""
+    return concurrent.futures.ProcessPoolExecutor(max_workers=WORKERS, mp_context=multiprocessing.get_context("fork"))
+
+
+def _tide_states_of(seed):
+    """What the tide allows of the planets of the system of `seed`: the count of each spin state, every planet checked."""
+    seen = {"locked": 0, "resonant": 0, "free": 0}
+    with deterministic_entropy(seed):
+        draw.set_run_seed(seed)
+        config = SystemConfig()
+        config.PLANETS = True
+        config.MAX_PLANETS = True
+        system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
+    for planet in system.planets + system.secondary_planets:
+        if not hasattr(planet, "moons") or planet.body_type == "a":
+            continue
+        state, turns = spin.spin_state(planet.rotation_period_hours, planet.period)
+        seen[state] += 1
+        if state != "free":
+            assert planet.axial_tilt_deg <= min(planet.orbital_inclination_deg, 180.0 - planet.orbital_inclination_deg) + 1e-9
+        host = planet.primary_mass_kg
+        locking = locking_time_s(planet, host, planet.distance * pc.AU_TO_M, 2.0 * math.pi / (planet.rotation_period_hours * 3600.0),
+                                             planet.eccentricity)
+        if state == "free":
+            assert locking > 0.0
+    return seen
+
+
 def test_every_generated_planet_is_in_a_state_the_tide_allows():
     seen = {"locked": 0, "resonant": 0, "free": 0}
-    for seed in range(7100, 7112):    # the seeds of the sheet audit: with planets on, a mix of dwarf and Sun-like stars
-        with deterministic_entropy(seed):
-            draw.set_run_seed(seed)
-            config = SystemConfig()
-            config.PLANETS = True
-            config.MAX_PLANETS = True
-            system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
-        for planet in system.planets + system.secondary_planets:
-            if not hasattr(planet, "moons") or planet.body_type == "a":
-                continue
-            state, turns = spin.spin_state(planet.rotation_period_hours, planet.period)
-            seen[state] += 1
-            if state != "free":
-                assert planet.axial_tilt_deg <= min(planet.orbital_inclination_deg, 180.0 - planet.orbital_inclination_deg) + 1e-9
-            host = planet.primary_mass_kg
-            locking = locking_time_s(planet, host, planet.distance * pc.AU_TO_M, 2.0 * math.pi / (planet.rotation_period_hours * 3600.0),
-                                                 planet.eccentricity)
-            if state == "free":
-                assert locking > 0.0
+    with _workers() as pool:
+        for found in pool.map(_tide_states_of, range(7100, 7112)):    # the seeds of the sheet audit: with planets on, a mix of dwarf and Sun-like stars
+            for state, count in found.items():
+                seen[state] += count
     assert seen["free"] > 0 and seen["locked"] + seen["resonant"] > 0
 
 
@@ -243,43 +267,60 @@ def test_the_cassini_tilt_is_a_share_of_the_inclination():
     assert tidal_spin.cassini_tilt_deg(178.0, 0.5) == pytest.approx(tidal_spin.cassini_tilt_deg(2.0, 0.5))
 
 
+def _locked_tilts_of(seed):
+    """The axial tilts of the locked or resonant planets of the default system of `seed` (a round member of a belt, GEN.1510, is made after the settle pass and crowded with its
+    belt-mates: its tilt is not the one the row is about)."""
+    with deterministic_entropy(seed):
+        draw.set_run_seed(seed)
+        system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+    return [planet.axial_tilt_deg for planet in system.planets + system.secondary_planets
+            if hasattr(planet, "moons") and planet.body_type != "a" and planet.belt_order is None
+            and spin.spin_state(planet.rotation_period_hours, planet.period)[0] in ("locked", "resonant")]
+
+
 def test_a_locked_or_resonant_planet_keeps_a_small_tilt_not_exactly_zero():
     """GEN.1165 / GEN.753 row 7: a locked planet's obliquity is a fraction of a degree to 2 degrees, no longer exactly 0."""
-    tilts = []
-    for seed in range(24):
-        with deterministic_entropy(seed):
-            draw.set_run_seed(seed)
-            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets + system.secondary_planets:
-            if not hasattr(planet, "moons") or planet.body_type == "a" or planet.belt_order is not None:
-                continue        # a round member of a belt (GEN.1510) is made after the settle pass and crowded with its belt-mates: its tilt is not the one this row is about
-            if spin.spin_state(planet.rotation_period_hours, planet.period)[0] in ("locked", "resonant"):
-                tilts.append(planet.axial_tilt_deg)
+    with _workers() as pool:
+        tilts = [tilt for found in pool.map(_locked_tilts_of, range(24)) for tilt in found]
     assert len(tilts) >= 20
     tilts.sort()
     assert sum(1 for t in tilts if t > 0.0) >= 0.9 * len(tilts)
     assert tilts[len(tilts) // 2] < 1.0 and tilts[int(0.95 * len(tilts))] < 5.0
 
 
-@pytest.mark.slow       # a seeded sweep of whole systems until four gas giants turn up: about seven minutes
-def test_a_generated_giant_tail_reaches_past_sixty_degrees_for_an_ice_giant_only():
-    """GEN.1165 / GEN.753 row 10: over generated systems an ice giant of 5 to 30 Earth masses is sometimes tilted past 60 degrees; a heavier giant never is."""
+def _giant_tilts_of(seed):
+    """`(ice, gas)`: the axial tilts of the giants of the system of `seed`, an ice giant being one of 5 to 30 Earth masses."""
     from planetgen.physics import giant_tilt
     ice, gas = [], []
-    for seed in range(7100, 7400):       # the search runs on until there are giants of each kind (a sample has few gas giants beside many ice giants)
-        if len(ice) >= 8 and len(gas) >= 4:   # TEST.417: a system costs seconds, so stop at more giants of each kind (the checks need 4 of each)
-            break
-        with deterministic_entropy(seed):
-            draw.set_run_seed(seed)
-            config = SystemConfig()
-            config.PLANETS = True
-            config.MAX_PLANETS = True
-            system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
-            if getattr(planet, "body_type", None) != "g":
-                continue
-            low, high = giant_tilt.MASS_RANGE_EARTH
-            (ice if low <= planet.mass / pc.EARTH_MASS_TO_KG <= high else gas).append(planet.axial_tilt_deg)
+    with deterministic_entropy(seed):
+        draw.set_run_seed(seed)
+        config = SystemConfig()
+        config.PLANETS = True
+        config.MAX_PLANETS = True
+        system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
+    for planet in system.planets:
+        if getattr(planet, "body_type", None) != "g":
+            continue
+        low, high = giant_tilt.MASS_RANGE_EARTH
+        (ice if low <= planet.mass / pc.EARTH_MASS_TO_KG <= high else gas).append(planet.axial_tilt_deg)
+    return ice, gas
+
+
+@pytest.mark.slow       # a seeded sweep of whole systems until four gas giants turn up: about seven minutes one after another, a quarter of that with four workers
+def test_a_generated_giant_tail_reaches_past_sixty_degrees_for_an_ice_giant_only():
+    """GEN.1165 / GEN.753 row 10: over generated systems an ice giant of 5 to 30 Earth masses is sometimes tilted past 60 degrees; a heavier giant never is."""
+    ice, gas = [], []
+    seeds = iter(range(7100, 7400))      # the search runs on until there are giants of each kind (a sample has few gas giants beside many ice giants)
+    with _workers() as pool:
+        waiting = collections.deque(pool.submit(_giant_tilts_of, seed) for seed in itertools.islice(seeds, 2 * WORKERS))
+        while waiting and not (len(ice) >= 8 and len(gas) >= 4):     # TEST.417: a system costs seconds, so stop at more giants of each kind (the checks need 4 of each)
+            found_ice, found_gas = waiting.popleft().result()         # read in seed order, so the systems read are the ones a search one after another reads
+            ice += found_ice
+            gas += found_gas
+            for seed in itertools.islice(seeds, 1):
+                waiting.append(pool.submit(_giant_tilts_of, seed))
+        for future in waiting:
+            future.cancel()
     assert len(ice) >= 4 and len(gas) >= 4
     assert all(0.0 <= tilt <= 180.0 for tilt in ice + gas)
     assert max(gas) < 90.0

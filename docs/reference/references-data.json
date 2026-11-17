@@ -94811,6 +94811,89 @@
    "volume": "226",
    "year": 2013
   },
+  "10.1016/j.icarus.2013.07.021": {
+   "authors": [
+    [
+     "Fernández",
+     "Y."
+    ],
+    [
+     "Kelley",
+     "M."
+    ],
+    [
+     "Lamy",
+     "P."
+    ],
+    [
+     "Toth",
+     "I."
+    ],
+    [
+     "Groussin",
+     "O."
+    ],
+    [
+     "Lisse",
+     "C."
+    ],
+    [
+     "A’Hearn",
+     "M."
+    ],
+    [
+     "Bauer",
+     "J."
+    ],
+    [
+     "Campins",
+     "H."
+    ],
+    [
+     "Fitzsimmons",
+     "A."
+    ],
+    [
+     "Licandro",
+     "J."
+    ],
+    [
+     "Lowry",
+     "S."
+    ],
+    [
+     "Meech",
+     "K."
+    ],
+    [
+     "Pittichová",
+     "J."
+    ],
+    [
+     "Reach",
+     "W."
+    ],
+    [
+     "Snodgrass",
+     "C."
+    ],
+    [
+     "Weaver",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2013.07.021",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "1138",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Thermal properties, sizes, and size distribution of Jupiter-family cometary nuclei",
+   "type": "journal-article",
+   "volume": "226",
+   "year": 2013
+  },
   "10.1016/j.icarus.2013.09.028": {
    "authors": [
     [
@@ -137985,6 +138068,38 @@
    "volume": "562",
    "year": 2014
   },
+  "10.1051/0004-6361/201322597": {
+   "arxiv": "1312.0609",
+   "authors": [
+    [
+     "Ribas",
+     "Á."
+    ],
+    [
+     "Merín",
+     "B."
+    ],
+    [
+     "Bouy",
+     "H."
+    ],
+    [
+     "Maud",
+     "L. T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201322597",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A54",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Disk evolution in the solar neighborhood",
+   "type": "journal-article",
+   "volume": "561",
+   "year": 2013
+  },
   "10.1051/0004-6361/201322631": {
    "arxiv": "1309.2631",
    "authors": [
@@ -151700,6 +151815,38 @@
    "volume": "",
    "year": 2009
   },
+  "10.1063/1.3215910": {
+   "arxiv": "0906.5011",
+   "authors": [
+    [
+     "Mamajek",
+     "E. E."
+    ],
+    [
+     "Usuda",
+     "T."
+    ],
+    [
+     "Tamura",
+     "M."
+    ],
+    [
+     "Ishii",
+     "M."
+    ]
+   ],
+   "book": "AIP Conference Proceedings",
+   "doi": "10.1063/1.3215910",
+   "editors": [],
+   "journal": "AIP Conference Proceedings",
+   "page": "3",
+   "publisher": "AIP",
+   "src": "crossref",
+   "title": "Initial Conditions of Planet Formation: Lifetimes of Primordial Disks",
+   "type": "proceedings-article",
+   "volume": "",
+   "year": 2009
+  },
   "10.1063/1.3253094": {
    "authors": [
     [
@@ -159638,6 +159785,42 @@
    "title": "Discovery of an Extended Ultraviolet Disk in the Nearby Galaxy NGC 4625",
    "type": "journal-article",
    "volume": "627",
+   "year": 2005
+  },
+  "10.1086/432716": {
+   "arxiv": "astro-ph/0506401",
+   "authors": [
+    [
+     "Wood",
+     "B. E."
+    ],
+    [
+     "Müller",
+     "H. R."
+    ],
+    [
+     "Zank",
+     "G. P."
+    ],
+    [
+     "Linsky",
+     "J. L."
+    ],
+    [
+     "Redfield",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/432716",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "L143",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "New Mass-Loss Measurements from Astrospheric Lyα Absorption",
+   "type": "journal-article",
+   "volume": "628",
    "year": 2005
   },
   "10.1086/432718": {
@@ -177815,6 +177998,26 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "10",
    "year": 2010
+  },
+  "10.1088/1742-6596/1100/1/012028": {
+   "arxiv": "1809.01109",
+   "authors": [
+    [
+     "Wood",
+     "B. E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/1742-6596/1100/1/012028",
+   "editors": [],
+   "journal": "J. Phys.: Conf. Ser.",
+   "page": "012028",
+   "publisher": "IOP Publishing",
+   "src": "crossref",
+   "title": "Implications of Recent Stellar Wind Measurements",
+   "type": "journal-article",
+   "volume": "1100",
+   "year": 2018
   },
   "10.1088/1742-6596/131/1/012044": {
    "arxiv": "0810.0204",
@@ -202684,6 +202887,54 @@
    "publisher": "Oxford University Press (OUP)",
    "src": "crossref",
    "title": "The correlation between the sizes of globular cluster systems and their host dark matter haloes",
+   "type": "journal-article",
+   "volume": "477",
+   "year": 2018
+  },
+  "10.1093/mnras/sty949": {
+   "arxiv": "1804.05076",
+   "authors": [
+    [
+     "Richert",
+     "A. J. W."
+    ],
+    [
+     "Getman",
+     "K. V."
+    ],
+    [
+     "Feigelson",
+     "E. D."
+    ],
+    [
+     "Kuhn",
+     "M. A."
+    ],
+    [
+     "Broos",
+     "P. S."
+    ],
+    [
+     "Povich",
+     "M. S."
+    ],
+    [
+     "Bate",
+     "M. R."
+    ],
+    [
+     "Garmire",
+     "G. P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/sty949",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "5191",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Circumstellar disc lifetimes in numerous galactic young stellar clusters",
    "type": "journal-article",
    "volume": "477",
    "year": 2018
@@ -257522,6 +257773,66 @@
    "volume": "918",
    "year": 2021
   },
+  "10.3847/1538-4357/abfda5": {
+   "arxiv": "2105.00019",
+   "authors": [
+    [
+     "Wood",
+     "B. E."
+    ],
+    [
+     "Müller",
+     "H. R."
+    ],
+    [
+     "Redfield",
+     "S."
+    ],
+    [
+     "Konow",
+     "F."
+    ],
+    [
+     "Vannier",
+     "H."
+    ],
+    [
+     "Linsky",
+     "J. L."
+    ],
+    [
+     "Youngblood",
+     "A."
+    ],
+    [
+     "Vidotto",
+     "A. A."
+    ],
+    [
+     "Jardine",
+     "M."
+    ],
+    [
+     "Alvarado-Gómez",
+     "J. D."
+    ],
+    [
+     "Drake",
+     "J. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/abfda5",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "37",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "New Observational Constraints on the Winds of M dwarf Stars*",
+   "type": "journal-article",
+   "volume": "915",
+   "year": 2021
+  },
   "10.3847/1538-4357/ac081e": {
    "authors": [
     [
@@ -286253,7 +286564,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5296,
+ "id_next": 5299,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286990,6 +287301,7 @@
   "10.1016/j.icarus.2013.06.019": "R3684",
   "10.1016/j.icarus.2013.06.020": "R1126",
   "10.1016/j.icarus.2013.06.027": "R1065",
+  "10.1016/j.icarus.2013.07.021": "R5296",
   "10.1016/j.icarus.2013.09.028": "R2937",
   "10.1016/j.icarus.2013.10.004": "R4341",
   "10.1016/j.icarus.2013.10.013": "R1516",
@@ -288094,6 +288406,7 @@
   "10.1051/0004-6361/201322342": "R3439",
   "10.1051/0004-6361/201322343": "R3897",
   "10.1051/0004-6361/201322531": "R3523",
+  "10.1051/0004-6361/201322597": "R5305",
   "10.1051/0004-6361/201322631": "R0349",
   "10.1051/0004-6361/201322803": "R5102",
   "10.1051/0004-6361/201322944": "R3694",
@@ -288388,6 +288701,7 @@
   "10.1063/1.2840398": "R4850",
   "10.1063/1.3160306": "R2593",
   "10.1063/1.3211826": "R0526",
+  "10.1063/1.3215910": "R5307",
   "10.1063/1.3253094": "R2890",
   "10.1063/1.3253098": "R4066",
   "10.1063/1.337604": "R3839",
@@ -288648,6 +288962,7 @@
   "10.1086/430513": "R3540",
   "10.1086/431739": "R1289",
   "10.1086/432054": "R1563",
+  "10.1086/432716": "R5304",
   "10.1086/432718": "R2094",
   "10.1086/432785": "R4777",
   "10.1086/444620": "R4031",
@@ -289048,6 +289363,7 @@
   "10.1088/1674-1137/abddae": "R2443",
   "10.1088/1674-4527/10/9/006": "R3036",
   "10.1088/1674-=": "R0796",
+  "10.1088/1742-6596/1100/1/012028": "R5303",
   "10.1088/1742-6596/131/1/012044": "R4983",
   "10.1088/1751-8121/aa7953": "R1098",
   "10.1088/2041-8205/710/2/l156": "R3851",
@@ -289679,6 +289995,7 @@
   "10.1093/mnras/sty677": "R1036",
   "10.1093/mnras/sty705": "R0830",
   "10.1093/mnras/sty844": "R2038",
+  "10.1093/mnras/sty949": "R5306",
   "10.1093/mnras/sty984": "R4721",
   "10.1093/mnras/stz103": "R0281",
   "10.1093/mnras/stz1034": "R1210",
@@ -290982,6 +291299,7 @@
   "10.3847/1538-4357/abd62f": "R4363",
   "10.3847/1538-4357/abfc48": "R0708",
   "10.3847/1538-4357/abfd9c": "R2804",
+  "10.3847/1538-4357/abfda5": "R5302",
   "10.3847/1538-4357/ac081e": "R0054",
   "10.3847/1538-4357/ac1116": "R1548",
   "10.3847/1538-4357/ac1e89": "R1846",
@@ -291339,6 +291657,7 @@
   "arxiv:0905.3338": "R4556",
   "arxiv:0905.4579": "R3898",
   "arxiv:0906.1204": "R3943",
+  "arxiv:0906.5011": "R5307",
   "arxiv:0907.0234": "R2867",
   "arxiv:0907.2512": "R3147",
   "arxiv:0907.2952": "R2166",
@@ -291606,6 +291925,7 @@
   "arxiv:1311.6522": "R3240",
   "arxiv:1311.6597": "R3439",
   "arxiv:1311.7052": "R3897",
+  "arxiv:1312.0609": "R5305",
   "arxiv:1312.1736": "R1113",
   "arxiv:1312.3085": "R4335",
   "arxiv:1312.3337": "R2605",
@@ -291996,6 +292316,7 @@
   "arxiv:1804.02001": "R2014",
   "arxiv:1804.02434": "R0369",
   "arxiv:1804.03734": "R4577",
+  "arxiv:1804.05076": "R5306",
   "arxiv:1804.05343": "R4150",
   "arxiv:1804.05717": "R5174",
   "arxiv:1804.05889": "R0157",
@@ -292033,6 +292354,7 @@
   "arxiv:1808.03654": "R1670",
   "arxiv:1808.04379": "R3188",
   "arxiv:1808.10865": "R0859",
+  "arxiv:1809.01109": "R5303",
   "arxiv:1809.01240": "R2208",
   "arxiv:1809.01673": "R0961",
   "arxiv:1809.03537": "R0075",
@@ -292293,6 +292615,7 @@
   "arxiv:2104.03318": "R3274",
   "arxiv:2104.11631": "R0405",
   "arxiv:2104.13385": "R2851",
+  "arxiv:2105.00019": "R5302",
   "arxiv:2105.01661": "R0168",
   "arxiv:2105.03435": "R0655",
   "arxiv:2105.03440": "R0654",
@@ -292720,6 +293043,7 @@
   "arxiv:astro-ph/0505558": "R2542",
   "arxiv:astro-ph/0506008": "R0749",
   "arxiv:astro-ph/0506357": "R1563",
+  "arxiv:astro-ph/0506401": "R5304",
   "arxiv:astro-ph/0506467": "R0582",
   "arxiv:astro-ph/0506539": "R1499",
   "arxiv:astro-ph/0506659": "R0007",

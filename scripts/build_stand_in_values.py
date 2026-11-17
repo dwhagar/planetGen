@@ -607,6 +607,10 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.303", "6.303 Stand-ins of the shape of a star's own comets (GEN.595)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.304", "6.304 Stand-ins of the scatter of a star's own snow line (GEN.1611)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.305", "6.305 Stand-ins of how far inside Blue a species' homeworld sits (POP.12, GEN.1772)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
 
@@ -817,6 +821,11 @@ def render(plan_text, wiring_text="", burn_down_text="", evidence_text=""):
         " (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier)"
         " and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row"
         " to the registry with both labels in the same pull request.",
+        "",
+        "Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already"
+        " exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no"
+        " registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in"
+        " that bends, never the sourced law.",
         "",
         f"There are {total} rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier"
         " of each part, and its tweak is the highest level any part has.",

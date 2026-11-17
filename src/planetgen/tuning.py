@@ -179,8 +179,9 @@ SCULPT_AGE_YR = 1.0e9
 INNER_SYSTEM_FRACTION_MASSES = (0.15, 0.6, 1.0, 1.4)
 INNER_SYSTEM_FRACTION_SHARES = (0.85, 0.75, 0.30, 0.30)
 # How many planets it starts with before the thinning: 1 + a Poisson draw of this mean. A planetGen stand-in (tier T6, tweak L3), tuned so the
-# survivors average 3.0 per Sun-like system and 2.8 per M dwarf [R4812, R4898].
-INNER_INITIAL_COUNT_EXTRA = 5.619
+# survivors average 3.0 per Sun-like system and 2.8 per M dwarf [R4812, R4898]. GEN.1709: 9.0 (5.619 before), as the chain now ends at the snow line or 400 days and the wider
+# first period (below) puts more of its oligarchs past that end.
+INNER_INITIAL_COUNT_EXTRA = 9.0
 # The spread of that mean between systems (the width in ln of a log-normal factor), so the counts are broader than a Poisson: the survey's
 # many single transiting planets need systems that start with few. A planetGen stand-in (tier T6, tweak L3), tuned to the transit multiplicity.
 INNER_COUNT_SIGMA_LN = 0.8
@@ -207,6 +208,12 @@ INNER_OUTWARD_MASS_DEX_PER_PLANET = 0.04
 # ([R3621], read), and the spread of one pair about its system's. A stand-in (tier T6, tweak L3).
 INNER_SEPARATION_MEDIAN = 5.983
 INNER_SPACING_SIGMA_LN = 0.25
+# The period of the first planet of an inner system, days: log-normal about this median with this width in dex (GEN.1709). The occurrence of small planets
+# is flat per logarithm of period from 8 to 128 days ([R2020: Table 2], read), so the first planet of the Kepler-like systems sits anywhere in
+# that range and its neighbours follow outward at the spacing above; a first planet at 5 days with a width of 0.2 dex put every inner planet inside 30 days. A planetGen
+# stand-in (tier T6, tweak L2: tuned to that flat shape and to the planets inside 400 days per star), registry row PA19.
+INNER_FIRST_PERIOD_MEDIAN_DAYS = 25.0
+INNER_FIRST_PERIOD_SIGMA_DEX = 0.7
 # The inner system ends at this period (days); the outer chain starts this many times beyond it (as a period) or past the last inner planet (as a distance).
 INNER_SYSTEM_PERIOD_LIMIT_DAYS = 400.0
 OUTER_CHAIN_START_RATIO = 1.3
@@ -435,11 +442,12 @@ DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 # The scatter of a star's own snow line around the blackbody position for its
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
 # 0.4 dex scatter of accretion rates carried through the steady-disk snow-line
-# law ([R3193, R3196], [R3193]). The draw is cut at
-# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way (wider than the
-# factor 2 to 3 the observed lines are said to move, so it clips only the tail).
+# law ([R3193, R3196], [R3193: abstract]; row SNL1). The draw is cut at
+# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma: 2, the plus and minus 2 sigma (a factor of 2.5
+# either way) over which [R3193: Fig. 3] works its snow lines (GEN.1611; it was 3, a
+# factor of 4, which put the line inside the habitable zone's inner edge; row SNL2).
 SNOW_LINE_SCATTER_DEX = 0.2
-SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
+SNOW_LINE_SCATTER_MAX_SIGMA = 2.0
 
 # The farthest a planet zone in a hierarchy of stars reaches (GEN.314,
 # `physics.planet_zones`): a protoplanetary disk around a star or a pair is
@@ -724,6 +732,19 @@ HOT_O_SUBCLASS_TEMPERATURES_K = {0: 60000.0, 1: 55000.0, 2: 50000.0}
 # (F and G), 0.6 (K) and 1.0 (M) at [Fe/H] -1.5, while a solar-metallicity M dwarf of the model sits 0.17 dex under the
 # sequence (95 percent within 0.23), so 0.3 labels the first and not the second.
 SUBDWARF_LUMINOSITY_DEFICIT_DEX = 0.3
+# A subdwarf is a metal-poor dwarf (GEN.1635): the sd classes of M dwarfs are [Fe/H] about -0.5 to -1 (sdM), -1 to -1.5 (esdM) and
+# lower (usdM) [R1582]. The model's M dwarfs are under-luminous at their temperature already from [Fe/H] -0.1 (0.3 to 0.5 dex at -0.2, the
+# red dwarfs of the thin disk), so the deficit alone labelled 13 of 270 ordinary M dwarfs Subdwarf; a star is labelled VI only at or
+# below this birth [Fe/H] as well.
+SUBDWARF_MAX_FE_H = -0.5
+# The coronal wind of a cool dwarf (GEN.1625, `physics.stellar_wind.coronal_mass_loss_solar`). The mass loss of an A to K dwarf per unit surface area rises with its
+# X-ray surface flux to the 1.29 power [R5303] (1.34 +- 0.18 in [R5304]; the fit holds below an X-ray flux of 1e6 erg/cm^2/s, the "dividing line"
+# above which the winds measured are weak [R5303]), so the flux is held at the line. The measured winds of M dwarfs do not follow their flux (two orders of
+# magnitude of scatter at one flux, [R5302]); their mass loss per unit area, in the Sun's, is the median of the six single M dwarfs of its Table 3 that have
+# a value (0.37, 0.86, 2.3, 4.3, 9.8 and 275 from GJ 436, GJ 205, GJ 887, GJ 173, EV Lac and YZ CMi: mass loss over the squared radius).
+CORONAL_WIND_X_RAY_EXPONENT = 1.29
+CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S = 1.0e6
+M_DWARF_WIND_PER_AREA_SOLAR = 3.3
 # A forced star type (GEN.941, generation/forced_star.py) is a star the model
 # makes. A subdwarf (Yerkes VI) is a main-sequence star under-luminous for its
 # temperature (SUBDWARF_LUMINOSITY_DEFICIT_DEX), which a metal-poor star of the
@@ -1135,10 +1156,10 @@ CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
 RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
 PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 2.0
 # The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
-# 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
+# 0.5, II until the star's own dispersal time (GEN.1551, `physics/disk_dispersal.py`), and none after; mass 0.01 to 0.3 of the star and outer
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
 # grain sublimates (DISK_DUST_SUBLIMATION_K).
-DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6), ("II", 3.0e6))
+DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6))
 RUNAWAY_HISTORY_START_YR = 30.0e6
 """float: The age the water-loss history starts at (GEN.639): 30 Myr, when the last giant impacts of the rocky planets are
 done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; [R2132]) and a surface
@@ -3227,15 +3248,18 @@ INTERSTELLAR_COMET_ACTIVE_CHANCE = 0.5
 # docs/design/systems/comet-orbital-realism.md for the full research/design
 # writeup this implements.
 
-# Bound short-period/long-period comet nuclei run larger, on average,
-# than the two confirmed interstellar visitors this generator also models
-# (INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM, ~0.1-1 km) -- e.g. Halley
-# is ~15x8 km ([R2301], ESA Giotto results) and Jupiter-family
-# comet nuclei are typically observed in the 1-10 km range (Lamy et al.
-# 2004, "Sizes, Shapes, Albedos, and Colors of Cometary Nuclei"). A
-# separate, wider range reflects that real difference rather than reusing
-# the interstellar range as-is. Drawn uniform in diameter, a hand-set shape ([Stand-in 6.303 CMT6, tier T6, tweak L3.]).
-BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (0.5, 20.0)
+# A star-bound comet's nucleus diameter follows the size law of the Jupiter family: the cumulative number of nuclei above a
+# diameter falls as D^-q, with q = 1.92 +- 0.20 for nuclei of radius 1.25 km and up ([R4139], abstract) and about 1.9 in a
+# second sample of 89 nuclei ([R5296], abstract). `Comet` draws from it between the two ends below by inverting its
+# cumulative distribution (GEN.1765, `util.random.sample_power_law`), so small nuclei are the common ones.
+COMET_NUCLEUS_CUMULATIVE_INDEX = 1.92
+"""float: The power-law index q of the cumulative nucleus size law, N(>D) ~ D^-q. [Stand-in 6.303 CMT6, tier T1, tweak L0.]"""
+
+# The ends of the draw, in km. The lower end is the edge of the fit ([R4139]: radius 1.25 km): both samples say the observed
+# numbers fall short below it, and the generator models a star's few most notable comets, not its whole swarm.
+# The upper end is hand set, wide of the largest nuclei measured (Halley's is about 15 x 8 km, [R2301]) until the
+# belt's own largest body sets it. [Stand-in 6.303 CMT9, tier T6, tweak L3, for the upper end.]
+BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (2.5, 20.0)
 
 # Perihelion distance range, in AU, for a star-bound comet -- wide enough
 # to cover both a sungrazer-like close pass and an outer-system comet that
@@ -3276,7 +3300,8 @@ COMET_PERIOD_CLASSES = {
     # i.e. retrograde), and long-period comets (e very close to 1,
     # isotropic inclination -- true Oort Cloud origin, only weakly
     # dynamically processed). `weight` is this family's relative share of
-    # generated elliptical comets, not a physical population estimate.
+    # generated elliptical comets, not a physical population estimate; a star whose outer disk a giant scattered reads the shares from the disk
+    # instead (`physics/comet_supply.family_weights`, GEN.1765).
     # Registry rows: period cuts [Stand-in 6.303 CMT1, tier T2, tweak L0.], outer ends [Stand-in 6.303 CMT2, tier T4, tweak L3.],
     # eccentricity [Stand-in 6.303 CMT3, tier T4, tweak L3.], inclination [Stand-in 6.303 CMT4, tier T2, tweak L1.],
     # weights [Stand-in 6.303 CMT5, tier T9, tweak L3.]
@@ -4404,12 +4429,12 @@ included."""
 # --- Species environment limits (POP.12) -------------------------------------------------------
 
 SPECIES_LIMIT_MARGIN = {"pressure_factor": 1.5, "temperature_c": 10.0, "wet_bulb_c": 2.0, "dose_factor": 3.0,
-                        "o2_factor": 1.25}
+                        "o2_factor": 1.25, "gas_factor": 1.5}
 """dict: How far inside Blue a species' homeworld sits when its limits are generated from it
 (`species_limits.generated`): the homeworld's pressure is 1.5 times inside the Blue pressure edges, its
 temperature cycle 10 degrees inside the Blue temperature edges, a wet bulb limit 2 degrees above its wet bulb,
-its dose a third of the Blue dose edge, and the chronic inspired O2 limit a quarter above its own. planetGen
-defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
+its dose a third of the Blue dose edge, the chronic inspired O2 limit a quarter above its own, and each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) a third under the chronic edge of
+its own gas band (`gas_factor` 1.5, GEN.1772). planetGen defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
 
 SPECIES_EQUIPMENT_TECH = {
     "cold-weather clothing": 0.0, "cooling clothing": 0.0, "sun-cover clothing": 0.0, "weather clothing": 0.0,

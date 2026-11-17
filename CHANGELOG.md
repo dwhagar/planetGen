@@ -2,6 +2,214 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4418] - 2026-11-17
+
+**Headline:** `test_tidal_spin` makes its seeded systems four at a time, so the file runs in a third of the time.
+
+### Fixed
+
+- TEST.788: `tests/test_tidal_spin.py` made the whole systems of three seeded sweeps one after another (the giant-tilt search up to 300 seeds, 12 seeds of the tide-state check, 24 default systems) and took 1,583 s alone, 1,662 s in a gate. The systems are now made by forked workers, each on its own seed, and the giant-tilt search reads them in seed order and stops at the same seed, so every sample and every bound is the one the one-by-one run used.
+
+## [8.0.4417] - 2026-11-17
+
+**Headline:** The star sheet now marks the cool red-giant-branch stars (M giants) as semiregular variables.
+
+### Added
+
+- GEN.944: the Variability row marked Cepheids, Miras, T Tauri and Herbig stars but left the semiregular variables of the red-giant branch out. A red-giant-branch star cooler than 4,000 K now reads `Semiregular (red giant)` (stand-in VR4). Nothing is stored; the row is worked out from the stored state and temperature. This is the last open part of the item: carbon and S stars (GEN.1026), Ap and Am stars (GEN.1027), the 10 to 13 Gy thick-disc window (GEN.1025), the age-metallicity relation and the alpha shift (GEN.1024) were built before.
+
+generation-output: unchanged
+
+## [8.0.4416] - 2026-11-17
+
+**Headline:** the census audit fills its sectors with four workers at a time, so the whole-sphere tests no longer run past the hang guard.
+
+### Fixed
+
+- TEST.783: `tests.audit.representation.run` filled every seeded sector of every region one after another, and `test_census_component_wholesphere` (30 sectors in each region) ran past the hang guard (1,500 s in a gate). It now fills the sectors with forked workers (`workers`, up to 4 by default, 1 for the old one-by-one run). Each sector is bound to its own seed, so the census and the star counts of the fill are the same; a new test in `test_census_representation.py` compares a run with 1 worker and one with 3 (every sector's counts and the fill's star and sector counts). `test_census_representation` uses the same `run` and gets the same speedup.
+
+## [8.0.4415] - 2026-11-17
+
+**Headline:** The node-planet stream test compares what settling leaves alone (masses) and two regenerations, since settling can respace a planet's orbit.
+
+### Changed
+- TEST.787: `test_a_nodes_planets_are_drawn_from_a_stream_of_its_own` compared the regenerated planets' distances with the stored ones, which have been through the settle pass; settling spaces the orbits again once the eccentricities are final and, with GEN.1709's wider inner systems, moves one planet of the sample from 71.8 to 122.3 AU. It now compares the masses with the stored planets' and two regenerations' distances with each other.
+- Tests only; no generation output changes.
+
+## [8.0.4414] - 2026-11-17
+
+**Headline:** The functions for a companion star's pull on a star's planets (apsidal rate and forced eccentricity) are built, not wired yet.
+
+### Changed
+- GEN.1499 (slice 0): `physics/belt_forcing.py` gains `companion_terms` (a companion's `A_c` and push `B_c exp(i varpi)` on each planet) and `forced_planet_vectors` (the forced eccentricity of every planet, from the planets' own exchange with relativity and the belt rings plus the companions' terms; one planet gives `forced_vector` exactly). Reuses `companion_rates`, `secular_chain.matrices` and `secular_chain.clear_rings`; no second model. Wiring-register lines and a design section. Nothing reads them yet, so nothing generated changes; slice 1 (lock item) wires them into `secular_chain.evolve`.
+
+generation-output: none
+
+## [8.0.4413] - 2026-11-17
+
+**Headline:** the two late-accretion air tests read the planets that have a ground again, so they pass on main.
+
+### Fixed
+
+- Since GEN.1710 (the ground cut reads `envelope_escape.BARE_BELOW`), an Earth-mass planet of a G star at 1 AU that keeps an envelope has no ground: its air is solved at the 1 bar level like a giant's and the late accretion is not drawn for it. `tests/test_late_accretion.py` took the last draw of every such planet and raised `IndexError` for seeds 1, 3 and 5. `_earth_like` now gives `None` for the percent of a planet with no draw, the replay test skips those and reads seeds 1 to 10 (still at least 3 checked), and the temperate-air search takes only planets with a draw. What the tests assert is unchanged.
+
+## [8.0.4412] - 2026-11-17
+
+**Headline:** The functions for a companion star's tilt of a belt are built, not wired yet.
+
+### Changed
+- GEN.1492 (second part, slice 0): `physics/belt_forcing.py` gains `planet_nodal_rate`, `forced_normal` and `tilted_orbit`: the axis a belt member's orbit plane precesses about under a tilted companion and the star's planets (a heavy giant holds the belt flat, a bare belt follows the companion), and the member's inclination and node on the cone about it. Registry rows FE3 (now the tilt theory) and FE5 (the 0.5 rad limit), wiring register lines and a design section. Nothing reads them yet, so nothing generated changes; slice 1 (lock item) wires them into the belt's members.
+
+generation-output: none
+
+## [8.0.4411] - 2026-11-16
+
+**Headline:** The radiation sweep test draws more systems until it finds a giant, and no longer asks a band that is almost dark to pass less light under a thicker air.
+
+### Fixed
+
+- `tests/test_radiation_sweep.py` was red on Train 40 in three tests. GEN.1709 (the inner-system period spread) moved the draws and the sample of 20 systems plus up to 12 extra held no giant (2 giants before, none after), so `EXTRA_SYSTEMS_MAX` is now 40 (only the systems needed are drawn). A class N world the moist limit of GEN.1579 allows (19 bar, 412 K, 12.7 bar of carbon dioxide) passes 3.7e-5 of its uv_c light and 4.1e-5 under twice the column, so the rule that a thicker column passes no more light is not asked of a band under `DARK_TRANSMISSION` (1e-3); the rise of uv_c with oxygen in `atmospheric_radiation` is reported to TODO as a separate question.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4410] - 2026-11-16
+
+**Headline:** The air-history test of the life gases no longer depends on how big the first generated world is, so it stays green when a generation change moves that world.
+
+### Fixed
+
+- `test_the_history_of_two_classes_steps_at_each_start_and_at_the_rise` was red on Train 40 after GEN.1709 (the inner-system period spread) changed the first world the test's fixture finds (0.78 Earth masses with an air of 3.1e20 mol before, 3.5 Earth masses and 5.2e21 mol after). Its fixed methane fluxes (1e12 and 5e12 mol/yr) left the first class's methane under `biogenic_oxygen.MINIMUM_PA` on the larger air, so the step at 0.5 Gy read 0. The fluxes now go in proportion to the air the world holds; the assertions are unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4409] - 2026-11-16
+
+**Headline:** A small belt planet far from its star now lets its heat out by conduction, where it kept all of it (a heat flow near 1e-10 W/m2 and a Urey ratio up to 2e7).
+
+### Changed
+- GEN.1770: the interior box's heat flux (`interior_heat._flux_w_m2`) is never less than the conduction of a body heated all through, `5 k (Tm - Ts) / R` of the dry radius (`CONDUCTION_SHAPE_FACTOR`, derived: mean temperature rise `H R^2 / (15 k)` and surface flux `H R / 3`). A mantle past the convecting range returned 0 and one under the critical Rayleigh number let its boundary layer grow past the mantle itself, so a body of 0.0003 to 0.005 Earth masses with a cold surface kept all its radiogenic heat. In 167 terrestrial planets over 12 seeds, 71 had a Urey ratio over 1.5 before and none does now (largest 1.09); no body over 0.005 Earth masses changed. Fixes the red `test_migration_interior_heat`.
+- Generation output changes: bodies under about 0.005 Earth masses (heat flow, Urey ratio, and what reads them).
+
+## [8.0.4408] - 2026-11-16
+
+**Headline:** The tide-wears-the-orbit test now uses a body whose mantle melts, since a small body that conducts keeps its mantle solid at the distance the test used.
+
+### Changed
+- GEN.1770: `test_a_strong_tide_wears_the_orbit_down_until_it_spends_no_more_than_the_orbit_gives_up` took the 0.0013 Earth-mass sample-15 body at 0.0134 AU, which only melted because a body that small carried no heat out of its mantle. With conduction it stays at 1,082 K and makes 1e11 W, so the test's premise (a molten mantle) is gone; it takes the same body at 0.0104 AU, where the mantle melts (the circularisation time is 13 Gyr, the settled eccentricity 0.024), and a new test pins the solid case at 0.0134 AU.
+- Tests only; no generation output changes.
+
+## [8.0.4407] - 2026-11-16
+
+**Headline:** The methane, hydrogen and hydrogen sulfide caps of life now hold in the air that is kept, not in the air before its water settled, which turned three life-air tests red after Train 38.
+
+### Fixed
+
+- GEN.1766: `tests/test_life_air.py` went red on main after Train 38 (3 tests: methane share 3.506 percent over the cap of 3.5, hydrogen and hydrogen sulfide 0.2 percent over theirs). Cause found by running the test before (77 pass) and after the Train 38 merge 0a64f96cc9: GEN.1579 (the moist limit from the air) let the first world of the test's seeds, Aeshuon I (0.78 Earth masses), have a surface ocean at 262 K where it was an ice-covered one at 174 K, so its stored air now holds water vapor (5.4e17 mol of 3.1e20). That world sits on a climate cliff: 3.5 percent methane in place of 12 percent of its carbon dioxide cools it from 262 K to 227 K, `store_air` freezes out most of the vapor (to 1.5e16 mol), and the cap of `life_air.apply_gases`, worked on the air before that, ended 0.17 percent over it in the air that is kept. `apply_gases` now finds the water the new air will hold by storing it on a copy (`_settled_water_mol`), works the caps again with it (`_with_ledger_gases`, `methane_target_mol` takes the molecules as `total_mol`) and repeats until the gases move by under 1e-9 (`SETTLE_PASSES` 4); an air with no water is worked once as before. The tests' bounds are unchanged (77 of 77 pass, and 133 in the other test files that read `life_air`). It moves the methane and hydrogen of life-bearing worlds with water vapor in their air by the share of the vapor that freezes out.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4406] - 2026-11-16
+
+**Headline:** A star whose outer disk a giant scattered draws its comets' families from that disk.
+
+### Changed
+- GEN.1765 (slice 2): a star with an outer-disk belt that a giant scattered now draws its comets' families by the disk's scatter shares (the scattered disk and the centaurs the Jupiter family, the detached share the Halley-type and long-period families, each disk weighted by its mass), and no comet nucleus is larger than the largest body of the star's outer disks (`physics/comet_supply.py`). Every other star keeps the table's weights and the range's top. A census of 398 stars found 2 with scatter fates and none with scattered mass, so almost no generated comet changes; the chance of comets (0.3) and their count stay hand set, as stand-in rows CMT5, CMT8 and CMT9 say, until Boss answers whether comets should exist only where there is an outer disk.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4405] - 2026-11-16
+
+**Headline:** A star's own comets now follow the measured size law of comet nuclei: many small ones, few large.
+
+### Changed
+- GEN.1765: a star-bound comet's nucleus diameter was drawn flat between 0.5 and 20 km, which made the median nucleus 10 km. It is now drawn from the cumulative power law of the Jupiter family (the number above a diameter falls as D to the minus 1.92, [R4139, R5296]) between 2.5 km (the edge of the fit) and 20 km, so the median is about 3.6 km and about one comet in six is above 6 km. The mass, density and strength of a comet follow its diameter, so they change with it. New constant `COMET_NUCLEUS_CUMULATIVE_INDEX`; stand-in rows CMT6 (the law, read) and CMT9 (the hand-set upper end, until the belt's largest body sets it). The supply of comets from the system's outer belt is the next slice.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4404] - 2026-11-16
+
+**Headline:** The inner-system spread (GEN.1709) is cited by its registry ID, and four tests that its new draws moved (citations, companion gas, Urey range, Neptune desert) are fixed.
+
+### Changed
+- GEN.1709: the occurrence survey is written `[R2020: Table 2]` in `tuning.py`, the stand-in row PA19 (and `stand-in-values.md`, regenerated), the architecture test and the release note, where it was named by author and year.
+- Tests only, with the reasons in each: `test_close_companion_gas` builds 1,000 architectures per factor (200 gave 36 and 23 giants, a cut of 0.36 within the counting noise of 23; 1,000 give 178 and 84, a cut of 0.53); `test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming` leaves out a body the tide heats more than its own heat does (the ratio is then a difference of two large heats; the same value with the new conduction off); `test_few_neptunes_sit_inside_three_days_and_a_few_survive_there` compares with 3 to 30 days (3 to 10 days held 93 Neptunes of the 1,500 chains when the first planet sat at 5 days and holds 25 with it spread; inside 3 days went from 8 to 13).
+- No generation output changes.
+
+## [8.0.4403] - 2026-11-16
+
+**Headline:** The first planet of a Kepler-like inner system now sits anywhere from a few days to a few hundred days, so planets exist from 30 to 400 days where there were almost none, and K dwarfs have planets in their habitable zone.
+
+### Changed
+- GEN.1709: the first planet of an inner system is log-normal about 25 days with a width of 0.7 dex (`INNER_FIRST_PERIOD_MEDIAN_DAYS`, `INNER_FIRST_PERIOD_SIGMA_DEX`, registry row PA19), where it was 5 days with 0.2 dex: small planets are flat per factor of 2 in period from 8 to 128 days ([R2020: Table 2]) and the inner system ended by 130 days. `first_distance_au` takes the median and width, so the draw is reused. The starting count of the inner system is 9.0 (5.619 before, `INNER_INITIAL_COUNT_EXTRA`, row PA3) because the chain now ends at the snow line or 400 days (`inner_chain(limit_au=)`; past the snow line a core may take gas, which doubled the M dwarfs' giants within 2.5 AU).
+- The giant-impact stage of GEN.1560 starts at the outer chain's start, not at 0.45 AU: it merged the inner system's planets beyond 128 days.
+- Measured on 230 Sun-like systems (F7V to K2V, same seeds before and after): see the PR body.
+- Generation output changes: every planetary system with an inner system.
+
+## [8.0.4402] - 2026-11-16
+
+**Headline:** Small bodies of 1e19 to 1e21 kg keep more of their pores, so 300 to 450 km Kuiper belt bodies are less dense.
+
+### Changed
+- GEN.1637: the compaction taper (`physics/compaction.py`, a stand-in of decision S9) now closes the pores from 1e20 kg to 1e21 kg, not from 1e19 kg. Data audit D17 found a 70 percent rock body of 300 to 450 km at 1 657 to 1 836 kg/m3 where 2002 UX25, Varda, Salacia and Orcus measure 820 to 1 530 and keep their pores to about 5e20 kg. At a rock fraction of 0.6 Varda, Salacia and Orcus now come out within 15 percent (2002 UX25 stays 44 percent over). The compaction table is rebuilt (`scripts/build_compaction_table.py`); a stored belt member under 1e19 kg still takes its family's drawn porosity (`compaction.DRAWN_POROSITY_BELOW_KG`). The registry row MC1 moves to tweak level L2 (tuned to measured bodies).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4401] - 2026-11-16
+
+**Headline:** Ordinary red dwarfs are no longer labelled Subdwarf; only metal-poor stars ([Fe/H] -0.5 or lower) can be.
+
+### Fixed
+
+- GEN.1635: `stellar_evolution.yerkes_class_of` called a main-sequence star Subdwarf (class VI) when it lay 0.3 dex under the dwarf sequence's luminosity at its temperature. The model makes M dwarfs under-luminous from [Fe/H] -0.1 on (0.3 to 0.5 dex at -0.2), so 13 of 270 ordinary single M3 to M5 stars of [Fe/H] -0.08 to -0.34 were labelled Subdwarf, while real subdwarfs are metal-poor dwarfs (sdM from [Fe/H] about -0.5, extreme ones near -1 and lower). A star is now VI only when its birth [Fe/H] is also at or below the new `tuning.SUBDWARF_MAX_FE_H` (-0.5). In a draw of 3,000 M dwarfs of 0.1 to 0.45 solar masses at the Sun's place, 301 were labelled Subdwarf before and none now. Forced subdwarf types (halo [Fe/H] -2 to -1) are unchanged. Stand-in PS14 now says so.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4400] - 2026-11-16
+
+**Headline:** A unit whose failed attempt is waiting to be retried is no longer taken for dead and run twice, a second save of a cell waits and finds it charted, and what holds or restarts a unit is said in the job's log.
+
+### Fixed
+- A silent beat left by an attempt that raised is not a dead unit while RQ has its retry waiting in the queue: the follower no longer stops it, queues it a second time and holds the whole queue for it to run alone, which put two copies of one sector unit on the same cell at once (the `uq_star_systems_uid` duplicate in Boss's neighborhood run).
+- Saving a sector takes the cell's named lock and looks at the chart ledger inside the transaction, so a second copy that finishes after the first returns the first one's sector instead of stopping on the object IDs the first gave its systems (DB.131's check ran before the sector was generated, and could not see a copy still running).
+
+### Changed
+- The follower's lines (a unit stuck, stopped, queued again, held to run alone, released) and a unit held after failing twice are written to the job's log as well as the run's event stream.
+- The no-unit-finished line names the stage ("Stage 'Generate the neighborhood': ...") instead of the run's own stage number, which read as Stage 3 inside a job on its Stage 5.
+
+## [8.0.4399] - 2026-11-16
+
+**Headline:** Two test files again build their stand-in planets with a build record, so main is green again after GEN.1651.
+
+### Fixed
+- `test_tidal_spin` and `test_radiation_dose_field` made stand-in planets without a `build` record, which `generate_spin` and `update_exposure` now write to (GEN.1651); the stand-ins carry a `BuildRecord()`.
+
+generation-output: unchanged
+
+## [8.0.4398] - 2026-11-16
+
+**Headline:** the two sweep tests that built their galaxy one system at a time now build it with four workers at once, so they finish inside the hang guard.
+
+### Fixed
+
+- TEST.783: `test_star_composition_sweep` filled its five region sectors one after another, and `test_radius_valley_sweep` made its 60 G2V systems one after another on one run seed; both ran past the hang guard (900 s, 1,500 s in a gate) on a 4-core box and errored instead of testing. The composition sweep now fills each region in a forked worker (each fill was already bound to its own seed, so the stars and their keys are the same as before). The valley sweep makes 8 blocks of 15 systems (120 systems, twice the sample) four at a time, each block on a run seed of its own (blocks 0 to 7, fixed in advance), since the systems of one run seed draw from one another's stream; the comment on `BLOCKS` gives the measured share and its spread. What the sweeps check and the bounds they check are not changed.
+
+## [8.0.4397] - 2026-11-16
+
+**Headline:** A star's own disk dispersal time is now a law with sources, an exponential of 2.5 Myr at 0.5 solar masses shortened by a close companion, ready to replace the fixed 3 Myr step.
+
+### Added
+
+- GEN.1551 slice 0 (unwired, no stored value moves): `physics/disk_dispersal.py` holds the law the star's disk time will be drawn from. The share of young stars with a primordial disk falls about exponentially with age, with a characteristic time of 2.5 Myr (half-life 1.7 Myr) [R5307], 2 to 3 Myr in 22 clusters of 1 to 100 Myr [R5305] and a half-life of 1.3 to 2 Myr in 69 clusters [R5306]; the characteristic time falls from 3 Myr for brown dwarfs to 1 Myr over 1.3 solar masses. A star's time is `-tau ln u` from a draw of its own stream (`draw_dispersal_time_yr`, keyed to the star and not to its age), and a companion inside 47 AU shortens it with the same draw (an exponential of 0.91 Myr, two thirds gone within 1 Myr [R5225]), so GEN.1475 and this item are one draw. Stand-ins DZ1 to DZ3 say so. The shares a lane remembered (0.8 at 1 Myr, half at 3 Myr, 0.1 at 5 to 6) are not an exponential; the law gives 0.67, 0.30 and 0.11 at 0.5 solar masses, and the choice is left to Boss. Slice 1 wires it.
+
+generation-output: unchanged
+
 ## [8.0.4396] - 2026-11-16
 
 **Headline:** The pinned civilized test systems hold a civilization again, so the population tests no longer hunt for one.

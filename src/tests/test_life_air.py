@@ -422,7 +422,9 @@ def test_no_oxygen_when_the_star_is_younger_than_the_rise(world, monkeypatch):
 
 
 def test_the_history_of_two_classes_steps_at_each_start_and_at_the_rise(world, monkeypatch):
-    _per_class_flux(monkeypatch, {2: 1.0e12, 8: 5.0e12})
+    # fluxes in proportion to the air the world holds (1e12 and 5e12 mol/yr on an air of 3.1e20 mol), so the steps do not depend on how big the generated world is
+    air = sum(bo.air_moles(world).values())
+    _per_class_flux(monkeypatch, {2: 1.0e12 * air / 3.1e20, 8: 5.0e12 * air / 3.1e20})
     living = [life_air.Living(_class(2), 0.5, producers_gyr=0.5), life_air.Living(_class(8), 0.5, producers_gyr=1.5)]
     assert life_air.apply_gases(world, living, False)
     history = life_air.air_history(world, living, STAGES)

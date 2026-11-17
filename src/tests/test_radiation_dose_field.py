@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from planetgen.generation.build_record import BuildRecord
 from planetgen.physics import aerosols, constants, envelope_escape, magnetism, radiation, radiation_field as rf, thermosphere
 
 SUN_W = constants.SOLAR_LUMINOSITY
@@ -26,7 +27,7 @@ def pair(axis_au=5.0, **companion):
 
 
 def body_of(host):
-    return SimpleNamespace(star=host)
+    return SimpleNamespace(star=host, build=BuildRecord())
 
 
 def test_a_lone_star_gives_the_exposure_it_always_did():

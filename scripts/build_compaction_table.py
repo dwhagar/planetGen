@@ -10,7 +10,7 @@ Each layer holds ice grains (920 kg/m3 at zero pressure) and silicate grains (35
 Birch-Murnaghan equation of state (ice K0 9.2 GPa, K' 5.5; silicate K0 110 GPa, K' 4.0: the design note's stand-ins for the
 solver's equation of state, not measurements), and each with the brittle porosity of [R0390] (Icarus 326,
 Table 1 and Eqs. 1 and 2, P in MPa): ice phi = max(0.60 exp(-0.1 P), 0.20), silicate phi = min(0.6 P^-0.11, 0.6). The two
-porosities are weighted by the grain volumes of the mixture. Between the masses `TAPER_START_KG` (1e19) and `TAPER_END_KG`
+porosities are weighted by the grain volumes of the mixture. Between the masses `TAPER_START_KG` (1e20; 1e19 until GEN.1637) and `TAPER_END_KG`
 (1e21) the porosity is multiplied by a weight that falls from 1 to 0 in log mass (Boss's card of 8:13 PM EDT on 2026-10-21,
 decision S9: the endpoints are flagged stand-ins until viscous compaction replaces them); above 1e21 kg the body has no
 macroporosity and the structure solver of GEN.429 takes over.
@@ -32,7 +32,7 @@ from scipy.optimize import brentq
 G = 6.6743e-11
 ICE = (920.0, 9.2e9, 5.5)
 SILICATE = (3500.0, 110.0e9, 4.0)
-TAPER_START_KG = 1e19
+TAPER_START_KG = 1e20
 TAPER_END_KG = 1e21
 ROCK_FRACTIONS = [round(0.30 + 0.05 * i, 2) for i in range(14)]
 LOG_MASS_RANGE = (12.0, 21.0)

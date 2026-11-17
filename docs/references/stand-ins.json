@@ -5707,7 +5707,7 @@
           "fields": [
             [
               "Evidence",
-              "design (an envelope under 0.2 percent of the planet's mass counts as gone: a numerical cutoff of the integration)"
+              "design (an envelope under 0.2 percent of the planet's mass counts as gone: the cutoff of the integration, and since GEN.1710 also the ground rule of planet_type.TERRESTRIAL_MAX_ENVELOPE, PT1)"
             ],
             [
               "What it is",
@@ -17749,7 +17749,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.INNER_INITIAL_COUNT_EXTRA 5.619 and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
+              "tuning.INNER_INITIAL_COUNT_EXTRA 9 (5.619 before GEN.1709) and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
             ],
             [
               "The range it moves in",
@@ -17780,7 +17780,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.INNER_INITIAL_COUNT_EXTRA 5.619 and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
+          "what": "tuning.INNER_INITIAL_COUNT_EXTRA 9 (5.619 before GEN.1709) and INNER_COUNT_SIGMA_LN 0.8 (the number of oligarchs an inner system starts with: 1 + a Poisson draw of this mean, the mean itself spread log-normally)"
         },
         {
           "burn_down": [
@@ -18273,6 +18273,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.INNER_FIRST_PERIOD_MEDIAN_DAYS 25 and INNER_FIRST_PERIOD_SIGMA_DEX 0.7 (the period of the first planet of an inner system, log-normal; GEN.1709, with the giant-impact stage of GEN.1560 left to the outer chain, which starts at INNER_SYSTEM_PERIOD_LIMIT_DAYS 400 times OUTER_CHAIN_START_RATIO 1.3)"
+            ],
+            [
+              "The range it moves in",
+              "median 15 to 40 d; width 0.5 to 0.9 dex"
+            ],
+            [
+              "Where it holds",
+              "all hosts with an inner system"
+            ],
+            [
+              "What would show it wrong",
+              "test_planet_architecture::test_the_inner_system_spreads_over_the_periods_the_surveys_see; a planet count of 0.5 to 2.5 Earth radii per factor of 2 in period outside 0.04 to 0.30 between 8 and 128 days, or planets inside 400 days per Sun-like star outside 0.6 to 1.6 (Earth masses of 0.8 or more)"
+            ],
+            [
+              "What replaces it",
+              "a formation model of where the inner disc's chain begins and of the pebble supply beyond it"
+            ],
+            [
+              "Evidence",
+              "[R2020: Table 2] (READ: 0.20 to 0.25 planets of 0.5 to 2.5 Earth radii per star per factor of 2 in period from 4 to 128 days, flat from 8 days; no fall beyond 64 days); the median and width tuned to that shape and to the planets inside 400 days of the occurrence bands (tweak L2)"
+            ]
+          ],
+          "id": "PA19",
+          "key": "6.36:PA19",
+          "kind": "P",
+          "slug": "6-36-pa19",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.INNER_FIRST_PERIOD_MEDIAN_DAYS 25 and INNER_FIRST_PERIOD_SIGMA_DEX 0.7 (the period of the first planet of an inner system, log-normal; GEN.1709, with the giant-impact stage of GEN.1560 left to the outer chain, which starts at INNER_SYSTEM_PERIOD_LIMIT_DAYS 400 times OUTER_CHAIN_START_RATIO 1.3)"
         },
         {
           "burn_down": [
@@ -21447,11 +21485,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature is labelled Yerkes VI)"
+              "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 and tuning.SUBDWARF_MAX_FE_H -0.5 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature and of birth [Fe/H] at or below the second is labelled Yerkes VI; GEN.1635: the deficit alone labelled 13 of 270 ordinary M dwarfs at [Fe/H] -0.1 to -0.34, the model makes them 0.3 to 0.5 dex under)"
             ],
             [
               "The range it moves in",
-              "0.25 to 0.4"
+              "deficit 0.25 to 0.4; [Fe/H] -0.7 to -0.3"
             ],
             [
               "Where it holds",
@@ -21467,7 +21505,7 @@
             ],
             [
               "Evidence",
-              "the model's own offsets: a solar-metallicity M dwarf is 0.17 dex under the sequence (95 percent within 0.23) and metal-poor F and G stars 0.4, K 0.6 and M 1.0 dex under it; the margin sits between them"
+              "the model's own offsets: a solar-metallicity M dwarf is 0.17 dex under the sequence (95 percent within 0.23) and metal-poor F and G stars 0.4, K 0.6 and M 1.0 dex under it; the margin sits between them; the sdM class starts near [Fe/H] -0.5 and esdM near -1 [R1582]"
             ]
           ],
           "id": "PS14",
@@ -21478,7 +21516,7 @@
           "tier_code": "T4",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature is labelled Yerkes VI)"
+          "what": "tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX 0.3 and tuning.SUBDWARF_MAX_FE_H -0.5 (a main-sequence star this far under the luminosity of a solar-metallicity dwarf of its temperature and of birth [Fe/H] at or below the second is labelled Yerkes VI; GEN.1635: the deficit alone labelled 13 of 270 ordinary M dwarfs at [Fe/H] -0.1 to -0.34, the model makes them 0.3 to 0.5 dex under)"
         }
       ],
       "slug": "6-51-stand-ins-of-the-stars-after-the-main-sequence",
@@ -25011,7 +25049,7 @@
           "fields": [
             [
               "What it is",
-              "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between); above 0.8 the model's own Kelvin-Helmholtz time scaled to the 0.8 value"
+              "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between), and from 0.9 to 1.4 (GEN.1640) the age at which the BHAC15 isochrone radius falls within 5 percent of the MIST zero-age radius (47.1, 38.0, 30.6, 24.9, 22.3 and 19.6 Myr; the isochrone light there is within 4 percent of the zero-age light); above 1.4 the model's own Kelvin-Helmholtz time scaled to the 1.4 value"
             ],
             [
               "The range it moves in",
@@ -25031,7 +25069,7 @@
             ],
             [
               "Evidence",
-              "READ (Sources 2, gen1169 report, BHAC15_tracks+structure): GEN.1174 (Boss, 5:25 AM EDT 2026-10-31: both times, class by radius): a star is pre-main-sequence until its radius has settled; MIST's nuclear arrival (GEN.947) is kept as nuclear_arrival_yr and is 3 to 4 times longer for 0.1 to 0.3 solar masses; above 0.8 solar masses the radius of the track passes through a minimum and the criterion stops meaning the same thing"
+              "READ (Sources 2, gen1169 report, BHAC15_tracks+structure): GEN.1174 (Boss, 5:25 AM EDT 2026-10-31: both times, class by radius): a star is pre-main-sequence until its radius has settled; MIST's nuclear arrival (GEN.947) is kept as nuclear_arrival_yr and is 3 to 4 times longer for 0.1 to 0.3 solar masses; above 0.8 solar masses the radius of the track passes through a minimum and the criterion stops meaning the same thing, so the age is read against the zero-age radius there (GEN.1640, which also takes the star's light, temperature and radius from the table up to 1.4 solar masses: the model's own track was 0.75 against 0.46 solar luminosities for the Sun at 10 Myr)"
             ]
           ],
           "id": "LM6",
@@ -25042,7 +25080,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between); above 0.8 the model's own Kelvin-Helmholtz time scaled to the 0.8 value"
+          "what": "pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between), and from 0.9 to 1.4 (GEN.1640) the age at which the BHAC15 isochrone radius falls within 5 percent of the MIST zero-age radius (47.1, 38.0, 30.6, 24.9, 22.3 and 19.6 Myr; the isochrone light there is within 4 percent of the zero-age light); above 1.4 the model's own Kelvin-Helmholtz time scaled to the 1.4 value"
         }
       ],
       "slug": "6-66-stand-ins-of-the-low-mass-main-sequence-and-the-star-brown-dwarf-boundary",
@@ -33651,11 +33689,11 @@
             ],
             [
               "The range it moves in",
-              "the taper endpoints (compaction.TAPER_START_KG, TAPER_END_KG, stand-ins of decision S9)"
+              "the taper endpoints (compaction.TAPER_START_KG 1e20 and TAPER_END_KG 1e21, stand-ins of decision S9; the start moved from 1e19 under GEN.1637 to fit the measured densities of Varda, Salacia and Orcus, so its tweak level is L2)"
             ],
             [
               "Where it holds",
-              "members of 1e19 to 1e21 kg"
+              "members of 1e19 to 1e21 kg (the brittle law whole below 1e20)"
             ],
             [
               "What would show it wrong",
@@ -33676,7 +33714,7 @@
           "slug": "6-115-mc1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L1",
+          "tweak": "L2",
           "unread": null,
           "what": "belt_member._filling: the filling of a stored member (one minus its porosity) is the compacted density of compaction over the compaction's own grain density at the member's rock fraction, applied to the taxon's grain density"
         },
@@ -36715,7 +36753,7 @@
           "fields": [
             [
               "What it is",
-              "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end)"
+              "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.002 (= envelope_escape.BARE_BELOW, row AM82; 0.005 until GEN.1710): an envelope under 0.2 percent of the mass is a terrestrial body (the envelope the escape law does not call gone; the 1.6 Earth radii where rocky planets end came out of it, and a 1 Earth-mass body holds 2,000 bar of hydrogen at 0.2 percent)"
             ],
             [
               "The range it moves in",
@@ -36746,7 +36784,7 @@
           "tier_code": "T9",
           "tweak": "L0",
           "unread": null,
-          "what": "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end)"
+          "what": "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.002 (= envelope_escape.BARE_BELOW, row AM82; 0.005 until GEN.1710): an envelope under 0.2 percent of the mass is a terrestrial body (the envelope the escape law does not call gone; the 1.6 Earth radii where rocky planets end came out of it, and a 1 Earth-mass body holds 2,000 bar of hydrogen at 0.2 percent)"
         },
         {
           "burn_down": null,
@@ -42822,45 +42860,45 @@
       "rows": [
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "L3, the median starting envelope 0.1 of the mass was set to the middle of the recipe bracket so that the valley targets and the sweep (45 percent above 2.0 inside 100 days) are met; no measured envelope fraction of the sub-Neptunes of that mass is in hand, and a gas-accretion model of the core replaces it"
+            "GEN.1711: the median starting envelope is now 0.04, the fitted birth value of the Kepler planets ([R3797: Table 1], T1, L0), where it was the 0.1 middle of the recipe bracket (L3); both valley targets hold at it"
           ],
           "fields": [
             [
               "What it is",
-              "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+              "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
             ],
             [
               "The range it moves in",
-              "0.05 to 0.2"
+              "0.024 to 0.055"
             ],
             [
               "Where it holds",
-              "rocky planets of 3.72 to 20 Earth masses"
+              "rocky planets of 2.7 to 20 Earth masses"
             ],
             [
               "What would show it wrong",
-              "a measured envelope fraction of the sub-Neptunes of that mass that sits outside the bracket"
+              "a measured birth or kept envelope fraction of the sub-Neptunes of that mass whose median is outside 0.024 to 0.055"
             ],
             [
               "What replaces it",
-              "an envelope drawn from a disk gas-accretion model of the core's mass, the disk's life and its opacity"
+              "the sources disagree on the size, not the sense: a kept envelope of 1 percent inferred from masses and radii (periods under 25 days), 3 percent kept [R3500], 5 percent times mass^0.5 as a model assumption [R1734] (9.6 percent at 3.72), all read in reports/hydrogen-envelopes-habitable-zone-2026-11-14.md section 4; the fitted birth population of the same survey [R3797] wins as the value read for this planet class"
             ],
             [
               "Evidence",
-              "both valley targets (slope -0.11, 1.84 Earth radii at 10 days) are inside 2 sigma for the whole bracket (envelope-escape-wiring.md section 1); the generator's 240-system sweep gives 45 percent above 2.0 inside 100 days (reports/gen1323-sub-neptune-envelopes-2026-11-07.md)"
+              "both valley targets are inside 1 sigma at 0.04 (slope z 0.02, radius at 10 days z 0.8, 24 surveys of 4000 planets, envelope-escape-wiring.md section 1); the radius law gives 2.5 to 2.75 Earth radii for 3 to 4 percent on a 4 Earth-mass core against the Kepler sub-Neptunes' 2.1 to 2.6 (reports/gen1711-hz-sub-neptune-radii-2026-11-16.md)"
             ]
           ],
           "id": "EC1",
           "key": "6.206:EC1",
           "kind": "P",
           "slug": "6-206-ec1",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
           "unread": null,
-          "what": "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+          "what": "envelope_capture.MEDIAN_START 0.04: the median envelope a rocky planet of 2.7 Earth masses or more starts with, a fraction of its mass ([R3797: Table 1] model I: initial envelope 0.040 +0.015 -0.016 for cores of 3.72 Earth masses; \"typically about 4 percent\"); it was 0.1, the middle of the valley bracket (GEN.1711)"
         },
         {
           "burn_down": [
@@ -42871,7 +42909,7 @@
           "fields": [
             [
               "What it is",
-              "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+              "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
             ],
             [
               "The range it moves in",
@@ -42879,7 +42917,7 @@
             ],
             [
               "Where it holds",
-              "rocky planets of 1 to 3.72 Earth masses"
+              "rocky planets of 1 to 2.7 Earth masses"
             ],
             [
               "What would show it wrong",
@@ -42902,7 +42940,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": null,
-          "what": "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+          "what": "envelope_capture.MASS_EXPONENT 3 with MASS_LAW_MEDIAN 0.1 (the law's value at 3.72 Earth masses): below the 2.7 Earth masses where it meets EC1 the median start falls as 0.1 (mass / 3.72) to this power (GEN.1711 stopped the law at EC1's 0.04, the planets of 1 to 2.7 Earth masses keep their starts)"
         },
         {
           "burn_down": null,
@@ -54983,6 +55021,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "variability.HERBIG_MAX_MASS_SOL 8 (a pre-main-sequence star of this mass or more is neither: it reaches the main sequence still accreting)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "variability.RGB_SEMIREGULAR_MAX_TEMPERATURE_K 4000 (a red-giant-branch star cooler than this is a small-amplitude semiregular variable; the M giants are the catalogued semiregulars, the K giants mostly steady)"
+            ],
+            [
+              "The range it moves in",
+              "3600 to 4400"
+            ],
+            [
+              "Where it holds",
+              "red-giant-branch stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured red-giant population whose M giants are mostly steady, or whose variables reach 4,600 K"
+            ],
+            [
+              "What replaces it",
+              "a period-luminosity-amplitude model of the red-giant branch"
+            ],
+            [
+              "Evidence",
+              "test_variability::test_only_a_cool_red_giant_branch_star_is_a_semiregular_variable"
+            ]
+          ],
+          "id": "VR4",
+          "key": "6.138:VR4",
+          "kind": "P",
+          "slug": "6-138-vr4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "variability.RGB_SEMIREGULAR_MAX_TEMPERATURE_K 4000 (a red-giant-branch star cooler than this is a small-amplitude semiregular variable; the M giants are the catalogued semiregulars, the K giants mostly steady)"
         }
       ],
       "slug": "6-138-stand-ins-of-the-variable-star-kinds",
@@ -59595,6 +59671,158 @@
           "tweak": "L0",
           "unread": null,
           "what": "a moon is inside its parent's magnetosphere when its orbit is closer than the parent's magnetopause_rp radii"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORONAL_WIND_X_RAY_EXPONENT 1.29 (stellar_wind.coronal_mass_loss_solar, GEN.1625): the mass loss of an A to K dwarf per unit surface area is its X-ray surface flux over the Sun's to this power, so its mass loss is the Sun's times its squared radius times that ratio; one law for the heliosphere, for the black holes the winds feed and for the pressure on a planet's magnetosphere (magnetism.wind_pressure_pa)"
+            ],
+            [
+              "The range it moves in",
+              "1.29 +- 0.16 [R5303]; 1.34 +- 0.18 [R5304]"
+            ],
+            [
+              "Where it holds",
+              "GK dwarfs below an X-ray flux of 1e6 erg/cm^2/s; used for A to K dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a measured wind of an A to K dwarf (Lyman-alpha astrosphere, [R5303]) off the law by over an order of magnitude at a flux below the dividing line"
+            ],
+            [
+              "What replaces it",
+              "the wind from a coronal model of the star's own field (Cohen, Alvarado-Gomez and others, not read)"
+            ],
+            [
+              "Evidence",
+              "the fit of [R5303] to the measured GK dwarfs; the Sun's mass loss 2e-14 solar masses a year, its X-ray luminosity 1.4e27 erg/s today (constants.SOLAR_X_RAY_LUMINOSITY_W)"
+            ]
+          ],
+          "id": "WN5",
+          "key": "6.240:WN5",
+          "kind": "P",
+          "slug": "6-240-wn5",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CORONAL_WIND_X_RAY_EXPONENT 1.29 (stellar_wind.coronal_mass_loss_solar, GEN.1625): the mass loss of an A to K dwarf per unit surface area is its X-ray surface flux over the Sun's to this power, so its mass loss is the Sun's times its squared radius times that ratio; one law for the heliosphere, for the black holes the winds feed and for the pressure on a planet's magnetosphere (magnetism.wind_pressure_pa)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S 1e6: the X-ray flux the coronal wind reads is held at the dividing line above which the measured winds are weak, so a saturated K dwarf has 64 times the Sun's wind, not 1,000"
+            ],
+            [
+              "The range it moves in",
+              "log flux 6.0 [R5303]"
+            ],
+            [
+              "Where it holds",
+              "stars above the dividing line (young and saturated A to K dwarfs)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured wind of an A to K dwarf above the line that is over ten times the held value"
+            ],
+            [
+              "What replaces it",
+              "no cap, the law of WN5 running over the whole range; or [R5302]'s weaker line (it says the dividing line is weakened by the M dwarfs)"
+            ],
+            [
+              "Evidence",
+              "the dividing line of [R5303], which the new M dwarf measurements weaken [R5302]"
+            ]
+          ],
+          "id": "WN6",
+          "key": "6.240:WN6",
+          "kind": "P",
+          "slug": "6-240-wn6",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CORONAL_WIND_X_RAY_FLUX_CAP_ERG_CM2_S 1e6: the X-ray flux the coronal wind reads is held at the dividing line above which the measured winds are weak, so a saturated K dwarf has 64 times the Sun's wind, not 1,000"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.M_DWARF_WIND_PER_AREA_SOLAR 3.3: an M dwarf's mass loss is 3.3 times the Sun's per unit surface area, whatever its X-ray flux, so an M5 dwarf (0.2 solar radii) has 0.13 of the Sun's wind (Proxima Centauri's limit is 0.2); the speed is the Sun's 400 km/s scaled by the escape speed [R5302]"
+            ],
+            [
+              "The range it moves in",
+              "2 to 10"
+            ],
+            [
+              "Where it holds",
+              "M dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a measured M dwarf wind per area that the generated dwarfs miss by over a factor of 30 (the scatter at one flux is two orders of magnitude, [R5302])"
+            ],
+            [
+              "What replaces it",
+              "a draw of the scatter on a stream of the star; or [R5302]'s M-dwarf slope 0.77 with a fitted normalisation"
+            ],
+            [
+              "Evidence",
+              "the median of the six single M dwarfs of [R5302: Table 3] that have a value (GJ 436 0.37, GJ 205 0.86, GJ 887 2.3, GJ 173 4.3, EV Lac 9.8, YZ CMi 275: mass loss over the squared radius, solar units), read in the report of a reader of the paper"
+            ]
+          ],
+          "id": "WN7",
+          "key": "6.240:WN7",
+          "kind": "P",
+          "slug": "6-240-wn7",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.M_DWARF_WIND_PER_AREA_SOLAR 3.3: an M dwarf's mass loss is 3.3 times the Sun's per unit surface area, whatever its X-ray flux, so an M5 dwarf (0.2 solar radii) has 0.13 of the Sun's wind (Proxima Centauri's limit is 0.2); the speed is the Sun's 400 km/s scaled by the escape speed [R5302]"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a white dwarf (VII) has no wind (stellar_wind.wind gives 0, GEN.1625: it used to get the cool dwarfs' scaled wind) and a wind weaker than the interstellar medium's pressure (2.5e-13 Pa) is held to it in magnetism.wind_pressure_pa, so a body's standoff stays finite"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "white dwarfs and very quiet stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured wind of an old white dwarf that is over a tenth of the Sun's mass loss"
+            ],
+            [
+              "What replaces it",
+              "a radiative wind of a hot white dwarf over 1e5 K (not read)"
+            ],
+            [
+              "Evidence",
+              "a white dwarf has no convective envelope to drive a corona and no luminosity to drive a line-driven wind"
+            ]
+          ],
+          "id": "WN8",
+          "key": "6.240:WN8",
+          "kind": "P",
+          "slug": "6-240-wn8",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a white dwarf (VII) has no wind (stellar_wind.wind gives 0, GEN.1625: it used to get the cool dwarfs' scaled wind) and a wind weaker than the interstellar medium's pressure (2.5e-13 Pa) is held to it in magnetism.wind_pressure_pa, so a body's standoff stays finite"
         }
       ],
       "slug": "6-240-stand-ins-of-the-stellar-wind-of-a-system-and-a-moon-in-its-parent-s-field",
@@ -62611,7 +62839,7 @@
           "fields": [
             [
               "What it is",
-              "the forced inclination is zero: the orbits of stars are coplanar in the generator"
+              "the forced tilt is the first-order secular theory: the member's orbit normal precesses about the forced axis n_f = (R z + sum A_c n_c) / abs(R z + sum A_c n_c), R the nodal rate of the star's planets (planet_nodal_rate), A_c the companion's rate (companion_rates, the same rate for the node as for the periapsis) and n_c its orbit normal (Companion.normal, GEN.1535); the angle to n_f is kept, so the normal stands on a cone about n_f at a drawn phase (tilted_orbit)"
             ],
             [
               "The range it moves in",
@@ -62619,19 +62847,19 @@
             ],
             [
               "Where it holds",
-              "coplanar star orbits"
+              "alpha below ALPHA_LIMIT, a forced axis within INCLINATION_LIMIT_RAD of the planets' plane"
             ],
             [
               "What would show it wrong",
-              "a mutual inclination of the star orbits, once modelled (filed by TODO)"
+              "a member of a measured belt in a tilted binary whose plane is not the one the weighted axis gives"
             ],
             [
               "What replaces it",
-              "forced inclination and Kozai pumping from a mutual inclination"
+              "a quadrupole integration of the member with the companion and the planets as torques"
             ],
             [
               "Evidence",
-              "design; the generator has no mutual inclination of stars"
+              "design from [R3220] (sections 7.2 and 7.3); the star orbits now carry a mutual inclination (GEN.1500)"
             ]
           ],
           "id": "FE3",
@@ -62642,7 +62870,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "the forced inclination is zero: the orbits of stars are coplanar in the generator"
+          "what": "the forced tilt is the first-order secular theory: the member's orbit normal precesses about the forced axis n_f = (R z + sum A_c n_c) / abs(R z + sum A_c n_c), R the nodal rate of the star's planets (planet_nodal_rate), A_c the companion's rate (companion_rates, the same rate for the node as for the periapsis) and n_c its orbit normal (Companion.normal, GEN.1535); the angle to n_f is kept, so the normal stands on a cone about n_f at a drawn phase (tilted_orbit)"
         },
         {
           "burn_down": null,
@@ -62681,6 +62909,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "belt_forcing.ALPHA_LIMIT 0.3: the largest a / a' the first-order theory is used at"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_forcing.INCLINATION_LIMIT_RAD 0.5 (28.6 degrees): the farthest the forced axis may stand from the planets' plane for the first-order tilt to be used; beyond it a member keeps its drawn orbit"
+            ],
+            [
+              "The range it moves in",
+              "0.35 to 0.68 (the Kozai-Lidov limit of 39.2 degrees, 0.68)"
+            ],
+            [
+              "Where it holds",
+              "belts whose companion is tilted by less"
+            ],
+            [
+              "What would show it wrong",
+              "a belt in a companion tilted by more than the limit whose members are measured with a steady tilt"
+            ],
+            [
+              "What replaces it",
+              "Kozai-Lidov pumping (GEN.1447)"
+            ],
+            [
+              "Evidence",
+              "recalled: the critical inclination of the quadrupole problem is 39.2 degrees; no belt generated so far is tested against it"
+            ]
+          ],
+          "id": "FE5",
+          "key": "6.256:FE5",
+          "kind": "P",
+          "slug": "6-256-fe5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "belt_forcing.INCLINATION_LIMIT_RAD 0.5 (28.6 degrees): the farthest the forced axis may stand from the planets' plane for the first-order tilt to be used; beyond it a member keeps its drawn orbit"
         }
       ],
       "slug": "6-256-stand-ins-of-a-companion-star-s-secular-forcing-of-a-belt",
@@ -64151,6 +64417,120 @@
           "tweak": "L0",
           "unread": null,
           "what": "disk_truncation.CLOSE_COMPANION_GAS_SHARE 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_dispersal.DISPERSAL_TAU_MYR_BY_MASS ((0.08, 3.0), (0.5, 2.5), (1.3, 1.0)) (GEN.1551): the characteristic time in Myr of the exponential fall of the share of stars holding a primordial disk, by mass (log-linear between the knots, flat outside); a star's own dispersal time is -tau ln u from its own draw"
+            ],
+            [
+              "The range it moves in",
+              "2 to 3 Myr at 0.5 solar masses (the short infrared wavelengths of [R5305]); the half-life of 1.3 to 2 Myr of [R5306] is a characteristic time of 1.9 to 2.9 Myr (a half-life of 3.5 Myr with magnetic tracks: 5 Myr)"
+            ],
+            [
+              "Where it holds",
+              "stars under 10 Myr in clusters of the solar neighbourhood; the same law in every environment"
+            ],
+            [
+              "What would show it wrong",
+              "a cluster-by-cluster scatter in the disk fraction wider than the 2 to 3 Myr range at one age ([R5307] notes real scatter)"
+            ],
+            [
+              "What replaces it",
+              "a Weibull or a table of the cluster shares by age, once a lane reads the cluster tables of [R5305]"
+            ],
+            [
+              "Evidence",
+              "[R5307] abstract (about exponential, characteristic time 2.5 Myr, half-life 1.7 Myr; about 1 Myr over 1.3 solar masses to about 3 Myr under 0.08); [R5305] abstract (22 associations, exponential, 2 to 3 Myr at 3.4 to 12 um, 4.2 to 5.8 Myr at 22 to 24 um); [R5306] abstract (half-life 1.3 to 2 Myr, 3.5 with magnetic tracks); the middle knot is a placement. The shares a lane remembered (0.8 at 1 Myr, half at 3, 0.1 at 5 to 6) are not an exponential: this law gives 0.67, 0.30 and 0.11 at 0.5 solar masses, left to Boss"
+            ]
+          ],
+          "id": "DZ1",
+          "key": "6.264:DZ1",
+          "kind": "P",
+          "slug": "6-264-dz1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_dispersal.DISPERSAL_TAU_MYR_BY_MASS ((0.08, 3.0), (0.5, 2.5), (1.3, 1.0)) (GEN.1551): the characteristic time in Myr of the exponential fall of the share of stars holding a primordial disk, by mass (log-linear between the knots, flat outside); a star's own dispersal time is -tau ln u from its own draw"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_dispersal.dispersal_time_yr (GEN.1551): the form of the fall is an exponential: the share holding a disk at an age is exp(-age / tau), so a star's time is -tau ln u for one draw u of its own stream, keyed to the star and not to its age"
+            ],
+            [
+              "The range it moves in",
+              "a Weibull of shape 1 to 1.4 may fit the cluster shares as well (not tried)"
+            ],
+            [
+              "Where it holds",
+              "the share of young stars with a disk against age"
+            ],
+            [
+              "What would show it wrong",
+              "an observed share at 1 Myr or at 10 Myr more than 0.2 off the exponential"
+            ],
+            [
+              "What replaces it",
+              "a Weibull shape, once a lane reads the cluster tables"
+            ],
+            [
+              "Evidence",
+              "[R5307] abstract (approximately exponential decay); [R5305] abstract (assuming an exponential decay)"
+            ]
+          ],
+          "id": "DZ2",
+          "key": "6.264:DZ2",
+          "kind": "P",
+          "slug": "6-264-dz2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_dispersal.dispersal_time_yr (GEN.1551): the form of the fall is an exponential: the share holding a disk at an age is exp(-age / tau), so a star's time is -tau ln u for one draw u of its own stream, keyed to the star and not to its age"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_dispersal.CLOSE_COMPANION_TAU_MYR 1 / ln 3, 0.91 Myr (GEN.1551, GEN.1475): a star with a companion inside disk_truncation.CLOSE_COMPANION_AXIS_AU loses its disk by the same draw with this characteristic time when it is the shorter, so two thirds are gone within 1 Myr"
+            ],
+            [
+              "The range it moves in",
+              "about two thirds of close binaries within 1 Myr, against 10 to 20 percent of wide binaries and single stars [R5225] (the law gives 33 percent of single stars of 0.5 solar masses by 1 Myr)"
+            ],
+            [
+              "Where it holds",
+              "companions inside 47 AU, taken as they stand today"
+            ],
+            [
+              "What would show it wrong",
+              "a share of close binaries without a disk at 1 Myr more than 0.15 off two thirds"
+            ],
+            [
+              "What replaces it",
+              "a separation-dependent share, once a source gives it"
+            ],
+            [
+              "Evidence",
+              "[R5225], ApJ 745, 19 (arXiv 1109.4141), abstract; the same number as CD2 of this section, read as a time"
+            ]
+          ],
+          "id": "DZ3",
+          "key": "6.264:DZ3",
+          "kind": "P",
+          "slug": "6-264-dz3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_dispersal.CLOSE_COMPANION_TAU_MYR 1 / ln 3, 0.91 Myr (GEN.1551, GEN.1475): a star with a companion inside disk_truncation.CLOSE_COMPANION_AXIS_AU loses its disk by the same draw with this characteristic time when it is the shorter, so two thirds are gone within 1 Myr"
         }
       ],
       "slug": "6-264-stand-ins-of-the-gas-a-close-companion-leaves-a-disk",
@@ -72984,14 +73364,14 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1765",
-            "the family weights are chosen so all three families are common; a supply from the outer belt (Jupiter family) and the cloud (the other two) through the giants' scattering replaces them"
+            "no data",
+            "-",
+            "for a star whose outer disk no giant scattered (nearly every star in a 398-star census) the weights stay; a comet census of other systems would replace them, and the answer on tying comets to outer disks decides the rest; tier T9 stays"
           ],
           "fields": [
             [
               "What it is",
-              "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family"
+              "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family, kept for a star with no outer disk a giant scattered; for one with such a disk the shares are read from it (comet_supply.family_weights): the scattered_disk plus centaurs share of the disk is the Jupiter family, the detached share the cloud, split between the Halley-type and long-period families by these weights' ratio 0.6 to 0.4"
             ],
             [
               "The range it moves in",
@@ -73007,11 +73387,11 @@
             ],
             [
               "What replaces it",
-              "a supply from the reservoirs: the outer belt's mass for the Jupiter family, the cloud for the other two, through the giants' scattering"
+              "the supply of every star's reservoirs, once comets are tied to outer disks (the question to Boss, GEN.1765)"
             ],
             [
               "Evidence",
-              "the code's own comment says it is not a population estimate; chosen so the three families are all common"
+              "the code's own comment says it is not a population estimate; the census of GEN.1765 found 2 of 398 stars with scatter fates, so almost every star uses these weights"
             ]
           ],
           "id": "CMT5",
@@ -73022,49 +73402,45 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family"
+          "what": "tuning.COMET_PERIOD_CLASSES weights 0.5, 0.3 and 0.2: the share of a star's elliptical comets in each family, kept for a star with no outer disk a giant scattered; for one with such a disk the shares are read from it (comet_supply.family_weights): the scattered_disk plus centaurs share of the disk is the Jupiter family, the detached share the cloud, split between the Halley-type and long-period families by these weights' ratio 0.6 to 0.4"
         },
         {
-          "burn_down": [
-            "replace",
-            "GEN.1765",
-            "a truncated power law in nucleus diameter with a published cumulative index, its upper end from the belt's largest body, replaces the uniform draw and its ends"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM (0.5, 20) drawn uniform in diameter"
+              "tuning.COMET_NUCLEUS_CUMULATIVE_INDEX 1.92 and the lower end 2.5 km of BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM: a star-bound comet's nucleus diameter is drawn from a power law, the cumulative number above D falling as D^-q, between 2.5 and 20 km (Comet, util.random.sample_power_law)"
             ],
             [
               "The range it moves in",
-              "lower end 0.2 to 1 km; upper end 15 to 60 km"
+              "q 1.72 to 2.12 (the printed error of 0.20); lower end 1 to 2.5 km"
             ],
             [
               "Where it holds",
-              "star-bound comet nuclei"
+              "Jupiter-family nuclei of radius 1.25 km and up, applied to the Halley-type and long-period nuclei too (no size law of those is read)"
             ],
             [
               "What would show it wrong",
-              "a measured nucleus size distribution of a star's comets (the cumulative number of nuclei falls steeply with diameter, with an index of about 1.9 for the Jupiter family, recalled, not opened; a uniform draw has index 0)"
+              "a nucleus sample complete to smaller sizes with another slope, or a turnover above 2.5 km"
             ],
             [
               "What replaces it",
-              "a truncated power law in diameter with the published cumulative index, its upper end from the belt's largest body"
+              "a law with its own break once a sample complete below 2.5 km is read"
             ],
             [
               "Evidence",
-              "nuclei of 1 to 10 km typical, as the comment in tuning.py quotes it, second-hand; the draw's shape is a stand-in"
+              "[R4139] (Snodgrass et al., abstract: q = 1.92 +- 0.20 for radius 1.25 km and up) and [R5296] (abstract: slope about -1.9 of 89 nuclei); only the abstracts were read"
             ]
           ],
           "id": "CMT6",
           "key": "6.303:CMT6",
           "kind": "P",
           "slug": "6-303-cmt6",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
           "unread": null,
-          "what": "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM (0.5, 20) drawn uniform in diameter"
+          "what": "tuning.COMET_NUCLEUS_CUMULATIVE_INDEX 1.92 and the lower end 2.5 km of BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM: a star-bound comet's nucleus diameter is drawn from a power law, the cumulative number above D falling as D^-q, between 2.5 and 20 km (Comet, util.random.sample_power_law)"
         },
         {
           "burn_down": [
@@ -73110,9 +73486,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1765",
-            "comets present wherever the system has an outer belt, a cloud or a giant, from the supply of the reservoirs, replace the flat chance and the count"
+            "no data",
+            "-",
+            "the chance 0.3 and count 1 to 3 stay hand set until Boss says whether comets exist only where a star has an outer disk (a census of 398 stars: 28 percent have comets now, 14 percent an outer-disk belt, 0 a scattered one); tier T9 stays"
           ],
           "fields": [
             [
@@ -73149,10 +73525,396 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.SYSTEM_COMET_CHANCE 0.3 and SYSTEM_COMET_COUNT_RANGE (1, 3): the share of stars that hold comets and how many of the few the generator models each holds"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the 20 km top stays for a star with no outer disk, and an outer disk's largest body is far above it in most systems, so the cut rarely applies; a comet census of other systems would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM upper end 20 km: the largest nucleus the draw gives, cut to the largest body of the star's outer disks where it has them (comet_supply.nucleus_top_km, never under the lower end)"
+            ],
+            [
+              "The range it moves in",
+              "15 to 60 km"
+            ],
+            [
+              "Where it holds",
+              "star-bound comet nuclei"
+            ],
+            [
+              "What would show it wrong",
+              "a comet of a star with a belt whose largest body is far under or over it"
+            ],
+            [
+              "What replaces it",
+              "the largest body of every star's outer disk"
+            ],
+            [
+              "Evidence",
+              "design: wide of the largest measured nuclei, [R2301] gives Halley at about 15 x 8 km"
+            ]
+          ],
+          "id": "CMT9",
+          "key": "6.303:CMT9",
+          "kind": "P",
+          "slug": "6-303-cmt9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM upper end 20 km: the largest nucleus the draw gives, cut to the largest body of the star's outer disks where it has them (comet_supply.nucleus_top_km, never under the lower end)"
         }
       ],
       "slug": "6-303-stand-ins-of-the-shape-of-a-star-s-own-comets-gen-595",
       "title": "Stand-ins of the shape of a star's own comets (GEN.595)"
+    },
+    {
+      "key": "6.304",
+      "number": "6.304",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SNOW_LINE_SCATTER_DEX 0.2: the standard deviation, in dex, of a star's snow line around the blackbody position of its disk's luminosity ([R3193: abstract]: an observed 0.4 dex dispersion in accretion rates \"naturally leads to a dispersion in snow line locations of about 0.2 dex\" at a given age and stellar mass)"
+            ],
+            [
+              "The range it moves in",
+              "0.15 to 0.25"
+            ],
+            [
+              "Where it holds",
+              "every star's own snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a measured spread of snow lines at one stellar mass and age outside 0.15 to 0.25 dex"
+            ],
+            [
+              "What replaces it",
+              "a spread drawn from the accretion rates of the star's own mass and age"
+            ],
+            [
+              "Evidence",
+              "the accretion-rate dispersion carried through the snow-line law (Eq. 2 and 4 of [R3193], exponent 4/9 of the accretion rate), read in the open arXiv copy"
+            ]
+          ],
+          "id": "SNL1",
+          "key": "6.304:SNL1",
+          "kind": "P",
+          "slug": "6-304-snl1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.SNOW_LINE_SCATTER_DEX 0.2: the standard deviation, in dex, of a star's snow line around the blackbody position of its disk's luminosity ([R3193: abstract]: an observed 0.4 dex dispersion in accretion rates \"naturally leads to a dispersion in snow line locations of about 0.2 dex\" at a given age and stellar mass)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SNOW_LINE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 2.5 either way ([R3193: Fig. 3] works the snow lines at the median and plus and minus 2 sigma); it was 3.0, a factor of 4"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "every star's own snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a star whose measured snow line lies beyond a factor of 2.5 of the blackbody position of its disk's luminosity at its mass and age"
+            ],
+            [
+              "What replaces it",
+              "a heavier tail from the log-normal of the accretion rates"
+            ],
+            [
+              "Evidence",
+              "the range the source works its simulations over; the cut of 3 sigma put 29 of 3,000 stars' lines inside the inner edge of the habitable zone against 25 at 2 sigma (reports/gen1611-snow-line-scatter-2026-11-16.md)"
+            ]
+          ],
+          "id": "SNL2",
+          "key": "6.304:SNL2",
+          "kind": "P",
+          "slug": "6-304-snl2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.SNOW_LINE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 2.5 either way ([R3193: Fig. 3] works the snow lines at the median and plus and minus 2 sigma); it was 3.0, a factor of 4"
+        }
+      ],
+      "slug": "6-304-stand-ins-of-the-scatter-of-a-star-s-own-snow-line-gen-1611",
+      "title": "Stand-ins of the scatter of a star's own snow line (GEN.1611)"
+    },
+    {
+      "key": "6.305",
+      "number": "6.305",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its pressure limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"pressure_factor\"] 1.5: the homeworld's pressure is this many times inside the Blue pressure edge (low side or high side)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 3"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL1",
+          "key": "6.305:GL1",
+          "kind": "P",
+          "slug": "6-305-gl1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"pressure_factor\"] 1.5: the homeworld's pressure is this many times inside the Blue pressure edge (low side or high side)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its temperature limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"temperature_c\"] 10.0: the homeworld's hottest and coldest temperature lie this many degrees inside the Blue temperature edges"
+            ],
+            [
+              "The range it moves in",
+              "5 to 15"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL2",
+          "key": "6.305:GL2",
+          "kind": "P",
+          "slug": "6-305-gl2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"temperature_c\"] 10.0: the homeworld's hottest and coldest temperature lie this many degrees inside the Blue temperature edges"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its wet-bulb limit limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"wet_bulb_c\"] 2.0: the species' wet-bulb limit sits this many degrees above the homeworld's"
+            ],
+            [
+              "The range it moves in",
+              "1 to 4"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL3",
+          "key": "6.305:GL3",
+          "kind": "P",
+          "slug": "6-305-gl3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"wet_bulb_c\"] 2.0: the species' wet-bulb limit sits this many degrees above the homeworld's"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its dose limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"dose_factor\"] 3.0: the homeworld's dose is this many times under the Blue dose edge"
+            ],
+            [
+              "The range it moves in",
+              "2 to 10"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL4",
+          "key": "6.305:GL4",
+          "kind": "P",
+          "slug": "6-305-gl4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"dose_factor\"] 3.0: the homeworld's dose is this many times under the Blue dose edge"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its oxygen limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"o2_factor\"] 1.25: the chronic inspired-oxygen limit sits this far above the homeworld's own inspired oxygen"
+            ],
+            [
+              "The range it moves in",
+              "1.1 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL5",
+          "key": "6.305:GL5",
+          "kind": "P",
+          "slug": "6-305-gl5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"o2_factor\"] 1.25: the chronic inspired-oxygen limit sits this far above the homeworld's own inspired oxygen"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "how far inside its gas limit a world's own life lives has no measurement: no species but ours is known, and a margin of the homeworld's own conditions is a default of Boss's rule that a species passes its own homeworld; limits drawn from the life's own adaptations (GEN.876, GEN.1725) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.SPECIES_LIMIT_MARGIN[\"gas_factor\"] 1.5: the homeworld's partial pressure of each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) is this many times under the chronic edge of that gas's band, every edge of the band moving by the same factor (GEN.1772)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 3"
+            ],
+            [
+              "Where it holds",
+              "the limits generated for a species from its homeworld"
+            ],
+            [
+              "What would show it wrong",
+              "a species whose homeworld sits outside its Blue band, or one so far inside it that a neighboring world it could plainly live on is refused"
+            ],
+            [
+              "What replaces it",
+              "limits drawn from the life's own adaptations (the traits of GEN.876 and the limits of GEN.1725)"
+            ],
+            [
+              "Evidence",
+              "hand set; species_limits.generated, tests/test_species_limits.py"
+            ]
+          ],
+          "id": "GL6",
+          "key": "6.305:GL6",
+          "kind": "P",
+          "slug": "6-305-gl6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SPECIES_LIMIT_MARGIN[\"gas_factor\"] 1.5: the homeworld's partial pressure of each of CO2, CO, H2S and SO2 (when the air holds more than the human limit) is this many times under the chronic edge of that gas's band, every edge of the band moving by the same factor (GEN.1772)"
+        }
+      ],
+      "slug": "6-305-stand-ins-of-how-far-inside-blue-a-species-homeworld-sits-pop-12-gen-1772",
+      "title": "Stand-ins of how far inside Blue a species' homeworld sits (POP.12, GEN.1772)"
     }
   ]
 }

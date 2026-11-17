@@ -13,8 +13,8 @@ families change across the belt, with the inner edge drier and the outer edge ic
    (`is_differentiated` is the member's flag).
 2. **The grains** are the taxon's row of the shared table (`small_body_composition.TAXON_DATA`): its rock, metal, water and ice shares and the grain density they mix to.
 3. **The density** is the grain density times the filling that the compaction taper gives a body of this mass (`compaction`, GEN.442): the tapered brittle law of Bierson and Nimmo closes the pores between
-   `compaction.TAPER_START_KG` and `TAPER_END_KG`, so the filling of a body of the mass is the compacted density over the compaction's own grain density at the same rock fraction. A member above the taper's start is
-   a stored body (the ledger's cut is 1e19 kg), so the taper decides it; a lighter one (drawn on demand) takes the taxon's family porosity (`small_body_composition.POROSITY_RANGES`) from a second uniform number. A
+   `compaction.TAPER_START_KG` and `TAPER_END_KG`, so the filling of a body of the mass is the compacted density over the compaction's own grain density at the same rock fraction. A member above
+   `compaction.DRAWN_POROSITY_BELOW_KG` is a stored body (the ledger's cut is 1e19 kg), so the compaction decides it (the brittle law whole up to the taper's start, 1e20 kg); a lighter one (drawn on demand) takes the taxon's family porosity (`small_body_composition.POROSITY_RANGES`) from a second uniform number. A
    member over `compaction.TAPER_END_KG` is for the structure solver (`compaction.OutOfRange`).
 4. **The radius** follows from the mass and the density.
 
@@ -93,7 +93,7 @@ def pick_taxon(u, weights):
 def _filling(makeup, mass_kg, taxon, u_porosity):
     low, high = compaction.ROCK_FRACTION_RANGE
     rock = min(max(makeup.rock + makeup.metal, low), high)
-    if mass_kg < compaction.TAPER_START_KG:
+    if mass_kg < compaction.DRAWN_POROSITY_BELOW_KG:
         if not 0.0 <= u_porosity <= 1.0:
             raise BeltMemberError("u_porosity must be from 0 to 1")
         porosity_low, porosity_high = sbc.POROSITY_RANGES[sbc.TAXON_DATA[taxon].family]
@@ -127,7 +127,7 @@ def member(u_taxon, u_porosity, mass_kg, distance_au, luminosity_w, aluminium_26
 
     Args:
         u_taxon (float): A uniform number, 0 to 1, for the taxon.
-        u_porosity (float): A uniform number, 0 to 1, for the porosity of a body under `compaction.TAPER_START_KG` (not read for a heavier one).
+        u_porosity (float): A uniform number, 0 to 1, for the porosity of a body under `compaction.DRAWN_POROSITY_BELOW_KG` (not read for a heavier one).
         mass_kg (float): The member's mass (the ledger's).
         distance_au (float): Its semi-major axis.
         luminosity_w (float): The star's luminosity.
