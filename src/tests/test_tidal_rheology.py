@@ -194,3 +194,21 @@ def test_a_partly_molten_ice_loses_viscosity_by_the_ammonia_ice_law_and_a_rock_b
     tidal_rheology.response(*EUROPA, EUROPA_RATE, 273.0, 1.0e-3, 4.9e4, 0.1, tidal_rheology.ICE)
     tidal_rheology.response(*EUROPA, EUROPA_RATE, 1700.0, ETA0, EA, 0.1, tidal_rheology.ROCK)
     assert seen == [22.0, 30.0]
+
+
+@pytest.mark.parametrize("body", [MOON, EARTH, IO])
+@pytest.mark.parametrize("temperature_k", [300.0, 1300.0, 1750.0, 1950.0, 2300.0])
+@pytest.mark.parametrize("maxwell", [False, True])
+def test_the_frequency_function_is_response_to_the_last_bit(body, temperature_k, maxwell):
+    """PERF.276: `k2_over_q_function` holds the frequency-free numbers once; what it gives is what `response(...).k2_over_q` gives, bit for bit."""
+    melt = tidal_rheology.melt_fraction(temperature_k, SOLIDUS, LIQUIDUS)
+    function = tidal_rheology.k2_over_q_function(*body, temperature_k, ETA0, EA, melt, maxwell=maxwell)
+    for frequency in (1.0e-20, 3.0e-12, 1.0e-9, 2.0e-6, 7.3e-5, 1.0e-3, 0.5):
+        expected = tidal_rheology.response(*body, frequency, temperature_k, ETA0, EA, melt, maxwell=maxwell).k2_over_q
+        assert function(frequency) == expected
+
+
+def test_the_frequency_function_refuses_a_tide_that_does_not_flex():
+    function = tidal_rheology.k2_over_q_function(*EARTH, 1500.0, ETA0, EA)
+    with pytest.raises(ValueError):
+        function(0.0)

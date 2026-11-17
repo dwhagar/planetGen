@@ -312,3 +312,12 @@ def test_softness_smooths_the_sign_flip_and_leaves_the_far_torque_alone():
     assert abs(soft.total(n * 1.0001)) < 0.1 * abs(sharp.total(n * 1.0001))
     assert soft.total(n * 2.0) == pytest.approx(sharp.total(n * 2.0), rel=1.0e-6)
     assert soft.total(n * 0.5) == pytest.approx(sharp.total(n * 0.5), rel=1.0e-6)
+
+
+def test_a_raisers_tide_constant_kept_at_construction_is_the_one_gravitational_works_out():
+    """PERF.276: `total` reads `K_g` of each raiser from the table made when the torques were, and the sum is what the torques of `gravitational` make."""
+    planet = types.SimpleNamespace(radius_m=6.371e6, mass_kg=5.972e24, inertia=8.0e37, mean_density=5514.0)
+    raisers = (spin_torques.Raiser(1.989e30, 1.496e11, 1.99e-7), spin_torques.Raiser(7.342e22, 3.844e8, 2.66e-6))
+    torques = spin_torques.Torques(planet, raisers, spin_torques.constant_dissipation(0.3, 100.0))
+    for spin in (-3.0e-5, 1.0e-7, 7.292e-5, 2.0e-4):
+        assert torques.total(spin) == math.fsum([torques.gravitational(spin, raiser) for raiser in raisers] + [torques.atmospheric(spin)])

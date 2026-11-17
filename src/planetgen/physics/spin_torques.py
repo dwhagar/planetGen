@@ -147,10 +147,10 @@ def constant_dissipation(k2, q):
 def rheology_dissipation(planet, temperature_k, eta0_pa_s, activation_j_mol, solidus_k, liquidus_k):
     """The frequency-dependent `k2/Q` of a rocky planet at a mantle temperature (`tidal_rheology.rock_response`), as the callable `Torques` takes."""
     melt = tidal_rheology.melt_fraction(temperature_k, solidus_k, liquidus_k)
+    k2_over_q = tidal_rheology.k2_over_q_function(planet.mass_kg, planet.radius_m, temperature_k, eta0_pa_s, activation_j_mol, melt)
 
     def dissipation(frequency):
-        return tidal_rheology.response(planet.mass_kg, planet.radius_m, max(frequency, 1.0e-20), temperature_k, eta0_pa_s, activation_j_mol,
-                                       melt).k2_over_q
+        return k2_over_q(max(frequency, 1.0e-20))
     return dissipation
 
 
@@ -255,12 +255,22 @@ class Torques:
     factor: float = GRAVITATIONAL_TORQUE_FACTOR
     softness: float = 0.0
 
+    def __post_init__(self):
+        # `K_g` of each raiser, worked out once: a spin flow asks for the torque a million times and the planet and the raisers do not change meanwhile
+        # (PERF.276). The same expression as `gravitational` has always held, so the same number.
+        radius_5 = self.planet.radius_m ** 5
+        object.__setattr__(self, "_tide_constants", tuple(
+            constants.G * raiser.mass_kg ** 2 * radius_5 / raiser.distance_m ** 6 for raiser in self.raisers))
+
     def gravitational(self, spin, raiser):
         """The torque on the planet of one raiser's tide, N m (negative slows a prograde spin)."""
+        k_g = constants.G * raiser.mass_kg ** 2 * self.planet.radius_m ** 5 / raiser.distance_m ** 6
+        return self._gravitational(spin, raiser, k_g)
+
+    def _gravitational(self, spin, raiser, k_g):
         sigma = 2.0 * (spin - raiser.orbital_rate)
         if sigma == 0.0:
             return 0.0
-        k_g = constants.G * raiser.mass_kg ** 2 * self.planet.radius_m ** 5 / raiser.distance_m ** 6
         sign = math.copysign(1.0, sigma)
         if self.softness > 0.0:
             sign = math.tanh(sigma / (2.0 * self.softness * max(abs(raiser.orbital_rate), 1.0e-30)))
@@ -281,7 +291,9 @@ class Torques:
 
     def total(self, spin):
         """The sum of all the torques at `spin`, N m."""
-        return math.fsum([self.gravitational(spin, raiser) for raiser in self.raisers] + [self.atmospheric(spin)])
+        terms = [self._gravitational(spin, raiser, k_g) for raiser, k_g in zip(self.raisers, self._tide_constants)]
+        terms.append(self.atmospheric(spin))
+        return math.fsum(terms)
 
     def smooth(self, spin):
         """The torque with each raiser's sign flip at its own orbital rate removed (the part that has zeros): the total evaluated on the side of
