@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4480] - 2026-11-17
+
+**Headline:** The Queue page lists the site's waiting light jobs, by lane, with why they wait, how long and when they are dropped.
+
+### Added
+- **The "Why jobs wait" panel lists the waiting light jobs (UX.320).** An API job, a slow page's answer and a visitor's prefetch run as light jobs since OPS.230: a record in Redis, no row in the ledger, so the panel of OPS.233 did not see them. `queue/waiting.py` gains `light_overview` (the pending list and each record, one pass, nothing written, the 500 oldest) and `GET /api/admin/work/waiting` a `light` key: for each lane (`interactive`, `long`) how many wait, how long the oldest has, the least time any has left before it is dropped for want of anyone asking (the deadline), the reasons the dispatch rule gave and what the jobs are. A job the dispatch rule has not judged yet says so. Times show as hours, minutes and seconds. Redis not answering leaves the ledger's half of the panel as it was.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4479] - 2026-11-17
 
 **Headline:** The Galaxy Map's background node build (the nodes around a visit, and the nodes a change touched) is now handed out by the supervisor as light jobs, and a chunk nobody started within 15 minutes is dropped with its claims.
