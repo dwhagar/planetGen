@@ -115,6 +115,21 @@
   </table>
   </div>
   {%- endif %}
+  {%- if why_waiting.light %}
+  <p>The site's own jobs (API jobs, slow pages' answers, prefetches) are light jobs: they are not in the ledger, and these are the {{ why_waiting.light.total }} that have not started. A job with a deadline is dropped, before it starts, once nobody has asked about it for that long.{% if why_waiting.light.more %} The {{ why_waiting.light.more }} newest are not listed.{% endif %}</p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <caption>Light jobs not started, by lane</caption>
+    <thead><tr><th scope="col">Lane</th><th scope="col">Waiting</th><th scope="col">Oldest waiting</th><th scope="col">First deadline</th><th scope="col">Why they have not started</th><th scope="col">What they are</th></tr></thead>
+    <tbody>
+    {%- for row in why_waiting.light.rows %}
+      <tr><th scope="row">{{ row.name }}</th><td>{{ row.count }}</td><td>{{ row.oldest }}</td><td>{{ row.deadline }}</td>
+        <td>{%- for reason in row.reasons %}{{ reason.count }} job(s): {{ reason.text }}{% if not loop.last %}<br>{% endif %}{%- endfor %}</td><td>{{ row.functions }}</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- endif %}
   {%- for item in why_waiting.quick %}
   <p>{{ item.name }}: {{ item.text }}, and none waits now.</p>
   {%- endfor %}

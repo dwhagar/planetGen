@@ -444,8 +444,13 @@ def supervisor_state():
 def waiting_state():
     """`GET /api/admin/work/waiting` -- why jobs have not started (OPS.233, `queue/waiting.py`): `classes` (for each job class with a job not started: `waiting` and `ready` counts, the age of the
     oldest of each in seconds, `retry_in_seconds`, `reasons` as `{reason, count}`, `more`), `started` (each class's starts in the last hour: `count`, `median_seconds`, `longest_seconds`) and `gate`
-    (the memory gate's figures in words)."""
-    return jsonify(waiting.overview(get_control_db()))
+    (the memory gate's figures in words) and `light` (the site's light jobs not started, UX.320: `lanes` with `lane`, `count`, `oldest_seconds`, `deadline_seconds`, `reasons` and `functions`, `total`, `shown`; `None` when Redis does not answer)."""
+    body = waiting.overview(get_control_db())
+    try:
+        body["light"] = waiting.light_overview(_redis())
+    except ApiError:
+        body["light"] = None             # Redis is down: the ledger's half of the answer still stands
+    return jsonify(body)
 
 
 @bp.route("/tuning", methods=["GET"])
