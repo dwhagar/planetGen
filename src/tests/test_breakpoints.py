@@ -86,7 +86,7 @@ def test_a_whole_command_declares_itself_and_one_that_declares_nothing_keeps_its
 
 
 def test_a_command_that_names_no_dependency_takes_the_ones_the_queue_already_holds(monkeypatch):
-    assert commands.declaration("run-territories").after == ("run-population",)
+    assert commands.declaration("run-territories").after == ("count-population",)
     assert commands.declaration("write-special-phenomena").after == ("scatter-phenomena",)
 
 
@@ -103,7 +103,7 @@ def test_a_command_that_declares_gets_its_declaration_for_the_params_of_the_stag
     monkeypatch.setitem(commands.REGISTRY, "run-territories", dataclasses.replace(spec, breaks=("tests.test_breakpoints", "_own")))
     assert commands.declaration("run-territories", {"items": 7}) == bp.Declaration(7, after=("scatter-mass",)), "its own dependencies win"
     monkeypatch.setitem(commands.REGISTRY, "run-territories", dataclasses.replace(spec, breaks=("tests.test_breakpoints", "_plain")))
-    assert commands.declaration("run-territories", {"items": 25}).after == ("run-population",)
+    assert commands.declaration("run-territories", {"items": 25}).after == ("count-population",)
     assert commands.declaration("run-territories", {"items": 25}).sizes() == [10, 10, 5]
 
 

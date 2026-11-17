@@ -3353,7 +3353,7 @@ def run_galaxy(args):
         # the backfill goes out from the filled sectors before the scatters, so the scatters draw everything past it: the clear (which also
         # stores the scatter's limits, so the backfill draws only what the passes leave out) is the first thing after the link
         planned = [LinkFollower(args, since), *clear, BackfillFollower(args, since), *passes, *phenomena,
-                   run_population.population_follower(args),
+                   *run_population.population_followers(args),
                    run_population.territories_follower(args), SettleFollower(args, since),
                    RunBlocksFollower(args, since), run_plan.BlockLightsFollower(args)]       # PERF.251: the block lights are the last thing a galaxy run makes
         for key, reason in args.stage_skips.items():
