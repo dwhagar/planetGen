@@ -2,6 +2,53 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4436] - 2026-11-17
+
+**Headline:** A star system builds about 10 percent faster: an equilibrium gas solve that has been made before and an exobase that has been found before are remembered instead of made again. The air is the same to the last bit.
+
+### Changed
+- `gas_equilibrium._solve` remembers its last 8,192 solves, keyed on every input (the abundances, the temperature, the pressure, the held oxygen fugacity and the species list, each as the exact float), and returns a copy of a remembered solve (or raises the remembered `EquilibriumError`). Before: the same gas was solved from scratch each time the air asked for it again (39 percent of the solves of a G5V system were repeats).
+- `thermosphere.exobase` remembers its answers by its five numbers and the model constants it reads, and its step loop is written out with the same arithmetic instead of calling a profile function at each step. Before: the loss history of each body repeated the same searches (26 percent of 8,160 calls on a G5V system) at about 540 function calls apiece.
+- New tests: a repeated solve is equal to a fresh one and its copy can be changed; a temperature one part in 1e12 away or another held oxygen is not served the remembered solve; a failing solve fails each time; a repeated exobase is a cache hit and a refused input is refused each time.
+
+generation-output: unchanged
+
+## [8.0.4435] - 2026-11-17
+
+**Headline:** The galaxy-run stage test names the stages of the population pass as they are now, so main is green again.
+
+### Fixed
+- `test_a_galaxy_run_scatters_the_stars_then_the_phenomena` expected one `population` stage; since OPS.239 part B the pass is the four stages `species`, `civilizations`, `technology` and `population`, and the expected list says so.
+
+generation-output: unchanged
+
+## [8.0.4434] - 2026-11-17
+
+**Headline:** The sky draw of the bright-star backfill is about a fifth faster per cell: sectors that take one level or mass are written in one statement, and a cell's center is worked out once.
+
+### Changed
+- PERF.275: a sky share wrote one `UPDATE` of `sector_stats` for every cell it visited (21,000 statements for 22,000 cells in a profile), and worked out the center of the same cell again for every tier. The cells that take one level, or one mass and level, are now written 500 to a statement (`store.set_sector_bright_levels`, `set_sector_bright_masses`), and `spherical.sector_position_pc` is cached. The same rows are stored and the same stars are drawn. On a toy galaxy, two luminosity tiers over 22,402 cells took 10.1 s against 8.2 s (12.1 s against 15.0 s on a cold first pass), 19 percent less.
+
+generation-output: unchanged
+
+## [8.0.4433] - 2026-11-17
+
+**Headline:** The scatter-id test file is listed as heavy, so the quick test slice leaves it out and a run on a busy box is not ended by the hang guard.
+
+### Changed
+- **`test_gen1254_scatter_uid.py` joins `HEAVY_FILES`** (`src/tests/areas.py`). It builds charted sectors, and a system build is now about 2.4 times slower (GEN.1779, PERF.276): Lane 14 measured the file at 1,495 s alone on a quiet core against 617 s on record, over the 1,140 s hang guard. It is not a hang. The test and the guard stay as they are.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4432] - 2026-11-17
+
+**Headline:** The units of a generation run are now handed out by the supervisor's launcher and run as jobs forked from a warm template, instead of going to RQ workers.
+
+### Changed
+- `queue.forked_jobs` (environment `PLANETGEN_FORKED_JOBS`) is on by default. A run whose stages are cut into ledger rows opens each stage by adding the arguments to its rows and releasing them to the launcher, and the launcher forks each unit, begins and ends its attempt, and settles the row. Off, every unit goes to a worker as before (OPS.228 slice D1).
+- A run carried on after an update hands its remaining units to the launcher the same way.
+
 ## [8.0.4431] - 2026-11-17
 
 **Headline:** The stand-in moon of the final-air test again carries a build record, so main is green again after the air's kept state moved onto the build record.

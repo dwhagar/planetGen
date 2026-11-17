@@ -26,6 +26,7 @@ Species whose fit does not reach the temperature are left out and named in `skip
 fits' (`species_thermo`); pressures are in bar.
 """
 
+import collections
 import math
 from dataclasses import dataclass, field, replace
 
@@ -150,7 +151,56 @@ def _with_fewer_trace_elements(abundances, temperature_k, pressure_bar, fixed_o2
         raise first
 
 
+SOLVE_MEMORY = 8192
+"""int: How many solves `_solve` remembers (PERF.276). A solve is a function of its arguments alone, and an air is solved again with the very numbers it was solved with (a
+first pass and the one that is kept, the replay of a late accretion, a body made again): about two in five solves of a system repeat one made before. 0 turns the memory off."""
+
+_solved = collections.OrderedDict()
+"""OrderedDict: `_solve`'s memory, by its arguments: the solution, or the message of the `EquilibriumError` it raised."""
+
+
+def _copy_of(result):
+    """A solution the caller may change without changing the one remembered."""
+    return replace(result, moles=dict(result.moles), mole_fractions=dict(result.mole_fractions))
+
+
 def _solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
+    """
+    `_solve_fresh`, or the answer it gave before to the same arguments, to the last bit (PERF.276): the solve is deterministic, so a remembered solution (a copy of it) or a
+    remembered `EquilibriumError` is what a new solve would give. A `ValueError` (arguments no solve takes) is never remembered.
+    """
+    if species is not None and not isinstance(species, (tuple, list)):
+        species = tuple(species)      # a one-shot iterable would be spent by the key
+    try:
+        key = (tuple(sorted((symbol, float(value)) for symbol, value in abundances.items() if value)), float(temperature_k), float(pressure_bar),
+               None if fixed_o2_log_fugacity is None else float(fixed_o2_log_fugacity), None if species is None else tuple(species))
+    except (TypeError, ValueError):
+        return _solve_fresh(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+    if SOLVE_MEMORY <= 0:
+        return _solve_fresh(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+    found = _solved.get(key)
+    if found is not None:
+        _solved.move_to_end(key)
+        if isinstance(found, str):
+            raise EquilibriumError(found)
+        return _copy_of(found)
+    try:
+        result = _solve_fresh(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+    except EquilibriumError as error:
+        _solved[key] = str(error)
+        _forget_oldest()
+        raise
+    _solved[key] = _copy_of(result)
+    _forget_oldest()
+    return result
+
+
+def _forget_oldest():
+    while len(_solved) > SOLVE_MEMORY:
+        _solved.popitem(last=False)
+
+
+def _solve_fresh(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
     """
     The equilibrium gas of `abundances` at `temperature_k` and `pressure_bar`.
 

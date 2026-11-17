@@ -1026,14 +1026,15 @@
           "x-summary": "A unit that runs again writes a debug log of its own."
         },
         "forked_jobs": {
-          "default": false,
-          "description": "The units of a generation run's stages are handed out by the supervisor's launcher and run as jobs forked from a warm template (OPS.228), in place of RQ's workers. A run that carries on from an earlier one stays with the workers. Off, every unit goes to a worker as before.",
+          "default": true,
+          "description": "The units of a generation run's stages are handed out by the supervisor's launcher and run as jobs forked from a warm template (OPS.228), in place of RQ's workers. Off, every unit goes to a worker as before.",
           "title": "Forked Jobs",
           "type": "boolean",
           "x-advanced": false,
           "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
+          "x-env": "PLANETGEN_FORKED_JOBS",
           "x-group": "speed",
           "x-label": "Run units as forked jobs",
           "x-min_role": "admin",
@@ -2344,7 +2345,7 @@
       "$ref": "#/$defs/Queue",
       "default": {
         "debug_restarts": true,
-        "forked_jobs": false,
+        "forked_jobs": true,
         "interactive_workers": 1,
         "long_job_seconds": 60.0,
         "long_workers": 1,

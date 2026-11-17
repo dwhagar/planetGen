@@ -238,3 +238,14 @@ def test_a_starved_xuv_flux_loses_next_to_nothing_instead_of_overflowing():
     """A planet lit by a black hole's faint glow gets an XUV flux near 1e-60: the boil-off test is made in logs, so no exp overflows."""
     rate = ts.hydro_based_mass_loss_g_s(20.0, 5.0, 300.0, 0.002, 1.0e-60)
     assert 0.0 <= rate < 1.0
+
+
+def test_the_exobase_of_a_repeated_question_is_the_same_numbers():
+    """PERF.276: `exobase` is remembered; the answer is the same tuple of numbers, and a refused input is refused each time."""
+    asked = (6.371e6, 9.81, 4.8e-26, 1200.0, 250.0)
+    first = ts.exobase(*asked)
+    hits = ts._exobase_solved.cache_info().hits
+    assert ts.exobase(*asked) == first and ts._exobase_solved.cache_info().hits == hits + 1
+    for _ in range(2):
+        with pytest.raises(ValueError):
+            ts.exobase(6.371e6, 9.81, 4.8e-26, float("nan"), 250.0)

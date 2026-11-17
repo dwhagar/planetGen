@@ -11903,11 +11903,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 13, priority 1. Prerequisites: none. Related: OPS.269, PERF.275.
   Filed by the TODO thread.
 
-- [ ] **PERF.275 (high) A sky share of the Stage 9 bright-star backfill takes about 5 hours (1.43e7 walk visits): profile the sky draw and cut its cost**
-  Found by Lane 07 on OPS.269 (PR 6982): Boss's run drew 1.18e7 visits in 4.5 h per share, 16 shares for 2 observer cells. Do: profile one share (sky_charting.chart_part and the ring walk), find what a visit costs and why, cut it without changing the stars drawn (or say plainly what moves), and report time per share before and after. Lock-free unless output moves.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 07, priority 1. Prerequisites: none. Related: OPS.269, OPS.270.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1778 (bug) HABITABLE_WORLD=True can end with no habitable world and the request still at "aim", not "unmet" (K5IV case of test_full_matrix, seen under xdist)**
   Found by Lane 16 on TEST.788, 11:18 PM EST 2026-11-16: test_full_system_generates_with_belt_and_habitable_world_across_every_star_type[K5IV] failed with "HABITABLE_WORLD=True produced no habitable world and did not say so" (habitable_class_count 0, habitable_request "aim"). It passes alone on main c8bfa87b17; the test sets no run seed, so its draws depend on what the worker ran before. Do: find the path where the habitable request ends without a class and without being marked unmet (fix the generator so a request is always met or said unmet), and seed the test so a failure can be replayed (no picking a seed that passes; the assertion stays).
   Version 8.1. Owner (TODO, 2026-11-16): Lane 14, after the test_class_sample main red. Prerequisites: none. Related: TEST.788, GEN.1773.
@@ -11918,8 +11913,8 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 16, as part of the TEST.788 work. Prerequisites: none. Related: TEST.788, PERF.275.
   Filed by the TODO thread.
 
-- [ ] **GEN.1779 (bug, high) A system built round a scatter star never finishes: test_gen1254_scatter_uid hangs at full CPU for 1,140 s on main c8bfa87b17**
-  Found by Lane 14, 11:47 PM EST 2026-11-16: tests/test_gen1254_scatter_uid.py::test_a_system_built_round_a_scatter_star_keeps_its_id_and_the_fill_starts_past_the_stars runs alone with one core busy until the hang guard ends it (computing, not waiting); it also stalls changed-area runs. A loop that never ends in the build can stall a galaxy run too. Do: dump the stack while it spins (faulthandler or py-spy), find the loop and the merge that made it (bisect from the last pass), fix the generator so the loop ends or fails loudly, and keep the test as it is.
+- [ ] **GEN.1779 (bug, high) A system build got about 2.4 times slower: test_gen1254_scatter_uid takes 1,495 s alone (617 s on record), past the 1,140 s guard on main c8bfa87b17**
+  Found by Lane 14, 11:47 PM EST 2026-11-16: tests/test_gen1254_scatter_uid.py::test_a_system_built_round_a_scatter_star_keeps_its_id_and_the_fill_starts_past_the_stars runs alone with one core busy until the hang guard ends it (computing, not waiting); it also stalls changed-area runs. A loop that never ends in the build can stall a galaxy run too. Do: dump the stack while it spins (faulthandler or py-spy), find the loop and the merge that made it (bisect from the last pass), fix the generator so the loop ends or fails loudly, and keep the test as it is. Lane 14, 12:42 AM EST 2026-11-17: not a loop; stack samples sit in StarSystem.__init__ of each pre-placed scatter star (seasonal_swing._anderson, ir_ktables.reduce_distribution, line_opacity, thermosphere, tide_sources, spin_torques). So: compare one mid-size system on main against the commit of the 617 s record, name the functions and merges whose cost grew, and fix them with Lane 16 (PERF.276), splitting files. The file goes on the gate heavy list meanwhile.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 14, ahead of GEN.1778 (after GEN.1773). Prerequisites: none. Related: GEN.1254, OPS.268.
   Filed by the TODO thread.
 
