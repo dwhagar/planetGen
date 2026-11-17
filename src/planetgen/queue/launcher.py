@@ -22,6 +22,7 @@ import json
 import os
 import signal
 import time
+import types
 
 from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, planrows, runrecord, scheduler, workers
 from planetgen.queue.memorygate import Claim, Holder
@@ -42,6 +43,9 @@ LANES = {"bulk": memorygate.LANE_BULK, "maintenance": memorygate.LANE_MAINTENANC
 
 TEMPLATES = {"maintenance": "app"}
 """dict: The template (`jobhost.WARM_SETS`) a job of a class is forked from when it is not the one its command names (`jobhost.template_key`): the maintenance lane's units build the site's app, which its template holds built (OPS.229)."""
+
+YIELDED_TEXT = "stopped to give memory back; it starts again when the host has room"
+"""str: What the row of a job the memory controller asked to stop says (`engine_jobs.waited`)."""
 
 RECOVER_SECONDS = 30.0
 """float: How often the rows left `running` by a supervisor that ended are looked for."""
@@ -66,9 +70,10 @@ def _arguments(row):
 class Started:
     """A job this launcher handed out and has not seen end."""
 
-    def __init__(self, row, job, key, claim):
-        self.row, self.job, self.key, self.claim = row, job, key, claim
+    def __init__(self, row, job, key, claim, began=0.0):
+        self.row, self.job, self.key, self.claim, self.began = row, job, key, claim, began
         self.said = []
+        self.asked = False          # the controller asked it to stop at its next piece (`Launcher.yield_youngest`)
 
     def drain(self):
         self.said += self.job.messages()
@@ -76,6 +81,10 @@ class Started:
     def skipped(self):
         """Whether the unit said it did nothing: its run is no longer live, its unit already done or held (`units.run_unit_on` returns `skipped` and writes no attempt)."""
         return any(message.get("event") == "unit" and (message.get("result") or {}).get("skipped") for message in self.said)
+
+    def stopped(self):
+        """Whether the unit said it stopped between two pieces (`units._work_of_unit` returns `stopped`): asked to by the supervisor, or its run was no longer live."""
+        return any(message.get("event") == "unit" and (message.get("result") or {}).get("stopped") for message in self.said)
 
     def error(self):
         """The last thing the job said about its failure (`error`), or `None`."""
@@ -89,8 +98,9 @@ class Launcher:
     """One supervisor's hand-outs. `control` is the control connection; `forker` is a `jobhost.TemplateSet` (`fork(kind, runner, job)`, `poll()`); `galaxy` is `run_id -> connection` for the
     galaxy the run writes to (or `None`); `also_held` returns the claims of the jobs another duty of the supervisor holds (OPS.230: the site's light jobs)."""
 
-    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None, also_held=None):
+    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None, also_held=None, hold=None):
         self.control, self.forker, self.galaxy, self.redis = control, forker, galaxy, redis
+        self.hold = hold or (lambda: None)      # the memory controller's `holding` (OPS.231): why nothing is admitted now, or `None`
         self.also_held = also_held or (lambda: [])      # the claims the site's light jobs hold (`lightjobs.LightJobs.holders`): the bulk lane is judged against them
         self.clock, self.read_host, self.runner = clock, read_host, runner
         self.used = used if used is not None else (lambda: {})
@@ -126,10 +136,15 @@ class Launcher:
                 finished = opening and not skipped
                 ledger.set_job_state(self.control, found, "done" if finished else "canceled", waited=None if finished else "skipped: the run is no longer live or the unit was already done")
                 self.control.commit()
+            elif row is not None and row["state"] in ("running", "waiting") and exit_.code == 0 and started.asked and started.stopped():
+                ledger.end_running(self.control, found, "lost", error_kind=ledger.STOPPED, error_text="stopped between two pieces to give memory back")       # the unit wrote its own end as `lost`, kind `stopped`
+                ledger.set_job_state(self.control, found, "ready", waited=YIELDED_TEXT)         # it goes again when there is room, and the stop does not count as one of its attempts
+                self.control.commit()
             elif row is not None and row["state"] == "running":
                 outcome, kind, text = self._outcome(started, exit_)
                 ledger.end_running(self.control, found, outcome, error_kind=kind, error_text=text)
-                ledger.set_job_state(self.control, found, "ready" if row["attempt"] <= RETRIES else "failed", waited=None if row["attempt"] <= RETRIES else text[:ledger.WAITED_CHARS])
+                again = row["attempt"] - ledger.stopped_attempts(self.control, found) <= RETRIES
+                ledger.set_job_state(self.control, found, "ready" if again else "failed", waited=None if again else text[:ledger.WAITED_CHARS])
                 self.control.commit()
             started.job.close()
             done.append(found)
@@ -275,14 +290,14 @@ class Launcher:
         row. A unit is given a retry when it has not had one."""
         if row["command"] == planrows.OPENING:         # the cut of a stage (`planrows.queue_opening`)
             named = _arguments(row)
-            return {"opening": True, "run_id": named["run_id"], "stage": named["index"], "kind": row["command"], "row": row["id"], "retries_left": max(0, RETRIES - row["attempt"])}
+            return {"opening": True, "run_id": named["run_id"], "stage": named["index"], "kind": row["command"], "row": row["id"], "retries_left": max(0, RETRIES - row["attempt"] + ledger.stopped_attempts(self.control, row["id"]))}
         opened = self.control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = 'open' AND item_key = ''", (row["run_id"], row["stage"])).fetchone()
         plan = json.loads(opened["arguments"]) if opened and opened["arguments"] else {}
         if "run_id" not in plan or "index" not in plan:
             raise LookupError(f"the stage {row['stage']!r} of ledger run {row['run_id']} has no open row that names its run and index")
         unit = _arguments(row)
         return {"run_id": plan["run_id"], "stage": plan["index"], "unit": int(row["item_key"]), "kind": row["command"], "args": unit.get("args", {}), "cost": unit.get("cost"), "row": row["id"],
-                "retries_left": max(0, RETRIES - row["attempt"])}
+                "retries_left": max(0, RETRIES - row["attempt"] + ledger.stopped_attempts(self.control, row["id"]))}
 
     def start(self, row):
         """Hands the job out: marked `running`, then one fork. Returns the `Started`, or `None` for a row another turn took."""
@@ -302,7 +317,7 @@ class Launcher:
             raise
         if row["command"] == planrows.OPENING:          # an opening has no unit to begin its attempt: the launcher does, with the process that runs it
             ledger.begin_attempt(self.control, row["id"], pid=forked.pid)
-        started = Started(row, forked, key, self.claim(row))
+        started = Started(row, forked, key, self.claim(row), self.clock())
         self.running[row["id"]] = started
         return started
 
@@ -313,11 +328,37 @@ class Launcher:
         waiting, rows = self.tickets()
         if not waiting:
             return []
+        held = self.hold()
+        if held:                    # OPS.231: the host is short of memory; the bulk and maintenance lanes wait, each row saying why
+            self._note(rows, types.SimpleNamespace(reasons={name: held for name in rows}))
+            return []
         now = self.clock()
         decided = dispatch.dispatch(waiting, self.read_host(), [*self.holders(), *self.also_held()], now, self.used())
         self._note(rows, decided)
         started = [self.start(rows[name]) for name in decided.admitted]
         return [item.row["id"] for item in started if item is not None]
+
+    def yield_youngest(self):
+        """
+        The memory controller's ask (OPS.231): asks the youngest unit that runs on the bulk lane (the one that began last, so the one that has done the least) to stop at its next piece, once; of the units
+        whose command resumes after the pieces it finished (`commands.spec(kind).resumes`) when there are any, since a stop costs the others their work. Returns `(row id, command)` of the job asked, or `None`
+        when none can be asked (an opening is never asked: its cut is whole or nothing).
+        """
+        from planetgen.queue import commands
+        candidates = [started for started in self.running.values()
+                      if not started.asked and started.row["command"] != planrows.OPENING and started.row["job_class"] == "bulk"]
+        resumable = [started for started in candidates if started.row["command"] in commands.REGISTRY and commands.spec(started.row["command"]).resumes]
+        pool = resumable or candidates
+        if not pool:
+            return None
+        chosen = max(pool, key=lambda started: (started.began, started.row["id"]))
+        try:
+            chosen.job.send({"op": "stop"})
+        except (OSError, ValueError) as exc:
+            log.swallowed("queue/launcher", "yield_youngest", exc)
+            return None
+        chosen.asked = True
+        return chosen.row["id"], chosen.row["command"]
 
     def stop(self):
         """Lets go of every job (their pipes close, so each finishes and exits at its next safe point), stops the templates and closes the control connection."""

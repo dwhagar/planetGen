@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, failures, held, jobprofiles, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, failures, held, jobprofiles, ledger, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
 from planetgen.util.format import format_duration_seconds, format_megabytes
 
@@ -327,7 +327,7 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost, row=None, halt=None):
                 latest[0].end(outcome, error_kind=kind_of_error, error_text=f"[{failures.classify(exc)}] {text}", stack_text=text, peak_mb=peak_resident_mb())
             raise
         if latest[0] is not None:
-            latest[0].end("done" if "seconds" in result else "lost", peak_mb=peak_resident_mb())
+            latest[0].end("done" if "seconds" in result else "lost", error_kind=ledger.STOPPED if result.get("stopped") else None, peak_mb=peak_resident_mb())
     return result
 
 

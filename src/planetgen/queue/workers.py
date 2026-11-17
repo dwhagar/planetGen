@@ -5,7 +5,7 @@ The workers of the shared queues (PERF.95, folding in PERF.40, PERF.78 and ADM.1
 many there are, and how a running job is stopped. Section 5.4 of docs/design/operations/redis-and-the-work-queue.md.
 
 * Lanes (PERF.151): `redisqueue.BULK_QUEUE` (a run's units) and the maintenance lane; a worker serves one of them. The site's short and long jobs are
-  light jobs the supervisor forks (`queue/lightjobs.py`, OPS.230), not RQ jobs; the places kept for them are `reserved_places`.
+  light jobs the supervisor forks (`queue/lightjobs.py`, OPS.230), not RQ jobs.
 * Workers are not burst workers: a run's queue is briefly empty at every stage barrier, so a worker waits for
   `IDLE_SECONDS` before it exits. Nothing runs when there is no work, and no service has to be installed.
 * `ensure_workers` starts workers up to `wanted` (the admin's count in `WANTED_KEY`, else `work.worker_count()`),
@@ -107,12 +107,6 @@ REFUSED_NOTE_SECONDS = 60
 """The Redis counter of starts the host cap refused (kept an hour after the last), and the key that lets the log line
 about it out once a minute instead of at every poll."""
 
-LENT_PREFIX = "planetgen:workers:lent:"
-LENT_SECONDS = 3600
-"""The Redis key, per bulk worker, of a worker asked to finish its unit and exit so a maintenance worker can have its
-place (the lend rule, PERF.150); it expires this long after the request, so a worker that never got the command
-is not skipped for ever."""
-
 IDLE_SECONDS = 60
 """int: How long a worker waits for work before it exits (about 60 s covers every stage barrier)."""
 
@@ -180,24 +174,10 @@ def lane_of(queue_name):
     return (queue_name,)
 
 
-def reserved_places(queue_name):
-    """
-    How many of the host's worker places (`host_worker_cap`) the workers for `queue_name` may not take (PERF.245): the places kept for
-    the short and the long job lanes (`queue.interactive_workers` and `queue.long_workers`). The bulk and maintenance lanes start
-    workers only while the host runs fewer than the cap less these, so a warm-up or a generation run that has used up the host's
-    places never leaves a visitor's search or sector list with no worker to start; the two lanes themselves may use the whole cap.
-    """
-    if queue_name not in (redisqueue.BULK_QUEUE, *redisqueue.maintenance_lane()):
-        return 0
-    from planetgen.util.settings import get_settings
-    section = get_settings().queue
-    return min(section.interactive_workers + section.long_workers, max(0, host_worker_cap() - 1))
-
-
 def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count=None):
     """
-    Asks for workers for the waiting jobs of the queue `queue_name` (OPS.209): leaves a nudge for the supervisor (`supervisor.nudge`), which is the only process that starts, sheds
-    or lends workers (`start_workers`), and starts the supervisor if none is alive. Cheap and safe to call from a web thread, the command line or an enqueuer, at every poll if need be.
+    Asks for workers for the waiting jobs of the queue `queue_name` (OPS.209): leaves a nudge for the supervisor (`supervisor.nudge`), which is the only process that starts
+    workers (`start_workers`), and starts the supervisor if none is alive. Cheap and safe to call from a web thread, the command line or an enqueuer, at every poll if need be.
     The arguments are the ones `start_workers` takes.
 
     Returns:
@@ -214,9 +194,8 @@ def start_workers(queue_name, connection=None, url=None, mysql_host=None, count=
     Starts idle-timeout workers for the waiting jobs of the queue `queue_name`, never more than the queue's cap in
     all (those serving the queue and alive, and those started a moment ago and not registered yet). The cap is
     `count` when given (a run's own `--workers`, PERF.97, which leaves the admin's count alone), else the lane's
-    (`maintenance_cap`), else `wanted`; the bulk queue's is never more than `wanted` less the maintenance
-    lane's workers (`maintenance_share`), and an ask for the maintenance lane's workers sheds the bulk workers over
-    that (`shed_bulk`). Called by the supervisor only (OPS.209), which acts on the nudges `ensure_workers` leaves: one process decides, so there is no lock between deciders.
+    (`maintenance_cap`), else `wanted`. How many run at once under memory pressure is the controller's (`queue/pressure.py`, OPS.231), not
+    a cap here. Called by the supervisor only (OPS.209), which acts on the nudges `ensure_workers` leaves: one process decides, so there is no lock between deciders.
 
     Returns:
         int: How many were started.
@@ -232,10 +211,7 @@ def start_workers(queue_name, connection=None, url=None, mysql_host=None, count=
     waiting = sum(redisqueue.queue(name, connection).count for name in names)
     if not waiting:
         return 0
-    need = _start_missing(queue, names, connection, url, mysql_host, count, waiting)
-    if names[0] == redisqueue.MAINTENANCE_QUEUE:
-        shed_bulk(connection, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
-    return max(0, need)
+    return max(0, _start_missing(queue, names, connection, url, mysql_host, count, waiting))
 
 
 def registered(connection, queue_names):
@@ -260,21 +236,16 @@ def _start_missing(queue, names, connection, url, mysql_host, count, waiting):
     if queue_name == redisqueue.MAINTENANCE_QUEUE:
         cap = count or maintenance_cap(connection, mysql_host)
     else:
-        asked = wanted(connection, mysql_host)
-        cap = count or asked
-        if queue_name == redisqueue.BULK_QUEUE:
-            cap = min(cap, max(1, asked - maintenance_share(connection, mysql_host)))
-            from planetgen.queue import adaptive
-            cap = adaptive.adapt(connection, cap, waiting)           # the cap, lowered while the host is short of memory
+        cap = count or wanted(connection, mysql_host)
     live = live_worker_count(queue)
     need = min(waiting, cap) - live - starting
     log.trace(f"workers for {queue_name}: {waiting} job(s) waiting, cap {cap}, {live} live, {starting} starting; "
               f"{max(0, need)} to start", area="queue")
     started = 0
     for _ in range(max(0, need)):
-        running, host_cap, kept = host_worker_processes(), host_worker_cap(), reserved_places(queue_name)
-        if running >= host_cap - kept:
-            _note_refused(connection, queue_name, running, host_cap, kept)
+        running, host_cap = host_worker_processes(), host_worker_cap()
+        if running >= host_cap:
+            _note_refused(connection, queue_name, running, host_cap)
             break
         connection.incr(starting_key)
         connection.expire(starting_key, STARTING_SECONDS)
@@ -363,14 +334,13 @@ def host_worker_processes():
     return count_worker_processes(listing)
 
 
-def _note_refused(connection, queue_name, running, host_cap, kept=0):
-    """Counts a start the host cap refused and says so in the log, once a minute; `kept` is how many of the cap's places the
-    queue's lane may not take (`reserved_places`)."""
+def _note_refused(connection, queue_name, running, host_cap):
+    """Counts a start the host cap refused and says so in the log, once a minute."""
     connection.incr(REFUSED_KEY)
     connection.expire(REFUSED_KEY, 3600)
     if connection.set(REFUSED_NOTE_KEY, "1", nx=True, ex=REFUSED_NOTE_SECONDS):
         log.normal(f"Worker start refused for {queue_name}: {running} planetgen worker processes already run on this "
-                   f"host, and the cap is {host_cap}{f', {kept} of its places kept for short and long jobs' if kept else ''} "
+                   f"host, and the cap is {host_cap} "
                    "(queue.max_host_workers, 0 sizes it from memory and cores).")
 
 
@@ -383,48 +353,6 @@ def maintenance_cap(connection, mysql_host=None):
         from planetgen.util.settings import get_settings
         return get_settings().queue.maintenance_workers
     return wanted(connection, mysql_host)
-
-
-def maintenance_share(connection, mysql_host=None):
-    """How many of the host's workers the maintenance lane has or needs: those busy, plus those its waiting jobs ask
-    for, never more than `maintenance_cap`. (An idle maintenance worker waits for its 60 seconds to pass without
-    using a core, so the bulk lane is back to `wanted` as soon as the lane has drained.) The bulk lane gives up that
-    many places."""
-    queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
-    busy = sum(1 for worker in live_workers(queue) if worker.get_state() != "idle")
-    waiting = sum(redisqueue.queue(name, connection).count for name in redisqueue.maintenance_lane())
-    return min(maintenance_cap(connection, mysql_host), busy + waiting)
-
-
-def staying_bulk_workers(connection):
-    """The live bulk workers that have not been asked to leave (`shed_bulk`), as RQ workers."""
-    live = live_workers(redisqueue.queue(redisqueue.BULK_QUEUE, connection))
-    return [worker for worker in live if not connection.exists(LENT_PREFIX + worker.name)]
-
-
-def shed_bulk(connection, cap, first=()):
-    """
-    The lend rule (PERF.150): asks the bulk workers over `cap` to finish their unit and exit (RQ's shutdown command),
-    idle ones first and the newest first, so a maintenance worker can have a place without the host's total growing.
-    A worker already asked is not asked again (`LENT_PREFIX`), and counts as gone. The bulk lane starts workers
-    again by itself (`ensure_workers`) when the maintenance lane no longer needs the places.
-
-    `first` (the adaptive control, `queue.adaptive`) names workers to ask before any other: those that hold a job back at the memory gate and
-    run nothing, so shedding them costs no work (a worker that waits at the gate puts its job back at the front of its queue and exits).
-
-    Returns:
-        int: How many workers were asked.
-    """
-    staying = staying_bulk_workers(connection)
-    over = len(staying) - cap
-    if over <= 0:
-        return 0
-    staying.sort(key=lambda worker: (worker.name not in first, worker.get_state() != "idle", -(worker.birth_date.timestamp()
-                                                                                              if worker.birth_date else 0.0)))
-    for worker in staying[:over]:
-        connection.set(LENT_PREFIX + worker.name, "1", ex=LENT_SECONDS)
-        command.send_shutdown_command(connection, worker.name)
-    return over
 
 
 def set_wanted(connection, count):

@@ -28,6 +28,7 @@ import signal
 import re
 import time
 import traceback
+import types
 
 from planetgen.queue import dispatch, jobhost, memorygate, redisqueue, runrecord, template, work
 from planetgen.util import log
@@ -369,10 +370,11 @@ class LightJobs:
         runner (str, optional): What the job process runs; `extra` (dict) is added to the job it is given: the tests' runner needs the prefix of the test's keys.
     """
 
-    def __init__(self, connection, forker=None, read_host=memorygate.read_host, clock=time.time, also_held=None, held_mb=memorygate.held_mb, runner=RUNNER, extra=None):
+    def __init__(self, connection, forker=None, read_host=memorygate.read_host, clock=time.time, also_held=None, held_mb=memorygate.held_mb, runner=RUNNER, extra=None, hold=None):
         self.connection, self.forker, self.read_host, self.clock = connection, forker, read_host, clock
         self.runner, self.extra = runner, dict(extra or {})
         self.also_held = also_held or (lambda: [])
+        self.hold = hold or (lambda: None)      # the memory controller's `holding` (OPS.231): the site's own lanes still go, the upkeep a visit asked for (the node prefetch) waits
         self.held_mb = held_mb
         self.running = {}
         self.recovered_at = None
@@ -584,6 +586,11 @@ class LightJobs:
         self.recover()
         self.drop()
         tickets, records = self.tickets()
+        held = self.hold()
+        if held and tickets:
+            waiting = [ticket for ticket in tickets if ticket.claim.lane not in memorygate.SHORT_LANES]
+            self._note(records, types.SimpleNamespace(reasons={ticket.name: held for ticket in waiting}))
+            tickets = [ticket for ticket in tickets if ticket.claim.lane in memorygate.SHORT_LANES]
         if not tickets:
             return []
         decided = dispatch.dispatch(tickets, self.read_host(), [*self.holders(), *self.also_held()], self.clock(), {})

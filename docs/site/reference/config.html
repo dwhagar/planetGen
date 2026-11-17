@@ -902,7 +902,7 @@ save the setting through the same writer, so they are backed up and audited. The
 <td>at once</td>
 <td>any admin</td>
 <td>none</td>
-<td>How many workers run the cache warm-up, the node prefetch and the database check while a generation run is live. They are taken out of the generation worker count (a generation worker finishes its unit and leaves when they are needed), so the host's total does not grow; with no generation run live they may use the whole count.</td>
+<td>How many workers run the cache warm-up, the node prefetch and the database check while a generation run is live. Upkeep never takes more than this many places from the run; if the host runs short of memory the supervisor holds upkeep back first (the memory controller); with no generation run live they may use the whole count.</td>
 </tr>
 <tr>
 <td><code>queue.max_host_workers</code></td>
@@ -963,6 +963,26 @@ save the setting through the same writer, so they are backed up and audited. The
 <td>any admin</td>
 <td>none</td>
 <td>How long a generation run, or an API job that generates sectors, waits in line when another generation run holds the machine, before it fails naming that run (0 does not wait).</td>
+</tr>
+<tr>
+<td><code>queue.debug_restarts</code></td>
+<td>Debug log of a restarted unit</td>
+<td>true or false</td>
+<td>true</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>A unit that runs again (a retry after a kill, a stuck stop or a failure, a resume after an update) runs in debug mode: every debug area is logged to a file of its own in the log folder's unit-debug folder, named by the unit's job, unit and attempt, that opens with how the attempt before it ended and its stack. The run's log names the file. Each file is capped at 20 MB and the folder keeps the newest 400 files. Off, nothing extra is written.</td>
+</tr>
+<tr>
+<td><code>queue.forked_jobs</code></td>
+<td>Run units as forked jobs</td>
+<td>true or false</td>
+<td>true</td>
+<td>at once</td>
+<td>any admin</td>
+<td><code>PLANETGEN_FORKED_JOBS</code></td>
+<td>The units of a generation run's stages are handed out by the supervisor's launcher and run as jobs forked from a warm template (OPS.228), in place of RQ's workers. Off, every unit goes to a worker as before.</td>
 </tr>
 <tr>
 <td><code>queue.max_waiting</code></td>

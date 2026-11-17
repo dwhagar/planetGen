@@ -153,7 +153,7 @@ an upper bound where a carbonate sink is full); the mean-rate steady state gives
 about 14 mbar of SO<sub>2</sub>, which only recent resupply explains (Fegley and Prinn say so too); the lifetimes are brackets, not rate laws of
 temperature; the share of the sulfur the melt keeps is <code>surface_pressure.DEGAS_EFFICIENCY</code>. Five stand-ins, registry rows AM45 to AM49.</p>
 <h2 id="where-the-carbon-of-a-world-with-no-land-goes-gen814">Where the carbon of a world with no land goes (GEN.814)</h2>
-<p>Silicate weathering (<code>surface_pressure.carbonate_pco2_bar</code>) needs land, and an ocean world has none, so its carbon dioxide had no sink: the
+<p>Silicate weathering (<code>continental_weathering.pco2_bar</code>) needs land, and an ocean world has none, so its carbon dioxide had no sink: the
 findings of <code>reports/air-fixed-point-findings-2026-10-24.md</code> (finding 3) have 31 of 40 water-rich worlds hot (median 1470 K). The model is
 <code>physics/waterworld_carbon.py</code>, af[R2381, R2489] (Nat. Commun. 8, 15423).
 <code>sink_kind(sealed, land_fraction)</code> is the dispatch the air solve takes: sealed seafloor, then ocean chemistry; else land, then the

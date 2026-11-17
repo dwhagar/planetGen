@@ -46,8 +46,6 @@ def lane(redis_server, key_prefix, monkeypatch):
         redisqueue.queue(name, connection).empty()
         connection.delete(workers.STARTING_PREFIX + name)
     connection.delete(workers.REFUSED_KEY, workers.REFUSED_NOTE_KEY)
-    for worker in made:
-        connection.delete(workers.LENT_PREFIX + worker.name)
 
 
 def _queue(connection, name, jobs):
@@ -68,38 +66,6 @@ def test_a_run_goes_on_the_queue_of_its_kind():
     assert redisqueue.CHECK_QUEUE in redisqueue.QUEUES
     assert redisqueue.serializer_for(redisqueue.MAINTENANCE_QUEUE) is redisqueue.JsonSerializer
     assert redisqueue.MAINTENANCE_QUEUE in redisqueue.QUEUES
-
-
-def test_maintenance_work_behind_200_bulk_units_gets_a_worker_by_asking_a_bulk_worker_to_leave(lane):
-    connection, started, told, register = lane
-    bulk = [register(redisqueue.BULK_QUEUE, "busy") for _ in range(3)]            # every worker of the host is on bulk
-    _queue(connection, redisqueue.BULK_QUEUE, 200)
-    _queue(connection, redisqueue.MAINTENANCE_QUEUE, 1)
-    _generation_run(connection)
-    assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 1
-    assert len(started) == 1 and redisqueue.MAINTENANCE_QUEUE in started[0]       # the unit does not wait for 200 others
-    assert len(told) == 1 and told[0] in {worker.name for worker in bulk}          # a bulk worker finishes and leaves
-    workers.start_workers(redisqueue.MAINTENANCE_QUEUE, connection)
-    assert len(started) == 1 and len(told) == 1                                    # not again for the same need
-    # the bulk lane does not take the place back while the maintenance lane needs it
-    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 0
-    leaving = next(worker for worker in bulk if worker.name == told[0])
-    leaving.register_death()
-    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 0         # 2 bulk workers, cap 3 - 1
-
-
-def test_after_the_maintenance_lane_drains_the_bulk_pool_is_back_to_wanted(lane):
-    connection, started, told, register = lane
-    bulk = [register(redisqueue.BULK_QUEUE, "busy") for _ in range(2)]
-    _queue(connection, redisqueue.BULK_QUEUE, 200)
-    upkeep = register(redisqueue.MAINTENANCE_QUEUE, "busy")
-    _generation_run(connection)
-    assert workers.maintenance_share(connection) == 1
-    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 0         # 2 live, cap 2
-    upkeep.set_state("idle")                                                       # drained: waiting out its idle time
-    assert workers.maintenance_share(connection) == 0
-    assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 1         # back to wanted (3)
-    assert len(started) == 1 and redisqueue.BULK_QUEUE in started[0] and len(bulk) == 2
 
 
 def test_maintenance_gets_the_whole_count_when_no_generation_run_is_live(lane):
@@ -126,15 +92,6 @@ def test_the_bulk_lane_keeps_at_least_one_worker(lane, monkeypatch):
     _queue(connection, redisqueue.MAINTENANCE_QUEUE, 5)
     _generation_run(connection)
     assert workers.start_workers(redisqueue.BULK_QUEUE, connection) == 1
-
-
-def test_shed_bulk_asks_idle_workers_first_and_never_twice(lane):
-    connection, started, told, register = lane
-    busy = register(redisqueue.BULK_QUEUE, "busy")
-    idle = register(redisqueue.BULK_QUEUE, "idle")
-    assert workers.shed_bulk(connection, 1) == 1 and told == [idle.name]
-    assert workers.shed_bulk(connection, 1) == 0 and told == [idle.name]            # it is leaving: counted as gone
-    assert workers.shed_bulk(connection, 0) == 1 and told == [idle.name, busy.name]
 
 
 def test_perf181_many_callers_at_once_start_no_more_workers_than_the_cap(lane):
@@ -235,6 +192,6 @@ def test_perf185_many_callers_together_never_pass_the_host_cap(lane, monkeypatch
         for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
             workers.ensure_workers(name, connection)
         supervisor.WorkerStarts(connection).turn()
-    assert len(started) == 2        # PERF.245: the cap less the two places kept for the short and long lanes
+    assert len(started) == 4        # the whole of the host cap, no places kept back (OPS.231: the short and long lanes are light jobs)
     assert int(connection.get(workers.REFUSED_KEY)) >= 1
     assert len(lines) == 1 and "cap is 4" in lines[0]                                 # said once, not at every poll

@@ -58,7 +58,7 @@ main{padding:16px 16px 60px}}
 </ol>
 <h2 id="2-how-a-galaxy-is-built-today-and-where-the-grouping-is">2. How a galaxy is built today, and where the grouping is</h2>
 <p>All [S] unless marked.</p>
-<p><strong>The stage list is fixed in code.</strong> <code>galaxy_stages(args)</code> returns, in this order: the sector stages (start and neighborhood, or one sectors stage, picked by flags), <code>link</code>, <code>mass</code>, <code>luminosity</code>, the three phenomena stages (<code>phenomena</code>, <code>phenomena-index</code>, <code>nebula-draw</code>), <code>block-lights</code>, <code>backfill</code>, <code>population</code>, <code>territories</code>, <code>settle</code>, <code>run-blocks</code>. Order is the list order. A stage the request does not need is dropped or marked skipped by an <code>if</code> in code, and a run carried on after a stop works by tagging stages <code>finished_by</code> (<code>finish_run.py</code>).</p>
+<p><strong>The stage list is fixed in code.</strong> <code>galaxy_stages(args)</code> returns, in this order: the sector stages (start and neighborhood, or one sectors stage, picked by flags), <code>link</code>, <code>mass</code>, <code>luminosity</code>, the phenomena stages (<code>phenomena</code>, <code>phenomena-special</code>, <code>phenomena-index</code>, <code>phenomena-record</code>) and <code>nebula-draw</code>, <code>block-lights</code>, <code>backfill</code>, <code>population</code>, <code>territories</code>, <code>settle</code>, <code>run-blocks</code>. Order is the list order. A stage the request does not need is dropped or marked skipped by an <code>if</code> in code, and a run carried on after a stop works by tagging stages <code>finished_by</code> (<code>finish_run.py</code>).</p>
 <p><strong>The only dependency data is four lines.</strong> <code>commands.REQUIRES</code> names four edges (phenomena index after phenomena scatter, territories after population, link and settle after the three sector commands). Those edges are only used to refuse a wrong list (<code>validate_order</code>) and to write a &quot;released&quot; line. Nothing runs two stages at once; the doc says so (<code>redis-and-the-work-queue.md</code> 5.13: &quot;making two stages run together is a later step&quot;).</p>
 <p><strong>Grouping, layer by layer:</strong></p>
 <div class="table"><table>
@@ -133,7 +133,7 @@ main{padding:16px 16px 60px}}
 <td><code>empty-phenomenon-scatter</code> (built; <code>clear-scatter</code> was not reused: it refreshes the block lights and resets the epoch), <code>drop-phenomenon-indexes</code> (built)</td>
 </tr>
 <tr>
-<td><code>finish_phenomena_unit</code> (the <code>finish-phenomena</code> command)</td>
+<td>the <code>finish-phenomena</code> command (<code>finish_phenomena_do</code>; built as three commands by OPS.239 part A: <code>write-special-phenomena</code> draws and writes the special rows with their classes in two pieces, because the written rows come from the drawn ones through the unit's stored results; <code>build-phenomenon-indexes</code> is a piece to an index and the stamp; <code>record-phenomenon-scatter</code> is one piece)</td>
 <td>draws the special phenomena (nucleus, hypervelocity stars), writes them, builds the table's indexes one at a time, stamps the hypervelocity stars' epoch, records the scatter's seed and mass cut</td>
 <td><code>draw-special-phenomena</code>, <code>write-special-phenomena</code>, <code>build-index</code> (one per index), <code>stamp-hypervelocity-epoch</code>, <code>record-phenomenon-scatter</code></td>
 </tr>
@@ -163,9 +163,9 @@ main{padding:16px 16px 60px}}
 <td><code>make-cluster-field</code>, planned before the commands that need it (a declared fact: <code>cluster-field</code>)</td>
 </tr>
 <tr>
-<td><code>population_unit</code> (<code>run-population</code>)</td>
-<td>scans the life worlds, drops species with no civilization, dates the civilizations, founds or dissolves polities</td>
-<td><code>scan-life-worlds</code>, <code>drop-civilization-less-species</code>, <code>date-civilizations</code>, <code>update-polities</code></td>
+<td><code>population_unit</code> (the <code>run-population</code> command; built as four commands by OPS.239 part B)</td>
+<td>scans the life worlds, drops species with no civilization, dates the civilizations, founds or dissolves polities, refreshes the map's technology, counts</td>
+<td><code>scan-species</code> (stage <code>species</code>, makes <code>species</code>), <code>date-civilizations</code> (drops the civilization-less species, dates, founds or dissolves; stage <code>civilizations</code>), <code>refresh-technology</code> (stage <code>technology</code>), <code>count-population</code> (stage <code>population</code>, makes <code>population</code>). Each is one unit of several pieces; the drop and the dating stay in one command (<code>date-civilizations</code>).</td>
 </tr>
 <tr>
 <td><code>conclude_rescore_habitability</code></td>
@@ -183,7 +183,7 @@ main{padding:16px 16px 60px}}
 <td>stays <strong>one command</strong>, <code>generate-sector</code> (draw and save are one effect: making a sector exist; splitting them would move a whole sector through Redis). The summary lines are bookkeeping and move to the executor. Boss may overrule.</td>
 </tr>
 <tr>
-<td><code>refresh_block_lights_unit</code>, link, settle, one shell of a scatter, one backfill cell</td>
+<td>the <code>refresh-block-lights</code> command (<code>refresh_block_lights_do</code>), link, settle, one shell of a scatter, one backfill cell</td>
 <td>one effect each</td>
 <td>unchanged, but as items (section 3.5)</td>
 </tr>
@@ -311,9 +311,9 @@ main{padding:16px 16px 60px}}
 <td><code>skeleton</code></td>
 </tr>
 <tr>
-<td>finish-phenomena</td>
-<td><code>phenomena:index</code></td>
-<td><code>phenomena:shells</code> (existing REQUIRES)</td>
+<td>write-special-phenomena, build-phenomenon-indexes, record-phenomenon-scatter</td>
+<td><code>phenomena:special</code>, <code>phenomena:indexed</code>, <code>phenomena:index</code> (the artifacts <code>phenomena-special</code>, <code>phenomena-indexed</code>, <code>phenomena</code> of <code>queue/needs.py</code>)</td>
+<td><code>phenomena:shells</code>, then each the one before</td>
 </tr>
 <tr>
 <td>draw-nebula-field</td>
@@ -331,9 +331,9 @@ main{padding:16px 16px 60px}}
 <td>every fact that writes a block total (PERF.251 already wants it last)</td>
 </tr>
 <tr>
-<td>run-population</td>
-<td><code>population</code></td>
-<td><code>sector</code> (all)</td>
+<td>scan-species, date-civilizations, refresh-technology, count-population (OPS.239 part B; was <code>run-population</code>)</td>
+<td><code>species</code>, <code>civilizations</code>, <code>technology</code>, <code>population</code> (a chain)</td>
+<td><code>sector</code> (all) for the first, then the one before</td>
 </tr>
 <tr>
 <td>run-territories</td>
@@ -366,6 +366,9 @@ main{padding:16px 16px 60px}}
 <ol>
 <li><strong>Declarations are checked against reality.</strong> A test taps the SQL of each command on the toy galaxy and fails a command that touches a table it did not declare (reads, writes or locks), and one that reads a file, a Redis key or a process-wide cache that is not declared either. Table-level is the default grain; a finer grain (by shell, by sector range) is allowed only where proven.</li>
 <li><strong>Each overlapping pair is compared byte for byte.</strong> A pair the planner would overlap is listed in <code>independence.json</code> only after a test runs it overlapped, in both orders and at 1 and 15 workers, and its content hashes (keyed by address and shell, not row ids) equal the run in plan order. A pair not in the list runs in plan order, so a new command is safe by default and overlap is earned one pair at a time.
+<strong>Built (OPS.241).</strong> <code>queue/touches.py</code> holds the declarations (tables per command kind and end hook, <code>ANY</code> for a command that touches every table, <code>OTHER</code> for a file or cache), <code>queue/sqltap.py</code> reads the statements and <code>tests/test_command_touches.py</code> checks the tables; files, Redis keys and caches are declared from this audit and not tapped, and the lock names (<code>GET_LOCK</code>, <code>LOCK TABLES</code>) are recorded and not yet checked. The first listed pair (OPS.242) is <code>scatter-phenomena</code> with <code>draw-nebula-field</code>; <code>tests/pair_overlap_support.py</code> proves any listed pair (both stages cut first, units mixed at 1 and 15 workers in both orders, content compared with plan order, the tap on data that makes every stage store rows), and an entry names the tables the pair shares. Nothing runs overlapped until the supervisor of stage 4 starts the jobs the plan leaves free. <code>touches.plan_edges</code> gives the planner's edges (the chain, until <code>independence.json</code> lists a pair) and <code>planrows.record_plan</code> writes them.
+<strong>By address (OPS.242, narrower edges).</strong> <code>independence.json</code> also lists <code>edges</code>: the unit of <code>link-neighbors</code> or <code>settle-sector-paths</code> for one sector may start once the sectors it reads are saved by the generate stage, whatever else that stage has still to make. <code>tests/address_edge_support.py</code> proves it on a row of five sectors: plan order, then the same units in several random orders on one thread and on a pool of 15 threads, each unit released when the sectors the code's own rule names are saved (<code>store._sectors_near</code> at the nearest-systems reach for the link, <code>sector_paths._neighbour_centers</code> for the settle), compared with plan order by content (row ids left out, paths with their knots and links compared through their joins). A unit released after its own sector alone gives other bytes (the control), so the toy sees what the neighbors are for. Two things the supervisor must give: the link unit takes the run's sector ids (<code>sector_ids</code>), not <code>since</code> (its <code>skip</code> is the whole run), and a settle unit is one sector with the sectors around it as the units' own needs, not the cut's <code>expand</code>. The proof found that <code>link-neighbors</code> writes the quadrant of every placed phenomenon (declared now).
+<strong>Backfill by address (OPS.242).</strong> The third edge is <code>scatter-backfill</code>: the unit of one source sector (the sectors a face away from it out to the last step of the backfill's walk, each at the mass of its step as seen from that source alone) may start once the source is saved and every sector of its list that the run saves is saved, whatever else the generate stage has still to make. A saved sector is charted and the draw skips it; a unit that ran before it was saved would fill it with stars. The galaxy's shape and mass limit (the scatter) and the sky tier ledger (the sky units) are written by stages before, so they stay stage edges and need no per-sector edge. <code>tests/backfill_edge_support.py</code> proves it on a toy galaxy and three sectors in a row: plan order (one unit with the stage's list, <code>run_galaxy.backfill_targets</code>) against the same work as one unit per source in random orders on one thread and on 15 threads, compared by content (the bright stars' ids left out, their members and nodes compared through the star's seed). A sector reached from two sources comes out the same in either order, and a unit released at once, before any save, gives other bytes (the control). The unit takes <code>items</code> only; a sky unit is its own stage edge.
 The things that break independence without showing in a table list are the audit items of section 6: row ids taken in completion order, <code>id_blocks</code>, shared caches, the cluster-field file, and locks such as the link stage's neighbor lock.</li>
 </ol>
 </li>

@@ -44,7 +44,7 @@ main{padding:16px 16px 60px}}
 <nav id="nav" data-root="../../" data-here="design/systems/variability.html"><a href="../../index.html">Site index</a></nav>
 <main>
 <h1 id="variable-star-kinds-gen944-the-cheap-flags">Variable-star kinds (GEN.944, the cheap flags)</h1><p class="meta">docs/design/systems/variability.md</p>
-<p>Code: <code>physics/variability.py</code>. Sheet: the derived &quot;Variability&quot; row of a star (<code>describe.sheet.VARIABILITY_KEY</code>), in the identity group. Tests: <code>tests/test_variability.py</code>, <code>tests/test_property_sheet.py</code>. Registry 6.138 (VR1 to VR3).</p>
+<p>Code: <code>physics/variability.py</code>. Sheet: the derived &quot;Variability&quot; row of a star (<code>describe.sheet.VARIABILITY_KEY</code>), in the identity group. Tests: <code>tests/test_variability.py</code>, <code>tests/test_property_sheet.py</code>. Registry 6.138 (VR1 to VR4).</p>
 <p>Nothing is stored and nothing in generation changes: the kind follows from the star's stored <code>state</code> (GEN.786), class, temperature and mass when the sheet is made, as the moon's longest eclipse is. A star that does not vary in a way its phase explains has no row.</p>
 <div class="table"><table>
 <thead>
@@ -63,6 +63,10 @@ main{padding:16px 16px 60px}}
 <td>Mira or semiregular</td>
 </tr>
 <tr>
+<td>state <code>red-giant</code>, cooler than 4,000 K</td>
+<td>Semiregular (red giant)</td>
+</tr>
+<tr>
 <td>class <code>PMS</code>, under 2 solar masses</td>
 <td>T Tauri</td>
 </tr>
@@ -76,7 +80,7 @@ main{padding:16px 16px 60px}}
 <ul>
 <li><strong>Carbon and S stars.</strong> They have their own row, from the thermal-pulse count and the third dredge-up (GEN.1026, <a href="carbon-stars.html">carbon-stars.md</a>).</li>
 <li><strong>Ap and Am stars.</strong> They need a slow rotation and a magnetic field; the generator gives a star its spin and field at the end of its build, and has no chemically peculiar branch to put them on.</li>
-<li><strong>Semiregular variables of the red-giant branch.</strong> The row marks the asymptotic-giant branch only.</li>
+<li><strong>Semiregulars hotter than 4,000 K.</strong> The M giants of the red-giant branch are marked; the K giants are not (VR4).</li>
 </ul>
 
 </main>

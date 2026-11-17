@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The temperature-pressure profile of a hot giant (GEN.1577) - planetGen docs</title>
+<meta name="description" content="Status: built (new module, nothing calls it yet).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/hot-giant-profile.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/hot-giant-profile.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-temperature-pressure-profile-of-a-hot-giant-gen1577">The temperature-pressure profile of a hot giant (GEN.1577)</h1><p class="meta">docs/design/composition/hot-giant-profile.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#what-it-is-for">What it is for</a></li><li style="margin-left:0px"><a href="#the-form">The form</a></li><li style="margin-left:0px"><a href="#checked-against">Checked against</a></li><li style="margin-left:0px"><a href="#stand-ins-registry-6288">Stand-ins (registry 6.288)</a></li><li style="margin-left:0px"><a href="#what-a-later-part-adds">What a later part adds</a></li></ul></details>
+<p>Status: built (new module, nothing calls it yet). Module <code>src/planetgen/physics/hot_giant_profile.py</code>, tests <code>src/tests/test_hot_giant_profile.py</code>. Built ahead by Lane 07 for Lane 14, who reviews it and wires it behind the cloud deck (<code>physics/hot_cloud_deck.py</code>, GEN.994).</p>
+<h2 id="what-it-is-for">What it is for</h2>
+<p>The cloud deck of a hot giant (Cr, MnS, Na<sub>2</sub>S, ZnS, KCl) is where the planet's temperature profile meets each species' condensation curve (<code>hot_condensates.cloud_temperature_k</code>). The deck needs a profile <code>T(P)</code> over the pressures it searches, 1e-6 to 1e3 bar. The generator has no such profile above the 1 bar reference level of a giant (<code>surface_air</code> solves one temperature there), so this module gives one.</p>
+<h2 id="the-form">The form</h2>
+<p>[R1715] equation 29, the analytic semi-grey irradiated atmosphere in radiative equilibrium, READ in the research (<code>atmosphere-composition-parts/03-infrared-greenhouse-thermal.md</code> section 5.1):</p>
+<pre><code>T^4 = (3 T_int^4 / 4)(2/3 + tau) + (3 f T_irr^4 / 4)[2/3 + 1/(gamma sqrt 3) + (gamma/sqrt 3 - 1/(gamma sqrt 3)) exp(-gamma tau sqrt 3)]
+</code></pre>
+<p>with <code>tau = kappa_th P / g</code>. Inputs, all already built: the whole-globe equilibrium temperature (<code>climate_draws.equilibrium_temperature_k</code> with no internal flux, so <code>T_irr^4 = 4 T_eq^4</code> and <code>f = 1/4</code> returns it), the giant's own heat flux (<code>giant_draw.own_flux_w_m2</code>, GEN.816) as <code>T_int</code>, and the gravity. Two opacities: a constant thermal one and a visible one that is <code>gamma</code> times it.</p>
+<p>Why this form: it is the research's own READ and coded-and-checked profile (the worked example below), it has the three features the deck needs (a cool skin, a deep isotherm, and an inversion when a strong visible absorber raises <code>gamma</code>), and it is a closed form with no solve, so it is cheap and draws nothing.</p>
+<h2 id="checked-against">Checked against</h2>
+<p>The research's worked example (HD 209458 b, kappa_th 1e-2 cm2/g, kappa_v 4e-3, T_int 100 K, T_eq 1469 K, g 1000 cm/s2, f 1/4): 1473 K at 66.7 mbar, 1647 K at 1 bar, 1648 K at 10 bar. The module reproduces 1472.6, 1647.4 and 1648.1 K (<code>test_the_worked_example_of_the_research</code>). The top equals the skin temperature; the bottom equals the deep isotherm; <code>gamma</code> large inverts the profile; the internal heat warms only the deep end.</p>
+<h2 id="stand-ins-registry-6288">Stand-ins (registry 6.288)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>row</th>
+<th>what</th>
+<th>tier</th>
+<th>why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HGP1</td>
+<td><code>KAPPA_THERMAL_M2_KG</code> = 1e-3 m2/kg</td>
+<td>T2, L0</td>
+<td>Guillot's own value for HD 209458 b; one value for every hot giant</td>
+</tr>
+<tr>
+<td>HGP2</td>
+<td><code>GAMMA_AT_2000_K</code> = 0.6, <code>gamma</code> as <code>0.6 sqrt(T_irr / 2000 K)</code></td>
+<td>T2, L0</td>
+<td>Guillot's <code>kappa_v = 6e-3 sqrt(T_irr / 2000 K)</code> over his <code>kappa_th</code></td>
+</tr>
+<tr>
+<td>HGP3</td>
+<td>constant opacity over 1e-6 to 1e3 bar</td>
+<td>T6, L0</td>
+<td>above about 10 bar real collision-induced and electron opacity grow with pressure, so the profile underestimates the deep temperature; the lowest clouds (Cr, MnS) can sit there</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="what-a-later-part-adds">What a later part adds</h2>
+<ul>
+<li>A convective floor: the deep end follows the interior adiabat, not the isotherm (the radiative-convective joining of [R3783], section 5.3 of the research). The caller can floor the result with the adiabat of the giant's entropy until then.</li>
+<li>The two-band picket fence of [R3439] (section 5.2) for planets with a line-to-continuum split; its coefficients were not transcribed.</li>
+<li>Opacities from the atmosphere's own mixture (<code>line_opacity</code>, <code>greenhouse</code>) instead of HGP1 and HGP2.</li>
+<li>Wiring: Lane 14 calls <code>profile_function</code> for each hot giant and passes it to <code>hot_cloud_deck.deck</code>.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

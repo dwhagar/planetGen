@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adaptations of life to cold, heat, dryness, salt and dim light (GEN.1725) - planetGen docs</title>
+<meta name="description" content="Status: the table and the traits cold and heat are built; nothing reads a limit yet (the refuge gate of GEN.1723 will).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/habitability/life-adaptations.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/habitability/life-adaptations.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="adaptations-of-life-to-cold-heat-dryness-salt-and-dim-light-gen1725">Adaptations of life to cold, heat, dryness, salt and dim light (GEN.1725)</h1><p class="meta">docs/design/habitability/life-adaptations.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-it-is">1. What it is</a></li><li style="margin-left:0px"><a href="#2-the-table">2. The table</a></li><li style="margin-left:0px"><a href="#3-the-traits-cold-and-heat">3. The traits cold and heat</a></li><li style="margin-left:0px"><a href="#4-reuse">4. Reuse</a></li><li style="margin-left:0px"><a href="#5-what-it-leaves-out">5. What it leaves out</a></li></ul></details>
+<p>Status: the table and the traits cold and heat are built; nothing reads a limit yet (the refuge gate of GEN.1723 will). Code: <code>physics/data/life_adaptations.json</code>,
+<code>physics/life_adaptations.py</code>, <code>physics/adaptation_traits.py</code> and <code>adaptation_draw.py</code> (GEN.876's traits, extended). Tests: <code>tests/test_life_adaptations.py</code>. Research:
+<code>reports/life-adaptations-climate-2026-11-14.md</code> (GEN.1724) and <code>reports/ice-light-and-lichen-cold-edge-2026-11-14.md</code> (GEN.1727). Boss, 9:17 PM EST 2026-11-14: &quot;implement it, make it happen&quot;.</p>
+<h2 id="1-what-it-is">1. What it is</h2>
+<p>Oxygen-making life lives far outside the warm, wet, lit sea. It lives in sea ice, under lake ice, in melt holes on glaciers, in rock, in desert crusts, in salt, and in hot springs, and each place needs
+something the life has become: a pigment that works in almost no light, a sugar that keeps cells from freezing, a crust that wakes on a few hours of water. The table lists those adaptations, once, as data,
+so that the generator can say how far a body's life goes and the page can say what it is adapted to.</p>
+<h2 id="2-the-table">2. The table</h2>
+<p><code>life_adaptations.json</code> holds 36 rows (the adaptations of the GEN.1724 tables C, H, D, S and L), the six axes, the stages and the habitats.</p>
+<ul>
+<li><strong>Axes.</strong> <code>t_cold</code> and <code>t_hot</code> (K, the local temperature of the water the life works in), <code>light_floor</code> (umol photons m-2 s-1), <code>water_hours</code> (hours of liquid water a year), <code>water_activity</code>, <code>ground_water_depth</code> (m)
+and <code>insulation</code> (K). Each axis has <strong>one ordinary limit</strong> (the life with no adaptation) with its own tier and tweak, so no two rows disagree about it, and a direction (wider is lower or higher).</li>
+<li><strong>Rows.</strong> An adaptation: the climate it serves (the codes of the research), the kinds of life that carry it, the life classes (<code>all</code>, or the oxygen-making <code>1a</code>, <code>1b</code>, <code>1c</code>, or none), the axis, the limit at the tolerant
+(grade 2) and extreme (grade 3) grades (each wider than the one before), whether it keeps the life <strong>active</strong> or only <strong>dormant</strong> (freeze tolerance, desiccation tolerance and spores let life survive a limit, not work
+past it), the stage the life must have reached, the habitat it opens, its source rows, tier and tweak. A row that moves no number (the snow algae's sunscreen) has no axis and opens a habitat.</li>
+<li><strong>Stages.</strong> The delay after the first life before a life can have an adaptation, from the one example (GEN.1724 LA8): cyanobacteria 0.8 to 1.1 Gyr, land mats 0.6, algae 2.2, mosses 3.3, rooted plants 3.4, C4 3.8. The animal stage has
+no delay of its own (the life timeline decides).</li>
+<li><strong>Habitats.</strong> The refuge kinds the gate of GEN.1723 counts (open water, water under ice, melt film, crust land, seep, brine, hot pool) with the gate each one needs and the adaptations that open it.</li>
+</ul>
+<p><code>life_adaptations.limit(axis, grade, life_types=..., class_id=..., life_age_gyr=..., animals=...)</code> gives the widest limit of the rows that apply at a grade, or the ordinary limit. At the extreme grade for class 1a the table
+reaches the measured edges: 253 K (lichen, field, -20 C), 346 K (cyanobacteria, 73 C), 0.04 umol m-2 s-1 (under the Arctic pack), 75 hours of water a year (hypoliths), 68 m of root.</p>
+<h2 id="3-the-traits-cold-and-heat">3. The traits cold and heat</h2>
+<p>GEN.876's traits widen a limit the habitability index holds, by a factor. Cold and heat widen a limit in the units of an axis (the temperature the life is active down to and up to), so a grade means a limit from the table,
+not a factor (<code>adaptation_traits.limit</code>). They are drawn once per body from its own stress, like the three before them, and stored in <code>life_traits</code> (<code>cold:3,heat:2</code>, shown as &quot;cold (extreme)&quot;):</p>
+<ul>
+<li>the stress is the shortfall in K of the body's <strong>mean surface temperature</strong> past the ordinary limit (273.15 K for cold, 313.15 K for heat), scored on a straight line from 0 to the width of the table for class 1a (20 K for cold,
+33 K for heat); the chance and the grade follow the same law as the other traits (<code>P_CAP</code> 0.8 times the score; extreme with chance <code>GRADE3_SHARE</code> times the score squared);</li>
+<li>they come <strong>last</strong> in the draw order, so the radiation, sulfide and carbon dioxide traits of every body are what they were (a test pins it); a body now draws ten uniforms, two for each of five stresses;</li>
+<li><strong>nothing reads them yet.</strong> The scores of the habitability index and the life classes are unchanged, and a trait never makes a world habitable to people. The refuge gate of GEN.1723 reads <code>adaptation_traits.limit</code> to widen where
+a class 1 life can work; widening the class 1 gate in <code>life_classes.json</code> waits for it (the same file).</li>
+<li>the <strong>light floor</strong> under ice has no trait: nothing stores the ice a world's ocean wears (GEN.1728), so its stress cannot be read. The same goes for dryness (no stored hours of liquid water) and brine (the water activity
+has its column, but no body has been scored for it). They are rows of the table with no draw.</li>
+</ul>
+<p>The mean temperature stands for the habitat's until GEN.1723 stores the local one; a world with a cold mean and a warm tropics draws the cold trait too often, and one with a warm mean and cold poles too seldom.</p>
+<h2 id="4-reuse">4. Reuse</h2>
+<p>The traits extend GEN.876 (<code>adaptation_traits</code>, <code>adaptation_draw</code>) and add no second draw; the table reads the same tier and tweak ladders as the registry (<code>docs/design/research/stand-in-values.md</code>); the refuge limits of GEN.1722 (RF1 to RF11)
+are rows, not new constants. Habitats are read by GEN.1723. Light under ice is <code>ice_light</code> (GEN.1726).</p>
+<h2 id="5-what-it-leaves-out">5. What it leaves out</h2>
+<p>Production factors (how much each adaptation costs the life in growth) are empty except where the research gives one (the under-ice shade adaptation and cryoconite, 1.0): the research found no adaptation that raises refuge production
+per area by more than a small factor, and no source for the costs. The build treats an empty factor as no change.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

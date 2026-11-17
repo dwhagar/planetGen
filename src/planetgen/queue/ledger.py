@@ -147,6 +147,15 @@ def end_running(conn, job_id, outcome, peak_mb=None, cpu_seconds=None, error_kin
     return numbers
 
 
+STOPPED = "stopped"
+"""str: The `error_kind` of an attempt that stopped between two pieces because the supervisor asked it to (OPS.231, `Launcher.yield_youngest`): not a failure, and not counted against the job's retry."""
+
+
+def stopped_attempts(conn, job_id):
+    """How many attempts of the job ended `STOPPED`: the attempts that gave their memory back, which the job's retry budget does not count."""
+    return int(conn.execute("SELECT COUNT(*) AS n FROM engine_attempts WHERE job_id = ? AND error_kind = ?", (job_id, STOPPED)).fetchone()["n"])
+
+
 def attempt_row(conn, job_id, number):
     """The attempt row (`outcome`, `ended_at`, `error_kind`, `error_text`, `stack_file`, `peak_mb`, `cpu_seconds`, `started_at`, `pid`) of the job's attempt `number`, or `None`."""
     return conn.execute("SELECT outcome, started_at, ended_at, pid, peak_mb, cpu_seconds, error_kind, error_text, stack_file FROM engine_attempts WHERE job_id = ? AND attempt = ?",

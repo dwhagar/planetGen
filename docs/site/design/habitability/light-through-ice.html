@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Light through ice and snow (GEN.1726) - planetGen docs</title>
+<meta name="description" content="Status: built (the law and its inverse); not yet read by anything.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/habitability/light-through-ice.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/habitability/light-through-ice.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="light-through-ice-and-snow-gen1726">Light through ice and snow (GEN.1726)</h1><p class="meta">docs/design/habitability/light-through-ice.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#1-why">1. Why</a></li><li style="margin-left:0px"><a href="#2-the-law">2. The law</a></li><li style="margin-left:0px"><a href="#3-checks-against-measurements">3. Checks against measurements</a></li><li style="margin-left:0px"><a href="#4-how-thick-a-lid-still-lets-life-work">4. How thick a lid still lets life work</a></li><li style="margin-left:0px"><a href="#5-what-it-leaves-out-and-what-it-needs">5. What it leaves out, and what it needs</a></li><li style="margin-left:0px"><a href="#6-reuse">6. Reuse</a></li></ul></details>
+<p>Status: built (the law and its inverse); not yet read by anything. Code: <code>physics/ice_light.py</code>. Tests: <code>tests/test_ice_light.py</code>. Research: <code>reports/ice-light-and-lichen-cold-edge-2026-11-14.md</code>
+(section 3) and <code>reports/life-adaptations-climate-2026-11-14.md</code> (GEN.1724). Boss, 9:17 PM EST 2026-11-14: &quot;implement it, make it happen&quot;.</p>
+<h2 id="1-why">1. Why</h2>
+<p>A frozen-over ocean is not a dark one. Most of the Arctic Ocean's photosynthesis already happens in water under more than 85 percent ice cover, and perennially ice-covered lakes
+keep oxygen-making mats going year round under 3 to 5 m of ice. The refuge term of GEN.1723 (the oxygen that life makes where light and any liquid water meet) therefore has to count lit
+water under a lid, as the ocean's area times the light that gets through, and not as zero or as a pool. This module is the law for the light that gets through.</p>
+<h2 id="2-the-law">2. The law</h2>
+<p><code>T = (1 - albedo) x exp(-k_ice x h_ice) x exp(-k_snow x h_snow)</code></p>
+<p><code>T</code> is the share of the photosynthetically active light (400 to 700 nm) at the surface that reaches the water. It is the two-layer Beer-Lambert law of [R5264] (equation 3.1) with the
+reflection at the top that [R5265] take off before they fit the same law to a lake.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Material</th>
+<th>Value</th>
+<th>Source</th>
+<th>Tier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IL1</td>
+<td>k, sea ice (per m)</td>
+<td>1.26, range 0.8 to 1.5</td>
+<td>[R5264, R5267]</td>
+<td>T1, L0</td>
+</tr>
+<tr>
+<td>IL2</td>
+<td>k, clear fresh lake ice (per m)</td>
+<td>0.32, down to 0.2 for thick perennial ice</td>
+<td>[R5265]</td>
+<td>T1, L0</td>
+</tr>
+<tr>
+<td>IL3</td>
+<td>k, snow (per m)</td>
+<td>30, range 10 to 100 (31.8 measured; 2.1 for one wind-packed layer; temperate 3 to 30)</td>
+<td>[R5264, R5265, R5268]</td>
+<td>T1, L0</td>
+</tr>
+<tr>
+<td>IL4</td>
+<td>albedo</td>
+<td>bare sea ice 0.6 (0.5 to 0.7); lake ice 0.84; snow 0.9 (0.8 to 0.97)</td>
+<td>[R5264, R5265, R5266]</td>
+<td>T1, L0</td>
+</tr>
+<tr>
+<td>IL5</td>
+<td>albedo, melting ice</td>
+<td>0.4 (0.2 to 0.6)</td>
+<td>[R5266]</td>
+<td>T1, L0</td>
+</tr>
+<tr>
+<td>IL6</td>
+<td>snow cover depth</td>
+<td>0.03 m e-folding: how fast a thin snow takes over the albedo</td>
+<td>no source; 10 cm of snow takes 95 percent of the light [R5268]</td>
+<td>T7, L1</td>
+</tr>
+</tbody>
+</table></div>
+<p>Snow is the main absorber, 30 times stronger per metre than sea ice and about 100 times stronger than clear lake ice, so the snow depth on a lid decides most of <code>T</code>.</p>
+<h2 id="3-checks-against-measurements">3. Checks against measurements</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Law</th>
+<th>Measured</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lake A, 1.97 m of ice, snow removed [R5265]</td>
+<td>8.5 percent</td>
+<td>5.7 to 6.6 percent</td>
+</tr>
+<tr>
+<td>Lake A, 2 m of ice and 0.5 m of wind-packed snow (k 2.1, albedo 0.97)</td>
+<td>0.55 percent</td>
+<td>0.45 percent</td>
+</tr>
+<tr>
+<td>Antarctic pack ice in spring, 0.5 m ice and 0.2 m snow of albedo 0.8 [R5264]</td>
+<td>0.03 percent</td>
+<td>under 0.1 percent</td>
+</tr>
+</tbody>
+</table></div>
+<p>The thin lid of a glacier melt lake (16 cm of ice) gives 33 percent against 21 to 23 percent in the one paper that measured it; that paper also says under 10 percent, a conflict the research could not settle.</p>
+<h2 id="4-how-thick-a-lid-still-lets-life-work">4. How thick a lid still lets life work</h2>
+<p>The floor of GEN.1722 (0.04 umol photons m-2 s-1 as a daily mean, net growth) under an Earth-bright sky (a daily mean of about 400 umol m-2 s-1 in the lit season) is <code>T</code> of about 1e-4. The
+thickest lid that keeps that: bare sea ice about 6.6 m; bare clear lake ice 23 m at k 0.32 and 30 m at k 0.25; snow alone about 0.23 m; 0.1 m of snow takes about 2.4 m of sea ice from the
+depth. A world's own star and orbit set the surface light, so these depths move with them. They are examples only.</p>
+<h2 id="5-what-it-leaves-out-and-what-it-needs">5. What it leaves out, and what it needs</h2>
+<ul>
+<li>The coefficients are for the Sun's spectrum. Ice absorbs least at 400 to 500 nm and more toward the red, so a red star's light falls faster under a lid.</li>
+<li>The top 10 to 20 cm of sea ice attenuates more than the inside; it is folded into the albedo and the bulk k. Ice algae on the underside shade themselves (k 20 to 50); melt ponds let more through. Neither is counted.</li>
+<li>The thickness of the ice and the snow is the growth law's: <code>physics/ice_growth.py</code> (GEN.1728, <a href="ice-and-snow-growth.html">ice-and-snow-growth.md</a>) gives a world's lid from its mean surface temperature, the swing of its year and its starlight; this law only reads the thickness it is handed.</li>
+</ul>
+<h2 id="6-reuse">6. Reuse</h2>
+<p>The generator's own ice albedos (<code>climate_branches.ICE_COVERED_ALBEDO</code>, <code>surface_air.ice_albedo_law</code>) are Bond albedos of a whole world, clouds included, so they are not the albedo of the ice surface to
+photosynthetic light and are not reused; the stellar spectrum module is the caller's source of surface light (<code>biogenic_oxygen</code> takes it there already). Nothing else in the code holds an ice or snow light law.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

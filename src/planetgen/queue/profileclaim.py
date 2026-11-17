@@ -186,7 +186,6 @@ def clear(conn, kind, who="an admin"):
         old = json.loads(memorygate._decode(stored))["figure"]
     conn.hdel(memorygate._key("profile"), kind)
     conn.hdel(memorygate._key("learned"), kind)
-    conn.hdel(memorygate._key("adaptive:settled"), kind)
     removed = 0
     try:
         from planetgen.db import store
