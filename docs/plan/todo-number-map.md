@@ -2971,7 +2971,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.274 | (bug) Warming the galaxy lists and stats every tile-cache file once per warm chunk (tilecache.cache_is_full from web/warmup.py line 854): the warm-galaxy-deep-nodes case stood 58 s walking 181,000 files on a cold file cache | done (PR 6866, Lane 16, merged 10:33 AM EST 11-16: the tile-cache size walk reports each folder to the unit beat, and a walk of 1 s or more is reused for ten times its length, so the 58 s silence on a cold disk is gone) |
 | PERF.275 | (high) A Stage 9 sky share takes about 5 hours: profile and cut | done (PR 6999, 19 percent less per sky share; the rest is the draw itself) |
 | PERF.276 | The air solve is 59 percent of a full system build: cut repeat solves | done (Lanes 16 and 07, 3:43 AM EST 11-17: PRs 6993, 7004, 7016, 7024, 7028, all output identical; exobase step is PERF.278, cooling step PERF.277) |
-| PERF.277 | Interior cooling of old belt-sized bodies takes up to 770,000 steps: stop the step collapse | open (Lane 16) |
+| PERF.277 | Interior cooling of old belt-sized bodies takes up to 770,000 steps: stop the step collapse | done (Train 43, PR 7084, 11-17) |
 | PERF.278 | The exobase search takes 15 percent of a build: a fixed 0.25 scale-height step (lock) | closed, not worth it as speed (Lane 07, 3:50 AM EST 11-17: 2.6 percent of a build after the cache); accuracy fault is GEN.1784 |
 | PERF.279 | Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes) | TEST.788 | open (Lane 16) |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
@@ -4107,9 +4107,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1770 | (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red) | done (PR 6903, Lane 07, merged in Train 40, PR 6938, 6:47 PM EST 11-16) |
 | GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | open |
 | GEN.1772 | (bug) Civilizations on worlds whose air the species placement refuses (the air cannot be breathed) | done (PR 6963, Lane 04, merged 9:05 PM EST 11-16) |
-| GEN.1773 | (bug) A body past the runaway limit keeps an ocean (Venus twin at 586 K, 118 bar) | open (Lane 14) |
+| GEN.1773 | (bug) A body past the runaway limit keeps an ocean (Venus twin at 586 K, 118 bar) | done (Train 43, PR 7084, 11-17) |
 | GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | done (Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6978: smooth keep share 1 to 3 Earth masses, registered tweak) |
-| GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | open (Lane 06) |
+| GEN.1775 | Comet abundance setting (physics at Science, tiers scale it, like Class M and Rogue planets) | done (Train 43, PR 7084, 11-17) |
 | GEN.1776 | Civilizations arise only in CO2-rich air (19 to 792 kPa), none Earth-like | closed, measured, no code change (Lane 04, 9:49 PM EST 11-16; linked to GEN.1720 and GEN.1731; Boss kept the life clock stand-ins, 9:51 PM EST) |
 | GEN.1777 | (high) No Class M family at Plentiful: funnel and a tunable CO2 lever. Measure whether the CO2 supply needs a tweak (report first, Boss decides) | open (Lane 04) |
 | GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | done (PR 7042, 4:13 AM EST 11-17: aim only when a world meets the conditions and has life; F5V case is GEN.1783) |
@@ -4117,8 +4117,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1780 | The GEN.1732 haze loss ramp may have two branches (seed 106: 229 K to 134 K) | open (Lane 02) |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs: pair absorption missing or real anti-greenhouse? | open (Lane 02) |
 | GEN.1782 | Class D small bodies do not scale with metallicity (more in the halo) | closed, not a bug (Lane 06, 3:33 AM EST 11-17: 11.2 disk against 11.9 halo over 130 systems each, within noise; the count is pinned at ten per belt; cap question stays GEN.1674) |
-| GEN.1783 | (bug) A wide-binary planet's apoapsis passes the stability limit the validator uses | open (Lane 05) |
-| GEN.1784 | The exobase search underestimates the exobase height (median 6 percent, up to 25) (lock) | open (Lane 07) |
+| GEN.1783 | (bug) A wide-binary planet's apoapsis passes the stability limit the validator uses | done (Train 43, PR 7084, 11-17) |
+| GEN.1784 | The exobase search underestimates the exobase height (median 6 percent, up to 25) (lock) | done (Train 43, PR 7084, 11-17) |
 | GEN.1785 | Class census shifts since 8656686b7: explain each, fix faults, renew ranges | GEN.1390 | open (Lane 04) |
 | GEN.1786 | Held resonance eccentricity not saved or restored since GEN.1651 (bug) | GEN.1651 | done (PR 7057, 11-17) |
 | GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | open (Lane 16) |
