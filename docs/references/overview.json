@@ -24,11 +24,11 @@
       "T9": 226
     },
     "by_tweak": {
-      "L0": 1073,
+      "L0": 1072,
       "L1": 385,
       "L2": 96,
       "L3": 264,
-      "L4": 60
+      "L4": 61
     },
     "rows": 1878
   },
@@ -117,7 +117,7 @@
     },
     "fitted_to_a_result": {
       "percent": 22,
-      "rows": 420
+      "rows": 421
     },
     "read_from_a_source": {
       "percent": 27,
