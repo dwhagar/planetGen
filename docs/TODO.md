@@ -11812,11 +11812,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 13, priority 1. Prerequisites: none. Related: OPS.269, PERF.275.
   Filed by the TODO thread.
 
-- [ ] **GEN.1778 (bug) HABITABLE_WORLD=True can end with no habitable world and the request still at "aim", not "unmet" (K5IV case of test_full_matrix, seen under xdist)**
-  Found by Lane 16 on TEST.788, 11:18 PM EST 2026-11-16: test_full_system_generates_with_belt_and_habitable_world_across_every_star_type[K5IV] failed with "HABITABLE_WORLD=True produced no habitable world and did not say so" (habitable_class_count 0, habitable_request "aim"). It passes alone on main c8bfa87b17; the test sets no run seed, so its draws depend on what the worker ran before. Do: find the path where the habitable request ends without a class and without being marked unmet (fix the generator so a request is always met or said unmet), and seed the test so a failure can be replayed (no picking a seed that passes; the assertion stays).
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 05 (moved from Lane 14, 1:50 AM EST). Prerequisites: none. Related: TEST.788, GEN.1773.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1780 The GEN.1732 haze loss ramp (215 to 245 K) may have two branches: seed 106's haze-free replay fell from 229 K to 134 K, a 95 K cold branch (measure first)**
   Train Manager, 1:32 AM EST 2026-11-17 (Train 42, fix PR 6991): Lane 02's haze fixture now skips bodies that settle inside the 215 to 245 K loss ramp because a replay without haze can land far from the first answer. Do: measure how many bodies settle inside the ramp, whether the settle has two stable answers there (hysteresis) and which one the build keeps, and whether that is physical (a real haze-temperature feedback) or a solver artifact; report before any change, then fix so the build gives one answer for one body.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 02. Prerequisites: none. Related: GEN.1732.
