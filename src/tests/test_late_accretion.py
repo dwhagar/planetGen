@@ -18,7 +18,8 @@ EARTH_KG = 5.9722e24
 
 
 def _earth_like(seed):
-    """A rocky planet of a G star at 1 AU on its own, with the late accretion the first air drew."""
+    """A rocky planet of a G star at 1 AU on its own, with the late accretion the first air drew (`None` for one that kept an envelope: since GEN.1710 a rocky planet the escape law
+    leaves an envelope has no ground, its air is solved at the 1 bar level like a giant's, and the late accretion is not drawn for it)."""
     seen = []
     real = impact_history.late_accreted_fraction
 
@@ -36,7 +37,7 @@ def _earth_like(seed):
             planet = Planet(cfg, star, star.habitable_zone, 1.0, mass=EARTH_KG, moon_count=0)
     finally:
         impact_history.late_accreted_fraction = real
-    return planet, seen[-1]
+    return planet, (seen[-1] if seen else None)
 
 
 def _air(planet):
@@ -47,9 +48,9 @@ def test_making_the_air_again_with_the_late_accretion_it_drew_gives_the_planet_i
     """The air solves twice (a first pass, then the one that is kept), each with its own draw of the late accretion; the replay holds both to the one percent, so a
     planet that drew nearly the same twice comes back as it was and one that drew differently comes back within a hair of it."""
     checked = 0
-    for seed in range(1, 6):
+    for seed in range(1, 11):       # GEN.1710: about a half of the Earth-mass planets of a G star at 1 AU keep an envelope and so have no late accretion to replay
         planet, percent = _earth_like(seed)
-        if planet.body_type != "t" or planet.build.air_replay is None:
+        if percent is None or planet.body_type != "t" or planet.build.air_replay is None:
             continue
         before = _air(planet)
         assert planet_physics.remake_air(planet, percent, 0.0)
@@ -74,7 +75,7 @@ def test_a_different_late_accretion_changes_the_air_and_not_the_run_stream():
     # TEST.714: a seed whose planet keeps a temperate air (one that came out a runaway steam world of 30 MPa holds that air whatever it accreted late, and which seeds do moves with every
     # change to the star draws, GEN.1623), found by search
     from tests.fuzz_support import first_seed_with
-    _seed, (planet, percent) = first_seed_with(_earth_like, lambda made: made[0].body_type == "t" and made[0].surface_temperature < 400.0, seeds=range(1, 20),
+    _seed, (planet, percent) = first_seed_with(_earth_like, lambda made: made[1] is not None and made[0].body_type == "t" and made[0].surface_temperature < 400.0, seeds=range(1, 20),
                                                what="an Earth-like planet of a G star at 1 AU with a temperate air")
     before = _air(planet)
     draw.set_run_seed(77)
