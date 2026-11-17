@@ -54,7 +54,7 @@ def test_the_switch_refuses_slots_and_unknown_letters():
     with pytest.raises(ValueError, match="SLOTS"), draw.bound(draw.Stream(1)):
         StarSystem(system_config=config)
     config = SystemConfig()
-    config.FORCE_CLASS = "Q"
+    config.FORCE_CLASS = "1"      # every letter A to Z is a class now, so the unknown one is not a letter
     with pytest.raises(ValueError, match="not a planet class"), draw.bound(draw.Stream(1)):
         StarSystem(system_config=config)
 

@@ -88,14 +88,22 @@ def standing_from_inventory(inventory_mol_m2, age_s, rate, light_limit_mol_m2_s=
     return source * life * -math.expm1(-age_s / life)
 
 
-def column_mol_m2(partial_pa, formula, gravity_m_s2):
-    """The column, mol per m2 of ground, of a gas of `partial_pa` in an air of surface gravity `gravity_m_s2` (the weight of its part of the air over the molar mass)."""
-    return partial_pa / (gravity_m_s2 * gases.gas(formula).molar_mass)
+def mean_molar_mass_kg_mol(partials_pa):
+    """The mean molar mass, kg/mol, of an air of `partials_pa` (formula to Pa; the partials are mole shares of the total pressure)."""
+    total = math.fsum(value for value in partials_pa.values() if value > 0.0)
+    if total <= 0.0:
+        return 0.0
+    return math.fsum(value / total * gases.gas(formula).molar_mass for formula, value in partials_pa.items() if value > 0.0)
 
 
-def partial_pa_of(column, formula, gravity_m_s2):
-    """The partial pressure, Pa, of a gas of `column` mol per m2."""
-    return column * gravity_m_s2 * gases.gas(formula).molar_mass
+def column_mol_m2(partial_pa, gravity_m_s2, mean_molar_mass_kg_mol):
+    """The column, mol per m2 of ground, of a gas of `partial_pa` (its mole share of the total pressure) in an air of surface gravity `gravity_m_s2` and mean molar mass `mean_molar_mass_kg_mol` (the air's moles are its weight over that mass)."""
+    return partial_pa / (gravity_m_s2 * mean_molar_mass_kg_mol)
+
+
+def partial_pa_of(column, gravity_m_s2, mean_molar_mass_kg_mol):
+    """The partial pressure, Pa, of a gas of `column` mol per m2 in the same air (the inverse of `column_mol_m2`: a partial pressure is proportional to the moles)."""
+    return column * gravity_m_s2 * mean_molar_mass_kg_mol
 
 
 def light_limit(formula, far_uv, star_temperature_k):
@@ -107,10 +115,13 @@ def light_limit(formula, far_uv, star_temperature_k):
 
 def lose(partials_pa, gravity_m_s2, age_s, far_uv, star_temperature_k):
     """
-    The partial pressures, Pa, of an air (`partials_pa`: formula to Pa) after the star's light has worked on its ammonia and methane for `age_s`, the amounts of the two taken as the inventory of a constant source over the age
-    (`standing_from_inventory`): what is lost leaves its products (`LOST_TO`). Moles are conserved but for the hydrogen; the other gases are returned as they were.
+    The partial pressures, Pa, of an air (`partials_pa`: formula to Pa, mole shares of the total) after the star's light has worked on its ammonia and methane for `age_s`, the amounts of the two taken as the inventory of a constant
+    source over the age (`standing_from_inventory`): what is lost leaves its products (`LOST_TO`). Moles are conserved but for the hydrogen (a partial pressure is proportional to the moles of the air as it was); the other gases are returned as they were.
     """
     out = dict(partials_pa)
+    mass = mean_molar_mass_kg_mol(partials_pa)
+    if mass <= 0.0:
+        return out
     for formula in PHOTOLYSED:
         have = out.get(formula, 0.0)
         if have <= 0.0:
@@ -118,10 +129,10 @@ def lose(partials_pa, gravity_m_s2, age_s, far_uv, star_temperature_k):
         rate = rate_per_s(formula, far_uv, star_temperature_k)
         if rate <= 0.0:
             continue
-        column = column_mol_m2(have, formula, gravity_m_s2)
+        column = column_mol_m2(have, gravity_m_s2, mass)
         left = standing_from_inventory(column, age_s, rate, light_limit(formula, far_uv, star_temperature_k))
         lost = column - left
-        out[formula] = partial_pa_of(left, formula, gravity_m_s2)
+        out[formula] = partial_pa_of(left, gravity_m_s2, mass)
         product, per_mole = LOST_TO[formula]
-        out[product] = out.get(product, 0.0) + partial_pa_of(lost * per_mole, product, gravity_m_s2)
+        out[product] = out.get(product, 0.0) + partial_pa_of(lost * per_mole, gravity_m_s2, mass)
     return out

@@ -31,7 +31,7 @@ pebbles (the isolation mass), planets that eat pebbles on the way, the soot line
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants as physical_constants, disk_condensation, scatter
+from planetgen.physics import constants as physical_constants, disk_condensation, pre_main_sequence
 from planetgen.util.checks import finite_domain
 
 MYR_YR = 1.0e6
@@ -163,9 +163,9 @@ def pebble_taper(age_myr, snow_line_au, mass_solar=1.0):
     return math.exp(-front_au(age_myr, mass_solar) / edge_au(snow_line_au))
 
 
-def disk_end_myr():
-    """The age at which the disk is gone and nothing is carried any more, Myr (`scatter.DISK_LIFETIME_YR`)."""
-    return scatter.DISK_LIFETIME_YR / MYR_YR
+def disk_end_myr(mass_solar):
+    """The age at which the disk of a star of `mass_solar` is gone and nothing is carried any more, Myr (GEN.1551, `pre_main_sequence.dispersal_yr`: the star's own time from its mass, with no close companion: the callers hold no companions)."""
+    return pre_main_sequence.dispersal_yr(mass_solar) / MYR_YR
 
 
 def pebble_flux_earth_per_yr(age_myr, mass_solar=1.0, metal_ratio=1.0):
@@ -277,7 +277,7 @@ def enrichment_ratio(species, age_myr, snow_line_au, mass_solar=1.0, metal_ratio
     if age_myr < lag:
         return 1.0                                  # the gas at the place has not crossed the line yet: it is the disk's own gas of the start, vapor and all (GEN.1517)
     first = arrival_myr(line, mass_solar)
-    last = disk_end_myr()
+    last = disk_end_myr(mass_solar)
     if first >= last:
         return 0.0
     if lag <= 0.0 or age_myr <= 0.0:
@@ -311,7 +311,7 @@ def gathering_age_myr(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1
     """
     place = place_au(temperature_k, snow_line_au)
     arrived = arrival_myr(place, mass_solar)
-    cap = disk_end_myr()
+    cap = disk_end_myr(mass_solar)
     if arrived >= cap:
         return cap
     z = solids_over_gas(metal_ratio)

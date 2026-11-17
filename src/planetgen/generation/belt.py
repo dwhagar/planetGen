@@ -252,21 +252,29 @@ class AsteroidBelt:
 
     def _force_by_companions(self, star, rows):
         """
-        The members' eccentricity and periapsis as a companion star's secular forcing leaves them (GEN.1492, `belt_forcing`): the vector sum of the drawn eccentricity and the forced one, at
-        each member's own distance, with the dilution of the planets given by `give_secular_planets`. A star with no companion, and a member outside the theory, keep what was drawn.
+        The members' orbits as a companion star's secular forcing leaves them (GEN.1492, `belt_forcing`). The eccentricity and periapsis are the vector sum of the drawn eccentricity and the forced
+        one, at each member's own distance, with the dilution of the planets given by `give_secular_planets`. The inclination and node are the drawn orbit normal turned to a drawn phase on the cone
+        about the forced axis (the planets' plane and each companion's plane, weighted by their nodal rates), for a companion whose plane is known and a member the theory reaches. A star with
+        no companion, and a member outside the theory, keep what was drawn.
         """
-        sources = [(c.star.mass, c.axis_au, c.eccentricity, belt_forcing.periapsis_rad(star.mass, c.member_no, c.axis_au))
-                   for c in radiation_field.companions_of(star) if getattr(c.star, "mass", None)]
-        if not sources:
+        companions = [c for c in radiation_field.companions_of(star) if getattr(c.star, "mass", None)]
+        if not companions:
             return rows
+        sources = [(c.star.mass, c.axis_au, c.eccentricity, belt_forcing.periapsis_rad(star.mass, c.member_no, c.axis_au)) for c in companions]
+        planes = [(c.star.mass, c.axis_au, c.eccentricity, c.normal) for c in companions if c.normal is not None]
         axes, masses = self._secular_planets
+        phases = draw.Stream(f"belt-tilt:{self.distance!r}:{self.lower_limit!r}:{star.mass!r}")
         for row in rows:
             distance = row["distance_au"]
+            phase = math.tau * phases.random()
             vector = belt_forcing.forced_vector(distance, star.mass, sources, belt_forcing.planet_rate(distance, axes, masses, star.mass))
-            if vector == 0j:
-                continue
-            eccentricity, periapsis = belt_forcing.combined(row["eccentricity"], math.radians(row["periapsis_deg"]), vector)
-            row["eccentricity"], row["periapsis_deg"] = min(eccentricity, belt_roster.E_MAX), math.degrees(periapsis)
+            if vector != 0j:
+                eccentricity, periapsis = belt_forcing.combined(row["eccentricity"], math.radians(row["periapsis_deg"]), vector)
+                row["eccentricity"], row["periapsis_deg"] = min(eccentricity, belt_roster.E_MAX), math.degrees(periapsis)
+            if planes:
+                axis = belt_forcing.forced_normal(distance, star.mass, planes, belt_forcing.planet_nodal_rate(distance, axes, masses, star.mass))
+                if axis is not None and axis[2] < 1.0 - 1e-12:
+                    row["inclination_deg"], row["node_deg"] = belt_forcing.tilted_orbit(row["inclination_deg"], row["node_deg"], axis, phase)
         return rows
 
     @property

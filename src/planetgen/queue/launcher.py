@@ -23,7 +23,7 @@ import os
 import signal
 import time
 
-from planetgen.queue import dispatch, jobhost, ledger, memorygate, scheduler
+from planetgen.queue import dispatch, jobhost, ledger, memorygate, planrows, scheduler
 from planetgen.queue.memorygate import Claim, Holder
 
 RETRIES = 1
@@ -90,6 +90,7 @@ class Launcher:
         self.used = used if used is not None else (lambda: {})
         self.running = {}           # job id -> Started
         self.recovered_at = None
+        self._caps = {}             # (ledger run, stage) -> the most units of it that run at once (`_cap_of`)
 
     # -- ends ------------------------------------------------------------------------------------------------------------------
 
@@ -112,8 +113,12 @@ class Launcher:
             started = self.running.pop(found)
             started.drain()
             row = self.control.execute("SELECT state, attempt FROM engine_jobs WHERE id = ?", (found,)).fetchone()
-            if row is not None and row["state"] == "running" and exit_.code == 0 and started.skipped():
-                ledger.set_job_state(self.control, found, "canceled", waited="skipped: the run is no longer live or the unit was already done")
+            opening = started.row["command"] == planrows.OPENING
+            skipped = started.skipped()
+            if row is not None and row["state"] == "running" and exit_.code == 0 and (skipped or opening):
+                ledger.end_running(self.control, found, "done")             # an opening has the launcher's attempt; a unit's attempt is its own (none when it skipped)
+                finished = opening and not skipped
+                ledger.set_job_state(self.control, found, "done" if finished else "canceled", waited=None if finished else "skipped: the run is no longer live or the unit was already done")
                 self.control.commit()
             elif row is not None and row["state"] == "running":
                 outcome, kind, text = self._outcome(started, exit_)
@@ -162,8 +167,38 @@ class Launcher:
         rows = self.control.execute(
             "SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, waited, attempt, UNIX_TIMESTAMP(updated_at) AS since FROM engine_jobs"
             " WHERE state = 'ready' AND (not_before IS NULL OR not_before <= NOW(6)) ORDER BY id LIMIT ?", (READY_WINDOW,)).fetchall()
+        rows = self._within_caps(rows)
         named = {HOLDER_NAME.format(row["id"]): row for row in rows}
         return [scheduler.Ticket(name, claim_of_row(row), float(row["since"]), 0, "launcher") for name, row in named.items()], named
+
+    def _cap_of(self, row):
+        """The most units of the stage of `row` that run at once, as its run was asked (`--workers`: the `cap` its `open` row holds); `None` when none was. Kept once read, for the cut never changes."""
+        key = (row["run_id"], row["stage"])
+        if key not in self._caps:
+            found = self.control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = 'open' AND item_key = '' AND state = 'done'", key).fetchone()
+            if found is None:
+                return None             # the stage is not cut yet; asked again at the next turn
+            self._caps[key] = (json.loads(found["arguments"] or "{}") or {}).get("cap")
+        return self._caps[key]
+
+    def _within_caps(self, rows):
+        """`rows` less the units the run's own limit holds back (OPS.228): of each stage, no more units run at once than its run was asked to use (`--workers`)."""
+        taken = {}
+        for started in self.running.values():
+            if started.row["command"] != planrows.OPENING:
+                key = (started.row["run_id"], started.row["stage"])
+                taken[key] = taken.get(key, 0) + 1
+        kept = []
+        for row in rows:
+            if row["command"] == planrows.OPENING:
+                kept.append(row)
+                continue
+            key, cap = (row["run_id"], row["stage"]), self._cap_of(row)
+            if cap and taken.get(key, 0) >= cap:
+                continue
+            taken[key] = taken.get(key, 0) + 1
+            kept.append(row)
+        return kept
 
     def holders(self):
         return [Holder(HOLDER_NAME.format(job_id), started.claim, started.job.pid, "launcher", started.claim.mb, started.claim.mb) for job_id, started in self.running.items()]
@@ -179,6 +214,9 @@ class Launcher:
     def _job_of(self, row):
         """What `forkedjob.run` takes for the unit `row`: the Redis run id and the stage's index (from the stage's `open` row, `planrows.record_cut`), the unit's number, command, arguments and cost, and its
         row. A unit is given a retry when it has not had one."""
+        if row["command"] == planrows.OPENING:         # the cut of a stage (`planrows.queue_opening`)
+            named = _arguments(row)
+            return {"opening": True, "run_id": named["run_id"], "stage": named["index"], "kind": row["command"], "row": row["id"], "retries_left": max(0, RETRIES - row["attempt"])}
         opened = self.control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = 'open' AND item_key = ''", (row["run_id"], row["stage"])).fetchone()
         plan = json.loads(opened["arguments"]) if opened and opened["arguments"] else {}
         if "run_id" not in plan or "index" not in plan:
@@ -203,6 +241,8 @@ class Launcher:
             ledger.set_job_state(self.control, row["id"], "failed", waited=f"{type(exc).__name__}: {exc}"[:ledger.WAITED_CHARS])
             self.control.commit()
             raise
+        if row["command"] == planrows.OPENING:          # an opening has no unit to begin its attempt: the launcher does, with the process that runs it
+            ledger.begin_attempt(self.control, row["id"], pid=forked.pid)
         started = Started(row, forked, key, claim_of_row(row))
         self.running[row["id"]] = started
         return started

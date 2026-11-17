@@ -436,7 +436,7 @@ def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, 
     """
     context = _Context(conn)
     if tiers is None:
-        center, tiers = plan(observer_pc, limit_mag, context.edge_pc, limits=context.limits)
+        center, tiers = plan(observer_pc, limit_mag, context.edge_pc, limits=context.limits, skeleton=context.skeleton)
     started = time.perf_counter()
     with DrawLock(conn):
         ledger = sky_tier_ledger.read(conn)
@@ -524,7 +524,7 @@ def chart_part(conn, observers, limit_mag, part, *, generator_epoch=None, on_bat
     ledger = sky_tier_ledger.read(conn)
     work = []
     for center, owed_keys in observers:
-        center, tiers = plan(center, limit_mag, context.edge_pc, limits=context.limits)
+        center, tiers = plan(center, limit_mag, context.edge_pc, limits=context.limits, skeleton=context.skeleton)
         keys = {tuple(key) for key in owed_keys}
         work.append((center, tiers, [tier for tier in tiers_in_order(tiers) if (tier.ledger, float(tier.low)) in keys]))
     scale = 1.0 / part[1]

@@ -15,11 +15,8 @@ disk's size law (`belt_ledger.ICY_LAW`, a disk beyond the snow line is icy) and 
 import math
 
 from planetgen import tuning
-from planetgen.physics import belt_ledger, planet_architecture, scatter, unit_registry as units
+from planetgen.physics import belt_ledger, disk_truncation, planet_architecture, scatter, unit_registry as units
 from planetgen.util import draw
-
-DISK_EJECTION_TIME_YR = scatter.DISK_LIFETIME_YR
-"""float: When the bodies of a disk are thrown out, years after the system formed: the lifetime of the disk the scatter step uses for the bodies a planet scatters (`scatter.DISK_LIFETIME_YR`, row EJ2)."""
 
 _EARTH_KG = units.convert(1.0, "Mearth", "kg")
 _ROGUE_MIN_KG = tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH["terrestrial"][0] * _EARTH_KG
@@ -46,6 +43,7 @@ def disk_losses(bodies, star):
     The `Loss` records (kind `disk`) of the outer disks among `bodies` (the belts of `star` that `belt_birth.hand_on` handed their mass on): one for each disk whose ejected share holds at least one body of rogue mass.
     """
     star_solar = units.convert(star.mass, "kg", "Msun")
+    ejection_time_yr = disk_truncation.disk_time_yr(star)         # the bodies of a disk are thrown out when the star's own disk is gone (GEN.1551, row EJ2)
     found = []
     for belt in bodies:
         swept = getattr(belt, "swept_kg", None)
@@ -56,6 +54,6 @@ def disk_losses(bodies, star):
             continue
         each_earth = total_kg / count / _EARTH_KG
         theta = scatter.safronov_number(units.convert(belt.scatter_giant_kg, "kg", "Mearth"), units.convert(belt.scatter_giant_radius_km, "km", "Rearth"), belt.scatter_giant_au, star_solar)
-        found.append(planet_architecture.Loss("disk", count, total_kg, total_kg, belt.distance, belt.distance, DISK_EJECTION_TIME_YR, belt.scatter_giant_au, belt.scatter_giant_kg, theta,
+        found.append(planet_architecture.Loss("disk", count, total_kg, total_kg, belt.distance, belt.distance, ejection_time_yr, belt.scatter_giant_au, belt.scatter_giant_kg, theta,
                                               scatter.hill_radius_au(each_earth, belt.distance, star_solar), belt.distance >= star.snow_line_au, 1.0, 0.0, 0.0))
     return found

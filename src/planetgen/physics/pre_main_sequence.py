@@ -227,13 +227,13 @@ def state(mass_sol, age_yr, fe_h=0.0):
             "disk_class": disk_class(age_yr, dispersal_yr(mass_sol))}
 
 
-def dispersal_yr(mass_sol):
+def dispersal_yr(mass_sol, close_companion=False):
     """
     The age at which this star loses its disk, years (GEN.1551): its own time (`disk_dispersal.draw_dispersal_time_yr`), drawn from the stream of its initial mass and no
     age, so it does not move when the star's age does; held to `tuning.PLANET_MIN_STAR_AGE_GY` until GEN.1552 lets bodies stand once the disk is gone, so that no star holds a disk and
-    planets at once.
+    planets at once. A star with a close companion (`disk_truncation.disk_time_yr` finds it from the companions the system attached) takes the shorter time of the same draw.
     """
-    own = disk_dispersal.draw_dispersal_time_yr(f"mass:{mass_sol!r}", mass_sol)
+    own = disk_dispersal.draw_dispersal_time_yr(f"mass:{mass_sol!r}", mass_sol, close_companion)
     return min(own, tuning.PLANET_MIN_STAR_AGE_GY * 1.0e9)
 
 

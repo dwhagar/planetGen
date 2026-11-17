@@ -132,3 +132,14 @@ def test_heating_by_source_gives_the_orbit_to_the_primary_and_the_tide_to_the_ot
     assert found["jupiter"] < found["moon"]
     earth.rotation_period_hours = None
     assert [b.name for b, w in tide_sources.heating_by_source(earth, sources, star)] == ["star"]
+
+
+def test_the_orbit_means_are_cached_and_give_what_they_gave():
+    """PERF.276: `orbit_mean_inverse_cube` and `_sixth` are pure in their three numbers, and the build asked for each pair again in every pass (20,095 calls for 1,364 pairs in three systems); the cache gives the same floats."""
+    from planetgen.physics import tide_sources as ts
+    for function in (ts.orbit_mean_inverse_cube, ts.orbit_mean_inverse_sixth):
+        function.cache_clear()
+        first = function(1.0, 5.2, 0.05)
+        assert function(1.0, 5.2, 0.05) == first == function.__wrapped__(1.0, 5.2, 0.05)
+        assert function.cache_info().hits == 1
+        assert function(1.0, 5.2, None) == function.__wrapped__(1.0, 5.2, None)

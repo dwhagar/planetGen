@@ -229,13 +229,14 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
         summary = {"kind": kind, "units": len(units), "cost": cost, "detail": plan_detail}
         if split is not None:
             summary["split"] = split
+        opened = {"index": index, "plan": summary, "run_id": run_id, "cap": runrecord.declared_stages(conn, run_id)[index].get("cap")}      # the most units of it that run at once, when the run was asked
         try:
-            ledger.add_jobs(control, run, [{"stage": stage, "command": OPEN, "arguments": {"index": index, "plan": summary, "run_id": run_id}}]
+            ledger.add_jobs(control, run, [{"stage": stage, "command": OPEN, "arguments": opened}]
                             + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}
                                for number, (args, unit_cost) in enumerate(units)]
                             + _end_jobs(stage, kind))
             control.execute("UPDATE engine_jobs SET state = 'done', arguments = ?, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''",
-                            (ledger._text({"index": index, "plan": summary, "run_id": run_id}), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
+                            (ledger._text(opened), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
             control.commit()
         except Exception:
             control.rollback()
@@ -263,6 +264,28 @@ def _end_jobs(stage, kind):
     return [{"stage": stage, "command": command, "needs": [before]} for command, before in zip(names, ("units", *names))]
 
 
+OPENING = "opening"
+"""str: The command of the row that opens a stage (OPS.228): the job that cuts stage `index` into its unit rows and releases them. Its arguments are `{run_id, index}`; the stage is the stage's key."""
+
+
+def queue_opening(conn, run_id, index):
+    """
+    Makes the opening of stage `index` a job the supervisor's launcher hands out (OPS.228), in place of the RQ job `units.enqueue_open` queues: the stage's `opening` row, added if it is not there and made `ready`
+    (a row of an opening that ended or failed is handed out again, as a queued job of it would be). Claims the cut's memory (`claims.CUT_MB`). Returns the row's id.
+    """
+    from planetgen.queue import claims
+    control = control_connection(conn, run_id)
+    try:
+        run, stage = engine_run(conn, run_id, control), _stage_key(conn, run_id, index)
+        ledger.add_jobs(control, run, [{"stage": stage, "command": OPENING, "arguments": {"run_id": run_id, "index": index}, "claim_mb": claims.CUT_MB}])
+        control.execute("UPDATE engine_jobs SET state = 'ready', waited = NULL, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, OPENING))
+        found = control.execute("SELECT id FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, OPENING)).fetchone()["id"]
+        control.commit()
+        return found
+    finally:
+        control.close()
+
+
 def release_units(conn, run_id, index, skip=()):
     """
     Makes the unit rows of stage `index` that are still `waiting` `ready` for the launcher to hand out (OPS.228), except the units numbered in `skip` (the ones a run this one carries on from did). Returns how many it released.
@@ -278,6 +301,28 @@ def release_units(conn, run_id, index, skip=()):
                                    + (f" AND item_key NOT IN ({marks})" if skip else ""), (run, stage, *map(str, skip))).rowcount
         control.commit()
         return released
+    finally:
+        control.close()
+
+
+def add_to_unit_args(conn, run_id, index, extra):
+    """
+    Adds the keys of `extra` to the `args` of the unit rows of stage `index` that are still `waiting` (OPS.228): what a run that carries on from an earlier one tells a unit that cannot resume (`resumed.AGAIN`),
+    which the RQ path puts on the arguments it queues. A run with no ledger has no rows. Returns how many rows it changed.
+    """
+    if not ledgered(conn, run_id):
+        return 0
+    control = control_connection(conn, run_id)
+    try:
+        run, stage = engine_run(conn, run_id, control), _stage_key(conn, run_id, index)
+        changed = 0
+        for row in control.execute("SELECT id, arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key <> '' AND state = 'waiting'", (run, stage)).fetchall():
+            body = json.loads(row["arguments"]) if row["arguments"] else {}
+            body["args"] = {**body.get("args", {}), **extra}
+            control.execute("UPDATE engine_jobs SET arguments = ? WHERE id = ?", (json.dumps(body), row["id"]))
+            changed += 1
+        control.commit()
+        return changed
     finally:
         control.close()
 

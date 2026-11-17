@@ -39,7 +39,7 @@ from planetgen.queue import commands, planrows, redisqueue, resumed, runrecord, 
 FINISHABLE = frozenset({
     "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "scatter-mass",
     "scatter-luminosity", "scatter-phenomena", "write-special-phenomena", "build-phenomenon-indexes", "record-phenomenon-scatter", "clear-bright-stars", "store-scatter-limits", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
-    "scatter-backfill", "run-population", "run-territories", "settle-sector-paths", "refresh-run-blocks"})
+    "scatter-backfill", "scan-species", "date-civilizations", "refresh-technology", "count-population", "run-territories", "settle-sector-paths", "refresh-run-blocks"})
 """frozenset[str]: The commands whose stage can be carried on after it stopped partway, and give the galaxy an uninterrupted run
 would have: each either resumes after the pieces it finished (`commands.CommandSpec.resumes`) or does work that saves nothing twice (a table
 emptied again is empty, a total made again is the same total)."""

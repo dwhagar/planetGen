@@ -147,7 +147,7 @@ def _clear_the_floor_for_the_opening(conn, run_id):
     the run of 2026-11-08 held 15 workers at 15,128 MB of 15,992 when the cut of the stage after the block lights was killed. The
     run's `ensure` starts the next stage's workers again once the cut is done (`_await_plan` holds it back until then).
     """
-    if queue_of(run_kind(conn, run_id)) == redisqueue.BULK_QUEUE:
+    if queue_of(run_kind(conn, run_id)) == redisqueue.BULK_QUEUE and not forked(conn, run_id):         # OPS.228: a forked run has no bulk workers holding what their last unit left
         workers.shed_bulk(conn, 1)
 
 
@@ -207,7 +207,9 @@ def _open(conn, run_id, index):
     queued = expansion.units
     if prior and not commands.spec(step.kind).resumes:          # a unit that cannot resume starts from its first piece, and a command that skips what it saved is told so
         queued = [(dict(args, **{resumed.AGAIN: True}), cost) for args, cost in queued]
-    if _forked(conn, run_id, prior):
+    if forked(conn, run_id):
+        if prior and not commands.spec(step.kind).resumes:        # the rows hold the cut's arguments: a unit that cannot resume is told so on them, as the queued ones are
+            planrows.add_to_unit_args(conn, run_id, index, {resumed.AGAIN: True})
         planrows.release_units(conn, run_id, index, skip=sorted(carried.done))      # OPS.228: the supervisor's launcher hands the units out
         return left
     units.enqueue_units(conn, run_id, index, step.kind, queued, queue_name=queue_of(run_kind(conn, run_id)),
@@ -215,9 +217,9 @@ def _open(conn, run_id, index):
     return left
 
 
-def _forked(conn, run_id, prior):
-    """Whether the units of this run's stage are handed out by the launcher (OPS.228): the setting is on, the run has a ledger, it is a generation run, and it does not carry on from an earlier one."""
-    return (not prior and get_settings().queue.forked_jobs and run_kind(conn, run_id) == runrecord.GENERATION and planrows.ledgered(conn, run_id))
+def forked(conn, run_id):
+    """Whether the units of this run's stage are handed out by the launcher (OPS.228): the setting is on, the run has a ledger and it is a generation run."""
+    return (get_settings().queue.forked_jobs and run_kind(conn, run_id) == runrecord.GENERATION and planrows.ledgered(conn, run_id))
 
 
 def _end_held(conn, earlier):
@@ -791,6 +793,8 @@ def stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
     that asked to finish their unit and exit (`workers.shed_bulk`), so the workers an earlier stage left do not all
     scatter at once. A stage with ordinary workers is not limited.
     """
+    if run_id is not None and queue_of(kind) == redisqueue.BULK_QUEUE and forked(conn, run_id):
+        return lambda: 0                # OPS.228: the supervisor's launcher forks each unit when the gate has room; no worker waits for the stage
     cap = workers.stage_worker_cap(step_kind, conn, run_id)       # OPS.157: sized by the claim the gate makes from the job profile (the typed figure with no history)
     count = workers_count if cap is None else min(workers_count or cap, cap)
     if cap is not None:
@@ -858,7 +862,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     by_key = {step.key: step for step in steps}
     recorded = [by_key.get(step.key, step) for step in (listing or steps)]
     times = stagetimes.lookup(conn, [step.key for step in steps])
-    stages = [runrecord.Stage(step.key, step.label, workers=workers_count or 1,
+    stages = [runrecord.Stage(step.key, step.label, workers=workers_count or 1, cap=workers_count,
                               expected_seconds=(expected_seconds(step, (rows or {}).get(step.key))
                                                 or times.get(step.key, {}).get("seconds")),
                               worker_rate=times.get(step.key, {}).get("worker_rate"),

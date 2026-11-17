@@ -184,3 +184,48 @@ def test_the_stage_command_concludes_the_spheres(galaxy):
     from planetgen.queue import commands
     assert commands.end_function("scatter-backfill", "conclude") is run_galaxy.conclude_backfill
     assert run_galaxy.conclude_backfill({"database": {}}, {"sectors": 5}, [], 0.0) == {}          # no sky in the stage: nothing recorded, nothing connected to
+
+
+def test_a_part_costs_its_rings_the_way_the_stage_plan_does(galaxy, toy_tiers, monkeypatch):
+    """OPS.269: the stage's plan costs the rings by what their walk does (`plan(..., skeleton=)`) and the part's counter must be built on the same visits, or the unit's counter stands at a
+    third of its total when the unit is done (Boss's run: 4.23e7 counted against 1.43e7 planned)."""
+    seen = []
+    toy_plan = sky_charting.plan
+
+    def recording_plan(observer_pc, limit_mag, edge_pc, **options):
+        seen.append(options)
+        return toy_plan(observer_pc, limit_mag, edge_pc, **options)
+
+    center, tiers = toy_plan(SPHERE_CENTER, 7.5, EDGE_PC)
+    owed = sky_charting.tiers_owed(tiers, ledger_module.read(galaxy), center)
+    monkeypatch.setattr(sky_charting, "plan", recording_plan)
+    sky_charting.chart_part(galaxy, [(center, owed)], 7.5, (0, PARTS))
+    assert seen and all(options.get("skeleton") is not None and options.get("limits") is not None for options in seen)
+
+
+def test_a_unit_of_one_piece_moves_its_own_count_with_the_sky_it_draws():
+    """OPS.269: a sky unit is one piece, so its count stood at 0 of 1 until the piece ended and the backfill bar (and the stage's ETA) saw nothing of a draw that takes hours."""
+    said = []
+
+    class Ctx:
+        def step(self, name, total=None):
+            said.append(("step", name, total))
+
+        def advance(self, amount=1):
+            said.append(("advance", amount))
+
+        def report(self, done, estimate):
+            said.append(("report", done, estimate))
+
+    progress = run_galaxy._progress_into(Ctx(), "Sky tiers", whole_unit=True)
+    progress(25.0, 100.0)
+    progress(100.0, 100.0)
+    assert [item for item in said if item[0] == "report"] == [("report", 0.25, 1.0), ("report", 1.0, 1.0)]
+    other = []
+
+    class Plain(Ctx):
+        def report(self, done, estimate):
+            other.append((done, estimate))
+
+    run_galaxy._progress_into(Plain(), "Nebulae")(5.0, 10.0)
+    assert other == [], "a count inside a longer unit leaves the unit's own count to its pieces"

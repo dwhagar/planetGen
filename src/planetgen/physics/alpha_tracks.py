@@ -48,8 +48,10 @@ def metallicity_shift(alpha_fe_dex):
     return math.log10(ALPHA_SHARE * 10.0 ** alpha_fe_dex + (1.0 - ALPHA_SHARE))
 
 
+@functools.lru_cache(maxsize=1 << 16)
 def equivalent_fe_h(fe_h, branch):
-    """The [Fe/H] of the solar-scaled track a star of this branch and [Fe/H] is read from."""
+    """The [Fe/H] of the solar-scaled track a star of this branch and [Fe/H] is read from (remembered, PERF.276: a table of stars is built at
+    one [Fe/H] and asks for it 150,000 times)."""
     return fe_h + metallicity_shift(alpha_fe(fe_h, branch) - ZERO_POINT_DEX)
 
 

@@ -22,6 +22,10 @@ heat has moved by `ANCHOR_LIGHT_STEP` or `ANCHOR_HEAT_STEP` since the last one a
 about 1 K on average and 5 K at most over the range where it matters for the air (100 Myr on, under 400 K), and up to 20 K in the first 100 Myr (a steam or magma ocean air, which the later slices give their own law) and across an
 ice-albedo branch (`reports/gen1745-slice1b-measure-2026-11-16.md`).
 
+**The oxygen trajectory (slice 2a).** `oxygen_trajectory(body, living, ages)` gives the oxygen, mol, the air holds at each age as the classes of `living` raise it: the air as the life found it until the rise, then the plateau
+or the balance of the source against the reductant sink of that age (the laws of `biogenic_oxygen` and `life_air.oxygen_state`, read at each age and not once at the star's age). Its last value is the oxygen `biogenic_oxygen.apply` puts into the air, to the last
+digit (`reports/gen1745-slice2a-check-2026-11-17.md`: 9 worlds on which the oxygen rose in 120 generated systems, every one equal). Nothing reads it yet; slice 2c swaps it in for `life._build_oxygen`.
+
 **The oxygen law's label** of a step (`oxygen_law`): `"none"` while the reductant sink `R(t)` is above the source `S` (no free oxygen can stand), `"rise"` once it is under `S` (the store the first
 oxygen goes to can fill, `biogenic_oxygen.rise_age_gyr`), `"balance"` once it is under `S / SECOND_RISE_RATIO` (the second rise, GEN.1707); `None` for a body whose life makes no oxygen.
 """
@@ -31,7 +35,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.generation.build_record import record_of
-from planetgen.physics import biogenic_oxygen, constants, interior_heat, runaway_history, surface_air
+from planetgen.physics import biogenic_oxygen, constants, interior_heat, life_air, runaway_history, surface_air
 from planetgen.util import draw
 
 FIRST_STEP_GYR = 1.0e-5
@@ -165,7 +169,9 @@ def _anchor_indices(steps, scale_of, heat_of):
     while len(chosen) > MAX_ANCHORS:
         gaps = [(max(abs(math.log(max(scale_of[chosen[k + 1]], 1e-30) / max(scale_of[chosen[k - 1]], 1e-30))),
                      abs(math.log(max(heat_of[chosen[k + 1]], 1e-30) / max(heat_of[chosen[k - 1]], 1e-30)))), k) for k in range(1, len(chosen) - 1)]
-        del chosen[min(gaps)[1]]
+        turning = {k for _, k in gaps if (scale_of[chosen[k]] - scale_of[chosen[k - 1]]) * (scale_of[chosen[k + 1]] - scale_of[chosen[k]]) < 0.0}
+        kept_apart = [(gap, k) for gap, k in gaps if k not in turning] or gaps         # an anchor at a turning point of the light (the star's pre-main-sequence bump) is the last to go: the steps round it are read between it and its neighbours
+        del chosen[min(kept_apart)[1]]
     return chosen
 
 
@@ -244,3 +250,47 @@ def run(body, cuts=(), air_input=None):
                           water_lost_kg=_water_lost_at(trace, age),
                           oxygen_law=_oxygen_law(profile, ratio)))
     return temperatures(body, steps, air_input) if air_input is not None else steps
+
+
+def oxygen_cuts(body, living):
+    """The ages, Gyr, a history of the oxygen of `body` is cut at: the age the oxygen rises (`life_air.oxygen_state`) and the ages the producers of each class of `living` began; `[]` for a body whose life makes no oxygen."""
+    rise, _ = life_air.oxygen_state(body, living)
+    if rise is None:
+        return []
+    return [rise, *[age for age in (one.started(body) for one in living) if age is not None]]
+
+
+def oxygen_trajectory(body, living, ages):
+    """
+    The oxygen, mol, that the air of `body` holds at each of `ages` (ascending, Gyr) as the classes of `living` raise it (GEN.1745 slice 2a): `[(age_gyr, mol), ...]`. It is the oxygen law of
+    `biogenic_oxygen` read at each age instead of once at the star's age: the air as the life found it (`have`, the oxygen of an abiotic air, none for most) until the rise (`life_air.oxygen_state`);
+    from the rise, the plateau (`biogenic_oxygen.PLATEAU_PA`, never more than the balance) while the reductant sink `R(age)` (`profile.reductant_mol_yr` times `reductant_history_factor`) is over the source `S` over
+    `SECOND_RISE_RATIO`; and the balance of `S - R(age)` against oxidative weathering (`biogenic_oxygen.balance_pa`) once it is under, held to the fire limit. At the star's age the reductant ratio is 1, so the last
+    value is what `biogenic_oxygen.stage_target_mol` gives and `biogenic_oxygen.apply` puts into the air (the burnt air's own oxygen if that is more).
+    Must be called on the air as the life found it, before `apply` has burnt its reduced gases and added the oxygen. Reuse: `life_air.oxygen_state`, `_oxygenic` and `standing_methane_mol`, `biogenic_oxygen.profile_of`,
+    `burn`, `balance_pa`, `reductant_history_factor`, `_oxygen_mol_at` and `_fire_limit_mol`.
+    """
+    moles = biogenic_oxygen.air_moles(body)
+    have = moles.get("O2", 0.0)
+    rise, _ = life_air.oxygen_state(body, living)
+    if rise is None:
+        return [(age, have) for age in ages]
+    pairs = life_air._oxygenic(body, living)
+    extra = 2.0 * life_air.standing_methane_mol(body, living, rise)
+    profile = biogenic_oxygen.profile_of(body, extra_store_mol=extra, producers=[(share, band) for _, share, band in pairs])
+    burnt, _ = biogenic_oxygen.burn(moles)
+    held = burnt.get("O2", 0.0)
+    fire = biogenic_oxygen._fire_limit_mol(body, burnt)
+    plateau = biogenic_oxygen._oxygen_mol_at(body, burnt, biogenic_oxygen.PLATEAU_PA)
+    area = biogenic_oxygen.area_m2(body)
+    trajectory = []
+    for age in ages:
+        if age < rise:
+            trajectory.append((age, have))
+            continue
+        reductant = profile.reductant_mol_yr * biogenic_oxygen.reductant_history_factor(body, age)
+        surplus = profile.source_mol_yr - reductant
+        steady = min(biogenic_oxygen._oxygen_mol_at(body, burnt, biogenic_oxygen.balance_pa(surplus, area)), fire) if surplus > 0.0 else 0.0
+        target = 0.0 if profile.steady_mol <= 0.0 else steady if reductant <= profile.source_mol_yr / biogenic_oxygen.SECOND_RISE_RATIO else min(steady, plateau)
+        trajectory.append((age, max(held, min(target, fire))))
+    return trajectory

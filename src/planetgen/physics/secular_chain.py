@@ -54,6 +54,24 @@ class SecularChainError(ValueError):
 
 
 @dataclass(frozen=True)
+class StellarTerms:
+    """
+    What a companion star adds to the planets' secular exchange (GEN.1499, `belt_forcing.stellar_terms`), one entry for each planet, radians per year.
+
+    Attributes:
+        apsidal (tuple): The companion's `A_c`, added to the diagonal of `A` (it turns the planet's periapsis).
+        eccentricity_push (tuple): The complex push `g = sum B_c exp(i varpi_c)` along the companion's periapsis: `dz/dt = i (A z - g)`, a fixed point `z = A^-1 g` for the planet to circle.
+        nodal (tuple): The companion's rate on the planet's node, subtracted from the diagonal of `B`, for a companion whose plane is known.
+        inclination_push (tuple): The complex `sum A_c w_c` (`w_c = sin(inc_c) exp(i node_c)` of the companion's plane): `dw/dt = i (B w + push)`, a fixed point between the planets' plane and the companion's.
+    """
+
+    apsidal: tuple
+    eccentricity_push: tuple
+    nodal: tuple
+    inclination_push: tuple
+
+
+@dataclass(frozen=True)
 class Exchange:
     """
     The orbits of a star's planets after the secular exchange.
@@ -218,7 +236,7 @@ def _drive(matrix, start, years, held, damped=False):
     return out
 
 
-def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inclination, node_longitude, years, fixed_axes_au=(), fixed_masses_kg=(), damping_per_yr=None):
+def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inclination, node_longitude, years, fixed_axes_au=(), fixed_masses_kg=(), damping_per_yr=None, stellar=None):
     """
     The orbits `years` later (negative for earlier): the `Exchange` of planets of the semi-major axes (AU), masses (kg), eccentricities, longitudes of periapsis, inclinations and
     longitudes of node (radians). A planet already beyond the limits of the theory (`LINEAR_ECCENTRICITY_LIMIT`, `LINEAR_INCLINATION_LIMIT_RAD`) is held where it is: it keeps its
@@ -231,13 +249,27 @@ def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inc
     `damping_per_yr` (GEN.1459) is each planet's rate (1 / year) at which its own tide wears its eccentricity down, `1 / tau` of `orbit_elements.circularisation_time_yr`: the eccentricity vectors
     then follow `dz/dt = (i A - Gamma) z`, so a mode the planets keep pumping settles where the pumping and the wear-down balance and a mode with nothing to renew it dies away as `exp(-t / tau)`.
     The inclinations are not damped (the tide of the orbit does not act on them to first order). Without it the exchange is the undamped one.
+
+    `stellar` (GEN.1499, `StellarTerms`) is a companion star's pull: its `A_c` goes on the diagonal of `A` and the push along its periapsis on a held body at rest at `z = 1` that pushes on the planets
+    (`_drive` then takes each planet round the fixed point `A^-1 g`); the same for the node with the companion's plane. With none the exchange is the one of the star's own planets, to the last digit.
     """
     count = len(a_au)
     A, B = matrices([*a_au, *fixed_axes_au], [*masses_kg, *fixed_masses_kg], host_mass_kg, rows=count)
     pad = len(fixed_axes_au)
-    e0, i0 = np.array([*eccentricity, *([0.0] * pad)], float), np.array([*inclination, *([0.0] * pad)], float)
-    z0 = e0 * np.exp(1j * np.array([*periapsis_longitude, *([0.0] * pad)]))
-    w0 = np.sin(i0) * np.exp(1j * np.array([*node_longitude, *([0.0] * pad)]))
+    extra = [] if stellar is None else [1.0]        # the held body of a companion's push, at rest at 1 (below)
+    if stellar is not None:
+        A, B = A.copy(), B.copy()
+        for j in range(count):
+            A[j, j] += stellar.apsidal[j]
+            B[j, j] -= stellar.nodal[j]
+        # one more held body, at rest at 1, whose column is the push (`_drive` sets the fixed point `-block^-1 push` with `push = column * 1`): `-g` for the eccentricity, `+sum A_c w_c` for the node
+        A = np.pad(A.astype(complex), ((0, 1), (0, 1)))
+        B = np.pad(B.astype(complex), ((0, 1), (0, 1)))
+        A[:count, -1] = -np.array(stellar.eccentricity_push, dtype=complex)
+        B[:count, -1] = np.array(stellar.inclination_push, dtype=complex)
+    e0, i0 = np.array([*eccentricity, *([0.0] * pad), *extra], float), np.array([*inclination, *([0.0] * pad), *([math.pi / 2.0] * len(extra))], float)
+    z0 = e0 * np.exp(1j * np.array([*periapsis_longitude, *([0.0] * pad), *([0.0] * len(extra))]))
+    w0 = np.sin(i0) * np.exp(1j * np.array([*node_longitude, *([0.0] * pad), *([0.0] * len(extra))]))
     held_e = e0 > LINEAR_ECCENTRICITY_LIMIT
     held_i = i0 > LINEAR_INCLINATION_LIMIT_RAD
     held_e[count:] = True
@@ -245,7 +277,7 @@ def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inc
     damped = damping_per_yr is not None and any(g > 0.0 for g in damping_per_yr)
     A_e = A
     if damped:
-        A_e = A.astype(complex) + 1j * np.diag([*[float(g) for g in damping_per_yr], *([0.0] * pad)])[:A.shape[0], :A.shape[1]]
+        A_e = A.astype(complex) + 1j * np.diag([*[float(g) for g in damping_per_yr], *([0.0] * (pad + len(extra)))])[:A.shape[0], :A.shape[1]]
     z = _drive(A_e, z0, years, held_e, damped)[:count]
     w = _drive(B, w0, years, held_i)[:count]
     held_e, held_i = held_e[:count], held_i[:count]

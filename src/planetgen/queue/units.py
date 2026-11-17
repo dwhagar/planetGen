@@ -505,6 +505,10 @@ def enqueue_open(conn, run_id, index, queue_name):
     learned per command), has the time limit of a job with no estimate, and is retried once if its horse is killed for memory, with a larger
     claim (`horse_killed`).
     """
+    from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
+    if wrapper.forked(conn, run_id):            # OPS.228: the supervisor's launcher hands the opening out as a job
+        planrows.queue_opening(conn, run_id, index)
+        return
     queue = redisqueue.queue(queue_name, conn)
     queue.enqueue(OPEN_FUNCTION, args=(run_id, index), job_id=open_job_id(run_id, index), job_timeout=redisqueue.job_timeout(None), result_ttl=0,
                   failure_ttl=FAILED_KEEP_SECONDS, retry=rq.Retry(max=1), on_failure=Callback(OPEN_FAILURE_FUNCTION),
@@ -520,6 +524,17 @@ def open_stage(run_id, index):
         dict: `opened`, or `skipped`.
     """
     conn = rq.get_current_job().connection
+    live, wanted = _run_settings(conn, run_id)
+    if not live or conn.exists(runrecord.opened_key(run_id, index)):
+        return {"skipped": True}
+    return _relayed(conn, run_id, wanted, lambda: _open_stage(conn, run_id, index))
+
+
+def run_opening_on(conn, run_id, index):
+    """
+    The opening of stage `index` run on the Redis connection `conn` by a job process the launcher forked (OPS.228): what `open_stage` does for an RQ job. A run that is no longer live, or a stage already opened, is
+    left alone. Returns `{"opened": True}` or `{"skipped": True}`.
+    """
     live, wanted = _run_settings(conn, run_id)
     if not live or conn.exists(runrecord.opened_key(run_id, index)):
         return {"skipped": True}
@@ -830,11 +845,23 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             on_step(None)
 
 
+def _gate_note(conn, seen, units):
+    """` ` and the gate's figures (`memorygate.gate_words`) when units are still to start, so a stage that runs fewer units than it has workers says what limits it (OPS.270); `""` when the gate cannot be read."""
+    if seen >= units:
+        return ""
+    from planetgen.queue import memorygate
+    try:
+        return f" ({memorygate.gate_words(conn)})"
+    except Exception as exc:  # noqa: BLE001 -- the note is an addition to a line that is said anyway
+        log.swallowed("queue/units", "_gate_note", exc)
+        return ""
+
+
 def _quiet_line(conn, run_id, stage, units, seen, quiet_for):
     """The line the log gets when a stage has finished no unit for `quiet_for` seconds (OPS.253): how long, how many units are done, and what the running ones are doing."""
     from planetgen.queue import runview, unitwatch, wrapper
     cause = runview.stall_cause(unitwatch.read(conn, run_id, stage))
-    return f"Stage '{wrapper.stage_name(conn, run_id, stage)}': no unit has finished for {format_duration_seconds(quiet_for)}; {seen} of {units} units are done" + (f", the others: {cause}." if cause else ".")
+    return f"Stage '{wrapper.stage_name(conn, run_id, stage)}': no unit has finished for {format_duration_seconds(quiet_for)}; {seen} of {units} units are done" + (f", the others: {cause}." if cause else ".") + _gate_note(conn, seen, units)
 
 
 def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, on_step=None):

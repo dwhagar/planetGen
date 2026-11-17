@@ -36,7 +36,7 @@ import pytest
 from scipy import stats
 
 from planetgen import tuning
-from planetgen.physics import (air_column, atmosphere, body_radiation, climate_draws, constants, gases, ionization, planet_type, radiation as rad, radiation_field)
+from planetgen.physics import (air_column, atmosphere, atmosphere_state, body_radiation, climate_draws, constants, gases, greenhouse, ionization, planet_type, radiation as rad, radiation_field)
 from tests.class_sweep_cli import sample_bodies
 
 SYSTEMS = 20
@@ -134,6 +134,46 @@ def climate_problems(body):
     return problems
 
 
+DOUBLING_TOLERANCE = 0.01
+"""float: How far, as a share of its temperature, the air with its infrared-active gases doubled may sit under the air as it is before the doubling counts as cooling (TEST.790). The warming is read from a table fitted to
+a radiative-convective model (`greenhouse_table`, GEN.850) and interpolated between its nodes; the sweep's worst small fall is 0.8 percent of the temperature of a cold carbon monoxide air (93 K, 0.7 K) where the
+table's step between nodes is of that size. Source tier T9 (a test tolerance)."""
+HYDROGEN_RICH_SHARE = 0.1
+"""float: An air with more than this share of its pressure in hydrogen is left out of the doubling rule: the pairs of hydrogen molecules absorb the infrared (collision-induced absorption, the greenhouse of the giants'
+and the hydrogen-rich worlds' airs) with the strength of the hydrogen's share squared, but `gases.Gas.is_infrared_active` is false for hydrogen, so doubling the infrared-active gases of such an air takes the share of the
+hydrogen down (0.1 on the cold gas dwarfs, 4 K cooler for a doubled methane in an air of 80 percent hydrogen) and the rule's premise, that nothing else absorbs, does not hold. Source tier T9 (a test scope)."""
+
+
+def _doubling_inputs(body):
+    """`(partials, flux, albedo)` of a body the doubling rule applies to, or `None`: a planet with air, a lit star and a gravity, an air of no more than `HYDROGEN_RICH_SHARE` hydrogen, and an infrared-active gas in it."""
+    flux = _starlight_w_m2(body)
+    albedo = getattr(body, "bond_albedo", None)
+    partials = dict(atmosphere.gas_partials_pa(body)) if _has_air(body) else {}
+    if body.body_type != "t" or flux is None or albedo is None or not partials or not getattr(body, "gravity", None):
+        return None
+    if partials.get("H2", 0.0) > HYDROGEN_RICH_SHARE * math.fsum(partials.values()) or not any(gases.gas(formula).is_infrared_active for formula in partials):
+        return None
+    return partials, flux, albedo
+
+
+def doubled_infrared_problems(body, warming=atmosphere_state.greenhouse_warming):
+    """
+    The controlled form of rule 2's greenhouse ranking (TEST.790): the same air with every infrared-active gas at twice its partial pressure, under the same absorbed starlight and the same gravity, is not cooler at the
+    ground than the air as it is (beyond `DOUBLING_TOLERANCE`). `[]` for a body the rule does not apply to (`_doubling_inputs`). `warming` is the function that reads the table, so a test can put a broken one in its place.
+    """
+    inputs = _doubling_inputs(body)
+    if inputs is None:
+        return []
+    partials, flux, albedo = inputs
+    absorbed = greenhouse.absorbed_flux_w_m2(flux, albedo)
+    doubled = {formula: pa * 2.0 if gases.gas(formula).is_infrared_active else pa for formula, pa in partials.items()}
+    as_it_is = warming(partials, body.gravity, absorbed).surface_temperature_k
+    with_more = warming(doubled, body.gravity, absorbed).surface_temperature_k
+    if with_more < as_it_is * (1.0 - DOUBLING_TOLERANCE):
+        return [f"twice the infrared-active gases cools the ground from {as_it_is:.1f} K to {with_more:.1f} K"]
+    return []
+
+
 def dose_problems(body, is_moon):
     """Rule 3 for one body."""
     fields = (body.surface_dose_msv_yr, body.dose_gcr_msv_yr, body.dose_sep_msv_yr, body.dose_ground_msv_yr, body.dose_belt_msv_yr)
@@ -212,6 +252,34 @@ def test_the_greenhouse_rises_with_the_infrared_active_column(swept):
     assert len(columns) >= 20
     rho = stats.spearmanr(columns, factors).statistic
     assert rho > 0.3, f"the greenhouse factor follows the infrared-active column with rank correlation {rho:.2f}"
+
+
+def test_doubling_the_infrared_active_gases_never_cools_the_ground(swept):
+    """TEST.790: the controlled form of the ranking above, which compares different worlds and moves with the sample (0.22 to 0.56 over seeds; its floor of 0.3 stays): the same air with twice the infrared-active gases."""
+    applied = [body for body, _ in swept if _doubling_inputs(body) is not None]
+    assert len(applied) >= 15, "the sweep holds too few airs to say the doubling never cools"
+    problems = {(body.planet_class, text) for body in applied for text in doubled_infrared_problems(body)}
+    assert not problems, sorted(problems, key=str)
+
+
+def test_a_table_that_cools_with_twice_the_infrared_active_gas_is_named(swept):
+    body = next(body for body, _ in swept if _doubling_inputs(body) is not None)
+    real = atmosphere_state.greenhouse_warming
+    calls = []
+
+    def cooling_with_more(partials, gravity, absorbed):
+        calls.append(partials)
+        warmed = real(partials, gravity, absorbed)
+        return type("Warming", (), {"surface_temperature_k": warmed.surface_temperature_k * (1.0 if len(calls) % 2 else 0.9)})()      # the second call of each pair is the doubled air
+
+    assert any("cools the ground" in text for text in doubled_infrared_problems(body, warming=cooling_with_more))
+    assert doubled_infrared_problems(body) == []
+
+
+def test_an_air_rich_in_hydrogen_is_left_out_of_the_doubling_rule(swept):
+    rich = [body for body, _ in swept if body.body_type == "t" and _has_air(body) and atmosphere.gas_partials_pa(body).get("H2", 0.0) > HYDROGEN_RICH_SHARE * math.fsum(atmosphere.gas_partials_pa(body).values())]
+    assert rich, "the sweep holds no air rich in hydrogen to leave out"
+    assert all(_doubling_inputs(body) is None for body in rich)
 
 
 def test_every_dose_is_its_terms_and_follows_the_column_the_field_and_the_flares(swept):

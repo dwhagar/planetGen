@@ -82,7 +82,7 @@ def test_a_sector_stage_gets_two_workers_on_the_host_that_was_killed(monkeypatch
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
     assert {workers.stage_worker_cap(kind) for kind in ("generate-neighborhood", "generate-sectors")} == {2}     # half of 15,992 MB in 3,050 MB workers (PERF.252)
     assert workers.stage_worker_cap("link-neighbors") == 11                                                      # a stage that draws no star: 700 MB workers
-    assert workers.stage_worker_cap("run-population") is None                                                     # one unit: one worker
+    assert workers.stage_worker_cap("scan-species") is None                                                     # one unit: one worker
 
 
 def test_the_stage_that_ends_logs_the_largest_worker_beside_its_figure():
@@ -95,7 +95,7 @@ def test_the_stage_that_ends_logs_the_largest_worker_beside_its_figure():
         step = commands.Step("neighborhood", "generate-neighborhood", "Generate the neighborhood")
         wrapper._log_peak_memory(Conn(), "run", 1, step, {"label": "Generate the neighborhood"}, 2370.0)
         wrapper._log_peak_memory(Conn(), "run", 1, step, {"label": "Generate the neighborhood"}, 3100.0)
-        wrapper._log_peak_memory(Conn(), "run", 1, commands.Step("p", "run-population", "Population"), {"label": "Population"}, 500.0)
+        wrapper._log_peak_memory(Conn(), "run", 1, commands.Step("p", "scan-species", "Population"), {"label": "Population"}, 500.0)
         wrapper._log_peak_memory(Conn(), "run", 1, step, {"label": "Generate the neighborhood"}, 0.0)
     finally:
         wrapper.runrecord.log = original

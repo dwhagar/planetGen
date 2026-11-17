@@ -25,7 +25,7 @@ Registered stand-ins: the reuse of KZ1 to KZ6 (section 6.262) for the triple, an
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, kozai_bodies, rings, secular_chain, stability
+from planetgen.physics import constants, kozai_bodies, radiation_field, rings, secular_chain, spin, stability
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -137,3 +137,40 @@ def screen_planets(host_mass_kg, host_radius_km, age_yr, planets, companions=())
         chosen = (cycling or quiet or [(None, None, None)])[0]
         results.append(PlanetKozai(planet.key, chosen[2], chosen[1], tuple(key for _t, key, _o in cycling), rates))
     return results
+
+
+def plane_of_normal(normal):
+    """`(inclination, node)` in radians of the orbit plane whose unit normal is `normal` in the system's frame (the inverse of `spin.orbit_normal`; the node is 0 for a plane that is the reference plane)."""
+    x, y, z = normal
+    inclination = math.acos(max(-1.0, min(1.0, z)))
+    node = math.atan2(x, -y) % (2.0 * math.pi) if math.hypot(x, y) > 1.0e-12 else 0.0
+    return inclination, node
+
+
+def companion_perturbers(star):
+    """
+    `[(Perturber, source)]` for the companions a star's planets see (`radiation_field.companions_of`, GEN.1645): each one that has an orbit plane (`Companion.normal`) and a mass, at its axis and
+    eccentricity about the host and on the plane of the orbit node that joins it to the host. The key is `("companion", member number)`; `source` is the companion's star (or dark member).
+    """
+    out = []
+    for companion in radiation_field.companions_of(star):
+        mass = getattr(companion.star, "mass", None)
+        if companion.normal is None or not mass or not companion.axis_au > 0.0:
+            continue
+        inclination, node = plane_of_normal(companion.normal)
+        out.append((Perturber(("companion", companion.member_no), "companion", _mass_solar(mass), companion.axis_au, companion.eccentricity, inclination, node), companion.star))
+    return out
+
+
+def tilted_normal(planet_normal, perturber_normal, mutual_rad):
+    """
+    The unit normal of the plane that is at `mutual_rad` from the perturber's plane (`perturber_normal`) on the same side as `planet_normal`: the planet's normal turned about the perturber's
+    (the node of the planet's plane about the perturber's is kept, its inclination to it becomes `mutual_rad`). A plane that lies on the perturber's (no side) is left as it is.
+    """
+    cosine = sum(a * b for a, b in zip(planet_normal, perturber_normal))
+    side = [a - cosine * b for a, b in zip(planet_normal, perturber_normal)]
+    length = math.sqrt(sum(c * c for c in side))
+    if length < 1.0e-12:
+        return tuple(planet_normal)
+    side = [c / length for c in side]
+    return tuple(math.cos(mutual_rad) * b + math.sin(mutual_rad) * c for b, c in zip(perturber_normal, side))

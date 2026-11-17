@@ -76,7 +76,9 @@ def test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies():
     from planetgen.util import draw
     from tests.fuzz_support import deterministic_entropy
     seen = {True: 0, False: 0}
-    for seed in range(7100, 7112):
+    for seed in range(7100, 7300):        # the search runs on until both kinds of body are in the sample (a body the tide has circularized below the threshold is rare: 2 of 112 over twelve systems of main)
+        if seen[True] > 5 and seen[False] > 0 and seed >= 7112:
+            break
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
