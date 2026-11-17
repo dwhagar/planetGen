@@ -13,7 +13,7 @@ Status: design note. OPS.155 (the recording, step 1) , OPS.156 (the claim from t
 | Stage times and cost per worker second | `queue/stagetimes.py` | Running average per stage key, newest run weighs half. Redis only. |
 | Items per second per command | `queue/unitrates.py`, `queue/progress_rate.py` (`blended_rate`) | Running average per command, folded in when a run ends `done`. Redis only. |
 | Longest quiet gap per command | `queue/commandgaps.py` | Feeds the heartbeat judge. |
-| Worker count follows memory | `queue/adaptive.py` (OPS.148, PR 6147) | Lowers the bulk limit after a 30 s memory wait or under pressure, raises it after 120 s of quiet when one more claim fits. Short-lived state, 1 hour, list of recent changes. |
+| Worker count follows memory | `queue/adaptive.py` (OPS.148, PR 6147; **deleted by OPS.231**, `queue/pressure.py` is the one memory controller) | Lowers the bulk limit after a 30 s memory wait or under pressure, raises it after 120 s of quiet when one more claim fits. Short-lived state, 1 hour, list of recent changes. |
 | Fair share between lanes | `queue/scheduler.py` (OPS.130) | Charges cores times seconds per kind. |
 | Cut by weight | `queue/units.py` (`static_chunks`, `coarsen`, `MAX_UNITS`, `STATIC_UNITS`) | The cut depends on the rows alone, never on the worker count. |
 | Per-stage unit ceiling | `util/settings.py` `queue.unit_ceiling_seconds` (300 s) and `CommandSpec.unit_seconds` (23 commands declare one) | A test holds each command's declared longest unit to the ceiling. |

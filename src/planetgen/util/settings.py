@@ -445,9 +445,9 @@ class Queue(_Section):
         summary="How many workers are reserved for short jobs; generation work never takes them.")
     maintenance_workers: int = opt(
         1, "How many workers run the cache warm-up, the node prefetch and the database check while a generation run "
-        "is live. They are taken out of the generation worker count (a generation worker finishes its unit and "
-        "leaves when they are needed), so the host's total does not grow; with no generation run live they may use "
-        "the whole count.", unit="workers", group="speed", ge=1, le=64,
+        "is live. Upkeep never takes more than this many places from the run; if the host runs short of memory the "
+        "supervisor holds upkeep back first (the memory controller); with no generation run live they may use the "
+        "whole count.", unit="workers", group="speed", ge=1, le=64,
         label="Workers for upkeep during a run",
         summary="How many workers keep the caches and checks going while a generation run is live.")
     max_host_workers: int = opt(

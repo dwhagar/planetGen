@@ -16,7 +16,7 @@ import signal
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import jobhost, lightjobs, redisqueue, supervisor
+from planetgen.queue import jobhost, lightjobs, pressure, redisqueue, supervisor
 from planetgen.util import log
 
 
@@ -45,9 +45,11 @@ def main(argv=None):
     connection = redisqueue.connect(args.url)
     templates = jobhost.TemplateSet(background=True)        # one set of warm templates for both hand-outs
     lights = lightjobs.LightJobs(connection, forker=templates)
-    launches = supervisor.Launches(connection, forker=templates, also_held=lights.holders)
+    controller = pressure.Controller(launcher=lambda: launches.launcher)      # OPS.231: the one memory controller; it looks first each turn, so both hand-outs ask it before they admit
+    launches = supervisor.Launches(connection, forker=templates, also_held=lights.holders, hold=controller.holding)
     lights.also_held = launches.holders      # each hand-out is judged against the claims of the other (OPS.230)
-    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), supervisor.WorkerStarts(connection), lights, launches)
+    lights.hold = controller.holding
+    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), supervisor.WorkerStarts(connection), controller, lights, launches)
     reason = supervisor.Supervisor(supervisor.SystemClock(), supervisor.RedisStore(connection), supervisor.ProcessTable(), duties=duties,
                                    stop=lambda: bool(stopping) or updateguard.is_updating(), idle_seconds=args.idle_seconds).run()
     log.debug("The supervisor exits: %s.", reason, area="queue")

@@ -31,6 +31,13 @@ ATTEMPT_WORDS = {
 }
 """dict: An attempt's outcome in words."""
 
+STOPPED_WORDS = "stopped between two pieces to give memory back"
+
+
+def attempt_words(outcome, error_kind=None):
+    """An attempt's outcome in words: a unit that stopped because the supervisor asked it to (`ledger.STOPPED`, OPS.231) says so, any other by its outcome."""
+    return STOPPED_WORDS if error_kind == "stopped" else ATTEMPT_WORDS.get(outcome, outcome)
+
 NEED_WORDS = {"units": "every unit of its stage"}
 """dict: What a `needs` entry that is not a command's name stands for."""
 
@@ -139,7 +146,7 @@ def _job_view(control, row, now):
     return {"id": row["id"], "stage": row["stage"], "command": row["command"], "item": row["item_key"], "state": row["state"], "attempts": row["attempt"],
             "class": row["job_class"], "claim_mb": row["claim_mb"], "waits": why_waits(control, row, now),
             "last": None if row["attempt"] == 0 or row.get("outcome") is None else
-                    {"outcome": row["outcome"], "words": ATTEMPT_WORDS.get(row["outcome"], row["outcome"]), "error_kind": row.get("error_kind"),
+                    {"outcome": row["outcome"], "words": attempt_words(row["outcome"], row.get("error_kind")), "error_kind": row.get("error_kind"),
                      "peak_mb": row.get("peak_mb"), "cpu_seconds": row.get("cpu_seconds"), "started": _epoch(row.get("started_at")), "ended": _epoch(row.get("ended_at"))},
             "created": _epoch(row["created_at"]), "updated": _epoch(row["updated_at"])}
 
@@ -180,6 +187,6 @@ def job(control, run, job_id, now):
     attempts = control.execute("SELECT attempt, pid, outcome, started_at, ended_at, peak_mb, cpu_seconds, error_kind, error_text, stack_file"
                                " FROM engine_attempts WHERE job_id = ? ORDER BY attempt", (job_id,)).fetchall()
     return {**_job_view(control, row, now), "arguments": _json(row["arguments"]),
-            "attempt_rows": [{"attempt": item["attempt"], "pid": item["pid"], "outcome": item["outcome"], "words": ATTEMPT_WORDS.get(item["outcome"], item["outcome"]),
+            "attempt_rows": [{"attempt": item["attempt"], "pid": item["pid"], "outcome": item["outcome"], "words": attempt_words(item["outcome"], item["error_kind"]),
                               "started": _epoch(item["started_at"]), "ended": _epoch(item["ended_at"]), "peak_mb": item["peak_mb"], "cpu_seconds": item["cpu_seconds"],
                               "error_kind": item["error_kind"], "error_text": item["error_text"], "stack_file": item["stack_file"]} for item in attempts]}

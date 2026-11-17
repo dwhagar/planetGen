@@ -478,8 +478,9 @@ class Launches:
         make (callable, optional): `make()` returns the launcher; the simulator and the tests pass their own.
     """
 
-    def __init__(self, connection, make=None, forker=None, also_held=None):
+    def __init__(self, connection, make=None, forker=None, also_held=None, hold=None):
         self.connection, self.make = connection, make
+        self.hold = hold                # the memory controller's `holding` (OPS.231), which the launcher asks before it admits
         self.forker = forker            # the supervisor's templates, shared with the light jobs (`lightjobs.LightJobs`); the launcher's own where left out
         self.also_held = also_held
         self.launcher = None
@@ -492,7 +493,7 @@ class Launches:
         from planetgen.db import store
         from planetgen.queue import jobhost, launcher, scheduler
         return launcher.Launcher(store.get_control_connection(), self.forker or jobhost.TemplateSet(background=True), used=lambda: scheduler.usage(self.connection), redis=self.connection,
-                                 also_held=self.also_held)
+                                 also_held=self.also_held, hold=self.hold)
 
     def turn(self):
         """Returns how many jobs it started."""

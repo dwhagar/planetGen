@@ -77,15 +77,12 @@ def test_an_opening_logs_each_step_with_the_memory_the_process_holds(monkeypatch
     assert all(fields["kind"] == "stage.opening" and fields["stage"] == 9 for _text, fields in logged)
 
 
-def test_the_opening_asks_the_other_bulk_workers_to_go_and_the_run_waits_to_start_more(run, monkeypatch):
-    """PERF.226: the stage before is complete, so the workers beside the one that opens the next stage only wait; they leave
-    before the cut, and the run's `ensure` does not start them again until the cut is done."""
-    shed = []
-    monkeypatch.setattr(wrapper.workers, "shed_bulk", lambda conn, cap: shed.append(cap) or 0)
+def test_the_run_waits_to_start_more_workers_while_the_stage_is_opening(run, monkeypatch):
+    """PERF.226: the run's `ensure` does not start more workers until the cut of the next stage is done (OPS.231: the workers beside the opener are not asked to leave, the memory controller yields them when memory is short)."""
     seen = []
     monkeypatch.setattr(wrapper, "_open", lambda conn, run_id, index: seen.append(runrecord.opening(conn, run_id)) or 0)
     wrapper._expand(run, "r1", 2)
-    assert shed == [1] and seen == [2]
+    assert seen == [2]
     ensured = []
     clock = iter(range(0, 1000, 10))
     runrecord.begin_opening(run, "r1", 2)

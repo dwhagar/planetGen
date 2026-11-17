@@ -28,22 +28,20 @@ def test_an_ordinary_stage_or_an_unknown_memory_is_not_limited(monkeypatch):
 def _record(monkeypatch):
     calls = []
     monkeypatch.setattr(workers, "ensure_workers", lambda queue, conn, url, count=None: calls.append(("ensure", queue, count)) or 0)
-    monkeypatch.setattr(workers, "shed_bulk", lambda conn, cap: calls.append(("shed", cap)) or 0)
     return calls
 
 
-def test_the_scatter_stage_holds_the_runs_count_to_the_cap_and_sheds_the_surplus(monkeypatch):
+def test_the_scatter_stage_holds_the_runs_count_to_the_cap(monkeypatch):
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
     calls = _record(monkeypatch)
     wrapper.stage_ensure(None, "url", runrecord.GENERATION, "scatter-luminosity", None)()
     wrapper.stage_ensure(None, "url", runrecord.GENERATION, "scatter-mass", 36)()
     wrapper.stage_ensure(None, "url", runrecord.GENERATION, "scatter-mass", 2)()
-    assert calls == [("shed", 3), ("ensure", redisqueue.BULK_QUEUE, 3),
-                     ("shed", 3), ("ensure", redisqueue.BULK_QUEUE, 3),
-                     ("shed", 3), ("ensure", redisqueue.BULK_QUEUE, 2)]        # a run of more is held to 3, a smaller `--workers` stays
+    assert calls == [("ensure", redisqueue.BULK_QUEUE, 3), ("ensure", redisqueue.BULK_QUEUE, 3),
+                     ("ensure", redisqueue.BULK_QUEUE, 2)]        # a run of more is held to 3, a smaller `--workers` stays
 
 
-def test_another_stage_keeps_the_runs_count_and_sheds_nobody(monkeypatch):
+def test_another_stage_keeps_the_runs_count(monkeypatch):
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
     calls = _record(monkeypatch)
     wrapper.stage_ensure(None, "url", runrecord.GENERATION, "sector", 36)()
@@ -57,7 +55,7 @@ def test_the_block_lights_are_held_to_the_workers_the_memory_holds(monkeypatch):
     assert workers.stage_worker_cap("refresh-block-lights") == 11
 
 
-def test_a_maintenance_run_never_sheds_the_bulk_workers(monkeypatch):
+def test_a_maintenance_run_is_not_held_to_the_scatter_cap(monkeypatch):
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
     calls = _record(monkeypatch)
     wrapper.stage_ensure(None, "url", runrecord.MAINTENANCE, "scatter-mass", None)()

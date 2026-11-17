@@ -469,21 +469,14 @@ Boss's rule is built in: **only dead and quiet are `actionable`**. A unit whose 
 
 **Evidence in the beat (OPS.193).** A counter that stands still is not proof a unit has stopped: one long SQL statement moves no counter. The beat record also carries `cpu_s` (processor seconds of the process), `io_read` and `io_write` (bytes, `/proc/self/io`), and, while a statement is out, `sql` (its label) and `sql_since` (server-clock seconds). `db/statementmark.py` is the mark: `db/store.py` sets it around every statement it sends and the beat thread reads it, so no privilege on `performance_schema` is needed. Nothing reads the fields yet; OPS.194 gives the judge the state `busy` from them. OPS.197 (`tests/test_no_sleep_in_commands.py`) keeps a bare sleep out of command code, where a wait would show no activity.
 
-### 5.17 The bulk worker limit follows the host's memory (Boss, 9:58 PM EST on 2026-11-11)
+### 5.17 One memory controller (OPS.231; replaces the adaptive worker limit of OPS.148)
 
-Boss saw a "waited 300 s" line every few systems of a generation run and a slow run. The cause is the gate's bound (5.14): more bulk workers than the
-host's memory carries, so some sit at the gate with their star tables (about 1.4 GB each) until the table cap lets them in. `queue/adaptive.py` makes
-the bulk worker cap follow the host instead of waiting for the bound.
+Boss saw a "waited 300 s" line every few systems of a generation run and a slow run (9:58 PM EST on 2026-11-11). `queue/adaptive.py` answered it by lowering the bulk worker count by waits at the gate and asking workers to leave (`workers.shed_bulk`). OPS.231 replaces that, the lend rule and the places kept per lane with **one controller in the supervisor** (`queue/pressure.py`).
 
-* **Lowers by one worker** when a bulk job has waited 30 s at the gate for memory (`memorygate.Decision.memory`; a wait for a core or for a higher ticket is not one), or when the host's
-  available memory is under 75 percent of what the gate keeps back (`memorygate.reserve_mb`) while bulk work runs or is queued. The workers over the new limit are asked to leave
-  (`workers.shed_bulk`), those that wait at the gate first: such a worker puts its job back at the front of its queue and exits, so no work is lost. Two lowerings are 20 s apart. Never below 1.
-* **Raises by one** (at most every 120 s) after 120 s with no memory wait and no lowering, when bulk jobs are queued that no worker has and the free memory holds one more worker of the
-  largest claim held with a quarter on top. At the configured cap the limit is dropped; a limit nobody touches for an hour is forgotten.
-* **Logged**: each change is a line in the log (a lowering a warning naming the job and the wait) and an entry in `planetgen:gate:adaptive:recent` (the latest 50).
-* `workers.ensure_workers` applies the limit to the bulk lane only (`adaptive.adapt`), so a run's `--workers` and the admin's count are ceilings, not targets.
-  The control is off with the gate (`PLANETGEN_MEMORY_GATE=0`). It changes how long a run takes, never what it generates (the work seed does not depend on the worker count).
-* **Not done yet**: the maintenance lane (warm-ups) is not limited by it; a status page line for the limit and its recent changes.
+* **Signal.** The kernel's memory pressure (`/proc/pressure/memory`, PSI) where it exists; else the host's available memory against `memorygate.reserve_mb`. A level: calm, pressed, starved.
+* **Hold.** Pressed for a while: the launcher and the light jobs' duty admit nothing of the bulk or maintenance lanes (the site's lanes go on) and say why. It lets go after the host has been calm for a while.
+* **Yield.** Starved for a while: the youngest bulk job is asked, through the job pipe, to stop at its next piece (a command that resumes is asked first). The row goes back to *ready*, the attempt is stored as `lost` with `error_kind="stopped"`, and it does not count against the retries. One job at a time, a cooldown apart. The kernel's kill stays the last line.
+* The edges are stand-ins (`pressure.py` constants); the job engine's H4 learns them. Nothing here changes what a run generates. The control is off with the gate (`PLANETGEN_MEMORY_GATE=0`).
 
 ## 6. Decisions for Boss
 

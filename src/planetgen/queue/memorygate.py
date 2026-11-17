@@ -23,7 +23,7 @@ worker and every process under it, `psutil`), so a job that has grown to its cla
 it, not twice. The job's own worker is credited with what it already holds (an idle worker with the star tables is 1.4 GB of the
 2.1 GB a scatter claims). Cores follow the same rule: the claims' cores are held to `CPU_SHARE` of the host's, and an ordinary job
 waits while the one-minute load per core is over `LOAD_LIMIT`. The places reserved for the interactive and long lanes
-(`workers.reserved_places`) keep their memory against the bulk and the maintenance lanes, so a visitor's search is never queued
+(`kept_mb`) keep their memory against the bulk and the maintenance lanes, so a visitor's search is never queued
 behind a generation run's units. A job that finds nobody else holding a claim is admitted whatever it claims: a job that does not
 fit alone cannot be helped by waiting.
 
@@ -111,7 +111,7 @@ LANES = (LANE_BULK, LANE_MAINTENANCE, LANE_INTERACTIVE, LANE_LONG, LANE_OTHER)
 """The lanes a claim sits in."""
 
 SHORT_LANES = (LANE_INTERACTIVE, LANE_LONG)
-"""tuple: The lanes whose places are reserved (`workers.reserved_places`)."""
+"""tuple: The lanes whose places are reserved (`kept_mb`)."""
 
 DISABLE_ENV = "PLANETGEN_MEMORY_GATE"
 """str: Set to `0` to turn the gate off: every claim is admitted at once (the old behaviour: the table cap alone)."""
@@ -438,7 +438,6 @@ def acquire(conn, claim, name, job="", pid=None, cap_of=None, on_wait=None, cloc
 def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wait, scheduler):
     started = clock()
     announced = float("-inf")
-    memory_since = None
     asked = claim
     while True:
         waited = clock() - started
@@ -462,28 +461,12 @@ def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wai
                 if timed_out:
                     log.warning(f"The memory gate let {claim.kind} in after {format_duration_seconds(waited)} of waiting, by the table cap: {decision.reason}")
                 return Admission(waited, timed_out, decision)
-        if decision.memory:
-            memory_since = clock() if memory_since is None else memory_since
-            _adapt_to_wait(conn, claim, name, clock() - memory_since)
-        else:
-            memory_since = None
         if waited - announced >= 60.0:
             announced = waited
             log.normal(f"The memory gate holds {claim.kind} ({format_megabytes(claim.mb)}) for {name}: {decision.reason}.")
         if on_wait is not None:
             on_wait(decision, waited)
         sleep(POLL_SECONDS)
-
-
-def _adapt_to_wait(conn, claim, name, memory_waited):
-    """A bulk job has waited `memory_waited` seconds for memory: tells the adaptive control (`queue.adaptive`), which lowers the worker limit once it is long. Never raises."""
-    if claim.lane != LANE_BULK or not enabled():
-        return
-    try:
-        from planetgen.queue import adaptive
-        adaptive.on_memory_wait(conn, name, claim.kind, memory_waited)
-    except Exception as exc:  # noqa: BLE001 -- the control is an optimisation; a wait at the gate goes on without it
-        log.debug("The adaptive worker control failed at the memory gate: %s", exc, area="queue")
 
 
 def refresh(conn, name, now=None):

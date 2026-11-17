@@ -29,16 +29,6 @@ def test_a_worker_serves_one_queue_and_the_round_robin_worker_is_gone():
     assert not hasattr(worker_cli, "RoundRobinWorker") and not hasattr(worker_cli, "APP_QUEUES")
 
 
-def test_the_short_and_long_lanes_keep_places_the_bulk_and_maintenance_lanes_may_not_take(monkeypatch):
-    monkeypatch.setattr(workers, "host_worker_cap", lambda: 10)
-    kept = workers.reserved_places(redisqueue.BULK_QUEUE)
-    assert kept >= 2 and kept < 10
-    assert all(workers.reserved_places(name) == kept for name in redisqueue.maintenance_lane())
-    assert workers.reserved_places("planetgen-web-test-x") == 0
-    monkeypatch.setattr(workers, "host_worker_cap", lambda: 1)
-    assert workers.reserved_places(redisqueue.BULK_QUEUE) == 0           # a host of one place still lets the bulk lane start
-
-
 @pytest.fixture
 def lane_queues(redis_server):
     connection = redisqueue.connect()
@@ -71,7 +61,7 @@ def test_a_host_whose_places_the_warm_up_used_up_starts_no_more_of_its_workers(l
     monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 6)
     monkeypatch.setattr(workers, "host_worker_cap", lambda: 6)
     monkeypatch.setattr(workers, "live_workers", lambda queue: [])
-    monkeypatch.setattr(workers, "host_worker_processes", lambda: 4)       # four places taken: the cap less the two kept
+    monkeypatch.setattr(workers, "host_worker_processes", lambda: 6)       # every place the cap gives is taken
     for _ in range(5):
         redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, lane_queues).enqueue(math.pow, 2, 3, job_timeout=600)
     assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE, lane_queues) == 0 and started == []

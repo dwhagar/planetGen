@@ -188,6 +188,19 @@ def test_a_prefetch_chunk_is_a_maintenance_job_the_scheduler_weighs_as_the_sites
     assert lightjobs.pending_count(connection, tileprefetch.JOB) == 0
 
 
+def test_a_held_host_still_runs_the_sites_jobs_and_holds_the_upkeep_a_visit_asked_for(duty):
+    """OPS.231: while the memory controller holds admission the interactive and long lanes go; the node prefetch (maintenance lane) waits, with the reason on its record."""
+    connection, _clock, forker, _held = duty.test
+    duty.hold = lambda: "admission is held: the host is short of memory"
+    visitor = _submit(connection)
+    prefetch = _submit(connection, "planetgen.web.lib.tileprefetch:build_nodes", ("db", []), lane="maintenance")
+    assert duty.turn() == [visitor]
+    record = lightjobs._record(connection, prefetch)
+    assert record["state"] == "queued" and record["waited"].startswith("admission is held")
+    duty.hold = lambda: None
+    assert duty.turn() == [prefetch]
+
+
 def test_the_lane_follows_the_expected_time_and_the_setting(redis_server, monkeypatch):
     monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)
     from planetgen.util.settings import get_settings
