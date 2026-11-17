@@ -25,7 +25,7 @@ import pytest
 
 from planetgen.db import store
 from tests import render_support
-from planetgen.physics import constants, materials, neutron_star, small_body_composition
+from planetgen.physics import constants, dark_light, materials, neutron_star, small_body_composition
 from planetgen import tuning
 from planetgen.galaxy import structure as galaxyStructure
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
@@ -148,7 +148,8 @@ def test_neutron_star_mass_radius_and_temperature_within_configured_ranges():
         assert tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[0] <= ns.mass_solar <= tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[1]
         low, high = neutron_star.radius_limits_km(ns.mass_solar)
         assert low - 1e-9 <= ns.radius <= high + 1e-9  # GEN.463: the band at its mass
-        assert tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[0] <= ns.surface_temperature_k <= tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[1]
+        assert ns.surface_temperature_k == dark_light.surface_temperature_k(ns.age)   # GEN.1529: the cooling curve of the age since the collapse, as a neutron star of a tree reads it
+        assert ns.temperature == ns.surface_temperature_k
         assert ns.pulsar_type in ("young", "millisecond", "magnetar", "non-pulsing")
         assert ns.yerkes_class == "NS"
         assert ns.lifespan == float('inf')

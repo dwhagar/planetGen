@@ -92,7 +92,7 @@ def test_the_disk_is_taken_at_the_innermost_stable_orbit():
 
 
 def test_an_unlit_kind_or_a_member_with_no_mass_or_age_gives_none():
-    assert dl.source_of(_member("stripped-helium", 1.0), 5.0) is None
+    assert dl.source_of(_member("stripped-helium", 0.47), 5.0) is None, "no radius"
     assert dl.source_of(_member("neutron-star", 1.4), 5.0) is None, "no radius"
     assert dl.source_of(_member("brown-dwarf", 0.05), None) is None
     assert dl.source_of(_member("brown-dwarf", 0.0), 5.0) is None
@@ -103,6 +103,45 @@ def test_a_dark_source_is_a_source_of_the_field_with_the_bands_it_has():
     per = radiation_field._per_au(source)
     assert per["bolometric_w_m2"] == pytest.approx(source.luminosity / (4 * math.pi * constants.AU_M ** 2))
     assert per["xuv_flux_earth"] is None and per["exposure_index"] is None and per["flare_irradiation_index"] is None
+
+
+def test_a_stripped_helium_star_glows_as_a_hot_subdwarf_with_its_xuv_and_a_semi_degenerate_donor_does_not():
+    radius_au = 0.2 * constants.SOLAR_RADIUS_M / constants.AU_M
+    star = dl.source_of(_member("stripped-helium", 0.47, radius_au=radius_au), 5.0)
+    assert star.temperature == dl.STRIPPED_HELIUM_TEMPERATURE_K and star.state == "stripped-helium"
+    assert star.luminosity == pytest.approx(4 * math.pi * (0.2 * constants.SOLAR_RADIUS_M) ** 2 * constants.STEFAN_BOLTZMANN_CONSTANT * 28000.0 ** 4, rel=1e-3)
+    assert 10.0 < star.luminosity / constants.SOLAR_LUMINOSITY < 100.0, "a hot subdwarf is 10 to 100 suns"
+    assert 0.05 < star.l_xuv_w / star.luminosity < 0.4, "a good share of a 28,000 K blackbody is over the hydrogen edge"
+    assert dl.source_of(_member("stripped-helium", 0.47, radius_au=2 * radius_au), 5.0).luminosity == pytest.approx(4 * star.luminosity), "the light follows the radius squared"
+    donor = _member("stripped-helium", 0.05, radius_au=0.02 * constants.SOLAR_RADIUS_M / constants.AU_M)
+    assert dl.source_of(donor, 5.0) is None, "an AM CVn donor does not burn helium"
+    per = radiation_field._per_au(star)
+    assert per["xuv_flux_earth"] == pytest.approx(star.l_xuv_w / (4 * math.pi * constants.AU_M ** 2) / constants.EARTH_XUV_FLUX_W_M2)
+    assert per["exposure_index"] is None and per["flare_irradiation_index"] is None
+
+
+def test_a_star_that_fills_its_lobe_feeds_a_black_hole_by_overflow_and_one_that_does_not_gives_only_its_wind():
+    hole_kg = 10.0 * SOLAR_MASS
+    yr = 365.25 * 86400.0
+    giant = _Star(mass_sol=1.0, luminosity_sol=800.0, radius_km=50.0 * 695700.0)
+    inside = dl.overflow_kg_s(hole_kg, giant, 0.02)       # the lobe of 1 solar mass about 10 is ~0.2 of 0.02 AU: far under the giant
+    outside = dl.overflow_kg_s(hole_kg, giant, 5.0)
+    assert outside == 0.0, "a lobe far wider than the star is not filled"
+    assert inside == pytest.approx(SOLAR_MASS / (dl.ms_lifetime.lifetime_gy(1.0) * 1e9 * yr), rel=1e-2), "a donor lighter than the hole is fed on its nuclear time"
+    assert 0.5e-10 < inside * yr / SOLAR_MASS < 2e-10, "1e-10 solar masses a year: a low-mass X-ray binary"
+    assert dl.black_hole_captured_kg_s(hole_kg, [(giant, 0.02)]) > inside, "the wind adds to it"
+    assert dl.black_hole_captured_kg_s(hole_kg, [(giant, 5.0)]) < inside / 100, "far off, only the wind is left"
+    light = dl.source_of(_member("black-hole", 10.0), 5.0, [(giant, 0.02)])
+    assert light is not None and light.luminosity / constants.SOLAR_LUMINOSITY > 50.0, "a bright X-ray source, which the wind alone never made"
+
+
+def test_a_donor_heavier_than_the_hole_overflows_on_its_thermal_time_and_the_light_stops_at_the_eddington_limit():
+    hole_kg = 5.0 * SOLAR_MASS
+    donor = _Star(mass_sol=10.0, luminosity_sol=1e4, radius_km=5.0 * 695700.0)
+    rate = dl.overflow_kg_s(hole_kg, donor, 0.05)
+    assert rate == pytest.approx(donor.mass / (constants.G * donor.mass ** 2 / (donor.radius * 1e3 * donor.luminosity)), rel=1e-9)
+    light = dl.source_of(_member("black-hole", 5.0), 0.02, [(donor, 0.05)])
+    assert light.luminosity == pytest.approx(dl.EDDINGTON_W_PER_SOLAR_MASS * 5.0, rel=1e-6)
 
 
 def _system_with_a_brown_dwarf():
@@ -148,6 +187,18 @@ def test_a_neutron_star_in_the_tree_lights_the_planets_of_the_star_beside_it_and
     assert not any(c.dark for c in radiation_field.companions_of(_lone_star()))
 
 
+def test_a_stripped_helium_star_in_the_tree_puts_xuv_on_the_planets_of_the_star_beside_it():
+    import dataclasses
+    system = _system_with_a_brown_dwarf()
+    host = system.star
+    radius_au = 0.2 * constants.SOLAR_RADIUS_M / constants.AU_M
+    system.dark_members = (dataclasses.replace(system.dark_members[0], kind="stripped-helium", mass_solar=0.47, radius_au=radius_au),) + tuple(system.dark_members[1:])
+    system.build_ledger()
+    found = [c for c in radiation_field.companions_of(host) if c.dark and c.star.state == "stripped-helium"]
+    assert found and found[0].star.l_xuv_w > 0.0
+    assert radiation_field.xuv_emitters(host, 1.0), "the loss of air and of envelope follows it"
+
+
 def _lone_star():
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
@@ -170,3 +221,18 @@ def test_the_truncation_of_a_disk_does_not_count_a_glowing_dark_member():
     without = disk_truncation.star_truncation_au(star)
     radiation_field.attach(star, stars_only + dark_only)
     assert disk_truncation.star_truncation_au(star) == without
+
+
+def test_a_lone_neutron_star_is_on_the_cooling_curve_a_tree_member_reads():
+    """GEN.1529: the lone phenomenon's temperature and a tree member's are one curve, and the snow line of a lone star's disk is read at the light it had at the end of the neutrino era."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.compact_remnant import NeutronStar
+    from planetgen.util import draw
+    for seed in range(5):
+        draw.set_run_seed(seed)
+        star = NeutronStar(SystemConfig())
+        assert star.surface_temperature_k == pytest.approx(dl.surface_temperature_k(star.age))
+        member = dl.source_of(_member("neutron-star", star.mass_solar, radius_au=star.radius / constants.AU_TO_KM), star.age + dl.NEUTRON_STAR_PROGENITOR_LIFE_GY)
+        assert member.temperature == pytest.approx(star.surface_temperature_k, rel=1e-9)
+        assert star._formation_luminosity_w() == pytest.approx(dl.neutron_star_luminosity_w(star.radius, dl.NEUTRON_STAR_PHOTON_ERA_YR * 1e-9))
+        assert star.snow_line_au > 0.05, "an old, cold star's disk had its ices out at an astronomical unit or so, not at 1e-5 AU"

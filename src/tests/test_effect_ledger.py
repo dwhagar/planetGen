@@ -250,3 +250,70 @@ def test_an_edit_of_a_system_clears_its_rows_and_a_deleted_phenomenon_takes_its_
     finally:
         conn.rollback()
         conn.close()
+
+
+def test_a_glowing_dark_member_is_a_source_stored_by_its_kind_and_member_number():
+    """GEN.1528: a brown dwarf, a neutron star or a black hole of an orbit tree has no kind-table row; its ledger rows carry `source_type` 8, 9 or 10 and its member number."""
+    from planetgen.physics import dark_light
+    book = ledger.EffectLedger()
+    planet, star = object(), object()
+    dwarf = dark_light.DarkSource(member_no=3, kind="brown-dwarf", mass=1e29, radius=7e4, luminosity=1e24, temperature=2000.0, age=5.0, type="L5 Brown Dwarf", state="brown-dwarf")
+    hole = dark_light.DarkSource(member_no=4, kind="black-hole", mass=1e31, radius=30.0, luminosity=1e22, temperature=1e6, age=5.0, type="Black Hole", state="black-hole-disk")
+    for source, value in ((star, 1.0), (dwarf, 1e-3), (hole, 1e-9)):
+        book.add("light", planet, source, value)
+    rows = book.rows(42, {id(planet): ("planets", 7), id(star): ("stars", 3)}, floor=1e-6)
+    assert [(row["source_type"], row["source_id"]) for row in rows] == [(1, 3), (ledger.DARK_KIND_CODES["brown-dwarf"], 3), (0, 0)]
+    assert rows[1]["share"] == pytest.approx(1e-3) and rows[-1]["n_below"] == 1 and book.missing == 0
+    assert ledger.dark_location(dwarf) == ("brown-dwarf", 3) and ledger.dark_location(star) is None
+    assert len(set(ledger.DARK_KIND_CODES.values()) | set(ledger.BODY_CODES.values())) == len(ledger.DARK_KIND_CODES) + len(ledger.BODY_CODES)
+
+
+def test_a_planet_beside_a_brown_dwarf_gets_the_dwarfs_light_in_its_ledger():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    for seed in (2, 74, 90, 128, 172, 276, *range(300, 500)):
+        config = SystemConfig()
+        with draw.bound(seed):
+            system = StarSystem(system_config=config)
+        if system.dark_members and system.dark_members[0].kind == "brown-dwarf" and system.planets:
+            break
+    else:
+        pytest.skip("no system with a brown dwarf and planets among the seeds tried")
+    kinds = {source.kind for _receiver, pairs in system.effect_ledger.contributions("light") for source, _value in pairs if getattr(source, "yerkes_class", None) == "DARK"}
+    assert "brown-dwarf" in kinds
+    ids = {id(star): ("stars", i + 1) for i, star in enumerate(system.stars)}
+    ids.update({id(body): ("planets", 100 + i) for i, body in enumerate(system.all_planets)})
+    rows = system.effect_ledger.rows(1, ids, floor=1e-40)       # every source a row: a dwarf's light may be under the floor of the stored galaxy
+    assert any(row["source_type"] == ledger.DARK_KIND_CODES["brown-dwarf"] for row in rows if row["effect"] == 1)
+
+
+@pytest.mark.fresh_database
+def test_a_saved_system_with_a_brown_dwarf_keeps_the_dwarfs_light_rows_and_the_refill_writes_them_again(mysql_config, monkeypatch):
+    """GEN.1528: the save and the refill job (`store.refresh_effect_ledger`) both file the dark member's light under its kind code and member number."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    for seed in (2, 74, 90, 128, 172, 276, *range(300, 500)):
+        config = SystemConfig()
+        with draw.bound(seed):
+            system = StarSystem(system_config=config)
+        if system.dark_members and system.dark_members[0].kind == "brown-dwarf" and system.planets:
+            break
+    else:
+        pytest.skip("no system with a brown dwarf and planets among the seeds tried")
+    monkeypatch.setattr(tuning, "EFFECT_LEDGER_FLOOR", 1e-40)       # a dwarf's light is a part in 1e11 of its star's: under the stored galaxy's floor it is in the summary row, so every source is stored here
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = store.insert_star_system(conn, system, config)
+        code = ledger.DARK_KIND_CODES["brown-dwarf"]
+        query = "SELECT body_type, body_id, source_id, share FROM effect_ledger WHERE star_system_id = ? AND effect = 1 AND source_type = ?"
+        saved = {tuple(r.values()) for r in conn.execute(query, (system_id, code)).fetchall()}
+        with conn:
+            store.refresh_effect_ledger(conn, system_id)
+        again = {tuple(r.values()) for r in conn.execute(query, (system_id, code)).fetchall()}
+        assert saved and {row[2] for row in again} == {system.dark_members[0].member_no} and {row[:3] for row in saved} == {row[:3] for row in again}
+    finally:
+        conn.rollback()
+        conn.close()
