@@ -265,6 +265,8 @@ class TemplateSet:
         self.background = background        # the supervisor's loop must not stand for the minute a warm set takes to build: it asks again at its next turn
         self.hosts = {}
         self._warming = {}                  # key -> (thread, host, failures)
+        self._owners = {}                   # (key, job id) -> the owner `fork` was given
+        self._ended = []                    # (key, Exit) read from the templates and not yet taken by their owner
 
     def host(self, key):
         """The running `JobHost` of template `key`, started now if it is not (the warm set is built before this returns)."""
@@ -301,17 +303,24 @@ class TemplateSet:
         self.hosts[key] = made
         return made
 
-    def fork(self, kind, runner, job=None):
-        """Forks the unit of `kind` from its template. Returns `(key, Job)`."""
+    def fork(self, kind, runner, job=None, owner=None):
+        """Forks the unit of `kind` from its template. `owner` names who asked (the launcher forks units, `lightjobs.LightJobs` the site's jobs): only its owner's `poll` is told how the job ended. Returns `(key, Job)`."""
         key = template_key(kind)
-        return key, self.host(key).fork(runner, job)
+        held = self.host(key).fork(runner, job)
+        self._owners[(key, held.id)] = owner
+        return key, held
 
-    def poll(self, timeout=0.0):
-        """`(key, Exit)` of every job that ended since the last call, over every template."""
-        found = []
+    def poll(self, timeout=0.0, owner=None):
+        """`(key, Exit)` of every job of `owner` that ended since the last call, over every template; the ends of the other owners' jobs are kept for their own `poll`."""
         for key, host in self.hosts.items():
-            found += [(key, exit_) for exit_ in host.poll(timeout if len(self.hosts) == 1 else 0.0)]
-        return found
+            self._ended += [(key, exit_) for exit_ in host.poll(timeout if len(self.hosts) == 1 else 0.0)]
+        mine, rest = [], []
+        for item in self._ended:
+            (mine if self._owners.get((item[0], item[1].id)) == owner else rest).append(item)
+        self._ended = rest
+        for key, exit_ in mine:
+            self._owners.pop((key, exit_.id), None)
+        return mine
 
     def stop(self):
         for thread, made, _failures in self._warming.values():

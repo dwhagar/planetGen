@@ -18,9 +18,10 @@ import pytest
 from planetgen import tuning
 from planetgen.admin import auth as adminAuth
 from planetgen.db import dataversion, query
-from planetgen.queue import api_jobs, pagejobs, redisclient, workers
+from planetgen.queue import api_jobs, lightjobs, pagejobs, redisclient
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient, pagecache, slowpages
+from tests import inline_queue
 from tests.test_api import seeded_sector  # noqa: F401 -- the fixture galaxy needs
 from tests.test_cache_warmup import _Visitor, galaxy  # noqa: F401 -- the fixture
 
@@ -58,8 +59,8 @@ def _slow_jobs(db):
 def slow(galaxy, monkeypatch):  # noqa: F811
     """Every request on the phenomena list counts as slow, and no worker starts on its own."""
     monkeypatch.setattr(tuning, "SLOW_PAGE_ROW_BUDGET", -1)
-    galaxy.run_jobs = workers.ensure_workers       # the tests' own (conftest `_run_queue_inline`): runs waiting jobs here
-    monkeypatch.setattr(workers, "ensure_workers", lambda *args, **kwargs: 0)
+    galaxy.run_jobs = inline_queue.run_light_jobs       # the tests' own supervisor duty: runs waiting jobs here
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)
     slowpages.clear_estimates()
     yield galaxy
     connection = redisclient.client(decode_responses=True)
@@ -189,7 +190,7 @@ def _wait_for(job_id, app, states=("succeeded", "failed", "canceled"), seconds=1
 
 
 def test_a_worker_builds_the_answer_into_the_cache_and_an_edit_invalidates_it(slow, monkeypatch):
-    monkeypatch.setattr(workers, "ensure_workers", slow.run_jobs)         # the job runs as it is queued
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: slow.run_jobs(connection, url))         # the job runs as it is queued
     config, db = slow.config, slow.config.database
     real_ensure = pagejobs.ensure                                          # the site's own database is the default; here it is this test's
     monkeypatch.setattr(pagejobs, "ensure", lambda db, target, rows=None, expected=None, config=None, retry=False:
@@ -222,7 +223,7 @@ def test_a_worker_builds_the_answer_into_the_cache_and_an_edit_invalidates_it(sl
 
 
 def test_a_job_that_fails_says_why_and_is_replaced_by_a_retry(slow, monkeypatch):
-    monkeypatch.setattr(workers, "ensure_workers", slow.run_jobs)
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: slow.run_jobs(connection, url))
     config, db = slow.config, slow.config.database
     app = _site(config)
     target = f"/phenomena?db={db}&sort=nonsense"

@@ -104,9 +104,9 @@ def test_a_job_with_no_claim_on_any_table_is_let_through_with_the_default_claim(
     cls = worker.worker_class()
     instance = cls.__new__(cls)
     instance.connection, instance.name = object(), "w1"
-    job = type("Job", (), {"id": "j1", "func_name": "planetgen.nothing.here", "args": (), "origin": "planetgen-interactive"})()
+    job = type("Job", (), {"id": "j1", "func_name": "planetgen.nothing.here", "args": (), "origin": redisqueue.MAINTENANCE_QUEUE})()
     instance._take_claim(job)
-    assert taken == [memorygate.Claim("fn:planetgen.nothing.here", float(claims.DEFAULT_MB), 1.0, "interactive")]
+    assert taken == [memorygate.Claim("fn:planetgen.nothing.here", float(claims.DEFAULT_MB), 1.0, "maintenance")]
 
 
 def test_a_worker_asked_to_stop_while_a_job_waits_at_the_gate_gives_the_job_back_to_the_front_of_its_queue(monkeypatch):

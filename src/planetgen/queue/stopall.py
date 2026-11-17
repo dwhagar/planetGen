@@ -255,11 +255,11 @@ def _cancel_runs(connection, who):
 def _empty_queues(connection):
     import rq
 
-    from planetgen.queue import redisqueue, requires
+    from planetgen.queue import lightjobs, redisqueue, requires
 
     removed = 0
     names = {queue.name for queue in rq.Queue.all(connection=connection)}
-    names |= {redisqueue.BULK_QUEUE, *redisqueue.maintenance_lane(), redisqueue.INTERACTIVE_QUEUE, redisqueue.LONG_QUEUE}
+    names |= {redisqueue.BULK_QUEUE, *redisqueue.maintenance_lane()}
     for name in sorted(names):
         try:
             queue = redisqueue.queue(name, connection)
@@ -268,6 +268,10 @@ def _empty_queues(connection):
             removed += requires.drop_held(connection, name)      # PERF.247: the jobs held for a requirement are dropped with it
         except Exception as exc:       # noqa: BLE001 -- the other queues are still emptied
             log.swallowed("queue/stopall", "_empty_queues", exc)
+    try:
+        removed += lightjobs.stop_all(connection)        # OPS.230: the site's light jobs are not on a queue; the supervisor ends the ones that run
+    except Exception as exc:       # noqa: BLE001 -- the rest of the stop still goes ahead
+        log.swallowed("queue/stopall", "_empty_queues", exc)
     return removed
 
 

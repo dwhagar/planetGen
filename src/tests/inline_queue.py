@@ -80,6 +80,50 @@ class InlineForker:
         return found
 
 
+class InlineLightForker:
+    """The forker of a `lightjobs.LightJobs` for the tests (OPS.230): `fork` runs the light job at once, in this process, through `lightjobs.run` as the job process would, so an API job or a slow page's
+    answer is done where an RQ job was: when whoever submitted it, or asked after it, asks for the supervisor."""
+
+    def __init__(self):
+        self.exits, self.made = [], 0
+
+    def fork(self, kind, runner, job=None, owner=None):
+        from planetgen.queue import jobhost, lightjobs
+        self.made += 1
+        link = _Link()
+        paused = signal.alarm(0)            # a test's own time limit is for the command: the job's time is not counted
+        try:
+            code = lightjobs.run({**(job or {}), "nice": 0}, link)       # this process is the test's: it is not made nicer
+        finally:
+            lightjobs._current.update(id=None, url=None)
+            if paused:
+                signal.alarm(paused)
+        self.exits.append(("inline", jobhost.Exit(self.made, os.getpid(), code=code)))
+        return "inline", _InlineJob(self.made, link)
+
+    def poll(self, timeout=0.0, owner=None):
+        found, self.exits = self.exits, []
+        return found
+
+    def stop(self):
+        pass
+
+
+def run_light_jobs(connection=None, url=None):
+    """Hands out the pending light jobs and runs each here until none is waiting (the supervisor's `LightJobs` duty with an inline forker); returns how many it ran."""
+    from planetgen.queue import lightjobs, memorygate, redisqueue
+    connection = connection or redisqueue.connect(url)
+    duty = lightjobs.LightJobs(connection, InlineLightForker(), read_host=lambda: memorygate.Host(10 ** 6, 10 ** 6, 64, 0.0), held_mb=lambda pid: 0.0)
+    ran = 0
+    while True:
+        started = duty.turn()
+        ran += len(started)
+        if not started:
+            break
+    duty.ended()
+    return ran
+
+
 def run_ready_rows():
     """Hands out the ready rows of the job ledger and runs each unit here until none is ready (the launcher with an inline forker); returns how many units it ran. Nothing happens for a run with no ledger."""
     from planetgen.db import store
@@ -124,7 +168,7 @@ def inline_queue(monkeypatch=None):
     import redis
     import rq
 
-    from planetgen.queue import allowlist, memorygate, redisqueue, runrecord, workers, wrapper
+    from planetgen.queue import allowlist, lightjobs, memorygate, redisqueue, runrecord, workers, wrapper
 
     token = uuid.uuid4().hex[:12]
     prefix = f"planetgen-test:{token}"
@@ -166,6 +210,7 @@ def inline_queue(monkeypatch=None):
             patch.setattr(redisqueue, "MAINTENANCE_QUEUE", maintenance_name)
             patch.setattr(workers, "ensure_workers", run_waiting_units)
             patch.setattr(wrapper, "stage_ensure", inline_stage_ensure)
+            patch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: run_light_jobs(connection, url))        # OPS.230: the supervisor's duty, in this process, at once
             for name, value in (("HOST", server["host"]), ("PORT", server["port"]), ("USER", server["user"]),
                                 ("PASSWORD", server["password"])):
                 patch.setenv(f"PLANETGEN_MYSQL_{name}", str(value))

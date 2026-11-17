@@ -18,6 +18,7 @@ import redis
 from planetgen.web import generate_page
 from planetgen.web.lib import estimatecache, estimatejob, singleflight
 
+from tests import inline_queue
 from tests.test_web_generate import (  # noqa: F401 -- fixtures
     DB, _ESTIMATE, _post, client, jobs_root, no_spawn, site,
 )
@@ -342,14 +343,10 @@ def test_the_answers_keep_their_headers_small(client, queued):
 # --- Through a real Redis and the guarded worker (the allowlist let nothing else catch ADM.141's missing entry) ----------
 
 def test_the_estimate_runs_end_to_end_through_the_queue_and_the_guarded_worker(database, redis_server, monkeypatch):
-    """The request queues `estimatejob.work` with `api_jobs.submit`; a worker built as the site builds it (the allowlist's `GuardedJob`) runs it, and the next ask reads the estimate."""
-    import rq
+    """The request queues `estimatejob.work` with `api_jobs.submit`; the supervisor's duty hands it out and the job process checks it against the allow-list (`api_jobs.execute`), and the next ask reads the estimate."""
+    from planetgen.queue import api_jobs, lightjobs, redisqueue
 
-    from planetgen.queue import allowlist, api_jobs, redisqueue, workers
-
-    name = f"planetgen-estimate-e2e-{uuid.uuid4().hex[:8]}"
-    monkeypatch.setattr(api_jobs, "lane", lambda expected_seconds=None: (name, 1))
-    monkeypatch.setattr(workers, "ensure_workers", lambda *args, **kwargs: None)       # this test's worker is the one below
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)       # the duty below is the supervisor
     ran = []
 
     def command(argv, env, cwd, timeout, merge_stderr=False):
@@ -360,13 +357,7 @@ def test_the_estimate_runs_end_to_end_through_the_queue_and_the_guarded_worker(d
     with pytest.raises(estimatecache.Working):
         _ask(database, lambda key, versions: REAL_START(key, versions, ARGV, {"PLANETGEN_MYSQL_DATABASE": database}, "."))
     connection = redisqueue.connect(redis_server)
-    try:
-        queue = redisqueue.queue(name, connection)
-        assert queue.count == 1
-        rq.SimpleWorker([queue], connection=connection, serializer=redisqueue.serializer_for(name), job_class=allowlist.GuardedJob).work(burst=True, logging_level="CRITICAL")
-        assert ran == [ARGV + ["--estimate-only"]]
-        assert _ask(database, _Queue()) == ESTIMATE
-    finally:
-        queue.empty()
-        for job_id in queue.failed_job_registry.get_job_ids():
-            queue.failed_job_registry.remove(job_id, delete_job=True)
+    assert connection.zcard(lightjobs.pending_key()) == 1
+    assert inline_queue.run_light_jobs(connection) == 1
+    assert ran == [ARGV + ["--estimate-only"]]
+    assert _ask(database, _Queue()) == ESTIMATE

@@ -83,8 +83,8 @@ def test_calls_are_resolved_the_way_the_notes_say(data):
     submit = functions[by_key[("planetgen.queue.api_jobs", "submit")]]
     resolved = {(names[functions[t][0]], functions[t][1]) for t, _kind in submit[6]}
     assert ("planetgen.queue.redisqueue", "redis_url") in resolved        # `redisqueue.redis_url()`: a module alias
-    assert ("planetgen.queue.api_jobs", "new_job_id") in resolved         # a function of the module itself
-    assert ("planetgen.queue.workers", "ensure_workers") in resolved      # `workers.ensure_workers()`
+    assert ("planetgen.queue.api_jobs", "function_reference") in resolved         # a function of the module itself
+    assert ("planetgen.queue.lightjobs", "ask_supervisor") in resolved            # `lightjobs.ask_supervisor()`
     assert "connection.ping" in submit[7]                                 # a method on an unknown value stays text
     assert not any(t in ("len", "int") for t in submit[7])                # builtins are left out
 

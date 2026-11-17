@@ -10,7 +10,6 @@ import os
 import socket
 import threading
 import time
-import zlib
 
 import pytest
 import redis
@@ -92,7 +91,6 @@ def test_the_json_serializer_round_trips_plain_data_and_writes_decimals_and_time
 
 
 def test_every_queue_uses_json_and_none_keeps_pickle():          # SEC.39
-    assert redisqueue.serializer_for(redisqueue.INTERACTIVE_QUEUE) is redisqueue.JsonSerializer
     assert redisqueue.serializer_for(redisqueue.BULK_QUEUE) is redisqueue.JsonSerializer
     assert redisqueue.serializer_for("planetgen-web-0123") is redisqueue.JsonSerializer
     assert redisqueue.serializer_for("planetgen-api-test-0123") is redisqueue.JsonSerializer
@@ -119,15 +117,14 @@ def _noop(value):
 
 @pytest.mark.skipif(not os.environ.get("PLANETGEN_TEST_REDIS_URL"), reason="PLANETGEN_TEST_REDIS_URL is not set")
 def test_a_queued_api_job_is_stored_as_json_not_pickle(monkeypatch):
+    from planetgen.queue import lightjobs
     monkeypatch.setenv("PLANETGEN_REDIS_URL", os.environ["PLANETGEN_TEST_REDIS_URL"])
-    monkeypatch.setattr(api_jobs.workers, "ensure_workers", lambda *a, **k: 0)       # no worker: the job stays queued
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)       # no supervisor: the job stays queued
     job_id = api_jobs.submit(_noop, 5)
     connection = redisqueue.connect()
     try:
-        raw = connection.hget(f"rq:job:{api_jobs.QUEUE_PREFIX}{job_id}", "data")
-        data = json.loads(zlib.decompress(raw).decode("utf-8"))    # RQ compresses the data; inside is plain JSON
-        function, _instance, args, _kwargs = data       # RQ's job data: the function, its instance, args, kwargs
-        assert function.endswith("api_jobs.execute") and args[0].endswith(":_noop") and args[1] == [5]
+        record = {key.decode(): value.decode() for key, value in connection.hgetall(lightjobs.job_key(job_id)).items()}
+        assert record["function"].endswith(":_noop") and json.loads(record["args"]) == [5]        # plain JSON a process that can write to Redis cannot make run code with
     finally:
-        connection.delete(f"rq:job:{api_jobs.QUEUE_PREFIX}{job_id}")
-        connection.lrem(f"rq:queue:{api_jobs.QUEUE_NAME}", 0, f"{api_jobs.QUEUE_PREFIX}{job_id}")
+        connection.delete(lightjobs.job_key(job_id))
+        connection.zrem(lightjobs.pending_key(), job_id)

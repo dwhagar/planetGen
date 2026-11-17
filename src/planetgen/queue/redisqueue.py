@@ -34,15 +34,6 @@ BULK_QUEUE = "planetgen-bulk"
 """str: A run's units of work (PERF.95): the scatters, sector fills and backfill blocks of the work queue
 rebuild. Its workers serve this queue and no other."""
 
-INTERACTIVE_QUEUE = "planetgen-interactive"
-"""str: Work an admin or the API starts and waits for (PERF.40, PERF.78): neighborhoods, estimates, exports, the
-deep database check. Its workers serve this queue and no other, so a long run never holds one up."""
-
-LONG_QUEUE = "planetgen-long"
-"""str: The API jobs expected to take longer than `queue.long_job_seconds` (PERF.151): a neighbourhood or a large
-settle, which can run for hours. Its own workers serve it, so a long job never holds the workers kept for the short
-ones on `INTERACTIVE_QUEUE`."""
-
 MAINTENANCE_QUEUE = "planetgen-maintenance"
 """str: The units of a `MAINTENANCE` or `CHECK` run (the cache warm-up, the database check) and the node prefetch and
 rebuild jobs (PERF.150). Its workers have a cap of their own (`workers.maintenance_cap`) and share the host's worker
@@ -70,7 +61,7 @@ def maintenance_lane():
     return (MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QUEUE)
 
 
-QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE)
+QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QUEUE)
 """tuple: Every shared queue."""
 
 def redis_url():

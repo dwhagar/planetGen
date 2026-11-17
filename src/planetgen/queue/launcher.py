@@ -83,10 +83,11 @@ class Started:
 
 class Launcher:
     """One supervisor's hand-outs. `control` is the control connection; `forker` is a `jobhost.TemplateSet` (`fork(kind, runner, job)`, `poll()`); `galaxy` is `run_id -> connection` for the
-    galaxy the run writes to (or `None`)."""
+    galaxy the run writes to (or `None`); `also_held` returns the claims of the jobs another duty of the supervisor holds (OPS.230: the site's light jobs)."""
 
-    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None):
+    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None, also_held=None):
         self.control, self.forker, self.galaxy, self.redis = control, forker, galaxy, redis
+        self.also_held = also_held or (lambda: [])      # the claims the site's light jobs hold (`lightjobs.LightJobs.holders`): the bulk lane is judged against them
         self.clock, self.read_host, self.runner = clock, read_host, runner
         self.used = used if used is not None else (lambda: {})
         self.running = {}           # job id -> Started
@@ -289,7 +290,7 @@ class Launcher:
         if not waiting:
             return []
         now = self.clock()
-        decided = dispatch.dispatch(waiting, self.read_host(), self.holders(), now, self.used())
+        decided = dispatch.dispatch(waiting, self.read_host(), [*self.holders(), *self.also_held()], now, self.used())
         self._note(rows, decided)
         started = [self.start(rows[name]) for name in decided.admitted]
         return [item.row["id"] for item in started if item is not None]
