@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4426] - 2026-11-17
+
+**Headline:** The stand-in moon of the Cassini-tilt test again carries a build record, so main is green again after GEN.1651.
+
+### Fixed
+- `test_settle_obliquity` made a stand-in moon without a `build` record, which `settle_moon_tilts` now reads for the moon's frame axis (GEN.1651); the stand-in carries a `BuildRecord()`.
+
+generation-output: unchanged
+
 ## [8.0.4425] - 2026-11-17
 
 **Headline:** the population pass is now four commands of its own, so each step can be seen, stopped and carried on by itself and the generated galaxy is the same.
