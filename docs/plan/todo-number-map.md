@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.320 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1781 |
+| GEN | GEN.1782 |
 | PERF | PERF.277 |
 | DB | DB.135 |
 | API | API.52 |
@@ -4111,6 +4111,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | open (Lane 05) |
 | GEN.1779 | (bug, high) A system build got about 2.4 times slower (test_gen1254_scatter_uid past its guard) | closed, not a regression (Lane 14, 2:16 AM EST 11-17: 144 s on main against 161 s on the 617 s commit; heavy list kept; speed work in PERF.276) |
 | GEN.1780 | The GEN.1732 haze loss ramp may have two branches (seed 106: 229 K to 134 K) | open (Lane 02) |
+| GEN.1781 | Doubling methane cools hydrogen-rich airs: pair absorption missing or real anti-greenhouse? | open (Lane 02) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4980,7 +4981,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.787 | (bug) Main reds: test_class_after_bands (T for M) and test_gen_node_planets stream test | done (PR 6949, Lane 07, merged 8:23 PM EST 11-16; class_after_bands half moved to GEN.1774) |
 | TEST.788 | Slow gate files (test_db_column_round_trip, test_full_matrix, test_order_independence, test_describe, test_tidal_spin) | open (Lane 16) |
 | TEST.789 | test_secular_exchange_generation fails under load: find the load-order effect | done (PR 7007, 1:49 AM EST 11-17: one test moved the shared systems; it now builds its own) |
-| TEST.790 | A controlled greenhouse test: doubled infrared-active gases never lower the greenhouse | open (Lane 02) |
+| TEST.790 | A controlled greenhouse test: doubled infrared-active gases never lower the greenhouse | done (PR 7019, 2:41 AM EST 11-17; hydrogen-rich airs scoped out, see GEN.1781) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
