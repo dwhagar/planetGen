@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1895 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1899 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1868 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1872 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 11 | 0 | 213 |
 | T4 | 89 | 16 | 8 | 24 | 13 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 2 | 149 |
-| T6 | 238 | 128 | 36 | 81 | 4 | 487 |
+| T6 | 239 | 131 | 37 | 81 | 3 | 491 |
 | T7 | 70 | 37 | 10 | 32 | 0 | 149 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 41 | 232 |
-| All | 1079 | 388 | 97 | 270 | 61 | 1895 |
+| All | 1080 | 391 | 98 | 270 | 60 | 1899 |
 
 ## How the labels were given
 
@@ -2717,12 +2717,16 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| IF1 | P | T6 | L4 | `influx.BELT_DUST_SHARE` 0.1: the share of a belt's collisional mass loss (`M / t`) that reaches the inner system as dust and small bodies | 0.01 to 0.5 | belts that have ground down along `M = A / t` | a measured share of a debris belt's loss that drifts inward past its edge | a grain-size cascade with radiation-force and drag lifetimes | no source: the order of the share of a cascade in grains the radiation forces move; fitted to nothing | predicted only | - | no data |
+| IF1 | P | T6 | L2 | `influx.BELT_DUST_SHARE` 0.03: the share of a belt's collisional mass loss (`M / t`) that reaches the inner system as dust and small bodies | 0.01 to 0.5 | belts that have ground down along `M = A / t` | a measured share of a debris belt's loss that drifts inward past its edge | a grain-size cascade with radiation-force and drag lifetimes | tuned (GEN.1543) to the measured 1e7 kg a year the Earth takes ([R1397], recalled) for a Sun with a main-belt sized reservoir at the grain size and geometry of IF7 to IF10; it was 0.1 while the isotropic sphere gave 45 kg a year | predicted only | - | - |
 | IF2 | P | T6 | L4 | `influx.COMET_LIFETIME_YR` 1e7: the time over which a comet nucleus of a reservoir gives its mass to the planets | 1e6 to 1e8 | comets of the short-period and Halley kinds | dynamical lifetimes of the comets of a system that differ by over a factor of ten | lifetime from the comet's period class | no source: the tens-of-millions-of-years order of dynamical lifetimes | predicted only | - | no data |
-| IF3 | T | T5 | L0 | a planet takes `R^2 / (4 a^2)` of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted | none | streams much faster than the planet's escape speed | a planet whose escape speed is comparable to the stream's | the focused cross-section `R^2 (1 + v_esc^2 / v^2)` | derived: a cross-section over a sphere's area | predicted only | - | - |
+| IF3 | T | T5 | L0 | a planet takes the dust that drifts in past its orbit as `pi R^2 (1 + v_esc^2 / v_rel^2) v_rel / (2 pi a H v_drift)` of it (`influx.capture_share`): its focused cross-section times the grains' speed past it, over the annulus the stream fills (thickness `H = 2 a sin i`) times the Poynting-Robertson drift speed `2 beta G M / (c a)`, `beta = 3 L / (16 pi G M c rho s)`; `v_rel = v_orbit sqrt(e^2 + i^2)` | none | grains of one size in a thin disk, near-circular orbits | a planet whose measured dust influx differs from this share by over a factor of ten with the same supply | the grains' spread of sizes with their collisional losses on the way in | derived (a stream's mass density and a cross-section, the Poynting-Robertson drift law and the encounter speed of near-circular orbits); replaces the isotropic `R^2 / (4 a^2)` that gave the Earth 45 kg a year | predicted only | - | - |
 | IF4 | T | T6 | L0 | each giant between the source and the planet ejects the share `1 - exp(-Theta / 10)` of what drifts past, `Theta` its Safronov number (the rule the swept disk of the giants already follows, row SX3) | THETA_EJECT | giants with Theta of a few to a few tens | a system where a giant measurably passes more or less than this | an integration of encounters | reuse of `scatter.THETA_EJECT` (SX3) | predicted only | - | - |
 | IF5 | T | T6 | L0 | a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit | none | planets near the star | a belt whose dust is seen outside its own ring | outward transport of the cascade | design | predicted only | - | - |
 | IF6 | T | T6 | L0 | the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings | none | systems with no giant beyond a comet reservoir | a system whose measured comet flux is set by a giant's inward scattering | inward scattering by each giant, a stirring factor from the companion | design; GEN.1453 slice B (GEN.1493) is the air reading the influx | predicted only | - | - |
+| IF7 | P | T6 | L1 | `influx.GRAIN_RADIUS_M` 3e-5: the radius of the one grain size that carries a reservoir's dust inward | 1e-5 to 1e-4 m | dust in the size range the zodiacal cloud's light and drift are set by | a measured size distribution of a system's dust that puts its supply in grains much smaller or larger | the cascade's spread of sizes with their drift and collisional lifetimes | no source in the registry: the 10 to 100 micrometer size of the zodiacal cloud, set inside it by IF1 | predicted only | - | - |
+| IF8 | P | T6 | L0 | `influx.GRAIN_DENSITY_KG_M3` 2500: the density of a grain (stony dust) | 1000 to 3500 kg/m3 | rocky dust | dust of ice or iron that dominates a system's supply | the density of the belt's own composition | design: the density of stone | predicted only | - | - |
+| IF9 | P | T6 | L1 | `influx.DUST_ECCENTRICITY` 0.15: the eccentricity of the dust where it crosses a planet's orbit | 0.05 to 0.3 | grains from belts stirred by giants | a system whose belt dust crosses a planet's orbit on near-circular or much more eccentric orbits | the belt's own eccentricity spread | no source in the registry: the order of the scatter of a stirred belt | predicted only | - | - |
+| IF10 | P | T6 | L1 | `influx.DUST_INCLINATION_RAD` 0.25: the inclination of the dust to the plane, which sets the disk's thickness `2 a sin i` | 0.1 to 0.5 rad | comet-fed dust (10 to 30 degrees) | a system whose dust sheet is much thinner or thicker | the belt's own inclination spread | no source in the registry: the 10 to 30 degrees of the Solar System's dust, as a number to be replaced | predicted only | - | - |
 
 ## 6.248 Stand-ins of the day with every sun
 
