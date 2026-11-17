@@ -11597,11 +11597,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 07 (moved from Lane 14, closed). Prerequisites: stage 4. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
-- [ ] **OPS.248 Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit)**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row H3 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: OPS.231, OPS.232. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.249 Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row H4 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.231, OPS.247. Related: OPS.191, OPS.207, OPS.212.
