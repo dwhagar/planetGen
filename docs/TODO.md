@@ -11746,11 +11746,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 04, with Lane 02 for air and life shifts. Prerequisites: GEN.1777 (the lever Boss picks). Related: GEN.1390, GEN.1777, GEN.1732.
   Filed by the TODO thread.
 
-- [ ] **GEN.1786 A restored resonant body loses the floor under its eccentricity: since GEN.1651 the held eccentricity lives in build.resonance_e, but body_history still read the old _resonance_e, so held_eccentricity was never saved and a restored body settled without it (bug)**
-  Lane 07, 7:15 AM EST 2026-11-17 (test_restored_resonance_and_star_birth red on main, found by Lane 15: its seed search used the old _orbit_birth name). Fix in PR 7057: body_history reads and writes build.resonance_e; the two tests read build.orbit_birth and build.resonance_e; assertions and seed range unchanged. Generation output unchanged; only the saved held_eccentricity column and a restored body settled again move.
-  Version 8.1. Owner (TODO, 2026-11-17): Lane 07, lock-free. Prerequisites: none. Related: GEN.1651, DB.75b.
-  Filed by the TODO thread.
-
 - [ ] **OPS.271 Ledgerless runs (`generate system --output` with no database, the update's math check before the migration step) run their units in the CLI process or a forked job without a ledger, so the bulk RQ unit path can be deleted**
   Lane 13, 7:57 AM EST 2026-11-17 (OPS.228 closed: every run with a ledger runs its bulk lane as forked jobs, PRs 6995, 7011, 7027, 7040, 7062; runs where planrows.ledgered is false still use enqueue_units, run_unit and open_stage). Do: run those units in the CLI process or a forked job with no ledger, reusing the launcher; then delete enqueue_units, run_unit and open_stage. WarmWorker's unit prep, claim expiry and heartbeat, and the gate wait are deleted with OPS.229 once the maintenance and check lanes move.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 13, lock-free. Prerequisites: OPS.228 (done). Related: OPS.229, OPS.228.

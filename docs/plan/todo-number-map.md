@@ -4120,7 +4120,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1783 | (bug) A wide-binary planet's apoapsis passes the stability limit the validator uses | open (Lane 05) |
 | GEN.1784 | The exobase search underestimates the exobase height (median 6 percent, up to 25) (lock) | open (Lane 07) |
 | GEN.1785 | Class census shifts since 8656686b7: explain each, fix faults, renew ranges | GEN.1390 | open (Lane 04) |
-| GEN.1786 | Held resonance eccentricity not saved or restored since GEN.1651 (bug) | GEN.1651 | open (Lane 07) |
+| GEN.1786 | Held resonance eccentricity not saved or restored since GEN.1651 (bug) | GEN.1651 | done (PR 7057, 11-17) |
 | GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | open (Lane 16) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
