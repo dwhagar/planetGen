@@ -42,15 +42,26 @@ def planet_at(star, distance_au, mass_earth, moon_count=0):
 
 @pytest.mark.parametrize("star_type", ["G2V", "M3V", "K1V", "F5V", "A0V"])
 def test_generated_systems_validate(star_type):
-    for _ in range(5):
-        system = make_system(star_type, PLANETS=True)
-        assert validation.check_star_system(system) == []
+    for trial in range(5):
+        with draw.bound(draw.Stream(f"validate-generated:{star_type}:{trial}")):    # GEN.1783: a run seed of its own, so a failure replays alone or under xdist
+            system = make_system(star_type, PLANETS=True)
+        assert validation.check_star_system(system) == [], (star_type, trial)
 
 
 def test_generated_wide_binaries_validate():
-    for _ in range(5):
-        system = make_system("K1V", BINARY_SYSTEM=True, WIDE_BINARY=True)
-        assert validation.check_star_system(system) == []
+    for trial in range(5):
+        with draw.bound(draw.Stream(f"validate-wide-binary:{trial}")):
+            system = make_system("K1V", BINARY_SYSTEM=True, WIDE_BINARY=True)
+        assert validation.check_star_system(system) == [], trial
+
+
+@pytest.mark.parametrize("seed", [215, 217])
+def test_a_wide_binary_planet_whose_eccentricity_rose_is_held_to_the_stability_limit(seed):
+    """GEN.1783: F5V seeds 215 and 217 (a wide pair, MOONS off) left a planet whose apoapsis reached past the star's `a_crit_au` (0.1919 AU against 0.1886 AU; 41.17 AU in the other): the eccentricity
+    the settle pass raised (the exchange, a resonant chain, the Kozai pump) closed no gap, so only a respaced star was trimmed to its ceiling. Every star's planets are held to it now."""
+    with draw.bound(seed):
+        system = make_system("F5V", PLANETS=True)
+    assert validation.check_star_system(system) == []
 
 
 def test_check_planet_reports_a_class_that_its_conditions_do_not_give(star):
