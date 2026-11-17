@@ -184,3 +184,11 @@ def test_the_track_pieces_of_a_star_are_the_tracks_it_reads_at_every_age():
         for age in (0.01, 1.0, 4.5, 7.9, 8.1, 11.0, 13.5):
             track = next(track for start, end, track in pieces if start <= age < end)
             assert track == pytest.approx(alpha_tracks.track_fe_h(fe_h, age), abs=1e-12)
+
+
+def test_the_remembered_track_metallicity_is_the_one_the_law_gives():
+    """PERF.276: `equivalent_fe_h` is remembered (a table of stars asks for one [Fe/H] 150,000 times); the memory gives the bits of the law."""
+    for branch in stellar_abundances.BRANCHES:
+        for fe_h in (-2.4, -1.6, -0.9, -0.31, 0.0, 0.07, 0.3, 0.5, 0.9):
+            assert alpha_tracks.equivalent_fe_h(fe_h, branch) == alpha_tracks.equivalent_fe_h.__wrapped__(fe_h, branch)
+            assert alpha_tracks.equivalent_fe_h(fe_h, branch) == alpha_tracks.equivalent_fe_h(fe_h, branch)
