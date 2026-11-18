@@ -11302,7 +11302,7 @@ clears each one.
   Class M audit (coordinator relay, 2026-11-12), reports/class-m-audit-2026-11-12/class-m-generation-audit-2026-11-12.md fix 8. Classes H and P never came out in 4,800 analog trials, so they may be unreachable by the chain rather than rare. Do: after GEN.1581 and GEN.1584 merge, re-run scripts/earth_analog.py (TEST.726) and a census slice for H and P; if still 0, trace the class rows for the blocking edge (the brine-seep rule for H, the oxygen need for P) and file the fix. Done: counts for H and P before and after, and either a note that they are reachable or a filed fix item.
   Status (TODO, 2026-11-12, reports/bug-sweep-read-and-simulate-2026-11-11.md, M2, read only and unconfirmed): class H looks unreachable by the code. H needs groundwater, ocean cover under 0.2 and liquid water stable, but aquifers.generate (physics/aquifers.py lines 71-82) only makes an aquifer when the hydrosphere is 'dry', 'ice' or 'vapor' with water on the body; 'dry' with water only happens below the triple-point pressure (hydrosphere.py lines 332-335) where the liquid test is false, and any liquid layer gives a 'surface ocean' or 'brine seep', which gets no aquifer. In the sample 49 dry bodies had reachable groundwater, so the aquifer side occurs; whether it can occur with stable liquid water and a breathable air is unconfirmed. Settle this by reading and a hand case before waiting for GEN.1581 and GEN.1584; also note GEN.1587 (class judged before the bands exist) blocks H, P, M, O and R in any request.
   Boss, 8:55 PM EST on 2026-11-11 (as the coordinator relayed): 'Confirmed fix all' and 'Build it and Ship it': every Class M audit item is approved and buildable, for the earliest train (Train 25 first).
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 03. Prerequisites: GEN.1581, GEN.1584. Related: GEN.1581, GEN.1584, TEST.726.
+  Version 8.1. Owner (TODO, 2026-11-18): Lane 05 (from closed Lane 03), report first, results to GEN.1791. Prerequisites: GEN.1581, GEN.1584. Related: GEN.1581, GEN.1584, TEST.726.
   Filed by the TODO thread. Class M audit.
 
 - [ ] **UX.305 (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212**
@@ -11441,7 +11441,7 @@ clears each one.
 
 - [ ] **GEN.1682 Phenomena rings drawn in the backfill as well**
   Left out of PR 6392 on purpose: the backfill does not yet place phenomena rings. Do: a second PR that adds them, reusing the phenomena pass. Lock item (generation-affects).
-  Version 8.1. Owner (TODO, 2026-11-13): generation-order thread. Prerequisites: GEN.1680. Related: GEN.1683.
+  Version 8.1. Owner (TODO, 2026-11-18): Lane 05 (from the generation-order thread), plan first, lock item at build. Prerequisites: GEN.1680. Related: GEN.1683.
   Filed by the TODO thread.
 
 - [ ] **OPS.188 (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run**
@@ -11486,13 +11486,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 16. Prerequisites: OPS.238, stage 4. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
   Slices A, B and C: PR 7171 (Lane 16) merged 12:00 AM EST 2026-11-18: sectors are one unit at any size, a spawn row writes the next window, packed item file in the state folder, no migration, generation unchanged. Slice D (fold finished sector rows above 10,000) next.
-
-- [ ] **OPS.244 Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G7); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G7 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: OPS.238, stage 4. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-  Slice B: PR 7163 (Lane 15) merged 11:11 PM EST 2026-11-17: a Generate page job is a ledger run of kind page (queue/pagerun.py); no job.json, runner.pid, cancel file or private RQ queue. Slice C (waiting line as rows) next.
-  Slice C: PR 7168 (Lane 15) merged 11:47 PM EST 2026-11-17: a waiting Generate job is a waiting ledger run; the run line holds runs only.
 
 - [ ] **OPS.245 Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice)**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G8 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
@@ -11615,14 +11608,20 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 13, lock item at build (rogue positions change). Prerequisites: none. Related: OPS.272, OPS.268, DB.20.
   Filed by the TODO thread.
 
+  Build: PR 7176 (Lane 13), lock item with the Train Manager (12:18 AM EST 2026-11-18); the sector kill test compares sector_paths and rogue rows.
 - [ ] **OPS.274 (bug) test_gen_resume and test_finish_run still expect a failing unit to stop the run: six resume tests and test_a_finish_that_stops_is_finished_in_turn are red on main**
   Lane 16 (PR 7171, 11:55 PM EST 2026-11-17) found them red on main; job engine design thread reading: `_check_partial` asserts exactly N sectors saved before the failing one (the old PERF.107 rule), but Boss's 6:35 PM EST 2026-11-13 decision (hold the failing item, keep the rest going; OPS.221) makes the other sectors save too. The tests are stale, the engine is right. Do: rewrite the resume tests to assert the failing sector is not saved, the run ends held and not done, and the resumed run matches an uninterrupted one (`_check_resumed_matches_uninterrupted`), checking what a held run raises to its caller; run test_a_finish_that_stops_is_finished_in_turn and find its cause. Never loosen a bound.
-  Version 8.1. Owner (TODO, 2026-11-18): Lane 13, lock-free. Prerequisites: none. Related: OPS.221, PERF.107, OPS.240.
+  Version 8.1. Owner (TODO, 2026-11-18): Lane 15 (moved from Lane 13, 12:05 AM EST), lock-free. Prerequisites: none. Related: OPS.221, PERF.107, OPS.240.
   Filed by the TODO thread.
 
 - [ ] **GEN.1793 M dwarfs carry about half the observed close-in small planets (1.3 against 2.5 per star at 1 to 4 Earth radii inside 200 days)**
   Lane 05, GEN.1569 (11:18 PM EST 2026-11-17, reports/gen1549-census-after-forward-build-2026-11-17/gen1569-gen1571-class-mix-and-ocean-cover-2026-11-17.md): FGK supply now sits in or near the Kepler band, but M dwarfs are low: 1.3 planets per star at 1 to 4 Earth radii inside 200 days against 2.5 observed, 0.37 against 1.19 in the 0.5 to 10 day bin, 1.5 to 2 Earth radii worst (0.09 against 0.46). GEN.1709's first-period fit (PA19) is FGK-based. Do: report first; find which step thins M-dwarf inner planets (first period, disk mass by star mass, spacing), compare with M-dwarf occurrence surveys, and propose the physics change (stand-ins registered in GEN.725). Lock item at build (planet supply changes).
   Version 8.1. Owner (TODO, 2026-11-17): Lane 04, report first, lock item at build. Prerequisites: none. Related: GEN.1709, GEN.1569, GEN.1791.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1794 (bug) Cold small bodies keep air of carbonyl sulfide and carbon disulfide at 8 K: no vapour-pressure law caps OCS, CS2 or SO3 by condensation**
+  Lane 02, Train 45 trace (12:25 AM EST 2026-11-18): three bodies of 0.003 to 0.0046 Earth masses at 76 to 104 au and 8 K, new with GEN.1520 (PR 7118), hold 9,700 Pa of OCS with some CS2 (held at the d6 retention cap of 10 kPa, which is by design); at 8 K both should be frost. species_thermo.saturation serves only N2, CO, CH4, O2, NH3 (plus CO2 from another row), so nothing condenses OCS, CS2 or SO3. Do: find vapour-pressure sources for OCS, CS2 and SO3 (register stand-ins in GEN.725 where none exist), add them to species_thermo.saturation so the cold-air condensation cap applies, and check every gas the air solve can carry has a condensation law or a registered reason it has none. Lock item at build (stored air changes).
+  Version 8.1. Owner (TODO, 2026-11-18): Lane 02, after GEN.1780, lock item at build. Prerequisites: none. Related: GEN.1520, GEN.1629, GEN.1558.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
