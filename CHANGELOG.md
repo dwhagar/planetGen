@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4548] - 2026-11-18
+
+**Headline:** a held unit's error now says where it failed, so a one-off failure under load can be traced from the Queue page and the log.
+
+### Changed
+- OPS.275: the error a held unit keeps (the held hash, the run's `unit.held` line, the job log and the reason the run is held with) ends with ` (at file:line in function, ...)` for the last three frames of the failure's traceback, innermost first, files named from the `planetgen` package (`held.where`). The whole error text, exception message included, is passed through the secrets mask before it is stored or said.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4547] - 2026-11-18
 
 **Headline:** The resume-across-builds runner tests no longer depend on the machine's MySQL and Redis, so one of them stops failing or hanging when those are missing or down.
