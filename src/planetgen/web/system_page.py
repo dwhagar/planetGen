@@ -23,11 +23,12 @@ Admins only, like the rest of `/admin/generate` (`generate_page.py`).
 import json
 import os
 import re
+import secrets
 import tempfile
 
 from flask import Response, request
 
-from . import bp, jobs
+from . import bp
 from .admin_pages import _require_admin
 from .generate_page import FormError, _admin_or_403, _no_store, _number
 from .helpers import crumb, trusted_html
@@ -42,7 +43,6 @@ from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db.store import SYSTEM_NAME_MAX_LENGTH
 from planetgen.util import log as planetgen_log
 from planetgen.tuning import MAX_STARS_CEILING, MAX_STARS_DEFAULT
-from planetgen.util.format import format_duration_seconds
 
 TRISTATE_FIELDS = (
     # (planetgen option name, label) -- the same ten, in the same order,
@@ -279,43 +279,90 @@ def _tail(text, limit=MAX_LOG_BYTES):
     return text[-limit:] if len(text) > limit else text
 
 
-_ASKED_LINE = re.compile(r"^(Class|Life class) \S+ asked for: ")
-"""re.Pattern: The lines `planetgen system` prints for a class request (`run_system.class_request_report`)."""
+def generate_in_process(command, words, debug, system_file):
+    """
+    The page's system, made in the process that runs it (a light job forked from the supervisor's warm template, OPS.244) from the words `planetgen <command> --output FILE` would have taken. The
+    options are read and checked by the generator's own parser (`cli.generate.process_args`) and the system is drawn by the piece the generator draws it with (`run_system.one_off`; a rogue planet or a
+    comet by `run_phenomenon`, which already writes no run). Nothing touches the database. With `debug`, what the process logs while it works (every area `--debug-areas` names, else all but `branch`) is
+    returned as the debug log.
+
+    Returns:
+        dict: `ok`, `text` (the Document as JSON), `output` (what the generator would have printed: its warning, what came of a class request, the debug log), `debug_log` and `asked`.
+    """
+    import contextlib
+    import io
+    import traceback
+
+    from planetgen.cli import generate as generate_cli
+    from planetgen.generation import run_phenomenon, run_system
+    from planetgen.util import draw
+
+    failed = {"ok": False, "text": "", "debug_log": "", "asked": []}
+    with tempfile.TemporaryDirectory(prefix="planetgen-system-") as tmp:
+        page_path = os.path.join(tmp, "system.json")
+        argv = [command, "--output", page_path, *words]
+        if system_file is not None:
+            file_path = os.path.join(tmp, "system-file.json")   # not the output file's name
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(system_file, f)
+            argv.append("--system-file=" + file_path)
+        said = io.StringIO()
+        try:
+            with contextlib.redirect_stderr(said), contextlib.redirect_stdout(said):
+                args = generate_cli.process_args(argv)
+        except SystemExit:
+            return {**failed, "output": _tail(said.getvalue().strip())}
+        generate_cli.refuse_if_data_missing(args)
+        lines, asked = [], []
+        try:
+            with planetgen_log.captured(os.path.join(tmp, "debug.log")) if debug else contextlib.nullcontext():
+                if command == "system":
+                    found = run_system.one_off(args)
+                    text = found["text"]
+                    lines += [found["warning"]] if found["warning"] else []
+                    asked = (found["asked"] or "").splitlines()
+                    lines += asked
+                else:
+                    draw.set_run_seed(secrets.randbits(128))
+                    run_phenomenon.run_phenomenon(args)
+                    text = _read(page_path)
+        except SystemExit as exc:
+            return {**failed, "output": _tail("\n".join([*lines, said.getvalue().strip(), f"The generator stopped with status {exc.code}."]).strip())}
+        except Exception:  # noqa: BLE001 -- the page shows what went wrong
+            return {**failed, "output": _tail(traceback.format_exc().strip())}
+        shown = _tail(_debug_lines(os.path.join(tmp, "debug.log"), args.debug_areas)) if debug else ""
+    output = _tail("\n".join([*lines, *([shown] if shown else [])]).strip())
+    return {"ok": bool(text), "text": text, "output": output, "debug_log": shown, "asked": asked}
+
+
+def _debug_lines(path, areas):
+    """The lines of the debug capture `path` that `areas` (a `--debug-areas` text, `None` for every area) shows; a line that names no area (the second line of a message) goes with the one before it."""
+    shown = planetgen_log.parse_areas(areas)
+    named = re.compile(r" \[(" + "|".join(planetgen_log.AREAS) + r")\] ")
+    kept, keep = [], True
+    for line in _read(path).splitlines():
+        found = named.search(line)
+        if found:
+            keep = shown is None or found.group(1) in shown
+        if keep:
+            kept.append(line)
+    return "\n".join(kept)
 
 
 def run_generator(spec):
     """
-    Runs `planetgen system --output` for a `system_request` and reads
-    the Document back. Nothing touches the database.
+    Has the supervisor's warm process make the system for a `system_request` (`generate_in_process`) and waits up to `TIMEOUT_S` seconds for it. Nothing touches the database.
 
     Returns:
-        dict: `ok`, `text` (the Document as JSON), `output` (anything the generator
-        printed) and `debug_log` (the same output, when `--debug` was
-        asked for).
+        dict: `ok`, `text` (the Document as JSON), `output` (anything the generator printed), `debug_log` (the debug lines, when `--debug` was asked for) and `asked` (what came of a class request).
     """
-    with tempfile.TemporaryDirectory(prefix="planetgen-system-") as tmp:
-        page_path = os.path.join(tmp, "system.json")
-        # With --debug the generator narrates every choice to stdout, which
-        # the page shows as the debug log; otherwise only errors.
-        argv = [jobs.python_executable(), *jobs.GENERATE_COMMAND, spec.get("command", "system"), "--output", page_path,
-                *(["--debug"] if spec["debug"] else [] if spec.get("asks") else ["--quiet"])]
-        if spec["system_file"] is not None:
-            file_path = os.path.join(tmp, "system-file.json")   # not the output file's name
-            with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(spec["system_file"], f)
-            argv.append("--system-file=" + file_path)
-        argv += spec["argv"]
-        done = api_jobs.command_and_wait(argv, dict(os.environ), jobs.REPO_DIR, TIMEOUT_S, merge_stderr=True)
-        output = done["stdout"]
-        ok = done["returncode"] == 0
-        if done["timed_out"]:
-            output += f"\nThe generator took longer than {format_duration_seconds(TIMEOUT_S)} and was stopped."
-        elif done["error"]:
-            output, ok = f"The generator could not be started: {done['error']}", False
-        text = _read(page_path)
-    output = _tail(output.strip())
-    asked = [line for line in output.splitlines() if _ASKED_LINE.match(line)]    # GEN.1620: what came of a class request, said beside the system
-    return {"ok": ok and bool(text), "text": text, "output": output, "debug_log": output if spec["debug"] else "", "asked": asked}
+    try:
+        done = api_jobs.call_and_wait(generate_in_process, spec.get("command", "system"), list(spec["argv"]), bool(spec["debug"]), spec["system_file"], timeout=TIMEOUT_S)
+    except api_jobs.NoQueue as exc:
+        return {"ok": False, "text": "", "output": f"The generator could not be started: {exc}", "debug_log": "", "asked": []}
+    except RuntimeError as exc:
+        return {"ok": False, "text": "", "output": f"The generator could not be run: {exc}", "debug_log": "", "asked": []}
+    return done
 
 
 def download_name(title, fmt):

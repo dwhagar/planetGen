@@ -346,8 +346,7 @@ def _command_words(argv):
 
 def command_and_wait(argv, env, cwd, timeout, merge_stderr=False):
     """
-    Runs a command on the queue and waits for it (the one-off system page
-    and the Generate page's estimate, PERF.24). Without a Redis server
+    Runs a command on the queue and waits for it (the Generate page's estimate, PERF.24). Without a Redis server
     the command runs here instead.
 
     Returns:
@@ -363,3 +362,21 @@ def command_and_wait(argv, env, cwd, timeout, merge_stderr=False):
         return {"returncode": None, "stdout": "", "stderr": "", "timed_out": False,
                 "error": f"the work queue could not run it: {reason}"}
     return job["result"]
+
+
+def call_and_wait(function, *args, timeout):
+    """
+    Runs `function(*args)` as a light job in the supervisor's warm process (the one-off system page, OPS.244: no process of its own to start, no imports to pay for) and waits up to `timeout`
+    seconds for what it returns.
+
+    Raises:
+        NoQueue: No Redis server answers, or an update is running: nothing was queued.
+        RuntimeError: The job failed, was stopped for taking longer than `timeout`, or was not answered in time; the message says which.
+    """
+    job_id = submit(function, *args, expected_seconds=timeout, limit_seconds=int(timeout))
+    job = wait(job_id, timeout + 15)
+    if job is not None and job["state"] == "succeeded":
+        return job["result"]
+    if job is not None and job["state"] == "failed":
+        raise RuntimeError(job["error"] or "the job failed")
+    raise RuntimeError("the work queue did not answer in time")

@@ -61,6 +61,7 @@ API_FUNCTIONS = frozenset({
     "planetgen.queue.api_jobs:regenerate_sector",
     "planetgen.queue.api_jobs:run_command",
     "planetgen.queue.pagejobs:build_answer",
+    "planetgen.web.system_page:generate_in_process",    # the one-off system page (OPS.244)
     "planetgen.web.lib.estimatejob:work",               # the Generate size estimate (ADM.141)
     "planetgen.web.lib.tileprefetch:build_nodes",       # a visitor's node prefetch and rebuild (OPS.230: a light job on the maintenance lane)
 })
