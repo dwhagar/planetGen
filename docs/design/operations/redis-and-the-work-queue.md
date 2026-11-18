@@ -223,7 +223,6 @@ Stages run one after another because a stage's units are only queued when the pr
 | `planetgen:run:<id>:s<k>` | hash | per-stage counters: units total, units done, cost done, seconds summed, first start, last end | with the run |
 | `planetgen:run:<id>:events` | stream | the log and timeline: stage start and done, unit done, log lines, errors; `XADD` with `MAXLEN ~ 100000` | with the run |
 | `planetgen:run:active` | string | the run that owns the machine; `SET NX`, so a second Generate gets "busy" as today | until the run ends; cleared by the last unit, `on_failure` or the stale check (5.6) |
-| `planetgen:workers:wanted` | string | the admin's worker count (ADM.15) | none |
 | RQ keys (`rq:*`) | RQ | queues, jobs, registries, workers | RQ's ttls |
 
 Progress for a bar is one `HGETALL` of a stage hash (the units add to it as they finish), so a page does not read the stream. The event stream is for the log view, its download, and a live tail by `XREAD` with the last seen id. The ETA is the cost-weighted estimator already designed in [performance-eta-queue-and-caching.md](performance-eta-queue-and-caching.md) 2.3, as a pure function of those counters.
@@ -240,7 +239,7 @@ Only history and statistics, written once per stage by the unit that completes i
 - **Keep** the lowered priority, the pre-import warm-up (PERF.42) and the stale-release restart in `cli/worker.py`.
 - **One queue per worker** (F6; PERF.245 makes one exception, the maintenance lane's workers, which serve its three queues in turn: `performance-eta-queue-and-caching.md` section 3): `planetgen-bulk` workers serve only that queue, `planetgen-interactive` workers only theirs. A reserved interactive worker (PERF.40, PERF.78) is then a separate, mostly idle worker, not a priority order, and every worker keeps the reliable `BLMOVE` path.
 - **Unit length** (PERF.155): a unit is meant to run no longer than `queue.unit_ceiling_seconds` (300 s) unless its stage is one unit by nature (`CommandSpec.one_unit`, `breaks=ONE_UNIT`), which bounds how long a worker is told to finish its unit before it leaves, and how long a cancel waits. A stage whose longest unit ran longer is written to the run's log; see `docs/design/generation/generation-performance.md`.
-- **Worker count** (ADM.15): the Queue page writes `planetgen:workers:wanted`; (until OPS.235 removed `ensure_workers`) started up to it, and lowering it sends `send_shutdown_command` to the extras, which finish their unit first. "Ludicrous Speed" is a number, not a mode.
+- **Worker count** (ADM.15): gone with OPS.235 slice 1c. The Queue page has no worker count or Ludicrous Speed and the key `planetgen:workers:wanted` is no longer written: the launcher sizes every stage by memory (`workers.stage_worker_cap`) and the gate.
 
 ### 5.5 Cancel, pause, failure
 

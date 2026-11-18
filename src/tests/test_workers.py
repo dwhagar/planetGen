@@ -2,7 +2,6 @@
 one, and canceling a job at once."""
 
 import math
-import os
 import uuid
 
 import pytest
@@ -28,51 +27,6 @@ def _register_worker(queue, pid):
 def test_the_shared_queues_carry_json_and_a_worker_serves_one():
     assert redisqueue.BULK_QUEUE == "planetgen-bulk"
     assert redisqueue.serializer_for(redisqueue.BULK_QUEUE) is redisqueue.JsonSerializer
-
-
-def test_the_wanted_count_is_the_admins_else_the_machines(redis_server, monkeypatch):
-    connection = redisqueue.connect()
-    connection.delete(workers.WANTED_KEY)
-    monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 6)
-    try:
-        assert workers.wanted(connection) == 6
-        assert workers.set_wanted(connection, 3) == 3 and workers.wanted(connection) == 3
-        connection.set(workers.WANTED_KEY, "garbage")
-        assert workers.wanted(connection) == 6
-    finally:
-        connection.delete(workers.WANTED_KEY)
-
-
-@pytest.mark.parametrize("bad", [0, -2, 1.5, "4", None, True])
-def test_the_wanted_count_must_be_a_whole_number_of_at_least_one(redis_server, bad):
-    with pytest.raises(ValueError):
-        workers.set_wanted(redisqueue.connect(), bad)
-
-
-def test_ludicrous_speed_is_a_number_near_all_the_cores(monkeypatch):
-    monkeypatch.setattr(workers.work, "cpu_count", lambda: 20)
-    assert workers.ludicrous_count() == 19
-    monkeypatch.setattr(workers.work, "cpu_count", lambda: 1)
-    assert workers.ludicrous_count() == 1
-
-
-def test_lowering_the_count_tells_the_extra_bulk_workers_to_finish_and_exit(redis_server, monkeypatch):
-    connection = redisqueue.connect()
-    queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
-    mine = [_register_worker(queue, os.getpid()) for _ in range(3)]
-    told = []
-    monkeypatch.setattr(workers.command, "send_shutdown_command", lambda conn, name: told.append(name))
-    try:
-        workers.set_wanted(connection, 1)
-        ours = {worker.name for worker in mine}
-        assert len(set(told) & ours) == 2                    # 3 live, 1 wanted
-        told.clear()
-        workers.set_wanted(connection, 5)
-        assert told == []
-    finally:
-        connection.delete(workers.WANTED_KEY)
-        for worker in mine:
-            worker.register_death()
 
 
 def test_cancel_now_cancels_a_waiting_job_and_stops_a_running_one(redis_server, monkeypatch):
