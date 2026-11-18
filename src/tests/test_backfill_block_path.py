@@ -32,10 +32,11 @@ ORDER_SEED = 1
 """int: The seed of the order test: with `SEED` the 200 cells hold only 4 stars (9 are expected, so 4 is a draw of about 6 percent), too few to tell an order from another."""
 BAND = 0
 CELLS = wedge_count(SHELL, BAND)
-EDGE_OF_BLOCKS = brightStars.BLOCK_WEDGES
+EDGE_OF_BLOCKS = 256
 ACROSS_A_BLOCK = [(SHELL, BAND, wedge) for wedge in range(EDGE_OF_BLOCKS - 100, min(EDGE_OF_BLOCKS + 100, CELLS))]
-"""list: Two hundred cells that straddle the first and the second block of the band."""
+"""list: Two hundred cells in the middle of the band (the draw was by blocks of 256 wedges until PERF.280, and these straddled two)."""
 AGE_LAWS = brightStars.age_laws_of(SHAPE)
+BLOCK_MEMO_TEST_LIMIT_SLACK = 3
 
 
 @functools.lru_cache(maxsize=None)
@@ -97,19 +98,17 @@ def test_the_path_changes_where_the_blocks_bound_crosses_the_limit():
     assert brightStars.candidate_path({}, SHAPE, address, EDGE_PC, just_over, SEED, k, shares, None) is None
 
 
-def test_the_candidates_of_a_cell_are_the_blocks_candidates_in_that_cell():
+def test_the_candidates_of_a_cell_are_the_rows_kept_candidates_in_that_cell():
     k, low, high = brightStars.canonical_bands(FLOOR)[0]
     shares = _shares(k, low, high)
     bound = brightStars.block_bound(SHAPE, SPARSE_SHELL, BAND, EDGE_PC, SPARSE_RATE, shares)
-    block = brightStars.block_candidates(
-        SEED, SPARSE_SHELL, BAND, 0, k, bound,
-        lambda wedge: brightStars.cell_band_rate(SHAPE, (SPARSE_SHELL, BAND, wedge), EDGE_PC, SPARSE_RATE, shares))
-    assert block
+    seed = next(seed for seed in range(SEED, SEED + 500) if brightStars.row_candidates(seed, SPARSE_SHELL, BAND, k, bound))        # the tight bound leaves most rows empty at this rate
+    row = brightStars.row_candidates(seed, SPARSE_SHELL, BAND, k, bound)
     memo = {}
-    for wedge in {candidate.wedge for candidate in block} | {0, 5}:
-        found = brightStars.candidate_path(memo, SHAPE, (SPARSE_SHELL, BAND, wedge), EDGE_PC, SPARSE_RATE, SEED, k,
-                                           shares, None)
-        assert found == [candidate for candidate in block if candidate.wedge == wedge]
+    for wedge in set(row) | {0, 5}:
+        rate = brightStars.cell_band_rate(SHAPE, (SPARSE_SHELL, BAND, wedge), EDGE_PC, SPARSE_RATE, shares)
+        found = brightStars.candidate_path(memo, SHAPE, (SPARSE_SHELL, BAND, wedge), EDGE_PC, SPARSE_RATE, seed, k, shares, None)
+        assert found == [candidate for candidate in row.get(wedge, []) if candidate.accept * bound < rate]
 
 
 def test_the_same_stars_come_out_in_whatever_order_or_split_the_cells_are_reached(forced):
@@ -193,4 +192,6 @@ def test_the_memo_is_emptied_when_it_grows_past_its_limit_and_the_stars_do_not_c
     monkeypatch.setattr(brightStars, "BLOCK_MEMO_LIMIT", 3)
     memo = {}
     assert sorted(row for address in ACROSS_A_BLOCK for row in _luminosity([address], memo=memo)) == whole
-    assert len(memo) < len(untrimmed) / 2
+    one_call = {}
+    _luminosity([ACROSS_A_BLOCK[0]], memo=one_call)
+    assert len(memo) < len(untrimmed) and len(memo) <= len(one_call) + BLOCK_MEMO_TEST_LIMIT_SLACK      # holds what one call keeps, however many cells have gone by (it held under half of the untrimmed one's when the draw was by blocks of 256 wedges, which left a few entries a cell; the row's draw adds the thinned candidates of each cell it asks)

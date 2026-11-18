@@ -2,6 +2,143 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4568] - 2026-11-18
+
+**Headline:** A world that rolled the other-branch oddity stops looking for its second climate once two starts end on the answer it already has, so a dense warm planet no longer costs a dozen extra air solves.
+
+### Changed
+
+- W20 (`air_branches.other_branch`) solved the air again from `COLD_STARTS_K` (four starts) or `WARM_STARTS_K` (three) until one ended on a distinct answer. Of 214 searches of worlds that rolled W20 in 57 `world-requested` redraw systems (numbers 1 to 113), 199 had every start end on the first answer, 14 had starts that ended elsewhere without being a branch, and one found a second branch (from the fourth start, 260 K, after one start that agreed and two that ended elsewhere). The search now stops when `AGREEING_STARTS_TO_STOP` (2) starts have ended less than `MIN_BRANCH_GAP_K` and `MIN_ICE_GAP` from the first answer, a start that ends elsewhere not counting. The stand-in row NEB8 names the new bound (tier T6, tweak level L1).
+- Why now: the Train 45 head took 192 s for `world-requested` system 10 (7 s on main) because the request redraws a habitable world 68 times and half of those rolled W20, each paying three or four 2.5 to 3 s solves of a 2 bar air; 139 of the first 182 s were in `other_branch`. The test limit of 180 s is unchanged.
+- Output: a world that rolled W20, whose first two starts agree with its first answer and whose later start would have found a distinct answer, now keeps its first answer. None of the 214 sampled does. Every other world, and every world that did not roll W20, is unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4567] - 2026-11-18
+
+**Headline:** The surface-air storage test now skips an unsettled air by its gases as well as its pressure.
+
+### Changed
+
+tests/test_surface_air.py: the test that reads the stored density, scale height and greenhouse multiplier of every generated body skipped any body whose pressure equalled an unsettled air's pressure to a part in a billion. A Train 45 sample (seeds 0 to 9 after GEN.1520) held one air that did not settle at exactly 10 kPa and three bodies of 0.003 Earth masses at 8 K with exactly 10 kPa of another mixture, so four bodies were skipped against a bound of two. The skip now also requires the stored gases that hold 1 percent of the pressure or more to match the unsettled air's to a part in a thousand. The bound (max(1, bodies // 20)) is unchanged. Test only; no generation output changes.
+
+generation-output: unchanged
+
+## [8.0.4566] - 2026-11-18
+
+**Headline:** a sector made under two different Python hash seeds is the same sector to the last digit again.
+
+### Fixed
+- The blend of an air before and after photolysis (`surface_air._photolysed`) and the blend of two nebula mixtures (`nebula_composition._mix`) listed their gases in the order a set of the names gave, which follows the process's `PYTHONHASHSEED`, so every sum over that air added in a different order and one air in the probe sector ended 1e-11 K and up to 3e-7 of a gas share different between two seeds (`test_a_sector_does_not_depend_on_hash_seed_or_locale`). They list the gases in the order they were given.
+
+generation-output: changed within the solvers' tolerance (no golden, no epoch, lock item)
+
+## [8.0.4565] - 2026-11-18
+
+**Headline:** A belt's bodies are no longer piled on the eccentricity and inclination caps: their orbit draws are truncated, not clipped.
+
+### Fixed
+- **A third of a wide belt's bodies sat at exactly e = 0.5 (and the widest at exactly 60 degrees).** `belt_roster.entry_of` cut each Rayleigh draw with `min(draw, cap)`, which moved the whole tail onto the cap (37 percent of a belt three times as wide). The draw is now truncated by its inverse distribution (`trojan_swarm.truncated_rayleigh`, reused; one draw per body, no extra stream numbers), so no body is piled on a cap and the shape below it is the Rayleigh. Registry row 6.182 MR3 says truncated (GEN.1792).
+- Every stored belt member's eccentricity and inclination change slightly for the same seed; the forced eccentricity sum of `belt.py` is unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4564] - 2026-11-18
+
+**Headline:** A giant of a planetary nebula's white dwarf no longer stops the build when a trace of vapor cycles over its ice cap.
+
+### Fixed
+- `mixture_giant.cap_ices` raised "the ice caps did not settle" on a sulfur-rich layer at 91 K: its S2 is capped at about 1e-39 of the layer, and each of 1,000 rounds took 3e-39 of it while the equilibrium made it again from the rest of the sulfur. The settle test asked only whether the budget could make more than `MIN_CONDENSED` of the species; it now also asks whether the excess over the cap is more than that. An excess under it is not a condensate worth recording, which is what the test already says for a species the budget cannot make. Found by the Train 45 gate in `test_census_nebula_wholesphere` (B0VII central star, seed 2 of the hunt).
+
+generation-output: unchanged
+
+## [8.0.4563] - 2026-11-18
+
+**Headline:** The sources behind the gas-disk edge stand-ins are in the reference list, and the notes write them by their IDs.
+
+### Fixed
+- The gas-disk edge note (`docs/design/generation/gas-disk-edge.md`), the GDE rows of `gap-filling-plan.md` and the docstrings of `disk_size.py` wrote four sources by author and year, so `test_citations_outside_the_registry` failed. The three new papers are in the registry (R5301 to R5303) and the four sources are written as their IDs [R0602, R5301, R5302, R5303].
+
+generation-output: unchanged
+
+## [8.0.4562] - 2026-11-18
+
+**Headline:** A star's protoplanetary disk now ends at a radius that follows the star's mass (100 au for the Sun, mass to the half power, a factor of 2 of scatter per star) instead of 18 snow lines, so Sun-like stars grow cold giants and belts farther out and small stars get larger disks than before.
+
+### Changed
+
+- The outer edge of the gas disk a star's planets, belts and comets formed in is `physics/disk_size.edge_au`: median 100 au x (M/Msun)^0.5 (45 au at 0.2 Msun, 71 au at 0.5, 118 au at 1.4), drawn once per star with a 0.3 dex log-normal scatter cut at 2 sigma from a stream keyed by the star (no stored column, no other draw moves). It replaces `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` (18 snow lines, 49 au for the Sun, 5.8 au for an M2V dwarf), which followed the star's light rather than its mass. Evidence and the decision are in `reports/gen1520-disk-size-by-mass-2026-11-11.md` (Boss approved 3:04 PM EST 11-11); stand-ins DS1 to DS4 in `gap-filling-plan.md` section 6.274, design note `docs/design/generation/gas-disk-edge.md`.
+- It sets where random planet slots end and the oligarch chain's limit (`system.py`), the outer-disk belt and the scatter shares (`belt_birth.py`), the zone a comet's ice formed in (`comet.py`) and where the pebbles end and which volatile ices evaporate on the way in (`disk_drift.py` through `mixture_subject` and `mixture_giant`, now taking the edge as an argument; a larger edge is a colder one, so more of the CO2, CO and N2 lines lie inside the disk).
+- New redraw kind `disk_edge.scatter`. Planet, giant, belt and comet counts, the outer planet and belt distances, comet reservoirs and giant C/O change for every star; the before and after sweep (150 systems, same seeds) is in the report.
+
+generation-output: changed
+generation-affects: plan, scatter, fill, population
+
+## [8.0.4561] - 2026-11-18
+
+**Headline:** The bright-star backfill draws each sky row once from a bound that follows the stars it is drawing, so a sky share walks 5 to 10 times faster.
+
+### Fixed
+
+- PERF.280: the bright-star candidate draw (GEN.308/GEN.309) takes one Poisson count and one stream a row and luminosity band (it took one a block of 256 wedges), and its bound is the most each population's density can be in the row times its share of the band (`galaxy.density.population_bounds_array`), where it was the whole disk's and bulge's largest density times the young stars' share, a hundred times what a cell expects. A deep sky tier listed 340 candidates for each star it kept; it now lists about one. The bounds of a couple of thousand rows are worked out together from arrays. The walk of one 1/16 share of a tier takes 0.1 to 1.8 s where it took 1.1 to 8.5 s. The stars are drawn from the same exact thinning, so counts and distributions are unchanged (tier 28, three shares, 64 seeds: 83.6 stars, 82.7 expected), but the random streams differ, so every candidate-path star moves: a lock item.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4560] - 2026-11-18
+
+**Headline:** The air history now follows the methane, hydrogen and sulfur gases a world's life makes through time, ending at the air the generator already gives it, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 2b: `air_history.gas_trajectory(body, living, ages, found, risen, rise_gyr)` gives the air, mol of each gas, at each age as the ledger rows of the classes of `living` make it: the methane the classes that have begun hold together (and the carbon dioxide it is made from) and the hydrogen, hydrogen sulfide and the like each draws down, counted at each age and not once at the star's age; a methane row that ends at the oxygen's rise stops there. Its last value is the air `life_air.apply_gases` stores. Reuse: `life_air.ledger_air`, `_producing`, `_with_ledger_gases`, `summed_methane_flux_mol_yr`. Nothing in the generator reads it yet.
+
+### Changed
+
+- `life_air.apply_gases` is now `life_air.ledger_air` (the air, as moles, the ledger gives at an age, with its water settled) plus the store of that air; `_producing` and `_with_ledger_gases` take the age the classes are counted at (the star's age when not given). No generated world changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4559] - 2026-11-18
+
+**Headline:** Bringing a galaxy to the running epoch now also refills the stored values worked out from other stored values (habitability scores, the effect ledger) when the code that wrote them has changed, instead of leaving them old or regenerating sectors.
+
+### Added
+- **Bring-to-epoch refills derived values.** A new derived stage, after the population stage, finds systems whose habitability score or effect ledger was written by older code (the existing stamps, GEN.1479) and refills them with the existing refill jobs. No sector is generated again and `sectors.modified_at` is not touched. The survey and the dry run report it.
+
+## [8.0.4558] - 2026-11-18
+
+**Headline:** The class census draws ten stars a cell, so one star's age no longer decides a cell's class and life shares.
+
+### Changed
+- **The class census spreads a cell over ten stars (GEN.1785).** A cell drew one star and put all 300 planets round it, so the whole cell had that star's age (0.159 Gyr for the G2V ecosphere cell on main: 50 of its 51 living bodies at abiogenesis). It now draws ten stars of 30 bodies each, each on its own seeded stream. The cell's moons built bare are made whole and each body gets the end of its making (`StarSystem._finish_planet`, `_finish_moon`), as a system's bodies do. A body with no class letter is in no class share. A cell the reference drew nothing in (no moon of an M dwarf's hot planets) expects none, and a body there is a flag.
+- **The system census counts promoted belt bodies apart.** `planets` is the slot planets; `promoted_count` is the belt members made planets (GEN.1510), with its own range.
+- **Both censuses are renewed once from the new draws** (commit and sample in each file's reference); no range was widened to cover a fault.
+
+## [8.0.4557] - 2026-11-18
+
+**Headline:** the dispatch rule is proved over ten seeds and backlogs of 30, 300 and 3,000 units, with kills, small claims and a decider that fails.
+
+### Added
+- OPS.236: `tests/test_fuzz_dispatch.py` runs the simulator (`tests/enginesim.py`) over seeds 0 to 9 at 30 and 300 units and two seeds at 3,000. Each run has a visitor's jobs through the stage, a claim of 7,000 MB, a restarted unit that runs alone and a cut that needs the lane to itself. It checks in every turn that the claims admitted stay within the host less its reserve (a claim larger than that runs alone), that a token is held by one job, that the lone job runs alone and that a kernel kill only follows a claim that was too small or memory taken from outside; at the end that every job finished once, that the visitors' jobs wait under 1.5 s at the 99th percentile (5 s with a decider that fails one turn in ten), and that the big claim, the lone unit and the cut all start within two minutes of the end of the work queued before them.
+- The simulator gained a claim that is too big for its neighbours (`big`), a decider that fails in a share of the turns (`crash`), the share of units whose claim is too small (`small`), memory held from outside the engine for a while (`pressure`), and a retry that runs alone on a claim grown by half after a kernel kill.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4556] - 2026-11-18
+
+**Headline:** the supervisor kill test that has been red since OPS.251 passes again: its stand-in for starting a supervisor now ends the claim to be starting one when the process ends, as the real start does.
+
+### Fixed
+- OPS.251 (bug, test only): `tests/test_supervisor_kill.py` started its supervisors with its own `start` function, which never ended the claim to be starting one (`supervisor._release_claim`) when the supervisor was killed; since OPS.251 slice 2 that claim has no time limit, so the next caller found it held by a live process (the test's) and started nothing. The product is unchanged: its own start (`supervisor._spawn`) ends the claim through the exit notice.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4555] - 2026-11-18
 
 **Headline:** `python3 -m planetgen.cli.pressure report` says what the memory controller's record of the host's pressure holds and the edges it gives, and the record now keeps how slow the database was each minute.

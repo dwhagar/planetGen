@@ -30,6 +30,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.physics import belt_ledger, belt_mass, belt_populations
+from planetgen.physics.trojan_swarm import truncated_rayleigh
 from planetgen.physics.belt_page import Placement
 from planetgen.util.checks import finite_domain
 
@@ -40,10 +41,10 @@ CDF_STEPS = 8
 """int: The log-spaced steps `belt_mass.primordial_mass_earth` takes between the belt's inner edge and each tabulated point (numerical). [Stand-in 6.182 MR1, tier T9, tweak L0.]"""
 
 E_MAX = 0.5
-"""float: The largest eccentricity a stored member is given (a body above it would cross the belt's whole width and the next body's orbit). [Stand-in 6.182 MR3, tier T9, tweak L0.]"""
+"""float: The largest eccentricity a stored member is given: the Rayleigh draw is truncated here (`truncated_rayleigh`, GEN.1792), not clipped, so no share of the bodies is piled on it (a body above it would cross the belt's whole width and the next body's orbit, so a belt does not keep it). [Stand-in 6.182 MR3, tier T9, tweak L0.]"""
 
 I_MAX_DEG = 60.0
-"""float: The largest inclination a stored member is given, degrees (the Rayleigh tail above it is cut). [Stand-in 6.182 MR3, tier T9, tweak L0.]"""
+"""float: The largest inclination a stored member is given, degrees: the Rayleigh draw is truncated here (GEN.1792), not clipped. [Stand-in 6.182 MR3, tier T9, tweak L0.]"""
 
 E_OVER_I = 1.0
 """float: The ratio of the particles' rms eccentricity to their rms inclination in radians, 1 as `belt_mass` takes it (Wyatt et al.'s `e/I = 1`). [Stand-in 6.182 MR2, tier T1, tweak L0.]"""
@@ -86,6 +87,12 @@ def rms_eccentricity(lower_au, upper_au):
 def rayleigh(u, rms):
     """A Rayleigh draw of rms `rms` from the uniform number `u` (the scale is `rms / sqrt(2)`)."""
     return rms / math.sqrt(2.0) * math.sqrt(-2.0 * math.log(1.0 - u))
+
+
+def truncated(u, rms, limit):
+    """A Rayleigh draw of rms `rms` truncated at `limit` from the uniform number `u` by the inverse distribution (GEN.1792): one draw, no rejection, and none of the tail piled on `limit` (`truncated_rayleigh`
+    of the trojans, the scale being `rms / sqrt(2)`). Zero for a belt of no spread."""
+    return truncated_rayleigh(u, rms / math.sqrt(2.0), limit) if rms > 0.0 else 0.0
 
 
 def cumulative_table(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio):
@@ -182,8 +189,8 @@ def entry_of(numbers, table, lower_au, upper_au, populations=None, giant_au=None
     a_au, e_scale, e_fixed, tag = semi_major_axis_au(table, u_a, cleared), 1.0, None, None
     if populations is not None:
         tag, a_au, e_scale, e_fixed = belt_populations.orbit(belt_populations.pick(populations, u_pop), a_au, lower_au, upper_au, giant_au, u_pa, u_pe)
-    inclination = min(math.degrees(rayleigh(u_i, i_rms * (e_scale if e_scale is not None else 1.0))), I_MAX_DEG)
-    eccentricity = e_fixed if e_fixed is not None else min(rayleigh(u_e, e_rms * e_scale), E_MAX)
+    inclination = math.degrees(truncated(u_i, i_rms * (e_scale if e_scale is not None else 1.0), math.radians(I_MAX_DEG)))
+    eccentricity = e_fixed if e_fixed is not None else truncated(u_e, e_rms * e_scale, E_MAX)
     return Entry(Placement(a_au, u_taxon, u_porosity), eccentricity, inclination, 360.0 * u_node, 360.0 * u_peri, 360.0 * u_anomaly, tag)
 
 

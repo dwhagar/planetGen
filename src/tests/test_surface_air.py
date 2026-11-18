@@ -310,6 +310,13 @@ def test_the_stored_partials_add_up_to_the_pressure_and_the_state_follows_from_t
     assert bodies > 0
 
 
+def _same_main_gases(stored, solved):
+    """Whether the partial pressures `stored` on a body are those of the air `solved`, to a part in a thousand for every gas that holds 1 percent of the pressure or more. The pressure alone does not name an air:
+    a Train 45 sample held three bodies of 0.003 Earth masses at 8 K with exactly 10 kPa of another mixture beside one unsettled air of exactly 10 kPa, and all four were skipped."""
+    total = sum(solved.values())
+    return all(stored.get(formula, 0.0) == pytest.approx(pressure, rel=1e-3) for formula, pressure in solved.items() if pressure >= 0.01 * total)
+
+
 def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives(monkeypatch):
     """GEN.423 and DB.67: the molar density, the density, the scale height and the greenhouse multiplier a body stores are the ones
     its stored partial pressures give at its surface temperature and gravity: the molar mass is `sum x_i M_i`, the density `P M / (R T)`,
@@ -322,7 +329,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
     def recording_solve(setting, start_temperature_k):
         result = real_solve(setting, start_temperature_k)
         if result is not None and result.partials_pa and not result.converged:
-            unsettled.append(result.pressure_pa)         # a fixed point that has not settled in `MAX_STEPS` keeps its last step (`Air.converged`)
+            unsettled.append((result.pressure_pa, result.partials_pa))         # a fixed point that has not settled in `MAX_STEPS` keeps its last step (`Air.converged`)
         return result
 
     monkeypatch.setattr(sa, "solve", recording_solve)
@@ -333,7 +340,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             assert body.greenhouse_factor == 0.0 or body.greenhouse_factor is None
             continue
         bodies += 1
-        if any(body.atmospheric_pressure == pytest.approx(pressure, rel=1e-9) for pressure in unsettled):
+        if any(body.atmospheric_pressure == pytest.approx(pressure, rel=1e-9) and _same_main_gases(air, partials) for pressure, partials in unsettled):
             skipped += 1        # the test reads the settled airs: an unsettled one (a 2-cycle between a cool air and a hot one, GEN.1323 hydrogen on a hazy methane air) is a step off its own mixture
             continue
         gravity = body.gravity * constants.EARTH_GRAVITY

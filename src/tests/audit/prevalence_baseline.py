@@ -67,7 +67,7 @@ GAS_DWARF_NOTE = ("class T (gas dwarf) is never drawn: no 2 to 20 Earth-mass sub
 def build(records, commit, label, count, origin="pre-cut-over"):
     cells = census.tally(records)
     out = {"reference": {"commit": commit, "label": label, "draws_per_cell": count,
-                         "seeds": "crc32 of 'cell:<star>:<zone>' and 'orbit:<star>:<zone>' (tests.audit.prevalence.seed_for)",
+                         "seeds": "crc32 of 'cell:<star>:<zone>:<n>' and 'orbit:<star>:<zone>:<n>' for star number n of ten (tests.audit.prevalence.seed_for)",
                          "kind": f"stand-in: {origin} prevalence, no observed class rates exist",
                          "pad": PAD, "sigmas": SIGMAS},
            "anomalies": {}, "hangs": {"anomaly": ""}, "errors": {"anomaly": ""}, "cells": {}}
@@ -95,6 +95,13 @@ def build(records, commit, label, count, origin="pre-cut-over"):
             spec["ceilings"][ceiling] = {"min": low, "max": high, "kind": "stand-in",
                                          "source": f"{origin} share {share:.3f} of {scored} scored bodies at {commit[:9]}"}
         out["cells"][census.cell_key(star, zone, kind)] = spec
+    for star in census.STAR_TYPES:      # GEN.1785: a cell with no body in the reference is recorded as one that expects none
+        for zone in census.ZONES:
+            for kind in ("planet", "moon"):
+                key = census.cell_key(star, zone, kind)
+                if key not in out["cells"]:
+                    out["cells"][key] = {"n_ref": 0, "classes": {}, "tiers": {}, "ceilings": {}, "barred": [],
+                                         "source": f"{origin} no {kind} drawn at {commit[:9]}: none expected here"}
     for key, spec in out["cells"].items():
         if key.endswith("/cold/planet"):
             spec["classes"]["T"] = dict(GAS_DWARF_RANGE)
