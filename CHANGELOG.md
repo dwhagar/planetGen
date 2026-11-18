@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4529] - 2026-11-18
+
+**Headline:** The giant-scattering census script cites [R1479] by its registry ID, which clears the citation lock on the train.
+
+### Fixed
+- `scripts/giant_scatter_census.py` named the survey in text; it now reads `[R1479]` (DOC.99).
+
 ## [8.0.4528] - 2026-11-18
 
 **Headline:** the nine uses of `math.hypot`, `math.dist` and `@` the reproducibility scan found now go through `detmath`, so a galaxy's bits no longer depend on the Python or BLAS library that made it.
