@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4522] - 2026-11-18
+
+**Headline:** `planetgen reset-jobs` starts again: it no longer looks for the worker-start counters that OPS.235 slice 1b removed.
+
+### Fixed
+- `cli/reset_jobs.py` named `workers.STARTING_PREFIX`, which slice 1b deleted, so importing the command raised `AttributeError` and `tests/test_reset_jobs.py` failed at collection. The key patterns are now the RQ keys and the runs' keys; its docstring no longer mentions the start counters or the admin's worker count.
+- `tests/test_reset_jobs.py` and `tests/test_maintenance_lane.py` no longer set or clean the counters and the worker-count key.
+
 ## [8.0.4521] - 2026-11-18
 
 **Headline:** A job kind whose profile holds a full window of finished units from this machine is now sized by what it measured, and the typed figure is only its default and its clamp.
