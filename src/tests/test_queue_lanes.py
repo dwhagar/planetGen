@@ -3,9 +3,7 @@ app the lane's template builds once for the units that need it."""
 
 
 import pytest
-import rq
 
-from planetgen.cli import worker as worker_cli
 from planetgen.queue import redisqueue, runrecord, wrapper
 
 pytestmark = pytest.mark.real_queue
@@ -17,13 +15,6 @@ def test_each_task_type_of_the_maintenance_lane_has_a_queue_of_its_own():
     assert wrapper.queue_of(runrecord.MAINTENANCE) == redisqueue.MAINTENANCE_QUEUE
     assert wrapper.queue_of(runrecord.CHECK) == redisqueue.CHECK_QUEUE
     assert wrapper.queue_of(runrecord.GENERATION) == redisqueue.BULK_QUEUE
-    for name in redisqueue.maintenance_lane():
-        assert redisqueue.serializer_for(name) is redisqueue.JsonSerializer      # one serializer for the whole lane
-
-
-def test_the_round_robin_worker_is_gone():
-    assert not issubclass(worker_cli.worker_class(), rq.worker.RoundRobinWorker)
-    assert not hasattr(worker_cli, "RoundRobinWorker") and not hasattr(worker_cli, "APP_QUEUES")
 
 
 def test_the_template_of_the_maintenance_lane_builds_the_site_app_once_and_no_other_does():

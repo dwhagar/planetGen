@@ -3,15 +3,14 @@
 """
 Which functions a queued job may name (SEC.45).
 
-A job in Redis names the function a worker calls (`planetgen.queue.units.run_unit`), and RQ imports and runs whatever name it
-finds. Pickle is gone from every queue (SEC.39), but the name is still data in Redis, so anything that can write there could
-get a worker to run any function the worker can import. The Redis ACL user and its password (`examples/redis/planetgen.conf`)
-keep other processes out; this list is the second wall: a worker refuses a job whose function is not one the program queues,
-logs it, and fails it without running anything.
+A forked job (a unit, a page step, a light job) names the function the template process calls (`planetgen.queue.forkedjob.run`), and that name is data in Redis (OPS.235: RQ itself is gone, the
+template imports and runs the name). Pickle is gone from every queue (SEC.39), but anything that can write there could get the template to run any function it can import. The Redis ACL user and its password (`examples/redis/planetgen.conf`)
+keep other processes out; this list is the second wall: the template refuses a job whose function is not one the program queues,
+logs it, and runs nothing (`check_function`).
 
 Two lists, both fixed, both tested against every place the program queues work (`tests/test_queue_allowlist.py`):
 
-- `FUNCTIONS`: the dotted names a job (or one of its callbacks) names. RQ imports these.
+- `FUNCTIONS`: the dotted names a job names. The template imports these.
 - `API_FUNCTIONS`: `module:name` references that the job `planetgen.queue.api_jobs.execute` calls for the API's long
   operations. That one function is a dispatcher, so what it may call is a list of its own.
 
@@ -22,8 +21,6 @@ given, so someone who can write to Redis and reaches it still runs that command;
 """
 
 import os
-
-import rq
 
 EXTRA_ENV = "PLANETGEN_QUEUE_EXTRA_FUNCTIONS"
 """str: A worker's own environment variable that adds functions to both lists: `module:name` entries, or `module:*` for every
@@ -104,34 +101,3 @@ def check_reference(reference):
     return _checked(reference, API_FUNCTIONS, lambda text: text.partition(":"), "the API function")
 
 
-class GuardedJob(rq.job.Job):
-    """
-    RQ's job, except that the function it runs and its callbacks must be on `FUNCTIONS`, whatever the job in Redis says. A
-    refused job fails in the worker's usual way (the failed registry holds the reason) and runs nothing. Every queue
-    (`redisqueue.TimedQueue`) and worker (`cli/worker`) uses this class.
-    """
-
-    @property
-    def func(self):
-        if getattr(self, "instance", None) is not None:
-            _refuse("a method of an object", self.func_name)
-        check_function(self.func_name)
-        return super().func
-
-    @property
-    def success_callback(self):
-        if self._success_callback_name:
-            check_function(self._success_callback_name, "the success callback")
-        return super().success_callback
-
-    @property
-    def failure_callback(self):
-        if self._failure_callback_name:
-            check_function(self._failure_callback_name, "the failure callback")
-        return super().failure_callback
-
-    @property
-    def stopped_callback(self):
-        if self._stopped_callback_name:
-            check_function(self._stopped_callback_name, "the stopped callback")
-        return super().stopped_callback

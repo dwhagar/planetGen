@@ -190,7 +190,7 @@ def test_stopping_the_workers_ends_those_of_its_own_control_database_and_leaves_
     from planetgen.db import store
     if not os.path.isdir("/proc"):
         pytest.skip("no /proc")
-    sleeper = ["python3", "-c", "import time; time.sleep(120)", "planetgen.cli.worker"]
+    sleeper = ["python3", "-c", "import time; time.sleep(120)", "planetgen.queue.template"]
     env = lambda control: {**os.environ, store.CONTROL_DB_ENV_VAR: control}
     own = subprocess.Popen(sleeper, env=env("bench_control_own"))
     foreign = subprocess.Popen(sleeper, env=env("bench_control_foreign"))

@@ -437,19 +437,6 @@ def _plain_command_lines(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _rq_worker_logger_stays_as_it_was():
-    """A test that runs an RQ worker leaves `rq.worker` set by `setup_loghandlers` (its level from `logging_level`, no propagation, its own handlers), so a later test that logs an error on it
-    sees nothing: the logger is put back as it was after each test."""
-    import logging
-    logger = logging.getLogger("rq.worker")
-    state = (logger.level, logger.propagate, list(logger.handlers))
-    yield
-    logger.setLevel(state[0])
-    logger.propagate = state[1]
-    logger.handlers[:] = state[2]
-
-
-@pytest.fixture(autouse=True)
 def _fast_password_hashing(request, monkeypatch):
     """Every login, credential change and seeded admin user runs Argon2id at
     19 MiB and two passes in production (`adminAuth.hash_parameters`, SEC.32),
