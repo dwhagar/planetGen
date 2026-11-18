@@ -18,10 +18,12 @@ def _later(start, count, **_):
     return [({"n": n}, 1.0) for n in range(start, min(start + count, TOTAL))]
 
 
-RAN = []
+RAN, FAULTS = [], {}
 
 
 def _unit(args, report):
+    if FAULTS.get("a") == args["n"]:
+        raise RuntimeError(f"unit {args['n']} stopped")
     RAN.append(args["n"])
     return {"n": args["n"]}
 
@@ -195,3 +197,26 @@ def test_a_stage_that_cannot_read_its_items_holds_the_run_and_a_retry_writes_the
         assert one.spawn() == WINDOW
     finally:
         control.close()
+
+
+def test_a_run_carried_on_from_one_that_stopped_in_a_later_window_does_only_the_unit_that_stopped(mysql_config, monkeypatch):
+    """The units of every window the run before finished are carried over by their numbers (`resumed.carry(first=...)`), the window being written or an earlier one, and only the held unit is done again."""
+    from planetgen.generation import finish_run
+    from planetgen.queue import resumed, units
+    monkeypatch.setattr(finish_run, "FINISHABLE", finish_run.FINISHABLE | {"windowed"})
+    seed, build, database = "AB" * 16, "77F01600909B06030C0300", "galaxy"
+    step = commands.Step("a", "windowed", "A", {"database": wrapper.database_args(mysql_config)})
+    conn = redisqueue.connect()
+    FAULTS["a"] = TOTAL - 3
+    RAN.clear()
+    with pytest.raises(units.RunStopped):
+        wrapper.run("Windows", [step], lambda index, plan: None, lambda index, unit, result: None, database=database, galaxy_seed=seed, build=build)
+    stopped = max(runrecord.recent_runs(conn, limit=50), key=lambda run_id: runrecord.read_run(conn, run_id)["created"])
+    FAULTS.clear()
+    assert sorted(RAN) == [n for n in range(TOTAL) if n != TOTAL - 3], "the others went on to the end of the stage, every window of it: the held unit is the only one left"
+    RAN.clear()
+    found = finish_run.plan(conn, stopped, seed, build, database)
+    assert found.steps[0].params.get(resumed.RESUMES_FROM) == stopped
+    done = wrapper.run("Windows", found.steps, lambda index, plan: None, lambda index, unit, result: None, database=database, galaxy_seed=seed, build=build, finishes=stopped)
+    assert RAN == [TOTAL - 3], "every unit of every window the run before finished is carried over, the held one is done"
+    assert runrecord.read_run(conn, done)["state"] == "done"
