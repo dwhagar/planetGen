@@ -122,6 +122,28 @@ def test_an_inner_system_starts_at_the_inner_edge_and_neighbours_are_alike():
     assert found > 10
 
 
+class _MiddleStream:
+    """A stream whose every normal is 0: the median of the log-normal."""
+
+    @staticmethod
+    def gauss(_mean, _sigma):
+        return 0.0
+
+
+@pytest.mark.parametrize("median_days", [25.0, 10.0])
+def test_the_inner_edge_in_au_goes_as_the_cube_root_of_the_star_mass_at_one_period(median_days):
+    """GEN.1793: [R3196] puts the break of the occurrence at a distance that goes as the cube root of the stellar mass (the pre-main-sequence co-rotation radius), which at one spin period
+    is one orbital period. The first planet is drawn at the same period for every star, so its distance goes as M^(1/3) and a dust-sublimation edge (sqrt of the luminosity) is not the law."""
+    edges = {}
+    for solar_masses in (0.2, 0.4, 0.57, 1.0, 1.33):
+        mass_kg = solar_masses * SUN
+        edge_au = pa.first_distance_au(mass_kg, _MiddleStream, 0.0, median_days, 0.7)
+        assert period_d(mass_kg, edge_au) == pytest.approx(median_days, rel=1e-9)
+        edges[solar_masses] = edge_au
+    for solar_masses, edge_au in edges.items():
+        assert edge_au / edges[1.0] == pytest.approx(solar_masses ** (1.0 / 3.0), rel=1e-9)
+
+
 def test_the_inner_system_spreads_over_the_periods_the_surveys_see():
     """GEN.1709: small planets are flat per factor of 2 in period from 8 to 128 days ([R2020: Table 2], 0.20 to 0.25 per star at 0.5 to 2.5 Earth radii); the first planet of an
     inner system is drawn broadly and the planets inside 400 days of a Sun-like star stay near the surveys' count. A build of the architecture, 0.1 to 7 Earth masses for the small ones."""
