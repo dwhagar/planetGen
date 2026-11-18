@@ -27,7 +27,6 @@ def lane(redis_server, key_prefix, monkeypatch):
     monkeypatch.setattr(workers.command, "send_shutdown_command", lambda conn, name: told.append(name))
     monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 3)
     monkeypatch.setattr(workers, "host_worker_processes", lambda: 0)         # the host's own processes are not the test's
-    connection.delete(workers.WANTED_KEY)
     made = []
 
     def register(queue_name, state="idle"):
@@ -44,8 +43,7 @@ def lane(redis_server, key_prefix, monkeypatch):
         worker.register_death()
     for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
         redisqueue.queue(name, connection).empty()
-        connection.delete(workers.STARTING_PREFIX + name)
-    connection.delete(workers.REFUSED_KEY, workers.REFUSED_NOTE_KEY)
+    connection.delete(workers.REFUSED_KEY)
 
 
 def _queue(connection, name, jobs):
