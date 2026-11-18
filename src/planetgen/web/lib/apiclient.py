@@ -1484,12 +1484,6 @@ def admin_work_warm(cookie_header, database):
     return body
 
 
-def admin_work_held(cookie_header):
-    """`GET /api/admin/work/held` -- the jobs held for a job they require (PERF.248): `{"total", "items"}`."""
-    body, _set_cookie_headers = _auth_request("GET", "/admin/work/held", cookie_header=cookie_header)
-    return body
-
-
 def admin_work_supervisor(cookie_header):
     """`GET /api/admin/work/supervisor` -- whether the supervisor is alive, since when, its last turn and its latest acts with their reasons (OPS.214)."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/work/supervisor", cookie_header=cookie_header)

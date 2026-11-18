@@ -248,6 +248,12 @@ def body_stream_of(kind, body, slot=None):
     return body_stream(kind, body.mass, body.distance if formation is None else formation, 0.0 if star_mass is None else star_mass, slot)
 
 
+def fresh_seed():
+    """A seed nobody chose (the one place besides the run stream's first seed that draws from the operating system): for a draw that is not part of any run and is not meant to come out the same twice,
+    as the admin's one-off system page makes."""
+    return secrets.randbits(128)
+
+
 def set_run_seed(seed):
     """Seeds the run stream (`planetgen`'s run seed, a work queue's)."""
     global _run_stream

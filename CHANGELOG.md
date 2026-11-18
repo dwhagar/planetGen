@@ -2,6 +2,37 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4512] - 2026-11-18
+
+**Headline:** A short N-body integration checks the generator's stability screens, with a report and a test; generation is unchanged.
+
+### Added
+- `planetgen/physics/nbody_check.py`: a leapfrog integration of a star's planets that says whether they collide, are ejected or have an encounter (GEN.1468).
+- `scripts/nbody_spotcheck.py` runs it over generated systems and writes the report; `tests/test_nbody_spotcheck.py` fails when a system the spacing screen passes is broken by the integration.
+
+generation-output: unchanged
+
+## [8.0.4511] - 2026-11-18
+
+**Headline:** The parts of the old RQ queue that nothing used any more are gone: the job-requires-job holding, the solo hold for a restarted unit, RQ's stop command for a run, and the Held jobs panel.
+
+### Changed
+- **OPS.235 slice 1 (the RQ removal, the pieces the Generate page's jobs do not need).** Deleted `queue/requires.py` (a job holding for another job on RQ's `depends_on`, its callbacks, `drop_held`, `held_overview`), the Held jobs panel of the Queue page, `GET /api/admin/work/held` and its client call; nothing queued a job that required another. Deleted the solo hold (`pause.hold_solo`, `lift_solo`, `solo_of`, the "queue is held for one unit" notice, `paused_reason` and `solo_unit` on the status) that the stuck-unit follower made for a restarted RQ unit: the launcher's hand-outs never read it. `unitstuck` now only asks the supervisor to stop a stuck unit (the ledger path) and no longer stops, re-queues or holds an RQ job. `runcontrol.cancel_run` and `clear_run` no longer send RQ's stop command or take units off an RQ queue (`stop_units`, `started_units` deleted): they end the run and ask the supervisor to stop its jobs in the ledger; the update's warm-up waits for the canceled warm-up's jobs through `controls.running_jobs`. The Generate page's own RQ job path (`web/jobs.py`, `cli/worker.py`, `redisqueue`) stays until OPS.244 moves it to the ledger; then slice 2 removes the `rq` dependency.
+- Reuse: `controls.stop_run`, the ledger's `engine_jobs` rows and the launcher's end settling do what the RQ stop and re-queue did; `unitstuck`'s ledger path was already there (OPS.234).
+
+### Removed
+- `queue/requires.py`, the held jobs API and panel, the solo hold, `runcontrol.stop_units` and `started_units`, `unitstuck`'s RQ stop, re-queue and dump-for-RQ paths, and their tests (`test_requires`, `test_solo_hold`, `test_unit_stuck`; the tests that still mattered moved to `test_unit_stuck_ledger`).
+
+## [8.0.4510] - 2026-11-18
+
+**Headline:** The admin's one-off system page takes its random seed through the draw module again, which fixes the red `test_generation_draws_only_through_the_draw_module`.
+
+### Fixed
+- OPS.244 slice A moved the one-off system run into the supervisor's warm process and, on the way, drew its seed with `secrets.randbits` in `generation/run_system.py` and `web/system_page.py`. Generation code may not import `secrets`. `util/draw.py`, the one module that is allowed to, now has `fresh_seed()` for a draw that is not part of any run, and both callers use it.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4509] - 2026-11-18
 
 **Headline:** The claim to be starting the supervisor ends when that process ends, not after 20 seconds.

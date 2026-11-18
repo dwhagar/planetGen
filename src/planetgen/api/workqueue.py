@@ -15,7 +15,7 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import controls, held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, waiting, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import controls, held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, waiting, warmphases, work as workQueue, workers as queueWorkers
 from planetgen.util import log
 
 from .authz import audit, require_admin
@@ -58,8 +58,7 @@ def _status(connection, now):
     live = [run_id for kind in runrecord.KINDS for run_id in [runrecord.active_run(connection, kind)] if run_id]
     heard = None if held is None else max(now - (held["updated"] or held["started"] or now), 0.0)
     return {
-        "paused": paused["paused"], "paused_by": paused["by"], "paused_at": paused["at"], "paused_reason": paused["reason"],
-        "solo_unit": paused["solo"]["unit"] if paused["solo"] else None,
+        "paused": paused["paused"], "paused_by": paused["by"], "paused_at": paused["at"],
         "holder": holder, "holder_title": held["title"] if held else None, "heartbeat_age_s": heard,
         "stale": runrecord.is_stale(held, now) if held else False,
         "workers_active": sum(queueWorkers.live_worker_count(redisqueue.queue(name, connection))
@@ -410,14 +409,6 @@ def workers_state():
     connection = _redis()
     supervisor.ensure_started(connection)           # OPS.207: every status poll wakes the supervisor
     return jsonify(_workers_state(connection))
-
-
-@bp.route("/held", methods=["GET"])
-@require_admin()
-def held_jobs():
-    """`GET /api/admin/work/held` -- the jobs held for a job they require (PERF.247, PERF.248): `{"total", "items": [{"id", "queue",
-    "label", "waits_for", "run", "stage"}]}`, the first 100; a job that requires nothing is never here."""
-    return jsonify(requires.held_overview(_redis()))
 
 
 @bp.route("/workers", methods=["POST"])
