@@ -17,7 +17,7 @@ OFF_BY_OVER_THREE_PERCENT = {"SO2": 1.038, "C6H6": 1.071, "C2H2": 0.964}
 NO_TRIPLE_PRESSURE = {"HCN", "HF", "S2"}
 NO_TRIPLE_POINT = {"HF", "S2"}
 """set: Species whose curve is the critical-point correlation (GEN.524): the gas table holds no triple point for hydrogen fluoride; none for disulfur, a fit to a computed table (GEN.1564)."""
-NO_LIQUID_BRANCH = {"C2H2", "HCl", "HF", "S2"}
+NO_LIQUID_BRANCH = {"C2H2", "HF", "S2"}
 
 
 def _triple_ratio(formula):
@@ -189,7 +189,7 @@ LIQUID_FORMULAS = sorted(f for f in saturation.formulas() if saturation.species(
 JOINS = {"N2": 0.9726, "CH4": 1.0165, "H2S": 1.0165, "NH3": 1.0190, "SO2": 1.0381, "HCN": 1.0333, "C6H6": 1.0707}
 
 
-def test_every_species_but_acetylene_and_the_halides_has_a_liquid_branch():
+def test_every_species_but_acetylene_hydrogen_fluoride_and_disulfur_has_a_liquid_branch():
     assert set(saturation.formulas()) - set(LIQUID_FORMULAS) == NO_LIQUID_BRANCH
     assert saturation.species("HCN").liquid.form == "dippr101"
 
@@ -457,10 +457,10 @@ def test_the_condensation_temperature_is_the_inverse_and_has_limits():
 
 
 def test_the_halide_curves_sit_near_their_normal_boiling_points_and_condense_a_trace_gas_in_the_cold():
-    """GEN.524 part 2: hydrogen chloride (Clausius-Clapeyron from its triple point) is within 40 percent of one atmosphere at its normal boiling
+    """GEN.524 part 2: hydrogen chloride (its liquid curve, GEN.1630) is within 1 percent of one atmosphere at its normal boiling
     point and hydrogen fluoride (Edmister) within 15 percent at its own; both are far under the partial pressure of a one part in a million trace of a
     one bar air below 100 K, so a cold body condenses them."""
-    assert saturation.pressure_pa("HCl", gases.gas("HCl").boiling_point_k) == pytest.approx(101325.0, rel=0.4)
+    assert saturation.pressure_pa("HCl", gases.gas("HCl").boiling_point_k) == pytest.approx(101325.0, rel=0.01)
     assert saturation.pressure_pa("HF", gases.gas("HF").boiling_point_k) == pytest.approx(101325.0, rel=0.15)
     for formula in ("HCl", "HF"):
         assert saturation.pressure_pa(formula, 68.0) < 1e-6 * 1e5 * 1e-3
@@ -494,3 +494,16 @@ def test_a_column_of_sulfur_vapor_over_a_cold_surface_condenses_to_the_curve():
     left, condensed, _ = surface_air.freeze_out(moles, 9.8, 5.1e14, 300.0)
     assert condensed["S2"] > 0.0 and left["S2"] < moles["S2"]
     assert condensed.get("N2", 0.0) == pytest.approx(0.0, abs=1.0e-6)
+
+
+def test_the_hcl_liquid_curve_follows_its_four_anchors_and_the_handbooks_0_c_pressure():
+    """GEN.1630: above its triple point hydrogen chloride reads on a liquid curve (the solid's curve carried on read 36 percent over one atmosphere at the normal boiling point): it meets the gas table's triple
+    point and normal boiling point, the acentric factor (T/Tc 0.7) and the critical point, and, as a value the fit did not use, the handbook's 25.6 atmospheres at 0 C (to 2 percent)."""
+    row = gases.gas("HCl")
+    assert saturation.pressure_pa("HCl", row.triple_point_k) == pytest.approx(row.triple_point_pa, rel=1e-4)
+    assert saturation.saturation("HCl", row.boiling_point_k).phase == saturation.LIQUID
+    assert saturation.pressure_pa("HCl", row.boiling_point_k) == pytest.approx(101325.0, rel=1e-4)
+    assert saturation.pressure_pa("HCl", 0.7 * row.critical_temperature_k) == pytest.approx(row.critical_pressure_pa * 10.0 ** (-1.0 - row.acentric_factor), rel=1e-3)
+    assert saturation.pressure_pa("HCl", 273.15) == pytest.approx(25.6 * 101325.0, rel=0.02)
+    assert saturation.condensation_temperature_k("HCl", 101325.0) == pytest.approx(row.boiling_point_k, abs=0.1)
+    assert saturation.pressure_pa("HCl", 200.0) < 1.05 * saturation.pressure_pa("HCl", 190.0) * 2.0      # rising smoothly, no jump where the old solid curve ran on

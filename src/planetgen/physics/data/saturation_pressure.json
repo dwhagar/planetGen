@@ -872,7 +872,18 @@
    "selection": "single",
    "curves": [],
    "sublimation_kj_mol": 19.65,
-   "note": "GEN.524 part 2: the solid by Clausius-Clapeyron from the gas table's triple point (159.07 K, 13828 Pa) with its sublimation heat (19.6 to 19.7 kJ/mol, the mean); above the triple point the solid's curve is carried on (status above-triple), about 36 percent over the normal boiling point's 1 atm at 188.17 K; a stand-in, tier 6, registered in GEN.725 (AM94)"
+   "note": "GEN.524 part 2: the solid by Clausius-Clapeyron from the gas table's triple point (159.07 K, 13828 Pa) with its sublimation heat (19.6 to 19.7 kJ/mol, the mean); a stand-in, tier 6, registered in GEN.725 (AM94). GEN.1630: above the triple point the solid's curve carried on read 36 percent over the normal boiling point's 1 atm at 188.17 K, so the liquid is a Wagner curve whose four coefficients are fixed by four values the gas table holds: the triple point, the normal boiling point, the acentric factor (0.132: P = Pc 10^-(1+w) at T/Tc 0.7) and the Edmister slope at the critical point (a = -5.373 (1 + w)); it gives 25.8 atm at 273.15 K against the handbook's 25.6 atm at 0 C, which the fit did not use; a stand-in, tier 6, registered in GEN.725 (AM104)",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 324.68,
+    "pc_pa": 8313000.0,
+    "coefficients": [
+     -6.08224,
+     -0.36624,
+     1.46855,
+     -4.98396
+    ]
+   }
   },
   "HF": {
    "name": "hydrogen fluoride",
