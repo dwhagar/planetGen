@@ -112,6 +112,8 @@ class Minute(NamedTuple):
     held_seconds: float
     yields: int
     psi: bool = True
+    db_probe_ms: float = None
+    db_calm_ms: float = None
 
 
 def strength(minute):
@@ -148,14 +150,11 @@ def _episodes(minutes):
     return found
 
 
-def learn(minutes, kills):
+def unforeseen(minutes, kills):
     """
-    The `Edges` the record gives. `minutes` are `Minute`s over the window, `kills` the times (seconds since the epoch) of the memory kills in it. With too little record, or a record that
-    says nothing, the typed edges.
+    The strength (`strength`) of the highest reading in the `LEAD_SECONDS` before each memory kill that no pressed reading came before: the kills the hold did not see coming. `minutes` are `Minute`s,
+    `kills` the times of the memory kills (seconds since the epoch). A kill with no record before it is left out.
     """
-    minutes = sorted(minutes, key=lambda item: item.start)
-    if not minutes:
-        return typed()
     by_start = {minute.start: minute for minute in minutes}
     uncaught = []
     for killed in kills:
@@ -165,6 +164,18 @@ def learn(minutes, kills):
         top = max(strength(minute) for minute in lead)
         if 0.0 < top < 1.0:
             uncaught.append(top)
+    return uncaught
+
+
+def learn(minutes, kills):
+    """
+    The `Edges` the record gives. `minutes` are `Minute`s over the window, `kills` the times (seconds since the epoch) of the memory kills in it. With too little record, or a record that
+    says nothing, the typed edges.
+    """
+    minutes = sorted(minutes, key=lambda item: item.start)
+    if not minutes:
+        return typed()
+    uncaught = unforeseen(minutes, kills)
     if len(uncaught) >= MIN_KILLS:
         reading = _quantile(uncaught, 0.25)
         sensitivity = min(MAX_SENSITIVITY, max(1.0, 1.0 / (MARGIN * reading)))
@@ -192,7 +203,7 @@ class Recorder:
 
     def __init__(self, connect, clock=time.time, monotonic=time.monotonic):
         self.connect, self.clock, self.monotonic = connect, clock, monotonic
-        self.current = None         # the open minute: [start, some, full, available_mb, reserve_mb, level, held_seconds, yields, last look, psi]
+        self.current = None         # the open minute: [start, some, full, available_mb, reserve_mb, level, held_seconds, yields, last look, psi, slowest probe ms, calm figure ms]
         self.retry_after = 0.0
         self.cached = typed()
         self.cached_at = None
@@ -207,7 +218,7 @@ class Recorder:
             self._write(self.current)
             self.current = None
         if self.current is None:
-            self.current = [start, 0.0, 0.0, reading.available_mb, reading.reserve_mb, 0, 0.0, 0, now, reading.source == "psi"]
+            self.current = [start, 0.0, 0.0, reading.available_mb, reading.reserve_mb, 0, 0.0, 0, now, reading.source == "psi", None, None]
         row = self.current
         row[1], row[2] = max(row[1], reading.some), max(row[2], reading.full)
         row[3], row[4], row[5] = min(row[3], reading.available_mb), reading.reserve_mb, max(row[5], reading.level)
@@ -216,17 +227,28 @@ class Recorder:
         row[7] += 1 if asked else 0
         row[8] = now
 
+    def note_database(self, latency_ms, baseline_ms):
+        """One probe of the database (`dbsignal.Look`): the slowest of the open minute is kept, with the calm figure it was judged against. A look before the minute is open (the memory controller looks first each turn) is left out."""
+        if not enabled() or self.current is None or latency_ms is None:
+            return
+        row = self.current
+        if row[10] is None or latency_ms > row[10]:
+            row[10], row[11] = float(latency_ms), float(baseline_ms or 0.0)
+
     def _write(self, row):
         if self.monotonic() < self.retry_after:
             return
         try:
             conn = self.connect()
             try:
-                conn.execute("INSERT INTO pressure_minutes (minute_start, some_max, full_max, available_min_mb, reserve_mb, level_max, held_seconds, yields, psi)"
-                             " VALUES (FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE some_max = GREATEST(some_max, VALUES(some_max)),"
-                             " full_max = GREATEST(full_max, VALUES(full_max)), available_min_mb = LEAST(available_min_mb, VALUES(available_min_mb)),"
-                             " level_max = GREATEST(level_max, VALUES(level_max)), held_seconds = LEAST(60, held_seconds + VALUES(held_seconds)), yields = yields + VALUES(yields)",
-                             (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], 1 if row[9] else 0))
+                conn.execute("INSERT INTO pressure_minutes (minute_start, some_max, full_max, available_min_mb, reserve_mb, level_max, held_seconds, yields, psi, db_probe_max_ms, db_calm_ms)"
+                             " VALUES (FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AS written ON DUPLICATE KEY UPDATE some_max = GREATEST(pressure_minutes.some_max, written.some_max),"
+                             " full_max = GREATEST(pressure_minutes.full_max, written.full_max), available_min_mb = LEAST(pressure_minutes.available_min_mb, written.available_min_mb),"
+                             " level_max = GREATEST(pressure_minutes.level_max, written.level_max), held_seconds = LEAST(60, pressure_minutes.held_seconds + written.held_seconds),"
+                             " yields = pressure_minutes.yields + written.yields,"
+                             " db_calm_ms = IF(written.db_probe_max_ms IS NOT NULL AND (pressure_minutes.db_probe_max_ms IS NULL OR written.db_probe_max_ms > pressure_minutes.db_probe_max_ms), written.db_calm_ms, pressure_minutes.db_calm_ms),"
+                             " db_probe_max_ms = IF(pressure_minutes.db_probe_max_ms IS NULL, written.db_probe_max_ms, GREATEST(pressure_minutes.db_probe_max_ms, COALESCE(written.db_probe_max_ms, 0)))",
+                             (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], 1 if row[9] else 0, row[10], row[11]))
                 conn.commit()
                 if int(row[0] // _MINUTE) % 1440 == 0:
                     conn.execute("DELETE FROM pressure_minutes WHERE minute_start < NOW() - INTERVAL ? DAY", (2 * WINDOW_DAYS,))
@@ -261,9 +283,50 @@ class Recorder:
 
 def read_record(conn):
     """`(minutes, kills)` of the last `WINDOW_DAYS` days: the `Minute`s of `pressure_minutes` and the times (seconds since the epoch) the ledger's memory kills ended."""
-    minutes = [Minute(float(row["start"]), row["some_max"], row["full_max"], row["available_min_mb"], row["reserve_mb"], row["level_max"], row["held_seconds"], row["yields"], bool(row["psi"]))
-               for row in conn.execute("SELECT UNIX_TIMESTAMP(minute_start) AS start, some_max, full_max, available_min_mb, reserve_mb, level_max, held_seconds, yields, psi FROM pressure_minutes"
+    minutes = [Minute(float(row["start"]), row["some_max"], row["full_max"], row["available_min_mb"], row["reserve_mb"], row["level_max"], row["held_seconds"], row["yields"], bool(row["psi"]), row["db_probe_max_ms"], row["db_calm_ms"])
+               for row in conn.execute("SELECT UNIX_TIMESTAMP(minute_start) AS start, some_max, full_max, available_min_mb, reserve_mb, level_max, held_seconds, yields, psi, db_probe_max_ms, db_calm_ms FROM pressure_minutes"
                                        " WHERE minute_start >= NOW() - INTERVAL ? DAY ORDER BY minute_start", (WINDOW_DAYS,)).fetchall()]
     kills = [float(row["ended"]) for row in conn.execute("SELECT UNIX_TIMESTAMP(ended_at) AS ended FROM engine_attempts WHERE outcome = 'killed_memory' AND ended_at IS NOT NULL"
                                                          " AND ended_at >= NOW() - INTERVAL ? DAY ORDER BY ended_at", (WINDOW_DAYS,)).fetchall()]
     return minutes, kills
+
+
+class Report(NamedTuple):
+    """What the record holds and what each rule of `learn` has of it: see `report`."""
+
+    minutes: int
+    span_seconds: float
+    psi_minutes: int
+    kills: int
+    unforeseen_kills: int
+    holds: int
+    idle_holds: int
+    probe_minutes: int
+    slowest_probe_ms: float
+    edges: Edges
+
+
+def report(minutes, kills):
+    """
+    The `Report` of a record: how much of it there is, how many of the kills the hold did not see coming (`MIN_KILLS` needed to move the edges down), how many holds there were and how many of them were not
+    needed (`MIN_EPISODES` and `IDLE_SHARE` needed to move them up), how many minutes carry a probe of the database, and the edges `learn` gives from it.
+    """
+    minutes = sorted(minutes, key=lambda item: item.start)
+    episodes = _episodes(minutes)
+    idle = [episode for episode in episodes if not any(minute.level >= pressure.STARVED or minute.yields for minute in episode)]
+    probed = [minute.db_probe_ms for minute in minutes if minute.db_probe_ms is not None]
+    return Report(len(minutes), (minutes[-1].start - minutes[0].start + _MINUTE) if minutes else 0.0, sum(1 for minute in minutes if minute.psi), len(kills), len(unforeseen(minutes, kills)),
+                  len(episodes), len(idle), len(probed), max(probed) if probed else 0.0, learn(minutes, kills))
+
+
+CSV_COLUMNS = ("minute_start_utc", "some_max", "full_max", "available_min_mb", "reserve_mb", "level_max", "held_seconds", "yields", "psi", "db_probe_max_ms", "db_calm_ms")
+
+
+def csv_rows(minutes):
+    """The record as rows of `CSV_COLUMNS` (the time as an ISO second in UTC, a missing probe as an empty field), for a person to read in a sheet or for a report to cite."""
+    rows = []
+    for minute in sorted(minutes, key=lambda item: item.start):
+        stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(minute.start))
+        rows.append((stamp, minute.some, minute.full, minute.available_mb, minute.reserve_mb, minute.level, minute.held_seconds, minute.yields, int(minute.psi),
+                     "" if minute.db_probe_ms is None else minute.db_probe_ms, "" if minute.db_calm_ms is None else minute.db_calm_ms))
+    return rows

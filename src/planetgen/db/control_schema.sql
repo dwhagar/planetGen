@@ -624,6 +624,8 @@ CREATE TABLE IF NOT EXISTS pressure_minutes (
     held_seconds      DOUBLE NOT NULL DEFAULT 0,
     yields            SMALLINT NOT NULL DEFAULT 0,
     psi               TINYINT(1) NOT NULL DEFAULT 1,
+    db_probe_max_ms   DOUBLE NULL,
+    db_calm_ms        DOUBLE NULL,
 
     CONSTRAINT chk_pressure_minutes_level CHECK (level_max IN (0, 1, 2))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
