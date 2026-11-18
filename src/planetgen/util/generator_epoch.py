@@ -108,6 +108,16 @@ def epochs_changing(stage, recorded, current=None):
     return tuple(epoch for epoch in range(recorded + 1, current + 1) if stage in affects(epoch))
 
 
+def last_change(stage, recorded):
+    """
+    The newest epoch up to `recorded` whose change altered `stage` (GEN.764), or 1 when none did: what a result of `stage` made or stamped under epoch `recorded` is really made from. Two recorded epochs that
+    no epoch of `stage` separates give the same answer (MAP.431), so a stamp that moves up an epoch that left the stage alone is no change to what is stored. `None` stays `None`.
+    """
+    if recorded is None:
+        return None
+    return next((epoch for epoch in range(min(int(recorded), generator_epoch()), 1, -1) if stage in affects(epoch)), 1)
+
+
 def needs_full_regeneration(recorded, current=None):
     """Whether a galaxy made under epoch `recorded` cannot be brought to `current` in part: an epoch since changed
     the plan (GEN.764)."""
