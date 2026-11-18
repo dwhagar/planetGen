@@ -75,6 +75,8 @@ def apply_life_data(planet, keep_stored=False):
     carbide_deposits.generate(planet)            # GEN.1423: moissanite and cohenite on a carbon-rich body, on streams of their own
     hydrothermal_deposits.generate(planet)       # GEN.1381: the hydrothermal and uranium deposits, which read the air the life pass left, on streams of their own
     sedimentary_deposits.generate(planet)        # GEN.1378: the deposits that read the life timeline, on streams of their own (no draw of the run's)
+    from planetgen.physics import planets       # planets imports this chain
+    planets.apply_class(planet)                  # GEN.1745 (Boss, 11:25 AM EST 2026-11-15): no class until the evolution is finished; the class is read once, here, from the finished body
 
 
 def _remake_ground_if_thawed(planet, before):
@@ -88,8 +90,7 @@ def _remake_ground_if_thawed(planet, before):
     if planet.body_type in ("g", "a") or (planet.surface_temperature or 0.0) <= (before.surface_temperature or 0.0):
         return
     if surface_composition.mix_of(planet).get(surface_composition.ICE) and planet.surface_temperature >= constants.CELSIUS_ZERO_K:
-        planets.refresh_at_final_age(planet)
-        planets.apply_class(planet)         # GEN.1590: the cover the thaw left is not the cover the class was read with
+        planets.refresh_at_final_age(planet)        # GEN.1590: the cover the thaw left; the class is read once, from the finished body (`apply_life_data`)
 
 
 @dataclass
@@ -479,7 +480,7 @@ def _trace_gases(planet):
 def _rebuild(planet, remake_water=False):
     """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
     stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the surface liquid (a different temperature and pressure
-    leave a different liquid stable, GEN.1035), the habitability score and the class (derived from the air as it is now, GEN.980). When the life moved the
+    leave a different liquid stable, GEN.1035) and the habitability score. The class is not made here: it is read once, from the finished body (`apply_life_data`, GEN.1745). When the life moved the
     temperature or the pressure (`remake_water`), the water is made again first at the new ones (`planets.refresh_at_final_age`, on the body's own stream):
     the state of the hydrosphere, the ice, the ocean cover and the ground were drawn at the air the life found, and a liquid ocean stored at 432 K under 63 kPa
     is not one (GEN.1590)."""
@@ -493,7 +494,6 @@ def _rebuild(planet, remake_water=False):
         physics_planets.refresh_at_final_age(planet)       # the hydrosphere, the cover and the ground, and the habitability score that reads them
     else:
         habitability_world.generate(planet, physics_planets.internal_heat_flux_w_m2(planet))
-    physics_planets.apply_class(planet)               # GEN.980: the class is an output of the finished conditions, and the air has changed them
 
 
 def _set_class(planet, row):
