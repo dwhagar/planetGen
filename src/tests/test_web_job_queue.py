@@ -19,6 +19,7 @@ import pytest
 from planetgen.queue import redisqueue, runline, runrecord
 from planetgen.util.settings import get_settings
 from planetgen.web import jobs
+from tests import page_jobs
 from tests.test_web_generate import DB, _post, client, jobs_root, no_spawn, site  # noqa: F401 -- fixtures
 
 STEP = [{"label": "x", "argv": ["true"]}]
@@ -38,33 +39,25 @@ def started(monkeypatch):
     return seen
 
 
-def _end(job_id, status):
-    """Marks a job over with `status`, as its runner does, and frees the lock."""
-    path = os.path.join(jobs.jobs_dir(), job_id)
-    with open(os.path.join(path, "state.json"), "w") as f:
-        json.dump({"status": status, "pid": None, "step": 1, "started_at": time.time() - 5,
-                   "finished_at": time.time(), "exit_code": 0 if status == "succeeded" else 1}, f)
-    jobs.release_lock(job_id)
+_end = page_jobs.end
 
 
 def _running(started):
     first = REAL_START("plan", "Plan", STEP, spawn=False)
-    jobs.queue_next("reset", "Reset", STEP, env={"PLANETGEN_MYSQL_PASSWORD": "pw"}, admin="boss", database="d")
+    jobs.queue_next("reset", "Reset", STEP, admin="boss", database="d")
     return first
 
 
-def test_a_job_waits_behind_the_running_one_and_its_environment_stays_out_of_redis(jobs_root, started):
+def test_a_job_waits_behind_the_running_one_and_its_recipe_is_private(jobs_root, started):
     first = _running(started)
     (queued,) = jobs.queued_jobs()
     assert queued["title"] == "Reset" and queued["after_job"] == first and queued["held"] is None
-    assert queued["position"] == 1 and "env" not in queued and "steps" not in queued
+    assert queued["position"] == 1 and "steps" not in queued
     path = os.path.join(jobs_root, f"{jobs.QUEUED_PREFIX}{queued['ticket']}.json")
     assert oct(os.stat(path).st_mode & 0o777) == "0o600"
     assert jobs.promote_queued() is None and started == [], "it waits while the first job runs"
-    connection = redisqueue.connect()
-    stored = [value for key in connection.scan_iter(match=f"{runrecord.PREFIX}:line:*")
-              if connection.type(key) == b"hash" for value in connection.hgetall(key).values()]
-    assert stored and not any(b"pw" in value for value in stored), "the database password is only in the private file"
+    with open(path, encoding="utf-8") as recipe:
+        assert "PASSWORD" not in recipe.read(), "no database password is kept: a step builds its environment from the site's settings when it starts"
 
 
 def test_several_wait_in_the_order_they_came_and_start_one_at_a_time(jobs_root, started):
@@ -121,8 +114,7 @@ def test_it_starts_when_the_job_before_it_succeeded_or_was_canceled(jobs_root, s
     assert new and jobs.active_job()["id"] == new and started == ["Reset"]
     assert jobs.queued_jobs() == []
     assert not [name for name in os.listdir(jobs_root) if name.startswith(jobs.QUEUED_PREFIX)], "its recipe is gone"
-    with open(os.path.join(jobs_root, new, "job.json")) as f:
-        assert json.load(f)["env"] == {"PLANETGEN_MYSQL_PASSWORD": "pw"}, "the database environment is kept"
+    assert jobs.get_job(new, jobs_root)["database"] == "d", "the database the job writes is kept"
 
 
 @pytest.mark.parametrize("status", ["failed", "interrupted"])

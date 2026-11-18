@@ -154,6 +154,31 @@ def stop_run(connection, run_id, who=None):
         return None
 
 
+def stop_engine_run(connection, engine_run, who=None):
+    """
+    The cancel of a ledger run that has no Redis run record (a Generate page job, `pagerun`): a request to the supervisor when one is alive (left, not waited for: it asks the job's process to stop and
+    ends the rows), else the rows ended here. Never raises.
+
+    Returns:
+        dict | None: What was ended or asked, or `None` when it could not be done.
+    """
+    try:
+        asked = ask(connection, "stop_jobs", who, wait=0, engine_run=int(engine_run))
+        if asked is not None:
+            return asked
+        from planetgen.db import store
+        control = store.get_control_connection(store.control_mysql_config())
+        try:
+            ended = end_rows(control, int(engine_run))
+            control.commit()
+            return ended
+        finally:
+            control.close()
+    except Exception as exc:  # noqa: BLE001 -- the caller's own stop of the job's step still follows
+        log.swallowed("queue/controls", "stop_engine_run", exc)
+        return None
+
+
 def running_units(connection):
     """
     How many jobs the ledger has `running` now, in every run and class (the forked unit and job processes: what the Queue page's "workers" tile counts since OPS.235, where it counted RQ workers); 0 when
@@ -320,6 +345,9 @@ class Controls:
         return {"ok": bool(ok)}
 
     def _stop_jobs(self, request, arguments, who):
+        if "engine_run" in arguments:                   # a run of the ledger with no Redis record: a Generate page job
+            with self._control_connection() as control:
+                return self._end(request, control, int(arguments["engine_run"]), who, f"ledger run {int(arguments['engine_run'])}", wait_for_reply=False)
         run_id = arguments["run_id"]
         engine = engine_run_of(self.connection, run_id)
         if engine is None:

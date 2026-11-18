@@ -108,12 +108,17 @@ def test_a_step_that_is_not_a_stage_of_a_run_ends_the_group_it_stands_in():
 
 
 def test_a_started_job_holds_the_collapsed_steps(tmp_path):
+    from planetgen.queue import pagerun
+    from tests import page_jobs
+    page_jobs.forget_all_jobs()
     title, steps = _built("plan", {})
     job_id = jobs.start_job("plan", title, steps, root=str(tmp_path), spawn=False)
-    saved = json.loads((tmp_path / job_id / "job.json").read_text())
+    with page_jobs.ledger_rows() as control:
+        saved = pagerun.read(control, job_id)
     assert [step["label"] for step in saved["steps"]] == [generate_page.DATA_CHECK_LABEL, title]
     assert saved["steps"][1]["argv"][3] == "run-job"
     jobs.release_lock(job_id)
+    page_jobs.forget_all_jobs()
 
 
 def test_the_estimate_of_a_run_job_step_is_one_figure_for_each_stage(monkeypatch):

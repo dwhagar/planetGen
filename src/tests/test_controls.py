@@ -183,6 +183,37 @@ def test_a_cancel_with_no_supervisor_alive_ends_the_rows_itself_and_a_run_with_n
     assert controls.stop_run(conn, "20261117-none", "Dana") is None
 
 
+def test_a_generate_page_jobs_run_is_stopped_by_its_ledger_run_with_no_supervisor_alive(conn, control, new_control, monkeypatch):
+    """OPS.244: a page job has no Redis run record, so its cancel names the ledger run."""
+    engine, _ids = _run(control)
+    own = new_control()
+    monkeypatch.setattr(store, "get_control_connection", lambda *_args, **_kwargs: own)
+    assert controls.stop_engine_run(conn, engine, "Dana") == {"rows": 4, "attempts": 2, "runs": 1}
+    assert _states(control, engine) == ["canceled"] * 4
+
+
+def test_a_generate_page_jobs_run_is_stopped_through_the_supervisor_that_is_alive_and_not_waited_for(conn, control, new_control):
+    engine, ids = _run(control)
+    other, _other_ids = _run(control, count=2)
+    held = FakeLauncher(control)
+    mine = held.run(ids[0], engine)
+    theirs = held.run(_other_ids[0], other)
+    duty = _duty(conn, held, new_control)
+    _alive(conn)
+    assert controls.stop_engine_run(conn, engine, "Dana")["pending"] is True
+    duty.turn()
+    assert mine.sent == [{"op": "stop"}] and theirs.sent == []
+    assert _states(control, engine) == ["canceled"] * 4 and "canceled" not in _states(control, other)
+
+
+def test_a_stop_of_a_run_that_cannot_be_reached_never_raises(conn, monkeypatch):
+    def refuse(*_args, **_kwargs):
+        raise RuntimeError("no database")
+
+    monkeypatch.setattr(store, "get_control_connection", refuse)
+    assert controls.stop_engine_run(conn, 12345, "Dana") is None
+
+
 # -- the jobs ----------------------------------------------------------------------------------------------------------------
 
 def test_a_cancel_asks_each_job_of_the_run_to_stop_cancels_its_rows_and_leaves_other_runs_alone(conn, control, new_control):

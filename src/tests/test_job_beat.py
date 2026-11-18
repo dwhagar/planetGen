@@ -1,12 +1,10 @@
 """OPS.142: the API jobs, the web jobs and the tile prefetch chunks give a beat while they run, and the Queue page lists them with a state."""
 
-import json
 import sys
 
 import pytest
 
 from planetgen.queue import api_jobs, allowlist, beatjudge, jobbeat, redisqueue, unitbeat
-from planetgen.web import job_runner
 from planetgen.web.lib import tileprefetch, tilecache
 
 
@@ -87,27 +85,3 @@ def test_a_tile_prefetch_chunk_beats_while_it_builds(conn, monkeypatch):
     assert tileprefetch.build_nodes("db", ["a", "b", "c"]) == {"nodes": 3, "built": 2}
     assert [(row["kind"], row["label"]) for row in seen["rows"]] == [("tile-prefetch", "3 nodes of db")]
     assert jobbeat.states(conn) == []
-
-
-def test_a_web_job_beats_for_the_whole_run_and_names_each_step(tmp_path, monkeypatch):
-    job_dir = tmp_path / "jobs" / "job-9"
-    job_dir.mkdir(parents=True)
-    job = {"id": "job-9", "kind": "galaxy", "title": "Two steps", "cwd": str(tmp_path), "env": {},
-           "steps": [{"label": "One", "argv": [sys.executable, "-c", "pass"]}, {"label": "Two", "argv": [sys.executable, "-c", "pass"]}]}
-    (job_dir / "job.json").write_text(json.dumps(job), encoding="utf-8")
-    spy = []
-
-    class _Beat:
-        def phase(self, text):
-            spy.append(("phase", text))
-
-    from contextlib import contextmanager
-
-    @contextmanager
-    def beating(kind, job_id, label="", **kwargs):
-        spy.append(("beating", kind, job_id, label))
-        yield _Beat()
-
-    monkeypatch.setattr(jobbeat, "beating", beating)
-    assert job_runner.run(str(job_dir)) == 0
-    assert spy == [("beating", "web", "job-9", "Two steps"), ("phase", "step 1 of 2: One"), ("phase", "step 2 of 2: Two")]
