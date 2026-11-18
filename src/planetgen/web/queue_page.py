@@ -214,8 +214,6 @@ def _status_view(status):
         "paused": status.get("paused", False),
         "paused_by": status.get("paused_by"),
         "paused_at": _iso(status.get("paused_at")),
-        "paused_reason": status.get("paused_reason"),
-        "solo_unit": status.get("solo_unit"),
         "holder": status.get("holder"),
         "holder_title": status.get("holder_title"),
         "heartbeat": format_duration_seconds(status.get("heartbeat_age_s")),
@@ -389,17 +387,6 @@ def _warm_view(warm):
     }
 
 
-def _held_view(held):
-    """The held-jobs panel (PERF.248): jobs waiting for a job they require, or `None` when there are none."""
-    if not held or not held["total"]:
-        return None
-    rows = [{"id": item["id"], "queue": item["queue"].removeprefix("planetgen-"), "label": item["label"].rsplit(".", 1)[-1] or "job",
-             "waits_for": ", ".join(item["waits_for"]) or "a job that just ended",
-             "run": item["run"], "run_url": url_for("web.admin_queue_run", run_id=item["run"]) if item["run"] else None,
-             "stage": item["stage"]} for item in held["items"]]
-    return {"total": held["total"], "shown": len(rows), "rows": rows}
-
-
 def _tuning_view(body):
     """The panel of what the queue has learned per job kind (OPS.158), or `None` when there is nothing to show: for each kind the typed claim, the claim from the job profile, a pin, the samples and
     the newest change; and the latest changes the engine and the admins made."""
@@ -500,16 +487,12 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = history_table = None
-    workers = warm = held = beating = tuning = supervisor = waiting = None
+    workers = warm = beating = tuning = supervisor = waiting = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
         except apiclient.ApiError:
             workers = None                      # Redis down: the page says so below; the rest still loads
-        try:
-            held = _held_view(apiclient.admin_work_held(cookie_header))
-        except apiclient.ApiError:
-            held = None
         try:
             beating = _beating_view(apiclient.admin_work_jobs(cookie_header))
         except apiclient.ApiError:
@@ -545,7 +528,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, history_table=history_table, workers=workers, held=held, beating=beating, tuning=tuning, supervisor=supervisor, why_waiting=waiting,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, history_table=history_table, workers=workers, beating=beating, tuning=tuning, supervisor=supervisor, why_waiting=waiting,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )

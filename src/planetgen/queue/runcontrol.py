@@ -5,11 +5,8 @@ What an admin can do to a run in Redis (PERF.99, docs/design/operations/redis-an
 it, clear one that has stopped answering, delete a finished one, and keep its log. The Queue page and the Generate page
 call these; nothing here knows a page.
 
-* `cancel_run` -- (also for a run held for a person, OPS.221; the jobs it has in the ledger are stopped by the supervisor, `controls.stop_run`) sets the run to `canceling` (the unit that completes a stage then queues no next one, and a unit that
-  has not started finds the run not running and does nothing), cancels the stage's waiting units, sends RQ's stop command
-  to the started ones, and ends the run `canceled`, which frees the machine. The job ids follow from the run id, the
-  stage and the unit's index (`units.job_id`), so there is no list to keep; the lookups are one pipeline, so a run of
-  several thousand units is stopped in about a second (measured on 75: `tests/test_run_control.py`).
+* `cancel_run` -- (also for a run held for a person, OPS.221) sets the run to `canceling` (a stage that completes then opens no next one), asks the supervisor to stop the run's jobs in the ledger (`controls.stop_run`: each job
+  process it forked stops between two pieces and the run's rows end) and ends the run `canceled`, which frees the machine. OPS.235: the RQ queue's units and its stop command are gone.
 * `clear_run` -- the Queue page's "Clear" for a run that shows no sign of life (`runrecord.is_stale`), or whose process
   is gone (`runrecord.holder_is_dead`): the same stop, ending it `failed` with who cleared it.
 * `write_log` -- the run's event stream as `<jobs dir>/runs/<run id>.log`, the last `KEEP_LOGS` kept, for the download
@@ -18,10 +15,7 @@ call these; nothing here knows a page.
 
 import os
 
-import rq
-from rq import command
-
-from planetgen.queue import held, redisqueue, runrecord, units, wrapper
+from planetgen.queue import held, runrecord
 from planetgen.util import log
 
 KEEP_LOGS = 20
@@ -31,69 +25,12 @@ LOG_DIRECTORY = "runs"
 """str: The folder of run logs inside the jobs directory."""
 
 
-def _unfinished_units(conn, run):
-    """`[(stage, unit)]` of the units of the run that may still be queued or running: the units of the stages that
-    have begun and not ended, less those in their done sets."""
-    found = []
-    for index, stage in enumerate(run["stages"]):
-        if stage["started"] is None or stage["ended"] is not None or not stage["units"]:
-            continue
-        finished = {int(unit) for unit in conn.smembers(runrecord.done_key(run["id"], index))}
-        found += [(index, unit) for unit in range(stage["units"]) if unit not in finished]
-    return found
-
-
-def _job_ids(conn, run):
-    """The ids of the jobs of `run` that may still be queued or running: its unfinished units, and the openings (`units.enqueue_open`, PERF.254) of
-    the stages that have not ended (the first stage is opened by the process that starts the run, not by a job)."""
-    ids = [units.job_id(run["id"], stage, unit) for stage, unit in _unfinished_units(conn, run)]
-    return ids + [units.open_job_id(run["id"], index) for index, stage in enumerate(run["stages"]) if index and stage["ended"] is None]
-
-
-def started_units(conn, run):
-    """The ids of the units of `run` (`runrecord.read_run`'s dict) that a worker has started and not ended: what a cancel is still waiting for."""
-    queue = redisqueue.queue(wrapper.queue_of(run["kind"]), conn)
-    return set(_job_ids(conn, run)) & set(queue.started_job_registry.get_job_ids(cleanup=False))
-
-
-def stop_units(conn, run):
-    """
-    Takes the units (and the openings of the stages still to come) of `run` (`runrecord.read_run`'s dict) that are still waiting off the queue and sends the stop
-    command to the started ones. Safe whatever a unit is doing: a unit's save is one transaction, and a stopped unit is
-    not retried. The work is a few pipelines whatever the number of units: the ids are worked out from the run, the
-    started ones are the run's ids in the queue's started registry, and each other id is removed from the queue's list
-    (the ones that were there lose their job record).
-
-    Returns:
-        dict: `{"canceled": waiting units removed, "stopped": started units sent the stop command}`.
-    """
-    queue = redisqueue.queue(wrapper.queue_of(run["kind"]), conn)
-    serializer = redisqueue.serializer_for(queue.name)
-    ids = _job_ids(conn, run)
-    started = set(queue.started_job_registry.get_job_ids(cleanup=False)) & set(ids)
-    pipe = conn.pipeline()
-    waiting = [job_id for job_id in ids if job_id not in started]
-    for job_id in waiting:
-        pipe.lrem(queue.key, 1, job_id)
-    removed = [job_id for job_id, count in zip(waiting, pipe.execute()) if count]
-    if removed:
-        conn.delete(*(rq.job.Job.key_for(job_id) for job_id in removed))
-    stopped = 0
-    for job_id in sorted(started):
-        try:
-            command.send_stop_job_command(conn, job_id, serializer)
-            stopped += 1
-        except (rq.exceptions.InvalidJobOperation, rq.exceptions.NoSuchJobError):
-            pass        # it finished between the two reads
-    return {"canceled": len(removed), "stopped": stopped}
-
-
 def cancel_run(conn, run_id, who=None, now=None):
     """
     Cancels the live run `run_id` now (see the module docstring).
 
     Returns:
-        dict | None: What was stopped (`stop_units`), or `None` when the run is unknown or already over.
+        dict | None: What was asked of the ledger (`controls.stop_run`; `{}` for a run with no rows there), or `None` when the run is unknown or already over.
     """
     run = runrecord.read_run(conn, run_id)
     if run is None or run["state"] not in runrecord.LIVE_STATES + (runrecord.HELD,):
@@ -117,7 +54,7 @@ def clear_run(conn, run_id, who=None, now=None):
     for it and frees the machine.
 
     Returns:
-        dict | None: What was stopped, or `None` when the run is unknown, over, or still answering (cancel it instead).
+        dict | None: What was asked of the ledger (`{}` for a run with no rows there), or `None` when the run is unknown, over, or still answering (cancel it instead).
     """
     run = runrecord.read_run(conn, run_id)
     if not is_clearable(conn, run, now):
@@ -126,11 +63,10 @@ def clear_run(conn, run_id, who=None, now=None):
 
 
 def _end(conn, run, state, error, now, killed=False, who=None):
-    """Stops the run's units, ends the run in `state` with `error` and writes its log; returns what `stop_units` stopped. The jobs of a run in the ledger are the supervisor's to stop (`controls.stop_run`,
-    OPS.234): it asks each job process it forked to stop between two pieces and ends the run's rows."""
+    """Stops the run's jobs, ends the run in `state` with `error` and writes its log; returns what `controls.stop_run` did (`{}` for a run with no rows in the ledger). The jobs of a run are the supervisor's to stop
+    (OPS.234): it asks each job process it forked to stop between two pieces and ends the run's rows."""
     from planetgen.queue import controls
-    stopped = stop_units(conn, run)
-    controls.stop_run(conn, run["id"], who)
+    stopped = controls.stop_run(conn, run["id"], who) or {}
     runrecord.finish_run(conn, run["id"], state, error=error, now=now, killed=killed, from_held=run["state"] == runrecord.HELD)
     write_log(conn, run["id"])
     return stopped
@@ -182,5 +118,4 @@ def write_log(conn, run_id, directory=None):
         return None
 
 
-__all__ = ["cancel_run", "clear_finished", "clear_run", "is_clearable", "log_directory", "log_path", "stop_units",
-           "write_log"]
+__all__ = ["cancel_run", "clear_finished", "clear_run", "is_clearable", "log_directory", "log_path", "write_log"]
