@@ -12,7 +12,7 @@ from planetgen.util import generator_epoch
 
 def test_every_epoch_after_the_first_names_the_stages_it_changed():
     stages = generator_epoch.stages()
-    assert stages == ("plan", "scatter", "fill", "population")
+    assert stages == ("plan", "scatter", "fill", "population", "derived")
     assert generator_epoch.affects(1) == ()
     for number in range(2, generator_epoch.generator_epoch() + 1):
         listed = generator_epoch.affects(number)
