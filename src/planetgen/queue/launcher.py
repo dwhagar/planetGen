@@ -24,11 +24,13 @@ import signal
 import time
 import types
 
-from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, pagerun, planrows, runrecord, scheduler, workers
+from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, pagerun, planrows, runrecord, scheduler, tokens, workers
 from planetgen.queue.memorygate import Claim, Holder
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 
+KILLED = "killed"
+"""str: The error kind of an attempt whose process ended on a signal (`Launcher._outcome`)."""
 RETRIES = 1
 """int: How many times a unit whose process died without ending its attempt is handed out again (what RQ's `Retry(max=1)` did)."""
 
@@ -119,7 +121,7 @@ class Launcher:
         """`(outcome, error kind, error text)` of an end the unit did not write itself."""
         error = started.error()
         if exit_.signal is not None:
-            return "lost", "killed", error or f"the job process ended on {signal.Signals(exit_.signal).name}"
+            return "lost", KILLED, error or f"the job process ended on {signal.Signals(exit_.signal).name}"
         if exit_.code is None:
             return "lost", "lost", error or "the job process ended and nothing said how"
         return "failed", "failed", error or f"the job process exited with code {exit_.code}"
@@ -152,12 +154,31 @@ class Launcher:
                 page = started.row["command"] == pagerun.STEP
                 again = not page and row["attempt"] - ledger.stopped_attempts(self.control, found) <= RETRIES
                 ledger.set_job_state(self.control, found, "ready" if again else "failed", waited=None if again else text[:ledger.WAITED_CHARS])
+                if again and kind == KILLED:
+                    self._grow(found, started)
                 if page:                # the steps after the one that was cut off are not run: the job is over (the page's Retry starts the rest)
                     pagerun.fail_rest(self.control, started.row["run_id"], text)
                 self.control.commit()
             started.job.close()
             done.append(found)
         return done
+
+    def _grow(self, job_id, started):
+        """A job process the kernel (or any signal) killed is handed out again, and its retry claims `memorygate.GROW_FACTOR` times what this attempt claimed and runs alone (`claim`): the process was
+        killed for want of memory more often than for any other reason, and a second kill at the same claim would be the same kill (OPS.236; `memorygate.grow` had no caller after OPS.235 deleted `units.horse_killed`)."""
+        if self.redis is None:
+            return
+        try:
+            memorygate.grow(self.redis, started.claim.kind, str(job_id), started.claim.mb)
+        except Exception as exc:  # noqa: BLE001 -- the retry still runs, at the claim it had
+            log.swallowed("queue/launcher", "_grow", exc)
+
+    def _killed_before(self, row):
+        """Whether the attempt before this hand-out of `row` ended killed by a signal (`ledger.attempt_row`)."""
+        if not row["attempt"]:
+            return False
+        before = ledger.attempt_row(self.control, row["id"], row["attempt"])
+        return before is not None and before["error_kind"] == KILLED
 
     def _gone(self, pid):
         """Whether the process `pid` is not there (a job whose attempt names no process is gone too)."""
@@ -244,9 +265,12 @@ class Launcher:
                 named = _arguments(row)
                 command = claims.cut_command(self.redis, named["run_id"], named["index"])
                 kind = f"cut:{command or 'unknown'}"
-                return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.CUT_MB, token=named["run_id"]), 1.0, lane, True)
+                return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.CUT_MB, job_id=str(row["id"]), token=named["run_id"]), 1.0, lane, True)
             kind = f"unit:{row['command']}"
-            return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.unit_table_mb(row["command"]), token=token), claims.UNIT_CPU, lane, False, claims.unit_tokens(row["command"]))
+            named_tokens = claims.unit_tokens(row["command"])
+            if self._killed_before(row) and tokens.ALONE not in named_tokens:
+                named_tokens += (tokens.ALONE,)         # a unit the kernel killed runs again alone, on a claim grown by `_grow`
+            return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.unit_table_mb(row["command"]), job_id=str(row["id"]), token=token), claims.UNIT_CPU, lane, False, named_tokens)
         except claims.NoClaim:
             return claim_of_row(row)
 
