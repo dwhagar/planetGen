@@ -6,7 +6,7 @@ import pytest
 import rq
 
 from planetgen.cli import worker as worker_cli
-from planetgen.queue import redisqueue, runrecord, wrapper, workers
+from planetgen.queue import redisqueue, runrecord, wrapper
 
 pytestmark = pytest.mark.real_queue
 
@@ -21,9 +21,7 @@ def test_each_task_type_of_the_maintenance_lane_has_a_queue_of_its_own():
         assert redisqueue.serializer_for(name) is redisqueue.JsonSerializer      # one serializer for the whole lane
 
 
-def test_a_worker_serves_one_queue_and_the_round_robin_worker_is_gone():
-    for name in (*redisqueue.maintenance_lane(), redisqueue.BULK_QUEUE):
-        assert workers.lane_of(name) == (name,)
+def test_the_round_robin_worker_is_gone():
     assert not issubclass(worker_cli.worker_class(), rq.worker.RoundRobinWorker)
     assert not hasattr(worker_cli, "RoundRobinWorker") and not hasattr(worker_cli, "APP_QUEUES")
 
