@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4573] - 2026-11-18
+
+**Headline:** A planet tipped by a chaotic zone or a Cassini state now carries the extreme-tilt oddity it stands in.
+
+### Fixed
+- **W1 (extreme tilt seasons) and G1 (giant tipped by an impact) are judged again when a step moves the tilt (GEN.1785).** `settle_obliquity` (the chaotic zone) and the Cassini state of a locked planet change a tilt after the oddities were judged on it, so a planet tipped to 60 to 120 degrees did not carry W1, and one righted kept it. On 40 G2V systems 40 of 275 bodies in W1's tilt range did not carry it (all of them chaotic, mostly belt members made planets); now none is missing. The rows draw nothing and change nothing on the body (they only name the tilt), so no tilt, orbit or class moves; only the oddity lists of those bodies.
+
 ## [8.0.4572] - 2026-11-18
 
 **Headline:** An air with a haze that takes more of the sunlight aloft is never read as warmer at the ground, so a hazy world no longer has several fixed points that depend on where its solve began.
