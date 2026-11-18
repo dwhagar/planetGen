@@ -8,9 +8,8 @@ many there are, and how a running job is stopped. Section 5.4 of docs/design/ope
   light jobs the supervisor forks (`queue/lightjobs.py`, OPS.230), not RQ jobs.
 * Workers are not burst workers: a run's queue is briefly empty at every stage barrier, so a worker waits for
   `IDLE_SECONDS` before it exits. Nothing runs when there is no work, and no service has to be installed.
-* `ensure_workers` starts workers up to `wanted` (the admin's count in `WANTED_KEY`, else `work.worker_count()`),
-  counts only live workers (a worker killed with `kill -9` leaves its registry entry behind, PERF.93), and is
-  called by whoever queues work and by every status poll, so a dead worker is replaced.
+* OPS.235: nothing starts RQ workers for a run or the maintenance lane any more (`ensure_workers`, `start_workers` and the supervisor's `WorkerStarts` are gone: the launcher forks each unit); the
+  Generate page's job still starts its own worker until OPS.244 moves it to the ledger.
 * `set_wanted` (ADM.15) changes the count; lowering it tells the extra bulk workers to finish their unit and
   exit. "Ludicrous Speed" is a number (`ludicrous_count`), not a mode.
 * `cancel_now` stops a job at once: a waiting one is canceled, a running one gets RQ's stop command.
@@ -21,30 +20,16 @@ many there are, and how a running job is stopped. Section 5.4 of docs/design/ope
 import os
 import socket
 import subprocess
-import sys
 
 import rq
 from rq import command, worker_registration
 
-from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, runrecord, stopall, supervisor, work
+from planetgen.queue import redisqueue, work
 from planetgen.util import log
 from planetgen.util import process
 
 WANTED_KEY = "planetgen:workers:wanted"
 """str: The admin's worker count for the bulk queue, a number in Redis (no expiry)."""
-
-STARTING_PREFIX = "planetgen:workers:starting:"
-STARTING_SECONDS = 90
-"""The Redis counter, per queue, of workers started but not yet registered with RQ, which expires this long after
-the last start: counted with the live ones so a burst of jobs doesn't start more than wanted. A worker on a host that
-is short of memory or busy can take far longer than a few seconds to import and register, and a window shorter than
-that starts a second worker for the same need, and a third (PERF.181)."""
-
-"""
-OPS.209: the host-wide lock between callers that counted and started workers (PERF.181) is gone: only the supervisor starts workers (`start_workers`, acting on the nudges of `ensure_workers`),
-one process in one thread, so two callers cannot count "none starting" at the same moment and each start the whole cap (the 2026-10-24 incident that PERF.181 closed).
-"""
 
 WORKER_COMMAND = "planetgen.cli.worker"
 """str: What every planetgen worker process has in its command line."""
@@ -102,10 +87,7 @@ from the unit-length ceiling: a one-unit command that is cut into several units 
 2026-11-08 held 15 workers at 15,128 MB of 15,992 MB with no figure and no cap)."""
 
 REFUSED_KEY = "planetgen:workers:refused"
-REFUSED_NOTE_KEY = "planetgen:workers:refused-note"
-REFUSED_NOTE_SECONDS = 60
-"""The Redis counter of starts the host cap refused (kept an hour after the last), and the key that lets the log line
-about it out once a minute instead of at every poll."""
+"""The Redis counter of starts the host cap refused (kept an hour after the last)."""
 
 IDLE_SECONDS = 60
 """int: How long a worker waits for work before it exits (about 60 s covers every stage barrier)."""
@@ -164,96 +146,6 @@ def live_workers(queue):
 def live_worker_count(queue):
     """How many workers serve `queue` and are alive (`live_workers`)."""
     return len(live_workers(queue))
-
-
-def lane_of(queue_name):
-    """
-    The queues one worker started for `queue_name` serves: just the queue itself (OPS.229: a worker serves one queue; the maintenance lane's workers took one job from each of its two queues in turn, RQ's
-    `RoundRobinWorker`, until its runs moved to the launcher).
-    """
-    return (queue_name,)
-
-
-def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count=None):
-    """
-    Asks for workers for the waiting jobs of the queue `queue_name` (OPS.209): leaves a nudge for the supervisor (`supervisor.nudge`), which is the only process that starts
-    workers (`start_workers`), and starts the supervisor if none is alive. Cheap and safe to call from a web thread, the command line or an enqueuer, at every poll if need be.
-    The arguments are the ones `start_workers` takes.
-
-    Returns:
-        int: 0; the supervisor starts the workers a moment later.
-    """
-    url = url or redisqueue.redis_url()
-    connection = connection or redisqueue.connect(url)
-    supervisor.nudge(connection, queue_name, url=url, mysql_host=mysql_host, count=count)
-    return 0
-
-
-def start_workers(queue_name, connection=None, url=None, mysql_host=None, count=None):
-    """
-    Starts idle-timeout workers for the waiting jobs of the queue `queue_name`, never more than the queue's cap in
-    all (those serving the queue and alive, and those started a moment ago and not registered yet). The cap is
-    `count` when given (a run's own `--workers`, PERF.97, which leaves the admin's count alone), else the lane's
-    (`maintenance_cap`), else `wanted`. How many run at once under memory pressure is the controller's (`queue/pressure.py`, OPS.231), not
-    a cap here. Called by the supervisor only (OPS.209), which acts on the nudges `ensure_workers` leaves: one process decides, so there is no lock between deciders.
-
-    Returns:
-        int: How many were started.
-    """
-    if updateguard.is_updating() and not updateguard.inside_update():
-        return 0        # OPS.53: no worker starts during an update
-    if stopall.is_stopped():
-        return 0        # PERF.186: no worker starts while everything is stopped
-    url = url or redisqueue.redis_url()
-    connection = connection or redisqueue.connect(url)
-    names = lane_of(queue_name)
-    queue = redisqueue.queue(names[0], connection)
-    waiting = sum(redisqueue.queue(name, connection).count for name in names)
-    if not waiting:
-        return 0
-    return max(0, _start_missing(queue, names, connection, url, mysql_host, count, waiting))
-
-
-def registered(connection, queue_names):
-    """
-    A worker has registered with RQ (`cli.worker`'s `register_birth`): it is live now, so it stops counting among the
-    ones `ensure_workers` started and is waiting for. Without this the counter held it for the whole of
-    `STARTING_SECONDS` on top of its place among the live ones, and a worker killed in that time was not replaced
-    until the counter ran out (about 90 s). A worker not started by `ensure_workers` leaves no count to take it from.
-    """
-    for name in queue_names:
-        key = STARTING_PREFIX + name
-        if connection.exists(key) and connection.decr(key) <= 0:
-            connection.delete(key)
-
-
-def _start_missing(queue, names, connection, url, mysql_host, count, waiting):
-    """The counting and starting of `ensure_workers`, run by the one caller that holds the queue's lock. `names` are the queues
-    one worker serves (`lane_of`; `queue` is the first), `waiting` the jobs on all of them. Returns how many workers it started."""
-    queue_name = names[0]
-    starting_key = STARTING_PREFIX + queue_name
-    starting = int(connection.get(starting_key) or 0)
-    if queue_name == redisqueue.MAINTENANCE_QUEUE:
-        cap = count or maintenance_cap(connection, mysql_host)
-    else:
-        cap = count or wanted(connection, mysql_host)
-    live = live_worker_count(queue)
-    need = min(waiting, cap) - live - starting
-    log.trace(f"workers for {queue_name}: {waiting} job(s) waiting, cap {cap}, {live} live, {starting} starting; "
-              f"{max(0, need)} to start", area="queue")
-    started = 0
-    for _ in range(max(0, need)):
-        running, host_cap = host_worker_processes(), host_worker_cap()
-        if running >= host_cap:
-            _note_refused(connection, queue_name, running, host_cap)
-            break
-        connection.incr(starting_key)
-        connection.expire(starting_key, STARTING_SECONDS)
-        proc = redisqueue.start_detached(
-            redisqueue.worker_argv(list(names), url, python=sys.executable, burst=False), REPO_DIR)
-        started += 1
-        log.trace(f"workers for {queue_name}: started worker process {getattr(proc, 'pid', '?')}", area="queue")
-    return started
 
 
 def _physical_memory_bytes():
@@ -332,27 +224,6 @@ def host_worker_processes():
     except (OSError, subprocess.SubprocessError):
         return 0
     return count_worker_processes(listing)
-
-
-def _note_refused(connection, queue_name, running, host_cap):
-    """Counts a start the host cap refused and says so in the log, once a minute."""
-    connection.incr(REFUSED_KEY)
-    connection.expire(REFUSED_KEY, 3600)
-    if connection.set(REFUSED_NOTE_KEY, "1", nx=True, ex=REFUSED_NOTE_SECONDS):
-        log.normal(f"Worker start refused for {queue_name}: {running} planetgen worker processes already run on this "
-                   f"host, and the cap is {host_cap} "
-                   "(queue.max_host_workers, 0 sizes it from memory and cores).")
-
-
-def maintenance_cap(connection, mysql_host=None):
-    """
-    The most workers the maintenance lane may have (PERF.150): `queue.maintenance_workers` while a generation run is
-    live, so upkeep never takes more than its guaranteed share from the run, and the whole of `wanted` when none is.
-    """
-    if runrecord.active_run(connection, runrecord.GENERATION):
-        from planetgen.util.settings import get_settings
-        return get_settings().queue.maintenance_workers
-    return wanted(connection, mysql_host)
 
 
 def set_wanted(connection, count):

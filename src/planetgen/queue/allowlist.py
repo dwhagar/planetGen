@@ -35,8 +35,6 @@ FUNCTIONS = frozenset({
     "planetgen.queue.forkedjob.run",                    # a unit as a job process the template forked (OPS.226)
     "planetgen.web.warmup.warm_app",                    # the warm set of the maintenance lane's template (OPS.229): the site's app, built once
     "planetgen.queue.units.warm_star_tables",           # the warm set of a template (OPS.226): the sampling tables every job forked from it shares
-    "planetgen.queue.requires.job_failed",              # the callbacks every job gets (PERF.247)
-    "planetgen.queue.requires.job_succeeded",
     "planetgen.queue.lightjobs.run",                    # a light job as a process the template forked (OPS.230): the API's long operations, dispatched through `API_FUNCTIONS`
 })
 """frozenset: The dotted names a queued job or callback may name."""

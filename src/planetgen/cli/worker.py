@@ -1,11 +1,8 @@
 # planetgen/cli/worker.py
 
 """
-One RQ worker for planetGen's queues, at the lowered priority
-generation workers always run at. `planetgen.queue.workers.ensure_workers`
-starts these, each serving one queue and exiting after `--idle-seconds`
-without work (a run's queue is empty for a moment at every stage barrier,
-so a burst worker would leave too soon).
+One RQ worker for planetGen's queues, at the lowered priority generation workers always run at.
+Only the Generate page's job still starts one (a burst worker for its own queue) until OPS.244 moves that job to the ledger (OPS.235); `--idle-seconds N` is a worker that leaves after N seconds without work.
 
 Usage:
     python -m planetgen.cli.worker [--burst | --idle-seconds N] [--name NAME] [--url REDIS_URL] [QUEUE ...]
@@ -88,16 +85,10 @@ def worker_class():
     before it asks for one and, if a job came to it in the moment the flag was set, holds that job (still queued,
     untouched) until the flag is cleared, so a paused queue starts no new unit. A unit already running finishes.
 
-    OPS.145: the flag may be a solo hold (`pause.hold_solo`), for the one restarted unit that is to run alone. A worker then takes jobs as usual to reach that unit, which is at the
-    front of its queue, and turns every other job it takes back to the queue and waits (`_turn_away_during_solo_hold`).
-
     PERF.254: every job passes the memory gate (`queue/memorygate.py`) before it is prepared: the worker takes the job's claim
     (`claims.claim_for`) and waits, with its heartbeat going, until the host has room for it; it gives the claim up when the job ends,
     renews it at every heartbeat while the job runs, and keeps the most the job held (the gate learns the size of each kind from it). A
     job waiting for room is still queued, and goes back to the front of its queue if the worker is asked to stop.
-
-    TEST.371: when it registers, it stops counting among the workers `ensure_workers` is waiting for
-    (`workers.registered`), so one killed soon after it started is replaced at once.
 
     OPS.229: a worker serves one queue. The maintenance lane's units (the cache warm-up and the checks) are forked jobs of the supervisor's launcher now, and the one-queue-per-worker rule is RQ's reliable dequeue
     back (a worker killed between taking a job and starting it no longer loses the job).
@@ -105,10 +96,6 @@ def worker_class():
     base = rq.Worker
 
     class WarmWorker(base):
-        def register_birth(self):
-            super().register_birth()
-            workers.registered(self.connection, self.queue_names())
-
         def execute_job(self, job, queue):
             try:
                 super().execute_job(job, queue)
@@ -158,27 +145,15 @@ def worker_class():
             gc.collect()
             return super().prepare_execution(job)
 
-        def _wait_while_paused(self, job_id=None):
+        def _wait_while_paused(self):
             if not any(pause.holds(name) for name in self.queue_names()):
                 return
-            if not pause.blocks(self.connection, job_id):
+            if not pause.is_paused(self.connection):
                 return
             log.debug("The worker holds, because the queue is paused.", area="queue")
-            while pause.blocks(self.connection, job_id) and not self._stop_requested:
+            while pause.is_paused(self.connection) and not self._stop_requested:
                 self.heartbeat()
                 time.sleep(pause.WAIT_SECONDS)
-
-        def _turn_away_during_solo_hold(self, job):
-            """
-            OPS.145: a job taken while the queues are held for a restarted unit that runs alone, and that is not that unit, goes back to the back of its queue (the unit is at the front, and a job put in front of it
-            could keep every worker from reaching it) and this worker holds off until the hold lifts, so nothing starts beside the unit. Returns whether it was turned away. (A pause by hand keeps the job in hand, as before.)
-            """
-            if not any(pause.holds(name) for name in self.queue_names()) or pause.solo_of(self.connection) is None or not pause.blocks(self.connection, job.id):
-                return False
-            log.debug("The worker turns %s away, because the queue is held for a unit that runs alone.", job.id, area="queue")
-            next(queue for queue in self.queues if queue.name == job.origin).push_job_id(job.id)
-            self._wait_while_paused(job.id)
-            return True
 
         def dequeue_job_and_maintain_ttl(self, *args, **kwargs):
             while True:
@@ -192,9 +167,7 @@ def worker_class():
                 if result is None:
                     return result
                 self._exit_if_stopped()
-                if self._turn_away_during_solo_hold(result[0]):
-                    continue
-                self._wait_while_paused(result[0].id)
+                self._wait_while_paused()
                 return result
 
         def _exit_if_stopped(self):

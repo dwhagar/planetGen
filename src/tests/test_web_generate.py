@@ -1398,13 +1398,21 @@ def test_system_download(site, client):
     assert resp.get_data(as_text=True) == "# A/B Star\n\nText"
 
 
+def _env_without_a_galaxy_database():
+    """The environment of a command that must not touch the galaxy database: the test server's account and the session's control database (a run is a ledger run since OPS.271, `--output` ones too),
+    and a galaxy database that does not exist, so any attempt to open it fails."""
+    from tests.conftest import _test_server_kwargs
+    kwargs = _test_server_kwargs()
+    return {**os.environ, "PLANETGEN_MYSQL_HOST": str(kwargs["host"]), "PLANETGEN_MYSQL_PORT": str(kwargs["port"]), "PLANETGEN_MYSQL_USER": kwargs["user"],
+            "PLANETGEN_MYSQL_PASSWORD": kwargs["password"], "PLANETGEN_MYSQL_DATABASE": "no_galaxy_database_exists", "PYTHONIOENCODING": "utf-8"}
+
+
 def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
     import subprocess
 
     out = tmp_path / "system.md"
-    # An unreachable database: --output must never try to connect.
-    env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1",
-           "PYTHONIOENCODING": "utf-8"}
+    # A galaxy database that does not exist: --output must never try to open it.
+    env = _env_without_a_galaxy_database()
     proc = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--format", "markdown", "--output", str(out),
                            "--name=Output Test", "+habitable_world"],
                           cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
@@ -1469,7 +1477,7 @@ def test_a_starless_result_takes_only_a_name_and_the_debug_log():
 def test_generate_py_phenomenon_output_writes_a_file_and_no_database(tmp_path):
     import subprocess
 
-    env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1", "PYTHONIOENCODING": "utf-8"}
+    env = _env_without_a_galaxy_database()
     done = subprocess.run([PY, *jobs.GENERATE_COMMAND, "phenomenon", "--type", "rogue-planet", "--format", "document", "--output", "-",
                            "--quiet", "--name=Phenom Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
                           env=env)

@@ -18,7 +18,7 @@ import os
 
 import pytest
 
-from planetgen.queue import allowlist, api_jobs, redisqueue, requires, units
+from planetgen.queue import allowlist, api_jobs, redisqueue
 
 SOURCE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "planetgen")
 
@@ -96,9 +96,6 @@ def test_every_function_on_the_lists_exists():
 
 
 def test_the_names_the_program_gives_its_jobs_are_on_the_list():
-    for name in (requires.FAILED_FUNCTION,
-                 requires.SUCCEEDED_FUNCTION):
-        assert name in allowlist.FUNCTIONS
     from planetgen.web.lib import tileprefetch
     assert tileprefetch.JOB in allowlist.API_FUNCTIONS        # a light job of the maintenance lane, called by `api_jobs.execute`
     assert "planetgen.queue.lightjobs.run" in allowlist.FUNCTIONS        # the process a light job runs in; the API function it calls is checked by `api_jobs.execute`
@@ -108,8 +105,8 @@ ENQUEUE_KNOWN = {"JOB": "planetgen.web.lib.tileprefetch:build_nodes"}
 
 
 def _enqueues(trees):
-    """`(path, line, the argument as written, the function it names or None)` of each place in `trees` (`(module, path, tree)`) that queues work: `queue.enqueue(X, ...)`,
-    `enqueue_many([prepare_data(X, ...)])` and `requires.enqueue(queue, X, ...)`."""
+    """`(path, line, the argument as written, the function it names or None)` of each place in `trees` (`(module, path, tree)`) that queues work: `queue.enqueue(X, ...)` and
+    `enqueue_many([prepare_data(X, ...)])`."""
     for module, path, tree in trees:
         if module == "planetgen.queue.redisqueue":
             continue                      # the queue class itself, not a place that queues work
@@ -118,13 +115,9 @@ def _enqueues(trees):
                 continue
             if not isinstance(node.func, ast.Attribute):
                 continue
-            owner = ast.unparse(node.func.value)
-            position = 1 if owner.endswith("requires") else 0
-            if len(node.args) <= position:
+            if not node.args:
                 continue
-            argument = node.args[position]
-            if isinstance(argument, ast.Name) and argument.id == "function" and module == "planetgen.queue.requires":
-                continue                  # `requires.enqueue` hands its caller's function on; its callers are swept below
+            argument = node.args[0]
             yield path, node.lineno, ast.unparse(argument), argument.value if isinstance(argument, ast.Constant) else ENQUEUE_KNOWN.get(getattr(argument, "id", None))
 
 
@@ -136,18 +129,9 @@ def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
 
 def test_the_sweep_for_enqueues_finds_a_function_that_is_not_on_the_list_and_passes_one_that_is():
     """The sweep above must still have teeth when the source has no enqueue left."""
-    source = "queue.enqueue('planetgen.queue.lightjobs.run')\nqueue.enqueue('planetgen.nowhere.run')\nrequires.enqueue(queue, 'planetgen.nowhere.other')\n"
+    source = "queue.enqueue('planetgen.queue.lightjobs.run')\nqueue.enqueue('planetgen.nowhere.run')\nqueue.enqueue_many([queue.prepare_data('planetgen.nowhere.other')])\n"
     found = list(_enqueues([("planetgen.somewhere", "somewhere.py", ast.parse(source))]))
     assert [(line, value in allowlist.FUNCTIONS) for _path, line, _written, value in found] == [(1, True), (2, False), (3, False)]
-
-
-def test_nothing_calls_requires_enqueue_with_a_function_that_is_not_on_the_list():
-    for module, path, tree in _trees():
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Call) and _call_name(node) == "enqueue" and ast.unparse(node.func).endswith("requires.enqueue"):
-                argument = node.args[1]
-                value = argument.value if isinstance(argument, ast.Constant) else getattr(argument, "id", None)
-                assert value in allowlist.FUNCTIONS or value == "JOB", f"{path}:{node.lineno}"
 
 
 # --- The guard itself ----------------------------------------------------------------------------------------------------
@@ -184,7 +168,7 @@ def test_a_callback_off_the_list_is_refused(callback):
     setattr(job, f"_{callback}", allowlist.rq.job.UNEVALUATED)
     with pytest.raises(allowlist.ForbiddenFunction):
         getattr(job, callback)
-    setattr(job, f"_{callback}_name", requires.SUCCEEDED_FUNCTION)
+    setattr(job, f"_{callback}_name", "planetgen.queue.forkedjob.run")
     assert callable(getattr(job, callback))
 
 

@@ -16,7 +16,7 @@ import pytest
 
 from planetgen.admin import updateguard
 from planetgen.cli import queue as queue_cli, worker as worker_cli
-from planetgen.queue import pause, redisqueue, stopall, workers
+from planetgen.queue import pause, redisqueue, stopall
 from planetgen.web import job_runner, jobs
 from planetgen.web.lib import tileprefetch
 from tests import page_jobs
@@ -96,7 +96,6 @@ def test_nothing_starts_while_everything_is_stopped(tmp_path, monkeypatch):
         updateguard.refuse_while_updating("A run")      # the guard every start of a run, a job or the orbit update calls
     with pytest.raises(updateguard.UpdateRunning):
         jobs.start_job("galaxy", "Held", [{"label": "x", "argv": [PYTHON, "-c", "pass"]}], spawn=False)
-    assert workers.start_workers(redisqueue.MAINTENANCE_QUEUE) == 0
     assert worker_cli.main(["--burst"]) == updateguard.EX_TEMPFAIL
 
 

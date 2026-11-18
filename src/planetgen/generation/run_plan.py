@@ -269,7 +269,7 @@ def _draw_sector_chunks(conn, skeleton, addresses, limits, draw_one, write_state
             c.commit()
             return rows, states
 
-        rows, states = contention.run_with_retries(conn, attempt, gate="scatter-ids", label=label)
+        rows, states = contention.run_once(conn, attempt)
         if counts is not None:
             for row in rows:
                 counts[row[6]] += 1
@@ -3693,7 +3693,7 @@ def write_special_do(params, piece, ctx):
         store.add_phenomenon_scatter_classes(c, {phenomenon_scatter.split_label(label): count for label, count in counts.items()})
         ctx.commit_piece(dict(counts))
 
-    contention.run_with_retries(conn, write_special, gate="scatter-ids", label="Special phenomena")
+    contention.run_once(conn, write_special)
     return dict(counts)
 
 

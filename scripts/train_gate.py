@@ -30,8 +30,10 @@ The merge train's gate: the test files a train must pass, run one file at a time
 * `known` records a clean-main red with the reason; run the gate once from a clean `origin/main` worktree and `reds` from that
   results file with `--record` to make the list.
 
-Run the services first with `scripts/lane_up.sh`. The gate never starts a second pytest on a machine: a second process shares the
-machine's Redis and fails the queue tests (RunStopped).
+Run the services first with `scripts/lane_up.sh`. The gate never starts a second pytest on a machine unless each is given its own `--slot`
+(TEST.724): without one, a second process shares the machine's Redis databases and fails the queue tests (RunStopped). `run --slot N` (0 to 4)
+takes the three Redis databases of slot N (the test server's URL must name database 0) and at most three workers, so up to five gates share one
+machine's Redis without meeting.
 """
 
 import argparse
@@ -204,7 +206,7 @@ def status(files, claims, results):
     return out
 
 
-def run(files, results, shard=(1, 1), workers=3, limit=DEFAULT_LIMIT_S, logdir=None, say=print, claims=None, owner=None):
+def run(files, results, shard=(1, 1), workers=3, limit=DEFAULT_LIMIT_S, logdir=None, say=print, claims=None, owner=None, slot=None):
     """Runs the files of `shard` (k, n) one at a time, appending a line per file to `results`; files already there are skipped.
 
     With `claims` (a folder every lane sees) the lane takes the next file nobody holds, longest first, until none is left."""
@@ -220,6 +222,16 @@ def run(files, results, shard=(1, 1), workers=3, limit=DEFAULT_LIMIT_S, logdir=N
     os.makedirs(logdir, exist_ok=True)
     done = read_results([results])
     env = dict(os.environ, PYTHONPATH=SRC)
+    if slot is not None:
+        sys.path.insert(0, SRC)
+        try:
+            from tests import private_redis
+        finally:
+            sys.path.pop(0)
+        if not 0 <= slot < private_redis.SLOTS:
+            raise SystemExit(f"train_gate: --slot is a number from 0 to {private_redis.SLOTS - 1}")
+        env[private_redis.SLOT_ENVIRONMENT] = str(slot)
+        workers = min(workers, private_redis.SLOT_WIDTH)
     env.setdefault("PLANETGEN_DATA_DIR", "/tmp/claude/data_base")
     for index, path in enumerate(mine, 1):
         if path in done:
@@ -306,6 +318,7 @@ def main(argv=None):
     p.add_argument("--limit", type=int, default=DEFAULT_LIMIT_S)
     p.add_argument("--claims", help="a folder every lane sees: the lanes share the files by claiming them, longest first")
     p.add_argument("--owner", help="the name written in a claim (default: this machine and process)")
+    p.add_argument("--slot", type=int, default=None, metavar="N", help="TEST.724: the Redis slot (0 to 4) this gate runs on, so another gate can run beside it")
     p = sub.add_parser("status")
     p.add_argument("--files", required=True)
     p.add_argument("--claims", required=True)
@@ -340,7 +353,7 @@ def main(argv=None):
     elif args.command == "run":
         files = open(args.files, encoding="utf-8").read().split()
         k, n = (int(x) for x in args.shard.split("/"))
-        run(files, args.results, (k, n), args.workers, args.limit, claims=args.claims, owner=args.owner)
+        run(files, args.results, (k, n), args.workers, args.limit, claims=args.claims, owner=args.owner, slot=args.slot)
     elif args.command == "status":
         files = open(args.files, encoding="utf-8").read().split()
         if args.release_older:

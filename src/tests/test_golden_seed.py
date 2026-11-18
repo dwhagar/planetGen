@@ -22,13 +22,14 @@ bumps the generator epoch (OPS.56).
 """
 
 import difflib
+import json
 import os
 
 import pytest
 
 from planetgen.db import store
 
-from tests import golden_seed
+from tests import golden_seed, golden_stages
 from tests.test_galaxy_gen import _plan_wide_galaxy
 from tests.test_parallel_generation import _run, make_database  # noqa: F401 -- a fixture
 
@@ -83,6 +84,11 @@ def _galaxy_record(make_database, monkeypatch, workers):
     _run("galaxy", [*golden_seed.GALAXY_ARGUMENTS, "--workers", str(workers)], config, monkeypatch)
     conn = store.get_connection(config)
     try:
+        written = os.environ.get(golden_stages.OUT_ENVIRONMENT)
+        if written and workers == 1:      # OPS.147: the stage digests of this very galaxy, for `scripts/train.py stages`
+            with open(written, "w", encoding="utf-8") as handle:
+                json.dump(golden_seed.galaxy_stages(conn), handle, indent=2, sort_keys=True)
+                handle.write("\n")
         return golden_seed.galaxy_record(conn)
     finally:
         conn.close()

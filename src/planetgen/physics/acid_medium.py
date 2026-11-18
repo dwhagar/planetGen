@@ -93,10 +93,11 @@ def skin_k(values, surface_k):
     return aerosols.SKIN_FACTOR * (absorbed / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
 
 
-def medium(values):
+def medium(values, cloud_only=False):
     """
     The liquid sulfuric acid a body's stored `values` (a column-named mapping with its gases: `atmosphere.GAS_FIELD`) hold, as an `AcidMedium`.
-    A body with no air, no gravity or no surface temperature has none.
+    A body with no air, no gravity or no surface temperature has none. With `cloud_only` the pool at the ground is not looked for: the answer is the cloud layer or none
+    (a class that lives in the cloud reads where the cloud is, GEN.1307, even on a world whose ground holds a pool).
     """
     gas = atmosphere.gas_partials_pa(values)
     temperature = values.get("surface_temperature_k")
@@ -121,7 +122,7 @@ def medium(values):
             water = min(water, saturation)
         return sulfuric_vapor.composition(level_k, water).weight_percent
 
-    if low <= temperature <= high:
+    if not cloud_only and low <= temperature <= high:
         wt = acid_at(total, temperature)
         if wt >= strong:
             return AcidMedium(POOL, "pool", temperature, total, wt)

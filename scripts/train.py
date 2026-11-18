@@ -15,6 +15,11 @@ The merge-train runner's steps as one command, the script rule 10 of the merge-t
     python scripts/train.py golden --reason "..." [--affects plan,scatter,fill,population|all]
                                                         regenerate the golden files and the epoch's reason (about ten minutes); with no
                                                         --affects, the stages are the union of the notes' `generation-affects:` lines
+    python scripts/train.py stages --before A --after B [--affects LIST]
+                                                        compare two stage-digest files of the golden galaxy (the golden test writes one when
+                                                        PLANETGEN_STAGE_DIGESTS_OUT names a file; A is main's, B the train head's) with the
+                                                        stages the train declared: a stage that moved with no declared stage at or before it
+                                                        fails, a declared stage that did not move is a warning (OPS.147)
     python scripts/train.py checks                      the guards a train must pass before its PR: wiring, numbers, release note
     python scripts/train.py gate [--of N]               print the gate's file list, split over N machines when asked
     python scripts/train.py pr-body [--earth-analog N | --no-earth-analog]
@@ -268,6 +273,54 @@ def golden(args):
     sh(sys.executable, "-m", "tests.golden_update", "--reason", args.reason, "--affects", chosen, cwd=os.path.join(ROOT, "src"))
 
 
+def judge_stages(moved, declared):
+    """
+    Checks the stages that moved against the stages a train declared (OPS.147).
+
+    A declared stage covers itself and every stage after it, because a stage is redone from the earliest one declared (GEN.764): `plan`
+    covers all four, `fill` covers `fill` and `population`.
+
+    Args:
+        moved (list): The stages whose golden digest moved.
+        declared (iterable): The stages the notes declare (`stages_of_notes`).
+
+    Returns:
+        tuple: `(failures, warnings)`: the moved stages no declared stage covers (the build must fail), and the declared stages that did
+        not move (the notes say more than the golden shows; the golden galaxy is one small galaxy, so this is a warning).
+    """
+    order = bump_version.GENERATION_STAGES
+    declared = [stage for stage in order if stage in set(declared)]
+    covered = set(order[order.index(declared[0]):]) if declared else set()
+    return [stage for stage in moved if stage not in covered], [stage for stage in declared if stage not in moved]
+
+
+def stages(args):
+    sys.path.insert(0, os.path.join(ROOT, "src"))
+    from tests import golden_stages        # noqa: E402 -- the digest files' own reader and comparison
+    before, after = golden_stages.read(args.before), golden_stages.read(args.after)
+    moved = golden_stages.moved(before, after)
+    if args.affects in (None, ""):
+        declared, undeclared, problems = stages_of_notes(train_notes())
+        if problems:
+            raise SystemExit("train: fix these notes first:\n  " + "\n  ".join(problems))
+        for name in undeclared:
+            print(f"train: {name} has no `generation-affects:` line, so every stage counts")
+    else:
+        declared = bump_version.GENERATION_STAGES if args.affects == "all" else [part.strip() for part in args.affects.split(",") if part.strip()]
+    for stage in bump_version.GENERATION_STAGES:
+        old, new = before.get(stage), after.get(stage)
+        state = ("not measured" if old is None or new is None else "MOVED" if stage in moved else "same")
+        print(f"  {stage:11} {state}" + (f" ({old['rows']} rows before, {new['rows']} after)" if old and new else ""))
+    failures, warnings = judge_stages(moved, declared)
+    print("declared: " + (",".join(declared) if declared else "none"))
+    for stage in warnings:
+        print(f"WARNING {stage} is declared but its golden digest did not move (the golden galaxy is small, so this may only be too small to show it)")
+    for stage in failures:
+        print(f"FAIL {stage} moved and no declared stage covers it: a note must declare `generation-affects: {stage}` (or an earlier stage)")
+    if failures:
+        raise SystemExit(1)
+
+
 def checks(args):
     sh("git", "fetch", "-q", "origin", "main")
     out = sh(sys.executable, "scripts/wiring_guard.py", "--check", capture=True)
@@ -312,7 +365,8 @@ PR_BODY = """## What this train carries
 (TEST.725. Leave this section out when there is none. A red the gate found that the train ships anyway, one line each, in plain words:
 the test, what it does wrong, the item that fixes it. Allowed only when ALL hold: the red is not a crash, data loss or a change to a
 page a visitor sees; the fix is gated and goes first in the next train; the red shows in under about 1 percent of draws (above that it
-blocks the train). The same line goes into the merge message and the report to Boss.)
+blocks the train). The same line goes into the merge message and the report to Boss. A fix that moves output and is added AFTER the gate passed
+is not a known issue: re-run the civilized pins and the golden seed on the final head first.)
 
 ## Reuse
 
@@ -355,6 +409,11 @@ def main(argv=None):
     p.add_argument("--affects", default=None, help="stages, comma separated, or `all`; left out, the union of the notes' `generation-affects:` lines")
     p.set_defaults(run=golden)
     sub.add_parser("affects").set_defaults(run=affects)
+    p = sub.add_parser("stages")
+    p.add_argument("--before", required=True, help="the stage digests of main's golden galaxy")
+    p.add_argument("--after", required=True, help="the stage digests of the train head's golden galaxy")
+    p.add_argument("--affects", default=None, help="stages, comma separated, or `all`; left out, the union of the notes' `generation-affects:` lines")
+    p.set_defaults(run=stages)
     sub.add_parser("checks").set_defaults(run=checks)
     p = sub.add_parser("gate")
     p.add_argument("--of", type=int, default=0)

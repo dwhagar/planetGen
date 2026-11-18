@@ -470,7 +470,7 @@ def _class_rater(values, world):
         if result is None or kind_stage is None:
             return 0, 0, 0, 0
         row = life_classes.BY_ID[class_id]
-        complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(values, "o2"), values["surface_temperature_k"])
+        complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(values, "o2"), life_classes.clock_temperature_k(row, values))
         complex_likelihood = result.likelihood * life_complexity.complex_factor(complexity.index) * toxin * dose_share
         return life_scores.scores(round(result.likelihood, 3), round(complex_likelihood, 3), kind_stage, milestone_age, system_age,
                                   light_producer=row.light, grade=complexity.grade if grade is None else grade)

@@ -168,12 +168,10 @@ def retry_held(conn, run_id, who=None, now=None):
     Returns:
         dict | None: `{"requeued": units}`, or `None` when the run is unknown or not held.
     """
-    from planetgen.queue import supervisor, units, wrapper
+    from planetgen.queue import supervisor, units
     if runrecord.run_state(conn, run_id) != runrecord.HELD:
         return None
     runrecord.take_held_back(conn, run_id, now)             # Busy leaves the run held and everything as it was
-    kind = runrecord._s(conn.hget(runrecord.run_key(run_id), "kind")) or runrecord.GENERATION
-    queue_name = wrapper.queue_of(kind)
     control = planrows.control_connection(conn, run_id)
     try:
         engine = conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)
@@ -193,7 +191,7 @@ def retry_held(conn, run_id, who=None, now=None):
     runrecord.log(conn, run_id, f"{requeued} unfinished {'unit' if requeued == 1 else 'units'} queued again" + (f" and the opening of stage {reopened + 1}" if reopened is not None else "")
                   + (f" by {who}" if who else ""), kind="run.retry_held")
     try:
-        supervisor.nudge(conn, queue_name)
+        supervisor.ensure_started(conn)
     except Exception as exc:  # noqa: BLE001 -- the next poll of the page or the next supervisor start carries the run on
         log.swallowed("queue/held", "retry_held", exc)
     return {"requeued": requeued}

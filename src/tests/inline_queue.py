@@ -2,7 +2,7 @@
 
 """
 The work queue run inside the test process (PERF.97, PERF.106): a context that gives the code in it a queue and a key
-prefix of its own and has its `ensure_workers` run the waiting units right here, so no worker process is left running
+prefix of its own and has the wrapper's `pump` run the waiting units right here, so no worker process is left running
 when the test's database goes and a patch the test made reaches the units. The workers read the MySQL server's
 credentials from the settings, so the environment carries the test server's. Nothing is patched, and nothing is
 touched on Redis, without a Redis server.
@@ -170,9 +170,8 @@ def inline_queue(monkeypatch=None):
         return
     import pytest
     import redis
-    import rq
 
-    from planetgen.queue import allowlist, lightjobs, memorygate, redisqueue, runrecord, workers, wrapper
+    from planetgen.queue import lightjobs, memorygate, redisqueue, runrecord, wrapper
 
     token = uuid.uuid4().hex[:12]
     prefix = f"planetgen-test:{token}"
@@ -180,26 +179,11 @@ def inline_queue(monkeypatch=None):
     maintenance_name = f"planetgen-maintenance-test-{token}"
     used = []
 
-    def run_waiting_units(name, connection=None, url=None, mysql_host=None, count=None):
+    def pump():
+        """What the wrapper's follower calls while it waits for a stage (`wrapper.pump`): hands out the ready rows and runs each unit here."""
         used.append(True)
-        connection = connection or redisqueue.connect(url)
-        rq.SimpleWorker([redisqueue.queue(name, connection)], connection=connection, serializer=redisqueue.JsonSerializer,
-                        job_class=allowlist.GuardedJob).work(burst=True, logging_level="WARNING")     # SEC.45: the real worker's guard
         run_ready_rows()            # OPS.228, OPS.229: the units a ledger run released for the launcher, whatever its kind
         return 0
-
-    real_stage_ensure = wrapper.stage_ensure
-
-    def inline_stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
-        """The `ensure` of a stage, and, for a run whose units go to the launcher (no worker to ask for), the hand-out of its ready rows here: the follower's ask for workers is when the units run."""
-        ensure = real_stage_ensure(conn, url, kind, step_kind, workers_count, run_id)
-
-        def ask():
-            started = ensure()
-            run_ready_rows()                # OPS.229: a warm-up or a check has its units handed out by the launcher too
-            used.append(True)
-            return started
-        return ask
 
     server = _server()
     _active.append(True)
@@ -210,8 +194,7 @@ def inline_queue(monkeypatch=None):
             patch.setattr(memorygate, "PREFIX", f"{prefix}:gate")
             patch.setattr(redisqueue, "BULK_QUEUE", queue_name)
             patch.setattr(redisqueue, "MAINTENANCE_QUEUE", maintenance_name)
-            patch.setattr(workers, "ensure_workers", run_waiting_units)
-            patch.setattr(wrapper, "stage_ensure", inline_stage_ensure)
+            patch.setattr(wrapper, "pump", pump)
             patch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: run_light_jobs(connection, url))        # OPS.230: the supervisor's duty, in this process, at once
             for name, value in (("HOST", server["host"]), ("PORT", server["port"]), ("USER", server["user"]),
                                 ("PASSWORD", server["password"])):

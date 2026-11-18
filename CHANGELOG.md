@@ -2,6 +2,212 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4524] - 2026-11-18
+
+**Headline:** The N-body check follows the package's spelling, deterministic-maths and constants rules.
+
+### Fixed
+- `physics/nbody_check.py` writes "center", takes its matrix product through `detmath.dot`, and reads the astronomical unit and the solar mass from `physics.constants` (GEN.1468).
+
+generation-output: unchanged
+
+## [8.0.4523] - 2026-11-18
+
+**Headline:** The band-table cache's lock poll interval carries its tag, so the constants census passes again.
+
+### Fixed
+
+- PERF.281: `band_table_cache.LOCK_POLL_SECONDS` says in its docstring that it is machinery, not physics, and defined where it stands, which `test_constants_completeness` (TEST.715) asks of a numeric constant in the generator's own modules. No value or behavior changes.
+
+## [8.0.4522] - 2026-11-18
+
+**Headline:** `planetgen reset-jobs` starts again: it no longer looks for the worker-start counters that OPS.235 slice 1b removed.
+
+### Fixed
+- `cli/reset_jobs.py` named `workers.STARTING_PREFIX`, which slice 1b deleted, so importing the command raised `AttributeError` and `tests/test_reset_jobs.py` failed at collection. The key patterns are now the RQ keys and the runs' keys; its docstring no longer mentions the start counters or the admin's worker count.
+- `tests/test_reset_jobs.py` and `tests/test_maintenance_lane.py` no longer set or clean the counters and the worker-count key.
+
+## [8.0.4521] - 2026-11-18
+
+**Headline:** A job kind whose profile holds a full window of finished units from this machine is now sized by what it measured, and the typed figure is only its default and its clamp.
+
+### Changed
+- **OPS.250 (absorbs OPS.160).** `profileclaim` marks a kind *proven* when its own history (this machine shape, this generator epoch) holds `PROVEN_SAMPLES` (30) finished units. A proven kind's memory claim and expected unit seconds (`profiletime`) are no longer held to 25 percent a run from the last figure or the typed one: the learned figure is the figure, held between the typed figure over `CLAMP` (4) and times it where there is one. A memory kill still wins above the clamp. A kind with fewer samples, from another machine shape or from another epoch behaves as before.
+- The stage cut's worker count (`splitter.resources_now`) and the "largest worker held" line of a stage (`wrapper._log_peak_memory`) read the learned figure, not `workers.STAGE_WORKER_MEMORY_MB` alone; the line no longer tells an admin to raise the typed constant when the profile leads.
+- The Queue page's learned-per-kind table has a Leads column (Fixed, Profile (proven), Profile, Typed).
+- Reuse: `profileclaim.settle`, `claim` and `target`, `profiletime.target` and `unit_seconds`, `workers.stage_worker_mb` and `stage_worker_cap`, and the existing overview and change log; the new part is the proven flag and the clamp.
+- Output unchanged, no epoch.
+
+## [8.0.4520] - 2026-11-18
+
+**Headline:** The known-issue ship rule now says a late output-moving add-on to a train re-runs the pins and the golden seed on the final head.
+
+### Changed
+- **Late add-on rule** (TEST.725): `docs/plan/lanes.md` and the Known issues note of the train PR body (`scripts/train.py pr-body`) say that an output-moving fix added after the gate passed (Train 42's GEN.1774 moved the civilized pins after the gate) is not shipped on the gate's word; the pins and the golden seed run again on the final head. A fix found in the gate and put into the train before its final gate needs no extra run.
+
+## [8.0.4519] - 2026-11-18
+
+**Headline:** The pre-gate lane now checks generated files in the merge of a PR with main, so a generated copy that is stale only after the merge is found before the train head is.
+
+### Added
+- **`generated (merged)` step in `scripts/pregate.py`** (TEST.738): builds the merge of the PR head with the base in a temporary detached worktree (`git merge-tree`, `git commit-tree`) and runs that tree's `scripts/regenerate_generated.py --check`. Two PRs that each change a source of one generated file (the stand-in list, the life-class rules) were each current alone and stale together; the check names the file and the repair (merge main, run `python scripts/regenerate_generated.py`, commit). A conflicted merge is left to step 1. Reuses `regenerate_generated.py --check` and `pregate.merges_cleanly`'s `git merge-tree` call; nothing is rebuilt a second way.
+
+## [8.0.4518] - 2026-11-18
+
+**Headline:** Two test runs can share one machine: `--slot N` gives a run its own three Redis databases, so they no longer empty each other's queues.
+
+### Added
+- **`--slot N` on `scripts/test.py` and `scripts/train_gate.py run`** (TEST.724): five slots of three Redis databases each (`tests/private_redis.py`, `PLANETGEN_TEST_REDIS_SLOT`). A slot run takes only its slot's databases, has at most three workers and ends only its own stray queue workers (`stray_workers.reap_all(databases)`), so two gates on one machine never meet in Redis (the `RunStopped: the run None` failures). A run with no slot is unchanged. MySQL needed nothing (every test database is named at random), and the gate already reads `scripts/data/known_reds.json`. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4517] - 2026-11-18
+
+**Headline:** Nothing starts RQ workers for a run or the maintenance lane any more: the supervisor's launcher forks every unit, and the code that asked for workers is gone.
+
+### Changed
+- **OPS.235 slice 1b.** Deleted the supervisor's `WorkerStarts` duty and `nudge` (the asks for workers), `workers.ensure_workers`, `start_workers`, `registered`, `maintenance_cap` and the starting counters, and `wrapper.stage_ensure` (it was already a no-op for any run with an id). The wrapper's follower calls a plain optional `wrapper.pump` while it waits for a stage; production leaves it unset and the test harness (`tests/inline_queue.py`) sets it to hand out the ready rows in the test's process. `held.retry_held` wakes the supervisor with `ensure_started`. The Generate page's own worker (`cli/worker.py`, `web/jobs.py`) stays until OPS.244 moves it to the ledger; slice 2 removes the `rq` dependency then.
+- Reuse: the launcher's hand-out and `supervisor.ensure_started` do what the asks and starts did; `inline_queue.run_ready_rows` is the pump.
+
+### Removed
+- `WorkerStarts`, `supervisor.nudge` and `nudges_key`, `workers.ensure_workers`, `start_workers`, `registered`, `lane_of`, `maintenance_cap`, `wrapper.stage_ensure` and their tests (`test_supervisor` ask tests, `test_workers` start tests, `test_maintenance_lane` and `test_queue_lanes` start tests, the `stage_ensure` cases of `test_stage_worker_cap`).
+
+## [8.0.4516] - 2026-11-18
+
+**Headline:** Class 5a life, which lives in a sulfuric-acid cloud layer, no longer has animals and keeps its clock at the layer's temperature.
+
+### Fixed
+
+- GEN.1307: a world with a liquid sulfuric-acid cloud layer far above a hot ground (a 735 to 1500 K dense air, cloud at 360 to 372 K) stored Class 5a life at animal grade 1 and the stage of multicellular bodies, although the class's own row says it reaches "Mats and aerial plankton; at most simple colonial forms", and its schedule pace and complexity read the ground's temperature. The class now has a cap in the rule file (`animal_cap` grade 0, T9, L0: the class's own definition, registered on row LF40 of the stand-in registry), so its animal grade stops at none and its stage at multicellular (colonial) bodies; a class of the cloud (`habitat` `acid_cloud`) runs its clock (the pace of the schedule, the dates of its steps, the complexity's rate factor) at the cloud layer's own temperature (`life_classes.clock_temperature_k`, from `acid_medium`), and the world's text says where it lives ("It lives aloft in the sulfuric-acid cloud layer, at 366 K and 290 kPa."). No other class changes. The gate (a cloud layer inside 283 to 373 K and 30 to 300 kPa at 81 percent acid or more) already read the layer's own temperature, so a ground window would have been wrong. Class 5a occurs in none of 2,047 rocky bodies in 180 sampled systems.
+
+generation-output: unchanged
+
+## [8.0.4515] - 2026-11-18
+
+**Headline:** The golden galaxy now has a digest for each generation stage, and a train can check which stages its output moved against the stages its notes declared.
+
+### Added
+- **`tests/golden_stages.py` and `scripts/train.py stages`** (OPS.147): the golden test writes one digest per stage (plan's own rows, scatter tables, fill sections, facilities) to the file named by `PLANETGEN_STAGE_DIGESTS_OUT` when it builds the pinned galaxy, with no second build. `train.py stages --before A --after B` fails a stage that moved when no declared stage covers it (a declared stage covers itself and the stages after it) and warns about a declared stage that did not move. The golden files and the epoch are untouched. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4514] - 2026-11-18
+
+**Headline:** The N-body spot-check integrates the planets the spacing screen judges, not the belt members promoted to planets.
+
+### Fixed
+- `scripts/nbody_spotcheck.py` and its test leave out belt members promoted to planets (`validation.slot_planets`), which the spacing screen exempts with their belt (GEN.1510). On 80 seeds all 47 integrated systems stay stable.
+
+generation-output: unchanged
+
+## [8.0.4513] - 2026-11-18
+
+**Headline:** An update that changes nothing the bright-star sampling tables read no longer starts the next run with cold tables, and a table is built once however many workers ask for it.
+
+### Fixed
+
+- PERF.281: the kept bright-star sampling tables (`band_table_cache`) are keyed by the contents of the 66 files a table is made from (the 28 a build runs, found by tracing 396 builds over every population and kind, and the files they import directly), the sizes of the downloaded datasets, the Python and numpy versions and the 193 `tuning` constants those files read. The key was the name, size and modification time of every one of 1,166 files and every constant, so every update, and every `git checkout`, started the next run cold: a sky share spent 537 of 982 profiled seconds building tables, 28 to 50 s in each of 30 tiers, in each of 16 shares. A test traces the builds and fails if one runs a file outside the list. A table is built under a lock of its own (the system lets it go when the process ends), so workers that start together on the same tables build each once and read it, a waiting unit keeps its beat, and the unit's line says it is building a table and how many this process has built.
+
+## [8.0.4512] - 2026-11-18
+
+**Headline:** A short N-body integration checks the generator's stability screens, with a report and a test; generation is unchanged.
+
+### Added
+- `planetgen/physics/nbody_check.py`: a leapfrog integration of a star's planets that says whether they collide, are ejected or have an encounter (GEN.1468).
+- `scripts/nbody_spotcheck.py` runs it over generated systems and writes the report; `tests/test_nbody_spotcheck.py` fails when a system the spacing screen passes is broken by the integration.
+
+generation-output: unchanged
+
+## [8.0.4511] - 2026-11-18
+
+**Headline:** The parts of the old RQ queue that nothing used any more are gone: the job-requires-job holding, the solo hold for a restarted unit, RQ's stop command for a run, and the Held jobs panel.
+
+### Changed
+- **OPS.235 slice 1 (the RQ removal, the pieces the Generate page's jobs do not need).** Deleted `queue/requires.py` (a job holding for another job on RQ's `depends_on`, its callbacks, `drop_held`, `held_overview`), the Held jobs panel of the Queue page, `GET /api/admin/work/held` and its client call; nothing queued a job that required another. Deleted the solo hold (`pause.hold_solo`, `lift_solo`, `solo_of`, the "queue is held for one unit" notice, `paused_reason` and `solo_unit` on the status) that the stuck-unit follower made for a restarted RQ unit: the launcher's hand-outs never read it. `unitstuck` now only asks the supervisor to stop a stuck unit (the ledger path) and no longer stops, re-queues or holds an RQ job. `runcontrol.cancel_run` and `clear_run` no longer send RQ's stop command or take units off an RQ queue (`stop_units`, `started_units` deleted): they end the run and ask the supervisor to stop its jobs in the ledger; the update's warm-up waits for the canceled warm-up's jobs through `controls.running_jobs`. The Generate page's own RQ job path (`web/jobs.py`, `cli/worker.py`, `redisqueue`) stays until OPS.244 moves it to the ledger; then slice 2 removes the `rq` dependency.
+- Reuse: `controls.stop_run`, the ledger's `engine_jobs` rows and the launcher's end settling do what the RQ stop and re-queue did; `unitstuck`'s ledger path was already there (OPS.234).
+
+### Removed
+- `queue/requires.py`, the held jobs API and panel, the solo hold, `runcontrol.stop_units` and `started_units`, `unitstuck`'s RQ stop, re-queue and dump-for-RQ paths, and their tests (`test_requires`, `test_solo_hold`, `test_unit_stuck`; the tests that still mattered moved to `test_unit_stuck_ledger`).
+
+## [8.0.4510] - 2026-11-18
+
+**Headline:** The admin's one-off system page takes its random seed through the draw module again, which fixes the red `test_generation_draws_only_through_the_draw_module`.
+
+### Fixed
+- OPS.244 slice A moved the one-off system run into the supervisor's warm process and, on the way, drew its seed with `secrets.randbits` in `generation/run_system.py` and `web/system_page.py`. Generation code may not import `secrets`. `util/draw.py`, the one module that is allowed to, now has `fresh_seed()` for a draw that is not part of any run, and both callers use it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4509] - 2026-11-18
+
+**Headline:** The claim to be starting the supervisor ends when that process ends, not after 20 seconds.
+
+### Changed
+- `supervisor.ensure_started` writes its claim with no time limit. `redisqueue.start_detached` gives the exit notice of the process it started (`on_exit`), which ends the claim; a claim whose caller has gone is taken at once; a spawn that fails leaves none (OPS.251). The worker counter's 90 seconds goes with RQ's workers (OPS.271) and is left.
+
+generation-output: unchanged
+
+## [8.0.4508] - 2026-11-18
+
+**Headline:** Six constants that the constants-completeness test named now carry their tag, and one of them is no longer a second copy of another's value.
+
+### Fixed
+- **`test_constants_completeness` was red on main** for six constants with no registry row or tag. `compaction.DRAWN_POROSITY_BELOW_KG` (GEN.1637's compaction) is tagged as derived from `belt_ledger.L1_MASS_KG` (it cannot import it without a cycle), and a new test holds the two equal. `disk_dispersal.YEAR_PER_MYR` (GEN.244) is tagged a unit conversion by definition. `gas_equilibrium.SOLVE_MEMORY` and `thermosphere.EXOBASE_MEMORY` (PERF.276, #6993) are tagged cache sizes that change no result. `interior_heat.FLOOR_STIFFNESS_MARGIN` (PERF.277) is tagged a numerical safety factor derived from the integrator's stability limit. `tuning.SLOW_PAGE_WANTED_SECONDS` (OPS.230) is tagged as derived from the background-tab timer. No physical value changes and no row is exempted.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4507] - 2026-11-18
+
+**Headline:** The serialization fuzz test knows a planet's plan slot is stored through its history row, not as a field of the planet.
+
+### Fixed
+- `test_starsystem_children_have_no_unlisted_attributes` listed `plan_slot` (DB.75b) as an unlisted attribute. It is stored as the body's `born_index` and given back on load, so it joins the test's runtime-only list for planets, with the reason.
+
+generation-output: unchanged
+
+## [8.0.4506] - 2026-11-18
+
+**Headline:** `scripts/test.py failed` reruns only the tests that failed and the tests a fix can affect, within a time limit, instead of the whole selection again.
+
+### Added
+- **`scripts/test.py failed [--base REF] [--limit MINUTES]`** (TEST.722): after a red gate and a fix, it runs the tests that failed in the last run plus the tests `changed` selects for the changes since the base, and keeps the added ones within `--limit` minutes of recorded test time (default 20) on the workers asked for; what does not fit is counted in the output and left to the end-of-version run. It uses two new pytest options in `src/tests/depmap.py`, `--also-run FILE` (node ids that stay whatever the map says) and `--time-limit SECONDS`. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4505] - 2026-11-18
+
+**Headline:** A deadlock or lost connection in a write unit now reaches the job engine, which retries it from its cursor; the in-process retry loop is gone.
+
+### Changed
+- `db.contention` keeps `begin_read_committed` and `run_once` (one try, rollback, lost-connection explained, error raised). The sleeping retry loop, its gate and its waits are removed (OPS.261); the engine's failure classes and per-run budget (OPS.219, OPS.220) retry from the cursor.
+
+generation-output: unchanged
+
+## [8.0.4504] - 2026-11-18
+
+**Headline:** The memory controller now learns where its pressure edges belong from what it read in earlier runs: it records each minute, and moves its edges up or down when memory kills came unseen or holds were never needed.
+
+### Changed
+- **The controller's edges are learned from a record (OPS.249, H4 of the job engine; answers OPS.151's question).** The supervisor writes one row a minute of what the memory controller read (`pressure_minutes`, control schema v25: the highest `some` and `full`, the lowest available memory, the highest level, the seconds admission was held, the jobs asked to stop). `queue/pressurelearn.py` reads the last 14 days and the ledger's `killed_memory` attempts and works out one sensitivity, from half to double the typed one: the PSI edges are divided by it and the shares of the reserve multiplied by it, so the ratios between the edges stay as they are. Three or more memory kills with no pressed reading before them lower the edges; eight or more holds of which 80 percent ended with no starved reading, no job asked to stop and no kill raise them, by up to half. With no record, too little of it, or `PLANETGEN_PRESSURE_LEARN=0`, the typed edges stand. A move is said in the supervisor's list.
+- The database signal's factors and floors (`dbsignal`, OPS.248) are not learned in this change.
+
+generation-affects: none
+
+## [8.0.4503] - 2026-11-18
+
+**Headline:** The one-off system page's light job now claims the memory of one drawn system, so the memory gate no longer runs it unaccounted.
+
+### Fixed
+- **A claim for `system_page.generate_in_process` (OPS.244, slice A).** The function the one-off system page runs in the warm light-job process had no entry in `claims.API_CLAIMS`, so `test_every_function_the_api_dispatcher_may_call_has_a_claim` failed on main. It claims what a `generate-system` unit does (`workers.BULK_WORKER_MEMORY_MB`, one core), the same work done in a light job.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4502] - 2026-11-18
 
 **Headline:** One design note, `docs/design/operations/job-engine.md`, now says how the job engine is built (supervisor, ledger, forked jobs, dispatch, pressure, controls), what is still the old queue and what is not yet proven.

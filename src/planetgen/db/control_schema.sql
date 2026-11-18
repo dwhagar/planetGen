@@ -610,3 +610,20 @@ CREATE TABLE IF NOT EXISTS engine_attempts (
     CONSTRAINT fk_engine_attempts_job FOREIGN KEY (job_id) REFERENCES engine_jobs (id) ON DELETE CASCADE,
     CONSTRAINT chk_engine_attempts_outcome CHECK (outcome IN ('running', 'done', 'failed', 'killed_memory', 'timed_out', 'stuck', 'replaced', 'lost'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v25 (OPS.249): one row per minute of what the memory controller read (`planetgen/queue/pressurelearn.py`), the record the controller's edges are learned from. A row is the whole
+-- of a minute whatever the number of looks: the highest `some` and `full` (PSI, percent of the last ten seconds), the lowest available memory, the reserve the gate keeps back,
+-- the highest level (0 calm, 1 pressed, 2 starved), the seconds admission was held and the jobs asked to stop. Rows older than twice the window the learning reads are dropped.
+CREATE TABLE IF NOT EXISTS pressure_minutes (
+    minute_start      DATETIME NOT NULL PRIMARY KEY,
+    some_max          DOUBLE NOT NULL DEFAULT 0,
+    full_max          DOUBLE NOT NULL DEFAULT 0,
+    available_min_mb  DOUBLE NOT NULL DEFAULT 0,
+    reserve_mb        DOUBLE NOT NULL DEFAULT 0,
+    level_max         TINYINT NOT NULL DEFAULT 0,
+    held_seconds      DOUBLE NOT NULL DEFAULT 0,
+    yields            SMALLINT NOT NULL DEFAULT 0,
+    psi               TINYINT(1) NOT NULL DEFAULT 1,
+
+    CONSTRAINT chk_pressure_minutes_level CHECK (level_max IN (0, 1, 2))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

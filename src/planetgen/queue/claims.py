@@ -16,7 +16,7 @@ largest peak, `memorygate.learn`, and claims that with a margin). A stand-in is 
 them because they are replaced by a measurement in the first run, and `memorygate.snapshot` shows what was learned.
 """
 
-from planetgen.queue import commands, memorygate, pause, redisqueue, tokens, workers
+from planetgen.queue import commands, memorygate, redisqueue, workers
 from planetgen.queue.memorygate import Claim
 from planetgen.util import log
 
@@ -48,8 +48,6 @@ FUNCTION_CLAIMS = {}
 """dict: The functions a queue runs that need no more than a figure of their own: `{dotted name: (MB, cores)}`. Unmeasured. None is left: the Generate page's job is rows of the ledger (`pagerun`), claimed by their rows."""
 
 CALLBACKS = frozenset({
-    "planetgen.queue.requires.job_failed",
-    "planetgen.queue.requires.job_succeeded",
     "planetgen.queue.forkedjob.run",
     "planetgen.queue.lightjobs.run",
     "planetgen.queue.units.warm_star_tables",
@@ -194,9 +192,4 @@ def claim_for(job, conn):
     lane = lane_of(job.origin)
     (mb, cpu), exclusive = function_table(function), False
     kind = f"fn:{function}"
-    solo = pause.solo_of(conn)
-    held = ()
-    if solo and solo["job"] == job.id:
-        held += (tokens.ALONE,)         # OPS.145: the restarted unit that runs alone holds the host
-    token = None
-    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=token), cpu, lane, exclusive, held)
+    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=None), cpu, lane, exclusive, ())

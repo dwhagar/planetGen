@@ -21,7 +21,7 @@ import pytest
 import rq
 
 from tests import rq_units
-from planetgen.queue import allowlist, api_jobs, redisqueue, units, workers
+from planetgen.queue import allowlist, api_jobs, redisqueue, units
 from planetgen.web.lib import tileprefetch
 
 pytestmark = pytest.mark.real_queue
@@ -41,7 +41,6 @@ def limits(monkeypatch):
         return job
 
     monkeypatch.setattr(redisqueue.TimedQueue, "create_job", create_job)
-    monkeypatch.setattr(workers, "ensure_workers", lambda *a, **k: None)
     return seen
 
 

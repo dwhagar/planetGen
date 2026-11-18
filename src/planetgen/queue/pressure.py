@@ -95,8 +95,9 @@ def parse_psi(text):
     return (found["some"], found.get("full", 0.0)) if "some" in found else None
 
 
-def read(read_host=memorygate.read_host, path=PSI_FILE):
-    """The `Reading` now: PSI where the kernel has it, the host's available memory otherwise. A test passes its own `read_host` and `path`."""
+def read(read_host=memorygate.read_host, path=PSI_FILE, edges=None):
+    """The `Reading` now: PSI where the kernel has it, the host's available memory otherwise. A test passes its own `read_host` and `path`. `edges` are the `pressurelearn.Edges` it judges by (OPS.249); `None` is the typed ones above."""
+    hold_some, yield_some, yield_full, pressure_share, starved_share = (HOLD_SOME, YIELD_SOME, YIELD_FULL, PRESSURE_SHARE, STARVED_SHARE) if edges is None else edges[:5]
     host = read_host()
     reserve = memorygate.reserve_mb(host)
     try:
@@ -106,9 +107,9 @@ def read(read_host=memorygate.read_host, path=PSI_FILE):
         figures = None
     if figures is not None:
         some, full = figures
-        level = STARVED if some >= YIELD_SOME or full >= YIELD_FULL else PRESSED if some >= HOLD_SOME else CALM
+        level = STARVED if some >= yield_some or full >= yield_full else PRESSED if some >= hold_some else CALM
         return Reading("psi", some, full, host.available_mb, reserve, level)
-    level = STARVED if host.available_mb < STARVED_SHARE * reserve else PRESSED if host.available_mb < PRESSURE_SHARE * reserve else CALM
+    level = STARVED if host.available_mb < starved_share * reserve else PRESSED if host.available_mb < pressure_share * reserve else CALM
     return Reading("memory", 0.0, 0.0, host.available_mb, reserve, level)
 
 
@@ -118,8 +119,10 @@ class Controller:
     `holding()` is what the launcher and the light jobs' duty ask before they admit: the reason the host is held, or `None`.
     """
 
-    def __init__(self, launcher=None, look=read, clock=time.time, why="the host is short of memory"):
+    def __init__(self, launcher=None, look=read, clock=time.time, why="the host is short of memory", recorder=None):
         self.launcher, self.look, self.clock = launcher or (lambda: None), look, clock
+        self.recorder = recorder        # OPS.249: `pressurelearn.Recorder`: it keeps the minutes and gives the learned edges to the default look
+        self.edges = None               # the edges the last look was judged by
         self.why = why    # the reason the hold gives: the database's signal (`dbsignal`, OPS.248) is this same machine with its own look
         self.supervisor = None
         self.held_since = None      # when the hold began
@@ -136,6 +139,16 @@ class Controller:
         if self.supervisor is not None:
             self.supervisor.act(what, reason)
 
+    def _look(self):
+        """The reading now: by the learned edges (`pressurelearn`) when the default look is used and a recorder gives them; a look of the caller's own is used as it is. A change of the edges is said."""
+        if self.recorder is None or self.look is not read:
+            return self.look()
+        edges = self.recorder.edges()
+        if self.edges is not None and edges.sensitivity != self.edges.sensitivity:
+            self._act("moved the memory edges", edges.words())
+        self.edges = edges
+        return read(edges=edges)
+
     def holding(self):
         """Why nothing of the bulk or maintenance lanes is admitted, or `None`."""
         if self.held_since is None:
@@ -149,11 +162,13 @@ class Controller:
             return None
         now = self.clock()
         try:
-            reading = self.look()
+            reading = self._look()
         except Exception as exc:  # noqa: BLE001 -- a reading that cannot be had leaves the state as it is
             log.swallowed("queue/pressure", "turn", exc)
             return None
         self.last = reading
+        if self.recorder is not None and self.look is read:
+            self.recorder.note(reading, self.held_since is not None)
         if reading.level >= PRESSED:
             self.calm_since = None
             self.pressed_since = self.pressed_since if self.pressed_since is not None else now
@@ -177,6 +192,8 @@ class Controller:
         asked = self.launcher().yield_youngest()
         if asked is not None:
             self.asked_at = now
+            if self.recorder is not None and self.look is read:
+                self.recorder.note(reading, True, asked=True)
             job_id, command = asked
             self._act(f"asked job {job_id} ({command}) to stop at its next piece", f"{reading.words()} for {format_duration_seconds(now - self.starved_since)}; it keeps its finished pieces and starts again when there is room")
         return None if asked is None else asked[0]

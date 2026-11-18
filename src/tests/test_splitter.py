@@ -170,12 +170,21 @@ def test_lookup_reads_the_unit_rows_of_the_kind_and_fails_open(monkeypatch):
     assert splitprofile.lookup("scatter-mass") is None and "read" not in seen, "the self-tuning switch turns the reading off"
 
 
+def test_the_stage_cap_is_the_profiles_where_the_queue_has_a_redis(monkeypatch):
+    """OPS.250: the cut sizes the workers by what the job profile says a worker takes, not the typed table alone."""
+    from planetgen.queue import memorygate, workers
+    monkeypatch.setattr(memorygate, "read_host", lambda: memorygate.Host(32000, 20000, 16, 0.1))
+    seen = []
+    monkeypatch.setattr(workers, "stage_worker_cap", lambda kind, conn=None: seen.append(conn) or 7)
+    assert splitter.resources_now("scatter-mass", conn="redis") == splitter.Resources(20000, 16, 7) and seen == ["redis"]
+
+
 def test_the_resources_come_from_the_gate_and_the_stage_cap(monkeypatch):
     from planetgen.queue import memorygate, workers
     monkeypatch.setattr(memorygate, "read_host", lambda: memorygate.Host(32000, 20000, 16, 0.1))
-    monkeypatch.setattr(workers, "stage_worker_cap", lambda kind: 5)
+    monkeypatch.setattr(workers, "stage_worker_cap", lambda kind, conn=None: 5)
     assert splitter.resources_now("scatter-mass") == splitter.Resources(20000, 16, 5)
-    monkeypatch.setattr(workers, "stage_worker_cap", lambda kind: None)
+    monkeypatch.setattr(workers, "stage_worker_cap", lambda kind, conn=None: None)
     assert splitter.resources_now("plan-skeleton") == splitter.Resources(20000, 16, 16)
     monkeypatch.setattr(memorygate, "read_host", lambda: 1 / 0)
     assert splitter.resources_now() == splitter.Resources(0.0, 1, 1)

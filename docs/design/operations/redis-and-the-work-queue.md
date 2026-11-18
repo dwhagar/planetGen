@@ -240,7 +240,7 @@ Only history and statistics, written once per stage by the unit that completes i
 - **Keep** the lowered priority, the pre-import warm-up (PERF.42) and the stale-release restart in `cli/worker.py`.
 - **One queue per worker** (F6; PERF.245 makes one exception, the maintenance lane's workers, which serve its three queues in turn: `performance-eta-queue-and-caching.md` section 3): `planetgen-bulk` workers serve only that queue, `planetgen-interactive` workers only theirs. A reserved interactive worker (PERF.40, PERF.78) is then a separate, mostly idle worker, not a priority order, and every worker keeps the reliable `BLMOVE` path.
 - **Unit length** (PERF.155): a unit is meant to run no longer than `queue.unit_ceiling_seconds` (300 s) unless its stage is one unit by nature (`CommandSpec.one_unit`, `breaks=ONE_UNIT`), which bounds how long a worker is told to finish its unit before it leaves, and how long a cancel waits. A stage whose longest unit ran longer is written to the run's log; see `docs/design/generation/generation-performance.md`.
-- **Worker count** (ADM.15): the Queue page writes `planetgen:workers:wanted`; `ensure_workers` starts up to it, and lowering it sends `send_shutdown_command` to the extras, which finish their unit first. "Ludicrous Speed" is a number, not a mode.
+- **Worker count** (ADM.15): the Queue page writes `planetgen:workers:wanted`; (until OPS.235 removed `ensure_workers`) started up to it, and lowering it sends `send_shutdown_command` to the extras, which finish their unit first. "Ludicrous Speed" is a number, not a mode.
 
 ### 5.5 Cancel, pause, failure
 
@@ -359,27 +359,10 @@ What the old command structure becomes (Boss, 2026-10-17, 8:06 PM EDT: the rewor
 
 ### 5.13 A job can require another job (PERF.247, Boss 6:45 PM EST on 2026-11-06)
 
-PERF.245 lets a worker of several queues take a job from each in turn. A job that cannot run until another is done must not be taken
-early, so a job can declare what it requires. Only a declared requirement holds a job: a job with none is queued at once and runs beside
-every other, as before, so nothing that can run together is made to run one after another.
+A job cannot run until another is done only where a command declares it: the stages of a run (below). The job-to-job requirement on RQ's `depends_on` (`requires.enqueue`,
+the held jobs of PERF.247 and PERF.248, the Held jobs panel and `GET /api/admin/work/held`) was removed with RQ (OPS.235): nothing queued a job that required another, and
+the ledger's rows carry their own `needs` and `makes`.
 
-* **How a job declares it.** `requires.enqueue(queue, function, *args, requires=[job or job id, ...], optional=False, **rq_options)`
-  (`queue/requires.py`), on RQ's own dependency support (`depends_on`). A job that is not ready is not put in any queue: RQ keeps it
-  in the queue's deferred registry, so no worker, and no round robin, can pick it. The worker that ends the last required job queues
-  it, with no polling. A requirement that is already done, or done and deleted (a job with `result_ttl=0` is deleted when it ends),
-  holds nothing. Both jobs must use one serializer (the queues of a lane do); `requires.check_serializers` refuses the rest.
-* **Held, released, dropped.** Each is one line: `held: job X waits for Y` when the job is not ready, `released: job X was waiting for
-  job Y, which finished` as the last required job ends, and `dropped: job X will not run: required job Y failed (error)` when it
-  will not run. The lines go to the log and, for a unit of a run, to the run's own log (`runrecord.log`, kinds `job.held`,
-  `job.released`, `job.dropped`).
-* **A failed or stopped requirement.** RQ would leave the dependant deferred for ever. Every job the queue makes gets the on-failure
-  callback `requires.job_failed` (a unit's own `units.unit_failed` calls it), which fails each job still held for the failed one, and
-  those held for them, with `required job X failed`: they leave the deferred registry for the failed registry, and a unit that is a
-  dependant fails its run with the line. A job declared `optional=True` runs after its requirements end whichever way they end.
-  Stop All and a canceled queue drop the held jobs with the queued ones (`requires.drop_held`).
-* **The Queue page lists them (PERF.248).** A Held jobs panel on `/admin/queue` (shown only while a job is held) lists each held job
-  with its queue, its run and stage when it is a unit, and the jobs it still waits for; it reads `GET /api/admin/work/held`
-  (`requires.held_overview`, the first 100 and the whole count).
 * **The stages of a run.** A command declares the commands it requires in `commands.REQUIRES` (the phenomena index after the
   phenomena scatter, the territories after the population pass, the neighbor link and the sector paths after the sectors are
   generated). `commands.validate_order` refuses a list of steps in which a step comes before a step it requires, so a wrong order is found
@@ -478,7 +461,7 @@ Boss saw a "waited 300 s" line every few systems of a generation run and a slow 
 * **Signal.** The kernel's memory pressure (`/proc/pressure/memory`, PSI) where it exists; else the host's available memory against `memorygate.reserve_mb`. A level: calm, pressed, starved.
 * **Hold.** Pressed for a while: the launcher and the light jobs' duty admit nothing of the bulk or maintenance lanes (the site's lanes go on) and say why. It lets go after the host has been calm for a while.
 * **Yield.** Starved for a while: the youngest bulk job is asked, through the job pipe, to stop at its next piece (a command that resumes is asked first). The row goes back to *ready*, the attempt is stored as `lost` with `error_kind="stopped"`, and it does not count against the retries. One job at a time, a cooldown apart. The kernel's kill stays the last line.
-* The edges are stand-ins (`pressure.py` constants); the job engine's H4 learns them. Nothing here changes what a run generates. The control is off with the gate (`PLANETGEN_MEMORY_GATE=0`).
+* The edges are stand-ins (`pressure.py` constants) that **the controller's own record moves** (OPS.249, `queue/pressurelearn.py`): once a minute the supervisor writes one row of what it read (`pressure_minutes`, control schema v25), and one sensitivity, from an eighth to a double of the typed edges, is worked out from the last 14 days: up when memory kills came with no pressed reading before them, down when at least 8 holds ended with no starved reading, no job asked to stop and no kill. No record, too little of it, or `PLANETGEN_PRESSURE_LEARN=0` is the typed edges; a move is said in the supervisor's list. The database signal's factors (`dbsignal`) are not learned yet. Nothing here changes what a run generates. The control is off with the gate (`PLANETGEN_MEMORY_GATE=0`).
 
 ## 6. Decisions for Boss
 

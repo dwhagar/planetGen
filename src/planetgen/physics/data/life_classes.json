@@ -746,6 +746,13 @@
    "breathes": "the acid itself (reduced to SO2 and sulfur); traces of oxygen",
    "gives_off": "SO2, sulfur, carbon dioxide, water",
    "reaches": "Mats and aerial plankton; at most simple colonial forms",
+   "habitat": "acid_cloud",
+   "animal_cap": {
+    "grade": 0,
+    "tier": "T9",
+    "tweak": "L0",
+    "basis": "The class's own definition (GEN.1307): mats and aerial plankton, at most simple colonial forms. A cloud deck has no ground for a sessile animal (A1) and holds no food chain for a mobile one, so the grade stops at none; the multicellular (colonial) stage is allowed"
+   },
    "tier": "T6",
    "solvent": {
     "medium": "sulfuric",

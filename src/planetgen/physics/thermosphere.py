@@ -89,7 +89,7 @@ MAX_EXOBASE_PANELS = 100_000
 2 to 80 amu, mesopause 5 to 400 K, exobase to 5000 K), so this bound never acts on a real air; it stops a search that cannot end, and the exobase is then taken at the height reached."""
 
 EXOBASE_MEMORY = 8192
-"""int: Exobase solutions kept by `exobase` (PERF.276): it is a pure function of five numbers, and the loss history of one body asks for the same ones again."""
+"""int: Exobase solutions kept by `exobase` (PERF.276): it is a pure function of five numbers, and the loss history of one body asks for the same ones again. Not a physical value: a cache size, defined by the memory a solution costs; it changes no result."""
 
 KINETIC_DIAMETER_PM = {
     "H2": 289.0, "He": 260.0, "Ne": 275.0, "H2O": 265.0, "CH4": 380.0, "CO": 376.0, "N2": 364.0, "O2": 346.0, "Ar": 340.0, "CO2": 330.0,

@@ -57,9 +57,14 @@ def supply_text(supplies):
     return "; ".join(f"{supply['quantity']} (full at {supply['ref']:g} of Earth's, placeholder {supply['placeholder']:g})" for supply in supplies)
 
 
-def life_text(life):
+def life_text(life, row=None):
     oxidant_yield = "from the air" if life["oxidant_yield"] is None else f"{life['oxidant_yield']:g}"
-    return f"{life['metabolism']}; breathes {life['oxidant']} (yield {oxidant_yield}); first step x{life['first_step_scale']:g}"
+    text = f"{life['metabolism']}; breathes {life['oxidant']} (yield {oxidant_yield}); first step x{life['first_step_scale']:g}"
+    if row is not None and row.get("habitat"):
+        text += f"; lives in the {row['habitat'].replace('_', ' ')} layer (its clock runs at the layer's temperature)"
+    if row is not None and row.get("animal_cap"):
+        text += f"; animal grade capped at {row['animal_cap']['grade']}"
+    return text
 
 
 def render(document):
@@ -87,14 +92,16 @@ def render(document):
     lines += ["", "## What each class lives on", "", "| Class | Metabolism, oxidant and first step | Colour in visible light | Outside visible light |", "|---|---|---|---|"]
     for row in document["classes"]:
         life = row["life"]
-        lines.append(f"| {row['id']} | {_cell(life_text(life))} | {_cell(', '.join(life['reflection_spectrum_visible']) or 'none')} | "
+        lines.append(f"| {row['id']} | {_cell(life_text(life, row))} | {_cell(', '.join(life['reflection_spectrum_visible']) or 'none')} | "
                      f"{_cell(', '.join(life['reflection_spectrum_non_visible']) or 'none')} |")
     lines += ["", "## Why each number is what it is", ""]
     for row in document["classes"]:
         lines += [f"### Class {row['id']}: {row['name']}", ""]
         for label, entry in [("solvent", row["solvent"]), ("energy", row["energy"])] + [("gate", g) for g in row["gates"]] \
-                + [("window", w) for w in row["windows"]] + [("supply", s) for s in supplies_of(row)] + [("life", row["life"])]:
-            what = {"solvent": row["solvent"]["medium"], "energy": row["energy"]["source"], "life": row["life"]["metabolism"]}.get(label) or entry.get("quantity", "")
+                + [("window", w) for w in row["windows"]] + [("supply", s) for s in supplies_of(row)] + [("life", row["life"])] \
+                + ([("animal cap", row["animal_cap"])] if row.get("animal_cap") else []):
+            what = {"solvent": row["solvent"]["medium"], "energy": row["energy"]["source"], "life": row["life"]["metabolism"],
+                    "animal cap": f"grade {row['animal_cap']['grade']}" if row.get("animal_cap") else ""}.get(label) or entry.get("quantity", "")
             lines.append(f"- {label} {what}: {entry['tier']}, {entry['tweak']}. {entry['basis']}")
         if row.get("note"):
             lines.append(f"- note: {row['note']}")

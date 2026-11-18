@@ -19,7 +19,7 @@ from tests import rq_units
 from planetgen.admin import auth as adminAuth
 from planetgen.api.config import Config
 from planetgen.db import store
-from planetgen.queue import commands, ledger, lightjobs, progress_rate, redisqueue, runcontrol, runrecord, units, waiting
+from planetgen.queue import commands, ledger, lightjobs, progress_rate, redisqueue, runcontrol, runrecord, waiting
 from planetgen.queue.runrecord import Stage
 from planetgen.util.format import format_duration_seconds
 from planetgen.web import csrf, jobs, queue_page
@@ -158,47 +158,6 @@ def test_the_queue_page_shows_workers_load_and_runs(admin_client, conn):
     assert "Workers active" in html and "Load average" in html and "Pause the queue" in html
     assert "Fill shell 1" in html and f"/admin/queue/{run_id}" in html
     assert "The run that owns the machine is" in html
-
-
-@pytest.fixture
-def held_pair(conn):
-    """A queued job and a job held for it, on the check queue where no worker runs them (PERF.248)."""
-    from planetgen.queue import requires
-    queue = redisqueue.queue(redisqueue.CHECK_QUEUE, conn)
-    queue.empty()
-    requires.drop_held(conn, redisqueue.CHECK_QUEUE)
-    first = requires.enqueue(queue, "tests.requires_jobs.mark", "first", job_id="held-test-first", job_timeout=60)
-    second = requires.enqueue(queue, "tests.requires_jobs.mark", "second", requires=[first], job_id="held-test-second", job_timeout=60)
-    yield first, second
-    requires.drop_held(conn, redisqueue.CHECK_QUEUE)
-    queue.empty()
-    for job in (first, second):
-        conn.delete(f"rq:job:{job.id}", f"rq:job:{job.id}:dependents")
-
-
-def test_the_api_lists_the_jobs_held_for_a_job_they_require_and_not_the_queued_one(admin_client, held_pair):
-    first, second = held_pair
-    body = admin_client.get("/api/admin/work/held").get_json()
-    assert body["total"] == 1
-    item = body["items"][0]
-    assert item["id"] == second.id and item["waits_for"] == [first.id] and item["queue"] == redisqueue.CHECK_QUEUE
-    assert item["label"].endswith("mark") and item["run"] is None and item["stage"] is None
-
-
-def test_the_held_jobs_need_an_admin(web_app):
-    assert web_app.test_client().get("/api/admin/work/held").status_code == 401
-
-
-def test_the_queue_page_has_a_held_jobs_panel_only_when_a_job_is_held(admin_client, conn):
-    from planetgen.queue import requires
-    requires.drop_held(conn, redisqueue.CHECK_QUEUE)
-    assert "Held jobs" not in admin_client.get("/admin/queue").get_data(as_text=True)
-
-
-def test_the_queue_page_names_the_held_job_and_what_it_waits_for(admin_client, held_pair):
-    first, second = held_pair
-    html = admin_client.get("/admin/queue").get_data(as_text=True)
-    assert "Held jobs" in html and "1 job is held" in html and second.id in html and first.id in html and "check" in html
 
 
 def test_the_page_says_when_redis_is_not_answering(admin_client, monkeypatch):
@@ -352,18 +311,6 @@ def test_every_control_is_confirmed_first(web_app, admin_client, control_config,
     assert "The queue is paused" in admin_client.get("/admin/queue").get_data(as_text=True)
     _post(web_app, admin_client, action="queue-resume")
     assert "The queue is paused" not in admin_client.get("/admin/queue").get_data(as_text=True)
-
-
-def test_a_solo_hold_is_named_on_the_page_with_who_holds_it_and_can_be_lifted_there(web_app, admin_client, control_config, conn, monkeypatch):
-    """OPS.145: the pause that holds the queue for a restarted unit says why and by whom, and the button lifts it."""
-    from planetgen.queue import pause
-    monkeypatch.setattr(pause, "_solo_is_over", lambda connection, solo: False)
-    assert pause.hold_solo("20261109-120000-abcd", 3, 7, "job-7", conn)
-    page = admin_client.get("/admin/queue").get_data(as_text=True)
-    assert "The queue is held by run 20261109-120000-abcd" in page and "solo run of unit 7 (stage 3) after a restart" in page and "Lift the hold" in page
-    assert "The queue is paused" not in page
-    assert _post(web_app, admin_client, action="queue-resume").status_code == 303
-    assert not pause.is_paused(conn) and "The queue is held" not in admin_client.get("/admin/queue").get_data(as_text=True)
 
 
 def test_cancel_on_a_run_page_returns_to_the_page_it_was_opened_from(web_app, admin_client, control_config, conn):
