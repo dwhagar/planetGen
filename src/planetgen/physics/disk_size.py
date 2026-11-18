@@ -22,16 +22,16 @@ from planetgen.util import draw
 _kg_to_msun = units.converter("kg", "Msun")
 
 EDGE_AT_SUN_AU = 100.0
-"""float: The median gas-disk edge of a 1 solar-mass star, AU. [Stand-in DS1, tier Marginal Unverified, tweak L1: between the 62 au of Burn et al. 2021 and the roughly 200 au the observed CO radii of 1-3 Myr disks give.]"""
+"""float: The median gas-disk edge of a 1 solar-mass star, AU. [Stand-in GDE1, tier Marginal Unverified, tweak L1: between the 62 au of Burn et al. 2021 and the roughly 200 au the observed CO radii of 1-3 Myr disks give.]"""
 
 EDGE_MASS_EXPONENT = 0.5
-"""float: The edge rises as the star's mass to this power. [Stand-in DS2, tier Confident Unverified, tweak L1: the direct fits of dust radius against mass are 0.2 to 0.57 (Hendler 2020), 0.6 (Andrews 2018); the models use 0.625.]"""
+"""float: The edge rises as the star's mass to this power. [Stand-in GDE2, tier Confident Unverified, tweak L1: the direct fits of dust radius against mass are 0.2 to 0.57 (Hendler 2020), 0.6 (Andrews 2018); the models use 0.625.]"""
 
 EDGE_SCATTER_DEX = 0.3
-"""float: The scatter of a star's own edge around the median, dex in log10: a factor of 2 either way. [Stand-in DS3, tier Marginal Unverified, tweak L1: real disks of one mass vary by a factor of about 4 either way in radius (Hendler 2020's scatter 0.14 to 0.43 dex in the fits).]"""
+"""float: The scatter of a star's own edge around the median, dex in log10: a factor of 2 either way. [Stand-in GDE3, tier Marginal Unverified, tweak L1: real disks of one mass vary by a factor of about 4 either way in radius (Hendler 2020's scatter 0.14 to 0.43 dex in the fits).]"""
 
 EDGE_SCATTER_MAX_SIGMA = 2.0
-"""float: The draw is cut at this many sigma (a factor of 4 either way). [Stand-in DS4, tier Marginal Unverified, tweak L0.]"""
+"""float: The draw is cut at this many sigma (a factor of 4 either way). [Stand-in GDE4, tier Marginal Unverified, tweak L0.]"""
 
 
 def median_edge_au(mass_solar):

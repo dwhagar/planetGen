@@ -60099,7 +60099,7 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, the star's own gas disk edge disk_size.edge_au, GEN.1520); before GEN.1514 it was a step to zero when the front reached the edge"
+              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
             ],
             [
               "The range it moves in",
@@ -60130,7 +60130,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, the star's own gas disk edge disk_size.edge_au, GEN.1520); before GEN.1514 it was a step to zero when the front reached the edge"
+          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
         },
         {
           "burn_down": null,
