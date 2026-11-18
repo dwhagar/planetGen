@@ -35085,7 +35085,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L2",
-          "unread": "GEN.1151",
+          "unread": null,
           "what": "trojan_swarm.LIBRATION_SIGMA_DEG 13: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150, GEN.1643)"
         },
         {
@@ -35123,7 +35123,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1151",
+          "unread": null,
           "what": "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
         },
         {
@@ -35161,7 +35161,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1151",
+          "unread": null,
           "what": "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
         }
       ],
@@ -60129,7 +60129,7 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the star's own gas disk edge, disk_size.EDGE_AT_SUN_AU and its mass and scatter laws, GEN.1520; 18 snow lines before it); before GEN.1514 it was a step to zero when the front reached the edge"
             ],
             [
               "The range it moves in",
@@ -60160,7 +60160,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the star's own gas disk edge, disk_size.EDGE_AT_SUN_AU and its mass and scatter laws, GEN.1520; 18 snow lines before it); before GEN.1514 it was a step to zero when the front reached the edge"
         },
         {
           "burn_down": null,
