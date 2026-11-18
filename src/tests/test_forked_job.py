@@ -55,6 +55,13 @@ def forking(monkeypatch, redis_server):
     """The units of a run handed out by the launcher and forked as job processes from a real template (OPS.226, OPS.228); each is recorded as `(unit, exit code, what it said)`."""
     from tests import inline_queue
     monkeypatch.setenv(allowlist.EXTRA_ENV, f"{R}:*")
+    from planetgen.db import store
+    control = store.get_control_connection()
+    try:        # rows another test of the session left ready are not this test's units (every run is a ledger run, OPS.271)
+        control.execute("UPDATE engine_jobs SET state = 'canceled' WHERE state IN ('ready', 'waiting', 'running')")
+        control.commit()
+    finally:
+        control.close()
     host = jobhost.JobHost()
     host.start(ready_seconds=60)
     forked = []

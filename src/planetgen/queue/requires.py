@@ -279,8 +279,7 @@ def held_overview(connection, limit=HELD_SHOWN):
             job = redisqueue.fetch_job(job_id, connection, serializer)
             if job is None:
                 continue
-            run = _run_of(job)
             items.append({"id": job_id, "queue": name, "label": getattr(job, "func_name", None) or "",
                           "waits_for": [other for other in job.dependency_ids if connection.exists(f"rq:job:{other}")],
-                          "run": run[0] if run else None, "stage": run[1] if run else None})
+                          "run": None, "stage": None})        # a run's units are ledger rows, not jobs on a queue (OPS.271)
     return {"total": total, "items": items}
