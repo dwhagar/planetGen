@@ -50,7 +50,7 @@ A run with **no usable ledger** (no control database, or one with no tables yet:
 
 **Resume from rows** (`queue/resumed.py`, OPS.222 part B): a run that carries on from a stopped one carries over every stage the stopped run finished and, in each other stage, marks done the units the earlier rows say are done (their stored results copied) and queues only the rest. An update drains a run to `held` with the reason "stopped for update" (`held.drain_run`); the units stop at their next piece, and the end of the update carries the run on (`held.resume_after_update`) when the generator epoch is the one it was drained under.
 
-**Failures reach the engine as they are** (OPS.261): a deadlock or a lost connection is a passing failure of the unit and is retried by kind (`failures.py`), not by a loop inside the unit.
+**Failures reach the engine as they are** (OPS.261): a deadlock or a lost connection is a passing failure of the unit and is retried by kind (`failures.py`), not by a loop inside the unit; a held unit's error ends with where it failed (OPS.275: the last three frames of the traceback, secrets masked).
 
 **Attempt history** (`queue/attemptlog.py`, OPS.223): each attempt's end, error kind, error text and stack file; a setting runs any restarted job in debug mode with its own log file. The Queue page and the run's Jobs view read them (`queue/jobview.py`).
 
