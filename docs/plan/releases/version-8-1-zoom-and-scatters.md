@@ -417,7 +417,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1622 | (bug) The climate model gives Venus 586 K (real 735 K) and Titan 114 K (real 94 K): no cloud greenhouse and no haze cooling in thick airs | none | Lane 02, 2026-11-12, deferred. |
 | GEN.1629 | (bug) 52 of 124 gases have ir null, and the null is handled two different ways | none | Lane 02, 2026-11-12, deferred. |
 | GEN.1630 | (bug) The HCl vapour-pressure curve runs 35 percent high above the triple point | none | Lane 02, 2026-11-12, deferred. |
-| OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
 | OPS.143 | Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine | OPS.137, OPS.140, OPS.141 | Boss approved the heartbeat, 5:16 PM EST on 2026-11-09. |
 | OPS.146 | Heartbeat part 12: a restarted job runs in debug mode with its own debug log (config, on by default) | OPS.140 | Boss, 5:29 PM EST on 2026-11-09. |
 | OPS.149 | Apply the adaptive worker limit to the maintenance lane (warm-ups) | OPS.148 | 2026-11-12. |
@@ -482,7 +481,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1103 | AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed |  |  |
 | GEN.1086 | System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space |  |  |
 | TEST.660 | The moon class ranges are re-baselined with the real body counts after the last 8.1 train |  |  |
-| GEN.1509 | Design: belt bodies at or above the smallest planet class floor get full planet status | GEN.1070 | Boss, 6:08 PM EST on 2026-11-09. |
 | GEN.1150 | Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region" | GEN.1006 | Trojans T2, epoch lock, train 8 |
 | GEN.1151 | Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row | GEN.1150 | Trojans T3, epoch lock, train 8 or 9 |
 | MAP.354 | Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer | GEN.1150 | Trojans T4, with T2 |
@@ -594,10 +592,8 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1653 | apply_class runs only as the last step of the finish chain (class before bands is the H3 cause) | GEN.1652 | Lane 14, 2026-11-12. |
 | GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | none | Lane 02, 2026-11-12. |
 | GEN.1655 | rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration | GEN.1654 | Lane 02, 2026-11-12. |
-| GEN.1656 | StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles | GEN.1652 | Lane 14, 2026-11-12. |
 | GEN.1664 | StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once | GEN.1656 | Lane 14, 2026-11-12. |
 | GEN.1671 | Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4) | none | Fable thread, 2026-11-12. |
-| GEN.1674 | Every body in the Class D size range or larger gets a full planet class, wherever it sits (all round belt members past the 10-per-belt cap, asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues) | GEN.1510 | Lane 06, 2026-11-12. |
 | GEN.1677 | Design: remove the rest of the equipment-based habitability scoring: UV edges from sun-cover clothing and a full suit, temperature edges named after gear plus YELLOW_CREDIT | none | Kiamtochen thread, 2026-11-12. |
 | GEN.1682 | Phenomena rings drawn in the backfill as well | GEN.1680 | generation-order thread, 2026-11-13. |
 | GEN.1698 | (bug) H2S and SO2 have no sink on habitable-zone planets (no ocean solution, no pyrite burial), so after the S2 condensation limit they still hold 3,240 to 13,300 kPa of H2S and 172 to 675 kPa of SO2 | GEN.1562 | Lane 03, 2026-11-14. |
@@ -617,5 +613,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1790 | A blown-off hydrogen envelope is stripped past the climate ceiling | none | Lane 14, 2026-11-17 |
 | GEN.1791 | Best stand-in lever set for Class M and M-like worlds | none | Class M levers thread, 2026-11-17 |
 | GEN.1792 | Dwarf orbits drawn from physics instead of hitting caps | none | Lane 14, 2026-11-17 |
+| OPS.272 | A derived-only epoch refills stored values by a job | none | Lane 13, 2026-11-17 |
+| MAP.431 | Map tiles survive a derived-only epoch | none | Lane 16, 2026-11-17 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
 | PERF.280 | Stage 9 skips or batches near-empty sky cells | none | Lane 07, 2026-11-17 |
