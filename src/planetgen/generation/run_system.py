@@ -10,7 +10,6 @@ command builds each of its systems through `build_system_config`.
 """
 
 import json
-import secrets
 import sys
 
 from planetgen.db import store
@@ -500,7 +499,7 @@ def one_off(args):
     if conflict:
         raise ValueError(f"{conflict[:1].upper()}{conflict[1:]}")
     ctx = _NoEngine()
-    with draw.bound(draw.Stream(secrets.randbits(128))):
+    with draw.bound(draw.Stream(draw.fresh_seed())):
         _draw_system(args, ctx)
         system, system_config, warning = ctx.state["system"], ctx.state["system_config"], ctx.state["warning"]
         return {"text": _output_text(system, args), "name": system.name, "warning": warning, "asked": class_request_report(system, system_config)}

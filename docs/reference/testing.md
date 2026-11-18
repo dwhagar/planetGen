@@ -356,6 +356,25 @@ merge tests only what changed or would change); the whole suite
 `scripts/test.py full --check` is also how the selection is proved: it
 should never print a `MISSED:` line, and if it does, tell the test-suite thread.
 
+### After a fix: `scripts/test.py failed` (TEST.722)
+
+A gate run that ends red is followed by a fix, and the old way to prove the fix was to run the whole selection again (468 tests to
+prove 2, in one measured case). `failed` runs only what the fix is for:
+
+```sh
+scripts/test.py failed                 # the tests that failed in the last run, and the tests the changes since origin/main can affect
+scripts/test.py failed --base HEAD~1   # compare with another commit, as `changed` does
+scripts/test.py failed --limit 10      # at most 10 minutes of test time besides the failed tests (default 20)
+```
+
+It reads the failures the last run kept (`.test-failures.jsonl`, so the last run is the one that failed), always reruns those, adds the
+tests `changed` selects for the changes since the base, and keeps the added ones, test file by test file in collection order, while their
+recorded seconds fit `--limit` on the workers asked for; the first test that does not fit ends the list. The line it prints says how many
+earlier failures it kept and how many selected tests the limit left out; those are left to the end-of-version run. A last run with no
+failure empties the list (an old failure is not rerun for ever), and with no failure ever recorded `failed` stops and says so. With
+`--resume` it also skips the tests that already passed in the same build, as every command does. It is a fast loop and a merge gate in the
+same sense as `changed`: a PR says it used it. It needs the dependency map `full` writes, and without one it runs everything, like `changed`.
+
 ### Time limit and knowing a run is done
 
 Start every test run with a timeout of at least 90 minutes (Boss,

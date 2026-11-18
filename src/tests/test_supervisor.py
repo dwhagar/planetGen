@@ -115,6 +115,7 @@ def test_a_caller_starts_one_supervisor_and_the_callers_after_it_do_not(conn):
     assert supervisor.ensure_started(conn, start=started.append) is True
     assert supervisor.ensure_started(conn, start=started.append) is False, "the first caller's claim holds off the second"
     assert len(started) == 1 and started[0][1:3] == ["-m", "planetgen.cli.supervisor"]
+    assert conn.ttl(supervisor.starting_key()) == -1, "the claim has no time limit: the exit of the process it was made for ends it"
     conn.delete(supervisor.starting_key())
     supervisor.RedisStore(conn).publish(77, 1.0, 2.0, 1)
     assert supervisor.ensure_started(conn, start=started.append) is False, "one is alive: nothing to start"
@@ -125,6 +126,28 @@ def test_a_supervisor_that_could_not_be_started_never_fails_the_caller(conn):
     def refuse(argv):
         raise OSError("no fork")
     assert supervisor.ensure_started(conn, start=refuse) is False
+    assert not conn.exists(supervisor.starting_key()), "nothing started, so no claim is left for the next caller to wait out"
+
+
+def test_the_claim_ends_with_the_process_it_was_made_for_and_a_claim_of_a_gone_caller_is_taken_at_once(conn, monkeypatch):
+    claims = []
+    monkeypatch.setattr(supervisor, "_spawn", lambda argv, on_exit=None: claims.append(on_exit))
+    assert supervisor.ensure_started(conn) is True and supervisor.ensure_started(conn) is False
+    claims[0](1)                                     # the exit notice of the process
+    assert not conn.exists(supervisor.starting_key())
+    assert supervisor.ensure_started(conn) is True, "the next caller starts one"
+    conn.set(supervisor.starting_key(), f"{supervisor.socket.gethostname()}:{2 ** 22 + 12345}")
+    assert supervisor.ensure_started(conn) is True, "a caller that is no longer running holds nobody off"
+    conn.set(supervisor.starting_key(), "another-host:1")
+    assert supervisor.ensure_started(conn) is False, "a caller on another host cannot be judged, so it is believed"
+
+
+def test_an_exit_notice_of_an_old_claim_leaves_a_newer_one(conn):
+    conn.set(supervisor.starting_key(), "h:1")
+    supervisor._release_claim(conn, "h:2")
+    assert conn.exists(supervisor.starting_key())
+    supervisor._release_claim(conn, "h:1")
+    assert not conn.exists(supervisor.starting_key())
 
 
 @pytest.mark.real_queue
@@ -304,3 +327,12 @@ def test_a_start_carried_out_again_after_a_kill_uses_the_same_run_and_never_star
     supervisor.RunStarts(conn).turn()
     assert [entry["ticket"] for entry in runline.of_type(conn, runline.RUN)] == [] and runrecord.active_run(conn) == chosen
     assert conn.exists(runrecord.supervised_key(chosen))
+
+
+def test_a_detached_process_gives_its_exit_notice_to_the_caller(tmp_path):
+    import sys
+    import threading
+    ended = threading.Event()
+    seen = []
+    redisqueue.start_detached([sys.executable, "-c", "raise SystemExit(0)"], str(tmp_path), on_exit=lambda status: (seen.append(status), ended.set()))
+    assert ended.wait(30) and seen == [0]
