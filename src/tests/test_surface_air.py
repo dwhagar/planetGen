@@ -218,15 +218,24 @@ def _carbon_share(setting, water_world, temperature_k=288.0, carbon=1.0e-2):
 
 
 def test_the_land_weathering_works_on_shrinks_with_the_ice_cover_of_the_bodys_own_law():
-    """GEN.1697: no rain on bare rock under a global ice sheet; a body with no ice law keeps its whole land."""
+    """GEN.1697: no rain on bare rock under a global ice sheet; a body with no ice law keeps its whole wet land (GEN.1403: the land the sea waters)."""
     law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
     held = _ocean_setting(0.7, 1.4e21)
     iced = dataclasses.replace(held, albedo_law=law)
-    assert sa._weathering_land(held, 200.0) == pytest.approx(0.3)
-    assert sa._weathering_land(iced, 310.0) == pytest.approx(0.3)
+    wet = surface_pressure.wet_land_fraction(0.3, 0.7)
+    assert wet == pytest.approx(0.3 * 0.7 / surface_pressure.OCEAN_COVER_EARTH) and wet < 0.3
+    assert sa._weathering_land(held, 200.0) == pytest.approx(wet)
+    assert sa._weathering_land(iced, 310.0) == pytest.approx(wet)
     assert sa._weathering_land(iced, 200.0) == 0.0
     middle = sa._weathering_land(iced, 0.5 * (law.free_above_k + law.covered_below_k))
-    assert 0.0 < middle < 0.3 and middle == pytest.approx(0.3 * (1.0 - law.ice_fraction(0.5 * (law.free_above_k + law.covered_below_k))))
+    assert 0.0 < middle < wet and middle == pytest.approx(wet * (1.0 - law.ice_fraction(0.5 * (law.free_above_k + law.covered_below_k))))
+
+
+def test_the_land_of_a_dry_world_weathers_less_than_its_area_says_and_the_land_of_an_earth_sea_is_all_wet():
+    """GEN.1403: the land the sea does not water weathers nothing; with the Earth's sea cover or more all the land is wet."""
+    assert sa._weathering_land(_ocean_setting(0.2, 1.4e21), 288.0) == pytest.approx(0.8 * 0.2 / surface_pressure.OCEAN_COVER_EARTH)
+    assert sa._weathering_land(_ocean_setting(0.8, 1.4e21), 288.0) == pytest.approx(0.2)
+    assert sa._weathering_land(_ocean_setting(0.0, 1.4e21), 288.0) == 0.0
 
 
 def test_a_frozen_world_with_the_ice_law_keeps_the_carbon_the_volcanoes_give_and_a_warm_one_does_not():
@@ -742,7 +751,7 @@ def test_a_giant_a_body_with_no_star_or_no_mantle_takes_no_late_accretion():
 
 
 def test_the_supply_adds_the_late_nitrogen_to_the_degassed_and_the_carbonate_cycle_acts_on_the_carbon_of_both():
-    draw.set_run_seed(30)       # (GEN.1584: the nitrogen draw moved the stream; at this setting the cycle takes nearly all of the added carbon, and the sign of what is left, 1e-19, depends on the seed)
+    draw.set_run_seed(30)       # (GEN.1584 and GEN.1403: at 288 K the cycle takes all of the added carbon and what is left, 1e-19 of 2e-3, is rounding whose sign depends on the seed; the world is read at 255 K, where the cycle takes a fifth of it and 1.55e-3 of the 2e-3 stays in the air)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = continental_weathering.draw_cycle(design)
@@ -751,11 +760,12 @@ def test_the_supply_adds_the_late_nitrogen_to_the_degassed_and_the_carbonate_cyc
     inventory = {"C": 1.0e-2, "N": 1.0e-3}
 
     def shares(late):
-        return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND, late)(inventory)
+        return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 255.0, LAND, late)(inventory)
     before, after = shares({}), shares({"C": 2.0e-3, "N": 5.0e-4})
     assert after["N"] == pytest.approx(before["N"] + 5.0e-4 / 1.0e-3)
     assert after["C"] * inventory["C"] > before["C"] * inventory["C"]                                  # more carbon reaches the air...
     assert after["C"] * inventory["C"] < before["C"] * inventory["C"] + 2.0e-3                         # ...but the cycle takes a share of the added
+    assert after["C"] * inventory["C"] - before["C"] * inventory["C"] > 1.0e-3         # a share of it, not a rounding
 
 
 def test_the_earth_twin_late_accretion_leaves_the_nitrogen_the_earth_has_and_venus_within_a_factor_of_five():
