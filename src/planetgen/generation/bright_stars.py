@@ -48,6 +48,7 @@ stars that overshoot it).
 import bisect
 import collections
 import functools
+import itertools
 import math
 
 import numpy as np
@@ -59,7 +60,7 @@ from planetgen.galaxy import scatter_limits as scatterLimits
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
 from planetgen.galaxy import disk_history, resident_mass
 from planetgen.galaxy import skeleton as galaxySkeleton
-from planetgen.galaxy.density import halo_density, population_densities, population_densities_array
+from planetgen.galaxy.density import halo_density, population_bounds_array, population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
     band_center_pc,
     band_colatitude_bounds,
@@ -940,8 +941,8 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
     asked for afterwards, so a cell taken down to 1000 Lsun and later to
     500 holds exactly the stars one draw down to 500 gives (GEN.44).
 
-    A block of a band (`BLOCK_WEDGES` cells) that expects few stars draws them block first instead (GEN.309, the
-    candidate path, `block_candidates`): one count for the block, each candidate on a stream of its own. Which path a
+    A row of a band that expects few stars draws them row first instead (GEN.309, the
+    candidate path, `row_candidates`): one count for the row, each candidate on a stream of its own. Which path a
     block and luminosity band takes depends on the block's bound alone (`candidate_path`), so a cell gets the same
     stars whichever cells of its block the run reaches, in whatever order or split.
 
@@ -1046,62 +1047,79 @@ def _backfill_bands(shape, addresses, edge_pc, expected_at_density_1, seed, band
                         yield row
 
 
-BLOCK_WEDGES = 256
-"""int: The wedges of one band a block holds (GEN.308): a block is the cells `chunk * BLOCK_WEDGES` and up of a band, the
-last one short. The grid of blocks is fixed globally, so a region only chooses which blocks it reads."""
+BlockCandidate = collections.namedtuple("BlockCandidate", "wedge index u_population accept")
+"""A candidate of a row's draw (`row_candidates`): the cell's wedge, its place in the row's draw (it keys the star's own stream, `candidate_stream`), a uniform that picks its population in proportion to the
+cell's per-population rates, and the uniform the thinning compares with the cell's rate (`candidate_path`)."""
 
-BlockCandidate = collections.namedtuple("BlockCandidate", "wedge index u_population")
-"""A star `block_candidates` kept: the cell's wedge, its place in the block's draw (it keys the star's own stream,
-`candidate_stream`) and a uniform that picks its population in proportion to the cell's per-population rates."""
+ROW_STREAM = "row"
+"""str: What stands for the chunk in the stream keys of a row's draw (PERF.280): one stream and one Poisson count a (shell, band) row and luminosity band, whatever the wedges a caller asks of it."""
 
 
 def block_key(seed, shell_index, band_index, chunk, k):
-    """The name of the stream a block's band draws its candidates from: the seed, the block and the luminosity band."""
+    """The name of the stream a row's band draws its candidates from: the seed, the row (`chunk` is `ROW_STREAM`) and the luminosity band."""
     return f"{seed}:bf:{shell_index}:{band_index}:{chunk}:{k}"
 
 
 def candidate_stream(seed, shell_index, band_index, chunk, k, index):
-    """The stream the star of candidate `index` of a block draws its parameters and its point from, so it depends on
-    nothing but the seed, the block, the band and its place in the block's draw."""
+    """The stream the star of candidate `index` of a row's draw draws its parameters and its point from, so it depends on
+    nothing but the seed, the row, the band and its place in the row's draw."""
     return draw.Stream(f"{block_key(seed, shell_index, band_index, chunk, k)}:{index}")
 
 
+BOUND_STEP_BITS = 24
+"""int: A row's bound is rounded up to this many bits of mantissa (PERF.280), so the one value of it that the row's array draw and a single cell's draw each work out cannot differ in the last bit of a float: a bound is
+only a majorant, and rounding it up a millionth keeps it one."""
+
+
+def _rounded_up(bound):
+    """`bound` rounded up to `BOUND_STEP_BITS` bits of mantissa (a number or an array)."""
+    mantissa, exponent = np.frexp(bound)
+    return np.ldexp(np.ceil(mantissa * (1 << BOUND_STEP_BITS)) / (1 << BOUND_STEP_BITS), exponent)
+
+
+def row_bound_terms(shape, rows, edge_pc, expected_at_density_1):
+    """
+    The parts of the rows' bounds that do not depend on the luminosity band (PERF.280), worked out together for `rows`, a list of `(shell, band)`: `(volume_terms, populations)`, each row's volume in edge cubes times
+    `expected_at_density_1` and, per population, the most its density can be anywhere in the row (`galaxy.density.population_bounds_array`): every cell of a row sits at one radius and height (`band_center_pc`).
+    """
+    centers = [band_center_pc(shell_index, band_index, edge_pc) for shell_index, band_index in rows]
+    volumes = np.array([expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc) for shell_index, band_index in rows])
+    bounds = population_bounds_array(np.array([plane for plane, _z in centers]), np.array([z for _plane, z in centers]), shape)
+    return volumes, bounds
+
+
+def bounds_of(terms, shares):
+    """The bound of a luminosity band whose populations hold `shares` for each row of `row_bound_terms`: the volume term times each population's share of the band times the most its density can be (the stars one
+    cell of the row can expect, rounded up, `_rounded_up`), an array with a number a row."""
+    volumes, populations = terms
+    total = 0.0
+    for population in SCATTERED_POPULATIONS:
+        if population in populations and shares.get(population, 0.0) > 0.0:
+            total = total + shares[population] * populations[population]
+    return _rounded_up(volumes * total)
+
+
 def bound_terms(shape, shell_index, band_index, edge_pc, expected_at_density_1):
-    """
-    The parts of a row's `block_bound` that do not depend on the luminosity band: `(volume_term, stellar, halo)`, the
-    cell's volume in edge cubes times `expected_at_density_1`, the disk and bulge's largest density
-    and the halo's density at the row's cell centers. `block_bound` of a band is `volume_term * (stellar * the largest
-    non-halo share + halo * the halo's share)`; a draw that asks every band of a row works the parts out once.
-    """
-    plane, z = band_center_pc(shell_index, band_index, edge_pc)
-    return (expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc),
-            shape.k_norm * galaxySkeleton._bound_raw_density_at(shape, plane, z),
-            halo_density((plane, 0.0, z), shape))
+    """`row_bound_terms` of one row."""
+    return row_bound_terms(shape, [(shell_index, band_index)], edge_pc, expected_at_density_1)
 
 
 def bound_of(terms, shares):
     """The `block_bound` of a luminosity band whose populations hold `shares`, from a row's `bound_terms`."""
-    volume_term, stellar, halo = terms
-    inner_share = max(share for population, share in shares.items() if population != "halo")
-    return volume_term * (stellar * inner_share + halo * shares["halo"])
+    return float(bounds_of(terms, shares)[0])
 
 
 def block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, shares):
     """
-    The most stars one cell of a band can expect in a luminosity band (GEN.308): the cell's volume in edge cubes times
-    `expected_at_density_1` times the highest density any cell of the band can have, each part with the largest share
-    any population of it holds in the luminosity band.
-
-    Every cell center of a band sits at the same cylindrical radius and height (`band_center_pc`), so the density
-    there bounds every cell: the disk and bulge at each term's maximum over the angle
-    (`galaxy.skeleton._bound_raw_density_at`, nuclear terms included) with the largest share of any population but
-    the halo, plus the halo, which depends on the radius and height alone, with the halo's own share. The clusters
-    and satellites are left out, as `_densities` leaves them out of the scatter.
+    The most stars one cell of a row can expect in a luminosity band (GEN.308, PERF.280): the cell's volume in edge cubes times `expected_at_density_1` times, for each population, its share of the band times the
+    most its density can be anywhere in the row (`galaxy.density.population_bounds_array`). Every cell center of a row sits at the same cylindrical radius and height (`band_center_pc`), so that bounds every cell.
+    The clusters and satellites are left out, as `_densities` leaves them out of the scatter. (Until PERF.280 the whole disk's and bulge's largest density went with the largest share any population but the
+    halo held, which is the young stars' share, so the bound was a hundred times what a cell expects and a row drew that many candidates for each star it kept.)
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
-        shell_index (int): The band's shell.
-        band_index (int): The band.
+        shell_index (int): The row's shell.
+        band_index (int): The row's band.
         edge_pc (float): The sector edge.
         expected_at_density_1 (float): Systems per sector at density 1.
         shares (dict): Population to its share of the luminosity band (`bright_band_fraction`).
@@ -1132,61 +1150,49 @@ def cell_band_rate(shape, address, edge_pc, expected_at_density_1, shares):
     return sum(_band_means(expected_at_density_1, volume, densities, shares).values())
 
 
-def block_candidates(seed, shell_index, band_index, chunk, k, bound, rate_of):
+def row_candidates(seed, shell_index, band_index, k, bound):
     """
-    The stars a luminosity band puts in one block of a band, drawn block first (GEN.308; docs/design/generation/sampling-backfill-and-resume.md
-    section 2): one Poisson count from the block's `bound`, each candidate a uniform cell of the block kept with the
-    chance `rate / bound` of its own cell. Exact thinning of a Poisson process: a cell ends up with a Poisson count of
-    its own mean `rate`, independent of every other cell, so no cell's chance is altered; a block with no
-    candidates costs one stream and one count.
+    The candidates a luminosity band puts in a row, drawn row first (GEN.308, PERF.280; docs/design/generation/sampling-backfill-and-resume.md section 2): one Poisson count from the row's `bound` times its
+    wedges, each candidate a uniform wedge of the row with the uniform its thinning compares with the cell's rate (`candidate_path`) and the one that picks its population. Thinned by `rate / bound` of its own cell
+    the candidates are an exact Poisson process: a cell ends up with a Poisson count of its own mean `rate`, independent of every other cell, so no cell's chance is altered; a row with no candidates costs one stream
+    and one count.
 
-    The draw is keyed by the seed, the block and the band alone (`block_key`), nothing sequential crosses a block, and
-    the block grid is global, so the same stars come out whatever region, order or split of workers reaches the block.
+    The draw is keyed by the seed, the row and the band alone (`block_key`), nothing sequential crosses a row, so the same stars come out whatever region, order or split of workers reaches the row. (Until PERF.280 the
+    count was drawn for each block of 256 wedges, a stream each; a sky sphere's walk spent most of its time starting those streams.)
 
     Args:
         seed (int): The galaxy's bright-star seed.
-        shell_index (int): The block's shell.
-        band_index (int): The block's band.
-        chunk (int): Which block of the band: wedges `chunk * BLOCK_WEDGES` up.
+        shell_index (int): The row's shell.
+        band_index (int): The row's band.
         k (int): The luminosity band (`canonical_bands`).
-        bound (float): A mean no cell of the block exceeds (`block_bound`).
-        rate_of (callable): `rate_of(wedge)` -> the stars the cell expects in the band (`cell_band_rate`); only the
-            candidates' cells are asked.
+        bound (float): A mean no cell of the row exceeds (`block_bound`).
 
     Returns:
-        list: The kept `BlockCandidate`s, in the order they were drawn.
-
-    Raises:
-        ValueError: A cell asked for expects more than `bound`: the bound is wrong and the draw would not be exact.
+        dict: Wedge -> the `BlockCandidate`s that fell in it, in the order they were drawn, thinned by nothing yet.
     """
-    first = chunk * BLOCK_WEDGES
-    cells = min(BLOCK_WEDGES, wedge_count(shell_index, band_index) - first)
+    cells = wedge_count(shell_index, band_index)
     if cells <= 0 or not bound > 0.0:
-        return []
-    rng = draw.Stream(block_key(seed, shell_index, band_index, chunk, k))
-    kept = []
+        return {}
+    rng = draw.Stream(block_key(seed, shell_index, band_index, ROW_STREAM, k))
+    found = {}
     for index in range(poisson_count(bound * cells, rng)):
-        wedge = first + min(int(rng.random() * cells), cells - 1)
+        wedge = min(int(rng.random() * cells), cells - 1)
         accept = rng.random()
         u_population = rng.random()
-        rate = rate_of(wedge)
-        if rate > bound * (1.0 + 1e-9):
-            raise ValueError(f"cell {(shell_index, band_index, wedge)} expects {rate:g} stars, above its block's bound {bound:g}")
-        if accept * bound < rate:
-            kept.append(BlockCandidate(wedge, index, u_population))
-    return kept
+        found.setdefault(wedge, []).append(BlockCandidate(wedge, index, u_population, accept))
+    return found
 
 
 CANDIDATE_PATH_BOUND = 0.05
-"""float: A block takes the candidate path (GEN.309) when its bound, the most stars one cell of it can expect in the
-luminosity band, is under this: the block then expects fewer candidates than about 5 percent of its cells, so the one
-count and the few cells asked beat a Poisson count in every cell. Denser blocks (the bulge, where a quarter of the cells
+"""float: A row takes the candidate path (GEN.309) when its bound, the most stars one cell of it can expect in the
+luminosity band, is under this: the row then expects fewer candidates than about 5 percent of its cells, so the one
+count and the few cells asked beat a Poisson count in every cell. Denser rows (the bulge, where a quarter of the cells
 hold a star) draw cell by cell, which is faster there (docs/design/generation/sampling-backfill-and-resume.md
 section 2.1)."""
 
 
 BLOCK_MEMO_LIMIT = 50000
-"""int: How many entries a draw's memo of blocks keeps (GEN.309); past it the memo is emptied and the blocks are drawn
+"""int: How many entries a draw's memo of rows keeps (GEN.309); past it the memo is emptied and the rows are drawn
 again when asked for, the same draw each time, so a backfill of many millions of sectors holds a bounded few megabytes."""
 
 
@@ -1197,13 +1203,34 @@ def _trimmed(memo):
     return memo
 
 
+def _kept_candidates(memo, shape, address, edge_pc, expected_at_density_1, seed, key, shares, tag, bound):
+    """The candidates of `address`'s cell on the candidate path that the cell's rate keeps: each is kept with the chance `rate / bound` (`row_candidates`), and only the cells asked are priced, from the row's draw."""
+    shell_index, band_index, wedge = address
+    row = ("candidates", shell_index, band_index, key, tag)
+    found = memo.get(row)
+    if found is None:
+        found = memo[row] = row_candidates(seed, shell_index, band_index, key, bound)
+    drawn = found.get(wedge)
+    if not drawn:
+        return []
+    kept_key = ("kept", address, key, tag)
+    kept = memo.get(kept_key)
+    if kept is None:
+        densities, volume = _cell_densities(memo, shape, address, edge_pc)
+        rate = sum(_band_means(expected_at_density_1, volume, densities, shares).values())
+        if rate > bound * (1.0 + 1e-9):
+            raise ValueError(f"cell {address} expects {rate:g} stars, above its row's bound {bound:g}")
+        kept = memo[kept_key] = [candidate for candidate in drawn if candidate.accept * bound < rate]
+    return kept
+
+
 def candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, key, shares, tag):
     """
-    The candidates of `address`'s cell on the candidate path (GEN.309), or `None` when its block takes the cell-by-cell
-    path. The choice depends on the block and the luminosity (or mass) band alone, never on the cells a run reaches.
+    The candidates of `address`'s cell on the candidate path (GEN.309), or `None` when its row takes the cell-by-cell
+    path. The choice depends on the row and the luminosity (or mass) band alone, never on the cells a run reaches.
 
     Args:
-        memo (dict): Where the block's bound and candidates are kept, so one block is drawn once per call chain.
+        memo (dict): Where the row's bound and candidates are kept, so one row is drawn once per call chain.
         shape (GalaxyShape): The galaxy's shape.
         address (tuple): `(shell, band, wedge)`.
         edge_pc (float): The sector edge.
@@ -1217,25 +1244,13 @@ def candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, k
         list or None: The `BlockCandidate`s that fall in this cell, possibly none; `None` for the cell-by-cell path.
     """
     shell_index, band_index, wedge = address
-    chunk = wedge // BLOCK_WEDGES
     bound_key = ("bound", shell_index, band_index, key, tag)
     bound = memo.get(bound_key)
     if bound is None:
         bound = memo[bound_key] = block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, shares)
     if bound >= CANDIDATE_PATH_BOUND:
         return None
-    block = ("candidates", shell_index, band_index, chunk, key, tag)
-    found = memo.get(block)
-    if found is None:
-        def rate_of(cell):
-            densities, volume = _cell_densities(memo, shape, (shell_index, band_index, cell), edge_pc)
-            return sum(_band_means(expected_at_density_1, volume, densities, shares).values())
-
-        found = {}
-        for candidate in block_candidates(seed, shell_index, band_index, chunk, key, bound, rate_of):
-            found.setdefault(candidate.wedge, []).append(candidate)
-        memo[block] = found
-    return found.get(wedge, [])
+    return _kept_candidates(memo, shape, address, edge_pc, expected_at_density_1, seed, key, shares, tag, bound)
 
 
 def _band_shares(memo, bands):
@@ -1295,7 +1310,7 @@ def _candidate_rows(candidates, address, means, seed, key, edge_pc, star_of):
             target -= means[population]
             if target < 0.0:
                 break
-        rng = candidate_stream(seed, shell_index, band_index, wedge // BLOCK_WEDGES, key, candidate.index)
+        rng = candidate_stream(seed, shell_index, band_index, ROW_STREAM, key, candidate.index)
         for params in star_of(chosen, rng):
             row = _placed_row(rng, shell_index, band_index, wedge, chosen, params, edge_pc)
             if row is not None:
@@ -1388,17 +1403,6 @@ SPHERE_BATCH_ROWS = 200
 """int: The rows a sphere draw looks at before it lets go of the blocks it worked out, whether or not they held a cell."""
 
 
-def _row_chunks(count, first, length):
-    """The blocks (`BLOCK_WEDGES` wedges each) a row of `count` wedges has in its window of `length` wedges from `first` on (wrapping)."""
-    last_chunk = (count - 1) // BLOCK_WEDGES
-    if length >= count:
-        return range(last_chunk + 1)
-    end = first + length
-    if end <= count:
-        return range(first // BLOCK_WEDGES, (end - 1) // BLOCK_WEDGES + 1)
-    return sorted(set(range(first // BLOCK_WEDGES, last_chunk + 1)) | set(range((end - count - 1) // BLOCK_WEDGES + 1)))
-
-
 def in_part(shell_index, band_index, part):
     """
     Whether the row `(shell_index, band_index)` of a sphere's walk belongs to `part`, `(index, count)` (OPS.253): the rows are dealt out by `(shell * PART_SHELL_STEP + band) mod count`, so the
@@ -1411,10 +1415,35 @@ PART_SHELL_STEP = 7
 """int: How far apart `in_part` puts the neighbouring shells in the dealing, so a part is not one diagonal of the (shell, band) rows. (a setting of how the work is dealt, defined by the dealing, not by physics)"""
 
 
+ROW_BOUND_ROWS = 2048
+"""int: The rows of a walk whose bounds are worked out together, in arrays (PERF.280)."""
+
+
+def _bounded_rows(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, paths, part=None, stride=1):
+    """
+    The rows of a sphere's walk (`sphere_rows`, only those `in_part` deals to `part`, every `stride`-th) with the bound of each band of `paths` in each (PERF.280): the bounds of a couple of thousand rows are
+    worked out together from arrays, where one at a time they cost more than the rest of the walk.
+
+    Yields:
+        tuple: `(shell, band, count, first, length, bounds)`, `bounds` a number for each of `paths`.
+    """
+    rows = sphere_rows(center_pc, radius_pc, edge_pc, None if part is None else (lambda shell, band: in_part(shell, band, part)))
+    if stride > 1:
+        rows = itertools.islice(rows, 0, None, stride)
+    while True:
+        chunk = list(itertools.islice(rows, ROW_BOUND_ROWS))
+        if not chunk:
+            return
+        terms = row_bound_terms(shape, [(row[0], row[1]) for row in chunk], edge_pc, expected_at_density_1)
+        per_path = [bounds_of(terms, shares).tolist() for _key, shares, _tag in paths]
+        for number, row in enumerate(chunk):
+            yield (*row, [bounds[number] for bounds in per_path])
+
+
 def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded, part=None):
     """
-    The cells of a sphere that a draw has anything to do in, a few hundred at a time with the memo that holds their blocks: the
-    walk of `sphere_rows`, and for each row and band of the draw either its block's candidates (a band on the candidate path,
+    The cells of a sphere that a draw has anything to do in, a few hundred at a time with the memo that holds their rows: the
+    walk of `sphere_rows`, and for each row and band of the draw either its candidates (a band on the candidate path,
     GEN.309: only the cells that hold one are kept, however many cells the sphere holds) or every cell of the row's window (a
     band on the cell path). Cells are kept when their center lies within `radius_pc`, as `enumerate_sectors_within_radius` has it.
 
@@ -1431,27 +1460,23 @@ def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
     rows = 0
     if math.sqrt(sum(float(c) * float(c) for c in center_pc)) <= radius_pc + 1e-9 and (part is None or part[0] == 0):
         addresses.append((0, 0, 0))                 # the core cell is no row
-    for shell_index, band_index, count, first, length in sphere_rows(center_pc, radius_pc, edge_pc, None if part is None else (lambda shell, band: in_part(shell, band, part))):
+    for shell_index, band_index, count, first, length, bounds in _bounded_rows(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, paths, part):
         rows += 1
-        terms = None
         dense = False
         chosen = set()
-        for key, shares, tag in paths:
-            bound_key = ("bound", shell_index, band_index, key, tag)
-            bound = work.get(bound_key)
-            if bound is None:
-                if terms is None:
-                    terms = bound_terms(shape, shell_index, band_index, edge_pc, expected_at_density_1)
-                bound = work[bound_key] = bound_of(terms, shares)
+        for (key, shares, tag), bound in zip(paths, bounds):
+            work[("bound", shell_index, band_index, key, tag)] = bound
             if bound >= CANDIDATE_PATH_BOUND:
                 dense = True
                 continue
-            for chunk in _row_chunks(count, first, length):
-                candidate_path(work, shape, (shell_index, band_index, chunk * BLOCK_WEDGES), edge_pc, expected_at_density_1,
-                               seed, key, shares, tag)
-                for wedge in work[("candidates", shell_index, band_index, chunk, key, tag)]:
-                    if (wedge - first) % count < length:
-                        chosen.add(wedge)
+            row = ("candidates", shell_index, band_index, key, tag)
+            drawn = work.get(row)
+            if drawn is None:
+                drawn = work[row] = row_candidates(seed, shell_index, band_index, key, bound)
+            for wedge in drawn:
+                if (wedge - first) % count < length and wedge not in chosen and _kept_candidates(
+                        work, shape, (shell_index, band_index, wedge), edge_pc, expected_at_density_1, seed, key, shares, tag, bound):
+                    chosen.add(wedge)
         wedges = ((first + k) % count for k in range(length)) if dense else sorted(chosen)
         for wedge in wedges:
             if cell_in_sphere((shell_index, band_index, wedge), center_pc, radius_pc, edge_pc):
@@ -1498,8 +1523,8 @@ def mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_densit
 
 def sphere_walk_visits(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, paths, stride=1):
     """
-    The visits `_sphere_batches` makes over a sphere (GEN.1485): for each row of the sphere, one visit to every cell of its window when any band of `paths` is on the cell path
-    (its `block_bound` is `CANDIDATE_PATH_BOUND` or more), else one to every block of the window (the candidate path). It is the walk's own rule applied to the rows, with no
+    The visits `_sphere_batches` makes over a sphere (GEN.1485, PERF.280): for each row of the sphere, one visit to every cell of its window when any band of `paths` is on the cell path
+    (its bound is `CANDIDATE_PATH_BOUND` or more), else one, the row's draw (the candidate path). It is the walk's own rule applied to the rows, with no
     star drawn, so a sky tier is costed by what the walk does and not by the cells the sphere holds.
 
     Args:
@@ -1510,14 +1535,8 @@ def sphere_walk_visits(shape, center_pc, radius_pc, edge_pc, expected_at_density
         float: The visits.
     """
     total = 0.0
-    for number, (shell_index, band_index, count, first, length) in enumerate(sphere_rows(center_pc, radius_pc, edge_pc)):
-        if number % stride:
-            continue
-        terms = bound_terms(shape, shell_index, band_index, edge_pc, expected_at_density_1)
-        if any(bound_of(terms, shares) >= CANDIDATE_PATH_BOUND for _key, shares, _tag in paths):
-            total += length
-        else:
-            total += len(_row_chunks(count, first, length))
+    for _shell, _band, _count, _first, length, bounds in _bounded_rows(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, paths, None, stride):
+        total += length if any(bound >= CANDIDATE_PATH_BOUND for bound in bounds) else 1
     return total * stride
 
 
