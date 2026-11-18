@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4539] - 2026-11-18
+
+**Headline:** The sampling-table lock wait is named in the no-sleep test, so main passes it again.
+
+### Fixed
+
+- PERF.281: `test_no_sleep_in_commands` (OPS.197) lists the table lock's poll in `band_table_cache._building` with its reason: the wait is declared with `unitbeat.waiting` and beats the unit on every poll, so it is not a silent stretch. A blocking `flock` would be silent to the unit's heartbeat, so the poll stays. No behavior changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4538] - 2026-11-18
 
 **Headline:** A Generate page job is now a run of the job ledger, so it survives a web server restart and Cancel works with or without the supervisor.
