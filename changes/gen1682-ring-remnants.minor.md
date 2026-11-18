@@ -1,9 +1,0 @@
-**Headline:** the sectors around a generated region now hold their neutron stars and black holes below the scatter's cut before anyone fills them.
-
-### Changed
-- GEN.1682: a backfill ring sector (GEN.187) had its stars but none of the neutron stars and none of the 60 percent of stellar black holes that fall below the phenomenon scatter's cut (14 solar masses, drawn only when a sector was filled, GEN.168). They are now drawn when the backfill reaches the sector: `phenomenon_scatter.ring_remnant_rows` runs the fill's own `below_cut_draws` on the sector's own stream (same counts and mass ranges) and gives each remnant a point in the sector's cell, a seed and a mass, as scatter rows. A galaxy run draws them in a third piece of the `write-special-phenomena` unit (`remnants`: every sector a backfill took down that no run has charted, written with its members and its classes in one transaction with the unit's cursor); a backfill that runs after the scatter (a visit, a run that adds sectors) draws them in the same transaction as its chunk. A cell above the ceiling (`resolution.capped`) gets none, as before, and a sector that already holds some is not drawn again.
-- The fill builds those rows at their stored points like any scattered row, and draws no below-cut remnants of its own for a sector that holds some (`store.sector_holds_below_cut_remnants`). A sector filled without a backfill draws them as before. The fill's context is now worked out after the sector is taken down to its deepest floor (it read the scattered rows before it), so a sector whose backfill draws its remnants at that moment builds them.
-- Needs and touches of `write-special-phenomena`: it needs the backfill (`bright-stars-backfill`) and reads `sector_stats`. No schema change, so there is no migration.
-
-generation-output: changed (no golden, no epoch, lock item; the toy galaxies the golden files hold have no ring sectors in their scatter)
-generation-affects: scatter, fill
