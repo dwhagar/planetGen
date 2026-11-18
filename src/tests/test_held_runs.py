@@ -77,6 +77,40 @@ def test_a_unit_that_fails_for_good_is_held_and_the_run_goes_on(conn, run, rows)
     assert any(event["kind"] == "unit.held" and "bad unit 1" in event["message"] for _id, event in runrecord.read_events(conn, run))
 
 
+def _deep(depth):
+    if depth:
+        return _deep(depth - 1)
+    raise ValueError("bad unit")
+
+
+def _traceback_of(depth):
+    try:
+        _deep(depth)
+    except ValueError as exc:
+        return exc, exc.__traceback__
+
+
+def test_where_names_the_last_frames_of_a_failure_innermost_first_and_nothing_without_a_traceback():
+    exc, tb = _traceback_of(5)
+    text = held.where(tb)
+    assert text.startswith(" (at test_held_runs.py:") and text.endswith(")")
+    named = text[len(" (at "):-1].split(", ")
+    assert len(named) == held.WHERE_FRAMES and all(item.endswith(" in _deep") for item in named), "the innermost three are the recursion"
+    assert held.where(None) == ""
+    assert held.where(tb, frames=1).count(" in ") == 1
+
+
+def test_a_held_unit_keeps_where_it_failed_in_its_error_and_the_log_and_masks_a_secret(conn, run, rows):
+    exc, tb = _traceback_of(1)
+    exc = ValueError("could not reach mysql://planetgen:hunter2pass@db/x")
+    rq_units.unit_failed(_Job(conn, run, 1, rows[1]), conn, ValueError, exc, tb)
+    kept = runrecord._s(conn.hget(runrecord.held_key(run, 0), 1))
+    assert "(at test_held_runs.py:" in kept and " in _deep" in kept
+    assert "hunter2pass" not in kept
+    said = [event["message"] for _id, event in runrecord.read_events(conn, run) if event["kind"] == "unit.held"]
+    assert said and "(at test_held_runs.py:" in said[0] and "hunter2pass" not in said[0]
+
+
 def test_the_run_is_held_when_every_unit_is_done_or_held(conn, run, rows):
     _fail(conn, run, rows, 1)
     _done(conn, run, rows, 0)
