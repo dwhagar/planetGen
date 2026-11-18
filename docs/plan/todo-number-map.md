@@ -22,9 +22,9 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.791 |
+| TEST | TEST.792 |
 | USR | USR.33 |
-| OPS | OPS.277 |
+| OPS | OPS.280 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
