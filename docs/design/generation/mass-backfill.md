@@ -76,9 +76,19 @@ sectors in place and grows with the surface of the run, not its volume. The lumi
 remain after the scatter's L are nearly all of those (under L = 5000, 1 to 2 Msun: 5.8% of living
 stars, 2 to 5: 2.8%, 5 to 8: 0.55%).
 
+## The neutron stars and black holes below the scatter's cut (GEN.1682)
+
+The phenomenon scatter places only the neutron stars and black holes at or above its cut (14 solar masses); the share below it (every neutron star, about 60 percent of the stellar black holes) is drawn when a
+sector is filled (`phenomenon_scatter.below_cut_draws`, GEN.168). A ring sector therefore held its stars and none of those remnants until it was filled. The backfill now draws them with the stars: the count and the
+mass range of each class are the fill's own draw, and each remnant gets a point in the sector's cell, a seed and a mass, stored as a `phenomenon_scatter` row (`phenomenon_scatter.ring_remnant_rows`,
+`ring_remnants.rows_for`). A galaxy run draws them in the `remnants` piece of `write-special-phenomena` (the backfill comes before the scatter is recorded, so its chunk draws none then); a backfill after the
+scatter draws them in its chunk's transaction (`run_plan._write_ring_remnants`). A sector that already holds a below-cut remnant row is not drawn again (a repeat of the backfill or the unit changes nothing), a
+cell above the ceiling gets none (as in the fill), and the fill builds the stored rows like any scattered row and draws no below-cut remnants of its own for that sector. No schema change.
+
 ## Code
 
 `bright_stars.backfill_mass_cells`, `star_population.mass_band_fraction` and `sample_mass_band_stars`;
 `run_galaxy.backfill_ring_targets` (the ring walk) and `backfill_bright_stars_around`;
 `run_plan._draw_sector_masses` (chunked under `lock_sector_stats`, like the luminosity bands);
-`store.sector_bright_masses`, `set_sector_bright_masses`, `bright_star_fill_mass_limit`.
+`store.sector_bright_masses`, `set_sector_bright_masses`, `bright_star_fill_mass_limit`;
+`ring_remnants.rows_for`, `store.sector_holds_below_cut_remnants`, `addresses_holding_below_cut_remnants`, `backfilled_uncharted_addresses`.

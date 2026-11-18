@@ -211,7 +211,9 @@ MACHINE = {
                weight="p_atm*window(delta, None, -1.4, 0.247)",
                source="same as d2"),
     "d6": dict(state="stand-in", replacement="GEN.511", kind="derived", classes=ROCKY + ["asteroid"], table_of="d",
-               table={"d1": 0.0, "d2": 1e-5, "d3": 0.01, "d4": 0.1, "d5": None}),
+               correction="GEN.1558: the caps of d3 (1 kPa) and d4 (10 kPa) are retired; supply, sinks and escape set the pressure of those airs, and only the airless (d1) and trace (d2) "
+                          "caps stay, so the shoreline still decides who keeps any air.",
+               table={"d1": 0.0, "d2": 1e-5, "d3": None, "d4": None, "d5": None}),
     "d7": dict(kind="flag", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="1 if 2.016*AMU_KG*(v_esc_kms*1000)**2/(2*K_B*(teq_k + min(1500, 750*sqrt(xuv_index)))) >= 30 else 0"),
 

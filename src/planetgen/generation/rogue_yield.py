@@ -4,12 +4,12 @@
 The rogue planets a generated system made (GEN.1111, part 7, docs/design/systems/region-object-store.md section 8): the ejection events of its planet
 architecture, each built through the one planet chain against a starless host and put where it has drifted to.
 
-A rogue exists only because a system threw it out, so the set of a donor's rogues is a function of the donor alone: its uid (the stream the events and
-the bodies are drawn from), its record of losses (`StarSystem.ejected_losses`), its place in the galaxy and the galaxy's potential. Charting a region in
+A rogue exists only because a system threw it out, so the set of a donor's rogues is a function of the donor alone: its draw key (`donor_key`: where it sits in the galaxy, which the galaxy's seed
+decides; never a database number, so a run after a reset makes the rogues of the first run), its record of losses (`StarSystem.ejected_losses`), its place in the galaxy and the galaxy's potential. Charting a region in
 a different order, or charting a neighbour, never changes a donor's rogues. The save of the donor (`db/store.save_donor_rogues`) writes them, replacing
 the ones the donor made before.
 
-    made = rogues_of(donor_uid, system, donor_position_pc, edge_pc)     # [Rogue(event, landing, planet, note)]
+    made = rogues_of(donor_key, system, donor_position_pc, edge_pc)     # [Rogue(event, landing, planet, note)]
 """
 
 import collections
@@ -83,12 +83,17 @@ def bind_pairs(uid_text, found):
     return events, pairs
 
 
-def rogues_of(donor_uid, system, donor_position_pc, edge_pc, system_name=None):
+def donor_key_of(donor_position_pc):
+    """The text a donor's rogue draws are seeded from: its galaxy-frame position, pc (the galaxy's seed decides it; two donors never share a place)."""
+    return "donor:" + ":".join(format(float(c), ".12g") for c in donor_position_pc)
+
+
+def rogues_of(donor_key, system, donor_position_pc, edge_pc, system_name=None):
     """
     Every rogue planet `system` made, built and placed.
 
     Args:
-        donor_uid (bytes): The donor's uid (12 bytes); the events and the bodies are drawn from streams seeded from it.
+        donor_key (str): `donor_key_of` the donor's position; the events and the bodies are drawn from streams seeded from it.
         system (StarSystem): The freshly generated donor (a system loaded from storage has no loss record and gives none).
         donor_position_pc (sequence): The donor's galaxy-frame position, pc.
         edge_pc (float): The sector edge of the galaxy's grid, pc.
@@ -100,7 +105,7 @@ def rogues_of(donor_uid, system, donor_position_pc, edge_pc, system_name=None):
     pairs = system.ejected_losses()
     if not pairs:
         return []
-    uid_text = donor_uid.hex() if isinstance(donor_uid, (bytes, bytearray)) else str(donor_uid)
+    uid_text = str(donor_key)
     distance_ly = pc_to_ly(detmath.hypot(*donor_position_pc))
     circular_speed, _period = galactic_orbit.calculate_galactic_orbit(distance_ly)
     name = system_name if system_name is not None else system.name

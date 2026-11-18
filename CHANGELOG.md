@@ -59,7 +59,7 @@ generation-output: unchanged
 **Headline:** The sources behind the gas-disk edge stand-ins are in the reference list, and the notes write them by their IDs.
 
 ### Fixed
-- The gas-disk edge note (`docs/design/generation/gas-disk-edge.md`), the GDE rows of `gap-filling-plan.md` and the docstrings of `disk_size.py` wrote four sources by author and year, so `test_citations_outside_the_registry` failed. The three new papers are in the registry (R5301 to R5303) and the four sources are written as their IDs [R0602, R5301, R5302, R5303].
+- The gas-disk edge note (`docs/design/generation/gas-disk-edge.md`), the GDE rows of `gap-filling-plan.md` and the docstrings of `disk_size.py` wrote four sources by author and year, so `test_citations_outside_the_registry` failed. The three new papers are in the registry (R5301 to R5309) and the four sources are written as their IDs [R0602, R5301, R5308, R5309].
 
 generation-output: unchanged
 

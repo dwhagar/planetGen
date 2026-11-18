@@ -75,20 +75,14 @@ def _replays(captured):
     return with_haze, clear
 
 
-def _same_world(with_haze, clear):
-    """Both replays settle and neither sits inside the ramp of the photochemical loss (GEN.1732): there the loss takes a share of the ammonia and methane that depends on the temperature, so an air with its haze (at 229 K, seed 106) and the same air without it (a cold branch at 134 K, no loss) are two airs with two fixed points and the haze does not decide which the solve finds. Outside the ramp the loss is whole or absent and the two replays are the same air."""
-    half_ramp = sa.PHOTOCHEMICAL_RAMP_K / 2.0
-    return with_haze.converged and clear.converged and all(abs(air.temperature_k - sa.PHOTOCHEMICAL_MIN_K) > half_ramp for air in (with_haze, clear))
-
-
 @pytest.fixture(scope="module")
 def hazy_with_ground():
-    for seed in range(400):      # GEN.1646 moved the recipe draws (the first hazy body with ground was seed 98, it had been inside the first 60); GEN.1732 (the photochemical loss of ammonia and methane) moved them again: under 1 percent of the bodies of this sweep are hazy with ground (0 of the first 200 seeds, 5 of seeds 200 to 799). The first one that settles outside the loss's ramp (`_same_world`) is seed 273
+    for seed in range(400):      # GEN.1646 moved the recipe draws (the first hazy body with ground was seed 98, it had been inside the first 60); GEN.1732 (the photochemical loss of ammonia and methane) moved them again: under 1 percent of the bodies of this sweep are hazy with ground (0 of the first 200 seeds, 5 of seeds 200 to 799). GEN.1780: the table no longer warms the ground with the haze, so the first one that settles (seed 106, inside the loss's ramp) is the body of the test
         planet, captured = _generate(seed)
         # TEST.778: an air that did not settle (`Air.converged` False, a knee, GEN.1344) has no fixed point to compare: its haze switches on and off between two answers and the
         # stored air is their mean, so the replay with the haze is not "the same air". GEN.1754 moved the water of rocky bodies and with it the first hazy body with ground
         # (seed 98 to seed 15, a 257 K body whose haze switches at a temperature, GEN.1344's knee); the test speaks of airs that settle.
-        if planet.tau_haze and planet.tau_haze >= 1.0 and planet_type.has_ground(planet) and captured["air"].converged and not captured["air"].knee and _same_world(*(replays := _replays(captured))):
+        if planet.tau_haze and planet.tau_haze >= 1.0 and planet_type.has_ground(planet) and captured["air"].converged and not captured["air"].knee and (replays := _replays(captured)) and replays[0].converged and replays[1].converged:
             return planet, captured, replays
     pytest.fail("no body with ground of the first 400 seeds has a haze")
 
