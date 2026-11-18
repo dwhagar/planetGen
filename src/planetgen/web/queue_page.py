@@ -496,12 +496,8 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = history_table = None
-    workers = warm = beating = tuning = supervisor = waiting = None
+    warm = beating = tuning = supervisor = waiting = None
     try:
-        try:
-            workers = apiclient.admin_work_workers(cookie_header)
-        except apiclient.ApiError:
-            workers = None                      # Redis down: the page says so below; the rest still loads
         try:
             beating = _beating_view(apiclient.admin_work_jobs(cookie_header))
         except apiclient.ApiError:
@@ -537,7 +533,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, history_table=history_table, workers=workers, beating=beating, tuning=tuning, supervisor=supervisor, why_waiting=waiting,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, history_table=history_table, beating=beating, tuning=tuning, supervisor=supervisor, why_waiting=waiting,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
@@ -909,16 +905,6 @@ def admin_queue_action():
             cleared = apiclient.admin_work_clear_finished(cookie_header)
             message = f"Cleared {cleared} finished {'run' if cleared == 1 else 'runs'}." if cleared \
                 else "There were no finished runs to clear."
-        elif action in ("workers-set", "workers-ludicrous"):
-            try:
-                count = int(request.form.get("count") or "") if action == "workers-set" else None
-            except ValueError:
-                count = 0
-            if action == "workers-set" and count < 1:
-                error = "The worker count is a whole number of at least 1."
-            else:
-                state = apiclient.admin_work_workers(cookie_header, count=count, ludicrous=action == "workers-ludicrous")
-                message = f"The bulk queue now asks for {state['wanted']} {'worker' if state['wanted'] == 1 else 'workers'}."
         elif action in ("tuning-pin", "tuning-unpin", "tuning-clear"):
             kind = (request.form.get("kind") or "").strip()
             try:

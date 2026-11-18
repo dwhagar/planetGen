@@ -10,8 +10,7 @@ many there are, and how a running job is stopped. Section 5.4 of docs/design/ope
   `IDLE_SECONDS` before it exits. Nothing runs when there is no work, and no service has to be installed.
 * OPS.235: nothing starts RQ workers for a run or the maintenance lane any more (`ensure_workers`, `start_workers` and the supervisor's `WorkerStarts` are gone: the launcher forks each unit); the
   Generate page's job still starts its own worker until OPS.244 moves it to the ledger.
-* `set_wanted` (ADM.15) changes the count; lowering it tells the extra bulk workers to finish their unit and
-  exit. "Ludicrous Speed" is a number (`ludicrous_count`), not a mode.
+* OPS.235 slice 1c: the admin's worker count (`wanted`, `set_wanted`, "Ludicrous Speed", ADM.15) is gone with the Queue page's Workers panel; the launcher sizes every stage by memory (`stage_worker_cap`) and the gate.
 * `cancel_now` stops a job at once: a waiting one is canceled, a running one gets RQ's stop command.
 * `reap_dead_jobs` clears the jobs a killed worker left "running" in Redis: the web queues' jobs have no time
   limit, so RQ never gives them up.
@@ -27,9 +26,6 @@ from rq import command, worker_registration
 from planetgen.queue import redisqueue, work
 from planetgen.util import log
 from planetgen.util import process
-
-WANTED_KEY = "planetgen:workers:wanted"
-"""str: The admin's worker count for the bulk queue, a number in Redis (no expiry)."""
 
 WORKER_COMMAND = "planetgen.cli.worker"
 """str: What every planetgen worker process has in its command line."""
@@ -92,27 +88,8 @@ REFUSED_KEY = "planetgen:workers:refused"
 IDLE_SECONDS = 60
 """int: How long a worker waits for work before it exits (about 60 s covers every stage barrier)."""
 
-LUDICROUS_SHARE = 0.95
-"""float: The share of the host's cores "Ludicrous Speed" aims at (ADM.15)."""
-
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 """str: The planetGen checkout, where workers start."""
-
-
-def ludicrous_count():
-    """The worker count that aims at `LUDICROUS_SHARE` of the host's cores, whether or not MySQL runs here."""
-    return max(1, int(LUDICROUS_SHARE * work.cpu_count()))
-
-
-def wanted(connection, mysql_host=None):
-    """The bulk worker count: the admin's (`set_wanted`), else `work.worker_count()`."""
-    value = connection.get(WANTED_KEY)
-    if value is not None:
-        try:
-            return max(1, int(value))
-        except ValueError:
-            pass
-    return work.worker_count(mysql_host=mysql_host)
 
 
 process_exists = process.pid_alive
@@ -224,23 +201,6 @@ def host_worker_processes():
     except (OSError, subprocess.SubprocessError):
         return 0
     return count_worker_processes(listing)
-
-
-def set_wanted(connection, count):
-    """
-    Sets the bulk worker count (ADM.15) and, when it went down, asks the extra bulk workers to finish their
-    current unit and exit (RQ's shutdown command). Returns the count stored.
-
-    Raises:
-        ValueError: `count` is not a whole number of at least 1.
-    """
-    if isinstance(count, bool) or not isinstance(count, int) or count < 1:
-        raise ValueError("the worker count is a whole number of at least 1")
-    connection.set(WANTED_KEY, count)
-    extra = live_workers(redisqueue.queue(redisqueue.BULK_QUEUE, connection))[count:]
-    for worker in extra:
-        command.send_shutdown_command(connection, worker.name)
-    return count
 
 
 def cancel_now(job_id, connection=None, serializer=None):

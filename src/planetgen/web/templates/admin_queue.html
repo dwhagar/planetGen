@@ -15,19 +15,6 @@
     <div class="stat-tile"><span class="stat-value">{{ queue.load }}</span><span class="stat-label">{{ queue.load_label }}</span></div>
     <div class="stat-tile"><span class="stat-value">{{ queue.runs_active }} {{ 'run' if queue.runs_active == 1 else 'runs' }}</span><span class="stat-label">Runs live</span></div>
   </div>
-  {%- if workers %}
-  <h3>Workers</h3>
-  <p>The bulk queue asks for <strong>{{ workers.wanted }}</strong> {{ 'worker' if workers.wanted == 1 else 'workers' }}; {{ workers.live }} running now. Workers start when work is queued and exit after a minute without any; lowering the count lets the extra ones finish their unit first.</p>
-  {%- if workers.host_cap is defined %}
-  <p>Most worker processes this host allows at once, every queue together: <strong>{{ workers.host_cap }}</strong> ({{ workers.host_running }} running). A start past it is refused{% if workers.host_refused %}; {{ workers.host_refused }} {{ 'was' if workers.host_refused == 1 else 'were' }} refused in the last hour{% endif %}. The setting is <code>queue.max_host_workers</code>; 0 sizes it from the memory and cores.</p>
-  {%- endif %}
-  <form method="post" action="{{ url_for('web.admin_queue_action') }}" class="table-form">
-    {{ csrf_field() }}
-    {{ ui_input("count", "Workers", workers.wanted, type="number", min=1) }}
-    <button type="submit" name="action" value="workers-set" class="btn btn-secondary">Set</button>
-    <button type="submit" name="action" value="workers-ludicrous" class="btn btn-danger">Ludicrous Speed ({{ workers.ludicrous }} of {{ workers.cpus }} cores)</button>
-  </form>
-  {%- endif %}
   {%- if stopped.stopped %}
   <p class="error"><strong>Everything is stopped</strong>{% if stopped.by %} by {{ stopped.by }}{% endif %}{% if stopped.at %} since {{ utc_time(stopped.at) }}{% endif %}: nothing starts, not a run, a job, a worker, or the map's background work, until you resume.</p>
   <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume-all') }}">Resume</a></p>
