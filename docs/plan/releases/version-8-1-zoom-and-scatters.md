@@ -614,5 +614,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | OPS.272 | A derived-only epoch refills stored values by a job | none | Lane 13, 2026-11-17 |
 | MAP.431 | Map tiles survive a derived-only epoch | none | Lane 16, 2026-11-17 |
 | OPS.273 | Rogue planets do not move after a database reset | none | Lane 13, 2026-11-17 |
+| OPS.274 | Resume and finish tests follow the hold-and-continue rule | none | Lane 13, 2026-11-18 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
 | PERF.280 | Stage 9 skips or batches near-empty sky cells | none | Lane 07, 2026-11-17 |
