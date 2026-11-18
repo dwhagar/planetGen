@@ -333,7 +333,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         return result
 
     monkeypatch.setattr(sa, "solve", recording_solve)
-    bodies = skipped = 0
+    bodies = skipped = held_cool = 0
     for body in _generated(range(10)):
         air = atmosphere.gas_partials_pa(body)
         if not air or body.atmosphere == "None":
@@ -366,12 +366,19 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             assert body.surface_temperature == pytest.approx(warming.surface_temperature_k, rel=5e-3)
             continue
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
+        if warming.surface_temperature_k > body.surface_temperature * (1.0 + 1e-6) and body.surface_temperature == pytest.approx(sa.moist_limit.limit_k(air, gravity), rel=1e-9):
+            # GEN.1579: a surface held at the hottest a moist state of its air can have (a 500 bar steam and oxygen air that GEN.1558 no longer caps to 10 kPa): the air asks for more than the hold
+            # gives, so its warming is not the stored temperature's; the stored G is the one at the held temperature, `T_e (1 + G)^(1/4)`
+            held_cool += 1
+            assert body.greenhouse_factor == pytest.approx((body.surface_temperature / warming.effective_temperature_k) ** 4 - 1.0, rel=1.5e-2)
+            continue
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=2e-3)       # a thin cold air's G of a few 1e-4 moves T by under 0.05 percent and cannot be read back from the stored haze closer than that
     assert bodies > 5
     # the unsettled airs are few: more would mean the fixed point stopped settling, not that the test cannot read them (GEN.1555). The share is a property of the solver, not of one sample:
     # over seeds 10 to 59 it was 10 of 132 airs on main and 8 of 129 on Train 24 (GEN.993, near water's boiling point a world swung between a cool air and a steam one, GEN.1344), which is why
     # the bound was a fifth; after the solver work of GEN.1716, GEN.1718 and GEN.1646 it is 0 of 35 on this sample (Train 36 head), so the bound is a twentieth, one air of 35
     assert skipped <= max(1, bodies // 20)
+    assert held_cool <= max(1, bodies // 10)        # a held surface is the exception (the air asks for more than a moist state can have), not the rule
 
 
 def _first_air_of(key, monkeypatch):
