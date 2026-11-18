@@ -130,6 +130,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [sampling-backfill-and-resume.md](generation/sampling-backfill-and-resume.md) | Sampling, backfill, void filling, resumable runs and directives | research (resume on hold, PERF.86) |
 | [void-fill-census.md](generation/void-fill-census.md) | GEN.102 again on the spherical grid: the sparse cells, the halo beyond the outline, the recommendation | research |
 | [placement-by-population.md](generation/placement-by-population.md) | GEN.103: where each kind is placed by population, and the three type-draw rules still to build | design |
+| [gas-disk-edge.md](generation/gas-disk-edge.md) | GEN.1520: where a star's gas disk ends, by the star's mass, and what that moves | design |
 | [mass-backfill.md](generation/mass-backfill.md) | Four rings of heavier stars around generated sectors | built |
 | [reproducible-galaxies.md](generation/reproducible-galaxies.md) | Seeds, version keys and repair | partly built |
 | [generation-determinism.md](generation/generation-determinism.md) | What makes a seed rebuild the same galaxy; fingerprints and epochs | research |

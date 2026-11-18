@@ -329,9 +329,8 @@ Each worker generates a whole sector and saves it in one transaction;
 the run prints each sector as it's saved, so sectors can finish out of
 order. `--workers N` sets the count (`PLANETGEN_WORKERS` does the same for
 every run), and `--workers 1` generates one sector at a time in the run's
-own process, as before. The workers are RQ workers on the Redis server
-at `redis.url` ([config.md](config.md)), started by the run for its own
-tasks and gone when it finishes. Without a Redis server the run says so
+own process, as before. The workers are jobs the supervisor's launcher forks, one process each, with the Redis server
+at `redis.url` ([config.md](config.md)) holding the run's record, and gone when the run finishes. Without a Redis server the run says so
 and generates one sector at a time. A task whose worker dies (killed, out
 of memory) runs once more on a fresh worker before the run fails. On a 4-core machine with MySQL local, 60 sectors
 of one ring of the old cylindrical grid took 16.5 s on one worker and 9.8 s on the default two (the grid has since changed; the speed per sector has not been measured again).
@@ -760,18 +759,18 @@ The warm-up runs in five phases (PERF.141): `opening` (`object-index`, `galaxy-m
 
 ## Helper tools
 
-Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `planetgen warm`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `forget_devices`, `reset_two_factor` and `accounts` take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `worker`, `config`, `lockouts` and `lift_lockout` take no database options. `orbits` and `query` also take `--version`.
+Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `planetgen warm`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `forget_devices`, `reset_two_factor` and `accounts` take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `config`, `lockouts`, `lift_lockout` and `pressure` take no database options (`pressure` reads the control database the site is configured with). `orbits` and `query` also take `--version`.
 
 | Command | What it is for |
 |---|---|
 | `python3 -m planetgen.cli.orbits` | Moves every object that is due along its orbit. |
 | `python3 -m planetgen.cli.tiles` | Builds every node of the whole Galaxy Map into a new cache and swaps it in. |
-| `python3 -m planetgen.cli.worker` | Runs one queue worker. |
 | `python3 -m planetgen.cli.query` | Lists what is stored. |
 | `python3 -m planetgen.cli.migrate` | Brings the database up to the current schema. |
 | `python3 -m planetgen.cli.datasets` | Downloads the static data the generator reads (isochrone grids and the like) or says where each set stands. |
 | `python3 -m planetgen.cli.reset` | Empties the galaxy. |
 | `python3 -m planetgen.cli.lockouts` | Lists the login lockouts. |
+| `python3 -m planetgen.cli.pressure report` | Says what the memory controller's record of the host's pressure holds and the edges it gives. |
 | `python3 -m planetgen.cli.lift_lockout` | Lifts a login lockout. |
 | `python3 -m planetgen.cli.forget_devices` | Revokes an admin's trusted-device cookies. |
 | `python3 -m planetgen.cli.reset_two_factor` | Turns off an admin's two-factor sign-in. |
@@ -793,20 +792,6 @@ The positional update. Each planet, moon, star, binary pair, comet, facility and
 
 ```bash
 python3 -m planetgen.cli.orbits
-```
-
-### worker
-
-One RQ worker, at the lowered priority generation workers run at. Only the Generate page's job starts one itself (OPS.235: a run's units and the maintenance lane are forked by the supervisor's launcher, and nothing starts RQ workers for them); run one by hand only to watch one. Redis is read from `--url`, else `PLANETGEN_REDIS_URL`, else `redis.url` in `config.json`.
-
-*   `QUEUE ...`: the queues to serve, first one first (default: the bulk queue). A worker serves one kind of queue, the web queues or a run's own, never both. The site keeps lanes of its own: `planetgen-bulk` (a run's units, up to the admin's worker count) and `planetgen-maintenance` (the units of the cache warm-up and the database check, and the tile prefetch and rebuild: while a generation run is live `queue.maintenance_workers` workers, taken out of the admin's worker count, with a generation worker finishing its unit and leaving when the lane needs its place; with no generation run live the whole count; PERF.150). The site's short and long API jobs are not on a queue any more (OPS.230): the supervisor forks each as a light job (`queue/lightjobs.py`) on the interactive lane, or the long lane for a job expected to take longer than `queue.long_job_seconds` (a neighbourhood or a large settle), with the places `queue.interactive_workers` and `queue.long_workers` kept for them against the other lanes (PERF.151).
-*   `--burst`: exit once the queues are empty.
-*   `--idle-seconds <int>`: exit after this long without work (default 60; ignored with `--burst`).
-*   `--name <name>`: the worker's name (default: RQ picks one).
-*   `--url <redis-url>`: the Redis server.
-
-```bash
-python3 -m planetgen.cli.worker --burst
 ```
 
 ### query
@@ -854,6 +839,14 @@ For an admin locked out of the site. It lists what is locked and does nothing el
 
 ```bash
 python3 -m planetgen.cli.lockouts
+```
+
+### pressure
+
+`report` reads the record the job engine's memory controller keeps of the host while a supervisor runs (OPS.249: one row a minute in the control database's `pressure_minutes`, with the slowest probe of the database in that minute, and the ledger's memory kills beside it). It says how many minutes the record holds and over how long (hours, minutes and seconds), how many memory kills no pressed reading came before and how many holds were not needed (the numbers the learning of the edges needs: three kills, or eight holds with four in five not needed and no kill), how many minutes carry a probe of the database, and the edges the record gives now. `--csv FILE` also writes every recorded minute of the last fourteen days to `FILE` and the times of the kills to `FILE` with `-kills` before its extension, so a gate or a trial run can keep its record beside its results. It only reads.
+
+```bash
+python3 -m planetgen.cli.pressure report --csv pressure-gate.csv
 ```
 
 ### lift_lockout
@@ -924,7 +917,7 @@ Not built yet. Each names its TODO item and phase; the design is in
 | `planetgen repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
 | `--resume` | PERF.30 | 1 | Finish the runs an interrupted fill left, from the step each reached. |
 
-Work runs as RQ jobs on Redis from phase 0 (PERF.24), so `--workers` sets the RQ worker count.
+Work runs as jobs of the job ledger the supervisor forks (PERF.24; OPS.235: RQ is gone), so `--workers` sets how many run at once.
 
 Phase 2 also adds a daily maintenance run, `scripts/maintenance.sh`, set up as a
 scheduled job by install and update (OPS.16, OPS.17): the positional

@@ -712,6 +712,47 @@ def population_densities_array(x, y, z, shape):
     return densities
 
 
+def population_bounds_array(r_cyl, z, shape):
+    """
+    The most each population's density can be at cylindrical radius `r_cyl` and height `z` (arrays, or one of them), whatever the azimuth (PERF.280): `population_densities` at its largest over the angle, one number per
+    population, so a band of cells at that radius and height holds no cell denser in any population. The thin disk is shared among its populations by weights whose share of the whole is monotone in the arm
+    cosine, so each population's share is largest at one end of it (arm crest or midway between arms) and the disk's own density is largest on a crest: the product of the two largest is a bound, tight where it
+    matters (the young stars, whose share and the disk both peak on a crest). The thick disk adds to the old stars, the bulge peaks along the bar's long axis (`bulge_bound`), the nuclear terms and the halo depend on
+    the radius and height alone, and a core ring's young field stars are the nuclear disk's own (GEN.282), so the young bound carries the nuclear disk's whole density on top.
+
+    Returns:
+        dict: Population (`young`, `intermediate`, `old`, `bulge`, `halo`, `nuclear_cluster`, `nuclear_disk`) -> array of the most its density can be, normalized as `population_densities` is.
+    """
+    terms = model_terms(shape)
+    r_cyl = np.asarray(r_cyl, dtype=float)
+    thin = np.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical_any(z, shape.disk_scale_height_pc)
+    disk_top = np.maximum(shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude), 0.0)
+    recent = starFormation.recent_factor(r_cyl, shape)
+    largest = {}
+    for arm_cos in (-1.0, 1.0):
+        weights = _disk_weights(z, arm_cos, recent, shape)
+        total = sum(weights.values())
+        empty = total <= 0.0            # every profile underflowed: the thickest (old) disk is all that's left
+        if np.any(empty):
+            weights = {name: np.where(empty, 1.0 if name == "old" else 0.0, weight) for name, weight in weights.items()}
+            total = np.where(empty, 1.0, total)
+        for name, weight in weights.items():
+            largest[name] = np.maximum(largest[name], weight / total) if name in largest else weight / total
+    bounds = {name: disk_top * share for name, share in largest.items()}
+    thick = (terms["thick_disk_amplitude"] * np.exp(-r_cyl / terms["thick_disk_scale_length_pc"])
+             * _vertical_any(z, terms["thick_disk_scale_height_pc"]))
+    bounds["old"] = bounds["old"] + np.maximum(shape.k_norm * thick, 0.0)
+    along = r_cyl / shape.bulge_scale_radius_pc
+    up = z / terms["bulge_scale_z_pc"]
+    bounds["bulge"] = np.maximum(shape.k_norm * shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(along ** 4 + up ** 4)), 0.0)
+    bounds["halo"] = np.maximum(shape.k_norm * _halo(r_cyl, z, halo_terms(shape)), 0.0)
+    bounds["nuclear_cluster"] = np.maximum(shape.k_norm * _nuclear_cluster_array(np.sqrt(r_cyl ** 2 + np.square(z)), terms), 0.0)
+    bounds["nuclear_disk"] = np.maximum(shape.k_norm * _nuclear_disk_array(r_cyl, z, terms), 0.0)
+    if coreGas.core_gas(shape).young_density:
+        bounds["young"] = bounds["young"] + bounds["nuclear_disk"]
+    return bounds
+
+
 def integrated_masses(shape, steps=40):
     """
     Each component's share of the model's stars, by integrating its

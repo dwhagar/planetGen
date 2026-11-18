@@ -440,7 +440,6 @@ The command-line tools, each run as `python3 -m planetgen.cli.<name>` (the gener
 | [`stage_progress.py`](../../../src/planetgen/cli/stage_progress.py) | The progress bar of the maintenance commands: one bar over the command's steps and a second over the items inside the current step. |
 | [`version_history.py`](../../../src/planetgen/cli/version_history.py) | Records the version key every galaxy database was updated under (OPS.13); `planetgen versions` lists it. |
 | [`warm.py`](../../../src/planetgen/cli/warm.py) | `planetgen warm` (PERF.127): builds the list of the cache-warming commands (one per family) for the wrapper to run, so the first visitor after a release (or after the cache was cleared) isn't the one who waits for the Galaxy Map, the lists, the pages and the search. |
-| [`worker.py`](../../../src/planetgen/cli/worker.py) | One RQ worker for planetGen's queues, at the lowered priority generation workers always run at. |
 
 #### src/planetgen/api/
 

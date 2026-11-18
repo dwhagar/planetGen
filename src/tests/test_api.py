@@ -1483,8 +1483,9 @@ def test_a_new_node_format_or_a_scatter_drawn_again_makes_every_node_stale(clien
     if what == "node_format":
         monkeypatch.setattr(query, "TILE_FORMAT", query.TILE_FORMAT + 1)
     else:
-        newer = generator_epoch.generator_epoch() + 1
-        monkeypatch.setattr(generator_epoch, "generator_epoch", lambda: newer)
+        # MAP.431: a scatter counts as another one when an epoch that changed the scatter came since, so the new epoch names it.
+        history = generator_epoch.epoch_history() + ({"epoch": generator_epoch.generator_epoch() + 1, "first_release": None, "reason": "t", "affects": ["scatter"]},)
+        monkeypatch.setattr(generator_epoch, "epoch_history", lambda: history)
         conn = _db.get_connection(mysql_config)
         try:
             _db.record_scatter_epoch(conn, "mass")

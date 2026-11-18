@@ -17,9 +17,7 @@ measured) rather than only their happy path through a subprocess:
 """
 
 import json
-import os
 import re
-import signal
 import sys
 import threading
 import time
@@ -35,6 +33,7 @@ from planetgen.cli import orbits
 from planetgen.db import store
 from planetgen.admin import auth
 from tests.bughunt_support import mysql_argv, run_cli
+from tests import page_jobs
 from tests.conftest import _test_server_kwargs
 
 PY = sys.executable
@@ -42,144 +41,140 @@ PY = sys.executable
 
 # --- jobRunner -----------------------------------------------------------------
 
-@pytest.fixture
-def restore_signals():
-    saved = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT)}
-    yield
-    for sig, handler in saved.items():
-        signal.signal(sig, handler)
-
-
-def _hold(job_id):
-    """The job lock (kept in Redis, `jobs.release_lock`) names `job_id`."""
-    from planetgen.queue import redisqueue
-    from planetgen.web import jobs
-    jobs._write_lock(redisqueue.connect(), job_id)
-
-
 def _holder():
     from planetgen.queue import redisqueue
     from planetgen.web import jobs
     return jobs._read_lock(redisqueue.connect())
 
 
-def _make_job(tmp_path, steps, job_id="job1", lock_holder="job1", env=None):
-    job_dir = tmp_path / job_id
-    job_dir.mkdir()
-    job = {"id": job_id, "steps": steps, "cwd": str(tmp_path)}
-    if env is not None:
-        job["env"] = env
-    (job_dir / "job.json").write_text(json.dumps(job))
-    if lock_holder is not None:
-        _hold(lock_holder)
-    return job_dir
+@pytest.fixture
+def jobs_folder(tmp_path, monkeypatch):
+    monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path))
+    page_jobs.forget_all_jobs()
+    yield tmp_path
+    page_jobs.forget_all_jobs()
 
 
-def _state(job_dir):
-    return json.loads((job_dir / "state.json").read_text())
+def _start(tmp_path, steps, database=None):
+    from planetgen.web import jobs
+    return jobs.start_job("galaxy", "A job", steps, database=database, root=str(tmp_path), spawn=False)
+
+
+def _read(job_id):
+    from planetgen.queue import pagerun
+    with page_jobs.ledger_rows() as control:
+        return pagerun.read(control, job_id)
 
 
 def _step(label, code):
     return {"label": label, "argv": [PY, "-c", code]}
 
 
-def test_job_runs_every_step_in_order_and_succeeds(tmp_path, restore_signals):
-    job_dir = _make_job(tmp_path, [
+def test_job_runs_every_step_in_order_and_succeeds(jobs_folder):
+    job_dir = jobs_folder
+    job_id = _start(job_dir, [
         _step("one", "print('first')"),
         _step("two", "import os; print(os.environ['PLANETGEN_PROGRESS_FILE'].endswith('progress.json'))"),
     ])
-    assert jobRunner.run(str(job_dir)) == 0
-    state = _state(job_dir)
-    assert state["status"] == "succeeded"
-    assert state["step"] == 2 and state["exit_code"] == 0 and state["error"] is None
-    assert state["finished_at"] >= state["started_at"]
-    log = (job_dir / "output.log").read_text()
+    assert page_jobs.run_to_end(job_id) == 0
+    job = _read(job_id)
+    assert job["status"] == "succeeded"
+    assert job["step"] == 2 and job["error"] is None
+    assert job["finished_at"] >= job["started_at"]
+    log = (job_dir / job_id / "output.log").read_text()
     assert log.index("first") < log.index("Stage 2 of 2: two") < log.index("True")
     assert _holder() is None
 
 
-def test_job_stops_at_the_first_failing_step(tmp_path, restore_signals):
-    job_dir = _make_job(tmp_path, [
+def test_job_stops_at_the_first_failing_step(jobs_folder):
+    job_id = _start(jobs_folder, [
         _step("ok", "pass"),
         _step("boom", "import sys; sys.exit(3)"),
-        _step("never", "open('ran', 'w').write('x')"),
+        _step("never", f"open({str(jobs_folder / 'ran')!r}, 'w').write('x')"),
     ])
-    assert jobRunner.run(str(job_dir)) == 1
-    state = _state(job_dir)
-    assert state["status"] == "failed" and state["step"] == 2 and state["exit_code"] == 3
-    assert "boom" in state["error"] and "3" in state["error"]
-    assert not (tmp_path / "ran").exists()
+    assert page_jobs.run_to_end(job_id) == 1
+    job = _read(job_id)
+    assert job["status"] == "failed" and job["step"] == 2
+    assert "boom" in job["error"] and "3" in job["error"]
+    assert not (jobs_folder / "ran").exists()
 
 
-def test_a_missing_program_fails_the_job_instead_of_crashing(tmp_path, restore_signals):
-    job_dir = _make_job(tmp_path, [{"label": "ghost", "argv": [str(tmp_path / "no-such-program")]}])
-    assert jobRunner.run(str(job_dir)) == 1
-    state = _state(job_dir)
-    assert state["status"] == "failed"
-    assert state["error"].startswith("The job runner failed:")
+def test_a_missing_program_fails_the_job_instead_of_crashing(jobs_folder):
+    job_id = _start(jobs_folder, [{"label": "ghost", "argv": [str(jobs_folder / "no-such-program")]}])
+    assert page_jobs.run_to_end(job_id) == 1
+    job = _read(job_id)
+    assert job["status"] == "failed"
+    assert job["error"].startswith("The job runner failed:")
     assert _holder() is None
 
 
-def test_a_malformed_step_is_recorded_as_a_failure(tmp_path, restore_signals):
-    job_dir = _make_job(tmp_path, [{"label": "no argv"}])
-    assert jobRunner.run(str(job_dir)) == 1
-    assert _state(job_dir)["status"] == "failed"
+def test_a_malformed_step_is_recorded_as_a_failure(jobs_folder):
+    from planetgen.queue import pagerun
+    job_id = _start(jobs_folder, [_step("one", "pass")])
+    with page_jobs.ledger_rows() as control:
+        control.execute("UPDATE engine_jobs SET arguments = ? WHERE run_id = ? AND command = ?", (json.dumps({"label": "no argv"}), pagerun.run_of(control, job_id), pagerun.STEP))
+        control.commit()
+    assert page_jobs.run_to_end(job_id) == 1
+    assert _read(job_id)["status"] == "failed"
 
 
-def test_an_empty_job_succeeds_without_running_anything(tmp_path, restore_signals):
-    job_dir = _make_job(tmp_path, [])
-    assert jobRunner.run(str(job_dir)) == 0
-    state = _state(job_dir)
-    assert state["status"] == "succeeded" and state["step"] == 0
+def test_an_empty_job_succeeds_without_running_anything(jobs_folder):
+    job_id = _start(jobs_folder, [])
+    assert page_jobs.run_to_end(job_id) == 0
+    job = _read(job_id)
+    assert job["status"] == "succeeded" and job["step"] == 0
 
 
-def test_job_env_reaches_the_steps_and_cannot_undo_the_progress_file(tmp_path, restore_signals):
-    job_dir = _make_job(
-        tmp_path,
-        [_step("env", "import os; print(os.environ['EXTRA'], os.environ['PLANETGEN_PROGRESS_FILE'])")],
-        env={"EXTRA": "hello", "PLANETGEN_PROGRESS_FILE": "/elsewhere"},
-    )
-    assert jobRunner.run(str(job_dir)) == 0
-    log = (job_dir / "output.log").read_text()
-    assert "hello" in log and str(job_dir / "progress.json") in log
+def test_the_steps_get_the_progress_file_and_the_job_and_the_database_of_the_site(jobs_folder):
+    job_id = _start(jobs_folder, [_step("env", "import os; print(os.environ['PLANETGEN_JOB_ID'], os.environ['PLANETGEN_PROGRESS_FILE'], os.environ['PLANETGEN_MYSQL_DATABASE'])")], database="planetgen_edge_test")
+    assert page_jobs.run_to_end(job_id) == 0
+    log = (jobs_folder / job_id / "output.log").read_text()
+    assert job_id in log and str(jobs_folder / job_id / "progress.json") in log and "planetgen_edge_test" in log
 
 
-def test_the_lock_is_left_alone_when_another_job_holds_it(tmp_path, restore_signals):
-    job_dir = _make_job(tmp_path, [_step("ok", "pass")], lock_holder="someone-else")
-    assert jobRunner.run(str(job_dir)) == 0
+def test_the_lock_is_left_alone_when_another_job_holds_it(jobs_folder):
+    from planetgen.queue import redisqueue
+    from planetgen.web import jobs
+    job_id = _start(jobs_folder, [_step("ok", "pass")])
+    jobs.release_lock(job_id)
+    jobs._write_lock(redisqueue.connect(), "someone-else")
+    assert page_jobs.run_to_end(job_id) == 0
     assert _holder() == "someone-else"
+    jobs.release_lock("someone-else")
 
 
-def test_a_missing_lock_is_not_an_error(tmp_path, restore_signals):
-    job_dir = _make_job(tmp_path, [_step("ok", "pass")], lock_holder=None)
-    assert jobRunner.run(str(job_dir)) == 0
+def test_a_missing_lock_is_not_an_error(jobs_folder):
+    from planetgen.web import jobs
+    job_id = _start(jobs_folder, [_step("ok", "pass")])
+    jobs.release_lock(job_id)
+    assert page_jobs.run_to_end(job_id) == 0
 
 
-def test_cancel_stops_the_running_step_and_skips_the_rest(tmp_path, restore_signals):
-    job_dir = _make_job(tmp_path, [
-        _step("slow", "import time; open('started', 'w').close(); time.sleep(60)"),
-        _step("never", "open('ran', 'w').write('x')"),
+def test_cancel_stops_the_running_step_and_skips_the_rest(jobs_folder):
+    from planetgen.web import jobs
+    job_id = _start(jobs_folder, [
+        _step("slow", f"import time; open({str(jobs_folder / 'started')!r}, 'w').close(); time.sleep(60)"),
+        _step("never", f"open({str(jobs_folder / 'ran')!r}, 'w').write('x')"),
     ])
 
     def cancel_once_started():
         deadline = time.time() + 30
-        while not (tmp_path / "started").exists() and time.time() < deadline:
+        while not (jobs_folder / "started").exists() and time.time() < deadline:
             time.sleep(0.05)
-        os.kill(os.getpid(), signal.SIGTERM)
+        jobs.cancel_job(job_id, who="boss")
 
     threading.Thread(target=cancel_once_started, daemon=True).start()
     started = time.time()
-    assert jobRunner.run(str(job_dir)) == 1
+    assert page_jobs.run_to_end(job_id) == 1
     assert time.time() - started < 30
-    state = _state(job_dir)
-    assert state["status"] == "canceled" and state["error"] == "Canceled by an admin."
-    assert not (tmp_path / "ran").exists()
+    assert _read(job_id)["status"] == "canceled"
+    assert not (jobs_folder / "ran").exists()
+    assert _holder() is None
 
 
-def test_a_job_directory_without_job_json_raises(tmp_path, restore_signals):
-    (tmp_path / "empty").mkdir()
-    with pytest.raises(FileNotFoundError):
-        jobRunner.run(str(tmp_path / "empty"))
+def test_a_job_the_ledger_does_not_know_raises(jobs_folder):
+    with pytest.raises(LookupError):
+        page_jobs.run_to_end("no-such-job")
 
 
 def test_write_json_is_atomic_and_leaves_no_temp_files(tmp_path):

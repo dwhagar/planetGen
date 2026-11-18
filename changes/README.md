@@ -88,7 +88,7 @@ of them:
 
 **A lane's note on a merge train says which stages its change alters** (Boss, 2026-11-08: every train had claimed all four
 stages, so each one redrew the scatters and the block lights). Put a line `generation-affects: fill` (or `scatter, fill`, any
-of `plan`, `scatter`, `fill`, `population`; `none` when the change alters no generated output) in the note. The train runner
+of `plan`, `scatter`, `fill`, `population`, `derived` (a pure function of stored values: a rule, a text, the ledger; refilled by a job, not regenerated); `none` when the change alters no generated output) in the note. The train runner
 (`python scripts/train.py golden`, with no `--affects`) takes the union of the lines of the notes the train adds
 (`python scripts/train.py affects` prints it). A note with no such line counts as every stage and is named, so a lane that forgets
 costs the train a wider epoch, never a wrong one. A wrong line fails the note check.

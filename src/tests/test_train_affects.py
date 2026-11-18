@@ -56,7 +56,7 @@ def test_the_union_of_the_declared_stages_is_the_epochs():
 def test_a_note_with_no_line_counts_as_every_stage_and_is_named():
     notes = {"a.patch.md": NOTE + "generation-affects: fill\n", "b.patch.md": NOTE}
     stages, undeclared, problems = train.stages_of_notes(notes)
-    assert stages == ("plan", "scatter", "fill", "population") and undeclared == ["b.patch.md"] and problems == []
+    assert stages == ("plan", "scatter", "fill", "population", "derived") and undeclared == ["b.patch.md"] and problems == []
 
 
 def test_a_wrong_line_is_reported_and_does_not_widen_the_epoch():

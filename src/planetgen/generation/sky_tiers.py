@@ -88,13 +88,18 @@ def cells_in_sphere(radius_pc, edge_pc):
     return 4.0 / 3.0 * math.pi * radius_pc ** 3 / edge_pc ** 3
 
 
+COST_BLOCK_CELLS = 256
+"""int: The cells to a block in the cost of a luminosity band's sphere (`block_visits`): the 256 wedges a block of the draw held until PERF.280 made the draw one a row. Kept as the cost model's own number so
+the visit budget (`VISIT_BUDGET`, a stand-in) and the table it cuts do not move with the draw; the walk is cheaper than this costs it. (a stand-in of the cost model, not a physical quantity)"""
+
+
 def block_visits(radius_pc, edge_pc):
     """
     The visits the sphere draw makes over a sphere of `radius_pc`: one to each row it crosses and one to each block of `BLOCK_WEDGES` cells. The rows are
     the sphere's cross section in edges, pi times the radius in edges squared (counted in `spherical.sphere_rows` for spheres of 60 to 1,000 pc: 701 to
     196,345 rows, within 1 percent), and the blocks are the sphere's cells over `BLOCK_WEDGES`, since a row's window is long once the sphere is wide.
     """
-    return math.pi * (radius_pc / edge_pc) ** 2 + cells_in_sphere(radius_pc, edge_pc) / bright_stars.BLOCK_WEDGES
+    return math.pi * (radius_pc / edge_pc) ** 2 + cells_in_sphere(radius_pc, edge_pc) / COST_BLOCK_CELLS
 
 
 def visits(tiers):

@@ -2,7 +2,6 @@
 failed ends its job as the engine says. Real MySQL, Redis and processes."""
 
 import pytest
-import rq
 
 from planetgen.queue import allowlist, jobhost, memorygate, redisqueue, runrecord, units, workers
 from planetgen.cli import reset as reset_cli
@@ -154,3 +153,14 @@ def test_the_opening_job_runs_the_opening_and_says_how_it_went(monkeypatch, redi
     link = _Link()
     assert forkedjob.run({"opening": True, "run_id": "r1", "stage": 3, "redis_url": redis_server}, link) == template.EXIT_FAILED
     assert link.said == [{"event": "failed", "error": "ValueError: the cut broke"}]
+
+
+def test_a_page_step_job_runs_the_step_of_the_job_it_names_and_returns_its_code(monkeypatch):
+    from planetgen.queue import forkedjob
+    from planetgen.web import job_runner
+    seen = []
+    link = _Link()
+    monkeypatch.setattr(job_runner, "run_step", lambda spec, held: seen.append((spec, held)) or 1)
+    spec = {"page_step": True, "run": 5, "row": 9, "kind": "page-step", "retries_left": 0}
+    assert forkedjob.run(spec, link) == 1
+    assert seen == [(spec, link)]

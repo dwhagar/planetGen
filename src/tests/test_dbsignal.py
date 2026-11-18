@@ -90,6 +90,19 @@ def test_the_look_learns_each_probe_once_however_often_the_controller_looks():
     assert look.baseline.count == 2
 
 
+def test_the_look_tells_the_record_each_probe_it_judged_and_nothing_before_the_first():
+    clock, told = Clock(), []
+    prober = dbsignal.Prober(lambda: None, clock=clock)
+    look = dbsignal.Look(prober, record=lambda latency, calm: told.append((round(latency), round(calm))))
+    look()
+    assert told == [], "no probe yet"
+    prober.probe(Conn(clock, 0.004))
+    look()
+    prober.probe(Conn(clock, 0.040))
+    look()
+    assert told == [(4, 0), (40, 4)], "each probe with the calm figure it was judged against, before it taught it anything"
+
+
 def test_a_database_that_stops_answering_holds_admission_and_lets_go_when_it_answers_again():
     clock, wall = Clock(), Clock()
     prober = dbsignal.Prober(lambda: None, clock=clock)

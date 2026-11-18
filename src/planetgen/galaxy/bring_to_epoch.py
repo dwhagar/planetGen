@@ -24,6 +24,9 @@ Bringing a stored galaxy to the current generator epoch without a full regenerat
   of a phenomenon filed in it. An edit of something since deleted cannot be traced to its sector.
 - The species made under an older population epoch outside the sectors redone are made again (a species edited by hand,
   `tech_source = 'admin'`, is kept), then the population pass runs.
+- The derived stage (OPS.133, OPS.272) refills the stored values that are a pure function of stored ones (the habitability scores and the effect ledger)
+  of the systems whose stamp is not the running code's, by the same jobs `planetgen rescore-habitability` and `planetgen refill-effect-ledger` run. It never
+  generates anything again and writes only those columns (a sector's `modified_at` stays, so the map's cache is kept).
 """
 
 import argparse
@@ -182,6 +185,38 @@ def _redraw(config, redraw, settings, say):
         run_plan.run_scatter(scatter_args(config, kind, settings))
 
 
+DERIVED_COMMANDS = {"habitability": "rescore-habitability", "ledger": "refill-effect-ledger"}
+"""dict: The refill command of each family of derived values (`derived_stamp.STAMP_COLUMNS`)."""
+
+
+def derived_args(config, family):
+    """The parsed arguments of the refill command of `family` (`DERIVED_COMMANDS`) against `config`: the systems whose stamp is not the running code's, no `--all`."""
+    from planetgen.cli import generate as generate_cli
+    parser = _Parser(prefix_chars='-+')
+    parser.add_argument('--all', action='store_true')
+    generate_cli.add_fill_arguments(parser)
+    args = parser.parse_args(_connection_flags(config))
+    args.command = DERIVED_COMMANDS[family]
+    return args
+
+
+def _refill_derived(config, stale, say):
+    """
+    The derived stage: runs the refill command of each family in `stale` (`{family: systems behind}`), habitability before the ledger, each as the run of its own command (so the queue, the memory gate and
+    the progress lines are those of a command run by hand).
+
+    Raises:
+        RuntimeError: A refill failed.
+    """
+    from planetgen.generation import run_plan
+    runs = {"habitability": run_plan.run_rescore_habitability, "ledger": run_plan.run_refill_effect_ledger}
+    for family in DERIVED_COMMANDS:
+        if family not in stale:
+            continue
+        say(f"Derived values: refilling the {family} of {stale[family]:,} system(s).")
+        runs[family](derived_args(config, family))
+
+
 def _clear_kind(config, kind, run_plan, say):
     conn = store.get_connection(config)
     try:
@@ -203,7 +238,8 @@ def survey(conn, control_conn=None, current=None):
         address order; `skipped`, the sectors left alone (the same with `why`); `handmade`, how many stale sectors
         have no grid address; `uncharted`, how many stale rows are the placeholders a drifting rogue made in cells nothing was generated in (GEN.1354: left alone,
         not generated); `species`, the stale species to make again (`redo`) and those kept as edited (`kept`);
-        `redraw`, the scatters to draw again (`redraw_order`) with the `settings` they are drawn with.
+        `redraw`, the scatters to draw again (`redraw_order`) with the `settings` they are drawn with;
+        `derived`, `{family: systems}` of the stored derived values written by older code (`epoch_record.derived_stale`), refilled by the derived stage.
     """
     current = generator_epoch.generator_epoch() if current is None else current
     found = epoch_record.behind(conn, current)
@@ -248,7 +284,8 @@ def survey(conn, control_conn=None, current=None):
                               f"FROM species WHERE {where}", values).fetchone()
         species = {"redo": int(counts["total"]) - int(counts["kept"]), "kept": int(counts["kept"])}
     return {"current": current, "behind": found, "refuse": refuse, "refill": refill, "skipped": skipped,
-            "handmade": handmade, "uncharted": uncharted, "species": species, "redraw": redraw, "settings": settings}
+            "handmade": handmade, "uncharted": uncharted, "species": species, "redraw": redraw, "settings": settings,
+            "derived": epoch_record.derived_stale(conn)}
 
 
 def status(config, control_config=None):
@@ -284,7 +321,7 @@ def status(config, control_config=None):
 def _nothing_to_do(found):
     """Whether the galaxy has no record behind the epoch (so a run has nothing to say or to do)."""
     return not (found["refuse"] or found["refill"] or found["skipped"] or found["handmade"] or found["species"]["redo"]
-                or found["redraw"] or any(found["behind"]["stale"].values()))
+                or found["redraw"] or found.get("derived") or any(found["behind"]["stale"].values()))
 
 
 def report_lines(found, limit=None):
@@ -324,6 +361,8 @@ def report_lines(found, limit=None):
     if species["redo"] or species["kept"]:
         lines.append(f"{species['redo']} species made under an older epoch to be made again"
                      + (f", {species['kept']} edited by hand kept." if species["kept"] else "."))
+    for family, count in found.get("derived", {}).items():
+        lines.append(f"Derived values: the {family} of {count:,} system(s) was written by older code and is to be refilled (no sector is generated again).")
     lines.append(f"{len(found['refill'])} sector(s) to redo, {len(found['skipped'])} left alone.")
     return lines
 
@@ -439,6 +478,15 @@ def run(config, control_config=None, dry_run=False, say=log.normal, wide_binarie
             say(f"Population: {counts['new_species']:,} new species; {counts['species']:,} in all.")
             owned = population.run_territories(conn)
             say(f"Population: {owned['polities']:,} polities own {owned['owned_systems']:,} systems.")
+        stale_derived = epoch_record.derived_stale(conn) if found.get("derived") else {}         # read again: a sector generated again just wrote current stamps
+        if stale_derived:
+            try:
+                _refill_derived(config, stale_derived, say)
+                result["derived"] = stale_derived
+            except Exception as exc:  # noqa: BLE001 -- say what is left to do by hand
+                log.swallowed("galaxy/bring_to_epoch", "run", exc)
+                result["failed"].append(("derived", str(exc)))
+                say(f"The derived values could not be refilled: {exc}. Run planetgen rescore-habitability and planetgen refill-effect-ledger by hand.")
         if wide_binaries:
             _reroll_wide_binaries(config, conn, control_conn, dry_run, say, result)
         say(f"Done: {result['redone']} sector(s) generated again, {result['skipped']} left alone"

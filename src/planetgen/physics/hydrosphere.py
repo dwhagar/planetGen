@@ -65,7 +65,7 @@ from planetgen.generation.build_record import record_of
 import math
 
 from planetgen import tuning
-from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, mantle_reservoirs, planet_type, runaway_history, saturation, unit_registry, water_layer
+from planetgen.physics import aquifers, atmosphere, clathrate_brine, climate_branches, constants, gases, mantle_reservoirs, planet_type, runaway_history, saturation, unit_registry, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -257,6 +257,28 @@ def ocean_fraction(layer_km, gravity_m_s2, icy=False):
     level = 0.5 * (low + high)
     covered = sum(share * _normal_cdf((level - mean) / spread) for share, mean, spread in relief)
     return 1.0 if covered >= COVER_SNAP else covered
+
+
+ICE_CAPPED_MIN_COVER = 0.25
+"""float: The share of its surface that ice (sea ice and land ice together) covers, above which a body is called ice-capped (GEN.1572, [CC18, T6, L0]): a design edge from the water-land research (reports/water-land-split-h-m-o-2026-11-12.md section 4),
+Boss approved. It changes no class letter and no liquid cover; the flag is derived (`ice_capped`), not stored. On the ramp of `climate_branches` (CC16) the edge falls at a mean surface temperature of about 264 K."""
+ICE_CAPPED_STATES = ("surface ocean", "brine seep", "hycean", "ice-covered ocean", "ice")
+"""tuple: The hydrospheres of a body that has surface water for ice to form from: the ones that can be ice-capped. A `dry` or `vapor` body holds none at its surface, and a giant has no hydrosphere."""
+
+
+def ice_cover_share(hydrosphere, ice_cover_fraction, surface_temperature_k):
+    """
+    The share of its surface a body's ice covers (GEN.1572): the larger of the ice the hydrosphere stored (`ice_cover_fraction`: an ice lid, or a body that is ice through) and the ice, sea ice and land ice together, that
+    the body's own albedo law puts on a world of its mean surface temperature (`climate_branches.IceAlbedoLaw.ice_fraction`, the share GEN.1697 takes off the weathering land). 0 for a body with no surface water.
+    """
+    if hydrosphere not in ICE_CAPPED_STATES or surface_temperature_k is None:
+        return 0.0
+    return max(ice_cover_fraction or 0.0, climate_branches.IceAlbedoLaw().ice_fraction(surface_temperature_k))
+
+
+def ice_capped(hydrosphere, ice_cover_fraction, surface_temperature_k):
+    """Whether ice covers more than `ICE_CAPPED_MIN_COVER` of a body's surface (GEN.1572, `ice_cover_share`). Derived from stored values and shown by the sheet and the pages; it changes nothing the generator makes."""
+    return ice_cover_share(hydrosphere, ice_cover_fraction, surface_temperature_k) > ICE_CAPPED_MIN_COVER
 
 
 def water_cover(body):

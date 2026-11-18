@@ -274,7 +274,8 @@ def _read(path):
         return ""
 
 
-def _tail(text, limit=MAX_LOG_BYTES):
+def _tail(text, limit=None):
+    limit = MAX_LOG_BYTES if limit is None else limit
     return text[-limit:] if len(text) > limit else text
 
 

@@ -40,7 +40,6 @@ written to a name that does not exist yet, never through a link. This module imp
 import contextlib
 import json
 import os
-import re
 import select
 import signal
 import stat
@@ -86,9 +85,6 @@ PROMPT_SECONDS = 30
 
 TIMER_PARENTS = ("cron", "crond", "anacron", "atd")
 """tuple: The names of the processes whose children have no person at the keyboard."""
-
-UNIT_JOB = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{8}-(?:s\d+-u\d+|open\d+)$")
-"""re.Pattern: The id of a queue job that is a unit of a run, or the opening of one of its stages (`queue/units.py`'s `job_id`, `open_job_id`): the run lists it."""
 
 TURN_OFF_HINT = "python -m planetgen.cli.maintenance off"
 """str: The command that opens the site again after a failed update."""
@@ -282,7 +278,7 @@ class MarkerSource:
 
 
 class GenerateJobSource:
-    """The Generate page's job (`web/jobs.py`), running or just started. Canceled by its own cancel file. Looks
+    """The Generate page's job (`web/jobs.py`), running or just started. Canceled through the supervisor (`jobs.cancel_job`). Looks
     where the job directory is without creating it: an update on a new machine must not make it as root."""
 
     name = "generate-job"
@@ -323,39 +319,18 @@ class _RedisSource:
 
 
 class QueuedJobSource(_RedisSource):
-    """The jobs waiting or running on the shared queues (`queue/redisqueue.py`: bulk, maintenance and
-    generation) and the site's light jobs (`queue/lightjobs.py`). A run's own queue belongs to the run and is canceled with it. Canceled with
-    `workers.cancel_now`. A job whose worker is gone is cleared before the listing (`workers.reap_dead_jobs`), so
-    it does not hold the update for ever."""
+    """The site's light jobs (`queue/lightjobs.py`) that wait or run. A run's units belong to the run and are canceled with it (OPS.235: no job waits on a queue of its own any more, so there is
+    no other job to list). Canceled with `lightjobs.request_stop`."""
 
     name = "queue-job"
 
     def items(self):
-        from planetgen.queue import redisqueue
         try:
             connection = self._connection()
         except Exception as exc:  # noqa: BLE001 -- no Redis server: nothing is queued
             log.swallowed("admin/updateguard", "QueuedJobSource.items", exc)
             return []
-        from planetgen.queue import workers
-        workers.reap_dead_jobs(connection)      # a job whose worker was killed is not running
-        found = []
-        for name in redisqueue.QUEUES:
-            queue = redisqueue.queue(name, connection)
-            for state, ids in (("queued", queue.get_job_ids()),
-                               ("running", queue.started_job_registry.get_job_ids())):
-                for job_id in ids:
-                    if UNIT_JOB.match(job_id):
-                        continue        # a unit of a run: the run is listed (and canceled) instead
-                    job = redisqueue.fetch_job(job_id, connection, redisqueue.serializer_for(name))
-                    started = job.started_at or job.enqueued_at if job is not None else None
-                    found.append({"source": self.name, "kind": name, "id": job_id,
-                                  "title": (job.description if job is not None else None) or job_id,
-                                  "started": _iso(started) if started else None,
-                                  "holds": f"the {name} queue", "queued": state == "queued", "queue": name,
-                                  "protect": name == redisqueue.GENERATION_QUEUE})
-        found += self._light_jobs(connection)
-        return found
+        return self._light_jobs(connection)
 
     def _light_jobs(self, connection):
         """The site's light jobs (`queue/lightjobs.py`) that wait or run: they are not on a queue."""
@@ -368,11 +343,8 @@ class QueuedJobSource(_RedisSource):
             return []
 
     def cancel(self, item):
-        from planetgen.queue import lightjobs, redisqueue, workers
-        if item.get("queue") == "light":
-            lightjobs.request_stop(self._connection(), item["id"])
-            return True
-        workers.cancel_now(item["id"], self._connection(), redisqueue.serializer_for(item["queue"]))
+        from planetgen.queue import lightjobs
+        lightjobs.request_stop(self._connection(), item["id"])
         return True
 
 

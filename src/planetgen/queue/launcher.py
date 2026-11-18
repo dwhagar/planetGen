@@ -24,11 +24,13 @@ import signal
 import time
 import types
 
-from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, planrows, runrecord, scheduler, workers
+from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, pagerun, planrows, runrecord, scheduler, tokens, workers
 from planetgen.queue.memorygate import Claim, Holder
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 
+KILLED = "killed"
+"""str: The error kind of an attempt whose process ended on a signal (`Launcher._outcome`)."""
 RETRIES = 1
 """int: How many times a unit whose process died without ending its attempt is handed out again (what RQ's `Retry(max=1)` did)."""
 
@@ -46,6 +48,9 @@ TEMPLATES = {"maintenance": "app"}
 
 YIELDED_TEXT = "stopped to give memory back; it starts again when the host has room"
 """str: What the row of a job the memory controller asked to stop says (`engine_jobs.waited`)."""
+
+SPAWN_SECONDS = 2.0
+"""float: How often the launcher looks for a stage that wants its next window of unit rows (`planrows.spawn_window`, OPS.240)."""
 
 RECOVER_SECONDS = 30.0
 """float: How often the rows left `running` by a supervisor that ended are looked for."""
@@ -98,14 +103,16 @@ class Launcher:
     """One supervisor's hand-outs. `control` is the control connection; `forker` is a `jobhost.TemplateSet` (`fork(kind, runner, job)`, `poll()`); `galaxy` is `run_id -> connection` for the
     galaxy the run writes to (or `None`); `also_held` returns the claims of the jobs another duty of the supervisor holds (OPS.230: the site's light jobs)."""
 
-    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None, also_held=None, hold=None):
+    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None, also_held=None, hold=None, spawner=None):
         self.control, self.forker, self.galaxy, self.redis = control, forker, galaxy, redis
+        self.spawner = spawner if spawner is not None else redis       # the connection whose runs' windows `spawn` writes (a test of the engine in one process gives only this one)
         self.hold = hold or (lambda: None)      # the memory controller's `holding` (OPS.231): why nothing is admitted now, or `None`
         self.also_held = also_held or (lambda: [])      # the claims the site's light jobs hold (`lightjobs.LightJobs.holders`): the bulk lane is judged against them
         self.clock, self.read_host, self.runner = clock, read_host, runner
         self.used = used if used is not None else (lambda: {})
         self.running = {}           # job id -> Started
         self.recovered_at = None
+        self.spawned_at = None
         self._stages = {}           # (ledger run, stage) -> its `open` row's arguments (`_stage_of`)
 
     # -- ends ------------------------------------------------------------------------------------------------------------------
@@ -114,7 +121,7 @@ class Launcher:
         """`(outcome, error kind, error text)` of an end the unit did not write itself."""
         error = started.error()
         if exit_.signal is not None:
-            return "lost", "killed", error or f"the job process ended on {signal.Signals(exit_.signal).name}"
+            return "lost", KILLED, error or f"the job process ended on {signal.Signals(exit_.signal).name}"
         if exit_.code is None:
             return "lost", "lost", error or "the job process ended and nothing said how"
         return "failed", "failed", error or f"the job process exited with code {exit_.code}"
@@ -144,12 +151,34 @@ class Launcher:
             elif row is not None and row["state"] == "running":
                 outcome, kind, text = self._outcome(started, exit_)
                 ledger.end_running(self.control, found, outcome, error_kind=kind, error_text=text)
-                again = row["attempt"] - ledger.stopped_attempts(self.control, found) <= RETRIES
+                page = started.row["command"] == pagerun.STEP
+                again = not page and row["attempt"] - ledger.stopped_attempts(self.control, found) <= RETRIES
                 ledger.set_job_state(self.control, found, "ready" if again else "failed", waited=None if again else text[:ledger.WAITED_CHARS])
+                if again and kind == KILLED:
+                    self._grow(found, started)
+                if page:                # the steps after the one that was cut off are not run: the job is over (the page's Retry starts the rest)
+                    pagerun.fail_rest(self.control, started.row["run_id"], text)
                 self.control.commit()
             started.job.close()
             done.append(found)
         return done
+
+    def _grow(self, job_id, started):
+        """A job process the kernel (or any signal) killed is handed out again, and its retry claims `memorygate.GROW_FACTOR` times what this attempt claimed and runs alone (`claim`): the process was
+        killed for want of memory more often than for any other reason, and a second kill at the same claim would be the same kill (OPS.236; `memorygate.grow` had no caller after OPS.235 deleted `units.horse_killed`)."""
+        if self.redis is None:
+            return
+        try:
+            memorygate.grow(self.redis, started.claim.kind, str(job_id), started.claim.mb)
+        except Exception as exc:  # noqa: BLE001 -- the retry still runs, at the claim it had
+            log.swallowed("queue/launcher", "_grow", exc)
+
+    def _killed_before(self, row):
+        """Whether the attempt before this hand-out of `row` ended killed by a signal (`ledger.attempt_row`)."""
+        if not row["attempt"]:
+            return False
+        before = ledger.attempt_row(self.control, row["id"], row["attempt"])
+        return before is not None and before["error_kind"] == KILLED
 
     def _gone(self, pid):
         """Whether the process `pid` is not there (a job whose attempt names no process is gone too)."""
@@ -172,14 +201,20 @@ class Launcher:
             return []
         self.recovered_at = now
         settled = []
-        for row in self.control.execute("SELECT j.id, j.attempt, a.pid AS pid FROM engine_jobs j LEFT JOIN engine_attempts a ON a.job_id = j.id AND a.attempt = j.attempt WHERE j.state = 'running'").fetchall():
+        for row in self.control.execute("SELECT j.id, j.run_id, j.command, j.attempt, a.pid AS pid FROM engine_jobs j LEFT JOIN engine_attempts a ON a.job_id = j.id AND a.attempt = j.attempt WHERE j.state = 'running'").fetchall():
             if row["id"] in self.running or not self._gone(row["pid"]):
                 continue
             text = "the supervisor that handed the job out ended and its process is gone"
             ledger.end_running(self.control, row["id"], "lost", error_kind="lost", error_text=text)
-            ledger.set_job_state(self.control, row["id"], "ready" if row["attempt"] <= RETRIES else "failed", waited=None if row["attempt"] <= RETRIES else text)
+            page = row["command"] == pagerun.STEP
+            again = not page and row["attempt"] <= RETRIES
+            ledger.set_job_state(self.control, row["id"], "ready" if again else "failed", waited=None if again else text)
+            if page:
+                pagerun.fail_rest(self.control, row["run_id"], text)
             settled.append(row["id"])
         self.control.commit()
+        if self.redis is not None:
+            pagerun.tidy(self.control, self.redis)
         return settled
 
     # -- tickets and dispatch --------------------------------------------------------------------------------------------------
@@ -230,9 +265,12 @@ class Launcher:
                 named = _arguments(row)
                 command = claims.cut_command(self.redis, named["run_id"], named["index"])
                 kind = f"cut:{command or 'unknown'}"
-                return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.CUT_MB, token=named["run_id"]), 1.0, lane, True)
+                return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.CUT_MB, job_id=str(row["id"]), token=named["run_id"]), 1.0, lane, True)
             kind = f"unit:{row['command']}"
-            return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.unit_table_mb(row["command"]), token=token), claims.UNIT_CPU, lane, False, claims.unit_tokens(row["command"]))
+            named_tokens = claims.unit_tokens(row["command"])
+            if self._killed_before(row) and tokens.ALONE not in named_tokens:
+                named_tokens += (tokens.ALONE,)         # a unit the kernel killed runs again alone, on a claim grown by `_grow`
+            return Claim(kind, memorygate.claim_mb(self.redis, kind, claims.unit_table_mb(row["command"]), job_id=str(row["id"]), token=token), claims.UNIT_CPU, lane, False, named_tokens)
         except claims.NoClaim:
             return claim_of_row(row)
 
@@ -289,6 +327,8 @@ class Launcher:
     def _job_of(self, row):
         """What `forkedjob.run` takes for the unit `row`: the Redis run id and the stage's index (from the stage's `open` row, `planrows.record_cut`), the unit's number, command, arguments and cost, and its
         row. A unit is given a retry when it has not had one."""
+        if row["command"] == pagerun.STEP:             # a step of a Generate page job (OPS.244): the process runs the step's command line and follows it; it is never handed out twice
+            return {"page_step": True, "run": row["run_id"], "row": row["id"], "kind": row["command"], "retries_left": 0}
         if row["command"] == planrows.OPENING:         # the cut of a stage (`planrows.queue_opening`)
             named = _arguments(row)
             return {"opening": True, "run_id": named["run_id"], "stage": named["index"], "kind": row["command"], "row": row["id"], "retries_left": max(0, RETRIES - row["attempt"] + ledger.stopped_attempts(self.control, row["id"]))}
@@ -316,16 +356,43 @@ class Launcher:
             ledger.set_job_state(self.control, row["id"], "failed", waited=f"{type(exc).__name__}: {exc}"[:ledger.WAITED_CHARS])
             self.control.commit()
             raise
-        if row["command"] == planrows.OPENING:          # an opening has no unit to begin its attempt: the launcher does, with the process that runs it
+        if row["command"] in (planrows.OPENING, pagerun.STEP):          # an opening and a page step have no unit to begin their attempt: the launcher does, with the process that runs it
             ledger.begin_attempt(self.control, row["id"], pid=forked.pid)
         started = Started(row, forked, key, self.claim(row), self.clock())
         self.running[row["id"]] = started
         return started
 
+    def spawn(self):
+        """
+        Writes the next window of unit rows of each stage that wants one (OPS.240, `planrows.spawn_window`), at most every `SPAWN_SECONDS`, for the runs whose Redis this launcher has. A stage whose window cannot
+        be written (its item file is missing or torn, the ledger refuses) is a lasting failure: the `spawn` row is `failed` with the reason and the run is held, never a stage that quietly has fewer units.
+        Returns how many unit rows it wrote.
+        """
+        now = self.clock()
+        if self.spawner is None or (self.spawned_at is not None and now - self.spawned_at < SPAWN_SECONDS):
+            return 0
+        self.spawned_at = now
+        written = 0
+        for row_id, _run, _stage, arguments in planrows.spawn_rows(self.control):
+            try:
+                written += planrows.spawn_window(self.spawner, arguments["run_id"], arguments["index"])
+            except Exception as exc:  # noqa: BLE001 -- the stage cannot go on whole: say why and hold the run
+                text = f"{type(exc).__name__}: {exc}"
+                self.control.rollback()
+                ledger.set_job_state(self.control, row_id, "failed", waited=text[:ledger.WAITED_CHARS])
+                self.control.commit()
+                from planetgen.queue import held
+                reason = f"stage {arguments['index'] + 1} could not write its next units: {text}"
+                if runrecord.hold_run(self.spawner, arguments["run_id"], reason):
+                    held.mark_run(self.spawner, arguments["run_id"], "held", reason)
+                log.warning(f"Run {arguments['run_id']}: {reason}")
+        return written
+
     def turn(self):
-        """One turn: ends, tickets, dispatch, starts. Returns the ids of the jobs started."""
+        """One turn: ends, windows, tickets, dispatch, starts. Returns the ids of the jobs started."""
         self.ended()
         self.recover()
+        self.spawn()
         waiting, rows = self.tickets()
         if not waiting:
             return []

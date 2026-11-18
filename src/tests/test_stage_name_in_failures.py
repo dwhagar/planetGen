@@ -6,7 +6,7 @@ import types
 
 import pytest
 
-from tests import rq_units
+from tests import unit_helpers
 from planetgen.queue import planrows, redisqueue, runrecord, units, wrapper
 
 
@@ -21,7 +21,7 @@ def run(redis_server, key_prefix, monkeypatch):
     return conn
 
 
-def _job(conn, stage, func_name=rq_units.UNIT_FUNCTION):
+def _job(conn, stage, func_name=unit_helpers.UNIT_FUNCTION):
     args = ("r1", stage, 101)
     return types.SimpleNamespace(args=args, connection=conn, func_name=func_name, id="job-1", worker_name="w1", retries_left=0)
 
@@ -33,7 +33,7 @@ def test_a_stage_is_named_by_its_label_and_by_its_number_only_when_the_run_canno
 
 
 def test_a_failed_unit_names_the_stage_the_page_shows(run):
-    rq_units.unit_failed(_job(run, 2), run, ValueError, ValueError("no stars here"), None)
+    unit_helpers.unit_failed(_job(run, 2), run, ValueError, ValueError("no stars here"), None)
     error = run.hget(runrecord.run_key("r1"), "error").decode()
     assert error == "unit 101 of stage Scatter the bright stars failed: ValueError: no stars here"
 
@@ -108,7 +108,7 @@ def test_a_failed_unit_reaches_error_log_with_its_run_stage_unit_kind_and_traceb
     try:
         raise ValueError("no stars here")
     except ValueError as exc:
-        rq_units.unit_failed(job, run, ValueError, exc, exc.__traceback__)
+        unit_helpers.unit_failed(job, run, ValueError, exc, exc.__traceback__)
     (component, message, exc_info, fields), = seen
     assert component == "queue"
     assert message == "Unit 101 of stage Scatter the bright stars failed: ValueError: no stars here"

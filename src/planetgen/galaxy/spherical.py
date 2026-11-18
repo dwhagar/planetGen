@@ -951,7 +951,7 @@ def sphere_rows(center, radius_pc, edge_pc, keep=None):
     """
     The rows (a shell's band) the sphere of `radius_pc` around `center` reaches, each with the window of wedges its centers can
     lie in: the walk `enumerate_sectors_within_radius` makes before it tests one cell, so a caller that draws by blocks of
-    a row can skip the cells (BLOCK_WEDGES to a block) instead of listing them. The core cell is not a row. A shell's
+    a row can skip the cells instead of listing them. The core cell is not a row. A shell's
     rows come in the order the bands between the caps, then the north cap, then the south (`bright_stars` strides over
     the numbering).
 

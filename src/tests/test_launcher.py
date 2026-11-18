@@ -260,6 +260,63 @@ def test_a_launcher_with_redis_claims_what_the_gate_has_learned_not_the_minimum(
     assert (claim.kind, claim.mb, claim.cpu, claim.tokens) == ("unit:fill-unit", 3000.0, claims.UNIT_CPU, ("mysql-write",))
 
 
+def _redis_launcher(control, redis_server, monkeypatch, forker=None):
+    from planetgen.queue import claims, redisqueue
+    conn = redisqueue.connect(redis_server)
+    monkeypatch.setattr(claims, "unit_table_mb", lambda kind: 2000.0)
+    monkeypatch.setattr(claims, "unit_tokens", lambda kind: ())
+    return conn, launcher.Launcher(control, forker or FakeForker(), read_host=lambda: HOST, redis=conn)
+
+
+def _row(control, run):
+    return control.execute("SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, attempt FROM engine_jobs WHERE run_id = ? AND item_key <> ''", (run,)).fetchone()
+
+
+def test_a_unit_whose_process_was_killed_is_handed_out_again_alone_on_a_claim_grown_by_one_and_a_half(control, redis_server, monkeypatch):
+    """OPS.236 (bug since OPS.235 deleted `units.horse_killed`): the retry of a job the kernel killed had the same claim and shared the host."""
+    forker = FakeForker()
+    _conn, one = _redis_launcher(control, redis_server, monkeypatch, forker)
+    run = _ready(control, count=1, mb=None)
+    (job,) = one.turn()
+    first = one.claim(_row(control, run))
+    assert first.mb == 2000.0 and not first.solo, "the first hand-out is an ordinary claim"
+    ledger.begin_attempt(control, job)
+    forker.exits = [("plain", jobhost.Exit(1, 1001, signal=signal.SIGKILL))]
+    again = one.turn()
+    assert again == [job], "the unit goes out once more"
+    retry = one.claim(_row(control, run))
+    assert retry.mb == pytest.approx(3000.0, rel=1e-6) and retry.solo, (retry.mb, retry.tokens)
+    assert one.running[job].claim.mb == pytest.approx(3000.0, rel=1e-6) and one.running[job].claim.solo, "and it was admitted as the grown, solo claim"
+
+
+def test_a_unit_that_failed_without_a_signal_or_was_lost_with_its_supervisor_is_not_grown_or_made_to_run_alone(control, redis_server, monkeypatch):
+    forker = FakeForker()
+    _conn, one = _redis_launcher(control, redis_server, monkeypatch, forker)
+    run = _ready(control, count=2, mb=None)
+    first, second = one.turn()
+    ledger.begin_attempt(control, first)
+    forker.exits = [("plain", jobhost.Exit(1, 1001, code=3))]
+    one.turn()
+    ledger.begin_attempt(control, second)
+    forker.exits = [("plain", jobhost.Exit(2, 1002))]       # ended, and nothing says how: lost, not killed
+    one.turn()
+    for row in control.execute("SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, attempt FROM engine_jobs WHERE run_id = ? AND item_key <> ''", (run,)).fetchall():
+        claim = one.claim(row)
+        assert claim.mb == 2000.0 and not claim.solo, (row["item_key"], claim)
+
+
+def test_a_killed_unit_that_is_killed_again_has_no_third_hand_out(control, redis_server, monkeypatch):
+    forker = FakeForker()
+    _conn, one = _redis_launcher(control, redis_server, monkeypatch, forker)
+    run = _ready(control, count=1, mb=None)
+    (job,) = one.turn()
+    for number in (1, 2):
+        ledger.begin_attempt(control, job)
+        forker.exits = [("plain", jobhost.Exit(number, 1000 + number, signal=signal.SIGKILL))]
+        started = one.turn()
+    assert started == [] and _state(control, run) == [("0", "failed", 2)]
+
+
 def _upkeep(control, count=4, name="warm-unit"):
     """OPS.229: a cache warm-up's rows (class `maintenance`, as `planrows.job_class` gives a run of its kind)."""
     run = ledger.add_run(control, "maintenance", "g1")
@@ -298,3 +355,45 @@ def test_the_maintenance_lane_runs_no_more_than_its_share_while_a_generation_run
     assert len(one.turn()) == 0
     live.clear()
     assert len(one.turn()) == 3, "no generation run: the three that are left go (the gate is the limit)"
+
+
+def _page(control, steps=2):
+    """A Generate page job's run (`pagerun.start`) with `steps` steps."""
+    from planetgen.queue import pagerun
+    job = {"id": "20261118-aaaa", "kind": "reset", "title": "A job", "admin": "boss", "database": None, "draft": None, "created_at": 1.0, "cwd": "/tmp", "root": "/tmp/jobs"}
+    run = pagerun.start(control, job, [{"label": f"Step {n}", "argv": ["true"], "stages": None} for n in range(1, steps + 1)])
+    return run, [row["id"] for row in control.execute("SELECT id FROM engine_jobs WHERE run_id = ? AND command = ? ORDER BY item_key", (run, pagerun.STEP)).fetchall()]
+
+
+def test_a_step_of_a_generate_page_job_is_handed_out_as_a_page_step_with_an_attempt_the_launcher_writes(control):
+    run, (first, second) = _page(control)
+    forker = FakeForker()
+    started = _launcher(control, forker).turn()
+    assert started == [first], "only the step that is ready: the next one waits for it"
+    _kind, _runner, job, held = forker.forked[0]
+    assert job == {"page_step": True, "run": run, "row": first, "kind": "page-step", "retries_left": 0}
+    attempt = control.execute("SELECT pid, outcome FROM engine_attempts WHERE job_id = ?", (first,)).fetchone()
+    assert (attempt["pid"], attempt["outcome"]) == (held.pid, "running")
+
+
+def test_a_page_step_whose_process_was_killed_is_failed_with_the_steps_after_it_canceled_and_never_handed_out_again(control):
+    run, (first, second) = _page(control)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    assert one.turn() == [first]
+    forker.exits = [("plain", jobhost.Exit(1, 1001, signal=signal.SIGKILL))]
+    assert one.turn() == []
+    states = [row["state"] for row in control.execute("SELECT state FROM engine_jobs WHERE run_id = ? AND command = 'page-step' ORDER BY item_key", (run,)).fetchall()]
+    assert states == ["failed", "canceled"] and len(forker.forked) == 1
+    assert control.execute("SELECT state FROM engine_runs WHERE id = ?", (run,)).fetchone()["state"] == "held"
+    assert ledger.attempt_row(control, first, 1)["outcome"] == "lost"
+
+
+def test_a_page_step_left_running_by_a_supervisor_that_ended_is_failed_not_handed_out_again(control):
+    run, (first, second) = _page(control)
+    ledger.set_job_state(control, first, "running")
+    ledger.begin_attempt(control, first, pid=2_000_000_000)
+    control.commit()
+    assert _launcher(control, FakeForker()).recover() == [first]
+    states = [row["state"] for row in control.execute("SELECT state FROM engine_jobs WHERE run_id = ? AND command = 'page-step' ORDER BY item_key", (run,)).fetchall()]
+    assert states == ["failed", "canceled"]

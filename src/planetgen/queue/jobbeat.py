@@ -1,14 +1,14 @@
 # planetgen/queue/jobbeat.py
 
 """
-The beat of the jobs that are not units of a run (OPS.142): an API job (`queue/api_jobs.py`), a web job (`web/job_runner.py`, the Generate page's) and a tile prefetch chunk
+The beat of the jobs that are not units of a run (OPS.142): an API job (`queue/api_jobs.py`) and a tile prefetch chunk
 (`web/lib/tileprefetch.py`). They relied on RQ's time limit alone; now each writes a beat while it runs, the way a unit does (`unitbeat.UnitBeat`: a thread of the process, the
 Redis server clock), and the Queue page lists them with the state `beatjudge` gives.
 
 * **One hash, `planetgen:jobbeats`**, a field to a running job (`<kind>:<job id>`), removed when the job ends. A job that is killed leaves its record, which then reads `dead` for
   `FORGET_SECONDS` (so the page says a job died) and is dropped by the next listing after that.
-* **No counter.** These jobs have no unit of work to count (a web job is steps of unknown length, an API job one call), so the judge can say only `working` or `dead`; what the job is
-  doing is its `phase` (the step of a web job). A job is never ended on its state: RQ's limit stays what ends one, the page is how a person sees a dead one.
+* **No counter.** These jobs have no unit of work to count (an API job is one call), so the judge can say only `working` or `dead`; what the job is
+  doing is its `phase`. A job is never ended on its state: RQ's limit stays what ends one, the page is how a person sees a dead one.
 * **Fails open.** A Redis that does not answer means no beat, never a job that does not run.
 
     with jobbeat.beating("api", job_id, label="regenerate_sector") as beat:

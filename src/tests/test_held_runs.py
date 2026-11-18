@@ -3,7 +3,7 @@ Real MySQL and Redis; the run is cut with `planrows.record_cut`, so its jobs are
 
 import pytest
 
-from tests import rq_units
+from tests import unit_helpers
 from planetgen.queue import held, jobview, ledger, planrows, redisqueue, runrecord, units, wrapper
 from tests.test_queue_page import KIND, _run, admin_client, conn, control_config, web_app   # noqa: F401 -- the fixtures
 
@@ -22,7 +22,7 @@ class _Job:
 
 @pytest.fixture
 def run(conn, web_app):
-    run_id = _run(conn, units_count=3, done=0, queued=False)
+    run_id = _run(conn, units_count=3, done=0)
     planrows.record_cut(conn, run_id, 0, "page-test", [({"n": n}, 1.0) for n in range(3)], 3.0, {"count": 3})
     conn.set(runrecord.opened_key(run_id, 0), 1)            # the stage was opened (its cut is the rows above)
     return run_id
@@ -65,7 +65,7 @@ def _done(conn, run, rows, unit):
 
 
 def _fail(conn, run, rows, unit):
-    rq_units.unit_failed(_Job(conn, run, unit, rows[unit]), conn, ValueError, ValueError(f"bad unit {unit}"), None)
+    unit_helpers.unit_failed(_Job(conn, run, unit, rows[unit]), conn, ValueError, ValueError(f"bad unit {unit}"), None)
 
 
 def test_a_unit_that_fails_for_good_is_held_and_the_run_goes_on(conn, run, rows):
@@ -75,6 +75,40 @@ def test_a_unit_that_fails_for_good_is_held_and_the_run_goes_on(conn, run, rows)
     assert _job_state(conn, run, rows[1]) == "failed" and _job_state(conn, run, rows[0]) != "failed"
     assert held.held_units(conn, run) == [(0, 1, rows[1])]
     assert any(event["kind"] == "unit.held" and "bad unit 1" in event["message"] for _id, event in runrecord.read_events(conn, run))
+
+
+def _deep(depth):
+    if depth:
+        return _deep(depth - 1)
+    raise ValueError("bad unit")
+
+
+def _traceback_of(depth):
+    try:
+        _deep(depth)
+    except ValueError as exc:
+        return exc, exc.__traceback__
+
+
+def test_where_names_the_last_frames_of_a_failure_innermost_first_and_nothing_without_a_traceback():
+    exc, tb = _traceback_of(5)
+    text = held.where(tb)
+    assert text.startswith(" (at test_held_runs.py:") and text.endswith(")")
+    named = text[len(" (at "):-1].split(", ")
+    assert len(named) == held.WHERE_FRAMES and all(item.endswith(" in _deep") for item in named), "the innermost three are the recursion"
+    assert held.where(None) == ""
+    assert held.where(tb, frames=1).count(" in ") == 1
+
+
+def test_a_held_unit_keeps_where_it_failed_in_its_error_and_the_log_and_masks_a_secret(conn, run, rows):
+    exc, tb = _traceback_of(1)
+    exc = ValueError("could not reach mysql://planetgen:hunter2pass@db/x")
+    rq_units.unit_failed(_Job(conn, run, 1, rows[1]), conn, ValueError, exc, tb)
+    kept = runrecord._s(conn.hget(runrecord.held_key(run, 0), 1))
+    assert "(at test_held_runs.py:" in kept and " in _deep" in kept
+    assert "hunter2pass" not in kept
+    said = [event["message"] for _id, event in runrecord.read_events(conn, run) if event["kind"] == "unit.held"]
+    assert said and "(at test_held_runs.py:" in said[0] and "hunter2pass" not in said[0]
 
 
 def test_the_run_is_held_when_every_unit_is_done_or_held(conn, run, rows):
@@ -109,7 +143,7 @@ def test_a_run_with_no_held_unit_is_left_alone_and_a_run_that_is_over_is_not_hel
 def test_a_unit_without_a_row_still_fails_the_run(conn, run):
     job = _Job(conn, run, 0, None)
     job.args = job.args[:6]
-    rq_units.unit_failed(job, conn, ValueError, ValueError("old"), None)
+    unit_helpers.unit_failed(job, conn, ValueError, ValueError("old"), None)
     assert runrecord.run_state(conn, run) == "failed"
 
 
@@ -138,7 +172,7 @@ def test_retry_held_is_refused_while_another_run_owns_the_machine(conn, run, row
     _done(conn, run, rows, 0)
     _done(conn, run, rows, 2)
     _fail(conn, run, rows, 1)
-    other = _run(conn, title="Other", units_count=1, done=0, queued=False)
+    other = _run(conn, title="Other", units_count=1, done=0)
     assert runrecord.active_run(conn, runrecord.GENERATION) == other
     with pytest.raises(runrecord.Busy):
         held.retry_held(conn, run)
@@ -179,7 +213,7 @@ def test_the_api_retries_a_held_run_and_refuses_a_run_that_is_not_held(conn, run
     _done(conn, run, rows, 0)
     _done(conn, run, rows, 2)
     _fail(conn, run, rows, 1)
-    other = _run(conn, title="Other", units_count=1, done=0, queued=False)
+    other = _run(conn, title="Other", units_count=1, done=0)
     assert admin_client.post(f"/api/admin/work/{run}/control", json={"action": "retry-held"}).status_code == 409
     runrecord.finish_run(conn, other, "canceled")
     answer = admin_client.post(f"/api/admin/work/{run}/control", json={"action": "retry-held"}).get_json()

@@ -53,27 +53,21 @@ def test_every_command_with_units_has_a_memory_figure():
     assert set(claims.UNIT_BY_NATURE_MB) <= set(commands.REGISTRY)
 
 
-def test_a_kind_with_no_figure_is_refused_by_the_table_and_gets_the_default_at_the_worker():
+def test_a_kind_with_no_figure_is_refused_by_the_table():
     with pytest.raises(claims.NoClaim):
         claims.function_table("planetgen.nothing.here")
     with pytest.raises(claims.NoClaim):
         claims.unit_table_mb("link-neighbors-but-not")
     with pytest.raises(claims.NoClaim):
         claims.api_table("planetgen.api.nothing:job")
-    job = types.SimpleNamespace(func_name="planetgen.nothing.here", origin=redisqueue.MAINTENANCE_QUEUE)
-    assert claims.default_claim(job) == Claim("fn:planetgen.nothing.here", float(claims.DEFAULT_MB), 1.0, "maintenance")
 
 
-def test_the_lane_of_each_queue():
-    assert claims.lane_of(redisqueue.BULK_QUEUE) == "bulk" and claims.lane_of(redisqueue.GENERATION_QUEUE) == "bulk"
-    for name in redisqueue.maintenance_lane():
-        assert claims.lane_of(name) == "maintenance"
-    assert claims.lane_of("something-else") == "other"
-
-
-def test_claim_for_a_page_job(conn):
-    page = types.SimpleNamespace(func_name="planetgen.web.job_runner.run", args=(), origin=redisqueue.MAINTENANCE_QUEUE, id="n")
-    assert claims.claim_for(page, conn).lane == "maintenance"
+def test_claim_for_a_page_jobs_step(conn):
+    """OPS.244: a step of a Generate page job is a row of the ledger; it claims what the row says (the runner is small; what the step starts is counted under it) on the lane of the classes the launcher does not name."""
+    from planetgen.queue import launcher, pagerun
+    row = {"command": pagerun.STEP, "claim_mb": pagerun.STEP_MB, "job_class": pagerun.CLASS}
+    claim = launcher.claim_of_row(row)
+    assert (claim.kind, claim.mb) == ("unit:page-step", float(pagerun.STEP_MB)) and claim.lane == memorygate.LANE_OTHER
 
 
 # --- the rule ---------------------------------------------------------------------------------------------------------

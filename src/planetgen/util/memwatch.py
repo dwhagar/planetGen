@@ -7,7 +7,7 @@ Peak memory of a job step (PERF.183)
 Watches the processes a job step runs beside, every `INTERVAL_SECONDS`, and keeps the highest figure of each group:
 
 * `mysql`: every `mysqld` on the host;
-* `workers`: every planetgen worker process (`planetgen.cli.worker`);
+* `workers`: every planetgen job process (`planetgen.queue.template` and the jobs it forks, OPS.235);
 * `step`: the step's own process tree (its process group, which the job runner makes for it);
 * `host`: the whole host's memory in use.
 
@@ -30,8 +30,8 @@ from planetgen.util.format import format_megabytes
 INTERVAL_SECONDS = 2.0
 """float: How often the processes are looked at."""
 
-WORKER_COMMAND = "planetgen.cli.worker"
-"""str: What every planetgen worker process has in its command line (the same as `planetgen.queue.workers`)."""
+WORKER_COMMAND = "planetgen.queue.template"
+"""str: What every planetgen job process has in its command line: the template the supervisor starts and the jobs forked from it keep it (OPS.235: there is no worker process of the queue any more)."""
 
 GROUPS = ("mysql", "workers", "step", "host")
 """tuple: The groups a peak is kept for."""

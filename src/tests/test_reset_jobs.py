@@ -1,23 +1,18 @@
 # tests/test_reset_jobs.py
 
 """
-A job that a killed worker left "running" in Redis no longer holds the update for ever (`workers.reap_dead_jobs`,
-called by the update guard and at every worker's start), and `planetgen.cli.reset_jobs` (with `update.sh
---reset-jobs`) resets every job and the queue.
+`planetgen.cli.reset_jobs` (with `update.sh --reset-jobs`) resets every job and the queue. OPS.235: RQ is gone, so no job is queued on Redis any more; the command still removes the keys an older release's RQ left.
 """
 
-import math
 import os
+import socket
 import subprocess
 import sys
-import uuid
 
 import pytest
-import rq
 
-from planetgen.admin import updateguard
 from planetgen.cli import reset_jobs
-from planetgen.queue import pause, redisqueue, runrecord, workers
+from planetgen.queue import pause, redisqueue, runrecord
 from tests.test_update_guard import FakeWork, REPO, run_shell
 
 pytestmark = pytest.mark.real_queue
@@ -26,128 +21,21 @@ ALL_FOREVER = "+inf"
 """str: The score of a job queued with no time limit in the started registry."""
 
 
-@pytest.fixture
-def queue_of_its_own(redis_server, monkeypatch):
-    """A queue name of this test's own on the test server, emptied after; `(queue, connection)`."""
-    name = f"planetgen-api-test-{uuid.uuid4().hex[:10]}"
-    connection = redisqueue.connect(redis_server)
-    queue = redisqueue.queue(name, connection)
-    queue.registered_test_workers = []
-    connection.sadd("rq:queues", queue.key)
-    yield queue, connection
-    for worker in queue.registered_test_workers:
-        worker.register_death()
-    queue.empty()
-    connection.delete(queue.started_job_registry.key, queue.failed_job_registry.key)
-    connection.srem("rq:queues", f"rq:queue:{name}")
-
-
 def dead_pid():
     child = subprocess.Popen([sys.executable, "-c", "pass"])
     child.wait()
     return child.pid
 
 
-def register_worker(queue, connection, name, pid):
-    worker = rq.Worker([queue], connection=connection, name=name, serializer=queue.serializer)
-    worker.pid = pid
-    worker.register_birth()
-    getattr(queue, "registered_test_workers", []).append(worker)
-    return worker
-
-
-def running_job(queue, connection, owner, retries=None):
-    """A job the worker `owner` started and never ended, in the started registry with no expiry."""
-    job = queue.enqueue(math.pow, 2, 2, job_timeout=600, retry=retries)
-    queue.remove(job)
-    job.set_status(rq.job.JobStatus.STARTED)
-    job.worker_name = owner
-    job.save()
-    connection.zadd(queue.started_job_registry.key, {f"{job.id}:{uuid.uuid4().hex[:8]}": ALL_FOREVER})
-    return job
-
-
-def test_a_job_whose_worker_process_is_gone_is_failed_and_leaves_the_started_registry(queue_of_its_own):
-    queue, connection = queue_of_its_own
-    gone = f"gone-{uuid.uuid4().hex[:8]}"
-    register_worker(queue, connection, gone, dead_pid())
-    job = running_job(queue, connection, gone)
-    assert workers.reap_dead_jobs(connection) == [(queue.name, job.id)]
-    assert job.get_status(refresh=True) == "failed"
-    assert queue.started_job_registry.get_job_ids(cleanup=False) == []
-    assert job.id in queue.failed_job_registry.get_job_ids()
-    assert workers.reap_dead_jobs(connection) == []
-
-
-def test_a_job_cleared_because_its_worker_is_gone_is_an_error_in_the_error_log(queue_of_its_own, tmp_path, monkeypatch):
-    """OPS.116: the parent that finds the worker dead writes it down; the worker itself could not."""
-    from planetgen.util import log
-    monkeypatch.setenv("PLANETGEN_LOG_DIR", str(tmp_path))
-    log.configure(log.NORMAL, console=False)
-    queue, connection = queue_of_its_own
-    gone = f"gone-{uuid.uuid4().hex[:8]}"
-    register_worker(queue, connection, gone, dead_pid())
-    job = running_job(queue, connection, gone)
-    workers.reap_dead_jobs(connection)
-    lines = (tmp_path / "error.log").read_text().splitlines()
-    assert len(lines) == 1 and f"Worker {gone} was gone" in lines[0] and job.id in lines[0] and "the job failed." in lines[0]
-
-
-def test_a_job_whose_worker_key_has_expired_is_cleared_too(queue_of_its_own):
-    queue, connection = queue_of_its_own
-    job = running_job(queue, connection, "never-registered")
-    assert workers.reap_dead_jobs(connection) == [(queue.name, job.id)]
-    assert job.get_status(refresh=True) == "failed"
-
-
-def test_a_job_with_a_retry_left_is_queued_again(queue_of_its_own):
-    queue, connection = queue_of_its_own
-    job = running_job(queue, connection, "never-registered", retries=rq.Retry(max=1))
-    assert workers.reap_dead_jobs(connection) == [(queue.name, job.id)]
-    assert job.get_status(refresh=True) == "queued" and job.id in queue.get_job_ids()
-    assert queue.started_job_registry.get_job_ids(cleanup=False) == []
-
-
-def test_a_job_whose_worker_is_alive_is_left_running(queue_of_its_own):
-    queue, connection = queue_of_its_own
-    live = f"live-{uuid.uuid4().hex[:8]}"
-    register_worker(queue, connection, live, os.getpid())
-    job = running_job(queue, connection, live)
-    assert workers.reap_dead_jobs(connection) == []
-    assert job.get_status(refresh=True) == "started"
-    assert queue.started_job_registry.get_job_ids(cleanup=False) == [job.id]
-
-
-def test_a_registry_entry_whose_job_has_expired_is_dropped(queue_of_its_own):
-    queue, connection = queue_of_its_own
-    connection.zadd(queue.started_job_registry.key, {"0123456789abcdef:abcd": ALL_FOREVER})
-    assert workers.reap_dead_jobs(connection) == [(queue.name, "0123456789abcdef")]
-    assert queue.started_job_registry.get_job_ids(cleanup=False) == []
-
-
-def test_the_update_guard_does_not_list_a_job_whose_worker_is_gone(redis_server, monkeypatch):
-    unique = f"planetgen-api-test-{uuid.uuid4().hex[:10]}"
-    monkeypatch.setattr(redisqueue, "QUEUES", (unique,))
-    connection = redisqueue.connect(redis_server)
-    queue = redisqueue.queue(unique, connection)
-    try:
-        job = running_job(queue, connection, "never-registered")
-        assert job.id and updateguard.QueuedJobSource(redis_server).items() == []
-        assert job.get_status(refresh=True) == "failed"
-    finally:
-        queue.empty()
-        connection.delete(queue.started_job_registry.key, queue.failed_job_registry.key)
-        connection.srem("rq:queues", f"rq:queue:{unique}")
-
-
-def test_a_worker_clears_the_jobs_of_a_killed_worker_when_it_starts(queue_of_its_own, redis_server):
-    queue, connection = queue_of_its_own
-    job = running_job(queue, connection, "never-registered")
-    done = subprocess.run([sys.executable, "-m", "planetgen.cli.worker", "--burst", "--url", redis_server, queue.name],
-                          capture_output=True, text=True, timeout=300, cwd=REPO,
-                          env={**os.environ, "PYTHONPATH": os.path.join(REPO, "src")})
-    assert done.returncode == 0, done.stderr
-    assert job.get_status(refresh=True) == "failed"
+def leave_rq_keys(connection, queue_name, worker=None, pid=None):
+    """The keys an older release's RQ left in Redis (OPS.235: RQ is gone, but `reset_jobs` still finds and removes what a run before it left): a waiting job on a queue, a started one in its registry and, with `worker` and `pid`,
+    the record of a worker of this host. Written as keys, as `reset_jobs` reads them."""
+    connection.rpush(f"rq:queue:{queue_name}", "waiting-job")
+    connection.hset("rq:job:waiting-job", "status", "queued")
+    connection.zadd(f"rq:wip:{queue_name}", {"running-job": float("inf")})
+    connection.hset("rq:job:running-job", "status", "started")
+    if worker:
+        connection.hset(f"rq:worker:{worker}", mapping={"hostname": socket.gethostname(), "pid": str(pid)})
 
 
 # --- planetgen.cli.reset_jobs ---------------------------------------------------------------------------------
@@ -161,9 +49,8 @@ def test_reset_jobs_clears_the_queue_and_the_runs_and_keeps_the_rest(redis_serve
     url = database_of_its_own(redis_server)
     connection = redisqueue.connect(url)
     connection.flushdb()
-    queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
-    waiting = queue.enqueue(math.pow, 2, 2, job_timeout=600)
-    running_job(queue, connection, "never-registered")
+    leave_rq_keys(connection, redisqueue.BULK_QUEUE)
+    waiting_key = f"rq:queue:{redisqueue.BULK_QUEUE}"
     connection.set("planetgen:page:kept", "1")
     pause.pause("boss", connection)
     stale_run = runrecord.start_run(connection, "Stale run", [runrecord.Stage("mass", "Mass", units=3)])
@@ -174,13 +61,13 @@ def test_reset_jobs_clears_the_queue_and_the_runs_and_keeps_the_rest(redis_serve
         stuck = FakeWork("Stuck run")
 
         assert reset_jobs.reset_jobs(redis_url=url, dry_run=True, sources=[stuck], write=lines.append)
-        assert stuck.canceled == [] and connection.exists(waiting.key) == 1
+        assert stuck.canceled == [] and connection.exists(waiting_key) == 1
         assert any("Redis: " in line and "key(s)" in line for line in lines)
 
         questions = []
         assert not reset_jobs.reset_jobs(redis_url=url, sources=[stuck], write=lines.append,
                                          answer=lambda text: questions.append(text) or "n")
-        assert len(questions) == 1 and stuck.canceled == [] and connection.exists(waiting.key) == 1
+        assert len(questions) == 1 and stuck.canceled == [] and connection.exists(waiting_key) == 1
 
         lines.clear()
         assert reset_jobs.reset_jobs(redis_url=url, assume_yes=True, sources=[stuck], write=lines.append)
@@ -207,8 +94,7 @@ def test_reset_jobs_kills_a_worker_process_of_this_host(redis_server):
     connection.flushdb()
     sleeper = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(600)"], start_new_session=True)
     try:
-        queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
-        register_worker(queue, connection, "sleeper-worker", sleeper.pid)
+        leave_rq_keys(connection, redisqueue.BULK_QUEUE, "sleeper-worker", sleeper.pid)
         lines = []
         assert reset_jobs.reset_jobs(redis_url=url, assume_yes=True, sources=[], write=lines.append)
         assert sleeper.wait(timeout=30) == -9

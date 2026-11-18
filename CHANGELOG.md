@@ -2,6 +2,352 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4568] - 2026-11-18
+
+**Headline:** A world that rolled the other-branch oddity stops looking for its second climate once two starts end on the answer it already has, so a dense warm planet no longer costs a dozen extra air solves.
+
+### Changed
+
+- W20 (`air_branches.other_branch`) solved the air again from `COLD_STARTS_K` (four starts) or `WARM_STARTS_K` (three) until one ended on a distinct answer. Of 214 searches of worlds that rolled W20 in 57 `world-requested` redraw systems (numbers 1 to 113), 199 had every start end on the first answer, 14 had starts that ended elsewhere without being a branch, and one found a second branch (from the fourth start, 260 K, after one start that agreed and two that ended elsewhere). The search now stops when `AGREEING_STARTS_TO_STOP` (2) starts have ended less than `MIN_BRANCH_GAP_K` and `MIN_ICE_GAP` from the first answer, a start that ends elsewhere not counting. The stand-in row NEB8 names the new bound (tier T6, tweak level L1).
+- Why now: the Train 45 head took 192 s for `world-requested` system 10 (7 s on main) because the request redraws a habitable world 68 times and half of those rolled W20, each paying three or four 2.5 to 3 s solves of a 2 bar air; 139 of the first 182 s were in `other_branch`. The test limit of 180 s is unchanged.
+- Output: a world that rolled W20, whose first two starts agree with its first answer and whose later start would have found a distinct answer, now keeps its first answer. None of the 214 sampled does. Every other world, and every world that did not roll W20, is unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4567] - 2026-11-18
+
+**Headline:** The surface-air storage test now skips an unsettled air by its gases as well as its pressure.
+
+### Changed
+
+tests/test_surface_air.py: the test that reads the stored density, scale height and greenhouse multiplier of every generated body skipped any body whose pressure equalled an unsettled air's pressure to a part in a billion. A Train 45 sample (seeds 0 to 9 after GEN.1520) held one air that did not settle at exactly 10 kPa and three bodies of 0.003 Earth masses at 8 K with exactly 10 kPa of another mixture, so four bodies were skipped against a bound of two. The skip now also requires the stored gases that hold 1 percent of the pressure or more to match the unsettled air's to a part in a thousand. The bound (max(1, bodies // 20)) is unchanged. Test only; no generation output changes.
+
+generation-output: unchanged
+
+## [8.0.4566] - 2026-11-18
+
+**Headline:** a sector made under two different Python hash seeds is the same sector to the last digit again.
+
+### Fixed
+- The blend of an air before and after photolysis (`surface_air._photolysed`) and the blend of two nebula mixtures (`nebula_composition._mix`) listed their gases in the order a set of the names gave, which follows the process's `PYTHONHASHSEED`, so every sum over that air added in a different order and one air in the probe sector ended 1e-11 K and up to 3e-7 of a gas share different between two seeds (`test_a_sector_does_not_depend_on_hash_seed_or_locale`). They list the gases in the order they were given.
+
+generation-output: changed within the solvers' tolerance (no golden, no epoch, lock item)
+
+## [8.0.4565] - 2026-11-18
+
+**Headline:** A belt's bodies are no longer piled on the eccentricity and inclination caps: their orbit draws are truncated, not clipped.
+
+### Fixed
+- **A third of a wide belt's bodies sat at exactly e = 0.5 (and the widest at exactly 60 degrees).** `belt_roster.entry_of` cut each Rayleigh draw with `min(draw, cap)`, which moved the whole tail onto the cap (37 percent of a belt three times as wide). The draw is now truncated by its inverse distribution (`trojan_swarm.truncated_rayleigh`, reused; one draw per body, no extra stream numbers), so no body is piled on a cap and the shape below it is the Rayleigh. Registry row 6.182 MR3 says truncated (GEN.1792).
+- Every stored belt member's eccentricity and inclination change slightly for the same seed; the forced eccentricity sum of `belt.py` is unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4564] - 2026-11-18
+
+**Headline:** A giant of a planetary nebula's white dwarf no longer stops the build when a trace of vapor cycles over its ice cap.
+
+### Fixed
+- `mixture_giant.cap_ices` raised "the ice caps did not settle" on a sulfur-rich layer at 91 K: its S2 is capped at about 1e-39 of the layer, and each of 1,000 rounds took 3e-39 of it while the equilibrium made it again from the rest of the sulfur. The settle test asked only whether the budget could make more than `MIN_CONDENSED` of the species; it now also asks whether the excess over the cap is more than that. An excess under it is not a condensate worth recording, which is what the test already says for a species the budget cannot make. Found by the Train 45 gate in `test_census_nebula_wholesphere` (B0VII central star, seed 2 of the hunt).
+
+generation-output: unchanged
+
+## [8.0.4563] - 2026-11-18
+
+**Headline:** The sources behind the gas-disk edge stand-ins are in the reference list, and the notes write them by their IDs.
+
+### Fixed
+- The gas-disk edge note (`docs/design/generation/gas-disk-edge.md`), the GDE rows of `gap-filling-plan.md` and the docstrings of `disk_size.py` wrote four sources by author and year, so `test_citations_outside_the_registry` failed. The three new papers are in the registry (R5301 to R5303) and the four sources are written as their IDs [R0602, R5301, R5302, R5303].
+
+generation-output: unchanged
+
+## [8.0.4562] - 2026-11-18
+
+**Headline:** A star's protoplanetary disk now ends at a radius that follows the star's mass (100 au for the Sun, mass to the half power, a factor of 2 of scatter per star) instead of 18 snow lines, so Sun-like stars grow cold giants and belts farther out and small stars get larger disks than before.
+
+### Changed
+
+- The outer edge of the gas disk a star's planets, belts and comets formed in is `physics/disk_size.edge_au`: median 100 au x (M/Msun)^0.5 (45 au at 0.2 Msun, 71 au at 0.5, 118 au at 1.4), drawn once per star with a 0.3 dex log-normal scatter cut at 2 sigma from a stream keyed by the star (no stored column, no other draw moves). It replaces `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` (18 snow lines, 49 au for the Sun, 5.8 au for an M2V dwarf), which followed the star's light rather than its mass. Evidence and the decision are in `reports/gen1520-disk-size-by-mass-2026-11-11.md` (Boss approved 3:04 PM EST 11-11); stand-ins DS1 to DS4 in `gap-filling-plan.md` section 6.274, design note `docs/design/generation/gas-disk-edge.md`.
+- It sets where random planet slots end and the oligarch chain's limit (`system.py`), the outer-disk belt and the scatter shares (`belt_birth.py`), the zone a comet's ice formed in (`comet.py`) and where the pebbles end and which volatile ices evaporate on the way in (`disk_drift.py` through `mixture_subject` and `mixture_giant`, now taking the edge as an argument; a larger edge is a colder one, so more of the CO2, CO and N2 lines lie inside the disk).
+- New redraw kind `disk_edge.scatter`. Planet, giant, belt and comet counts, the outer planet and belt distances, comet reservoirs and giant C/O change for every star; the before and after sweep (150 systems, same seeds) is in the report.
+
+generation-output: changed
+generation-affects: plan, scatter, fill, population
+
+## [8.0.4561] - 2026-11-18
+
+**Headline:** The bright-star backfill draws each sky row once from a bound that follows the stars it is drawing, so a sky share walks 5 to 10 times faster.
+
+### Fixed
+
+- PERF.280: the bright-star candidate draw (GEN.308/GEN.309) takes one Poisson count and one stream a row and luminosity band (it took one a block of 256 wedges), and its bound is the most each population's density can be in the row times its share of the band (`galaxy.density.population_bounds_array`), where it was the whole disk's and bulge's largest density times the young stars' share, a hundred times what a cell expects. A deep sky tier listed 340 candidates for each star it kept; it now lists about one. The bounds of a couple of thousand rows are worked out together from arrays. The walk of one 1/16 share of a tier takes 0.1 to 1.8 s where it took 1.1 to 8.5 s. The stars are drawn from the same exact thinning, so counts and distributions are unchanged (tier 28, three shares, 64 seeds: 83.6 stars, 82.7 expected), but the random streams differ, so every candidate-path star moves: a lock item.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4560] - 2026-11-18
+
+**Headline:** The air history now follows the methane, hydrogen and sulfur gases a world's life makes through time, ending at the air the generator already gives it, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 2b: `air_history.gas_trajectory(body, living, ages, found, risen, rise_gyr)` gives the air, mol of each gas, at each age as the ledger rows of the classes of `living` make it: the methane the classes that have begun hold together (and the carbon dioxide it is made from) and the hydrogen, hydrogen sulfide and the like each draws down, counted at each age and not once at the star's age; a methane row that ends at the oxygen's rise stops there. Its last value is the air `life_air.apply_gases` stores. Reuse: `life_air.ledger_air`, `_producing`, `_with_ledger_gases`, `summed_methane_flux_mol_yr`. Nothing in the generator reads it yet.
+
+### Changed
+
+- `life_air.apply_gases` is now `life_air.ledger_air` (the air, as moles, the ledger gives at an age, with its water settled) plus the store of that air; `_producing` and `_with_ledger_gases` take the age the classes are counted at (the star's age when not given). No generated world changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4559] - 2026-11-18
+
+**Headline:** Bringing a galaxy to the running epoch now also refills the stored values worked out from other stored values (habitability scores, the effect ledger) when the code that wrote them has changed, instead of leaving them old or regenerating sectors.
+
+### Added
+- **Bring-to-epoch refills derived values.** A new derived stage, after the population stage, finds systems whose habitability score or effect ledger was written by older code (the existing stamps, GEN.1479) and refills them with the existing refill jobs. No sector is generated again and `sectors.modified_at` is not touched. The survey and the dry run report it.
+
+## [8.0.4558] - 2026-11-18
+
+**Headline:** The class census draws ten stars a cell, so one star's age no longer decides a cell's class and life shares.
+
+### Changed
+- **The class census spreads a cell over ten stars (GEN.1785).** A cell drew one star and put all 300 planets round it, so the whole cell had that star's age (0.159 Gyr for the G2V ecosphere cell on main: 50 of its 51 living bodies at abiogenesis). It now draws ten stars of 30 bodies each, each on its own seeded stream. The cell's moons built bare are made whole and each body gets the end of its making (`StarSystem._finish_planet`, `_finish_moon`), as a system's bodies do. A body with no class letter is in no class share. A cell the reference drew nothing in (no moon of an M dwarf's hot planets) expects none, and a body there is a flag.
+- **The system census counts promoted belt bodies apart.** `planets` is the slot planets; `promoted_count` is the belt members made planets (GEN.1510), with its own range.
+- **Both censuses are renewed once from the new draws** (commit and sample in each file's reference); no range was widened to cover a fault.
+
+## [8.0.4557] - 2026-11-18
+
+**Headline:** the dispatch rule is proved over ten seeds and backlogs of 30, 300 and 3,000 units, with kills, small claims and a decider that fails.
+
+### Added
+- OPS.236: `tests/test_fuzz_dispatch.py` runs the simulator (`tests/enginesim.py`) over seeds 0 to 9 at 30 and 300 units and two seeds at 3,000. Each run has a visitor's jobs through the stage, a claim of 7,000 MB, a restarted unit that runs alone and a cut that needs the lane to itself. It checks in every turn that the claims admitted stay within the host less its reserve (a claim larger than that runs alone), that a token is held by one job, that the lone job runs alone and that a kernel kill only follows a claim that was too small or memory taken from outside; at the end that every job finished once, that the visitors' jobs wait under 1.5 s at the 99th percentile (5 s with a decider that fails one turn in ten), and that the big claim, the lone unit and the cut all start within two minutes of the end of the work queued before them.
+- The simulator gained a claim that is too big for its neighbours (`big`), a decider that fails in a share of the turns (`crash`), the share of units whose claim is too small (`small`), memory held from outside the engine for a while (`pressure`), and a retry that runs alone on a claim grown by half after a kernel kill.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4556] - 2026-11-18
+
+**Headline:** the supervisor kill test that has been red since OPS.251 passes again: its stand-in for starting a supervisor now ends the claim to be starting one when the process ends, as the real start does.
+
+### Fixed
+- OPS.251 (bug, test only): `tests/test_supervisor_kill.py` started its supervisors with its own `start` function, which never ended the claim to be starting one (`supervisor._release_claim`) when the supervisor was killed; since OPS.251 slice 2 that claim has no time limit, so the next caller found it held by a live process (the test's) and started nothing. The product is unchanged: its own start (`supervisor._spawn`) ends the claim through the exit notice.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4555] - 2026-11-18
+
+**Headline:** `python3 -m planetgen.cli.pressure report` says what the memory controller's record of the host's pressure holds and the edges it gives, and the record now keeps how slow the database was each minute.
+
+### Added
+- **OPS.249 slice 2.** `planetgen.cli.pressure report` prints the number of minutes recorded and their span, the memory kills no pressed reading came before, the holds that were not needed (against what the learning needs before it moves an edge), the minutes that carry a probe of the database and the edges the record gives now; `--csv FILE` also writes every recorded minute, and the kills beside it, so a gate keeps its record with its results.
+- Each minute of `pressure_minutes` also holds the slowest probe of the database in that minute and the calm figure it was judged against (control schema v26, two new columns added by the update), the record the factors of the database signal are to be learned from.
+
+### Changed
+- `docs/reference/cli.md` no longer lists the `worker` command among the modules without database options.
+
+## [8.0.4554] - 2026-11-18
+
+**Headline:** The bright-star backfill (Stage 9) now runs four sky shares at once on a 16 GB host instead of three, because its memory figure was measured.
+
+### Fixed
+
+- OPS.270: the backfill claimed 2,100 MB for each unit, the figure of the other scatters, which was measured when a worker built its sampling tables cold. A share forked from a warm template reaches 1,502 MB of its own memory in about 2.5 minutes and stays there (the template holds 175 MB, the sampling tables read back from the cache are 7 MB); the memory is the stellar-evolution caches filling to their size. The claim is now 1,650 MB, so half of a 16 GB host holds four shares, not three.
+
+## [8.0.4553] - 2026-11-18
+
+**Headline:** the job engine's stage 4 kill tests run with real processes, and a unit no longer fails because its template had just been killed.
+
+### Fixed
+- OPS.236 (bug): a fork asked of a template that had just died (killed between two turns of the launcher) raised `BrokenPipeError`, which the launcher took for a failure of the unit and marked its row `failed`. `JobHost.fork` now says the template ended (`NotReady`), the host is dead, the launcher puts the row back to `ready` and the next turn starts a new template (`TemplateSet.host`).
+
+### Added
+- OPS.236: `tests/test_engine_kill_processes.py` kills real processes under a real template and a real control database: the template while its job runs (the job finishes, and the next job gets a new template), the template and its job together (handed out again once, finished once), a job the kernel kills (retried alone on a claim grown by one and a half), a job killed before it took its attempt, the supervisor killed with a job running (the job stops at its piece, the next supervisor hands it out again, every piece finished once) and a supervisor killed after its job wrote its end (nothing to recover).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4552] - 2026-11-18
+
+**Headline:** a job the kernel kills runs again alone on a claim one and a half times as large, as the design says (a bug since RQ was removed).
+
+### Fixed
+- OPS.236 (bug): when OPS.235 deleted `units.horse_killed`, nothing called `memorygate.grow` any more, so a job process killed by a signal (the kernel's out-of-memory kill) was handed out again with the same claim and beside other jobs, and could be killed again. `Launcher._grow` now records the grown claim of a retry after a kill, and `Launcher.claim` gives that retry the grown figure and the `alone` token (read from the earlier attempt's error kind, no new column). A unit that failed on its own, or was lost with its supervisor, is not grown.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4551] - 2026-11-18
+
+**Headline:** the job engine is now tested on whole random runs with crashes anywhere.
+
+### Added
+- OPS.245: `tests/test_engine_random_runs.py` draws a run from a seed (two to four stages of units made of pieces that commit, stages written in windows by the spawner, units that fail for good so the run is held and retried, kills at commits, the spawner stopped after its rows went in or after its cursor moved) and checks that the run ends done, every piece of every unit is written exactly once, no unit began before the stage before it was released, every windowed item has one row and one finished attempt, and every end row is done. `PLANETGEN_ENGINE_SOAK_SEEDS=200` runs more seeds.
+
+generation-output: unchanged (tests only; no golden, no epoch, no lock item)
+
+## [8.0.4550] - 2026-11-18
+
+**Headline:** a body with more than a quarter of its surface under ice now shows an "Ice-capped" row on its sheet and page.
+
+### Added
+- GEN.1572: `hydrosphere.ice_capped` says a body is ice-capped when ice, sea ice and land ice together, covers more than 25 percent of its surface (`ICE_CAPPED_MIN_COVER`, registry row CC18, Marginal educated guess from physics, tweak level L0, a design edge Boss approved). The ice share is the larger of the cover the hydrosphere stored (`ice_cover_fraction`) and the share the body's own albedo law puts on a world of its mean surface temperature (`climate_branches.IceAlbedoLaw.ice_fraction`, the one GEN.1697 takes off the weathering land); on a liquid sea the edge falls at about 264 K. The flag is derived, not stored: the sheet (`describe/sheet.py`, `_ice_capped_provider`) adds an "Ice-capped" row to the water group of a planet or moon that is, and the pages and the sheet API show it. It changes no class letter and no liquid cover, and a body with no surface water (dry, vapor, a giant) never has it.
+
+generation-output: unchanged (nothing stored, nothing generated differently: no column, no migration, no golden, no epoch, not a lock item)
+generation-affects: none
+
+## [8.0.4549] - 2026-11-18
+
+**Headline:** the job engine design note now describes the engine as it is on main, with RQ gone, and says what is proven and what is not.
+
+### Changed
+- OPS.252 (the rest): `docs/design/operations/job-engine.md` is brought up to date for what merged since its first slice: the stage table (stages 3 to 6: OPS.235 RQ removed, OPS.239, 240, 244 done, OPS.249, 250, 251, 261, 271 done), section 3 (failures reach the engine as they are), section 5 (sectors one at a time with a spawn row and a window, claims, time limits and the split follow the profile of a proven kind), section 6 (the controller's edges are learned), section 7 ("The old queue is gone": what stays under the old names and is not a queue), section 8 (the cold one-off system request measured on a quiet machine: 52.6 s first, 19.5 to 28.4 s after), section 10 (what is proven: OPS.225 slices 1 to 3, OPS.274; what is not) and the code map.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4548] - 2026-11-18
+
+**Headline:** a held unit's error now says where it failed, so a one-off failure under load can be traced from the Queue page and the log.
+
+### Changed
+- OPS.275: the error a held unit keeps (the held hash, the run's `unit.held` line, the job log and the reason the run is held with) ends with ` (at file:line in function, ...)` for the last three frames of the failure's traceback, innermost first, files named from the `planetgen` package (`held.where`). The whole error text, exception message included, is passed through the secrets mask before it is stored or said.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4547] - 2026-11-18
+
+**Headline:** The resume-across-builds runner tests no longer depend on the machine's MySQL and Redis, so one of them stops failing or hanging when those are missing or down.
+
+### Fixed
+- **`test_main_says_how_many_tests_were_reused_and_from_which_run`** (`src/tests/test_resume_across_builds.py`): it ran `scripts/test.py quick --resume` with the real service check, which exits 2 when the test environment is not set and waits on a MySQL or Redis that is down when it is (a hang on main, seen by Lane 16 at 1:23 AM EST on 2026-11-18). The runner these tests build now has a quiet services check, as `test_test_runner.py` already does; the tests are about reusing passes, not about services.
+
+## [8.0.4546] - 2026-11-18
+
+**Headline:** an epoch that did not touch the galaxy's plan or scatter no longer makes the map draw every tile again.
+
+### Changed
+- MAP.431: the map's tile cache key (`tile_base`) counts the epoch a stored shape or scatter was made under as the last epoch that changed that stage (`generator_epoch.last_change`, from each epoch's `affects`), not the raw epoch number. A stamp that moves the galaxy up an epoch that changed neither the plan nor the scatter (a refill of the derived values, a new fill) keeps every stored tile; an epoch that changed the scatter still draws the scatter's tiles again. The first load after this release draws the tiles once, as the key's make-up changed.
+
+generation-output: unchanged (no golden, no epoch, no lock item)
+
+## [8.0.4545] - 2026-11-18
+
+**Headline:** a galaxy run of many thousands of sectors no longer keeps a kilobyte of history for every sector it made.
+
+### Changed
+- OPS.240: when a stage that has more than 10,000 unit rows ends, the unit rows that finished at their first attempt lose their stored arguments and their attempt row (`planrows.fold_finished`), except the 100 slowest. Every row stays, so the stage's count, its status lines and the Queue page's totals are as real as before; a unit that was retried or failed keeps everything. What was folded (rows, attempts, their seconds, the rows kept) is written to the stage's `release` row. A failed fold never fails the stage's end.
+
+generation-output: unchanged (no golden, no epoch, no lock item)
+
+## [8.0.4544] - 2026-11-18
+
+**Headline:** The `rq` library is gone from the install: nothing queues a job on Redis for a worker any more, so the update installs one package less.
+
+### Removed
+- **OPS.235 slice 2.** The `rq` dependency (`setup.py`, `scripts/install-python-deps.sh`, `requirements.lock`, `requirements-server.lock`, with `croniter`, `python-dateutil` and `six`, which only it brought) and every module that used it: `planetgen.cli.worker` (the queue worker process), `redisqueue.TimedQueue`, `queue`, `requeue_job`, `fetch_job`, `worker_argv` and `serializer_for`, `allowlist.GuardedJob`, `workers.live_workers`, `cancel_now` and `reap_dead_jobs`, and `claims.claim_for`, `default_claim` and `lane_of`.
+- The shared queue list of the update guard: `QueuedJobSource` now lists only the site's light jobs (a run's units, a page's steps and the light jobs are rows of the ledger or records the supervisor forks); stop-all no longer empties RQ queues or clears dead RQ workers.
+- `docs/reference/cli.md`'s `worker` command.
+
+### Changed
+- `util/memwatch` counts the supervisor's template processes (`planetgen.queue.template` and the jobs forked from it) as the "workers" of the memory peak line, and `cli/benchmark_suite` ends those between steps, where it ended queue workers.
+- `reset-jobs` still removes the `rq:*` keys an older release left in Redis, read as plain keys, and ends the worker processes their records name; it no longer needs the `rq` library for either.
+
+## [8.0.4543] - 2026-11-18
+
+**Headline:** the resume tests now say what a failing sector does (the run holds it, finishes the rest and ends held), instead of expecting the run to stop at it.
+
+### Changed
+- OPS.274: `tests/test_gen_resume.py` (six cases, three modes each of a sector that fails before its save and a save that fails in its transaction) asserts what OPS.221 made true: the run raises `RunStopped` with "The run is held", the interrupted run holds every sector of the uninterrupted run but the one that failed, that sector has no row and no system, and a new run ends with the same sectors as the uninterrupted one. The uninterrupted run is made first, so the interrupted run's sectors are compared with it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4542] - 2026-11-18
+
+**Headline:** a galaxy run makes its sectors one at a time at any size, and the engine writes them to its ledger a window at a time.
+
+### Changed
+- OPS.240: the sector stages (`generate-start-sector`, `generate-neighborhood`, `generate-sectors`) have one unit for each sector however many sectors the galaxy has (the chunking of more than 4,000 sectors a stage into units of several, `SECTOR_UNITS_MAX`, is gone). The cut writes the first window of unit rows (4 for each of the stage's workers, between 200 and 2,000) and a `spawn` row that holds the cursor; the launcher's turn writes the next window when the unit rows written and not finished fall under half of one (`planrows.spawn_window`). The stage still counts every sector (bar, ETA, the follower's total) and a run that carries on from another, or a held run that is retried, picks the cursor up from its row.
+- The sectors of the windows after the first wait in a packed, checksummed file in the state folder (`queue/itemfile.py`, `stage-items/<run>-<stage>.items`, 12 bytes a sector), which the stage's end deletes; a file that is missing or torn fails the spawn row and holds the run with the reason, never a stage with fewer sectors.
+
+generation-output: unchanged (no golden, no epoch, no lock item)
+
+## [8.0.4541] - 2026-11-18
+
+**Headline:** The oxygen reductant row no longer names a paper outside the citation registry.
+
+### Fixed
+- **BO2's evidence text named a paper by name outside the registry** (test_citations_outside_the_registry was red on main after the GEN.1789 registry reads). The name is dropped; the row cites [R5300] only.
+
+## [8.0.4540] - 2026-11-18
+
+**Headline:** A Generate job that waits for the running one is now rows of the job ledger, so the waiting line survives a web server restart and two processes start it once.
+
+### Changed
+- **OPS.244 slice C: a waiting Generate job is a waiting run of the ledger, not a `queued-<ticket>.json` file and a job entry in the run line.** `jobs.queue_next` writes the run with every row waiting (`pagerun.queue`); `jobs.promote_queued` claims it with one conditional update (`pagerun.claim_queued`), starts it as the job (`jobs.start_job(..., queued=...)`) and puts it back at its place with the reason when it could not be started; Discard deletes the run.
+- **The run line holds runs only** (`queue/runline.py`: the job type, its fields and `claim` and `restore` are gone). The strip and the Generate page show both in the order they arrived, and the cap `queue.max_waiting` counts both.
+- **The engine design note says where the waiting line stands** (`docs/design/operations/job-engine.md`, stage 5 and section 7).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4539] - 2026-11-18
+
+**Headline:** The sampling-table lock wait is named in the no-sleep test, so main passes it again.
+
+### Fixed
+
+- PERF.281: `test_no_sleep_in_commands` (OPS.197) lists the table lock's poll in `band_table_cache._building` with its reason: the wait is declared with `unitbeat.waiting` and beats the unit on every poll, so it is not a silent stretch. A blocking `flock` would be silent to the unit's heartbeat, so the poll stays. No behavior changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4538] - 2026-11-18
+
+**Headline:** A Generate page job is now a run of the job ledger, so it survives a web server restart and Cancel works with or without the supervisor.
+
+### Changed
+- **OPS.244 slice B: the Generate page's job is rows of the ledger, not a folder of files and a private queue.** The job is a run of kind `page` with one row for the job and one row for each step (`queue/pagerun.py`). The launcher hands a step out like any other row, a forked job process runs it (`forkedjob.run_page_step`, `web/job_runner.run_step`) and follows the step's own process, and the page reads the job's status, step, start, end and error from the rows. `job.json`, `state.json`, `runner.pid`, the `cancel` file, the job's private RQ queue and its burst worker are gone; `output.log`, `records.log`, `progress.json` and `memory.json` stay in the job folder. A step is never run again by the launcher after a restart or a kill; the page's Retry starts the rest.
+- **Cancel is a request to the supervisor** (`controls.stop_engine_run`), or the rows are ended in the page's own process when no supervisor is alive; a step whose runner is gone is stopped from the process group named in `step.pid`.
+- **The supervisor stays awake while a page job runs** (`supervisor.pages_key`).
+- **The Queue page no longer lists a Generate page job among the beating jobs**; its state is the ledger's.
+- **The engine design note says where the old queue stands** (`docs/design/operations/job-engine.md`, sections 2 and 7).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4537] - 2026-11-18
+
+**Headline:** The one-off system page's light job now claims the memory of one drawn system, so the memory gate no longer runs it unaccounted.
+
+### Fixed
+- **A claim for `system_page.generate_in_process` (OPS.244, slice A).** The function the one-off system page runs in the warm light-job process had no entry in `claims.API_CLAIMS`, so `test_every_function_the_api_dispatcher_may_call_has_a_claim` failed on main. It claims what a `generate-system` unit does (`workers.BULK_WORKER_MEMORY_MB`, one core), the same work done in a light job.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4536] - 2026-11-18
+
+**Headline:** A change to values that are a pure function of stored ones can now say so in its note (`generation-affects: derived`), so a train does not regenerate a galaxy for it.
+
+### Added
+- **The `derived` generation stage** (OPS.133): a fifth stage after `population` in `src/tests/golden/epochs.json`, `bump_version.GENERATION_STAGES` and `tests/golden_stages.STAGES`, for a change that is a pure function of stored values (a rule, a text, the ledger) and is refilled by a job, never regenerated. A note may declare it (`generation-affects: derived`); `scripts/train.py stages` does not measure it (the stored values sit in the fill's rows), reports a moved `fill` or `population` digest under a declared `derived` as a warning and still fails a moved `plan` or `scatter` it does not cover. Documented in `changes/README.md`. The union of the notes' stages, the golden check of the declarations (OPS.147) and the stamping of each train epoch were already in `scripts/train.py`. Still to do, owned elsewhere: the refill job that reads `derived` (job engine) and the map's node cache key, which holds the epoch through `tile_base` (map owner).
+
+## [8.0.4535] - 2026-11-18
+
+**Headline:** One routine builds the planets of every host star, instead of four copies of the same seven steps.
+
+### Changed
+- `StarSystem._build_host` draws, spaces, trims, adds belts and star history to, and widens for mass loss the planets of one host (GEN.1656). The primary, a wide pair's secondary, a tree member and a node's proxy each had their own copy of the sequence; each fix (the ceiling trim, the white dwarf widening, the belts) had to be made four times. The output is unchanged: 42 systems (single, wide, member and node hosts) hash the same before and after.
+
+generation-output: unchanged
+
 ## [8.0.4534] - 2026-11-18
 
 **Headline:** A run that carries on from a run that itself carried on no longer does its finished units again.

@@ -12,7 +12,7 @@ import threading
 
 import pytest
 
-from tests import rq_units
+from tests import unit_helpers
 from planetgen.queue import commands, planrows, redisqueue, runline, runrecord, units, wrapper
 from planetgen.util.settings import get_settings
 
@@ -129,8 +129,8 @@ def test_a_unit_found_done_has_its_result_and_a_repeated_unit_counts_once(monkey
     _handlers(monkeypatch, test=_square)
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=2)])
     runrecord.begin_stage(conn, run_id, 0)
-    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
-    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # unit 0 queued twice (a retry)
+    unit_helpers.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
+    unit_helpers.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # unit 0 queued twice (a retry)
     from planetgen.queue import wrapper
     wrapper.pump()
     got = {}
@@ -159,7 +159,7 @@ def test_the_units_of_a_run_that_is_no_longer_live_do_nothing(monkeypatch, conn)
     ran = []
     _handlers(monkeypatch, test=lambda args, report: ran.append(args["n"]) or {})
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
-    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    unit_helpers.ledger_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
     runrecord.request_cancel(conn, run_id)
     from planetgen.queue import wrapper
     wrapper.pump()
@@ -291,17 +291,17 @@ def test_a_unit_that_rq_fails_after_it_was_done_does_not_fail_the_run(monkeypatc
     up after them, and each failure ended the whole run."""
     _handlers(monkeypatch, test=_square)
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
-    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    unit_helpers.ledger_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
     from planetgen.queue import wrapper
     wrapper.pump()
     assert runrecord.read_run(conn, run_id)["stages"][0]["done"] == 3
     job = type("Job", (), {"func_name": units.UNIT_FUNCTION, "args": (run_id, 0, 1, "test", {"n": 1}, 1.0)})()
-    rq_units.unit_failed(job, conn, ValueError, ValueError("Execution 9ed8 not found in Redis"), None)
+    unit_helpers.unit_failed(job, conn, ValueError, ValueError("Execution 9ed8 not found in Redis"), None)
     assert runrecord.read_run(conn, run_id)["state"] == "done", "the unit was done: the run is not failed"
     open_run = runrecord.start_run(conn, "T2", [runrecord.Stage("test", "T", units=3)])
-    rq_units.ledger_units(conn, open_run, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    unit_helpers.ledger_units(conn, open_run, 0, "test", [({"n": n}, 1.0) for n in range(3)])
     job = type("Job", (), {"func_name": units.UNIT_FUNCTION, "args": (open_run, 0, 1, "test", {"n": 1}, 1.0)})()
-    rq_units.unit_failed(job, conn, ValueError, ValueError("no stars here"), None)
+    unit_helpers.unit_failed(job, conn, ValueError, ValueError("no stars here"), None)
     assert runrecord.read_run(conn, open_run)["state"] == "failed", "a unit that was not done still fails the run"
 
 
@@ -310,11 +310,11 @@ def test_a_unit_found_done_is_not_run_again(monkeypatch, conn):
     _handlers(monkeypatch, test=lambda args, report: ran.append(args["n"]) or {})
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=2)])
     runrecord.begin_stage(conn, run_id, 0)
-    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
+    unit_helpers.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
     from planetgen.queue import wrapper
     wrapper.pump()
     assert sorted(ran) == [1, 2]
-    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # RQ's retry of unit 0, after it was done
+    unit_helpers.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # RQ's retry of unit 0, after it was done
     wrapper.pump()
     assert sorted(ran) == [1, 2]
 
@@ -783,21 +783,22 @@ def test_a_tiered_pass_travels_as_json_and_comes_back_equal():
         assert scatter_limits.tiered_from_json(sent, skeleton) == tiered
 
 
-def test_the_sectors_are_cut_into_the_same_units_whatever_the_worker_count(monkeypatch):
+def test_the_sectors_are_cut_into_the_same_units_whatever_the_worker_count(monkeypatch, tmp_path):
     import json
 
     from planetgen.generation import run_galaxy
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))
     items = [value for sector in range(25) for value in (3, sector % 4 - 1, sector)]
     params = {"database": {"host": "h", "port": 1, "user": "u", "database": "d"}, "args": {"num_systems": 2},
               "edge_pc": 10.0, "items": items, "workers": 1}
     for workers in (1, 8):
         assert run_galaxy.expand_generate_sectors({**params, "workers": workers}).units \
             == run_galaxy.expand_generate_sectors(json.loads(json.dumps(params))).units
-    monkeypatch.setattr(run_galaxy, "SECTOR_UNITS_MAX", 4)
-    expansion = run_galaxy.expand_generate_sectors(params)
-    assert len(expansion.units) == 4 and expansion.plan == {"sectors": 25}
-    assert [value for unit_args, _cost in expansion.units for value in unit_args["items"]] == items, "in order, whole"
-    assert sum(cost for _args, cost in expansion.units) == 25
+    expansion = run_galaxy.expand_generate_sectors({**params, "window": 4, "run_id": "r", "stage": "s"})
+    assert len(expansion.units) == 4 and expansion.plan == {"sectors": 25} and expansion.total == 25 and expansion.cost == 25
+    later = run_galaxy.sector_window(expansion.later, 4, 100)
+    assert len(later) == 21 and all(len(unit_args["items"]) == 3 and cost == 1.0 for unit_args, cost in [*expansion.units, *later])
+    assert [value for unit_args, _cost in [*expansion.units, *later] for value in unit_args["items"]] == items, "one sector a unit, in order, whole"
 
 
 def test_the_arguments_of_a_sector_unit_carry_no_credentials_and_round_trip():

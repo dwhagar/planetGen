@@ -48,6 +48,7 @@ from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics import class_code, equipment, habitability, habitability_world, life_classes, life_scores, score_filters
 from planetgen import tuning
+from planetgen.util import generator_epoch
 from planetgen.population import facility_ratings, facility_types, tech
 from planetgen.generation import cloud as cloudContext
 from planetgen.generation.star import compressed_heliosphere_radius
@@ -6742,6 +6743,17 @@ def galaxy_shape_inputs(conn):
             "components": components}
 
 
+def _tile_shape_inputs(shape_inputs):
+    """
+    `shape_inputs` with the epoch the shape was stored under (the `galaxy_shape` row's `generator_epoch`) as the last epoch that changed the plan (MAP.431, `generator_epoch.last_change`): a tile is drawn from the
+    shape, so an epoch that left the plan alone, a refill of the derived values or a new fill, is no reason to draw it again.
+    """
+    if not shape_inputs or "generator_epoch" not in (shape_inputs.get("row") or {}):
+        return shape_inputs
+    row = {**shape_inputs["row"], "generator_epoch": generator_epoch.last_change("plan", shape_inputs["row"]["generator_epoch"])}
+    return {**shape_inputs, "row": row}
+
+
 def galaxy_content_state(conn):
     """
     Everything `db.nodes.galaxy_nodes`' output depends on, summarized as a handful
@@ -6800,7 +6812,8 @@ def galaxy_content_state(conn):
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     tile_base = hashlib.sha256(json.dumps(
-        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "scatter_epochs": scatter_epochs(conn),
+        {"shape": _tile_shape_inputs(shape_inputs), "tile_format": TILE_FORMAT,
+         "scatter_epochs": {kind: generator_epoch.last_change("scatter", epoch) for kind, epoch in scatter_epochs(conn).items()},
          "bright_stars": bright["seed"], "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     return {

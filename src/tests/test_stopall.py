@@ -5,20 +5,21 @@ Stop everything (PERF.186): the hold keeps anything from starting, `stop_all` en
 Cancel ends a job whose runner is gone, and a step that ignores the request to stop is killed.
 """
 
-import json
 import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 
 import pytest
 
 from planetgen.admin import updateguard
-from planetgen.cli import queue as queue_cli, worker as worker_cli
+from planetgen.cli import queue as queue_cli
 from planetgen.queue import pause, redisqueue, stopall
 from planetgen.web import job_runner, jobs
 from planetgen.web.lib import tileprefetch
+from tests import page_jobs
 
 PYTHON = sys.executable
 
@@ -57,8 +58,8 @@ def _only_my_children(monkeypatch):
 
 
 def _spawn_worker(code):
-    """A process whose command line names the worker module, as a real worker's does."""
-    return subprocess.Popen([PYTHON, "-c", code, "planetgen.cli.worker"], start_new_session=True)
+    """A process whose command line names a module `stopall` ends (`planetgen.cli.warm`), as a real command's does (OPS.235: there is no worker module any more)."""
+    return subprocess.Popen([PYTHON, "-c", code, "planetgen.cli.warm"], start_new_session=True)
 
 
 def _gone(pid, seconds=10):
@@ -95,7 +96,6 @@ def test_nothing_starts_while_everything_is_stopped(tmp_path, monkeypatch):
         updateguard.refuse_while_updating("A run")      # the guard every start of a run, a job or the orbit update calls
     with pytest.raises(updateguard.UpdateRunning):
         jobs.start_job("galaxy", "Held", [{"label": "x", "argv": [PYTHON, "-c", "pass"]}], spawn=False)
-    assert worker_cli.main(["--burst"]) == updateguard.EX_TEMPFAIL
 
 
 def test_the_tile_prefetch_queues_nothing_while_stopped(monkeypatch):
@@ -111,8 +111,8 @@ def test_the_tile_prefetch_queues_nothing_while_stopped(monkeypatch):
 
 def test_find_targets_takes_workers_and_everything_they_started_and_spares_the_rest():
     table = {
-        10: (1, "/venv/bin/python -m planetgen.cli.worker --url redis://x planetgen-bulk"),
-        11: (10, "/venv/bin/python -m planetgen.cli.worker --url redis://x planetgen-bulk"),    # its work horse
+        10: (1, "/venv/bin/python -m planetgen.cli.warm --url redis://x planetgen-bulk"),
+        11: (10, "/venv/bin/python -m planetgen.cli.warm --url redis://x planetgen-bulk"),    # its work horse
         12: (11, "sleep 100"),                                                                    # whatever it started
         20: (1, "/venv/bin/python -m planetgen.cli.generate sectors --radius-pc 12"),
         21: (20, "/venv/bin/python -c from multiprocessing.spawn import spawn_main"),
@@ -120,7 +120,7 @@ def test_find_targets_takes_workers_and_everything_they_started_and_spares_the_r
         40: (1, "/venv/bin/python -m planetgen.cli.migrate"),
         41: (1, "apache2 -k start"),
         42: (1, "/usr/sbin/mysqld"),
-        50: (1, "/venv/bin/python -m planetgen.cli.worker planetgen-bulk"),                      # protected
+        50: (1, "/venv/bin/python -m planetgen.cli.warm planetgen-bulk"),                      # protected
     }
     assert sorted(stopall.find_targets(table, protected={50})) == [10, 11, 12, 20, 21, 30]
     order = stopall.find_targets(table, protected={50})
@@ -150,11 +150,11 @@ def test_kill_processes_ends_a_worker_its_children_and_one_that_ignores_sigterm(
 def test_stop_all_holds_cancels_empties_the_queues_and_kills(redis_server, monkeypatch, tmp_path):
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path / "jobs"))
     _only_my_children(monkeypatch)
+    from planetgen.queue import lightjobs
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)
     connection = redisqueue.connect(redis_server)
-    queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
-    queue.empty()
-    queue.enqueue("time.sleep", 1, job_timeout=60)
-    queue.enqueue("time.sleep", 1, job_timeout=60)
+    for _ in range(2):
+        lightjobs.add_job(connection, "math:pow", [2, 3])      # OPS.235: the jobs that wait are the site's light jobs
     worker = _spawn_worker("import time; time.sleep(60)")
     time.sleep(0.5)
     try:
@@ -162,7 +162,7 @@ def test_stop_all_holds_cancels_empties_the_queues_and_kills(redis_server, monke
         assert done["already"] is False
         assert done["queued"] >= 2
         assert done["killed"] >= 1
-        assert queue.count == 0
+        assert lightjobs.live(connection) == []
         assert stopall.state()["by"] == "boss"
         assert pause.is_paused(connection)
         assert _gone(worker.pid)
@@ -226,6 +226,7 @@ def test_the_command_stops_resumes_and_reports(monkeypatch, tmp_path, capsys):
 
 def _job(tmp_path, monkeypatch, step):
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path / "jobs"))
+    page_jobs.forget_all_jobs()
     job_id = jobs.start_job("galaxy", "Stuck", [{"label": "Runs", "argv": [PYTHON, "-c", step]}], spawn=False)
     return job_id, os.path.join(jobs.jobs_dir(), job_id)
 
@@ -234,9 +235,9 @@ def test_cancel_of_a_job_whose_runner_died_ends_its_step_and_frees_the_lock(tmp_
     job_id, path = _job(tmp_path, monkeypatch, "pass")
     step = subprocess.Popen([PYTHON, "-c", "import time; time.sleep(60)"], start_new_session=True)
     try:
-        with open(os.path.join(path, "state.json"), "w", encoding="utf-8") as handle:
-            json.dump({"status": "running", "pid": 999999, "step": 1, "step_pid": step.pid, "started_at": time.time()},
-                      handle)
+        page_jobs.running(job_id, pid=page_jobs.DEAD_PID)           # the runner of the step is gone, the step runs on
+        with open(os.path.join(path, job_runner.STEP_PID_NAME), "w", encoding="utf-8") as handle:
+            handle.write(str(step.pid))
         assert jobs.get_job(job_id)["status"] == "interrupted"      # what the page shows: the runner is gone
         assert jobs.cancel_job(job_id, who="boss") is True
         assert step.wait(timeout=10) is not None                   # its step was still running; now it is not
@@ -253,9 +254,14 @@ def test_a_step_that_ignores_the_request_to_stop_is_killed(tmp_path, monkeypatch
     stubborn = "import signal, time; signal.signal(signal.SIGTERM, signal.SIG_IGN); print('up', flush=True); time.sleep(120)"
     job_id, path = _job(tmp_path, monkeypatch, stubborn)
     monkeypatch.setattr(job_runner, "CANCEL_KILL_SECONDS", 1)
-    with open(os.path.join(path, "cancel"), "w", encoding="utf-8") as handle:
-        handle.write("now")
+    monkeypatch.setattr(job_runner, "ROW_CHECK_SECONDS", 0.2)
+    runner = threading.Thread(target=page_jobs.run_to_end, args=(job_id,), daemon=True)
+    runner.start()
+    deadline = time.time() + 30
+    while time.time() < deadline and "up" not in (jobs.read_log(job_id) or ("",))[0]:
+        time.sleep(0.1)
     started = time.time()
-    assert job_runner.run(path) == 1
-    assert time.time() - started < 60
+    assert jobs.cancel_job(job_id, who="boss") is True
+    runner.join(timeout=60)
+    assert not runner.is_alive() and time.time() - started < 60
     assert jobs.get_job(job_id)["status"] == "canceled"

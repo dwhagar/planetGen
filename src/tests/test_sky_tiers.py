@@ -180,7 +180,7 @@ def test_the_rows_of_a_sphere_are_its_cross_section_in_edges():
 def test_the_visits_of_a_sphere_are_its_rows_and_its_blocks():
     radius = 250.0
     rows = sum(1 for _ in spherical.sphere_rows((4000.0, 0.0, 0.0), radius, EDGE))
-    blocks = cells_in_sphere(radius, EDGE) / brightStars.BLOCK_WEDGES
+    blocks = cells_in_sphere(radius, EDGE) / tiers_module.COST_BLOCK_CELLS
     assert tiers_module.block_visits(radius, EDGE) == pytest.approx(rows + blocks, rel=0.02)
     assert tiers_module.block_visits(3000.0, EDGE) > 100 * tiers_module.block_visits(250.0, EDGE)       # the far spheres cost the most
 
