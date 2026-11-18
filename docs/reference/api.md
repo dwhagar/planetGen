@@ -1049,7 +1049,7 @@ forced credential change. They back the admin stats page
   `{"available", "status": {"workers_active", "runs_active", "paused",
   "paused_by", "paused_at", "holder", "holder_title",
   "heartbeat_age_s", "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
-  first], "total", "limit", "offset"}`. A run is `{"id", "title", "kind"
+  first], "total", "limit", "offset"}`. `workers_active` is how many jobs the ledger has running now, in every run (OPS.235: it counted RQ workers before). A run is `{"id", "title", "kind"
   ("generation", "maintenance" or "check"), "who", "database", "job" (the
   Generate page job that started it), "argv", "state" ("running",
   "canceling", "done", "failed" or "canceled"), "error", "live", "stale",
