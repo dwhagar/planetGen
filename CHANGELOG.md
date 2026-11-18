@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4515] - 2026-11-18
+
+**Headline:** The golden galaxy now has a digest for each generation stage, and a train can check which stages its output moved against the stages its notes declared.
+
+### Added
+- **`tests/golden_stages.py` and `scripts/train.py stages`** (OPS.147): the golden test writes one digest per stage (plan's own rows, scatter tables, fill sections, facilities) to the file named by `PLANETGEN_STAGE_DIGESTS_OUT` when it builds the pinned galaxy, with no second build. `train.py stages --before A --after B` fails a stage that moved when no declared stage covers it (a declared stage covers itself and the stages after it) and warns about a declared stage that did not move. The golden files and the epoch are untouched. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4514] - 2026-11-18
 
 **Headline:** The N-body spot-check integrates the planets the spacing screen judges, not the belt members promoted to planets.
