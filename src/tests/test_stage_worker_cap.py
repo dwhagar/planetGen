@@ -1,7 +1,7 @@
 """PERF.220, PERF.226: a stage uses no more workers than the host's memory holds (run of 2026-10-31: 36 workers
 took 16,285 MB of a 15,992 MB host in stage 8 and the kernel killed it; another run died out of memory after 11,104 s)."""
 
-from planetgen.queue import commands, redisqueue, runrecord, workers, wrapper
+from planetgen.queue import commands, workers, wrapper
 
 GB = 2 ** 30
 
@@ -25,41 +25,10 @@ def test_an_ordinary_stage_or_an_unknown_memory_is_not_limited(monkeypatch):
     assert workers.stage_worker_cap("scatter-mass") is None
 
 
-def _record(monkeypatch):
-    calls = []
-    monkeypatch.setattr(workers, "ensure_workers", lambda queue, conn, url, count=None: calls.append(("ensure", queue, count)) or 0)
-    return calls
-
-
-def test_the_scatter_stage_holds_the_runs_count_to_the_cap(monkeypatch):
-    monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
-    calls = _record(monkeypatch)
-    wrapper.stage_ensure(None, "url", runrecord.GENERATION, "scatter-luminosity", None)()
-    wrapper.stage_ensure(None, "url", runrecord.GENERATION, "scatter-mass", 36)()
-    wrapper.stage_ensure(None, "url", runrecord.GENERATION, "scatter-mass", 2)()
-    assert calls == [("ensure", redisqueue.BULK_QUEUE, 3), ("ensure", redisqueue.BULK_QUEUE, 3),
-                     ("ensure", redisqueue.BULK_QUEUE, 2)]        # a run of more is held to 3, a smaller `--workers` stays
-
-
-def test_another_stage_keeps_the_runs_count(monkeypatch):
-    monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
-    calls = _record(monkeypatch)
-    wrapper.stage_ensure(None, "url", runrecord.GENERATION, "sector", 36)()
-    wrapper.stage_ensure(None, "url", runrecord.GENERATION, "sector", None)()
-    assert calls == [("ensure", redisqueue.BULK_QUEUE, 36), ("ensure", redisqueue.BULK_QUEUE, None)]
-
-
 def test_the_block_lights_are_held_to_the_workers_the_memory_holds(monkeypatch):
     """PERF.226: the run of 2026-11-08 had 15 workers at 15,128 MB of 15,992 MB while the block lights ran."""
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
     assert workers.stage_worker_cap("refresh-block-lights") == 11
-
-
-def test_a_maintenance_run_is_not_held_to_the_scatter_cap(monkeypatch):
-    monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
-    calls = _record(monkeypatch)
-    wrapper.stage_ensure(None, "url", runrecord.MAINTENANCE, "scatter-mass", None)()
-    assert calls == [("ensure", redisqueue.MAINTENANCE_QUEUE, 3)]
 
 
 def test_every_command_has_a_memory_figure_or_is_one_worker_on_purpose():

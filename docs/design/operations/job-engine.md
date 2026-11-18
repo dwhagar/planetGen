@@ -61,7 +61,6 @@ One process per host (`queue/supervisor.py`, `cli/supervisor.py`). Its loop take
 | `Reconciler` | Compares the run records with the rows and processes and corrects (R4: recompute, do not remember): a stage that finished and never queued its next opening gets it; a run whose starter is gone is carried on by the supervisor. Every correction is said in the supervisor's acts. |
 | `RunStarts` | Starts runs: a process that wants a run leaves an ask (`queue/runline.py`) and follows the run the supervisor starts for it; a run that finds the machine taken waits in the line. |
 | `RunWatches` | The watch on every live run's units (`unitwatch.UnitWatch`, `beatjudge`, `unitstuck.Stuck`) that used to live in the starter. |
-| `WorkerStarts` | Starts and sheds RQ workers for the queues that still use them (until OPS.235). |
 | `pressure.Controller` | The one memory controller (section 6). |
 | the database signal | The same controller with the latency of the engine's own statement as its signal (`queue/dbsignal.py`, OPS.248). |
 | `controls.Controls` | Pause, resume, Stop All, cancel, clear and the stuck-unit stop, as requests (section 9). |
