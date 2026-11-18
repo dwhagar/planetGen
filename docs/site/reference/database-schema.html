@@ -948,6 +948,9 @@ missing or implausible reading is NULL. Written by <code>planetgen.queue.jobprof
 rows; nothing reads it yet.</p>
 </li>
 <li>
+<p><strong><code>pressure_minutes</code></strong> (v25, OPS.249) — one row per minute of what the memory controller read (<code>planetgen/queue/pressurelearn.py</code>): <code>minute_start</code>, <code>some_max</code> and <code>full_max</code> (PSI, percent), <code>available_min_mb</code>, <code>reserve_mb</code>, <code>level_max</code> (0 calm, 1 pressed, 2 starved), <code>held_seconds</code>, <code>yields</code> (jobs asked to stop) and <code>psi</code> (whether the host read by PSI). The controller's edges are learned from it and from the ledger's memory kills; rows older than twice the learning window are dropped.</p>
+</li>
+<li>
 <p><strong><code>engine_runs</code></strong>, <strong><code>engine_jobs</code></strong>, <strong><code>engine_attempts</code></strong> (v23, OPS.215) — the job engine's ledger (<code>planetgen/queue/ledger.py</code>,
 <code>docs/design/operations/job-engine.md</code>); nothing reads or writes them until the supervisor (OPS.207) and the plan-as-rows item (OPS.221) are merged.
 <code>engine_runs</code>: one row per run, with <code>kind</code>, <code>galaxy</code> (the database it writes to, NULL for none), <code>state</code> (<code>waiting</code>, <code>running</code>, <code>held</code>, <code>done</code>,

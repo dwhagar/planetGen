@@ -17,7 +17,7 @@ import signal
 from planetgen import _version
 from planetgen.admin import updateguard
 from planetgen.db import store
-from planetgen.queue import controls, dbsignal, jobhost, lightjobs, pressure, redisqueue, supervisor
+from planetgen.queue import controls, dbsignal, jobhost, lightjobs, pressure, pressurelearn, redisqueue, supervisor
 from planetgen.util import log
 
 
@@ -46,7 +46,7 @@ def main(argv=None):
     connection = redisqueue.connect(args.url)
     templates = jobhost.TemplateSet(background=True)        # one set of warm templates for both hand-outs
     lights = lightjobs.LightJobs(connection, forker=templates)
-    controller = pressure.Controller(launcher=lambda: launches.launcher)      # OPS.231: the one memory controller; it looks first each turn, so both hand-outs ask it before they admit
+    controller = pressure.Controller(launcher=lambda: launches.launcher, recorder=pressurelearn.Recorder(store.get_control_connection))      # OPS.231: the one memory controller; it looks first each turn, so both hand-outs ask it before they admit
     prober = dbsignal.Prober(store.get_control_connection).start()
     database = dbsignal.controller(prober)      # OPS.248: the same hold with the database's latency for its signal
     hold = lambda: controller.holding() or database.holding()      # noqa: E731 -- either says why nothing of the bulk or upkeep lanes is admitted
