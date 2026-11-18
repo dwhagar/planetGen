@@ -210,7 +210,7 @@ _built = [0]
 """list: How many tables this process has built (not read back) so far, for the line the unit says while it builds one."""
 
 LOCK_POLL_SECONDS = 0.2
-"""float: How often a process that waits for another's table looks at its lock again."""
+"""float: How often a process that waits for another's table looks at its lock again; machinery, not physics, so it is defined here and has no registry row (TEST.715)."""
 
 
 @contextlib.contextmanager
