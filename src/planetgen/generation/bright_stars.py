@@ -1068,7 +1068,7 @@ def candidate_stream(seed, shell_index, band_index, chunk, k, index):
 
 BOUND_STEP_BITS = 24
 """int: A row's bound is rounded up to this many bits of mantissa (PERF.280), so the one value of it that the row's array draw and a single cell's draw each work out cannot differ in the last bit of a float: a bound is
-only a majorant, and rounding it up a millionth keeps it one."""
+only a majorant, and rounding it up a millionth keeps it one. Machinery, not physics: defined here, no registry row (TEST.715)."""
 
 
 def _rounded_up(bound):
@@ -1416,7 +1416,7 @@ PART_SHELL_STEP = 7
 
 
 ROW_BOUND_ROWS = 2048
-"""int: The rows of a walk whose bounds are worked out together, in arrays (PERF.280)."""
+"""int: The rows of a walk whose bounds are worked out together, in arrays (PERF.280). Machinery, not physics: defined here, no registry row (TEST.715)."""
 
 
 def _bounded_rows(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, paths, part=None, stride=1):
