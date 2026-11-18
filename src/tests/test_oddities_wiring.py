@@ -603,13 +603,26 @@ def _w20_with_stubbed_solves(answers, steam=False):
 
 def test_the_other_branch_tries_the_cold_starts_in_turn_and_stops_at_the_first_distinct_answer():
     """GEN.1715: the air solve ends on a branch by its path as much as by its start, so a snowball is looked for from several cold starts, not from 200 K alone."""
-    result, tried, planet = _w20_with_stubbed_solves({220.0: (205.0, 0.62)})
+    result, tried, planet = _w20_with_stubbed_solves({150.0: (265.0, 0.30), 220.0: (205.0, 0.62)})        # 150 K ends 35 K away but on the same ice cover: not the same answer and not another branch
     assert result is None and tried == [200.0, 150.0, 220.0]
     assert getattr(planet, air_branches.CHOICE_ATTRIBUTE).temperature_k == 205.0
 
 
+def test_the_other_branch_stops_when_two_starts_end_on_the_first_answer():
+    """The second solve costs seconds on a dense air, and a world whose two starts end where the first air did has one branch: the other starts are not tried."""
+    result, tried, planet = _w20_with_stubbed_solves({220.0: (205.0, 0.62)})        # the answers of 200 and 150 K are the first answer again
+    assert result is False and tried == [200.0, 150.0]
+    assert getattr(planet, air_branches.CHOICE_ATTRIBUTE, None) is None
+
+
+def test_a_start_that_ends_elsewhere_does_not_count_as_agreeing_with_the_first_answer():
+    result, tried, planet = _w20_with_stubbed_solves({150.0: (265.0, 0.30), 220.0: (265.0, 0.30), 260.0: (205.0, 0.62)})
+    assert result is None and tried == list(air_branches.COLD_STARTS_K)
+    assert getattr(planet, air_branches.CHOICE_ATTRIBUTE).temperature_k == 205.0
+
+
 def test_the_other_branch_declines_when_no_start_ends_on_a_distinct_answer():
-    result, tried, planet = _w20_with_stubbed_solves({260.0: (290.0, 0.31)})        # 10 K and 0.01 of albedo away is the same branch
+    result, tried, planet = _w20_with_stubbed_solves({start: (265.0, 0.30) for start in air_branches.COLD_STARTS_K})        # 35 K away on the same ice cover: neither the same answer nor a branch
     assert result is False and tried == list(air_branches.COLD_STARTS_K)
     assert getattr(planet, air_branches.CHOICE_ATTRIBUTE, None) is None
 
