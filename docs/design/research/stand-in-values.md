@@ -3383,7 +3383,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | GDE3 | P | T3 | L1 | `disk_size.EDGE_SCATTER_DEX` 0.3: the scatter of a star's own edge around the median, dex in log10, a factor of 2 either way (Boss, 2026-11-17) | 0.2 to 0.6 | every star's own disk | a measured scatter of gas disk radii at one stellar mass outside 0.2 to 0.6 dex | the scatter measured on a complete survey | real disks of one mass vary by about a factor of 4 either way in dust radius [R5301]; the factor of 2 is the narrower end | predicted only | - | - |
 | GDE4 | P | T3 | L0 | `disk_size.EDGE_SCATTER_MAX_SIGMA` 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 4 either way | 1.5 to 3 | every star's own disk | a gas disk of a Sun-like star measured beyond a factor of 4 of the median | the tail of the measured distribution | the same cut as the snow line's (SNL2) | predicted only | - | - |
 
-## 6.308 Stand-ins of the vapour pressure of carbonyl sulfide, carbon disulfide and sulfur trioxide, and the gases with no law (GEN.1794)
+## 6.308 Stand-ins of the vapor pressure of carbonyl sulfide, carbon disulfide and sulfur trioxide, and the gases with no law (GEN.1794)
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
