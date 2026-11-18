@@ -1,5 +1,7 @@
 # The dynamic queue chain: jobs declare, the engine splits (OPS.161)
 
+> **Superseded in part (OPS.252, 2026-11-17 EST).** The queue, worker, lane and retry parts of this note are replaced by [job-engine.md](job-engine.md), the engine as built. What a job declares stays here; the stage cut as ledger rows and the engine's loop are described there.
+
 Status: skeleton and profile reader built (declaration, engine, reader of the OPS.155 rows, logging); no stage uses it yet. Asked by Boss, 2026-11-12, 3:00 PM EST ("a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue"), with his rulings of 3:01 to 3:04 PM EST. It is the second half of [self-tuning-jobs.md](self-tuning-jobs.md) (DOC.120: what is recorded and learned) and uses the plan-then-execute job model of [job-graph-and-memory-broker.md](job-graph-and-memory-broker.md) (DOC.113).
 
 ## What a job declares

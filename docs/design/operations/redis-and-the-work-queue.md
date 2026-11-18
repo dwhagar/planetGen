@@ -1,5 +1,7 @@
 # Redis and the work queue: how planetGen uses it, how it should be used, and what to change
 
+> **Superseded in part (OPS.252, 2026-11-17 EST).** The queue, worker, lane and retry parts of this note are replaced by [job-engine.md](job-engine.md), the engine as built. The Redis uses it recommends are still the reason Redis keeps display, wake-ups and light jobs; the work lanes, workers and leases it describes are gone or going (OPS.235, OPS.271).
+
 Boss (2026-10-14 20:01Z) asked for three things in order: look at how planetGen uses Redis now, research how Redis is best used and what the industry standards are, and recommend how to change the task process to use Redis fully and correctly. This note is that, in one piece. It is the research PERF.86 (redo the work queue, GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)) asked for before the rebuild starts, so section 4 gives Boss options first and section 5 recommends one.
 
 Informs: PERF.86 (and the items it folds in or drops: PERF.29, PERF.30, PERF.40, PERF.78, ADM.15), PERF.20, PERF.33, ADM.22, UX.3, DOC.20, DOC.44, OPS.21, OPS.46.
@@ -476,7 +478,7 @@ Boss saw a "waited 300 s" line every few systems of a generation run and a slow 
 * **Signal.** The kernel's memory pressure (`/proc/pressure/memory`, PSI) where it exists; else the host's available memory against `memorygate.reserve_mb`. A level: calm, pressed, starved.
 * **Hold.** Pressed for a while: the launcher and the light jobs' duty admit nothing of the bulk or maintenance lanes (the site's lanes go on) and say why. It lets go after the host has been calm for a while.
 * **Yield.** Starved for a while: the youngest bulk job is asked, through the job pipe, to stop at its next piece (a command that resumes is asked first). The row goes back to *ready*, the attempt is stored as `lost` with `error_kind="stopped"`, and it does not count against the retries. One job at a time, a cooldown apart. The kernel's kill stays the last line.
-* The edges are stand-ins (`pressure.py` constants); the job engine's H4 learns them. Nothing here changes what a run generates. The control is off with the gate (`PLANETGEN_MEMORY_GATE=0`).
+* The edges are stand-ins (`pressure.py` constants) that **the controller's own record moves** (OPS.249, `queue/pressurelearn.py`): once a minute the supervisor writes one row of what it read (`pressure_minutes`, control schema v25), and one sensitivity, from an eighth to a double of the typed edges, is worked out from the last 14 days: up when memory kills came with no pressed reading before them, down when at least 8 holds ended with no starved reading, no job asked to stop and no kill. No record, too little of it, or `PLANETGEN_PRESSURE_LEARN=0` is the typed edges; a move is said in the supervisor's list. The database signal's factors (`dbsignal`) are not learned yet. Nothing here changes what a run generates. The control is off with the gate (`PLANETGEN_MEMORY_GATE=0`).
 
 ## 6. Decisions for Boss
 

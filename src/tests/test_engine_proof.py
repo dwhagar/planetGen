@@ -4,6 +4,8 @@
   commit is rolled back, and a job is done in the galaxy only by its newest attempt.
 * A finished stage advances once: the end of a stage (conclusion, finish, the opening of the next stage) is killed at drawn points and retried; each step is done exactly once and the
   stage is released exactly once, however many retries it took.
+* A held run resumes to the same result (slice 2): units of a two-stage run fail for good, the run is held and the second stage does not open; after the fault is fixed and Retry held the run ends done
+  with every unit's data equal to an undisturbed run's, and a unit that was done before the hold ran only once.
 """
 
 import random
@@ -12,7 +14,7 @@ import types
 import pytest
 
 from planetgen.db import store
-from planetgen.queue import attempts, ledger, planrows, redisqueue, runrecord, units, wrapper
+from planetgen.queue import attempts, commands, ledger, planrows, redisqueue, runrecord, units, wrapper
 
 SEEDS = range(10)
 
@@ -102,7 +104,7 @@ def test_a_finished_stage_advances_exactly_once_however_often_its_end_is_killed(
         done["finish"] += 1
         planrows.mark_ended(c, r, i, planrows.FINISH)
 
-    def open_next(c, r, i, q):
+    def open_next(c, r, i):
         fault("open")
         done["open"] += 1
 
@@ -124,3 +126,55 @@ def test_a_finished_stage_advances_exactly_once_however_often_its_end_is_killed(
     units._end_stage(conn, run_id, 0, wrapper, sleep=lambda seconds: None)          # a late retry finds the stage released and does nothing
     assert done == {"conclude": 1, "finish": 1, "open": 1}
     assert set(planrows.ended(conn, run_id, 0)) == {planrows.CONCLUDE, planrows.FINISH, planrows.RELEASE}
+
+
+# --- a held run resumes to the same result (OPS.225, slice 2) ------------------------------------------------------------------------------------------------------------------
+
+def _two_stage_run(monkeypatch, broken, stored, counts):
+    """A run of two stages of test units; a unit whose number is in `broken` fails for good while `broken` holds it. What a unit makes is stored under (stage, unit), as a unit's data is in the galaxy."""
+    from tests import test_work_units as work
+
+    def make(stage):
+        def handler(args, report):
+            counts[(stage, args["n"])] = counts.get((stage, args["n"]), 0) + 1
+            if args["n"] in broken:
+                raise ValueError(f"unit {args['n']} of {stage} is broken")
+            stored[(stage, args["n"])] = args["n"] ** 2 + len(stage)
+            return {"value": stored[(stage, args["n"])]}
+        return handler
+
+    handlers = {"alpha": make("alpha"), "beta": make("beta")}
+    work._handlers(monkeypatch, **handlers)
+    monkeypatch.setattr(commands, "unit_function", lambda kind: handlers[kind])
+    return [work._step(5, key="alpha", kind="alpha"), work._step(4, key="beta", kind="beta")]
+
+
+@pytest.mark.parametrize("seed", SEEDS, ids=lambda seed: f"seed_{seed}")
+def test_a_held_run_that_is_retried_makes_what_an_undisturbed_run_makes(conn, monkeypatch, seed):
+    from planetgen.queue import held
+    from tests import inline_queue
+    rng = random.Random(seed)
+    undisturbed, ran = {}, {}
+    steps = _two_stage_run(monkeypatch, set(), undisturbed, ran)
+    wrapper.run("Undisturbed", steps, lambda index, plan: None, lambda index, unit, result: None)
+    assert len(undisturbed) == 9 and set(ran.values()) == {1}
+
+    broken = set(rng.sample(range(4), rng.randint(1, 3)))           # units of the first stage that fail for good (the second has four, the first five)
+    disturbed, ran = {}, {}
+    steps = _two_stage_run(monkeypatch, broken, disturbed, ran)
+    with pytest.raises(units.RunStopped):
+        wrapper.run("Disturbed", steps, lambda index, plan: None, lambda index, unit, result: None)
+    run_id = next(found for found in runrecord.recent_runs(conn) if runrecord.read_run(conn, found)["title"] == "Disturbed")
+    assert runrecord.run_state(conn, run_id) == runrecord.HELD, f"seed {seed}: the run is held for a person"
+    assert ("beta", 0) not in disturbed, f"seed {seed}: the second stage does not open while the first holds units"
+    done_before = dict(disturbed)
+    broken.clear()                                                 # the fault is fixed
+    assert held.retry_held(conn, run_id, who="test") is not None
+    for _turn in range(60):
+        inline_queue.run_ready_rows()
+        if runrecord.run_state(conn, run_id) == "done":
+            break
+    assert runrecord.run_state(conn, run_id) == "done", f"seed {seed}: the retried run did not end done"
+    assert disturbed == undisturbed, f"seed {seed}: the retried run made another result than an undisturbed one"
+    for key, value in done_before.items():
+        assert ran[key] == 1, f"seed {seed}: unit {key} was done and ran again after the retry"

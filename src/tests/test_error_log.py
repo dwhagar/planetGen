@@ -226,30 +226,6 @@ class _Job:
     connection = _NoClaims()
 
 
-def test_a_work_horse_that_was_killed_is_logged_with_the_signal(folder):
-    units.horse_killed(_Job(), 4242, signal.SIGKILL, None)          # the raw wait status of a process killed by SIGKILL is the signal number
-    lines = _lines(folder)
-    assert len(lines) == 1 and "process running job job-1" in lines[0] and "pid 4242" in lines[0] and "was killed by SIGKILL" in lines[0]
-
-
-def test_a_unit_whose_horse_was_killed_is_logged_and_fails_its_run(folder, monkeypatch):
-    from planetgen.queue import runrecord, wrapper
-    failed = []
-    monkeypatch.setattr(runrecord, "finish_run", lambda conn, run, state, error=None, killed=False: failed.append((run, state, error)))
-    monkeypatch.setattr(wrapper, "stage_name", lambda conn, run, stage: "Scatter")
-    job = _Job()
-    job.func_name, job.args = units.UNIT_FUNCTION, ("run-9", 2, 7)
-    units.horse_killed(job, 4243, signal.SIGKILL, None)
-    assert failed and failed[0][1] == "failed"
-    assert "unit 7 of run run-9, pid 4243, was killed by SIGKILL" in "\n".join(_lines(folder))
-
-
-def test_a_work_horse_ended_by_sigterm_is_logged_because_rq_only_calls_the_handler_for_an_end_nobody_asked_for(folder):
-    """OPS.118: a unit's horse ended with status 15 on Boss's test server; the next one names its signal, its unit and its run in the error log."""
-    units.horse_killed(_Job(), 4244, signal.SIGTERM, None)
-    assert "was killed by SIGTERM" in "\n".join(_lines(folder))
-
-
 def test_a_decoded_wait_status_is_the_exit_status_or_minus_the_signal():
     assert log.decode_wait_status(signal.SIGKILL) == -9
     assert log.decode_wait_status(3 << 8) == 3

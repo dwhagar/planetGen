@@ -120,25 +120,3 @@ def test_peak_counts_the_worker_beside_its_horse():
         assert peak >= min(before, after)
     assert units._proportional_mb(2 ** 31) == 0.0                           # no such process: nothing to count
 
-
-def test_a_worker_holds_the_star_tables_only_for_the_units_that_draw_stars(monkeypatch):
-    """PERF.226: the units that draw stars warm the sampling tables in the worker, any other unit sheds them, and a worker that
-    holds them is started over (its unit put back) before a unit that needs none."""
-    from planetgen.queue import units
-    assert units.TABLE_KINDS <= set(commands.REGISTRY)
-    for kind in ("link-neighbors", "settle-sector-paths", "fill-map-luminosity", "rescore-habitability", "scatter-phenomena", "generate-system"):   # PERF.266: a one-off system reads no sampling table
-        assert kind not in units.TABLE_KINDS
-
-    class Job:
-        func_name = units.UNIT_FUNCTION
-        def __init__(self, kind):
-            self.args = ("run", 1, 0, kind, {}, 1.0)
-    monkeypatch.setattr(units, "tables_held", lambda: True)
-    assert units.sheds_tables_for(Job("link-neighbors")) and not units.sheds_tables_for(Job("generate-sectors"))
-    assert not units.sheds_tables_for(Job("scatter-luminosity"))
-    monkeypatch.setattr(units, "tables_held", lambda: False)
-    assert not units.sheds_tables_for(Job("link-neighbors"))
-    other = Job("link-neighbors")
-    other.func_name = "planetgen.queue.api_jobs.run"
-    monkeypatch.setattr(units, "tables_held", lambda: True)
-    assert not units.sheds_tables_for(other)

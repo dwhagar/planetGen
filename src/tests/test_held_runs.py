@@ -3,6 +3,7 @@ Real MySQL and Redis; the run is cut with `planrows.record_cut`, so its jobs are
 
 import pytest
 
+from tests import rq_units
 from planetgen.queue import held, jobview, ledger, planrows, redisqueue, runrecord, units, wrapper
 from tests.test_queue_page import KIND, _run, admin_client, conn, control_config, web_app   # noqa: F401 -- the fixtures
 
@@ -64,7 +65,7 @@ def _done(conn, run, rows, unit):
 
 
 def _fail(conn, run, rows, unit):
-    units.unit_failed(_Job(conn, run, unit, rows[unit]), conn, ValueError, ValueError(f"bad unit {unit}"), None)
+    rq_units.unit_failed(_Job(conn, run, unit, rows[unit]), conn, ValueError, ValueError(f"bad unit {unit}"), None)
 
 
 def test_a_unit_that_fails_for_good_is_held_and_the_run_goes_on(conn, run, rows):
@@ -108,15 +109,14 @@ def test_a_run_with_no_held_unit_is_left_alone_and_a_run_that_is_over_is_not_hel
 def test_a_unit_without_a_row_still_fails_the_run(conn, run):
     job = _Job(conn, run, 0, None)
     job.args = job.args[:6]
-    units.unit_failed(job, conn, ValueError, ValueError("old"), None)
+    rq_units.unit_failed(job, conn, ValueError, ValueError("old"), None)
     assert runrecord.run_state(conn, run) == "failed"
 
 
-def test_the_retry_rq_queues_for_a_held_unit_does_nothing(conn, run, rows, monkeypatch):
+def test_a_held_unit_handed_out_again_by_mistake_does_nothing(conn, run, rows):
     _fail(conn, run, rows, 1)
-    monkeypatch.setattr(units.rq, "get_current_job", lambda: _Job(conn, run, 1, rows[1]))
     before = runrecord.read_run(conn, run)
-    units.run_unit(run, 0, 1, KIND, {"n": 1}, 1.0, rows[1])
+    units.run_unit_on(conn, run, 0, 1, KIND, {"n": 1}, 1.0, rows[1])
     assert held.is_held(conn, run, 0, 1) and not conn.sismember(runrecord.done_key(run, 0), 1)
     assert runrecord.read_run(conn, run)["state"] == before["state"]
 
@@ -129,7 +129,7 @@ def test_retry_held_takes_the_machine_back_and_queues_the_units_again(conn, run,
     assert held.retry_held(conn, run, who="boss") == {"requeued": 1}
     assert runrecord.run_state(conn, run) == "running" and runrecord.active_run(conn, runrecord.GENERATION) == run
     assert not held.is_held(conn, run, 0, 1) and held.held_units(conn, run) == []
-    assert _job_state(conn, run, rows[1]) == "waiting" and _run_row(conn, run)["state"] == "running" and runrecord.read_run(conn, run)["error"] in ("", None)
+    assert _job_state(conn, run, rows[1]) == "ready" and _run_row(conn, run)["state"] == "running" and runrecord.read_run(conn, run)["error"] in ("", None)
     assert any(event["kind"] == "run.retry_held" for _id, event in runrecord.read_events(conn, run))
     assert held.retry_held(conn, run) is None, "a run that is not held has nothing to retry"
 
@@ -215,12 +215,10 @@ def test_resuming_a_drained_run_queues_every_unit_that_is_not_done_and_only_thos
     _done(conn, run, rows, 0)
     held.drain_run(conn, run)
     assert held.retry_held(conn, run, who="the update") == {"requeued": 2}
-    queue = redisqueue.queue(wrapper.queue_of(runrecord.GENERATION), conn)
-    assert sorted(queue.get_job_ids()) == sorted(units.job_id(run, 0, unit) for unit in (1, 2))
-    assert [_job_state(conn, run, row) for row in rows] == ["done", "waiting", "waiting"]
+    assert [_job_state(conn, run, row) for row in rows] == ["done", "ready", "ready"], "the launcher hands out what is not done, and only that"
     assert runrecord.run_state(conn, run) == "running"
     assert held.drain_run(conn, run)
-    assert held.retry_held(conn, run) == {"requeued": 0}, "units still waiting in the queue are not queued twice"
+    assert held.retry_held(conn, run) == {"requeued": 0}, "units already ready for the launcher are not made ready twice"
 
 
 def test_resuming_queues_the_opening_of_a_stage_the_hold_skipped(conn, run, rows):
