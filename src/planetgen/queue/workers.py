@@ -27,7 +27,7 @@ from planetgen.util import log
 from planetgen.util import process
 
 WORKER_MEMORY_MB = 300
-"""int: What one worker takes (its libraries, sampling tables and the work horse it forks), for sizing the host cap."""
+"""int: What one worker takes (its libraries, sampling tables and the work horse it forks), for `roughtime`'s estimate of the workers a host holds."""
 
 HOST_MEMORY_SHARE = 0.6
 """float: The share of the host's memory the workers may take at most; the rest is for MySQL, Redis and the web server."""
