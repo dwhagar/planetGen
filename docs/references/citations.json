@@ -26510,6 +26510,16 @@
       "kind": "paper",
       "label": "Mamajek et al. 2009",
       "title": "Initial Conditions of Planet Formation: Lifetimes of Primordial Disks"
+    },
+    "R5308": {
+      "kind": "paper",
+      "label": "Sanchis et al. 2021",
+      "title": "Measuring the ratio of the gas and dust emission radii of protoplanetary disks in the Lupus star-forming region"
+    },
+    "R5309": {
+      "kind": "paper",
+      "label": "Andrews et al. 2018",
+      "title": "Scaling Relations Associated with Millimeter Continuum Sizes in Protoplanetary Disks"
     }
   }
 }
