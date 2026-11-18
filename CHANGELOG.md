@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4507] - 2026-11-18
+
+**Headline:** The serialization fuzz test knows a planet's plan slot is stored through its history row, not as a field of the planet.
+
+### Fixed
+- `test_starsystem_children_have_no_unlisted_attributes` listed `plan_slot` (DB.75b) as an unlisted attribute. It is stored as the body's `born_index` and given back on load, so it joins the test's runtime-only list for planets, with the reason.
+
+generation-output: unchanged
+
 ## [8.0.4506] - 2026-11-18
 
 **Headline:** `scripts/test.py failed` reruns only the tests that failed and the tests a fix can affect, within a time limit, instead of the whole selection again.
