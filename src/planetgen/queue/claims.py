@@ -2,7 +2,7 @@
 
 """
 What each kind of job claims of the host (PERF.254): the memory it is expected to hold, the cores it keeps busy and the lane it is on,
-worked out from the RQ job itself (`claim_for`) for the memory gate (`planetgen.queue.memorygate`).
+for the memory gate (`planetgen.queue.memorygate`).
 
 **No job is exempt.** Every function a queue may run (`allowlist.FUNCTIONS`) is here, either with a claim of its own
 (`FUNCTION_CLAIMS`) or because it is a callback that runs inside the job it follows (`CALLBACKS`); every function the API's dispatcher may
@@ -16,8 +16,7 @@ largest peak, `memorygate.learn`, and claims that with a margin). A stand-in is 
 them because they are replaced by a measurement in the first run, and `memorygate.snapshot` shows what was learned.
 """
 
-from planetgen.queue import commands, memorygate, redisqueue, workers
-from planetgen.queue.memorygate import Claim
+from planetgen.queue import commands, workers
 from planetgen.util import log
 
 UNIT_CPU = 1.0
@@ -85,16 +84,6 @@ class NoClaim(LookupError):
     """A job has no claim: its function, API reference or command is on no table here (the gate refuses to guess)."""
 
 
-def lane_of(queue_name):
-    """The lane of the queue `queue_name`: bulk (a generation run's units, and the first generation queue), maintenance (the three queues of the
-    maintenance lane), or other."""
-    if queue_name in (redisqueue.BULK_QUEUE, redisqueue.GENERATION_QUEUE):
-        return memorygate.LANE_BULK
-    if queue_name in redisqueue.maintenance_lane():
-        return memorygate.LANE_MAINTENANCE
-    return memorygate.LANE_OTHER
-
-
 def unit_tokens(kind):
     """The named resources a unit of command `kind` must hold (`CommandSpec.tokens`; none for a command that is not registered)."""
     return tuple(commands.spec(kind).tokens) if kind in commands.REGISTRY else ()
@@ -153,11 +142,6 @@ def typed_mb(kind):
     return None
 
 
-def default_claim(job):
-    """The claim of a job of a kind with no figure: `DEFAULT_MB` and a core, on the job's lane, under the kind `fn:<function>`."""
-    return Claim(f"fn:{job.func_name}", float(DEFAULT_MB), 1.0, lane_of(job.origin))
-
-
 def cap_of(kind):
     """The most workers of claim kind `kind` the old static table allows (`workers.stage_worker_cap`), `None` for a kind it never limited."""
     if kind.startswith("unit:"):
@@ -176,20 +160,3 @@ def cut_command(conn, run_id, index):
     except Exception as exc:  # noqa: BLE001 -- a run that is gone or a stage that is not there is cut under the default claim
         log.swallowed("queue/claims", "cut_command", exc)
         return None
-
-
-def claim_for(job, conn):
-    """
-    The claim of the RQ job `job` (any queue): the figure of its kind (`kind` below), raised to what the gate has learned of the kind and
-    to the larger claim a retry was given (`memorygate.claim_mb`).
-
-    Kinds: `api:<module:name>` (an API job) and `fn:<dotted name>` (any other queued function). A run's units and openings are rows of the job ledger (`claim_of_row`), not RQ jobs.
-
-    Raises:
-        NoClaim: The job is of a kind with no figure.
-    """
-    function = job.func_name
-    lane = lane_of(job.origin)
-    (mb, cpu), exclusive = function_table(function), False
-    kind = f"fn:{function}"
-    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=None), cpu, lane, exclusive, ())

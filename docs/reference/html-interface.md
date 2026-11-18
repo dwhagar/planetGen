@@ -587,10 +587,8 @@ nothing touches the database. The result shows as the system's description
 `/admin/generate/system/download`, which returns it as a `.md`/`.txt`
 file).
 
-A job is an RQ job on Redis (`redis.url`): the page queues
-`planetgen.web.job_runner.run(<job dir>)` on a queue of the job's own and
-starts one burst worker for it (`python3 -m planetgen.cli.worker`) in its
-own session, so it outlives the request and a graceful reload (Apache's, or
+A job is a run of the job ledger (OPS.244; `queue/pagerun.py`): the page adds a row for each step, and the supervisor's launcher forks the step's runner
+(`planetgen.web.job_runner.run_step`) in its own session, so it outlives the request and a graceful reload (Apache's, or
 gunicorn's). A full stop or restart of the service under systemd (which
 stops everything in the service's cgroup), does stop it; the page then shows it as
 interrupted. Cancel writes a `cancel` file into the job's directory; the

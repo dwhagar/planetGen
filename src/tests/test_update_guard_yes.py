@@ -12,9 +12,8 @@ import subprocess
 
 import pytest
 
-from tests import rq_units
 from planetgen.admin import updateguard
-from planetgen.queue import commands, redisqueue, runrecord, units
+from planetgen.queue import commands, redisqueue, runrecord
 from planetgen.queue.runrecord import Stage
 from planetgen.util.format import format_duration_seconds
 from planetgen.admin import maintenance
@@ -128,7 +127,6 @@ def _cut(params):
 def _live_run(conn, count=20):
     run_id = runrecord.start_run(conn, "Guard test", [Stage("s0", "Stage 0", units=count)], who="boss", now=100.0)
     runrecord.begin_stage(conn, run_id, 0, now=101.0)
-    rq_units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(count)])
     return run_id
 
 
@@ -156,7 +154,6 @@ def test_a_live_run_stops_the_update_without_the_word_and_is_drained_with_it(con
     run = runrecord.read_run(conn, run_id)
     assert run["state"] == "held" and run["error"] == "stopped for update", "OPS.222: a generation run is held for the update, not canceled"
     assert runrecord.active_run(conn) is None
-    # its queued units stay queued: the workers skip them while the run is held, and the end of the update queues again what the ledger does not say is done
 
 
 def test_a_run_record_with_no_stages_does_not_stop_the_guard(conn, redis_server):

@@ -14,7 +14,7 @@ pytestmark = [pytest.mark.fresh_database]
 
 @pytest.fixture
 def run(conn, web_app):
-    run_id = _run(conn, units_count=3, done=0, queued=False)
+    run_id = _run(conn, units_count=3, done=0)
     planrows.record_cut(conn, run_id, 0, "page-test", [({"n": n}, 1.0) for n in range(3)], 3.0, {"count": 3})        # the cut of the first stage, as `units.enqueue_units` makes it
     return run_id
 
@@ -159,7 +159,7 @@ def test_the_ledger_routes_need_an_admin(web_app):
 
 
 def test_a_run_with_no_cut_has_no_jobs_in_the_ledger_yet(admin_client, conn):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     response = admin_client.get(f"/api/admin/work/{run_id}/jobs")
     assert response.status_code == 404
     assert "no jobs" in response.get_json()["error"].lower()

@@ -41,7 +41,6 @@ ALLOWED = {
     ("queue/stopall.py", "kill_processes"): OUTSIDE + " (stop-all)",
     ("queue/api_jobs.py", "wait"): OUTSIDE + " (the API's wait for a job)",
     ("queue/warmstart.py", "drain"): OUTSIDE + " (the warm-up starter)",
-    ("cli/worker.py", "worker_class.WarmWorker._wait_while_paused"): OUTSIDE + " (a worker that holds no unit while paused)",
     ("cli/warm.py", "_wait_for_update"): OUTSIDE,
     ("cli/warm.py", "_cancel_other_warm_up"): OUTSIDE,
     ("cli/warm.py", "_wait_for_generation"): OUTSIDE,

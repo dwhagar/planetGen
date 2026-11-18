@@ -8,7 +8,7 @@ the unit through the same code (`units.run_unit_on`: the attempt in the ledger, 
 a stop request from the supervisor ends the unit there, the pieces done so far kept, and a supervisor that has gone makes the job finish the piece it is in and exit
 (`template.EXIT_SUPERVISOR_GONE`). A failure fails the run as RQ's `on_failure` does (`units.fail_unit`) and ends the job with `template.EXIT_FAILED`.
 
-Built and tested, not yet used: the bulk lane moves to it in OPS.228.
+In use since OPS.228: the launcher forks every unit, page step and light job from it.
 """
 
 import sys

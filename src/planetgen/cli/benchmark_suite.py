@@ -307,13 +307,13 @@ def _environment_has(pid, name, value):
 
 
 def stop_workers(control):
-    """Ends the queue workers of this run's control database `control`, so the next step starts with cold ones (a worker
-    keeps what it warmed, and a step that follows another within the workers' idle time would otherwise start warm). A
-    worker of any other control database, another test's or the machine's own, is left running (TEST.302): the run's
-    workers are the ones started with its `PLANETGEN_CONTROL_DATABASE`, which the steps it runs hand on."""
+    """Ends the job templates of this run's control database `control`, so the next step starts with cold ones (a template
+    keeps what it warmed, and a step that follows another before the supervisor's idle time would otherwise start warm). A
+    template of any other control database, another test's or the machine's own, is left running (TEST.302): the run's
+    templates are the ones started with its `PLANETGEN_CONTROL_DATABASE`, which the steps it runs hand on."""
     own = os.getpid()
     for pid, command in _processes():
-        if pid != own and "planetgen.cli.worker" in command and _environment_has(pid, store.CONTROL_DB_ENV_VAR, control):
+        if pid != own and "planetgen.queue.template" in command and _environment_has(pid, store.CONTROL_DB_ENV_VAR, control):
             try:
                 os.kill(pid, signal.SIGKILL)
             except OSError:

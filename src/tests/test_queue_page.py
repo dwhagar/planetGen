@@ -15,7 +15,6 @@ import inspect
 import pytest
 from html import escape as html_escape
 
-from tests import rq_units
 from planetgen.admin import auth as adminAuth
 from planetgen.api.config import Config
 from planetgen.db import store
@@ -92,14 +91,12 @@ def _audit(config):
         conn.close()
 
 
-def _run(conn, title="Fill shell 1", units_count=4, done=1, argv=("galaxy", "--shell", "1"), database=None, queued=True,
+def _run(conn, title="Fill shell 1", units_count=4, done=1, argv=("galaxy", "--shell", "1"), database=None,
          **kwargs):
     """A live run with a started first stage: `units_count` units, `done` of them finished, the rest waiting."""
     run_id = runrecord.start_run(conn, title, [Stage("sectors", "Sectors", units=units_count), Stage("settle", "Settle")],
                                  who="boss", argv=list(argv), database=database, **kwargs)
     runrecord.begin_stage(conn, run_id, 0)
-    if queued:
-        rq_units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(units_count)])
     for unit in range(done):
         runrecord.unit_done(conn, run_id, 0, unit, seconds=2.0)
     runrecord.log(conn, run_id, "sector 1,0,0 saved")
@@ -119,7 +116,7 @@ def test_the_api_needs_an_admin(web_app):
 
 
 def test_the_api_lists_the_runs_shows_one_and_cancels_it(admin_client, control_config, conn):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     body = admin_client.get("/api/admin/work").get_json()
     assert body["available"] and body["total"] == 1
     item = body["items"][0]
@@ -146,14 +143,14 @@ def test_the_api_lists_the_runs_shows_one_and_cancels_it(admin_client, control_c
 
 
 def test_a_live_run_cannot_be_deleted_and_clear_finished_keeps_it(admin_client, conn):
-    live = _run(conn, title="Still going", queued=False)
+    live = _run(conn, title="Still going")
     assert admin_client.post(f"/api/admin/work/{live}/delete").get_json() == {"ok": False}
     assert admin_client.post("/api/admin/work/clear-finished").get_json() == {"cleared": 0}
     assert admin_client.get("/api/admin/work").get_json()["total"] == 1
 
 
 def test_the_queue_page_shows_workers_load_and_runs(admin_client, conn):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     html = admin_client.get("/admin/queue").get_data(as_text=True)
     assert "Workers active" in html and "Load average" in html and "Pause the queue" in html
     assert "Fill shell 1" in html and f"/admin/queue/{run_id}" in html
@@ -170,7 +167,7 @@ def test_the_page_says_when_redis_is_not_answering(admin_client, monkeypatch):
 
 def test_the_runs_table_route_lists_runs_with_their_controls(web_app, admin_client, conn):
     assert web_app.test_client().get("/table/queue-jobs").status_code == 403
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     data = admin_client.get("/table/queue-jobs").get_json()
     assert data["total"] == 1
     title, status, started, _duration, left, progress, actions = data["rows"][0]
@@ -184,9 +181,9 @@ def test_the_runs_table_route_lists_runs_with_their_controls(web_app, admin_clie
 def test_clear_finished_deletes_every_finished_run_and_keeps_the_live_one(web_app, admin_client, control_config, conn):
     # ADM.41: one action on the Queue page clears the past-runs list; a running run is never touched.
     for number in (1, 2):
-        old = _run(conn, title=f"Old run {number}", queued=False)
+        old = _run(conn, title=f"Old run {number}")
         runrecord.finish_run(conn, old, "done")
-    _run(conn, title="Still going", queued=False)
+    _run(conn, title="Still going")
     page = admin_client.get("/admin/queue/confirm/clear-finished")
     assert page.status_code == 200 and "Clear finished runs" in page.get_data(as_text=True)
     assert _post(web_app, admin_client, action="clear-finished", run="").status_code == 303
@@ -209,7 +206,7 @@ def test_the_time_left_and_the_progress_read_as_words():
 
 
 def test_the_run_page_shows_its_stages_and_log(admin_client, conn):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     html = admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
     assert 'id="stage-1"' in html and 'id="stage-2"' in html and "1 of 4" in html
     assert "sector 1,0,0 saved" in html and "Download the log" in html
@@ -229,7 +226,7 @@ def _publish_unit(conn, run_id, unit, **fields):
 
 def test_the_run_page_lists_the_running_units_with_their_beat_counter_phase_and_state_the_worst_first(admin_client, conn):
     """OPS.139: the Queue run page draws the verdicts `GET /api/admin/work/<id>/units` serves, the units that need a look on top."""
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     _publish_unit(conn, run_id, 0, state="working", phase="drawing tier 3", done=1200.0, estimate=4000.0, rate=12.5, resident_mb=812.0, beat_age_seconds=2.0)
     _publish_unit(conn, run_id, 1, state="quiet", actionable=True, agreed=True, reason="no beat for 400 s", phase="waiting", waiting_on="gate", counter=False, beat_age_seconds=400.0)
     _publish_unit(conn, run_id, 2, state="slow", severity="flag", done=10.0, estimate=1000.0, rate=0.02, projected_finish_seconds=3600.0)
@@ -242,7 +239,7 @@ def test_the_run_page_lists_the_running_units_with_their_beat_counter_phase_and_
 
 
 def test_the_run_page_has_no_unit_table_without_running_units_or_once_the_run_is_over(admin_client, conn):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     assert "Running units" not in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
     _publish_unit(conn, run_id, 0)
     assert "Running units" in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
@@ -262,7 +259,7 @@ def test_the_unit_rows_are_capped_and_the_rest_counted(web_app):
 def test_the_run_page_log_lines_are_the_display_lines_of_the_records_the_download_holds(admin_client, conn):
     """UX.123: the page draws each event with the logging layer's display line, the download writes the same record as a file line."""
     from planetgen.util import logrecord
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     records = runrecord.log_records(conn, run_id)
     html = admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
     assert records
@@ -274,7 +271,7 @@ def test_the_run_page_log_lines_are_the_display_lines_of_the_records_the_downloa
 
 
 def test_the_api_events_carry_the_fields_the_record_is_made_of(admin_client, conn):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     events = admin_client.get(f"/api/admin/work/{run_id}").get_json()["events"]
     rebuilt = [runrecord.event_record(event) for event in events]
     assert [r.message for r in rebuilt] == [r.message for r in runrecord.log_records(conn, run_id)]
@@ -282,7 +279,7 @@ def test_the_api_events_carry_the_fields_the_record_is_made_of(admin_client, con
 
 
 def test_the_log_downloads_from_redis_and_then_from_the_file(admin_client, conn, tmp_path):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     runcontrol.cancel_run(conn, run_id, who="boss")         # ends it and writes the file
     response = admin_client.get(f"/admin/queue/{run_id}/log")
     assert response.status_code == 200 and response.mimetype == "text/plain"
@@ -332,7 +329,7 @@ def test_cancel_on_a_run_page_returns_to_the_page_it_was_opened_from(web_app, ad
 
 
 def test_a_run_that_stopped_answering_is_offered_a_clear(web_app, admin_client, conn):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     conn.hset(runrecord.run_key(run_id), "updated", 1.0)                  # not heard from for a long time
     assert admin_client.get("/api/admin/work").get_json()["status"]["stale"] is True
     html = admin_client.get("/admin/queue").get_data(as_text=True)
@@ -346,7 +343,7 @@ def test_a_run_that_stopped_answering_is_offered_a_clear(web_app, admin_client, 
 
 
 def test_a_run_that_answers_is_not_cleared(web_app, admin_client, conn):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     runrecord.touch(conn, run_id)
     response = _post(web_app, admin_client, action="clear", run=run_id)
     assert "still answering" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
@@ -362,7 +359,7 @@ def test_retry_reruns_the_command_a_run_was_started_by(web_app, admin_client, co
     monkeypatch.setattr(jobs, "start_job", lambda kind, title, steps, **kw: started.append((kind, title, steps, kw))
                         or "20261001-000000-abcd")
     run_id = _run(conn, title="planetgen galaxy --shell 2", argv=("galaxy", "--shell", "2"),
-                  database=control_config.database, queued=False)
+                  database=control_config.database)
     assert "/admin/queue/confirm/retry" not in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True), \
         "a live run is canceled, not retried"
     runrecord.finish_run(conn, run_id, "failed", error="unit 3 failed")
@@ -407,7 +404,7 @@ def test_a_fill_behind_a_live_run_or_a_running_job_waits_its_turn(web_app, admin
     (its own run then waits for the machine)."""
     started = []
     monkeypatch.setattr(jobs, "start_job", lambda *a, **k: started.append(a[1]) or "20261001-000000-aaaa")
-    live = _run(conn, title="Fill shell 7", queued=False)
+    live = _run(conn, title="Fill shell 7")
     runrecord.touch(conn, live)
     response = _post(web_app, admin_client, action="fill-habitability")
     assert response.status_code == 303 and started, "a live run does not refuse a fill"
@@ -424,14 +421,14 @@ def test_a_fill_behind_a_live_run_or_a_running_job_waits_its_turn(web_app, admin
 
 def test_retry_refuses_another_database_and_a_run_with_no_command(web_app, admin_client, conn, monkeypatch):
     monkeypatch.setattr(jobs, "start_job", lambda *a, **k: pytest.fail("should not start"))
-    elsewhere = _run(conn, title="Elsewhere", argv=("galaxy", "--shell", "2"), database="some_other_galaxy", queued=False)
+    elsewhere = _run(conn, title="Elsewhere", argv=("galaxy", "--shell", "2"), database="some_other_galaxy")
     runrecord.finish_run(conn, elsewhere, "failed")
     response = _post(web_app, admin_client, action="retry", run=elsewhere)
     assert "some_other_galaxy" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
-    bare = _run(conn, title="No command", argv=(), queued=False)
+    bare = _run(conn, title="No command", argv=())
     runrecord.finish_run(conn, bare, "failed")
     assert "/admin/queue/confirm/retry" not in admin_client.get(f"/admin/queue/{bare}").get_data(as_text=True)
-    maintenance = _run(conn, title="Warm", kind=runrecord.MAINTENANCE, argv=("warm",), queued=False)
+    maintenance = _run(conn, title="Warm", kind=runrecord.MAINTENANCE, argv=("warm",))
     runrecord.finish_run(conn, maintenance, "failed")
     assert "/admin/queue/confirm/retry" not in admin_client.get(f"/admin/queue/{maintenance}").get_data(as_text=True)
 
@@ -502,7 +499,7 @@ def test_no_queue_tile_is_a_bare_number(admin_client, conn):
     """UX.212: a tile's value names what it counts."""
     import re
 
-    _run(conn, queued=False)
+    _run(conn)
     html = admin_client.get("/admin/queue").get_data(as_text=True)
     values = re.findall(r'<span class="stat-value">([^<]*)</span>', html)
     assert len(values) == 3
@@ -514,7 +511,7 @@ def test_the_units_route_lists_what_the_follower_last_judged(admin_client, contr
     """OPS.138: `GET /api/admin/work/<id>/units`."""
     import json
     from planetgen.queue import unitbeat, unitwatch
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     now = unitbeat.server_time(conn)
     for unit, still in ((2, 2000.0), (0, 0.0)):
         conn.hset(runrecord.progress_key(run_id, 0), unit, json.dumps({"done": 5.0, "estimate": 100.0, "beat": now - 1.0, "started": now - 2500.0, "moved": now - still,
@@ -528,7 +525,7 @@ def test_the_units_route_lists_what_the_follower_last_judged(admin_client, contr
 # --- OPS.144: the killed flag and Resume run ----------------------------------------------------------------
 
 def test_mark_killed_keeps_the_first_reason_and_works_on_a_live_run(conn):
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     assert runrecord.read_run(conn, run_id)["killed"] is False
     runrecord.mark_killed(conn, run_id, "stuck: counter frozen")
     runrecord.mark_killed(conn, run_id, "something later")
@@ -547,9 +544,9 @@ def test_resume_run_is_offered_on_a_killed_run_that_can_be_carried_on_and_starts
         return {"error": None, "run": run_id, "title": "Generate sectors", "stopped_in": "Scatter", "carried": ["A", "B"], "again": ["Scatter", "Index"]}
 
     monkeypatch.setattr(generate_page, "finish_status", finish_status)
-    killed = _run(conn, title="Generate sectors", database=control_config.database, queued=False)
+    killed = _run(conn, title="Generate sectors", database=control_config.database)
     runrecord.finish_run(conn, killed, "failed", error="unit 1 of stage Scatter failed: JobTimeoutException", killed=True)
-    plain = _run(conn, title="Plain failure", database=control_config.database, queued=False)
+    plain = _run(conn, title="Plain failure", database=control_config.database)
     runrecord.finish_run(conn, plain, "failed", error="unit 1 failed: ValueError")
     page = admin_client.get(f"/admin/queue/{killed}").get_data(as_text=True)
     assert f"/admin/queue/confirm/resume?run={killed}" in page and "This run was killed" in page
@@ -567,7 +564,7 @@ def test_resume_run_is_refused_when_the_run_cannot_be_carried_on(web_app, admin_
     monkeypatch.setattr(jobs, "start_job", lambda *a, **k: pytest.fail("should not start"))
     from planetgen.web import generate_page
     monkeypatch.setattr(generate_page, "finish_status", lambda database, run_id=None: {"error": "The galaxy was planned again."})
-    killed = _run(conn, title="Generate sectors", database=control_config.database, queued=False)
+    killed = _run(conn, title="Generate sectors", database=control_config.database)
     runrecord.finish_run(conn, killed, "canceled", error="canceled by boss")
     assert "/admin/queue/confirm/resume" not in admin_client.get(f"/admin/queue/{killed}").get_data(as_text=True)
     response = admin_client.get(f"/admin/queue/confirm/resume?run={killed}")
@@ -687,7 +684,7 @@ def test_the_supervisor_panel_words_a_dead_supervisor_and_a_missing_answer():
 
 def test_a_running_units_own_bar_and_time_left_show_under_its_counter_only_when_it_has_one(admin_client, conn):
     """PERF.147 in the OPS.139 rows: a unit with a shown `progress` draws the bar macro under its counter, one without draws none."""
-    run_id = _run(conn, queued=False)
+    run_id = _run(conn)
     _publish_unit(conn, run_id, 0, done=300.0, estimate=1000.0,
                   progress={"show": True, "percent": 30.0, "eta_seconds": 120.0, "source": "running"})
     _publish_unit(conn, run_id, 1, done=5.0, estimate=10.0, progress={"show": False, "percent": 50.0, "eta_seconds": None, "source": "running"})

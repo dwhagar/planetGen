@@ -7,6 +7,7 @@ import datetime
 import importlib.util
 import json
 import os
+import threading
 from types import SimpleNamespace
 
 import pytest
@@ -164,6 +165,27 @@ def test_a_passed_test_writes_a_deps_line_and_a_failed_one_does_not(tmp_path):
 
 # --- the runner ---------------------------------------------------------------------------------------------------
 
+class _QuietWatchdog:
+    """A watchdog that never trips."""
+
+    def __init__(self, environ, on_trip, **options):
+        self.events, self.what, self.failed, self.tripped = [], "", False, threading.Event()
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+
+class _QuietServices:
+    Watchdog = _QuietWatchdog
+
+    @staticmethod
+    def preflight(environ, browser=True, say=print):
+        return []
+
+
 def _runner(tmp_path, monkeypatch):
     spec = importlib.util.spec_from_file_location("planetgen_test_runner_reuse", os.path.join(ROOT, "scripts", "test.py"))
     runner = importlib.util.module_from_spec(spec)
@@ -173,6 +195,9 @@ def _runner(tmp_path, monkeypatch):
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     monkeypatch.setattr(runner, "rerun_failures", lambda environment: None)
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    # These tests are about the reuse of passes, not about the machine's services: a real check here fails (exit 2) with no test
+    # environment set and, with one set, waits on a MySQL or Redis that is down (the hang on main, 2026-11-18).
+    monkeypatch.setattr(runner, "_services", lambda: _QuietServices)
     return runner
 
 

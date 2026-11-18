@@ -7,7 +7,6 @@ commit, a worker killed just after it) would insert the sector's systems a secon
 import argparse
 import math
 
-import pymysql
 import pytest
 
 from planetgen import tuning
@@ -45,12 +44,17 @@ def _save(config, sector=None):
     return store.save_sector(sector or _sector(), config=config, galaxy_position=_position())
 
 
-def test_a_second_fill_of_a_charted_cell_stops_on_the_first_fills_object_ids(mysql_config):
-    """The failure of Boss's 8.0.4317 run, made on purpose: the cell's own sector row is kept, and the systems it holds already own serial 0."""
-    _save(mysql_config)
-    with pytest.raises(pymysql.err.IntegrityError) as stopped:
-        _save(mysql_config)
-    assert stopped.value.args[0] == 1062 and "uq_star_systems_uid" in stopped.value.args[1]
+def test_a_second_fill_of_a_charted_cell_finds_the_first_fill_and_adds_nothing(mysql_config):
+    """The failure of Boss's 8.0.4317 run, made on purpose: since OPS.268 the second save finds the cell charted (under the cell's lock) and returns the first save's sector, instead of stopping on the object IDs
+    the first fill gave its systems (`uq_star_systems_uid`) after a whole sector's work."""
+    first = _save(mysql_config)
+    second = _save(mysql_config)
+    assert second == first
+    conn = store.get_connection(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (first,)).fetchone()["n"] == 2
+    finally:
+        conn.close()
 
 
 def test_the_report_of_a_cell_says_what_it_holds_and_an_uncharted_cell_has_none(mysql_config):

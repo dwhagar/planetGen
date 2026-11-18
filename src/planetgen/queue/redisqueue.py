@@ -1,13 +1,10 @@
 # planetgen/queue/redisqueue.py
 
 """
-The work queue on Redis with RQ (PERF.24): the connection, the queues, the
-serializers and timeouts of their jobs, and the detached workers that run them.
+The work queue's Redis (PERF.24, OPS.235): the connection, the JSON serializer the records use, the time limits of a job, and the detached process the supervisor starts.
 
-Workers are started on demand, not installed as a service
-(docs/design/operations/work-queue-audit.md): a run's units are RQ jobs
-(`planetgen.queue.units`) and a run starts `planetgen.cli.worker` processes
-for them (`planetgen.queue.workers`), up to the run's worker count.
+RQ is gone (OPS.235): nothing queues a job on Redis for a worker to take. A run's units and a page's steps are rows of the job ledger that the supervisor's launcher forks; the queue names
+below only name the lanes of those rows.
 """
 
 import datetime
@@ -16,19 +13,15 @@ import json
 import math
 import os
 import subprocess
-import sys
 import threading
 
-import redis
-import rq
-
-from planetgen.queue import allowlist, redisclient
+from planetgen.queue import redisclient
 from planetgen.util import log
 
 GENERATION_QUEUE = "planetgen-generation"
 """str: The queue of the first design (PERF.24), where the supervising process of a run put its tasks. Nothing is queued on
-it since the rebuild: a run's units go to `BULK_QUEUE`. The name stays in `QUEUES` and in the worker's warm-up
-(`cli/worker.warm`), which treat it as a generation queue."""
+it since the rebuild: a run's units go to `BULK_QUEUE`. The name stays in `QUEUES`, which keeps the leftovers
+of older releases visible to the reset and stop-all commands."""
 
 BULK_QUEUE = "planetgen-bulk"
 """str: A run's units of work (PERF.95): the scatters, sector fills and backfill blocks of the work queue
@@ -76,8 +69,8 @@ def _json_default(value):
 
 
 class JsonSerializer:
-    """RQ's serializer for every queue (PERF.94, SEC.39, finding F8): a job's arguments and its result travel as JSON, not
-    pickle, so a process that can reach Redis can queue data but not an object that runs code when it is read."""
+    """The serializer of every record the queue keeps in Redis (PERF.94, SEC.39, finding F8): arguments and results travel as JSON, not
+    pickle, so a process that can reach Redis can write data but not an object that runs code when it is read."""
 
     @staticmethod
     def dumps(value, *args, **kwargs):
@@ -86,16 +79,6 @@ class JsonSerializer:
     @staticmethod
     def loads(raw, *args, **kwargs):
         return json.loads(raw.decode("utf-8"), *args, **kwargs)
-
-
-def serializer_for(name):
-    """
-    The serializer the queue `name` uses: JSON, for every queue (SEC.39). The Generate page's jobs and the API's carry paths,
-    ids and numbers; a run's units (PERF.95 to PERF.98) carry ids. No queue carries pickle, so a process that can write to
-    Redis cannot queue an object that runs code when a worker reads it. (A job still names the function a worker calls: what
-    keeps a process that is not planetGen from queuing one is the Redis ACL user, `examples/redis/planetgen.conf`.)
-    """
-    return JsonSerializer
 
 
 TIMEOUT_MULTIPLE = 10
@@ -131,75 +114,6 @@ def job_timeout(expected_seconds=None, ceiling=MAX_TIMEOUT_SECONDS, floor=MIN_TI
     if expected_seconds is None or not math.isfinite(expected_seconds) or expected_seconds <= 0:
         return max(int(ceiling if unestimated is None else unestimated), 1)
     return max(int(min(max(TIMEOUT_MULTIPLE * expected_seconds, floor), ceiling)), 1)
-
-
-class TimedQueue(rq.Queue):
-    """
-    The RQ queue every site uses (`queue`): it refuses a job that has no finite time limit (PERF.144), so RQ always
-    has a deadline to expire the entry of a job whose worker was killed, and a new kind of job cannot skip
-    `job_timeout`. Every way RQ queues a job (`enqueue`, `enqueue_call`, `enqueue_many`, `enqueue_at`) goes through
-    `create_job`.
-    """
-
-    job_class = allowlist.GuardedJob
-    """The job class of every queue (SEC.45): a worker refuses a job whose function or callback is not on `allowlist.FUNCTIONS`."""
-
-    def create_job(self, func, *args, timeout=None, **kwargs):
-        """
-        A job with the time limit it must have.
-
-        Raises:
-            ValueError: `timeout` is missing (RQ would then use its default), zero or negative (-1 is RQ's "no limit").
-        """
-        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or timeout <= 0:
-            raise ValueError(f"a job queued to {self.name} needs a time limit in seconds (redisqueue.job_timeout), "
-                             f"not {timeout!r}")
-        return super().create_job(func, *args, timeout=timeout, **kwargs)
-
-
-def queue(name, connection):
-    """The RQ queue `name` on `connection`, with its serializer (`serializer_for`); jobs on it need a finite
-    time limit (`TimedQueue`)."""
-    return TimedQueue(name, connection=connection, serializer=serializer_for(name))
-
-
-def requeue_job(job, connection, at_front=False):
-    """
-    Queues the existing job `job` again on the queue it came from (OPS.140): it is taken out of the started and failed registries it may sit in, and queued with the time limit it
-    was made with, at the back or, with `at_front` (OPS.145: the unit that is to run alone), at the front. RQ does not retry a job that was stopped on purpose, so a unit
-    stopped by the heartbeat action is queued again here.
-    """
-    target = queue(job.origin, connection)
-    for registry in (target.started_job_registry, target.failed_job_registry):
-        try:
-            registry.remove(job, delete_job=False)
-        except Exception as exc:       # noqa: BLE001 -- it was not in that one
-            log.swallowed("queue/redisqueue", "requeue_job", exc)
-    return target.enqueue_job(job, at_front=at_front)
-
-
-def fetch_job(job_id, connection=None, serializer=JsonSerializer):
-    """The RQ job `job_id` (of a queue using `serializer`, default JSON), or `None` when there is none (never
-    queued, or expired).
-
-    Raises:
-        Unavailable: No Redis server answers.
-    """
-    connection = connection or connect()
-    try:
-        return rq.job.Job.fetch(job_id, connection=connection, serializer=serializer or JsonSerializer)
-    except rq.exceptions.NoSuchJobError:
-        return None
-    except redis.RedisError as exc:
-        raise Unavailable(f"no Redis server answers: {exc}") from exc
-
-
-def worker_argv(names, url, name=None, python=None, burst=True):
-    """The command line of one worker for queues `names`, called `name` when given, run by `python` (default
-    this interpreter). A burst worker exits once its queues are empty; with `burst=False` it waits for work
-    and exits after its idle time (`planetgen.queue.workers.IDLE_SECONDS`)."""
-    return [python or sys.executable, "-m", "planetgen.cli.worker", *(["--burst"] if burst else []), "--url", url,
-            *(["--name", name] if name else []), *names]
 
 
 def start_detached(argv, cwd, on_exit=None):
