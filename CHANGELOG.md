@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4579] - 2026-11-18
+
+**Headline:** Clearing the scatter is now tested to leave the same result when units of the clear are killed and retried.
+
+### Added
+- **A kill test for the clear-scatter command (OPS.225).** The phenomena, luminosity and mass scatters are cleared one kind at a time, undisturbed and with units killed at drawn commits; what each clear leaves must match. No double write found.
+
 ## [8.0.4578] - 2026-11-18
 
 **Headline:** The sky drawn by a galaxy run is now tested to come out the same when units of the run are killed and retried.
