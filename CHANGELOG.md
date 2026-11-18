@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4524] - 2026-11-18
+
+**Headline:** The N-body check follows the package's spelling, deterministic-maths and constants rules.
+
+### Fixed
+- `physics/nbody_check.py` writes "center", takes its matrix product through `detmath.dot`, and reads the astronomical unit and the solar mass from `physics.constants` (GEN.1468).
+
+generation-output: unchanged
+
 ## [8.0.4523] - 2026-11-18
 
 **Headline:** The band-table cache's lock poll interval carries its tag, so the constants census passes again.
