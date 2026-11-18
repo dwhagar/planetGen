@@ -363,7 +363,7 @@ def draw_tier(context, tier, center, *, generator_epoch=None, on_batch=None, led
             c.commit()
             return rows, states
 
-        rows, states = contention.run_with_retries(conn, batch, gate="scatter-ids", label="Sky charting batch")
+        rows, states = contention.run_once(conn, batch)
         stars += len(rows)
         cells += len(states)
         if on_batch is not None:

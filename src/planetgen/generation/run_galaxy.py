@@ -382,7 +382,7 @@ def _take_to_the_deepest_floor(config, skeleton, address, limits, seed):
     limit already reaches it) is left alone.
 
     The draw runs on a connection of its own, so the fill's connection keeps its snapshot; the draw itself runs at READ COMMITTED and
-    starts over after a deadlock or lock wait timeout (`run_plan._draw_sector_chunks`, `contention.run_with_retries`): the fills of
+    a deadlock or lock wait timeout ends the unit and the engine runs it again (`contention.run_once`, OPS.261): the fills of
     several workers write `bright_stars` rows at once.
     """
     floor = float(min(program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL))
