@@ -560,17 +560,19 @@ def _log_long_unit(conn, run_id, index, step, declared, longest):
 def _log_peak_memory(conn, run_id, index, step, declared, peak_mb):
     """
     PERF.226: writes the most memory one worker of the stage that just ended held to the run's log, beside the figure the stage's
-    workers are sized by (`workers.STAGE_WORKER_MEMORY_MB`), so the next growth shows before it kills a run; a warning when it is
+    workers are sized by (`workers.stage_worker_mb`: the job profile's claim once this machine has history, OPS.250, else `workers.STAGE_WORKER_MEMORY_MB`), so the next growth shows before it kills a run; a warning when it is
     over the figure (then the cap lets too many workers run). A stage that is one worker by nature says so.
     """
     if not peak_mb:
         return
-    figure = workers.stage_worker_mb(step.kind)
+    figure = workers.stage_worker_mb(step.kind, conn, run_id)
+    typed = workers.STAGE_WORKER_MEMORY_MB.get(step.kind)
     text = f"stage {declared['label']}: the largest worker held {format_megabytes(peak_mb)}"
     if figure is None:
         text += " (one worker by nature, so there is nothing to size)"
     elif peak_mb > figure:
-        text += f", over the {format_megabytes(figure)} its workers are sized by (workers.STAGE_WORKER_MEMORY_MB); raise the figure"
+        text += (f", over the {format_megabytes(figure)} its workers are sized by (the job profile's figure; the profile follows it from the next run)" if figure != typed
+                 else f", over the {format_megabytes(figure)} its workers are sized by (workers.STAGE_WORKER_MEMORY_MB); raise the figure")
     else:
         text += f" of the {format_megabytes(figure)} its workers are sized by"
     runrecord.log(conn, run_id, text, level="warning" if figure is not None and peak_mb > figure else "info", kind="stage.memory",

@@ -19,6 +19,11 @@ which the slow-move rule below does not hold back.
 **Slow and frozen.** The figure is worked out once per run (the run's id is the token; any other job uses the hour) and kept in Redis: the jobs of the run claim that figure, and a new run moves it by at most
 `MAX_MOVE` (25 percent) from the last. The first move away from a typed figure is limited the same way.
 
+**Proven** (OPS.250, which absorbs OPS.160): a kind whose own history (this machine shape, this epoch) holds `PROVEN_SAMPLES` finished units, a full window, has run a stage of a real galaxy here (a galaxy cuts a stage into hundreds
+of units; a small test galaxy gives a handful, and a rebuilt machine or a new epoch starts again at none). For a proven kind the learned figure leads outright: it is not held to 25 percent a run, and the typed figure is no longer the
+point the first move starts from. The typed figure stays what a kind with no history claims (the default) and bounds the learned one: between the typed figure over `CLAMP` and the typed figure times `CLAMP`, so a profile gone wrong (a
+kind that once ran on a toy galaxy, a unit that did nothing) cannot starve a stage or fill the host. A kill floor still stands above the clamp.
+
 **Logged** (Boss, 3:03 PM EST 2026-11-12): every change of a figure logs the kind, old and new, the samples behind it, the source and the reason, and is kept in the Redis list `changes` (newest `KEEP_CHANGES`) for the Queue page.
 **Never blocks a job**: any failure gives `None`, the typed path.
 """
@@ -42,6 +47,11 @@ MARGIN_AT_FULL = 1.10
 MAX_MOVE = 0.25
 SHAPE_TOLERANCE = 0.10
 KEEP_CHANGES = 100
+PROVEN_SAMPLES = WINDOW
+"""int: The finished units from this machine shape and epoch that make a kind proven (OPS.250): a full window."""
+CLAMP = 4.0
+"""float: How far the learned claim of a proven kind may sit from the typed figure, as a factor either way (OPS.250). Defined by the program, not a physical value: wide enough that a real change of the work is followed, narrow enough that
+a bad profile is held."""
 
 
 def enabled():
@@ -81,7 +91,7 @@ def target(rows, typed_mb, host_memory, host_cores, epoch):
     if len(own) >= MIN_SAMPLES:
         peaks = [r["peak_mb"] for r in own]
         k = margin(len(peaks))
-        return percentile(peaks) * k, floor, {"source": "own", "samples": len(peaks), "p95_mb": round(percentile(peaks)), "margin": round(k, 3)}
+        return percentile(peaks) * k, floor, {"source": "own", "samples": len(peaks), "p95_mb": round(percentile(peaks)), "margin": round(k, 3), "proven": len(peaks) >= PROVEN_SAMPLES}
     if len(other) >= MIN_SAMPLES:
         peaks = [r["peak_mb"] for r in other]
         theirs = percentile(peaks) * MARGIN_AT_MIN
@@ -90,9 +100,20 @@ def target(rows, typed_mb, host_memory, host_cores, epoch):
     return None, floor, {"source": "none", "samples": len(own) + len(other)}
 
 
-def settle(previous, wanted, floor):
-    """The figure for a new run: `wanted` moved from `previous` by at most `MAX_MOVE`, and never under the kill `floor`."""
-    figure = wanted if previous is None else min(max(wanted, previous * (1.0 - MAX_MOVE)), previous * (1.0 + MAX_MOVE))
+def clamp(wanted, typed):
+    """`wanted` held between the typed figure over `CLAMP` and the typed figure times `CLAMP` (no typed figure: as it is)."""
+    return wanted if not typed else min(max(wanted, typed / CLAMP), typed * CLAMP)
+
+
+def settle(previous, wanted, floor, proven=False, typed=None):
+    """
+    The figure for a new run: `wanted` moved from `previous` by at most `MAX_MOVE`, and never under the kill `floor`. A `proven` kind (OPS.250) is not held to the move: its `wanted`, between the `typed` figure over `CLAMP` and times
+    `CLAMP`, is the figure.
+    """
+    if proven:
+        figure = clamp(wanted, typed)
+    else:
+        figure = wanted if previous is None else min(max(wanted, previous * (1.0 - MAX_MOVE)), previous * (1.0 + MAX_MOVE))
     return max(figure, floor) if floor else figure
 
 
@@ -125,8 +146,8 @@ def claim(conn, kind, typed_mb, token=None, read_rows=None, now=None):
         if wanted is None:
             return None if floor is None else max(floor, row["figure"] if row else 0.0, typed_mb or 0.0)
         previous = row["figure"] if row else typed_mb
-        figure = settle(previous, wanted, floor)
-        conn.hset(memorygate._key("profile"), kind, json.dumps({"token": token, "figure": figure}))
+        figure = settle(previous, wanted, floor, details.get("proven", False), typed_mb)
+        conn.hset(memorygate._key("profile"), kind, json.dumps({"token": token, "figure": figure, "proven": bool(details.get("proven"))}))
         if previous is None or abs(figure - previous) >= 1.0:
             _log_change(conn, kind, previous, figure, wanted, floor, details, typed_mb, now)
         return figure
@@ -136,7 +157,12 @@ def claim(conn, kind, typed_mb, token=None, read_rows=None, now=None):
 
 
 def _log_change(conn, kind, old, new, wanted, floor, details, typed_mb, now):
-    held = "a memory kill floor" if floor and new == floor else ("limited to 25 percent a run" if abs(new - wanted) >= 1.0 else "the profile's figure")
+    proven = details.get("proven", False)
+    held = ("a memory kill floor" if floor and new == floor else
+            ("held to the typed figure's clamp" if proven and abs(new - wanted) >= 1.0 else
+             ("limited to 25 percent a run" if not proven and abs(new - wanted) >= 1.0 else "the profile's figure")))
+    if proven:
+        held = f"proven here, so the profile leads; {held}"
     reason = f"{held}; source {details['source']}, {details['samples']} samples" + (f", p95 {format_megabytes(details['p95_mb'])} x margin {details['margin']}" if "p95_mb" in details else "")
     log.normal(f"Self-tuning: claim of {kind} {'was ' + format_megabytes(old) if old is not None else 'had no earlier figure'}, now {format_megabytes(new)} (typed {format_megabytes(typed_mb) if typed_mb is not None else 'none'}; {reason}).")
     conn.lpush(_changes_key(), json.dumps({"at": now, "what": "claim", "kind": kind, "old": old, "new": new, "typed": typed_mb, "reason": reason, **details}))
@@ -204,12 +230,14 @@ def clear(conn, kind, who="an admin"):
 def overview(conn):
     """
     What the page shows (OPS.158): `{"self_tuning", "kinds", "changes"}`. A kind is every one that has a settled figure, a pin or profile rows: `kind`, `typed_mb`, `figure_mb` (what a run
-    claims from the profile now), `pinned_mb`, `samples`, `last_sample` (UTC text) and `changed` (the newest change made to it). The kinds come out sorted by name.
+    claims from the profile now), `proven` (OPS.250: the profile leads, the typed figure is the default and the clamp), `pinned_mb`, `samples`, `last_sample` (UTC text) and `changed` (the newest change made to it). The kinds come out sorted by name.
     """
     from planetgen.queue import claims
     kinds = {}
     for name, raw in conn.hgetall(memorygate._key("profile")).items():
-        kinds.setdefault(memorygate._decode(name), {})["figure_mb"] = json.loads(memorygate._decode(raw))["figure"]
+        stored = json.loads(memorygate._decode(raw))
+        entry = kinds.setdefault(memorygate._decode(name), {})
+        entry["figure_mb"], entry["proven"] = stored["figure"], bool(stored.get("proven"))
     for name, raw in conn.hgetall(_pins_key()).items():
         kinds.setdefault(memorygate._decode(name), {})["pinned_mb"] = float(memorygate._decode(raw))
     try:
@@ -229,7 +257,7 @@ def overview(conn):
         entry = kinds[name]
         newest = next((c for c in recent if c["kind"] == name), None)
         rows.append({"kind": name, "typed_mb": claims.typed_mb(name), "figure_mb": entry.get("figure_mb"), "pinned_mb": entry.get("pinned_mb"),
-                     "samples": entry.get("samples", 0), "last_sample": entry.get("last_sample"), "changed": newest})
+                     "proven": entry.get("proven", False), "samples": entry.get("samples", 0), "last_sample": entry.get("last_sample"), "changed": newest})
     return {"self_tuning": enabled(), "kinds": rows, "changes": recent[:20]}
 
 

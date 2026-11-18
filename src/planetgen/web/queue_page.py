@@ -387,13 +387,22 @@ def _warm_view(warm):
     }
 
 
+def _leads(row):
+    """Which figure a run of the kind claims (OPS.250): the one an admin fixed, the profile's once the kind is proven on this machine (the typed figure is then the default and the clamp), the profile's from fewer samples, else the typed one."""
+    if row.get("pinned_mb"):
+        return "Fixed"
+    if row.get("figure_mb") is None:
+        return "Typed"
+    return "Profile (proven)" if row.get("proven") else "Profile"
+
+
 def _tuning_view(body):
     """The panel of what the queue has learned per job kind (OPS.158), or `None` when there is nothing to show: for each kind the typed claim, the claim from the job profile, a pin, the samples and
     the newest change; and the latest changes the engine and the admins made."""
     if not body or not (body.get("kinds") or body.get("changes")):
         return None
     rows = [{"kind": row["kind"], "typed": format_megabytes(row.get("typed_mb")), "learned": format_megabytes(row.get("figure_mb")), "pinned": format_megabytes(row.get("pinned_mb")), "is_pinned": bool(row.get("pinned_mb")),
-             "samples": f"{row.get('samples') or 0:,}", "last_sample": row.get("last_sample") or "",
+             "leads": _leads(row), "samples": f"{row.get('samples') or 0:,}", "last_sample": row.get("last_sample") or "",
              "changed": (row["changed"]["reason"] if row.get("changed") else "")} for row in body["kinds"]]
     changes = [{"at": _iso(item["at"]), "what": item["what"], "kind": item["kind"], "old": f"{item['old']:,.0f}" if item.get("old") is not None else "none", "new": f"{item['new']:,.0f}",
                 "reason": item["reason"]} for item in body["changes"]]
