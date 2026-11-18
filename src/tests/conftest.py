@@ -660,7 +660,7 @@ def _no_test_starts_a_supervisor(monkeypatch):
     """OPS.207: a submit, a status poll and the warm-up's start each call `supervisor.ensure_started`; in a test none of them starts the host's supervisor process.
     A test of the supervisor passes its own `start`. OPS.211: a run that asks to be started is started by one turn of `supervisor.RunStarts`, run in the test's own process."""
     from planetgen.queue import supervisor, wrapper
-    monkeypatch.setattr(supervisor, "_spawn", lambda argv: None)
+    monkeypatch.setattr(supervisor, "_spawn", lambda argv, on_exit=None: None)
     # OPS.211: a run asks the supervisor to start it; with none running, the ask is answered by one turn of the supervisor's duty, here, at once
     monkeypatch.setattr(wrapper, "ask_supervisor", lambda conn, url: supervisor.RunStarts(conn).turn())
     yield
@@ -672,7 +672,7 @@ def _no_module_fixture_starts_a_supervisor():
     through the same turn of `supervisor.RunStarts`, and starts no supervisor process."""
     from planetgen.queue import supervisor, wrapper
     with pytest.MonkeyPatch.context() as patch:
-        patch.setattr(supervisor, "_spawn", lambda argv: None)
+        patch.setattr(supervisor, "_spawn", lambda argv, on_exit=None: None)
         patch.setattr(wrapper, "ask_supervisor", lambda conn, url: supervisor.RunStarts(conn).turn())
         yield
 
