@@ -209,9 +209,10 @@ def test_a_run_carried_on_from_one_that_stopped_in_a_later_window_does_only_the_
     conn = redisqueue.connect()
     FAULTS["a"] = TOTAL - 3
     RAN.clear()
+    before = set(runrecord.recent_runs(conn, limit=1000))
     with pytest.raises(units.RunStopped):
         wrapper.run("Windows", [step], lambda index, plan: None, lambda index, unit, result: None, database=database, galaxy_seed=seed, build=build)
-    stopped = max(runrecord.recent_runs(conn, limit=50), key=lambda run_id: runrecord.read_run(conn, run_id)["created"])
+    stopped, = set(runrecord.recent_runs(conn, limit=1000)) - before
     FAULTS.clear()
     assert sorted(RAN) == [n for n in range(TOTAL) if n != TOTAL - 3], "the others went on to the end of the stage, every window of it: the held unit is the only one left"
     RAN.clear()
