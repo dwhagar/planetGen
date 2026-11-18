@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4578] - 2026-11-18
+
+**Headline:** The sky drawn by a galaxy run is now tested to come out the same when units of the run are killed and retried.
+
+### Added
+- **A kill test for the sky backfill (OPS.225).** A galaxy run with the sky drawn is made undisturbed and again with units killed at drawn commits; the bright stars, the cells' levels and the sky ledger must match. No double write was found.
+
 ## [8.0.4577] - 2026-11-18
 
 **Headline:** The surface-air test knows a surface held at the moist limit of its air, which the retired 10 kPa cap had hidden, so a 500 bar steam and oxygen world no longer reads as a failed fixed point.
