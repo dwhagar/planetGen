@@ -329,9 +329,8 @@ Each worker generates a whole sector and saves it in one transaction;
 the run prints each sector as it's saved, so sectors can finish out of
 order. `--workers N` sets the count (`PLANETGEN_WORKERS` does the same for
 every run), and `--workers 1` generates one sector at a time in the run's
-own process, as before. The workers are RQ workers on the Redis server
-at `redis.url` ([config.md](config.md)), started by the run for its own
-tasks and gone when it finishes. Without a Redis server the run says so
+own process, as before. The workers are jobs the supervisor's launcher forks, one process each, with the Redis server
+at `redis.url` ([config.md](config.md)) holding the run's record, and gone when the run finishes. Without a Redis server the run says so
 and generates one sector at a time. A task whose worker dies (killed, out
 of memory) runs once more on a fresh worker before the run fails. On a 4-core machine with MySQL local, 60 sectors
 of one ring of the old cylindrical grid took 16.5 s on one worker and 9.8 s on the default two (the grid has since changed; the speed per sector has not been measured again).
@@ -766,7 +765,6 @@ Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them 
 |---|---|
 | `python3 -m planetgen.cli.orbits` | Moves every object that is due along its orbit. |
 | `python3 -m planetgen.cli.tiles` | Builds every node of the whole Galaxy Map into a new cache and swaps it in. |
-| `python3 -m planetgen.cli.worker` | Runs one queue worker. |
 | `python3 -m planetgen.cli.query` | Lists what is stored. |
 | `python3 -m planetgen.cli.migrate` | Brings the database up to the current schema. |
 | `python3 -m planetgen.cli.datasets` | Downloads the static data the generator reads (isochrone grids and the like) or says where each set stands. |
@@ -793,20 +791,6 @@ The positional update. Each planet, moon, star, binary pair, comet, facility and
 
 ```bash
 python3 -m planetgen.cli.orbits
-```
-
-### worker
-
-One RQ worker, at the lowered priority generation workers run at. Only the Generate page's job starts one itself (OPS.235: a run's units and the maintenance lane are forked by the supervisor's launcher, and nothing starts RQ workers for them); run one by hand only to watch one. Redis is read from `--url`, else `PLANETGEN_REDIS_URL`, else `redis.url` in `config.json`.
-
-*   `QUEUE ...`: the queues to serve, first one first (default: the bulk queue). A worker serves one kind of queue, the web queues or a run's own, never both. The site keeps lanes of its own: `planetgen-bulk` (a run's units, up to the admin's worker count) and `planetgen-maintenance` (the units of the cache warm-up and the database check, and the tile prefetch and rebuild: while a generation run is live `queue.maintenance_workers` workers, taken out of the admin's worker count, with a generation worker finishing its unit and leaving when the lane needs its place; with no generation run live the whole count; PERF.150). The site's short and long API jobs are not on a queue any more (OPS.230): the supervisor forks each as a light job (`queue/lightjobs.py`) on the interactive lane, or the long lane for a job expected to take longer than `queue.long_job_seconds` (a neighbourhood or a large settle), with the places `queue.interactive_workers` and `queue.long_workers` kept for them against the other lanes (PERF.151).
-*   `--burst`: exit once the queues are empty.
-*   `--idle-seconds <int>`: exit after this long without work (default 60; ignored with `--burst`).
-*   `--name <name>`: the worker's name (default: RQ picks one).
-*   `--url <redis-url>`: the Redis server.
-
-```bash
-python3 -m planetgen.cli.worker --burst
 ```
 
 ### query
@@ -924,7 +908,7 @@ Not built yet. Each names its TODO item and phase; the design is in
 | `planetgen repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
 | `--resume` | PERF.30 | 1 | Finish the runs an interrupted fill left, from the step each reached. |
 
-Work runs as RQ jobs on Redis from phase 0 (PERF.24), so `--workers` sets the RQ worker count.
+Work runs as jobs of the job ledger the supervisor forks (PERF.24; OPS.235: RQ is gone), so `--workers` sets how many run at once.
 
 Phase 2 also adds a daily maintenance run, `scripts/maintenance.sh`, set up as a
 scheduled job by install and update (OPS.16, OPS.17): the positional

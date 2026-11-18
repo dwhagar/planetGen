@@ -19,7 +19,7 @@ This module is the template process and the job process. `jobhost` is the superv
 * **What a job may run.** `runner` is a dotted function name that `allowlist.check_function` allows, as the function of a queued job is; it is called `runner(job, link)` in the job process and
   its return is the exit code (`None` is 0). Nothing the supervisor sends names anything else to run.
 
-Built and tested, not yet used: the bulk lane moves to it in OPS.228.
+In use since OPS.228: the launcher forks every unit, page step and light job from it.
 """
 
 import contextlib

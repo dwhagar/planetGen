@@ -19,9 +19,28 @@ A unit that is only a *piece* of an opening, a conclusion or an end of a stage i
 """
 
 import json
+import os
+import traceback
 
 from planetgen.queue import ledger, planrows, runrecord
-from planetgen.util import log
+from planetgen.util import log, secrets_mask
+
+WHERE_FRAMES = 3
+"""int: How many of the last frames of a failure's traceback the held error text names (OPS.275)."""
+
+
+def where(tb, frames=WHERE_FRAMES):
+    """
+    Where a failure happened, for the held error text (OPS.275): ` (at file:line in function, ...)` for the last `frames` frames of the traceback `tb`, the innermost first, files named from
+    the `planetgen` package (or by their own name outside it). Empty when there is no traceback. A one-off failure under load can then be traced from the held text and the log without the stack file.
+    """
+    if tb is None:
+        return ""
+    named = []
+    for frame in reversed(traceback.extract_tb(tb)[-frames:]):
+        path = frame.filename.replace(os.sep, "/")
+        named.append(f"{path[path.rfind('planetgen/'):] if 'planetgen/' in path else os.path.basename(path)}:{frame.lineno} in {frame.name}")
+    return f" (at {', '.join(named)})" if named else ""
 
 
 def is_held(conn, run_id, stage, unit):
@@ -50,6 +69,7 @@ def hold_unit(conn, run_id, stage, unit, row, error, killed=False):
     exception in words (`ValueError: ...`); `killed` says the process was killed, as the run record's flag does for a run that ended so.
     """
     from planetgen.queue import wrapper         # the wrapper queues units and imports this file's callers
+    error = secrets_mask.mask_text(error)
     conn.hset(runrecord.held_key(run_id, stage), unit, f"{row}|{error}"[:1000])
     runrecord.log_said(conn, run_id, f"unit {unit} of stage {wrapper.stage_name(conn, run_id, stage)} is held: {error}", level="error", kind="unit.held", stage=stage, unit=unit)
     _mark_job(conn, run_id, row, "failed")

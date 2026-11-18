@@ -3,11 +3,11 @@
 """
 Queue workers and supervisors a test run left behind (TEST.393).
 
-A test that starts real workers (`workers.ensure_workers`, `redisqueue.start_detached`) or a supervisor (`supervisor.ensure_started`, which every check run and every
+A test that starts a real supervisor or a process of the old queue worker kind (`redisqueue.start_detached`) (`supervisor.ensure_started`, which every check run and every
 submit starts when none answers) starts them in a session of their
 own so that they outlive the process that started them; one that is stopped part way (a test past its time limit, a
 phase the runner stopped, a pytest worker that was killed) never reaches the code that tells them to stop, and each keeps
-its memory (about 300 MB with its horse) until it has been idle for `workers.IDLE_SECONDS`, which it never is while
+its memory (about 300 MB with its horse) until it has been idle for a while, which it never is while
 it holds a unit of a database that has been dropped. Fifty of them filled a 16 GB machine and MySQL was killed.
 
 Every test worker's Redis is a database of its own, 1 to 15 (`private_redis`), and a real worker is started with

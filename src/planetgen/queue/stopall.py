@@ -43,7 +43,7 @@ ROUNDS = 4
 """int: How many times the process list is looked at and what is found killed: a process that a dying parent started
 in its last moment is found by the next look."""
 
-ROOT_MODULES = ("planetgen.cli.worker", "planetgen.cli.generate", "planetgen.web.job_runner", "planetgen.cli.warm",
+ROOT_MODULES = ("planetgen.cli.generate", "planetgen.web.job_runner", "planetgen.cli.warm",
                 "planetgen.cli.orbits", "planetgen.cli.smoke", "planetgen.cli.benchmark", "planetgen.cli.reset",
                 "planetgen.cli.checkdb", "planetgen.cli.stage_progress")
 """tuple: The modules whose processes `stop_all` ends, with every process they started (their command line has `-m`
@@ -253,40 +253,14 @@ def _cancel_runs(connection, who):
 
 
 def _empty_queues(connection):
-    import rq
+    """Stops the site's light jobs (OPS.235: RQ is gone, so there is no queue of waiting jobs to empty; the rows of the ledger are canceled by `controls.stop_everything`). Returns how many it stopped."""
+    from planetgen.queue import lightjobs
 
-    from planetgen.queue import lightjobs, redisqueue
-
-    removed = 0
-    names = {queue.name for queue in rq.Queue.all(connection=connection)}
-    names |= {redisqueue.BULK_QUEUE, *redisqueue.maintenance_lane()}
-    for name in sorted(names):
-        try:
-            queue = redisqueue.queue(name, connection)
-            removed += queue.count
-            queue.empty()
-        except Exception as exc:       # noqa: BLE001 -- the other queues are still emptied
-            log.swallowed("queue/stopall", "_empty_queues", exc)
     try:
-        removed += lightjobs.stop_all(connection)        # OPS.230: the site's light jobs are not on a queue; the supervisor ends the ones that run
+        return lightjobs.stop_all(connection)        # OPS.230: the site's light jobs are not on a queue; the supervisor ends the ones that run
     except Exception as exc:       # noqa: BLE001 -- the rest of the stop still goes ahead
         log.swallowed("queue/stopall", "_empty_queues", exc)
-    return removed
-
-
-def _clear_dead_workers(connection):
-    """Takes the workers that were killed, and the jobs they left started, out of Redis."""
-    import rq
-
-    from planetgen.queue import workers
-
-    with contextlib.suppress(Exception):
-        for worker in rq.Worker.all(connection=connection):
-            with contextlib.suppress(Exception):
-                if not _alive(getattr(worker, "pid", 0) or 0):
-                    worker.register_death()
-    with contextlib.suppress(Exception):
-        workers.reap_dead_jobs(connection)
+        return 0
 
 
 def _job_roots():
@@ -366,7 +340,6 @@ def stop_all(who=None, connection=None, kill=True, hold=True):
     if kill:
         summary.update(kill_processes())
     if connection is not None:
-        _clear_dead_workers(connection)
         with contextlib.suppress(Exception):
             summary["queued"] += _empty_queues(connection)      # what a dying process queued in its last moment
     _free_job_locks(job_roots)

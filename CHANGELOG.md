@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4547] - 2026-11-18
+
+**Headline:** The resume-across-builds runner tests no longer depend on the machine's MySQL and Redis, so one of them stops failing or hanging when those are missing or down.
+
+### Fixed
+- **`test_main_says_how_many_tests_were_reused_and_from_which_run`** (`src/tests/test_resume_across_builds.py`): it ran `scripts/test.py quick --resume` with the real service check, which exits 2 when the test environment is not set and waits on a MySQL or Redis that is down when it is (a hang on main, seen by Lane 16 at 1:23 AM EST on 2026-11-18). The runner these tests build now has a quiet services check, as `test_test_runner.py` already does; the tests are about reusing passes, not about services.
+
+## [8.0.4546] - 2026-11-18
+
+**Headline:** an epoch that did not touch the galaxy's plan or scatter no longer makes the map draw every tile again.
+
+### Changed
+- MAP.431: the map's tile cache key (`tile_base`) counts the epoch a stored shape or scatter was made under as the last epoch that changed that stage (`generator_epoch.last_change`, from each epoch's `affects`), not the raw epoch number. A stamp that moves the galaxy up an epoch that changed neither the plan nor the scatter (a refill of the derived values, a new fill) keeps every stored tile; an epoch that changed the scatter still draws the scatter's tiles again. The first load after this release draws the tiles once, as the key's make-up changed.
+
+generation-output: unchanged (no golden, no epoch, no lock item)
+
+## [8.0.4545] - 2026-11-18
+
+**Headline:** a galaxy run of many thousands of sectors no longer keeps a kilobyte of history for every sector it made.
+
+### Changed
+- OPS.240: when a stage that has more than 10,000 unit rows ends, the unit rows that finished at their first attempt lose their stored arguments and their attempt row (`planrows.fold_finished`), except the 100 slowest. Every row stays, so the stage's count, its status lines and the Queue page's totals are as real as before; a unit that was retried or failed keeps everything. What was folded (rows, attempts, their seconds, the rows kept) is written to the stage's `release` row. A failed fold never fails the stage's end.
+
+generation-output: unchanged (no golden, no epoch, no lock item)
+
+## [8.0.4544] - 2026-11-18
+
+**Headline:** The `rq` library is gone from the install: nothing queues a job on Redis for a worker any more, so the update installs one package less.
+
+### Removed
+- **OPS.235 slice 2.** The `rq` dependency (`setup.py`, `scripts/install-python-deps.sh`, `requirements.lock`, `requirements-server.lock`, with `croniter`, `python-dateutil` and `six`, which only it brought) and every module that used it: `planetgen.cli.worker` (the queue worker process), `redisqueue.TimedQueue`, `queue`, `requeue_job`, `fetch_job`, `worker_argv` and `serializer_for`, `allowlist.GuardedJob`, `workers.live_workers`, `cancel_now` and `reap_dead_jobs`, and `claims.claim_for`, `default_claim` and `lane_of`.
+- The shared queue list of the update guard: `QueuedJobSource` now lists only the site's light jobs (a run's units, a page's steps and the light jobs are rows of the ledger or records the supervisor forks); stop-all no longer empties RQ queues or clears dead RQ workers.
+- `docs/reference/cli.md`'s `worker` command.
+
+### Changed
+- `util/memwatch` counts the supervisor's template processes (`planetgen.queue.template` and the jobs forked from it) as the "workers" of the memory peak line, and `cli/benchmark_suite` ends those between steps, where it ended queue workers.
+- `reset-jobs` still removes the `rq:*` keys an older release left in Redis, read as plain keys, and ends the worker processes their records name; it no longer needs the `rq` library for either.
+
+## [8.0.4543] - 2026-11-18
+
+**Headline:** the resume tests now say what a failing sector does (the run holds it, finishes the rest and ends held), instead of expecting the run to stop at it.
+
+### Changed
+- OPS.274: `tests/test_gen_resume.py` (six cases, three modes each of a sector that fails before its save and a save that fails in its transaction) asserts what OPS.221 made true: the run raises `RunStopped` with "The run is held", the interrupted run holds every sector of the uninterrupted run but the one that failed, that sector has no row and no system, and a new run ends with the same sectors as the uninterrupted one. The uninterrupted run is made first, so the interrupted run's sectors are compared with it.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4542] - 2026-11-18
 
 **Headline:** a galaxy run makes its sectors one at a time at any size, and the engine writes them to its ledger a window at a time.

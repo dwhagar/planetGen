@@ -8,11 +8,9 @@ nothing read the host while a run went. A stage that grew past its figure was re
 was uncapped, and the cut of a stage was outside the table altogether: the full-galaxy runs of 2026-10-31 and 2026-11-08 were
 killed by the kernel that way. This is the gate that reads the host instead.
 
-**Every job holds a claim.** A job is an RQ job on any queue and lane (a run's units, the cut of a stage, the API's and the
-pages' jobs, the Generate page's, the node prefetch). Before a worker prepares a job it takes a *claim* on the gate
-(`acquire`): the memory the job is expected to hold, in MB, the cores it keeps busy, and the lane it is on (`claims.claim_for`
-works the three out from the job). The claim is a Redis hash entry under the worker's name, with an expiry that the worker's
-heartbeat renews, so a worker killed with `kill -9` gives its claim up by itself (`holders`).
+**Every job holds a claim.** A job is a unit, a cut or a page step of the ledger, or a light job (OPS.235: no job is an RQ job any more). Before the launcher forks a job it takes a *claim* on the gate
+(`acquire`): the memory the job is expected to hold, in MB, the cores it keeps busy, and the lane it is on (`launcher.claim_of_row` works the three out from the row). The claim is a Redis hash entry
+under the holder's name, with an expiry that the holder's heartbeat renews, so a holder killed with `kill -9` gives its claim up by itself (`holders`).
 
 **The rule.** A job is admitted when its claim fits what the host has left:
 

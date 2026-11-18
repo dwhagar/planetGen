@@ -6,7 +6,9 @@ fill (docs/TODO.md).
 
 TEST.23: a `galaxy --shell --band`, `--shell` or `--shells --bands` run stopped
 partway (a sector that fails before it is saved, or one whose save fails
-inside its transaction) and then run again ends with the same sectors as
+inside its transaction: the run holds that sector, finishes every other
+and ends held, with nothing saved for the sector that failed) and then
+run again ends with the same sectors as
 one uninterrupted run in a second database: the same set of addresses,
 each filled once, with the same number of its own (not bright-star)
 systems, and no system or bright-star link left behind by the failed
@@ -151,44 +153,58 @@ def _fail_on_call(monkeypatch, tmp_path, owner, name, call_number):
     return counter
 
 
-def _check_partial(partial, saved_before_failure):
-    """One worker stops at the failing sector; with more, the sectors
-    already handed out when it failed may still be saved (each is its
-    own transaction), but never the whole run."""
-    if worker_patches.workers() == 1:
-        assert len(partial) == saved_before_failure
-    else:
-        assert len(partial) >= saved_before_failure
-
-
-def _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode):
+def _uninterrupted(second_mysql_config, mode):
+    """The run that nothing stops, in the second database: the sectors the interrupted run must end with. Returns its snapshot (`_snapshot`'s first part)."""
     _seed_skeleton(second_mysql_config, shells=SHELLS)
     _galaxy(second_mysql_config, MODES[mode])
-    resumed, orphans, unbuilt, dangling = _snapshot(mysql_config)
     whole, *_rest = _snapshot(second_mysql_config)
     assert len(whole) > 4, "the mode should fill more sectors than the interruption point"
+    return whole
+
+
+def _sector_rows_at(config, address):
+    conn = store.get_connection(config)
+    try:
+        return conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ?", address).fetchone()["n"]
+    finally:
+        conn.close()
+
+
+def _check_held(config, partial, whole):
+    """A unit that fails does not stop the run (OPS.221): the run holds that item and finishes every sector that does not depend on it. So the stopped run
+    has every sector of the whole run but the one that failed, and that one has nothing saved (no sector row, no system)."""
+    assert set(partial) < set(whole)
+    (failed,) = set(whole) - set(partial)
+    assert _sector_rows_at(config, failed) == 0, f"the sector that failed {failed} left rows behind"
+    assert all(partial[address] == whole[address] for address in partial), "the sectors the held run finished are the sectors of the whole run"
+
+
+def _check_resumed_matches_uninterrupted(mysql_config, whole, uncharted):
+    resumed, orphans, unbuilt, dangling = _snapshot(mysql_config)
     assert set(resumed) == set(whole)
     assert resumed == whole
     assert all(sectors == 1 and systems >= NUM_SYSTEMS for sectors, systems in resumed.values())
     assert (orphans, unbuilt, dangling) == (0, 0, 0)
-    assert _uncharted(mysql_config) == _uncharted(second_mysql_config)
+    assert _uncharted(mysql_config) == uncharted
 
 
 @pytest.mark.parametrize("mode", sorted(MODES))
 def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
     first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about resuming, not the first fill's draw (the same either way, and most of a sector's cost)
+    whole = _uninterrupted(second_mysql_config, mode)
+    uncharted = _uncharted(second_mysql_config)
     _seed_skeleton(mysql_config, shells=SHELLS)
     with pytest.MonkeyPatch.context() as failing:       # undone alone: the test's own patches hold the inline queue
         calls = _fail_on_call(failing, tmp_path, run_galaxy, "generate_and_save_sector_at", 4)
-        with pytest.raises(units.RunStopped, match="Interrupted"):     # the failing unit stops the run (PERF.107)
+        with pytest.raises(units.RunStopped, match="Interrupted.*The run is held"):     # the run holds the failing sector and finishes the rest (OPS.221)
             _galaxy(mysql_config, MODES[mode])
         assert worker_patches.count(calls) >= 4
         partial, *_rest = _snapshot(mysql_config)
-        _check_partial(partial, 3)
+        _check_held(mysql_config, partial, whole)
 
     _galaxy(mysql_config, MODES[mode])
-    _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode)
+    _check_resumed_matches_uninterrupted(mysql_config, whole, uncharted)
 
 
 @pytest.mark.parametrize("mode", sorted(MODES))
@@ -197,17 +213,19 @@ def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
     # `record_sector_stats` runs last inside `insert_sector`'s transaction,
     # after the sector, its systems and their bright-star links are written.
     first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about resuming, not the first fill's draw (the same either way, and most of a sector's cost)
+    whole = _uninterrupted(second_mysql_config, mode)
+    uncharted = _uncharted(second_mysql_config)
     _seed_skeleton(mysql_config, shells=SHELLS)
     with pytest.MonkeyPatch.context() as failing:
         _fail_on_call(failing, tmp_path, store, "record_sector_stats", 3)
-        with pytest.raises(units.RunStopped, match="Interrupted"):     # the failing unit stops the run (PERF.107)
+        with pytest.raises(units.RunStopped, match="Interrupted.*The run is held"):     # the run holds the failing sector and finishes the rest (OPS.221)
             _galaxy(mysql_config, MODES[mode])
         partial, orphans, unbuilt, dangling = _snapshot(mysql_config)
-        _check_partial(partial, 2)
+        _check_held(mysql_config, partial, whole)
         assert (orphans, unbuilt, dangling) == (0, 0, 0)
 
     _galaxy(mysql_config, MODES[mode])
-    _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode)
+    _check_resumed_matches_uninterrupted(mysql_config, whole, uncharted)
 
 
 def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_mysql_config, monkeypatch):
@@ -216,6 +234,8 @@ def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_m
     # each filled once with the same systems of its own (`_snapshot`
     # leaves out the bright stars the earlier steps' backfills placed).
     first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about resuming, not the first fill's draw (the same either way, and most of a sector's cost)
+    whole = _uninterrupted(second_mysql_config, "shell")
+    uncharted = _uncharted(second_mysql_config)
     _seed_skeleton(mysql_config, shells=SHELLS)
     total = sum(wedge_count(1, band) for band in (-1, 0, 1))
     for _ in range(-(-total // 4)):
@@ -227,7 +247,7 @@ def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_m
                        *mysql_argv(mysql_config)])
     assert _snapshot(mysql_config)[0] == before
     assert len(before) == total
-    _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, "shell")
+    _check_resumed_matches_uninterrupted(mysql_config, whole, uncharted)
 
 
 # --- TEST.26 -----------------------------------------------------------------

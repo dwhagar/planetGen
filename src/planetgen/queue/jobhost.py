@@ -11,7 +11,7 @@ kernel handle on it, and tells the supervisor how each job ended. `template` is 
   kernel handle says the job ended and the `Exit` has neither (`source` is `pidfd`): the job's status was the template's to read. A job is reported once.
 * **A job whose pipe is closed finishes and exits** (`template.EXIT_SUPERVISOR_GONE`): closing the `Job` (or ending this process) is how a supervisor lets go of it.
 
-Built and tested, not yet used: the bulk lane moves to it in OPS.228.
+In use since OPS.228: the launcher forks every unit, page step and light job from it.
 """
 
 import dataclasses
