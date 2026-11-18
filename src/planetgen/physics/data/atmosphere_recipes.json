@@ -1047,13 +1047,13 @@
    "kind": "derived",
    "option": "Pressure cap of the winning row (PARAM)",
    "gate_text": "d1 to d5",
-   "weight_text": "P_max = 0, 1e-5, 0.01, 0.1 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapor)",
+   "weight_text": "P_max = 0, 1e-5 bar for d1, d2; none for d3, d4, d5 (the caps of 0.01 and 0.1 bar of d3 and d4 are retired, GEN.1558); P = min(supply, P_max, vapor)",
    "source": "smooth caps suggested in the project doc s3.6 (values DESIGN)",
    "status": "DESIGN",
    "research": [
     "R4"
    ],
-   "notes": "",
+   "notes": "GEN.1558: the caps of d3 (1 kPa) and d4 (10 kPa) are retired; supply, sinks and escape set the pressure of those airs, and only the airless (d1) and trace (d2) caps stay, so the shoreline still decides who keeps any air.",
    "replacement": "GEN.511",
    "labels": [
     "DESIGN"
@@ -1072,8 +1072,8 @@
    "table": {
     "d1": 0.0,
     "d2": 1e-05,
-    "d3": 0.01,
-    "d4": 0.1,
+    "d3": null,
+    "d4": null,
     "d5": null
    }
   },
