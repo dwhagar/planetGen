@@ -67,7 +67,6 @@ def test_an_error_from_the_programs_logger_is_in_the_error_log_with_the_log_it_a
 @pytest.mark.parametrize("logger_name, component", [
     ("planetgen.queue.workers", "queue"),
     ("planetgen_app", "web"),                      # Flask's logger for the web app
-    ("rq.worker", "lib"),
     ("urllib3.connectionpool", "lib"),
     ("some.other.library", "lib"),
 ])
@@ -79,7 +78,7 @@ def test_an_error_from_any_logger_is_in_the_error_log(folder, logger_name, compo
 def test_nothing_at_error_or_above_is_missing_and_nothing_below_is_there(folder):
     sources = [log.error, log.get("tiles").error, logging.getLogger("planetgen.web.x").error, logging.getLogger("flask.app").error,
                logging.getLogger().error, logging.getLogger("planetgen_app").error, log.get("orbits").critical,
-               logging.getLogger("rq.worker").critical]
+               logging.getLogger("some.library").critical]
     for number, emit in enumerate(sources):
         emit(f"error number {number}")
     log.normal("information")

@@ -4,7 +4,6 @@ an opening has cut its stage does not fail the run (`planetgen/queue/units.py`).
 import types
 
 import pytest
-import rq
 
 from planetgen.queue import jobprofiles, memorygate, planrows, redisqueue, runrecord, units, wrapper
 

@@ -14,7 +14,6 @@ import time
 import pytest
 import redis
 
-from planetgen.cli import worker
 from planetgen.db import store
 from planetgen.queue import api_jobs, redisclient, redisqueue
 
@@ -88,15 +87,6 @@ def test_the_json_serializer_round_trips_plain_data_and_writes_decimals_and_time
     assert redisqueue.JsonSerializer.loads(redisqueue.JsonSerializer.dumps([1, "a", None])) == [1, "a", None]
     with pytest.raises(TypeError):
         redisqueue.JsonSerializer.dumps({"code": object()})
-
-
-def test_every_queue_uses_json_and_none_keeps_pickle():          # SEC.39
-    assert redisqueue.serializer_for(redisqueue.BULK_QUEUE) is redisqueue.JsonSerializer
-    assert redisqueue.serializer_for("planetgen-web-0123") is redisqueue.JsonSerializer
-    assert redisqueue.serializer_for("planetgen-api-test-0123") is redisqueue.JsonSerializer
-    assert redisqueue.serializer_for("planetgen-run-0123") is redisqueue.JsonSerializer
-    assert all(redisqueue.serializer_for(name) is redisqueue.JsonSerializer for name in redisqueue.QUEUES)
-    assert redisqueue.serializer_for("a-name-nobody-chose") is redisqueue.JsonSerializer
 
 
 def test_a_job_names_its_function_and_carries_its_connection_settings_as_data():

@@ -10,13 +10,11 @@ import math
 import os
 import subprocess
 import sys
-import time
 
 import pytest
-import rq
 
 from planetgen.admin import maintenance, updateguard
-from planetgen.queue import api_jobs, redisqueue, workers
+from planetgen.queue import api_jobs, redisqueue
 from tests.test_update_guard import FakeWork, begin, lines, say  # noqa: F401 -- fixtures
 
 pytestmark = pytest.mark.real_queue
@@ -136,12 +134,6 @@ def test_a_generate_command_offered_during_the_update_does_not_start(updating, m
         generate.main()
 
 
-def test_the_workers_take_no_job_during_the_update(updating, capsys):
-    from planetgen.cli import worker
-    assert worker.main(["planetgen-bulk", "--burst"]) == updateguard.EX_TEMPFAIL
-    assert "A worker can't start" in capsys.readouterr().err
-
-
 def test_a_site_a_failed_update_left_closed_refuses_the_same_work(tmp_path):
     from planetgen.web import jobs
     assert begin(sources=[])
@@ -213,26 +205,18 @@ def test_no_jobs_directory_is_listed_as_nothing_and_not_created(tmp_path, monkey
     assert not (tmp_path / "not-there").exists()
 
 
-def test_queued_and_running_jobs_on_the_shared_queues_are_listed_and_canceled(redis_server, monkeypatch):
-    unique = f"planetgen-update-guard-test-{os.getpid()}"
-    monkeypatch.setattr(redisqueue, "QUEUES", (unique,))
+def test_queued_light_jobs_are_listed_and_canceled(redis_server, monkeypatch):
+    """OPS.235: no job waits on a queue of its own any more, so the source lists the site's light jobs (`queue/lightjobs.py`) and cancels them with `lightjobs.request_stop`."""
+    from planetgen.queue import lightjobs
+    from tests.test_light_jobs import _submit
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)
     connection = redisqueue.connect(redis_server)
-    queue = redisqueue.queue(unique, connection)
-    waiting = queue.enqueue(math.pow, 2, 2, job_timeout=600)
-    running = queue.enqueue(math.pow, 2, 3, job_timeout=600)
-    queue.remove(running)
-    running.set_status(rq.job.JobStatus.STARTED)
-    connection.zadd(queue.started_job_registry.key, {running.id: int(time.time()) + 60})
-    stopped = []
-    monkeypatch.setattr(workers.command, "send_stop_job_command", lambda conn, job_id: stopped.append(job_id))
+    job_id = _submit(connection)
     try:
         source = updateguard.QueuedJobSource(redis_server)
-        found = {item["id"]: item for item in source.items()}
-        assert set(found) == {waiting.id, running.id}
-        assert found[waiting.id]["queued"] is True and found[running.id]["queued"] is False
-        for item in found.values():
-            source.cancel(item)
-        assert waiting.get_status(refresh=True) == "canceled" and stopped == [running.id]
+        found = source.items()
+        assert [item["id"] for item in found] == [job_id] and found[0]["queued"] is True
+        assert source.cancel(found[0]) is True
+        assert source.items() == []
     finally:
-        queue.empty()
-        connection.zrem(queue.started_job_registry.key, running.id)
+        lightjobs.cancel(connection, job_id)

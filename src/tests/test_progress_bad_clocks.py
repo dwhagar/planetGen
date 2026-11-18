@@ -12,11 +12,9 @@ bars does).
 import json
 import math
 import os
-import secrets
 
 import pytest
 
-from planetgen.cli import worker
 from planetgen.queue import progress_file
 from planetgen.queue.progress_rate import DecayingRate
 
@@ -189,21 +187,3 @@ def test_the_progress_file_skips_a_write_it_cannot_encode(tmp_path, monkeypatch)
     progress_file.report(2, 10, "Sectors", force=True, detail={"eta_s": math.nan})
     assert json.loads(path.read_text())["completed"] == 1
     assert sorted(os.listdir(tmp_path)) == ["progress.json"]
-
-
-# ---------------------------------------------------------------------------
-# Workers never write the progress file
-# ---------------------------------------------------------------------------
-
-def test_workers_never_write_the_progress_file(tmp_path, monkeypatch, redis_server):
-    path = tmp_path / "progress.json"
-    monkeypatch.setenv(progress_file.ENV_VAR, str(path))
-    # A worker started from a run inherits its environment; it drops the variable, so no unit it runs writes it.
-    worker.main(["--burst", "--url", redis_server, f"planetgen-run-{secrets.token_hex(4)}"])
-    assert progress_file.ENV_VAR not in os.environ
-    progress_file.report(4, 4, "Sectors", force=True)
-    assert not path.exists()
-    # The run itself still writes it.
-    monkeypatch.setenv(progress_file.ENV_VAR, str(path))
-    progress_file.report(4, 4, "Sectors", force=True)
-    assert json.loads(path.read_text())["completed"] == 4

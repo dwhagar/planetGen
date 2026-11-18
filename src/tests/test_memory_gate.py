@@ -53,22 +53,13 @@ def test_every_command_with_units_has_a_memory_figure():
     assert set(claims.UNIT_BY_NATURE_MB) <= set(commands.REGISTRY)
 
 
-def test_a_kind_with_no_figure_is_refused_by_the_table_and_gets_the_default_at_the_worker():
+def test_a_kind_with_no_figure_is_refused_by_the_table():
     with pytest.raises(claims.NoClaim):
         claims.function_table("planetgen.nothing.here")
     with pytest.raises(claims.NoClaim):
         claims.unit_table_mb("link-neighbors-but-not")
     with pytest.raises(claims.NoClaim):
         claims.api_table("planetgen.api.nothing:job")
-    job = types.SimpleNamespace(func_name="planetgen.nothing.here", origin=redisqueue.MAINTENANCE_QUEUE)
-    assert claims.default_claim(job) == Claim("fn:planetgen.nothing.here", float(claims.DEFAULT_MB), 1.0, "maintenance")
-
-
-def test_the_lane_of_each_queue():
-    assert claims.lane_of(redisqueue.BULK_QUEUE) == "bulk" and claims.lane_of(redisqueue.GENERATION_QUEUE) == "bulk"
-    for name in redisqueue.maintenance_lane():
-        assert claims.lane_of(name) == "maintenance"
-    assert claims.lane_of("something-else") == "other"
 
 
 def test_claim_for_a_page_jobs_step(conn):

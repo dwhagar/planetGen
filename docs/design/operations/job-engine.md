@@ -25,7 +25,7 @@ Where this note and a module's docstring disagree, the docstring of a file that 
 | 1 Progress contract | `pieces` and `do`, counts, second-level bars, evidence in the beat, guard tests (OPS.191 to 206) | Done. Every command family has pieces, or a written reason it is single. |
 | 2 Supervisor takes the watch | The supervisor, the reconciler, runs started through it, the simulator, kill tests (OPS.207 to 214) | Done (PR 6571). |
 | 3 Ledger and facts | Ledger tables, plan as rows, fenced done mark, open/conclude/finish jobs, checkpoints, failure by kind, held runs, resume from rows, attempt history, Queue page from the ledger (OPS.215 to 224) | Done. OPS.225 (the proof) and OPS.261 (delete the old retry paths) are open. |
-| 4 Central dispatch, RQ out | Template and forked jobs, dispatch rule, bulk then maintenance and check lanes as forked jobs, light jobs, one memory controller, named resources, controls through the supervisor, Queue page "why jobs wait" (OPS.226 to 234) | Done except OPS.235 (RQ removed) and OPS.236 (the proof). RQ is still the path of **runs with no ledger** until OPS.271 (section 7). |
+| 4 Central dispatch, RQ out | Template and forked jobs, dispatch rule, bulk then maintenance and check lanes as forked jobs, light jobs, one memory controller, named resources, controls through the supervisor, Queue page "why jobs wait" (OPS.226 to 234) | Done except OPS.236 (the proof). OPS.235 (RQ removed) is done: no module imports `rq`, and the dependency is gone from `setup.py` and the locks. |
 | 5 Planner | A stored plan for every start path (OPS.238), independence harness (OPS.241), overlap by proof (OPS.242), the engine picks the split (OPS.243), Generate page jobs join the ledger (OPS.244) | OPS.238, 241, 242, 243 done. OPS.244: the one-off system page runs as a light job in the warm supervisor process (slice A); a Generate page job is a ledger run of kind `page` (slice B, section 7); a job that waits for the running one is a waiting ledger run too (slice C, section 7). OPS.239 (single-purpose commands), OPS.240 (sectors one at a time) and OPS.245 (proof) are open. |
 | 6 Hardening | Kill matrix, trial, MySQL as a signal, learned thresholds, retire typed timeouts, this note (OPS.246 to 252) | OPS.248 done; OPS.251 slice 1 done; OPS.246, 247, 249, 250 open; this note is OPS.252. |
 
@@ -92,8 +92,8 @@ No stage keeps two paths, but the cutover is not finished. Until these items mer
 | Still on RQ | Until |
 |---|---|
 | **Runs with no ledger** (`generate system`, the update's math check): their units are RQ jobs (`units.enqueue_units`, `units.run_unit`), run by RQ workers that `WorkerStarts` starts | OPS.271 (a ledgerless run runs its units without RQ) |
-| Non-unit RQ jobs the update guard lists (`updateguard.QueuedJobSource`), Stop All's queue emptying (`stopall._empty_queues`), `runcontrol.stop_units`, the RQ branch of `unitstuck` | OPS.271, then OPS.235 |
-| The `rq` dependency, `workers.py`, `redisqueue` queue helpers, `cli/worker.py` | OPS.235 |
+| Non-unit RQ jobs the update guard lists (`updateguard.QueuedJobSource`), Stop All's queue emptying (`stopall._empty_queues`), `runcontrol.stop_units`, the RQ branch of `unitstuck` | Gone (OPS.235 slices 1 and 2); `QueuedJobSource` lists the light jobs only |
+| The `rq` dependency, `workers.py`'s RQ half, `redisqueue` queue helpers, `cli/worker.py` | Gone (OPS.235 slice 2) |
 
 A run that is in the ledger never touches these: its jobs are forked, its stops are requests (section 9), and its failures are by kind.
 

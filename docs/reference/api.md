@@ -1115,8 +1115,8 @@ forced credential change. They back the admin stats page
   the machine back, queues each held unit again as it was cut and answers
   `{"ok": true, "requeued": n}`; `{"ok": false}` for a run that is not held,
   409 when another run owns the machine. cancel also ends a held run.
-  cancel stops a live run now: its waiting units are taken off the queue,
-  its started units are sent RQ's stop command, and the machine is free
+  cancel stops a live run now: its waiting units are ended in the ledger,
+  its started units are stopped through the supervisor, and the machine is free
   (measured under a second for a run of 4,000 units); clear ends a run that
   has stopped answering (its process is gone, or it is stale) as failed and
   frees the machine, and is refused for a run that still answers.

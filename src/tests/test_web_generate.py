@@ -1641,7 +1641,6 @@ def test_a_job_uses_no_queue_of_its_own_and_keeps_only_its_logs_in_its_folder(jo
     job_id = jobs.start_job("reset", "Queued", [_step("x", "print('queued')")])
     job = _wait_finished(job_id, jobs_root)
     assert job["status"] == "succeeded"
-    assert not any(key.startswith(b"rq:queue:planetgen-web-") for key in redisqueue.connect(redis_server).scan_iter(match="rq:queue:*"))
     assert sorted(os.listdir(os.path.join(jobs_root, job_id))) == ["memory.json", "output.log", "records.log"]
     assert redisqueue.connect(redis_server).hget(page_jobs.supervisor.pages_key(), job_id) is None, "a job that is over is not kept on the supervisor's list"
 

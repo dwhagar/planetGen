@@ -36,7 +36,6 @@ def test_a_visit_to_an_uncharted_sector_changes_nothing_and_starts_no_run(client
     assert _tables(mysql_config) == before
     conn = redisqueue.connect()
     assert runrecord.recent_runs(conn, limit=10) == []
-    assert redisqueue.queue("default", conn).count == 0
 
 
 def test_the_sector_entry_point_that_generated_on_a_visit_is_gone():
