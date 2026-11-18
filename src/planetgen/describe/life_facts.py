@@ -36,6 +36,7 @@ class LifeFacts:
     visible: tuple
     non_visible: tuple
     timeline: Timeline | None
+    habitat: str | None = None      # where a class that does not live at the surface lives, as a phrase ("aloft in the sulfuric-acid cloud layer, at 366 K and 290 kPa", GEN.1307)
 
 
 def pace_label(scale):
@@ -57,7 +58,9 @@ def resolve(planet):
             planet.life_system_age_gyr, stage,
             None if stage is None else evolution.stage_name(stage, class_id, grade).lower(),
             planet.life_milestone_age_gyr, None if stage is None else evolution.stage_text(stage, class_id, grade))
+    row = life_classes.describe(class_id)
     return LifeFacts(
-        "moon" if planet.is_moon else "planet", class_id, life_classes.describe(class_id).name.split(":")[0],
+        "moon" if planet.is_moon else "planet", class_id, row.name.split(":")[0],
         None if planet.evolutionary_pace is None else pace_label(planet.evolutionary_pace),
-        tuple(planet.reflection_spectrum_visible or ()), tuple(planet.reflection_spectrum_non_visible or ()), timeline)
+        tuple(planet.reflection_spectrum_visible or ()), tuple(planet.reflection_spectrum_non_visible or ()), timeline,
+        life_classes.habitat_words(row, life_classes.values_from_body(planet)) if row.habitat else None)

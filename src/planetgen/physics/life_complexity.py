@@ -80,11 +80,11 @@ def top_stage(index, grade):
 
 
 def assess(row, npp, o2_kpa, temperature_k, anoxic_animals=False):
-    """The `Complexity` of class `row` on a world: its net primary production `npp`, the oxygen partial pressure `o2_kpa` of its air and its
-    surface temperature. `anoxic_animals` (route R4) gives a world whose index allows multicellular bodies but no animal a grade of 1."""
+    """The `Complexity` of class `row` on a world: its net primary production `npp`, the oxygen partial pressure `o2_kpa` of its air and
+    the temperature its clock runs at (`life_classes.clock_temperature_k`: the surface's, or the cloud layer's for a class of the cloud). `anoxic_animals` (route R4) gives a world whose index allows multicellular bodies but no animal a grade of 1."""
     index = index_of(row, npp, o2_kpa, temperature_k)
-    grade = grade_by_index(row, index, o2_kpa)
-    if anoxic_animals and grade == 0 and index >= tuning.LIFE_COMPLEXITY["thresholds"]["multicellularity"]:
+    grade = min(grade_by_index(row, index, o2_kpa), row.max_animal_grade)       # GEN.1307: a class of plankton and mats has no animals however high its index
+    if anoxic_animals and grade == 0 and index >= tuning.LIFE_COMPLEXITY["thresholds"]["multicellularity"] and row.max_animal_grade >= 1:
         grade = 1
     return Complexity(index, oxidant_yield(row, o2_kpa), life_timeline.rate_factor(temperature_k), grade, top_stage(index, grade))
 
