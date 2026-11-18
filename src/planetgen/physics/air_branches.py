@@ -44,7 +44,7 @@ MIN_ICE_GAP = 0.1
 """float: How different the Bond albedo of the two answers must be (the ice-free and ice-covered values differ by 0.32). Source tier T6, tweak level L1."""
 AGREEING_STARTS_TO_STOP = 2
 """int: How many starts may end on the first answer (less than `MIN_BRANCH_GAP_K` and `MIN_ICE_GAP` from it) before the search stops, the world having one branch (the second solve is the cost of the oddity, 12 to 20 seconds
-a world with a dense air, and of 132 worlds that rolled W20 129 had every start end on the first answer). A start that ends elsewhere (neither the same nor a distinct answer) does not count, so the search goes on
+a world with a dense air, and of 214 searches 199 had every start end on the first answer). A start that ends elsewhere (neither the same nor a distinct answer) does not count, so the search goes on
 through them. Source tier T6, tweak level L1."""
 NEAR_WINDOW_MAX_K = 330.0
 """float: A world whose first answer is hotter than this has no snowball branch to find (the ice line cannot be at the equator at that flux): the second solve is not made. Source tier T6, tweak level L1."""
