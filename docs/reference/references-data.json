@@ -107982,6 +107982,37 @@
    "volume": "68",
    "year": 1964
   },
+  "10.1021/j100812a025": {
+   "authors": [
+    [
+     "Waddington",
+     "G."
+    ],
+    [
+     "Smith",
+     "J. C."
+    ],
+    [
+     "Williamson",
+     "K. D."
+    ],
+    [
+     "Scott",
+     "D. W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1021/j100812a025",
+   "editors": [],
+   "journal": "JPhCh",
+   "page": "1074",
+   "publisher": "American Chemical Society (ACS)",
+   "src": "crossref",
+   "title": "CARBON DISULFIDE AS A REFERENCE SUBSTANCE FOR VAPOR-FLOW CALORIMETRY; THE CHEMICAL THERMODYNAMIC PROPERTIES",
+   "type": "journal-article",
+   "volume": "66",
+   "year": 1962
+  },
   "10.1021/j100854a056": {
    "authors": [
     [
@@ -108283,6 +108314,29 @@
    "title": "Ammonia. The Heat Capacity and Vapor Pressure of Solid and Liquid. Heat of Vaporization. The Entropy Values from Thermal and Spectroscopic Data",
    "type": "article",
    "via": "openalex search on author, year and the citing sentences",
+   "volume": "59",
+   "year": 1937
+  },
+  "10.1021/ja01282a022": {
+   "authors": [
+    [
+     "Brown",
+     "O. L. I."
+    ],
+    [
+     "Manov",
+     "G. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1021/ja01282a022",
+   "editors": [],
+   "journal": "JAChS",
+   "page": "500",
+   "publisher": "American Chemical Society (ACS)",
+   "src": "crossref",
+   "title": "The Heat Capacity of Carbon Disulfide from 15 to 300°K. The Entropy and Heat of Fusion of Carbon Disulfide",
+   "type": "journal-article",
    "volume": "59",
    "year": 1937
   },
@@ -133263,6 +133317,29 @@
    "publisher": "Royal Society of Chemistry (RSC)",
    "src": "crossref",
    "title": "530. Far-ultraviolet absorption spectra of phosphorus compounds in the gas phase",
+   "type": "journal-article",
+   "volume": "",
+   "year": 1963
+  },
+  "10.1039/jr9630004902": {
+   "authors": [
+    [
+     "Abercromby",
+     "D. C."
+    ],
+    [
+     "Tiley",
+     "P. F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1039/jr9630004902",
+   "editors": [],
+   "journal": "J. Chem. Soc.",
+   "page": "4902",
+   "publisher": "Royal Society of Chemistry (RSC)",
+   "src": "crossref",
+   "title": "937. The Condensed phases of sulphur trioxide. Part II. Vapour pressure of the liquid at temperatures up to the critical point",
    "type": "journal-article",
    "volume": "",
    "year": 1963
@@ -286783,7 +286860,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5304,
+ "id_next": 5313,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -287922,6 +287999,7 @@
   "10.1021/j100704a036": "R4068",
   "10.1021/j100792a055": "R0725",
   "10.1021/j100794a608": "R0724",
+  "10.1021/j100812a025": "R5310",
   "10.1021/j100854a056": "R3174",
   "10.1021/j150488a013": "R4359",
   "10.1021/j150542a017": "R0146",
@@ -287934,6 +288012,7 @@
   "10.1021/ja01274a001": "R2311",
   "10.1021/ja01280a018": "R2312",
   "10.1021/ja01281a008": "R3388",
+  "10.1021/ja01282a022": "R5311",
   "10.1021/ja01333a002": "R1817",
   "10.1021/ja01338a026": "R1818",
   "10.1021/ja01346a004": "R0819",
@@ -288526,6 +288605,7 @@
   "10.1039/fs9811600033": "R1903",
   "10.1039/jr9350000506": "R4168",
   "10.1039/jr9630002853": "R1764",
+  "10.1039/jr9630004902": "R5312",
   "10.1046/j.1365-246x.1998.00521.x": "R3154",
   "10.1046/j.1365-8711.1998.01227.x": "R3107",
   "10.1046/j.1365-8711.1998.01369.x": "R5143",
@@ -288746,7 +288826,7 @@
   "10.1051/0004-6361/202039141": "R4528",
   "10.1051/0004-6361/202039507": "R4177",
   "10.1051/0004-6361/202039640": "R5210",
-  "10.1051/0004-6361/202039733": "R5302",
+  "10.1051/0004-6361/202039733": "R5308",
   "10.1051/0004-6361/202040058": "R2433",
   "10.1051/0004-6361/202040175": "R0860",
   "10.1051/0004-6361/202140390": "R0602",
@@ -291446,7 +291526,7 @@
   "10.3847/1538-4357/aad908": "R0309",
   "10.3847/1538-4357/aadd09": "R2757",
   "10.3847/1538-4357/aadd9b": "R1813",
-  "10.3847/1538-4357/aadd9f": "R5303",
+  "10.3847/1538-4357/aadd9f": "R5309",
   "10.3847/1538-4357/aade96": "R2079",
   "10.3847/1538-4357/aadfd6": "R0961",
   "10.3847/1538-4357/aadfdb": "R3758",

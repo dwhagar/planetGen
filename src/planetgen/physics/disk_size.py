@@ -11,7 +11,7 @@ and each star draws its own edge around that median, log-normal, `EDGE_SCATTER_D
 made once per star from a stream keyed by the star (no stored column: any caller gets the same edge), so it moves no other draw.
 
 Evidence (`reports/gen1520-disk-size-by-mass-2026-11-11.md`): the dust radius of ALMA disks is 27 to 60 au at the median [R5301], the CO gas disk is a median 2.5 times
-the dust disk [R5302], and the size rises with star mass as M^0.2 to 0.6 ([R5301] per region, [R5303]: 0.6); the planet-formation models of Burn et al.
+the dust disk [R5308], and the size rises with star mass as M^0.2 to 0.6 ([R5301] per region, [R5309]: 0.6); the planet-formation models of Burn et al.
 (2021) cut the gas disk at 62 au for a Sun-like star and 15 au at 0.1 Msun (M^0.625). 100 au is the geometric middle of the 62 au model and the 200 au or so the observed
 gas radii give, and the exponent 0.5 the middle of the direct fits.
 """
@@ -25,7 +25,7 @@ EDGE_AT_SUN_AU = 100.0
 """float: The median gas-disk edge of a 1 solar-mass star, AU. [Stand-in 6.307 GDE1, tier Marginal Unverified, tweak L1: between the 62 au of [R0602] and the roughly 200 au the observed CO radii of 1-3 Myr disks give.]"""
 
 EDGE_MASS_EXPONENT = 0.5
-"""float: The edge rises as the star's mass to this power. [Stand-in 6.307 GDE2, tier Confident Unverified, tweak L1: the direct fits of dust radius against mass are 0.2 to 0.57 [R5301], 0.6 [R5303]; the models use 0.625.]"""
+"""float: The edge rises as the star's mass to this power. [Stand-in 6.307 GDE2, tier Confident Unverified, tweak L1: the direct fits of dust radius against mass are 0.2 to 0.57 [R5301], 0.6 [R5309]; the models use 0.625.]"""
 
 EDGE_SCATTER_DEX = 0.3
 """float: The scatter of a star's own edge around the median, dex in log10: a factor of 2 either way. [Stand-in 6.307 GDE3, tier Marginal Unverified, tweak L1: real disks of one mass vary by a factor of about 4 either way in radius ([R5301]'s scatter 0.14 to 0.43 dex in the fits).]"""

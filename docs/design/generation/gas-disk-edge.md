@@ -12,7 +12,7 @@ so the median is 45 au at 0.2 Msun, 71 au at 0.5 Msun, 100 au at 1 Msun and 118 
 
 ## Why
 
-Observed dust disks have a median radius of 27 to 60 au [R5301], the CO gas is a median 2.5 times bigger [R5302] and the planet-formation models start at 62 au for a Sun-like star [R0602]. The snow line scales with the star's light, which is the wrong variable: direct fits of disk size against star mass give M^0.2 to 0.6 and none against luminosity strong enough to matter. The constants are stand-ins GDE1 to GDE4 (`stand-in-values.md` section 6.307).
+Observed dust disks have a median radius of 27 to 60 au [R5301], the CO gas is a median 2.5 times bigger [R5308] and the planet-formation models start at 62 au for a Sun-like star [R0602]. The snow line scales with the star's light, which is the wrong variable: direct fits of disk size against star mass give M^0.2 to 0.6 and none against luminosity strong enough to matter. The constants are stand-ins GDE1 to GDE4 (`stand-in-values.md` section 6.307).
 
 ## Where it is read (one place, no stored column)
 
