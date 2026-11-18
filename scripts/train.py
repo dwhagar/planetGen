@@ -273,12 +273,21 @@ def golden(args):
     sh(sys.executable, "-m", "tests.golden_update", "--reason", args.reason, "--affects", chosen, cwd=os.path.join(ROOT, "src"))
 
 
+def refilled_by_derived(moved, declared):
+    """The moved stages that a declared `derived` accounts for without covering them: `fill` and `population` hold the stored derived values (OPS.133)."""
+    return [stage for stage in moved if "derived" in declared and stage in ("fill", "population")]
+
+
 def judge_stages(moved, declared):
     """
     Checks the stages that moved against the stages a train declared (OPS.147).
 
     A declared stage covers itself and every stage after it, because a stage is redone from the earliest one declared (GEN.764): `plan`
-    covers all four, `fill` covers `fill` and `population`.
+    covers all five, `fill` covers `fill`, `population` and `derived`.
+
+    `derived` (OPS.133) is a refill of values that are a pure function of stored ones, and those values are stored in the fill's rows, so
+    the golden's fill digest moves with a derived change and cannot tell it from a fill change. A train that declares `derived` (and no
+    earlier stage) therefore has a moved `fill` or `population` digest returned as a warning, not a failure: the note is trusted for it.
 
     Args:
         moved (list): The stages whose golden digest moved.
@@ -291,7 +300,8 @@ def judge_stages(moved, declared):
     order = bump_version.GENERATION_STAGES
     declared = [stage for stage in order if stage in set(declared)]
     covered = set(order[order.index(declared[0]):]) if declared else set()
-    return [stage for stage in moved if stage not in covered], [stage for stage in declared if stage not in moved]
+    refilled = refilled_by_derived(moved, declared)
+    return [stage for stage in moved if stage not in covered and stage not in refilled], [stage for stage in declared if stage not in moved]
 
 
 def stages(args):
@@ -315,6 +325,8 @@ def stages(args):
     print("declared: " + (",".join(declared) if declared else "none"))
     for stage in warnings:
         print(f"WARNING {stage} is declared but its golden digest did not move (the golden galaxy is small, so this may only be too small to show it)")
+    for stage in refilled_by_derived(moved, declared):
+        print(f"WARNING {stage} moved and only `derived` covers it: stored derived values sit in its rows, so the note is trusted")
     for stage in failures:
         print(f"FAIL {stage} moved and no declared stage covers it: a note must declare `generation-affects: {stage}` (or an earlier stage)")
     if failures:

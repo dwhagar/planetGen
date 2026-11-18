@@ -84,7 +84,7 @@ GOLDEN_DIR = os.path.join("src", "tests", "golden")
 EPOCHS_FILE = os.path.join(GOLDEN_DIR, "epochs.json")
 GENERATION_OUTPUT_RE = re.compile(r"^generation-output: changed[ \t]*$", re.M)
 GENERATION_AFFECTS_RE = re.compile(r"^generation-affects:[ \t]*(?P<list>[^\n]*?)[ \t]*$", re.M)
-GENERATION_STAGES = ("plan", "scatter", "fill", "population")
+GENERATION_STAGES = ("plan", "scatter", "fill", "population", "derived")
 """tuple: The stages of generation a change can alter, the `stages` list of `epochs.json` (a test keeps the two equal)."""
 API_VERSION_FILE = os.path.join("src", "planetgen", "api", "version.py")
 API_VERSIONS_FILE = os.path.join("docs", "reference", "api-versions.json")
