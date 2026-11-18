@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4523] - 2026-11-18
+
+**Headline:** The band-table cache's lock poll interval carries its tag, so the constants census passes again.
+
+### Fixed
+
+- PERF.281: `band_table_cache.LOCK_POLL_SECONDS` says in its docstring that it is machinery, not physics, and defined where it stands, which `test_constants_completeness` (TEST.715) asks of a numeric constant in the generator's own modules. No value or behavior changes.
+
 ## [8.0.4522] - 2026-11-18
 
 **Headline:** `planetgen reset-jobs` starts again: it no longer looks for the worker-start counters that OPS.235 slice 1b removed.
