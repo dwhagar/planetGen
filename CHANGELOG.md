@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4499] - 2026-11-17
+
+**Headline:** The bright-star backfill no longer works out sky rows another part owns, so each part runs 7 to 35 percent faster with identical stars.
+
+### Changed
+- PERF.280: each part of the bright-star backfill (OPS.253) now skips the window arithmetic of the sphere rows the other parts own, instead of working every row out and dropping 15 of 16. The cells and stars are identical (the cell lists of two parts of three sky tiers hash the same before and after); a part of the deep tiers walks 7 to 35 percent faster.
+
+## [8.0.4498] - 2026-11-17
+
+**Headline:** A unit the follower finds stuck is stopped through the supervisor (the job process killed, its attempt closed `stuck`), and the reset command and the Stats page's worker count read the ledger and the job processes, not RQ.
+
+### Changed
+- **Stuck units of a ledgered run (OPS.234, second slice).** `unitstuck.Stuck` asks the supervisor to stop the unit (`controls`, the new `stop_unit` request): the job process it forked is killed and its attempt is closed `stuck` with the reason and the stack the follower had written (a file the attempt's row names). The launcher settles the end of the process and hands the unit out again, and the follower clears the stale beat when it sees the row move on; a unit stuck a second time fails the run as before. Before, the follower looked for an RQ job a forked unit does not have, so the first stuck unit failed its run at the next poll. A dead beat of a unit whose row is `ready` again is a retry waiting, not a dead unit. Runs with no rows in the ledger keep the RQ path until OPS.271. The solo hold (OPS.145) is RQ's: the launcher's hand-outs do not read it.
+- `planetgen reset-jobs` has the supervisor stop every job process it forked and ends the ledger's rows (a line says how many), and reads the queues and the workers of an older run as Redis keys, not through RQ.
+- The Stats page's worker count is the job processes the ledger says run and whose process exists (no worker registers in Redis any more); a control database that does not answer says "workers unknown".
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4497] - 2026-11-17
 
 **Headline:** Pause, Stop All, cancel and clear are requests to the supervisor, which stops the job processes it forked itself and holds its hand-outs while the queues are paused.

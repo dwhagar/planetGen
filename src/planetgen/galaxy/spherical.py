@@ -947,7 +947,7 @@ def band_window(n, shell, band, edge_pc, cos_delta, delta, colat_c, lon_c):
     return _wedge_window(n, lon_c, width + 1e-6)
 
 
-def sphere_rows(center, radius_pc, edge_pc):
+def sphere_rows(center, radius_pc, edge_pc, keep=None):
     """
     The rows (a shell's band) the sphere of `radius_pc` around `center` reaches, each with the window of wedges its centers can
     lie in: the walk `enumerate_sectors_within_radius` makes before it tests one cell, so a caller that draws by blocks of
@@ -972,6 +972,8 @@ def sphere_rows(center, radius_pc, edge_pc):
     _reach, colat_c, lon_c = sphere_direction(center)
     for shell, cos_delta, delta, north, middle, south in sphere_shells(center, radius_pc, edge_pc):
         for band in middle + north + south:
+            if keep is not None and not keep(shell, band):
+                continue
             n = wedge_count(shell, band)
             window = band_window(n, shell, band, edge_pc, cos_delta, delta, colat_c, lon_c)
             if window is not None and window[1]:
