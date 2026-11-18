@@ -155,7 +155,7 @@ def test_the_page_opens_offline_and_drills_down_to_a_functions_source(browser):
         _heading(page, "Flows")
         page.wait_for_selector("section")
         assert page.locator("section").count() >= 5
-        page.fill("#search", "ensure_workers")
+        page.fill("#search", "ensure_started")
         assert page.locator("#results a").count() >= 1
     finally:
         page.close()

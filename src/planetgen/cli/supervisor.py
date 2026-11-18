@@ -54,7 +54,7 @@ def main(argv=None):
     lights.also_held = launches.holders      # each hand-out is judged against the claims of the other (OPS.230)
     lights.hold = hold
     requests = controls.Controls(connection, launches=launches)     # before the launcher: a request to stop is seen before the next hand-out (OPS.234)
-    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), supervisor.WorkerStarts(connection), controller, database, requests, lights, launches)
+    duties = (supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), controller, database, requests, lights, launches)
     reason = supervisor.Supervisor(supervisor.SystemClock(), supervisor.RedisStore(connection), supervisor.ProcessTable(), duties=duties,
                                    stop=lambda: bool(stopping) or updateguard.is_updating(), idle_seconds=args.idle_seconds).run()
     prober.close()

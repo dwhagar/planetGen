@@ -241,7 +241,7 @@ while it runs:
 
 ### Queue workers a test left behind (TEST.393)
 
-A test that starts real queue workers (`workers.ensure_workers`) starts them in a session of
+A test that starts real queue workers (`redisqueue.start_detached`) starts them in a session of
 their own, so they outlive it; one that was stopped part way never tells them to stop, and each
 keeps about 300 MB (fifty filled a 16 GB machine and MySQL was killed). Every test worker's
 Redis is a database of its own, 1 to 15, and a real worker is started with `--url` naming it, so
