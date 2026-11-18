@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.432 |
 | NAV | NAV.78 |
-| GEN | GEN.1794 |
+| GEN | GEN.1795 |
 | PERF | PERF.282 |
 | DB | DB.136 |
 | API | API.52 |
@@ -3061,7 +3061,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.241 | Job engine stage 5: independence harness (declared reads and writes; a SQL tap test fails undeclared tables); absorbs OPS.131 | none | done, PR #6766 (9:46 PM EST 11-15) |
 | OPS.242 | Job engine stage 5: overlap pair by pair, each with its proof (skeleton-only commands first, then narrower edges); absorbs OPS.132; one item per pair | none | done (Lane 07: PRs 6771, 6777, 6792, 6794 and 6823, each overlap pair with its proof, merged 11-15 and 11-16; OPS.241's touches fix 6814) |
 | OPS.243 | Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261 | none | done, PRs #6757, #6767 (9:45 PM EST 11-15) |
-| OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | open |
+| OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | done (slice A PR 7107, slice B PR 7163, slice C PR 7168 merged 11:47 PM EST 11-17: Generate page jobs are ledger runs; Lane 15 re-measures the cold one-off request after the Train 45 gate) |
 | OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | open |
 | OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | open |
 | OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | open |
@@ -3091,7 +3091,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.271 | Ledgerless runs run their units without RQ, so the bulk RQ unit path can be deleted | OPS.228 | done (PR 7090, PR 7111) |
 | OPS.272 | The refill job reads the derived stage | OPS.133 | open (Lane 13) |
 | OPS.273 | Rogue planet draws key on a seed-derived donor identity, not its Object ID | none | open (Lane 13) |
-| OPS.274 | Resume and finish tests follow the hold-and-continue rule | none | open (Lane 13) |
+| OPS.274 | Resume and finish tests follow the hold-and-continue rule | none | open (Lane 15) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4133,6 +4133,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1791 | Lever search for Class M and M-like worlds at the Abundant tier (report) | GEN.1789 | open (Class M levers thread) |
 | GEN.1792 | (bug) Dwarf planets pile up at the e 0.5 and i 60 degree caps | GEN.1468 | open (Lane 14) |
 | GEN.1793 | M dwarfs carry about half the observed close-in small planets | none | open (Lane 04) |
+| GEN.1794 | Cold-air condensation laws for OCS, CS2 and SO3 | none | open (Lane 02) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
