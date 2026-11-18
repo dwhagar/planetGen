@@ -12,7 +12,7 @@ A command that declares `pieces` and `do` (`commands.CommandSpec`) does not writ
   the fence and the done mark count pieces, never weights.
 * **Stop and pause between two pieces.** Before a piece, at most every `CHECK_SECONDS`, the engine reads whether the run is still live and whether the queues are held. A run that is no longer
   live (canceled, failed, ended from outside) ends the unit with `UnitStopped`, which `units._do_unit` answers by leaving the unit undone; a pause holds the unit where it stands, shown in
-  the beat as waiting on `pause`, until the queues are let go (a solo hold lets its own unit through, `pause.blocks`) or the run ends.
+  the beat as waiting on `pause`, until the queues are let go or the run ends.
 * **`ctx`**, the one object a piece is handed: `ctx.args` and `ctx.kind`, `ctx.cursor`, the unit's database connection (`ctx.db`, opened from `args["database"]` the first time it is asked
   for and closed by the engine), `ctx.commit()`, `ctx.sql(statement, label)` (`queue/longsql.py`) and the second-level count, `ctx.step(name, total)` and `ctx.advance(n)` (OPS.192: a bar under the unit's own on the pages). A converted command commits only through `ctx.commit()`: where the cursor is stored with the
   data (OPS.219) that call is the one place that writes it, and a direct `.commit()` would be a second path.
@@ -241,7 +241,7 @@ class Context:
         if self._checked_at is not None and now - self._checked_at < CHECK_SECONDS:
             return
         self._check_live()
-        if pause.blocks(self.redis, self.job):
+        if pause.is_paused(self.redis):
             self._hold_while_paused()
         self._checked_at = self.clock()
 
@@ -254,7 +254,7 @@ class Context:
         """Holds the unit between two pieces while the queues are paused; a run that ends meanwhile ends the hold (`UnitStopped`)."""
         log.debug(f"Unit {self.unit} of stage {self.stage} ({self.kind}) waits between two pieces: the queues are paused.", area="queue")
         with unitbeat.waiting(PAUSE_TAG):
-            while pause.blocks(self.redis, self.job):
+            while pause.is_paused(self.redis):
                 self._check_live()
                 time.sleep(PAUSE_POLL_SECONDS)
 

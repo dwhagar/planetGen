@@ -1056,11 +1056,11 @@ def test_the_update_warm_up_waits_for_a_maintenance_run_that_is_no_warm_up(scrip
     assert [family for family, _cap, _db in script.ran] == ["lists"]
 
 
-def test_the_update_warm_up_waits_for_the_units_of_the_one_it_canceled_to_stop(script, redis_server, monkeypatch):
+def test_the_update_warm_up_waits_for_the_jobs_of_the_one_it_canceled_to_stop(script, redis_server, monkeypatch):
     conn, first = _holder(redis_server)
-    from planetgen.queue import runcontrol
-    still = [["a-unit"], ["a-unit"], []]
-    monkeypatch.setattr(runcontrol, "started_units", lambda _conn, _run: still.pop(0) if still else [])
+    from planetgen.queue import controls
+    still = [1, 1, 0]
+    monkeypatch.setattr(controls, "running_jobs", lambda _conn, _run: still.pop(0) if still else 0)
     slept = []
     warm_cli._cancel_other_warm_up(conn, first, sleep=slept.append, clock=time.monotonic)
     assert len(slept) == 2 and runrecord.read_run(conn, first)["state"] == "canceled"
@@ -1068,8 +1068,8 @@ def test_the_update_warm_up_waits_for_the_units_of_the_one_it_canceled_to_stop(s
 
 def test_the_update_warm_up_goes_on_when_the_canceled_units_do_not_stop(script, redis_server, monkeypatch, caplog):
     conn, first = _holder(redis_server)
-    from planetgen.queue import runcontrol
-    monkeypatch.setattr(runcontrol, "started_units", lambda _conn, _run: ["a-unit"])
+    from planetgen.queue import controls
+    monkeypatch.setattr(controls, "running_jobs", lambda _conn, _run: 1)
     now = [0.0]
 
     def sleep(seconds):

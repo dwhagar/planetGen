@@ -6,6 +6,9 @@ next run do not build it again, a table read back is the table that was made, an
 """
 
 import os
+import sys
+import threading
+import time
 
 from planetgen import tuning
 from planetgen.generation import band_table_cache as cache
@@ -116,3 +119,84 @@ def test_a_sampling_table_read_back_is_the_table_that_was_made(monkeypatch, tmp_
     star_population._mass_band_table.cache_clear()
     assert star_population._mass_band_table(band, population, None, -0.5, True) == made
     star_population._mass_band_table.cache_clear()
+
+
+# --- PERF.281: the key follows what a table reads, and one process builds a table ---------------------------------------------------------------
+
+
+def _tracing(build):
+    """The files of the `planetgen` package that `build()` runs a function of."""
+    ran = set()
+
+    def profile(frame, event, _arg):
+        if event == "call":
+            ran.add(frame.f_code.co_filename)
+
+    sys.setprofile(profile)
+    try:
+        build()
+    finally:
+        sys.setprofile(None)
+    return {os.path.relpath(name, cache._PACKAGE) for name in ran if name.startswith(cache._PACKAGE + os.sep)}
+
+
+def test_a_table_build_runs_only_files_the_key_covers(monkeypatch):
+    """The key reads `INPUT_FILES`, so a build that ran a file outside it would keep a stale table after that file changed: every population, both kinds of table, a bin of each composition."""
+    monkeypatch.setenv(cache.ENV, "")                                  # build, keep nothing
+    ran = set()
+    for population in star_population.SCATTERED_POPULATIONS if hasattr(star_population, "SCATTERED_POPULATIONS") else star_population.POPULATIONS:
+        for fe_bin in (-1.0, 0.3):
+            star_population._bright_table.cache_clear()
+            star_population._mass_band_table.cache_clear()
+            ran |= _tracing(lambda: (star_population._bright_table(5000.0, population, None, None, fe_bin),
+                                     star_population._bright_table(60.0, population, (1.0, 2.0), None, fe_bin),
+                                     star_population._mass_band_table((1.0, 2.0), population, None, fe_bin, True),
+                                     star_population._mass_band_table((5.0, None), population, None, fe_bin)))
+    star_population._bright_table.cache_clear()
+    star_population._mass_band_table.cache_clear()
+    assert ran - set(cache.INPUT_FILES) == set(), "add these to band_table_cache.INPUT_FILES (the key must follow every file a table build runs)"
+    assert "physics/post_main_sequence.py" in ran and "generation/star_population.py" in ran
+
+
+def test_the_key_follows_the_contents_of_the_inputs_and_not_the_rest_of_the_package(monkeypatch, tmp_path):
+    (tmp_path / "read.py").write_text("x = 1\n")
+    (tmp_path / "other.py").write_text("y = 1\n")
+    monkeypatch.setattr(cache, "_PACKAGE", str(tmp_path))
+    monkeypatch.setattr(cache, "INPUT_FILES", ("read.py",))
+    cache._code_key.cache_clear()
+    cache._tuning_names.cache_clear()
+    try:
+        first = cache._code_key()
+        (tmp_path / "other.py").write_text("y = 2\n")
+        (tmp_path / "read.py").touch()
+        cache._code_key.cache_clear()
+        assert cache._code_key() == first, "a file the tables do not read, or the same code with new times, keeps the key"
+        (tmp_path / "read.py").write_text("x = 2\n")
+        cache._code_key.cache_clear()
+        assert cache._code_key() != first
+    finally:
+        cache._code_key.cache_clear()
+        cache._tuning_names.cache_clear()
+
+
+def test_the_tuning_constants_in_the_key_are_the_ones_the_table_files_read():
+    names = cache._tuning_names()
+    assert "BRIGHT_TABLE_BOUND_MARGIN" in names and "IMF_SLOPES" in names
+    assert "ASTEROID_FIELD_RADIUS_RANGE_LY" not in names and len(names) < len([n for n in vars(tuning) if n.isupper()]) / 2
+
+
+def test_two_processes_that_ask_for_one_table_build_it_once(monkeypatch, tmp_path):
+    monkeypatch.setenv(cache.ENV, str(tmp_path / "kept"))
+    calls, found = [], []
+
+    def slow():
+        calls.append(1)
+        time.sleep(0.5)
+        return {"cells": [(1.0, 2.0, 2.3, 0.5)], "n": 1}
+
+    threads = [threading.Thread(target=lambda: found.append(_kept(slow))) for _ in range(3)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert len(calls) == 1 and len(found) == 3 and all(table["cells"] == [(1.0, 2.0, 2.3, 0.5)] for table in found)

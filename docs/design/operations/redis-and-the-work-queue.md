@@ -359,27 +359,10 @@ What the old command structure becomes (Boss, 2026-10-17, 8:06 PM EDT: the rewor
 
 ### 5.13 A job can require another job (PERF.247, Boss 6:45 PM EST on 2026-11-06)
 
-PERF.245 lets a worker of several queues take a job from each in turn. A job that cannot run until another is done must not be taken
-early, so a job can declare what it requires. Only a declared requirement holds a job: a job with none is queued at once and runs beside
-every other, as before, so nothing that can run together is made to run one after another.
+A job cannot run until another is done only where a command declares it: the stages of a run (below). The job-to-job requirement on RQ's `depends_on` (`requires.enqueue`,
+the held jobs of PERF.247 and PERF.248, the Held jobs panel and `GET /api/admin/work/held`) was removed with RQ (OPS.235): nothing queued a job that required another, and
+the ledger's rows carry their own `needs` and `makes`.
 
-* **How a job declares it.** `requires.enqueue(queue, function, *args, requires=[job or job id, ...], optional=False, **rq_options)`
-  (`queue/requires.py`), on RQ's own dependency support (`depends_on`). A job that is not ready is not put in any queue: RQ keeps it
-  in the queue's deferred registry, so no worker, and no round robin, can pick it. The worker that ends the last required job queues
-  it, with no polling. A requirement that is already done, or done and deleted (a job with `result_ttl=0` is deleted when it ends),
-  holds nothing. Both jobs must use one serializer (the queues of a lane do); `requires.check_serializers` refuses the rest.
-* **Held, released, dropped.** Each is one line: `held: job X waits for Y` when the job is not ready, `released: job X was waiting for
-  job Y, which finished` as the last required job ends, and `dropped: job X will not run: required job Y failed (error)` when it
-  will not run. The lines go to the log and, for a unit of a run, to the run's own log (`runrecord.log`, kinds `job.held`,
-  `job.released`, `job.dropped`).
-* **A failed or stopped requirement.** RQ would leave the dependant deferred for ever. Every job the queue makes gets the on-failure
-  callback `requires.job_failed` (a unit's own `units.unit_failed` calls it), which fails each job still held for the failed one, and
-  those held for them, with `required job X failed`: they leave the deferred registry for the failed registry, and a unit that is a
-  dependant fails its run with the line. A job declared `optional=True` runs after its requirements end whichever way they end.
-  Stop All and a canceled queue drop the held jobs with the queued ones (`requires.drop_held`).
-* **The Queue page lists them (PERF.248).** A Held jobs panel on `/admin/queue` (shown only while a job is held) lists each held job
-  with its queue, its run and stage when it is a unit, and the jobs it still waits for; it reads `GET /api/admin/work/held`
-  (`requires.held_overview`, the first 100 and the whole count).
 * **The stages of a run.** A command declares the commands it requires in `commands.REQUIRES` (the phenomena index after the
   phenomena scatter, the territories after the population pass, the neighbor link and the sector paths after the sectors are
   generated). `commands.validate_order` refuses a list of steps in which a step comes before a step it requires, so a wrong order is found

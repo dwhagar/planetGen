@@ -509,10 +509,9 @@ class Launches:
         return len(self.launcher.turn())
 
     def _paused(self):
-        """Whether the queues are paused by hand (`pause`; a solo hold for one restarted unit is not a pause of the hand-outs)."""
+        """Whether the queues are paused by hand (`pause`)."""
         from planetgen.queue import pause
-        held = pause.state(self.connection)
-        return held["paused"] and held["solo"] is None
+        return pause.is_paused(self.connection)
 
     def clear(self):
         if self.launcher is not None:
