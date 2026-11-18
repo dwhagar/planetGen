@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4536] - 2026-11-18
+
+**Headline:** A change to values that are a pure function of stored ones can now say so in its note (`generation-affects: derived`), so a train does not regenerate a galaxy for it.
+
+### Added
+- **The `derived` generation stage** (OPS.133): a fifth stage after `population` in `src/tests/golden/epochs.json`, `bump_version.GENERATION_STAGES` and `tests/golden_stages.STAGES`, for a change that is a pure function of stored values (a rule, a text, the ledger) and is refilled by a job, never regenerated. A note may declare it (`generation-affects: derived`); `scripts/train.py stages` does not measure it (the stored values sit in the fill's rows), reports a moved `fill` or `population` digest under a declared `derived` as a warning and still fails a moved `plan` or `scatter` it does not cover. Documented in `changes/README.md`. The union of the notes' stages, the golden check of the declarations (OPS.147) and the stamping of each train epoch were already in `scripts/train.py`. Still to do, owned elsewhere: the refill job that reads `derived` (job engine) and the map's node cache key, which holds the epoch through `tile_base` (map owner).
+
 ## [8.0.4535] - 2026-11-18
 
 **Headline:** One routine builds the planets of every host star, instead of four copies of the same seven steps.
