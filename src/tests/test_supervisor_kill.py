@@ -9,6 +9,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 
 import pytest
@@ -32,7 +33,15 @@ def host(redis_server, tmp_path, monkeypatch):
 
         @staticmethod
         def start(argv):
-            processes.append(subprocess.Popen(argv, env=env, cwd=SRC))
+            process = subprocess.Popen(argv, env=env, cwd=SRC)
+            processes.append(process)
+            token = supervisor._claim_token()
+
+            def release():          # what `supervisor._spawn` does through `redisqueue.start_detached(on_exit=...)` (OPS.251): the claim to be starting ends with the process it was made for
+                process.wait()
+                supervisor._release_claim(Host.conn, token)
+
+            threading.Thread(target=release, daemon=True).start()
 
         @staticmethod
         def ask():
@@ -93,7 +102,6 @@ def test_a_run_waiting_for_the_machine_is_started_by_the_next_supervisor_when_th
     def waiter():
         results["run_id"] = runline.start_when_free(redisqueue.connect(host.url), _start("Waits"), 120, host.ask)
 
-    import threading
     thread = threading.Thread(target=waiter, daemon=True)
     thread.start()
     _wait_until(lambda: runline.of_type(host.conn, runline.RUN), 10, "the run's place in the line")

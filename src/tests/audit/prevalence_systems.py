@@ -36,7 +36,7 @@ MILESTONES = ("abiogenesis", "photosynthesis", "complex_cells", "multicellularit
 
 SHARE_MEASURES = ("zero_planets", "binary", "comets", "belts", "habitable_class", "blue_green", "life_abiogenesis",
                   "life_photosynthesis", "life_complex_cells", "life_multicellularity", "life_technological_civilization")
-MEAN_MEASURES = ("planets", "belts_count", "moons_per_planet", "comets_count")
+MEAN_MEASURES = ("planets", "promoted_count", "belts_count", "moons_per_planet", "comets_count")
 
 PAD_SHARE = 0.05
 PAD_MEAN = 0.15
@@ -55,8 +55,12 @@ class _Abandoned(BaseException):
 def _record(system):
     from planetgen.generation import life  # noqa: F401  (the stage names live on the bodies)
 
-    bodies = [body for planet in system.all_planets if planet.body_type != "a" for body in (planet, *planet.moons)]
-    planets = [planet for planet in system.all_planets if planet.body_type != "a"]
+    # GEN.1785: a belt member promoted to a planet (GEN.1510, `belt_rank` set) is counted apart: it is a class D body of a belt's ledger, up to ten a belt, and it
+    # doubled the planet count (14.6 a G2V system, 9.8 of them promoted) against ranges measured before it existed.
+    members = [planet for planet in system.all_planets if planet.body_type != "a"]
+    bodies = [body for planet in members for body in (planet, *planet.moons)]
+    planets = [planet for planet in members if getattr(planet, "belt_rank", None) is None]
+    promoted = len(members) - len(planets)
     stages = {getattr(body, "life_stage", None) for body in bodies}
     reached = {}
     for milestone in MILESTONES:
@@ -68,7 +72,7 @@ def _record(system):
     primary = [planet for planet in system.planets if planet.body_type != "a"]
     orbits = [[round((planet.mass or 0.0) / EARTH_MASS_KG, 4), round(planet.distance, 4), planet.planet_class,
                round((getattr(planet, "radius", 0.0) or 0.0) / EARTH_RADIUS_KM, 4)] for planet in primary]
-    return {"orbits": orbits, "star_mass": round(system.primary_star.mass / SOLAR_MASS_KG, 4), "hz": [round(edge, 4) for edge in system.primary_star.habitable_zone], "planets": len(planets), "belts": belts, "moons": sum(len(planet.moons) for planet in planets), "comets": comets,
+    return {"orbits": orbits, "star_mass": round(system.primary_star.mass / SOLAR_MASS_KG, 4), "hz": [round(edge, 4) for edge in system.primary_star.habitable_zone], "planets": len(planets), "promoted": promoted, "belts": belts, "moons": sum(len(planet.moons) for planet in planets), "comets": comets,
             "binary": system.binary_type is not None, "habitable_class": system.count_habitable_class_worlds() > 0,
             "blue_green": hab_count > 0, "reached": reached, "oddities": prevalence_oddities.record_of(system)}
 
@@ -139,12 +143,13 @@ def summarize(records):
             for milestone in MILESTONES:
                 values[f"life_{milestone}"] = sum(r["reached"][milestone] for r in kept) / n
             values["planets"] = planets / n
+            values["promoted_count"] = sum(r.get("promoted", 0) for r in kept) / n
             values["belts_count"] = sum(r["belts"] for r in kept) / n
             values["comets_count"] = sum(r["comets"] for r in kept) / n
             values["moons_per_planet"] = sum(r["moons"] for r in kept) / planets if planets else 0.0
-            for measure, key in (("planets", "planets"), ("belts_count", "belts"), ("comets_count", "comets")):
+            for measure, key in (("planets", "planets"), ("promoted_count", "promoted"), ("belts_count", "belts"), ("comets_count", "comets")):
                 mean = values[measure]
-                spread[measure] = math.sqrt(sum((r[key] - mean) ** 2 for r in kept) / max(n - 1, 1))
+                spread[measure] = math.sqrt(sum((r.get(key, 0) - mean) ** 2 for r in kept) / max(n - 1, 1))
             moon_mean = values["moons_per_planet"]
             per_system = [(r["moons"] / r["planets"]) if r["planets"] else 0.0 for r in kept]
             spread["moons_per_planet"] = math.sqrt(sum((x - moon_mean) ** 2 for x in per_system) / max(n - 1, 1))
@@ -238,7 +243,7 @@ def build_expectations(reference_records, commit, label, n_run):
     summary = summarize(reference_records)
     out = {"reference": {"commit": commit, "label": label, "systems_per_type": n_run,
                          "seeds": "crc32 of 'system:<star>' (tests.audit.prevalence.seed_for)",
-                         "kind": "stand-in: the prevalence before the change measured",
+                         "kind": "stand-in: the prevalence measured at the commit named",
                          "pad_share": PAD_SHARE, "pad_mean": PAD_MEAN, "sigmas": SIGMAS},
            "anomalies": {}, "hangs": {"anomaly": ""}, "errors": {"anomaly": ""}, "types": {}}
     for star, mine in summary.items():
@@ -247,7 +252,7 @@ def build_expectations(reference_records, commit, label, n_run):
             value = mine["values"][measure]
             low, high = measure_range(measure, value, mine["n"], n_run, mine["sd"].get(measure, 0.0))
             bounds = {"min": low, "max": high, "kind": "stand-in",
-                      "source": f"pre-cut-over {value:.3f} over {mine['n']} systems at {commit[:9]}"}
+                      "source": f"measured {value:.3f} over {mine['n']} systems at {commit[:9]}"}
             spec["measures"][measure] = bounds
         out["types"][star] = spec
     return out

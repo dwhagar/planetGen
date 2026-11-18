@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.432 |
 | NAV | NAV.78 |
-| GEN | GEN.1795 |
+| GEN | GEN.1797 |
 | PERF | PERF.282 |
 | DB | DB.136 |
 | API | API.52 |
@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.51 |
 | TEST | TEST.791 |
 | USR | USR.33 |
-| OPS | OPS.276 |
+| OPS | OPS.277 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3053,7 +3053,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.233 | Job engine stage 4: Queue page for the new engine (why each job waits, oldest job age per class, ready-to-start time, last controller action); replaces OPS.150 | none | done (PR 7064 merged 8:26 AM EST 11-17: Queue page 'Why jobs wait' panel and GET /api/admin/work/waiting) |
 | OPS.234 | Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor | none | done (PRs 7098 and 7099, 11-17) |
 | OPS.235 | Job engine stage 4: RQ removed (the rq dependency, cli/worker.py, redisqueue queue helpers, reset_jobs RQ parts); makes OPS.179 moot | none | done (slice 1 PR 7127, 1b 7138, 1c 7148, 1d 7151, slice 2 PR 7180 merged 1:26 AM EST 11-18: the rq library, cli/worker.py and every rq helper removed) |
-| OPS.236 | Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill) | none | open |
+| OPS.236 | Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill) | none | done (kill-retry fix PR 7192, real-process kill tests and dead-template fork fix PR 7193, dispatch sweep PR 7200 merged 2:41 AM EST 11-18; Lane 15) |
 | OPS.237 | Job engine stage 4: warm star tables stored as packed arrays so a forked job does not copy them (stage 0: 120 MB copied after 416 stars, 464 MB after 8,336); every drawn star identical (golden), dropped if it cannot be | none | dropped (Lane 14 measured, 11:27 AM EST 11-14): the 391 tables are 6.9 MB as lists; the 1,540 MB figure was a cold build with no band-table cache, the warm template is 166 MB; evidence /mnt/project-files/engine/ops237/ |
 | OPS.238 | Job engine stage 5: needs and makes on every command and a stored plan for every start path (generate, finish-run, maintenance, check, Generate page, API); absorbs OPS.128; split declarations, planner, start paths | none | done, PRs #6709, #6712, #6713, #6715, #6735 (last slice 4:28 PM EST 11-15) |
 | OPS.239 | Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle | none | done (part A PR 6740, part B PR 6752; Lane 16 scan 7:31 PM EST 11-17: no expand function does more than plan, build-phenomenon-indexes left as one job) |
@@ -3062,14 +3062,14 @@ Parents marked "new parent" had no old number of their own.
 | OPS.242 | Job engine stage 5: overlap pair by pair, each with its proof (skeleton-only commands first, then narrower edges); absorbs OPS.132; one item per pair | none | done (Lane 07: PRs 6771, 6777, 6792, 6794 and 6823, each overlap pair with its proof, merged 11-15 and 11-16; OPS.241's touches fix 6814) |
 | OPS.243 | Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261 | none | done, PRs #6757, #6767 (9:45 PM EST 11-15) |
 | OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | done (slice A PR 7107, slice B PR 7163, slice C PR 7168 merged 11:47 PM EST 11-17: Generate page jobs are ledger runs; Lane 15 re-measures the cold one-off request after the Train 45 gate) |
-| OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | open |
+| OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | done (PR 7191, Lane 16, merged 2:04 AM EST 11-18: seeded random runs with windows, holds, kills; no engine bug found) |
 | OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | open |
 | OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | open |
 | OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | done (PR 7094 merged 12:41 PM EST 11-17: ledger-read latency is a second signal for the memory controller's hold) |
 | OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | open |
 | OPS.250 | Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160 | none | done (PR 7143 merged 9:19 PM EST 11-17: a kind with 30 finished units on this machine shape and epoch leads with its learned memory claim and unit seconds; the typed figure is the default and a 4x clamp) |
 | OPS.251 | Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace | none | done (slice 1 PR 7097, slice 2 PR 7124 merged 8:14 PM EST 11-17; the RQ workers' 90 s counter goes with OPS.235) |
-| OPS.252 | Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes | none | open |
+| OPS.252 | Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes | none | done (slice 1 PR 7108, rest PR 7187 merged 1:46 AM EST 11-18: docs/design/operations/job-engine.md covers stages 0 to 6 as built) |
 | OPS.253 | (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed | none | done, part A PR #6538 (8:52 PM EST 11-14), part B PR #6591 in Train 30, PR #6615 (4:21 AM EST 11-15) |
 | OPS.254 | (bug) A New galaxy run on an empty database still runs the clear steps: Stage 2 wipes 111 tables and Stage 7 "Clear the earlier bright stars" takes 129 s | none | done, PR #6508 (12:21 PM EST 11-14) |
 | OPS.255 | (bug) An RQ job whose time limit runs out stops its starter silently: the Generate job's RQ limit is 10 times the earlier runs' time, so a longer galaxy run would lose its starter with no line in the log or on the Queue page | none | done, PR #6502 (11:05 AM EST 11-14) |
@@ -3093,6 +3093,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.273 | Rogue planet draws key on a seed-derived donor identity, not its Object ID | none | open (Lane 13) |
 | OPS.274 | Resume and finish tests follow the hold-and-continue rule | none | done (PR 7179, Lane 15, merged 1:03 AM EST 11-18) |
 | OPS.275 | A held unit's error keeps its last traceback frames | none | done (PR 7185, Lane 15, merged 1:41 AM EST 11-18: last 3 frames, file:line in function, masked) |
+| OPS.276 | A unit held with IndexError (sky charting, bright star scatter) | none | open (Lane 16) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -3912,7 +3913,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1569 | One-off check of the class mix against Kepler: gas dwarfs are 30 percent of bodies and 37 percent of planets, T tripled while V and E fell; compare with the observed planet-radius mix | GEN.1549 | done (measured, Lane 05, 11:18 PM EST 11-17: T 11.3 percent of planets, FGK supply in the Kepler band; M-dwarf deficit filed as GEN.1793) |
 | GEN.1570 | Class edges for H, M and O on liquid cover: O ocean_fraction 0.95 or more (was 0.8), M under 0.95 (was under 0.8), H unchanged (under 20 percent); no body changes letter today | GEN.1567 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1571 | Re-run the ocean cover histogram after the water-law decision and check that O is rarer than M | GEN.1566 | done (measured, Lane 05, 11:18 PM EST 11-17: ocean cover bimodal; O is not rarer than M only because M is 0, carried by GEN.1791) |
-| GEN.1572 | Optional ice-capped flag when sea ice plus land ice exceeds 25 percent of the surface (not counted in liquid cover) | GEN.1567 | open |
+| GEN.1572 | Optional ice-capped flag when sea ice plus land ice exceeds 25 percent of the surface (not counted in liquid cover) | GEN.1567 | done (PR 7189, Lane 05, merged 1:58 AM EST 11-18: derived Ice-capped flag over 25 percent ice, registry row CC18, nothing stored) |
 | GEN.1573 | Water-load basin deepening in hydrosphere.ocean_fraction: ocean-crust depth grows with the water load up to d_o^max = 11.4 km / (g / g_Earth), so a wet planet keeps some land ([R0914: Eq. 10]), with the Earth anchor kept | GEN.1567 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1574 | Mantle water partition as a seafloor-pressure feedback instead of the log-uniform 1 to 8 ocean mantle buffer (MANTLE_CAP_OCEANS), so the mantle takes up less when the seafloor pressure is high | GEN.1566 | open |
 | GEN.1575 | Check the delivered-water high tail (GEN.849) against the formation papers: read [R2381] in full plus [R3193, R3683] for the spread of water delivered to terrestrial planets | none | done, report /mnt/project-files/reports/gen1575-delivered-water-tail-2026-11-13.md (Lane 15): high tail sourced as a range, shape is stand-in DW3; follow-up GEN.1678 (stellar-mass snow line) |
@@ -4135,6 +4136,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1792 | (bug) Dwarf planets pile up at the e 0.5 and i 60 degree caps | GEN.1468 | open (Lane 14) |
 | GEN.1793 | M dwarfs carry about half the observed close-in small planets | none | open (Lane 04) |
 | GEN.1794 | Cold-air condensation laws for OCS, CS2 and SO3 | none | open (Lane 02) |
+| GEN.1795 | Train 45 gate: the W20 other-branch search stops after two agreeing starts | none | open (Lane 02, Train 45) |
+| GEN.1796 | Greenhouse table refit for cold dense nitrogen airs (TEST.790 red) | none | open (Lane 05) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
