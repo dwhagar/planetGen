@@ -515,7 +515,7 @@ def fail_unit(connection, run_id, stage, unit, kind, retries_left, exc_type, exc
                      exc_info=(exc_type, exc_value, _traceback), run_id=run_id, stage=stage, stage_name=stage_name, unit=unit, kind=kind)
     if row is not None and not unqueued:
         # OPS.221: a unit with a row in the ledger is held for a person; the rest of the run goes on, and the run is held when nothing more can run
-        held.hold_unit(connection, run_id, stage, unit, row, f"{exc_type.__name__}: {exc_value}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
+        held.hold_unit(connection, run_id, stage, unit, row, f"{exc_type.__name__}: {exc_value}{held.where(_traceback)}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
         return True
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"unit {unit} of stage {stage_name} failed{failures.describe(connection, run_id, exc_value)}: "
