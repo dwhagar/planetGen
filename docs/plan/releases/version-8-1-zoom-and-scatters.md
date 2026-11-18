@@ -398,7 +398,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1466 | Galactic tide and passing stars on the outer edge of a system: the local galactic field sets the Oort-type cloud, the outer limit and the stability of very wide companions |  | Boss, 2026-11-08, approved for Train 21. |
 | GEN.1493 | The air reads the dust and comet influx: late accretion from the belts and giants of the system feeds the planet's atmosphere, which needs the planet and belt generation order changed |  | Lane 06 finding in GEN.1453, 2026-11-09. |
 | GEN.1500 | Mutual inclination of the orbits of the stars in a binary or triple | none | Split from GEN.1492 at Lane 06's request, 2026-11-09. |
-| GEN.1520 | The disk outer edge: research the observed gas and dust disk sizes by stellar mass and replace the 18 snow line multiplier (tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER) | GEN.1514 | Lane 03, 2026-11-11. |
 | GEN.1539 | Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size | GEN.1520 | Lane 03, 2026-11-11. |
 | GEN.1552 | Bodies appear only once the star's own disk is gone: the fixed 10 Myr planet cut becomes the star's own dispersal time, with belts as the debris that follows | GEN.1551, GEN.1546 | Boss, 2026-11-11, young-stars research. |
 | GEN.1554 | K and M dwarf zone edges against the greenhouse spectrum: K5V worlds are cold in the inner third of the zone | none | Boss, 2026-11-11, Class M fixes. |
@@ -596,16 +595,11 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1780 | The GEN.1732 haze loss ramp may have two branches | none | Lane 02, 2026-11-17 |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs | none | Lane 02, 2026-11-17 |
 | GEN.1785 | Class census shifts explained, ranges renewed | GEN.1777 | Lane 04, 2026-11-17 |
-| GEN.1789 | Oxygen source and sink stand-ins reviewed | none | Lane 04, 2026-11-17 |
 | GEN.1790 | A blown-off hydrogen envelope is stripped past the climate ceiling | none | Lane 14, 2026-11-17 |
 | GEN.1791 | Best stand-in lever set for Class M and M-like worlds | none | Class M levers thread, 2026-11-17 |
-| GEN.1792 | Dwarf orbits drawn from physics instead of hitting caps | none | Lane 14, 2026-11-17 |
 | GEN.1793 | M dwarfs get their observed share of close-in small planets | none | Lane 04, 2026-11-17 |
 | GEN.1794 | Sulfur gases freeze out of cold air | none | Lane 02, 2026-11-18 |
-| GEN.1795 | World requests settle quickly | none | Lane 02, 2026-11-18 |
 | GEN.1796 | Cold thick nitrogen air warms as its greenhouse gases rise | none | Lane 05, 2026-11-18 |
 | OPS.276 | Sky jobs no longer stop on an out-of-range list | none | Lane 16, 2026-11-18 |
-| OPS.272 | A derived-only epoch refills stored values by a job | none | Lane 13, 2026-11-17 |
 | OPS.273 | Rogue planets do not move after a database reset | none | Lane 13, 2026-11-17 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
-| PERF.280 | Stage 9 skips or batches near-empty sky cells | none | Lane 07, 2026-11-17 |
