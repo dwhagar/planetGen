@@ -31395,6 +31395,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "scatter.REACH_ZONE_WIDTHS 3.0 (read by belt_origin.STIR_ZONE_WIDTHS, row BG8): how many chaotic half-widths (row SX1) a giant's scattering reaches over the age of a system, so the disk between the cold zone's edge (one half-width) and the reach is scattered; Neptune destabilizes objects 5 to 8 AU beyond its orbit, about 10 Hill radii, in 4 Gyr (Morbidelli, Levison and Gomes, Kuiper belt chapter, read)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5"
+            ],
+            [
+              "Where it holds",
+              "giants of 0.01 to 10 Jupiter masses, systems of 1 to 10 Gyr"
+            ],
+            [
+              "What would show it wrong",
+              "a scattered-disk or comet census that is far off the share this gives, or a long N-body run with a different stability edge"
+            ],
+            [
+              "What replaces it",
+              "a Gyr-long N-body run of the system's own giants and disk"
+            ],
+            [
+              "Evidence",
+              "[Morbidelli, Levison and Gomes, the Kuiper belt chapter: unstable out to q 35 to 38 AU for Neptune at 30 AU, 4 Gyr] second-hand, the paper itself not opened by Boss; the age dependence of the reach is not modelled"
+            ]
+          ],
+          "id": "SX6",
+          "key": "6.83:SX6",
+          "kind": "P",
+          "slug": "6-83-sx6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "scatter.REACH_ZONE_WIDTHS 3.0 (read by belt_origin.STIR_ZONE_WIDTHS, row BG8): how many chaotic half-widths (row SX1) a giant's scattering reaches over the age of a system, so the disk between the cold zone's edge (one half-width) and the reach is scattered; Neptune destabilizes objects 5 to 8 AU beyond its orbit, about 10 Hill radii, in 4 Gyr (Morbidelli, Levison and Gomes, Kuiper belt chapter, read)"
         }
       ],
       "slug": "6-83-stand-ins-of-the-scatter-step-of-an-outer-disk",

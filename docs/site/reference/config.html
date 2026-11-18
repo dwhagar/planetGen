@@ -975,16 +975,6 @@ save the setting through the same writer, so they are backed up and audited. The
 <td>A unit that runs again (a retry after a kill, a stuck stop or a failure, a resume after an update) runs in debug mode: every debug area is logged to a file of its own in the log folder's unit-debug folder, named by the unit's job, unit and attempt, that opens with how the attempt before it ended and its stack. The run's log names the file. Each file is capped at 20 MB and the folder keeps the newest 400 files. Off, nothing extra is written.</td>
 </tr>
 <tr>
-<td><code>queue.forked_jobs</code></td>
-<td>Run units as forked jobs</td>
-<td>true or false</td>
-<td>true</td>
-<td>at once</td>
-<td>any admin</td>
-<td><code>PLANETGEN_FORKED_JOBS</code></td>
-<td>The units of a generation run's stages are handed out by the supervisor's launcher and run as jobs forked from a warm template (OPS.228), in place of RQ's workers. Off, every unit goes to a worker as before.</td>
-</tr>
-<tr>
 <td><code>queue.max_waiting</code></td>
 <td>Waiting list length</td>
 <td>whole number (entries)</td>
