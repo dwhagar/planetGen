@@ -97,7 +97,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>5 Planner</td>
 <td>A stored plan for every start path (OPS.238), independence harness (OPS.241), overlap by proof (OPS.242), the engine picks the split (OPS.243), Generate page jobs join the ledger (OPS.244)</td>
-<td>OPS.238, 241, 242, 243 done. OPS.244: the one-off system page runs as a light job in the warm supervisor process (slice A); a page job as a ledger run and the waiting line as rows (slices B and C) are open. OPS.239 (single-purpose commands), OPS.240 (sectors one at a time) and OPS.245 (proof) are open.</td>
+<td>OPS.238, 241, 242, 243 done. OPS.244: the one-off system page runs as a light job in the warm supervisor process (slice A); a Generate page job is a ledger run of kind <code>page</code> (slice B, section 7); the waiting line as rows (slice C) is open. OPS.239 (single-purpose commands), OPS.240 (sectors one at a time) and OPS.245 (proof) are open.</td>
 </tr>
 <tr>
 <td>6 Hardening</td>
@@ -213,10 +213,6 @@ main{padding:16px 16px 60px}}
 <td>OPS.271 (a ledgerless run runs its units without RQ)</td>
 </tr>
 <tr>
-<td>The Generate page's job: a per-job RQ queue and a burst worker running <code>web/job_runner.run</code>, with the job folder (<code>job.json</code>, <code>state.json</code>, <code>runner.pid</code>, <code>cancel</code>, <code>output.log</code>)</td>
-<td>OPS.244 slice B</td>
-</tr>
-<tr>
 <td>Non-unit RQ jobs the update guard lists (<code>updateguard.QueuedJobSource</code>), Stop All's queue emptying (<code>stopall._empty_queues</code>), <code>runcontrol.stop_units</code>, the RQ branch of <code>unitstuck</code></td>
 <td>OPS.271, then OPS.235</td>
 </tr>
@@ -227,6 +223,7 @@ main{padding:16px 16px 60px}}
 </tbody>
 </table></div>
 <p>A run that is in the ledger never touches these: its jobs are forked, its stops are requests (section 9), and its failures are by kind.</p>
+<p><strong>A Generate page job is a run of the ledger</strong> (OPS.244 slice B, <code>queue/pagerun.py</code>). The run's kind is <code>page</code>; one row holds what the job is (its id, kind, title, who started it, the database, the form fields, the estimates) and one row each holds a step (<code>page-step</code>: label, command line, stages). Only the next step is <code>ready</code>; a step that ends well makes the one after it <code>ready</code>, a step that fails cancels the rest and holds the run with the reason. The launcher hands a step out like any other row (<code>launcher._job_of</code>), begins its attempt with the process it forks, and <code>forkedjob.run_page_step</code> runs <code>web/job_runner.run_step</code>, which starts the step's command line as a process of its own and follows it: the log (<code>output.log</code>, <code>records.log</code>, <code>progress.json</code>, <code>memory.json</code> stay in the job's folder), the stage marks, the memory peak, and the row (a Cancel that changes the row stops the step). The page reads the job from the rows (<code>pagerun.read</code>: starting, running, succeeded, failed, canceled, interrupted) and cancels with a request to the supervisor (<code>controls.stop_engine_run</code>), or ends the rows itself when no supervisor is alive. A page job is never retried by the launcher; a step cut off by a restart or a kill is the admin's to start again (the page's Retry). A supervisor with a page job on <code>supervisor.pages_key</code> does not end while the job runs. The job folder no longer holds <code>job.json</code>, <code>state.json</code>, <code>runner.pid</code> or a <code>cancel</code> file, and there is no private queue or burst worker.</p>
 <h2 id="8-measured">8. Measured</h2>
 <p>Stage 0 (2026-11-13, a 4-core 16 GB machine, MySQL 8.0.46 with default durability; scripts in <code>/mnt/project-files/engine/stage0/</code>):</p>
 <ul>

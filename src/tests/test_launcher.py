@@ -298,3 +298,45 @@ def test_the_maintenance_lane_runs_no_more_than_its_share_while_a_generation_run
     assert len(one.turn()) == 0
     live.clear()
     assert len(one.turn()) == 3, "no generation run: the three that are left go (the gate is the limit)"
+
+
+def _page(control, steps=2):
+    """A Generate page job's run (`pagerun.start`) with `steps` steps."""
+    from planetgen.queue import pagerun
+    job = {"id": "20261118-aaaa", "kind": "reset", "title": "A job", "admin": "boss", "database": None, "draft": None, "created_at": 1.0, "cwd": "/tmp", "root": "/tmp/jobs"}
+    run = pagerun.start(control, job, [{"label": f"Step {n}", "argv": ["true"], "stages": None} for n in range(1, steps + 1)])
+    return run, [row["id"] for row in control.execute("SELECT id FROM engine_jobs WHERE run_id = ? AND command = ? ORDER BY item_key", (run, pagerun.STEP)).fetchall()]
+
+
+def test_a_step_of_a_generate_page_job_is_handed_out_as_a_page_step_with_an_attempt_the_launcher_writes(control):
+    run, (first, second) = _page(control)
+    forker = FakeForker()
+    started = _launcher(control, forker).turn()
+    assert started == [first], "only the step that is ready: the next one waits for it"
+    _kind, _runner, job, held = forker.forked[0]
+    assert job == {"page_step": True, "run": run, "row": first, "kind": "page-step", "retries_left": 0}
+    attempt = control.execute("SELECT pid, outcome FROM engine_attempts WHERE job_id = ?", (first,)).fetchone()
+    assert (attempt["pid"], attempt["outcome"]) == (held.pid, "running")
+
+
+def test_a_page_step_whose_process_was_killed_is_failed_with_the_steps_after_it_canceled_and_never_handed_out_again(control):
+    run, (first, second) = _page(control)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    assert one.turn() == [first]
+    forker.exits = [("plain", jobhost.Exit(1, 1001, signal=signal.SIGKILL))]
+    assert one.turn() == []
+    states = [row["state"] for row in control.execute("SELECT state FROM engine_jobs WHERE run_id = ? AND command = 'page-step' ORDER BY item_key", (run,)).fetchall()]
+    assert states == ["failed", "canceled"] and len(forker.forked) == 1
+    assert control.execute("SELECT state FROM engine_runs WHERE id = ?", (run,)).fetchone()["state"] == "held"
+    assert ledger.attempt_row(control, first, 1)["outcome"] == "lost"
+
+
+def test_a_page_step_left_running_by_a_supervisor_that_ended_is_failed_not_handed_out_again(control):
+    run, (first, second) = _page(control)
+    ledger.set_job_state(control, first, "running")
+    ledger.begin_attempt(control, first, pid=2_000_000_000)
+    control.commit()
+    assert _launcher(control, FakeForker()).recover() == [first]
+    states = [row["state"] for row in control.execute("SELECT state FROM engine_jobs WHERE run_id = ? AND command = 'page-step' ORDER BY item_key", (run,)).fetchall()]
+    assert states == ["failed", "canceled"]

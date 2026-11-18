@@ -24,7 +24,7 @@ import signal
 import time
 import types
 
-from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, planrows, runrecord, scheduler, workers
+from planetgen.queue import claims, dispatch, jobhost, ledger, memorygate, pagerun, planrows, runrecord, scheduler, workers
 from planetgen.queue.memorygate import Claim, Holder
 from planetgen.util import log
 from planetgen.util.settings import get_settings
@@ -149,8 +149,11 @@ class Launcher:
             elif row is not None and row["state"] == "running":
                 outcome, kind, text = self._outcome(started, exit_)
                 ledger.end_running(self.control, found, outcome, error_kind=kind, error_text=text)
-                again = row["attempt"] - ledger.stopped_attempts(self.control, found) <= RETRIES
+                page = started.row["command"] == pagerun.STEP
+                again = not page and row["attempt"] - ledger.stopped_attempts(self.control, found) <= RETRIES
                 ledger.set_job_state(self.control, found, "ready" if again else "failed", waited=None if again else text[:ledger.WAITED_CHARS])
+                if page:                # the steps after the one that was cut off are not run: the job is over (the page's Retry starts the rest)
+                    pagerun.fail_rest(self.control, started.row["run_id"], text)
                 self.control.commit()
             started.job.close()
             done.append(found)
@@ -177,14 +180,20 @@ class Launcher:
             return []
         self.recovered_at = now
         settled = []
-        for row in self.control.execute("SELECT j.id, j.attempt, a.pid AS pid FROM engine_jobs j LEFT JOIN engine_attempts a ON a.job_id = j.id AND a.attempt = j.attempt WHERE j.state = 'running'").fetchall():
+        for row in self.control.execute("SELECT j.id, j.run_id, j.command, j.attempt, a.pid AS pid FROM engine_jobs j LEFT JOIN engine_attempts a ON a.job_id = j.id AND a.attempt = j.attempt WHERE j.state = 'running'").fetchall():
             if row["id"] in self.running or not self._gone(row["pid"]):
                 continue
             text = "the supervisor that handed the job out ended and its process is gone"
             ledger.end_running(self.control, row["id"], "lost", error_kind="lost", error_text=text)
-            ledger.set_job_state(self.control, row["id"], "ready" if row["attempt"] <= RETRIES else "failed", waited=None if row["attempt"] <= RETRIES else text)
+            page = row["command"] == pagerun.STEP
+            again = not page and row["attempt"] <= RETRIES
+            ledger.set_job_state(self.control, row["id"], "ready" if again else "failed", waited=None if again else text)
+            if page:
+                pagerun.fail_rest(self.control, row["run_id"], text)
             settled.append(row["id"])
         self.control.commit()
+        if self.redis is not None:
+            pagerun.tidy(self.control, self.redis)
         return settled
 
     # -- tickets and dispatch --------------------------------------------------------------------------------------------------
@@ -294,6 +303,8 @@ class Launcher:
     def _job_of(self, row):
         """What `forkedjob.run` takes for the unit `row`: the Redis run id and the stage's index (from the stage's `open` row, `planrows.record_cut`), the unit's number, command, arguments and cost, and its
         row. A unit is given a retry when it has not had one."""
+        if row["command"] == pagerun.STEP:             # a step of a Generate page job (OPS.244): the process runs the step's command line and follows it; it is never handed out twice
+            return {"page_step": True, "run": row["run_id"], "row": row["id"], "kind": row["command"], "retries_left": 0}
         if row["command"] == planrows.OPENING:         # the cut of a stage (`planrows.queue_opening`)
             named = _arguments(row)
             return {"opening": True, "run_id": named["run_id"], "stage": named["index"], "kind": row["command"], "row": row["id"], "retries_left": max(0, RETRIES - row["attempt"] + ledger.stopped_attempts(self.control, row["id"]))}
@@ -321,7 +332,7 @@ class Launcher:
             ledger.set_job_state(self.control, row["id"], "failed", waited=f"{type(exc).__name__}: {exc}"[:ledger.WAITED_CHARS])
             self.control.commit()
             raise
-        if row["command"] == planrows.OPENING:          # an opening has no unit to begin its attempt: the launcher does, with the process that runs it
+        if row["command"] in (planrows.OPENING, pagerun.STEP):          # an opening and a page step have no unit to begin their attempt: the launcher does, with the process that runs it
             ledger.begin_attempt(self.control, row["id"], pid=forked.pid)
         started = Started(row, forked, key, self.claim(row), self.clock())
         self.running[row["id"]] = started

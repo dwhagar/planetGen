@@ -42,6 +42,10 @@ def test_a_stage_moved_when_its_full_digest_differs_and_a_stage_nobody_measured_
     (["plan", "fill"], ["fill"], ["plan"], []),                       # plan moved and nobody declared plan or anything before it
     (["scatter"], [], ["scatter"], []),                               # `generation-affects: none` with a moved stage
     ([], ["scatter", "fill"], [], ["scatter", "fill"]),
+    (["fill"], ["derived"], [], ["derived"]),                         # OPS.133: the derived values sit in the fill's rows
+    (["fill", "population"], ["derived"], [], ["derived"]),
+    (["scatter"], ["derived"], ["scatter"], ["derived"]),             # but derived never excuses an earlier stage
+    (["plan"], ["population"], ["plan"], ["population"]),
 ])
 def test_a_moved_stage_must_be_covered_by_a_declared_one_and_a_declared_stage_that_stood_still_is_a_warning(moved, declared, failures, warnings):
     assert train.judge_stages(moved, declared) == (failures, warnings)
@@ -73,3 +77,13 @@ def test_the_stage_digests_of_a_stored_plan_are_stable_and_the_unmade_stages_are
     assert first == second == golden_stages.read(tmp_path / "out.json")
     assert set(first) == set(golden_stages.STAGES)
     assert first["plan"]["rows"] > 1 and first["fill"]["rows"] == 0 and first["population"] is None
+
+
+def test_the_derived_stage_is_listed_last_and_never_measured(tmp_path, capsys):
+    assert golden_stages.STAGES[-1] == "derived"
+    before, after = tmp_path / "before.json", tmp_path / "after.json"
+    before.write_text(json.dumps(_record(fill="c")))
+    after.write_text(json.dumps(_record(fill="C")))
+    ok = train.main(["stages", "--before", str(before), "--after", str(after), "--affects", "derived"])
+    out = capsys.readouterr().out
+    assert ok == 0 and "derived     not measured" in out and "WARNING fill moved and only `derived` covers it" in out

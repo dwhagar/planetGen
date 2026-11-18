@@ -11,7 +11,9 @@ plan stage alone moved at one). This module digests each stage's own output inst
 - `scatter`: the scatter's tables (`bright_stars`, `phenomenon_scatter`, `scatter_members`) and the galaxy-shape columns the scatter writes;
 - `fill`: every sector's own sections but the scatter's and the facilities' (the systems, stars, planets, moons, belts, comets);
 - `population`: the facilities. The golden galaxy has none today, so this one is `None` until it does (a stage that cannot be measured is
-  never reported as moved).
+  never reported as moved);
+- `derived` (OPS.133): values that are a pure function of stored ones. They are stored inside the fill's rows, so the digest of its own cannot be told
+  from the fill's; it is `None` (not measured) and a note that declares it is never judged against the golden.
 
 Each is `{"full": ..., "structural": ..., "rows": n}`: a stage moved when its `full` digest differs; `structural` says it changed shape and not
 only numbers. The golden test writes them to the file named by `PLANETGEN_STAGE_DIGESTS_OUT` when it builds the galaxy (no second build), and
@@ -24,7 +26,7 @@ from pathlib import Path
 from planetgen.db import fingerprint
 from planetgen.util import fingerprint_encoding as encoding
 
-STAGES = ("plan", "scatter", "fill", "population")
+STAGES = ("plan", "scatter", "fill", "population", "derived")
 """tuple: The stages, in the order each is redone from (`bump_version.GENERATION_STAGES`)."""
 
 OUT_ENVIRONMENT = "PLANETGEN_STAGE_DIGESTS_OUT"
@@ -83,7 +85,7 @@ def stage_digests(conn):
                 fill.append({"sector": label, "section": name, "full": value.full, "structural": value.structural})
     facilities = [reader.row_value("facilities", row) for row in reader.select("facilities", "1 = 1")]
     return {"plan": _digest(plan), "scatter": _digest(scatter), "fill": _digest(fill),
-            "population": _digest(facilities) if facilities else None}
+            "population": _digest(facilities) if facilities else None, "derived": None}
 
 
 def write(conn, path):

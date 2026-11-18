@@ -7,7 +7,6 @@ Content-Security-Policy violations. Skipped without Playwright, Chromium or
 the MySQL test server, like `test_web_a11y.py`.
 """
 
-import json
 import os
 import time
 
@@ -17,6 +16,7 @@ pytest.importorskip("playwright.sync_api")
 
 from planetgen.api.authz import SESSION_COOKIE_NAME  # noqa: E402
 from planetgen.web import generate_page, jobs  # noqa: E402
+from tests import page_jobs  # noqa: E402
 
 from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     CSP_LISTENER,
@@ -37,17 +37,19 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
 def running_job(tmp_path, monkeypatch):
     root = str(tmp_path / "jobs")
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", root)
-    monkeypatch.setattr(jobs, "_runner_alive", lambda *args, **kwargs: True)
     monkeypatch.setattr(generate_page, "STREAM_SECONDS", 1.5)
+    page_jobs.forget_all_jobs()
     job_id = jobs.start_job("reset", "Live job", [{"label": "Step one", "argv": ["true"]}],
                             admin="admin", spawn=False)
     path = os.path.join(root, job_id)
 
     def write_state(**fields):
-        state = {"status": "running", "pid": os.getpid(), "step": 1, "started_at": time.time() - 3}
-        state.update(fields)
-        with open(os.path.join(path, "state.json"), "w", encoding="utf-8") as f:
-            json.dump(state, f)
+        """The job's step runs in this test process until the test ends it (`status=` `succeeded` or `failed`)."""
+        status = fields.get("status", "running")
+        if status == "running":
+            page_jobs.running(job_id)
+        else:
+            page_jobs.end(job_id, status, error=fields.get("error", "the step failed"))
 
     def append(text):
         with open(os.path.join(path, "output.log"), "a", encoding="utf-8") as f:
@@ -55,7 +57,8 @@ def running_job(tmp_path, monkeypatch):
 
     append("line one\n")
     write_state()
-    return job_id, append, write_state
+    yield job_id, append, write_state
+    page_jobs.forget_all_jobs()
 
 
 def test_the_terminal_follows_a_job_across_reconnects(browser, base_url, admin_token, running_job):

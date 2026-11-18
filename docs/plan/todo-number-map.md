@@ -14,9 +14,9 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.321 |
-| MAP | MAP.431 |
+| MAP | MAP.432 |
 | NAV | NAV.78 |
-| GEN | GEN.1793 |
+| GEN | GEN.1794 |
 | PERF | PERF.282 |
 | DB | DB.136 |
 | API | API.52 |
@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.51 |
 | TEST | TEST.791 |
 | USR | USR.33 |
-| OPS | OPS.272 |
+| OPS | OPS.274 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2928,7 +2928,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.116 | One error.log in the log folder that records every error and crash from everything (every logger, subprocess, killed worker, update.sh and warm-up stage, web and API error, uncaught exception), while each error still goes to its own log too | none | done, PR #5579 |
 | OPS.117 | update.sh's warm-up part 2 failed with "run ... is running" because the epoch's warm-up had started the moment the update ended, and the phase lines gave the workers' seconds added up (5338 s for 9:39), a wrong chunk size and an out-of-memory guess for a SIGTERM (bug) | none | done, PR #5584 |
 | OPS.118 | Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug) | none | open |
-| OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) | none | open |
+| OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) | none | done (part 1 and the golden check with OPS.147 PR 7133; part 2 PR 7157 merged 10:27 PM EST 11-17: a fifth stage derived; the refill job and the map cache key are OPS.272 and MAP.431) |
 | OPS.134 | Heartbeat part 1: the sky unit reports real progress and gets its own expected time (the bug behind the 11-08 full-galaxy failure) | none | done (Train 22 or earlier, 2026-11-11) |
 | OPS.135 | Heartbeat part 2: each command records the longest gap between counter changes, so the stuck rule can use history | OPS.134 | done (Train 22 or earlier, 2026-11-11) |
 | OPS.136 | Heartbeat part 3: the beat record, written from the horse every 10 s with the server clock, the work counter, the phase and a waiting_on tag | OPS.134 | done (Train 22 or earlier, 2026-11-11) |
@@ -3089,6 +3089,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.269 | (bug, high) Bright-star backfill: 1,088 of 7.00e8 sectors in 4.5 h, ETA 194 to 254 days | done (PR 6982, the bar counts the sky draw; Stage 7 label fixed by OPS.268) |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | open (Lane 13) |
 | OPS.271 | Ledgerless runs run their units without RQ, so the bulk RQ unit path can be deleted | OPS.228 | done (PR 7090, PR 7111) |
+| OPS.272 | The refill job reads the derived stage | OPS.133 | open (Lane 13) |
+| OPS.273 | Rogue planet draws key on a seed-derived donor identity, not its Object ID | none | open (Lane 13) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -3846,7 +3848,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1506 | The Auto level of the Rogues dial means Few, not Normal | PERF.136 | done (Train 23, 2026-11-11) |
 | GEN.1507 | The mantle's 136Xe/130Xe is a derived sheet line, like the 129Xe one (plutonium share scaled by birth 244Pu/238U) | none | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1508 | (bug) A system shows "Asteroid Belt 5" when it holds only one belt: belt numbers do not start at 1 | none | done (Train 22 or earlier, 2026-11-11) |
-| GEN.1509 | Design: belt bodies at or above the smallest planet class floor get full planet status | GEN.1070 | open |
+| GEN.1509 | Design: belt bodies at or above the smallest planet class floor get full planet status | GEN.1070 | done (already delivered: reports/belt-bodies-as-planets-2026-11-09.md, built by GEN.1510 in Train 25, belt-evolution.md section 13; confirmed 10:00 PM EST 11-17) |
 | GEN.1510 | Build: belt bodies at or above the class floor run through the planet generator and are stored as planets | GEN.1509 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1511 | Promoted belt bodies appear as planets in names, pages, lists and maps, and in the census | GEN.1510 | done (PR 6852, Lane 06, merged 9:29 AM EST 11-16: belt page and API list the planets a belt made, the old belt designation leads to the planet, the planet sheet and scene API name the belt (made_from_belt), census report tests/audit/belt_promotion_census.py; names, maps and class census were already right) |
 | GEN.1512 | Atomic phosphorus and the other phosphorus gases above 6000 K are missing from the gas table | none | done (Train 23, 2026-11-11) |
@@ -3885,7 +3887,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1546 | Forward build, item 1: remove the age floor (age_needs, the age-raising code, the trim and belt rebuild after the bump, its retry reason) so the star is made once at its final age | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1547 | Forward build, item 2: key the dice of every end stage to the body (air, albedo, surface water, spin, giant interior), so a remake or a move never re-rolls | GEN.1546 | done, PR #6451 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1548 | Forward build, item 3: reorder the system build so each thing is made once (star, bare bodies, spacing, trims and belts, orbits settled, air, water and surface on the final orbit, class and life last) | GEN.1546, GEN.1547 | done, PR #6451 in Train 27, PR #6485 (11:13 AM EST 11-14) |
-| GEN.1549 | Census re-tag after the forward build (items 1 to 3): re-measure the class, life, star and age census shares and re-baseline the ranges the new order moved | GEN.1548 | open |
+| GEN.1549 | Census re-tag after the forward build (items 1 to 3): re-measure the class, life, star and age census shares and re-baseline the ranges the new order moved | GEN.1548 | done (census, Lane 05, 11:14 PM EST 11-17: reports/gen1549-census-after-forward-build-2026-11-17; M-dwarf age pile gone, disk curve kept, life shift relayed to Boss and GEN.1791) |
 | GEN.1550 | (bug) StarSystem._set_debris_disk clears a young star's class 0, I or II disk before its class check, so a young star that gets a belt loses its disk | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1551 | Each star gets its own disk dispersal time, drawn once from its own stream: a star holds a class 0, I or II disk only while younger than that time, and a close companion shortens it (GEN.1475 reads this time) | GEN.1546, GEN.1550 | done (slices 0 to 2; slice 2 in Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6975; the 10 Myr planet cut stays GEN.1552) |
 | GEN.1552 | Bodies appear only once the star's own disk is gone: the fixed 10 Myr planet cut becomes the star's own dispersal time, with belts as the debris that follows | GEN.1551, GEN.1546 | open |
@@ -3905,9 +3907,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1566 | Ocean cover is bimodal: 47 of 77 temperate sea worlds are 95 to 100 percent ocean and only 11 are 20 to 80 percent; research the water law (mantle cap, relief, delivered water) in the papers first, then fix the cover distribution (the biggest remaining physics lever after the pressure caps) | none | done as research (reports/water-land-split-h-m-o-2026-11-12.md section 9); builds are GEN.1567, GEN.1573, GEN.1574, GEN.1575 |
 | GEN.1567 | Split ocean_fraction into liquid cover and a new ice_cover_fraction (land ice and sea ice apart), so the H, M and O gates read liquid cover only and ice worlds stop storing 1.0; land fraction for weathering is 1 minus liquid cover | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1568 | Temperature guards pile bodies up: the 2,000 K cap holds 131 bodies and the 375 K guard 32; list the classes they feed and check class N against the tier T5 note | none | done as a report (reports/guards-2000k-375k-2026-11-12.md); builds are GEN.1578 to GEN.1580 |
-| GEN.1569 | One-off check of the class mix against Kepler: gas dwarfs are 30 percent of bodies and 37 percent of planets, T tripled while V and E fell; compare with the observed planet-radius mix | GEN.1549 | open |
+| GEN.1569 | One-off check of the class mix against Kepler: gas dwarfs are 30 percent of bodies and 37 percent of planets, T tripled while V and E fell; compare with the observed planet-radius mix | GEN.1549 | done (measured, Lane 05, 11:18 PM EST 11-17: T 11.3 percent of planets, FGK supply in the Kepler band; M-dwarf deficit filed as GEN.1793) |
 | GEN.1570 | Class edges for H, M and O on liquid cover: O ocean_fraction 0.95 or more (was 0.8), M under 0.95 (was under 0.8), H unchanged (under 20 percent); no body changes letter today | GEN.1567 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
-| GEN.1571 | Re-run the ocean cover histogram after the water-law decision and check that O is rarer than M | GEN.1566 | open |
+| GEN.1571 | Re-run the ocean cover histogram after the water-law decision and check that O is rarer than M | GEN.1566 | done (measured, Lane 05, 11:18 PM EST 11-17: ocean cover bimodal; O is not rarer than M only because M is 0, carried by GEN.1791) |
 | GEN.1572 | Optional ice-capped flag when sea ice plus land ice exceeds 25 percent of the surface (not counted in liquid cover) | GEN.1567 | open |
 | GEN.1573 | Water-load basin deepening in hydrosphere.ocean_fraction: ocean-crust depth grows with the water load up to d_o^max = 11.4 km / (g / g_Earth), so a wet planet keeps some land ([R0914: Eq. 10]), with the Earth anchor kept | GEN.1567 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1574 | Mantle water partition as a seafloor-pressure feedback instead of the log-uniform 1 to 8 ocean mantle buffer (MANTLE_CAP_OCEANS), so the mantle takes up less when the seafloor pressure is high | GEN.1566 | open |
@@ -3992,7 +3994,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1653 | apply_class runs only as the last step of the finish chain (class before bands is the H3 cause) | GEN.1652 | open |
 | GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | none | open |
 | GEN.1655 | rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration | GEN.1654 | open |
-| GEN.1656 | StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles | GEN.1652 | open |
+| GEN.1656 | StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles | GEN.1652 | done (PR 7156 merged 10:19 PM EST 11-17: one _build_host for every host kind, output unchanged on 42 systems; the single trim is GEN.1657) |
 | GEN.1657 | calculate_atmospheric_conditions: the three post-hoc corrections move into the solver | GEN.1654 | done, PR #6367 (output identical) |
 | GEN.1658 | GEN.570 slice: the three body tables generated from PlanetaryObject.FIELD_UNITS (plus SQL type and nullability columns) | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1659 | Low: settle_giant runs twice per giant and _air_replay is set twice | none | done, Train 33 PR #6741 (5:25 PM EST 11-15), PR #6696 |
@@ -4010,7 +4012,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1671 | Physics helpers written once: elements.finite_number/positive_number/load_rule_numbers (16 copies), physics/vec3.py (4), spin.spin_axis_of/orbit_normal_of (2), ore_deposits.body_stream (4) | none | open |
 | GEN.1672 | (bug) Clamp the age term of the envelope thickness at 0.1 Gyr so a young planet gets no extrapolated puff | none | done, PR #6354 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1673 | A better planet spacing rule (GEN.1521 chain rule) so far fewer belts need nudging outward | GEN.1641 | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
-| GEN.1674 | Every body in the Class D size range or larger gets a full planet class, wherever it sits (all round belt members past the 10-per-belt cap, asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues) | GEN.1510 | open |
+| GEN.1674 | Every body in the Class D size range or larger gets a full planet class, wherever it sits (all round belt members past the 10-per-belt cap, asteroid fields, Kuiper and scattered-disk objects, Trojans, irregular moons, small rogues) | GEN.1510 | done (already delivered: reports/gen1674-class-d-bodies-slice0-2026-11-13.md, generation/belt_ondemand.py, belt-evolution.md section 14; on demand and class last per Boss; confirmed 10:00 PM EST 11-17) |
 | GEN.1675 | A body's air carries the CO and methane its surface ices give off: gases from the bulk CO and CH4 ice at their saturation vapor pressure at the surface temperature, not an N2-only air | none | done, PR #6423 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1676 | Habitability rating by the body, not by equipment, for oxygen, gases and pressure: low inspired oxygen on a log curve (Yellow below 8 kPa, Red from about 4 kPa), the CO/H2S/SO2 respirator credit (FILTER_FACTOR) removed, and the pressure Green edge moved from 14.3 kPa (oxygen mask) to 33.7 kPa (Everest summit) | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1677 | Design: remove the rest of the equipment-based habitability scoring: UV edges from sun-cover clothing and a full suit, temperature edges named after gear plus YELLOW_CREDIT | none | open |
@@ -4129,6 +4131,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1790 | Envelope past the climate ceiling boils off; lava vapor held and logged | GEN.1745 | open (Lane 14) |
 | GEN.1791 | Lever search for Class M and M-like worlds at the Abundant tier (report) | GEN.1789 | open (Class M levers thread) |
 | GEN.1792 | (bug) Dwarf planets pile up at the e 0.5 and i 60 degree caps | GEN.1468 | open (Lane 14) |
+| GEN.1793 | M dwarfs carry about half the observed close-in small planets | none | open (Lane 04) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -5227,6 +5230,7 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.428 | Wide binaries and multiples read as one system in the nav and sector views: a link line or ring around the group and one shared system label | none | done earlier (PR 6342, merged 4:06 AM EST 11-14: systemgroups.js; found stale by Lane 07, 6:55 AM EST 11-16) |
 | MAP.429 | (bug) The Galaxy Map at galaxy scale is covered by an even lattice of round brown fuzzy blobs behind the stars: one soft round sprite per grid block holding any nebula, sized to the block's bounding sphere, strength from log10(count) only | none | done, PR #6588 (10:15 PM EST 11-14) |
 | MAP.430 | At far zoom the Galaxy Map draws smooth gas and dust lanes from the model gas density (arms, inner disk) instead of one disc per block, handing over to the nebula volume layer as the camera comes in | MAP.429 | done, PR #6593 (11:04 PM EST 11-14) |
+| MAP.431 | Map tile cache keyed on stage inputs, not the epoch | OPS.133 | open (Lane 16) |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 

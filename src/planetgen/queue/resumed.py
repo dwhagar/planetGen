@@ -50,11 +50,15 @@ class Carried:
 
 
 def _same(row, args, cost):
-    """Whether the earlier row's arguments are the ones the new cut gives the unit (compared as the JSON both are stored as)."""
+    """Whether the earlier row's arguments are the ones the new cut gives the unit (compared as the JSON both are stored as, without the `AGAIN` mark)."""
     try:
-        return json.loads(row["arguments"]) == json.loads(json.dumps({"args": args, "cost": cost}, sort_keys=True))
+        earlier, new = json.loads(row["arguments"]), json.loads(json.dumps({"args": args, "cost": cost}, sort_keys=True))
     except (TypeError, ValueError):
         return False
+    for body in (earlier, new):
+        if isinstance(body.get("args"), dict):
+            body["args"].pop(AGAIN, None)       # what a run that carries on tells a unit that cannot resume (`planrows.add_to_unit_args`) is no part of what the unit is: a unit of a run that carried on from another is the same unit
+    return earlier == new
 
 
 def _earlier_rows(control, run, stage, keys=None):

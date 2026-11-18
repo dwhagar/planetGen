@@ -2,6 +2,70 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4539] - 2026-11-18
+
+**Headline:** The sampling-table lock wait is named in the no-sleep test, so main passes it again.
+
+### Fixed
+
+- PERF.281: `test_no_sleep_in_commands` (OPS.197) lists the table lock's poll in `band_table_cache._building` with its reason: the wait is declared with `unitbeat.waiting` and beats the unit on every poll, so it is not a silent stretch. A blocking `flock` would be silent to the unit's heartbeat, so the poll stays. No behavior changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4538] - 2026-11-18
+
+**Headline:** A Generate page job is now a run of the job ledger, so it survives a web server restart and Cancel works with or without the supervisor.
+
+### Changed
+- **OPS.244 slice B: the Generate page's job is rows of the ledger, not a folder of files and a private queue.** The job is a run of kind `page` with one row for the job and one row for each step (`queue/pagerun.py`). The launcher hands a step out like any other row, a forked job process runs it (`forkedjob.run_page_step`, `web/job_runner.run_step`) and follows the step's own process, and the page reads the job's status, step, start, end and error from the rows. `job.json`, `state.json`, `runner.pid`, the `cancel` file, the job's private RQ queue and its burst worker are gone; `output.log`, `records.log`, `progress.json` and `memory.json` stay in the job folder. A step is never run again by the launcher after a restart or a kill; the page's Retry starts the rest.
+- **Cancel is a request to the supervisor** (`controls.stop_engine_run`), or the rows are ended in the page's own process when no supervisor is alive; a step whose runner is gone is stopped from the process group named in `step.pid`.
+- **The supervisor stays awake while a page job runs** (`supervisor.pages_key`).
+- **The Queue page no longer lists a Generate page job among the beating jobs**; its state is the ledger's.
+- **The engine design note says where the old queue stands** (`docs/design/operations/job-engine.md`, sections 2 and 7).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4537] - 2026-11-18
+
+**Headline:** The one-off system page's light job now claims the memory of one drawn system, so the memory gate no longer runs it unaccounted.
+
+### Fixed
+- **A claim for `system_page.generate_in_process` (OPS.244, slice A).** The function the one-off system page runs in the warm light-job process had no entry in `claims.API_CLAIMS`, so `test_every_function_the_api_dispatcher_may_call_has_a_claim` failed on main. It claims what a `generate-system` unit does (`workers.BULK_WORKER_MEMORY_MB`, one core), the same work done in a light job.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4536] - 2026-11-18
+
+**Headline:** A change to values that are a pure function of stored ones can now say so in its note (`generation-affects: derived`), so a train does not regenerate a galaxy for it.
+
+### Added
+- **The `derived` generation stage** (OPS.133): a fifth stage after `population` in `src/tests/golden/epochs.json`, `bump_version.GENERATION_STAGES` and `tests/golden_stages.STAGES`, for a change that is a pure function of stored values (a rule, a text, the ledger) and is refilled by a job, never regenerated. A note may declare it (`generation-affects: derived`); `scripts/train.py stages` does not measure it (the stored values sit in the fill's rows), reports a moved `fill` or `population` digest under a declared `derived` as a warning and still fails a moved `plan` or `scatter` it does not cover. Documented in `changes/README.md`. The union of the notes' stages, the golden check of the declarations (OPS.147) and the stamping of each train epoch were already in `scripts/train.py`. Still to do, owned elsewhere: the refill job that reads `derived` (job engine) and the map's node cache key, which holds the epoch through `tile_base` (map owner).
+
+## [8.0.4535] - 2026-11-18
+
+**Headline:** One routine builds the planets of every host star, instead of four copies of the same seven steps.
+
+### Changed
+- `StarSystem._build_host` draws, spaces, trims, adds belts and star history to, and widens for mass loss the planets of one host (GEN.1656). The primary, a wide pair's secondary, a tree member and a node's proxy each had their own copy of the sequence; each fix (the ceiling trim, the white dwarf widening, the belts) had to be made four times. The output is unchanged: 42 systems (single, wide, member and node hosts) hash the same before and after.
+
+generation-output: unchanged
+
+## [8.0.4534] - 2026-11-18
+
+**Headline:** A run that carries on from a run that itself carried on no longer does its finished units again.
+### Fixed
+- The units of a stage a run carries on from get the mark `again` in their arguments when the command cannot resume. The next run that carried on from that one compared its cut with those arguments, found them different, and counted none of the units as done, so every unit of the stage ran again. The comparison now leaves the mark out (OPS.271).
+
+## [8.0.4533] - 2026-11-18
+
+**Headline:** The oxygen balance's three registry rows now cite the papers they were read from.
+
+### Changed
+- **Oxygen source, reductant and photosynthesis temperature rows read from their sources** (GEN.1789). Registry rows BO1 (organic carbon burial 1e13 mol a year) and BO2 (reductant flux 3e12 mol a year) now cite Catling and Zahnle 2003, Table 1, and BO5 (photosynthesis activation energy 0.32 eV) cites Allen, Gillooly and Brown 2005. Tier T1, tweak level L0 for each. No value changes, so no body changes.
+
 ## [8.0.4532] - 2026-11-18
 
 **Headline:** The setting for the most workers on the host is gone, and the Queue page's workers tile counts the unit and job processes the ledger has running now.

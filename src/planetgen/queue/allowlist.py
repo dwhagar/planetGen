@@ -36,7 +36,6 @@ FUNCTIONS = frozenset({
     "planetgen.web.warmup.warm_app",                    # the warm set of the maintenance lane's template (OPS.229): the site's app, built once
     "planetgen.queue.units.warm_star_tables",           # the warm set of a template (OPS.226): the sampling tables every job forked from it shares
     "planetgen.queue.lightjobs.run",                    # a light job as a process the template forked (OPS.230): the API's long operations, dispatched through `API_FUNCTIONS`
-    "planetgen.web.job_runner.run",                     # a Generate page job
 })
 """frozenset: The dotted names a queued job or callback may name."""
 

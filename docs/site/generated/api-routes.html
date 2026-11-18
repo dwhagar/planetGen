@@ -276,7 +276,7 @@ main{padding:16px 16px 60px}}
 <td><code>/api/admin/work/jobs</code></td>
 <td>GET</td>
 <td><code>workqueue.py</code> <code>running_jobs</code></td>
-<td><code>GET /api/admin/work/jobs</code> -- the jobs that are not units of a run and are running, from their beats (OPS.142): <code>{&quot;jobs&quot;: [{&quot;kind&quot; (&quot;api&quot;, &quot;web&quot; or &quot;tile-prefetch&quot;), &quot;job&quot;, &quot;label&quot;, &quot;state&quot; (&quot;working&quot; or &quot;dead&quot;), &quot;reason&quot;, &quot;phase&quot;, &quot;running_seconds&quot;, &quot;beat_age_seconds&quot;}]}</code>, the longest running first</td>
+<td><code>GET /api/admin/work/jobs</code> -- the jobs that are not units of a run and are running, from their beats (OPS.142): <code>{&quot;jobs&quot;: [{&quot;kind&quot; (&quot;api&quot; or &quot;tile-prefetch&quot;), &quot;job&quot;, &quot;label&quot;, &quot;state&quot; (&quot;working&quot; or &quot;dead&quot;), &quot;reason&quot;, &quot;phase&quot;, &quot;running_seconds&quot;, &quot;beat_age_seconds&quot;}]}</code>, the longest running first.</td>
 </tr>
 <tr>
 <td><code>/api/admin/work/queue</code></td>

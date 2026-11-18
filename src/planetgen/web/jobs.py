@@ -6,30 +6,24 @@ resetting the galaxy, building its density skeleton (`planetgen plan`)
 and generating sectors (`planetgen galaxy`), started from the browser
 and left running after the request that started them has returned.
 
-A job is a directory under the jobs directory (`jobs_dir()`):
+A job is a run of the job ledger (`planetgen.queue.pagerun`, OPS.244): `start_job` writes a row for the job and a row for each of its steps and asks the supervisor
+(`lightjobs.ask_supervisor`), which forks one job process for each step in turn (`planetgen.web.job_runner.run_step`), so a mod_wsgi request timeout or a graceful Apache
+reload does not stop it. What the page shows (the status, the step, the times, why it failed) is read from the ledger's rows (`get_job`); Cancel is a request to the supervisor
+(`controls.stop_engine_run`). The job's folder under the jobs directory (`jobs_dir()`) holds only what a process writes as it goes:
 
     <jobs dir>/
-        queued-<ticket>.json    the recipe of a job waiting in the line (0600; it holds the database environment)
+        queued-<ticket>.json    the recipe of a job waiting in the line (0600)
         20260930-124433-1a2b/
-            job.json            what to run: id, title, steps (argv lists), env
-            runner.pid          the job's worker's pid, written when it is started
-            cancel              written by Cancel; the runner stops when it sees it
-            state.json          written by planetgen.web.job_runner as it goes
-            progress.json       written by planetgen (planetgen.queue.progress_file)
             output.log          every step's stdout and stderr
+            records.log         the same as records (UX.122)
+            progress.json       written by planetgen (planetgen.queue.progress_file)
+            memory.json         the memory peak of each step
+            step.pid            the process group of the step that runs, for Cancel when its runner is gone
 
-`start_job` writes `job.json`, takes the lock (a hash in Redis, `<prefix>:job:active`) and queues
-`planetgen.web.job_runner.run(<job dir>)` as an RQ job on Redis, on a
-queue of the job's own (PERF.24 step 3). It then starts one burst worker
-for that queue (`planetgen.cli.worker`), named after the job, in its own
-session, detached from the web server, so a mod_wsgi request timeout or a
-graceful Apache reload doesn't stop it. The worker exits once the job is
-done. The page then only ever reads these files, so it works the same
-whichever server process answers the next request. Without a Redis
-server at `redis.url`, no job starts.
+The folder's name is the job's id; the jobs directory's listing is the list of jobs (`list_jobs`, newest first). Without a Redis server at `redis.url` or a control database, no job starts.
 
 Only one job runs at a time: generation, planning and reset all write the
-same database. A lock whose runner has died (the server was rebooted mid
+same database. A lock whose job has ended (the server was rebooted mid
 job) is noticed and cleared by the next `start_job`, and that job shows
 as "interrupted". A job that finds another running does not fail: `submit`
 puts it in the one waiting list (`planetgen.queue.runline`, PERF.154), up to
@@ -37,8 +31,8 @@ puts it in the one waiting list (`planetgen.queue.runline`, PERF.154), up to
 succeeded or was canceled (`promote_queued`).
 
 The database a job writes is the one this site shows (`helpers.db_name`),
-passed to the child through the same `PLANETGEN_MYSQL_*` environment
-variables every command-line tool reads, never on the command line.
+named on the job; its connection variables (`PLANETGEN_MYSQL_*`, `mysql_env`) are built from the
+site's settings when a step starts and given to the step's process, never stored or put on a command line.
 """
 
 import contextlib
@@ -56,10 +50,11 @@ import time
 import redis
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, runline, runrecord
+from planetgen.queue import controls, lightjobs, pagerun, redisqueue, runline, runrecord, supervisor
 from planetgen.web.lib.privatedir import ensure_private_dir
-from planetgen.util import log, secrets_mask, stagemark
+from planetgen.util import log, process, secrets_mask, stagemark
 from planetgen.util.settings import get_settings
+from planetgen.web import job_runner
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 """str: The planetGen checkout."""
@@ -82,26 +77,13 @@ deleted when a new job starts."""
 
 QUEUED_PREFIX = "queued-"
 """str: A waiting job's recipe is the file `queued-<ticket>.json` in the jobs directory (ADM.123): the same spec as a job's
-`job.json`. Mode 0600 like `job.json`: it holds the same database environment, which does not go into Redis. The
-waiting list (`planetgen.queue.runline`) holds the rest."""
-
-CANCEL_NAME = "cancel"
-"""str: Must match `planetgen.web.job_runner.CANCEL_NAME`."""
+`start_job` takes (`kind`, `title`, `steps`, `admin`, `database`, `draft`), mode 0600. The waiting list (`planetgen.queue.runline`) holds the rest."""
 
 RECORDS_NAME = "records.log"
 """str: The job's log as records (UX.122), in the job's folder. Must match `planetgen.web.job_runner.RECORDS_FILE`."""
 
-QUEUE_PREFIX = "planetgen-web-"
-"""str: A job's RQ queue and its worker are this plus the job's id."""
-
 STARTING_GRACE_SECONDS = 15
-"""int: How long a just-spawned job may go without a `state.json` before
-it counts as interrupted (the runner writes one as its first act)."""
-
-RUNNER_START_LIMIT_SECONDS = 300
-"""int: How long a job whose runner is still alive may go without a
-`state.json` (a slow start on a busy server) before it counts as
-interrupted anyway: where only the pid can be checked (no `/proc`), a reused pid can't block jobs for longer than this."""
+"""int: How long a job nothing has begun may be younger than before a lock naming a job the ledger does not know counts as stale."""
 
 JOB_ID_RE = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{4}$")
 """re.Pattern: A job id: `YYYYMMDD-HHMMSS-xxxx`. Checked before any id
@@ -210,42 +192,12 @@ def _job_dir(root, job_id):
     return os.path.join(root, job_id)
 
 
-def _runner_alive(pid, job_id):
-    """Whether `pid` is still this job's runner. Reads the process's
-    command line where `/proc` exists."""
-    if not pid:
-        return False
-    cmdline = f"/proc/{int(pid)}/cmdline"
-    if os.path.isdir("/proc/self"):
-        try:
-            with open(cmdline, "rb") as f:
-                return job_id.encode() in f.read()
-        except OSError:
-            return False
-    try:
-        os.kill(int(pid), 0)
-    except (OSError, ValueError):
-        return False
-    return True
-
-
-def _runner_pid(path, state):
-    pid = (state or {}).get("pid")
-    if pid:
-        return pid
-    try:
-        with open(os.path.join(path, "runner.pid"), "r", encoding="utf-8") as f:
-            return int(f.read().strip() or 0)
-    except (OSError, ValueError):
-        return None
-
-
 def get_job(job_id, root=None):
     """
-    One job as the page shows it, or `None` for an unknown id.
+    One job as the page shows it, or `None` for an unknown id (one with no folder under `root` or no row in the ledger, `pagerun.read`).
 
     Returns:
-        dict: `job.json`'s fields (`id`, `title`, `kind`, `steps` as
+        dict: The job's fields (`id`, `title`, `kind`, `steps` as
             labels, `created_at`, `admin`, `database`) plus `status`
             (`starting`, `running`, `succeeded`, `failed`, `canceled`,
             `interrupted`), `step` (1-based, 0 before the first),
@@ -255,39 +207,21 @@ def get_job(job_id, root=None):
     """
     root = root or jobs_dir()
     path = _job_dir(root, job_id)
-    if path is None:
+    if path is None or not os.path.isdir(path):
         return None
-    job = _read_json(os.path.join(path, "job.json"))
-    if not job:
+    with _ledger() as control:
+        job = pagerun.read(control, job_id)
+    if job is None:
         return None
-    state = _read_json(os.path.join(path, "state.json")) or {}
-    status = state.get("status")
+    status = job["status"]
     now = time.time()
-    if status is None:
-        # A job is starting for the grace period whatever its pid says
-        # (TEST.92: a runner just started may not have exec'd yet, so its
-        # command line doesn't name the job), then while its runner is
-        # still alive, until `RUNNER_START_LIMIT_SECONDS` (TEST.90: calling
-        # a slow start interrupted let a finished-looking job come back as
-        # running).
-        pid = _runner_pid(path, state)
-        age = now - job.get("created_at", 0)
-        if age < STARTING_GRACE_SECONDS:
-            status = "starting"
-        elif pid is not None and age < RUNNER_START_LIMIT_SECONDS and _runner_alive(pid, job_id):
-            status = "starting"
-        else:
-            status = "interrupted"
-    elif status == "running" and not _runner_alive(state.get("pid"), job_id):
-        status = "interrupted"
-
-    labels = [step["label"] for step in job.get("steps", [])]
-    step = state.get("step") or 0
-    stages = job_stages(job.get("steps", []))
-    started = state.get("started_at")
-    finished = state.get("finished_at")
+    labels = [step["label"] for step in job["steps"]]
+    step = job["step"]
+    stages = job_stages(job["steps"])
+    started = job["started_at"]
+    finished = job["finished_at"] if status in FINISHED else None
     progress = _read_json(os.path.join(path, "progress.json")) if step else None
-    error = state.get("error")
+    error = job["error"]
     if status == "interrupted" and not error:
         error = "The job stopped without finishing (the server may have restarted)."
     in_step = sum(1 for stage in stages if stage["step"] == step)
@@ -308,9 +242,9 @@ def get_job(job_id, root=None):
         "step_label": labels[step - 1] if 0 < step <= len(labels) else None,
         "step_marker": step_marker,
         "stages": stages,
-        "step_started_at": state.get("step_started_at"),
-        "step_estimates": state.get("step_estimates") or [],
-        "stage_estimates": state.get("stage_estimates") or [],
+        "step_started_at": job["step_started_at"],
+        "step_estimates": job["step_estimates"],
+        "stage_estimates": job["stage_estimates"],
         "started_at": started,
         "finished_at": finished,
         "elapsed_s": ((finished or now) - started) if started else None,
@@ -368,12 +302,14 @@ def active_job(root=None):
     """
     root = root or jobs_dir()
     with _redis_errors():
-        holder = _read_lock(_connection())
+        connection = _connection()
+        holder = _read_lock(connection)
     if not holder:
         return None
     job = get_job(holder, root)
     if job is None or job["finished"]:
         return None
+    lightjobs.ask_supervisor(connection)        # a job that is not over has a supervisor to hand its steps out: one that ended (or never started) is started by the poll
     return job
 
 
@@ -393,17 +329,18 @@ def remaining_steps(job_id, root=None):
     job = get_job(job_id, root)
     if job is None or not job["finished"] or job["status"] == "succeeded":
         return None
-    spec = _read_json(os.path.join(_job_dir(root, job_id), "job.json")) or {}
-    steps = spec.get("steps") or []
+    with _ledger() as control:
+        found = pagerun.read(control, job_id)
+    steps = (found or {}).get("steps") or []
     first = max(int(job.get("step") or 1), 1) - 1
     remaining = steps[first:]
     return (job, remaining) if remaining else None
 
 
 def _known_job_dir(root, job_id):
-    """The folder of a job that exists (its `job.json` is there) under `root` (the jobs folder by default), else `None`."""
+    """The folder of a job that exists under `root` (the jobs folder by default), else `None`."""
     path = _job_dir(root or jobs_dir(), job_id)
-    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+    if path is None or not os.path.isdir(path):
         return None
     return path
 
@@ -503,6 +440,25 @@ def _lock_key():
     return runrecord._k("job", "active")
 
 
+@contextlib.contextmanager
+def _ledger():
+    """A connection to the control database (`pagerun.connect`), closed after use.
+
+    Raises:
+        OSError: There is no control database.
+    """
+    control = pagerun.connect()
+    try:
+        yield control
+    finally:
+        control.close()
+
+
+def hand_over(connection, job_id):
+    """Tells the supervisor a job is waiting (`lightjobs.ask_supervisor`: one is started when none is alive); it forks the process of each step. A test replaces this to run the steps itself."""
+    lightjobs.ask_supervisor(connection)
+
+
 _TAKE = """
 if redis.call('HSETNX', KEYS[1], 'id', ARGV[1]) == 1 then
   redis.call('HSET', KEYS[1], 'at', ARGV[2])
@@ -550,7 +506,7 @@ def _path_age(path):
 def _take_lock(root, job_id):
     """
     Creates the job lock for `job_id`, clearing a stale one. A lock counts as stale when the job it names has finished,
-    or is unknown (garbage, an id whose `job.json` is missing or unreadable) and the lock is older than
+    or is unknown (garbage, an id the ledger does not know) and the lock is older than
     `STARTING_GRACE_SECONDS` -- a younger one may belong to a job still being written.
 
     Raises:
@@ -597,8 +553,8 @@ def free_lock():
 
 def _prune(root, keep):
     """Deletes all but the newest `keep` jobs' directories. Never the
-    one the lock names, one still running or starting, or one whose
-    `job.json` can't be read yet less than `STARTING_GRACE_SECONDS` old."""
+    one the lock names, one still running or starting, or one the ledger does not know yet less than `STARTING_GRACE_SECONDS` old. The ledger's rows of a job
+    that is pruned go with its folder."""
     names = sorted((name for name in os.listdir(root) if JOB_ID_RE.match(name)), reverse=True)
     with _redis_errors():
         holder = _read_lock(_connection())
@@ -613,13 +569,15 @@ def _prune(root, keep):
             if age is None or age < STARTING_GRACE_SECONDS:
                 continue
         shutil.rmtree(os.path.join(root, name), ignore_errors=True)
+        with contextlib.suppress(OSError), _ledger() as control:
+            pagerun.delete(control, name)
 
 
 def new_job_id():
     return time.strftime("%Y%m%d-%H%M%S") + "-" + secrets.token_hex(2)
 
 
-def start_job(kind, title, steps, env=None, admin=None, database=None, root=None, spawn=True, draft=None):
+def start_job(kind, title, steps, admin=None, database=None, root=None, spawn=True, draft=None):
     """
     Starts a job in the background and returns its id straight away.
 
@@ -628,18 +586,15 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
         title (str): What the page calls it ("Generate sectors").
         steps (list[dict]): `{"label", "argv"}` per step, run in order; the generation commands among them run as the one
             step `planetgen run-job` (`job_steps.collapse`, PERF.203).
-        env (dict, optional): Extra environment for every step (the
-            `mysql_env` variables).
         admin (str, optional): Who started it, for the page.
         database (str, optional): Which database it writes, for the page.
-        spawn (bool): Tests pass `False` to only write the files.
+        spawn (bool): Tests pass `False` to only write the rows, with no supervisor asked.
         draft (list, optional): The form fields (`[name, value]` pairs) the job was made from, kept so History can offer
             Run again with the same settings (ADM.115).
 
     Raises:
         JobBusy: Another job is still running.
-        OSError: No writable jobs directory, no Redis server, or the
-            worker can't start.
+        OSError: No writable jobs directory, no Redis server or control database.
     """
     updateguard.refuse_while_updating("A Generate job")     # OPS.53
     from planetgen.web import job_steps
@@ -665,13 +620,15 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     try:
         job = {
             "id": job_id, "kind": kind, "title": title, "admin": admin, "database": database,
-            "created_at": time.time(), "cwd": REPO_DIR, "steps": steps, "env": env or {}, "draft": draft or [],
+            "created_at": time.time(), "cwd": REPO_DIR, "root": root, "draft": draft or [],
         }
-        fd = os.open(os.path.join(path, "job.json"), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(job, f)
-        if spawn:
-            _spawn(path)
+        with _ledger() as control:
+            pagerun.start(control, job, steps)
+        with _redis_errors():
+            connection = _connection()
+            connection.hset(supervisor.pages_key(), job_id, time.time())       # a supervisor with a job to watch does not end (`supervisor.Store.busy`)
+            if spawn:
+                hand_over(connection, job_id)
     except BaseException:
         release_lock(job_id)
         raise
@@ -682,62 +639,6 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     except OSError:
         pass
     return job_id
-
-
-JOB_FLOOR_SECONDS = 3600
-"""int: The shortest time limit of a job's RQ entry (PERF.144): a job of steps that usually take seconds (a reset, a
-download) is not ended by one slow start."""
-
-JOB_CEILING_SECONDS = 30 * 86400
-"""int: The longest time limit of a job's RQ entry, and the limit of a job whose steps are not all recorded (a fixed
-ceiling, not an estimate): a whole galaxy run takes hours to days."""
-
-
-def job_time_limit(path):
-    """
-    The seconds RQ lets the job in `path` run (PERF.144): `redisqueue.job_timeout` of the time its steps are expected
-    to take (`job_runner.expected_seconds`: the recorded stage times, else what each step took in earlier runs),
-    `JOB_CEILING_SECONDS` when a step has no record, and for a job with a step that is a run on the queue (OPS.255): its units are watched
-    for progress (`beatjudge`), and a clock of ten times what a smaller galaxy recorded would end the starter of a run that is still working. OPS.215 removes RQ and this rule goes with it.
-    """
-    from planetgen.web import job_runner
-
-    with open(os.path.join(path, "job.json"), "r", encoding="utf-8") as f:
-        job = json.load(f)
-    if job_runner.runs_queue_run(job):
-        return JOB_CEILING_SECONDS
-    return redisqueue.job_timeout(job_runner.expected_seconds(job), ceiling=JOB_CEILING_SECONDS,
-                                  floor=JOB_FLOOR_SECONDS)
-
-
-def _spawn(path):
-    """Queues the job in `path` on Redis and starts its burst worker.
-
-    Raises:
-        OSError: No Redis server, or the process can't start.
-    """
-    job_id = os.path.basename(path)
-    url = redisqueue.redis_url()
-    connection = redisqueue.connect(url)
-    try:
-        connection.ping()
-    except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise OSError(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url); "
-                      f"start Redis to run jobs: {exc}") from exc
-    name = QUEUE_PREFIX + job_id
-    redisqueue.queue(name, connection).enqueue(
-        "planetgen.web.job_runner.run", path, job_id=name, job_timeout=job_time_limit(path),
-        result_ttl=0, failure_ttl=86400,
-    )
-    _start_detached(path, redisqueue.worker_argv([name], url, name=name, python=python_executable()))
-
-
-def _start_detached(path, argv):
-    """Starts `argv` (whose command line names the job) detached from the
-    web server and records its pid as the job's `runner.pid`."""
-    proc = redisqueue.start_detached(argv, REPO_DIR)
-    with open(os.path.join(path, "runner.pid"), "w", encoding="utf-8") as f:
-        f.write(str(proc.pid))
 
 
 def cancel_runs(job_id, who=None):
@@ -760,21 +661,15 @@ def cancel_runs(job_id, who=None):
         return 0
 
 
-def _end_orphan(root, path, job_id, who):
-    """
-    Cancel of a job whose runner is gone (killed by the out-of-memory killer, a restart or a crash; PERF.186): its step
-    and the processes of that step's group were started apart from the runner and run on, so they are ended here
-    (SIGTERM, then SIGKILL), its live runs are canceled, and the job is marked canceled and its lock freed. Before
-    this, Cancel on such a job did nothing, and the page showed it as interrupted while its processes kept the host busy.
-
-    Returns:
-        bool: Whether there was something to end or the job was not marked yet.
-    """
-    state_path = os.path.join(path, "state.json")
-    state = _read_json(state_path) or {}
+def _end_step_group(path):
+    """Ends the process group of the step `step.pid` names (SIGTERM, then SIGKILL): a step whose runner is gone was started apart from it and runs on (PERF.186). Returns whether there was one to end."""
+    try:
+        with open(os.path.join(path, job_runner.STEP_PID_NAME), "r", encoding="utf-8") as handle:
+            step_pid = int(handle.read().strip() or 0)
+    except (OSError, ValueError):
+        return False
     did = False
-    step_pid = state.get("step_pid")
-    if isinstance(step_pid, int) and step_pid > 1:
+    if step_pid > 1:
         for number, wait in ((signal.SIGTERM, 5.0), (signal.SIGKILL, 2.0)):
             try:
                 os.killpg(step_pid, number)
@@ -791,28 +686,16 @@ def _end_orphan(root, path, job_id, who):
             else:
                 continue
             break
-    did = bool(cancel_runs(job_id, who)) or did
-    if state.get("status") in (None, "running"):
-        state.update(status="canceled", finished_at=time.time(), error=f"Canceled by {who or 'an admin'} after its runner "
-                                                                         "had stopped.")
-        state.pop("step_pid", None)
-        try:
-            with open(state_path, "w", encoding="utf-8") as f:
-                json.dump(state, f)
-            did = True
-        except OSError:
-            pass
-    release_lock(job_id)
+    with contextlib.suppress(OSError):
+        os.remove(os.path.join(path, job_runner.STEP_PID_NAME))
     return did
 
 
 def cancel_job(job_id, root=None, who=None):
     """
-    Asks a running job to stop: writes a `cancel` file into its directory, which the runner checks for while a step
-    runs, and cancels the job's live runs through the stop command (`cancel_runs`). The runner then
-    stops the step and everything the step started, and marks the job
-    canceled. (A file rather than a signal, so the runner stops the step
-    and releases the lock itself.)
+    Cancels a job that has not ended: a request to the supervisor (`controls.stop_engine_run`) that ends the job's rows and asks the process that runs its step to stop it, and stops
+    the step and everything the step started (SIGTERM to its process group, then SIGKILL). With no supervisor, the rows are ended here and the step's group is ended from `step.pid`; the same
+    when the job's process is gone (killed by the out-of-memory killer, a restart or a crash; PERF.186). The job's live runs are canceled through the stop command (`cancel_runs`), and its lock is freed.
 
     Returns:
         bool: Whether a running job was asked to stop.
@@ -822,17 +705,22 @@ def cancel_job(job_id, root=None, who=None):
     if job is None or (job["finished"] and job["status"] != "interrupted"):
         return False
     path = _job_dir(root, job_id)
-    pid = _runner_pid(path, _read_json(os.path.join(path, "state.json")))
-    if not _runner_alive(pid, job_id):
-        return _end_orphan(root, path, job_id, who)
+    asked, runner = None, None
     try:
-        with open(os.path.join(path, CANCEL_NAME), "w", encoding="utf-8") as f:
-            f.write(str(time.time()))
-    except OSError:
-        return False
-    cancel_runs(job_id, who)        # after the file: the step that finds its run stopped is then a canceled one, not a failed one
-    log.debug("Cancel requested for job %s (runner pid %s).", job_id, pid)
-    return True
+        with _ledger() as control:
+            run = pagerun.run_of(control, job_id)
+            runner = (pagerun.read(control, job_id) or {}).get("runner_pid")
+        with _redis_errors():
+            connection = _connection()
+            asked = controls.stop_engine_run(connection, run, who=who)
+            connection.hdel(supervisor.pages_key(), job_id)
+    except OSError as exc:
+        log.warning("Cancel of job %s: the ledger or the supervisor could not be reached: %s.", job_id, exc)
+    ended = False if process.pid_alive(runner) else _end_step_group(path)          # a step whose runner is gone; a runner that is alive stops its step itself, between two looks at its row
+    canceled = cancel_runs(job_id, who)    # after the stop: the step that finds its run stopped is then a canceled one, not a failed one
+    release_lock(job_id)
+    log.debug("Cancel requested for job %s.", job_id)
+    return bool(asked) or ended or bool(canceled)
 
 
 # ---------------------------------------------------------------------
@@ -865,7 +753,7 @@ def _remove(path):
         os.remove(path)
 
 
-def submit(kind, title, steps, env=None, admin=None, database=None, root=None, draft=None):
+def submit(kind, title, steps, admin=None, database=None, root=None, draft=None):
     """
     Starts the job, or, when another job is running, puts it in the waiting list (PERF.154): it starts by itself when the
     job before it succeeded or was canceled and is held for an admin when that job failed.
@@ -879,11 +767,10 @@ def submit(kind, title, steps, env=None, admin=None, database=None, root=None, d
     """
     root = root or jobs_dir()
     try:
-        return Submitted(job_id=start_job(kind, title, steps, env=env, admin=admin, database=database, root=root,
-                                          draft=draft))
+        return Submitted(job_id=start_job(kind, title, steps, admin=admin, database=database, root=root, draft=draft))
     except JobBusy as busy:
         running = busy.job["title"] if busy.job else "Another job"
-    ticket = queue_next(kind, title, steps, env=env, admin=admin, database=database, root=root, draft=draft)
+    ticket = queue_next(kind, title, steps, admin=admin, database=database, root=root, draft=draft)
     started = promote_queued(root)      # the running job may have ended since the lock was refused
     waiting = [entry["ticket"] for entry in queued_jobs(root)]
     if started and ticket not in waiting:
@@ -891,7 +778,7 @@ def submit(kind, title, steps, env=None, admin=None, database=None, root=None, d
     return Submitted(ticket=ticket, position=waiting.index(ticket) + 1 if ticket in waiting else None, running=running)
 
 
-def queue_next(kind, title, steps, env=None, admin=None, database=None, root=None, draft=None):
+def queue_next(kind, title, steps, admin=None, database=None, root=None, draft=None):
     """
     Puts a job at the end of the waiting list: it starts by itself when the job before it succeeded or was canceled, and
     is held for the admin to start or discard when that job failed.
@@ -906,8 +793,7 @@ def queue_next(kind, title, steps, env=None, admin=None, database=None, root=Non
     root = root or jobs_dir()
     running = active_job(root)
     ticket = secrets.token_hex(8)
-    spec = {"kind": kind, "title": title, "admin": admin, "database": database, "steps": steps, "env": env or {},
-            "draft": draft or []}
+    spec = {"kind": kind, "title": title, "admin": admin, "database": database, "steps": steps, "draft": draft or []}
     path = _spec_path(root, ticket)
     _write_spec(path, spec)
     try:
@@ -1000,7 +886,7 @@ def promote_queued(root=None, force=False):
     try:
         if not spec:
             raise OSError("its recipe is gone")
-        job_id = start_job(spec["kind"], spec["title"], spec["steps"], env=spec.get("env"), admin=spec.get("admin"),
+        job_id = start_job(spec["kind"], spec["title"], spec["steps"], admin=spec.get("admin"),
                            database=spec.get("database"), root=root, draft=spec.get("draft"))
     except JobBusy:
         with _redis_errors():

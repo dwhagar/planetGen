@@ -12443,11 +12443,7 @@
       "number": "6.21",
       "rows": [
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
@@ -12471,25 +12467,21 @@
             ],
             [
               "Evidence",
-              "RECALLED ([R1859], about 1e13 mol C a year)"
+              "READ ([R5300: Table 1]: organic carbon burial, the oxygen source, 10 plus or minus 3.3 x 10^12 mol O2 a year, one mole of O2 per mole buried; GEN.1789 measured that moving it inside that range moves no Class M; earlier RECALLED [R1859])"
             ]
           ],
           "id": "BO1",
           "key": "6.21:BO1",
           "kind": "P",
           "slug": "6-21-bo1",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.EARTH_BURIAL_MOL_YR 1e13: the source S of oxygen at Earth"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
@@ -12513,16 +12505,16 @@
             ],
             [
               "Evidence",
-              "RECALLED ([R1980] few 1e12)"
+              "READ ([R5300: Table 1]: reduced volcanic and metamorphic gases, minus (3 plus or minus 1) x 10^12 mol O2 a year, after Holland 1978; the same paper finds the mantle changes the H2 over CO2 ratio by only about 1.8 and metamorphic gases do not follow it; GEN.1789; earlier RECALLED [R1980])"
             ]
           ],
           "id": "BO2",
           "key": "6.21:BO2",
           "kind": "P",
           "slug": "6-21-bo2",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth"
         },
@@ -12631,15 +12623,15 @@
             ],
             [
               "Evidence",
-              "RECALLED (about half a heterotroph's)"
+              "READ ([R5299]: the effective activation energy of photosynthesis is about 0.32 eV, from Rubisco carboxylation, against 0.65 eV for respiration; their net primary production fit gives 0.35 eV, 95 percent interval 0.20 to 0.50; GEN.1789)"
             ]
           ],
           "id": "BO5",
           "key": "6.21:BO5",
           "kind": "T",
           "slug": "6-21-bo5",
-          "tier": "T4",
-          "tier_code": "T4",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.TEMPERATURE_ACTIVATION_EV 0.32: the Boltzmann factor on production"

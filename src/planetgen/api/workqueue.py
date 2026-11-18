@@ -141,7 +141,7 @@ def run_detail(run_id):
 @require_admin()
 def running_jobs():
     """
-    `GET /api/admin/work/jobs` -- the jobs that are not units of a run and are running, from their beats (OPS.142): `{"jobs": [{"kind" ("api", "web" or "tile-prefetch"), "job", "label",
+    `GET /api/admin/work/jobs` -- the jobs that are not units of a run and are running, from their beats (OPS.142): `{"jobs": [{"kind" ("api" or "tile-prefetch"), "job", "label",
     "state" ("working" or "dead"), "reason", "phase", "running_seconds", "beat_age_seconds"}]}`, the longest running first. A job that died stays listed, as `dead`, for an hour.
     """
     connection = _connection()

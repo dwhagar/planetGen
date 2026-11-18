@@ -101,12 +101,13 @@ def test_the_names_the_program_gives_its_jobs_are_on_the_list():
     assert "planetgen.queue.lightjobs.run" in allowlist.FUNCTIONS        # the process a light job runs in; the API function it calls is checked by `api_jobs.execute`
 
 
-def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
-    """`queue.enqueue(X, ...)`, and `enqueue_many([prepare_data(X, ...)])`: X is a constant
-    on the list, a module constant that is, or a helper's own parameter."""
-    known = {"JOB": "planetgen.web.lib.tileprefetch:build_nodes"}
-    checked = 0
-    for module, path, tree in _trees():
+ENQUEUE_KNOWN = {"JOB": "planetgen.web.lib.tileprefetch:build_nodes"}
+
+
+def _enqueues(trees):
+    """`(path, line, the argument as written, the function it names or None)` of each place in `trees` (`(module, path, tree)`) that queues work: `queue.enqueue(X, ...)` and
+    `enqueue_many([prepare_data(X, ...)])`."""
+    for module, path, tree in trees:
         if module == "planetgen.queue.redisqueue":
             continue                      # the queue class itself, not a place that queues work
         for node in ast.walk(tree):
@@ -117,10 +118,20 @@ def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
             if not node.args:
                 continue
             argument = node.args[0]
-            value = argument.value if isinstance(argument, ast.Constant) else known.get(getattr(argument, "id", None))
-            assert value in allowlist.FUNCTIONS, f"{path}:{node.lineno} queues {ast.unparse(argument)}"
-            checked += 1
-    assert checked >= 1         # the Generate page's job
+            yield path, node.lineno, ast.unparse(argument), argument.value if isinstance(argument, ast.Constant) else ENQUEUE_KNOWN.get(getattr(argument, "id", None))
+
+
+def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
+    """X is a constant on the list, a module constant that is, or a helper's own parameter. OPS.244: the Generate page's job was the last place that queued a function by name, so none may be left."""
+    for path, line, written, value in _enqueues(_trees()):
+        assert value in allowlist.FUNCTIONS, f"{path}:{line} queues {written}"
+
+
+def test_the_sweep_for_enqueues_finds_a_function_that_is_not_on_the_list_and_passes_one_that_is():
+    """The sweep above must still have teeth when the source has no enqueue left."""
+    source = "queue.enqueue('planetgen.queue.lightjobs.run')\nqueue.enqueue('planetgen.nowhere.run')\nqueue.enqueue_many([queue.prepare_data('planetgen.nowhere.other')])\n"
+    found = list(_enqueues([("planetgen.somewhere", "somewhere.py", ast.parse(source))]))
+    assert [(line, value in allowlist.FUNCTIONS) for _path, line, _written, value in found] == [(1, True), (2, False), (3, False)]
 
 
 # --- The guard itself ----------------------------------------------------------------------------------------------------

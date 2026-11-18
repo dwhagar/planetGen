@@ -1,6 +1,6 @@
 {
-  "stages": ["plan", "scatter", "fill", "population"],
-  "stage_note": "Each epoch's `affects` lists the deepest stages of generation whose output it changed: plan (the galaxy's shape and its stored totals), scatter (the bright, massive and phenomenon scatter and the stars it draws), fill (what a sector holds), population (species, polities). Links, sector paths, block totals and nebula blocks follow the fill and are redone with it. `plan` means a full regeneration (GEN.764). Epochs 1 to 96 were classified by reading their reasons, conservatively: when in doubt a stage is listed.",
+  "stages": ["plan", "scatter", "fill", "population", "derived"],
+  "stage_note": "Each epoch's `affects` lists the deepest stages of generation whose output it changed: plan (the galaxy's shape and its stored totals), scatter (the bright, massive and phenomenon scatter and the stars it draws), fill (what a sector holds), population (species, polities), derived (a pure function of stored values, such as a rule, a text or the ledger: refilled by a job, never regenerated; OPS.133). Links, sector paths, block totals and nebula blocks follow the fill and are redone with it. `plan` means a full regeneration (GEN.764). Epochs 1 to 96 were classified by reading their reasons, conservatively: when in doubt a stage is listed.",
   "epochs": [
     {
       "epoch": 1,
