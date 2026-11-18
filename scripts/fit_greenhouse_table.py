@@ -13,6 +13,8 @@ seconds to minutes an air. Four steps, each resumable, each writing into the wor
     python3 scripts/fit_greenhouse_table.py designed WORK --count 6000               add airs drawn from families of worlds (train.pkl grows)
     python3 scripts/fit_greenhouse_table.py envelope WORK --name envelope --count 800   the airs of hydrogen envelopes and giants, as the generator makes them (GEN.1717)
     python3 scripts/fit_greenhouse_table.py hot WORK --name hot --count 800             the airs of hot rocky planets, to hold at the starting file's answer (GEN.1717)
+    python3 scripts/fit_greenhouse_table.py hazy WORK --name hazy --seeds 0 2400         the airs of hazy bodies and each one at a ladder of haze shares and levels (GEN.1780)
+    python3 scripts/fit_greenhouse_table.py cold WORK --name cold --count 800         the cold dense airs of the far edge of a system (GEN.1780)
     python3 scripts/fit_greenhouse_table.py solve WORK --name train --workers 4      the model's surface temperature of each air (train.jsonl)
     python3 scripts/fit_greenhouse_table.py solve WORK --name validation --workers 4
     python3 scripts/fit_greenhouse_table.py wet WORK --count 6000                     add temperate wet airs (GEN.1304; train.pkl grows)
@@ -170,10 +172,11 @@ FAMILIES = (
 decades), the surface pressure range, the absorbed flux range and the chance of a haze taking sunlight aloft."""
 
 
-def designed_airs(count, rng):
+def designed_airs(count, rng, families=None):
+    families = FAMILIES if families is None else families
     airs = []
     for number in range(count):
-        name, shares, pressures, fluxes, haze = FAMILIES[number % len(FAMILIES)]
+        name, shares, pressures, fluxes, haze = families[number % len(families)]
         drawn = {}
         for formula, (low, high) in shares.items():
             if high / max(low, 1.0e-12) > 100.0:
@@ -189,6 +192,19 @@ def designed_airs(count, rng):
         aloft = pressure * 10.0 ** rng.uniform(-5.5, -1.0)
         airs.append((partials, gravity, flux, share, aloft if share > 0.0 else None))
     return airs
+
+
+COLD_FAMILIES = (
+    ("cold-dense-nitrogen", {"N2": (0.1, 0.99), "CO2": (1.0e-3, 0.9), "Ar": (0.0, 0.02), "CH4": (0.0, 0.02), "H2O": (1.0e-6, 1.0e-3)}, (3.0e5, 3.0e7), (0.05, 30.0), 0.1),
+    ("cold-dense-carbon-dioxide", {"CO2": (0.5, 1.0), "N2": (0.0, 0.3), "Ar": (0.0, 0.02), "H2O": (1.0e-6, 1.0e-3), "CH4": (0.0, 0.01)}, (1.0e5, 3.0e7), (0.05, 30.0), 0.1),
+)
+COLD_DEEP_FAMILIES = (
+    ("cold-deep-nitrogen", {"N2": (0.6, 0.95), "CO2": (0.03, 0.35), "Ar": (0.0, 0.02), "CH4": (0.0, 0.01)}, (1.5e6, 2.0e7), (0.3, 6.0), 0.0),
+    ("cold-deep-carbon-dioxide", {"CO2": (0.85, 1.0), "H2": (0.0, 0.05), "N2": (0.0, 0.1)}, (1.0e6, 2.0e7), (0.3, 6.0), 0.0),
+)
+"""tuple: GEN.1780: the narrower families of `cold --deep`: the deep cold nitrogen and carbon dioxide airs (15 to 200 bar, 0.3 to 6 W/m2 absorbed) of the fixed point of a world far out, where the first cold set left the table 70 K off."""
+
+"""tuple: GEN.1780: the families of `cold` (same form as `FAMILIES`): the cold dense nitrogen and carbon dioxide airs of a world at the far edge of the system (an effective temperature of 30 to 140 K, 1 to 300 bar), where a validation on the generator's airs found the first table 75 to 90 K off."""
 
 
 def wet_airs(count, rng):
@@ -257,6 +273,80 @@ def anchor_airs(count, rng):
         airs.append((partials, gravity * math.exp(rng.uniform(-0.1, 0.1)), flux * math.exp(rng.uniform(-math.log(flux_factor), math.log(flux_factor)) / 2.0),
                      min(0.9, haze * math.exp(rng.gauss(0.0, 0.2))), aloft))
     return airs
+
+
+HAZE_LADDER = (0.0, 0.05, 0.15, 0.3, 0.5, 0.7, 0.9)
+"""tuple: The shares of the sunlight taken aloft that `hazy` puts every hazy air at, from none to the cap of `aerosols.HAZE_SHARE_CAP`: the ladder teaches the table that the ground does not warm as the share rises (GEN.1780)."""
+HAZE_LEVEL_FACTORS = (0.1, 10.0)
+"""tuple: The factors of the level (pressure) the haze takes the light at, tried at two shares of the ladder, so the table learns the level too."""
+HAZE_LEVEL_SHARES = (0.3, 0.7)
+
+
+def collect_hazy(args):
+    """The greenhouse calls of the single-planet generator of `tests/test_haze_in_the_air.py` (`_generate`, reused) for the seeds `args = (first, last)`, the hazy bodies' only."""
+    first, last = args
+    from planetgen.physics import atmosphere_state
+    from tests.test_haze_in_the_air import _generate
+
+    calls = []
+    original = atmosphere_state.greenhouse_warming
+
+    def record(partials, gravity, flux, aloft_share=0.0, aloft_pressure_pa=None):
+        calls.append((dict(partials), gravity, flux, aloft_share, aloft_pressure_pa))
+        return original(partials, gravity, flux, aloft_share, aloft_pressure_pa)
+
+    atmosphere_state.greenhouse_warming = record
+    try:
+        for seed in range(first, last):
+            try:
+                _generate(seed)
+            except Exception:      # a body the generator itself would not make is no loss to the set
+                continue
+    finally:
+        atmosphere_state.greenhouse_warming = original
+    return [call for call in calls if call[3] > 0.0]
+
+
+def haze_ladder(air):
+    """One air at every share of `HAZE_LADDER` (no haze, then each share at the air's own level) and at the two levels of `HAZE_LEVEL_FACTORS` for two shares."""
+    partials, gravity, flux, share, aloft = air
+    total = sum(partials.values())
+    out = [(partials, gravity, flux, 0.0, None)]
+    out.extend((partials, gravity, flux, rung, aloft) for rung in HAZE_LADDER if rung > 0.0)
+    out.extend((partials, gravity, flux, rung, min(aloft * factor, 0.5 * total)) for rung in HAZE_LEVEL_SHARES for factor in HAZE_LEVEL_FACTORS)
+    return out
+
+
+def hazy(args):
+    """GEN.1780: the airs of hazy bodies (the fixed point's own calls, `collect_hazy`), each in a ladder of haze shares and levels and a perturbed copy of it, added to the samples of `--name`."""
+    from planetgen.physics import greenhouse_table
+
+    first, last = args.seeds
+    step = 20
+    ranges = [(a, min(a + step, last)) for a in range(first, last, step)]
+    calls = []
+    with multiprocessing.Pool(args.workers) as pool:
+        for chunk in pool.imap(collect_hazy, ranges):
+            calls.extend(chunk)
+            print(f"{len(calls)} hazy greenhouse calls", flush=True)
+    rng = random.Random(PERTURB_SEED + 6)
+    airs = [air for air in distinct(calls) if sum(air[0].values()) <= greenhouse_table.PRESSURE_MAX_PA]
+    out = []
+    for air in airs:
+        out.extend(haze_ladder(air))
+        twin = perturbed(air, rng)
+        if twin[3] > 0.0 and sum(twin[0].values()) <= greenhouse_table.PRESSURE_MAX_PA:
+            out.extend(haze_ladder(twin))
+    out = [(greenhouse_table.strip_traces(partials), gravity, flux, share, aloft) for partials, gravity, flux, share, aloft in out]
+    path = os.path.join(args.work, args.name + ".pkl")
+    samples = []
+    if os.path.exists(path):
+        with open(path, "rb") as handle:
+            samples = pickle.load(handle)
+    samples.extend(out)
+    with open(path, "wb") as handle:
+        pickle.dump(samples, handle)
+    print(f"{len(calls)} calls, {len(airs)} distinct hazy airs, {len(out)} samples added, {len(samples)} in {path}")
 
 
 def anchors(args):
@@ -352,7 +442,7 @@ def envelope(args):
     """GEN.1717: add the airs of hydrogen envelopes and giants (the generator's own, `collect_envelope`, and a perturbed copy of each, `perturbed`) to the samples of `--name`."""
     from planetgen.physics import greenhouse_table
 
-    rng = random.Random(ENVELOPE_PERTURB_SEED + (1 if args.step == "hot" else 0))
+    rng = random.Random(ENVELOPE_PERTURB_SEED + (1 if args.step == "hot" else 0) + 1000 * args.rng_offset)
     bodies = (hot_bodies if args.step == "hot" else envelope_bodies)(args.count, rng)
     chunks = [bodies[index::args.workers * 4] for index in range(args.workers * 4)]
     calls = []
@@ -361,7 +451,7 @@ def envelope(args):
             calls.extend(chunk)
             print(f"{len(calls)} greenhouse calls", flush=True)
     airs = [air for air in distinct(calls) if sum(air[0].values()) <= greenhouse_table.PRESSURE_MAX_PA]
-    out = list(airs) + [perturbed(air, rng) for air in airs]
+    out = list(airs) + ([] if args.no_perturb else [perturbed(air, rng) for air in airs])
     # the table is read at runtime on the air without its traces (`greenhouse_table.strip_traces`, GEN.1588): the network is fitted on those airs, as the model answers them
     out = [(greenhouse_table.strip_traces(partials), gravity, flux, share, aloft) for partials, gravity, flux, share, aloft in out]
     path = os.path.join(args.work, args.name + ".pkl")
@@ -383,6 +473,19 @@ def designed(args):
     with open(path, "wb") as handle:
         pickle.dump(samples, handle)
     print(f"{args.count} designed airs added, {len(samples)} samples in {path}")
+
+
+def cold(args):
+    """GEN.1780: add cold dense clear airs (`COLD_FAMILIES`) to the samples of `--name`."""
+    path = os.path.join(args.work, args.name + ".pkl")
+    samples = []
+    if os.path.exists(path):
+        with open(path, "rb") as handle:
+            samples = pickle.load(handle)
+    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
+    with open(path, "wb") as handle:
+        pickle.dump(samples, handle)
+    print(f"{args.count} cold dense airs added, {len(samples)} samples in {path}")
 
 
 def solve_one(item):
@@ -596,16 +699,14 @@ def greenhouse_table_features():
     return greenhouse_table.FEATURE_NAMES
 
 
-def validate(args):
-    """Measures the file `--out` on the sample set `--name` (made by `sample --no-perturb` on seeds the fit never saw, and `solve`) and writes the
-    result into the file as `summary.validation`, with the same percentiles broken down by the model's surface temperature."""
-    with open(args.out, encoding="utf-8") as handle:
-        data = json.load(handle)
-    network = read_file(args.out)
-    features, targets = load(args.work, args.name)
-    result = temperature_error(network, features, targets)
+HYDROGEN_RICH_SHARE = 0.1
+"""float: The hydrogen mole fraction from which an air is counted with the giants' and envelopes' (`validate` states it apart; the same line `tests/test_infrared_doubling.py` draws, TEST.790)."""
+
+
+def validate_set(network, features, targets):
+    """The figures `validate` states for one set of airs: all of them, by the model's surface temperature, and the cool ones by class."""
     model = np.exp(features[:, 0]) * np.exp(targets)
-    result["set"] = args.name
+    result = temperature_error(network, features, targets)
     result["by_surface_temperature_k"] = {}
     for low, high in BANDS_K:
         chosen = (model >= low) & (model < high)
@@ -620,7 +721,29 @@ def validate(args):
         chosen = chosen & cool
         if chosen.any():
             result["cool_by_class"][label] = temperature_error(network, features[chosen], targets[chosen])
+    return result
+
+
+def validate(args):
+    """Measures the file `--out` on the sample set `--name` (made by `sample --no-perturb` on seeds the fit never saw, and `solve`) and writes the
+    result into the file as `summary.validation`, with the same percentiles broken down by the model's surface temperature and class. GEN.1780: the airs with
+    `HYDROGEN_RICH_SHARE` of hydrogen or more (the hydrogen envelopes and giants, where the table is weakest, GEN.1781) are stated apart under `hydrogen_rich`, so the
+    figures of the air the habitability and the life read are not mixed with theirs."""
+    with open(args.out, encoding="utf-8") as handle:
+        data = json.load(handle)
+    network = read_file(args.out)
+    features, targets = load(args.work, args.name)
+    names = list(greenhouse_table_features())
+    rich = np.exp(features[:, names.index("ln_fraction_H2")]) >= HYDROGEN_RICH_SHARE
+    result = validate_set(network, features[~rich], targets[~rich])
+    result["set"] = args.name
+    result["hydrogen_rich"] = validate_set(network, features[rich], targets[rich]) if rich.any() else None
     data["summary"]["validation"] = result
+    if args.envelope_name and os.path.exists(os.path.join(args.work, args.envelope_name + ".jsonl")):
+        envelope_features, envelope_targets = load(args.work, args.envelope_name)
+        envelope_result = temperature_error(network, envelope_features, envelope_targets)
+        envelope_result["what"] = "hydrogen envelopes and giants of the generator (GEN.1717), airs the fit never saw, read through greenhouse_table.warming"
+        data["summary"]["envelope_validation"] = envelope_result
     with open(args.out, "w", encoding="utf-8") as handle:
         json.dump(data, handle, separators=(",", ":"))
         handle.write("\n")
@@ -659,7 +782,7 @@ def fit(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "envelope", "hot", "solve", "fit", "validate"))
+    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "envelope", "hot", "hazy", "cold", "solve", "fit", "validate"))
     parser.add_argument("work", help="the work folder (outside the repository)")
     parser.add_argument("--name", default="train")
     parser.add_argument("--train", nargs="+", default=["train"], help="fit: the sample sets to fit to (each made by sample, designed and solve)")
@@ -672,13 +795,16 @@ def main():
     parser.add_argument("--iterations", type=int, default=6000)
     parser.add_argument("--penalty", type=float, default=1.0e-7)
     parser.add_argument("--out", default=OUT)
+    parser.add_argument("--deep", action="store_true", help="cold: the deep families (`COLD_DEEP_FAMILIES`)")
+    parser.add_argument("--rng-offset", type=int, default=0, help="envelope, hot: another stream of bodies than the fit's (GEN.1780: 1 draws bodies the fit never saw, for the validation)")
+    parser.add_argument("--envelope-name", default=None, help="validate: also state the accuracy on this set of envelope airs (made by `envelope` and `solve`) as `envelope_validation`")
     parser.add_argument("--cool-below", type=float, default=0.0, help="solve: only the airs the file in the repository puts under this surface temperature (K)")
     parser.add_argument("--start", action="store_true", help="fit: begin from the weights and standardisation of the file --out")
     parser.add_argument("--hold", nargs="*", default=[], help="fit with --start --distill: sample sets whose every air (solved or not) is held at the starting file's answer")
     parser.add_argument("--distill", action="store_true", help="fit with --start: an air the model was not asked about takes the starting file's answer")
     args = parser.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "envelope": envelope, "hot": envelope, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
+    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
 
 
 if __name__ == "__main__":

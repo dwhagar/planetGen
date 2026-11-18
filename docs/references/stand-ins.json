@@ -70253,6 +70253,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "greenhouse_table.ALOFT_MONOTONE_NODES 10 (GEN.1780): the table's ground temperature under a haze is read as the running minimum of the network over the shares of the haze's light from none up to the share asked, at a node every tenth and interpolated between them, so a larger share is never warmer"
+            ],
+            [
+              "The range it moves in",
+              "5 to 20 nodes (the shape is the same; only how finely the dips between nodes are caught)"
+            ],
+            [
+              "Where it holds",
+              "any air with sunlight taken aloft (aloft_share over 0): the tholin, soot and sulfuric hazes of cold and warm worlds"
+            ],
+            [
+              "What would show it wrong",
+              "tests/test_greenhouse_table.py::test_sunlight_taken_aloft_never_warms_the_ground; tests/test_haze_in_the_air.py (the replays of one world converge to one answer); a radiative-convective run of any air whose ground is warmer at a larger share of the same haze"
+            ],
+            [
+              "What replaces it",
+              "a refit of the table on hazy airs that is itself non-increasing in the share (scripts/fit_greenhouse_table.py hazy, GEN.1781)"
+            ],
+            [
+              "Evidence",
+              "a bound of the physics and not a fitted number: sunlight taken aloft is sunlight the ground does not get, and the full model cools the ground as the share rises; the network fitted to it rose between samples (171, 199 and 229 K where the model gave 166, 155 and 139 K for shares 0, 0.3 and 0.7 of a nitrogen and methane air under a faint star), which made fixed points that are not physical"
+            ]
+          ],
+          "id": "IR20",
+          "key": "6.6c:IR20",
+          "kind": "P",
+          "slug": "6-6c-ir20",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "greenhouse_table.ALOFT_MONOTONE_NODES 10 (GEN.1780): the table's ground temperature under a haze is read as the running minimum of the network over the shares of the haze's light from none up to the share asked, at a node every tenth and interpolated between them, so a larger share is never warmer"
         }
       ],
       "slug": "6-6c-stand-ins-of-the-greenhouse-table-above-and-below-what-it-was-fitted-on-gen-1238-gen-1580-gen-1588",
