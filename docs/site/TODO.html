@@ -12213,18 +12213,6 @@ Version 8.1. Owner (TODO, 2026-11-14): Lane 06 (stage 4 chain). Prerequisites: s
 Filed by the TODO thread.</p>
 </li>
 <li>
-<p>[ ] <strong>OPS.231 Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot</strong>
-From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan (&quot;send all of that to the thread to build its plan and design to ship to TODO to be built&quot;); stages build in order after OPS.191-214. Do: as the breakdown's row D6 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.228, OPS.229, OPS.230. Related: OPS.191, OPS.207, OPS.212.
-Filed by the TODO thread.</p>
-</li>
-<li>
-<p>[ ] <strong>OPS.234 Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor</strong>
-From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D9); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan (&quot;send all of that to the thread to build its plan and design to ship to TODO to be built&quot;); stages build in order after OPS.191-214. Do: as the breakdown's row D9 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-Version 8.1. Owner (TODO, 2026-11-17): Lane 15 (moved from Lane 13 at 11:45 AM EST, not started there; Lane 13 has OPS.271). Earlier owner (TODO, 2026-11-14): Lane 13. Prerequisites: OPS.228. Related: OPS.191, OPS.207, OPS.212.
-Filed by the TODO thread.</p>
-</li>
-<li>
 <p>[ ] <strong>OPS.235 Job engine stage 4: RQ removed (the rq dependency, cli/worker.py, redisqueue queue helpers, reset_jobs RQ parts); makes OPS.179 moot</strong>
 From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D10); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan (&quot;send all of that to the thread to build its plan and design to ship to TODO to be built&quot;); stages build in order after OPS.191-214. Do: as the breakdown's row D10 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Touches units.py, wrapper.py or workers.py: one lane one after another, merges with the lock through Train Manager. Output unchanged, no epoch.
 Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.228, OPS.229, OPS.230, OPS.234. Related: OPS.191, OPS.207, OPS.212.
@@ -12273,12 +12261,6 @@ Version 8.1. Owner (TODO, 2026-11-14): Lane 07 (moved from Lane 14, closed). Pre
 Filed by the TODO thread.</p>
 </li>
 <li>
-<p>[ ] <strong>OPS.248 Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit)</strong>
-From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan (&quot;send all of that to the thread to build its plan and design to ship to TODO to be built&quot;); stages build in order after OPS.191-214. Do: as the breakdown's row H3 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: OPS.231, OPS.232. Related: OPS.191, OPS.207, OPS.212.
-Filed by the TODO thread.</p>
-</li>
-<li>
 <p>[ ] <strong>OPS.249 Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question</strong>
 From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H4); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan (&quot;send all of that to the thread to build its plan and design to ship to TODO to be built&quot;); stages build in order after OPS.191-214. Do: as the breakdown's row H4 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
 Version 8.1. Owner (TODO, 2026-11-14): Lane 06. Prerequisites: OPS.231, OPS.247. Related: OPS.191, OPS.207, OPS.212.
@@ -12292,6 +12274,7 @@ Filed by the TODO thread.</p>
 </li>
 <li>
 <p>[ ] <strong>OPS.251 Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace</strong>
+TODO, 12:42 PM EST 2026-11-17: Lane 14's slice 1 accepted: the light job clock limit becomes the learned per-kind figure plus a liveness notice (a job that still beats is never ended by the clock; a dead one ends at once), and the two STARTING waits (workers 90 s, supervisor 20 s) end on the child's exit notice. beatjudge QUIET_FLOOR and WAITING_LIMIT stay flags.
 From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan (&quot;send all of that to the thread to build its plan and design to ship to TODO to be built&quot;); stages build in order after OPS.191-214. Do: as the breakdown's row H6 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
 Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: stage 4. Related: OPS.191, OPS.207, OPS.212.
 Filed by the TODO thread.</p>
@@ -12348,12 +12331,6 @@ Version 8.1. Owner (TODO, 2026-11-16): Lane 16, lock-free. Prerequisites: none. 
 Filed by the TODO thread.</p>
 </li>
 <li>
-<p>[ ] <strong>GEN.1777 (high) Why a Class M Plentiful run made no Class M, H, O, P or R, and a tunable CO<sub>2</sub> lever: measure whether the CO<sub>2</sub> supply needs a tweak: warm wet worlds hold 10 kPa or more of CO<sub>2</sub> in 18 of 22 cases and every civilized world 19 to 792 kPa, none an Earth-like trace (report first, no build until Boss decides)</strong>
-Boss, 9:55 PM EST 2026-11-16 (&quot;Investigate if we want to tweak the CO2&quot;), after GEN.1776 (Lane 04, reports/gen1776-civilization-air-2026-11-16.md: civilized worlds are CO<sub>2</sub>-rich because warm wet worlds here are; the supply side is the open GEN.1720 and GEN.1731 question). Do: measure the CO<sub>2</sub> of temperate and warm life worlds against Earth's history and the sources (outgassing, weathering, the carbonate cycle as the model has it), find which registered stand-in sets the excess (outgassing share, weathering stand-ins, the GEN.1720 dial), and report the options to Boss as reshapes of existing registered stand-ins (Boss, 8:47 PM EST 2026-11-16), with the Class M and civilization rates each option would give. No build until he picks. Boss, 9:59 PM EST 2026-11-16: his canceled Plentiful run (8.0.4396, 110-sector neighborhood, about 800 systems, log in /mnt/project-files/bugs/bright-star-backfill-slow-2026-11-16/) gave class G 27, K 27, F 51, X 74 and none of M, H, O, P or R; &quot;Investigate a lever for the CO<sub>2</sub> that we can tune, even if we have to tweak a physics based value&quot;. So: show the funnel on his rows if they still exist, else a Plentiful meter run on main (Sun-like systems, rocky habitable-zone planets, air, temperature, ocean, oxygen) and where candidates fall out; then propose one tunable CO<sub>2</sub> lever (a reshaped registered stand-in, a physics value allowed) with the measured Class M rate at each tier (Sparse, Scattered, Plentiful, Abundant, Science). Lane 02 (Air and climate) helps on the carbon-cycle side.
-Version 8.1. Owner (TODO, 2026-11-16): Lane 04. Prerequisites: none. Related: GEN.1776, GEN.1720, GEN.1731, GEN.1732, GEN.1767.
-Filed by the TODO thread.</p>
-</li>
-<li>
 <p>[ ] <strong>OPS.270 (high) Only 3 of the 16 sky shares of Stage 9 (&quot;Scatter the massive stars from the neighborhood&quot;) run at once, so the stage takes about 6 rounds of about 5 hours (Boss's 8.0.4396 run)</strong>
 Found by Lane 07 on OPS.269 (PR 6982, merged 10:20 PM EST 2026-11-16): the backfill plan is 1 sector unit (1,088 sectors, seconds) plus 16 sky shares; each share ran about 5 hours at the seen rate (1.18e7 walk visits in 4.5 h) and only 3 ran at once, the count set by the unit claim, so the stage would take on the order of 1 to 1.5 days. Do: find why the claim admits 3 workers for this stage on Boss's machine (memory gate, fair share, per-stage cap), whether more can run under the memory and load gate, and report the stage time before and after. Log /mnt/project-files/bugs/bright-star-backfill-slow-2026-11-16/job-20261116-222603-c91b.log.
 Version 8.1. Owner (TODO, 2026-11-16): Lane 13, priority 1. Prerequisites: none. Related: OPS.269, PERF.275.
@@ -12379,12 +12356,14 @@ Filed by the TODO thread.</p>
 </li>
 <li>
 <p>[ ] <strong>GEN.1785 Class census shifts since 8656686b7 (test_prevalence_census, 26 flags): G2V ecosphere class E 22 percent (range 0 to 13.8) and G 14 percent (0 to 8.3), K5V ecosphere G 7 percent, G2V ecosphere microbial ceiling 0.8 percent (5.8 to 43), F5V and K0III ecosphere microbial far up (64 and 54 percent), A0V ecosphere ceiling none 85 percent (36 to 76), K5V hot moon ceiling none 0 percent (82 to 100); explain each shift, fix what is a fault, then renew the ranges</strong>
+TODO, 12:37 PM EST 2026-11-17: GEN.1390 folded in. Lane 14 also found test_prevalence_life_census and test_prevalence_systems_census red for the same reason (main 1d0d155b04). FIRST explain the planet count: planets per system 13.7 to 17.3 against a range of 4 to 12 for A0V, F5V, G2V and K5V (about twice; check whether belt-promoted, class D or captured bodies are counted, or the planet builder changed). Then: life any_trait 0.77 (range 0 to 0.33); A0V belts 0.69 and belts_count 1.02 above range; G2V habitable_class 0.687 (limit 0.681); F5V blue_green 0 (range 0.01 to 0.38); oddity W1 0.90 (floor 0.95). The over-time-limit flags (18 life systems over 60 s, one G2V system over 180 s) came with two censuses sharing a box; rerun alone before treating them as real.
 Lane 14, 6:44 AM EST 2026-11-17 (GEN.1390 sweep on main 1d0d155b04; report /mnt/project-files/reports/gen1390-2026-11-17/class-census-main-1d0d155b04.md). Not a test bug: the census ranges were pinned at 8656686b7 and generation moved since. Renewing the ranges first would hide the class E and microbial shifts, so the ranges stay until each shift is explained. Do: (1) for each flag, find the merge that moved it (bisect on the census meter); (2) a shift that is the intended physics is recorded in the report and its range renewed; a fault is fixed in its own lane (the G excess belongs with GEN.1777's CO<sub>2</sub> lever, so measure after Boss picks that lever); (3) renew the remaining ranges in one PR, never widening a range to cover a fault.
-Version 8.1. Owner (TODO, 2026-11-17): Lane 04, with Lane 02 for air and life shifts. Prerequisites: GEN.1777 (the lever Boss picks). Related: GEN.1390, GEN.1777, GEN.1732.
+Version 8.1. Owner (TODO, 2026-11-17): Lane 04, with Lane 02 for air and life shifts. Prerequisites: GEN.1777 (decided 11-17: oxygen rise, GEN.1745 slice 3). Related: GEN.1390, GEN.1777, GEN.1732.
 Filed by the TODO thread.</p>
 </li>
 <li>
 <p>[ ] <strong>OPS.271 Ledgerless runs (<code>generate system --output</code> with no database, the update's math check before the migration step) run their units in the CLI process or a forked job without a ledger, so the bulk RQ unit path can be deleted</strong>
+TODO, 12:01 PM EST 2026-11-17: slice 1 merged (PR 7090: queue.forked_jobs setting removed, two launcher bugs fixed, eight main reds fixed). No product run is ledgerless. Decision on the test-only ledgerless fallback (control DB unreachable or unmigrated): no fallback path (no compatibility shims); tests migrate a control DB like product runs. Next slice deletes enqueue_units, run_unit, open_stage, WarmWorker unit prep, claim expiry, heartbeat and the gate wait. File boundary with OPS.234 (Lane 15): Lane 15 adds one duty in supervisor.py and reads launcher.running only; it does not edit launcher.py, planrows.py, units.py, wrapper.py, forkedjob.py or workers.py.
 TODO, 2026-11-17: also deletes WarmWorker's unit prep, claim expiry and heartbeat, and the gate wait (moved here from OPS.229, which merged as PR 7082 without them).
 Lane 13, 7:57 AM EST 2026-11-17 (OPS.228 closed: every run with a ledger runs its bulk lane as forked jobs, PRs 6995, 7011, 7027, 7040, 7062; runs where planrows.ledgered is false still use enqueue_units, run_unit and open_stage). Do: run those units in the CLI process or a forked job with no ledger, reusing the launcher; then delete enqueue_units, run_unit and open_stage. WarmWorker's unit prep, claim expiry and heartbeat, and the gate wait are deleted with OPS.229 once the maintenance and check lanes move.
 Version 8.1. Owner (TODO, 2026-11-17): Lane 13, lock-free. Prerequisites: OPS.228 (done). Related: OPS.229, OPS.228.
@@ -12394,6 +12373,18 @@ Filed by the TODO thread.</p>
 <p>[ ] <strong>GEN.1787 Nine version- or library-dependent maths uses in the package (math.dist, math.hypot, the @ operator) fail the GEN.135 reproducible-draws scan; switch them to detmath (bug)</strong>
 Lane 16, 9:28 AM EST 2026-11-17 (tests/test_reproducible_draws.py::test_no_version_or_library_dependent_maths_in_the_package red on main 28a818f672 and the Train 43 base). Uses: generation/system.py:819 (math.dist), physics/eclipses.py:77, influx.py:123 and kozai_planets.py:146 (math.hypot), obliquity_variation.py:156 and secular_chain.py:213 and 227 (@, BLAS). Do: switch each to detmath.hypot, detmath.dist and detmath.matmul in one PR; measure how far the outputs move (expect the last bit at most) and say so; tell Lane 06 (influx) and Lane 07 (secular chain, kozai, obliquity) what changed in their files. Lock item if any stored value moves.
 Version 8.1. Owner (TODO, 2026-11-17): Lane 16, lock item. Prerequisites: none. Related: GEN.135, PERF.279.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>GEN.1788 Review the giant-planet scattering physics that sends comets inward: at the Science comet default only 4 of 300 systems have a giant plus a cold outer disk and none scatter, so comets come out at 0 percent; find whether giants are built or placed wrong for scattering, fix it, then comets follow</strong>
+Boss, 4:49 PM EST 2026-11-17 (comet card, &quot;Review giant scattering&quot;): keep the Science default (GEN.1775, Train 43) for now. Do: measure how often systems get a giant inside a cold outer disk against the observed rate (cold Jupiters and debris disks), check the scattering criterion the comet draw uses (giant mass, separation to the disk edge, Safronov number) against the sources, report the finding, then fix the physics (registered stand-ins per the tweak rule) and re-measure the Science comet rate. Report first if the fix moves giant or disk rates.
+Version 8.1. Owner (TODO, 2026-11-17): Lane 06, lock item if output moves. Prerequisites: none. Related: GEN.1775, GEN.1765, GEN.332.
+Filed by the TODO thread.</p>
+</li>
+<li>
+<p>[ ] <strong>PERF.280 Stage 9 (scatter the massive stars from the neighborhood): skip or batch sky cells expected to hold almost no bright stars; a design and measurement item that shows how the placed star set changes before anything merges</strong>
+Boss, 4:49 PM EST 2026-11-17 (Stage 9 card, &quot;File it&quot;), after his 11-16 run estimated about 5 hours for the bright-star backfill. Do: (1) from the sky model, the expected bright-star count per cell; (2) design a skip or batch rule for cells expected to hold almost none; (3) measure on a full neighborhood how the placed star set changes (count, positions, brightest stars) against today, and the time saved; report to Boss before any merge. Reuse the OPS.269 bar and the PERF.275 share costs.
+Version 8.1. Owner (TODO, 2026-11-17): Lane 07, report first, lock item if output moves. Prerequisites: none. Related: OPS.270, PERF.275, OPS.269.
 Filed by the TODO thread.</p>
 </li>
 <li>
@@ -12436,12 +12427,14 @@ Filed by the TODO thread.</p>
 </li>
 <li>
 <p>[ ] <strong>OPS.261 Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in</strong>
+TODO, 12:42 PM EST 2026-11-17: waits for OPS.271 slice 2 (it deletes enqueue_units and enqueue_open with their rq.Retry). Then Lane 14 deletes the db.contention retries and the DB.113 exclusive scatter-ids grant in one PR with a deadlock kill test.
 Lane 14, 6:23 AM EST 2026-11-15 (OPS.220, PR #6647): passing failures now retry in the engine with doubling waits inside a per-run budget, but three old paths stay until their replacements land: rq.Retry(max=1) on the killed path (until the supervisor hands out jobs, stage 4), the db.contention retries of the in-transaction layer, and a retried unit restarting at piece 0 (until OPS.219's cursor, PR #6632). Delete each once its replacement is on main; no shim.
 Version 8.1. Owner (TODO, 2026-11-15): Lane 14. Prerequisites: OPS.219, OPS.227. Related: OPS.220, OPS.226, OPS.228.
 Filed by the TODO thread.</p>
 </li>
 <li>
 <p>[ ] <strong>GEN.1745 A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts</strong>
+Boss, 4:49 PM EST 2026-11-17 (GEN.1777 decision &quot;Oxygen rise next&quot;): no CO<sub>2</sub> change; slice 3 (the oxygen rise on life worlds) is the next Class M lever and Lane 02's top generation item. GEN.1777 measured 4 of 9 inner-zone Plentiful sea worlds (5 of 12 Abundant) with photosynthesis but only 0 to 600 Pa of O<sub>2</sub> at 2.5 to 9.5 Gyr; report /mnt/project-files/reports/gen1777-co2-supply-2026-11-17.md. Measure Class M per tier with slice 3 against the targets (Plentiful 27, Abundant 100 per 1,000).
 Boss picked option 1 &quot;Full history, events, life ages&quot; at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
 Boss, 11:25 AM EST 2026-11-15 (research thread): &quot;NO class is assigned until the evolution is finished and we have a finished planet, this way we settle the planet after the physics not before.&quot; So nothing in the air history reads a class letter; the class is assigned once from the finished body after the last step; the in-between apply_class calls (generation/life.py 89 and 473, generation/system.py 2410 and 2419) go with this item, and forced requests judge only that final class (report section 5.8.1). Overlaps GEN.1653.
 Must cover (Class M tiers thread, 12:55 PM EST 2026-11-15, reports/class-m-tiers-build/meter-main-after-train31-2026-11-15.md, last section): a world its own life thaws keeps the life it was given while frozen. life.py dates the hard steps and calls _build_oxygen once, before life_air.apply_gases adds 6 to 25 Pa of methane that warms it 21 to 33 K and opens its ice-covered ocean; nothing re-dates or asks for the oxygen again (3 of the 9 no-oxygen in-band worlds on main 329c26d3, e.g. Ehinas II waits 10.8 Gyr for photosynthesis). The forward history replaces that one-shot order, so this is an acceptance case for it, not a separate fix (no layered fix): the history steps must re-date life and oxygen as the life gases move the temperature and hydrosphere, until the state settles.
@@ -12714,14 +12707,6 @@ level; a change to drawn output carries tests.golden_update --reason
 changed --resume; no fixed content from the Milky Way or the Solar
 System; built code needs a caller.
 Prerequisites: none (runs after GEN.1356 merges). Related: GEN.1356, GEN.475, GEN.477, TEST.685.</p>
-</li>
-<li>
-<p>[ ] <strong>GEN.1390 Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug)</strong>
-REWORKED: the prevalence habitable_world red may move or vanish with GEN.1397 (the habitable count then reads the life classes). Lane 05: rerun prevalence habitable_world after GEN.1397 before fixing it.
-8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size L; lock-free unless the owner finds a generated value changes. Each is a red row in known-red.csv. Several are likely one cause (the class T family: TEST.688, TEST.690, TEST.692). Do: group by cause, fix each, keep the tests; the owner may split this and tell TODO the new numbers. Owner (proposed by TODO): Lane 14. Rules: tests are
-scripts/test.py changed --resume.
-Prerequisites: none. Related: TEST.237.
-Filed by the TODO thread.</p>
 </li>
 <li>
 <p>[ ] <strong>TEST.696 Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug)</strong>

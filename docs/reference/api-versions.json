@@ -162,8 +162,7 @@
     },
     {
       "version": 14,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.4527",
       "items": [
         "OPS.235"
       ],
