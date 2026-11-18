@@ -1405,6 +1405,26 @@ def test_system_page_generates_the_page_without_a_database(site, client):
     assert "Debug log" in html
 
 
+def test_the_light_job_makes_the_system_in_its_own_process_from_the_generators_own_options():
+    """OPS.244: `generate_in_process` reads the options with the generator's parser and draws the system with the piece the generator draws it with: no run, no database, no process of its own."""
+    done = system_page.generate_in_process("system", ["--name=Direct Test", "+habitable_world", "--format=document"], False, None)
+    assert done["ok"] and json.loads(done["text"])["title"] == "Direct Test" and done["output"] == "" and done["debug_log"] == ""
+    asked = system_page.generate_in_process("system", ["--force-class=M"], False, None)
+    assert asked["ok"] and asked["asked"] and asked["asked"][0].startswith("Class M asked for: ") and asked["output"].endswith(asked["asked"][0])
+    refused = system_page.generate_in_process("system", ["--num-orbits=-1"], False, None)
+    assert not refused["ok"] and "zero or a positive integer" in refused["output"]
+    rogue = system_page.generate_in_process("phenomenon", ["--type", "rogue-planet", "--format=document"], False, None)
+    assert rogue["ok"] and json.loads(rogue["text"])["title"]
+
+
+def test_the_debug_log_of_the_one_off_system_keeps_the_areas_that_were_asked_for():
+    every = system_page.generate_in_process("system", [], True, None)
+    drawn = system_page.generate_in_process("system", ["--debug-areas=draw"], True, None)
+    assert every["ok"] and drawn["ok"] and every["debug_log"] and drawn["debug_log"]
+    assert " [draw] " in drawn["debug_log"] and " [decision] " not in drawn["debug_log"]
+    assert " [decision] " in every["debug_log"] and every["output"].endswith(every["debug_log"])
+
+
 def test_system_page_shows_a_bad_value(site, client):
     resp = _post_system(client, planets="no", moons="yes")
     assert resp.status_code == 400
@@ -1412,13 +1432,13 @@ def test_system_page_shows_a_bad_value(site, client):
 
 
 def test_system_page_shows_generator_failures(site, client, monkeypatch):
-    monkeypatch.setattr(system_page.jobs, "GENERATE_COMMAND", ["-c"])
-    monkeypatch.setattr(system_page.jobs, "python_executable", lambda: PY)
-    # `python -c system ...` runs the word "system" as code: a NameError.
+    """The page shows what the generator said when it fails (here its own parser refusing a command), not a blank page."""
+    real = system_page.system_request
+    monkeypatch.setattr(system_page, "system_request", lambda form: {**real(form), "command": "no-such-command"})
     resp = _post_system(client)
     html = resp.get_data(as_text=True)
     assert resp.status_code == 500
-    assert "The generator failed" in html and "NameError" in html
+    assert "The generator failed" in html and "invalid choice" in html
 
 
 def test_system_download(site, client):
