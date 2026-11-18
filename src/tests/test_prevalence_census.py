@@ -103,10 +103,33 @@ def test_a_known_anomaly_is_named_in_the_finding_and_the_report():
     assert "0 new, 1 known anomalies" in report and "GEN.855" in report
 
 
+def test_a_cell_the_reference_drew_nothing_in_expects_none_and_flags_a_body():
+    spec = {"cells": {"G2V/ecosphere/planet": {"n_ref": 0, "classes": {}, "tiers": {}, "ceilings": {}, "barred": [], "source": "test"}}}
+    assert census.compare({}, spec) == []
+    findings = census.compare(_cells(classes={"C": 4}), spec)
+    assert [(f.kind, f.measure, f.value) for f in findings] == [("barred", "bodies drawn where the reference drew none", 4.0)]
+
+
+def test_a_body_with_no_class_letter_is_in_no_class_share():
+    records = [{"star": "G2V", "zone": "e", "kind": "moon", "cls": None, "tier": None, "ceiling": None, "habitable": False},
+               {"star": "G2V", "zone": "e", "kind": "moon", "cls": "D", "tier": None, "ceiling": None, "habitable": False}]
+    assert census.tally(records)[("G2V", "e", "moon")]["n"] == 1
+
+
 def test_the_seeds_are_the_same_every_run_and_differ_by_cell():
     assert census.seed_for("cell", "G2V", "e") == census.seed_for("cell", "G2V", "e")
     seeds = {census.seed_for("cell", star, zone) for star in census.STAR_TYPES for zone in census.ZONES}
     assert len(seeds) == len(census.STAR_TYPES) * len(census.ZONES)
+
+
+def test_a_cell_is_spread_over_ten_stars_so_it_averages_their_ages():
+    """GEN.1785: a cell drew one star, so every planet in it had that star's age (0.159 Gyr for the G2V ecosphere cell on main)."""
+    assert census.STARS_PER_CELL == 10
+    assert census._stars_split(300) == [30] * 10
+    assert census._stars_split(6) == [1] * 6 and census._stars_split(25) == [3] * 5 + [2] * 5
+    assert sum(census._stars_split(299)) == 299
+    seeds = {census.seed_for("cell", "G2V", "e", index) for index in range(census.STARS_PER_CELL)}
+    assert len(seeds) == census.STARS_PER_CELL
 
 
 def test_a_cell_draw_repeats_and_lands_in_its_zone():

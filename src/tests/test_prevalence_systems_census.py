@@ -66,7 +66,7 @@ def test_a_share_expected_five_times_must_appear_whatever_the_band():
 
 
 def test_a_record_summary_gives_shares_and_means():
-    records = [{"star": "G2V", "planets": 4, "belts": 1, "moons": 4, "comets": 2, "binary": True, "habitable_class": True,
+    records = [{"star": "G2V", "planets": 4, "promoted": 6, "belts": 1, "moons": 4, "comets": 2, "binary": True, "habitable_class": True,
                 "blue_green": False, "reached": dict.fromkeys(systems.MILESTONES, False)},
                {"star": "G2V", "planets": 0, "belts": 0, "moons": 0, "comets": 0, "binary": False, "habitable_class": False,
                 "blue_green": False, "reached": dict.fromkeys(systems.MILESTONES, False)},
@@ -75,6 +75,7 @@ def test_a_record_summary_gives_shares_and_means():
     assert (summary["n"], summary["abandoned"], summary["error_count"]) == (2, 1, 1)
     assert summary["values"]["planets"] == 2.0 and summary["values"]["zero_planets"] == 0.5
     assert summary["values"]["binary"] == 0.5 and summary["values"]["moons_per_planet"] == 1.0
+    assert summary["values"]["promoted_count"] == 3.0     # GEN.1785: belt members made planets are counted apart, so `planets` means the slot planets
 
 
 def test_a_type_draw_repeats():

@@ -100,15 +100,19 @@ def _body_record(body, star_type, zone, kind, life):
 
 
 def finish_bodies(system, planets):
-    """Runs on bare planets the passes `StarSystem.__init__` runs on a finished system (snow line, rings, insolation, interior heat,
-    life data), so each body has the score, ceiling and life a drawn system's bodies have. Mirrors the "snow line pass" to the
-    "life data pass" of `generation/system.py`; a pass added there that changes a score belongs here too."""
-    from planetgen.generation import life
-    from planetgen.physics import insolation, interior_heat, magnetism, rings
+    """Runs on bare planets the passes `StarSystem.__init__` runs on a finished system (the moons built bare made whole, snow line, rings,
+    insolation, then the end of each body's making: `StarSystem._finish_planet` and `_finish_moon`, which are the thermal history, the final-age
+    refresh, the class, the induced field and the life), so each body has the class, score, ceiling and life a drawn system's bodies have. Mirrors the
+    "snow line pass" to the "life data pass" of `generation/system.py`; a pass added there that changes a score belongs here too. GEN.1785: the
+    harness stopped at the life data of each body, so a moon built bare (GEN.1548) had no class at all (40 of 974 moons) and a body's class was the
+    one it was drawn with, before the final-age refresh."""
+    from planetgen.physics import insolation, rings
 
     system.planets = list(planets)
     system.secondary_planets = []
     system.member_planets = []
+    for planet in planets:
+        planet.finish_moons()       # GEN.1548: the moons added bare take their air, class and spin once the orbit is settled
     for planet in planets:
         planet.born_beyond_snow_line = planet.distance >= planet.star.snow_line_au
         for moon in planet.moons:
@@ -119,17 +123,36 @@ def finish_bodies(system, planets):
             rings.apply(moon, planet)
     insolation.refresh_system(system)
     for planet in planets:
-        interior_heat.update_heat(planet)
-        life.apply_life_data(planet)
+        system._finish_planet(planet)
         for moon in planet.moons:
-            interior_heat.update_heat(moon)
-            magnetism.generate_induced_field(moon, planet)
-            life.apply_life_data(moon)
+            system._finish_moon(moon, planet)
+
+
+STARS_PER_CELL = 10
+"""int: How many stars a cell's draws are spread over (GEN.1785). A cell used to draw ONE star and put every planet round it, so the whole
+cell had that star's age: on main the G2V ecosphere cell's star was 0.159 Gyr old, every living body was at abiogenesis, and the class and life-ceiling
+shares moved with the luck of one draw. Each star is drawn on a stream of its own (`seed_for("cell", star, zone, index)`), so a cell averages ten ages."""
+
+
+def _stars_split(count):
+    """`count` bodies as evenly as it goes over `STARS_PER_CELL` stars (fewer stars when `count` is smaller): a list of per-star counts."""
+    stars = max(1, min(STARS_PER_CELL, count))
+    base, extra = divmod(count, stars)
+    return [base + (1 if index < extra else 0) for index in range(stars)]
 
 
 def draw_cell(star_type, zone, count):
-    """`count` bare planets (and their moons) at orbits of `zone` around a `star_type` star, finished as a system's bodies are
-    (`finish_bodies`), as a list of body records."""
+    """`count` bare planets (and their moons) at orbits of `zone`, spread over `STARS_PER_CELL` stars of `star_type` (each star its own draw, so
+    each its own age), as a list of body records."""
+    records = []
+    for index, share in enumerate(_stars_split(count)):
+        records += _draw_one_star(star_type, zone, share, index)
+    return records
+
+
+def _draw_one_star(star_type, zone, count, index):
+    """`count` bare planets (and their moons) at orbits of `zone` around one `star_type` star (star number `index` of the cell), finished as a
+    system's bodies are (`finish_bodies`), as a list of body records."""
     import random
 
     from planetgen.util import draw
@@ -138,8 +161,8 @@ def draw_cell(star_type, zone, count):
     from planetgen.generation.planet import Planet
     from planetgen.generation.system import StarSystem
 
-    draw.set_run_seed(seed_for("cell", star_type, zone))
-    rng = random.Random(seed_for("orbit", star_type, zone))
+    draw.set_run_seed(seed_for("cell", star_type, zone, index))
+    rng = random.Random(seed_for("orbit", star_type, zone, index))
     config = SystemConfig()
     config.STAR_TYPE = star_type
     config.PLANETS = False
@@ -202,6 +225,8 @@ def tally(records):
     "ceiling": Counter}`. Bodies with no score (gas and ice giants) are in `cls` and not in `tier`."""
     cells = {}
     for rec in records:
+        if rec["cls"] is None and rec["kind"] in ("planet", "moon"):
+            continue        # GEN.1674: a body under the size that gets a class on demand has no class letter stored; it is in no class share
         cell = cells.setdefault((rec["star"], rec["zone"], rec["kind"]), {
             "n": 0, "cls": collections.Counter(), "tier": collections.Counter(),
             "habitable_by_cls": collections.Counter(), "ceiling": collections.Counter()})
@@ -268,6 +293,11 @@ def compare(cells, expectations):
         star, zone_name, kind = key.split("/")
         zone = next(z for z, name in ZONE_NAMES.items() if name == zone_name)
         cell = cells.get((star, zone, kind))
+        if spec.get("n_ref") == 0:      # GEN.1785: a cell the reference drew no body in (no moon of a hot planet round an M dwarf): none is expected, a body is a flag
+            if cell and cell["n"]:
+                findings.append(Finding("barred", key, "bodies drawn where the reference drew none", float(cell["n"]), 0.0, 0.0,
+                                        spec.get("source", ""), spec.get("anomaly", "")))
+            continue
         if not cell or not cell["n"]:
             findings.append(Finding("missing", key, "cell", 0.0, 1.0, 1.0, "no bodies drawn", spec.get("anomaly", "")))
             continue
