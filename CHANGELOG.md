@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4512] - 2026-11-18
+
+**Headline:** A short N-body integration checks the generator's stability screens, with a report and a test; generation is unchanged.
+
+### Added
+- `planetgen/physics/nbody_check.py`: a leapfrog integration of a star's planets that says whether they collide, are ejected or have an encounter (GEN.1468).
+- `scripts/nbody_spotcheck.py` runs it over generated systems and writes the report; `tests/test_nbody_spotcheck.py` fails when a system the spacing screen passes is broken by the integration.
+
+generation-output: unchanged
+
 ## [8.0.4511] - 2026-11-18
 
 **Headline:** The parts of the old RQ queue that nothing used any more are gone: the job-requires-job holding, the solo hold for a restarted unit, RQ's stop command for a run, and the Held jobs panel.
