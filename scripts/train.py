@@ -365,7 +365,8 @@ PR_BODY = """## What this train carries
 (TEST.725. Leave this section out when there is none. A red the gate found that the train ships anyway, one line each, in plain words:
 the test, what it does wrong, the item that fixes it. Allowed only when ALL hold: the red is not a crash, data loss or a change to a
 page a visitor sees; the fix is gated and goes first in the next train; the red shows in under about 1 percent of draws (above that it
-blocks the train). The same line goes into the merge message and the report to Boss.)
+blocks the train). The same line goes into the merge message and the report to Boss. A fix that moves output and is added AFTER the gate passed
+is not a known issue: re-run the civilized pins and the golden seed on the final head first.)
 
 ## Reuse
 
