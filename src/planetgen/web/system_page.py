@@ -23,7 +23,6 @@ Admins only, like the rest of `/admin/generate` (`generate_page.py`).
 import json
 import os
 import re
-import secrets
 import tempfile
 
 from flask import Response, request
@@ -323,7 +322,7 @@ def generate_in_process(command, words, debug, system_file):
                     asked = (found["asked"] or "").splitlines()
                     lines += asked
                 else:
-                    draw.set_run_seed(secrets.randbits(128))
+                    draw.set_run_seed(draw.fresh_seed())
                     run_phenomenon.run_phenomenon(args)
                     text = _read(page_path)
         except SystemExit as exc:
