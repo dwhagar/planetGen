@@ -588,13 +588,12 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | Lane 03, 2026-11-15 |
 | GEN.1767 | Research a dry-surface carbonate buffer for bodies whose ocean has gone (carbonate-silicate equilibrium on dry rock, limited by the crust's calcium): today weathering switches off when the ocean is all vapor and nothing takes the carbon | GEN.1763 | Lane 03, 2026-11-16. |
 | GEN.1769 | Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw | none | Lane 02, 2026-11-16. |
-| GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | none | Lane 03, 2026-11-16. |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs | none | Lane 02, 2026-11-17 |
-| GEN.1785 | Class census shifts explained, ranges renewed | GEN.1777 | Lane 04, 2026-11-17 |
 | GEN.1790 | A blown-off hydrogen envelope is stripped past the climate ceiling | none | Lane 14, 2026-11-17 |
 | GEN.1791 | Best stand-in lever set for Class M and M-like worlds | none | Class M levers thread, 2026-11-17 |
 | GEN.1793 | M dwarfs get their observed share of close-in small planets | none | Lane 04, 2026-11-17 |
 | GEN.1796 | Cold thick nitrogen air warms as its greenhouse gases rise | none | Lane 05, 2026-11-18 |
+| GEN.1797 | Giant planets at 2 to 8 au as common as observed | none | Lane 06, 2026-11-18 |
 | OPS.276 | Sky jobs no longer stop on an out-of-range list | none | Lane 16, 2026-11-18 |
 | OPS.277 | Map rebuild and finish-run failures report clearly | none | Lane 15, 2026-11-18 |
 | OPS.278 | Galaxy and progress tests see the job engine tables | none | Lane 07, 2026-11-18 |
