@@ -438,7 +438,7 @@ def _wind_elements(subtype):
 
 
 def _mix(first, second, share):
-    return {symbol: (1.0 - share) * first.get(symbol, 0.0) + share * second.get(symbol, 0.0) for symbol in set(first) | set(second)}
+    return {symbol: (1.0 - share) * first.get(symbol, 0.0) + share * second.get(symbol, 0.0) for symbol in dict.fromkeys([*first, *second])}       # in the order given, not the hash seed's (a set orders strings by it)
 
 
 def _dust_of(elements, law_ratio, row):
