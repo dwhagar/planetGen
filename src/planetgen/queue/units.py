@@ -33,22 +33,16 @@ killed, and not inside the horse of the last unit of the stage before.
 import json
 import os
 import resource
-import signal
 import time
 
-import rq
-from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import attemptlog, attempts, commands, commandgaps, engine, failures, held, jobprofiles, ledger, planrows, redisqueue, requires, runrecord, unitbeat, unitrates, usage
+from planetgen.queue import attemptlog, attempts, commandgaps, engine, failures, held, jobprofiles, ledger, planrows, redisqueue, runrecord, unitbeat, unitrates, usage
 from planetgen.util import log
-from planetgen.util.format import format_duration_seconds, format_megabytes
+from planetgen.util.format import format_duration_seconds
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
-FAILURE_FUNCTION = "planetgen.queue.units.unit_failed"
-OPEN_FUNCTION = "planetgen.queue.units.open_stage"
-OPEN_FAILURE_FUNCTION = "planetgen.queue.units.open_failed"
 
 MAX_UNITS = 4000
 """int: The most units one stage queues; Redis memory and queuing cost follow the unit count (about 7 MB at this
@@ -59,8 +53,6 @@ STATIC_UNITS = 512
 from the number of workers, so the same work is the same units at any worker count; 512 keeps the largest
 sensible pool (the 2 million-object ceiling's 95% of 64 cores) busy to the end."""
 
-FAILED_KEEP_SECONDS = 86400
-"""int: How long RQ keeps a failed unit's job."""
 
 
 ENDING_LEASE_SECONDS = 1800
@@ -78,8 +70,6 @@ ENSURE_SECONDS = 5.0
 QUIET_LINE_SECONDS = 1800.0
 """float: How long a stage may finish no unit before `follow_stage` says so in the log, and how often it says so after (OPS.253): a stage whose units are long, or wait on one another, was silent for hours."""
 
-ENQUEUE_BATCH = 500
-"""int: How many units go to Redis in one pipeline."""
 
 class RunStopped(RuntimeError):
     """The run ended (failed, was canceled or went stale) before its stage was done."""
@@ -146,75 +136,10 @@ EXPECTED_SECONDS_ARG = "expected_seconds"
 """str: The key of a unit's arguments that gives the seconds that unit alone is predicted to take, for the heartbeat judge (its expected rate, OPS.135); the time limit does not read it (`unit_timeout`)."""
 
 
-def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None, rows=None, skip=frozenset()):
-    """
-    Queues the units of stage `stage` of the run.
-
-    Args:
-        units (list[tuple]): `(args, cost)` per unit, in unit order (the index is the position): a JSON-able dict
-            and the unit's predicted cost for the stage's bar and ETA. The dict may name `expected_seconds`, the unit's own
-            predicted time (`EXPECTED_SECONDS_ARG`).
-        expected_seconds (float, optional): How long the stage is expected to take, for each unit's time limit
-            (`unit_timeout`).
-        rows (list[int], optional): The id of each unit's row in the job ledger (`planrows.record_cut`, OPS.216), in unit order, handed to the unit (`run_unit`'s `row`).
-        skip (frozenset[int]): The numbers of units that are not queued: the ones the run this one carries on from did (`resumed.carry`, OPS.222). The others keep their numbers.
-
-    Raises:
-        ValueError: More than `MAX_UNITS` units, or a kind that is not a command with units.
-    """
-    if kind not in commands.REGISTRY or commands.spec(kind).inline:
-        raise ValueError(f"no unit kind {kind!r}")
-    if len(units) > MAX_UNITS:
-        raise ValueError(f"a stage queues at most {MAX_UNITS} units, not {len(units)}")
-    if rows is not None and len(rows) != len(units):
-        raise ValueError(f"the plan has {len(rows)} rows for {len(units)} units")
-    queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
-    timeout = unit_timeout(expected_seconds)
-    for start in range(0, len(units), ENQUEUE_BATCH):
-        batch = [_prepared(queue, run_id, stage, index, kind, args, cost, None if rows is None else rows[index], timeout)
-                 for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start) if index not in skip]
-        if batch:
-            queue.enqueue_many(batch)
-
-
-def _prepared(queue, run_id, stage, index, kind, args, cost, row, timeout):
-    """The RQ job of one unit, ready to queue."""
-    return queue.prepare_data(
-        UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost, row), job_id=job_id(run_id, stage, index),
-        timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
-        retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
-
-
-def requeue_unit(conn, run_id, stage, index, kind, args, cost, row, queue_name=None, expected_seconds=None):
-    """
-    Queues one unit of the run again with the index and the row it was cut with (OPS.221: a held unit after "Retry held"). What RQ kept of the unit's failed job (its record and its place in the failed
-    registry, which share the job id) is removed first.
-    """
-    queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
-    left = redisqueue.fetch_job(job_id(run_id, stage, index), conn)
-    if left is not None:
-        left.delete()
-    queue.enqueue_many([_prepared(queue, run_id, stage, index, kind, args, cost, row, unit_timeout(expected_seconds))])
-
-
 def row_of(job):
     """The ledger row id (OPS.216) a unit's RQ job was queued with, or `None` for a job that has none (an opening, a run cut before the plan was rows)."""
     args = getattr(job, "args", None) or ()
     return args[6] if getattr(job, "func_name", None) == UNIT_FUNCTION and len(args) > 6 else None
-
-
-def run_unit(run_id, stage, unit, kind, args, cost=None, row=None):
-    """
-    The RQ job of one unit: does it, stores its result, joins the done set, and, when it completes its stage, has the
-    wrapper queue the next one or, after the last, ends the run. A unit that finds the run no longer live (canceled,
-    failed) does nothing.
-
-    `row` is the unit's row in the job ledger (OPS.216), which the fence of OPS.217 will hold.
-
-    Returns:
-        dict: `seconds` the unit took, or `skipped`.
-    """
-    return run_unit_on(rq.get_current_job().connection, run_id, stage, unit, kind, args, cost, row)
 
 
 def run_unit_on(conn, run_id, stage, unit, kind, args, cost=None, row=None, halt=None):
@@ -414,17 +339,17 @@ def stage_unended(conn, run_id, stage):
     return bool(conn.exists(runrecord.advanced_key(run_id, stage))) and planrows.RELEASE not in planrows.ended(conn, run_id, stage)
 
 
-def reopen_pending(conn, run_id, queue_name, queued=()):
+def reopen_pending(conn, run_id):
     """
     OPS.222: queues the opening of the first stage that was never opened when the run was held (the opening job found the run not live and skipped itself, so nothing else would queue it), once the stage before
-    it has ended and unless the queue still holds the opening (`queued`: the job ids waiting or running). Returns the index of the stage whose opening it queued, or `None`.
+    it has ended and unless its opening row is waiting for or in the launcher's hands. Returns the index of the stage whose opening it queued, or `None`.
     """
     count = len(runrecord.declared_stages(conn, run_id))
     for index in range(count):
         if conn.exists(runrecord.opened_key(run_id, index)):
             continue
-        if (index == 0 or runrecord._s(conn.hget(runrecord.stage_key(run_id, index - 1), "ended"))) and open_job_id(run_id, index) not in queued:
-            enqueue_open(conn, run_id, index, queue_name)
+        if (index == 0 or runrecord._s(conn.hget(runrecord.stage_key(run_id, index - 1), "ended"))) and not planrows.opening_pending(conn, run_id, index):
+            enqueue_open(conn, run_id, index)
             return index
         return None
     return None
@@ -477,10 +402,9 @@ def _end_stage(conn, run_id, stage, wrapper, sleep=time.sleep):
         took = 0.0 if planrows.CONCLUDE in got else wrapper.conclude_stage_job(conn, run_id, stage)
         if planrows.FINISH not in got:
             wrapper.finish_stage_job(conn, run_id, stage, took)
-        queue_name = wrapper.queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind")))
         for attempt in range(OPEN_TRIES):
             try:
-                enqueue_open(conn, run_id, stage + 1, queue_name)
+                enqueue_open(conn, run_id, stage + 1)
                 break
             except Exception as exc:        # noqa: BLE001 -- a Redis hiccup is tried again; the last one is raised
                 if attempt == OPEN_TRIES - 1:
@@ -497,39 +421,15 @@ def open_job_id(run_id, index):
     return f"{run_id}-open{index}"
 
 
-def enqueue_open(conn, run_id, index, queue_name):
+def enqueue_open(conn, run_id, index):
     """
-    Queues the opening of stage `index` of the run (PERF.254): the cut of the stage into its units, and of each stage after it that has no
-    units, or the end of the run, as a job of its own (`open_stage`). The job claims the lane to itself on the memory gate (`claims.CUT_MB`,
-    learned per command), has the time limit of a job with no estimate, and is retried once if its horse is killed for memory, with a larger
-    claim (`horse_killed`).
+    Queues the opening of stage `index` of the run (PERF.254, OPS.228): the cut of the stage into its units, and of each stage after it that has no units, as a job of its own that the supervisor's launcher hands out
+    (`planrows.queue_opening`), claiming the lane's memory to itself (`claims.CUT_MB`). An index past the last stage only finishes the run, which needs no job (and no stage row to hang one on).
     """
-    from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
-    if wrapper.forked(conn, run_id):            # OPS.228: the supervisor's launcher hands the opening out as a job
-        if index >= len(runrecord.declared_stages(conn, run_id)):
-            _open_stage(conn, run_id, index)    # no stage is left: the opening only finishes the run, which needs no job (and no stage row to hang one on)
-            return
-        planrows.queue_opening(conn, run_id, index)
+    if index >= len(runrecord.declared_stages(conn, run_id)):
+        _open_stage(conn, run_id, index)
         return
-    queue = redisqueue.queue(queue_name, conn)
-    queue.enqueue(OPEN_FUNCTION, args=(run_id, index), job_id=open_job_id(run_id, index), job_timeout=redisqueue.job_timeout(None), result_ttl=0,
-                  failure_ttl=FAILED_KEEP_SECONDS, retry=rq.Retry(max=1), on_failure=Callback(OPEN_FAILURE_FUNCTION),
-                  description=f"open stage {index}")
-
-
-def open_stage(run_id, index):
-    """
-    The RQ job of an opening (PERF.254): `wrapper.advance` for stage `index`, which cuts it and queues its units, or ends the run when no stage is
-    left. A failure is the run's failure, said at once with the stage named. A run that is no longer live is left alone.
-
-    Returns:
-        dict: `opened`, or `skipped`.
-    """
-    conn = rq.get_current_job().connection
-    live, wanted = _run_settings(conn, run_id)
-    if not live or conn.exists(runrecord.opened_key(run_id, index)):
-        return {"skipped": True}
-    return _relayed(conn, run_id, wanted, lambda: _open_stage(conn, run_id, index))
+    planrows.queue_opening(conn, run_id, index)
 
 
 def run_opening_on(conn, run_id, index):
@@ -556,19 +456,6 @@ def _open_stage(conn, run_id, index):
     return {"opened": True}
 
 
-def open_failed(job, connection, exc_type, exc_value, _traceback):
-    """RQ's `on_failure` for an opening: a failure that was not the cut's own (the job could not start, say) fails the run with the stage named,
-    unless the run has ended already."""
-    from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
-    run_id, index = job.args[:2]
-    if connection.exists(runrecord.opened_key(run_id, index)):       # OPS.187: the cut was finished; RQ's own housekeeping failed after it
-        log.debug(f"The opening of stage {index} of run {run_id} was done when RQ failed it ({exc_type.__name__}: {exc_value}); the run goes on.")
-        return
-    runrecord.finish_run(connection, run_id, "failed",
-                         error=f"stage {wrapper.stage_name(connection, run_id, index)} could not start: {exc_type.__name__}: {exc_value}")
-    requires.job_failed(job, connection, exc_type, exc_value)
-
-
 def _short(value, limit=300):
     text = json.dumps(value, default=str)
     return text if len(text) <= limit else text[:limit] + f"... ({len(text)} chars)"
@@ -582,20 +469,6 @@ before it forks a horse for one (`warm_unit`) and keeps them; any other unit run
 worker's start took 56 s on a cold table cache (a fresh checkout) for nothing."""
 
 
-def tables_held():
-    """Whether this process holds bright-star sampling tables (`star_population._bright_table`)."""
-    import sys
-    module = sys.modules.get("planetgen.generation.star_population")
-    return module is not None and module._bright_table.cache_info().currsize > 0
-
-
-def sheds_tables_for(job):
-    """Whether `job` is a unit that needs no star tables and this worker holds them: the worker starts itself over for it (PERF.226)."""
-    if job.func_name != UNIT_FUNCTION:
-        return False
-    return job.args[3] not in TABLE_KINDS and tables_held()
-
-
 def warm_star_tables():
     """Builds in the worker the sampling table of every population at the sectors' floor (PERF.42, PERF.226), which each horse it forks
     starts with, for the units that draw stars (`TABLE_KINDS`, `warm_unit`). Opens no connection."""
@@ -603,29 +476,6 @@ def warm_star_tables():
     from planetgen.generation import star_population
     for population in star_population.POPULATIONS:
         star_population.warm_bins(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, population)
-
-
-def warm_unit(job):
-    """
-    PERF.146: runs the command's `warm` function, if it has one, in the worker before RQ forks the horse for `job`.
-    A horse is a new process, so everything a unit works out from the galaxy alone (its shape, which holds the component
-    field built from tens of thousands of stored clusters, and the sampling tables of the scatters) was worked out
-    again in every unit: seconds of arithmetic before the first star, a unit after a unit. Done here, in the
-    worker, the caches it fills (`store._FIELD_BY_SIGNATURE`, `star_population._bright_table`) are in the worker's
-    memory and each horse starts with them; a table that changed meanwhile is read again, by its signature. Best
-    effort: a unit that cannot warm meets the same error itself.
-    """
-    if job.func_name != UNIT_FUNCTION:
-        return
-    kind, args = job.args[3], job.args[4]
-    spec = commands.spec(kind)
-    try:
-        if kind in TABLE_KINDS:
-            warm_star_tables()
-        if spec.warm is not None:
-            commands.warm_function(kind)(args)
-    except Exception as exc:
-        log.swallowed("queue/units", "warm_unit", exc)
 
 
 def warm_shape(unit_args):
@@ -641,16 +491,6 @@ def warm_shape(unit_args):
             conn.close()
     finally:
         store.close_pool(config)
-
-
-def unit_failed(job, connection, exc_type, exc_value, _traceback):
-    """RQ's `on_failure` for a unit: the run fails, with the unit and the error recorded, unless the unit's result is
-    already stored and counted (RQ failed it after it was done, say `ValueError: Execution ... not found in Redis`
-    when it cleaned up): its sector or shells are saved, so the run goes on."""
-    run_id, stage, unit = job.args[:3]
-    kind = job.args[3] if len(job.args) > 3 else "?"
-    if fail_unit(connection, run_id, stage, unit, kind, getattr(job, "retries_left", None), exc_type, exc_value, _traceback, row=row_of(job)):
-        requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
 
 def fail_unit(connection, run_id, stage, unit, kind, retries_left, exc_type, exc_value, _traceback, row=None):
@@ -681,104 +521,6 @@ def fail_unit(connection, run_id, stage, unit, kind, retries_left, exc_type, exc
                          error=f"unit {unit} of stage {stage_name} failed{failures.describe(connection, run_id, exc_value)}: "
                                f"{exc_type.__name__}: {exc_value}{unqueued}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
     return True
-
-
-def horse_killed(job, retpid, ret_val, _rusage):
-    """
-    RQ's `work_horse_killed_handler` (PERF.106): the process that was running a job was killed (out of memory, or `kill -9`).
-
-    A job killed with SIGKILL (what the out-of-memory killer sends) that has a retry left is not the end of the run (PERF.254): the memory gate
-    notes what the worker claimed and the most it held, learns a larger size for the kind and gives the retry a claim `memorygate.GROW_FACTOR`
-    times the old one (`memorygate.grow`), so the retry waits for room that fits; RQ queues it again. A kill with no retry left fails the run
-    now, with the unit (or the opening) named and what it claimed, instead of when the worker's heartbeat runs out; the retry RQ makes of a job
-    of a run that has ended finds the run no longer live and does nothing. A job that is not part of a run is only learned from and left to RQ.
-    """
-    from planetgen.queue import memorygate
-    conn = job.connection
-    status = log.decode_wait_status(ret_val) if isinstance(ret_val, int) else -1
-    name = getattr(job, "id", None) or "?"
-    note = memorygate.kill_note(conn, getattr(job, "worker_name", None) or "")
-    memory_kill = _killed_by_sigkill(ret_val)
-    if row_of(job) is not None:         # OPS.223: the attempt could not write its own end; its row says how the horse went
-        attempts.close_lost(conn, job.args[0], row_of(job), "killed_memory" if memory_kill else "lost", error_kind="killed",
-                            error_text=f"the work horse ({retpid}) ended with {_ended_with(ret_val)}")
-    detail = ""
-    if note is not None and memory_kill:
-        detail = f"; it claimed {format_megabytes(note['claimed_mb'])} on the memory gate and the most seen was {format_megabytes(note['peak_mb'])}"
-        bigger = memorygate.grow(conn, note["kind"], job.id, note["claimed_mb"], note["peak_mb"])
-        jobprofiles.record(note["kind"], peak_mb=bigger / memorygate.LEARN_MARGIN, outcome="killed_memory")     # OPS.155: a kill is data; its peak is the size the retry was given less the margin (OPS.156 floors the kind there)
-        retry = (getattr(job, "retries_left", None) or 0) > 0
-        log.warning(f"Job {name} ({job.func_name}) was killed with SIGKILL while it claimed {format_megabytes(note['claimed_mb'])} (most seen {format_megabytes(note['peak_mb'])}); "
-                    + (f"it is queued again with a claim of {format_megabytes(bigger)}." if retry else "it has no retry left."))
-        if retry:
-            if job.func_name == UNIT_FUNCTION:
-                conn.delete(runrecord.ending_key(job.args[0], job.args[1]))     # OPS.186: the lease of the end this horse was in, so the retry can finish it
-            return
-    if job.func_name == UNIT_FUNCTION and _was_ending_its_stage(conn, job):
-        # OPS.186: the horse that completed the stage was killed in the end of it, whatever killed it (`kill -9`, the memory killer): the unit is done, the retry RQ makes of it finishes the end
-        # (`run_unit` resumes it), and a run is not failed for what the next attempt carries on
-        log.warning(f"Job {name} ({job.func_name}) was killed in the end of its stage ({_ended_with(ret_val)}); it is queued again to finish it.")
-        conn.delete(runrecord.ending_key(job.args[0], job.args[1]))
-        return
-    if job.func_name in (UNIT_FUNCTION, OPEN_FUNCTION):
-        from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
-        run_id, index = job.args[:2]
-        if job.func_name == UNIT_FUNCTION:
-            unit = job.args[2]
-            doing, what = f"running unit {unit} of run {run_id}", f"unit {unit} of stage {wrapper.stage_name(conn, run_id, index)}"
-        else:
-            doing, what = f"opening stage {index} of run {run_id}", f"the opening of stage {wrapper.stage_name(conn, run_id, index)}"
-        log.process_ended("queue", f"The process {doing}, pid {retpid},", status, deliberate=(), pid=retpid)
-        error = f"{what} was killed: its worker process {retpid} ended with {_ended_with(ret_val)}{detail}"
-        if job.func_name == UNIT_FUNCTION and row_of(job) is not None and runrecord.run_state(conn, run_id) in runrecord.LIVE_STATES:
-            held.hold_unit(conn, run_id, index, unit, row_of(job), error, killed=True)         # OPS.221: held for a person, as a unit that failed
-        else:
-            runrecord.finish_run(conn, run_id, "failed", error=error, killed=True)
-    else:
-        log.process_ended("queue", f"The process running job {name} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
-
-
-def _was_ending_its_stage(conn, job):
-    """Whether the unit of `job` is done and its stage's end is not (the state a kill in the end leaves), the run is live and the job has a retry left to finish it."""
-    run_id, stage, unit = job.args[:3]
-    return (bool(conn.sismember(runrecord.done_key(run_id, stage), unit)) and (getattr(job, "retries_left", None) or 0) > 0
-            and runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) == "running" and stage_unended(conn, run_id, stage))
-
-
-def _killed_by_sigkill(status):
-    """Whether a work horse's wait status says SIGKILL, what the kernel's out-of-memory killer sends."""
-    return _signal_number(status) == signal.SIGKILL
-
-
-def _signal_number(status):
-    """The signal a work horse's wait status says ended it (a negative status is the signal already; a raw wait status keeps it in the low bits),
-    0 for a process that exited, `None` for a status that is no number."""
-    try:
-        number = int(status)
-    except (TypeError, ValueError):
-        return None
-    return -number if number < 0 else number & 0x7f
-
-
-def _ended_with(status):
-    """
-    What a work horse's wait status says: the signal that ended it, by name, and what that usually means. SIGKILL is what the
-    out-of-memory killer sends; SIGTERM is a request to end, sent by something that stopped it on purpose (a stop-all, a cancel, a
-    memory guard such as earlyoom), which is not the kernel's out-of-memory killer. A status that is no signal is the exit code.
-    """
-    number = _signal_number(status)
-    if not number:
-        return f"status {status}"
-    try:
-        name = signal.Signals(number).name
-    except ValueError:
-        return f"status {status}"
-    if number == signal.SIGKILL:
-        return f"status {status} ({name}: the machine may be out of memory)"
-    if number == signal.SIGTERM:
-        return (f"status {status} ({name}: something asked it to end, a stop-all, a cancel or a memory guard on the machine; "
-                f"the kernel's out-of-memory killer sends SIGKILL)")
-    return f"status {status} ({name})"
 
 
 def _progress(conn, run_id, stage):

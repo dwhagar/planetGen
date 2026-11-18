@@ -9,6 +9,7 @@ import time
 import pytest
 import rq
 
+from tests import rq_units
 from planetgen.queue import commands, redisqueue, runcontrol, runrecord, units, wrapper
 from planetgen.queue.runrecord import Stage
 from planetgen.util import log
@@ -46,7 +47,7 @@ def _queued_run(conn, count=75, done=0, stages=1):
     run_id = runrecord.start_run(conn, "Control test", [Stage(f"s{n}", f"Stage {n}", units=count) for n in range(stages)],
                                  who="boss", now=100.0)
     runrecord.begin_stage(conn, run_id, 0, now=101.0)
-    units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(count)])
+    rq_units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(count)])
     for unit in range(done):
         job = rq.job.Job.fetch(units.job_id(run_id, 0, unit), connection=conn, serializer=redisqueue.JsonSerializer)
         job.delete()

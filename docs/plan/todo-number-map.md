@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.431 |
 | NAV | NAV.78 |
-| GEN | GEN.1790 |
+| GEN | GEN.1792 |
 | PERF | PERF.282 |
 | DB | DB.136 |
 | API | API.52 |
@@ -3056,7 +3056,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.236 | Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill) | none | open |
 | OPS.237 | Job engine stage 4: warm star tables stored as packed arrays so a forked job does not copy them (stage 0: 120 MB copied after 416 stars, 464 MB after 8,336); every drawn star identical (golden), dropped if it cannot be | none | dropped (Lane 14 measured, 11:27 AM EST 11-14): the 391 tables are 6.9 MB as lists; the 1,540 MB figure was a cold build with no band-table cache, the warm template is 166 MB; evidence /mnt/project-files/engine/ops237/ |
 | OPS.238 | Job engine stage 5: needs and makes on every command and a stored plan for every start path (generate, finish-run, maintenance, check, Generate page, API); absorbs OPS.128; split declarations, planner, start paths | none | done, PRs #6709, #6712, #6713, #6715, #6735 (last slice 4:28 PM EST 11-15) |
-| OPS.239 | Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle | none | open |
+| OPS.239 | Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle | none | done (part A PR 6740, part B PR 6752; Lane 16 scan 7:31 PM EST 11-17: no expand function does more than plan, build-phenomenon-indexes left as one job) |
 | OPS.240 | Job engine stage 5: sectors one at a time from a spawner job with a queued window; absorbs OPS.126 | none | open |
 | OPS.241 | Job engine stage 5: independence harness (declared reads and writes; a SQL tap test fails undeclared tables); absorbs OPS.131 | none | done, PR #6766 (9:46 PM EST 11-15) |
 | OPS.242 | Job engine stage 5: overlap pair by pair, each with its proof (skeleton-only commands first, then narrower edges); absorbs OPS.132; one item per pair | none | done (Lane 07: PRs 6771, 6777, 6792, 6794 and 6823, each overlap pair with its proof, merged 11-15 and 11-16; OPS.241's touches fix 6814) |
@@ -4126,6 +4126,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | open (Lane 16) |
 | GEN.1788 | Review giant scattering physics; comets follow (Science comets 0 percent) | GEN.1775 | open (Lane 06) |
 | GEN.1789 | (high) Oxygen source against reductant sink: reshape options for the oxygen stand-ins, report first | GEN.1777 | open (Lane 04) |
+| GEN.1790 | Envelope past the climate ceiling boils off; lava vapor held and logged | GEN.1745 | open (Lane 14) |
+| GEN.1791 | Lever search for Class M and M-like worlds at the Abundant tier (report) | GEN.1789 | open (Class M levers thread) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4991,9 +4993,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.783 | (bug) test_star_composition_sweep and test_radius_valley_sweep: the filled-galaxy fixture runs past the hang guard (900 s, 1,500 s in gates) on a 4-core box, so the files error instead of testing | done (PRs 6925 and 6932, Lane 16, merged 5:23 and 8:30 PM EST 11-16: the composition sweep, valley sweep and census audit fill with forked workers; composition 1,538 s to 405 s, valley 795 s for 60 systems to 395 s for 120, wholesphere fixture 1,887 s to 642 s. test_census_representation is still 1,996 s for its fixture and is not in the gate lists) |
 | TEST.784 | (bug) test_earth_analog::test_the_stored_baseline_is_well_formed_and_its_first_trials_redraw_the_same is red on main: a stored trial redraws hydrology 'brine seep' where the baseline says 'surface ocean' | done (PR 6912, Lane 03, merged 2:16 PM EST 11-16: GEN.1730 moved the first trials on purpose, brine seep to surface ocean; the Earth analog baseline is renewed on main) |
 | TEST.785 | (bug) test_envelope_dial::test_at_share_one_no_candidate_keeps_an_envelope_and_the_others_are_not_made_late_cores is red on main: a candidate planet that moved into the ecosphere after the late-core draw keeps its envelope | done (PR 6907, Lane 04, merged 1:53 PM EST 11-16: generation is right, the dial is drawn once in the zone held then and a planet moved later keeps its decision; the test now counts only candidates whose zone did not change) |
-| TEST.786 | (bug) Runaway-start test red: a wet body past the runaway limit keeps a surface ocean | open (Lane 14) |
+| TEST.786 | (bug) Runaway-start test red: a wet body past the runaway limit keeps a surface ocean | done (green on main since GEN.1773, PR 7002) |
 | TEST.787 | (bug) Main reds: test_class_after_bands (T for M) and test_gen_node_planets stream test | done (PR 6949, Lane 07, merged 8:23 PM EST 11-16; class_after_bands half moved to GEN.1774) |
-| TEST.788 | Slow gate files (test_db_column_round_trip, test_full_matrix, test_order_independence, test_describe, test_tidal_spin) | open (Lane 16) |
+| TEST.788 | Slow gate files (test_db_column_round_trip, test_full_matrix, test_order_independence, test_describe, test_tidal_spin) | done (measured by Lane 16, 2026-11-17) |
 | TEST.789 | test_secular_exchange_generation fails under load: find the load-order effect | done (PR 7007, 1:49 AM EST 11-17: one test moved the shared systems; it now builds its own) |
 | TEST.790 | A controlled greenhouse test: doubled infrared-active gases never lower the greenhouse | done (PR 7019, 2:41 AM EST 11-17; hydrogen-rich airs scoped out, see GEN.1781) |
 | USR.1.1 | USR.2 |

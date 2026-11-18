@@ -15,6 +15,7 @@ import inspect
 import pytest
 from html import escape as html_escape
 
+from tests import rq_units
 from planetgen.admin import auth as adminAuth
 from planetgen.api.config import Config
 from planetgen.db import store
@@ -98,7 +99,7 @@ def _run(conn, title="Fill shell 1", units_count=4, done=1, argv=("galaxy", "--s
                                  who="boss", argv=list(argv), database=database, **kwargs)
     runrecord.begin_stage(conn, run_id, 0)
     if queued:
-        units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(units_count)])
+        rq_units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(units_count)])
     for unit in range(done):
         runrecord.unit_done(conn, run_id, 0, unit, seconds=2.0)
     runrecord.log(conn, run_id, "sector 1,0,0 saved")
@@ -619,32 +620,6 @@ def test_the_units_route_lists_what_the_follower_last_judged(admin_client, contr
 
 
 # --- OPS.144: the killed flag and Resume run ----------------------------------------------------------------
-
-def test_a_run_ended_from_outside_its_work_is_flagged_killed_and_one_that_failed_by_its_own_code_is_not(conn):
-    """A canceled run, a cleared one, a unit RQ ended at its time limit and a unit whose worker was lost are killed; a unit that raised an error of its own is a failure, not a kill."""
-    class JobTimeoutException(Exception):
-        pass
-
-    class Job:
-        func_name = "x"
-
-        def __init__(self, run_id):
-            self.args = (run_id, 0, 1)
-
-    canceled = _run(conn, title="canceled", queued=False)
-    runcontrol.cancel_run(conn, canceled, who="boss")
-    cleared = _run(conn, title="cleared", queued=False)
-    runrecord.finish_run(conn, cleared, "failed", error="cleared by boss: it showed no sign of life", killed=True)
-    timed_out = _run(conn, title="timed out", queued=False)
-    units.unit_failed(Job(timed_out), conn, JobTimeoutException, JobTimeoutException("Task exceeded maximum timeout value (1885 seconds)"), None)
-    broke = _run(conn, title="broke", queued=False)
-    units.unit_failed(Job(broke), conn, ValueError, ValueError("bad value"), None)
-    flags = {title: runrecord.read_run(conn, run_id) for title, run_id in
-             (("canceled", canceled), ("cleared", cleared), ("timed out", timed_out), ("broke", broke))}
-    assert [flags[title]["killed"] for title in ("canceled", "cleared", "timed out", "broke")] == [True, True, True, False]
-    assert flags["canceled"]["killed_reason"] == "canceled by boss" and flags["broke"]["killed_reason"] is None
-    assert "1885" in flags["timed out"]["killed_reason"]
-
 
 def test_mark_killed_keeps_the_first_reason_and_works_on_a_live_run(conn):
     run_id = _run(conn, queued=False)

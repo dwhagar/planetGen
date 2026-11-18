@@ -178,22 +178,18 @@ def retry_held(conn, run_id, who=None, now=None):
     try:
         engine = conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)
         items = _unfinished(conn, control, run_id, int(runrecord._s(engine))) if engine else []
+        requeued = 0
         for _stage, _unit, row, _command, _planned in items:
-            ledger.set_job_state(control, row, "waiting")
+            # the launcher hands a failed (held) or waiting unit out again as it was cut (the arguments and the cost its row holds); one that is ready or running already goes on as it is
+            requeued += control.execute("UPDATE engine_jobs SET state = 'ready', waited = NULL, updated_at = NOW(6) WHERE id = ? AND state IN ('failed', 'waiting')", (row,)).rowcount
         if engine:
             ledger.set_run_state(control, int(runrecord._s(engine)), "running")
         control.commit()
     finally:
         control.close()
-    queued = _queued_unit_ids(conn, queue_name)
-    requeued = 0
-    for stage, unit, row, command, planned in items:
+    for stage, unit, _row, _command, _planned in items:
         conn.hdel(runrecord.held_key(run_id, stage), unit)
-        if units.job_id(run_id, stage, unit) in queued:
-            continue                                        # still waiting in the queue: it runs when a worker takes it
-        units.requeue_unit(conn, run_id, stage, unit, command, planned.get("args") or {}, planned.get("cost"), row, queue_name=queue_name)
-        requeued += 1
-    reopened = units.reopen_pending(conn, run_id, queue_name, queued)
+    reopened = units.reopen_pending(conn, run_id)
     runrecord.log(conn, run_id, f"{requeued} unfinished {'unit' if requeued == 1 else 'units'} queued again" + (f" and the opening of stage {reopened + 1}" if reopened is not None else "")
                   + (f" by {who}" if who else ""), kind="run.retry_held")
     try:
@@ -211,13 +207,6 @@ def _unfinished(conn, control, run_id, engine_run):
         if row["stage"] in index_of:
             found.append((index_of[row["stage"]], int(row["item_key"]), row["id"], row["command"], json.loads(row["arguments"] or "{}")))
     return found
-
-
-def _queued_unit_ids(conn, queue_name):
-    """The RQ job ids waiting in or running on the queue (a unit in either is not queued again)."""
-    from planetgen.queue import redisqueue
-    queue = redisqueue.queue(queue_name, conn)
-    return set(queue.get_job_ids()) | set(queue.started_job_registry.get_job_ids())
 
 
 def _mark_job(conn, run_id, row, state):

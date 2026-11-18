@@ -23,7 +23,7 @@ from rq.intermediate_queue import IntermediateQueue
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import allowlist, attempts, claims, memorygate, pause, progress_file, redisqueue, runrecord, scheduler, stopall, units, work, workers
+from planetgen.queue import allowlist, claims, memorygate, pause, progress_file, redisqueue, scheduler, stopall, work, workers
 from planetgen.util import log
 from planetgen.util.format import format_duration_seconds, format_megabytes
 
@@ -46,11 +46,7 @@ def warm(queues=None):
     PERF.42: loads in the worker, before RQ forks a horse per job, what every
     job would otherwise rebuild in its own process: the generation modules
     (about 2.4 s each job). Nothing here opens a database or Redis connection, so the horses share it safely.
-    PERF.226: the bright-star sampling tables (`star_population._bright_table`, about 1.4 GB with the datasets they read) are not
-    built here any more: a worker built them at its start for every stage, and a worker of a stage that draws no star
-    (a link, a settle, a re-score) took 1.5 GB of the host for nothing. A unit that draws stars builds them in the worker before
-    its horse forks (`units.warm_unit`, `units.warm_star_tables`), and a worker that holds them starts itself over before a
-    unit that does not (`WarmWorker.prepare_execution`).
+    OPS.271: a run's units and openings are jobs the supervisor's launcher forks from a template (`jobhost.WARM_SETS`, which holds the bright-star sampling tables of `units.warm_star_tables`), not jobs of a worker.
 
     OPS.229: the site's app, which a worker of the maintenance lane built once here (PERF.245), is the warm set of the maintenance lane's template now (`jobhost.WARM_SETS`, `warmup.warm_app`).
 
@@ -62,8 +58,6 @@ def warm(queues=None):
         importlib.import_module(name)
 
 
-GATE_REPORT_SECONDS = 5.0
-"""float: How long a unit's or an opening's wait at the memory gate must last for the run's log to say so."""
 
 def code_version_on_disk():
     """The release in `_version.py` as it is on disk now (the loaded module
@@ -88,12 +82,7 @@ def worker_class():
     RQ's worker class with PERF.42's guard: a worker that pre-imports its
     code would keep serving the old release after an update (a horse used to
     import the new files on every job), so before it waits for the next job
-    it starts itself over when the release on disk has changed. PERF.146: before it forks a horse for a unit, it
-    works out what the unit would work out from the galaxy alone (`units.warm_unit`), so the horse starts with it
-    instead of building it again. That is done before RQ creates the unit's execution record, not after: the record
-    expires 90 s after its last heartbeat and nothing beats while the worker warms, so a warm of over a minute on a
-    loaded host let it expire before the horse's first heartbeat, and the unit, finished, failed its run on
-    `ValueError: Execution ... not found in Redis` when RQ cleaned up after it.
+    it starts itself over when the release on disk has changed.
 
     PERF.152: a worker of a queue that `pause.holds` takes no job while the Queue page's pause flag is set. It waits
     before it asks for one and, if a job came to it in the moment the flag was set, holds that job (still queued,
@@ -148,16 +137,11 @@ def worker_class():
                 claim = claims.default_claim(job)
             admission = memorygate.acquire(self.connection, claim, self.name, job=job.id, cap_of=claims.cap_of, scheduler=scheduler.Scheduler(),
                                            on_wait=lambda decision, waited: self._while_gated(job, decision))
-            if admission.waited >= GATE_REPORT_SECONDS:
-                self._report_wait(job, claim, admission)
 
         def _while_gated(self, job, decision=None):
             """What the worker does at every poll of a wait at the gate: keeps its heartbeat, notes in the ledger why a unit waits (OPS.224: the gate's own words, `decision`), and gives the job back to the front of its queue
             and ends if everything was stopped or it was asked to stop, so a stopped worker never starts a job it was holding."""
             self.heartbeat()
-            row = units.row_of(job)
-            if row is not None and decision is not None:
-                attempts.note_wait(self.connection, job.args[0], row, decision.reason)
             origin = next(queue for queue in self.queues if queue.name == job.origin)
             if stopall.is_stopped() or self._stop_requested:
                 log.debug("The worker exits, asked to stop while %s waited at the memory gate.", job.id, area="queue")
@@ -169,33 +153,10 @@ def worker_class():
             # last longer, so each poll makes the job new to that check.
             self.connection.delete(IntermediateQueue(origin.key, self.connection).get_first_seen_key(job.id))
 
-        def _report_wait(self, job, claim, admission):
-            """A job of a run that waited at the gate says so in the run's log: how long, for what, and why it was let in."""
-            if job.func_name not in (units.UNIT_FUNCTION, units.OPEN_FUNCTION):
-                return
-            try:
-                runrecord.log(self.connection, job.args[0], f"Memory gate: {job.description or job.id} waited {format_duration_seconds(admission.waited)} for "
-                              f"{format_megabytes(claim.mb)} ({admission.decision.reason}).", kind="gate.wait", level="warning" if admission.timed_out else "info")
-            except Exception as exc:  # noqa: BLE001 -- a log line is never a reason to fail the job
-                log.swallowed("cli/worker", "worker_class.WarmWorker._report_wait", exc)
-
         def prepare_execution(self, job):
-            if units.sheds_tables_for(job):
-                self._start_over_with(job)
             self._take_claim(job)
-            units.warm_unit(job)
             gc.collect()
-            gc.freeze()      # PERF.226: the collector would write the header of every object the worker holds in each horse, copying
-            return super().prepare_execution(job)           # the pages of its tables (a worker and its horse took 2.2 GB for 1.5 of tables)
-
-        def _start_over_with(self, job):
-            """PERF.226: a worker that holds the star tables and is given a unit that needs none puts the unit back at the front of its
-            queue and starts itself over, so the unit runs in a worker of its own size. The unit is only queued still (RQ starts it
-            after this), so it is not lost."""
-            log.debug("The worker restarts itself, because it holds the star tables and %s needs none.", job.id, area="queue")
-            next(queue for queue in self.queues if queue.name == job.origin).push_job_id(job.id, at_front=True)
-            self.register_death()
-            os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
+            return super().prepare_execution(job)
 
         def _wait_while_paused(self, job_id=None):
             if not any(pause.holds(name) for name in self.queue_names()):
@@ -277,7 +238,6 @@ def main(argv=None):
     workers.reap_dead_jobs(connection)      # the jobs a killed worker left "running"
     worker = worker_class()(queues, connection=connection, name=args.name, serializer=redisqueue.JsonSerializer,
                             job_class=allowlist.GuardedJob,       # SEC.45: a job naming a function off the list is refused, not run
-                            work_horse_killed_handler=units.horse_killed,     # PERF.106: a killed unit fails its run now (PERF.254: after one retry)
                             job_monitoring_interval=int(memorygate.POLL_SECONDS))     # PERF.254: the claim is renewed and sampled this often
     worker.work(burst=args.burst, with_scheduler=False,
                 max_idle_time=None if args.burst else args.idle_seconds)

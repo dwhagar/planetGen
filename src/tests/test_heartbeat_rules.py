@@ -16,6 +16,7 @@ import json
 import pytest
 import rq
 
+from tests import rq_units
 from planetgen.queue import beatjudge, commands, jobbeat, pause, redisqueue, runrecord, unitbeat, units, unitwatch
 from planetgen.util.format import format_duration_seconds
 
@@ -54,7 +55,7 @@ def run_id(conn, monkeypatch):
     monkeypatch.setitem(commands.REGISTRY, "heartbeatkind", commands.CommandSpec("heartbeatkind", "A test", unit=(__name__, "_unit"), expand=(__name__, "_unit")))
     run = runrecord.start_run(conn, "T", [runrecord.Stage("heartbeatkind", "Heartbeat", units=3)])
     runrecord.begin_stage(conn, run, 0)
-    units.enqueue_units(conn, run, 0, "heartbeatkind", [({"n": n}, 1.0) for n in range(3)])
+    rq_units.enqueue_units(conn, run, 0, "heartbeatkind", [({"n": n}, 1.0) for n in range(3)])
     yield run
     redisqueue.queue(redisqueue.BULK_QUEUE, conn).empty()
 

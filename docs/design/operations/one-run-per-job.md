@@ -1,5 +1,7 @@
 # One wrapper run per Generate job (PERF.203)
 
+> **Superseded in part (OPS.252, 2026-11-17 EST).** The queue, worker, lane and retry parts of this note are replaced by [job-engine.md](job-engine.md), the engine as built. The Generate page job as one wrapper run stays here until OPS.244 slice B changes it; the page job as a ledger run is described there when built.
+
 Status: design note, not built. Owner: Aux 2 (lock-free). Prerequisite PERF.202 is done: every verb is a list of units run by `queue/wrapper.py`, and the tests/test_one_wrapper_run.py guard keeps `wrapper.run(` inside `generation/followed.py` and a short allowed list.
 
 ## Where it stands

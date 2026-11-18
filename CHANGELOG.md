@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4502] - 2026-11-18
+
+**Headline:** One design note, `docs/design/operations/job-engine.md`, now says how the job engine is built (supervisor, ledger, forked jobs, dispatch, pressure, controls), what is still the old queue and what is not yet proven.
+
+### Changed
+- **The engine design note (OPS.252).** `docs/design/operations/job-engine.md` describes stages 0 to 4 as built and what is merged of stages 5 and 6: the ten-line design, the ledger tables and the fenced done mark, the supervisor's duties in order, templates and dispatch, light jobs, pressure and the database signal, the controls, the RQ seams that remain until OPS.244, OPS.271 and OPS.235, the stage 0 numbers, the first-request time of the one-off system page after idle (about 95 s, to be measured again after OPS.244 slice B) and the proof that is built and not built. The queue parts of DOC.113, DOC.120, the dynamic queue chain note, the one-run-per-job note and the Redis note carry a pointer to it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4501] - 2026-11-18
+
+**Headline:** Every run is a run of the job ledger: the units that went to RQ workers are gone, and the update migrates the database before the math check.
+### Changed
+- A run's units are rows of the control database's ledger that the supervisor's launcher hands out in forked jobs. The RQ unit path (`units.enqueue_units`, `run_unit`, `open_stage`, the unit hooks, the warm worker's unit preparation) is deleted, with no fallback for a run with no ledger (OPS.271).
+- A failed or waiting unit row is made ready again by `held.retry_held`; the opening of a stage that does not exist is the end of the run.
+- `update.sh` migrates the database before it runs the math check, because the math check is a run and has no ledger before the migration.
+
 ## [8.0.4500] - 2026-11-18
 
 **Headline:** The one-off system page makes its system inside the supervisor's warm light-job process instead of starting a command-line process, so it needs no process, imports or run of its own.
