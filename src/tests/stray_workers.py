@@ -132,8 +132,9 @@ def reap_database(url):
     return reap(strays(databases=[int(path)]))
 
 
-def reap_all():
-    """Ends every test worker and supervisor still running and returns what it found (each a dict, see `parse`)."""
-    found = strays()
+def reap_all(databases=None):
+    """Ends every test worker and supervisor still running (those on `databases` only, a slot's, when given) and returns what it found
+    (each a dict, see `parse`)."""
+    found = strays(databases=databases)
     reap(found)
     return found
