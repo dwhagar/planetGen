@@ -1046,7 +1046,7 @@ forced credential change. They back the admin stats page
   Stats page.
 - `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10, PERF.99):
   `{"available", "status": {"workers_active", "runs_active", "paused",
-  "paused_by", "paused_at", "paused_reason", "solo_unit", "holder", "holder_title",
+  "paused_by", "paused_at", "holder", "holder_title",
   "heartbeat_age_s", "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
   first], "total", "limit", "offset"}`. A run is `{"id", "title", "kind"
   ("generation", "maintenance" or "check"), "who", "database", "job" (the
@@ -1068,9 +1068,6 @@ forced credential change. They back the admin stats page
   "seconds"}]}}`. `index` is the object index as its last runs recorded it (PERF.140). A phase's `state` is `waiting`, `running`, `built`, `unchanged`, `stopped`,
   `nothing`, `failed` or `interrupted` (null before any run); `auto` says whether a change starts the warm-up by itself,
   which changes it waits to warm for, and the process that holds it.
-- `GET /api/admin/work/held` — the jobs held for a job they require (PERF.247, PERF.248):
-  `{"total", "items": [{"id", "queue", "label", "waits_for", "run", "stage"}]}`, the first 100. `waits_for` lists the
-  required jobs not done yet; `run` and `stage` are set for a unit of a run. A job that requires nothing is never listed.
 - `GET /api/admin/work/workers` and `POST /api/admin/work/workers`
   `{"count": n}` or `{"ludicrous": true}` — the bulk queue's worker count
   (ADM.15, PERF.95). `{"wanted", "live", "ludicrous", "cpus"}`: the count
@@ -1137,9 +1134,7 @@ forced credential change. They back the admin stats page
   `{"action": "pause"|"resume"}` pauses the whole queue (a flag in Redis,
   `planetgen:queue:paused`: the workers of a run's units and of the maintenance work take no job
   until it is cleared, a unit already running finishes, and the two API lanes are never held; PERF.152)
-  or resumes it (OPS.145: the same flag is a solo hold, `paused_reason` naming it and `solo_unit` the unit,
-  which the follower sets after it restarts a stuck unit so that unit runs alone; it lifts when the unit
-  completes or fails, and `resume` lifts it by hand); `503` when Redis does not answer. Each answers
+  or resumes it; `503` when Redis does not answer. Each answers
   `{"ok": bool}` and writes the change to the audit and activity logs
   (`work.cancel`, `work.clear`, `work.delete`, `work.queue.pause`, ...).
 - `GET /api/admin/settings` — the configuration page's data (ADM.84):

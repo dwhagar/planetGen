@@ -154,17 +154,17 @@ def _holder_is_warm_up(conn, holder):
 def _cancel_other_warm_up(conn, holder, sleep, clock):
     """
     The update's warm-up takes the machine from the warm-up that holds it: cancels it through the normal path (`runcontrol.cancel_run`: the run
-    ends as canceled, its waiting units leave the queue and the started ones are stopped), then waits, for `CANCEL_WAIT_SECONDS` at most, until
-    no unit of it is still running, so the two never work at once. What the canceled run stored is kept; the update's run finds it.
+    ends as canceled, the supervisor stops its jobs), then waits, for `CANCEL_WAIT_SECONDS` at most, until
+    no job of it is still running in the ledger, so the two never work at once. What the canceled run stored is kept; the update's run finds it.
     """
-    from planetgen.queue import runcontrol
+    from planetgen.queue import controls, runcontrol
     run = runrecord.read_run(conn, holder)
     log.normal(f"{runrecord.busy_message(conn, holder)}: the update's warm-up has priority over every other warm-up, so it cancels that one.")
     runcontrol.cancel_run(conn, holder, who=SUPERSEDED_BY)
     deadline = clock() + CANCEL_WAIT_SECONDS
-    while run is not None and runcontrol.started_units(conn, run):
+    while run is not None and controls.running_jobs(conn, holder):
         if clock() > deadline:
-            log.warning(f"{len(runcontrol.started_units(conn, run))} unit(s) of the canceled warm-up {holder} were still running "
+            log.warning(f"{controls.running_jobs(conn, holder)} job(s) of the canceled warm-up {holder} were still running "
                         f"after {format_duration_seconds(CANCEL_WAIT_SECONDS)}; going on.")
             return
         sleep(1.0)

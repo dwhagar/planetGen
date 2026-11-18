@@ -306,14 +306,6 @@ def test_a_run_canceled_while_the_unit_is_held_by_a_pause_ends_the_hold(command,
     pause.resume(conn)
 
 
-def test_a_solo_hold_lets_its_own_unit_through(command, started):
-    conn, run_id = started
-    command()
-    pause.hold_solo(run_id, 0, 0, units.job_id(run_id, 0, 0), conn)
-    assert engine.run("engine-test", {"count": 2}, Report(), redis=conn, run_id=run_id, stage=0, unit=0, job=units.job_id(run_id, 0, 0)) == [0, 10]
-    pause.resume(conn)
-
-
 def test_a_unit_of_a_run_that_ended_leaves_the_stage_unfinished_and_says_so(command, started):
     conn, run_id = started
     command()

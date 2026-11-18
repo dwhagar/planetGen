@@ -123,6 +123,7 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # refresh (GEN.839) solves again with the same draw. A moon's `_belt_exposure_msv_yr` is the dose its parent's belts give at its orbit before the air
 # cuts it (GEN.983); the stored `dose_belt_msv_yr` is that after the air.
 # A planet's `build.air_replay` is the state of the draws of its air, kept so the end-of-making pass can make the air again with the late accretion it read (GEN.1493); runtime state, spent to None and never stored. Its `_late_accreted_percent` is the late accretion the pass set (GEN.1493), also not stored.
+# A planet's `plan_slot` is its place in the star's planet plan (DB.75b); the store writes it as the body's `born_index` and `load` gives it back, so it is not a field of `to_dict`.
 # A star's `initial_mass_sol`, `phase_end_age_gy`, `_model_age_lifespan` and `_model_fe_h` are the population model's
 # own state, which a forced type shares (GEN.941); they are runtime state that the stored columns rebuild. `_model_rotation_hours` is the
 # spin period a scattered star was placed with (GEN.846), which the built star takes from the `bright_stars` row it was built from.
@@ -131,7 +132,7 @@ _RUNTIME_ONLY = {
            "phase_end_age_gy", "_model_age_lifespan", "_model_fe_h", "_model_rotation_hours",
            "state", "decay_age_yr",
            "_companions"},    # GEN.1441: the other radiating objects a star's bodies see besides the host, attached by the system from its tree (`radiation_field.attach`), not stored; derived with no draw at __init__ from the class and the phase (GEN.785, GEN.786); the store writes the columns
-    Planet: {"system_config", "star", "moons", "spatial", "_build", "_staged_au", "_staged_velocity_kms",
+    Planet: {"system_config", "star", "moons", "spatial", "_build", "plan_slot", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "phi_bio", "phi_cpx",
              "moon_disk_system", "formation_distance_au", "_giant_draw",
              "_belt_exposure_msv_yr", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au",

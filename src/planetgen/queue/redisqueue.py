@@ -146,34 +146,15 @@ class TimedQueue(rq.Queue):
 
     def create_job(self, func, *args, timeout=None, **kwargs):
         """
-        A job with a requirement (`requires.enqueue`; RQ's `depends_on`) is held until it is done (PERF.247); a job that has no
-        on-failure or on-success callback of its own gets the ones that fail the jobs held for it and write what it frees
-        (`requires.job_failed`, `requires.job_succeeded`).
+        A job with the time limit it must have.
 
         Raises:
-            ValueError: `timeout` is missing (RQ would then use its default), zero or negative (-1 is RQ's "no
-                limit"); or a requirement is not valid (`requires.check_serializers`).
+            ValueError: `timeout` is missing (RQ would then use its default), zero or negative (-1 is RQ's "no limit").
         """
         if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or timeout <= 0:
             raise ValueError(f"a job queued to {self.name} needs a time limit in seconds (redisqueue.job_timeout), "
                              f"not {timeout!r}")
-        from planetgen.queue import requires as requires_module
-        if kwargs.get("on_failure") is None:
-            kwargs["on_failure"] = rq.job.Callback(requires_module.FAILED_FUNCTION)
-        if kwargs.get("on_success") is None:
-            kwargs["on_success"] = rq.job.Callback(requires_module.SUCCEEDED_FUNCTION)
-        job = super().create_job(func, *args, timeout=timeout, **kwargs)
-        if job._dependency_ids:
-            requires_module.check_serializers(self.connection, job._dependency_ids, self.serializer, job.id)
-        return job
-
-    def setup_dependencies(self, job, pipeline=None):
-        """RQ's holding of a job with a requirement not done; writes the hold to the log (`requires.log_held`)."""
-        held = super().setup_dependencies(job, pipeline)
-        if job._dependency_ids and held.get_status(refresh=False) == rq.job.JobStatus.DEFERRED:
-            from planetgen.queue import requires as requires_module
-            requires_module.log_held(held, list(job._dependency_ids))
-        return held
+        return super().create_job(func, *args, timeout=timeout, **kwargs)
 
 
 def queue(name, connection):
@@ -221,11 +202,15 @@ def worker_argv(names, url, name=None, python=None, burst=True):
             *(["--name", name] if name else []), *names]
 
 
-def start_detached(argv, cwd):
+def start_detached(argv, cwd, on_exit=None):
     """
     Starts `argv` apart from this process, in its own session, and reaps
     it when it exits, so it doesn't linger as a zombie of the web server
     process; if this process goes first, init adopts it instead.
+
+    Args:
+        on_exit (callable, optional): Called with the exit status when the process ends, from the thread that reaps it: the notice of its exit (OPS.251), so a claim
+            made for a process that is starting ends with it and not at a time limit.
 
     Returns:
         subprocess.Popen: The started process.
@@ -234,11 +219,11 @@ def start_detached(argv, cwd):
         argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         cwd=cwd, close_fds=True, start_new_session=True,
     )
-    threading.Thread(target=_reap, args=(proc, argv), name=f"planetgen-worker-{proc.pid}", daemon=True).start()
+    threading.Thread(target=_reap, args=(proc, argv, on_exit), name=f"planetgen-worker-{proc.pid}", daemon=True).start()
     return proc
 
 
-def _reap(proc, argv):
+def _reap(proc, argv, on_exit=None):
     """Waits for a detached worker and, as its parent, writes down how it ended when that was badly (`log.process_ended`: a crash, a kill by
     the out-of-memory killer or `kill -9`): its own stderr goes nowhere, so nobody else would. A refusal during an update (`EX_TEMPFAIL`) is not one."""
     status = proc.wait()
@@ -247,6 +232,11 @@ def _reap(proc, argv):
                           ignore=(0, os.EX_TEMPFAIL), pid=proc.pid)
     except Exception as exc:  # noqa: BLE001 -- a log line is never a reason to lose the reaper thread
         log.swallowed("queue/redisqueue", "_reap", exc)
+    if on_exit is not None:
+        try:
+            on_exit(status)
+        except Exception as exc:  # noqa: BLE001 -- a claim that cannot be released here is found stale by the next caller (its holder's process is gone)
+            log.swallowed("queue/redisqueue", "_reap on_exit", exc)
 
 
 class Unavailable(Exception):

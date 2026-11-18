@@ -153,7 +153,8 @@ def _with_fewer_trace_elements(abundances, temperature_k, pressure_bar, fixed_o2
 
 SOLVE_MEMORY = 8192
 """int: How many solves `_solve` remembers (PERF.276). A solve is a function of its arguments alone, and an air is solved again with the very numbers it was solved with (a
-first pass and the one that is kept, the replay of a late accretion, a body made again): about two in five solves of a system repeat one made before. 0 turns the memory off."""
+first pass and the one that is kept, the replay of a late accretion, a body made again): about two in five solves of a system repeat one made before. 0 turns the memory off.
+Not a physical value: a cache size, defined by the memory a solve costs; it changes no result."""
 
 _solved = collections.OrderedDict()
 """OrderedDict: `_solve`'s memory, by its arguments: the solution, or the message of the `EquilibriumError` it raised."""

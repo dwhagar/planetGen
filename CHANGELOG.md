@@ -2,6 +2,82 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4514] - 2026-11-18
+
+**Headline:** The N-body spot-check integrates the planets the spacing screen judges, not the belt members promoted to planets.
+
+### Fixed
+- `scripts/nbody_spotcheck.py` and its test leave out belt members promoted to planets (`validation.slot_planets`), which the spacing screen exempts with their belt (GEN.1510). On 80 seeds all 47 integrated systems stay stable.
+
+generation-output: unchanged
+
+## [8.0.4513] - 2026-11-18
+
+**Headline:** An update that changes nothing the bright-star sampling tables read no longer starts the next run with cold tables, and a table is built once however many workers ask for it.
+
+### Fixed
+
+- PERF.281: the kept bright-star sampling tables (`band_table_cache`) are keyed by the contents of the 66 files a table is made from (the 28 a build runs, found by tracing 396 builds over every population and kind, and the files they import directly), the sizes of the downloaded datasets, the Python and numpy versions and the 193 `tuning` constants those files read. The key was the name, size and modification time of every one of 1,166 files and every constant, so every update, and every `git checkout`, started the next run cold: a sky share spent 537 of 982 profiled seconds building tables, 28 to 50 s in each of 30 tiers, in each of 16 shares. A test traces the builds and fails if one runs a file outside the list. A table is built under a lock of its own (the system lets it go when the process ends), so workers that start together on the same tables build each once and read it, a waiting unit keeps its beat, and the unit's line says it is building a table and how many this process has built.
+
+## [8.0.4512] - 2026-11-18
+
+**Headline:** A short N-body integration checks the generator's stability screens, with a report and a test; generation is unchanged.
+
+### Added
+- `planetgen/physics/nbody_check.py`: a leapfrog integration of a star's planets that says whether they collide, are ejected or have an encounter (GEN.1468).
+- `scripts/nbody_spotcheck.py` runs it over generated systems and writes the report; `tests/test_nbody_spotcheck.py` fails when a system the spacing screen passes is broken by the integration.
+
+generation-output: unchanged
+
+## [8.0.4511] - 2026-11-18
+
+**Headline:** The parts of the old RQ queue that nothing used any more are gone: the job-requires-job holding, the solo hold for a restarted unit, RQ's stop command for a run, and the Held jobs panel.
+
+### Changed
+- **OPS.235 slice 1 (the RQ removal, the pieces the Generate page's jobs do not need).** Deleted `queue/requires.py` (a job holding for another job on RQ's `depends_on`, its callbacks, `drop_held`, `held_overview`), the Held jobs panel of the Queue page, `GET /api/admin/work/held` and its client call; nothing queued a job that required another. Deleted the solo hold (`pause.hold_solo`, `lift_solo`, `solo_of`, the "queue is held for one unit" notice, `paused_reason` and `solo_unit` on the status) that the stuck-unit follower made for a restarted RQ unit: the launcher's hand-outs never read it. `unitstuck` now only asks the supervisor to stop a stuck unit (the ledger path) and no longer stops, re-queues or holds an RQ job. `runcontrol.cancel_run` and `clear_run` no longer send RQ's stop command or take units off an RQ queue (`stop_units`, `started_units` deleted): they end the run and ask the supervisor to stop its jobs in the ledger; the update's warm-up waits for the canceled warm-up's jobs through `controls.running_jobs`. The Generate page's own RQ job path (`web/jobs.py`, `cli/worker.py`, `redisqueue`) stays until OPS.244 moves it to the ledger; then slice 2 removes the `rq` dependency.
+- Reuse: `controls.stop_run`, the ledger's `engine_jobs` rows and the launcher's end settling do what the RQ stop and re-queue did; `unitstuck`'s ledger path was already there (OPS.234).
+
+### Removed
+- `queue/requires.py`, the held jobs API and panel, the solo hold, `runcontrol.stop_units` and `started_units`, `unitstuck`'s RQ stop, re-queue and dump-for-RQ paths, and their tests (`test_requires`, `test_solo_hold`, `test_unit_stuck`; the tests that still mattered moved to `test_unit_stuck_ledger`).
+
+## [8.0.4510] - 2026-11-18
+
+**Headline:** The admin's one-off system page takes its random seed through the draw module again, which fixes the red `test_generation_draws_only_through_the_draw_module`.
+
+### Fixed
+- OPS.244 slice A moved the one-off system run into the supervisor's warm process and, on the way, drew its seed with `secrets.randbits` in `generation/run_system.py` and `web/system_page.py`. Generation code may not import `secrets`. `util/draw.py`, the one module that is allowed to, now has `fresh_seed()` for a draw that is not part of any run, and both callers use it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4509] - 2026-11-18
+
+**Headline:** The claim to be starting the supervisor ends when that process ends, not after 20 seconds.
+
+### Changed
+- `supervisor.ensure_started` writes its claim with no time limit. `redisqueue.start_detached` gives the exit notice of the process it started (`on_exit`), which ends the claim; a claim whose caller has gone is taken at once; a spawn that fails leaves none (OPS.251). The worker counter's 90 seconds goes with RQ's workers (OPS.271) and is left.
+
+generation-output: unchanged
+
+## [8.0.4508] - 2026-11-18
+
+**Headline:** Six constants that the constants-completeness test named now carry their tag, and one of them is no longer a second copy of another's value.
+
+### Fixed
+- **`test_constants_completeness` was red on main** for six constants with no registry row or tag. `compaction.DRAWN_POROSITY_BELOW_KG` (GEN.1637's compaction) is tagged as derived from `belt_ledger.L1_MASS_KG` (it cannot import it without a cycle), and a new test holds the two equal. `disk_dispersal.YEAR_PER_MYR` (GEN.244) is tagged a unit conversion by definition. `gas_equilibrium.SOLVE_MEMORY` and `thermosphere.EXOBASE_MEMORY` (PERF.276, #6993) are tagged cache sizes that change no result. `interior_heat.FLOOR_STIFFNESS_MARGIN` (PERF.277) is tagged a numerical safety factor derived from the integrator's stability limit. `tuning.SLOW_PAGE_WANTED_SECONDS` (OPS.230) is tagged as derived from the background-tab timer. No physical value changes and no row is exempted.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4507] - 2026-11-18
+
+**Headline:** The serialization fuzz test knows a planet's plan slot is stored through its history row, not as a field of the planet.
+
+### Fixed
+- `test_starsystem_children_have_no_unlisted_attributes` listed `plan_slot` (DB.75b) as an unlisted attribute. It is stored as the body's `born_index` and given back on load, so it joins the test's runtime-only list for planets, with the reason.
+
+generation-output: unchanged
+
 ## [8.0.4506] - 2026-11-18
 
 **Headline:** `scripts/test.py failed` reruns only the tests that failed and the tests a fix can affect, within a time limit, instead of the whole selection again.

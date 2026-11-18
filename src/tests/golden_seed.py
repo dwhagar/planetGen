@@ -97,6 +97,17 @@ def galaxy_record(conn):
         conn.rollback()
 
 
+def galaxy_stages(conn):
+    """The digest of each generation stage's own output of the golden galaxy (`tests/golden_stages.py`, OPS.147), read as written under
+    `GOLDEN_SCHEMA_VERSION` like `galaxy_record`."""
+    from tests import golden_stages
+    conn.execute("UPDATE star_systems SET schema_version = ?", (GOLDEN_SCHEMA_VERSION,))
+    try:
+        return golden_stages.stage_digests(conn)
+    finally:
+        conn.rollback()
+
+
 def _galaxy_record(conn):
     found = fingerprint.region_fingerprint(conn)
     sectors = {}

@@ -39,13 +39,8 @@
   <p class="error">Redis isn't answering, so the runs can't be read. Start Redis (see the install guide), then reload this page.</p>
   {%- else %}
   {%- if queue.paused %}
-  {%- if queue.solo_unit is not none %}
-  <p class="error">The queue is held{% if queue.paused_by %} by {{ queue.paused_by }}{% endif %}{% if queue.paused_at %} since {{ utc_time(queue.paused_at) }}{% endif %}: {{ queue.paused_reason }}. Nothing else starts; units that are running finish or stop at their next batch. The hold lifts by itself when the unit completes or fails.</p>
-  <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume') }}">Lift the hold</a></p>
-  {%- else %}
   <p class="error">The queue is paused{% if queue.paused_by %} by {{ queue.paused_by }}{% endif %}{% if queue.paused_at %} since {{ utc_time(queue.paused_at) }}{% endif %}: no run starts or takes another unit until it is resumed.</p>
   <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume') }}">Resume the queue</a></p>
-  {%- endif %}
   {%- else %}
   <p><a class="btn btn-danger" href="{{ url_for('web.admin_queue_confirm', action='queue-pause') }}">Pause the queue</a>
     <span class="hint">Running units finish; no run starts or takes another until you resume.</span></p>
@@ -177,26 +172,6 @@
   </table>
   </div>
   {%- endif %}
-</section>
-{%- endif %}
-{%- if held %}
-<section class="panel" id="queue-held" aria-labelledby="queue-held-heading">
-  <h2 id="queue-held-heading">Held jobs</h2>
-  <p>{{ held.total }} {{ 'job is' if held.total == 1 else 'jobs are' }} held in no queue until the job{{ '' if held.total == 1 else 's' }} {{ 'it' if held.total == 1 else 'they' }} require{{ 's' if held.total == 1 else '' }} finish{{ 'es' if held.total == 1 else '' }}. A worker is never handed one early; the worker that finishes the last required job queues it. If a required job fails, the held job fails with it and a failed run names it.</p>
-  <div class="table-scroll" tabindex="0">
-  <table>
-    <caption class="sr-only">Jobs held for a job they require</caption>
-    <thead><tr><th scope="col">Job</th><th scope="col">Queue</th><th scope="col">Run</th><th scope="col">Waits for</th></tr></thead>
-    <tbody>
-    {%- for row in held.rows %}
-    <tr><td>{{ row.label }} <code>{{ row.id }}</code></td><td>{{ row.queue }}</td>
-      <td>{% if row.run_url %}<a href="{{ row.run_url }}">{{ row.run }}</a>{% if row.stage is not none %}, stage {{ row.stage }}{% endif %}{% endif %}</td>
-      <td><code>{{ row.waits_for }}</code></td></tr>
-    {%- endfor %}
-    </tbody>
-  </table>
-  </div>
-  {%- if held.shown < held.total %}<p class="hint">The first {{ held.shown }} are listed.</p>{% endif %}
 </section>
 {%- endif %}
 {%- if available %}
