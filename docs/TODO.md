@@ -11563,11 +11563,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: grows with OPS.226-234. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
 
-- [ ] **OPS.239 Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G2); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G2 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size L. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 16. Prerequisites: OPS.238. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-
 - [ ] **OPS.240 Job engine stage 5: sectors one at a time from a spawner job with a queued window; absorbs OPS.126**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G3 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 16. Prerequisites: OPS.238, stage 4. Related: OPS.191, OPS.207, OPS.212.
@@ -11639,12 +11634,6 @@ clears each one.
 - [ ] **GEN.1771 (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more**
   Lane 03, 3:52 PM EST 2026-11-16 (Train 40 gate, test_radiation_sweep): class N world Akumaus I (seed 15 sweep, extra system 12 of seeds 1015 to 1027; 19 bar, 412 K, 12.7 bar CO2, 2.7 bar H2O). UV-C transmission at fixed ozone: O2 x0.5 2.1e-5, x1 3.7e-5, x2 8.3e-5, x16 3.1e-4; a doubled column passes 13 percent more, also with ground albedo 0. More absorber should not let more UV-C through. About 4e-5 of the light, so no dose moves, but it is a model error. Do: trace the transmission (scattering against absorption, the band integration, or the ozone held fixed while O2 changes the profile) and fix the cause; lock item if output moves.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02 (moved from Lane 03, whose thread Boss closed at 5:07 PM EST 2026-11-16). Prerequisites: none. Related: GEN.1717.
-  Filed by the TODO thread.
-
-- [ ] **TEST.788 Slow gate files: test_db_column_round_trip 3,725 s, test_full_matrix 1,913 s, test_order_independence 1,872 s, test_describe 1,817 s and test_tidal_spin 1,662 s under gate load (Trains 39 to 41); make each fit well inside the hang guard without changing what it checks**
-  Lane 16, 8:30 PM EST 2026-11-16 (gate results reports/train39 to 41, r-lane*.txt; times under gate load, 3 workers on a box). Next tier over 1,000 s: test_gen_debris_disk 1,501 s, test_golden_seed 1,434 s, test_snow_line 1,397 s, test_galaxy_gen 1,332 s, test_moons 1,148 s, test_finish_run_generation 1,076 s, test_star_population 1,022 s. test_tidal_spin also failed once on a slow run. Do: time each alone, profile the fixture, speed it up the way TEST.783 did (forked workers, shared fixtures, no repeated builds), one PR per file, starting with test_tidal_spin; never shrink a sample, loosen a bound or pick seeds.
-  Progress (Lane 16, 11-17): test_describe done (PR 7053, 2,634 s to 1,057 s serial); test_db_column_round_trip's cost is the rich_galaxy fixture's sectors step, filed as PERF.279; test_order_independence stays as it is (515 s alone, not forkable because of the shared Redis queue); test_single_system_forcing closed, no cost found (27 s alone on a fresh Redis; Lane 05's timeout overlapped a restarted Redis and a stale run record).
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 16, lock-free. Prerequisites: none. Related: TEST.783.
   Filed by the TODO thread.
 
 - [ ] **OPS.270 (high) Only 3 of the 16 sky shares of Stage 9 ("Scatter the massive stars from the neighborhood") run at once, so the stage takes about 6 rounds of about 5 hours (Boss's 8.0.4396 run)**
