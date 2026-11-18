@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4541] - 2026-11-18
+
+**Headline:** The oxygen reductant row no longer names a paper outside the citation registry.
+
+### Fixed
+- **BO2's evidence text named a paper by name outside the registry** (test_citations_outside_the_registry was red on main after the GEN.1789 registry reads). The name is dropped; the row cites [R5300] only.
+
 ## [8.0.4540] - 2026-11-18
 
 **Headline:** A Generate job that waits for the running one is now rows of the job ledger, so the waiting line survives a web server restart and two processes start it once.
