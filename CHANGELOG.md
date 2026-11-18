@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4518] - 2026-11-18
+
+**Headline:** Two test runs can share one machine: `--slot N` gives a run its own three Redis databases, so they no longer empty each other's queues.
+
+### Added
+- **`--slot N` on `scripts/test.py` and `scripts/train_gate.py run`** (TEST.724): five slots of three Redis databases each (`tests/private_redis.py`, `PLANETGEN_TEST_REDIS_SLOT`). A slot run takes only its slot's databases, has at most three workers and ends only its own stray queue workers (`stray_workers.reap_all(databases)`), so two gates on one machine never meet in Redis (the `RunStopped: the run None` failures). A run with no slot is unchanged. MySQL needed nothing (every test database is named at random), and the gate already reads `scripts/data/known_reds.json`. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4517] - 2026-11-18
 
 **Headline:** Nothing starts RQ workers for a run or the maintenance lane any more: the supervisor's launcher forks every unit, and the code that asked for workers is gone.
