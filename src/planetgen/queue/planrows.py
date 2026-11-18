@@ -23,6 +23,7 @@ The ledger lives in the control database, found from the database the run's step
 import json
 
 from planetgen.queue import itemfile, ledger, runrecord
+from planetgen.util import log
 
 OPEN = "open"
 """str: The command of the row that is the cut of a stage."""
@@ -38,6 +39,16 @@ WINDOW_MIN, WINDOW_MAX = 200, 2000
 
 LOW_WATER = 0.5
 """float: The next window is written when the stage's units not yet done are fewer than this share of a window."""
+
+
+FOLD_ABOVE = 10_000
+"""int: A stage with more unit rows than this has the history of its finished rows folded when it ends (`fold_finished`, OPS.240)."""
+
+FOLD_KEEP = 100
+"""int: The slowest finished units of a folded stage whose rows and attempts stay whole."""
+
+FOLD_BATCH = 20_000
+"""int: How many job ids one statement of the fold reaches."""
 
 
 def stage_window(conn, run_id, index):
@@ -401,6 +412,45 @@ def spawn_window(conn, run_id, index):
         control.close()
 
 
+def fold_finished(conn, run_id, index):
+    """
+    Folds the history of a stage that ended with more than `FOLD_ABOVE` unit rows (OPS.240): a unit row that finished at its first attempt loses its `arguments` (about a kilobyte of what it was told to do) and its
+    attempt row, except the `FOLD_KEEP` slowest. Every row stays, so the stage's count, the status lines and the Queue page's totals are as real as before; a unit that was retried or failed is whole, and so is
+    every row of a stage that did not end. What was folded (`folded`, `attempts`, the seconds the folded attempts took, and the ids kept) is written to the stage's `release` row. Returns the number of rows folded, 0
+    for a stage that is too small. The stage must have ended: a row without arguments cannot be run again or compared with a new cut (`resumed._same` takes it as different).
+    """
+    control = control_connection(conn, run_id)
+    try:
+        run, stage = engine_run(conn, run_id, control), _stage_key(conn, run_id, index)
+        where = "run_id = ? AND stage = ? AND item_key <> ''"
+        found = control.execute(f"SELECT COUNT(*) AS n, MIN(id) AS low, MAX(id) AS high FROM engine_jobs WHERE {where}", (run, stage)).fetchone()
+        if found["n"] <= FOLD_ABOVE or control.execute(f"SELECT 1 AS x FROM engine_jobs WHERE {where} AND state <> 'done' LIMIT 1", (run, stage)).fetchone():
+            return 0
+        slow = [row["job_id"] for row in control.execute(
+            "SELECT a.job_id FROM engine_attempts a JOIN engine_jobs j ON j.id = a.job_id WHERE j.run_id = ? AND j.stage = ? AND j.item_key <> '' AND a.ended_at IS NOT NULL"
+            " ORDER BY TIMESTAMPDIFF(MICROSECOND, a.started_at, a.ended_at) DESC LIMIT ?", (run, stage, FOLD_KEEP)).fetchall()]
+        keep = ", ".join(["?"] * len(slow)) or "NULL"
+        folded = attempts = 0
+        seconds = 0.0
+        for low in range(found["low"], found["high"] + 1, FOLD_BATCH):
+            span = (run, stage, low, low + FOLD_BATCH - 1, *slow)
+            rule = f"j.run_id = ? AND j.stage = ? AND j.item_key <> '' AND j.id BETWEEN ? AND ? AND j.state = 'done' AND j.attempt <= 1 AND j.arguments IS NOT NULL AND j.id NOT IN ({keep})"
+            seconds += float(control.execute(f"SELECT COALESCE(SUM(TIMESTAMPDIFF(MICROSECOND, a.started_at, a.ended_at)), 0) / 1000000 AS s FROM engine_attempts a JOIN engine_jobs j ON j.id = a.job_id"
+                                              f" WHERE {rule} AND a.ended_at IS NOT NULL", span).fetchone()["s"])
+            attempts += control.execute(f"DELETE a FROM engine_attempts a JOIN engine_jobs j ON j.id = a.job_id WHERE {rule}", span).rowcount
+            folded += control.execute(f"UPDATE engine_jobs j SET j.arguments = NULL WHERE {rule}", span).rowcount
+        summary = {"folded": folded, "attempts": attempts, "seconds": round(seconds, 3), "kept": slow}
+        control.execute("UPDATE engine_jobs SET arguments = ?, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''",
+                        (ledger._text({"fold": summary}), run, stage, RELEASE))
+        control.commit()
+        return folded
+    except Exception:
+        control.rollback()
+        raise
+    finally:
+        control.close()
+
+
 def _cut_row(control, run, stage):
     return control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = ? AND item_key = '' AND state = 'done'", (run, stage, OPEN)).fetchone()
 
@@ -462,3 +512,8 @@ def mark_ended(conn, run_id, index, role):
             itemfile.remove(itemfile.path_of(run_id, stage))       # the stage's item file (OPS.240) has no more windows to give once the stage has ended
     finally:
         control.close()
+    if role == RELEASE:
+        try:
+            fold_finished(conn, run_id, index)
+        except Exception as exc:  # noqa: BLE001 -- the fold is the history's housekeeping: a stage that ended stays ended whatever it did
+            log.swallowed("queue/planrows", "fold_finished", exc)

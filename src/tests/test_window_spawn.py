@@ -212,7 +212,7 @@ def test_a_run_carried_on_from_one_that_stopped_in_a_later_window_does_only_the_
     before = set(runrecord.recent_runs(conn, limit=1000))
     with pytest.raises(units.RunStopped):
         wrapper.run("Windows", [step], lambda index, plan: None, lambda index, unit, result: None, database=database, galaxy_seed=seed, build=build)
-    stopped, = set(runrecord.recent_runs(conn, limit=1000)) - before
+    stopped = max(set(runrecord.recent_runs(conn, limit=1000)) - before)       # the ids begin with the second the run started in
     FAULTS.clear()
     assert sorted(RAN) == [n for n in range(TOTAL) if n != TOTAL - 3], "the others went on to the end of the stage, every window of it: the held unit is the only one left"
     RAN.clear()
@@ -221,3 +221,30 @@ def test_a_run_carried_on_from_one_that_stopped_in_a_later_window_does_only_the_
     done = wrapper.run("Windows", found.steps, lambda index, plan: None, lambda index, unit, result: None, database=database, galaxy_seed=seed, build=build, finishes=stopped)
     assert RAN == [TOTAL - 3], "every unit of every window the run before finished is carried over, the held one is done"
     assert runrecord.read_run(conn, done)["state"] == "done"
+
+
+def test_a_stage_that_ended_with_many_rows_folds_the_history_of_the_ones_that_finished_whole(mysql_config, monkeypatch):
+    """OPS.240: above `FOLD_ABOVE` rows, a unit that finished at its first attempt loses its arguments and its attempt row (the slowest `FOLD_KEEP` stay); every row stays, so the counts are real, and a retried unit is whole."""
+    monkeypatch.setattr(planrows, "FOLD_ABOVE", 10)
+    monkeypatch.setattr(planrows, "FOLD_KEEP", 2)
+    conn, run_id = _started(mysql_config)
+    control = planrows.control_connection(conn, run_id)
+    try:
+        run, stage = planrows.engine_run(conn, run_id, control), planrows._stage_key(conn, run_id, 0)
+        ids = [row["id"] for row in control.execute("SELECT id FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key <> '' ORDER BY id", (run, stage)).fetchall()]
+        for number, job in enumerate(ids):
+            control.execute("UPDATE engine_jobs SET state = 'done', attempt = ? WHERE id = ?", (2 if number == 1 else 1, job))
+            control.execute("INSERT INTO engine_attempts (job_id, attempt, started_at, ended_at, outcome) VALUES (?, 1, '2026-11-18 00:00:00', DATE_ADD('2026-11-18 00:00:00', INTERVAL ? SECOND), 'done')", (job, 1 + (9 if number == 4 else 0)))
+        control.commit()
+        assert planrows.fold_finished(conn, run_id, 0) == 0, "six rows are not above ten"
+        monkeypatch.setattr(planrows, "FOLD_ABOVE", 3)
+        conn.sadd(runrecord.done_key(run_id, 0), *range(WINDOW))
+        assert planrows.fold_finished(conn, run_id, 0) == WINDOW - 2 - 1, "the two slowest and the one that was retried stay whole"
+        left = {row["item_key"]: row["arguments"] for row in control.execute("SELECT item_key, arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key <> ''", (run, stage)).fetchall()}
+        assert len(left) == WINDOW and sum(value is None for value in left.values()) == WINDOW - 3 and left["1"] is not None and left["4"] is not None
+        assert control.execute("SELECT COUNT(*) AS n FROM engine_attempts a JOIN engine_jobs j ON j.id = a.job_id WHERE j.run_id = ?", (run,)).fetchone()["n"] == 3
+        fold = json.loads(control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = 'release'", (run, stage)).fetchone()["arguments"])["fold"]
+        assert fold["folded"] == WINDOW - 3 and fold["attempts"] == WINDOW - 3 and len(fold["kept"]) == 2
+        assert planrows.fold_finished(conn, run_id, 0) == 0, "folded once, nothing left to fold"
+    finally:
+        control.close()
