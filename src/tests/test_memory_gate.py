@@ -71,9 +71,12 @@ def test_the_lane_of_each_queue():
     assert claims.lane_of("something-else") == "other"
 
 
-def test_claim_for_a_page_job(conn):
-    page = types.SimpleNamespace(func_name="planetgen.web.job_runner.run", args=(), origin=redisqueue.MAINTENANCE_QUEUE, id="n")
-    assert claims.claim_for(page, conn).lane == "maintenance"
+def test_claim_for_a_page_jobs_step(conn):
+    """OPS.244: a step of a Generate page job is a row of the ledger; it claims what the row says (the runner is small; what the step starts is counted under it) on the lane of the classes the launcher does not name."""
+    from planetgen.queue import launcher, pagerun
+    row = {"command": pagerun.STEP, "claim_mb": pagerun.STEP_MB, "job_class": pagerun.CLASS}
+    claim = launcher.claim_of_row(row)
+    assert (claim.kind, claim.mb) == ("unit:page-step", float(pagerun.STEP_MB)) and claim.lane == memorygate.LANE_OTHER
 
 
 # --- the rule ---------------------------------------------------------------------------------------------------------

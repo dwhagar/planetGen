@@ -6,10 +6,10 @@ a dropped connection, and download in full (`.../log`).
 
 import json
 import os
-import time
 
 from planetgen.web import jobs
 
+from tests import page_jobs
 from tests.test_web_generate import client, jobs_root, site  # noqa: F401 -- fixtures
 
 
@@ -17,12 +17,10 @@ def _job(jobs_root, text, status="succeeded"):
     job_id = jobs.start_job("reset", "Stream", [{"label": "x", "argv": ["true"]}], spawn=False)
     with open(os.path.join(jobs_root, job_id, "output.log"), "wb") as f:
         f.write(text)
-    now = time.time()
-    state = {"status": status, "step": 1, "started_at": now - 5}
-    if status != "running":
-        state.update(finished_at=now, exit_code=0 if status == "succeeded" else 1)
-    with open(os.path.join(jobs_root, job_id, "state.json"), "w") as f:
-        json.dump(state, f)
+    if status == "running":
+        page_jobs.running(job_id)
+    else:
+        page_jobs.end(job_id, status)
     return job_id
 
 

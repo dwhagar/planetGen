@@ -8,12 +8,12 @@ twice, an unwritable jobs directory, pruning while a job runs and
 canceling ids that aren't running jobs (TEST.41), and a job outliving
 the web server process that started it (ADM.11).
 
-No database: the steps are tiny Python one-liners, like
-`test_web_generate.py`'s job tests.
+The steps are tiny Python one-liners, like `test_web_generate.py`'s job tests; a job is rows of the ledger
+(`planetgen/queue/pagerun.py`), so what is "damaged" here is the ledger and the folder, and a job that runs is run by a thread
+of the test (`tests/page_jobs.py`).
 """
 
 import glob
-import json
 import os
 import signal
 import subprocess
@@ -23,8 +23,9 @@ import time
 
 import pytest
 
-from planetgen.queue import redisqueue
-from planetgen.web import jobs
+from planetgen.queue import pagerun, redisqueue
+from planetgen.web import job_runner, jobs
+from tests import page_jobs
 
 PY = sys.executable
 REPO = jobs.REPO_DIR
@@ -34,7 +35,10 @@ REPO = jobs.REPO_DIR
 def jobs_root(tmp_path, monkeypatch):
     root = tmp_path / "jobs"
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(root))
-    return str(root)
+    page_jobs.forget_all_jobs()
+    page_jobs.runs_in_threads(monkeypatch)
+    yield str(root)
+    page_jobs.forget_all_jobs()
 
 
 def _step(label, code):
@@ -45,14 +49,7 @@ def _start(title="Job", spawn=False, root=None):
     return jobs.start_job("reset", title, [_step("x", "pass")], spawn=spawn, root=root)
 
 
-def _wait_finished(job_id, root, timeout=30):
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        job = jobs.get_job(job_id, root)
-        if job and job["finished"]:
-            return job
-        time.sleep(0.05)
-    raise AssertionError(f"job {job_id} did not finish: {jobs.get_job(job_id, root)}")
+_wait_finished = page_jobs.wait_finished
 
 
 def _age_lock(seconds):
@@ -66,13 +63,8 @@ def _age(path, seconds):
 
 
 def _backdate_job(root, job_id, seconds=3600):
-    """Pretend the job was spawned long ago by a runner that's gone."""
-    path = os.path.join(root, job_id, "job.json")
-    with open(path) as f:
-        body = json.load(f)
-    body["created_at"] -= seconds
-    with open(path, "w") as f:
-        json.dump(body, f)
+    """Pretend the job was started long ago and nothing ever began it."""
+    page_jobs.backdate(job_id, seconds)
 
 
 # --- TEST.40 Two admins start a job at once ----------------------------------------
@@ -179,11 +171,10 @@ def test_with_no_redis_a_job_does_not_start_and_the_pages_see_no_job(jobs_root, 
 
 # --- TEST.41 Job files damaged -------------------------------------------------------
 
-@pytest.mark.parametrize("content", ["", "{", "[1, 2]x", "\x00\xff garbage"])
-def test_corrupt_job_json_is_an_unknown_job(jobs_root, content):
+def test_a_job_the_ledger_does_not_know_is_an_unknown_job(jobs_root):
+    """The control database was wiped (or never had the job): its folder is still there, and the job is unknown to the pages."""
     job_id = _start(root=jobs_root)
-    with open(os.path.join(jobs_root, job_id, "job.json"), "w", encoding="utf-8") as f:
-        f.write(content)
+    page_jobs.forget_all_jobs()
     assert jobs.get_job(job_id, jobs_root) is None
     assert jobs.list_jobs(root=jobs_root) == []
     assert jobs.active_job(jobs_root) is None
@@ -198,25 +189,31 @@ def test_corrupt_job_json_is_an_unknown_job(jobs_root, content):
     assert jobs.active_job(jobs_root)["id"] == second
 
 
-@pytest.mark.parametrize("content", ["", "{\"status\": \"runn", "null", "not json"])
-def test_corrupt_state_json_reads_as_not_started(jobs_root, content):
+def test_a_job_nothing_has_begun_is_starting_for_a_while_and_then_interrupted(jobs_root):
     job_id = _start(root=jobs_root)
-    with open(os.path.join(jobs_root, job_id, "state.json"), "w", encoding="utf-8") as f:
-        f.write(content)
     assert jobs.get_job(job_id, jobs_root)["status"] == "starting"
-    _backdate_job(jobs_root, job_id)
+    _backdate_job(jobs_root, job_id, pagerun.STARTING_LIMIT_SECONDS - 100)
+    assert jobs.get_job(job_id, jobs_root)["status"] == "starting"             # a supervisor and its template may be starting
+    _backdate_job(jobs_root, job_id, 200)
     job = jobs.get_job(job_id, jobs_root)
     assert job["status"] == "interrupted" and job["finished"]
     assert "stopped without finishing" in job["error"]
 
 
-def test_corrupt_progress_json_shows_no_progress(jobs_root, monkeypatch):
-    monkeypatch.setattr(jobs, "_runner_alive", lambda *args: True)
+def test_a_job_whose_step_the_launcher_explained_is_still_starting_when_old(jobs_root):
+    """A step the dispatch rule holds says why (its row's `waited`): a supervisor is looking at it, so the job is waiting, not interrupted."""
     job_id = _start(root=jobs_root)
-    path = os.path.join(jobs_root, job_id)
-    with open(os.path.join(path, "state.json"), "w") as f:
-        json.dump({"status": "running", "step": 1, "pid": os.getpid(), "started_at": time.time()}, f)
-    with open(os.path.join(path, "progress.json"), "w") as f:
+    _backdate_job(jobs_root, job_id)
+    with page_jobs.ledger_rows() as control:
+        control.execute("UPDATE engine_jobs SET waited = 'the host is short of memory' WHERE state = 'ready' AND command = ?", (pagerun.STEP,))
+        control.commit()
+    assert jobs.get_job(job_id, jobs_root)["status"] == "starting"
+
+
+def test_corrupt_progress_json_shows_no_progress(jobs_root):
+    job_id = _start(root=jobs_root)
+    page_jobs.running(job_id)
+    with open(os.path.join(jobs_root, job_id, "progress.json"), "w") as f:
         f.write('{"completed": 3, "tot')
     job = jobs.get_job(job_id, jobs_root)
     assert job["status"] == "running" and job["progress"] is None
@@ -274,13 +271,12 @@ def test_a_lock_refused_leaves_no_job_directory(jobs_root):
 
 
 def test_prune_never_removes_the_running_job(jobs_root):
-    """Even when it's older than every job kept, and even when its own
-    files can't be read: the lock names it."""
+    """Even when it's older than every job kept, and even when the ledger no longer knows it: the lock names it."""
     running = _start(root=jobs_root)
     _age(os.path.join(jobs_root, running), jobs.STARTING_GRACE_SECONDS + 5)
     jobs._prune(jobs_root, 0)
     assert jobs.get_job(running, jobs_root)["status"] == "starting"
-    os.remove(os.path.join(jobs_root, running, "job.json"))
+    page_jobs.forget_all_jobs()
     jobs._prune(jobs_root, 0)
     assert os.path.isdir(os.path.join(jobs_root, running))
 
@@ -308,7 +304,7 @@ def test_cancel_of_a_finished_job(jobs_root, redis_server):
     job_id = jobs.start_job("reset", "Quick", [_step("x", "pass")], root=jobs_root)
     _wait_finished(job_id, jobs_root)
     assert jobs.cancel_job(job_id, jobs_root) is False
-    assert not os.path.exists(os.path.join(jobs_root, job_id, jobs.CANCEL_NAME))
+    assert jobs.get_job(job_id, jobs_root)["status"] == "succeeded"
 
 
 # --- ADM.11 Jobs outlive the page and the server process -----------------------------
@@ -317,17 +313,16 @@ SERVER = r"""
 import os, sys
 from planetgen.web import jobs
 job_id = jobs.start_job("reset", "Outlives", [
-    {"label": "Slow", "argv": [sys.executable, "-c", "import time; time.sleep(2); print('still here')"]},
-])
+    {"label": "Slow", "argv": [sys.executable, "-c", "print('still here')"]},
+], spawn=False)
 print(job_id, flush=True)
 """
 
 
-def test_a_job_outlives_the_server_process_that_started_it(jobs_root, redis_server):
-    """The web server process (here a stand-in in its own process group)
-    starts a job and is then killed with its whole group, as closing the
-    browser can't but a server stop might: the runner, detached into its
-    own session, carries on and finishes."""
+def test_a_job_outlives_the_server_process_that_started_it(jobs_root):
+    """The web server process (here a stand-in in its own process group) starts a job and is then killed with its whole group, as a
+    server stop might: the job is rows of the ledger and a folder, not a process of the server, so the steps run and finish when the
+    supervisor's job process takes them (here the test does)."""
     env = dict(os.environ, PLANETGEN_JOBS_DIR=jobs_root)
     server = subprocess.Popen([PY, "-c", SERVER + "import time; time.sleep(60)"], env=env, cwd=REPO,
                               stdout=subprocess.PIPE, text=True, start_new_session=True)
@@ -337,6 +332,8 @@ def test_a_job_outlives_the_server_process_that_started_it(jobs_root, redis_serv
     finally:
         os.killpg(server.pid, signal.SIGKILL)
         server.wait(timeout=10)
+    assert jobs.get_job(job_id, jobs_root)["status"] == "starting"
+    assert job_runner.run_to_end(job_id) == 0
     job = _wait_finished(job_id, jobs_root)
     assert job["status"] == "succeeded"
     assert "still here" in jobs.log_tail(job_id, root=jobs_root)
@@ -347,11 +344,9 @@ def test_jobs_are_listed_a_page_at_a_time(jobs_root):
     for number in range(5):
         job_id = f"20260101-00000{number}-{number:04x}"
         os.makedirs(os.path.join(jobs_root, job_id))
-        with open(os.path.join(jobs_root, job_id, "job.json"), "w", encoding="utf-8") as f:
-            json.dump({"id": job_id, "title": f"Job {number}", "kind": "galaxy", "steps": [],
-                       "created_at": 1_700_000_000 + number}, f)
-        with open(os.path.join(jobs_root, job_id, "state.json"), "w", encoding="utf-8") as f:
-            json.dump({"status": "succeeded"}, f)
+        with page_jobs.ledger_rows() as control:
+            pagerun.start(control, {"id": job_id, "title": f"Job {number}", "kind": "galaxy", "created_at": 1_700_000_000 + number, "root": jobs_root}, [{"label": "x", "argv": ["true"]}])
+        page_jobs.end(job_id)
     assert jobs.count_jobs(jobs_root) == 5
     assert [job["title"] for job in jobs.list_jobs(limit=2, root=jobs_root)] == ["Job 4", "Job 3"]
     assert [job["title"] for job in jobs.list_jobs(limit=2, root=jobs_root, offset=2)] == ["Job 2", "Job 1"]

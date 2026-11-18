@@ -1,37 +1,27 @@
 # planetgen/queue/runline.py
 
 """
-The one waiting list for work that cannot start yet (PERF.154)
-==============================================================
+The waiting list for runs that cannot start yet (PERF.154)
+============================================================
 
-Boss, 2026-10-22: "a task that arrives is never lost or failed only because another is running". Everything that has to
-wait for the machine waits here, in one ordered list in Redis, up to `queue.max_waiting` entries (8 by default), first
-come first served:
+Boss, 2026-10-22: "a task that arrives is never lost or failed only because another is running". A generation run (or an API job's, a one-sector regenerate or a neighbourhood) that finds
+the machine's `GENERATION` slot taken (`runrecord.start_run`) waits here, inside `start_when_free`, in one ordered list in Redis, up to `queue.max_waiting` entries (8 by default), first come
+first served. The supervisor starts it (OPS.211: `supervisor.RunStarts`), the first of the line when the machine is free, and the waiting process follows the run it started. It holds its place
+with a sign of life (`ALIVE_SECONDS`), so one that was killed drops out of the line by itself.
 
-* a **run** (`type` `run`): a generation run (or an API job's, a one-sector regenerate or a neighbourhood) that finds
-  the machine's `GENERATION` slot taken (`runrecord.start_run`), waiting inside `start_when_free`. The supervisor starts it (OPS.211: `supervisor.RunStarts`), the first of the line when the
-  machine is free, and the waiting process follows the run it started. It holds its place
-  with a sign of life (`ALIVE_SECONDS`), so one that was killed drops out of the line by itself;
-* a **job** (`type` `job`): a Generate page job that finds another job running, waiting for the Generate page's job
-  slot (`web/jobs.py`). Its recipe is kept in a private file of the jobs folder (it holds the database environment);
-  the line holds the rest. It starts by itself when the job before it succeeded or was canceled and is held for an
-  admin when that job failed (ADM.123).
+A Generate page job that finds another job running waits too, but not here: it is a run of the ledger whose rows all wait (`pagerun.queue`, OPS.244 slice C), and its turn comes when the jobs
+ahead of it are over. The two kinds wait for two different things, so each keeps its own order (one order for both would let a waiting job hold up the stage of the very job it waits for).
+`web/jobs.py` puts them in one list for the strip and the Generate page, and counts both against `queue.max_waiting` when a job is queued (`full_message`); a run counts the runs.
 
-The two kinds wait for two different things, so each keeps its own order: a run's turn comes when the runs ahead of it
-have started, a job's when the jobs ahead of it have. (One order for both would let a waiting job hold up the stage of
-the very job it waits for.) The strip and the Generate page read `entries`, which gives every entry in the order it
-arrived with its place in its own order, 1 being next.
-
-The line is refused, naming who is in it, when it holds `queue.max_waiting` entries (`LineFull`). A run that a Generate
-job's own step starts is already admitted and always gets a place (`join(..., force=True)`).
+The line is refused, naming who is in it, when it holds `queue.max_waiting` entries (`LineFull`). A run that a Generate job's own step starts is already admitted and always gets a place
+(`join(..., force=True)`).
 
 Keys (`runrecord.PREFIX` first):
 
 * `line`            sorted set: ticket -> arrival number;
 * `line:seq`        the arrival counter;
-* `line:<ticket>`   hash: `type`, `title`, `who`, `database`, `kind`, `queued_at`, `seq`, and for a job `root`,
-                    `spec` (the file holding its steps and environment), `after_job` and `held`;
-* `line:<ticket>:alive`  a run's sign of life;
+* `line:<ticket>`   hash: `type`, `title`, `who`, `database`, `kind`, `queued_at`, `seq`, `start`;
+* `line:<ticket>:alive`  the run's sign of life;
 * `line:<ticket>:verdict`  the supervisor's answer to a run that asked to start (`run_id`, `busy` or `failed`);
 * `line:starts`     hash: ticket -> the start of a run that does not wait (no place in the line), JSON; a run in the line keeps its own in the entry's `start` field.
 """
@@ -47,8 +37,7 @@ from planetgen.util.format import format_duration_seconds
 from planetgen.util.settings import get_settings
 
 RUN = "run"
-JOB = "job"
-TYPES = (RUN, JOB)
+TYPES = (RUN,)
 
 ALIVE_SECONDS = 30
 """int: How long a waiting run's place is kept without a sign of life (it gives one at every poll)."""
@@ -57,7 +46,7 @@ POLL_SECONDS = 1.0
 """float: How often a waiting run looks again."""
 
 KEEP_SECONDS = 30 * 86400
-"""int: How long a waiting job's entry is kept if nobody starts or discards it."""
+"""int: How long an entry is kept if nobody starts or discards it."""
 
 _JOIN = """
 local cap = tonumber(ARGV[1])
@@ -115,11 +104,10 @@ def _prune(conn):
 def entries(conn):
     """
     Every entry in the order it arrived, as dicts: `ticket`, `type`, `title`, `who`, `database`, `kind`, `queued_at`,
-    `seq`, `position` (its place in its own order, 1 being next) and, for a job, `root`, `after_job` and `held`
-    (`None` when not held).
+    `seq`, `position` (its place in its own order, 1 being next), `start` and `held` (`None`).
     """
     _prune(conn)
-    found, places = [], {RUN: 0, JOB: 0}
+    found, places = [], {RUN: 0}
     for member, _score in conn.zrange(_line_key(), 0, -1, withscores=True):
         ticket = runrecord._s(member)
         fields = _fields(conn, ticket)
@@ -130,16 +118,14 @@ def entries(conn):
             "ticket": ticket, "type": fields["type"], "title": fields.get("title") or "", "who": fields.get("who") or None,
             "database": fields.get("database") or None, "kind": fields.get("kind") or None,
             "queued_at": float(fields.get("queued_at") or 0), "seq": int(fields.get("seq") or 0),
-            "position": places[fields["type"]], "root": fields.get("root") or None, "spec": fields.get("spec") or None,
-            "start": fields.get("start") or None,
-            "after_job": fields.get("after_job") or None, "held": fields.get("held") or None,
+            "position": places[fields["type"]], "start": fields.get("start") or None, "held": None,
         })
     return found
 
 
-def of_type(conn, type_, root=None):
-    """The entries of one type in their order, a job's only for the jobs folder `root` when it is given."""
-    return [entry for entry in entries(conn) if entry["type"] == type_ and (root is None or entry["root"] == root)]
+def of_type(conn, type_):
+    """The entries of one type in their order."""
+    return [entry for entry in entries(conn) if entry["type"] == type_]
 
 
 def describe(found):
@@ -147,17 +133,23 @@ def describe(found):
     return ", ".join(f'"{entry["title"]}"' + (f" ({entry['who']})" if entry["who"] else "") for entry in found)
 
 
+def full_message(waiting, cap):
+    """What a refusal says when the line (`waiting`, entries with a `title` and a `who`) holds `cap` entries."""
+    return (f"The line is full: {len(waiting)} {'is' if len(waiting) == 1 else 'are'} waiting "
+            f"({describe(waiting)}); the line holds {cap} (queue.max_waiting). Try again when one has started.")
+
+
 def join(conn, type_, title, who=None, database=None, kind=None, fields=None, force=False, now=None, ticket=None):
     """
     Puts an entry at the end of the line.
 
     Args:
-        type_ (str): `RUN` or `JOB`.
+        type_ (str): `RUN`.
         title (str): What the pages call it.
         who (str, optional): Who asked for it.
-        fields (dict, optional): More to keep with it (a job's `root`, `spec`, `after_job`).
+        fields (dict, optional): More to keep with it (a run's `start`).
         force (bool): Take a place even in a full line (a run that a running job's own step starts).
-        ticket (str, optional): The ticket to use (a job writes its recipe under it first).
+        ticket (str, optional): The ticket to use.
 
     Returns:
         str: The entry's ticket.
@@ -173,8 +165,7 @@ def join(conn, type_, title, who=None, database=None, kind=None, fields=None, fo
     seq = int(conn.register_script(_JOIN)(keys=[_line_key(), _seq_key()], args=[cap, ticket]))
     if not seq:
         waiting = entries(conn)
-        raise LineFull(f"The line is full: {len(waiting)} {'is' if len(waiting) == 1 else 'are'} waiting "
-                       f"({describe(waiting)}); the line holds {cap} (queue.max_waiting). Try again when one has started.")
+        raise LineFull(full_message(waiting, cap))
     now = time.time() if now is None else now
     conn.hset(_entry_key(ticket), mapping={
         "type": type_, "title": title, "who": who or "", "database": database or "", "kind": kind or "",
@@ -190,23 +181,6 @@ def leave(conn, ticket):
     present = conn.zscore(_line_key(), ticket) is not None
     _drop(conn, ticket)
     return present
-
-
-def claim(conn, ticket):
-    """Takes the entry off the line so that one process alone starts it; whether this call took it. Its fields stay
-    until `leave` (or `restore`), so a start that fails can put it back."""
-    return bool(conn.zrem(_line_key(), ticket))
-
-
-def restore(conn, ticket):
-    """Puts a claimed entry back at the place it had."""
-    seq = conn.hget(_entry_key(ticket), "seq")
-    if seq is not None:
-        conn.zadd(_line_key(), {ticket: int(runrecord._s(seq))})
-
-
-def set_field(conn, ticket, name, value):
-    conn.hset(_entry_key(ticket), name, "" if value is None else str(value))
 
 
 def sign_of_life(conn, ticket):

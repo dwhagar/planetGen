@@ -7,6 +7,7 @@ job instead of its processes.
 """
 
 import json
+import pathlib
 import sys
 import types
 
@@ -536,12 +537,10 @@ def test_the_new_galaxy_log_counts_every_stage_not_every_step(tmp_path):
              for step in steps]
     counts = job_runner._step_stage_counts(shown)
     assert counts == [1, 1, 1, 2, 1, 1, 3, 3, 9, 1] and sum(counts) == 23
-    job_dir = tmp_path / "jobs" / "20261010-120000-abcd"
-    job_dir.mkdir(parents=True)
-    (job_dir / "job.json").write_text(json.dumps({
-        "id": job_dir.name, "kind": "new_galaxy", "title": "New galaxy", "database": "db", "created_at": 0,
-        "cwd": str(tmp_path), "env": {}, "steps": shown}))
-    assert job_runner.run(str(job_dir)) == 0
+    from tests import page_jobs
+    _job_id, job_dir, code = page_jobs.run_steps(tmp_path / "jobs", shown, kind="new_galaxy", title="New galaxy", database="db")
+    assert code == 0
+    job_dir = pathlib.Path(job_dir)
     log_text = (job_dir / "output.log").read_text()
     assert "=== Stage 1 of 23: " in log_text and "=== Stage 3 of 23: " in log_text
     assert "=== Stages 4 to 5 of 23: " in log_text and "of 10" not in log_text

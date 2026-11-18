@@ -5,11 +5,11 @@ Stop everything (PERF.186): the hold keeps anything from starting, `stop_all` en
 Cancel ends a job whose runner is gone, and a step that ignores the request to stop is killed.
 """
 
-import json
 import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 
 import pytest
@@ -19,6 +19,7 @@ from planetgen.cli import queue as queue_cli, worker as worker_cli
 from planetgen.queue import pause, redisqueue, stopall
 from planetgen.web import job_runner, jobs
 from planetgen.web.lib import tileprefetch
+from tests import page_jobs
 
 PYTHON = sys.executable
 
@@ -226,6 +227,7 @@ def test_the_command_stops_resumes_and_reports(monkeypatch, tmp_path, capsys):
 
 def _job(tmp_path, monkeypatch, step):
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path / "jobs"))
+    page_jobs.forget_all_jobs()
     job_id = jobs.start_job("galaxy", "Stuck", [{"label": "Runs", "argv": [PYTHON, "-c", step]}], spawn=False)
     return job_id, os.path.join(jobs.jobs_dir(), job_id)
 
@@ -234,9 +236,9 @@ def test_cancel_of_a_job_whose_runner_died_ends_its_step_and_frees_the_lock(tmp_
     job_id, path = _job(tmp_path, monkeypatch, "pass")
     step = subprocess.Popen([PYTHON, "-c", "import time; time.sleep(60)"], start_new_session=True)
     try:
-        with open(os.path.join(path, "state.json"), "w", encoding="utf-8") as handle:
-            json.dump({"status": "running", "pid": 999999, "step": 1, "step_pid": step.pid, "started_at": time.time()},
-                      handle)
+        page_jobs.running(job_id, pid=page_jobs.DEAD_PID)           # the runner of the step is gone, the step runs on
+        with open(os.path.join(path, job_runner.STEP_PID_NAME), "w", encoding="utf-8") as handle:
+            handle.write(str(step.pid))
         assert jobs.get_job(job_id)["status"] == "interrupted"      # what the page shows: the runner is gone
         assert jobs.cancel_job(job_id, who="boss") is True
         assert step.wait(timeout=10) is not None                   # its step was still running; now it is not
@@ -253,9 +255,14 @@ def test_a_step_that_ignores_the_request_to_stop_is_killed(tmp_path, monkeypatch
     stubborn = "import signal, time; signal.signal(signal.SIGTERM, signal.SIG_IGN); print('up', flush=True); time.sleep(120)"
     job_id, path = _job(tmp_path, monkeypatch, stubborn)
     monkeypatch.setattr(job_runner, "CANCEL_KILL_SECONDS", 1)
-    with open(os.path.join(path, "cancel"), "w", encoding="utf-8") as handle:
-        handle.write("now")
+    monkeypatch.setattr(job_runner, "ROW_CHECK_SECONDS", 0.2)
+    runner = threading.Thread(target=page_jobs.run_to_end, args=(job_id,), daemon=True)
+    runner.start()
+    deadline = time.time() + 30
+    while time.time() < deadline and "up" not in (jobs.read_log(job_id) or ("",))[0]:
+        time.sleep(0.1)
     started = time.time()
-    assert job_runner.run(path) == 1
-    assert time.time() - started < 60
+    assert jobs.cancel_job(job_id, who="boss") is True
+    runner.join(timeout=60)
+    assert not runner.is_alive() and time.time() - started < 60
     assert jobs.get_job(job_id)["status"] == "canceled"

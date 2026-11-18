@@ -282,7 +282,7 @@ class MarkerSource:
 
 
 class GenerateJobSource:
-    """The Generate page's job (`web/jobs.py`), running or just started. Canceled by its own cancel file. Looks
+    """The Generate page's job (`web/jobs.py`), running or just started. Canceled through the supervisor (`jobs.cancel_job`). Looks
     where the job directory is without creating it: an update on a new machine must not make it as root."""
 
     name = "generate-job"

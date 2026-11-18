@@ -7,6 +7,7 @@ figure of each group while a step runs, the job runner prints it after the step 
 """
 
 import json
+import pathlib
 import os
 import sys
 import threading
@@ -79,12 +80,10 @@ def test_the_sampler_sees_a_process_group_and_the_host():
 def held_job(tmp_path, monkeypatch):
     """A job whose one step holds HOLD_MB for three seconds, run by the job runner."""
     monkeypatch.setattr(memwatch, "INTERVAL_SECONDS", 0.2)
-    job_dir = tmp_path / "jobs" / "job-1"
-    job_dir.mkdir(parents=True)
-    job = {"id": "job-1", "kind": "galaxy", "title": "Holds memory", "cwd": str(tmp_path), "env": {},
-           "steps": [{"label": "Holds", "argv": [sys.executable, "-c", HOLD_STEP]}]}
-    (job_dir / "job.json").write_text(json.dumps(job), encoding="utf-8")
-    assert job_runner.run(str(job_dir)) == 0
+    from tests import page_jobs
+    _job_id, job_dir, code = page_jobs.run_steps(tmp_path / "jobs", [{"label": "Holds", "argv": [sys.executable, "-c", HOLD_STEP]}], title="Holds memory")
+    assert code == 0
+    job_dir = pathlib.Path(job_dir)
     return job_dir
 
 

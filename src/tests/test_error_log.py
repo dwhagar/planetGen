@@ -7,7 +7,6 @@ signal, a worker or a work horse that was killed or crashed (written by the pare
 the 5xx answers of the web app, and `update.sh`, `install.sh` and the warm-up stages.
 """
 
-import json
 import logging
 import os
 import pathlib
@@ -264,19 +263,14 @@ def test_the_error_lines_of_a_program_are_picked_out_of_what_it_printed():
 
 def test_a_web_job_step_that_failed_is_logged_with_its_error_lines(folder, mysql_config, monkeypatch):
     from planetgen.db import store
-    from planetgen.web import job_runner
     store.get_control_connection(mysql_config, ensure_schema=True).close()
     monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
-    job_dir = folder / "jobs" / "20261001-120000-abcd"
-    job_dir.mkdir(parents=True)
+    from tests import page_jobs
     failing = "import sys; print('ValueError: the sector is gone'); sys.exit(3)"
-    (job_dir / "job.json").write_text(json.dumps({
-        "id": job_dir.name, "kind": "galaxy", "title": "Generate sectors", "database": mysql_config.database,
-        "created_at": time.time(), "cwd": str(folder), "env": {},
-        "steps": [{"label": "Fill", "argv": [sys.executable, "-c", failing]}]}))
-    assert job_runner.run(str(job_dir)) == 1
+    job_id, _job_dir, code = page_jobs.run_steps(folder / "jobs", [{"label": "Fill", "argv": [sys.executable, "-c", failing]}], title="Generate sectors", database=mysql_config.database)
+    assert code == 1
     lines = _lines(folder)
-    assert len(lines) == 1 and "job: Step 'Fill' of web job 20261001-120000-abcd exited with status 3; its last error lines: " \
+    assert len(lines) == 1 and f"job: Step 'Fill' of web job {job_id} exited with status 3; its last error lines: " \
         "ValueError: the sector is gone" in lines[0]
 
 

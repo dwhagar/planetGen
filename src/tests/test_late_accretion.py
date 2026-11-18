@@ -50,8 +50,8 @@ def test_making_the_air_again_with_the_late_accretion_it_drew_gives_the_planet_i
     checked = 0
     for seed in range(1, 11):       # GEN.1710: about a half of the Earth-mass planets of a G star at 1 AU keep an envelope and so have no late accretion to replay
         planet, percent = _earth_like(seed)
-        if percent is None or planet.body_type != "t" or planet.build.air_replay is None:
-            continue
+        if percent is None or planet.body_type != "t" or planet.build.air_replay is None or planet.build.air_replay[3] is None:
+            continue       # the last of these: a planet that came out with no air has none to make again (`remake_air` leaves it, GEN.1595)
         before = _air(planet)
         assert planet_physics.remake_air(planet, percent, 0.0)
         after = _air(planet)
