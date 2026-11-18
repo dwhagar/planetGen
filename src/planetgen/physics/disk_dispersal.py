@@ -38,6 +38,7 @@ CLOSE_COMPANION_TAU_MYR = 1.0 / math.log(1.0 / (1.0 - CLOSE_COMPANION_SHARE_WITH
 """float: The characteristic time of the exponential that loses `CLOSE_COMPANION_SHARE_WITHIN_1_MYR` of its disks within 1 Myr, `1 / ln 3`, 0.91 Myr. [Stand-in 6.264 DZ3.]"""
 
 YEAR_PER_MYR = 1.0e6
+"""float: Years in a million years, by definition (the unit conversion from the dispersal times in Myr)."""
 
 
 def characteristic_time_yr(mass_sol, close_companion=False):
