@@ -6,7 +6,7 @@ Giants, outer disks and comet reservoirs of a seeded sample of systems (GEN.1788
 
 Generates `--systems` systems from the seeds `--seed` upward (the star forced to `--star-type` when given, for a Sun-like sample) and reads, per system, its giants, its outer-disk belts
 with their scattered share (`scatter.scattered_share`), whether the comet supply finds a reservoir (`comet_supply.family_weights`) and how many comets the system holds. Prints the rates:
-a giant at any distance, at 2 to 8 AU and at 8 to 32 AU (observed 14.1 and 8.9 planets per 100 stars, Fulton et al. 2021), an outer disk, a giant with an outer disk, and the systems
+a giant at any distance, at 2 to 8 AU and at 8 to 32 AU (observed 14.1 and 8.9 planets per 100 stars, [R1479]), an outer disk, a giant with an outer disk, and the systems
 with comets. Re-run it on a new main, and before and after any change to `physics/scatter.py` or `physics/belt_origin.py`.
 """
 
