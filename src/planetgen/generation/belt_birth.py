@@ -31,7 +31,7 @@ mass is that of warm dust a survey could see, a stand-in. [Stand-in 6.97 BG14, t
 from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt, present_state
 from planetgen.generation import remnant_orbits
-from planetgen.physics import belt_origin, bulk_draw, disk_truncation, scatter, swept_hand_on, trojans
+from planetgen.physics import belt_origin, bulk_draw, disk_truncation, planet_mass, scatter, swept_hand_on, trojans
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -114,7 +114,8 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
     star_mass_kg = remnant_orbits.formation_mass_kg(star)
     snow_line_au = star.snow_line_au
     edge_au = disk_edge_au if disk_edge_au < float("inf") else tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au
-    origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, tuning.PLANET_OUTER_GROWTH_AU, edge_au, u=_stream(star, chain, "survival").random(),
+    # GEN.1539: the limit is the one the planets' chain was built with (`planet_architecture` reads `star.mass`), so planets and belts see one disk
+    origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, planet_mass.growth_limit_au(star.mass, snow_line_au, edge_au), edge_au, u=_stream(star, chain, "survival").random(),
                                 debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter, instability=instability,
                                 disk_limit_au=disk_truncation.star_disk_limit_au(star), age_myr=star.age * 1.0e3)
     found = []

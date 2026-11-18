@@ -73,7 +73,7 @@ def system_counts(seed):
                 counts[("violation", "a promoted planet with no class")] += 1
             if body.envelope_mass_fraction:
                 counts[("violation", "a promoted planet with an envelope")] += 1
-            if body_strength.ratio_for(body.mass, body.ice_mass_fraction) < 1.0:
+            if body_strength.ratio_for(body.mass, min(body.ice_mass_fraction + (body.water_mass_fraction or 0.0), 1.0)) < 1.0:       # the member's status counts its water ice with the other ice (`belt_page.body_entry`)
                 counts[("violation", "a promoted planet under the round mass")] += 1
     return counts
 

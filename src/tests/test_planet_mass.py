@@ -68,6 +68,37 @@ def test_the_slow_outer_disk_builds_less_than_the_isolation_mass_alone(monkeypat
     assert tapered == pytest.approx(untapered * 0.25 ** tuning.PLANET_OUTER_GROWTH_EXPONENT)
 
 
+def test_the_growth_limit_is_the_registered_distance_at_one_solar_mass_and_goes_as_the_mass_to_the_solids_exponent_less_a_half():
+    """GEN.1539: the limit is one disk's, so planets and belts read it from here; 1.2 less 1/2 is the 0.7 the core assembly time gives."""
+    exponent = tuning.PLANET_SOLIDS_STELLAR_MASS_EXPONENT - 0.5
+    assert exponent == pytest.approx(0.7)
+    assert planet_mass.growth_limit_au(SUN_KG, SNOW_LINE_AU) == pytest.approx(tuning.PLANET_OUTER_GROWTH_AU)
+    for solar_masses in (0.1, 0.3, 0.5, 1.5, 2.0):
+        got = planet_mass.growth_limit_au(solar_masses * SUN_KG, 0.0)
+        assert got == pytest.approx(tuning.PLANET_OUTER_GROWTH_AU * solar_masses ** exponent)
+    assert planet_mass.growth_limit_au(0.3 * SUN_KG, 0.0) < planet_mass.growth_limit_au(SUN_KG, 0.0) < planet_mass.growth_limit_au(2.0 * SUN_KG, 0.0)
+
+
+def test_the_growth_limit_never_falls_inside_the_snow_line_nor_passes_the_disks_edge():
+    heavy = 5.0 * SUN_KG
+    assert planet_mass.growth_limit_au(heavy, 60.0) == 60.0, "a heavy star's limit would reach inside its snow line"
+    assert planet_mass.growth_limit_au(heavy, 60.0, disk_edge_au=40.0) == 40.0, "and the disk ends where it ends"
+    assert planet_mass.growth_limit_au(SUN_KG, SNOW_LINE_AU, disk_edge_au=5.0) == 5.0
+    assert planet_mass.growth_limit_au(0.1 * SUN_KG, 0.08, disk_edge_au=1.44) == 1.44
+
+
+def test_a_red_dwarfs_cores_taper_where_its_own_disk_built_less_not_where_the_suns_did(monkeypatch):
+    _no_scatter(monkeypatch)
+    star = 0.3 * SUN_KG
+    limit = planet_mass.growth_limit_au(star, 0.3)
+    assert limit < tuning.PLANET_OUTER_GROWTH_AU / 2.0
+    far = 4.0 * limit
+    tapered = planet_mass.assembled_core_kg(far, star, 0.3, 0.0, draw.Stream(3))
+    monkeypatch.setattr(tuning, "PLANET_OUTER_GROWTH_AU", 1.0e6)
+    untapered = planet_mass.assembled_core_kg(far, star, 0.3, 0.0, draw.Stream(3))
+    assert tapered == pytest.approx(untapered * 0.25 ** tuning.PLANET_OUTER_GROWTH_EXPONENT)
+
+
 def test_a_solid_core_is_pressed_softly_under_its_cap():
     cap = 10.0 * EARTH_KG
     assert planet_mass.saturate_kg(0.1 * cap, cap) == pytest.approx(0.1 * cap, rel=1e-3)

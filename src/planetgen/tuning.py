@@ -114,7 +114,7 @@ PLANET_ROCKY_ZONE_START_AU = 0.45
 # orbits are slow and the disk is thin (Uranus and Neptune grow in a few Myr only by pebble accretion,
 # recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
 # stand-in (tier T6, tweak L3) tuned with the giants' occurrence (`GIANT_GAS_SURVIVAL_SHARE`) and the count of the Neptune-mass planets beyond the
-# snow line ([R4271]: about 0.5 per star, recalled).
+# snow line ([R4271]: about 0.5 per star, recalled). This is the distance at one solar mass: `planet_mass.growth_limit_au` scales it with the star's mass (GEN.1539, registered in PA1).
 PLANET_OUTER_GROWTH_AU = 11.36
 PLANET_OUTER_GROWTH_EXPONENT = 2.889
 # A planet's solids are never more than this fraction of its star's mass (a disk holds about 1% of its star).

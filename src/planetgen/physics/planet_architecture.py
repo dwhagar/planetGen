@@ -11,7 +11,7 @@ it reads no class, writes none and draws only from the stream it is given.
    disk builds nothing the size of a planet; a heavy one builds a chain. No coin flip decides whether a star has planets.
 2. **The chain.** From an inner edge (a period near 5 days, [R3193, R3196]) outwards oligarchs form one feeding zone after another, each
    at the isolation mass (`formation.isolation_mass_kg`) and `separation` mutual Hill radii from the last (`OLIGARCH_SEPARATION_MEDIAN`,
-   drawn per system). The outer disk has built less (`PLANET_OUTER_GROWTH_AU`).
+   drawn per system). The outer disk has built less (`planet_mass.growth_limit_au`).
 3. **The thinning.** Pu and Wu 2015 [R3621] integrated tight chains and fitted the chance that one survives: a pair of spacing
    `K` mutual Hill radii lasts `tau` orbits of its inner planet with probability `1 - exp(-x^2)`, `x = 0.5 K - 0.6 - 0.35 log10 tau`. Each
    pair of the chain gets an instability time drawn from that law; the earliest to go collides (the two merge, keeping their angular
@@ -193,7 +193,7 @@ def oligarch_chain(star_mass_kg, snow_line_au, metal_ratio, scatter, separation,
     """
     The oligarchs an outer disk builds between `inner_au` and `outer_au`, as `[distance_au, mass_kg]` lists in order of distance: each at
     the isolation mass of its feeding zone `separation` mutual Hill radii wide, the next one a spacing further out. The outer disk has
-    built less (the taper `PLANET_OUTER_GROWTH_AU` and `PLANET_OUTER_GROWTH_EXPONENT`). Bodies lighter than `PLANET_MIN_MASS_EARTH` are kept in the chain (they
+    built less (the taper from `planet_mass.growth_limit_au`, which scales `PLANET_OUTER_GROWTH_AU` with the star's mass, and `PLANET_OUTER_GROWTH_EXPONENT`). Bodies lighter than `PLANET_MIN_MASS_EARTH` are kept in the chain (they
     take part in the thinning) and leave it afterwards (`build`).
     """
     chain = []
