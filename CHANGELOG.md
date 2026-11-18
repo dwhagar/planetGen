@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4565] - 2026-11-18
+
+**Headline:** A belt's bodies are no longer piled on the eccentricity and inclination caps: their orbit draws are truncated, not clipped.
+
+### Fixed
+- **A third of a wide belt's bodies sat at exactly e = 0.5 (and the widest at exactly 60 degrees).** `belt_roster.entry_of` cut each Rayleigh draw with `min(draw, cap)`, which moved the whole tail onto the cap (37 percent of a belt three times as wide). The draw is now truncated by its inverse distribution (`trojan_swarm.truncated_rayleigh`, reused; one draw per body, no extra stream numbers), so no body is piled on a cap and the shape below it is the Rayleigh. Registry row 6.182 MR3 says truncated (GEN.1792).
+- Every stored belt member's eccentricity and inclination change slightly for the same seed; the forced eccentricity sum of `belt.py` is unchanged.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4564] - 2026-11-18
 
 **Headline:** A giant of a planetary nebula's white dwarf no longer stops the build when a trace of vapor cycles over its ice cap.
