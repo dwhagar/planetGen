@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4506] - 2026-11-18
+
+**Headline:** `scripts/test.py failed` reruns only the tests that failed and the tests a fix can affect, within a time limit, instead of the whole selection again.
+
+### Added
+- **`scripts/test.py failed [--base REF] [--limit MINUTES]`** (TEST.722): after a red gate and a fix, it runs the tests that failed in the last run plus the tests `changed` selects for the changes since the base, and keeps the added ones within `--limit` minutes of recorded test time (default 20) on the workers asked for; what does not fit is counted in the output and left to the end-of-version run. It uses two new pytest options in `src/tests/depmap.py`, `--also-run FILE` (node ids that stay whatever the map says) and `--time-limit SECONDS`. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4505] - 2026-11-18
 
 **Headline:** A deadlock or lost connection in a write unit now reaches the job engine, which retries it from its cursor; the in-process retry loop is gone.
