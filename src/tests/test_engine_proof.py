@@ -102,7 +102,7 @@ def test_a_finished_stage_advances_exactly_once_however_often_its_end_is_killed(
         done["finish"] += 1
         planrows.mark_ended(c, r, i, planrows.FINISH)
 
-    def open_next(c, r, i, q):
+    def open_next(c, r, i):
         fault("open")
         done["open"] += 1
 

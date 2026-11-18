@@ -68,18 +68,6 @@ def test_a_command_names_its_tokens_and_the_claim_of_its_unit_holds_them(monkeyp
     assert claims.unit_tokens("no-such-command") == ()
 
 
-def test_the_solo_hold_gives_the_unit_the_alone_token(monkeypatch):
-    class Job:
-        id, func_name, origin, args = "job-1", claims.UNIT_FUNCTION, "bulk", ("run", 0, 0, "scatter-mass", {}, 1.0)
-
-    monkeypatch.setattr(claims.pause, "solo_of", lambda conn: {"job": "job-1"})
-    monkeypatch.setattr(claims.memorygate, "claim_mb", lambda conn, kind, mb, job_id=None, token=None: mb)
-    monkeypatch.setattr(claims, "lane_of", lambda origin: memorygate.LANE_BULK)
-    assert tokens.ALONE in claims.claim_for(Job(), None).tokens
-    monkeypatch.setattr(claims.pause, "solo_of", lambda conn: {"job": "another"})
-    assert tokens.ALONE not in claims.claim_for(Job(), None).tokens
-
-
 # --- the simulator -----------------------------------------------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("seed", [0, 1])

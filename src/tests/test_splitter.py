@@ -207,15 +207,12 @@ def test_a_stage_opened_with_a_decision_stores_it_in_its_plan_and_logs_it(conn, 
 
     _EXPANSION[:] = [commands.Expansion(units=[({"i": i}, 1.0) for i in range(3)], plan={"x": 1}, split=decision)]
     monkeypatch.setitem(commands.REGISTRY, "probe", commands.CommandSpec("probe", "A probe", unit=("tests.test_splitter", "unit"), expand=("tests.test_splitter", "expand")))
-    queued = []
-    monkeypatch.setattr(units, "enqueue_units", lambda *a, **k: queued.append(a))
     step = commands.Step("probe", "probe", "A probe", {})
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("probe", "A probe", units=1)], steps=[step.as_dict()])
     assert wrapper._open(conn, run_id, 0) == 3
     plan = planrows.read_plan(conn, run_id, 0)
     assert plan["split"]["by"] == "profile" and plan["split"]["cuts"][:2] == [63, 126] and plan["detail"] == {"x": 1}
     assert "Split of probe changed" in runrecord.log_text(conn, run_id)
-    assert queued
 
 
 _EXPANSION = []

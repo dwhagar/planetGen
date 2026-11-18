@@ -10,6 +10,7 @@ import textwrap
 import pytest
 import rq
 
+from tests import rq_units
 from planetgen.queue import beatjudge, commands, pause, redisqueue, runrecord, unitbeat, units, unitstuck
 
 
@@ -30,7 +31,7 @@ def run_id(conn, monkeypatch):
     monkeypatch.setitem(commands.REGISTRY, "stuckkind", commands.CommandSpec("stuckkind", "A test", unit=(__name__, "_unit"), expand=(__name__, "_unit")))
     run = runrecord.start_run(conn, "T", [runrecord.Stage("stuckkind", "Stuck", units=2)])
     runrecord.begin_stage(conn, run, 0)
-    units.enqueue_units(conn, run, 0, "stuckkind", [({"n": 0}, 1.0), ({"n": 1}, 1.0)])
+    rq_units.enqueue_units(conn, run, 0, "stuckkind", [({"n": 0}, 1.0), ({"n": 1}, 1.0)])
     yield run
     redisqueue.queue(redisqueue.BULK_QUEUE, conn).empty()
 

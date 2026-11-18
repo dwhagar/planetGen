@@ -32,10 +32,10 @@ def holder(name, mb, held=0.0, lane="bulk", cpu=1.0, kind="unit:x"):
 def test_every_function_a_queue_may_run_has_a_claim_or_runs_inside_another_job():
     """Nothing is exempt from the gate (Boss, 3:34 PM EST on 2026-11-08): a new kind of job fails here until it has a claim."""
     for function in allowlist.FUNCTIONS:
-        assert function in claims.FUNCTION_CLAIMS or function in claims.SPECIAL_FUNCTIONS or function in claims.CALLBACKS, function
+        assert function in claims.FUNCTION_CLAIMS or function in claims.CALLBACKS, function
     assert set(claims.FUNCTION_CLAIMS) <= allowlist.FUNCTIONS
-    assert claims.CALLBACKS <= allowlist.FUNCTIONS and claims.SPECIAL_FUNCTIONS <= allowlist.FUNCTIONS
-    assert not set(claims.FUNCTION_CLAIMS) & (claims.SPECIAL_FUNCTIONS | claims.CALLBACKS)
+    assert claims.CALLBACKS <= allowlist.FUNCTIONS
+    assert not set(claims.FUNCTION_CLAIMS) & claims.CALLBACKS
 
 
 def test_every_function_the_api_dispatcher_may_call_has_a_claim():
@@ -71,19 +71,9 @@ def test_the_lane_of_each_queue():
     assert claims.lane_of("something-else") == "other"
 
 
-def test_claim_for_a_unit_a_page_job_and_a_cut(conn):
-    unit = types.SimpleNamespace(func_name=claims.UNIT_FUNCTION, args=("r", 3, 0, "scatter-mass", {}, 1.0), origin=redisqueue.BULK_QUEUE, id="r-s3-u0")
-    assert claims.claim_for(unit, conn) == Claim("unit:scatter-mass", float(workers.SCATTER_WORKER_MEMORY_MB), 1.0, "bulk")
+def test_claim_for_a_page_job(conn):
     page = types.SimpleNamespace(func_name="planetgen.web.job_runner.run", args=(), origin=redisqueue.MAINTENANCE_QUEUE, id="n")
     assert claims.claim_for(page, conn).lane == "maintenance"
-    steps = [commands.Step("a", "link-neighbors", "A").as_dict(), commands.Step("b", "scatter-backfill", "B").as_dict()]
-    conn.hset(runrecord.run_key("r"), mapping={"stages": json.dumps([{"key": "a", "label": "A"}, {"key": "b", "label": "B"}]), "steps": json.dumps(steps)})
-    cut = types.SimpleNamespace(func_name=claims.OPEN_FUNCTION, args=("r", 1), origin=redisqueue.BULK_QUEUE, id="r-open1")
-    assert claims.claim_for(cut, conn) == Claim("cut:scatter-backfill", float(claims.CUT_MB), 1.0, "bulk", True)
-    memorygate.learn(conn, "cut:scatter-backfill", 2000.0)
-    assert claims.claim_for(cut, conn).mb == pytest.approx(2000.0 * memorygate.LEARN_MARGIN)       # what the first cut held is what the next claims
-    gone = types.SimpleNamespace(func_name=claims.OPEN_FUNCTION, args=("nobody", 4), origin=redisqueue.BULK_QUEUE, id="x")
-    assert claims.claim_for(gone, conn).kind == "cut:unknown"
 
 
 # --- the rule ---------------------------------------------------------------------------------------------------------
@@ -282,41 +272,3 @@ def running(conn, fake_host):
     memorygate.refresh(conn, "w1")
     return conn
 
-
-def test_a_unit_killed_with_sigkill_is_retried_once_with_a_larger_claim(running):
-    units.horse_killed(_killed_job(1, conn=running), 4242, -signal.SIGKILL, None)
-    assert runrecord._s(running.hget(runrecord.run_key("r1"), "state")) == "running"          # the run goes on
-    assert memorygate.claim_mb(running, "unit:scatter-mass", 2100.0, job_id="r1-s1-u101") == pytest.approx(max(2100.0 * 1.5, 2600.0 * 1.1), rel=1e-3)
-    assert memorygate.learned(running)["unit:scatter-mass"] > 2100.0
-
-
-def test_a_unit_killed_again_stops_the_run_naming_the_unit_and_what_it_claimed(running):
-    units.horse_killed(_killed_job(0, conn=running), 4242, -signal.SIGKILL, None)
-    assert runrecord._s(running.hget(runrecord.run_key("r1"), "state")) == "failed"
-    error = runrecord._s(running.hget(runrecord.run_key("r1"), "error"))
-    assert error.startswith("unit 101 of stage Scatter the massive stars was killed: its worker process 4242 ended with")
-    assert "it claimed 2.1 GB on the memory gate and the most seen was 2.6 GB" in error
-
-
-def test_a_kill_that_is_not_sigkill_is_not_retried(running):
-    units.horse_killed(_killed_job(1, conn=running), 4242, -signal.SIGTERM, None)
-    assert runrecord._s(running.hget(runrecord.run_key("r1"), "state")) == "failed"
-
-
-def test_an_opening_killed_with_sigkill_is_retried_once_then_the_run_stops_naming_the_stage(running):
-    job = _killed_job(1, func=units.OPEN_FUNCTION, conn=running)
-    units.horse_killed(job, 4242, -signal.SIGKILL, None)
-    assert runrecord._s(running.hget(runrecord.run_key("r1"), "state")) == "running"
-    job.retries_left = 0
-    units.horse_killed(job, 4242, -signal.SIGKILL, None)
-    error = runrecord._s(running.hget(runrecord.run_key("r1"), "error"))
-    assert error.startswith("the opening of stage Scatter the massive stars was killed: its worker process 4242")
-
-
-def test_a_job_that_is_not_part_of_a_run_is_only_learned_from(conn, fake_host):
-    memorygate.acquire(conn, Claim("api:x", 700.0), "w1", job="j", pid=6001)
-    fake_host.held[6001] = 900.0
-    memorygate.refresh(conn, "w1")
-    job = types.SimpleNamespace(args=(), connection=conn, func_name="planetgen.web.job_runner.run", id="j", worker_name="w1", retries_left=0)
-    units.horse_killed(job, 4242, -signal.SIGKILL, None)
-    assert memorygate.claim_mb(conn, "api:x", 700.0) == pytest.approx(700.0 * 1.5, rel=1e-3)       # the next job of the kind claims more
