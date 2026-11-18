@@ -160,3 +160,9 @@ def test_the_data_file_states_its_sources_and_is_refused_without_them(monkeypatc
     path.write_text(json.dumps(broken), encoding="utf-8")
     with pytest.raises(DataError):
         cp._load()
+
+
+def test_the_drawn_porosity_cut_is_the_belt_ledgers_cut():
+    """`compaction.DRAWN_POROSITY_BELOW_KG` repeats `belt_ledger.L1_MASS_KG` (the ledger cannot be imported by compaction without a cycle), so the two are held equal here."""
+    from planetgen.physics import belt_ledger, compaction
+    assert compaction.DRAWN_POROSITY_BELOW_KG == belt_ledger.L1_MASS_KG

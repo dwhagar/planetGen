@@ -236,6 +236,45 @@ def test_changed_options_reach_pytest(monkeypatch):
     assert all(call[-2:] == ["--changed", "HEAD~1"] for call in calls) and len(calls) == 3
 
 
+def test_failed_runs_the_same_phases_as_changed_and_hands_pytest_the_failures_and_the_time_limit(tmp_path, monkeypatch):
+    """TEST.722: after a fix, `failed` reruns what failed in the last run and the tests the changes can affect, within a time limit."""
+    assert runner.build_phases("failed", [], 4, 2) == runner.build_phases("changed", [], 4, 2)
+    assert runner.depmap_options("failed", "abc123", False, 4800) == [
+        "--changed", "abc123", "--also-run", runner.FAILED_NODEIDS_FILE, "--time-limit", "4800"]
+    failures = tmp_path / "failures.jsonl"
+    failures.write_text("".join(json.dumps({"nodeid": nodeid, "text": "x", "when": "call", "seconds": 1, "worker": "gw0"}) + "\n"
+                                for nodeid in ("src/tests/test_a.py::test_one", "src/tests/test_b.py::test_two")))
+    saved = tmp_path / "progress" / "failed-nodeids.txt"
+    assert runner.write_failed_nodeids(str(saved), str(failures)) == 2
+    assert saved.read_text().split() == ["src/tests/test_a.py::test_one", "src/tests/test_b.py::test_two"]
+    failures.write_text("")      # a clean run empties the list: the old failures are not rerun for ever
+    assert runner.write_failed_nodeids(str(saved), str(failures)) == 0 and saved.read_text() == ""
+
+
+def test_failed_with_no_failure_ever_recorded_says_so_and_runs_nothing(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(runner, "FAILED_NODEIDS_FILE", str(tmp_path / "none" / "failed-nodeids.txt"))
+    monkeypatch.setattr(runner, "FAILURES_FILE", str(tmp_path / "no-failures.jsonl"))
+    calls = []
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: calls.append(command) or (0, {}))
+    with pytest.raises(SystemExit):
+        runner.main(["failed", "--no-preflight"])
+    assert "no failure is recorded" in capsys.readouterr().err and not calls
+
+
+def test_failed_converts_the_minutes_into_test_seconds_for_the_workers_asked_for(tmp_path, monkeypatch):
+    saved = tmp_path / "progress" / "failed-nodeids.txt"
+    saved.parent.mkdir()
+    saved.write_text("src/tests/test_a.py::test_one\n")
+    monkeypatch.setattr(runner, "FAILED_NODEIDS_FILE", str(saved))
+    monkeypatch.setattr(runner, "FAILURES_FILE", str(tmp_path / "no-failures.jsonl"))
+    calls = []
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: calls.append(command) or (5, {}))
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    assert runner.main(["failed", "--base", "HEAD~1", "--limit", "20", "-n", "3", "--no-preflight"]) == 0
+    assert calls and all(call[-6:] == ["--changed", "HEAD~1", "--also-run", str(saved), "--time-limit", "3600"] for call in calls)
+
+
 def test_the_summary_line_of_pytest_gives_the_counts():
     assert runner.summary_counts("=== 3 failed, 15419 passed, 22 skipped, 2 errors in 1081.44s (0:18:01) ===") == {
         "failed": 3, "passed": 15419, "skipped": 22, "errors": 2}

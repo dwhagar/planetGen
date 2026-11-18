@@ -173,6 +173,8 @@ def _open(conn, run_id, index):
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
     if expansion.split is not None:             # OPS.161: the cut the queue engine chose, fixed with the plan so a restarted unit has the same one
         splitter.announce(conn, run_id, index, expansion.split)
+    if len(expansion.units) > units.MAX_UNITS:
+        raise ValueError(f"a stage queues at most {units.MAX_UNITS} units, not {len(expansion.units)}")
     rows = planrows.record_cut(conn, run_id, index, step.kind, expansion.units, cost, expansion.plan,       # OPS.216: the plan is rows, cut and marked done in one transaction
                                split=None if expansion.split is None else expansion.split.as_dict())
     runrecord.set_stage_size(conn, run_id, index, len(expansion.units), cost)
@@ -191,23 +193,10 @@ def _open(conn, run_id, index):
         _conclude_empty_stage(conn, run_id, index, stage_label(conn, run_id, index))
         return 0
     resumed.settle(conn, run_id, index, carried)
-    queued = expansion.units
-    if prior and not commands.spec(step.kind).resumes:          # a unit that cannot resume starts from its first piece, and a command that skips what it saved is told so
-        queued = [(dict(args, **{resumed.AGAIN: True}), cost) for args, cost in queued]
-    if forked(conn, run_id):
-        if prior and not commands.spec(step.kind).resumes:        # the rows hold the cut's arguments: a unit that cannot resume is told so on them, as the queued ones are
-            planrows.add_to_unit_args(conn, run_id, index, {resumed.AGAIN: True})
-        planrows.release_units(conn, run_id, index, skip=sorted(carried.done))      # OPS.228: the supervisor's launcher hands the units out
-        return left
-    units.enqueue_units(conn, run_id, index, step.kind, queued, queue_name=queue_of(run_kind(conn, run_id)),
-                        expected_seconds=stages[index].get("expected_seconds"), rows=rows, **({"skip": frozenset(carried.done)} if carried.done else {}))
+    if prior and not commands.spec(step.kind).resumes:        # the rows hold the cut's arguments: a unit that cannot resume is told so on them
+        planrows.add_to_unit_args(conn, run_id, index, {resumed.AGAIN: True})
+    planrows.release_units(conn, run_id, index, skip=sorted(carried.done))      # OPS.228: the supervisor's launcher hands the units out
     return left
-
-
-def forked(conn, run_id):
-    """Whether the units of this run's stage are handed out by the launcher (OPS.228, OPS.229): the run has a ledger and it is of a kind the launcher serves (a generation run, a cache warm-up or a
-    database check: `planrows.JOB_CLASSES`)."""
-    return run_kind(conn, run_id) in planrows.JOB_CLASSES and planrows.ledgered(conn, run_id)
 
 
 def _end_held(conn, earlier):
@@ -774,8 +763,8 @@ def stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
     The `ensure` for one stage of a run (PERF.220): `workers.ensure_workers` with the run's worker count held to what
     the stage's workers can take in memory (`workers.stage_worker_cap`). A stage with ordinary workers is not limited.
     """
-    if run_id is not None and forked(conn, run_id):
-        return lambda: 0                # OPS.228, OPS.229: the supervisor's launcher forks each unit when the gate has room (a generation run's, a warm-up's, a check's); no worker waits for the stage
+    if run_id is not None:
+        return lambda: 0                # OPS.228, OPS.229: the supervisor's launcher forks each unit when the gate has room; no worker waits for the stage
     cap = workers.stage_worker_cap(step_kind, conn, run_id)       # OPS.157: sized by the claim the gate makes from the job profile (the typed figure with no history)
     count = workers_count if cap is None else min(workers_count or cap, cap)
     if cap is not None:

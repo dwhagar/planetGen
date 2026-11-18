@@ -96,7 +96,7 @@ def test_every_function_on_the_lists_exists():
 
 
 def test_the_names_the_program_gives_its_jobs_are_on_the_list():
-    for name in (units.UNIT_FUNCTION, units.FAILURE_FUNCTION, units.OPEN_FUNCTION, units.OPEN_FAILURE_FUNCTION, requires.FAILED_FUNCTION,
+    for name in (requires.FAILED_FUNCTION,
                  requires.SUCCEEDED_FUNCTION):
         assert name in allowlist.FUNCTIONS
     from planetgen.web.lib import tileprefetch
@@ -107,7 +107,7 @@ def test_the_names_the_program_gives_its_jobs_are_on_the_list():
 def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
     """`queue.enqueue(X, ...)`, `enqueue_many([prepare_data(X, ...)])` and `requires.enqueue(queue, X, ...)`: X is a constant
     on the list, a module constant that is, or a helper's own parameter."""
-    known = {"UNIT_FUNCTION": units.UNIT_FUNCTION, "OPEN_FUNCTION": units.OPEN_FUNCTION, "JOB": "planetgen.web.lib.tileprefetch:build_nodes"}
+    known = {"JOB": "planetgen.web.lib.tileprefetch:build_nodes"}
     checked = 0
     for module, path, tree in _trees():
         if module == "planetgen.queue.redisqueue":
@@ -127,7 +127,7 @@ def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
             value = argument.value if isinstance(argument, ast.Constant) else known.get(getattr(argument, "id", None))
             assert value in allowlist.FUNCTIONS, f"{path}:{node.lineno} queues {ast.unparse(argument)}"
             checked += 1
-    assert checked >= 3         # the Generate page's job, a node prefetch and a run's units
+    assert checked >= 1         # the Generate page's job
 
 
 def test_nothing_calls_requires_enqueue_with_a_function_that_is_not_on_the_list():
@@ -136,7 +136,7 @@ def test_nothing_calls_requires_enqueue_with_a_function_that_is_not_on_the_list(
             if isinstance(node, ast.Call) and _call_name(node) == "enqueue" and ast.unparse(node.func).endswith("requires.enqueue"):
                 argument = node.args[1]
                 value = argument.value if isinstance(argument, ast.Constant) else getattr(argument, "id", None)
-                assert value in allowlist.FUNCTIONS or value in ("UNIT_FUNCTION", "JOB"), f"{path}:{node.lineno}"
+                assert value in allowlist.FUNCTIONS or value == "JOB", f"{path}:{node.lineno}"
 
 
 # --- The guard itself ----------------------------------------------------------------------------------------------------
@@ -161,13 +161,14 @@ def test_a_job_naming_a_function_off_the_list_is_refused_and_runs_nothing(name):
 
 
 def test_a_job_naming_a_function_on_the_list_resolves_it():
-    job = _job(units.UNIT_FUNCTION, args=(0, 0, 0, "x", {}, None))
-    assert job.func is units.run_unit
+    job = _job("planetgen.queue.forkedjob.run", args=({"run_id": "x"}, None))
+    from planetgen.queue import forkedjob
+    assert job.func is forkedjob.run
 
 
 @pytest.mark.parametrize("callback", ["success_callback", "failure_callback", "stopped_callback"])
 def test_a_callback_off_the_list_is_refused(callback):
-    job = _job(units.UNIT_FUNCTION, args=(0, 0, 0, "x", {}, None))
+    job = _job("planetgen.queue.forkedjob.run", args=({"run_id": "x"}, None))
     setattr(job, f"_{callback}_name", "os.system")
     setattr(job, f"_{callback}", allowlist.rq.job.UNEVALUATED)
     with pytest.raises(allowlist.ForbiddenFunction):
@@ -177,7 +178,7 @@ def test_a_callback_off_the_list_is_refused(callback):
 
 
 def test_a_method_job_is_refused():
-    job = _job(units.UNIT_FUNCTION, args=(0, 0, 0, "x", {}, None))
+    job = _job("planetgen.queue.forkedjob.run", args=({"run_id": "x"}, None))
     job.instance = object()
     with pytest.raises(allowlist.ForbiddenFunction):
         job.func

@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The dynamic queue chain: jobs declare, the engine splits (OPS.161) - planetGen docs</title>
-<meta name="description" content="Status: skeleton and profile reader built (declaration, engine, reader of the OPS.155 rows, logging); no stage uses it yet.">
+<meta name="description" content="Superseded in part (OPS.252, 2026-11-17 EST).">
 <style>
 :root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
 @media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
@@ -44,6 +44,9 @@ main{padding:16px 16px 60px}}
 <nav id="nav" data-root="../../" data-here="design/operations/dynamic-queue-chain.html"><a href="../../index.html">Site index</a></nav>
 <main>
 <h1 id="the-dynamic-queue-chain-jobs-declare-the-engine-splits-ops161">The dynamic queue chain: jobs declare, the engine splits (OPS.161)</h1><p class="meta">docs/design/operations/dynamic-queue-chain.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#what-a-job-declares">What a job declares</a></li><li style="margin-left:0px"><a href="#what-the-engine-does">What the engine does</a></li><li style="margin-left:0px"><a href="#the-profile-contract-ops155">The profile contract (OPS.155)</a></li><li style="margin-left:0px"><a href="#what-is-not-built">What is not built</a></li></ul></details>
+<blockquote>
+<p><strong>Superseded in part (OPS.252, 2026-11-17 EST).</strong> The queue, worker, lane and retry parts of this note are replaced by <a href="job-engine.html">job-engine.md</a>, the engine as built. What a job declares stays here; the stage cut as ledger rows and the engine's loop are described there.</p>
+</blockquote>
 <p>Status: skeleton and profile reader built (declaration, engine, reader of the OPS.155 rows, logging); no stage uses it yet. Asked by Boss, 2026-11-12, 3:00 PM EST (&quot;a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue&quot;), with his rulings of 3:01 to 3:04 PM EST. It is the second half of <a href="self-tuning-jobs.html">self-tuning-jobs.md</a> (DOC.120: what is recorded and learned) and uses the plan-then-execute job model of <a href="job-graph-and-memory-broker.html">job-graph-and-memory-broker.md</a> (DOC.113).</p>
 <h2 id="what-a-job-declares">What a job declares</h2>
 <p>Every job entering the queue declares three things, as plain data (<code>queue/breakpoints.py</code>, <code>Declaration</code>, named by <code>CommandSpec.breaks</code>):</p>

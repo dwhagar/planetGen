@@ -437,6 +437,19 @@ def _plain_command_lines(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _rq_worker_logger_stays_as_it_was():
+    """A test that runs an RQ worker leaves `rq.worker` set by `setup_loghandlers` (its level from `logging_level`, no propagation, its own handlers), so a later test that logs an error on it
+    sees nothing: the logger is put back as it was after each test."""
+    import logging
+    logger = logging.getLogger("rq.worker")
+    state = (logger.level, logger.propagate, list(logger.handlers))
+    yield
+    logger.setLevel(state[0])
+    logger.propagate = state[1]
+    logger.handlers[:] = state[2]
+
+
+@pytest.fixture(autouse=True)
 def _fast_password_hashing(request, monkeypatch):
     """Every login, credential change and seeded admin user runs Argon2id at
     19 MiB and two passes in production (`adminAuth.hash_parameters`, SEC.32),
@@ -647,7 +660,7 @@ def _no_test_starts_a_supervisor(monkeypatch):
     """OPS.207: a submit, a status poll and the warm-up's start each call `supervisor.ensure_started`; in a test none of them starts the host's supervisor process.
     A test of the supervisor passes its own `start`. OPS.211: a run that asks to be started is started by one turn of `supervisor.RunStarts`, run in the test's own process."""
     from planetgen.queue import supervisor, wrapper
-    monkeypatch.setattr(supervisor, "_spawn", lambda argv: None)
+    monkeypatch.setattr(supervisor, "_spawn", lambda argv, on_exit=None: None)
     # OPS.211: a run asks the supervisor to start it; with none running, the ask is answered by one turn of the supervisor's duty, here, at once
     monkeypatch.setattr(wrapper, "ask_supervisor", lambda conn, url: supervisor.RunStarts(conn).turn())
     yield
@@ -659,7 +672,7 @@ def _no_module_fixture_starts_a_supervisor():
     through the same turn of `supervisor.RunStarts`, and starts no supervisor process."""
     from planetgen.queue import supervisor, wrapper
     with pytest.MonkeyPatch.context() as patch:
-        patch.setattr(supervisor, "_spawn", lambda argv: None)
+        patch.setattr(supervisor, "_spawn", lambda argv, on_exit=None: None)
         patch.setattr(wrapper, "ask_supervisor", lambda conn, url: supervisor.RunStarts(conn).turn())
         yield
 

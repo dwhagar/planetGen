@@ -937,6 +937,7 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
   `stuck`), the machine that measured it (`host_memory_mb`, `host_cores`, `buffer_pool_mb`, `generator_epoch`) and `recorded_at`. A
   missing or implausible reading is NULL. Written by `planetgen.queue.jobprofiles`, which keeps each kind and bucket to its newest
   rows; nothing reads it yet.
+- **`pressure_minutes`** (v25, OPS.249) — one row per minute of what the memory controller read (`planetgen/queue/pressurelearn.py`): `minute_start`, `some_max` and `full_max` (PSI, percent), `available_min_mb`, `reserve_mb`, `level_max` (0 calm, 1 pressed, 2 starved), `held_seconds`, `yields` (jobs asked to stop) and `psi` (whether the host read by PSI). The controller's edges are learned from it and from the ledger's memory kills; rows older than twice the learning window are dropped.
 - **`engine_runs`**, **`engine_jobs`**, **`engine_attempts`** (v23, OPS.215) — the job engine's ledger (`planetgen/queue/ledger.py`,
   `docs/design/operations/job-engine.md`); nothing reads or writes them until the supervisor (OPS.207) and the plan-as-rows item (OPS.221) are merged.
   `engine_runs`: one row per run, with `kind`, `galaxy` (the database it writes to, NULL for none), `state` (`waiting`, `running`, `held`, `done`,

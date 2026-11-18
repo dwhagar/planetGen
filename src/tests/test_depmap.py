@@ -108,6 +108,40 @@ def test_a_recorded_run_lists_the_files_the_test_used(tmp_path):
     assert sorted(name.split("::")[1] for name in data["tests"]) == ["test_calls_the_helper", "test_reads_a_file"]
 
 
+def test_the_time_limit_keeps_the_earlier_failures_then_whole_files_in_order_and_counts_what_it_leaves_out(tmp_path):
+    """TEST.722: the failed tests always run; the rest of the selection is taken in collection order while the recorded seconds fit."""
+    timed = {"src/tests/test_a.py::a1": 10.0, "src/tests/test_a.py::a2": 10.0, "src/tests/test_b.py::b1": 30.0,
+             "src/tests/test_c.py::c1": 1.0, "src/tests/test_d.py::d1": 5.0}
+    data = {"format": depmap.FORMAT, "files": [], "tests": {nodeid: {"f": [], "o": False, "s": seconds} for nodeid, seconds in timed.items()}}
+    ordered = list(timed)
+    kept, left = depmap.limit_selection(data, ordered, set(ordered), {"src/tests/test_d.py::d1"}, 30.0)
+    assert kept == {"src/tests/test_d.py::d1", "src/tests/test_a.py::a1", "src/tests/test_a.py::a2"}      # 5 + 10 + 10; b1 (30) does not fit
+    assert left == {"src/tests/test_b.py::b1", "src/tests/test_c.py::c1"}     # c1 would fit, but the list ends at the first one that does not
+    kept, left = depmap.limit_selection(data, ordered, {"src/tests/test_b.py::b1"}, {"src/tests/test_b.py::b1"}, 1.0)
+    assert kept == {"src/tests/test_b.py::b1"} and not left      # a failure stays whatever it costs
+    kept, left = depmap.limit_selection(None, ["x::1", "x::2", "x::3"], {"x::1", "x::2", "x::3"}, set(), 2.0)
+    assert len(kept) == 2 and len(left) == 1     # no map: a test counts one second
+    nodeids = tmp_path / "nodeids.txt"
+    nodeids.write_text("a::one\n\nb::two\n")
+    assert depmap.read_also_run(str(nodeids)) == {"a::one", "b::two"} and depmap.read_also_run(str(tmp_path / "absent")) == set()
+
+
+def test_changed_with_also_run_and_a_time_limit_runs_the_failures_and_leaves_out_what_does_not_fit(tmp_path):
+    """TEST.722, end to end: a real pytest session with `--changed`, `--also-run` and `--time-limit`."""
+    (tmp_path / "test_x.py").write_text("def test_failed_before():\n    pass\n\ndef test_other():\n    pass\n")
+    (tmp_path / "conftest.py").write_text(
+        "import sys\nsys.path.insert(0, %r)\npytest_plugins = ('tests.depmap',)\n" % str(depmap.ROOT + "/src"))
+    mapfile = tmp_path / "map.json"
+    mapfile.write_text(json.dumps({"format": depmap.FORMAT, "files": ["test_x.py"], "tests": {
+        "test_x.py::test_failed_before": {"f": [0], "o": False, "s": 50.0}, "test_x.py::test_other": {"f": [0], "o": False, "s": 50.0}}}))
+    also = tmp_path / "also.txt"
+    also.write_text("test_x.py::test_failed_before\n")
+    out = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", str(tmp_path), "--changed", "HEAD",
+                          "--also-run", str(also), "--time-limit", "10", "--deps-file", str(mapfile), "--rootdir", str(tmp_path)],
+                         cwd=tmp_path, check=False, capture_output=True, text=True).stdout
+    assert "1 passed" in out and "1 deselected" in out, out
+
+
 def test_a_resumed_run_keeps_the_map_entries_of_the_tests_it_skipped():
     """TEST.152: a resumed run runs only the tests that had not passed, so the map it writes holds the old entries of the
     rest and the fresh entry of what ran now."""
