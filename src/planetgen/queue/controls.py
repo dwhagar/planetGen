@@ -154,6 +154,39 @@ def stop_run(connection, run_id, who=None):
         return None
 
 
+def running_units(connection):
+    """
+    How many jobs the ledger has `running` now, in every run and class (the forked unit and job processes: what the Queue page's "workers" tile counts since OPS.235, where it counted RQ workers); 0 when
+    the ledger cannot be read.
+    """
+    try:
+        from planetgen.db import store
+        control = store.get_control_connection()
+        try:
+            return int(control.execute("SELECT COUNT(*) AS n FROM engine_jobs WHERE state = 'running'").fetchone()["n"])
+        finally:
+            control.close()
+    except Exception as exc:  # noqa: BLE001 -- a count for the page, never worth an answer
+        log.swallowed("queue/controls", "running_units", exc)
+        return 0
+
+
+def running_jobs(connection, run_id):
+    """How many jobs of the Redis run `run_id` the ledger still has `running` (a cancel's wait for the processes to end); 0 for a run with no rows there or when the ledger cannot be read."""
+    try:
+        engine = engine_run_of(connection, run_id)
+        if engine is None:
+            return 0
+        control = planrows.control_connection(connection, run_id)
+        try:
+            return int(control.execute("SELECT COUNT(*) AS n FROM engine_jobs WHERE run_id = ? AND state = 'running'", (engine,)).fetchone()["n"])
+        finally:
+            control.close()
+    except Exception as exc:  # noqa: BLE001 -- the wait is a courtesy
+        log.swallowed("queue/controls", "running_jobs", exc)
+        return 0
+
+
 def stop_everything(connection, who=None):
     """
     Stop All's half for the ledger: the supervisor ends every job it forked and waits until they are gone (the reply says how many), else the rows are ended here.

@@ -1,13 +1,18 @@
-"""OPS.234: a stuck unit of a run in the ledger is stopped through the supervisor (`controls`, `stop_unit`) and handed out again by the launcher, with no RQ job in it."""
+"""OPS.140, OPS.234, OPS.235: a stuck unit is dumped, stopped through the supervisor (`controls`, `stop_unit`) and handed out again by the launcher once; stuck again, it fails the run with both stacks; a unit whose counter moves is never touched."""
 
 import json
+import os
 import signal
+import socket
+import subprocess
+import sys
+import textwrap
 import types
 
 import pytest
 
 from planetgen.db import store
-from planetgen.queue import beatjudge, commands, controls, ledger, planrows, redisqueue, runrecord, supervisor, unitbeat, unitstuck
+from planetgen.queue import beatjudge, commands, controls, ledger, planrows, redisqueue, runrecord, supervisor, unitbeat, units, unitstuck
 
 
 @pytest.fixture
@@ -150,3 +155,111 @@ def test_a_stuck_request_for_a_unit_that_does_not_run_is_answered_with_no_jobs(c
     duty, _launcher = _duty(conn, control, new_control, None)
     reply = duty._stop_unit({}, {"run_id": run, "stage": 0, "unit": 0, "reason": "r", "stack": ""}, "x")
     assert reply == {"ok": True, "jobs": 0}
+
+
+def _asks(monkeypatch):
+    """The `stop_unit` requests the follower makes of the supervisor, as `[(unit, reason)]`."""
+    asked = []
+    monkeypatch.setattr(controls, "ask", lambda conn, action, who, wait=0, **fields: asked.append((fields.get("unit"), fields.get("reason"))))
+    return asked
+
+
+def _handed_out_again(conn, control, run, unit_row):
+    """What the launcher does when it sees a stopped process end: the row goes back to `ready`."""
+    control.execute("UPDATE engine_jobs SET state = 'ready' WHERE id = ?", (unit_row,))
+    control.commit()
+    _beat(conn, run, 1)
+
+
+def test_a_unit_stuck_on_its_second_attempt_fails_the_run_with_both_stacks(conn, control, ledgered, monkeypatch):
+    run, _engine, rows = ledgered
+    _asks(monkeypatch)
+    errors = []
+    first = unitstuck.Stuck(conn, run, 0, dump=lambda raw: "FIRST", record_error=lambda message, **fields: errors.append(message))
+    _beat(conn, run, 1)
+    first.step([1], {1: _quiet()})
+    _handed_out_again(conn, control, run, rows[1])
+    first.step([], {})
+    assert first.records()[1]["phase"] == "requeued"
+    control.execute("UPDATE engine_jobs SET state = 'running' WHERE id = ?", (rows[1],))
+    control.commit()
+    second = unitstuck.Stuck(conn, run, 0, dump=lambda raw: "SECOND", record_error=lambda message, **fields: errors.append(message))
+    second.step([1], {1: _quiet()})
+    state = runrecord.read_run(conn, run)
+    assert state["state"] == "failed" and "stuck twice" in state["error"] and "FIRST" in state["error"] and "SECOND" in state["error"]
+    assert state["killed"] and any("SECOND" in line for line in errors)
+
+
+def test_a_unit_whose_counter_moves_is_never_touched_however_far_over_its_estimate(conn, ledgered, monkeypatch):
+    run, _engine, _rows = ledgered
+    asked = _asks(monkeypatch)
+    action = unitstuck.Stuck(conn, run, 0, dump=lambda raw: "STACK")
+    now = unitbeat.server_time(conn)
+    conn.hset(runrecord.progress_key(run, 0), 0, json.dumps({"done": 500.0, "estimate": 10.0, "beat": now, "started": now - 20_000, "moved": now - 1.0, "phase": "p", "waiting_on": "", "restarts": 0}))
+    verdict = beatjudge.judge(unitbeat.read(conn, run, 0)[0], beatjudge.History(), now)
+    assert not verdict.actionable
+    action.step([], {0: verdict})
+    assert asked == [] and action.records() == {} and runrecord.read_run(conn, run)["state"] == "running"
+
+
+def test_a_unit_that_finished_meanwhile_is_left_alone(conn, ledgered, monkeypatch):
+    run, _engine, _rows = ledgered
+    asked = _asks(monkeypatch)
+    runrecord.unit_done(conn, run, 0, 1, seconds=1.0)
+    unitstuck.Stuck(conn, run, 0, dump=lambda raw: "STACK").step([1], {1: _quiet()})
+    assert asked == []
+
+
+def test_the_time_limit_is_only_a_backstop():
+    assert units.unit_timeout(None) == units.unit_timeout(1) == units.unit_timeout(10 ** 9) == redisqueue.MAX_TIMEOUT_SECONDS
+
+
+def test_a_frozen_horse_writes_its_stack_when_it_is_sent_the_signal(tmp_path):
+    path = str(tmp_path / "stack.txt")
+    script = textwrap.dedent(f"""
+        import sys, time
+        sys.path.insert(0, {os.path.dirname(os.path.dirname(os.path.dirname(unitbeat.__file__)))!r})
+        from planetgen.queue import unitbeat
+        assert unitbeat.register_dump({path!r})
+        def frozen_work_loop():
+            print("ready", flush=True)
+            time.sleep(60)
+        frozen_work_loop()
+    """)
+    child = subprocess.Popen([sys.executable, "-I", "-c", script], stdout=subprocess.PIPE, text=True)
+    try:
+        assert child.stdout.readline().strip() == "ready"
+        text = unitstuck.request_dump({"stack_file": path, "pid": child.pid, "host": socket.gethostname()})
+        assert "frozen_work_loop" in text, text
+        assert child.poll() is None, "the signal dumps and does not end the process"
+        gone = unitstuck.request_dump({"stack_file": path, "pid": 999_999_999, "host": socket.gethostname()})
+        assert "gone" in gone
+    finally:
+        child.kill()
+        child.wait()
+
+
+def test_the_watch_acts_on_a_unit_only_after_two_checks_in_a_row_say_quiet(conn, ledgered, monkeypatch):
+    from planetgen.queue import unitwatch
+    run, _engine, _rows = ledgered
+    asked = _asks(monkeypatch)
+    watch = unitwatch.UnitWatch(conn, run, 0, "stuckkind", record_error=lambda *a, **k: None, stuck=unitstuck.Stuck(conn, run, 0, dump=lambda raw: "STACK"))
+    now = unitbeat.server_time(conn)
+    conn.hset(runrecord.progress_key(run, 0), 1, json.dumps({"done": 3.0, "estimate": 9.0, "beat": now, "started": now - 3000, "moved": now - 2900, "phase": "p", "waiting_on": "", "restarts": 0}))
+    watch.check()
+    assert asked == [], "one check acts on nothing"
+    watch.check()
+    assert [unit for unit, _reason in asked] == [1]
+
+
+def test_a_unit_handed_out_again_in_the_pass_that_finds_it_stopped_is_not_acted_on_with_the_verdict_of_its_old_attempt(conn, control, ledgered, monkeypatch):
+    """OPS.143: the unit is still dead or quiet when its stop takes effect, so it is in `agreed` and gone from the verdicts the watch forgot; that is not a crash."""
+    run, _engine, rows = ledgered
+    _asks(monkeypatch)
+    _beat(conn, run, 1)
+    unitstuck.Stuck(conn, run, 0, dump=lambda raw: "STACK").step([1], {1: _quiet()})
+    _handed_out_again(conn, control, run, rows[1])
+    verdicts = {1: _quiet()}
+    action = unitstuck.Stuck(conn, run, 0, dump=lambda raw: "STACK", record_error=lambda *a, **k: None, forget=lambda unit: verdicts.pop(unit, None))
+    action.step([1], verdicts)         # sees the row ready, forgets the unit, and must not look the old verdict up
+    assert action.records()[1]["phase"] == "requeued"

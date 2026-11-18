@@ -53,7 +53,7 @@ def test_a_server_that_cannot_be_asked_still_leaves_a_warning_and_never_raises(m
     assert len(warned) == 1 and "could not be read" in warned[0]
 
 
-def test_run_with_retries_explains_a_lost_connection_before_it_raises(monkeypatch):
+def test_run_once_explains_a_lost_connection_before_it_raises(monkeypatch):
     seen = []
     monkeypatch.setattr(connection_loss, "explain_lost", lambda config, exc: seen.append((config, exc.args[0])))
 
@@ -63,13 +63,9 @@ def test_run_with_retries_explains_a_lost_connection_before_it_raises(monkeypatc
         def rollback(self):
             pass
 
-    class Gate:
-        def is_closed(self):
-            return False
-
     def lost(conn):
         raise pymysql.err.OperationalError(2013, "Lost connection to MySQL server during query")
 
     with pytest.raises(pymysql.err.OperationalError):
-        contention.run_with_retries(Conn(), lost, "gate", "Unit 1", attempts=2, gate_object=Gate())
+        contention.run_once(Conn(), lost)
     assert seen == [("the-config", 2013)]

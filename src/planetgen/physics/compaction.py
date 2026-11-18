@@ -55,7 +55,7 @@ TAPER_END_KG = 1e21
 """float: Where the porosity starts to close and where it is closed (stand-ins: decision S9 set 1e19 and 1e21; GEN.1637 moved the start to 1e20 against measured Kuiper belt bodies)."""
 
 DRAWN_POROSITY_BELOW_KG = 1e19
-"""float: Below this mass a body is not one a belt stores (`belt_ledger.L1_MASS_KG`) and takes the porosity its taxon's family draws (`belt_member`); from here to `TAPER_START_KG` the brittle law holds whole."""
+"""float: Below this mass (derived: the belt ledger's own cut, `belt_ledger.L1_MASS_KG`; a test holds the two equal, since the ledger cannot be imported here without a cycle) a body is not one a belt stores and takes the porosity its taxon's family draws (`belt_member`); from here to `TAPER_START_KG` the brittle law holds whole."""
 
 SOURCE_STATE = "stand-in"
 """str: The taper endpoints are a stand-in until viscous compaction (Bierson and Nimmo Eq. 3 with its sign checked) replaces them."""

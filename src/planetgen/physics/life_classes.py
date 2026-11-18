@@ -46,7 +46,7 @@ import os
 from collections.abc import Mapping
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world, life_supply, planet_type, strange_solvents, surface_liquid_world, surface_refuge
+from planetgen.physics import acid_medium, atmosphere, constants, elements, habitability, habitability_world, life_complexity, life_supply, planet_type, strange_solvents, surface_liquid_world, surface_refuge
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_classes.json")
 
@@ -55,6 +55,10 @@ TWEAKS = tuple(f"L{n}" for n in range(5))
 OPERATORS = ("min", "lt", "equals", "not_equals", "in", "not_in")
 SOLVENT_MEDIA = ("water", "hydrocarbon", "co2", "sulfuric", "ammonia_water")
 ENERGY_SOURCES = ("light", "chemical")
+HABITATS = ("acid_cloud",)
+"""tuple: Where a class that does not live at the surface lives (a row's `habitat`; none is the surface or what is under it): `acid_cloud` is the liquid sulfuric-acid cloud layer of the air (`acid_medium`, GEN.1307)."""
+ANIMAL_GRADES = len(life_complexity.GRADES)
+"""int: The highest animal grade (the length of `life_complexity.GRADES`, derived); a class's `animal_cap` is a grade from 0 to this."""
 
 PLANCK_J_S = constants.PLANCK_CONSTANT
 BOLTZMANN_J_K = constants.BOLTZMANN
@@ -185,7 +189,7 @@ def co2_phase(temperature_k, pressure_pa):
 class LifeClass:
     """One class: its words, its tier, and the rules that score it."""
 
-    __slots__ = ("id", "number", "variant", "name", "drinks", "eats", "breathes", "gives_off", "reaches", "tier", "solvent",
+    __slots__ = ("id", "number", "variant", "name", "drinks", "eats", "breathes", "gives_off", "reaches", "habitat", "animal_cap", "tier", "solvent",
                  "energy", "gates", "windows", "supplies", "life", "note")
 
     def __init__(self, row):
@@ -205,6 +209,11 @@ class LifeClass:
     def oxidant(self):
         """What the class breathes (`OXIDANTS`)."""
         return self.life["oxidant"]
+
+    @property
+    def max_animal_grade(self):
+        """The highest animal grade the class can reach whatever its complexity index: its `animal_cap` (a class defined as plankton and mats), else the highest grade there is (GEN.1307)."""
+        return ANIMAL_GRADES if not self.animal_cap else self.animal_cap["grade"]
 
     @property
     def releases_oxygen(self):
@@ -269,6 +278,13 @@ def _check(row):
     if not life.get("first_step_scale", 0.0) > 0.0:
         raise LifeClassError(f"{owner}: life needs a first_step_scale over 0")
     _check_standin(f"{owner} life", life)
+    if row.get("habitat") is not None and row["habitat"] not in HABITATS:
+        raise LifeClassError(f"{owner}: the habitat is one of {HABITATS} or none, got {row['habitat']!r}")
+    if row.get("animal_cap") is not None:
+        cap = row["animal_cap"]
+        if not isinstance(cap.get("grade"), int) or isinstance(cap.get("grade"), bool) or not 0 <= cap["grade"] <= ANIMAL_GRADES:
+            raise LifeClassError(f"{owner}: the animal cap is a grade from 0 to {ANIMAL_GRADES}, got {cap!r}")
+        _check_standin(f"{owner} animal_cap", cap)
 
 
 def _load():
@@ -293,6 +309,29 @@ IDS = tuple(BY_ID)
 VERSION = DOCUMENT["version"]
 REFERENCE_STAR_K = DOCUMENT["reference_star_k"]
 REFERENCE_BAND_NM = tuple(DOCUMENT["reference_band_nm"])
+
+
+def clock_temperature_k(row, values):
+    """
+    The temperature, K, that the clock of class `row` runs at on a body of `values` (a column-named mapping): where the life lives. A class of the surface or of what is
+    under it reads the surface temperature (`life_supply.habitat_temperature_k` is the gate's own reading for the chemical classes); a class of the acid cloud layer (`habitat`
+    `acid_cloud`, GEN.1307) reads the cloud layer's own temperature (`acid_medium.medium`), which a hot surface does not set, and the surface's where the body holds no layer.
+    """
+    surface = values.get("surface_temperature_k")
+    if getattr(row, "habitat", None) != "acid_cloud":
+        return surface
+    found = acid_medium.medium(values, cloud_only=True)
+    return found.temperature_k if found.temperature_k else surface
+
+
+def habitat_words(row, values):
+    """Where the class lives on a body of `values`, as a phrase for the text ("aloft in the sulfuric-acid cloud layer, at 366 K and 290 kPa"), or `None` for a class of the surface."""
+    if getattr(row, "habitat", None) != "acid_cloud":
+        return None
+    found = acid_medium.medium(values, cloud_only=True)
+    if not found.temperature_k:
+        return None
+    return f"aloft in the sulfuric-acid cloud layer, at {found.temperature_k:.0f} K and {found.pressure_pa / 1000.0:.0f} kPa"
 
 
 def describe(class_id):

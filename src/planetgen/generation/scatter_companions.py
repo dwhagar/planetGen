@@ -264,9 +264,9 @@ def _insert(conn, table, rows, trees_of, seed_index, plain, epoch_unix, batch_si
 
 def write_committed(conn, write, rows, epoch_unix, label="Scatter write"):
     """
-    Writes one batch of scatter rows and commits it, starting the batch over after a deadlock or lock wait timeout (the scatter writers' ID
+    Writes one batch of scatter rows and commits it; a deadlock or lock wait timeout rolls it back and the engine runs the unit again (the scatter writers' ID
     step, `scatter_uids.assign`, reads every row of the table that has no ID yet, so workers writing at once meet on each other's rows). The
-    retries, their waits and the exclusive grant after the eighth failed try are `db.contention.run_with_retries`'; the gate is `scatter-ids`.
+    unit's retry is the engine's (`queue/failures.py`, OPS.220; the unit's own tries, waits and exclusive grant went with OPS.261, `db.contention.run_once`).
     The batch is READ COMMITTED, so its reads take no gap locks. A batch is the whole transaction, so a rollback takes back exactly it and the
     retry writes the same rows with the same IDs: they rank by luminosity and seed, not by the order the rows landed.
 
@@ -290,7 +290,7 @@ def write_committed(conn, write, rows, epoch_unix, label="Scatter write"):
         c.commit()
         return written
 
-    return contention.run_with_retries(conn, attempt, gate="scatter-ids", label=label)
+    return contention.run_once(conn, attempt)
 
 
 _ONCE = {"insert_bright_stars": ("bright_stars", star_trees, _STAR_COLUMN["seed"]),

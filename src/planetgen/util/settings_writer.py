@@ -627,6 +627,41 @@ def plan_update(remove=(), apply=(), fields=None):
     return result
 
 
+RETIRE_ACTION = "config.retire"
+
+
+def retire(actor, audit=None, retired=None):
+    """
+    Takes the options a release retired (`settings.RETIRED_OPTIONS`; `retired` for a test) out of config.json, and nothing else: no default is added and no other stale key is touched. A settings-only
+    backup archive first, then the atomic write, then one audit row per key removed (what `./update.sh` does once after the release that retired them, so `planetgen config check` passes without a hand edit).
+    A file with none of them, or no file, is left alone.
+
+    Returns:
+        UpdateResult: `removed` and `changes` name the keys taken out; `saved` is false when there was nothing to do; `errors` names a file that cannot be read.
+
+    Raises:
+        SettingsWriteError: The file or its folder can't be written.
+    """
+    path = config_path()
+    with _Lock(path):
+        result = UpdateResult()
+        before = _load_document(result, path)
+        if before is None or result.errors:
+            return result
+        present = [option for option in sorted(settings.RETIRED_OPTIONS if retired is None else retired) if _get(before, option)[0]]
+        if not present:
+            return result
+        after = copy.deepcopy(before)
+        for option in present:
+            _drop(after, option)
+        result.removed = [Change(option, STALE_MARK, None) for option in present]
+        result.changes = list(result.removed)
+        result.document_after = after
+        _write(path, after, actor, RETIRE_ACTION, result, archive=True)
+    _audit(result, actor, audit, RETIRE_ACTION)
+    return result
+
+
 def _sections_problems(document, sections):
     """A message for each section of the model that the file holds as something other than an object."""
     problems = {}

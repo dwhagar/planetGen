@@ -560,17 +560,19 @@ def _log_long_unit(conn, run_id, index, step, declared, longest):
 def _log_peak_memory(conn, run_id, index, step, declared, peak_mb):
     """
     PERF.226: writes the most memory one worker of the stage that just ended held to the run's log, beside the figure the stage's
-    workers are sized by (`workers.STAGE_WORKER_MEMORY_MB`), so the next growth shows before it kills a run; a warning when it is
+    workers are sized by (`workers.stage_worker_mb`: the job profile's claim once this machine has history, OPS.250, else `workers.STAGE_WORKER_MEMORY_MB`), so the next growth shows before it kills a run; a warning when it is
     over the figure (then the cap lets too many workers run). A stage that is one worker by nature says so.
     """
     if not peak_mb:
         return
-    figure = workers.stage_worker_mb(step.kind)
+    figure = workers.stage_worker_mb(step.kind, conn, run_id)
+    typed = workers.STAGE_WORKER_MEMORY_MB.get(step.kind)
     text = f"stage {declared['label']}: the largest worker held {format_megabytes(peak_mb)}"
     if figure is None:
         text += " (one worker by nature, so there is nothing to size)"
     elif peak_mb > figure:
-        text += f", over the {format_megabytes(figure)} its workers are sized by (workers.STAGE_WORKER_MEMORY_MB); raise the figure"
+        text += (f", over the {format_megabytes(figure)} its workers are sized by (the job profile's figure; the profile follows it from the next run)" if figure != typed
+                 else f", over the {format_megabytes(figure)} its workers are sized by (workers.STAGE_WORKER_MEMORY_MB); raise the figure")
     else:
         text += f" of the {format_megabytes(figure)} its workers are sized by"
     runrecord.log(conn, run_id, text, level="warning" if figure is not None and peak_mb > figure else "info", kind="stage.memory",
@@ -741,38 +743,8 @@ def report_wait(holder, position):
         log.swallowed("queue/wrapper", "report_wait", exc)
 
 
-def _note_cap(conn, step_kind, cap, run_id):
-    """OPS.157: logs the stage's worker cap when it is not the one the typed table gives (once per run and stage kind)."""
-    from planetgen.queue import profileclaim
-    try:
-        typed = workers.stage_worker_cap(step_kind)
-        if typed is not None and cap != typed and conn.set(memorygate_key(f"capnote:{run_id}:{step_kind}"), "1", nx=True, ex=86400):
-            profileclaim.log_change(conn, "workers", f"unit:{step_kind}", typed, cap, f"the claim from the job profile is {format_megabytes(workers.stage_worker_mb(step_kind, conn, run_id) or 0)}, the typed table {format_megabytes(workers.stage_worker_mb(step_kind))}; run {run_id}",
-                                    run=run_id)
-    except Exception as exc:        # noqa: BLE001 -- a note is never worth a run
-        log.debug(f"Self-tuning: the worker cap of {step_kind} was not noted ({exc}).", area="queue")
-
-
-def memorygate_key(name):
-    from planetgen.queue import memorygate
-    return memorygate._key(name)
-
-
-def stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
-    """
-    The `ensure` for one stage of a run (PERF.220): `workers.ensure_workers` with the run's worker count held to what
-    the stage's workers can take in memory (`workers.stage_worker_cap`). A stage with ordinary workers is not limited.
-    """
-    if run_id is not None:
-        return lambda: 0                # OPS.228, OPS.229: the supervisor's launcher forks each unit when the gate has room; no worker waits for the stage
-    cap = workers.stage_worker_cap(step_kind, conn, run_id)       # OPS.157: sized by the claim the gate makes from the job profile (the typed figure with no history)
-    count = workers_count if cap is None else min(workers_count or cap, cap)
-    if cap is not None:
-        _note_cap(conn, step_kind, cap, run_id)
-
-    def ensure():
-        return workers.ensure_workers(queue_of(kind), conn, url, count=count)
-    return ensure
+pump = None
+"""callable | None: What the follower calls every `units.ENSURE_SECONDS` while it waits for a stage (OPS.235: it was `stage_ensure`, which asked for RQ workers; the supervisor's launcher forks each unit now, so nothing is asked in production). The test harness (`tests/inline_queue.py`) sets it to hand out the ready rows in the test's own process."""
 
 
 def ask_supervisor(conn, url):
@@ -785,7 +757,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         build=None, finishes=None, on_step=None):
     """
     Runs the queued `steps` as one run: starts the run record (the machine is busy for it), queues the first stage,
-    makes sure workers are running (`workers_count` of them at most: the run's `--workers`) and follows each stage to
+    sets the run's `--workers` count (`workers_count`, the most jobs of a stage that run at once) and follows each stage to
     its end. The run ends in Redis as `done`, or `failed` or `canceled` if this process stops on an error or an
     interrupt first.
 
@@ -855,7 +827,6 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         beat.start()
         # ADM.136: everything after the machine is taken is inside the try, so a failure of the set-up ends the run instead of leaving it
         # for a process that no longer follows it (a worker that lives on holds the machine for ever)
-        ensures = [stage_ensure(conn, url, kind, step.kind, workers_count, run_id) for step in steps]
         relay = log.RelayReader(conn, runrecord.debug_key(run_id)) if debug else None
         on_debug = relay.drain if relay else None
         log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
@@ -868,7 +839,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         advance(conn, run_id, 0)
         for index in range(len(steps)):
             stage_at = index
-            ensure = ensures[index]
+            ensure = pump
             plan = _await_plan(conn, run_id, index, ensure, on_debug=on_debug)
             log.trace(f"run {run_id}: stage {index} ({steps[index].label}) queued as {plan['units']} unit(s) of total "
                       f"cost {plan['cost']}", area="queue")

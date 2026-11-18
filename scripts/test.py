@@ -6,6 +6,8 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/operations/test-
     scripts/test.py area web db           the tests of those areas (src/tests/areas.py)
     scripts/test.py browser               the headless-browser tests alone
     scripts/test.py changed [--base REF]  only the tests the changes since REF can affect (a fast loop, not a gate)
+    scripts/test.py failed [--base REF]   after a fix: the tests that failed in the last run, and the tests the changes since REF can
+                                          affect, within `--limit` minutes of test time (default 20); the rest is left to the end-of-version run
     scripts/test.py budget                the big-galaxy query budget (opt-in, builds 2,000,000 systems once; not a gate)
     scripts/test.py env                   only the check below, and the repairs it makes; runs no test
     scripts/test.py full                  everything: the end-of-version run (TEST.261, SEC.33, GEN.301), not the gate of an
@@ -14,6 +16,9 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/operations/test-
     scripts/test.py full --check          ... and lists failing tests `changed` would not have selected
     scripts/test.py full -- -x -k login   anything after `--` goes to pytest as it is
     scripts/test.py <command> --global-docs  also the freshness tests of the generated global documents (TODO's and the stamp's)
+    scripts/test.py <command> --slot N    TEST.724: run on slot N (0 to 4) of the machine's Redis, so up to five runs share one machine without meeting:
+                                          the run takes only that slot's three Redis databases, has at most three workers and ends only its own
+                                          stray workers (PLANETGEN_TEST_REDIS_URL must name database 0)
     scripts/test.py <command> --resume    continue an earlier run: skip the tests that passed in it (same build) or in
                                           an earlier run whose environment is the same and whose files that test
                                           used have not changed since (TEST.208)
@@ -74,6 +79,8 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS_FILE = os.path.join(ROOT, ".test-runs.json")
 FAILURES_FILE = os.path.join(ROOT, ".test-failures.jsonl")
+FAILED_NODEIDS_FILE = os.path.join(ROOT, ".test-progress", "failed-nodeids.txt")
+"""str: The node ids the last run's failure log held, written by `failed` before its own run clears the log (TEST.722)."""
 PROGRESS_DIR = os.path.join(ROOT, ".test-progress")
 KEEP_PROGRESS_SECONDS = 24 * 3600
 AREAS = ("web", "api", "db", "generation", "physics", "names", "ops", "other")
@@ -168,11 +175,28 @@ def build_phases(command, areas, workers, browser_workers):
     return parts
 
 
-def depmap_options(command, base, check):
+DEFAULT_LIMIT_MINUTES = 20
+"""int: How long, in minutes of wall clock, `failed` lets the tests it adds to the failed ones run (TEST.722)."""
+
+
+def write_failed_nodeids(path=FAILED_NODEIDS_FILE, failures=FAILURES_FILE):
+    """Saves the node ids of the last run's failure log for `failed`, and returns how many (0 and no file yet: none was ever recorded)."""
+    found = list(failed_tests(failures))
+    if not found and not os.path.exists(path):
+        return 0        # no failure was ever recorded here: nothing to rerun and nothing to compare with
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:     # a clean last run empties the list, so an old failure is not rerun for ever
+        f.write("".join(nodeid + "\n" for nodeid in found))
+    return len(found)
+
+
+def depmap_options(command, base, check, limit_seconds=0):
     """The dependency-map options for a command: `changed` selects, `full` refreshes the map (and, with `--check`,
     lists the failures `changed` would have missed). Others leave the map alone."""
     if command == "changed":
         return ["--changed", base]
+    if command == "failed":
+        return ["--changed", base, "--also-run", FAILED_NODEIDS_FILE, "--time-limit", str(limit_seconds)]
     if command == "full":
         return ["--record-deps"] + (["--deps-check", base] if check else [])
     return []
@@ -305,11 +329,12 @@ def _services():
     return lane_services
 
 
-def reap_strays():
+def reap_strays(databases=None):
     """
     TEST.393: ends the queue workers the run left behind (tests start real ones in sessions of their own, and a test that
     was stopped never tells them to stop; each keeps about 300 MB until it is idle) and returns the sentence that says
-    how many and how old, or "" when there were none.
+    how many and how old, or "" when there were none. `databases`: only the workers on those Redis databases (a `--slot` run's own,
+    TEST.724), so a run never ends another run's workers on the same machine.
     """
     try:
         sys.path.insert(0, os.path.join(ROOT, "src"))
@@ -317,7 +342,7 @@ def reap_strays():
             from tests import stray_workers
         finally:
             sys.path.pop(0)
-        found = stray_workers.reap_all()
+        found = stray_workers.reap_all(databases)
     except Exception as exc:  # noqa: BLE001 -- the report must never fail a run
         return f"no stray worker check ({exc})"
     if not found:
@@ -613,7 +638,7 @@ def minutes(seconds):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("command", choices=("quick", "area", "browser", "budget", "changed", "full", "env"))
+    parser.add_argument("command", choices=("quick", "area", "browser", "budget", "changed", "failed", "full", "env"))
     parser.add_argument("areas", nargs="*", help="for `area`: " + ", ".join(AREAS))
     parser.add_argument("-n", "--workers", type=int, default=os.cpu_count() or 1,
                         help="workers for the non-browser tests (default: every core)")
@@ -633,6 +658,13 @@ def main(argv=None):
     parser.add_argument("--no-preflight", action="store_true",
                         help="do not check (and repair) MySQL, Redis, the test variables and the packages first, and "
                         "do not watch the servers during the run (TEST.376)")
+    parser.add_argument("--limit", type=float, default=DEFAULT_LIMIT_MINUTES, metavar="MINUTES",
+                        help=f"for `failed`: the most test time, in minutes of wall clock on the workers asked for, the selection may "
+                        f"carry besides the failed tests (default {DEFAULT_LIMIT_MINUTES:g}); what does not fit is left to the end-of-version run")
+    parser.add_argument("--slot", type=int, default=None, metavar="N",
+                        help="TEST.724: run on slot N of the machine's Redis (0 to 4) so up to five runs can share one machine: the run takes only that "
+                        "slot's three databases, ends only its own stray workers and has at most three workers. Needs PLANETGEN_TEST_REDIS_URL on "
+                        "database 0")
     parser.add_argument("--check", action="store_true",
                         help="for `full`: list the failing tests `changed` would not have selected")
     parser.add_argument("--global-docs", action="store_true",
@@ -650,6 +682,24 @@ def main(argv=None):
             parser.error("`area` needs one or more of: " + ", ".join(AREAS))
     elif args.areas:
         parser.error(f"`{args.command}` takes no areas")
+    if args.command == "failed":
+        write_failed_nodeids()
+        if not os.path.exists(FAILED_NODEIDS_FILE):
+            parser.error("`failed` reruns what failed in the last run, and no failure is recorded (.test-failures.jsonl is empty "
+                         "or absent): run `changed` first")
+    stray_databases = None
+    if args.slot is not None:
+        sys.path.insert(0, os.path.join(ROOT, "src"))
+        try:
+            from tests import private_redis
+        finally:
+            sys.path.pop(0)
+        if not 0 <= args.slot < private_redis.SLOTS:
+            parser.error(f"`--slot` is a number from 0 to {private_redis.SLOTS - 1}")
+        os.environ[private_redis.SLOT_ENVIRONMENT] = str(args.slot)
+        stray_databases = private_redis.slot_databases(args.slot)
+        args.workers = min(args.workers, private_redis.SLOT_WIDTH)
+        args.browser_workers = min(args.browser_workers, private_redis.SLOT_WIDTH)
     if args.check and args.command != "full":
         parser.error("`--check` goes with `full`")
     if args.check:
@@ -671,7 +721,7 @@ def main(argv=None):
             return 0
     if args.global_docs:
         os.environ["PLANETGEN_GLOBAL_DOCS"] = "1"
-    extra = depmap_options(args.command, args.base, args.check) + extra
+    extra = depmap_options(args.command, args.base, args.check, round(args.limit * 60 * max(1, args.workers))) + extra
 
     key = args.command + (" " + " ".join(args.areas) if args.areas else "")
     previous = load_runs().get(key)
@@ -724,7 +774,7 @@ def main(argv=None):
 
     previous_handler = signal.signal(signal.SIGTERM, interrupted)  # a stop from outside ends like Ctrl-C: with the INTERRUPTED line
     try:
-        stale = reap_strays()   # TEST.398: a worker an earlier run left (even one running old code) would take this run's units
+        stale = reap_strays(*([stray_databases] if stray_databases else []))   # TEST.398: a worker an earlier run left (even one running old code) would take this run's units
         if stale:
             print(f"scripts/test.py {key}: before the run, ended {stale}", flush=True)
         for label, marker, workers in build_phases(args.command, args.areas, args.workers, args.browser_workers):
@@ -777,7 +827,7 @@ def main(argv=None):
         return 130
     finally:
         signal.signal(signal.SIGTERM, previous_handler)
-        left = reap_strays()
+        left = reap_strays(*([stray_databases] if stray_databases else []))
         if left:
             print(f"scripts/test.py {key}: ended {left}", flush=True)
     seconds = time.time() - started

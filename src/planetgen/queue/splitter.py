@@ -84,15 +84,21 @@ class Decision:
                 f"{self.new_items:,}: {self.reason} ({self.samples} sample(s)).")
 
 
-def resources_now(kind=None):
+def resources_now(kind=None, conn=None):
     """
     The `Resources` of the host now: `memorygate.read_host` for the free memory and the cores, and for the workers the stage may have the smaller of the cores and
-    `workers.stage_worker_cap(kind)`. A reading that fails gives a single worker on 1 core with no memory to spare, so the suggested figures stand.
+    `workers.stage_worker_cap(kind)`, sized by the job profile's claim once this machine has history (OPS.250: `conn` is the Redis the profile's figure is held in, taken from the queue's own when not given; none
+    leaves the typed figure). A reading that fails gives a single worker on 1 core with no memory to spare, so the suggested figures stand.
     """
-    from planetgen.queue import memorygate, workers
+    from planetgen.queue import memorygate, redisqueue, workers
     try:
         host = memorygate.read_host()
-        cap = workers.stage_worker_cap(kind) if kind else None
+        if kind and conn is None:
+            try:
+                conn = redisqueue.connect()
+            except Exception as exc:  # noqa: BLE001 -- no Redis here: the typed figure sizes the workers
+                log.swallowed("queue/splitter", "resources_now: redis", exc)
+        cap = workers.stage_worker_cap(kind, conn) if kind else None
         return Resources(host.available_mb, host.cores, max(1, min(cap or host.cores, host.cores)))
     except Exception as exc:  # noqa: BLE001 -- learning never blocks a job; the typed figures stand
         log.swallowed("queue/splitter", "resources_now", exc)

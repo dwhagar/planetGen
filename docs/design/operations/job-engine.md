@@ -61,7 +61,6 @@ One process per host (`queue/supervisor.py`, `cli/supervisor.py`). Its loop take
 | `Reconciler` | Compares the run records with the rows and processes and corrects (R4: recompute, do not remember): a stage that finished and never queued its next opening gets it; a run whose starter is gone is carried on by the supervisor. Every correction is said in the supervisor's acts. |
 | `RunStarts` | Starts runs: a process that wants a run leaves an ask (`queue/runline.py`) and follows the run the supervisor starts for it; a run that finds the machine taken waits in the line. |
 | `RunWatches` | The watch on every live run's units (`unitwatch.UnitWatch`, `beatjudge`, `unitstuck.Stuck`) that used to live in the starter. |
-| `WorkerStarts` | Starts and sheds RQ workers for the queues that still use them (until OPS.235). |
 | `pressure.Controller` | The one memory controller (section 6). |
 | the database signal | The same controller with the latency of the engine's own statement as its signal (`queue/dbsignal.py`, OPS.248). |
 | `controls.Controls` | Pause, resume, Stop All, cancel, clear and the stuck-unit stop, as requests (section 9). |
@@ -114,7 +113,7 @@ Stage 0 (2026-11-13, a 4-core 16 GB machine, MySQL 8.0.46 with default durabilit
 
 `queue/controls.py` (OPS.234). Pause, resume, Stop All, cancel and clear are **requests to the supervisor** (`controls.ask`: a JSON line on a Redis list, a reply list per request). With no supervisor alive none is started for a request: no job process of the ledger can then be running (a job whose supervisor is gone exits at its next safe point), so the caller does what it always did and `controls.end_rows` settles the ledger itself.
 
-* `pause` and `resume` write and clear the flag the engine reads between two pieces (`queue/pause.py`); while it is set the launcher only settles ends and forks nothing new. A solo hold is not a pause of the hand-outs.
+* `pause` and `resume` write and clear the flag the engine reads between two pieces (`queue/pause.py`); while it is set the launcher only settles ends and forks nothing new. (OPS.235: the solo hold the stuck-unit follower made for a restarted RQ unit, OPS.145, is gone.)
 * `stop_jobs` (a canceled or cleared run) and `stop_all` cancel the rows still waiting or ready, ask each job process of the run to stop between two pieces through its pipe, and kill one still alive after `GRACE_SECONDS`; an attempt that was running is closed `lost` with the kind `canceled`. Stop All's reply comes when the last process is gone, so the process scan that follows it (`stopall`, the second line) has nothing of the engine's to find. The scan could not find a forked job in any case: its command line is the template's.
 * `stop_unit` (the stuck-unit follower, `unitstuck`) kills the one job process that runs a stuck unit and closes its attempt `stuck` with the reason and the stack; the launcher hands the unit out again, and a second stuck verdict fails the run.
 * The update guard drains a generation run (`held.drain_run`, a Redis hold the engine reads between pieces); `planetgen reset-jobs` has the supervisor stop every job process and ends the ledger's rows before it removes what RQ left in Redis.

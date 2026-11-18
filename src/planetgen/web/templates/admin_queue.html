@@ -15,19 +15,6 @@
     <div class="stat-tile"><span class="stat-value">{{ queue.load }}</span><span class="stat-label">{{ queue.load_label }}</span></div>
     <div class="stat-tile"><span class="stat-value">{{ queue.runs_active }} {{ 'run' if queue.runs_active == 1 else 'runs' }}</span><span class="stat-label">Runs live</span></div>
   </div>
-  {%- if workers %}
-  <h3>Workers</h3>
-  <p>The bulk queue asks for <strong>{{ workers.wanted }}</strong> {{ 'worker' if workers.wanted == 1 else 'workers' }}; {{ workers.live }} running now. Workers start when work is queued and exit after a minute without any; lowering the count lets the extra ones finish their unit first.</p>
-  {%- if workers.host_cap is defined %}
-  <p>Most worker processes this host allows at once, every queue together: <strong>{{ workers.host_cap }}</strong> ({{ workers.host_running }} running). A start past it is refused{% if workers.host_refused %}; {{ workers.host_refused }} {{ 'was' if workers.host_refused == 1 else 'were' }} refused in the last hour{% endif %}. The setting is <code>queue.max_host_workers</code>; 0 sizes it from the memory and cores.</p>
-  {%- endif %}
-  <form method="post" action="{{ url_for('web.admin_queue_action') }}" class="table-form">
-    {{ csrf_field() }}
-    {{ ui_input("count", "Workers", workers.wanted, type="number", min=1) }}
-    <button type="submit" name="action" value="workers-set" class="btn btn-secondary">Set</button>
-    <button type="submit" name="action" value="workers-ludicrous" class="btn btn-danger">Ludicrous Speed ({{ workers.ludicrous }} of {{ workers.cpus }} cores)</button>
-  </form>
-  {%- endif %}
   {%- if stopped.stopped %}
   <p class="error"><strong>Everything is stopped</strong>{% if stopped.by %} by {{ stopped.by }}{% endif %}{% if stopped.at %} since {{ utc_time(stopped.at) }}{% endif %}: nothing starts, not a run, a job, a worker, or the map's background work, until you resume.</p>
   <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume-all') }}">Resume</a></p>
@@ -39,13 +26,8 @@
   <p class="error">Redis isn't answering, so the runs can't be read. Start Redis (see the install guide), then reload this page.</p>
   {%- else %}
   {%- if queue.paused %}
-  {%- if queue.solo_unit is not none %}
-  <p class="error">The queue is held{% if queue.paused_by %} by {{ queue.paused_by }}{% endif %}{% if queue.paused_at %} since {{ utc_time(queue.paused_at) }}{% endif %}: {{ queue.paused_reason }}. Nothing else starts; units that are running finish or stop at their next batch. The hold lifts by itself when the unit completes or fails.</p>
-  <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume') }}">Lift the hold</a></p>
-  {%- else %}
   <p class="error">The queue is paused{% if queue.paused_by %} by {{ queue.paused_by }}{% endif %}{% if queue.paused_at %} since {{ utc_time(queue.paused_at) }}{% endif %}: no run starts or takes another unit until it is resumed.</p>
   <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume') }}">Resume the queue</a></p>
-  {%- endif %}
   {%- else %}
   <p><a class="btn btn-danger" href="{{ url_for('web.admin_queue_confirm', action='queue-pause') }}">Pause the queue</a>
     <span class="hint">Running units finish; no run starts or takes another until you resume.</span></p>
@@ -138,15 +120,15 @@
 {%- if tuning %}
 <section class="panel" id="queue-tuning" aria-labelledby="queue-tuning-heading">
   <h2 id="queue-tuning-heading">What the queue has learned</h2>
-  <p>For each kind of job the memory it claims at the gate: the typed figure in the code, the figure worked out from what that kind has used on this machine (the job profile), and a figure you fixed. {% if tuning.on %}With enough history the learned figure is the claim; with none the typed one is.{% else %}Learning is switched off (<code>PLANETGEN_SELF_TUNING</code>), so every claim is the typed figure.{% endif %} Fixing a figure holds it until you release it; forgetting a kind deletes its samples and the next run claims from the typed figure and measures again.</p>
+  <p>For each kind of job the memory it claims at the gate: the typed figure in the code, the figure worked out from what that kind has used on this machine (the job profile), and a figure you fixed. {% if tuning.on %}With enough history the learned figure is the claim; with none the typed one is. A kind marked proven has a full window of finished units from this machine, so its learned figure leads outright and the typed figure is only its default and its clamp (a quarter to four times the typed figure).{% else %}Learning is switched off (<code>PLANETGEN_SELF_TUNING</code>), so every claim is the typed figure.{% endif %} Fixing a figure holds it until you release it; forgetting a kind deletes its samples and the next run claims from the typed figure and measures again.</p>
   {%- if tuning.rows %}
   <div class="table-scroll" tabindex="0">
   <table>
-    <caption class="sr-only">The claim of each job kind: typed, learned, and fixed</caption>
-    <thead><tr><th scope="col">Kind</th><th scope="col">Typed</th><th scope="col">Learned</th><th scope="col">Fixed</th><th scope="col">Samples</th><th scope="col">Last sample (UTC)</th><th scope="col">Last change</th><th scope="col">Controls</th></tr></thead>
+    <caption class="sr-only">The claim of each job kind: typed, learned, fixed and which leads</caption>
+    <thead><tr><th scope="col">Kind</th><th scope="col">Typed</th><th scope="col">Learned</th><th scope="col">Fixed</th><th scope="col">Leads</th><th scope="col">Samples</th><th scope="col">Last sample (UTC)</th><th scope="col">Last change</th><th scope="col">Controls</th></tr></thead>
     <tbody>
     {%- for row in tuning.rows %}
-    <tr><td><code>{{ row.kind }}</code></td><td>{{ row.typed }}</td><td>{{ row.learned }}</td><td>{{ row.pinned }}</td><td>{{ row.samples }}</td><td>{{ row.last_sample }}</td><td>{{ row.changed }}</td>
+    <tr><td><code>{{ row.kind }}</code></td><td>{{ row.typed }}</td><td>{{ row.learned }}</td><td>{{ row.pinned }}</td><td>{{ row.leads }}</td><td>{{ row.samples }}</td><td>{{ row.last_sample }}</td><td>{{ row.changed }}</td>
       <td><form method="post" action="{{ url_for('web.admin_queue_action') }}" class="table-form">
         {{ csrf_field() }}<input type="hidden" name="kind" value="{{ row.kind }}">
         {%- if row.is_pinned %}<button type="submit" name="action" value="tuning-unpin" class="btn btn-secondary">Release</button>{% endif %}
@@ -177,26 +159,6 @@
   </table>
   </div>
   {%- endif %}
-</section>
-{%- endif %}
-{%- if held %}
-<section class="panel" id="queue-held" aria-labelledby="queue-held-heading">
-  <h2 id="queue-held-heading">Held jobs</h2>
-  <p>{{ held.total }} {{ 'job is' if held.total == 1 else 'jobs are' }} held in no queue until the job{{ '' if held.total == 1 else 's' }} {{ 'it' if held.total == 1 else 'they' }} require{{ 's' if held.total == 1 else '' }} finish{{ 'es' if held.total == 1 else '' }}. A worker is never handed one early; the worker that finishes the last required job queues it. If a required job fails, the held job fails with it and a failed run names it.</p>
-  <div class="table-scroll" tabindex="0">
-  <table>
-    <caption class="sr-only">Jobs held for a job they require</caption>
-    <thead><tr><th scope="col">Job</th><th scope="col">Queue</th><th scope="col">Run</th><th scope="col">Waits for</th></tr></thead>
-    <tbody>
-    {%- for row in held.rows %}
-    <tr><td>{{ row.label }} <code>{{ row.id }}</code></td><td>{{ row.queue }}</td>
-      <td>{% if row.run_url %}<a href="{{ row.run_url }}">{{ row.run }}</a>{% if row.stage is not none %}, stage {{ row.stage }}{% endif %}{% endif %}</td>
-      <td><code>{{ row.waits_for }}</code></td></tr>
-    {%- endfor %}
-    </tbody>
-  </table>
-  </div>
-  {%- if held.shown < held.total %}<p class="hint">The first {{ held.shown }} are listed.</p>{% endif %}
 </section>
 {%- endif %}
 {%- if available %}

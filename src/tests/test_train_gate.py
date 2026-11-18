@@ -6,6 +6,8 @@ import importlib.util
 import os
 import pathlib
 
+import pytest
+
 SCRIPT = pathlib.Path(__file__).resolve().parents[2] / "scripts" / "train_gate.py"
 spec = importlib.util.spec_from_file_location("train_gate", SCRIPT)
 gate = importlib.util.module_from_spec(spec)
@@ -98,3 +100,19 @@ def test_learning_with_replace_keeps_the_longest_pass_so_a_skipped_database_run_
     gate.learn([str(first), str(second)], replace=True)
     kept = gate._load(str(durations), {})
     assert kept == {"tests/test_db.py": 2400.0, "tests/test_y.py": 12.0}
+
+
+def test_a_gate_with_a_slot_runs_its_pytest_on_that_slots_databases_with_at_most_three_workers(tmp_path, monkeypatch):
+    """TEST.724: two gates on one machine each take a slot, so they never share a Redis database."""
+    seen = []
+
+    class Done:
+        returncode = 0
+
+    monkeypatch.setattr(gate.subprocess, "run", lambda command, **kw: seen.append((command, kw["env"])) or Done())
+    monkeypatch.setattr(gate, "DURATIONS", str(tmp_path / "d.json"))
+    gate.run(["tests/test_a.py"], str(tmp_path / "r.txt"), workers=8, slot=2, say=lambda line: None)
+    command, env = seen[0]
+    assert env["PLANETGEN_TEST_REDIS_SLOT"] == "2" and command[command.index("-n") + 1] == "3"
+    with pytest.raises(SystemExit):
+        gate.run(["tests/test_a.py"], str(tmp_path / "r2.txt"), slot=9, say=lambda line: None)

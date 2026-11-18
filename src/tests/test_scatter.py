@@ -29,28 +29,31 @@ def test_the_shares_always_sum_to_one_and_stay_in_range():
         assert set(shares) == set(scatter.POPULATIONS)
 
 
-def test_a_giant_that_never_moved_scatters_only_its_zone():
-    shares = _shares(17.1, 30.0, 3.9, 0.0, 15.0, 50.0)
-    assert shares["cold_classical"] > 0.8
+def test_a_giant_that_never_moved_scatters_only_its_reach():
+    # the disk of `belt_origin` starts one half-width out (32.3 AU for this giant); the giant's reach over a system's age is REACH_ZONE_WIDTHS of them (GEN.1788)
+    shares = _shares(17.1, 30.0, 3.9, 0.0, 33.0, 50.0)
+    assert shares["cold_classical"] > 0.6
     assert shares["resonant"] == 0.0 and shares["hot_classical"] == 0.0
-    assert 0.0 < scatter.scattered_share(shares) < 0.2
+    assert 0.0 < scatter.scattered_share(shares) < 0.35
     assert "never moved" in scatter.history_line(shares, 30.0, 0.0)
+    assert scatter.REACH_ZONE_WIDTHS > 1.0, "the reach is wider than the cold zone the disk starts from, or nothing could scatter"
+    assert _shares(17.1, 30.0, 3.9, 0.0, 45.0, 60.0)["cold_classical"] == 1.0, "a disk beyond the reach stays cold"
 
 
 def test_a_migrating_giant_scatters_most_of_the_disk_it_crossed():
-    # a Neptune-sized giant that moved from 18 to 30 AU through a disk of 15 to 35 AU (test target; the line of the design: "scattered 82 percent")
-    shares = _shares(17.1, 30.0, 3.9, 12.0, 15.0, 35.0, instability=1.0)
-    assert 0.7 < scatter.scattered_share(shares) < 0.95
-    assert shares["resonant"] > 0.0 and shares["hot_classical"] > 0.0 and shares["cold_classical"] < 0.2
+    # a Neptune-sized giant that moved from 18 to 30 AU through a disk of 15 to 60 AU (test target)
+    shares = _shares(17.1, 30.0, 3.9, 12.0, 15.0, 60.0, instability=1.0)
+    assert 0.4 < scatter.scattered_share(shares) < 0.75
+    assert shares["resonant"] > 0.0 and shares["hot_classical"] > 0.0 and shares["cold_classical"] < 0.5
     assert "moved from 18 to 30 AU" in scatter.history_line(shares, 30.0, 12.0)
     # more migration, less cold disk
-    assert _shares(17.1, 30.0, 3.9, 6.0, 15.0, 35.0)["cold_classical"] > shares["cold_classical"]
+    assert _shares(17.1, 30.0, 3.9, 6.0, 15.0, 60.0)["cold_classical"] > shares["cold_classical"]
 
 
 def test_a_heavier_giant_has_a_wider_zone_and_ejects_more():
     assert scatter.zone_half_width_au(5.0, 318.0, STAR) > scatter.zone_half_width_au(5.0, 17.0, STAR)
-    light = _shares(17.1, 30.0, 3.9, 12.0, 15.0, 35.0)
-    heavy = _shares(318.0, 30.0, 11.2, 12.0, 15.0, 35.0)
+    light = _shares(17.1, 30.0, 3.9, 12.0, 15.0, 60.0)
+    heavy = _shares(318.0, 30.0, 11.2, 12.0, 15.0, 60.0)
     assert heavy["ejected"] / scatter.scattered_share(heavy) >= light["ejected"] / scatter.scattered_share(light) - 1e-9
     assert scatter.scattered_share(heavy) > scatter.scattered_share(light)
 
@@ -76,3 +79,17 @@ def test_the_disk_fraction():
 def test_the_split_of_the_swept_mass_sums_to_one():
     assert math.isclose(sum(share for _, share in scatter.SWEPT_SPLIT), 1.0)
     assert {key for key, _ in scatter.SWEPT_SPLIT} <= set(scatter.POPULATIONS)
+
+
+def test_gen1788_a_disk_at_the_edge_of_a_neptune_or_jupiter_zone_gives_a_comet_reservoir_and_one_beyond_the_reach_does_not():
+    """GEN.1788: at the cold zone's edge (the start of `belt_origin`'s outer disk) a giant that never moved scatters a share of the disk, and from it
+    `comet_supply` takes a reservoir; the science default gave no comets at all because the swept band ended where the disk began."""
+    from planetgen.physics import belt_origin, comet_supply
+    assert belt_origin.STIR_ZONE_WIDTHS == scatter.REACH_ZONE_WIDTHS, "one number for how far a giant reaches (BG8, SX6)"
+    for mass, au, radius in ((17.1, 30.0, 3.9), (318.0, 5.2, 11.2)):
+        edge = au + scatter.zone_half_width_au(au, mass, STAR)               # where the disk of `belt_origin` starts
+        near = scatter.scatter_shares(STAR, mass, au, radius, 0.0, edge, edge + 20.0 * au)
+        belt = type("Belt", (), {"origin": "outer-disk", "scatter_fates": near, "primordial_mass_earth": 10.0, "largest_body_km": 100.0})()
+        assert scatter.scattered_share(near) > 0.0 and comet_supply.family_weights([belt]) is not None
+        far = edge + scatter.REACH_ZONE_WIDTHS * scatter.zone_half_width_au(au, mass, STAR)
+        assert scatter.scattered_share(scatter.scatter_shares(STAR, mass, au, radius, 0.0, far, far + 20.0 * au)) == 0.0

@@ -159,6 +159,17 @@
         "GET /api/sectors/<id>, GET /api/containers/at, GET /api/containers/<id>, GET /api/galaxy/charted-regions, the extent of a region node and the galaxy block statistics: the keys centre, centre_pc and centre_distance_pc are center, center_pc and center_distance_pc",
         "A body's hydrosphere value vapour is vapor; the population value nuclear_disc is nuclear_disk; the run and job states cancelling and cancelled are canceling and canceled, and the answer of a cancel is {ok, canceled, stopped}"
       ]
+    },
+    {
+      "version": 14,
+      "first_release": "8.0.4527",
+      "items": [
+        "OPS.235"
+      ],
+      "summary": "The admin worker count is gone: the job engine sizes a stage by memory, so there is no count to read or set.",
+      "changes": [
+        "GET /api/admin/work/workers and POST /api/admin/work/workers are gone (the bulk worker count, Ludicrous Speed and the host worker cap)"
+      ]
     }
   ]
 }

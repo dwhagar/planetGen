@@ -16,6 +16,7 @@ lock, publishes that it is alive and since when, logs its turns, and exits after
 import fcntl
 import json
 import os
+import socket
 import sys
 import time
 
@@ -23,7 +24,7 @@ import redis
 
 from planetgen.admin import maintenance
 from planetgen.queue import lightjobs, planrows, redisqueue, runline, runrecord
-from planetgen.util import log, logrecord
+from planetgen.util import log, logrecord, process
 from planetgen.util.format import format_duration_seconds
 
 LOCK_NAME = "supervisor.lock"
@@ -40,9 +41,6 @@ IDLE_SECONDS = 300.0
 
 ALIVE_SECONDS = 15
 """int: How long the sign of life lasts after a turn writes it: several turns, so one slow turn is not a death."""
-
-STARTING_SECONDS = 20
-"""int: How long a caller's claim to be starting the supervisor holds off the other callers."""
 
 RECENT_KEPT = 20
 """int: How many of its latest acts the supervisor keeps for the Queue page (OPS.214)."""
@@ -87,11 +85,6 @@ def recent_key():
     return runrecord._k("supervisor", "recent")
 
 
-def nudges_key():
-    """The hash of the asks for workers (OPS.209): queue name -> JSON `{"url", "mysql_host", "count"}` of the latest ask; the supervisor takes them all at each turn."""
-    return runrecord._k("supervisor", "nudges")
-
-
 def requests_key():
     """The list of the requests for the supervisor (OPS.234: pause, resume, Stop All, the end of a run's jobs), each a JSON line; `controls.Controls` takes them at each turn."""
     return runrecord._k("supervisor", "requests")
@@ -128,8 +121,8 @@ class RedisStore:
         pipe.execute()
 
     def busy(self):
-        """Whether there is anything for a supervisor to watch: a live run, a run waiting for the machine, or an ask for workers not acted on yet."""
-        return bool(self.connection.hlen(nudges_key())) or bool(self.connection.llen(requests_key())) or bool(self.connection.hlen(runline._starts_key())) or any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
+        """Whether there is anything for a supervisor to watch: a live run, a run waiting for the machine."""
+        return bool(self.connection.llen(requests_key())) or bool(self.connection.hlen(runline._starts_key())) or any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
             or bool(self.connection.zcard(runline._line_key())) or bool(self.connection.zcard(lightjobs.pending_key())) or bool(self.connection.scard(lightjobs.running_key()))
 
 
@@ -335,50 +328,6 @@ class Reconciler:
         """Nothing to drop."""
 
 
-class WorkerStarts:
-    """
-    OPS.209: the starting of workers, which every enqueuer, web thread and starter did for itself (behind a host-wide lock) and is the supervisor's alone now. Each turn it takes the asks for workers
-    (`nudge`) and acts on each with `workers.start_workers`, which holds the rules: the caps, the lanes, the memory limit, shedding and lending. Two asks for one queue before a turn are one:
-    the later wins.
-
-    Args:
-        connection (redis.Redis): The server the asks are on.
-        start (callable, optional): `start(queue_name, connection, url, mysql_host, count)`; `workers.start_workers` where left out. The simulator passes its own.
-    """
-
-    def __init__(self, connection, start=None):
-        self.connection = connection
-        self.start = start
-
-    def take(self):
-        """The asks waiting, taken and cleared in one step: a list of `(queue_name, ask)`."""
-        pipe = self.connection.pipeline(transaction=True)
-        pipe.hgetall(nudges_key())
-        pipe.delete(nudges_key())
-        asks, _ = pipe.execute()
-        return [(runrecord._s(name), json.loads(runrecord._s(raw))) for name, raw in asks.items()]
-
-    def turn(self):
-        """
-        Acts on every ask for workers.
-
-        Returns:
-            int: How many workers it started.
-        """
-        from planetgen.queue import workers
-        start = self.start or workers.start_workers
-        started = 0
-        for queue_name, ask in self.take():
-            try:
-                started += start(queue_name, self.connection, ask.get("url"), ask.get("mysql_host"), ask.get("count")) or 0
-            except Exception as exc:  # noqa: BLE001 -- one queue's start failing leaves the others, and its next ask
-                log.swallowed("queue/supervisor", "WorkerStarts.turn", exc)
-        return started
-
-    def clear(self):
-        """Nothing to drop: an ask not acted on stays on Redis for the next supervisor."""
-
-
 class RunStarts:
     """
     OPS.211: the starting of runs, which each process that wanted one did for itself and is the supervisor's alone now. A process that wants a run leaves its ask (`runline.start_when_free`: a
@@ -511,10 +460,9 @@ class Launches:
         return len(self.launcher.turn())
 
     def _paused(self):
-        """Whether the queues are paused by hand (`pause`; a solo hold for one restarted unit is not a pause of the hand-outs)."""
+        """Whether the queues are paused by hand (`pause`)."""
         from planetgen.queue import pause
-        held = pause.state(self.connection)
-        return held["paused"] and held["solo"] is None
+        return pause.is_paused(self.connection)
 
     def clear(self):
         if self.launcher is not None:
@@ -631,20 +579,6 @@ def overview(connection):
     return body
 
 
-def nudge(connection, queue_name, url=None, mysql_host=None, count=None):
-    """
-    Asks the supervisor for workers for the queue `queue_name` (OPS.209: `workers.ensure_workers`) and starts the supervisor if none is alive. Never raises into the caller: an ask that was not
-    left is the next poll's to leave again.
-    """
-    try:
-        connection.hset(nudges_key(), queue_name, json.dumps({"url": url, "mysql_host": mysql_host, "count": count}))
-        connection.expire(nudges_key(), RECENT_SECONDS)
-    except Exception as exc:  # noqa: BLE001 -- the engine's own bookkeeping never fails the submit that asked
-        log.swallowed("queue/supervisor", "nudge", exc)
-        return
-    ensure_started(connection, url)
-
-
 def is_alive(connection):
     """Whether a supervisor's sign of life is up."""
     return bool(connection.exists(alive_key()))
@@ -655,10 +589,29 @@ def supervisor_argv(url=None, python=None):
     return [python or sys.executable, "-m", "planetgen.cli.supervisor", *(["--url", url] if url else [])]
 
 
-def _spawn(argv):
+def _spawn(argv, on_exit=None):
     """Starts the supervisor process, detached, in the repository's folder (the test suite replaces this: a test never starts a process of the engine)."""
     from planetgen.queue import workers
-    redisqueue.start_detached(argv, workers.REPO_DIR)
+    redisqueue.start_detached(argv, workers.REPO_DIR, on_exit=on_exit)
+
+
+def _claim_token():
+    """What a caller writes to say it is starting the supervisor: its host and process id, so a claim whose caller is gone can be told from a live one."""
+    return f"{socket.gethostname()}:{os.getpid()}"
+
+
+def _claim_is_stale(connection):
+    """Whether the claim to be starting the supervisor is one nobody can still be keeping: its caller ran on this host and that process is gone (OPS.251: no time limit decides it)."""
+    held = connection.get(starting_key())
+    held = held.decode() if isinstance(held, bytes) else held
+    host, _, pid = (held or "").rpartition(":")
+    return held is None or (host == socket.gethostname() and pid.isdigit() and not process.pid_alive(int(pid)))
+
+
+def _release_claim(connection, token):
+    """Ends the claim `token` made, when it is still the one held (the supervisor process it was made for has ended)."""
+    if connection.get(starting_key()) in (token, token.encode()):
+        connection.delete(starting_key())
 
 
 def ensure_started(connection=None, url=None, start=None):
@@ -666,18 +619,35 @@ def ensure_started(connection=None, url=None, start=None):
     Starts a supervisor, detached, unless one is alive or another caller is starting one now. Cheap for the caller that finds one alive (one Redis
     read), so a submit, a status poll and a timer each call it. Never raises: a supervisor that could not be started is the next call's to start.
 
+    The claim to be starting one has no time limit (OPS.251): it ends when the process it was made for ends (the notice `redisqueue.start_detached` gives), and a claim whose
+    caller is gone is found stale at once.
+
     Args:
-        start (callable, optional): What starts the process, given the command line; default `redisqueue.start_detached` in the repository's folder.
+        start (callable, optional): What starts the process, given the command line; default `_spawn` in the repository's folder.
 
     Returns:
         bool: Whether this call started one.
     """
     try:
         connection = connection or redisqueue.connect(url)
-        if is_alive(connection) or not connection.set(starting_key(), os.getpid(), nx=True, ex=STARTING_SECONDS):
+        if is_alive(connection):
             return False
+        token = _claim_token()
+        if not connection.set(starting_key(), token, nx=True):
+            if not _claim_is_stale(connection):
+                return False
+            connection.delete(starting_key())
+            if not connection.set(starting_key(), token, nx=True):
+                return False
         argv = supervisor_argv(url)
-        (start or _spawn)(argv)
+        try:
+            if start is None:
+                _spawn(argv, on_exit=lambda status: _release_claim(connection, token))
+            else:
+                start(argv)
+        except Exception:
+            _release_claim(connection, token)       # nothing started: the claim is not the next caller's to wait out
+            raise
         return True
     except Exception as exc:  # noqa: BLE001 -- the engine's own bookkeeping never fails the submit or the page that asked
         log.swallowed("queue/supervisor", "ensure_started", exc)

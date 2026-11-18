@@ -1484,12 +1484,6 @@ def admin_work_warm(cookie_header, database):
     return body
 
 
-def admin_work_held(cookie_header):
-    """`GET /api/admin/work/held` -- the jobs held for a job they require (PERF.248): `{"total", "items"}`."""
-    body, _set_cookie_headers = _auth_request("GET", "/admin/work/held", cookie_header=cookie_header)
-    return body
-
-
 def admin_work_supervisor(cookie_header):
     """`GET /api/admin/work/supervisor` -- whether the supervisor is alive, since when, its last turn and its latest acts with their reasons (OPS.214)."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/work/supervisor", cookie_header=cookie_header)
@@ -1596,17 +1590,6 @@ def admin_work_stop_all(cookie_header):
     body, _set_cookie_headers = _auth_request("POST", "/admin/work/queue", cookie_header=cookie_header,
                                               json_body={"action": "stop-all"}, timeout=120)
     return body["summary"]
-
-
-def admin_work_workers(cookie_header, count=None, ludicrous=False):
-    """`GET`, or with `count` / `ludicrous` `POST`, `/api/admin/work/workers` -- the bulk worker count (ADM.15):
-    `{"wanted", "live", "ludicrous", "cpus"}`."""
-    if count is None and not ludicrous:
-        body, _set_cookie_headers = _auth_request("GET", "/admin/work/workers", cookie_header=cookie_header)
-    else:
-        body, _set_cookie_headers = _auth_request("POST", "/admin/work/workers", cookie_header=cookie_header,
-                                                  json_body={"ludicrous": True} if ludicrous else {"count": count})
-    return body
 
 
 def admin_lift_lockout(cookie_header, scope=None, subject=None, lift_all=False):

@@ -35,7 +35,7 @@ from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import class_outcome, flavor_tree, habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
-from planetgen.util import draw, request_odds
+from planetgen.util import detmath, draw, request_odds
 from planetgen.util import log
 from planetgen.generation import belt_birth, belt_planets, comet_abundance, disk_ejection, abundance_tier, habitable_request, cosmic_dust, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
@@ -816,7 +816,7 @@ class StarSystem:
             number = len(self.stars) + index
             separations = []
             if number in places:
-                separations = [math.dist(places[number], places[other]) if other in places else None for other in range(len(self.stars))]
+                separations = [detmath.dist(places[number], places[other]) if other in places else None for other in range(len(self.stars))]
             source = dark_light.source_of(member, age, dark_light.feeders_of(self.stars, separations))
             if source is not None:
                 source.member_no = number

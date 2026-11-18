@@ -42,6 +42,7 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here and a row in [api-compatibility.md](api-compatibility.md) (API.4: each version, the release that first carried it, the routes and payload formats it changed, and which clients speak it), which is built from `docs/reference/api-versions.json`.
 
+- **14** (OPS.235): `GET /api/admin/work/workers` and `POST /api/admin/work/workers` are gone: the job engine sizes a stage by memory and the gate, so there is no worker count to read or set.
 - **13** (GEN.1212, DOC.103): `GET /api/systems/<id>`: a planet or moon has no `description`; the words of its class are in the system's description document (`GET /api/systems/<id>/description`). DOC.103: the stored values and API keys that were spelled the British way are spelled the American way, with no alias. `centre`, `centre_pc` and `centre_distance_pc` are `center`, `center_pc` and `center_distance_pc` (the sector, container, charted-region, region extent, galaxy-block and compact-remnant answers); the hydrosphere value `vapour` is `vapor`; the population `nuclear_disc` is `nuclear_disk`; the run and job states `cancelling` and `cancelled` are `canceling` and `canceled`, and a cancel answers `{"ok", "canceled", "stopped"}`.
 - **12** (GEN.1108): `GET /api/systems/<id>`: the `regions` of a planet's or moon's `equipment` is `{bands, mean_swing_k}`: `bands` is the seven bands of latitude from the north pole to the south pole (the day center to the night center for a world that turns once an orbit), each `{name, mean_k, swing_k, day_hours, night_hours, longest_day_days, longest_night_days, state}`; `polar`, `north`, `equator`, `south`, `swing`, `day_side`, `terminator`, `night_side` and the swings by those names are gone. `GET /api/objects/<ref>/sheet` of a planet or moon has `bands`, the table of its seven bands, and no `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`, `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k` or `temp_night_side_k` rows.
 - **11** (API.33): `GET /api/admin/backups` and `GET /api/admin/backups/<name>`: an archive and each of its parts have `size_bytes` where they had `size`.
@@ -1046,9 +1047,9 @@ forced credential change. They back the admin stats page
   Stats page.
 - `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10, PERF.99):
   `{"available", "status": {"workers_active", "runs_active", "paused",
-  "paused_by", "paused_at", "paused_reason", "solo_unit", "holder", "holder_title",
+  "paused_by", "paused_at", "holder", "holder_title",
   "heartbeat_age_s", "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
-  first], "total", "limit", "offset"}`. A run is `{"id", "title", "kind"
+  first], "total", "limit", "offset"}`. `workers_active` is how many jobs the ledger has running now, in every run (OPS.235: it counted RQ workers before). A run is `{"id", "title", "kind"
   ("generation", "maintenance" or "check"), "who", "database", "job" (the
   Generate page job that started it), "argv", "state" ("running",
   "canceling", "done", "failed" or "canceled"), "error", "live", "stale",
@@ -1068,17 +1069,6 @@ forced credential change. They back the admin stats page
   "seconds"}]}}`. `index` is the object index as its last runs recorded it (PERF.140). A phase's `state` is `waiting`, `running`, `built`, `unchanged`, `stopped`,
   `nothing`, `failed` or `interrupted` (null before any run); `auto` says whether a change starts the warm-up by itself,
   which changes it waits to warm for, and the process that holds it.
-- `GET /api/admin/work/held` — the jobs held for a job they require (PERF.247, PERF.248):
-  `{"total", "items": [{"id", "queue", "label", "waits_for", "run", "stage"}]}`, the first 100. `waits_for` lists the
-  required jobs not done yet; `run` and `stage` are set for a unit of a run. A job that requires nothing is never listed.
-- `GET /api/admin/work/workers` and `POST /api/admin/work/workers`
-  `{"count": n}` or `{"ludicrous": true}` — the bulk queue's worker count
-  (ADM.15, PERF.95). `{"wanted", "live", "ludicrous", "cpus"}`: the count
-  asked for (the admin's, else 80% of the cores), the workers running now,
-  the count "Ludicrous Speed" sets (95% of the cores) and the cores. A
-  POST needs a fresh admin login, is audited as `work.workers.set`, and
-  lowering the count asks the extra workers to finish their unit and exit.
-  503 when Redis does not answer.
 - `GET /api/admin/work/<id>` — one run (PERF.99): `{"run": the run above with
   "stages": [{"key", "label", "state" ("waiting", "running" or "done"),
   "units", "done", "cost", "cost_done", "started", "ended", "seconds",
@@ -1137,9 +1127,7 @@ forced credential change. They back the admin stats page
   `{"action": "pause"|"resume"}` pauses the whole queue (a flag in Redis,
   `planetgen:queue:paused`: the workers of a run's units and of the maintenance work take no job
   until it is cleared, a unit already running finishes, and the two API lanes are never held; PERF.152)
-  or resumes it (OPS.145: the same flag is a solo hold, `paused_reason` naming it and `solo_unit` the unit,
-  which the follower sets after it restarts a stuck unit so that unit runs alone; it lifts when the unit
-  completes or fails, and `resume` lifts it by hand); `503` when Redis does not answer. Each answers
+  or resumes it; `503` when Redis does not answer. Each answers
   `{"ok": bool}` and writes the change to the audit and activity logs
   (`work.cancel`, `work.clear`, `work.delete`, `work.queue.pause`, ...).
 - `GET /api/admin/settings` — the configuration page's data (ADM.84):

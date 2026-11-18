@@ -53,6 +53,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from planetgen.physics import constants, oddities, secular_chain
+from planetgen.util import detmath
 
 ARCSEC_PER_RAD = 180.0 * 3600.0 / math.pi
 """float: Arcseconds in a radian, for reading the rates in the units the literature prints them in."""
@@ -153,7 +154,7 @@ def all_sibling_modes(a_au, masses_kg, host_mass_kg, inclination_rad, node_rad):
     _a, B = secular_chain.matrices(a_au, masses_kg, host_mass_kg)
     frequencies, vectors, inverse = secular_chain._modes(B)
     start = np.sin(np.asarray(inclination_rad, float)) * np.exp(1j * np.asarray(node_rad, float))
-    coefficients = inverse @ start
+    coefficients = detmath.dot(inverse, start)
     out = []
     for index in range(count):
         modes = []

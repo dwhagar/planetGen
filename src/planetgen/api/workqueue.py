@@ -15,13 +15,13 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import controls, held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, waiting, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import controls, held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, waiting, warmphases
 from planetgen.util import log
 
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body
 from .routes import _paginate
-from .schemas import QueueAction, RunAction, TuningAction, WorkerCount, parse_body
+from .schemas import QueueAction, RunAction, TuningAction, parse_body
 
 PAUSE_WAIT_SECONDS = 5.0
 """float: How long the Queue page's Pause and Resume wait for the supervisor to answer before they do it themselves."""
@@ -58,12 +58,10 @@ def _status(connection, now):
     live = [run_id for kind in runrecord.KINDS for run_id in [runrecord.active_run(connection, kind)] if run_id]
     heard = None if held is None else max(now - (held["updated"] or held["started"] or now), 0.0)
     return {
-        "paused": paused["paused"], "paused_by": paused["by"], "paused_at": paused["at"], "paused_reason": paused["reason"],
-        "solo_unit": paused["solo"]["unit"] if paused["solo"] else None,
+        "paused": paused["paused"], "paused_by": paused["by"], "paused_at": paused["at"],
         "holder": holder, "holder_title": held["title"] if held else None, "heartbeat_age_s": heard,
         "stale": runrecord.is_stale(held, now) if held else False,
-        "workers_active": sum(queueWorkers.live_worker_count(redisqueue.queue(name, connection))
-                              for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE)),
+        "workers_active": controls.running_units(connection),
         "runs_active": len(live),
     }
 
@@ -385,14 +383,6 @@ def queue():
     return jsonify({"ok": ok})
 
 
-def _workers_state(connection):
-    queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
-    return {"wanted": queueWorkers.wanted(connection), "live": queueWorkers.live_worker_count(queue),
-            "ludicrous": queueWorkers.ludicrous_count(), "cpus": workQueue.cpu_count(),
-            "host_cap": queueWorkers.host_worker_cap(), "host_running": queueWorkers.host_worker_processes(),
-            "host_refused": int(connection.get(queueWorkers.REFUSED_KEY) or 0)}
-
-
 def _redis():
     try:
         connection = redisqueue.connect()
@@ -400,40 +390,6 @@ def _redis():
     except Exception as exc:  # noqa: BLE001 -- any connection failure
         raise ApiError(f"Redis is not answering: {exc}", 503) from exc
     return connection
-
-
-@bp.route("/workers", methods=["GET"])
-@require_admin()
-def workers_state():
-    """`GET /api/admin/work/workers` -- `wanted` (the bulk worker count), `live` (bulk workers running now),
-    `ludicrous` (the count "Ludicrous Speed" sets) and `cpus` (ADM.15)."""
-    connection = _redis()
-    supervisor.ensure_started(connection)           # OPS.207: every status poll wakes the supervisor
-    return jsonify(_workers_state(connection))
-
-
-@bp.route("/held", methods=["GET"])
-@require_admin()
-def held_jobs():
-    """`GET /api/admin/work/held` -- the jobs held for a job they require (PERF.247, PERF.248): `{"total", "items": [{"id", "queue",
-    "label", "waits_for", "run", "stage"}]}`, the first 100; a job that requires nothing is never here."""
-    return jsonify(requires.held_overview(_redis()))
-
-
-@bp.route("/workers", methods=["POST"])
-@require_admin(fresh=True)
-def set_workers():
-    """
-    `POST /api/admin/work/workers` `{"count": n}` or `{"ludicrous": true}` sets the bulk worker count
-    (ADM.15): running work picks it up as workers start and exit (lowering it asks the extra workers to finish
-    their unit and exit). Returns the new state; written to the audit log.
-    """
-    body = parse_body(WorkerCount, require_json_body())
-    connection = _redis()
-    count = queueWorkers.ludicrous_count() if body.ludicrous else body.count
-    queueWorkers.set_wanted(connection, count)
-    audit("work.workers.set", target="workers", detail=f"count={count}" + (" ludicrous" if body.ludicrous else ""))
-    return jsonify(_workers_state(connection))
 
 
 @bp.route("/supervisor", methods=["GET"])
