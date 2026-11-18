@@ -11078,6 +11078,7 @@ clears each one.
   8.1. Owner: none yet (life lane). Filed by the TODO thread from Lane 04.
   Prerequisites: none. Related: GEN.750.
   Owner (TODO) (5:15 PM EST on 2026-11-06): Lane 14 takes it after PERF.241 (found it; lock).
+  Owner (TODO, 2026-11-17): Lane 05, physics report first, lock item if stored life changes.
 
 - [ ] **GEN.1317 Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed**
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Boss, 6:28 PM EST on 2026-11-06: make the system check the data against
@@ -11707,6 +11708,11 @@ clears each one.
 - [ ] **PERF.281 Stage 9's bright-star sampling tables are rebuilt cold on every part: key band_table_cache by the tables' own inputs instead of every package file, and build the tables once before the sky shares start**
   Lane 07, 6:59 PM EST 2026-11-17 (Stage 9 profile, one real sky part: 985 s, 11,336 stars; 537 s of it, 55 percent, is star_population._bright_measure_bound building the sampling tables cold, 647,000 calls, a fixed 28 to 50 s on each of 30 tiers). The cache (/var/cache/planetgen/band-tables) is keyed by every file of the package, so the first run after each update starts cold, and three workers starting cold each build the same tables; this fits Boss's stalled 11-16 run (about 3 hours). Do: (1) key the cache by the code and data the tables read; (2) build the tables in one unit before the shares, kept for all 16; keep a real-count status line for the build. No star moves (lock-free).
   Version 8.1. Owner (TODO, 2026-11-17): Lane 07, lock-free. Prerequisites: none. Related: PERF.280, OPS.270, OPS.269.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1790 (bug) A very luminous young star's planets ask the climate solve for 19,000 to 75,000 K (CeilingReached in test_examples zeta_ophiuchi, 5 of 40 seeds): a hydrogen and helium envelope past the ceiling is blown off, so strip it and re-solve; lava vapor is held at the ceiling and logged with its reason**
+  Lane 14, 7:24 PM EST 2026-11-17: seed 24 (about 1e6 Lsun, 3.5 Myr) gives a 3.8 Earth-mass body with 0.9 bar H/He at 35 au asking 21,058 K, a 0.17 Earth-mass body with 3e8 Pa SiO lava vapor asking 74,694 K and a 12 Earth-mass H/He body at 7 au asking 19,656 K. The greenhouse table is fitted to 4,000 K, so these asks are extrapolation; envelope_escape starts at 1 Gyr and mixture_escape skips envelopes and lava vapor, so nothing strips the air first. Boss decision (7:24 PM EST 2026-11-17, "Boil off the air"): past the ceiling, an H/He envelope (escape parameter about 2) is stripped and the air re-solved, reusing the envelope_escape physics rather than a new modifier; lava vapor stays held at the ceiling, logged, no error. Any new number is registered in GEN.725. Lock item (air_final and surface_air, Lane 02's files: coordinate with GEN.1780 and GEN.1745 slice 3).
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 14, lock item, with Lane 02 for the files. Prerequisites: none. Related: GEN.1745, GEN.1780, GEN.725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
