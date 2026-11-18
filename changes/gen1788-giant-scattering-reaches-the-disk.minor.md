@@ -1,7 +1,0 @@
-**Headline:** A giant planet now scatters the part of the outer disk it can reach over the age of its system, so stars with a giant and a cold outer disk have a comet reservoir; before, the swept band ended exactly where the disk began and no star on the Science comet default had comets.
-
-### Fixed
-- **The scatter step swept the same zone the disk starts from (GEN.1788).** `physics/belt_origin` starts a star's outer disk at one chaotic half-width beyond its last giant, and `physics/scatter.scatter_shares` swept only that half-width, so the swept share was 0 for every giant that never moved and every disk that began at that edge, and the comet supply (GEN.1765, GEN.1775) found no scattered disk anywhere (0 comets in 540 systems measured). A giant's scattering now reaches `scatter.REACH_ZONE_WIDTHS` (3) chaotic half-widths over a system's age: Neptune destabilizes the Kuiper belt out to a perihelion 5 to 8 AU beyond its orbit, about 10 Hill radii, in 4 Gyr (Morbidelli, Levison and Gomes, the Kuiper belt chapter). It is registered as stand-in row SX6 (tier T2, tweak L0) and is the same number as `belt_origin.STIR_ZONE_WIDTHS` (BG8), which now reads it from `scatter`, so there is one reach.
-- The numbers it moves: on 240 Sun-like (G2V) systems the giants and the outer disks are exactly as before (giant at 2 to 8 AU 11.7 percent, observed 14.1 per 100 stars; giant plus outer disk 5.8 percent); 6 of the 14 giant plus disk systems now scatter 5 to 40 percent of their disk and hold comets (before: 0).
-
-generation-affects: fill
