@@ -202,7 +202,7 @@ def formed_beyond_snow_line(planet):
     """Whether `planet` formed at or beyond its star's snow line (False for a star with none): the water snow line (`formation_snow_line.water_snow_line_au`, GEN.1679), the one the water is read against."""
     star = getattr(planet, "star", None)
     line = None if star is None else formation_snow_line.water_snow_line_au(star)
-    return line is not None and formation_distance_au(planet) >= line
+    return line is not None and bool(formation_distance_au(planet) >= line)
 
 
 def generate_planet_properties(planet, zone_override=None):
