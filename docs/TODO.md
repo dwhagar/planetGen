@@ -11079,6 +11079,7 @@ clears each one.
   Prerequisites: none. Related: GEN.750.
   Owner (TODO) (5:15 PM EST on 2026-11-06): Lane 14 takes it after PERF.241 (found it; lock).
   Owner (TODO, 2026-11-17): Lane 05, physics report first, lock item if stored life changes.
+  Lane 05 report (reports/gen1307-class-5a-cloud-life-2026-11-17.md): the gate already reads the cloud layer's temperature, so no surface window. Build (TODO, 8:07 PM EST 2026-11-17): A no animals aloft, a per-class cap from the class row, registered in GEN.725; B the life clock reads the layer, not the surface; C the life text says where it lives. Lock-free if the golden digest is unchanged.
 
 - [ ] **GEN.1317 Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed**
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Boss, 6:28 PM EST on 2026-11-06: make the system check the data against
@@ -11272,6 +11273,7 @@ clears each one.
   Lane 05's OPS.133 step 0 audit (reports/lane05/affects-audit-2026-11-11.md, 2026-11-11): the golden plan digest moved at 7 epochs while the plan stage alone moved at one, so it cannot check a declaration. Do: split the golden battery's digest into one per stage (plan alone, the scatter tables, the facilities, fill, population where the golden galaxy can measure it) and make scripts/train.py compare the stages that moved with the union the items declared: a stage that moved but was not declared fails the build, a stage declared but unmoved warns. Reuse the golden battery and the OPS.133 union code. Test-side and tooling only, lock-free.
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14 (offered by the audit), after OPS.133 step 1. Prerequisites: OPS.133. Related: OPS.133, GEN.1479.
   Filed by the TODO thread.
+  Owner (TODO, 2026-11-17): Lane 12 Gate (moved from Lane 14), lock-free; design note first if it changes the golden format.
 
 - [ ] **GEN.1520 The disk outer edge: research the observed gas and dust disk sizes by stellar mass and replace the 18 snow line multiplier (tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)**
   Boss decision, 3:04 PM EST on 2026-11-11 ('Approve disk recommendations'): option 1, the gas edge is 100 au x (M/Msun)^0.5 with a factor-of-2 scatter per system, replacing the 18 snow lines. Lane 14 builds it as a lock item for a train.
@@ -11342,11 +11344,6 @@ clears each one.
   Lane 14 (as the lane reported 8:12 PM EST on 2026-11-11), from the GEN.1559 wiring triage: GEN.994 equilibrium_edges is wired (PR 5976), but hot_condensates cannot be wired yet. Lane 07's deck prebuild (PR 6096) needs a temperature-pressure profile for the upper atmosphere of a hot giant from 1e-6 to 1e3 bar, and nothing in the code makes one: giant_structure.fit_adiabat starts at 1 bar and radiative_convective is by design off the generation path. Do: a short design note first, then the build; the recommended form is the analytic grey profile of [R1715] on the giant's equilibrium temperature, internal flux and a two-band opacity, with the stand-ins registered in GEN.725 (tier and tweak level), reusing the existing giant structure and internal-flux code. A lock-free prebuild as a new module (Lane 07 may build it, Lane 14 reviews); the wiring behind it (deck columns, migration, unit entries in db/column_units.py, describe page, epoch) is a lock item for Lane 14. Done: the profile function with tests against a published hot-Jupiter profile, the registry rows, and then GEN.994 hot_condensates reads it.
   TODO (2026-11-14): the pure profile merged in PR #6106 (Lane 14, 2:48 AM EST); the item stays open for the wiring the register names (the hot-giant profile, hot condensates and HK rows into the cloud decks).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14 prebuild (profile function), Lane 03 review and the wiring. Prerequisites: GEN.994 (equilibrium_edges, PR 5976). Related: GEN.994, GEN.1559, GEN.725.
-  Filed by the TODO thread.
-
-- [ ] **TEST.722 Re-run only the failed files after a fix, and pick tests from the changed modules with a stated time limit per PR (the rest left to the end-of-version run)**
-  Lane 03 (Gate) report /mnt/project-files/gate/gate-time-savings-2026-11-12.md (hours are its estimates, not measurements; about 5 to 6 of its 14 daily test hours re-prove things after a red), as the coordinator relayed Boss's question at 8:10 PM EST on 2026-11-11. Saves about 4 hours a day together: 5896 re-ran 468 tests to prove 2, and wide name globs cost hours (5889 at 2 h 22). Do: a gate command that reruns only the failed files and their direct dependents after a fix; test selection by the changed modules (scripts/test.py changed, the existing rule) with a per-PR limit of about 20 minutes. Reuse scripts/test.py changed --resume. Done: documented, and a PR with a fix to two tests reruns only those. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 12. Prerequisites: none. Related: TEST.720.
   Filed by the TODO thread.
 
 - [ ] **TEST.724 Cut gate flakes: each shard machine gets its own Redis database and MySQL prefix, at most 3 test workers with nothing else running, and the rare unseeded failures go on scripts/data/known_reds.json**
@@ -11606,6 +11603,7 @@ clears each one.
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H6); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row H6 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size S. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 14. Prerequisites: stage 4. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
+  Next slice (TODO, 8:10 PM EST 2026-11-17): Lane 14, removing the typed timeouts the learned figures now cover, reusing OPS.249's pressure learning (PR 7114).
 
 - [ ] **OPS.252 Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H7); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row H7 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
