@@ -1,4 +1,4 @@
-**Headline:** The bright-star backfill draws each sky row once from a bound that follows the stars it is drawing, so a sky share walks 5 to 20 times faster.
+**Headline:** The bright-star backfill draws each sky row once from a bound that follows the stars it is drawing, so a sky share walks 5 to 10 times faster.
 
 ### Fixed
 
