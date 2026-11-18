@@ -645,6 +645,7 @@ def test_planet_hill_sphere_clears_the_belt_inside_it():
     for seed in range(80):
         system = _generate(SystemConfig(), seed)
         for planets in _all_planet_lists(system):
+            planets = [obj for obj in planets if getattr(obj, "belt_rank", None) is None]       # a belt member promoted to a planet (GEN.1510) lives inside its belt
             for prev, cur in zip(planets, planets[1:]):
                 if prev.body_type == "a" and cur.body_type != "a" and \
                         cur.distance - _hill_au(cur) < prev.upper_limit:
