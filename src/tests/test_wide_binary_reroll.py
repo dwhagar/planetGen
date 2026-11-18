@@ -184,3 +184,19 @@ def test_the_bring_to_epoch_run_does_the_stage_and_can_skip_it(mysql_config):
     result = bring_to_epoch.run(mysql_config, None, say=lines.append)
     assert result["wide"]["redone"] == 1 and not result["failed"] and not _fails(mysql_config, bad)
     assert any(f"(id {bad})" in line for line in lines)
+
+
+def test_a_re_roll_is_seeded_from_the_place_of_the_system_not_its_object_id(mysql_config):
+    """The same galaxy seed must give the same re-roll whatever IDs the database issued (a reset keeps the ID counters)."""
+    _sector, bad = _store_system(mysql_config, "Bad Sector", broken=True)
+    conn = store.get_connection(mysql_config)
+    try:
+        before = wide_binary_reroll._seed_address(conn, bad)
+        conn.execute("UPDATE star_systems SET uid = ? WHERE id = ?", (bytes(12), bad))
+        conn.commit()
+        assert wide_binary_reroll._seed_address(conn, bad) == before
+        conn.execute("UPDATE star_systems SET galaxy_x_pc = galaxy_x_pc + 1.0 WHERE id = ?", (bad,))
+        conn.commit()
+        assert wide_binary_reroll._seed_address(conn, bad) != before or conn.execute("SELECT galaxy_x_pc FROM star_systems WHERE id = ?", (bad,)).fetchone()["galaxy_x_pc"] is None
+    finally:
+        conn.close()

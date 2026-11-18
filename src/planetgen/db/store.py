@@ -4160,7 +4160,7 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
         row_ids = []
         row_kept = {}
         landed = set()
-        for rogue in rogue_yield.rogues_of(uid, system, position, edge_pc):
+        for rogue in rogue_yield.rogues_of(rogue_yield.donor_key_of(position), system, position, edge_pc):
             sector_id = uncharted_sector_id(conn, rogue.landing.address, edge_pc, run_id)
             landed.add(sector_id)
             row_ids.append(insert_rogue_body(
