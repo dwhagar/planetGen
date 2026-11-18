@@ -140,37 +140,32 @@ def test_a_ninth_entry_is_refused_with_the_line_named(conn):
     assert isinstance(refused.value, runrecord.Busy), "the commands that refuse to wait answer it as they answer any busy machine"
 
 
-def test_the_cap_is_a_setting_and_counts_jobs_and_runs_together(conn, monkeypatch):
+def test_the_cap_is_a_setting_and_counts_the_runs_in_the_line(conn, monkeypatch):
     monkeypatch.setattr(get_settings().queue, "max_waiting", 2)
-    runline.join(conn, runline.JOB, "A job", who="boss", fields={"root": "/jobs"})
-    runline.join(conn, runline.RUN, "A run")
+    runline.join(conn, runline.RUN, "A run", who="boss")
+    runline.join(conn, runline.RUN, "Another run")
     with pytest.raises(runline.LineFull):
-        runline.join(conn, runline.RUN, "Another run")
+        runline.join(conn, runline.RUN, "A third run")
 
 
 def test_a_run_a_job_started_gets_a_place_in_a_full_line(conn, monkeypatch):
     monkeypatch.setattr(get_settings().queue, "max_waiting", 1)
-    runline.join(conn, runline.JOB, "A job", fields={"root": "/jobs"})
-    holder = runrecord.start_run(conn, "Holder", [Stage("mass", "Mass")])
-    clock = Clock(lambda n: runrecord.finish_run(conn, holder, "done") if n == 2 else None)
-    run_id = runline.start_when_free(conn, _start(), 3600, _ask(conn), admitted=True, clock=clock.time, sleep=clock.sleep)
-    assert runrecord.active_run(conn) == run_id
+    runline.join(conn, runline.RUN, "A run")
+    with pytest.raises(runline.LineFull):
+        runline.join(conn, runline.RUN, "Another run")
+    admitted = runline.join(conn, runline.RUN, "A job's own run", force=True)
+    assert [entry["ticket"] for entry in runline.entries(conn)][-1] == admitted and len(runline.entries(conn)) == 2
 
 
-def test_jobs_and_runs_each_keep_their_own_order_and_the_list_shows_both_as_they_arrived(conn):
-    first_job = runline.join(conn, runline.JOB, "Job 1", fields={"root": "/jobs"})
+def test_runs_keep_their_own_order_in_the_list(conn):
     first_run = runline.join(conn, runline.RUN, "Run 1")
-    second_job = runline.join(conn, runline.JOB, "Job 2", fields={"root": "/jobs"})
     second_run = runline.join(conn, runline.RUN, "Run 2")
-    assert [(e["ticket"], e["type"], e["position"]) for e in runline.entries(conn)] == [
-        (first_job, "job", 1), (first_run, "run", 1), (second_job, "job", 2), (second_run, "run", 2)]
+    assert [(e["ticket"], e["type"], e["position"]) for e in runline.entries(conn)] == [(first_run, "run", 1), (second_run, "run", 2)]
 
 
-def test_a_run_is_not_held_up_by_a_job_waiting_ahead_of_it(conn):
-    """A waiting job waits for the running job; the stage of that job must not wait behind it (no deadlock)."""
-    runline.join(conn, runline.JOB, "Waiting job", fields={"root": "/jobs"})
-    run_id = runline.start_when_free(conn, _start(), 60, _ask(conn))
-    assert runrecord.active_run(conn) == run_id
+def test_the_refusal_names_who_is_in_the_line_and_the_cap():
+    text = runline.full_message([{"title": "Redo scatters", "who": "boss"}, {"title": "Regenerate sector", "who": None}], 2)
+    assert text == 'The line is full: 2 are waiting ("Redo scatters" (boss), "Regenerate sector"); the line holds 2 (queue.max_waiting). Try again when one has started.'
 
 
 def test_a_run_started_inside_a_run_of_the_same_process_fails_instead_of_waiting_for_itself(conn):

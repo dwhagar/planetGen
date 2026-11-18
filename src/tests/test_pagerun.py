@@ -176,3 +176,75 @@ def test_a_job_of_no_steps_is_over_at_once_and_succeeded(control):
     assert control.execute("SELECT state FROM engine_runs WHERE id = ?", (run,)).fetchone()["state"] == "done"
     job = pagerun.read(control, "jobone")
     assert job["status"] == "succeeded" and job["step"] == 0 and job["steps"] == []
+
+
+def _queue(control, ticket, steps=2, after=None, root="/tmp/jobs", now=None):
+    job, rows = _job("unused", steps)
+    job["root"] = root
+    job["title"] = f"Job {ticket}"
+    return pagerun.queue(control, job, rows, ticket, after_job=after, now=now)
+
+
+def test_a_queued_job_is_a_waiting_run_whose_rows_all_wait_and_is_no_job_yet(control):
+    run = _queue(control, "ticketone", steps=2, after="jobbefore", now=1000.0)
+    assert _states(control, run) == ["waiting", "waiting"]
+    assert control.execute("SELECT state FROM engine_runs WHERE id = ?", (run,)).fetchone()["state"] == "waiting"
+    (entry,) = pagerun.waiting(control)
+    assert (entry["ticket"], entry["title"], entry["after_job"], entry["queued_at"], entry["held"], entry["run"], entry["position"]) == ("ticketone", "Job ticketone", "jobbefore", 1000.0, None, run, 1)
+    assert pagerun.live_ids(control, ["ticketone"]) == {"ticketone"}
+    assert pagerun.job_of(control, run)["steps"][1]["argv"] == ["true", "2"]
+
+
+def test_the_waiting_jobs_come_in_the_order_they_queued_and_can_be_told_by_folder(control):
+    _queue(control, "first", root="/tmp/a")
+    _queue(control, "second", root="/tmp/b")
+    _queue(control, "third", root="/tmp/a")
+    assert [(e["ticket"], e["position"]) for e in pagerun.waiting(control)] == [("first", 1), ("second", 2), ("third", 3)]
+    assert [(e["ticket"], e["position"]) for e in pagerun.waiting(control, root="/tmp/a")] == [("first", 1), ("third", 2)]
+
+
+def test_a_waiting_job_can_be_held_and_told_to_wait_for_another_job(control):
+    _queue(control, "ticketone")
+    (entry,) = pagerun.waiting(control)
+    pagerun.hold_queued(control, entry["row"], "The job before it did not succeed (failed).")
+    pagerun.set_after(control, entry["row"], "jobafter")
+    (held,) = pagerun.waiting(control)
+    assert held["held"] == "The job before it did not succeed (failed)." and held["after_job"] == "jobafter"
+
+
+def test_only_one_process_claims_a_waiting_job_and_a_claimed_job_leaves_the_line(control):
+    _queue(control, "ticketone")
+    (entry,) = pagerun.waiting(control)
+    assert pagerun.claim_queued(control, entry["row"]) is True
+    assert pagerun.claim_queued(control, entry["row"]) is False
+    assert pagerun.waiting(control) == []
+
+
+def test_a_claimed_job_that_could_not_start_goes_back_to_its_place_with_the_reason(control):
+    _queue(control, "first")
+    _queue(control, "second")
+    first, _second = pagerun.waiting(control)
+    pagerun.claim_queued(control, first["row"])
+    pagerun.restore_queued(control, first["row"], "It could not be started: no room")
+    assert [(e["ticket"], e["held"]) for e in pagerun.waiting(control)] == [("first", "It could not be started: no room"), ("second", None)]
+    pagerun.restore_queued(control, first["row"])
+    assert pagerun.waiting(control)[0]["held"] is None
+
+
+def test_a_released_job_takes_its_real_id_and_its_first_step_is_ready(control):
+    run = _queue(control, "ticketone", steps=2)
+    (entry,) = pagerun.waiting(control)
+    pagerun.claim_queued(control, entry["row"])
+    job, _rows = _job("jobreal", 2)
+    pagerun.release_queued(control, entry["run"], entry["row"], job)
+    assert pagerun.run_of(control, "jobreal") == run and pagerun.run_of(control, "ticketone") is None
+    assert _states(control, run) == ["ready", "waiting"]
+    assert pagerun.read(control, "jobreal")["status"] == "starting"
+    assert pagerun.waiting(control) == []
+
+
+def test_a_waiting_job_that_is_discarded_is_gone_with_its_rows(control):
+    run = _queue(control, "ticketone")
+    control.execute("DELETE FROM engine_runs WHERE id = ?", (run,))
+    control.commit()
+    assert pagerun.waiting(control) == [] and pagerun.live_ids(control, ["ticketone"]) == set()
