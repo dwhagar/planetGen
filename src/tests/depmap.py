@@ -150,6 +150,13 @@ def pytest_addoption(parser):
     group.addoption("--changed", nargs="?", const="", default=None, metavar="BASE",
                     help="run only the tests the changes since BASE can affect (default BASE: where this branch "
                          "left origin/main); with no map yet, runs everything and records one")
+    group.addoption("--also-run", metavar="FILE", default=None,
+                    help="with --changed: also run the node ids in FILE (one per line), the tests a fix is for, "
+                         "whatever the map says (TEST.722)")
+    group.addoption("--time-limit", metavar="SECONDS", type=float, default=None,
+                    help="with --changed: keep what --also-run names, then add the selected tests, test file by test file, "
+                         "while their recorded seconds add up to no more than SECONDS; the rest is left out and counted "
+                         "(TEST.722)")
     group.addoption("--deps-check", nargs="?", const="", default=None, metavar="BASE",
                     help="run everything, then list the failing tests that --changed would not have selected")
     group.addoption("--deps-file", default=MAP_PATH, help="where the map lives (default .pytest-deps.json)")
@@ -296,6 +303,34 @@ def select(data, changed, all_nodeids):
     return chosen, "selected"
 
 
+def read_also_run(path):
+    """The node ids in the `--also-run` file, one per line; none when it is absent or unreadable."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            return {line.strip() for line in f if line.strip()}
+    except (OSError, TypeError):
+        return set()
+
+
+def limit_selection(data, ordered, chosen, always, seconds):
+    """(kept, left_out): `chosen` cut to `seconds` of recorded test time (TEST.722). What is in `always` stays whatever it costs; the others
+    are taken in collection order, so a test file is kept whole or left out whole as far as the budget allows, while their recorded seconds
+    add up to no more than `seconds`. A test the map has no time for counts one second."""
+    kept = {nodeid for nodeid in ordered if nodeid in chosen and nodeid in always}
+    spent = sum(data["tests"].get(nodeid, {}).get("s", 1.0) if data else 1.0 for nodeid in kept)
+    full = False
+    for nodeid in ordered:
+        if nodeid not in chosen or nodeid in kept:
+            continue
+        cost = data["tests"].get(nodeid, {}).get("s", 1.0) if data else 1.0
+        if full or spent + cost > seconds:
+            full = True      # the first test that does not fit ends the list: a later, shorter test does not jump the queue
+            continue
+        kept.add(nodeid)
+        spent += cost
+    return kept, {nodeid for nodeid in chosen if nodeid not in kept}
+
+
 # --------------------------------------------------------------- the plugin ----
 
 class _State:
@@ -349,6 +384,13 @@ def pytest_collection_modifyitems(config, items):
         chosen, reason = set(nodeids), "git could not list the changes"
     else:
         chosen, reason = select(data, changed, nodeids)
+    also_path = config.getoption("--also-run") if changed_option is not None else None
+    if also_path:
+        chosen = chosen | (read_also_run(also_path) & set(nodeids))
+    left_out = set()
+    time_limit = config.getoption("--time-limit") if changed_option is not None else None
+    if time_limit is not None and changed is not None:
+        chosen, left_out = limit_selection(data, nodeids, chosen, read_also_run(also_path) if also_path else set(), time_limit)
     if check_option is not None:
         state.would_select = chosen
         state.note = f"depmap: --changed would run {len(chosen)} of {len(items)} tests ({reason})"
@@ -358,6 +400,11 @@ def pytest_collection_modifyitems(config, items):
     if changed is not None:
         state.note += f"; {len(changed)} changed files"
     state.note += ")"
+    if also_path:
+        state.note += f"; {len(read_also_run(also_path) & set(nodeids))} earlier failures kept"
+    if left_out:
+        state.note += (f"; {len(left_out)} selected tests left out by the time limit of {round(time_limit)} s of test time "
+                       "(they stay for the end-of-version run)")
     if data is not None and skipped:
         saved = sum(data["tests"].get(item.nodeid, {}).get("s", 0) for item in skipped)
         state.note += f"; about {round(saved)} s of recorded test time skipped"

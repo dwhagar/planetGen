@@ -436,7 +436,8 @@ def _life_class_sentences(life):
     name = life.class_name[0].lower() + life.class_name[1:]
     if life.timeline is None or life.timeline.stage is not None:
         pace = "" if life.pace is None else f", evolving at a {life.pace} pace"
-        return [f"Class {life.class_id} life, the {name}, lives on this {life.noun}{pace}."]
+        where = [] if life.habitat is None else [f"It lives {life.habitat}."]       # GEN.1307: a class of the cloud layer says where
+        return [f"Class {life.class_id} life, the {name}, lives on this {life.noun}{pace}.", *where]
     pace = "" if life.pace is None else f", which evolves at a {life.pace} pace"
     return [f"Conditions on this {life.noun} suit Class {life.class_id} life, the {name}{pace}, but none has appeared yet."]
 

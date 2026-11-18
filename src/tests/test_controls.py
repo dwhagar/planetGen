@@ -287,16 +287,6 @@ def test_the_hand_outs_are_held_while_the_queues_are_paused_and_go_on_when_they_
     assert launches.turn() > 0 and forker.forked
 
 
-def test_a_solo_hold_for_one_restarted_unit_does_not_hold_the_hand_outs(conn, control):
-    engine, _ids = _run(control)
-    control.execute("UPDATE engine_jobs SET state = 'ready' WHERE run_id = ? AND item_key <> ''", (engine,))
-    control.commit()
-    forker = Forker()
-    launches = supervisor.Launches(conn)
-    pause.hold_solo("20261117-x", 4, 0, "unit-job", conn)
-    assert launches._paused() is False
-
-
 # -- real processes ----------------------------------------------------------------------------------------------------------
 
 @pytest.fixture

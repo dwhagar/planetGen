@@ -16,12 +16,9 @@ largest peak, `memorygate.learn`, and claims that with a margin). A stand-in is 
 them because they are replaced by a measurement in the first run, and `memorygate.snapshot` shows what was learned.
 """
 
-from planetgen.queue import commands, memorygate, pause, redisqueue, tokens, workers
+from planetgen.queue import commands, memorygate, redisqueue, workers
 from planetgen.queue.memorygate import Claim
 from planetgen.util import log
-
-UNIT_FUNCTION = "planetgen.queue.units.run_unit"
-OPEN_FUNCTION = "planetgen.queue.units.open_stage"
 
 UNIT_CPU = 1.0
 """float: The cores a unit keeps busy: a unit is one process computing."""
@@ -52,14 +49,7 @@ FUNCTION_CLAIMS = {
 }
 """dict: The functions a queue runs that need no more than a figure of their own: `{dotted name: (MB, cores)}`. Unmeasured."""
 
-SPECIAL_FUNCTIONS = frozenset({UNIT_FUNCTION, OPEN_FUNCTION})
-"""frozenset: The functions whose claim comes from their arguments: a unit's command and the command a cut opens."""
-
 CALLBACKS = frozenset({
-    "planetgen.queue.units.unit_failed",
-    "planetgen.queue.units.open_failed",
-    "planetgen.queue.requires.job_failed",
-    "planetgen.queue.requires.job_succeeded",
     "planetgen.queue.forkedjob.run",
     "planetgen.queue.lightjobs.run",
     "planetgen.queue.units.warm_star_tables",
@@ -84,6 +74,7 @@ API_CLAIMS = {
     "planetgen.queue.pagejobs:build_answer": (700, 1.0),
     "planetgen.web.lib.estimatejob:work": (SUPERVISOR_MB, 0.5),
     "planetgen.web.lib.tileprefetch:build_nodes": (700, 1.0),
+    "planetgen.web.system_page:generate_in_process": (workers.BULK_WORKER_MEMORY_MB, 1.0),     # one system drawn in the job, the figure of a `generate-system` unit
 }
 """dict: What each function the API's dispatcher (`api_jobs.execute`) may call claims, `{module:name: (MB, cores)}`. Unmeasured, except that a
 sector or a star drawn in the job is the stage figure of the same work."""
@@ -194,28 +185,13 @@ def claim_for(job, conn):
     The claim of the RQ job `job` (any queue): the figure of its kind (`kind` below), raised to what the gate has learned of the kind and
     to the larger claim a retry was given (`memorygate.claim_mb`).
 
-    Kinds: `unit:<command>` (a run's unit), `cut:<command>` (the opening of a stage that runs that command), `api:<module:name>` (an API job)
-    and `fn:<dotted name>` (any other queued function).
+    Kinds: `api:<module:name>` (an API job) and `fn:<dotted name>` (any other queued function). A run's units and openings are rows of the job ledger (`claim_of_row`), not RQ jobs.
 
     Raises:
         NoClaim: The job is of a kind with no figure.
     """
     function = job.func_name
     lane = lane_of(job.origin)
-    if function == UNIT_FUNCTION:
-        kind = job.args[3]
-        mb, cpu, exclusive = unit_table_mb(kind), UNIT_CPU, False
-        kind = f"unit:{kind}"
-    elif function == OPEN_FUNCTION:
-        command = cut_command(conn, job.args[0], job.args[1])
-        mb, cpu, exclusive = CUT_MB, 1.0, True
-        kind = f"cut:{command or 'unknown'}"
-    else:
-        (mb, cpu), exclusive = function_table(function), False
-        kind = f"fn:{function}"
-    solo = pause.solo_of(conn)
-    held = unit_tokens(job.args[3]) if function == UNIT_FUNCTION else ()        # OPS.232: the named resources a unit of this command holds
-    if solo and solo["job"] == job.id:
-        held += (tokens.ALONE,)         # OPS.145: the restarted unit that runs alone holds the host
-    token = job.args[0] if function in (UNIT_FUNCTION, OPEN_FUNCTION) else None        # OPS.156: a run holds one figure per kind
-    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=token), cpu, lane, exclusive, held)
+    (mb, cpu), exclusive = function_table(function), False
+    kind = f"fn:{function}"
+    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id, token=None), cpu, lane, exclusive, ())

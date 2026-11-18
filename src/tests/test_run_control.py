@@ -1,4 +1,4 @@
-"""PERF.99: what an admin does to a run in Redis (`queue/runcontrol.py`): cancel through the stop command, clear a run
+"""PERF.99: what an admin does to a run in Redis (`queue/runcontrol.py`): cancel it (its jobs in the ledger are the supervisor's to stop), clear a run
 that stopped answering, delete a finished one, and keep its log. The autouse `_run_queue_inline` fixture gives each test
 a queue and key prefix of its own."""
 
@@ -7,9 +7,8 @@ import os
 import time
 
 import pytest
-import rq
 
-from planetgen.queue import commands, redisqueue, runcontrol, runrecord, units, wrapper
+from planetgen.queue import commands, redisqueue, runcontrol, runrecord, wrapper
 from planetgen.queue.runrecord import Stage
 from planetgen.util import log
 
@@ -42,58 +41,28 @@ def jobs_dir(tmp_path, monkeypatch):
 
 
 def _queued_run(conn, count=75, done=0, stages=1):
-    """A live run whose first stage has `count` units waiting on the bulk queue, `done` of them finished."""
+    """A live run whose first stage has `count` units, `done` of them finished."""
     run_id = runrecord.start_run(conn, "Control test", [Stage(f"s{n}", f"Stage {n}", units=count) for n in range(stages)],
                                  who="boss", now=100.0)
     runrecord.begin_stage(conn, run_id, 0, now=101.0)
-    units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(count)])
     for unit in range(done):
-        job = rq.job.Job.fetch(units.job_id(run_id, 0, unit), connection=conn, serializer=redisqueue.JsonSerializer)
-        job.delete()
         runrecord.unit_done(conn, run_id, 0, unit, now=102.0)
     return run_id
 
 
-def _waiting(conn):
-    return redisqueue.queue(redisqueue.BULK_QUEUE, conn).count
-
-
-def test_canceling_a_run_cancels_its_waiting_units_and_frees_the_machine_in_under_a_second(conn, jobs_dir):
+def test_canceling_a_run_frees_the_machine_in_under_a_second(conn, jobs_dir):
     run_id = _queued_run(conn, count=75, done=5)
-    assert _waiting(conn) == 70 and runrecord.active_run(conn) == run_id
+    assert runrecord.active_run(conn) == run_id
     began = time.monotonic()
     stopped = runcontrol.cancel_run(conn, run_id, who="boss")
     took = time.monotonic() - began
-    assert stopped == {"canceled": 70, "stopped": 0}
+    assert stopped == {}, "the run has no rows in the ledger: nothing was asked of the supervisor"
     assert took < 1.0, f"canceling a 75 unit run took {took:.2f} s"
     run = runrecord.read_run(conn, run_id)
     assert run["state"] == "canceled" and run["error"] == "canceled by boss"
-    assert _waiting(conn) == 0
     assert runrecord.active_run(conn) is None, "the machine is free"
     kinds = [fields["kind"] for _id, fields in runrecord.read_events(conn, run_id)]
     assert "run.canceling" in kinds and kinds[-1] == "run.canceled"
-
-
-def test_a_started_unit_is_sent_the_stop_command(conn, jobs_dir):
-    run_id = _queued_run(conn, count=4)
-    running = units.job_id(run_id, 0, 2)
-    job = rq.job.Job.fetch(running, connection=conn, serializer=redisqueue.JsonSerializer)
-    queue = redisqueue.queue(redisqueue.BULK_QUEUE, conn)
-    queue.remove(job.id)       # the id: the queue's own job class is not the one fetched here, so a job object is not taken for one
-    job.worker_name = "worker-for-the-test"
-    job.set_status(rq.job.JobStatus.STARTED)
-    job.save()
-    conn.zadd(queue.started_job_registry.key, {f"{running}:execution": time.time() + 60})
-    listener = conn.pubsub()
-    listener.subscribe("rq:pubsub:worker-for-the-test")
-    listener.get_message(timeout=1)
-    assert runcontrol.cancel_run(conn, run_id, who="boss") == {"canceled": 3, "stopped": 1}
-    message = None
-    for _ in range(20):
-        message = listener.get_message(timeout=0.2)
-        if message and message["type"] == "message":
-            break
-    assert message and message["type"] == "message" and b"stop-job" in message["data"] and running.encode() in message["data"]
 
 
 def test_a_canceled_run_queues_no_next_stage(conn, jobs_dir):
@@ -101,7 +70,6 @@ def test_a_canceled_run_queues_no_next_stage(conn, jobs_dir):
     runrecord.request_cancel(conn, run_id)
     wrapper.advance(conn, run_id, 1)
     assert runrecord.read_run(conn, run_id)["stages"][1]["started"] is None
-    assert _waiting(conn) == 2, "only the first stage's units are queued"
 
 
 def test_a_run_that_is_over_or_unknown_is_not_canceled_again(conn, jobs_dir):
@@ -118,11 +86,10 @@ def test_a_run_that_shows_life_is_not_cleared_and_a_stale_one_is(conn, jobs_dir)
     assert runcontrol.clear_run(conn, run_id, who="boss", now=105.0) is None
     assert runrecord.read_run(conn, run_id)["state"] == "running"
     later = runrecord.read_run(conn, run_id)["updated"] + 10_000
-    assert runcontrol.clear_run(conn, run_id, who="boss", now=later) == {"canceled": 3, "stopped": 0}
+    assert runcontrol.clear_run(conn, run_id, who="boss", now=later) == {}
     run = runrecord.read_run(conn, run_id)
     assert run["state"] == "failed" and run["error"].startswith("cleared by boss")
     assert runrecord.active_run(conn) is None
-    assert _waiting(conn) == 0
 
 
 def test_a_run_whose_follower_is_gone_can_be_cleared_at_once(conn, jobs_dir):

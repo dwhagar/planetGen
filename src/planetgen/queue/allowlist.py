@@ -32,15 +32,9 @@ run (`math:pow`). Only whoever starts the worker can set it, and that process co
 cannot."""
 
 FUNCTIONS = frozenset({
-    "planetgen.queue.units.run_unit",                   # a run's unit of work (PERF.95)
-    "planetgen.queue.units.unit_failed",                # its failure callback
-    "planetgen.queue.units.open_stage",                 # the opening (cut) of a run's next stage (PERF.254)
-    "planetgen.queue.units.open_failed",                # its failure callback
     "planetgen.queue.forkedjob.run",                    # a unit as a job process the template forked (OPS.226)
     "planetgen.web.warmup.warm_app",                    # the warm set of the maintenance lane's template (OPS.229): the site's app, built once
     "planetgen.queue.units.warm_star_tables",           # the warm set of a template (OPS.226): the sampling tables every job forked from it shares
-    "planetgen.queue.requires.job_failed",              # the callbacks every job gets (PERF.247)
-    "planetgen.queue.requires.job_succeeded",
     "planetgen.queue.lightjobs.run",                    # a light job as a process the template forked (OPS.230): the API's long operations, dispatched through `API_FUNCTIONS`
     "planetgen.web.job_runner.run",                     # a Generate page job
 })
@@ -61,6 +55,7 @@ API_FUNCTIONS = frozenset({
     "planetgen.queue.api_jobs:regenerate_sector",
     "planetgen.queue.api_jobs:run_command",
     "planetgen.queue.pagejobs:build_answer",
+    "planetgen.web.system_page:generate_in_process",    # the one-off system page (OPS.244)
     "planetgen.web.lib.estimatejob:work",               # the Generate size estimate (ADM.141)
     "planetgen.web.lib.tileprefetch:build_nodes",       # a visitor's node prefetch and rebuild (OPS.230: a light job on the maintenance lane)
 })

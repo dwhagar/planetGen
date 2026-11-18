@@ -147,9 +147,9 @@ def test_the_page_opens_offline_and_drills_down_to_a_functions_source(browser):
         _heading(page, "queue")
         page.click("td > a[href='#/mod/planetgen.queue.units']")
         _heading(page, "queue.units")
-        page.click("tbody tr a:text-is('run_unit')")
-        _heading(page, "run_unit")
-        assert "def run_unit" in page.inner_text("pre.src")
+        page.click("tbody tr a:text-is('run_unit_on')")
+        _heading(page, "run_unit_on")
+        assert "def run_unit_on" in page.inner_text("pre.src")
         assert page.locator("ul.edges li").count() > 0
         page.goto("file://" + PAGE + "#/flow")
         _heading(page, "Flows")

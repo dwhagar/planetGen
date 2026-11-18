@@ -217,28 +217,6 @@ def test_a_killed_horse_closes_its_attempt_in_the_ledger_and_the_job_waits_for_i
     assert attempts.close_lost(conn, run_id, None, "lost") is False, "a unit with no row has no history"
 
 
-def test_a_stuck_stop_ends_the_attempt_stuck_with_the_stack_the_horse_wrote(monkeypatch, mysql_config, log_folder):
-    from planetgen.queue import unitstuck
-
-    conn, run_id, args, row = _one_unit(monkeypatch, mysql_config, _square)
-    control = _control(mysql_config)
-    try:
-        ledger.begin_attempt(control, row)
-    finally:
-        control.close()
-
-    class Job:
-        func_name = units.UNIT_FUNCTION
-        args = (run_id, 0, 0, "test", {}, 1.0, row)
-
-    follower = unitstuck.Stuck(conn, run_id, 0, solo=False)
-    monkeypatch.setattr(follower, "_job", lambda unit: Job())
-    follower._end_attempt(0, "unit 0 is quiet: the count has stood still", "Thread 1: waiting in the sky lock")
-    (stuck,) = _history(mysql_config, row)
-    assert stuck["outcome"] == "stuck" and "stood still" in stuck["error_text"]
-    assert "sky lock" in open(stuck["stack_file"]).read()
-
-
 def test_a_restarted_attempt_writes_a_debug_log_that_opens_with_how_the_one_before_it_ended(monkeypatch, mysql_config, log_folder):
     from planetgen.queue import runrecord as run_record
 

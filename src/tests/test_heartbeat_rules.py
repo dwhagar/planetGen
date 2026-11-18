@@ -1,7 +1,7 @@
 """
 OPS.143: every rule of the unit heartbeat, driven end to end by one fake clock.
 
-`test_beat_judge.py` holds the judge's rules one at a time and `test_unit_watch.py`, `test_unit_stuck.py`, `test_job_beat.py` the follower, the stuck action and the job beats
+`test_beat_judge.py` holds the judge's rules one at a time and `test_unit_watch.py`, `test_unit_stuck_ledger.py`, `test_job_beat.py` the follower, the stuck action and the job beats
 one at a time. This file runs the whole chain (a horse that writes beats, `unitwatch.UnitWatch`, `unitstuck.Stuck`, `runrecord.is_stale`, the Queue page's job rows) over hours of
 fake time with the Redis server clock replaced, the way a real galaxy would run, so the rules are checked in the order and the combinations a person would meet them:
 
@@ -14,9 +14,9 @@ fake time with the Redis server clock replaced, the way a real galaxy would run,
 import json
 
 import pytest
-import rq
 
-from planetgen.queue import beatjudge, commands, jobbeat, pause, redisqueue, runrecord, unitbeat, units, unitwatch
+from planetgen.db import store
+from planetgen.queue import beatjudge, commands, jobbeat, ledger, pause, planrows, redisqueue, runrecord, unitbeat, units, unitstuck, unitwatch
 from planetgen.util.format import format_duration_seconds
 
 POLL_SECONDS = 30.0
@@ -50,13 +50,36 @@ def clock(conn, monkeypatch):
 
 
 @pytest.fixture
-def run_id(conn, monkeypatch):
+def control(mysql_config):
+    connection = store.get_control_connection(mysql_config, ensure_schema=True)
+    connection.execute("DELETE FROM engine_runs")
+    connection.commit()
+    try:
+        yield connection
+    finally:
+        connection.execute("DELETE FROM engine_runs")
+        connection.commit()
+        connection.close()
+
+
+@pytest.fixture
+def run_id(conn, control, monkeypatch, mysql_config):
+    """A live run of one stage with three units, all running in the ledger (the horses of these tests are fake)."""
     monkeypatch.setitem(commands.REGISTRY, "heartbeatkind", commands.CommandSpec("heartbeatkind", "A test", unit=(__name__, "_unit"), expand=(__name__, "_unit")))
     run = runrecord.start_run(conn, "T", [runrecord.Stage("heartbeatkind", "Heartbeat", units=3)])
     runrecord.begin_stage(conn, run, 0)
-    units.enqueue_units(conn, run, 0, "heartbeatkind", [({"n": n}, 1.0) for n in range(3)])
-    yield run
-    redisqueue.queue(redisqueue.BULK_QUEUE, conn).empty()
+    key = planrows._stage_key(conn, run, 0)
+    engine = ledger.add_run(control, "generate", "g1")
+    ledger.add_jobs(control, engine, [{"stage": key, "command": "heartbeatkind", "item_key": str(n), "arguments": {"args": {"n": n}}, "claim_mb": 100} for n in range(3)])
+    control.execute("UPDATE engine_jobs SET state = 'running' WHERE run_id = ?", (engine,))
+    for row in control.execute("SELECT id FROM engine_jobs WHERE run_id = ?", (engine,)).fetchall():
+        ledger.begin_attempt(control, row["id"], pid=4001)
+    ledger.set_run_state(control, engine, "running")
+    control.commit()
+    conn.hset(runrecord.run_key(run), planrows.ENGINE_RUN_FIELD, engine)
+    monkeypatch.setattr(planrows, "control_connection", lambda *_a, **_k: store.get_control_connection(mysql_config, ensure_schema=True))
+    return run
+
 
 
 def _unit(args, report):
@@ -115,11 +138,20 @@ class Sink:
         self.errors, self.stopped = [], []
 
 
-def make_watch(conn, run_id, history=None, sink=None, solo=False):
-    from planetgen.queue import unitstuck
+class _RecordingStuck(unitstuck.Stuck):
+    """The follower, with the request it makes of the supervisor written to the sink (there is none here to answer it)."""
+
+    def __init__(self, *args, sink, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._sink = sink
+
+    def _stop_in_ledger(self, unit, reason, stack):
+        self._sink.stopped.append(units.job_id(self.run_id, self.stage, unit))
+
+
+def make_watch(conn, run_id, history=None, sink=None):
     sink = sink or Sink()
-    stuck = unitstuck.Stuck(conn, run_id, 0, dump=lambda raw: "STACK", stop=sink.stopped.append, record_error=lambda message, **fields: sink.errors.append(message),
-                            solo=solo)
+    stuck = _RecordingStuck(conn, run_id, 0, dump=lambda raw: "STACK", record_error=lambda message, **fields: sink.errors.append(message), sink=sink)
     watch = unitwatch.UnitWatch(conn, run_id, 0, "heartbeatkind", history_of=lambda kind: history or beatjudge.History(), record_error=lambda message, **fields: sink.errors.append(message),
                                 stuck=stuck)
     stuck._forget = watch.forget
@@ -199,8 +231,6 @@ def test_a_slow_unit_is_never_stopped_however_long_it_takes(conn, clock, run_id)
 def test_a_unit_whose_beat_stops_is_dead_after_thirty_seconds_and_stopped_after_two_checks(conn, clock, run_id):
     watch, sink = make_watch(conn, run_id)
     horse = Horse(conn, run_id, clock)
-    started = redisqueue.fetch_job(units.job_id(run_id, 0, 0), conn, redisqueue.JsonSerializer)
-    started.set_status(rq.job.JobStatus.STARTED)        # the horse began the unit: a job still queued would be a retry waiting for a worker, not a unit that died (OPS.268)
     run_for(120, horse, watch, rate=1.0)
     assert state_of(watch).state == beatjudge.WORKING
     run_for(20, horse, watch, rate=1.0, beating=False, step=10.0)       # the process is gone: nothing is written any more
@@ -213,22 +243,20 @@ def test_a_unit_whose_beat_stops_is_dead_after_thirty_seconds_and_stopped_after_
 
 # --- stuck twice -----------------------------------------------------------------------------------------------
 
-def _stop_and_requeue(conn, run_id, watch):
-    """What the horse does once the stop is sent: the job leaves the queue, is marked stopped, and the next poll queues it again."""
-    job = redisqueue.fetch_job(units.job_id(run_id, 0, 0), conn)
-    redisqueue.queue(redisqueue.BULK_QUEUE, conn).remove(job.id)
-    job.set_status(rq.job.JobStatus.STOPPED)
+def _stop_and_requeue(conn, control, run_id, watch):
+    """What the launcher does once the stop is sent: the process ends, the row goes back to `ready`, and the next poll sees it handed out again."""
+    control.execute("UPDATE engine_jobs SET state = 'ready' WHERE run_id = ? AND item_key = '0'", (int(conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD)),))
+    control.commit()
     watch.check()
-    return job
 
 
-def test_a_unit_stuck_twice_is_queued_again_once_and_then_the_run_fails(conn, clock, run_id):
+def test_a_unit_stuck_twice_is_handed_out_again_once_and_then_the_run_fails(conn, control, clock, run_id):
     watch, sink = make_watch(conn, run_id)
     horse = Horse(conn, run_id, clock)
     run_for(60, horse, watch, rate=1.0)
     run_for(400, horse, watch)                                          # first stuck: two checks in a row after five minutes
     assert len(sink.stopped) == 1 and watch.stuck.records()[0]["attempts"] == 1
-    _stop_and_requeue(conn, run_id, watch)
+    _stop_and_requeue(conn, control, run_id, watch)
     assert lines(conn, run_id, "unit-requeued") and runrecord.read_run(conn, run_id)["state"] == "running"
 
     fresh = Horse(conn, run_id, clock)                                  # the new attempt starts afresh, works for a minute and then freezes the same way

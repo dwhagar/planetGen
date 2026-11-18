@@ -57,7 +57,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 | 4a | chemolithotroph; breathes o2 (yield from the air); first step x1 | none | none |
 | 4b | chemolithotroph; breathes nitrate (yield 0.6); first step x1 | none | none |
 | 4c | chemolithotroph; breathes perchlorate (yield 0.5); first step x1 | none | none |
-| 5a | acidophile; breathes acid (yield 0.11); first step x1 | none | none |
+| 5a | acidophile; breathes acid (yield 0.11); first step x1; lives in the acid cloud layer (its clock runs at the layer's temperature); animal grade capped at 0 | none | none |
 | 5b | acidophile; breathes acid (yield 0.11); first step x1 | none | none |
 | 6 | hydrogenotroph; breathes co2 (yield 0.11); first step x1 | none | none |
 | 7 | hydrogenator; breathes none (yield 0.11); first step x1 | none | none |
@@ -167,6 +167,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate acid_medium: T6, L4. A liquid sulfuric acid cloud layer (acid_medium level 1) or a pool (level 2): physics/acid_medium.py (GEN.888) reads the sulfur dioxide, oxidiser, and water of the air and the temperature profile
 - supply sulfur_supply: T9, L4. Reduced sulfur (GEN.894): the air's sulfur dioxide over Venus's 150 ppm (physics/life_supply.py sulfur_supply); full score at a tenth of Venus's
 - life acidophile: T6, L4. The acid itself is the oxidant: the anaerobic yield 0.11 (the climates report's own bookkeeping, no source gives rates)
+- animal cap grade 0: T9, L0. The class's own definition (GEN.1307): mats and aerial plankton, at most simple colonial forms. A cloud deck has no ground for a sessile animal (A1) and holds no food chain for a mobile one, so the grade stops at none; the multicellular (colonial) stage is allowed
 
 ### Class 5b: Acid-world life: pool and crust mats
 

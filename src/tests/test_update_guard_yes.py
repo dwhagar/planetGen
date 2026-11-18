@@ -12,6 +12,7 @@ import subprocess
 
 import pytest
 
+from tests import rq_units
 from planetgen.admin import updateguard
 from planetgen.queue import commands, redisqueue, runrecord, units
 from planetgen.queue.runrecord import Stage
@@ -127,7 +128,7 @@ def _cut(params):
 def _live_run(conn, count=20):
     run_id = runrecord.start_run(conn, "Guard test", [Stage("s0", "Stage 0", units=count)], who="boss", now=100.0)
     runrecord.begin_stage(conn, run_id, 0, now=101.0)
-    units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(count)])
+    rq_units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(count)])
     return run_id
 
 

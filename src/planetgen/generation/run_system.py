@@ -465,6 +465,46 @@ def _draw_system(args, ctx):
     ctx.state["system"], ctx.state["system_config"], ctx.state["warning"] = system, system_config, warning
 
 
+def _output_text(system, args):
+    """The page of `system` in `args.format` (`--output`): the Document as JSON, or the text a renderer writes of it."""
+    return json.dumps(describe.describe(system)) if args.format == DOCUMENT_FORMAT else render_star_system(system, args.format)
+
+
+class _NoEngine:
+    """What the pieces of a `system` unit ask of the engine's context (`state`, `step`, `advance`), with no engine behind it: nothing is stored or counted."""
+
+    def __init__(self):
+        self.state = {}
+
+    def step(self, label, total):
+        """The second level of the bar: nothing shows it."""
+
+    def advance(self, amount):
+        """Ditto."""
+
+
+def one_off(args):
+    """
+    The one-off system's page for the admin site (`--output`, no database): drawn in this process by the same piece a `system` unit draws it with (`_draw_system`, the tries of GEN.81), on a stream of its
+    own, and rendered as `_output_text` does. No run is made, so the process needs no supervisor and no template of its own: the site's light job calls this from the warm one (OPS.244).
+
+    Returns:
+        dict: `text` (the page), `name`, `warning` (a forced body no try gave, else `None`) and `asked` (what came of a class request, else `None`).
+
+    Raises:
+        ValueError: The options contradict each other (what `planetgen system` says, then exits 1).
+    """
+    system_config = build_system_config(args)
+    conflict = single_system_conflict(system_config)
+    if conflict:
+        raise ValueError(f"{conflict[:1].upper()}{conflict[1:]}")
+    ctx = _NoEngine()
+    with draw.bound(draw.Stream(draw.fresh_seed())):
+        _draw_system(args, ctx)
+        system, system_config, warning = ctx.state["system"], ctx.state["system_config"], ctx.state["warning"]
+        return {"text": _output_text(system, args), "name": system.name, "warning": warning, "asked": class_request_report(system, system_config)}
+
+
 def system_do(unit_args, piece, ctx):
     """
     One piece of the unit of a `system` run (OPS.202): the `generate` piece draws the system on a stream seeded from the run's (so it is the same at any worker count), up to
@@ -492,9 +532,7 @@ def system_do(unit_args, piece, ctx):
         if warning and run_common._strict(args):
             return {"warning": warning, "name": system.name, "text": None, "star_system_id": None, "asked": asked}
         if args.output:
-            text = (json.dumps(describe.describe(system)) if args.format == DOCUMENT_FORMAT
-                    else render_star_system(system, args.format))
-            return {"warning": warning, "name": system.name, "text": text, "star_system_id": None, "asked": asked}
+            return {"warning": warning, "name": system.name, "text": _output_text(system, args), "star_system_id": None, "asked": asked}
         result = {"warning": warning, "name": system.name, "text": None, "star_system_id": None, "asked": asked}
 
         def commit_with_cursor(conn, system_id):

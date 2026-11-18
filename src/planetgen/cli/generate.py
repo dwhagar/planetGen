@@ -1976,9 +1976,9 @@ def build_parser():
     }
 
 
-def process_args():
+def process_args(argv=None):
     """
-    Parses command-line arguments for `planetgen`, then validates
+    Parses command-line arguments for `planetgen` (`argv`, the process's own where left out), then validates
     whichever subcommand was chosen through its own `validate_*_args`
     function(s).
 
@@ -1987,7 +1987,7 @@ def process_args():
             `args.command` set to the chosen subcommand name.
     """
     parser, command_parsers = build_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     command_parser = command_parsers[args.command]
 
     validate_logging_args(args, command_parser)

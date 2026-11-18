@@ -15,10 +15,11 @@ import inspect
 import pytest
 from html import escape as html_escape
 
+from tests import rq_units
 from planetgen.admin import auth as adminAuth
 from planetgen.api.config import Config
 from planetgen.db import store
-from planetgen.queue import commands, ledger, lightjobs, progress_rate, redisqueue, runcontrol, runrecord, units, waiting
+from planetgen.queue import commands, ledger, lightjobs, progress_rate, redisqueue, runcontrol, runrecord, waiting
 from planetgen.queue.runrecord import Stage
 from planetgen.util.format import format_duration_seconds
 from planetgen.web import csrf, jobs, queue_page
@@ -98,7 +99,7 @@ def _run(conn, title="Fill shell 1", units_count=4, done=1, argv=("galaxy", "--s
                                  who="boss", argv=list(argv), database=database, **kwargs)
     runrecord.begin_stage(conn, run_id, 0)
     if queued:
-        units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(units_count)])
+        rq_units.enqueue_units(conn, run_id, 0, KIND, [({"n": n}, 1.0) for n in range(units_count)])
     for unit in range(done):
         runrecord.unit_done(conn, run_id, 0, unit, seconds=2.0)
     runrecord.log(conn, run_id, "sector 1,0,0 saved")
@@ -157,47 +158,6 @@ def test_the_queue_page_shows_workers_load_and_runs(admin_client, conn):
     assert "Workers active" in html and "Load average" in html and "Pause the queue" in html
     assert "Fill shell 1" in html and f"/admin/queue/{run_id}" in html
     assert "The run that owns the machine is" in html
-
-
-@pytest.fixture
-def held_pair(conn):
-    """A queued job and a job held for it, on the check queue where no worker runs them (PERF.248)."""
-    from planetgen.queue import requires
-    queue = redisqueue.queue(redisqueue.CHECK_QUEUE, conn)
-    queue.empty()
-    requires.drop_held(conn, redisqueue.CHECK_QUEUE)
-    first = requires.enqueue(queue, "tests.requires_jobs.mark", "first", job_id="held-test-first", job_timeout=60)
-    second = requires.enqueue(queue, "tests.requires_jobs.mark", "second", requires=[first], job_id="held-test-second", job_timeout=60)
-    yield first, second
-    requires.drop_held(conn, redisqueue.CHECK_QUEUE)
-    queue.empty()
-    for job in (first, second):
-        conn.delete(f"rq:job:{job.id}", f"rq:job:{job.id}:dependents")
-
-
-def test_the_api_lists_the_jobs_held_for_a_job_they_require_and_not_the_queued_one(admin_client, held_pair):
-    first, second = held_pair
-    body = admin_client.get("/api/admin/work/held").get_json()
-    assert body["total"] == 1
-    item = body["items"][0]
-    assert item["id"] == second.id and item["waits_for"] == [first.id] and item["queue"] == redisqueue.CHECK_QUEUE
-    assert item["label"].endswith("mark") and item["run"] is None and item["stage"] is None
-
-
-def test_the_held_jobs_need_an_admin(web_app):
-    assert web_app.test_client().get("/api/admin/work/held").status_code == 401
-
-
-def test_the_queue_page_has_a_held_jobs_panel_only_when_a_job_is_held(admin_client, conn):
-    from planetgen.queue import requires
-    requires.drop_held(conn, redisqueue.CHECK_QUEUE)
-    assert "Held jobs" not in admin_client.get("/admin/queue").get_data(as_text=True)
-
-
-def test_the_queue_page_names_the_held_job_and_what_it_waits_for(admin_client, held_pair):
-    first, second = held_pair
-    html = admin_client.get("/admin/queue").get_data(as_text=True)
-    assert "Held jobs" in html and "1 job is held" in html and second.id in html and first.id in html and "check" in html
 
 
 def test_the_page_says_when_redis_is_not_answering(admin_client, monkeypatch):
@@ -351,18 +311,6 @@ def test_every_control_is_confirmed_first(web_app, admin_client, control_config,
     assert "The queue is paused" in admin_client.get("/admin/queue").get_data(as_text=True)
     _post(web_app, admin_client, action="queue-resume")
     assert "The queue is paused" not in admin_client.get("/admin/queue").get_data(as_text=True)
-
-
-def test_a_solo_hold_is_named_on_the_page_with_who_holds_it_and_can_be_lifted_there(web_app, admin_client, control_config, conn, monkeypatch):
-    """OPS.145: the pause that holds the queue for a restarted unit says why and by whom, and the button lifts it."""
-    from planetgen.queue import pause
-    monkeypatch.setattr(pause, "_solo_is_over", lambda connection, solo: False)
-    assert pause.hold_solo("20261109-120000-abcd", 3, 7, "job-7", conn)
-    page = admin_client.get("/admin/queue").get_data(as_text=True)
-    assert "The queue is held by run 20261109-120000-abcd" in page and "solo run of unit 7 (stage 3) after a restart" in page and "Lift the hold" in page
-    assert "The queue is paused" not in page
-    assert _post(web_app, admin_client, action="queue-resume").status_code == 303
-    assert not pause.is_paused(conn) and "The queue is held" not in admin_client.get("/admin/queue").get_data(as_text=True)
 
 
 def test_cancel_on_a_run_page_returns_to_the_page_it_was_opened_from(web_app, admin_client, control_config, conn):
@@ -619,32 +567,6 @@ def test_the_units_route_lists_what_the_follower_last_judged(admin_client, contr
 
 
 # --- OPS.144: the killed flag and Resume run ----------------------------------------------------------------
-
-def test_a_run_ended_from_outside_its_work_is_flagged_killed_and_one_that_failed_by_its_own_code_is_not(conn):
-    """A canceled run, a cleared one, a unit RQ ended at its time limit and a unit whose worker was lost are killed; a unit that raised an error of its own is a failure, not a kill."""
-    class JobTimeoutException(Exception):
-        pass
-
-    class Job:
-        func_name = "x"
-
-        def __init__(self, run_id):
-            self.args = (run_id, 0, 1)
-
-    canceled = _run(conn, title="canceled", queued=False)
-    runcontrol.cancel_run(conn, canceled, who="boss")
-    cleared = _run(conn, title="cleared", queued=False)
-    runrecord.finish_run(conn, cleared, "failed", error="cleared by boss: it showed no sign of life", killed=True)
-    timed_out = _run(conn, title="timed out", queued=False)
-    units.unit_failed(Job(timed_out), conn, JobTimeoutException, JobTimeoutException("Task exceeded maximum timeout value (1885 seconds)"), None)
-    broke = _run(conn, title="broke", queued=False)
-    units.unit_failed(Job(broke), conn, ValueError, ValueError("bad value"), None)
-    flags = {title: runrecord.read_run(conn, run_id) for title, run_id in
-             (("canceled", canceled), ("cleared", cleared), ("timed out", timed_out), ("broke", broke))}
-    assert [flags[title]["killed"] for title in ("canceled", "cleared", "timed out", "broke")] == [True, True, True, False]
-    assert flags["canceled"]["killed_reason"] == "canceled by boss" and flags["broke"]["killed_reason"] is None
-    assert "1885" in flags["timed out"]["killed_reason"]
-
 
 def test_mark_killed_keeps_the_first_reason_and_works_on_a_live_run(conn):
     run_id = _run(conn, queued=False)
