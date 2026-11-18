@@ -14,7 +14,8 @@ from planetgen.physics import gases, saturation
 # The species whose triple-point pressure on the highest-temperature fit is further than 3 percent from the gas table's,
 # with the ratio (the module docstring says the same).
 OFF_BY_OVER_THREE_PERCENT = {"SO2": 1.038, "C6H6": 1.071, "C2H2": 0.964}
-NO_TRIPLE_PRESSURE = {"HCN", "HF", "S2"}
+NO_TRIPLE_PRESSURE = {"HCN", "HF", "S2", "CS2", "SO3"}
+"""set: Species with no triple-point pressure in the gas table to check against: hydrogen cyanide, hydrogen fluoride, disulfur, carbon disulfide and sulfur trioxide (GEN.1794: the last two carry the triple point of their own row; the pressure is their liquid curve's there)."""
 NO_TRIPLE_POINT = {"HF", "S2"}
 """set: Species whose curve is the critical-point correlation (GEN.524): the gas table holds no triple point for hydrogen fluoride; none for disulfur, a fit to a computed table (GEN.1564)."""
 NO_LIQUID_BRANCH = {"C2H2", "HCl", "HF", "S2"}
@@ -194,16 +195,20 @@ def test_every_species_but_acetylene_and_the_halides_has_a_liquid_branch():
     assert saturation.species("HCN").liquid.form == "dippr101"
 
 
+BOILING_DEPARTURE = {"SO3": 0.10}
+"""dict: The species whose liquid curve is further than 1 percent from 1 atm at the gas table's boiling point: sulfur trioxide's Antoine window (333 to 483 K) ends above its 317.9 K boiling point, and the curve carried down is 8.9 percent high there (GEN.1794)."""
+
+
 @pytest.mark.parametrize("formula", LIQUID_FORMULAS)
 def test_the_liquid_boils_at_the_gas_tables_boiling_point(formula):
     row = gases.gas(formula)
     if row.boiling_point_is_sublimation:
         pytest.skip("the boiling point of the gas table is a sublimation point")
-    assert saturation.pressure_pa(formula, row.boiling_point_k) == pytest.approx(101325.0, rel=0.01)
+    assert saturation.pressure_pa(formula, row.boiling_point_k) == pytest.approx(101325.0, rel=BOILING_DEPARTURE.get(formula, 0.01))
     assert saturation.saturation(formula, row.boiling_point_k).phase == saturation.LIQUID
 
 
-@pytest.mark.parametrize("formula", [f for f in LIQUID_FORMULAS if f != "HCN"])
+@pytest.mark.parametrize("formula", [f for f in LIQUID_FORMULAS if saturation.species(f).liquid.form == "wagner"])
 def test_the_critical_point_is_the_gas_tables(formula):
     liquid = saturation.species(formula).liquid
     row = gases.gas(formula)
@@ -494,3 +499,71 @@ def test_a_column_of_sulfur_vapor_over_a_cold_surface_condenses_to_the_curve():
     left, condensed, _ = surface_air.freeze_out(moles, 9.8, 5.1e14, 300.0)
     assert condensed["S2"] > 0.0 and left["S2"] < moles["S2"]
     assert condensed.get("N2", 0.0) == pytest.approx(0.0, abs=1.0e-6)
+
+
+# --- GEN.1794: carbonyl sulfide, carbon disulfide and sulfur trioxide, and the check that no carried gas is left without a law ------------------
+
+@pytest.mark.parametrize("formula, boiling_k", [("OCS", 222.99), ("CS2", 319.2)])
+def test_the_sulfur_gases_boil_at_one_atmosphere_on_their_antoine_curves(formula, boiling_k):
+    assert saturation.species(formula).liquid.form == "antoine"
+    assert saturation.pressure_pa(formula, boiling_k) == pytest.approx(101325.0, rel=0.01)
+
+
+@pytest.mark.parametrize("formula, antoine_bar_at_300k", [("OCS", 10 ** (4.0436 - 808.49 / (300.0 - 22.72))), ("CS2", 10 ** (4.06683 - 1168.62 / (300.0 - 31.616))),
+                                                          ("SO3", 10 ** (4.20515 - 892.175 / (300.0 - 103.564)))])
+def test_the_liquid_is_the_nist_antoine_equation_in_pascals(formula, antoine_bar_at_300k):
+    assert saturation.pressure_pa(formula, 300.0) == pytest.approx(antoine_bar_at_300k * 1.0e5, rel=1e-12)
+
+
+@pytest.mark.parametrize("formula", ["OCS", "CS2", "SO3"])
+def test_the_solid_of_the_sulfur_gases_is_clausius_clapeyron_from_the_liquid_at_their_own_triple_point(formula):
+    row = saturation.species(formula)
+    triple = saturation.triple_point_k(formula)
+    assert row.form == "clausius-clapeyron" and triple == row.triple_point_k
+    at_triple = saturation.pressure_pa(formula, triple)
+    assert at_triple == pytest.approx(saturation._liquid_pa(row.liquid, triple), rel=1e-12)
+    colder = saturation.saturation(formula, 20.0)
+    assert colder.phase == saturation.SOLID and colder.status == saturation.COLD_UNVERIFIED
+    assert colder.pressure_pa == pytest.approx(at_triple * math.exp(-row.sublimation_kj_mol * 1000.0 / saturation.GAS_CONSTANT_J_MOL_K * (1.0 / (20.0) - 1.0 / triple)), rel=1e-12) \
+        or colder.pressure_pa == saturation.PRESSURE_FLOOR_PA
+
+
+def test_the_eight_kelvin_bodies_hold_no_carbonyl_sulfide_or_carbon_disulfide():
+    """GEN.1794: three bodies of 0.003 to 0.0046 Earth masses at 8 K held 9,700 Pa of OCS and some CS2 because neither had a curve: the cold-air condensation (`surface_air.freeze_out`) leaves them as frost."""
+    from planetgen.physics import surface_air
+
+    moles = {"OCS": 1.0e9, "CS2": 1.0e8, "N2": 1.0e8}
+    left, condensed, _ = surface_air.freeze_out(moles, 0.05, 1.0e13, 8.0)
+    assert left.get("OCS", 0.0) < 1e-6 * moles["OCS"] and left.get("CS2", 0.0) < 1e-6 * moles["CS2"]
+    assert condensed["OCS"] > 0.999 * moles["OCS"] and condensed["CS2"] > 0.999 * moles["CS2"]
+
+
+def _carried_gases():
+    """The formulas the air solve can carry at 1e-9 of an air: the equilibrium speciation of an outgassed mixture over the redox, temperature and hydrogen range of the rocky recipe, the trace
+    gases of rows m3, m4 and m11, and the species of a comet's ice."""
+    from planetgen.physics import comet_species, gas_equilibrium, mixture_trace, oxygen_fugacity, species_thermo
+
+    found = set()
+    base = {"H": 4.0, "C": 1.0, "N": 0.3, "S": 0.1, "Cl": 0.02, "F": 0.002, "P": 1e-3, "Ar": 1e-3}
+    for temperature in (300.0, 600.0, 1000.0):
+        for diw in (-4, 0, 4):
+            for hydrogen in (0.01, 100.0):
+                atoms = dict(base, H=base["H"] * hydrogen)
+                try:
+                    result = gas_equilibrium.solve(atoms, temperature, 1.0, fixed_o2_log_fugacity=oxygen_fugacity.log_fo2(diw, temperature), lower_held_o2=True)
+                except gas_equilibrium.EquilibriumError:
+                    continue
+                found.update(species_thermo.FORMULA_OF_NAME.get(name, name) for name, share in result.mole_fractions.items() if share > 1e-9)
+    for formulas in mixture_trace.ABUNDANCES.values():
+        found.update(formulas)
+    found.update(comet_species.SPECIES)
+    return found
+
+
+def test_every_gas_the_solve_can_carry_has_a_saturation_law_or_a_registered_reason():
+    """GEN.1794: a gas with no law is never condensed by the cold-air cap, so each is either given a curve or named in `no_law` of the data file with the reason it has none."""
+    missing = sorted(f for f in _carried_gases() if not saturation.has(f) and not saturation.reason_without_law(f))
+    assert not missing, f"no saturation curve and no registered reason: {missing}"
+    for formula in ("OCS", "CS2", "SO3"):
+        assert saturation.has(formula)
+    assert all(not saturation.has(f) for f in saturation.NO_LAW_REASONS)      # a gas with a curve is not also excused
