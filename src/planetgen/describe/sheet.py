@@ -1453,6 +1453,19 @@ def _eclipse_provider(conn, kind, object_id, row):
         yield "rotation", _sheet_row(ECLIPSE_KEY, "Longest eclipse in the planet's shadow", [model.qty("time", eclipse, "h")], raw=eclipse)
 
 
+ICE_CAPPED_KEY = "ice_capped"
+"""str: The key of the derived row that says a body is ice-capped (GEN.1572, `hydrosphere.ice_capped`); it is worked out from the stored hydrosphere, ice cover and mean surface temperature when the sheet is made, is not a column, and appears only for a body that is."""
+
+
+def _ice_capped_provider(conn, kind, object_id, row):
+    columns = row.keys()
+    if not {"hydrosphere", "ice_cover_fraction", "surface_temperature_k"} <= set(columns):
+        return
+    share = hydrosphere.ice_cover_share(row["hydrosphere"], row["ice_cover_fraction"], row["surface_temperature_k"])
+    if share > hydrosphere.ICE_CAPPED_MIN_COVER:
+        yield "water", _sheet_row(ICE_CAPPED_KEY, "Ice-capped (ice over more than a quarter of the surface)", ["Yes"], raw=share)
+
+
 def _module_rows_provider(conn, kind, object_id, row):
     for group, key, label, value, raw in (*clock_rows.rows(conn, kind, object_id), *heavy_rows.rows(conn, kind, object_id),
                                             *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id)):
@@ -1516,6 +1529,7 @@ ROW_PROVIDERS = (
     (lambda kind: kind in ISOTOPE_TABLES, _isotope_provider),
     (lambda kind: kind in SMALL_BODY_SHEET_KINDS, _small_body_provider),
     (lambda kind: kind == "moon", _eclipse_provider),
+    (lambda kind: kind in ("planet", "moon"), _ice_capped_provider),
     (lambda kind: True, _module_rows_provider),
     (lambda kind: kind == "planet", _influx_provider),
     (lambda kind: kind == "planet", _belt_origin_provider),
