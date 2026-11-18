@@ -74443,6 +74443,166 @@
       ],
       "slug": "6-306-stand-ins-of-the-cosmic-dust-a-planet-s-air-takes-in-for-the-v8-layer-gen-1542",
       "title": "Stand-ins of the cosmic dust a planet's air takes in for the V8 layer (GEN.1542)"
+    },
+    {
+      "key": "6.307",
+      "number": "6.307",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_AT_SUN_AU 100: the median gas-disk edge of a 1 solar-mass star, au; the geometric middle of the 62 au at which the planet-formation models of [R0602] cut the disk and the roughly 200 au the observed CO radii of 1 to 3 Myr disks give"
+            ],
+            [
+              "The range it moves in",
+              "62 to 200"
+            ],
+            [
+              "Where it holds",
+              "Sun-like stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured median CO disk radius of Sun-like stars outside 62 to 200 au"
+            ],
+            [
+              "What replaces it",
+              "the median of a mass-complete CO disk survey"
+            ],
+            [
+              "Evidence",
+              "the dust radius of ALMA disks is 27 to 60 au at the median [R5301] and the CO gas disk a median 2.5 times that [R5302]"
+            ]
+          ],
+          "id": "GDE1",
+          "key": "6.307:GDE1",
+          "kind": "P",
+          "slug": "6-307-gde1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_size.EDGE_AT_SUN_AU 100: the median gas-disk edge of a 1 solar-mass star, au; the geometric middle of the 62 au at which the planet-formation models of [R0602] cut the disk and the roughly 200 au the observed CO radii of 1 to 3 Myr disks give"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_MASS_EXPONENT 0.5: the edge rises as the star's mass to this power"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.625"
+            ],
+            [
+              "Where it holds",
+              "stars of 0.1 to 3 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a size-mass slope of gas disks outside 0.2 to 0.625"
+            ],
+            [
+              "What replaces it",
+              "the slope fitted to a complete survey of gas disk radii"
+            ],
+            [
+              "Evidence",
+              "the direct fits of dust radius against star mass are 0.2 to 0.57 [R5301] and 0.6 [R5303]; the models use 0.625 [R0602]"
+            ]
+          ],
+          "id": "GDE2",
+          "key": "6.307:GDE2",
+          "kind": "P",
+          "slug": "6-307-gde2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_size.EDGE_MASS_EXPONENT 0.5: the edge rises as the star's mass to this power"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_SCATTER_DEX 0.3: the scatter of a star's own edge around the median, dex in log10, a factor of 2 either way (Boss, 2026-11-17)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "every star's own disk"
+            ],
+            [
+              "What would show it wrong",
+              "a measured scatter of gas disk radii at one stellar mass outside 0.2 to 0.6 dex"
+            ],
+            [
+              "What replaces it",
+              "the scatter measured on a complete survey"
+            ],
+            [
+              "Evidence",
+              "real disks of one mass vary by about a factor of 4 either way in dust radius [R5301]; the factor of 2 is the narrower end"
+            ]
+          ],
+          "id": "GDE3",
+          "key": "6.307:GDE3",
+          "kind": "P",
+          "slug": "6-307-gde3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_size.EDGE_SCATTER_DEX 0.3: the scatter of a star's own edge around the median, dex in log10, a factor of 2 either way (Boss, 2026-11-17)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 4 either way"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "every star's own disk"
+            ],
+            [
+              "What would show it wrong",
+              "a gas disk of a Sun-like star measured beyond a factor of 4 of the median"
+            ],
+            [
+              "What replaces it",
+              "the tail of the measured distribution"
+            ],
+            [
+              "Evidence",
+              "the same cut as the snow line's (SNL2)"
+            ]
+          ],
+          "id": "GDE4",
+          "key": "6.307:GDE4",
+          "kind": "P",
+          "slug": "6-307-gde4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_size.EDGE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 4 either way"
+        }
+      ],
+      "slug": "6-307-stand-ins-of-the-gas-disk-edge-gen-1520",
+      "title": "Stand-ins of the gas disk edge (GEN.1520)"
     }
   ]
 }

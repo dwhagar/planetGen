@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1905 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1909 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1878 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1882 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,15 +50,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 224 | 22 | 12 | 1 | 0 | 259 |
-| T2 | 175 | 73 | 4 | 0 | 0 | 252 |
-| T3 | 126 | 63 | 13 | 10 | 0 | 212 |
+| T2 | 175 | 74 | 4 | 0 | 0 | 253 |
+| T3 | 127 | 65 | 13 | 10 | 0 | 215 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 2 | 149 |
 | T6 | 240 | 131 | 37 | 81 | 5 | 494 |
 | T7 | 70 | 37 | 10 | 32 | 0 | 149 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1084 | 391 | 98 | 268 | 64 | 1905 |
+| All | 1085 | 394 | 98 | 268 | 64 | 1909 |
 
 ## How the labels were given
 
@@ -3370,3 +3370,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DUS1 | P | T6 | L4 | `dust_supply.CARBON_SHARE_OF_DUST` 0.1: the share of the infalling dust's mass that is carbon the cloud can take up | 0.03 to 0.3 | carbon-rich dust of comets and primitive asteroids | a measured carbon content of the dust a system's belts send in | the carbon share of the belt's own composition (the carbon the system's disk gave it) | no source in the registry: the order of the organic and carbonaceous share of primitive dust | predicted only | - | no data |
 | DUS2 | P | T6 | L4 | `dust_supply.V8_MIN_CARBON_FLUX_KG_M2_YR` 1e-9: the carbon the dust must lay on a planet, kg per square meter a year, for its cloud to keep the V8 layer | 1e-10 to 1e-8 | iron-and-carbon-ring layers in an acid cloud | a measured loss rate of the layer or a measured carbon flux at a cloud that holds it | the layer's photochemical loss rate set against the supply | no source: nobody has measured the layer's loss; set between a Mars-like and an Earth- or Venus-like flux of a Sun with a main belt | predicted only | - | no data |
 | DUS3 | T | T6 | L0 | the supply leaves out the dust a planet lifts itself (surface dust and sand, volcanic and impact dust): no volcanic rate, dust cover or wind field is stored on a body, and the layer sits in the cloud, far above where such dust is lifted on a thick-aired world | none | thick-aired planets with a cloud high above the ground | a body whose cloud carbon is set by the dust it lifts | the lifted dust from the body's activity, age, air density and winds | design | predicted only | - | - |
+
+## 6.307 Stand-ins of the gas disk edge (GEN.1520)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| GDE1 | P | T3 | L1 | `disk_size.EDGE_AT_SUN_AU` 100: the median gas-disk edge of a 1 solar-mass star, au; the geometric middle of the 62 au at which the planet-formation models of [R0602] cut the disk and the roughly 200 au the observed CO radii of 1 to 3 Myr disks give | 62 to 200 | Sun-like stars | a measured median CO disk radius of Sun-like stars outside 62 to 200 au | the median of a mass-complete CO disk survey | the dust radius of ALMA disks is 27 to 60 au at the median [R5301] and the CO gas disk a median 2.5 times that [R5302] | predicted only | - | - |
+| GDE2 | P | T2 | L1 | `disk_size.EDGE_MASS_EXPONENT` 0.5: the edge rises as the star's mass to this power | 0.2 to 0.625 | stars of 0.1 to 3 solar masses | a size-mass slope of gas disks outside 0.2 to 0.625 | the slope fitted to a complete survey of gas disk radii | the direct fits of dust radius against star mass are 0.2 to 0.57 [R5301] and 0.6 [R5303]; the models use 0.625 [R0602] | predicted only | - | - |
+| GDE3 | P | T3 | L1 | `disk_size.EDGE_SCATTER_DEX` 0.3: the scatter of a star's own edge around the median, dex in log10, a factor of 2 either way (Boss, 2026-11-17) | 0.2 to 0.6 | every star's own disk | a measured scatter of gas disk radii at one stellar mass outside 0.2 to 0.6 dex | the scatter measured on a complete survey | real disks of one mass vary by about a factor of 4 either way in dust radius [R5301]; the factor of 2 is the narrower end | predicted only | - | - |
+| GDE4 | P | T3 | L0 | `disk_size.EDGE_SCATTER_MAX_SIGMA` 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 4 either way | 1.5 to 3 | every star's own disk | a gas disk of a Sun-like star measured beyond a factor of 4 of the median | the tail of the measured distribution | the same cut as the snow line's (SNL2) | predicted only | - | - |
