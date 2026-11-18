@@ -375,6 +375,23 @@ failure empties the list (an old failure is not rerun for ever), and with no fai
 `--resume` it also skips the tests that already passed in the same build, as every command does. It is a fast loop and a merge gate in the
 same sense as `changed`: a PR says it used it. It needs the dependency map `full` writes, and without one it runs everything, like `changed`.
 
+### Stage digests of the golden galaxy (OPS.147)
+
+The golden test builds the pinned galaxy once. `PLANETGEN_STAGE_DIGESTS_OUT=FILE` makes that same build also write FILE: one digest for each
+generation stage's own output (`tests/golden_stages.py`): the plan's own rows (`galaxy_shape` without the columns the later stages write, and
+`galaxy_shell`), the scatter's tables, the fill's sector sections (systems, stars, planets, moons, belts, comets) and the facilities (the golden
+galaxy has none, so population reads `null`: not measured, never "moved"). The plan digest in `galaxy.json` is taken after the whole run and moves
+with what the later stages write; these do not. A train's runner builds the golden galaxy on main and on the train head with the variable set, then:
+
+```sh
+python scripts/train.py stages --before main-stages.json --after train-stages.json     # the stages come from the notes' `generation-affects:` lines
+```
+
+A stage that moved with no declared stage at or before it fails (a declared stage covers itself and every later one, as GEN.764 redoes them);
+a declared stage that did not move is a warning, because the golden galaxy is one small galaxy and may be too small to show it. The golden
+files, the epoch and the release gate are untouched (testing mode, OPS.258): the train's own smoke build is the only build needed, and the
+after-file of one train is the before-file of the next.
+
 ### Time limit and knowing a run is done
 
 Start every test run with a timeout of at least 90 minutes (Boss,

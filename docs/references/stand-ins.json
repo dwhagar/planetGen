@@ -11657,7 +11657,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 5a: solvent sulfuric factor 0.1; energy chemical; gate acid_medium min 1.0; supply sulfur_supply ref 0.1 placeholder 0.5; life acidophile breathing acid"
+              "life_classes.json Class 5a: solvent sulfuric factor 0.1; energy chemical; gate acid_medium min 1.0; supply sulfur_supply ref 0.1 placeholder 0.5; life acidophile breathing acid; habitat acid cloud layer (its clock runs at the layer's temperature, GEN.1307); animal cap grade 0 (T9, L0: the class's own definition, GEN.1307)"
             ],
             [
               "The range it moves in",
@@ -11688,7 +11688,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "life_classes.json Class 5a: solvent sulfuric factor 0.1; energy chemical; gate acid_medium min 1.0; supply sulfur_supply ref 0.1 placeholder 0.5; life acidophile breathing acid"
+          "what": "life_classes.json Class 5a: solvent sulfuric factor 0.1; energy chemical; gate acid_medium min 1.0; supply sulfur_supply ref 0.1 placeholder 0.5; life acidophile breathing acid; habitat acid cloud layer (its clock runs at the layer's temperature, GEN.1307); animal cap grade 0 (T9, L0: the class's own definition, GEN.1307)"
         },
         {
           "burn_down": [

@@ -47,7 +47,7 @@ def test_a_system_the_spacing_screen_passed_is_not_one_the_integration_breaks():
     for seed in (1, 2, 3, 4):
         with deterministic_entropy(seed):
             system = StarSystem(system_config=SystemConfig())
-        bodies = sorted((p for p in system.all_planets if p.body_type != "a" and getattr(p, "distance", None)), key=lambda p: p.distance)
+        bodies = sorted((p for p in validation.slot_planets(system.all_planets) if p.body_type != "a" and getattr(p, "distance", None)), key=lambda p: p.distance)       # not the belt members promoted to planets (GEN.1510): the spacing screen exempts them, as it does their belt
         if len(system.stars) != 1 or len(bodies) < 2 or validation.check_orbit_spacing(system.all_planets):
             continue
         sun = nb.SOLAR_MASS_KG

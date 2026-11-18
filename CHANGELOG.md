@@ -2,6 +2,64 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4516] - 2026-11-18
+
+**Headline:** Class 5a life, which lives in a sulfuric-acid cloud layer, no longer has animals and keeps its clock at the layer's temperature.
+
+### Fixed
+
+- GEN.1307: a world with a liquid sulfuric-acid cloud layer far above a hot ground (a 735 to 1500 K dense air, cloud at 360 to 372 K) stored Class 5a life at animal grade 1 and the stage of multicellular bodies, although the class's own row says it reaches "Mats and aerial plankton; at most simple colonial forms", and its schedule pace and complexity read the ground's temperature. The class now has a cap in the rule file (`animal_cap` grade 0, T9, L0: the class's own definition, registered on row LF40 of the stand-in registry), so its animal grade stops at none and its stage at multicellular (colonial) bodies; a class of the cloud (`habitat` `acid_cloud`) runs its clock (the pace of the schedule, the dates of its steps, the complexity's rate factor) at the cloud layer's own temperature (`life_classes.clock_temperature_k`, from `acid_medium`), and the world's text says where it lives ("It lives aloft in the sulfuric-acid cloud layer, at 366 K and 290 kPa."). No other class changes. The gate (a cloud layer inside 283 to 373 K and 30 to 300 kPa at 81 percent acid or more) already read the layer's own temperature, so a ground window would have been wrong. Class 5a occurs in none of 2,047 rocky bodies in 180 sampled systems.
+
+generation-output: unchanged
+
+## [8.0.4515] - 2026-11-18
+
+**Headline:** The golden galaxy now has a digest for each generation stage, and a train can check which stages its output moved against the stages its notes declared.
+
+### Added
+- **`tests/golden_stages.py` and `scripts/train.py stages`** (OPS.147): the golden test writes one digest per stage (plan's own rows, scatter tables, fill sections, facilities) to the file named by `PLANETGEN_STAGE_DIGESTS_OUT` when it builds the pinned galaxy, with no second build. `train.py stages --before A --after B` fails a stage that moved when no declared stage covers it (a declared stage covers itself and the stages after it) and warns about a declared stage that did not move. The golden files and the epoch are untouched. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4514] - 2026-11-18
+
+**Headline:** The N-body spot-check integrates the planets the spacing screen judges, not the belt members promoted to planets.
+
+### Fixed
+- `scripts/nbody_spotcheck.py` and its test leave out belt members promoted to planets (`validation.slot_planets`), which the spacing screen exempts with their belt (GEN.1510). On 80 seeds all 47 integrated systems stay stable.
+
+generation-output: unchanged
+
+## [8.0.4513] - 2026-11-18
+
+**Headline:** An update that changes nothing the bright-star sampling tables read no longer starts the next run with cold tables, and a table is built once however many workers ask for it.
+
+### Fixed
+
+- PERF.281: the kept bright-star sampling tables (`band_table_cache`) are keyed by the contents of the 66 files a table is made from (the 28 a build runs, found by tracing 396 builds over every population and kind, and the files they import directly), the sizes of the downloaded datasets, the Python and numpy versions and the 193 `tuning` constants those files read. The key was the name, size and modification time of every one of 1,166 files and every constant, so every update, and every `git checkout`, started the next run cold: a sky share spent 537 of 982 profiled seconds building tables, 28 to 50 s in each of 30 tiers, in each of 16 shares. A test traces the builds and fails if one runs a file outside the list. A table is built under a lock of its own (the system lets it go when the process ends), so workers that start together on the same tables build each once and read it, a waiting unit keeps its beat, and the unit's line says it is building a table and how many this process has built.
+
+## [8.0.4512] - 2026-11-18
+
+**Headline:** A short N-body integration checks the generator's stability screens, with a report and a test; generation is unchanged.
+
+### Added
+- `planetgen/physics/nbody_check.py`: a leapfrog integration of a star's planets that says whether they collide, are ejected or have an encounter (GEN.1468).
+- `scripts/nbody_spotcheck.py` runs it over generated systems and writes the report; `tests/test_nbody_spotcheck.py` fails when a system the spacing screen passes is broken by the integration.
+
+generation-output: unchanged
+
+## [8.0.4511] - 2026-11-18
+
+**Headline:** The parts of the old RQ queue that nothing used any more are gone: the job-requires-job holding, the solo hold for a restarted unit, RQ's stop command for a run, and the Held jobs panel.
+
+### Changed
+- **OPS.235 slice 1 (the RQ removal, the pieces the Generate page's jobs do not need).** Deleted `queue/requires.py` (a job holding for another job on RQ's `depends_on`, its callbacks, `drop_held`, `held_overview`), the Held jobs panel of the Queue page, `GET /api/admin/work/held` and its client call; nothing queued a job that required another. Deleted the solo hold (`pause.hold_solo`, `lift_solo`, `solo_of`, the "queue is held for one unit" notice, `paused_reason` and `solo_unit` on the status) that the stuck-unit follower made for a restarted RQ unit: the launcher's hand-outs never read it. `unitstuck` now only asks the supervisor to stop a stuck unit (the ledger path) and no longer stops, re-queues or holds an RQ job. `runcontrol.cancel_run` and `clear_run` no longer send RQ's stop command or take units off an RQ queue (`stop_units`, `started_units` deleted): they end the run and ask the supervisor to stop its jobs in the ledger; the update's warm-up waits for the canceled warm-up's jobs through `controls.running_jobs`. The Generate page's own RQ job path (`web/jobs.py`, `cli/worker.py`, `redisqueue`) stays until OPS.244 moves it to the ledger; then slice 2 removes the `rq` dependency.
+- Reuse: `controls.stop_run`, the ledger's `engine_jobs` rows and the launcher's end settling do what the RQ stop and re-queue did; `unitstuck`'s ledger path was already there (OPS.234).
+
+### Removed
+- `queue/requires.py`, the held jobs API and panel, the solo hold, `runcontrol.stop_units` and `started_units`, `unitstuck`'s RQ stop, re-queue and dump-for-RQ paths, and their tests (`test_requires`, `test_solo_hold`, `test_unit_stuck`; the tests that still mattered moved to `test_unit_stuck_ledger`).
+
 ## [8.0.4510] - 2026-11-18
 
 **Headline:** The admin's one-off system page takes its random seed through the draw module again, which fixes the red `test_generation_draws_only_through_the_draw_module`.
