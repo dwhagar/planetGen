@@ -49885,7 +49885,7 @@
           "fields": [
             [
               "What it is",
-              "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+              "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the truncations of the Rayleigh tails (inverse CDF, GEN.1792; a clip piled a third of a wide belt's bodies on the cap)"
             ],
             [
               "The range it moves in",
@@ -49916,7 +49916,7 @@
           "tier_code": "T9",
           "tweak": "L0",
           "unread": null,
-          "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+          "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the truncations of the Rayleigh tails (inverse CDF, GEN.1792; a clip piled a third of a wide belt's bodies on the cap)"
         }
       ],
       "slug": "6-182-stand-ins-of-where-a-stored-belt-member-lies",
