@@ -615,5 +615,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1792 | Dwarf orbits drawn from physics instead of hitting caps | none | Lane 14, 2026-11-17 |
 | OPS.272 | A derived-only epoch refills stored values by a job | none | Lane 13, 2026-11-17 |
 | MAP.431 | Map tiles survive a derived-only epoch | none | Lane 16, 2026-11-17 |
+| OPS.273 | sector_paths rows match between a fresh run and a run after reset | none | Lane 13, 2026-11-17 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
 | PERF.280 | Stage 9 skips or batches near-empty sky cells | none | Lane 07, 2026-11-17 |
