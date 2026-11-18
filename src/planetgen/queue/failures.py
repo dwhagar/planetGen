@@ -8,7 +8,7 @@ Every way a unit can fail is one of four kinds, and each kind has one policy:
 | kind | what it is | what happens |
 |---|---|---|
 | `passing` | a MySQL deadlock (1213), lock wait timeout (1205) or lost connection (2006, 2013, a command on a closed connection), a Redis connection that failed | the engine runs the unit again after a wait that doubles from `FIRST_WAIT_SECONDS` to `MAX_WAIT_SECONDS`, spread at random, inside the run's budget (`charge`) |
-| `killed` | the process was killed (signal 9, out of memory) or timed out | the existing path: `units.horse_killed` queues it again alone with a claim `memorygate.GROW_FACTOR` times as large |
+| `killed` | the process was killed (signal 9, out of memory) or timed out | the launcher hands it out again alone (`tokens.ALONE`) with a claim `memorygate.GROW_FACTOR` times as large (`Launcher._grow`, `Launcher.claim`; OPS.236) |
 | `idle` | the unit showed no sign of life for longer than its command ever has | the existing path: `unitstuck` dumps its stack, stops it and runs it once more alone |
 | `lasting` | any other exception | not retried; the run says so (stage 3's held items, OPS.221, hold the unit and carry on) |
 
