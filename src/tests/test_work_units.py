@@ -2,7 +2,7 @@
 run by workers, joined by the done set and followed by the process that started the run (`planetgen/queue/units.py`,
 started by the wrapper, `planetgen/queue/wrapper.py`, PERF.118).
 The autouse `_run_queue_inline` fixture gives each test a queue and key prefix of its own and runs the waiting units
-in this process when `ensure_workers` is called."""
+in this process when `wrapper.pump` is called."""
 
 import re
 import socket
@@ -131,8 +131,8 @@ def test_a_unit_found_done_has_its_result_and_a_repeated_unit_counts_once(monkey
     runrecord.begin_stage(conn, run_id, 0)
     rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
     rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # unit 0 queued twice (a retry)
-    from planetgen.queue import workers
-    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
+    from planetgen.queue import wrapper
+    wrapper.pump()
     got = {}
     units.follow_stage(conn, run_id, 0, 2, lambda unit, result: got.__setitem__(unit, result))
     assert got == {0: {"value": 1}, 1: {"value": 4}}
@@ -161,8 +161,8 @@ def test_the_units_of_a_run_that_is_no_longer_live_do_nothing(monkeypatch, conn)
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
     rq_units.ledger_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
     runrecord.request_cancel(conn, run_id)
-    from planetgen.queue import workers
-    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
+    from planetgen.queue import wrapper
+    wrapper.pump()
     assert ran == [] and runrecord.read_run(conn, run_id)["stages"][0]["done"] == 0
 
 
@@ -292,8 +292,8 @@ def test_a_unit_that_rq_fails_after_it_was_done_does_not_fail_the_run(monkeypatc
     _handlers(monkeypatch, test=_square)
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
     rq_units.ledger_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
-    from planetgen.queue import workers
-    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
+    from planetgen.queue import wrapper
+    wrapper.pump()
     assert runrecord.read_run(conn, run_id)["stages"][0]["done"] == 3
     job = type("Job", (), {"func_name": units.UNIT_FUNCTION, "args": (run_id, 0, 1, "test", {"n": 1}, 1.0)})()
     rq_units.unit_failed(job, conn, ValueError, ValueError("Execution 9ed8 not found in Redis"), None)
@@ -311,11 +311,11 @@ def test_a_unit_found_done_is_not_run_again(monkeypatch, conn):
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=2)])
     runrecord.begin_stage(conn, run_id, 0)
     rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
-    from planetgen.queue import workers
-    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
+    from planetgen.queue import wrapper
+    wrapper.pump()
     assert sorted(ran) == [1, 2]
     rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # RQ's retry of unit 0, after it was done
-    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
+    wrapper.pump()
     assert sorted(ran) == [1, 2]
 
 

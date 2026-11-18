@@ -104,10 +104,20 @@ def test_the_runner_reports_what_it_ended(monkeypatch):
     spec = importlib.util.spec_from_file_location("runner_for_stray_test", path)
     runner = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(runner)
-    monkeypatch.setattr(stray_workers, "reap_all", lambda: [{"pid": 1, "seconds": 3700, "database": 4},
+    monkeypatch.setattr(stray_workers, "reap_all", lambda databases=None: [{"pid": 1, "seconds": 3700, "database": 4},
                                                             {"pid": 2, "seconds": 20, "database": 5}])
     sentence = runner.reap_strays()
     assert sentence.startswith("2 queue worker process(es) a test started and did not stop")
     assert "1h" in sentence or "61" in sentence                     # the oldest, 3,700 s
-    monkeypatch.setattr(stray_workers, "reap_all", lambda: [])
+    monkeypatch.setattr(stray_workers, "reap_all", lambda databases=None: [])
     assert runner.reap_strays() == ""
+
+
+def test_a_run_with_a_slot_ends_only_the_workers_on_its_databases(monkeypatch):
+    """TEST.724: `reap_all(databases)` leaves another slot's workers alone."""
+    text = ("101 101 500 python -m planetgen.cli.worker --url redis://127.0.0.1:6379/2\n"
+            "102 102 500 python -m planetgen.cli.worker --url redis://127.0.0.1:6379/8\n")
+    monkeypatch.setattr(stray_workers, "listing", lambda: text)
+    ended = []
+    monkeypatch.setattr(stray_workers, "reap", lambda found, **kw: ended.extend(worker["pid"] for worker in found) or len(found))
+    assert [worker["pid"] for worker in stray_workers.reap_all([1, 2, 3])] == [101] and ended == [101]

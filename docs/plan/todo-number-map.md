@@ -2106,7 +2106,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1304 | The greenhouse table under-warms a temperate wet air after the GEN.852 part 3 refit: the Earth twin sits at 276.0 K instead of 288 K (lock) | none | done, PR #5508 |
 | GEN.1305 | The molecular fraction of a cold cloud (stand-in NBC11, KMT constants) is read when the nebula composition is written, or the row is removed | none | done, PR #5354 |
 | GEN.1306 | Planet class matrix edges left after GEN.1281: cold air worlds, hot anoxic worlds, the 1 kPa and 10 kPa clamp edges, heavy oxygen ocean worlds, thin-air oxygen worlds | GEN.1281 | done, PR #5540 |
-| GEN.1307 | Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug) | none | open |
+| GEN.1307 | Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug) | none | done (PR 7134 merged 8:48 PM EST 11-17: class 5a has no animals aloft, cap from the class row on LF40 tier T9 tweak L0; its life clock reads the cloud layer; the life text says where it lives) |
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders | GEN.1085 | done, PR #5620 |
 | GEN.1309 | Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug) | none | done, PR #5740 |
 | GEN.1310 | Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent | GEN.1304 | done, PR #5572 |
@@ -2973,7 +2973,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.276 | The air solve is 59 percent of a full system build: cut repeat solves | done (Lanes 16 and 07, 3:43 AM EST 11-17: PRs 6993, 7004, 7016, 7024, 7028, all output identical; exobase step is PERF.278, cooling step PERF.277) |
 | PERF.277 | Interior cooling of old belt-sized bodies takes up to 770,000 steps: stop the step collapse | done (Train 43, PR 7084, 11-17) |
 | PERF.278 | The exobase search takes 15 percent of a build: a fixed 0.25 scale-height step (lock) | closed, not worth it as speed (Lane 07, 3:50 AM EST 11-17: 2.6 percent of a build after the cache); accuracy fault is GEN.1784 |
-| PERF.279 | Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes) | TEST.788 | open (Lane 16) |
+| PERF.279 | Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes) | TEST.788 | done (Train 44, PR 7149) |
 | PERF.280 | Stage 9 skip or batch near-empty sky cells (design and measure first) | OPS.270 | open (Lane 07) |
 | PERF.281 | Stage 9 sampling tables: cache keyed by their inputs, built once before the shares | PERF.280 | done (PR 7129) |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
@@ -3067,7 +3067,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | open |
 | OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | done (PR 7094 merged 12:41 PM EST 11-17: ledger-read latency is a second signal for the memory controller's hold) |
 | OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | open |
-| OPS.250 | Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160 | none | open |
+| OPS.250 | Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160 | none | done (PR 7143 merged 9:19 PM EST 11-17: a kind with 30 finished units on this machine shape and epoch leads with its learned memory claim and unit seconds; the typed figure is the default and a 4x clamp) |
 | OPS.251 | Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace | none | done (slice 1 PR 7097, slice 2 PR 7124 merged 8:14 PM EST 11-17; the RQ workers' 90 s counter goes with OPS.235) |
 | OPS.252 | Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes | none | open |
 | OPS.253 | (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed | none | done, part A PR #6538 (8:52 PM EST 11-14), part B PR #6591 in Train 30, PR #6615 (4:21 AM EST 11-15) |
@@ -4123,8 +4123,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1784 | The exobase search underestimates the exobase height (median 6 percent, up to 25) (lock) | done (Train 43, PR 7084, 11-17) |
 | GEN.1785 | Class census shifts since 8656686b7: explain each, fix faults, renew ranges | GEN.1390 | open (Lane 04) |
 | GEN.1786 | Held resonance eccentricity not saved or restored since GEN.1651 (bug) | GEN.1651 | done (PR 7057, 11-17) |
-| GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | open (Lane 16) |
-| GEN.1788 | Review giant scattering physics; comets follow (Science comets 0 percent) | GEN.1775 | open (Lane 06) |
+| GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | done (Train 44, PR 7149) |
+| GEN.1788 | Review giant scattering physics; comets follow (Science comets 0 percent) | GEN.1775 | done (Train 44, PR 7149) |
 | GEN.1789 | (high) Oxygen source against reductant sink: reshape options for the oxygen stand-ins, report first | GEN.1777 | open (Lane 04) |
 | GEN.1790 | Envelope past the climate ceiling boils off; lava vapor held and logged | GEN.1745 | open (Lane 14) |
 | GEN.1791 | Lever search for Class M and M-like worlds at the Abundant tier (report) | GEN.1789 | open (Class M levers thread) |
@@ -4932,8 +4932,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.721 | Stop committing generated files that conflict, or give them a merge step that regenerates them (docs/generated, stand-in-values.md, overview.json, stand-ins.json, the references files) | none | done, PR #6111 |
 | TEST.722 | Re-run only the failed files after a fix, and pick tests from the changed modules with a stated time limit per PR (the rest left to the end-of-version run) | none | done (PR 7120 merged 8:00 PM EST 11-17: scripts/test.py failed reruns the last failures plus the tests changed picks, within --limit minutes) |
 | TEST.723 | Fail loudly when database tests are skipped for no MySQL login, and run a short smoke test of main after each merge | none | done, PR #6111 |
-| TEST.724 | Cut gate flakes: each shard machine gets its own Redis database and MySQL prefix, at most 3 test workers with nothing else running, and the rare unseeded failures go on scripts/data/known_reds.json | none | open |
-| TEST.725 | Output-changing fixes found in a train gate ride the next train (unless they crash, lose data or change a visible page), with a known-issue line in the train PR and in the merge message, a cap near 1 percent of draws, and the fix first in the next train | none | open |
+| TEST.724 | Cut gate flakes: each shard machine gets its own Redis database and MySQL prefix, at most 3 test workers with nothing else running, and the rare unseeded failures go on scripts/data/known_reds.json | none | done (PR 7139 merged 9:05 PM EST 11-17: --slot N gives each gate on a shared machine its own Redis databases and stray-worker cleanup) |
+| TEST.725 | Output-changing fixes found in a train gate ride the next train (unless they crash, lose data or change a visible page), with a known-issue line in the train PR and in the merge message, a cap near 1 percent of draws, and the fix first in the next train | none | done (already delivered, Gate check 9:07 PM EST 11-17: KNOWN ISSUE SHIP RULE in docs/plan/lanes.md, runbook step 14, the Known issues section of train.py pr-body, scripts/data/known_reds.json) |
 | TEST.726 | Earth analog as a standing script: report the class shares (M, O, F), median surface temperature, nitrogen and CO2 of an exact Earth analog each train, so a regression shows before a census does | none | done, PR #6122 |
 | TEST.727 | (bug) test_forced_star::test_a_subdwarf_is_an_old_metal_poor_star fails by draw on main: about 5 percent of forced K5VI draws come out classed V at about 4,400 K, and the test takes 10 draws | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | TEST.728 | (bug) A wide binary's second star reads young star when generated but M-type star after store and load, so test_describe::test_a_stored_system_is_described_like_the_generated_one fails with PYTHONHASHSEED=1 (its seed comes from hash(), so it flakes in gates) | none | done, PR #6184 |
@@ -4946,7 +4946,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.735 | Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests | none | done earlier (commit 805e6ae11e (with TEST.736); found in Lane 07's stale sweep, 11-16) |
 | TEST.736 | One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim | none | done, PR #6350 (11-13) |
 | TEST.737 | Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips | none | done (PR 7038, 4:31 AM EST 11-17: about 60 skips became fixed streams or clear failures with the tried count; assertion bounds unchanged; the oxygen-breather test builds its class 4a by hand) |
-| TEST.738 | Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale | none | open |
+| TEST.738 | Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale | none | done (PR 7140 merged 9:08 PM EST 11-17: pregate builds the merge with main and runs regenerate_generated.py --check there) |
 | TEST.739 | (bug) scripts/earth_analog.py (TEST.726) runs the generation steps in the wrong order on one reused body, so its Class M figures (0.6 and 1.75 percent) are wrong; the generator's rate is 2.5 percent (20 of 800) | none | done earlier (PR 6452 (earth_analog.py runs the steps in order); found in Lane 07's stale sweep, 11-16) |
 | TEST.740 | (bug) Main reds left after Train 26: fill_order, materials reachability, cli_edges, math lint in reproducible_draws, sql_portability, generation_stats, datasets_gaia_sources, web_generate_size and finish_run_generation | none | open |
 | TEST.741 | (bug) After Train 27 the W20 same-inventory test is red at bistable key 155 | none | done, PR #6493 in Train 28 PR #6546 (6:54 PM EST 11-14, epoch 150) |

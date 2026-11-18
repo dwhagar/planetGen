@@ -73,7 +73,7 @@ In this order, per field: profile with enough samples (at least 3) on this machi
 4. Status and admin display, pin and clear (extends OPS.150).
 5. Planner reads the profile for split targets, **one stage at a time**, each behind its `cut_neutral` golden test. Start with the stages that already scale by row count: Stage 17 uncharted index, block lights, link, settle, warm-up chunks.
 6. Times: expected seconds and the heartbeat judge read the profile.
-7. Retire the typed tables only where the profile has run on Boss's server for a full galaxy; the constants stay as the default and clamp (no shims, but no deletion of the fallback either).
+7. Retire the typed tables only where the profile has run on Boss's server for a full galaxy; the constants stay as the default and clamp (no shims, but no deletion of the fallback either). **Built (OPS.250):** a kind is *proven* when its own history (this machine shape, this generator epoch) holds `profileclaim.PROVEN_SAMPLES` (30, a full window) finished units, which a small test galaxy does not give and a rebuilt machine or a new epoch starts over. For a proven kind the learned claim and the learned unit seconds lead outright (no 25 percent limit a run), the typed figure is what a kind with no history claims and bounds the learned one between a quarter and four times itself (`profileclaim.CLAMP`), and a memory kill still stands above the clamp. The stage cut's worker count (`splitter.resources_now`) and the stage's memory log read the same learned figure. The Queue page's learned table says which figure leads, per kind.
 
 ## Open questions for Boss
 

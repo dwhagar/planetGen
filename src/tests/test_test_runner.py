@@ -397,3 +397,22 @@ def test_the_idle_limit_can_be_turned_off(monkeypatch):
     assert runner.idle_limit() == 0.0
     monkeypatch.setenv("PLANETGEN_TEST_IDLE_LIMIT_S", "soon")
     assert runner.idle_limit() == runner.IDLE_LIMIT_S
+
+
+def test_a_slot_run_takes_its_slots_redis_databases_at_most_three_workers_and_ends_only_its_own_strays(monkeypatch):
+    """TEST.724: `--slot N` for two runs on one machine."""
+    seen = []
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: seen.append((command, environment)) or (5, {}))
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    reaped = []
+    monkeypatch.setattr(runner, "reap_strays", lambda databases=None: reaped.append(databases) or "")
+    monkeypatch.setattr(runner, "clear_test_redis", lambda: "")
+    monkeypatch.delenv("PLANETGEN_TEST_REDIS_SLOT", raising=False)
+    assert runner.main(["changed", "--slot", "1", "-n", "8", "--no-preflight", "--no-worker-cap"]) == 0
+    monkeypatch.delenv("PLANETGEN_TEST_REDIS_SLOT", raising=False)
+    assert reaped == [[4, 5, 6], [4, 5, 6]]
+    assert seen and max(int(call[0][call[0].index("-n") + 1]) for call in seen if "-n" in call[0]) == 3      # asked for 8, the slot allows 3
+    assert all(call[1]["PLANETGEN_TEST_REDIS_SLOT"] == "1" for call in seen)
+    with pytest.raises(SystemExit):
+        runner.main(["changed", "--slot", "9", "--no-preflight"])

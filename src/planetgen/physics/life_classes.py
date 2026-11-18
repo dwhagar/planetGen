@@ -46,7 +46,7 @@ import os
 from collections.abc import Mapping
 
 from planetgen import tuning
-from planetgen.physics import acid_medium, atmosphere, constants, elements, habitability, habitability_world, life_supply, planet_type, strange_solvents, surface_liquid_world, surface_refuge
+from planetgen.physics import acid_medium, atmosphere, constants, elements, habitability, habitability_world, life_complexity, life_supply, planet_type, strange_solvents, surface_liquid_world, surface_refuge
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_classes.json")
 
@@ -57,8 +57,8 @@ SOLVENT_MEDIA = ("water", "hydrocarbon", "co2", "sulfuric", "ammonia_water")
 ENERGY_SOURCES = ("light", "chemical")
 HABITATS = ("acid_cloud",)
 """tuple: Where a class that does not live at the surface lives (a row's `habitat`; none is the surface or what is under it): `acid_cloud` is the liquid sulfuric-acid cloud layer of the air (`acid_medium`, GEN.1307)."""
-ANIMAL_GRADES = 3
-"""int: The highest animal grade (`life_complexity.GRADES`); a class's `animal_cap` is a grade from 0 to this."""
+ANIMAL_GRADES = len(life_complexity.GRADES)
+"""int: The highest animal grade (the length of `life_complexity.GRADES`, derived); a class's `animal_cap` is a grade from 0 to this."""
 
 PLANCK_J_S = constants.PLANCK_CONSTANT
 BOLTZMANN_J_K = constants.BOLTZMANN

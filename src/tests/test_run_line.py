@@ -234,15 +234,16 @@ def test_the_heartbeat_keeps_a_busy_follower_alive_and_stops_with_it(conn):
 
 
 def test_a_run_whose_set_up_fails_is_ended_not_left_holding_the_machine(conn, monkeypatch):
-    """ADM.136: the set-up after the machine is taken (workers, relay, log) was outside the `try`, so a failure there left the run live
+    """ADM.136: the set-up after the machine is taken (relay, log) was outside the `try`, so a failure there left the run live
     for a process that went on; the next New galaxy waited for it."""
     kind = next(iter(commands.REGISTRY))
 
     def refuse(*args, **kwargs):
-        raise RuntimeError("no worker could be started")
+        raise RuntimeError("the relay could not be started")
 
-    monkeypatch.setattr(wrapper, "stage_ensure", refuse)
-    with pytest.raises(RuntimeError, match="no worker could be started"):
+    monkeypatch.setattr(wrapper.log, "console_debug", lambda: True)
+    monkeypatch.setattr(wrapper.log, "RelayReader", refuse)
+    with pytest.raises(RuntimeError, match="the relay could not be started"):
         wrapper.run("Set-up fails", [commands.Step("a", kind, "A", {})], lambda index, plan: None, lambda index, unit, result: None)
     assert runrecord.active_run(conn) is None
     assert runrecord.read_run(conn, runrecord.recent_runs(conn, limit=1)[0])["state"] == "failed"

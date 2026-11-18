@@ -16,6 +16,9 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/operations/test-
     scripts/test.py full --check          ... and lists failing tests `changed` would not have selected
     scripts/test.py full -- -x -k login   anything after `--` goes to pytest as it is
     scripts/test.py <command> --global-docs  also the freshness tests of the generated global documents (TODO's and the stamp's)
+    scripts/test.py <command> --slot N    TEST.724: run on slot N (0 to 4) of the machine's Redis, so up to five runs share one machine without meeting:
+                                          the run takes only that slot's three Redis databases, has at most three workers and ends only its own
+                                          stray workers (PLANETGEN_TEST_REDIS_URL must name database 0)
     scripts/test.py <command> --resume    continue an earlier run: skip the tests that passed in it (same build) or in
                                           an earlier run whose environment is the same and whose files that test
                                           used have not changed since (TEST.208)
@@ -326,11 +329,12 @@ def _services():
     return lane_services
 
 
-def reap_strays():
+def reap_strays(databases=None):
     """
     TEST.393: ends the queue workers the run left behind (tests start real ones in sessions of their own, and a test that
     was stopped never tells them to stop; each keeps about 300 MB until it is idle) and returns the sentence that says
-    how many and how old, or "" when there were none.
+    how many and how old, or "" when there were none. `databases`: only the workers on those Redis databases (a `--slot` run's own,
+    TEST.724), so a run never ends another run's workers on the same machine.
     """
     try:
         sys.path.insert(0, os.path.join(ROOT, "src"))
@@ -338,7 +342,7 @@ def reap_strays():
             from tests import stray_workers
         finally:
             sys.path.pop(0)
-        found = stray_workers.reap_all()
+        found = stray_workers.reap_all(databases)
     except Exception as exc:  # noqa: BLE001 -- the report must never fail a run
         return f"no stray worker check ({exc})"
     if not found:
@@ -657,6 +661,10 @@ def main(argv=None):
     parser.add_argument("--limit", type=float, default=DEFAULT_LIMIT_MINUTES, metavar="MINUTES",
                         help=f"for `failed`: the most test time, in minutes of wall clock on the workers asked for, the selection may "
                         f"carry besides the failed tests (default {DEFAULT_LIMIT_MINUTES:g}); what does not fit is left to the end-of-version run")
+    parser.add_argument("--slot", type=int, default=None, metavar="N",
+                        help="TEST.724: run on slot N of the machine's Redis (0 to 4) so up to five runs can share one machine: the run takes only that "
+                        "slot's three databases, ends only its own stray workers and has at most three workers. Needs PLANETGEN_TEST_REDIS_URL on "
+                        "database 0")
     parser.add_argument("--check", action="store_true",
                         help="for `full`: list the failing tests `changed` would not have selected")
     parser.add_argument("--global-docs", action="store_true",
@@ -679,6 +687,19 @@ def main(argv=None):
         if not os.path.exists(FAILED_NODEIDS_FILE):
             parser.error("`failed` reruns what failed in the last run, and no failure is recorded (.test-failures.jsonl is empty "
                          "or absent): run `changed` first")
+    stray_databases = None
+    if args.slot is not None:
+        sys.path.insert(0, os.path.join(ROOT, "src"))
+        try:
+            from tests import private_redis
+        finally:
+            sys.path.pop(0)
+        if not 0 <= args.slot < private_redis.SLOTS:
+            parser.error(f"`--slot` is a number from 0 to {private_redis.SLOTS - 1}")
+        os.environ[private_redis.SLOT_ENVIRONMENT] = str(args.slot)
+        stray_databases = private_redis.slot_databases(args.slot)
+        args.workers = min(args.workers, private_redis.SLOT_WIDTH)
+        args.browser_workers = min(args.browser_workers, private_redis.SLOT_WIDTH)
     if args.check and args.command != "full":
         parser.error("`--check` goes with `full`")
     if args.check:
@@ -753,7 +774,7 @@ def main(argv=None):
 
     previous_handler = signal.signal(signal.SIGTERM, interrupted)  # a stop from outside ends like Ctrl-C: with the INTERRUPTED line
     try:
-        stale = reap_strays()   # TEST.398: a worker an earlier run left (even one running old code) would take this run's units
+        stale = reap_strays(*([stray_databases] if stray_databases else []))   # TEST.398: a worker an earlier run left (even one running old code) would take this run's units
         if stale:
             print(f"scripts/test.py {key}: before the run, ended {stale}", flush=True)
         for label, marker, workers in build_phases(args.command, args.areas, args.workers, args.browser_workers):
@@ -806,7 +827,7 @@ def main(argv=None):
         return 130
     finally:
         signal.signal(signal.SIGTERM, previous_handler)
-        left = reap_strays()
+        left = reap_strays(*([stray_databases] if stray_databases else []))
         if left:
             print(f"scripts/test.py {key}: ended {left}", flush=True)
     seconds = time.time() - started

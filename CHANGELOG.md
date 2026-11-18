@@ -2,6 +2,143 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4531] - 2026-11-18
+
+**Headline:** the long sums of the seasonal temperature solve (`detmath.matmul`) are added in one compiled pass instead of arrays of products, with the same bits.
+
+### Changed
+- `detmath.matmul` adds a long sum (from 100,000 products) with a small numba kernel (`util/detmath_kernel.py`) that does what the loop and `numpy.add.accumulate` did: each output starts from the product at index 0 and adds the products at index 1, 2 and so on in order, each product and each addition correctly rounded once, no fused multiply-add and no reordering. The chains of the outputs advance together, so a sum runs at the speed of the adders and not of their latency. The seasonal solve's three sums per pass (a Gram row, a right-hand side and the mixed series, 6 series of up to 190,080 values) take 4 ms instead of 17 ms.
+- Checked against the real build: 413 calls of `temperature_series` made while the rich test galaxy was built (pre-placed systems and promoted belt members) give the same temperatures, pass counts and convergence to the last bit with and without the kernel, and take 37.6 s instead of 65.8 s. Where numba cannot be imported or cannot cache, `matmul` keeps the numpy way and its bits; the kernel is imported inside `matmul`, so the web app still never imports numba.
+
+generation-output: unchanged
+
+## [8.0.4530] - 2026-11-18
+
+**Headline:** A giant planet now scatters the part of the outer disk it can reach over the age of its system, so stars with a giant and a cold outer disk have a comet reservoir; before, the swept band ended exactly where the disk began and no star on the Science comet default had comets.
+
+### Fixed
+- **The scatter step swept the same zone the disk starts from (GEN.1788).** `physics/belt_origin` starts a star's outer disk at one chaotic half-width beyond its last giant, and `physics/scatter.scatter_shares` swept only that half-width, so the swept share was 0 for every giant that never moved and every disk that began at that edge, and the comet supply (GEN.1765, GEN.1775) found no scattered disk anywhere (0 comets in 540 systems measured). A giant's scattering now reaches `scatter.REACH_ZONE_WIDTHS` (3) chaotic half-widths over a system's age: Neptune destabilizes the Kuiper belt out to a perihelion 5 to 8 AU beyond its orbit, about 10 Hill radii, in 4 Gyr (Morbidelli, Levison and Gomes, the Kuiper belt chapter). It is registered as stand-in row SX6 (tier T2, tweak L0) and is the same number as `belt_origin.STIR_ZONE_WIDTHS` (BG8), which now reads it from `scatter`, so there is one reach.
+- The numbers it moves: on 240 Sun-like (G2V) systems the giants and the outer disks are exactly as before (giant at 2 to 8 AU 11.7 percent, observed 14.1 per 100 stars; giant plus outer disk 5.8 percent); 6 of the 14 giant plus disk systems now scatter 5 to 40 percent of their disk and hold comets (before: 0).
+
+generation-affects: fill
+
+## [8.0.4529] - 2026-11-18
+
+**Headline:** The giant-scattering census script cites [R1479] by its registry ID, which clears the citation lock on the train.
+
+### Fixed
+- `scripts/giant_scatter_census.py` named the survey in text; it now reads `[R1479]` (DOC.99).
+
+## [8.0.4528] - 2026-11-18
+
+**Headline:** the nine uses of `math.hypot`, `math.dist` and `@` the reproducibility scan found now go through `detmath`, so a galaxy's bits no longer depend on the Python or BLAS library that made it.
+
+### Fixed
+- `test_no_version_or_library_dependent_maths_in_the_package` was red on main: `generation/system.py` (`math.dist` of the dark members' places), `physics/eclipses.py`, `physics/influx.py` and `physics/kozai_planets.py` (`math.hypot`), and `physics/obliquity_variation.py` and `physics/secular_chain.py` (`@` on the complex mode matrices, which runs through BLAS) now use `detmath.dist`, `detmath.hypot` and `detmath.dot`.
+- `detmath.matmul` and `detmath.dot` take complex arrays. numpy's complex product is not a fixed operation (its vector loops fuse the multiplications and additions on some shapes and processors), so each product is formed from real ones, the real part `ar*br - ai*bi` and the imaginary part `ar*bi + ai*br`, and the products are added left to right. `dot` of two vectors returns a Python number (float, or complex for complex input).
+- Stored values move within tolerance: a census of 60 seeded systems (782 bodies) changed in 265 bodies, almost all by under 1e-7 relative (seasonal temperature extremes, which the solver stops at a tolerance; the largest is 1.1e-7), and in one body a threshold decided differently (its ocean pH, flavor text count and water activity).
+
+generation-output: changed within the solvers' tolerance (no golden, no epoch, lock item)
+
+## [8.0.4527] - 2026-11-18
+
+**Headline:** The Queue page has no worker count or Ludicrous Speed any more: nothing reads it, because the job engine sizes every stage by memory.
+
+### Removed
+- **OPS.235 slice 1c.** The Queue page's Workers panel (the count form, Ludicrous Speed, the host worker cap line and its refusals), its `workers-set` and `workers-ludicrous` actions, `apiclient.admin_work_workers`, `GET` and `POST /api/admin/work/workers` (with the `WorkerCount` schema) and `workers.wanted`, `set_wanted`, `ludicrous_count` and `WANTED_KEY` with their tests. The launcher sizes every stage by memory (`workers.stage_worker_cap`) and the gate, as it did since OPS.231; the admin's count had not started a worker since slice 1b.
+- Reuse: nothing new is built; the profile-led stage cap (`stage_worker_cap`) is the one count.
+- API version 14: the route snapshot, `docs/reference/api-versions.json`, `api.md` and the compatibility page carry the removed routes.
+- Still to go in slice 2 with `cli/worker.py`: the "workers active" tile, `host_worker_cap`, `host_worker_processes` and the `queue.max_host_workers` setting, which only RQ workers used.
+
+api-version: changed
+
+## [8.0.4526] - 2026-11-18
+
+**Headline:** `planetgen reset-jobs` starts again: it no longer looks for the worker-start counters that OPS.235 slice 1b removed.
+
+### Fixed
+- `cli/reset_jobs.py` named `workers.STARTING_PREFIX`, which slice 1b deleted, so importing the command raised `AttributeError` and `tests/test_reset_jobs.py` failed at collection. The key patterns are now the RQ keys and the runs' keys; its docstring no longer mentions the start counters or the admin's worker count.
+- `tests/test_reset_jobs.py` and `tests/test_maintenance_lane.py` no longer set or clean the counters and the worker-count key.
+
+## [8.0.4525] - 2026-11-18
+
+**Headline:** The life classes' animal grade count is derived from the grade table, so the constants census passes again.
+
+### Fixed
+
+- GEN.1307: `life_classes.ANIMAL_GRADES` is the length of `life_complexity.GRADES` instead of a bare 3, which `test_constants_completeness` (TEST.715) asked to be tagged. No value or behavior changes.
+
+## [8.0.4524] - 2026-11-18
+
+**Headline:** The N-body check follows the package's spelling, deterministic-maths and constants rules.
+
+### Fixed
+- `physics/nbody_check.py` writes "center", takes its matrix product through `detmath.dot`, and reads the astronomical unit and the solar mass from `physics.constants` (GEN.1468).
+
+generation-output: unchanged
+
+## [8.0.4523] - 2026-11-18
+
+**Headline:** The band-table cache's lock poll interval carries its tag, so the constants census passes again.
+
+### Fixed
+
+- PERF.281: `band_table_cache.LOCK_POLL_SECONDS` says in its docstring that it is machinery, not physics, and defined where it stands, which `test_constants_completeness` (TEST.715) asks of a numeric constant in the generator's own modules. No value or behavior changes.
+
+## [8.0.4522] - 2026-11-18
+
+**Headline:** `planetgen reset-jobs` starts again: it no longer looks for the worker-start counters that OPS.235 slice 1b removed.
+
+### Fixed
+- `cli/reset_jobs.py` named `workers.STARTING_PREFIX`, which slice 1b deleted, so importing the command raised `AttributeError` and `tests/test_reset_jobs.py` failed at collection. The key patterns are now the RQ keys and the runs' keys; its docstring no longer mentions the start counters or the admin's worker count.
+- `tests/test_reset_jobs.py` and `tests/test_maintenance_lane.py` no longer set or clean the counters and the worker-count key.
+
+## [8.0.4521] - 2026-11-18
+
+**Headline:** A job kind whose profile holds a full window of finished units from this machine is now sized by what it measured, and the typed figure is only its default and its clamp.
+
+### Changed
+- **OPS.250 (absorbs OPS.160).** `profileclaim` marks a kind *proven* when its own history (this machine shape, this generator epoch) holds `PROVEN_SAMPLES` (30) finished units. A proven kind's memory claim and expected unit seconds (`profiletime`) are no longer held to 25 percent a run from the last figure or the typed one: the learned figure is the figure, held between the typed figure over `CLAMP` (4) and times it where there is one. A memory kill still wins above the clamp. A kind with fewer samples, from another machine shape or from another epoch behaves as before.
+- The stage cut's worker count (`splitter.resources_now`) and the "largest worker held" line of a stage (`wrapper._log_peak_memory`) read the learned figure, not `workers.STAGE_WORKER_MEMORY_MB` alone; the line no longer tells an admin to raise the typed constant when the profile leads.
+- The Queue page's learned-per-kind table has a Leads column (Fixed, Profile (proven), Profile, Typed).
+- Reuse: `profileclaim.settle`, `claim` and `target`, `profiletime.target` and `unit_seconds`, `workers.stage_worker_mb` and `stage_worker_cap`, and the existing overview and change log; the new part is the proven flag and the clamp.
+- Output unchanged, no epoch.
+
+## [8.0.4520] - 2026-11-18
+
+**Headline:** The known-issue ship rule now says a late output-moving add-on to a train re-runs the pins and the golden seed on the final head.
+
+### Changed
+- **Late add-on rule** (TEST.725): `docs/plan/lanes.md` and the Known issues note of the train PR body (`scripts/train.py pr-body`) say that an output-moving fix added after the gate passed (Train 42's GEN.1774 moved the civilized pins after the gate) is not shipped on the gate's word; the pins and the golden seed run again on the final head. A fix found in the gate and put into the train before its final gate needs no extra run.
+
+## [8.0.4519] - 2026-11-18
+
+**Headline:** The pre-gate lane now checks generated files in the merge of a PR with main, so a generated copy that is stale only after the merge is found before the train head is.
+
+### Added
+- **`generated (merged)` step in `scripts/pregate.py`** (TEST.738): builds the merge of the PR head with the base in a temporary detached worktree (`git merge-tree`, `git commit-tree`) and runs that tree's `scripts/regenerate_generated.py --check`. Two PRs that each change a source of one generated file (the stand-in list, the life-class rules) were each current alone and stale together; the check names the file and the repair (merge main, run `python scripts/regenerate_generated.py`, commit). A conflicted merge is left to step 1. Reuses `regenerate_generated.py --check` and `pregate.merges_cleanly`'s `git merge-tree` call; nothing is rebuilt a second way.
+
+## [8.0.4518] - 2026-11-18
+
+**Headline:** Two test runs can share one machine: `--slot N` gives a run its own three Redis databases, so they no longer empty each other's queues.
+
+### Added
+- **`--slot N` on `scripts/test.py` and `scripts/train_gate.py run`** (TEST.724): five slots of three Redis databases each (`tests/private_redis.py`, `PLANETGEN_TEST_REDIS_SLOT`). A slot run takes only its slot's databases, has at most three workers and ends only its own stray queue workers (`stray_workers.reap_all(databases)`), so two gates on one machine never meet in Redis (the `RunStopped: the run None` failures). A run with no slot is unchanged. MySQL needed nothing (every test database is named at random), and the gate already reads `scripts/data/known_reds.json`. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4517] - 2026-11-18
+
+**Headline:** Nothing starts RQ workers for a run or the maintenance lane any more: the supervisor's launcher forks every unit, and the code that asked for workers is gone.
+
+### Changed
+- **OPS.235 slice 1b.** Deleted the supervisor's `WorkerStarts` duty and `nudge` (the asks for workers), `workers.ensure_workers`, `start_workers`, `registered`, `maintenance_cap` and the starting counters, and `wrapper.stage_ensure` (it was already a no-op for any run with an id). The wrapper's follower calls a plain optional `wrapper.pump` while it waits for a stage; production leaves it unset and the test harness (`tests/inline_queue.py`) sets it to hand out the ready rows in the test's process. `held.retry_held` wakes the supervisor with `ensure_started`. The Generate page's own worker (`cli/worker.py`, `web/jobs.py`) stays until OPS.244 moves it to the ledger; slice 2 removes the `rq` dependency then.
+- Reuse: the launcher's hand-out and `supervisor.ensure_started` do what the asks and starts did; `inline_queue.run_ready_rows` is the pump.
+
+### Removed
+- `WorkerStarts`, `supervisor.nudge` and `nudges_key`, `workers.ensure_workers`, `start_workers`, `registered`, `lane_of`, `maintenance_cap`, `wrapper.stage_ensure` and their tests (`test_supervisor` ask tests, `test_workers` start tests, `test_maintenance_lane` and `test_queue_lanes` start tests, the `stage_ensure` cases of `test_stage_worker_cap`).
+
 ## [8.0.4516] - 2026-11-18
 
 **Headline:** Class 5a life, which lives in a sulfuric-acid cloud layer, no longer has animals and keeps its clock at the layer's temperature.

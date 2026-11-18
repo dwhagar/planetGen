@@ -1,5 +1,5 @@
 {
- "api_version": 13,
+ "api_version": 14,
  "routes": [
   "/api/admin/backups GET",
   "/api/admin/backups POST",
@@ -36,7 +36,6 @@
   "/api/admin/work/<run_id>/log GET",
   "/api/admin/work/<run_id>/units GET",
   "/api/admin/work/clear-finished POST",
-  "/api/admin/work/held GET",
   "/api/admin/work/history GET",
   "/api/admin/work/jobs GET",
   "/api/admin/work/queue POST",
@@ -45,8 +44,6 @@
   "/api/admin/work/tuning POST",
   "/api/admin/work/waiting GET",
   "/api/admin/work/warm GET",
-  "/api/admin/work/workers GET",
-  "/api/admin/work/workers POST",
   "/api/auth/api-keys GET",
   "/api/auth/api-keys POST",
   "/api/auth/api-keys/<int:key_id> DELETE",
