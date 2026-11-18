@@ -392,6 +392,24 @@ a declared stage that did not move is a warning, because the golden galaxy is on
 files, the epoch and the release gate are untouched (testing mode, OPS.258): the train's own smoke build is the only build needed, and the
 after-file of one train is the before-file of the next.
 
+### Two runs on one machine: `--slot` (TEST.724)
+
+A second pytest on a machine used to meet the first one in Redis: worker 0 of every run is database 1, and a run's start and end empty
+its databases, so the other run's queue tests died with `RunStopped: the run None`. A run given a slot takes only that slot's databases:
+
+```sh
+PLANETGEN_TEST_REDIS_URL=redis://127.0.0.1:6379/0 scripts/test.py changed --slot 0     # databases 1 to 3
+PLANETGEN_TEST_REDIS_URL=redis://127.0.0.1:6379/0 scripts/test.py changed --slot 1     # databases 4 to 6, at the same time
+python scripts/train_gate.py run --files F --results R --claims C --owner lane12 --slot 2
+```
+
+There are five slots (a stock Redis has fifteen databases besides the machine's own, three a slot, `tests/private_redis.py`). A slot run has at
+most three workers, ends only the queue workers on its own databases when it starts and ends (`stray_workers.reap_all(databases)`), and needs the
+test server's URL to name database 0. A run with no slot is the machine's only run and keeps all fifteen, as before. MySQL needs nothing: every test
+database and each session's control database carries a random name of its own. Two runs still share the machine's four cores: three workers each is
+the most that leaves the tests their time. `scripts/data/known_reds.json` (a red that is red on a clean main) is read by `train_gate.py reds` as
+before.
+
 ### Time limit and knowing a run is done
 
 Start every test run with a timeout of at least 90 minutes (Boss,
