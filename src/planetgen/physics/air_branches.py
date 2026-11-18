@@ -13,7 +13,7 @@ Both rows act on the air the solver has just made (`planets.calculate_atmospheri
 * **W20, the other branch.** A world with surface water has the ice-albedo feedback (GEN.972, `climate_branches`), and in a band of starlight it holds two stable climates: a warm one and a
   snowball. The solver starts from the airless temperature and finds one of them. The row is the history draw between them: when it rolls and the air is cool enough to be near the window, the air is solved
   again from the opposite starts in turn (`COLD_STARTS_K` for a warm answer, `WARM_STARTS_K` for a cold one: the solver's answer depends on its path, so one start can miss the other branch, GEN.1715), and the first answer that is a distinct
-  one is kept (`MIN_BRANCH_GAP_K` away, and a different ice cover). It is the same world, so the second solve repeats every draw of the first (`Air.entry_state`: the inventory, the efficiencies,
+  one is kept (`MIN_BRANCH_GAP_K` away, and a different ice cover); the search stops when `AGREEING_STARTS_TO_STOP` starts have ended on the first answer. It is the same world, so the second solve repeats every draw of the first (`Air.entry_state`: the inventory, the efficiencies,
   the sink cycle and the late accretion) and only the start temperature differs (GEN.1646). Nothing is drawn from the run's stream.
 
 Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.75 (rows NEB7 and NEB8).
@@ -42,6 +42,10 @@ MIN_BRANCH_GAP_K = 20.0
 """float: How far apart two answers must be to be two branches (the ramp is 65 K wide). Source tier T6, tweak level L1."""
 MIN_ICE_GAP = 0.1
 """float: How different the Bond albedo of the two answers must be (the ice-free and ice-covered values differ by 0.32). Source tier T6, tweak level L1."""
+AGREEING_STARTS_TO_STOP = 2
+"""int: How many starts may end on the first answer (less than `MIN_BRANCH_GAP_K` and `MIN_ICE_GAP` from it) before the search stops, the world having one branch (the second solve is the cost of the oddity, 12 to 20 seconds
+a world with a dense air, and of 214 searches 199 had every start end on the first answer). A start that ends elsewhere (neither the same nor a distinct answer) does not count, so the search goes on
+through them. Source tier T6, tweak level L1."""
 NEAR_WINDOW_MAX_K = 330.0
 """float: A world whose first answer is hotter than this has no snowball branch to find (the ice line cannot be at the equator at that flux): the second solve is not made. Source tier T6, tweak level L1."""
 
@@ -125,6 +129,7 @@ def other_branch(body, row):
     middle = 0.5 * (climate_branches.ICE_COVERED_BELOW_K + climate_branches.ICE_FREE_ABOVE_K)
     starts = COLD_STARTS_K if first.temperature_k > middle else WARM_STARTS_K
     other = None
+    agreeing = 0
     for start in starts:
         with draw.bound(oddities.stream(f"{row.id}:air", oddities.body_key(body))):
             if first.entry_state is not None:     # GEN.1646: the other branch is the same world, so every draw of the first solve is repeated and only the start temperature differs
@@ -135,6 +140,10 @@ def other_branch(body, row):
         if abs(candidate.temperature_k - first.temperature_k) >= MIN_BRANCH_GAP_K and abs(candidate.albedo - first.albedo) >= MIN_ICE_GAP:
             other = candidate
             break
+        if abs(candidate.temperature_k - first.temperature_k) < MIN_BRANCH_GAP_K and abs(candidate.albedo - first.albedo) < MIN_ICE_GAP:
+            agreeing += 1
+            if agreeing >= AGREEING_STARTS_TO_STOP:
+                break
     if other is None:
         return False
     setattr(body, CHOICE_ATTRIBUTE, other)

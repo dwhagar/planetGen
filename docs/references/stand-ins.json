@@ -27995,7 +27995,7 @@
           "fields": [
             [
               "What it is",
-              "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
+              "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1, NEAR_WINDOW_MAX_K 330 and AGREEING_STARTS_TO_STOP 2 (the search ends when two starts end on the first answer, L1: 199 of 214 searches of worlds that rolled W20 had every start agree): the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
             ],
             [
               "The range it moves in",
@@ -28026,7 +28026,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
+          "what": "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1, NEAR_WINDOW_MAX_K 330 and AGREEING_STARTS_TO_STOP 2 (the search ends when two starts end on the first answer, L1: 199 of 214 searches of worlds that rolled W20 had every start agree): the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
         }
       ],
       "slug": "6-75-stand-ins-of-the-nightside-collapse-of-a-locked-planet-s-air",
