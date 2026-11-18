@@ -91,6 +91,12 @@ def set_gas_detail(body):
     body.envelope_z_fraction = ratios.z
 
 
+def captured_fraction(body):
+    """The envelope mass fraction the body was drawn with, before the hydrogen air's share was added (`fill`); the fraction itself on a body not filled yet. A body that captured no gas reads 0.0 here, whatever secondary hydrogen air it holds."""
+    formed = getattr(body, _FORMED, None)
+    return (body.envelope_mass_fraction if formed is None else formed["envelope_mass_fraction"]) or 0.0
+
+
 def restore(body):
     """Puts a rocky body's drawn fractions back (what `fill` scaled), before its air is solved again. Nothing to put back on a body not filled yet."""
     formed = getattr(body, _FORMED, None)

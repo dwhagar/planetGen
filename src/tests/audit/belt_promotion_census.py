@@ -39,7 +39,7 @@ def system_counts(seed):
     from planetgen.generation import irregular_moons, validation
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
-    from planetgen.physics import body_strength
+    from planetgen.physics import body_strength, envelope_share
     from planetgen.util import draw
 
     draw.set_run_seed(seed)
@@ -71,7 +71,7 @@ def system_counts(seed):
             counts[("class_by_star", f"{kind}/{body.planet_class or 'none'}")] += 1
             if body.planet_class is None:
                 counts[("violation", "a promoted planet with no class")] += 1
-            if body.envelope_mass_fraction:
+            if envelope_share.captured_fraction(body):       # the gas it captured; a secondary hydrogen air is counted in the fraction too (GEN.1226)
                 counts[("violation", "a promoted planet with an envelope")] += 1
             if body_strength.ratio_for(body.mass, min(body.ice_mass_fraction + (body.water_mass_fraction or 0.0), 1.0)) < 1.0:       # the member's status counts its water ice with the other ice (`belt_page.body_entry`)
                 counts[("violation", "a promoted planet under the round mass")] += 1

@@ -16,7 +16,7 @@ from planetgen.generation import belt_planets, validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.names import bodies as body_names
-from planetgen.physics import body_strength, compaction
+from planetgen.physics import body_strength, compaction, envelope_share
 from planetgen.util import draw
 
 SEEDS = range(1, 25)
@@ -74,7 +74,7 @@ def test_a_promoted_planet_has_the_orbit_and_makeup_of_its_member(promoted_syste
         if body.mass < compaction.TAPER_END_KG:
             assert body.density == pytest.approx(member["density_g_cm3"], rel=1e-6)          # the member's own density, below the taper's end
         assert body_strength.ratio_for(body.mass, body.water_mass_fraction + body.ice_mass_fraction) >= 1.0          # the floor is roundness, as Lane 21 asked, one call; the ice of the strength is the water and the other ices together, as the belt's own status reads it (`belt_page`)
-        assert body.envelope_mass_fraction == 0.0 and body.planet_class is not None        # no gas captured, a class from the finished body
+        assert envelope_share.captured_fraction(body) == 0.0 and body.planet_class is not None        # no gas captured (a cold small body can hold a secondary hydrogen air, which the envelope fraction counts, GEN.1226), a class from the finished body
         total = sum(shares.values())
         for name, share in shares.items():
             assert getattr(body, f"{name}_mass_fraction") == pytest.approx(share / total, abs=1e-6)
