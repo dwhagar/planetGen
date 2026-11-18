@@ -131,13 +131,13 @@ FORKER = InlineForker
 def run_ready_rows():
     """Hands out the ready rows of the job ledger and runs each unit here until none is ready (the launcher with an inline forker); returns how many units it ran. Nothing happens for a run with no ledger."""
     from planetgen.db import store
-    from planetgen.queue import launcher, memorygate
+    from planetgen.queue import launcher, memorygate, redisqueue
     try:
         control = store.get_control_connection()
     except Exception:  # noqa: BLE001 -- a test with no control database has no ledger rows to hand out
         return 0
     forker = FORKER()
-    one = launcher.Launcher(control, forker, read_host=lambda: memorygate.Host(10 ** 6, 10 ** 6, 64, 0.0))
+    one = launcher.Launcher(control, forker, read_host=lambda: memorygate.Host(10 ** 6, 10 ** 6, 64, 0.0), spawner=redisqueue.connect())
     ran = 0
     try:
         while True:

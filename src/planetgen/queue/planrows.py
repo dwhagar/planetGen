@@ -12,16 +12,43 @@ marks itself done, in one transaction, and everything that wants to know what a 
 * **The reading.** `read_plan` is the stage's plan summary (what the Redis string `<prefix>:run:<id>:s<k>:plan` held until now, and no longer does); `unit_rows` the
   stage's units. A plan never changes once it is cut, so a plan that was read is kept for the life of the process.
 * **The run.** A run's rows hang on an `engine_runs` row, made by the first cut and named in the run record's `engine_run` field.
+* **The windows (OPS.240).** A stage whose command has `window` (a sector for each unit, whatever the galaxy's size) is cut into the rows of its first window only, and a `spawn` row (`SPAWN`, `waiting`; its arguments
+  are the cursor `next` and the `total`) says there are more. The launcher's turn calls `spawn_window` for each such row: when the units of the stage that are not done fall under `LOW_WATER` of a window it writes the
+  next window of unit rows, in one transaction with the cursor's move, so a restart finds the cursor where the rows are. The stage's `units` (the plan summary, the stage's hash) is the total, so the follower, the
+  bar and the end of the stage count the units not yet written too.
 
 The ledger lives in the control database, found from the database the run's steps name (`wrapper.expected_seconds` reads the same one).
 """
 
 import json
 
-from planetgen.queue import ledger, runrecord
+from planetgen.queue import itemfile, ledger, runrecord
 
 OPEN = "open"
 """str: The command of the row that is the cut of a stage."""
+
+SPAWN = "spawn"
+"""str: The command of the row that writes the later windows of a stage's unit rows (OPS.240). It stays `waiting` while there are windows to write, and is `done` when the last is written, `canceled` when the run is over first."""
+
+WINDOW_PER_WORKER = 4
+"""int: How many unit rows a window holds for each worker the stage may run at once."""
+
+WINDOW_MIN, WINDOW_MAX = 200, 2000
+"""tuple[int]: The least and the most unit rows of a window, whatever the workers."""
+
+LOW_WATER = 0.5
+"""float: The next window is written when the stage's units not yet done are fewer than this share of a window."""
+
+
+def stage_window(conn, run_id, index):
+    """The window of the stage `index` of the run (`window_size` of the workers it was declared with: the run's own limit, else its worker count)."""
+    declared = runrecord.declared_stages(conn, run_id)[index]
+    return window_size(declared.get("cap") or declared.get("workers"))
+
+
+def window_size(workers):
+    """How many unit rows a window of a stage that may run `workers` units at once holds: `WINDOW_PER_WORKER` of each, between `WINDOW_MIN` and `WINDOW_MAX`."""
+    return max(WINDOW_MIN, min(WINDOW_MAX, WINDOW_PER_WORKER * max(1, int(workers or 1))))
 
 CONCLUDE, FINISH, RELEASE = "conclude", "finish", "release"
 END_ROLES = (CONCLUDE, FINISH, RELEASE)
@@ -161,7 +188,7 @@ def record_plan(conn, run_id, steps):
     return lacking
 
 
-def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
+def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None, total=None, later=None, window=None, prior=None):
     """
     Writes the cut of stage `index` as rows, in one transaction, and returns the unit rows' ids in unit order.
 
@@ -171,6 +198,10 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
         cost (float): The units' total predicted cost.
         plan_detail: What the expansion said of the stage as a whole (`commands.Expansion.plan`).
         split (dict): The cut the queue engine chose (OPS.161, `splitter.Decision.as_dict`), kept in the plan summary so a restarted unit has the same one; `None` when none was chosen.
+        total (int): How many units the stage has in all when `units` is only its first window (OPS.240); `None` for `len(units)`.
+        later (dict): What the command's `window` needs to say the later units (`commands.Expansion.later`); with it a `spawn` row is written that holds the cursor.
+        window (int): How many unit rows each later window holds (`window_size`); `units` was cut to the same size.
+        prior (str): The run this one carries on from (`resumed.RESUMES_FROM`), whose done units the later windows subtract as the first one did.
 
     A stage already cut (its `open` row is done) is not cut again: the rows it has are returned, whatever this call was given.
     """
@@ -180,15 +211,20 @@ def record_cut(conn, run_id, index, kind, units, cost, plan_detail, split=None):
         run = engine_run(conn, run_id, control)
         if _cut_row(control, run, stage) is not None:
             return unit_rows(control, run, stage)
-        summary = {"kind": kind, "units": len(units), "cost": cost, "detail": plan_detail}
+        summary = {"kind": kind, "units": len(units) if total is None else int(total), "cost": cost, "detail": plan_detail}
         if split is not None:
             summary["split"] = split
-        opened = {"index": index, "plan": summary, "run_id": run_id, "cap": runrecord.declared_stages(conn, run_id)[index].get("cap")}      # the most units of it that run at once, when the run was asked
+        cap = runrecord.declared_stages(conn, run_id)[index].get("cap")      # the most units of it that run at once, when the run was asked
+        opened = {"index": index, "plan": summary, "run_id": run_id, "cap": cap}
+        spawn = []
+        if later is not None and summary["units"] > len(units):
+            spawn = [{"stage": stage, "command": SPAWN, "arguments": {"run_id": run_id, "index": index, "kind": kind, "next": len(units), "total": summary["units"], "window": int(window), "later": later,
+                                                                           "released": len(units), "prior": prior}}]
         try:
             ledger.add_jobs(control, run, _classed([{"stage": stage, "command": OPEN, "arguments": opened}]
                                                     + [{"stage": stage, "command": kind, "item_key": str(number), "arguments": {"args": args, "cost": unit_cost}}
                                                        for number, (args, unit_cost) in enumerate(units)]
-                                                    + _end_jobs(stage, kind), job_class(conn, run_id)))
+                                                    + spawn + _end_jobs(stage, kind), job_class(conn, run_id)))
             control.execute("UPDATE engine_jobs SET state = 'done', arguments = ?, updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''",
                             (ledger._text(opened), run, stage, OPEN))        # a stage the plan wrote at the run's start (`record_plan`) has its row filled in here
             control.commit()
@@ -278,6 +314,93 @@ def add_to_unit_args(conn, run_id, index, extra):
         control.close()
 
 
+def spawn_rows(control):
+    """The `spawn` rows still `waiting` (OPS.240), oldest first: `(row id, ledger run, stage, arguments)` of each, the arguments as the dict the row holds."""
+    found = control.execute("SELECT id, run_id, stage, arguments FROM engine_jobs WHERE command = ? AND state = 'waiting' AND item_key = '' ORDER BY id", (SPAWN,)).fetchall()
+    return [(row["id"], row["run_id"], row["stage"], json.loads(row["arguments"] or "{}")) for row in found]
+
+
+def _window_units(arguments, first, count):
+    """The `(args, cost)` of units `first` up to `first + count` of the stage a `spawn` row's arguments describe, from its command's `window`; fewer than asked is a stage that lost its items (an error)."""
+    from planetgen.queue import commands
+    units = commands.window_function(arguments["kind"])(arguments["later"], first, count)
+    if len(units) != count:
+        raise RuntimeError(f"stage {arguments['index']} of run {arguments['run_id']}: units {first:,} to {first + count:,} were asked of its items and {len(units):,} came back")
+    return units
+
+
+def _release_window(conn, control, run, stage, row_id, arguments):
+    """
+    Carries (when the run carries on from another), tells and releases the unit rows written but not released yet (`released` up to `next` in the `spawn` row's arguments), then moves `released`. Run again after a
+    stop, it does the same to the same rows: a row already `ready` or `done` is not touched.
+    """
+    from planetgen.queue import resumed
+    run_id, index = arguments["run_id"], arguments["index"]
+    first, last = arguments["released"], arguments["next"]
+    if first >= last:
+        return
+    found = resumed.Carried()
+    prior = arguments.get("prior")
+    if prior:
+        units = _window_units(arguments, first, last - first)
+        rows = {int(item["item_key"]): item["id"] for item in control.execute(
+            "SELECT id, item_key FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key IN (" + ", ".join(["?"] * (last - first)) + ")", (run, stage, *map(str, range(first, last)))).fetchall()}
+        found = resumed.carry(conn, run_id, index, prior, arguments["kind"], [rows[unit] for unit in range(first, last)], units, first=first)
+        resumed.settle(conn, run_id, index, found)
+    from planetgen.queue import commands
+    if prior and not commands.spec(arguments["kind"]).resumes:
+        add_to_unit_args(conn, run_id, index, {resumed.AGAIN: True})
+    release_units(conn, run_id, index, skip=sorted(found.done))
+    arguments["released"] = last
+    control.execute("UPDATE engine_jobs SET arguments = ?, updated_at = NOW(6) WHERE id = ?", (ledger._text(arguments), row_id))
+    control.commit()
+
+
+def spawn_window(conn, run_id, index):
+    """
+    Writes the next window of the unit rows of stage `index` when the stage wants one (OPS.240): the units written and not done fewer than `LOW_WATER` of a window and units left to write. The rows and the cursor's
+    move are one transaction; the carry and the release of the rows that follow are run again by the next call when this one was stopped between them. A run that is not live gets none (a run that is over has its
+    `spawn` row canceled). Returns how many unit rows it wrote.
+    """
+    control = control_connection(conn, run_id)
+    try:
+        run, stage = engine_run(conn, run_id, control), _stage_key(conn, run_id, index)
+        found = control.execute("SELECT id, arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = ? AND item_key = '' AND state = 'waiting'", (run, stage, SPAWN)).fetchone()
+        if found is None:
+            return 0
+        arguments = json.loads(found["arguments"])
+        state = runrecord.run_state(conn, run_id)
+        if state not in runrecord.LIVE_STATES:
+            if state != runrecord.HELD:
+                ledger.set_job_state(control, found["id"], "canceled", waited="the run is over")
+                control.commit()
+                itemfile.remove(itemfile.path_of(run_id, stage))
+            return 0
+        _release_window(conn, control, run, stage, found["id"], arguments)
+        total, written, window = arguments["total"], arguments["next"], arguments["window"]
+        if written < total and written - conn.scard(runrecord.done_key(run_id, index)) - conn.hlen(runrecord.held_key(run_id, index)) < LOW_WATER * window:      # a held unit has run as far as it will: it does not keep a window from being written (the run is held when the last is done or held, `held.settle`)
+            count = min(window, total - written)
+            units = _window_units(arguments, written, count)
+            ledger.add_jobs(control, run, _classed([{"stage": stage, "command": arguments["kind"], "item_key": str(written + number), "arguments": {"args": args, "cost": cost}}
+                                                    for number, (args, cost) in enumerate(units)], job_class(conn, run_id)))
+            arguments["next"] = written + count
+            control.execute("UPDATE engine_jobs SET arguments = ?, updated_at = NOW(6) WHERE id = ?", (ledger._text(arguments), found["id"]))
+            control.commit()
+            _release_window(conn, control, run, stage, found["id"], arguments)
+            written = count
+        else:
+            written = 0
+        if arguments["released"] >= total:
+            ledger.set_job_state(control, found["id"], "done")
+            control.commit()
+            if conn.scard(runrecord.done_key(run_id, index)) >= total:       # every unit of the last window was carried done: no unit is left to end the stage
+                from planetgen.queue import units, wrapper
+                units._end_stage(conn, run_id, index, wrapper)
+        return written
+    finally:
+        control.close()
+
+
 def _cut_row(control, run, stage):
     return control.execute("SELECT arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND command = ? AND item_key = '' AND state = 'done'", (run, stage, OPEN)).fetchone()
 
@@ -335,5 +458,7 @@ def mark_ended(conn, run_id, index, role):
         ledger.add_jobs(control, run, _end_jobs(stage, kind))
         control.execute("UPDATE engine_jobs SET state = 'done', updated_at = NOW(6) WHERE run_id = ? AND stage = ? AND command = ? AND item_key = ''", (run, stage, end_rows(kind)[role]))
         control.commit()
+        if role == RELEASE:
+            itemfile.remove(itemfile.path_of(run_id, stage))       # the stage's item file (OPS.240) has no more windows to give once the stage has ended
     finally:
         control.close()

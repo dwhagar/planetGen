@@ -27,7 +27,7 @@ from planetgen.db import block_lights, block_stats, connection_loss, nebula_bloc
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import bodybeat
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
-from planetgen.queue import commands, engine, splitter, units as queueUnits, wrapper
+from planetgen.queue import commands, engine, itemfile, splitter, units as queueUnits, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.util.ticker import Ticker
@@ -1609,9 +1609,6 @@ def regenerate_sector_cell(address, config):
     return {"sector_id": saved["sector_id"], "sector_name": saved["name"]}
 
 
-SECTOR_UNITS_MAX = 4000
-"""int: The most units a stage of sectors is cut into (PERF.107): about that many static chunks, however many workers."""
-
 SECTOR_STAGE_KEYS = ("start", "neighborhood", "sectors")
 """tuple: The stages of a `galaxy` run that generate sectors; each is a command of its own (`commands.KIND_OF_STAGE`)."""
 
@@ -1778,12 +1775,34 @@ def _chunk_weights(batch_density, args, chunk, edge_pc):
         return None
 
 
+def _sector_unit(shared, record, with_suffix):
+    """The `(args, cost)` of the unit of one sector: the stage's shared arguments (`database`, `args`, `edge_pc`) and the sector's address, weight and, when the stage has any, suffix; its cost is its weight."""
+    shell, band, wedge, weight, suffix = record
+    unit = {**shared, "items": [shell, band, wedge], "weights": [weight]}
+    if with_suffix:
+        unit["suffixes"] = [suffix]
+    return unit, float(weight)
+
+
+def sector_window(later, start, count):
+    """
+    Units `start` up to `start + count` of a sector stage that was cut into windows (OPS.240, `CommandSpec.window`): the sectors the stage's item file holds at those places, each as the unit
+    `expand_generate_sectors` gave the first window's. The file fails loudly when it is missing or torn (`itemfile.ItemFileError`).
+    """
+    with itemfile.Reader(later["items"]) as reader:
+        records = reader.window(start, count)
+        with_suffix = reader.has_suffixes
+    return [_sector_unit(later["shared"], record, with_suffix) for record in records]
+
+
 def expand_generate_sectors(params):
     """
-    The sector stages' cut (PERF.107; `generate-start-sector`, `generate-neighborhood` and `generate-sectors`): the
-    addresses of `params["items"]` (the run's sectors to generate, flat `shell, band, wedge` triples, in the order to
-    generate them; for a stage that is `planned`, the ones `planned_items` works out when the stage opens) in about `SECTOR_UNITS_MAX` static chunks of consecutive sectors, the same at any worker count.
-    A unit's cost is its sectors' expected systems (PERF.268, `sector_weights`), one a sector where the density is not known.
+    The sector stages' cut (PERF.107; `generate-start-sector`, `generate-neighborhood` and `generate-sectors`): one unit for each sector of `params["items"]` (the run's sectors to generate, flat `shell, band, wedge`
+    triples, in the order to generate them; for a stage that is `planned`, the ones `planned_items` works out when the stage opens), whatever the galaxy's size (OPS.240). A unit's cost is the sector's expected systems
+    (PERF.268, `sector_weights`), one a sector where the density is not known.
+
+    The stage is cut into windows: `params["window"]` units are the expansion's `units` and the sectors of the rest are written to the stage's item file (`itemfile`, named by `params["run_id"]` and
+    `params["stage"]`) for the stage's spawner to write as rows when the first window is nearly done (`planrows.spawn_window`); a stage given no window, or with no more sectors than one, has no file.
     """
     if getattr(_sector_args_of(params), "around", None) is not None:
         return _expand_region(params)
@@ -1794,24 +1813,23 @@ def expand_generate_sectors(params):
             raise RuntimeError(problem)
     items, suffixes = planned_items(params) if params.get("planned") else (params["items"], [])
     count = len(items) // 3
-    size = max(1, -(-count // SECTOR_UNITS_MAX))
     weights_of = _chunk_weights(_BatchDensity(store.mysql_config_from_args(_sector_args_of(params))), _sector_args_of(params), items, params["edge_pc"])
-    units = []
-    for start in range(0, count, size):
-        chunk = items[3 * start:3 * (start + size)]
-        unit = {"database": params["database"], "args": params["args"], "edge_pc": params["edge_pc"], "items": chunk}
-        if suffixes:
-            unit["suffixes"] = suffixes[start:start + size]
-        weights = None if weights_of is None else weights_of[start:start + size]
-        if weights is not None:
-            unit["weights"] = weights
-        units.append((unit, float(sum(weights)) if weights is not None else float(len(chunk) // 3)))
+    records = [(*items[3 * place:3 * place + 3], int(weights_of[place]) if weights_of is not None else 1, suffixes[place] if suffixes else "") for place in range(count)]
+    window = int(params.get("window") or count)
+    shared = {"database": params["database"], "args": params["args"], "edge_pc": params["edge_pc"]}
+    with_suffix = any(record[4] for record in records)
+    units = [_sector_unit(shared, record, with_suffix) for record in records[:window]]
+    later = None
+    if count > window:
+        path = itemfile.path_of(params["run_id"], params["stage"])
+        itemfile.write(path, records)
+        later = {"items": path, "shared": shared}
     detail = {"sectors": count}
     if warning:
         detail["warning"] = warning
     if params.get("planned") == "random-start":
         detail["centers"] = [list(items[place:place + 3]) for place in range(0, len(items), 3)]       # the neighborhood stage reads them
-    return commands.Expansion(units, detail)
+    return commands.Expansion(units, detail, total=count, cost=float(sum(record[3] for record in records)), later=later)
 
 
 def _saved_addresses(args):
