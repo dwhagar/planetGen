@@ -179,8 +179,16 @@ class JobHost:
     def fork(self, runner, job=None, seconds=FORK_SECONDS):
         """Asks the template to fork one job that runs `runner(job, link)` (a dotted name the allow-list permits). Returns the `Job`."""
         job_id = next(self._ids)
-        self.control.send(template.encode({"op": "fork", "id": job_id, "runner": runner, "job": job or {}}))
-        message, fds = self._expect("forked", seconds, job_id)
+        try:
+            self.control.send(template.encode({"op": "fork", "id": job_id, "runner": runner, "job": job or {}}))
+            message, fds = self._expect("forked", seconds, job_id)
+        except (BrokenPipeError, ConnectionResetError):
+            self._dead = True
+            raise NotReady("the template ended before the job could be handed to it; a new one starts at the next turn") from None
+        except HostError as exc:
+            if self._dead:                  # killed between the ask and the answer: the job was not handed out (OPS.236)
+                raise NotReady("the template ended while the job was being handed to it; a new one starts at the next turn") from exc
+            raise
         sock = socket.socket(fileno=fds[0])
         pidfd = fds[1] if len(fds) > 1 else None
         held = Job(job_id, message["pid"], sock, pidfd)

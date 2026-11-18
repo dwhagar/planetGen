@@ -2,6 +2,84 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4553] - 2026-11-18
+
+**Headline:** the job engine's stage 4 kill tests run with real processes, and a unit no longer fails because its template had just been killed.
+
+### Fixed
+- OPS.236 (bug): a fork asked of a template that had just died (killed between two turns of the launcher) raised `BrokenPipeError`, which the launcher took for a failure of the unit and marked its row `failed`. `JobHost.fork` now says the template ended (`NotReady`), the host is dead, the launcher puts the row back to `ready` and the next turn starts a new template (`TemplateSet.host`).
+
+### Added
+- OPS.236: `tests/test_engine_kill_processes.py` kills real processes under a real template and a real control database: the template while its job runs (the job finishes, and the next job gets a new template), the template and its job together (handed out again once, finished once), a job the kernel kills (retried alone on a claim grown by one and a half), a job killed before it took its attempt, the supervisor killed with a job running (the job stops at its piece, the next supervisor hands it out again, every piece finished once) and a supervisor killed after its job wrote its end (nothing to recover).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4552] - 2026-11-18
+
+**Headline:** a job the kernel kills runs again alone on a claim one and a half times as large, as the design says (a bug since RQ was removed).
+
+### Fixed
+- OPS.236 (bug): when OPS.235 deleted `units.horse_killed`, nothing called `memorygate.grow` any more, so a job process killed by a signal (the kernel's out-of-memory kill) was handed out again with the same claim and beside other jobs, and could be killed again. `Launcher._grow` now records the grown claim of a retry after a kill, and `Launcher.claim` gives that retry the grown figure and the `alone` token (read from the earlier attempt's error kind, no new column). A unit that failed on its own, or was lost with its supervisor, is not grown.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4551] - 2026-11-18
+
+**Headline:** the job engine is now tested on whole random runs with crashes anywhere.
+
+### Added
+- OPS.245: `tests/test_engine_random_runs.py` draws a run from a seed (two to four stages of units made of pieces that commit, stages written in windows by the spawner, units that fail for good so the run is held and retried, kills at commits, the spawner stopped after its rows went in or after its cursor moved) and checks that the run ends done, every piece of every unit is written exactly once, no unit began before the stage before it was released, every windowed item has one row and one finished attempt, and every end row is done. `PLANETGEN_ENGINE_SOAK_SEEDS=200` runs more seeds.
+
+generation-output: unchanged (tests only; no golden, no epoch, no lock item)
+
+## [8.0.4550] - 2026-11-18
+
+**Headline:** a body with more than a quarter of its surface under ice now shows an "Ice-capped" row on its sheet and page.
+
+### Added
+- GEN.1572: `hydrosphere.ice_capped` says a body is ice-capped when ice, sea ice and land ice together, covers more than 25 percent of its surface (`ICE_CAPPED_MIN_COVER`, registry row CC18, Marginal educated guess from physics, tweak level L0, a design edge Boss approved). The ice share is the larger of the cover the hydrosphere stored (`ice_cover_fraction`) and the share the body's own albedo law puts on a world of its mean surface temperature (`climate_branches.IceAlbedoLaw.ice_fraction`, the one GEN.1697 takes off the weathering land); on a liquid sea the edge falls at about 264 K. The flag is derived, not stored: the sheet (`describe/sheet.py`, `_ice_capped_provider`) adds an "Ice-capped" row to the water group of a planet or moon that is, and the pages and the sheet API show it. It changes no class letter and no liquid cover, and a body with no surface water (dry, vapor, a giant) never has it.
+
+generation-output: unchanged (nothing stored, nothing generated differently: no column, no migration, no golden, no epoch, not a lock item)
+generation-affects: none
+
+## [8.0.4549] - 2026-11-18
+
+**Headline:** the job engine design note now describes the engine as it is on main, with RQ gone, and says what is proven and what is not.
+
+### Changed
+- OPS.252 (the rest): `docs/design/operations/job-engine.md` is brought up to date for what merged since its first slice: the stage table (stages 3 to 6: OPS.235 RQ removed, OPS.239, 240, 244 done, OPS.249, 250, 251, 261, 271 done), section 3 (failures reach the engine as they are), section 5 (sectors one at a time with a spawn row and a window, claims, time limits and the split follow the profile of a proven kind), section 6 (the controller's edges are learned), section 7 ("The old queue is gone": what stays under the old names and is not a queue), section 8 (the cold one-off system request measured on a quiet machine: 52.6 s first, 19.5 to 28.4 s after), section 10 (what is proven: OPS.225 slices 1 to 3, OPS.274; what is not) and the code map.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4548] - 2026-11-18
+
+**Headline:** a held unit's error now says where it failed, so a one-off failure under load can be traced from the Queue page and the log.
+
+### Changed
+- OPS.275: the error a held unit keeps (the held hash, the run's `unit.held` line, the job log and the reason the run is held with) ends with ` (at file:line in function, ...)` for the last three frames of the failure's traceback, innermost first, files named from the `planetgen` package (`held.where`). The whole error text, exception message included, is passed through the secrets mask before it is stored or said.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4547] - 2026-11-18
+
+**Headline:** The resume-across-builds runner tests no longer depend on the machine's MySQL and Redis, so one of them stops failing or hanging when those are missing or down.
+
+### Fixed
+- **`test_main_says_how_many_tests_were_reused_and_from_which_run`** (`src/tests/test_resume_across_builds.py`): it ran `scripts/test.py quick --resume` with the real service check, which exits 2 when the test environment is not set and waits on a MySQL or Redis that is down when it is (a hang on main, seen by Lane 16 at 1:23 AM EST on 2026-11-18). The runner these tests build now has a quiet services check, as `test_test_runner.py` already does; the tests are about reusing passes, not about services.
+
+## [8.0.4546] - 2026-11-18
+
+**Headline:** an epoch that did not touch the galaxy's plan or scatter no longer makes the map draw every tile again.
+
+### Changed
+- MAP.431: the map's tile cache key (`tile_base`) counts the epoch a stored shape or scatter was made under as the last epoch that changed that stage (`generator_epoch.last_change`, from each epoch's `affects`), not the raw epoch number. A stamp that moves the galaxy up an epoch that changed neither the plan nor the scatter (a refill of the derived values, a new fill) keeps every stored tile; an epoch that changed the scatter still draws the scatter's tiles again. The first load after this release draws the tiles once, as the key's make-up changed.
+
+generation-output: unchanged (no golden, no epoch, no lock item)
+
 ## [8.0.4545] - 2026-11-18
 
 **Headline:** a galaxy run of many thousands of sectors no longer keeps a kilobyte of history for every sector it made.
