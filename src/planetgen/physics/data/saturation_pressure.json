@@ -913,7 +913,7 @@
    "curves": [],
    "triple_point_k": 134.33,
    "sublimation_kj_mol": 25.128,
-   "note": "GEN.1794. Liquid: NIST WebBook Antoine log10(P/bar) = 4.0436 - 808.49/(T - 22.72), 161.8 to 223.84 K (Kemp and Giauque 1937), carried on to the critical temperature of the gas table and down to the triple point 134.33 K (Kemp and Giauque 1937); the solid is Clausius-Clapeyron from the liquid curve's pressure at the triple point with 25.13 kJ/mol = 20.4 of vaporisation (NIST, at 176 K) + 4.728 of fusion: a stand-in (no sublimation enthalpy on NIST), unchecked against any measurement of the solid",
+   "note": "GEN.1794. Liquid: NIST WebBook Antoine log10(P/bar) = 4.0436 - 808.49/(T - 22.72), 161.8 to 223.84 K [R2312], carried on to the critical temperature of the gas table and down to the triple point 134.33 K [R2312]; the solid is Clausius-Clapeyron from the liquid curve's pressure at the triple point with 25.13 kJ/mol = 20.4 of vaporisation (NIST, at 176 K) + 4.728 of fusion: a stand-in (no sublimation enthalpy on NIST), unchecked against any measurement of the solid",
    "liquid": {
     "form": "antoine",
     "t_max_k": 378.77,
@@ -932,7 +932,7 @@
    "curves": [],
    "triple_point_k": 161.11,
    "sublimation_kj_mol": 36.481,
-   "note": "GEN.1794. Liquid: NIST WebBook Antoine log10(P/bar) = 4.06683 - 1168.62/(T - 31.616), 276.74 to 353.08 K (Waddington et al. 1962), carried on to the critical temperature of the gas table and down to the triple point 161.11 K (Brown and Manov 1937); the solid is Clausius-Clapeyron from the liquid curve's pressure at the triple point with the vaporisation of the NIST correlation 37.07 exp(-0.2264 Tr)(1 - Tr)^0.2264 at the triple point (valid 282 to 319 K, carried down) + 4.389 of fusion: a stand-in",
+   "note": "GEN.1794. Liquid: NIST WebBook Antoine log10(P/bar) = 4.06683 - 1168.62/(T - 31.616), 276.74 to 353.08 K [R5310], carried on to the critical temperature of the gas table and down to the triple point 161.11 K [R5311]; the solid is Clausius-Clapeyron from the liquid curve's pressure at the triple point with the vaporisation of the NIST correlation 37.07 exp(-0.2264 Tr)(1 - Tr)^0.2264 at the triple point (valid 282 to 319 K, carried down) + 4.389 of fusion: a stand-in",
    "liquid": {
     "form": "antoine",
     "t_max_k": 552.0,
@@ -951,7 +951,7 @@
    "curves": [],
    "triple_point_k": 290.1,
    "sublimation_kj_mol": 54.85,
-   "note": "GEN.1794. Liquid: NIST WebBook Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K (Abercromby and Tiley 1963), carried down to the melting point of the gamma phase 290.1 K (Kondrat'ev and Strizhov 1985; the gas table has no triple point) and up to the critical temperature of the gas table; at the gas table's boiling point of 317.9 K the curve is 10 percent over 1 atm (outside its window); the solid is Clausius-Clapeyron with 54.85 kJ/mol = 45.5 of vaporisation + 9.35 of fusion: a stand-in for the gamma phase (the alpha and beta phases are not modelled)",
+   "note": "GEN.1794. Liquid: NIST WebBook Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K [R5312], carried down to the melting point of the gamma phase 290.1 K (NIST WebBook; the gas table has no triple point) and up to the critical temperature of the gas table; at the gas table's boiling point of 317.9 K the curve is 10 percent over 1 atm (outside its window); the solid is Clausius-Clapeyron with 54.85 kJ/mol = 45.5 of vaporisation + 9.35 of fusion: a stand-in for the gamma phase (the alpha and beta phases are not modelled)",
    "liquid": {
     "form": "antoine",
     "t_max_k": 491.0,
