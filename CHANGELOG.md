@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4513] - 2026-11-18
+
+**Headline:** An update that changes nothing the bright-star sampling tables read no longer starts the next run with cold tables, and a table is built once however many workers ask for it.
+
+### Fixed
+
+- PERF.281: the kept bright-star sampling tables (`band_table_cache`) are keyed by the contents of the 66 files a table is made from (the 28 a build runs, found by tracing 396 builds over every population and kind, and the files they import directly), the sizes of the downloaded datasets, the Python and numpy versions and the 193 `tuning` constants those files read. The key was the name, size and modification time of every one of 1,166 files and every constant, so every update, and every `git checkout`, started the next run cold: a sky share spent 537 of 982 profiled seconds building tables, 28 to 50 s in each of 30 tiers, in each of 16 shares. A test traces the builds and fails if one runs a file outside the list. A table is built under a lock of its own (the system lets it go when the process ends), so workers that start together on the same tables build each once and read it, a waiting unit keeps its beat, and the unit's line says it is building a table and how many this process has built.
+
 ## [8.0.4512] - 2026-11-18
 
 **Headline:** A short N-body integration checks the generator's stability screens, with a report and a test; generation is unchanged.
