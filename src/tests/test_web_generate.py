@@ -1365,7 +1365,8 @@ def test_the_light_job_makes_the_system_in_its_own_process_from_the_generators_o
     assert rogue["ok"] and json.loads(rogue["text"])["title"]
 
 
-def test_the_debug_log_of_the_one_off_system_keeps_the_areas_that_were_asked_for():
+def test_the_debug_log_of_the_one_off_system_keeps_the_areas_that_were_asked_for(monkeypatch):
+    monkeypatch.setattr(system_page, "MAX_LOG_BYTES", 1 << 30)         # the page shows the end of a long log; this is about which areas are kept, whatever the system's size
     every = system_page.generate_in_process("system", [], True, None)
     drawn = system_page.generate_in_process("system", ["--debug-areas=draw"], True, None)
     assert every["ok"] and drawn["ok"] and every["debug_log"] and drawn["debug_log"]
