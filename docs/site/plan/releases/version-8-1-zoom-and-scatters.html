@@ -185,6 +185,12 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Class M rarity report, 2026-11-08.</td>
 </tr>
 <tr>
+<td>GEN.1390</td>
+<td>Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug)</td>
+<td></td>
+<td>Bug Hunt first pass, 2026-11-07.</td>
+</tr>
+<tr>
 <td>TEST.696</td>
 <td>Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug)</td>
 <td></td>
@@ -1370,6 +1376,18 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Lane 13, 2026-11-15.</td>
 </tr>
 <tr>
+<td>OPS.231</td>
+<td>Job engine stage 4: one memory controller in the supervisor (admit on pressure; ask the youngest bulk job to stop at its next piece); adaptive.py and workers.py caps and lend rule deleted; makes OPS.149 and OPS.151 moot</td>
+<td>none</td>
+<td>Lane 06, 2026-11-14.</td>
+</tr>
+<tr>
+<td>OPS.234</td>
+<td>Job engine stage 4: pause, Stop All, cancel, clear and the update guard become requests to the supervisor</td>
+<td>none</td>
+<td>Lane 13, 2026-11-14.</td>
+</tr>
+<tr>
 <td>OPS.235</td>
 <td>Job engine stage 4: RQ removed (the rq dependency, cli/worker.py, redisqueue queue helpers, reset_jobs RQ parts); makes OPS.179 moot</td>
 <td>none</td>
@@ -1380,6 +1398,12 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Job engine stage 4: proof (simulator: a visitor's job starts within a second under any backlog, no job passed for ever, claims never over budget; kill tests for template, job, supervisor and kernel kill)</td>
 <td>none</td>
 <td>Lane 13, 2026-11-14.</td>
+</tr>
+<tr>
+<td>OPS.239</td>
+<td>Job engine stage 5: single-purpose commands (phenomena finish about five, run-population about four, remaining multi-purpose expands); absorbs OPS.129; one item per bundle</td>
+<td>none</td>
+<td>Lane 16, 2026-11-14.</td>
 </tr>
 <tr>
 <td>OPS.240</td>
@@ -1410,6 +1434,12 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143</td>
 <td>none</td>
 <td>Lane 07, 2026-11-14</td>
+</tr>
+<tr>
+<td>OPS.248</td>
+<td>Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit)</td>
+<td>none</td>
+<td>Lane 14, 2026-11-14.</td>
 </tr>
 <tr>
 <td>OPS.249</td>
@@ -2139,10 +2169,28 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Lane 02, 2026-11-16.</td>
 </tr>
 <tr>
+<td>TEST.786</td>
+<td>(bug) Runaway-start test red: a wet body past the runaway limit keeps a surface ocean</td>
+<td>none</td>
+<td>Lane 14, 2026-11-16</td>
+</tr>
+<tr>
+<td>TEST.788</td>
+<td>Slow gate files: make each fit inside the hang guard without changing what it checks</td>
+<td>none</td>
+<td>Lane 16, 2026-11-16</td>
+</tr>
+<tr>
 <td>GEN.1771</td>
 <td>(bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more</td>
 <td>none</td>
 <td>Lane 03, 2026-11-16.</td>
+</tr>
+<tr>
+<td>GEN.1777</td>
+<td>Measure whether the CO<sub>2</sub> supply needs a tweak</td>
+<td>none</td>
+<td>Lane 04, 2026-11-16</td>
 </tr>
 <tr>
 <td>GEN.1780</td>
@@ -2169,30 +2217,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Lane 16, 2026-11-17</td>
 </tr>
 <tr>
-<td>GEN.1788</td>
-<td>Giant scattering reviewed; comets follow</td>
-<td>none</td>
-<td>Lane 06, 2026-11-17</td>
-</tr>
-<tr>
-<td>GEN.1789</td>
-<td>Oxygen source and sink stand-ins reviewed</td>
-<td>none</td>
-<td>Lane 04, 2026-11-17</td>
-</tr>
-<tr>
-<td>GEN.1790</td>
-<td>A blown-off hydrogen envelope is stripped past the climate ceiling</td>
-<td>none</td>
-<td>Lane 14, 2026-11-17</td>
-</tr>
-<tr>
-<td>GEN.1791</td>
-<td>Best stand-in lever set for Class M and M-like worlds</td>
-<td>none</td>
-<td>Class M levers thread, 2026-11-17</td>
-</tr>
-<tr>
 <td>OPS.261</td>
 <td>Job engine stage 3 follow-up to OPS.220: delete rq.Retry(max=1) on the killed path, the in-transaction db.contention retries, and the piece-0 restart, once their replacements are in</td>
 <td>OPS.219, OPS.227</td>
@@ -2215,18 +2239,6 @@ This file gives the version's goal, its phases and each phase's build threads wi
 <td>Habitability seasonal solve per pre-placed system</td>
 <td>none</td>
 <td>Lane 16, 2026-11-17</td>
-</tr>
-<tr>
-<td>PERF.280</td>
-<td>Stage 9 skips or batches near-empty sky cells</td>
-<td>none</td>
-<td>Lane 07, 2026-11-17</td>
-</tr>
-<tr>
-<td>PERF.281</td>
-<td>Stage 9 sampling tables built once and kept across updates</td>
-<td>none</td>
-<td>Lane 07, 2026-11-17</td>
 </tr>
 </tbody>
 </table></div>
