@@ -212,10 +212,16 @@ def _hill_au(planet):
 
 
 def assert_orbits_sane(planets):
-    """Independent physical checks on one star's ordered body list."""
+    """Independent physical checks on one star's ordered body list. A belt member promoted to a planet (GEN.1510, `belt_rank`) orbits inside its belt, which the slot spacing exempts
+    (`validation.slot_planets`): it must lie inside a belt of the list, and the spacing checks below are for the slot bodies."""
     distances = [obj.distance for obj in planets]
     assert distances == sorted(distances), f"bodies not in orbital order: {distances}"
     assert len(set(distances)) == len(distances), f"two bodies share an orbit: {distances}"
+    belts_here = [obj for obj in planets if obj.body_type == "a"]
+    for member in (obj for obj in planets if getattr(obj, "belt_rank", None) is not None):
+        assert any(belt.lower_limit <= member.distance <= belt.upper_limit for belt in belts_here), (
+            f"belt member at {member.distance} AU is inside none of the belts {[(b.lower_limit, b.upper_limit) for b in belts_here]}")
+    planets = [obj for obj in planets if getattr(obj, "belt_rank", None) is None]
     for obj in planets:
         if obj.body_type == "a":
             assert 0 < obj.lower_limit <= obj.distance <= obj.upper_limit, (
