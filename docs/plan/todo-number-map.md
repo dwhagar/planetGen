@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.51 |
 | TEST | TEST.791 |
 | USR | USR.33 |
-| OPS | OPS.274 |
+| OPS | OPS.275 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3091,6 +3091,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.271 | Ledgerless runs run their units without RQ, so the bulk RQ unit path can be deleted | OPS.228 | done (PR 7090, PR 7111) |
 | OPS.272 | The refill job reads the derived stage | OPS.133 | open (Lane 13) |
 | OPS.273 | Rogue planet draws key on a seed-derived donor identity, not its Object ID | none | open (Lane 13) |
+| OPS.274 | Resume and finish tests follow the hold-and-continue rule | none | open (Lane 13) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
