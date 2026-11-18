@@ -56,6 +56,13 @@ def test_it_moves_a_quarter_a_run_and_is_held_for_the_run(conn):
     assert profiletime.unit_seconds(conn, "link", token="r2", read_rows=rows(*[40.0] * 5)) == pytest.approx(31.25)
 
 
+def test_a_proven_kind_follows_its_median_outright_inside_the_typed_clamp(conn):
+    """OPS.250: a full window of this machine's units leads; the typed seconds are the default and the clamp."""
+    assert profiletime.unit_seconds(conn, "link", token="r1", typed_seconds=20.0, read_rows=rows(*[40.0] * 30)) == pytest.approx(40.0)         # not limited to a quarter
+    assert profiletime.unit_seconds(conn, "link", token="r2", typed_seconds=20.0, read_rows=rows(*[400.0] * 30)) == pytest.approx(80.0)       # four times the typed 20 s
+    assert profiletime.unit_seconds(conn, "link", token="r3", read_rows=rows(*[400.0] * 30)) == pytest.approx(400.0)                           # no typed figure, no clamp
+
+
 def test_another_machines_samples_count_half(conn):
     assert profiletime.unit_seconds(conn, "link", token="r1", typed_seconds=20.0, read_rows=rows(*[30.0] * 5, shape=OTHER)) == pytest.approx(25.0)
     assert profiletime.target(rows(*[30.0] * 5, shape=OTHER)("x"), None, *HOST)[0] == 30.0
