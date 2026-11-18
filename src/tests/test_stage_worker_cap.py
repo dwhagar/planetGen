@@ -70,6 +70,16 @@ def test_the_stage_that_ends_logs_the_largest_worker_beside_its_figure():
     assert "2.37 GB of the 3.05 GB" in logged[0][0] and "over the 3.05 GB" in logged[1][0] and "one worker by nature" in logged[2][0]
 
 
+def test_a_stage_over_a_profile_led_figure_is_told_the_profile_follows(monkeypatch):
+    """OPS.250: once the profile leads, the log does not tell an admin to raise the typed constant."""
+    logged = []
+    monkeypatch.setattr(wrapper.runrecord, "log", lambda conn, run_id, text, **fields: logged.append((text, fields)))
+    monkeypatch.setattr(workers, "stage_worker_mb", lambda kind, conn=None, run_id=None: 1800.0)
+    step = commands.Step("neighborhood", "generate-neighborhood", "Generate the neighborhood")
+    wrapper._log_peak_memory(object(), "run", 1, step, {"label": "Generate the neighborhood"}, 2000.0)
+    assert "over the 1.8 GB" in logged[0][0] and "the profile follows it" in logged[0][0] and "raise the figure" not in logged[0][0]
+
+
 def test_peak_counts_the_worker_beside_its_horse():
     """PERF.226: a horse forked from a worker reports its own resident size; the figure includes the worker's pages too (the
     proportional share of the two), where the system gives it, and is never below the process's own peak."""

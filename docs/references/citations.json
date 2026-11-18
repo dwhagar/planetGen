@@ -383,7 +383,7 @@
     },
     "R0077": {
       "kind": "paper",
-      "label": "Allen et al. 2005",
+      "label": "Allen et al. 2005b",
       "title": "The Oxford-Dartmouth Thirty Degree Survey - II. Clustering of bright Lyman break galaxies: strong luminosity-dependent bias atz= 4"
     },
     "R0078": {
@@ -26465,6 +26465,16 @@
       "kind": "paper",
       "label": "Fernández et al. 2013b",
       "title": "Thermal properties, sizes, and size distribution of Jupiter-family cometary nuclei"
+    },
+    "R5299": {
+      "kind": "paper",
+      "label": "Allen et al. 2005a",
+      "title": "Linking the global carbon cycle to individual metabolism"
+    },
+    "R5300": {
+      "kind": "paper",
+      "label": "Catling and Zahnle 2003",
+      "title": "EVOLUTION OF ATMOSPHERIC OXYGEN"
     },
     "R5302": {
       "kind": "paper",

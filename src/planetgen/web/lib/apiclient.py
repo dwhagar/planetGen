@@ -1592,17 +1592,6 @@ def admin_work_stop_all(cookie_header):
     return body["summary"]
 
 
-def admin_work_workers(cookie_header, count=None, ludicrous=False):
-    """`GET`, or with `count` / `ludicrous` `POST`, `/api/admin/work/workers` -- the bulk worker count (ADM.15):
-    `{"wanted", "live", "ludicrous", "cpus"}`."""
-    if count is None and not ludicrous:
-        body, _set_cookie_headers = _auth_request("GET", "/admin/work/workers", cookie_header=cookie_header)
-    else:
-        body, _set_cookie_headers = _auth_request("POST", "/admin/work/workers", cookie_header=cookie_header,
-                                                  json_body={"ludicrous": True} if ludicrous else {"count": count})
-    return body
-
-
 def admin_lift_lockout(cookie_header, scope=None, subject=None, lift_all=False):
     """`POST /api/admin/lockouts/lift` -- one lockout, or every one with
     `lift_all`. Returns how many were lifted."""

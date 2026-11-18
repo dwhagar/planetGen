@@ -39,11 +39,20 @@ def test_a_kind_that_is_one_unit_by_nature_has_no_cap_whatever_the_profile_says(
 
 def test_history_that_shows_smaller_workers_lets_more_of_them_run_within_a_quarter(conn, monkeypatch):
     typed = workers.stage_worker_mb("generate-sectors")
-    monkeypatch.setattr(jobprofiles, "peaks", history(typed / 4))
+    monkeypatch.setattr(jobprofiles, "peaks", history(typed / 4, 10))
     cap = workers.stage_worker_cap("generate-sectors", conn, "r1")
     assert cap > workers.stage_worker_cap("generate-sectors")
     assert workers.stage_worker_mb("generate-sectors", conn, "r1") == pytest.approx(typed * 0.75)       # one run moves a figure by at most a quarter
     assert workers.stage_worker_cap("generate-sectors", conn, "r1") == cap                              # held for the run
+
+
+def test_a_proven_stage_is_sized_by_its_profile_whole_inside_the_typed_clamp(conn, monkeypatch):
+    """OPS.250: a full window of this machine's units leads at once, not a quarter a run; four times smaller than typed is as far as it may go."""
+    typed = workers.stage_worker_mb("generate-sectors")
+    monkeypatch.setattr(jobprofiles, "peaks", history(typed / 2))
+    assert workers.stage_worker_mb("generate-sectors", conn, "r1") == pytest.approx(typed / 2 * profileclaim.margin(30))
+    monkeypatch.setattr(jobprofiles, "peaks", history(typed / 100))
+    assert workers.stage_worker_mb("generate-sectors", conn, "r2") == pytest.approx(typed / profileclaim.CLAMP)
 
 
 def test_history_that_shows_bigger_workers_lowers_the_cap(conn, monkeypatch):

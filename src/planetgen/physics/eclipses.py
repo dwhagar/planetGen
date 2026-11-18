@@ -42,6 +42,7 @@ import math
 import numpy as np
 
 from planetgen.physics import constants, spin
+from planetgen.util import detmath
 
 TRACK_SAMPLES = 400
 """int: Points along a crossing the area is integrated at."""
@@ -74,7 +75,7 @@ def _track(alpha_c, alpha_s, beta):
         return 0.0, 0.0
     half = math.sqrt(reach * reach - beta * beta)
     xs = np.linspace(-half, half, TRACK_SAMPLES)
-    areas = np.array([lens_area(alpha_c, alpha_s, math.hypot(x, beta)) for x in xs])
+    areas = np.array([lens_area(alpha_c, alpha_s, detmath.hypot(x, beta)) for x in xs])
     return float(np.trapezoid(areas, xs)), 2.0 * half
 
 

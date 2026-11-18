@@ -54,10 +54,10 @@ EARTH_O2_PA = 21.2e3
 """float: The oxygen partial pressure of Earth's air, Pa (20.95 percent of 101.325 kPa), the point the oxidative weathering is scaled from (`p0`). [BO14, T1, L0.]"""
 
 EARTH_BURIAL_MOL_YR = 1.0e13
-"""float: The organic carbon Earth buries a year, mol (the source `S`; [R1859], about 1e13). T2, L3."""
+"""float: The organic carbon Earth buries a year, mol (the source `S`; [R5300: Table 1] gives 10 plus or minus 3.3 x 10^12 mol O2 a year, one mole of O2 per mole of carbon). [BO1, T1, L0.]"""
 
 EARTH_REDUCTANT_MOL_YR = 3.0e12
-"""float: The oxygen Earth's volcanic and metamorphic reductants take a year, mol (`R`; [R1980] few 1e12). T3, L3."""
+"""float: The oxygen Earth's volcanic and metamorphic reductants take a year, mol (`R`; [R5300: Table 1] gives 3 plus or minus 1 x 10^12 mol O2 a year). [BO2, T1, L0.]"""
 
 LAND_SHARE_OF_BURIAL = 0.27
 """float: The share of Earth's organic carbon burial that land plants carry (GEN.1729): they add 25 to 50 percent to the burial ([R5283], C/P 1000 to 2000), so 0.20 to 0.33 of today's total; the middle. Used only for a
@@ -119,7 +119,7 @@ PAR_BAND = Band(PAR_NM, 1.0)
 SUN_TEMPERATURE_K = constants.SOLAR_TEMPERATURE_K
 
 TEMPERATURE_ACTIVATION_EV = 0.32
-"""float: The activation energy of photosynthesis, eV (about a half of a heterotroph's; T2, L0)."""
+"""float: The activation energy of photosynthesis, eV ([R5299]: about 0.32 eV from Rubisco carboxylation, against 0.65 eV for respiration). [BO5, T1, L0.]"""
 
 REFERENCE_TEMPERATURE_K = 288.0
 OCEAN_SPAN_K = (258.0, 275.0, 315.0, 343.0)

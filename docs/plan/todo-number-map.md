@@ -2973,7 +2973,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.276 | The air solve is 59 percent of a full system build: cut repeat solves | done (Lanes 16 and 07, 3:43 AM EST 11-17: PRs 6993, 7004, 7016, 7024, 7028, all output identical; exobase step is PERF.278, cooling step PERF.277) |
 | PERF.277 | Interior cooling of old belt-sized bodies takes up to 770,000 steps: stop the step collapse | done (Train 43, PR 7084, 11-17) |
 | PERF.278 | The exobase search takes 15 percent of a build: a fixed 0.25 scale-height step (lock) | closed, not worth it as speed (Lane 07, 3:50 AM EST 11-17: 2.6 percent of a build after the cache); accuracy fault is GEN.1784 |
-| PERF.279 | Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes) | TEST.788 | open (Lane 16) |
+| PERF.279 | Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes) | TEST.788 | done (Train 44, PR 7149) |
 | PERF.280 | Stage 9 skip or batch near-empty sky cells (design and measure first) | OPS.270 | open (Lane 07) |
 | PERF.281 | Stage 9 sampling tables: cache keyed by their inputs, built once before the shares | PERF.280 | done (PR 7129) |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
@@ -3067,7 +3067,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | open |
 | OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | done (PR 7094 merged 12:41 PM EST 11-17: ledger-read latency is a second signal for the memory controller's hold) |
 | OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | open |
-| OPS.250 | Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160 | none | open |
+| OPS.250 | Job engine stage 6: typed tables retired as primary figures where the profile has run a full galaxy on Boss's server; absorbs OPS.160 | none | done (PR 7143 merged 9:19 PM EST 11-17: a kind with 30 finished units on this machine shape and epoch leads with its learned memory claim and unit seconds; the typed figure is the default and a 4x clamp) |
 | OPS.251 | Job engine stage 6: remove the last typed timeouts a learned figure or kernel notice can replace | none | done (slice 1 PR 7097, slice 2 PR 7124 merged 8:14 PM EST 11-17; the RQ workers' 90 s counter goes with OPS.235) |
 | OPS.252 | Job engine stage 6: one design note for the engine as built, replacing the queue parts of DOC.113, DOC.120 and the older queue notes | none | open |
 | OPS.253 | (bug) A New galaxy run sat about 10 hours in Stage 8 at "Backfilling the bright stars out from the edge of the run" with no progress line and was never stopped or failed | none | done, part A PR #6538 (8:52 PM EST 11-14), part B PR #6591 in Train 30, PR #6615 (4:21 AM EST 11-15) |
@@ -4123,8 +4123,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1784 | The exobase search underestimates the exobase height (median 6 percent, up to 25) (lock) | done (Train 43, PR 7084, 11-17) |
 | GEN.1785 | Class census shifts since 8656686b7: explain each, fix faults, renew ranges | GEN.1390 | open (Lane 04) |
 | GEN.1786 | Held resonance eccentricity not saved or restored since GEN.1651 (bug) | GEN.1651 | done (PR 7057, 11-17) |
-| GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | open (Lane 16) |
-| GEN.1788 | Review giant scattering physics; comets follow (Science comets 0 percent) | GEN.1775 | open (Lane 06) |
+| GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | done (Train 44, PR 7149) |
+| GEN.1788 | Review giant scattering physics; comets follow (Science comets 0 percent) | GEN.1775 | done (Train 44, PR 7149) |
 | GEN.1789 | (high) Oxygen source against reductant sink: reshape options for the oxygen stand-ins, report first | GEN.1777 | open (Lane 04) |
 | GEN.1790 | Envelope past the climate ceiling boils off; lava vapor held and logged | GEN.1745 | open (Lane 14) |
 | GEN.1791 | Lever search for Class M and M-like worlds at the Abundant tier (report) | GEN.1789 | open (Class M levers thread) |

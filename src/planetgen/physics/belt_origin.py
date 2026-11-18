@@ -74,7 +74,7 @@ MIN_BELT_MASS_EARTH = 1.0e-6
 SNOW_BUMP_WIDTH = 0.15
 """float: The snow-line bump spans the formation snow line divided and multiplied by `1 + SNOW_BUMP_WIDTH` (BG4)."""
 
-STIR_ZONE_WIDTHS = 3.0
+STIR_ZONE_WIDTHS = scatter_rule.REACH_ZONE_WIDTHS
 """float: A belt within this many chaotic half-widths of a giant, outside its chaotic zone, is stirred by it (BG8)."""
 
 INSTABILITY_SURVIVAL_RANGE = (0.002, 0.01)

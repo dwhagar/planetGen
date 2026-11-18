@@ -164,9 +164,7 @@ def test_reset_jobs_clears_the_queue_and_the_runs_and_keeps_the_rest(redis_serve
     queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
     waiting = queue.enqueue(math.pow, 2, 2, job_timeout=600)
     running_job(queue, connection, "never-registered")
-    connection.set(workers.WANTED_KEY, 3)
     connection.set("planetgen:page:kept", "1")
-    connection.set(workers.STARTING_PREFIX + redisqueue.BULK_QUEUE, 2)
     pause.pause("boss", connection)
     stale_run = runrecord.start_run(connection, "Stale run", [runrecord.Stage("mass", "Mass", units=3)])
     with pytest.raises(runrecord.Busy):
@@ -190,8 +188,7 @@ def test_reset_jobs_clears_the_queue_and_the_runs_and_keeps_the_rest(redis_serve
         assert list(connection.scan_iter(match="rq:*")) == []
         assert list(connection.scan_iter(match="planetgen:run:*")) == [] and runrecord.active_run(connection) is None
         assert runrecord.read_run(connection, stale_run) is None
-        assert list(connection.scan_iter(match=workers.STARTING_PREFIX + "*")) == []
-        assert connection.get(workers.WANTED_KEY) == b"3" and connection.get("planetgen:page:kept") == b"1"
+        assert connection.get("planetgen:page:kept") == b"1"
         assert not pause.is_paused(connection)          # the pause flag goes with the rest
         text = "\n".join(lines)
         assert "Redis: removed" in text and "Jobs and queue reset" in text
