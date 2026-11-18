@@ -33,7 +33,7 @@ def one_system(seed):
     if len(system.stars) != 1:
         return {"seed": seed, "skipped": "not a single star"}
     star = system.stars[0]
-    bodies = sorted((p for p in system.all_planets if p.body_type != "a" and getattr(p, "distance", None)), key=lambda p: p.distance)
+    bodies = sorted((p for p in validation.slot_planets(system.all_planets) if p.body_type != "a" and getattr(p, "distance", None)), key=lambda p: p.distance)       # not the belt members promoted to planets (GEN.1510): the spacing screen exempts them, as it does their belt
     if len(bodies) < 2:
         return {"seed": seed, "skipped": "fewer than two planets"}
     sun_kg = nb.SOLAR_MASS_KG
