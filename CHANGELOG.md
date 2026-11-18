@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4582] - 2026-11-18
+
+**Headline:** The map luminosity fill is now tested to write the same values when units of the fill are killed and retried.
+
+### Added
+- **A kill test for fill-map-luminosity (OPS.225).** The scattered phenomena get their map luminosity emptied and filled again, undisturbed and with units killed at drawn commits; the filled values and the block light parts rolled from them must match. No double write found.
+
 ## [8.0.4581] - 2026-11-18
 
 **Headline:** The whole-system fuzz tests pass again: belt members promoted to planets are checked as members, and a body's snow-line flag is a plain bool.
