@@ -3668,6 +3668,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   calculations replace every Sun-radius use (GEN.378, Boss, 9:43 PM
   EDT).
   Prerequisites: GEN.338. Related: GEN.115.
+  Lane 13 (11:48 PM EST 2026-11-17): galaxy/sky.py seeds the stand-in velocity of an unbuilt scatter star from its uid (view only, nothing stored); key it on the scatter seed when this is built.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -11458,6 +11459,7 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: grows with OPS.216-222. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
   Slice 2 merged (PR 7116, 2026-11-17): a seeded proof that a held run resumes to the undisturbed result with done units run once. Last piece (TODO accepted Lane 13's plan, 7:48 PM EST): real-MySQL kill tests in five slices by command family, order sector making, scatters, maintenance writes, resets and clears, checks and warm-ups; a double write found is fixed in the same PR, and an output change goes to a train.
+  Slices so far (Lane 13): sector making PR 7161 and kill_harness (10:39 PM EST 2026-11-17); scatter family PR 7169 (11:50 PM EST: clear-bright-stars, scatter-mass, scatter-luminosity, scatter-band, scatter-phenomena; no double write). Still to cover: scatter-backfill, clear-scatter, store-scatter-limits.
 
 - [ ] **OPS.226 Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle D1); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row D1 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size L. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
@@ -11483,12 +11485,14 @@ clears each one.
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G3); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G3 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 16. Prerequisites: OPS.238, stage 4. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
+  Slices A, B and C: PR 7171 (Lane 16) merged 12:00 AM EST 2026-11-18: sectors are one unit at any size, a spawn row writes the next window, packed item file in the state folder, no migration, generation unchanged. Slice D (fold finished sector rows above 10,000) next.
 
 - [ ] **OPS.244 Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G7); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G7 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-14): Lane 15. Prerequisites: OPS.238, stage 4. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
   Slice B: PR 7163 (Lane 15) merged 11:11 PM EST 2026-11-17: a Generate page job is a ledger run of kind page (queue/pagerun.py); no job.json, runner.pid, cancel file or private RQ queue. Slice C (waiting line as rows) next.
+  Slice C: PR 7168 (Lane 15) merged 11:47 PM EST 2026-11-17: a waiting Generate job is a waiting ledger run; the run line holds runs only.
 
 - [ ] **OPS.245 Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice)**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle G8); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row G8 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
@@ -11607,7 +11611,13 @@ clears each one.
 
 - [ ] **OPS.273 (bug) Rogue planet draws key on the donor system's Object ID, so the same seed makes different rogues after a reset (sector_paths 95 against 93 rows)**
   Lane 13, kill tests (10:30 PM EST 2026-11-17): `galaxy --shell 1 --limit 6 --num-systems 1` on a fixed stored seed gives 95 sector_paths rows on a fresh database and 93 after a `reset` and the same run; kills do not move it. Lane 13 trace (10:46 PM EST): every differing row is a rogue_planets path; a rogue is drawn from its donor system's Object ID, and reset keeps id_counters on purpose (DB.20), so the same stars get new IDs and their rogues land elsewhere. Keeping the counters is by design; a draw keyed on a database ID is not (a sector must depend only on its seed and inputs). Do: key the rogue draw on a seed-derived identity of the donor (system seed or skeleton position), check whether any other draw reads an Object ID, and add a test that a fresh run and a run after reset give the same rogue rows; the kill tests keep comparing paths in their digest.
+  Lane 13 (11:48 PM EST 2026-11-17): the fix keys rogues on the donor's galaxy-frame position (rogue_yield.donor_key_of). Also folded in: galaxy/wide_binary_reroll.py `_seed_address` seeds the re-roll from the system uid with a row-id fallback; same rule, same lock PR. The view-only stand-in velocity in galaxy/sky.py goes to GEN.339.
   Version 8.1. Owner (TODO, 2026-11-17): Lane 13, lock item at build (rogue positions change). Prerequisites: none. Related: OPS.272, OPS.268, DB.20.
+  Filed by the TODO thread.
+
+- [ ] **OPS.274 (bug) test_gen_resume and test_finish_run still expect a failing unit to stop the run: six resume tests and test_a_finish_that_stops_is_finished_in_turn are red on main**
+  Lane 16 (PR 7171, 11:55 PM EST 2026-11-17) found them red on main; job engine design thread reading: `_check_partial` asserts exactly N sectors saved before the failing one (the old PERF.107 rule), but Boss's 6:35 PM EST 2026-11-13 decision (hold the failing item, keep the rest going; OPS.221) makes the other sectors save too. The tests are stale, the engine is right. Do: rewrite the resume tests to assert the failing sector is not saved, the run ends held and not done, and the resumed run matches an uninterrupted one (`_check_resumed_matches_uninterrupted`), checking what a held run raises to its caller; run test_a_finish_that_stops_is_finished_in_turn and find its cause. Never loosen a bound.
+  Version 8.1. Owner (TODO, 2026-11-18): Lane 13, lock-free. Prerequisites: none. Related: OPS.221, PERF.107, OPS.240.
   Filed by the TODO thread.
 
 - [ ] **GEN.1793 M dwarfs carry about half the observed close-in small planets (1.3 against 2.5 per star at 1 to 4 Earth radii inside 200 days)**

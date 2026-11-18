@@ -113,16 +113,32 @@ def test_a_sector_weighs_the_systems_its_density_expects_and_never_less_than_one
     assert run_galaxy.sector_weights(_Densities(None), None, items, 10.0) == [1, 3, 40, 1]
 
 
-def test_the_cut_of_a_sector_stage_carries_each_sectors_weight_and_costs_the_sum(monkeypatch):
+def test_the_cut_of_a_sector_stage_carries_each_sectors_weight_and_costs_the_sum(monkeypatch, tmp_path):
+    """OPS.240: a unit is one sector at any size; the first window is the expansion's units, the sectors after it wait in the stage's item file with the cost of them all in the stage's cost."""
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))
     monkeypatch.setattr(run_galaxy, "_sector_args_of", lambda unit: types.SimpleNamespace(around=None))
     monkeypatch.setattr(run_galaxy, "_BatchDensity", _Densities)
     monkeypatch.setattr(run_galaxy.store, "mysql_config_from_args", lambda args: None)
-    monkeypatch.setattr(run_galaxy, "SECTOR_UNITS_MAX", 2)
-    params = {"database": "d", "args": {}, "edge_pc": 10.0, "items": [1, 0, 0, 1, 0, 1, 1, 0, 2]}
+    params = {"database": "d", "args": {}, "edge_pc": 10.0, "items": [1, 0, 0, 1, 0, 1, 1, 0, 2], "window": 2, "run_id": "r", "stage": "s"}
     expansion = run_galaxy.expand_generate_sectors(params)
     (first, first_cost), (second, second_cost) = expansion.units
-    assert first["weights"] == [1, 3] and first_cost == 4.0 and second["weights"] == [40] and second_cost == 40.0
-    assert [piece["weight"] for piece in run_galaxy.generate_sectors_pieces(first, 0)] == [1, 3]
+    assert first["items"] == [1, 0, 0] and first["weights"] == [1] and first_cost == 1.0
+    assert second["items"] == [1, 0, 1] and second["weights"] == [3] and second_cost == 3.0
+    assert expansion.total == 3 and expansion.cost == 44.0
+    (third, third_cost), = run_galaxy.sector_window(expansion.later, 2, 5)
+    assert third["items"] == [1, 0, 2] and third["weights"] == [40] and third_cost == 40.0
+    assert {key: third[key] for key in ("database", "args", "edge_pc")} == {key: first[key] for key in ("database", "args", "edge_pc")}
+    assert [piece["weight"] for piece in run_galaxy.generate_sectors_pieces(first, 0)] == [1]
+
+
+def test_a_stage_whose_sectors_fit_one_window_writes_no_item_file(monkeypatch, tmp_path):
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))
+    monkeypatch.setattr(run_galaxy, "_sector_args_of", lambda unit: types.SimpleNamespace(around=None))
+    monkeypatch.setattr(run_galaxy, "_BatchDensity", _Densities)
+    monkeypatch.setattr(run_galaxy.store, "mysql_config_from_args", lambda args: None)
+    expansion = run_galaxy.expand_generate_sectors({"database": "d", "args": {}, "edge_pc": 10.0, "items": [1, 0, 0, 1, 0, 1, 1, 0, 2], "window": 3, "run_id": "r", "stage": "s"})
+    assert len(expansion.units) == 3 and expansion.total == 3 and expansion.later is None
+    assert not list(tmp_path.rglob("*.items"))
 
 
 def test_a_cut_that_cannot_read_the_density_weighs_each_sector_as_one(monkeypatch):
@@ -134,4 +150,4 @@ def test_a_cut_that_cannot_read_the_density_weighs_each_sector_as_one(monkeypatc
     monkeypatch.setattr(run_galaxy, "_BatchDensity", Unreadable)
     monkeypatch.setattr(run_galaxy.store, "mysql_config_from_args", lambda args: None)
     expansion = run_galaxy.expand_generate_sectors({"database": "d", "args": {}, "edge_pc": 10.0, "items": [1, 0, 0, 1, 0, 1]})
-    assert all("weights" not in unit and cost == 1.0 for unit, cost in expansion.units)
+    assert all(unit["weights"] == [1] and cost == 1.0 for unit, cost in expansion.units) and expansion.cost == 2.0

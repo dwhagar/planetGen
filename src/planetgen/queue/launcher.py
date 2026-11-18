@@ -47,6 +47,9 @@ TEMPLATES = {"maintenance": "app"}
 YIELDED_TEXT = "stopped to give memory back; it starts again when the host has room"
 """str: What the row of a job the memory controller asked to stop says (`engine_jobs.waited`)."""
 
+SPAWN_SECONDS = 2.0
+"""float: How often the launcher looks for a stage that wants its next window of unit rows (`planrows.spawn_window`, OPS.240)."""
+
 RECOVER_SECONDS = 30.0
 """float: How often the rows left `running` by a supervisor that ended are looked for."""
 
@@ -98,14 +101,16 @@ class Launcher:
     """One supervisor's hand-outs. `control` is the control connection; `forker` is a `jobhost.TemplateSet` (`fork(kind, runner, job)`, `poll()`); `galaxy` is `run_id -> connection` for the
     galaxy the run writes to (or `None`); `also_held` returns the claims of the jobs another duty of the supervisor holds (OPS.230: the site's light jobs)."""
 
-    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None, also_held=None, hold=None):
+    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None, also_held=None, hold=None, spawner=None):
         self.control, self.forker, self.galaxy, self.redis = control, forker, galaxy, redis
+        self.spawner = spawner if spawner is not None else redis       # the connection whose runs' windows `spawn` writes (a test of the engine in one process gives only this one)
         self.hold = hold or (lambda: None)      # the memory controller's `holding` (OPS.231): why nothing is admitted now, or `None`
         self.also_held = also_held or (lambda: [])      # the claims the site's light jobs hold (`lightjobs.LightJobs.holders`): the bulk lane is judged against them
         self.clock, self.read_host, self.runner = clock, read_host, runner
         self.used = used if used is not None else (lambda: {})
         self.running = {}           # job id -> Started
         self.recovered_at = None
+        self.spawned_at = None
         self._stages = {}           # (ledger run, stage) -> its `open` row's arguments (`_stage_of`)
 
     # -- ends ------------------------------------------------------------------------------------------------------------------
@@ -333,10 +338,37 @@ class Launcher:
         self.running[row["id"]] = started
         return started
 
+    def spawn(self):
+        """
+        Writes the next window of unit rows of each stage that wants one (OPS.240, `planrows.spawn_window`), at most every `SPAWN_SECONDS`, for the runs whose Redis this launcher has. A stage whose window cannot
+        be written (its item file is missing or torn, the ledger refuses) is a lasting failure: the `spawn` row is `failed` with the reason and the run is held, never a stage that quietly has fewer units.
+        Returns how many unit rows it wrote.
+        """
+        now = self.clock()
+        if self.spawner is None or (self.spawned_at is not None and now - self.spawned_at < SPAWN_SECONDS):
+            return 0
+        self.spawned_at = now
+        written = 0
+        for row_id, _run, _stage, arguments in planrows.spawn_rows(self.control):
+            try:
+                written += planrows.spawn_window(self.spawner, arguments["run_id"], arguments["index"])
+            except Exception as exc:  # noqa: BLE001 -- the stage cannot go on whole: say why and hold the run
+                text = f"{type(exc).__name__}: {exc}"
+                self.control.rollback()
+                ledger.set_job_state(self.control, row_id, "failed", waited=text[:ledger.WAITED_CHARS])
+                self.control.commit()
+                from planetgen.queue import held
+                reason = f"stage {arguments['index'] + 1} could not write its next units: {text}"
+                if runrecord.hold_run(self.spawner, arguments["run_id"], reason):
+                    held.mark_run(self.spawner, arguments["run_id"], "held", reason)
+                log.warning(f"Run {arguments['run_id']}: {reason}")
+        return written
+
     def turn(self):
-        """One turn: ends, tickets, dispatch, starts. Returns the ids of the jobs started."""
+        """One turn: ends, windows, tickets, dispatch, starts. Returns the ids of the jobs started."""
         self.ended()
         self.recover()
+        self.spawn()
         waiting, rows = self.tickets()
         if not waiting:
             return []

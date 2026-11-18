@@ -2,6 +2,35 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4542] - 2026-11-18
+
+**Headline:** a galaxy run makes its sectors one at a time at any size, and the engine writes them to its ledger a window at a time.
+
+### Changed
+- OPS.240: the sector stages (`generate-start-sector`, `generate-neighborhood`, `generate-sectors`) have one unit for each sector however many sectors the galaxy has (the chunking of more than 4,000 sectors a stage into units of several, `SECTOR_UNITS_MAX`, is gone). The cut writes the first window of unit rows (4 for each of the stage's workers, between 200 and 2,000) and a `spawn` row that holds the cursor; the launcher's turn writes the next window when the unit rows written and not finished fall under half of one (`planrows.spawn_window`). The stage still counts every sector (bar, ETA, the follower's total) and a run that carries on from another, or a held run that is retried, picks the cursor up from its row.
+- The sectors of the windows after the first wait in a packed, checksummed file in the state folder (`queue/itemfile.py`, `stage-items/<run>-<stage>.items`, 12 bytes a sector), which the stage's end deletes; a file that is missing or torn fails the spawn row and holds the run with the reason, never a stage with fewer sectors.
+
+generation-output: unchanged (no golden, no epoch, no lock item)
+
+## [8.0.4541] - 2026-11-18
+
+**Headline:** The oxygen reductant row no longer names a paper outside the citation registry.
+
+### Fixed
+- **BO2's evidence text named a paper by name outside the registry** (test_citations_outside_the_registry was red on main after the GEN.1789 registry reads). The name is dropped; the row cites [R5300] only.
+
+## [8.0.4540] - 2026-11-18
+
+**Headline:** A Generate job that waits for the running one is now rows of the job ledger, so the waiting line survives a web server restart and two processes start it once.
+
+### Changed
+- **OPS.244 slice C: a waiting Generate job is a waiting run of the ledger, not a `queued-<ticket>.json` file and a job entry in the run line.** `jobs.queue_next` writes the run with every row waiting (`pagerun.queue`); `jobs.promote_queued` claims it with one conditional update (`pagerun.claim_queued`), starts it as the job (`jobs.start_job(..., queued=...)`) and puts it back at its place with the reason when it could not be started; Discard deletes the run.
+- **The run line holds runs only** (`queue/runline.py`: the job type, its fields and `claim` and `restore` are gone). The strip and the Generate page show both in the order they arrived, and the cap `queue.max_waiting` counts both.
+- **The engine design note says where the waiting line stands** (`docs/design/operations/job-engine.md`, stage 5 and section 7).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4539] - 2026-11-18
 
 **Headline:** The sampling-table lock wait is named in the no-sleep test, so main passes it again.
