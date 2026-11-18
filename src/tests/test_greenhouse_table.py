@@ -17,6 +17,11 @@ EARTH_FLUX = 240.0
 MARS = {"CO2": 600.0 * 0.953, "N2": 600.0 * 0.027, "Ar": 600.0 * 0.016}
 VENUS = {"CO2": 0.965 * 92.0e5, "N2": 0.035 * 92.0e5}
 TITAN = {"N2": 1.47e5 * 0.985, "CH4": 1.47e5 * 0.015}
+HAZY_METHANE_AIR = {"N2": 73811.37, "CH4": 46879.39, "HF": 0.07, "NH3": 0.64, "HCl": 747.08, "Ar": 46.95, "CO2": 0.54}
+"""dict: The air of seed 106 of the single-planet generator of `test_haze_in_the_air.py` (GEN.1780): 1.2 bar of nitrogen and methane at 10.8 m/s2 under 9.59 W/m2 absorbed, a haze of depth 11 taking 0.7 of the light at 3.5 kPa.
+The full model gives 165.5, 155.0 and 139.2 K for the shares 0, 0.3 and 0.7; the table before GEN.1780 gave 171, 199 and 229 K."""
+HAZY_METHANE_GRAVITY = 10.827421764463244
+HAZY_METHANE_FLUX = 9.586721769786985
 
 DATA_PRESENT = not any(fetch.locate(dataset).missing for dataset in (ir_ktables.DATASET, hitran_cia.DATASET))
 
@@ -129,6 +134,20 @@ def test_a_sunlight_taken_aloft_cools_the_surface_of_a_titan_like_air():
     clear = gt.warming(TITAN, 1.35, 2.61).surface_temperature_k
     hazy = gt.warming(TITAN, 1.35, 2.61, 0.6, 3.0e3).surface_temperature_k
     assert hazy < clear - 3.0
+
+
+@pytest.mark.parametrize("name, air, gravity, flux", (
+    ("Titan", TITAN, 1.35, 2.61),
+    ("a thick methane air under a faint star", HAZY_METHANE_AIR, HAZY_METHANE_GRAVITY, HAZY_METHANE_FLUX),
+    ("Earth", EARTH, 9.81, EARTH_FLUX),
+))
+@pytest.mark.parametrize("level_pa", (3.0e2, 3.5e3, 3.0e4))
+def test_sunlight_taken_aloft_never_warms_the_ground(name, air, gravity, flux, level_pa):
+    """GEN.1780: the light a haze takes aloft is light the ground does not get, so the ground is never warmer for a larger share of it (the table was once 58 K warmer than the model at a share of 0.7)."""
+    shares = [step / 20.0 for step in range(0, 19)]
+    temperatures = [gt.warming(air, gravity, flux, share, level_pa).surface_temperature_k for share in shares]
+    for smaller, larger, share in zip(temperatures, temperatures[1:], shares[1:]):
+        assert larger <= smaller + 1.0e-9, f"{name}: the ground is warmer at a share of {share:.2f} ({larger:.1f} K) than at the share before it ({smaller:.1f} K)"
 
 
 def test_an_input_outside_the_fitted_range_is_held_at_its_edge_and_stays_finite():          # GEN.1580: no hard ceiling at the fit's 4,000 K
