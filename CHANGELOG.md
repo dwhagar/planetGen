@@ -2,6 +2,78 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4520] - 2026-11-18
+
+**Headline:** The known-issue ship rule now says a late output-moving add-on to a train re-runs the pins and the golden seed on the final head.
+
+### Changed
+- **Late add-on rule** (TEST.725): `docs/plan/lanes.md` and the Known issues note of the train PR body (`scripts/train.py pr-body`) say that an output-moving fix added after the gate passed (Train 42's GEN.1774 moved the civilized pins after the gate) is not shipped on the gate's word; the pins and the golden seed run again on the final head. A fix found in the gate and put into the train before its final gate needs no extra run.
+
+## [8.0.4519] - 2026-11-18
+
+**Headline:** The pre-gate lane now checks generated files in the merge of a PR with main, so a generated copy that is stale only after the merge is found before the train head is.
+
+### Added
+- **`generated (merged)` step in `scripts/pregate.py`** (TEST.738): builds the merge of the PR head with the base in a temporary detached worktree (`git merge-tree`, `git commit-tree`) and runs that tree's `scripts/regenerate_generated.py --check`. Two PRs that each change a source of one generated file (the stand-in list, the life-class rules) were each current alone and stale together; the check names the file and the repair (merge main, run `python scripts/regenerate_generated.py`, commit). A conflicted merge is left to step 1. Reuses `regenerate_generated.py --check` and `pregate.merges_cleanly`'s `git merge-tree` call; nothing is rebuilt a second way.
+
+## [8.0.4518] - 2026-11-18
+
+**Headline:** Two test runs can share one machine: `--slot N` gives a run its own three Redis databases, so they no longer empty each other's queues.
+
+### Added
+- **`--slot N` on `scripts/test.py` and `scripts/train_gate.py run`** (TEST.724): five slots of three Redis databases each (`tests/private_redis.py`, `PLANETGEN_TEST_REDIS_SLOT`). A slot run takes only its slot's databases, has at most three workers and ends only its own stray queue workers (`stray_workers.reap_all(databases)`), so two gates on one machine never meet in Redis (the `RunStopped: the run None` failures). A run with no slot is unchanged. MySQL needed nothing (every test database is named at random), and the gate already reads `scripts/data/known_reds.json`. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4517] - 2026-11-18
+
+**Headline:** Nothing starts RQ workers for a run or the maintenance lane any more: the supervisor's launcher forks every unit, and the code that asked for workers is gone.
+
+### Changed
+- **OPS.235 slice 1b.** Deleted the supervisor's `WorkerStarts` duty and `nudge` (the asks for workers), `workers.ensure_workers`, `start_workers`, `registered`, `maintenance_cap` and the starting counters, and `wrapper.stage_ensure` (it was already a no-op for any run with an id). The wrapper's follower calls a plain optional `wrapper.pump` while it waits for a stage; production leaves it unset and the test harness (`tests/inline_queue.py`) sets it to hand out the ready rows in the test's process. `held.retry_held` wakes the supervisor with `ensure_started`. The Generate page's own worker (`cli/worker.py`, `web/jobs.py`) stays until OPS.244 moves it to the ledger; slice 2 removes the `rq` dependency then.
+- Reuse: the launcher's hand-out and `supervisor.ensure_started` do what the asks and starts did; `inline_queue.run_ready_rows` is the pump.
+
+### Removed
+- `WorkerStarts`, `supervisor.nudge` and `nudges_key`, `workers.ensure_workers`, `start_workers`, `registered`, `lane_of`, `maintenance_cap`, `wrapper.stage_ensure` and their tests (`test_supervisor` ask tests, `test_workers` start tests, `test_maintenance_lane` and `test_queue_lanes` start tests, the `stage_ensure` cases of `test_stage_worker_cap`).
+
+## [8.0.4516] - 2026-11-18
+
+**Headline:** Class 5a life, which lives in a sulfuric-acid cloud layer, no longer has animals and keeps its clock at the layer's temperature.
+
+### Fixed
+
+- GEN.1307: a world with a liquid sulfuric-acid cloud layer far above a hot ground (a 735 to 1500 K dense air, cloud at 360 to 372 K) stored Class 5a life at animal grade 1 and the stage of multicellular bodies, although the class's own row says it reaches "Mats and aerial plankton; at most simple colonial forms", and its schedule pace and complexity read the ground's temperature. The class now has a cap in the rule file (`animal_cap` grade 0, T9, L0: the class's own definition, registered on row LF40 of the stand-in registry), so its animal grade stops at none and its stage at multicellular (colonial) bodies; a class of the cloud (`habitat` `acid_cloud`) runs its clock (the pace of the schedule, the dates of its steps, the complexity's rate factor) at the cloud layer's own temperature (`life_classes.clock_temperature_k`, from `acid_medium`), and the world's text says where it lives ("It lives aloft in the sulfuric-acid cloud layer, at 366 K and 290 kPa."). No other class changes. The gate (a cloud layer inside 283 to 373 K and 30 to 300 kPa at 81 percent acid or more) already read the layer's own temperature, so a ground window would have been wrong. Class 5a occurs in none of 2,047 rocky bodies in 180 sampled systems.
+
+generation-output: unchanged
+
+## [8.0.4515] - 2026-11-18
+
+**Headline:** The golden galaxy now has a digest for each generation stage, and a train can check which stages its output moved against the stages its notes declared.
+
+### Added
+- **`tests/golden_stages.py` and `scripts/train.py stages`** (OPS.147): the golden test writes one digest per stage (plan's own rows, scatter tables, fill sections, facilities) to the file named by `PLANETGEN_STAGE_DIGESTS_OUT` when it builds the pinned galaxy, with no second build. `train.py stages --before A --after B` fails a stage that moved when no declared stage covers it (a declared stage covers itself and the stages after it) and warns about a declared stage that did not move. The golden files and the epoch are untouched. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4514] - 2026-11-18
+
+**Headline:** The N-body spot-check integrates the planets the spacing screen judges, not the belt members promoted to planets.
+
+### Fixed
+- `scripts/nbody_spotcheck.py` and its test leave out belt members promoted to planets (`validation.slot_planets`), which the spacing screen exempts with their belt (GEN.1510). On 80 seeds all 47 integrated systems stay stable.
+
+generation-output: unchanged
+
+## [8.0.4513] - 2026-11-18
+
+**Headline:** An update that changes nothing the bright-star sampling tables read no longer starts the next run with cold tables, and a table is built once however many workers ask for it.
+
+### Fixed
+
+- PERF.281: the kept bright-star sampling tables (`band_table_cache`) are keyed by the contents of the 66 files a table is made from (the 28 a build runs, found by tracing 396 builds over every population and kind, and the files they import directly), the sizes of the downloaded datasets, the Python and numpy versions and the 193 `tuning` constants those files read. The key was the name, size and modification time of every one of 1,166 files and every constant, so every update, and every `git checkout`, started the next run cold: a sky share spent 537 of 982 profiled seconds building tables, 28 to 50 s in each of 30 tiers, in each of 16 shares. A test traces the builds and fails if one runs a file outside the list. A table is built under a lock of its own (the system lets it go when the process ends), so workers that start together on the same tables build each once and read it, a waiting unit keeps its beat, and the unit's line says it is building a table and how many this process has built.
+
 ## [8.0.4512] - 2026-11-18
 
 **Headline:** A short N-body integration checks the generator's stability screens, with a report and a test; generation is unchanged.

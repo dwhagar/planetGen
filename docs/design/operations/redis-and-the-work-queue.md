@@ -240,7 +240,7 @@ Only history and statistics, written once per stage by the unit that completes i
 - **Keep** the lowered priority, the pre-import warm-up (PERF.42) and the stale-release restart in `cli/worker.py`.
 - **One queue per worker** (F6; PERF.245 makes one exception, the maintenance lane's workers, which serve its three queues in turn: `performance-eta-queue-and-caching.md` section 3): `planetgen-bulk` workers serve only that queue, `planetgen-interactive` workers only theirs. A reserved interactive worker (PERF.40, PERF.78) is then a separate, mostly idle worker, not a priority order, and every worker keeps the reliable `BLMOVE` path.
 - **Unit length** (PERF.155): a unit is meant to run no longer than `queue.unit_ceiling_seconds` (300 s) unless its stage is one unit by nature (`CommandSpec.one_unit`, `breaks=ONE_UNIT`), which bounds how long a worker is told to finish its unit before it leaves, and how long a cancel waits. A stage whose longest unit ran longer is written to the run's log; see `docs/design/generation/generation-performance.md`.
-- **Worker count** (ADM.15): the Queue page writes `planetgen:workers:wanted`; `ensure_workers` starts up to it, and lowering it sends `send_shutdown_command` to the extras, which finish their unit first. "Ludicrous Speed" is a number, not a mode.
+- **Worker count** (ADM.15): the Queue page writes `planetgen:workers:wanted`; (until OPS.235 removed `ensure_workers`) started up to it, and lowering it sends `send_shutdown_command` to the extras, which finish their unit first. "Ludicrous Speed" is a number, not a mode.
 
 ### 5.5 Cancel, pause, failure
 

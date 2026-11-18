@@ -1,11 +1,8 @@
 # planetgen/cli/worker.py
 
 """
-One RQ worker for planetGen's queues, at the lowered priority
-generation workers always run at. `planetgen.queue.workers.ensure_workers`
-starts these, each serving one queue and exiting after `--idle-seconds`
-without work (a run's queue is empty for a moment at every stage barrier,
-so a burst worker would leave too soon).
+One RQ worker for planetGen's queues, at the lowered priority generation workers always run at.
+Only the Generate page's job still starts one (a burst worker for its own queue) until OPS.244 moves that job to the ledger (OPS.235); `--idle-seconds N` is a worker that leaves after N seconds without work.
 
 Usage:
     python -m planetgen.cli.worker [--burst | --idle-seconds N] [--name NAME] [--url REDIS_URL] [QUEUE ...]
@@ -93,19 +90,12 @@ def worker_class():
     renews it at every heartbeat while the job runs, and keeps the most the job held (the gate learns the size of each kind from it). A
     job waiting for room is still queued, and goes back to the front of its queue if the worker is asked to stop.
 
-    TEST.371: when it registers, it stops counting among the workers `ensure_workers` is waiting for
-    (`workers.registered`), so one killed soon after it started is replaced at once.
-
     OPS.229: a worker serves one queue. The maintenance lane's units (the cache warm-up and the checks) are forked jobs of the supervisor's launcher now, and the one-queue-per-worker rule is RQ's reliable dequeue
     back (a worker killed between taking a job and starting it no longer loses the job).
     """
     base = rq.Worker
 
     class WarmWorker(base):
-        def register_birth(self):
-            super().register_birth()
-            workers.registered(self.connection, self.queue_names())
-
         def execute_job(self, job, queue):
             try:
                 super().execute_job(job, queue)

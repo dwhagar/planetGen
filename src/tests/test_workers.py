@@ -3,8 +3,6 @@ one, and canceling a job at once."""
 
 import math
 import os
-import signal
-import time
 import uuid
 
 import pytest
@@ -75,86 +73,6 @@ def test_lowering_the_count_tells_the_extra_bulk_workers_to_finish_and_exit(redi
         connection.delete(workers.WANTED_KEY)
         for worker in mine:
             worker.register_death()
-
-
-def test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice(redis_server, monkeypatch):
-    started = []
-    monkeypatch.setattr(workers.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
-    monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 2)
-    name = _queue_name()
-    connection = redisqueue.connect()
-    queue = redisqueue.queue(name, connection)
-    connection.delete(workers.WANTED_KEY)
-    for n in range(5):
-        queue.enqueue(math.pow, 2, n, job_timeout=600)
-    assert workers.start_workers(name, connection) == 2 and len(started) == 2
-    assert workers.start_workers(name, connection) == 0 and len(started) == 2     # those two are still starting
-    assert all(name in argv and "--burst" not in argv for argv in started)          # idle-timeout workers
-    assert workers.start_workers(_queue_name(), connection) == 0                   # an empty queue starts none
-
-
-def test_a_worker_that_registers_stops_counting_as_starting(redis_server, monkeypatch):
-    """TEST.371: the count of workers started and not yet registered fell only by its 90 s expiry, so a worker killed
-    right after it started was not replaced for about that long."""
-    started = []
-    monkeypatch.setattr(workers.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
-    monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 2)
-    name = _queue_name()
-    connection = redisqueue.connect()
-    queue = redisqueue.queue(name, connection)
-    connection.delete(workers.WANTED_KEY)
-    for n in range(5):
-        queue.enqueue(math.pow, 2, n, job_timeout=600)
-    assert workers.start_workers(name, connection) == 2
-    key = workers.STARTING_PREFIX + name
-    assert int(connection.get(key)) == 2
-    workers.registered(connection, [name])
-    assert int(connection.get(key)) == 1
-    assert workers.start_workers(name, connection) == 1          # one of the two registered and is not live here: replaced
-    workers.registered(connection, [name])
-    workers.registered(connection, [name])
-    assert connection.get(key) is None                            # never below nothing
-    workers.registered(connection, [_queue_name()])               # a worker nothing was waiting for
-
-
-def test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs(redis_server, monkeypatch):
-    """PERF.95: kill -9 a real worker; the next ask (a job queued, a poll) starts another, which runs it."""
-    monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 1)
-    connection = redisqueue.connect()
-    connection.delete(workers.WANTED_KEY)
-    name = _queue_name()
-    queue = redisqueue.queue(name, connection)
-    try:
-        first = queue.enqueue(math.pow, 2, 3, job_timeout=600)
-        assert _finished(first, name)["result"] == 8.0
-        victims = workers.live_workers(queue)
-        assert len(victims) == 1
-        os.kill(victims[0].pid, signal.SIGKILL)
-        deadline = time.monotonic() + 10
-        while workers.process_exists(victims[0].pid) and time.monotonic() < deadline:
-            time.sleep(0.05)
-        second = queue.enqueue(math.pow, 2, 5, job_timeout=600)                 # counts only live workers: starts a replacement
-        assert _finished(second, name)["result"] == 32.0
-        assert [worker.pid for worker in workers.live_workers(queue)] != [victims[0].pid]
-    finally:
-        for worker in workers.live_workers(queue):
-            workers.command.send_shutdown_command(connection, worker.name)
-        queue.empty()
-
-
-def _finished(job, name, timeout=90):
-    """Waits for the RQ job on queue `name`; the test's own `WorkerStarts` turn is the supervisor (OPS.209: an ask for workers is acted on by the supervisor)."""
-    from planetgen.queue import supervisor
-    connection = redisqueue.connect()
-    starts = supervisor.WorkerStarts(connection)
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        workers.ensure_workers(name, connection)
-        starts.turn()
-        if job.get_status(refresh=True) in ("finished", "failed"):
-            return {"state": job.get_status(), "result": job.return_value()}
-        time.sleep(0.2)
-    raise AssertionError(f"job {job.id} did not finish: {job.get_status()}")
 
 
 def test_cancel_now_cancels_a_waiting_job_and_stops_a_running_one(redis_server, monkeypatch):

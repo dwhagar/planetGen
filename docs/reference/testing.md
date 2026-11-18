@@ -241,7 +241,7 @@ while it runs:
 
 ### Queue workers a test left behind (TEST.393)
 
-A test that starts real queue workers (`workers.ensure_workers`) starts them in a session of
+A test that starts real queue workers (`redisqueue.start_detached`) starts them in a session of
 their own, so they outlive it; one that was stopped part way never tells them to stop, and each
 keeps about 300 MB (fifty filled a 16 GB machine and MySQL was killed). Every test worker's
 Redis is a database of its own, 1 to 15, and a real worker is started with `--url` naming it, so
@@ -374,6 +374,41 @@ earlier failures it kept and how many selected tests the limit left out; those a
 failure empties the list (an old failure is not rerun for ever), and with no failure ever recorded `failed` stops and says so. With
 `--resume` it also skips the tests that already passed in the same build, as every command does. It is a fast loop and a merge gate in the
 same sense as `changed`: a PR says it used it. It needs the dependency map `full` writes, and without one it runs everything, like `changed`.
+
+### Stage digests of the golden galaxy (OPS.147)
+
+The golden test builds the pinned galaxy once. `PLANETGEN_STAGE_DIGESTS_OUT=FILE` makes that same build also write FILE: one digest for each
+generation stage's own output (`tests/golden_stages.py`): the plan's own rows (`galaxy_shape` without the columns the later stages write, and
+`galaxy_shell`), the scatter's tables, the fill's sector sections (systems, stars, planets, moons, belts, comets) and the facilities (the golden
+galaxy has none, so population reads `null`: not measured, never "moved"). The plan digest in `galaxy.json` is taken after the whole run and moves
+with what the later stages write; these do not. A train's runner builds the golden galaxy on main and on the train head with the variable set, then:
+
+```sh
+python scripts/train.py stages --before main-stages.json --after train-stages.json     # the stages come from the notes' `generation-affects:` lines
+```
+
+A stage that moved with no declared stage at or before it fails (a declared stage covers itself and every later one, as GEN.764 redoes them);
+a declared stage that did not move is a warning, because the golden galaxy is one small galaxy and may be too small to show it. The golden
+files, the epoch and the release gate are untouched (testing mode, OPS.258): the train's own smoke build is the only build needed, and the
+after-file of one train is the before-file of the next.
+
+### Two runs on one machine: `--slot` (TEST.724)
+
+A second pytest on a machine used to meet the first one in Redis: worker 0 of every run is database 1, and a run's start and end empty
+its databases, so the other run's queue tests died with `RunStopped: the run None`. A run given a slot takes only that slot's databases:
+
+```sh
+PLANETGEN_TEST_REDIS_URL=redis://127.0.0.1:6379/0 scripts/test.py changed --slot 0     # databases 1 to 3
+PLANETGEN_TEST_REDIS_URL=redis://127.0.0.1:6379/0 scripts/test.py changed --slot 1     # databases 4 to 6, at the same time
+python scripts/train_gate.py run --files F --results R --claims C --owner lane12 --slot 2
+```
+
+There are five slots (a stock Redis has fifteen databases besides the machine's own, three a slot, `tests/private_redis.py`). A slot run has at
+most three workers, ends only the queue workers on its own databases when it starts and ends (`stray_workers.reap_all(databases)`), and needs the
+test server's URL to name database 0. A run with no slot is the machine's only run and keeps all fifteen, as before. MySQL needs nothing: every test
+database and each session's control database carries a random name of its own. Two runs still share the machine's four cores: three workers each is
+the most that leaves the tests their time. `scripts/data/known_reds.json` (a red that is red on a clean main) is read by `train_gate.py reds` as
+before.
 
 ### Time limit and knowing a run is done
 
