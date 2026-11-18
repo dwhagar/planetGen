@@ -64,6 +64,4 @@ def test_sectors_made_with_killed_units_are_the_sectors_an_undisturbed_run_makes
     _generate(mysql_config)
     assert plan.fired or seed == "control", f"seed {seed}: no kill happened (commits {commits}, plan {kills})"
     found = kill_harness.digest_of_galaxy(mysql_config)
-    paths_before, paths_after = expected.pop("paths"), found.pop("paths")
     assert found == expected, f"seed {seed}: kills {plan.fired} changed the galaxy"
-    print(f"sector_paths rows: undisturbed {paths_before}, seed {seed} {paths_after}")
