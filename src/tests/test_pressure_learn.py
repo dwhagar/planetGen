@@ -1,16 +1,17 @@
-"""OPS.249: the memory controller's edges are learned from what it recorded (`planetgen/queue/pressurelearn.py`, control schema v25)."""
+"""OPS.249: the memory controller's edges are learned from what it recorded (`planetgen/queue/pressurelearn.py`, control schema v25, the database's probe v26)."""
 
 import pytest
 
 from planetgen.db import store
 from planetgen.queue import pressure, pressurelearn
+from planetgen.cli import pressure as pressure_cli
 from planetgen.queue.pressurelearn import Minute, learn
 
 HOUR = 3600.0
 
 
-def minute(start, some=0.0, level=0, held=0.0, yields=0, full=0.0, psi=True, available=8000.0, reserve=2000.0):
-    return Minute(start, some, full, available, reserve, level, held, yields, psi)
+def minute(start, some=0.0, level=0, held=0.0, yields=0, full=0.0, psi=True, available=8000.0, reserve=2000.0, probe=None, calm=None):
+    return Minute(start, some, full, available, reserve, level, held, yields, psi, probe, calm)
 
 
 def calm_hours(hours):
@@ -244,3 +245,130 @@ class _Same:
 
     def close(self):
         pass
+
+
+# --- OPS.249 slice 2: the database's probes in the record, and the report ------------------------------------------------------------------
+
+def test_the_recorder_keeps_the_slowest_probe_of_a_minute_with_the_calm_figure_it_was_judged_against():
+    conn, clock = FakeConn(), [600.0]
+    recorder = pressurelearn.Recorder(lambda: conn, clock=lambda: clock[0])
+    recorder.note_database(9.0, 3.0)                                        # before the minute is open: left out
+    recorder.note(_reading(1.0, 0), held=False)
+    for latency, calm in ((4.0, 3.0), (40.0, 3.5), (6.0, 3.6)):
+        recorder.note_database(latency, calm)
+    clock[0] = 660.0
+    recorder.note(_reading(1.0, 0), held=False)
+    (sql, params), = conn.statements
+    assert "db_probe_max_ms" in sql and params[9] == 40.0 and params[10] == 3.5
+
+
+def test_a_minute_with_no_probe_writes_no_figure():
+    conn, clock = FakeConn(), [600.0]
+    recorder = pressurelearn.Recorder(lambda: conn, clock=lambda: clock[0])
+    recorder.note(_reading(1.0, 0), held=False)
+    clock[0] = 660.0
+    recorder.note(_reading(1.0, 0), held=False)
+    (_sql, params), = conn.statements
+    assert params[9] is None and params[10] is None
+
+
+def test_off_records_no_probe(monkeypatch):
+    monkeypatch.setenv(pressurelearn.ENV_VAR, "0")
+    recorder = pressurelearn.Recorder(lambda: FakeConn(), clock=lambda: 600.0)
+    recorder.note_database(9.0, 3.0)
+    assert recorder.current is None
+
+
+def test_the_probe_is_written_read_back_and_a_slower_one_of_the_same_minute_wins(control):
+    clock = [1_800_000_000.0]
+    recorder = pressurelearn.Recorder(lambda: _Same(control), clock=lambda: clock[0])
+    recorder.note(_reading(1.0, 0), False)
+    recorder.note_database(12.0, 3.0)
+    clock[0] += 60.0
+    recorder.note(_reading(1.0, 0), False)                                  # the first minute is written
+    second = pressurelearn.Recorder(lambda: _Same(control), clock=lambda: 1_800_000_000.0)       # a restarted supervisor writes the same minute again
+    second.note(_reading(1.0, 0), False)
+    second.note_database(30.0, 4.0)
+    second.clock = lambda: 1_800_000_060.0
+    second.note(_reading(1.0, 0), False)
+    third = pressurelearn.Recorder(lambda: _Same(control), clock=lambda: 1_800_000_000.0)
+    third.note(_reading(1.0, 0), False)
+    third.note_database(5.0, 2.0)
+    third.clock = lambda: 1_800_000_060.0
+    third.note(_reading(1.0, 0), False)
+    minutes, _kills = pressurelearn.read_record(control)
+    (found,) = minutes
+    assert (found.db_probe_ms, found.db_calm_ms) == (30.0, 4.0), "the slowest probe and the calm figure that went with it"
+
+
+def test_a_minute_recorded_before_the_columns_existed_reads_with_no_probe(control):
+    control.execute("INSERT INTO pressure_minutes (minute_start, some_max) VALUES (NOW(), 2)")
+    control.commit()
+    minutes, _kills = pressurelearn.read_record(control)
+    (found,) = minutes
+    assert found.db_probe_ms is None and found.db_calm_ms is None
+
+
+def test_the_update_adds_the_probe_columns_to_a_table_made_before_them(mysql_config):
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
+    try:
+        conn.execute("ALTER TABLE pressure_minutes DROP COLUMN db_probe_max_ms, DROP COLUMN db_calm_ms")
+        conn.commit()
+    finally:
+        conn.close()
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
+    try:
+        names = {row["COLUMN_NAME"] for row in conn.execute("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pressure_minutes'").fetchall()}
+    finally:
+        conn.close()
+    assert {"db_probe_max_ms", "db_calm_ms"} <= names
+
+
+def test_the_report_counts_what_each_rule_of_the_learning_needs():
+    minutes = calm_hours(1) + [minute(3600.0 + 60.0 * n, held=30.0, probe=20.0 + n, calm=3.0) for n in range(5)]
+    found = pressurelearn.report(minutes, kills=[])
+    assert found.minutes == 65 and found.holds == 1 and found.idle_holds == 1
+    assert found.probe_minutes == 5 and found.slowest_probe_ms == 24.0 and found.kills == 0 and found.unforeseen_kills == 0
+    assert found.span_seconds == pytest.approx(65 * 60.0)
+    assert found.edges == learn(minutes, [])
+
+
+def test_the_report_counts_the_kills_no_pressed_reading_came_before():
+    minutes = [minute(60.0 * n, some=0.3 * pressure.HOLD_SOME) for n in range(60)]
+    found = pressurelearn.report(minutes, kills=[1800.0, 2400.0, 3000.0, 100000.0])
+    assert found.kills == 4 and found.unforeseen_kills == 3, "a kill with no record before it is left out"
+    assert found.edges.sensitivity > 1.0
+
+
+def test_an_empty_record_is_reported_as_empty():
+    found = pressurelearn.report([], [])
+    assert found.minutes == 0 and found.span_seconds == 0.0 and found.edges == pressurelearn.typed()
+    assert "empty" in pressure_cli.lines(found)[0]
+
+
+def test_the_csv_rows_are_in_time_order_with_an_empty_field_for_a_missing_probe():
+    rows = pressurelearn.csv_rows([minute(120.0, some=4.0, probe=7.0, calm=2.0), minute(60.0, some=1.0)])
+    assert [row[0] for row in rows] == ["1970-01-01T00:01:00Z", "1970-01-01T00:02:00Z"]
+    assert rows[0][-2:] == ("", "") and rows[1][-2:] == (7.0, 2.0) and len(rows[0]) == len(pressurelearn.CSV_COLUMNS)
+
+
+def test_the_command_reports_and_writes_the_minutes_and_the_kills(control, monkeypatch, capsys, tmp_path):
+    control.execute("INSERT INTO pressure_minutes (minute_start, some_max, held_seconds, db_probe_max_ms, db_calm_ms) VALUES (NOW() - INTERVAL 5 MINUTE, 2, 10, 15, 3)")
+    control.commit()
+    monkeypatch.setattr(pressure_cli.store, "get_control_connection", lambda *args, **kwargs: _Same(control))
+    target = tmp_path / "gate.csv"
+    assert pressure_cli.main(["report", "--csv", str(target)]) == 0
+    out = capsys.readouterr().out
+    assert "Record: 1 minutes over 00:01:00" in out or "Record: 1 minutes over 1m" in out
+    assert "Database probes: 1 minutes carry one, the slowest took 15 ms." in out
+    written = target.read_text().splitlines()
+    assert written[0].split(",") == list(pressurelearn.CSV_COLUMNS) and len(written) == 2 and written[1].endswith(",15.0,3.0")
+    assert (tmp_path / "gate-kills.csv").read_text().splitlines() == ["killed_at_utc"]
+
+
+def test_the_command_says_why_when_the_control_database_cannot_be_read(monkeypatch, capsys):
+    def broken(*args, **kwargs):
+        raise OSError("no database")
+    monkeypatch.setattr(pressure_cli.store, "get_control_connection", broken)
+    assert pressure_cli.main(["report"]) == 1
+    assert "no database" in capsys.readouterr().err

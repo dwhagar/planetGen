@@ -141,19 +141,23 @@ class Prober:
 class Look:
     """What the controller calls each turn: the prober's latest figure judged against the learned calm figure. No probe yet reads as calm and teaches nothing."""
 
-    def __init__(self, prober, baseline=None):
+    def __init__(self, prober, baseline=None, record=None):
         self.prober, self.baseline = prober, baseline or Baseline()
+        self.record = record        # `record(latency_ms, baseline_ms)` is told of each look (OPS.249: the minute's row of `pressure_minutes`); it must never raise
         self.counted = 0        # the probes already taught to the calm figure: the controller looks more often than the prober probes
 
     def __call__(self):
         latency = self.prober.latest()
         if latency is None:
             return Reading(0.0, 0.0, pressure.CALM)
+        calm = self.baseline.mean_ms or 0.0        # the figure the probe is judged against, before it teaches it anything
         level = self.baseline.level(latency, learn=self.prober.completed != self.counted)
         self.counted = self.prober.completed
+        if self.record is not None:
+            self.record(latency, calm)
         return Reading(latency, self.baseline.mean_ms or 0.0, level)
 
 
-def controller(prober, clock=time.time, baseline=None):
-    """The database's controller: the memory controller's hold and release with this signal for its `look`, and no job to ask to stop."""
-    return pressure.Controller(launcher=None, look=Look(prober, baseline), clock=clock, why=WHY)
+def controller(prober, clock=time.time, baseline=None, record=None):
+    """The database's controller: the memory controller's hold and release with this signal for its `look`, and no job to ask to stop. `record` is told of each look (see `Look`)."""
+    return pressure.Controller(launcher=None, look=Look(prober, baseline, record), clock=clock, why=WHY)
