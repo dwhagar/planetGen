@@ -1,5 +1,7 @@
 # Every run as a graph of single small jobs, built from what Boss asks for
 
+> **Superseded in part (OPS.252, 2026-11-17 EST).** The queue, worker, lane and retry parts of this note are replaced by [job-engine.md](job-engine.md), the engine as built. The plan-then-execute idea, the memory broker and the rules of the plan stay here as the reason; the ledger, the supervisor and the forked jobs are described there.
+
 Written 2026-11-08, 3:35 PM EST by the job-queue design thread (DOC.113), for Boss. Design only: no code was changed. All times are EST. Evidence tags: [S] read in the repository on main (c406c9a), [R] read in an earlier report, [A] my arithmetic or judgement, [?] not verified, to be measured before a build. Item numbers (OPS.122 to OPS.127) are TODO's, filed in docs PR 5750.
 
 ## 1. Answer first
