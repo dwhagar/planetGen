@@ -27683,7 +27683,7 @@
           "fields": [
             [
               "What it is",
-              "atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
+              "RETIRED (GEN.1558: the stepped caps are not wired, and the recipe row d6 lost its d3 and d4 caps; supply, sinks and escape set the pressure): atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
             ],
             [
               "The range it moves in",
@@ -27714,7 +27714,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": "by design",
-          "what": "atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
+          "what": "RETIRED (GEN.1558: the stepped caps are not wired, and the recipe row d6 lost its d3 and d4 caps; supply, sinks and escape set the pressure): atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
         },
         {
           "burn_down": null,
@@ -74679,6 +74679,204 @@
       ],
       "slug": "6-307-stand-ins-of-the-gas-disk-edge-gen-1520",
       "title": "Stand-ins of the gas disk edge (GEN.1520)"
+    },
+    {
+      "key": "6.308",
+      "number": "6.308",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation OCS liquid: Antoine log10(P/bar) = 4.0436 - 808.49/(T - 22.72), 161.8 to 223.84 K, carried from the triple point 134.33 K to the critical temperature 378.77 K"
+            ],
+            [
+              "The range it moves in",
+              "none (the table)"
+            ],
+            [
+              "Where it holds",
+              "carbonyl sulfide above its triple point"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour pressure of the liquid more than 2 percent off in 134 to 378 K"
+            ],
+            [
+              "What replaces it",
+              "a Wagner fit to the critical point"
+            ],
+            [
+              "Evidence",
+              "NIST WebBook (Kemp and Giauque 1937; second-hand, read 11-18)"
+            ]
+          ],
+          "id": "SV2",
+          "key": "6.308:SV2",
+          "kind": "D",
+          "slug": "6-308-sv2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation OCS liquid: Antoine log10(P/bar) = 4.0436 - 808.49/(T - 22.72), 161.8 to 223.84 K, carried from the triple point 134.33 K to the critical temperature 378.77 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation CS2 liquid: Antoine log10(P/bar) = 4.06683 - 1168.62/(T - 31.616), 276.74 to 353.08 K, carried from the triple point 161.11 K to the critical temperature 552 K"
+            ],
+            [
+              "The range it moves in",
+              "none (the table)"
+            ],
+            [
+              "Where it holds",
+              "carbon disulfide above its triple point"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour pressure of the liquid more than 2 percent off in 161 to 552 K"
+            ],
+            [
+              "What replaces it",
+              "a Wagner fit to the critical point"
+            ],
+            [
+              "Evidence",
+              "NIST WebBook (Waddington et al. 1962; Brown and Manov 1937 for the triple point; second-hand, read 11-18)"
+            ]
+          ],
+          "id": "SV3",
+          "key": "6.308:SV3",
+          "kind": "D",
+          "slug": "6-308-sv3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation CS2 liquid: Antoine log10(P/bar) = 4.06683 - 1168.62/(T - 31.616), 276.74 to 353.08 K, carried from the triple point 161.11 K to the critical temperature 552 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation SO3 liquid: Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K, carried down to the melting point of the gamma phase 290.1 K (the row's own triple point) and up to the critical temperature 491 K"
+            ],
+            [
+              "The range it moves in",
+              "the window edge, 10 percent at the boiling point of 317.9 K"
+            ],
+            [
+              "Where it holds",
+              "sulfur trioxide of the gamma phase; the alpha and beta phases are not modelled"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour pressure of the liquid between 290 and 333 K that differs by more than 15 percent"
+            ],
+            [
+              "What replaces it",
+              "a fit that includes the data under 333 K"
+            ],
+            [
+              "Evidence",
+              "NIST WebBook (Abercromby and Tiley 1963; Kondrat'ev and Strizhov 1985 for the melting point; second-hand, read 11-18)"
+            ]
+          ],
+          "id": "SV4",
+          "key": "6.308:SV4",
+          "kind": "D",
+          "slug": "6-308-sv4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "saturation SO3 liquid: Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K, carried down to the melting point of the gamma phase 290.1 K (the row's own triple point) and up to the critical temperature 491 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the solid of OCS, CS2 and SO3 by Clausius-Clapeyron from the liquid curve's pressure at the triple point, with the sublimation enthalpy taken as the vaporisation plus the fusion: OCS 25.13 kJ/mol (20.4 at 176 K + 4.728), CS2 36.479 (32.09 from the NIST correlation at the triple point + 4.389), SO3 54.85 (45.5 + 9.35)"
+            ],
+            [
+              "The range it moves in",
+              "each enthalpy +-10 percent"
+            ],
+            [
+              "Where it holds",
+              "the three solids below their triple points"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sublimation pressure of the solid, which NIST does not list for any of the three"
+            ],
+            [
+              "What replaces it",
+              "measured sublimation enthalpies"
+            ],
+            [
+              "Evidence",
+              "inferred physics (the enthalpy of sublimation is that of vaporisation plus fusion at the triple point); the vaporisation of CS2 at the triple point is the NIST correlation carried below its 282 to 319 K window"
+            ]
+          ],
+          "id": "SV5",
+          "key": "6.308:SV5",
+          "kind": "P",
+          "slug": "6-308-sv5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the solid of OCS, CS2 and SO3 by Clausius-Clapeyron from the liquid curve's pressure at the triple point, with the sublimation enthalpy taken as the vaporisation plus the fusion: OCS 25.13 kJ/mol (20.4 at 176 K + 4.728), CS2 36.479 (32.09 from the NIST correlation at the triple point + 4.389), SO3 54.85 (45.5 + 9.35)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "no_law of the data file: H, Cl, S, SO, PO, PS, PN and P2 are fragments of the hot equilibrium that recombine or photolyse in a cold air; CH3Cl, HCOOH, N2O, NO2 and PH3 are trace gases with no curve filed yet"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "every gas above a billionth of the air in the sweep of tests/test_saturation.py::_carried_gases"
+            ],
+            [
+              "What would show it wrong",
+              "a gas outside the sweep that the solve carries at over a billionth of an air and that has neither a curve nor a reason (the test fails)"
+            ],
+            [
+              "What replaces it",
+              "a curve for each trace gas"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the reasons); the sweep is the redox, temperature and hydrogen range of the rocky recipe"
+            ]
+          ],
+          "id": "SV6",
+          "key": "6.308:SV6",
+          "kind": "T",
+          "slug": "6-308-sv6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "no_law of the data file: H, Cl, S, SO, PO, PS, PN and P2 are fragments of the hot equilibrium that recombine or photolyse in a cold air; CH3Cl, HCOOH, N2O, NO2 and PH3 are trace gases with no curve filed yet"
+        }
+      ],
+      "slug": "6-308-stand-ins-of-the-vapour-pressure-of-carbonyl-sulfide-carbon-disulfide-and-sulfur-trioxide-and-the-gases-with-no-law-gen-1794",
+      "title": "Stand-ins of the vapour pressure of carbonyl sulfide, carbon disulfide and sulfur trioxide, and the gases with no law (GEN.1794)"
     }
   ]
 }
