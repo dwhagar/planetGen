@@ -2,6 +2,83 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4510] - 2026-11-18
+
+**Headline:** The admin's one-off system page takes its random seed through the draw module again, which fixes the red `test_generation_draws_only_through_the_draw_module`.
+
+### Fixed
+- OPS.244 slice A moved the one-off system run into the supervisor's warm process and, on the way, drew its seed with `secrets.randbits` in `generation/run_system.py` and `web/system_page.py`. Generation code may not import `secrets`. `util/draw.py`, the one module that is allowed to, now has `fresh_seed()` for a draw that is not part of any run, and both callers use it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4509] - 2026-11-18
+
+**Headline:** The claim to be starting the supervisor ends when that process ends, not after 20 seconds.
+
+### Changed
+- `supervisor.ensure_started` writes its claim with no time limit. `redisqueue.start_detached` gives the exit notice of the process it started (`on_exit`), which ends the claim; a claim whose caller has gone is taken at once; a spawn that fails leaves none (OPS.251). The worker counter's 90 seconds goes with RQ's workers (OPS.271) and is left.
+
+generation-output: unchanged
+
+## [8.0.4508] - 2026-11-18
+
+**Headline:** Six constants that the constants-completeness test named now carry their tag, and one of them is no longer a second copy of another's value.
+
+### Fixed
+- **`test_constants_completeness` was red on main** for six constants with no registry row or tag. `compaction.DRAWN_POROSITY_BELOW_KG` (GEN.1637's compaction) is tagged as derived from `belt_ledger.L1_MASS_KG` (it cannot import it without a cycle), and a new test holds the two equal. `disk_dispersal.YEAR_PER_MYR` (GEN.244) is tagged a unit conversion by definition. `gas_equilibrium.SOLVE_MEMORY` and `thermosphere.EXOBASE_MEMORY` (PERF.276, #6993) are tagged cache sizes that change no result. `interior_heat.FLOOR_STIFFNESS_MARGIN` (PERF.277) is tagged a numerical safety factor derived from the integrator's stability limit. `tuning.SLOW_PAGE_WANTED_SECONDS` (OPS.230) is tagged as derived from the background-tab timer. No physical value changes and no row is exempted.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4507] - 2026-11-18
+
+**Headline:** The serialization fuzz test knows a planet's plan slot is stored through its history row, not as a field of the planet.
+
+### Fixed
+- `test_starsystem_children_have_no_unlisted_attributes` listed `plan_slot` (DB.75b) as an unlisted attribute. It is stored as the body's `born_index` and given back on load, so it joins the test's runtime-only list for planets, with the reason.
+
+generation-output: unchanged
+
+## [8.0.4506] - 2026-11-18
+
+**Headline:** `scripts/test.py failed` reruns only the tests that failed and the tests a fix can affect, within a time limit, instead of the whole selection again.
+
+### Added
+- **`scripts/test.py failed [--base REF] [--limit MINUTES]`** (TEST.722): after a red gate and a fix, it runs the tests that failed in the last run plus the tests `changed` selects for the changes since the base, and keeps the added ones within `--limit` minutes of recorded test time (default 20) on the workers asked for; what does not fit is counted in the output and left to the end-of-version run. It uses two new pytest options in `src/tests/depmap.py`, `--also-run FILE` (node ids that stay whatever the map says) and `--time-limit SECONDS`. Documented in `docs/reference/testing.md`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4505] - 2026-11-18
+
+**Headline:** A deadlock or lost connection in a write unit now reaches the job engine, which retries it from its cursor; the in-process retry loop is gone.
+
+### Changed
+- `db.contention` keeps `begin_read_committed` and `run_once` (one try, rollback, lost-connection explained, error raised). The sleeping retry loop, its gate and its waits are removed (OPS.261); the engine's failure classes and per-run budget (OPS.219, OPS.220) retry from the cursor.
+
+generation-output: unchanged
+
+## [8.0.4504] - 2026-11-18
+
+**Headline:** The memory controller now learns where its pressure edges belong from what it read in earlier runs: it records each minute, and moves its edges up or down when memory kills came unseen or holds were never needed.
+
+### Changed
+- **The controller's edges are learned from a record (OPS.249, H4 of the job engine; answers OPS.151's question).** The supervisor writes one row a minute of what the memory controller read (`pressure_minutes`, control schema v25: the highest `some` and `full`, the lowest available memory, the highest level, the seconds admission was held, the jobs asked to stop). `queue/pressurelearn.py` reads the last 14 days and the ledger's `killed_memory` attempts and works out one sensitivity, from half to double the typed one: the PSI edges are divided by it and the shares of the reserve multiplied by it, so the ratios between the edges stay as they are. Three or more memory kills with no pressed reading before them lower the edges; eight or more holds of which 80 percent ended with no starved reading, no job asked to stop and no kill raise them, by up to half. With no record, too little of it, or `PLANETGEN_PRESSURE_LEARN=0`, the typed edges stand. A move is said in the supervisor's list.
+- The database signal's factors and floors (`dbsignal`, OPS.248) are not learned in this change.
+
+generation-affects: none
+
+## [8.0.4503] - 2026-11-18
+
+**Headline:** The one-off system page's light job now claims the memory of one drawn system, so the memory gate no longer runs it unaccounted.
+
+### Fixed
+- **A claim for `system_page.generate_in_process` (OPS.244, slice A).** The function the one-off system page runs in the warm light-job process had no entry in `claims.API_CLAIMS`, so `test_every_function_the_api_dispatcher_may_call_has_a_claim` failed on main. It claims what a `generate-system` unit does (`workers.BULK_WORKER_MEMORY_MB`, one core), the same work done in a light job.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4502] - 2026-11-18
 
 **Headline:** One design note, `docs/design/operations/job-engine.md`, now says how the job engine is built (supervisor, ledger, forked jobs, dispatch, pressure, controls), what is still the old queue and what is not yet proven.

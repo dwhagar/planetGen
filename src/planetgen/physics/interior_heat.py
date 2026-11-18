@@ -136,7 +136,7 @@ STEP_GROWTH = 1.15
 FLOOR_STIFFNESS_MARGIN = 3.0
 """float: The factor `cool` puts on the conduction floor's own rate of change when it takes the step from it (PERF.277): the viscous estimate it replaces
 is an overestimate of about three of the flux's true rate of change, which is the safety the step has against the integrator's stability limit
-(`h` times the rate of change about 2.8 for the fourth-order rule), so the floor, whose rate of change is known exactly, takes the same margin."""
+(`h` times the rate of change about 2.8 for the fourth-order rule), so the floor, whose rate of change is known exactly, takes the same margin. A numerical safety factor derived from the integrator's stability limit, not a physical value."""
 
 
 class InteriorHeatError(ValueError):
