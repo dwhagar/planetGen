@@ -82,6 +82,15 @@ def test_a_job_that_outlives_its_template_is_still_noticed_by_the_kernel_handle(
     assert (exit_.id, exit_.code, exit_.signal, exit_.source) == (job.id, None, None, "pidfd")
 
 
+def test_a_job_asked_of_a_template_that_has_died_is_not_ready_and_is_not_failed(host):
+    """OPS.236: the launcher marked the row `failed` for the BrokenPipeError of a fork on a template that was just killed; it is `NotReady` now, the host is dead, and a `TemplateSet` starts a new template."""
+    os.kill(host.template_pid, signal.SIGKILL)
+    host.process.wait()
+    with pytest.raises(jobhost.NotReady, match="the template ended"):
+        host.fork(f"{R}.quick", {"code": 0})
+    assert host._dead and not host.jobs
+
+
 def test_a_template_with_a_second_thread_does_not_start(monkeypatch):
     monkeypatch.setenv(allowlist.EXTRA_ENV, f"{R}:*")
     with pytest.raises(jobhost.HostError):

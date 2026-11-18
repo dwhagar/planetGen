@@ -33,6 +33,12 @@ while every worker held the tables), 700 MB with the margin."""
 SCATTER_WORKER_MEMORY_MB = BULK_WORKER_MEMORY_MB
 """int: What one worker takes at most while it scatters stars (PERF.220, PERF.226): a table worker's (`BULK_WORKER_MEMORY_MB`)."""
 
+SKY_SHARE_WORKER_MEMORY_MB = 1650
+"""int: What one unit of the bright-star backfill (`scatter-backfill`: a share of the sky tiers, or a run of sectors) takes at most (OPS.270). Measured 2026-11-18 on a share forked from a warm template whose sampling tables were read
+back from the band-table cache (`band_table_cache`): the template holds 175 MB and the share's own private memory climbs to 1,502 MB in the first 150 s and stays there (6.5 minutes watched), because the
+stellar-evolution caches of the share (`main_sequence_bright_from_gy`, `_evolved_bright_windows`, `timeline`, `branch`, `_reach`; each 130,000 to 520,000 entries) fill to their size. The sampling tables are not the cost (391 tables
+are 7 MB). 1,502 MB with 10 percent more for the margin is 1,650; the figure of the other scatters, 2,100 MB, was measured when a worker built its tables cold."""
+
 SECTOR_WORKER_MEMORY_MB = 3050
 """int: What one worker takes at most while it generates sectors (PERF.226). Measured on a populated database (a galaxy of one
 shell, 4 workers), the worker's and its horse's memory together: 2,083 MB for the starting sector and 2,370 MB for a neighbourhood
@@ -46,7 +52,7 @@ host in 700 MB workers is 11, in 2,100 MB ones 3, in 3,050 MB ones 2."""
 
 STAGE_WORKER_MEMORY_MB = {
     "scatter-mass": SCATTER_WORKER_MEMORY_MB, "scatter-luminosity": SCATTER_WORKER_MEMORY_MB,
-    "scatter-backfill": SCATTER_WORKER_MEMORY_MB, "scatter-band": SCATTER_WORKER_MEMORY_MB,
+    "scatter-backfill": SKY_SHARE_WORKER_MEMORY_MB, "scatter-band": SCATTER_WORKER_MEMORY_MB,
     "generate-start-sector": SECTOR_WORKER_MEMORY_MB, "generate-neighborhood": SECTOR_WORKER_MEMORY_MB,
     "generate-sectors": SECTOR_WORKER_MEMORY_MB, "generate-unplaced-sector": SECTOR_WORKER_MEMORY_MB,
     "scatter-phenomena": LEAN_WORKER_MEMORY_MB, "fill-map-luminosity": LEAN_WORKER_MEMORY_MB,
