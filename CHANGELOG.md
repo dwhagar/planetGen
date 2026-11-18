@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4575] - 2026-11-18
+
+**Headline:** The three papers behind the new OCS, CS2 and SO3 vapour-pressure curves are now in the reference registry and cited by their ids.
+
+### Changed
+
+- GEN.1794: the rows SV2 to SV6, the section text and the notes of `saturation_pressure.json` cite their sources by registry id ([R5310, R5311, R5312]; the melting point of sulfur trioxide is read from the NIST WebBook page, no second paper named). No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4574] - 2026-11-18
 
 **Headline:** Carbonyl sulfide, carbon disulfide and sulfur trioxide now freeze out of a cold air like every other gas with a vapour-pressure curve, so a body at 8 K no longer keeps thousands of pascals of them.
