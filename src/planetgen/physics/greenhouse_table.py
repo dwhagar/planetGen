@@ -144,8 +144,8 @@ def features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share
     fractions = {formula: pressure / total for formula, pressure in partial_pressures_pa.items()}
     effective = (absorbed_flux_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
     others = [(formula, fraction) for formula, fraction in fractions.items() if formula not in TABLED_GASES and formula not in PAIRING_GASES]
-    infrared = sum(fraction for formula, fraction in others if gases.gas(formula).ir == "ir")
-    weak = sum(fraction for formula, fraction in others if gases.gas(formula).ir == "weak")
+    infrared = sum(fraction for formula, fraction in others if gases.gas(formula).infrared_class == "ir")
+    weak = sum(fraction for formula, fraction in others if gases.gas(formula).infrared_class == "weak")
     molar_mass = sum(fraction * gases.gas(formula).molar_mass for formula, fraction in fractions.items())
     if aloft_pressure_pa is None:
         aloft_pressure_pa = total * DEFAULT_ALOFT_SHARE_OF_PRESSURE
@@ -243,7 +243,7 @@ def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=
     else:
         ratio = _ratio_with_traces(partial_pressures_pa, total, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
     ratio += _deep_air_rise(total, vector)
-    absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).ir != "none") / total
+    absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).infrared_class != "none") / total
     ratio *= min(1.0, total / THIN_AIR_PA, absorbing / ABSORBER_SHARE_MIN)
     surface = effective * math.exp(ratio)
     return Warming(effective_temperature_k=effective, surface_temperature_k=surface,
