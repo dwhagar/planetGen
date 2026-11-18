@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4516] - 2026-11-18
+
+**Headline:** Class 5a life, which lives in a sulfuric-acid cloud layer, no longer has animals and keeps its clock at the layer's temperature.
+
+### Fixed
+
+- GEN.1307: a world with a liquid sulfuric-acid cloud layer far above a hot ground (a 735 to 1500 K dense air, cloud at 360 to 372 K) stored Class 5a life at animal grade 1 and the stage of multicellular bodies, although the class's own row says it reaches "Mats and aerial plankton; at most simple colonial forms", and its schedule pace and complexity read the ground's temperature. The class now has a cap in the rule file (`animal_cap` grade 0, T9, L0: the class's own definition, registered on row LF40 of the stand-in registry), so its animal grade stops at none and its stage at multicellular (colonial) bodies; a class of the cloud (`habitat` `acid_cloud`) runs its clock (the pace of the schedule, the dates of its steps, the complexity's rate factor) at the cloud layer's own temperature (`life_classes.clock_temperature_k`, from `acid_medium`), and the world's text says where it lives ("It lives aloft in the sulfuric-acid cloud layer, at 366 K and 290 kPa."). No other class changes. The gate (a cloud layer inside 283 to 373 K and 30 to 300 kPa at 81 percent acid or more) already read the layer's own temperature, so a ground window would have been wrong. Class 5a occurs in none of 2,047 rocky bodies in 180 sampled systems.
+
+generation-output: unchanged
+
 ## [8.0.4515] - 2026-11-18
 
 **Headline:** The golden galaxy now has a digest for each generation stage, and a train can check which stages its output moved against the stages its notes declared.
