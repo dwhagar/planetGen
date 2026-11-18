@@ -10,9 +10,8 @@ It stops what the update guard lists (Generate jobs, runs in the run record, que
 ledger's rows (OPS.234: `controls.stop_everything`, the rows ended here when no supervisor is alive), kills the queue workers on this host, then removes what is left:
 
 * **Redis**: every RQ key (`rq:*`: the queues, their registries, the jobs, the workers), every run record
-  (`planetgen:run:*`, with the active-run keys and event streams), the counters of workers being started and the
-  pause flag of the Queue page (the queues are un-paused). The admin's worker count (`planetgen:workers:wanted`)
-  and every cache are kept.
+  (`planetgen:run:*`, with the active-run keys and event streams) and the pause flag of the Queue page (the queues are
+  un-paused). Every cache is kept.
 
 The databases and the Generate page's job directories are not touched. `update.sh --reset-jobs` runs this
 first. It asks before it changes anything (`--yes` is the answer for a script); `--dry-run` only prints what
@@ -34,9 +33,8 @@ from planetgen.util.format import format_duration_seconds
 STOP_SECONDS = 20
 """int: How long the polite cancel of the running work is given before the rest is removed by force."""
 
-KEY_PATTERNS = ("rq:*", f"{runrecord.PREFIX}:run:*", workers.STARTING_PREFIX + "*")
-"""tuple: The Redis keys removed: RQ's own, the runs' (records, units' results, event streams, the active-run keys),
-and the counters of workers being started; the pause flag (PERF.152) is removed with them (`pause.key`)."""
+KEY_PATTERNS = ("rq:*", f"{runrecord.PREFIX}:run:*")
+"""tuple: The Redis keys removed: RQ's own and the runs' (records, units' results, event streams, the active-run keys); the pause flag (PERF.152) is removed with them (`pause.key`)."""
 
 
 def _redis(url):

@@ -43,8 +43,7 @@ def lane(redis_server, key_prefix, monkeypatch):
         worker.register_death()
     for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
         redisqueue.queue(name, connection).empty()
-        connection.delete(workers.STARTING_PREFIX + name)
-    connection.delete(workers.REFUSED_KEY, workers.REFUSED_NOTE_KEY)
+    connection.delete(workers.REFUSED_KEY)
 
 
 def _queue(connection, name, jobs):
