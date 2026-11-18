@@ -15,6 +15,11 @@ The page asks the rows what the job is doing (`read`: its status, the step it is
 What stays in the job's folder under the jobs directory is what a process writes as it goes: `output.log`, `records.log`, `progress.json`, `memory.json`.
 
 A step is never run again by the launcher when its process dies (`launcher.Launcher.ended`): a reset or a run that was cut off is the admin's to start again (the page's Retry).
+
+**The waiting line** (OPS.244, slice C): a job that finds another one running (`queue`) is the same run with every row `waiting`: the job's row is `waiting` too and its item key is the ticket the page
+knows it by, and its arguments hold `queued_at` and `after_job` (the job it waits for, when it is the next); `waited` on the job's row is why an admin must start it (the job before it did not succeed).
+`waiting` lists them next first (a run's number is the order they came in). `claim_queued` takes one for the process that starts it, `release_queued` makes it the job it was meant to be
+(a job id for the ticket, its first step `ready`), `restore_queued` puts a claimed one back, `delete` discards it.
 """
 
 import json
@@ -69,24 +74,48 @@ def _step_key(number):
     return f"{number:03d}"
 
 
+def _job_fields(job):
+    return {name: job.get(name) for name in ("id", "kind", "title", "admin", "database", "draft", "created_at", "cwd", "root")}
+
+
+def _rows(key, named, steps):
+    rows = [{"stage": STAGE, "command": JOB, "item_key": key, "arguments": named, "job_class": CLASS}]
+    for number, step in enumerate(steps, start=1):
+        rows.append({"stage": STAGE, "command": STEP, "item_key": _step_key(number), "job_class": CLASS, "claim_mb": STEP_MB,
+                     "arguments": {"label": step["label"], "argv": list(step["argv"]), "stages": step.get("stages")}})
+    return rows
+
+
 def start(control, job, steps, now=None):
     """
     Writes the run of `job` (`{"id", "kind", "title", "admin", "database", "draft", "created_at", "cwd"}`) with a row for each of its `steps` (`{"label", "argv", "stages"}`), the first one `ready`, and
     commits. Returns the ledger run's id.
     """
     run = ledger.add_run(control, KIND, job.get("database"))
-    named = {name: job.get(name) for name in ("id", "kind", "title", "admin", "database", "draft", "created_at", "cwd", "root")}
-    rows = [{"stage": STAGE, "command": JOB, "item_key": job["id"], "arguments": named, "job_class": CLASS}]
-    for number, step in enumerate(steps, start=1):
-        rows.append({"stage": STAGE, "command": STEP, "item_key": _step_key(number), "job_class": CLASS, "claim_mb": STEP_MB,
-                     "arguments": {"label": step["label"], "argv": list(step["argv"]), "stages": step.get("stages")}})
-    ledger.add_jobs(control, run, rows)
+    ledger.add_jobs(control, run, _rows(job["id"], _job_fields(job), steps))
+    _go(control, run, steps)
+    return run
+
+
+def _go(control, run, steps):
+    """The job's row is `done` (it is not work), the first step is `ready` (a job of no steps is over), and commits."""
     ids = [row["id"] for row in control.execute("SELECT id FROM engine_jobs WHERE run_id = ? ORDER BY id", (run,)).fetchall()]
     ledger.set_job_state(control, ids[0], "done")
     if len(ids) > 1:
         ledger.set_job_state(control, ids[1], "ready")
     else:
         ledger.set_run_state(control, run, "done")                  # a job of no steps has nothing to run
+    control.commit()
+
+
+def queue(control, job, steps, ticket, after_job=None, now=None):
+    """
+    Writes the run of a job that waits for the one running: every row stays `waiting`, the job's row is keyed by `ticket` and holds when it was queued and the job it waits for (`after_job`), and
+    commits. Returns the ledger run's id.
+    """
+    run = ledger.add_run(control, KIND, job.get("database"))
+    named = {**_job_fields(job), "ticket": ticket, "queued_at": time.time() if now is None else now, "after_job": after_job}
+    ledger.add_jobs(control, run, _rows(ticket, named, steps))
     control.commit()
     return run
 
@@ -233,6 +262,66 @@ def delete(control, job_id):
     run = run_of(control, job_id)
     if run is not None:
         control.execute("DELETE FROM engine_runs WHERE id = ?", (run,))
+    control.commit()
+
+
+def waiting(control, root=None):
+    """
+    The jobs that wait for the one running, next first (a run's number is the order they came in), for the jobs folder `root` when it is given: `{"ticket", "kind", "title", "admin", "database",
+    "queued_at", "after_job", "held" (why an admin must start it, else `None`), "run", "row" (the job's row), "root", "position" (1 is next)}`.
+    """
+    found = []
+    for row in control.execute(
+            "SELECT j.id AS id, j.run_id AS run, j.item_key AS ticket, j.arguments AS arguments, j.waited AS waited FROM engine_jobs j JOIN engine_runs r ON r.id = j.run_id"
+            " WHERE r.kind = ? AND r.state = 'waiting' AND j.stage = ? AND j.command = ? AND j.state = 'waiting' ORDER BY j.run_id", (KIND, STAGE, JOB)).fetchall():
+        named = _loaded(row["arguments"])
+        if root is not None and named.get("root") != root:
+            continue
+        found.append({"ticket": row["ticket"], "kind": named.get("kind"), "title": named.get("title"), "admin": named.get("admin"), "database": named.get("database"),
+                      "queued_at": float(named.get("queued_at") or 0), "after_job": named.get("after_job"), "held": row["waited"] or None, "run": int(row["run"]), "row": row["id"],
+                      "root": named.get("root"), "position": len(found) + 1})
+    return found
+
+
+def hold_queued(control, row, reason):
+    """Says why a waiting job must be started by an admin (the job before it did not succeed). Commits."""
+    control.execute("UPDATE engine_jobs SET waited = ?, updated_at = NOW(6) WHERE id = ? AND state = 'waiting'", (reason[:ledger.WAITED_CHARS], row))
+    control.commit()
+
+
+def set_after(control, row, job_id):
+    """The waiting job whose row is `row` waits for the job `job_id` now. Commits."""
+    found = control.execute("SELECT arguments FROM engine_jobs WHERE id = ?", (row,)).fetchone()
+    if found is not None:
+        named = _loaded(found["arguments"])
+        named["after_job"] = job_id
+        control.execute("UPDATE engine_jobs SET arguments = ?, updated_at = NOW(6) WHERE id = ?", (json.dumps(named), row))
+    control.commit()
+
+
+def claim_queued(control, row):
+    """Takes a waiting job for the one process that starts it; whether this call took it (the job's row is `done` while it is started). Commits."""
+    taken = control.execute("UPDATE engine_jobs SET state = 'done', updated_at = NOW(6) WHERE id = ? AND state = 'waiting'", (row,)).rowcount == 1
+    control.commit()
+    return taken
+
+
+def restore_queued(control, row, reason=None):
+    """Puts a claimed job back in the line at its place, `reason` (why it could not be started) kept for the admin. Commits."""
+    control.execute("UPDATE engine_jobs SET state = 'waiting', waited = ?, updated_at = NOW(6) WHERE id = ?", (None if reason is None else reason[:ledger.WAITED_CHARS], row))
+    control.commit()
+
+
+def release_queued(control, run, row, job):
+    """
+    A claimed job is started: its row takes `job` (`{"id", ..., "created_at"}`, the fields `start` takes) in place of the ticket, and its first step is `ready`. Commits.
+    """
+    steps = control.execute("SELECT id FROM engine_jobs WHERE run_id = ? AND command = ? ORDER BY item_key", (run, STEP)).fetchall()
+    control.execute("UPDATE engine_jobs SET item_key = ?, arguments = ?, waited = NULL, updated_at = NOW(6) WHERE id = ?", (job["id"], json.dumps(_job_fields(job)), row))
+    if steps:
+        ledger.set_job_state(control, steps[0]["id"], "ready")
+    else:
+        ledger.set_run_state(control, run, "done")
     control.commit()
 
 

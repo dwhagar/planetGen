@@ -12,7 +12,6 @@ reload does not stop it. What the page shows (the status, the step, the times, w
 (`controls.stop_engine_run`). The job's folder under the jobs directory (`jobs_dir()`) holds only what a process writes as it goes:
 
     <jobs dir>/
-        queued-<ticket>.json    the recipe of a job waiting in the line (0600)
         20260930-124433-1a2b/
             output.log          every step's stdout and stderr
             records.log         the same as records (UX.122)
@@ -26,9 +25,9 @@ Only one job runs at a time: generation, planning and reset all write the
 same database. A lock whose job has ended (the server was rebooted mid
 job) is noticed and cleared by the next `start_job`, and that job shows
 as "interrupted". A job that finds another running does not fail: `submit`
-puts it in the one waiting list (`planetgen.queue.runline`, PERF.154), up to
-`queue.max_waiting` entries, and it starts by itself when the job before it
-succeeded or was canceled (`promote_queued`).
+puts it in the waiting line (PERF.154), up to `queue.max_waiting` entries with the runs that wait
+for the machine (`planetgen.queue.runline`): a waiting job is a run of the ledger whose rows all wait (`pagerun.queue`, OPS.244 slice C), and it starts by itself when
+the job before it succeeded or was canceled (`promote_queued`).
 
 The database a job writes is the one this site shows (`helpers.db_name`),
 named on the job; its connection variables (`PLANETGEN_MYSQL_*`, `mysql_env`) are built from the
@@ -52,7 +51,7 @@ import redis
 from planetgen.admin import updateguard
 from planetgen.queue import controls, lightjobs, pagerun, redisqueue, runline, runrecord, supervisor
 from planetgen.web.lib.privatedir import ensure_private_dir
-from planetgen.util import log, process, secrets_mask, stagemark
+from planetgen.util import log, process, stagemark
 from planetgen.util.settings import get_settings
 from planetgen.web import job_runner
 
@@ -75,10 +74,6 @@ DEFAULT_KEEP = 20
 """int: How many finished jobs (and their logs) are kept; older ones are
 deleted when a new job starts."""
 
-QUEUED_PREFIX = "queued-"
-"""str: A waiting job's recipe is the file `queued-<ticket>.json` in the jobs directory (ADM.123): the same spec as a job's
-`start_job` takes (`kind`, `title`, `steps`, `admin`, `database`, `draft`), mode 0600. The waiting list (`planetgen.queue.runline`) holds the rest."""
-
 RECORDS_NAME = "records.log"
 """str: The job's log as records (UX.122), in the job's folder. Must match `planetgen.web.job_runner.RECORDS_FILE`."""
 
@@ -90,6 +85,9 @@ JOB_ID_RE = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{4}$")
 from a URL becomes part of a path."""
 
 FINISHED = frozenset({"succeeded", "failed", "canceled", "interrupted"})
+
+LINE_JOB = "job"
+"""str: The `type` the strip and the Generate page give a waiting job in `line_view` (a waiting run's is `runline.RUN`)."""
 
 
 class JobBusy(Exception):
@@ -577,7 +575,7 @@ def new_job_id():
     return time.strftime("%Y%m%d-%H%M%S") + "-" + secrets.token_hex(2)
 
 
-def start_job(kind, title, steps, admin=None, database=None, root=None, spawn=True, draft=None):
+def start_job(kind, title, steps, admin=None, database=None, root=None, spawn=True, draft=None, queued=None):
     """
     Starts a job in the background and returns its id straight away.
 
@@ -591,15 +589,17 @@ def start_job(kind, title, steps, admin=None, database=None, root=None, spawn=Tr
         spawn (bool): Tests pass `False` to only write the rows, with no supervisor asked.
         draft (list, optional): The form fields (`[name, value]` pairs) the job was made from, kept so History can offer
             Run again with the same settings (ADM.115).
+        queued (dict, optional): The waiting-line entry (`pagerun.waiting`) of a job that waited, whose rows become the
+            job's instead of new ones being written (`promote_queued`).
 
     Raises:
         JobBusy: Another job is still running.
         OSError: No writable jobs directory, no Redis server or control database.
     """
-    updateguard.refuse_while_updating("A Generate job")     # OPS.53
     from planetgen.web import job_steps
-    steps = job_steps.collapse(steps, title)
+    steps = job_steps.collapse(steps, title)        # idempotent: a waiting job's steps were collapsed when it queued
     root = root or jobs_dir()
+    updateguard.refuse_while_updating("A Generate job")     # OPS.53
     # The directory first, under a fresh id if two jobs drew the same one
     # in the same second (TEST.41); then the lock.
     for _attempt in range(20):
@@ -623,7 +623,10 @@ def start_job(kind, title, steps, admin=None, database=None, root=None, spawn=Tr
             "created_at": time.time(), "cwd": REPO_DIR, "root": root, "draft": draft or [],
         }
         with _ledger() as control:
-            pagerun.start(control, job, steps)
+            if queued is None:
+                pagerun.start(control, job, steps)
+            else:
+                pagerun.release_queued(control, queued["run"], queued["row"], job)
         with _redis_errors():
             connection = _connection()
             connection.hset(supervisor.pages_key(), job_id, time.time())       # a supervisor with a job to watch does not end (`supervisor.Store.busy`)
@@ -724,7 +727,7 @@ def cancel_job(job_id, root=None, who=None):
 
 
 # ---------------------------------------------------------------------
-# Jobs waiting in the line (ADM.123, PERF.154)
+# Jobs waiting in the line (ADM.123, PERF.154, OPS.244 slice C)
 # ---------------------------------------------------------------------
 
 @dataclasses.dataclass
@@ -736,21 +739,6 @@ class Submitted:
     ticket: str = None
     position: int = None
     running: str = None
-
-
-def _spec_path(root, ticket):
-    return os.path.join(root, f"{QUEUED_PREFIX}{ticket}.json")
-
-
-def _write_spec(path, spec):
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        json.dump(spec, f)
-
-
-def _remove(path):
-    with contextlib.suppress(OSError):
-        os.remove(path)
 
 
 def submit(kind, title, steps, admin=None, database=None, root=None, draft=None):
@@ -781,69 +769,75 @@ def submit(kind, title, steps, admin=None, database=None, root=None, draft=None)
 def queue_next(kind, title, steps, admin=None, database=None, root=None, draft=None):
     """
     Puts a job at the end of the waiting list: it starts by itself when the job before it succeeded or was canceled, and
-    is held for the admin to start or discard when that job failed.
+    is held for the admin to start or discard when that job failed. The job is a run of the ledger whose rows all wait (`pagerun.queue`).
 
     Returns:
         str: The entry's ticket.
 
     Raises:
-        runline.LineFull: The list holds `queue.max_waiting` entries.
-        OSError: No writable jobs directory, or no Redis server.
+        runline.LineFull: The line (the runs that wait for the machine and the jobs) holds `queue.max_waiting` entries.
+        OSError: No writable jobs directory, no Redis server or no control database.
     """
+    from planetgen.web import job_steps
     root = root or jobs_dir()
     running = active_job(root)
     ticket = secrets.token_hex(8)
-    spec = {"kind": kind, "title": title, "admin": admin, "database": database, "steps": steps, "draft": draft or []}
-    path = _spec_path(root, ticket)
-    _write_spec(path, spec)
-    try:
-        with _redis_errors():
-            connection = _connection()
-            ahead = runline.of_type(connection, runline.JOB, root)
-            runline.join(connection, runline.JOB, title, who=admin, database=database, kind=kind, ticket=ticket,
-                         fields={"root": root, "spec": os.path.basename(path),
-                                 "after_job": running["id"] if running and not ahead else None})
-    except BaseException:
-        _remove(path)
-        raise
+    job = {"kind": kind, "title": title, "admin": admin, "database": database, "draft": draft or [], "created_at": time.time(), "cwd": REPO_DIR, "root": root}
+    with _redis_errors():
+        connection = _connection()
+        with connection.lock(runrecord._k("line", "jobs", "lock"), timeout=30, blocking_timeout=15):        # the check of the line and the place taken are one act
+            with _ledger() as control:
+                found = _line(connection, control, root)
+                cap = runline.max_waiting()
+                if cap > 0 and len(found) >= cap:
+                    raise runline.LineFull(runline.full_message(found, cap))
+                ahead = pagerun.waiting(control, root)
+                pagerun.queue(control, job, job_steps.collapse(steps, title), ticket, after_job=running["id"] if running and not ahead else None)
     log.debug("Queued %s (%s) for %s behind %s", title, kind, admin, running["id"] if running else None)
     return ticket
+
+
+def _line(connection, control, root):
+    """The whole waiting line in the order it arrived: the runs that wait for the machine (`runline.entries`) and the jobs that wait for the running one (`pagerun.waiting`), each as
+    `{"ticket", "type", "title", "who", "database", "kind", "queued_at", "held", "position"}`, `position` the place in its own order, 1 being next."""
+    found = [{"ticket": entry["ticket"], "type": runline.RUN, "title": entry["title"], "who": entry["who"], "database": entry["database"], "kind": entry["kind"],
+              "queued_at": entry["queued_at"], "held": entry["held"], "position": entry["position"]} for entry in runline.of_type(connection, runline.RUN)]
+    found += [{"ticket": entry["ticket"], "type": LINE_JOB, "title": entry["title"], "who": entry["admin"], "database": entry["database"], "kind": entry["kind"],
+               "queued_at": entry["queued_at"], "held": entry["held"], "position": entry["position"]} for entry in pagerun.waiting(control, root)]
+    return sorted(found, key=lambda entry: entry["queued_at"])
 
 
 def queued_jobs(root=None):
     """The jobs waiting in the list, next first, as `{"ticket", "kind", "title", "admin", "database", "queued_at",
     "after_job", "held", "position"}` (no steps or environment)."""
     root = root or jobs_dir()
-    with _redis_errors():
-        found = runline.of_type(_connection(), runline.JOB, root)
-    return [{"ticket": entry["ticket"], "kind": entry["kind"], "title": entry["title"], "admin": entry["who"],
-             "database": entry["database"], "queued_at": entry["queued_at"], "after_job": entry["after_job"],
-             "held": entry["held"], "position": entry["position"]} for entry in found]
+    with _ledger() as control:
+        found = pagerun.waiting(control, root)
+    return [{name: entry[name] for name in ("ticket", "kind", "title", "admin", "database", "queued_at", "after_job", "held", "position")} for entry in found]
 
 
 def line_view(root=None):
     """The whole waiting list as the strip shows it, in the order it arrived: `{"ticket", "type", "title", "who",
     "held", "position"}` for the jobs waiting for the running job and the runs waiting for the machine."""
-    with _redis_errors():
-        found = runline.entries(_connection())
     root = root or jobs_dir()
-    return [{"ticket": entry["ticket"], "type": entry["type"], "title": entry["title"], "who": entry["who"],
-             "held": entry["held"], "position": entry["position"]}
-            for entry in found if entry["type"] == runline.RUN or entry["root"] == root]
+    with _redis_errors():
+        connection = _connection()
+        with _ledger() as control:
+            found = _line(connection, control, root)
+    return [{name: entry[name] for name in ("ticket", "type", "title", "who", "held", "position")} for entry in found]
 
 
 def discard_queued(root=None, ticket=None):
     """Takes a waiting job out of the list (the next one when no `ticket` is given); True when there was one."""
     root = root or jobs_dir()
-    with _redis_errors():
-        connection = _connection()
-        found = runline.of_type(connection, runline.JOB, root)
-        entry = next((e for e in found if ticket is None or e["ticket"] == ticket), None)
+    with _ledger() as control:
+        entry = next((e for e in pagerun.waiting(control, root) if ticket is None or e["ticket"] == ticket), None)
         if entry is None:
             return False
-        gone = runline.leave(connection, entry["ticket"])
-    _remove(_spec_path(root, entry["ticket"]))
-    return gone
+        if not pagerun.claim_queued(control, entry["row"]):         # another process is starting it or has discarded it
+            return False
+        pagerun.delete(control, entry["ticket"])
+        return True
 
 
 def discard_all_queued(root=None):
@@ -858,50 +852,43 @@ def discard_all_queued(root=None):
 def promote_queued(root=None, force=False):
     """
     Starts the job at the head of the waiting list if the job it waited for is over. Called when a job ends
-    (`job_runner.run`), when an admin page asks for the running job, and by Start now (`force`, for a held job).
+    (`job_runner`), when an admin page asks for the running job, and by Start now (`force`, for a held job).
 
     Returns:
         str | None: The new job's id, or `None` (nothing waiting, still running, held, or the start failed).
     """
     root = root or jobs_dir()
     with _redis_errors():
-        connection = _connection()
-        waiting = runline.of_type(connection, runline.JOB, root)
-        if not waiting or active_job(root) is not None:
-            return None
-        entry = waiting[0]
-        after = get_job(entry["after_job"], root) if entry["after_job"] else None
-        if not force and after is not None:
-            if not after["finished"]:
+        with _ledger() as control:
+            waiting = pagerun.waiting(control, root)
+            if not waiting or active_job(root) is not None:
                 return None
-            if after["status"] not in ("succeeded", "canceled"):
-                if not entry["held"]:
-                    runline.set_field(connection, entry["ticket"], "held",
-                                      f"The job before it did not succeed ({after['status']}).")
+            entry = waiting[0]
+            after = get_job(entry["after_job"], root) if entry["after_job"] else None
+            if not force and after is not None:
+                if not after["finished"]:
+                    return None
+                if after["status"] not in ("succeeded", "canceled"):
+                    if not entry["held"]:
+                        pagerun.hold_queued(control, entry["row"], f"The job before it did not succeed ({after['status']}).")
+                    return None
+            if not pagerun.claim_queued(control, entry["row"]):        # one process wins this
                 return None
-        if not runline.claim(connection, entry["ticket"]):        # one process wins this
+            steps = pagerun.job_of(control, entry["run"])["steps"]
+            named = pagerun.job_of(control, entry["run"])
+        try:
+            job_id = start_job(named["kind"], named["title"], steps, admin=named.get("admin"), database=named.get("database"), root=root, draft=named.get("draft"), queued=entry)
+        except JobBusy:
+            with _ledger() as control:
+                pagerun.restore_queued(control, entry["row"], entry["held"])
             return None
-    spec_path = _spec_path(root, entry["ticket"])
-    spec = _read_json(spec_path)
-    try:
-        if not spec:
-            raise OSError("its recipe is gone")
-        job_id = start_job(spec["kind"], spec["title"], spec["steps"], admin=spec.get("admin"),
-                           database=spec.get("database"), root=root, draft=spec.get("draft"))
-    except JobBusy:
-        with _redis_errors():
-            runline.restore(connection, entry["ticket"])
-        return None
-    except Exception as exc:  # noqa: BLE001 -- keep the job for the admin to start or discard
-        log.error("Could not start the waiting job %s: %s", entry["title"], exc)
-        with _redis_errors():
-            runline.set_field(connection, entry["ticket"], "held", f"It could not be started: {exc}")
-            runline.restore(connection, entry["ticket"])
-        return None
-    with _redis_errors():
-        runline.leave(connection, entry["ticket"])
-        later = runline.of_type(connection, runline.JOB, root)
-        if later:
-            runline.set_field(connection, later[0]["ticket"], "after_job", job_id)      # it waits for the job just started
-    _remove(spec_path)
+        except Exception as exc:  # noqa: BLE001 -- keep the job for the admin to start or discard
+            log.error("Could not start the waiting job %s: %s", entry["title"], exc)
+            with _ledger() as control:
+                pagerun.restore_queued(control, entry["row"], f"It could not be started: {exc}")
+            return None
+        with _ledger() as control:
+            later = pagerun.waiting(control, root)
+            if later:
+                pagerun.set_after(control, later[0]["row"], job_id)      # it waits for the job just started
     return job_id
