@@ -44,6 +44,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from planetgen.physics import constants, resonant_chains
+from planetgen.util import detmath
 
 MAXIMUM_EIGEN_IMAGINARY_SHARE = 1.0e-6
 """float: The most the eigenvalues of `A` or `B` may have as an imaginary part, as a share of the largest: the matrices are similar to symmetric ones, so a larger share is a numerical fault."""
@@ -210,7 +211,7 @@ def _modes(matrix, damped=False):
 
 def _evolve(matrix, start, years, damped=False):
     frequencies, vectors, inverse = _modes(matrix, damped)
-    return vectors @ (np.exp(1j * frequencies * years) * (inverse @ start))
+    return detmath.dot(vectors, np.exp(1j * frequencies * years) * detmath.dot(inverse, start))
 
 
 def _drive(matrix, start, years, held, damped=False):
@@ -224,7 +225,7 @@ def _drive(matrix, start, years, held, damped=False):
     if not fixed:
         return _evolve(matrix, start, years, damped)
     block = matrix[np.ix_(free, free)]
-    push = matrix[np.ix_(free, fixed)] @ start[fixed]
+    push = detmath.dot(matrix[np.ix_(free, fixed)], start[fixed])
     if not np.any(push):
         rest = np.zeros(len(free), complex)         # the held ones are at rest (the flat rings of a belt, GEN.1661): nothing sets a fixed point but the origin
     elif np.linalg.matrix_rank(block) == len(free):
