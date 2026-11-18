@@ -109,6 +109,7 @@ def test_a_generated_system_stores_the_values_wherever_the_body_has_them(mysql_c
     config = SystemConfig()
     config.PLANETS = True
     config.MAX_PLANETS = True
+    config.COMETS = True        # GEN.1775: a star has comets only when its physics gives it an outer disk (about 1 system in 150), so the sample asks for them
     seen = {"planets": 0, "moons": 0, "comets": 0, "asteroid_belts": 0}
     for seed in range(1000, 1012):
         draw.set_run_seed(seed)
