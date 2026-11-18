@@ -11078,6 +11078,7 @@ clears each one.
   8.1. Owner: none yet (life lane). Filed by the TODO thread from Lane 04.
   Prerequisites: none. Related: GEN.750.
   Owner (TODO) (5:15 PM EST on 2026-11-06): Lane 14 takes it after PERF.241 (found it; lock).
+  Owner (TODO, 2026-11-17): Lane 05, physics report first, lock item if stored life changes.
 
 - [ ] **GEN.1317 Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed**
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Boss, 6:28 PM EST on 2026-11-06: make the system check the data against
@@ -11278,6 +11279,7 @@ clears each one.
   Status, 1:03 PM EST on 2026-11-11 (Lane 14, deeper literature pass in reports/gen1520-disk-size-by-mass-2026-11-11.md): the first proposal (exponent 0.8, 245 au for the Sun) is withdrawn because direct fits of dust size against stellar mass give 0.2 to 0.6. Recommendation awaiting Boss: gas edge 100 au x (M/Msun)^0.5 with a factor-of-2 scatter per system; alternatives: keep the 18 snow lines and fix noble gases through GEN.1519, or a 150 au middle. Nothing is built until Boss answers.
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 03, lock item for a train. Prerequisites: GEN.1514. Related: GEN.1473, GEN.1514, GEN.1516, GEN.1517, GEN.1518.
   Filed by the TODO thread.
+  Boss decision (7:25 PM EST 2026-11-17, "Gas edge, scatter 2"): the gas disk edge is 100 au x (M/Msun)^0.5 with a factor-of-2 scatter per system, registered in GEN.725. Owner (TODO, 2026-11-17): Lane 14 after GEN.1790, refreshing its PR 6035 to this law; lock item for a train.
 
 - [ ] **GEN.1539 Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size**
   Lane 14 (as the lane reported 3:32 PM EST on 2026-11-11), found in the GEN.1520 after-sweep (PR 6035): outer-disk belts start at the fixed tuning.PLANET_OUTER_GROWTH_AU for every star, so every spectral type now shows a median belt at 11.4 au even though the disk edge now scales with the star's mass (100 au x (M/Msun)^0.5). Do: replace the fixed start with a limit that follows the star (the snow line, the disk edge of GEN.1520, or both), register the new constants in GEN.725 at the right tier and tweak level, check the belt census by spectral type before and after, and say in the change note what moved. Lock item (it changes belts).
@@ -11639,11 +11641,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02 (moved from Lane 03, whose thread Boss closed at 5:07 PM EST 2026-11-16). Prerequisites: none. Related: GEN.1717.
   Filed by the TODO thread.
 
-- [ ] **TEST.786 (bug) test_surface_air_runaway_start::test_a_wet_body_past_the_runaway_limit_holds_its_water_as_steam is red on main and on the Train 41 branch: the body past the runaway limit still has a surface ocean (['surface ocean'] where [] is expected)**
-  Lane 14, 7:52 PM EST 2026-11-16 (Train 41 gate; also red on main). Do: find which merge made it (Train 40 and GEN.1745 slice 1b are the suspects), and decide whether the generator is wrong (a body past the runaway limit must hold its water as steam) or the test's body moved; fix the cause, never the assertion alone. Lock item if output moves.
-  Version 8.1. Owner (TODO, 2026-11-16): Lane 14. Prerequisites: none. Related: GEN.1730, GEN.1710, GEN.1745.
-  Filed by the TODO thread.
-
 - [ ] **TEST.788 Slow gate files: test_db_column_round_trip 3,725 s, test_full_matrix 1,913 s, test_order_independence 1,872 s, test_describe 1,817 s and test_tidal_spin 1,662 s under gate load (Trains 39 to 41); make each fit well inside the hang guard without changing what it checks**
   Lane 16, 8:30 PM EST 2026-11-16 (gate results reports/train39 to 41, r-lane*.txt; times under gate load, 3 workers on a box). Next tier over 1,000 s: test_gen_debris_disk 1,501 s, test_golden_seed 1,434 s, test_snow_line 1,397 s, test_galaxy_gen 1,332 s, test_moons 1,148 s, test_finish_run_generation 1,076 s, test_star_population 1,022 s. test_tidal_spin also failed once on a slow run. Do: time each alone, profile the fixture, speed it up the way TEST.783 did (forked workers, shared fixtures, no repeated builds), one PR per file, starting with test_tidal_spin; never shrink a sample, loosen a bound or pick seeds.
   Progress (Lane 16, 11-17): test_describe done (PR 7053, 2,634 s to 1,057 s serial); test_db_column_round_trip's cost is the rich_galaxy fixture's sectors step, filed as PERF.279; test_order_independence stays as it is (515 s alone, not forkable because of the shared Redis queue); test_single_system_forcing closed, no cost found (27 s alone on a fresh Redis; Lane 05's timeout overlapped a restarted Redis and a stale run record).
@@ -11707,6 +11704,17 @@ clears each one.
 - [ ] **PERF.281 Stage 9's bright-star sampling tables are rebuilt cold on every part: key band_table_cache by the tables' own inputs instead of every package file, and build the tables once before the sky shares start**
   Lane 07, 6:59 PM EST 2026-11-17 (Stage 9 profile, one real sky part: 985 s, 11,336 stars; 537 s of it, 55 percent, is star_population._bright_measure_bound building the sampling tables cold, 647,000 calls, a fixed 28 to 50 s on each of 30 tiers). The cache (/var/cache/planetgen/band-tables) is keyed by every file of the package, so the first run after each update starts cold, and three workers starting cold each build the same tables; this fits Boss's stalled 11-16 run (about 3 hours). Do: (1) key the cache by the code and data the tables read; (2) build the tables in one unit before the shares, kept for all 16; keep a real-count status line for the build. No star moves (lock-free).
   Version 8.1. Owner (TODO, 2026-11-17): Lane 07, lock-free. Prerequisites: none. Related: PERF.280, OPS.270, OPS.269.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1790 (bug) A very luminous young star's planets ask the climate solve for 19,000 to 75,000 K (CeilingReached in test_examples zeta_ophiuchi, 5 of 40 seeds): a hydrogen and helium envelope past the ceiling is blown off, so strip it and re-solve; lava vapor is held at the ceiling and logged with its reason**
+  Lane 14, 7:24 PM EST 2026-11-17: seed 24 (about 1e6 Lsun, 3.5 Myr) gives a 3.8 Earth-mass body with 0.9 bar H/He at 35 au asking 21,058 K, a 0.17 Earth-mass body with 3e8 Pa SiO lava vapor asking 74,694 K and a 12 Earth-mass H/He body at 7 au asking 19,656 K. The greenhouse table is fitted to 4,000 K, so these asks are extrapolation; envelope_escape starts at 1 Gyr and mixture_escape skips envelopes and lava vapor, so nothing strips the air first. Boss decision (7:24 PM EST 2026-11-17, "Boil off the air"): past the ceiling, an H/He envelope (escape parameter about 2) is stripped and the air re-solved, reusing the envelope_escape physics rather than a new modifier; lava vapor stays held at the ceiling, logged, no error. Any new number is registered in GEN.725. Lock item (air_final and surface_air, Lane 02's files: coordinate with GEN.1780 and GEN.1745 slice 3).
+  Version 8.1. Owner (TODO, 2026-11-17): Lane 14, lock item, with Lane 02 for the files. Prerequisites: none. Related: GEN.1745, GEN.1780, GEN.725.
+  Filed by the TODO thread.
+  Lane 14 finding (7:27 PM EST 2026-11-17): the envelope_escape rate leaves 28 to 82 percent of these envelopes after 2.5 Myr, so escape alone does not strip them; the asks are the greenhouse table running past its 4,000 K fit. Plan (TODO): rerun the 40-seed hunt after GEN.1780 merges; if asks still pass the ceiling, build the blow-off by escape parameter with the stored radius redone.
+
+- [ ] **GEN.1791 Lever search for Class M and the M-like worlds (H, O, P, R): retune every stand-in that is not based on science and find the set of levers that most raises M and M-like worlds, measured at the Abundant tier for short runs**
+  Boss, 7:27 PM EST 2026-11-17: a thread that does nothing but try lever sets for Class M and similar worlds. Scope: only registered stand-ins in GEN.725 below Verified (tweak rule of 8:47 PM EST 2026-11-16: reshape existing stand-ins, never add modifiers on real science); each trial records the stand-in, its tier, the old and new value, the tweak level it would carry and the M and M-like counts per 1,000. Report only, no builds; winning sets are filed as items for the owning lanes. Shares data with GEN.1789 (Lane 04, oxygen source and sink) and GEN.1745 slice 3 (Lane 02).
+  Version 8.1. Owner (TODO, 2026-11-17): the "Tune levers for Class M worlds" thread. Prerequisites: none. Related: GEN.1789, GEN.1745, GEN.1403, GEN.1706, GEN.1720, GEN.725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
@@ -11773,6 +11781,7 @@ clears each one.
   Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 7: ocean cover is bimodal (47 of 77 temperate sea worlds at 95 to 100 percent), measured with this lever on and off in GEN.1566; GEN.1565 follows with the oxygen worlds.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 03 (moved up from 8.2 for the Class M fixes), lock item for Train 25. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
   Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
+  Boss decision (7:25 PM EST 2026-11-17, "Build it"): build water-limited weathering. It may shift carbon dioxide and Class M, so measure the class mix and CO2 before and after at the Abundant tier and report both. Owner (TODO, 2026-11-17): Lane 02 after GEN.1780, starting from Lane 14's PR 6062 (reuse rule); lock item for a train.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
