@@ -217,6 +217,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.generation.body_state_fields | GEN.565 | the birth and present-state split of the stored fields of stars, planets and moons (GEN.582 light); the Field table of GEN.565 absorbs the list, and the forward build (GEN.1548) reads it when a body is made again |
 | function | planetgen.physics.potassium_depletion.depletion_of | by design | the depletion of one of the six table bodies by name, which the tests hold the table to; generation draws from `draw_depletion` |
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
+| module | planetgen.physics.nbody_check | by design | the GEN.1468 N-body spot-check of the stability screens; scripts/nbody_spotcheck.py and its test read it, the generator never does (a check, not a law) |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |
 | row | 6.289:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |
 | function | planetgen.physics.ice_light.light_below | by design | the light under a lid for a given surface light, the caller's own star: the refuge term reads `transmission` and the light floor, so this is the form the tests and later climate lanes read (GEN.1726) |
