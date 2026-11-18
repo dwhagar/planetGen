@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4534] - 2026-11-18
+
+**Headline:** A run that carries on from a run that itself carried on no longer does its finished units again.
+### Fixed
+- The units of a stage a run carries on from get the mark `again` in their arguments when the command cannot resume. The next run that carried on from that one compared its cut with those arguments, found them different, and counted none of the units as done, so every unit of the stage ran again. The comparison now leaves the mark out (OPS.271).
+
 ## [8.0.4533] - 2026-11-18
 
 **Headline:** The oxygen balance's three registry rows now cite the papers they were read from.
