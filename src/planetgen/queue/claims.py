@@ -76,6 +76,7 @@ API_CLAIMS = {
     "planetgen.queue.pagejobs:build_answer": (700, 1.0),
     "planetgen.web.lib.estimatejob:work": (SUPERVISOR_MB, 0.5),
     "planetgen.web.lib.tileprefetch:build_nodes": (700, 1.0),
+    "planetgen.web.system_page:generate_in_process": (workers.BULK_WORKER_MEMORY_MB, 1.0),     # one system drawn in the job, the figure of a `generate-system` unit
 }
 """dict: What each function the API's dispatcher (`api_jobs.execute`) may call claims, `{module:name: (MB, cores)}`. Unmeasured, except that a
 sector or a star drawn in the job is the stage figure of the same work."""
