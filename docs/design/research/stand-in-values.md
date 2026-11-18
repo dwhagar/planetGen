@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1905 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1906 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1878 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1879 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 126 | 63 | 13 | 10 | 0 | 212 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 2 | 149 |
-| T6 | 240 | 131 | 37 | 81 | 5 | 494 |
+| T6 | 241 | 131 | 37 | 81 | 5 | 495 |
 | T7 | 70 | 37 | 10 | 32 | 0 | 149 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1084 | 391 | 98 | 268 | 64 | 1905 |
+| All | 1085 | 391 | 98 | 268 | 64 | 1906 |
 
 ## How the labels were given
 
@@ -554,6 +554,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CC13 | P | T2 | L0 | climate_draws.GIANT_BOND_ALBEDO_RANGE (0.29, 0.503) (a generated giant draws its Bond albedo uniformly from the lowest to the highest of the four measured in the Solar System: Neptune 0.29 [R3466], Uranus 0.30 [R3466], Saturn 0.342 and Jupiter 0.503 Li et al. 2018; GEN.1030) | each edge 0.03 | giants | test_climate_draws::the albedo range follows the water and the cold; test_giant_one_bar_temperature | an albedo from the cloud and haze of the giant's own air (GEN.414, GEN.462) | RECALLED (Li 2018 read for 0.503 in `giant_draw.BOND_ALBEDO`; the other three from memory of the papers) | predicted only | - | - |
 | CC15 | P | T6 | L1 | climate_branches.ICE_FREE_ALBEDO 0.30 and ICE_COVERED_ALBEDO 0.62 (the Bond albedo of a world with no ice, which is Earth's, and of one wholly under ice and snow, sea ice and snow 0.5 to 0.8; GEN.1046) | ice-free 0.25 to 0.35, covered 0.5 to 0.8 | ocean worlds | test_climate_branches | an albedo from the ice, ocean and cloud of the surface-air state itself (GEN.972, GEN.974) | RECALLED ([R0580, R1969, R4008]; none opened) | predicted only | - | - |
 | CC16 | P | T6 | L2 | climate_branches.ICE_FREE_ABOVE_K 305, ICE_COVERED_BELOW_K 240 and ICE_FRACTION_EXPONENT 3 (the mean surface temperatures between which the ice grows from none to the equator, and the power of the way down the ramp that the cover grows as; the width stands for the spread between equator and poles) | each end 5 K, the exponent 2 to 4 | ocean worlds | the surface albedo feedback of the Earth at 288 K, 0.35 W/m2 per K very likely 0.10 to 0.60 (IPCC AR6 2021 table 7.10), and the width of the bistable window of an Earth twin, 10 to 20 percent of the flux (W20), once the real response is wired | a one-dimensional energy balance with an ice line [R3312] | RECALLED (an energy-balance style 0-D ramp; not opened); the three set so the feedback at 288 K is 0.34 W/m2 per K, the toy window 10 percent of the flux; retuned in the wiring to the window width of W20 | predicted only | - | - |
+| CC18 | P | T6 | L0 | hydrosphere.ICE_CAPPED_MIN_COVER 0.25 (the share of its surface that ice, sea and land together, covers from which the sheet and pages call a body ice-capped, GEN.1572; a design edge that changes no class letter and is derived, not stored; on the ramp of CC16 it falls at a mean surface temperature of about 264 K) | 0.20 to 0.33 | a body with surface water; the ice-capped row of the sheet and pages | nothing measured: a round design number Boss approved (reports/water-land-split-h-m-o-2026-11-12.md section 4) | the research report of 11-12, no paper | RECALLED (a design edge, used as given) | predicted only | - | - |
 
 ## 6.23 Stand-ins of the tidal rheology
 
