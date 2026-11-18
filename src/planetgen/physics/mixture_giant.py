@@ -114,20 +114,32 @@ def _disk_c_over_o(subject, log_enrichment_over_host):
         return None
     return disk_condensation.envelope_c_over_o(temperature, disk_condensation.ENVELOPE_METAL_SHARE * 10.0 ** log_enrichment_over_host,
                                                subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), _disk_ice_weights(subject, temperature),
-                                               disk_drift.edge_temperature_k())
+                                               _disk_edge_temperature_k(subject))
+
+
+def _disk_edge_temperature_k(subject):
+    """
+    The temperature at the edge of the star's gas disk, K (`disk_drift.edge_temperature_k` from the subject's snow line and `disk_edge_au`, GEN.1520), where the disk's solids end; `None` for a
+    subject whose snow line or disk edge is not known, which takes no provenance mixing (the solids' edge is not placed).
+    """
+    snow_line, disk_edge = subject.get("disk_snow_line_au"), subject.get("disk_edge_au")
+    if snow_line is None or disk_edge is None:
+        return None
+    return disk_drift.edge_temperature_k(snow_line, disk_edge)
 
 
 def _disk_ice_weights(subject, temperature):
     """
     The `disk_drift.giant_ice_weights` of the gas the subject gathered (GEN.1473: pebbles carried the ices inward and evaporated them at their lines); `None` for a subject whose snow
-    line or host mass is not known, which keeps the static disk (every `E` equal to 1).
+    line, disk edge or host mass is not known, which keeps the static disk (every `E` equal to 1).
     """
     snow_line = subject.get("disk_snow_line_au")
     host_mass = subject.get("host_mass_solar")
-    if snow_line is None or host_mass is None:
+    disk_edge = subject.get("disk_edge_au")
+    if snow_line is None or host_mass is None or disk_edge is None:
         return None
     metals = subject.get("metallicity_fe_h")
-    return disk_drift.giant_ice_weights(temperature, snow_line, host_mass, 1.0 if metals is None else 10.0 ** metals)
+    return disk_drift.giant_ice_weights(temperature, snow_line, disk_edge, host_mass, 1.0 if metals is None else 10.0 ** metals)
 
 
 def _disk_enrichments(subject, log_enrichment_over_host):
@@ -141,7 +153,7 @@ def _disk_enrichments(subject, log_enrichment_over_host):
     return disk_condensation.envelope_enrichments(
         temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), subject.get("disk_nitrogen", 1.0),
         subject.get("disk_sulfur", 1.0), subject.get("disk_noble", 1.0), _disk_ice_weights(subject, temperature),
-        disk_drift.edge_temperature_k())
+        _disk_edge_temperature_k(subject))
 
 
 def element_budget(log_enrichment, c_over_o=None, lithium_burned=False, star_log_scale=0.0, disk_factors=None):
@@ -363,7 +375,7 @@ def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=
         tuple: `(Equilibrium, budget, condensed)` with `condensed` a dict of formula -> moles per hydrogen atom taken out.
 
     Raises:
-        MixtureError: The caps do not settle in `iterations` rounds, and what is left over the cap could still be a condensate worth recording.
+        MixtureError: The caps do not settle in `iterations` rounds, and what is left over the cap is a condensate worth recording (more than `MIN_CONDENSED` per hydrogen atom, of a species the budget could make that much of).
     """
     condensed = {}
     for _ in range(iterations):
@@ -380,10 +392,12 @@ def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=
         condensed = {formula: moles for formula, moles in condensed.items() if moles > MIN_CONDENSED}
     result = equilibrium_at(budget)
     takes = _over_cap(result, temperature_k, pressure_bar, tolerance)
-    if all(_condensable(name, budget) < MIN_CONDENSED for name in takes):
+    if all(min(_condensable(name, budget), takes[name]) < MIN_CONDENSED for name in takes):
         # The caps cycle only on a species the layer's budget cannot make more of than a condensate worth recording: its element sits mostly in a species that does not condense
         # (the lithium hydroxide of a layer with 1e-37 of oxygen per hydrogen), so each round takes a sliver of it and the equilibrium makes it again. What is left over the cap is
-        # under `MIN_CONDENSED` per hydrogen atom, the amount under which a condensate is dropped from the record above.
+        # under `MIN_CONDENSED` per hydrogen atom, the amount under which a condensate is dropped from the record above. The same holds for a species the budget could make plenty of but whose excess
+        # over its cap is under that amount: the S2 of a sulfur-rich layer at 91 K is capped at 1e-39 of the layer and each round took 3e-39 of it while the equilibrium made it again from the H2S
+        # (a giant of a planetary nebula's white dwarf, seed 2 of the nebula census, B0VII, with 5e-4 of sulfur per hydrogen).
         return result, budget, condensed
     raise MixtureError(f"the ice caps did not settle at {temperature_k} K and {pressure_bar} bar")
 

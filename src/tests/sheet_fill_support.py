@@ -92,7 +92,7 @@ def tally(config):
                 entry["bodies"] += 1
                 for group in sheet.sheet(conn, kind, row["id"])["groups"]:
                     for item in group["rows"]:
-                        if item["key"].startswith("p_") or clock_rows.is_derived_key(item["key"]) or sky_size_rows.is_derived_key(item["key"]) or item["key"] in (sheet.ECLIPSE_KEY, sheet.ICE_CAPPED_KEY, influx_row.INFLUX_KEY, sheet.VARIABILITY_KEY, sheet.CARBON_KEY, sheet.PECULIAR_KEY, sheet.PECULIAR_FIELD_KEY, *sheet.CHEMISTRY_KEYS, *sheet.ISOTOPE_KEYS):    # one row per gas the air holds; a moon's derived eclipse row, a planet's derived influx row, a star's derived variability, carbon star and chemistry rows
+                        if item["key"].startswith("p_") or clock_rows.is_derived_key(item["key"]) or sky_size_rows.is_derived_key(item["key"]) or item["key"] in (sheet.ECLIPSE_KEY, sheet.ICE_CAPPED_KEY, influx_row.INFLUX_KEY, sheet.VARIABILITY_KEY, sheet.CARBON_KEY, sheet.PECULIAR_KEY, sheet.PECULIAR_FIELD_KEY, sheet.BELT_ORIGIN_KEY, *sheet.CHEMISTRY_KEYS, *sheet.ISOTOPE_KEYS):    # one row per gas the air holds; a moon's derived eclipse row, a planet's derived influx row and the belt it was made from (GEN.1511, only a planet a belt made has one), a star's derived variability, carbon star and chemistry rows
                             continue
                         counts = entry["columns"].setdefault(item["key"], [0, 0, 0])
                         if item["stored"]:

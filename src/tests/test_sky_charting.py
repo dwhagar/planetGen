@@ -198,23 +198,23 @@ def test_a_mass_ring_draws_the_cells_as_the_mass_backfill_does_and_records_the_m
 
 
 def _ring_walk(context, tier, expected, center=SPHERE_CENTER):
-    """What the walk of a ring's sphere does, counted: the `candidate_path` calls it makes and the cells it yields, and what `mass_sphere_walk_visits` says (GEN.1485)."""
+    """What the walk of a ring's sphere does, counted: the row draws (`row_candidates`, PERF.280: one a band and row) it makes and the cells it yields, and what `mass_sphere_walk_visits` says (GEN.1485)."""
     radius = sky_charting.padded_radius(tier)
     shape = context.skeleton.shape
     args = (shape, center, radius, EDGE_PC, expected, float(tier.low), float(tier.high), context.walk_ceiling)
-    calls, real = [], brightStars.candidate_path
-    brightStars.candidate_path = lambda *a, **k: calls.append(1) or real(*a, **k)
+    calls, real = [], brightStars.row_candidates
+    brightStars.row_candidates = lambda *a, **k: calls.append(1) or real(*a, **k)
     try:
         yielded = sum(len(addresses) for addresses, _memo in brightStars.mass_sphere_batches(*args, context.seed, context.edges))
     finally:
-        brightStars.candidate_path = real
+        brightStars.row_candidates = real
     visits = brightStars.mass_sphere_walk_visits(*args, context.edges)
     paths = len(brightStars._mass_paths(shape, float(tier.low), float(tier.high), context.walk_ceiling, context.edges, {})[0])
     return calls, yielded, visits, paths, radius
 
 
-def test_a_sparse_rings_walk_visits_the_blocks_the_cost_counts_and_not_the_cells(galaxy):
-    """GEN.1485: with no band over the candidate bound every row takes the candidate path, one block lookup per band and block; the cost is those blocks."""
+def test_a_sparse_rings_walk_visits_the_rows_the_cost_counts_and_not_the_cells(galaxy):
+    """GEN.1485, PERF.280: with no band over the candidate bound every row takes the candidate path, one row draw per band and row; the cost is those rows."""
     context = sky_charting._Context(galaxy)
     tier = a_tier("mass", low=5.0, high=8.0)
     calls, yielded, visits, paths, radius = _ring_walk(context, tier, context.expected * 1e-6)
