@@ -60,6 +60,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | partial_pressure_rules.json | by design | the list of which oxygen and carbon dioxide rules are pressures and which stay shares, read by `test_partial_pressure_rules.py` (GEN.1331) to hold the rule files to it; the generator reads the rule files themselves |
 | data | acid_cloud_optics.json | by design | the acid droplets' infrared optics per band (made by `scripts/build_acid_cloud_optics.py`); `radiative_convective` will read it through `cloud_infrared` in the wiring step (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | module | planetgen.physics.cloud_infrared | by design | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
+| function | planetgen.physics.saturation.reason_without_law | by design | the reason a gas the equilibrium can carry has no vapour-pressure curve (GEN.1794); the saturation test that every carried gas has a curve or a reason reads it |
 | function | planetgen.physics.sulfuric_cloud.infrared_cloud | by design | the acid cloud's depth, droplet radius, base temperature and strength as `radiative_convective.solve(cloud=)` takes them; the column solver is run by the fit and the tests, not by generation (GEN.850 built) |
 | function | planetgen.physics.sulfuric_vapor.mole_fraction | by design | the acid mole fraction of a solution given in weight percent, the reading aid of the model's tests and of a caller that holds a strength |
 | function | planetgen.physics.sulfuric_vapor.status_at | by design | whether a temperature is inside the 200 to 350 K of the model, for a caller that reports an extrapolation |
@@ -86,15 +87,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.rogue_collision.galaxy_rate_per_year | by design | the galaxy's rogue-rogue collision rate: the figure the per-sector rate of `collision_field` is checked against in a test |
 | function | planetgen.physics.trojans.allows | GEN.1150 | the mass rule for a body at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | function | planetgen.physics.trojans.max_trojan_mass | GEN.1150 | the largest body a pair can hold at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
-| function | planetgen.physics.trojans.libration_period | GEN.1150 | the slow libration period of a tadpole; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
-| function | planetgen.physics.trojans.leading_share | GEN.1150 | the share of a swarm in L4; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
-| function | planetgen.physics.trojans.swarm_split | GEN.1150 | a swarm split into its L4 and L5 regions; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | function | planetgen.physics.trojans.point_label | GEN.1150 | the map label of a point, `Jupiter-L4`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | function | planetgen.physics.trojans.pair_text | GEN.1150 | the page text of a point, `L4 of Sun and Jupiter`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
-| module | planetgen.physics.trojan_swarm | GEN.1151 | the two regions of a swarm and the libration overlay (lock-free, GEN.1150 slice 0); the whole-body draw reads it, the stored swarm waits for GEN.1006 |
-| row | 6.121:TJ9 | GEN.1151 | `trojan_swarm.LIBRATION_SIGMA_DEG`, read when the whole-body draw lands |
-| row | 6.121:TJ10 | GEN.1151 | `trojan_swarm.ECC_SIGMA`, read when the whole-body draw lands |
-| row | 6.121:TJ11 | GEN.1151 | `trojan_swarm.INCLINATION_SIGMA_DEG`, read when the whole-body draw lands |
+| function | planetgen.physics.trojan_swarm.draw_regions | GEN.1151 | the two regions of a swarm and the libration overlay (lock-free, GEN.1150 slice 0); the whole-body draw reads it, the stored swarm waits for GEN.1006 (the module is read now for `truncated_rayleigh`, GEN.1792) |
 | module | planetgen.physics.trojan_bodies | GEN.1151 | how much mass the rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it |
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |

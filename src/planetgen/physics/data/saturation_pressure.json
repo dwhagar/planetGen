@@ -872,7 +872,18 @@
    "selection": "single",
    "curves": [],
    "sublimation_kj_mol": 19.65,
-   "note": "GEN.524 part 2: the solid by Clausius-Clapeyron from the gas table's triple point (159.07 K, 13828 Pa) with its sublimation heat (19.6 to 19.7 kJ/mol, the mean); above the triple point the solid's curve is carried on (status above-triple), about 36 percent over the normal boiling point's 1 atm at 188.17 K; a stand-in, tier 6, registered in GEN.725 (AM94)"
+   "note": "GEN.524 part 2: the solid by Clausius-Clapeyron from the gas table's triple point (159.07 K, 13828 Pa) with its sublimation heat (19.6 to 19.7 kJ/mol, the mean); a stand-in, tier 6, registered in GEN.725 (AM94). GEN.1630: above the triple point the solid's curve carried on read 36 percent over the normal boiling point's 1 atm at 188.17 K, so the liquid is a Wagner curve whose four coefficients are fixed by four values the gas table holds: the triple point, the normal boiling point, the acentric factor (0.132: P = Pc 10^-(1+w) at T/Tc 0.7) and the Edmister slope at the critical point (a = -5.373 (1 + w)); it gives 25.8 atm at 273.15 K against the handbook's 25.6 atm at 0 C, which the fit did not use; a stand-in, tier 6, registered in GEN.725 (AM104)",
+   "liquid": {
+    "form": "wagner",
+    "t_max_k": 324.68,
+    "pc_pa": 8313000.0,
+    "coefficients": [
+     -6.08224,
+     -0.36624,
+     1.46855,
+     -4.98396
+    ]
+   }
   },
   "HF": {
    "name": "hydrogen fluoride",
@@ -894,6 +905,78 @@
    "to_k": 925.0,
    "max_error_percent": 8.8,
    "note": "ln(P/Pa) = a + b/T + c ln T over condensed sulfur (solid below 388.36 K, liquid above), fitted to the NASA-polynomial equilibrium vapor pressure of the gas table (01-gas-table-thermodynamics.md section 6.3, T6; the temperatures at 1 mPa, 1 Pa, 100 Pa, 10 kPa and 100 kPa are 406, 504, 605, 763 and 882 K), 8.8 percent at worst over 312 to 925 K; carried on outside the window; no critical temperature is set (the curve is carried on above the window). The gas table has no triple point for S2 (GEN.1564)."
+  },
+  "OCS": {
+   "name": "carbonyl sulfide",
+   "form": "clausius-clapeyron",
+   "selection": "single",
+   "curves": [],
+   "triple_point_k": 134.33,
+   "sublimation_kj_mol": 25.128,
+   "note": "GEN.1794. Liquid: NIST WebBook Antoine log10(P/bar) = 4.0436 - 808.49/(T - 22.72), 161.8 to 223.84 K [R2312], carried on to the critical temperature of the gas table and down to the triple point 134.33 K [R2312]; the solid is Clausius-Clapeyron from the liquid curve's pressure at the triple point with 25.13 kJ/mol = 20.4 of vaporisation (NIST, at 176 K) + 4.728 of fusion: a stand-in (no sublimation enthalpy on NIST), unchecked against any measurement of the solid",
+   "liquid": {
+    "form": "antoine",
+    "t_max_k": 378.77,
+    "pc_pa": null,
+    "coefficients": [
+     4.0436,
+     808.49,
+     -22.72
+    ]
+   }
+  },
+  "CS2": {
+   "name": "carbon disulfide",
+   "form": "clausius-clapeyron",
+   "selection": "single",
+   "curves": [],
+   "triple_point_k": 161.11,
+   "sublimation_kj_mol": 36.481,
+   "note": "GEN.1794. Liquid: NIST WebBook Antoine log10(P/bar) = 4.06683 - 1168.62/(T - 31.616), 276.74 to 353.08 K [R5310], carried on to the critical temperature of the gas table and down to the triple point 161.11 K [R5311]; the solid is Clausius-Clapeyron from the liquid curve's pressure at the triple point with the vaporisation of the NIST correlation 37.07 exp(-0.2264 Tr)(1 - Tr)^0.2264 at the triple point (valid 282 to 319 K, carried down) + 4.389 of fusion: a stand-in",
+   "liquid": {
+    "form": "antoine",
+    "t_max_k": 552.0,
+    "pc_pa": null,
+    "coefficients": [
+     4.06683,
+     1168.62,
+     -31.616
+    ]
+   }
+  },
+  "SO3": {
+   "name": "sulfur trioxide",
+   "form": "clausius-clapeyron",
+   "selection": "single",
+   "curves": [],
+   "triple_point_k": 290.1,
+   "sublimation_kj_mol": 54.85,
+   "note": "GEN.1794. Liquid: NIST WebBook Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K [R5312], carried down to the melting point of the gamma phase 290.1 K (NIST WebBook; the gas table has no triple point) and up to the critical temperature of the gas table; at the gas table's boiling point of 317.9 K the curve is 10 percent over 1 atm (outside its window); the solid is Clausius-Clapeyron with 54.85 kJ/mol = 45.5 of vaporisation + 9.35 of fusion: a stand-in for the gamma phase (the alpha and beta phases are not modelled)",
+   "liquid": {
+    "form": "antoine",
+    "t_max_k": 491.0,
+    "pc_pa": null,
+    "coefficients": [
+     4.20515,
+     892.175,
+     -103.564
+    ]
+   }
   }
+ },
+ "no_law": {
+  "H": "an atom or radical of the hot equilibrium (above a billionth of the air only at a magmatic temperature); in a cold air it recombines or is photolysed, so it has no condensate of its own (GEN.1794)",
+  "Cl": "an atom or radical of the hot equilibrium (above a billionth of the air only at a magmatic temperature); in a cold air it recombines or is photolysed, so it has no condensate of its own (GEN.1794)",
+  "S": "an atom or radical of the hot equilibrium (above a billionth of the air only at a magmatic temperature); in a cold air it recombines or is photolysed, so it has no condensate of its own (GEN.1794)",
+  "SO": "an atom or radical of the hot equilibrium (above a billionth of the air only at a magmatic temperature); in a cold air it recombines or is photolysed, so it has no condensate of its own (GEN.1794)",
+  "PO": "an atom or radical of the hot equilibrium (above a billionth of the air only at a magmatic temperature); in a cold air it recombines or is photolysed, so it has no condensate of its own (GEN.1794)",
+  "PS": "an atom or radical of the hot equilibrium (above a billionth of the air only at a magmatic temperature); in a cold air it recombines or is photolysed, so it has no condensate of its own (GEN.1794)",
+  "PN": "an atom or radical of the hot equilibrium (above a billionth of the air only at a magmatic temperature); in a cold air it recombines or is photolysed, so it has no condensate of its own (GEN.1794)",
+  "P2": "an atom or radical of the hot equilibrium (above a billionth of the air only at a magmatic temperature); in a cold air it recombines or is photolysed, so it has no condensate of its own (GEN.1794)",
+  "CH3Cl": "open: a trace gas (rows m3, m4 and m11 draw it at under a millionth of the air, or it is a minor product of the equilibrium) with no curve filed yet; the cold-air cap does not condense it, which matters only on a body cold enough that its partial pressure passes its vapor pressure (GEN.1794)",
+  "HCOOH": "open: a trace gas (rows m3, m4 and m11 draw it at under a millionth of the air, or it is a minor product of the equilibrium) with no curve filed yet; the cold-air cap does not condense it, which matters only on a body cold enough that its partial pressure passes its vapor pressure (GEN.1794)",
+  "N2O": "open: a trace gas (rows m3, m4 and m11 draw it at under a millionth of the air, or it is a minor product of the equilibrium) with no curve filed yet; the cold-air cap does not condense it, which matters only on a body cold enough that its partial pressure passes its vapor pressure (GEN.1794)",
+  "NO2": "open: a trace gas (rows m3, m4 and m11 draw it at under a millionth of the air, or it is a minor product of the equilibrium) with no curve filed yet; the cold-air cap does not condense it, which matters only on a body cold enough that its partial pressure passes its vapor pressure (GEN.1794)",
+  "PH3": "open: a trace gas (rows m3, m4 and m11 draw it at under a millionth of the air, or it is a minor product of the equilibrium) with no curve filed yet; the cold-air cap does not condense it, which matters only on a body cold enough that its partial pressure passes its vapor pressure (GEN.1794)"
  }
 }

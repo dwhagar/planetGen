@@ -22,9 +22,9 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.791 |
+| TEST | TEST.792 |
 | USR | USR.33 |
-| OPS | OPS.277 |
+| OPS | OPS.280 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2974,7 +2974,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.277 | Interior cooling of old belt-sized bodies takes up to 770,000 steps: stop the step collapse | done (Train 43, PR 7084, 11-17) |
 | PERF.278 | The exobase search takes 15 percent of a build: a fixed 0.25 scale-height step (lock) | closed, not worth it as speed (Lane 07, 3:50 AM EST 11-17: 2.6 percent of a build after the cache); accuracy fault is GEN.1784 |
 | PERF.279 | Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes) | TEST.788 | done (Train 44, PR 7149) |
-| PERF.280 | Stage 9 skip or batch near-empty sky cells (design and measure first) | OPS.270 | open (Lane 07) |
+| PERF.280 | Stage 9 skip or batch near-empty sky cells (design and measure first) | OPS.270 | done (fix A PR 7101; fix B PR 7162, Train 45, PR 7202, merged 4:36 AM EST 11-18) |
 | PERF.281 | Stage 9 sampling tables: cache keyed by their inputs, built once before the shares | PERF.280 | done (PR 7129) |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
@@ -3089,11 +3089,14 @@ Parents marked "new parent" had no old number of their own.
 | OPS.269 | (bug, high) Bright-star backfill: 1,088 of 7.00e8 sectors in 4.5 h, ETA 194 to 254 days | done (PR 6982, the bar counts the sky draw; Stage 7 label fixed by OPS.268) |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | open (Lane 13) |
 | OPS.271 | Ledgerless runs run their units without RQ, so the bulk RQ unit path can be deleted | OPS.228 | done (PR 7090, PR 7111) |
-| OPS.272 | The refill job reads the derived stage | OPS.133 | open (Lane 13) |
-| OPS.273 | Rogue planet draws key on a seed-derived donor identity, not its Object ID | none | open (Lane 13) |
+| OPS.272 | The refill job reads the derived stage | OPS.133 | done (PR 7206, Lane 13, merged 3:38 AM EST 11-18: bring-to-epoch refills the derived stage by the existing jobs) |
+| OPS.273 | Rogue planet draws key on a seed-derived donor identity, not its Object ID | none | done (PR 7176, Train 46, PR 7215, merged 6:54 AM EST 11-18: rogue draws keyed on galaxy position, not the donor Object ID) |
 | OPS.274 | Resume and finish tests follow the hold-and-continue rule | none | done (PR 7179, Lane 15, merged 1:03 AM EST 11-18) |
 | OPS.275 | A held unit's error keeps its last traceback frames | none | done (PR 7185, Lane 15, merged 1:41 AM EST 11-18: last 3 frames, file:line in function, masked) |
 | OPS.276 | A unit held with IndexError (sky charting, bright star scatter) | none | open (Lane 16) |
+| OPS.277 | Held-run reds in maintenance and finish-run tests | none | open (Lane 15) |
+| OPS.278 | Galaxy test database lacks engine_runs | none | open (Lane 07) |
+| OPS.279 | Template heap copied into each sky share | OPS.270 | open (Lane 13) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -3862,7 +3865,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1517 | (bug) The water drift model starts the gas inside each ice line as pure evaporated ice, so an early-gathering giant gets no argon, krypton, xenon or CO2 carbon | GEN.1473 | done, Train 24 PR #6033 (b8a0163b7) |
 | GEN.1518 | Giant gas-gathering age from a pebble accretion efficiency (stand-in DE9), so the drift model reaches Sun-like giants | GEN.1517 | done, Train 24 PR #6033 (b8a0163b7) |
 | GEN.1519 | Provenance of the planetesimals a giant accretes (where they formed), so noble gases reach the envelope through solids that froze them | GEN.1514 | done, Train 24 PR #6033 (b8a0163b7) |
-| GEN.1520 | The disk outer edge: research the observed gas and dust disk sizes by stellar mass and replace the 18 snow line multiplier (tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER) | GEN.1514 | open |
+| GEN.1520 | The disk outer edge: research the observed gas and dust disk sizes by stellar mass and replace the 18 snow line multiplier (tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER) | GEN.1514 | done (PR 7118, Train 45, PR 7202, merged 4:36 AM EST 11-18: gas disk edge 100 au x (M/Msun)^0.5 with scatter 2; fixes 7164, 7172) |
 | GEN.1521 | Chain-aware spacing test for tight chains of small planets (N-body screen follow-up) | GEN.1468 | done, Train 24 PR #6033 (b8a0163b7) |
 | GEN.1522 | (bug) A giant next to a very hot star (27,560 K quoted air) crashes the build: the gas table ends at 20,000 K | none | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1523 | Wire the four built-but-unread physics modules: atmosphere_retention, helium_fractionation, hycean_candidate and small_body_composition.draw_ring | none | done, Train 24 PR #6033 (b8a0163b7) |
@@ -3899,7 +3902,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1555 | (bug) The surface air solver has two stable answers near the moist limit and water's boiling point, and the fixed point flips or never settles (a hot CO2 air against a cool one, or a steam air against a frozen airless body) | none | done (PR 6800, Lane 03, 2:34 AM EST 11-16: solver work landed in GEN.1716, GEN.1718 and GEN.1646; start-dependent air bodies 2.5 percent, down from 15; 6800 adds start-independence tests; the 375 K pin is GEN.1579; PR 6103 closed as superseded) |
 | GEN.1556 | The Cassini state of a moon's tilt from its real nodal regression (the planet's bulge and the star), part 2 of GEN.1536 | GEN.1536 | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1557 | (bug) The class T and class I sentences describe a small core and mostly ices, but the stored bodies are rock-dominated (class T rock 50 to 70 percent, envelope 1 to 18 percent), and the day-counter line says "No solid surface" without saying the rock lies deep under the envelope | none | done, PR #6095 |
-| GEN.1558 | Retire the stepped pressure caps (recipe row d6: d3 = 1 kPa and d4 = 10 kPa) so supply, sinks and escape set the air pressure, with the built energy-limited loss added to the escape subtraction in the same single pass | GEN.1546, GEN.1547 | open |
+| GEN.1558 | Retire the stepped pressure caps (recipe row d6: d3 = 1 kPa and d4 = 10 kPa) so supply, sinks and escape set the air pressure, with the built energy-limited loss added to the escape subtraction in the same single pass | GEN.1546, GEN.1547 | done (PR 7203, Train 46, PR 7215, merged 6:54 AM EST 11-18: stepped 1 and 10 kPa pressure caps retired) |
 | GEN.1559 | Rewire burn-down: every physics module, function, registry row, data file, dataset and column that the wiring guard lists as unread and not by design gets wired, retired or marked by design, class-moving ones first | none | open |
 | GEN.1560 | Earth-mass planets in the temperate zone of FGK stars: the isolation-mass law gives a median 0.3 Earth masses at 0.7 to 2.5 AU, so add the merge of oligarchs (giant-impact stage) or fit the mass function to [R0572] | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1561 | Belt mass scale: belts hold a median 0.21 Earth masses, 25 percent hold over 1, and the largest member exceeds Earth's radius in 57 belts; decide whether planet-sized belts are intended and, if not, merge the tail into planets | GEN.1560 | done, PR #6370 in Train 27, PR #6485 (11:13 AM EST 11-14) |
@@ -3971,7 +3974,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1627 | (bug) constants.py (about line 99) SOLAR_MASS_LOSS_RATE is wrong by a factor of 1e15 (nothing reads it) | none | closed, already gone (Lane 14, 12:18 AM EST 11-16: SOLAR_MASS_LOSS_RATE is no longer in constants.py or anywhere in code or tests) |
 | GEN.1628 | (bug) The Sm-146 half-life of 68 Myr is a retracted value (now 92 to 103 Myr) | none | done (PR 6818, Lane 04, merged 4:56 AM EST 11-16: Sm-146 half-life 92.0 Myr [R5295]) |
 | GEN.1629 | (bug) 52 of 124 gases have ir null, and the null is handled two different ways | none | open |
-| GEN.1630 | (bug) The HCl vapour-pressure curve runs 35 percent high above the triple point | none | open |
+| GEN.1630 | (bug) The HCl vapour-pressure curve runs 35 percent high above the triple point | none | done (PR 7204, Train 46, PR 7215, merged 6:54 AM EST 11-18: HCl condenses at its boiling point) |
 | GEN.1631 | (bug) Earth's Th/U of 3.83 sits above the 95th percentile of drawn bodies | none | closed as measured, not a bug (Lane 04, 4:44 AM EST 11-16: hosted bodies take F from the star age, Th/U 5th to 95th percentile 2.91 to 4.40, median 3.62, Earth 3.83 at the 62nd percentile; the audit measured the host-less path only) |
 | GEN.1632 | (bug) Stand-in registry: 102 ids reused across sections, 30 code tags with a different tier or tweak than the registry, 5 code ids not in the registry, 2 rows naming constants that no longer exist | none | done, PR #6692 (2:43 PM EST 11-15); follow-up PR #6718 |
 | GEN.1633 | (bug) physics/belt_mass.py cannot be imported on its own | none | done (PR 6857, Lane 06, merged 9:34 AM EST 11-16: belt_mass imports alone; the cycle through collision_outcome, planets and irregular_moons is broken; an import test covers it) |
@@ -4023,7 +4026,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1679 | The icy-or-rocky origin test (origin_of) reads the same stellar-mass snow line as the delivered-water classes | GEN.1678 | done, PR #6391 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1680 | Galaxy run order: sectors, link, one hoisted clear that records the scatter limits, then backfill, then the mass and luminosity scatters and phenomena | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1681 | Luminous-star default floor rises from 9,000 to 18,000 solar luminosities | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
-| GEN.1682 | Phenomena rings drawn in the backfill as well | GEN.1680 | open |
+| GEN.1682 | Phenomena rings drawn in the backfill as well | GEN.1680 | done (PR 7186, Train 46, PR 7215, merged 6:54 AM EST 11-18: below-cut neutron stars and black holes of the backfill rings share the main draw) |
 | GEN.1683 | One combined mass and luminosity scatter pass (design, then build) | GEN.1680 | closed as finding (Lane 15, /mnt/project-files/reports/gen1683-combined-scatter-pass-2026-11-13.md): a combined pass saves about 13 percent and cannot share draws; follow-ups PERF.264 and PERF.265 |
 | GEN.1684 | Finish the roundness wiring GEN.1201 left: the sphericity factor, the ice, rock and metal strengths, the rock creep columns, is_round, the ice-type strength ratio and the compaction taper are still unread | none | done, PR #6409 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1685 | The hierarchy stability gate reads the independent overlap checker (planetgen.physics.clearance) | none | closed by design, PR 6405 (Lane 05): clearance.py must not share code with the generator it checks, so it stays a test-side audit |
@@ -4121,7 +4124,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1777 | (high) No Class M family at Plentiful: funnel and a tunable CO2 lever. Measure whether the CO2 supply needs a tweak (report first, Boss decides) | done, decided (Boss 4:49 PM EST 11-17: oxygen rise next, GEN.1745 slice 3) |
 | GEN.1778 | (bug) A habitable request can end with no class and still at "aim" | done (PR 7042, 4:13 AM EST 11-17: aim only when a world meets the conditions and has life; F5V case is GEN.1783) |
 | GEN.1779 | (bug, high) A system build got about 2.4 times slower (test_gen1254_scatter_uid past its guard) | closed, not a regression (Lane 14, 2:16 AM EST 11-17: 144 s on main against 161 s on the 617 s commit; heavy list kept; speed work in PERF.276) |
-| GEN.1780 | The GEN.1732 haze loss ramp may have two branches (seed 106: 229 K to 134 K) | open (Lane 02) |
+| GEN.1780 | The GEN.1732 haze loss ramp may have two branches (seed 106: 229 K to 134 K) | done (PR 7197, Train 46, PR 7215, merged 6:54 AM EST 11-18: monotone guard on the old table; refit continues under GEN.1796 and GEN.1781) |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs: pair absorption missing or real anti-greenhouse? | open (Lane 02) |
 | GEN.1782 | Class D small bodies do not scale with metallicity (more in the halo) | closed, not a bug (Lane 06, 3:33 AM EST 11-17: 11.2 disk against 11.9 halo over 130 systems each, within noise; the count is pinned at ten per belt; cap question stays GEN.1674) |
 | GEN.1783 | (bug) A wide-binary planet's apoapsis passes the stability limit the validator uses | done (Train 43, PR 7084, 11-17) |
@@ -4130,13 +4133,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1786 | Held resonance eccentricity not saved or restored since GEN.1651 (bug) | GEN.1651 | done (PR 7057, 11-17) |
 | GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | done (Train 44, PR 7149) |
 | GEN.1788 | Review giant scattering physics; comets follow (Science comets 0 percent) | GEN.1775 | done (Train 44, PR 7149) |
-| GEN.1789 | (high) Oxygen source against reductant sink: reshape options for the oxygen stand-ins, report first | GEN.1777 | open (Lane 04) |
+| GEN.1789 | (high) Oxygen source against reductant sink: reshape options for the oxygen stand-ins, report first | GEN.1777 | done (report filled by Lane 04, 3:24 AM EST 11-18: Class M unchanged on every oxygen option, no-sink ceiling Plentiful 13.3, Abundant 10.0, Science 3.3 per 1,000) |
 | GEN.1790 | Envelope past the climate ceiling boils off; lava vapor held and logged | GEN.1745 | open (Lane 14) |
 | GEN.1791 | Lever search for Class M and M-like worlds at the Abundant tier (report) | GEN.1789 | open (Class M levers thread) |
-| GEN.1792 | (bug) Dwarf planets pile up at the e 0.5 and i 60 degree caps | GEN.1468 | open (Lane 14) |
+| GEN.1792 | (bug) Dwarf planets pile up at the e 0.5 and i 60 degree caps | GEN.1468 | done (PR 7137, Train 45, PR 7202, merged 4:36 AM EST 11-18: belt orbit draws truncated by inverse CDF) |
 | GEN.1793 | M dwarfs carry about half the observed close-in small planets | none | open (Lane 04) |
-| GEN.1794 | Cold-air condensation laws for OCS, CS2 and SO3 | none | open (Lane 02) |
-| GEN.1795 | Train 45 gate: the W20 other-branch search stops after two agreeing starts | none | open (Lane 02, Train 45) |
+| GEN.1794 | Cold-air condensation laws for OCS, CS2 and SO3 | none | done (PR 7207 with 7212 and 7213, Train 46, PR 7215, merged 6:54 AM EST 11-18: OCS, CS2 and SO3 condensation) |
+| GEN.1795 | Train 45 gate: the W20 other-branch search stops after two agreeing starts | none | done (PR 7190, Train 45, PR 7202, merged 4:36 AM EST 11-18) |
 | GEN.1796 | Greenhouse table refit for cold dense nitrogen airs (TEST.790 red) | none | open (Lane 05) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
@@ -5008,6 +5011,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.788 | Slow gate files (test_db_column_round_trip, test_full_matrix, test_order_independence, test_describe, test_tidal_spin) | done (measured by Lane 16, 2026-11-17) |
 | TEST.789 | test_secular_exchange_generation fails under load: find the load-order effect | done (PR 7007, 1:49 AM EST 11-17: one test moved the shared systems; it now builds its own) |
 | TEST.790 | A controlled greenhouse test: doubled infrared-active gases never lower the greenhouse | done (PR 7019, 2:41 AM EST 11-17; hydrogen-rich airs scoped out, see GEN.1781) |
+| TEST.791 | Stale test reds on main (fill order, unit reports, readme, cut neutral, stats) | none | open (Lane 14) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
