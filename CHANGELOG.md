@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4509] - 2026-11-18
+
+**Headline:** The claim to be starting the supervisor ends when that process ends, not after 20 seconds.
+
+### Changed
+- `supervisor.ensure_started` writes its claim with no time limit. `redisqueue.start_detached` gives the exit notice of the process it started (`on_exit`), which ends the claim; a claim whose caller has gone is taken at once; a spawn that fails leaves none (OPS.251). The worker counter's 90 seconds goes with RQ's workers (OPS.271) and is left.
+
+generation-output: unchanged
+
 ## [8.0.4508] - 2026-11-18
 
 **Headline:** Six constants that the constants-completeness test named now carry their tag, and one of them is no longer a second copy of another's value.
