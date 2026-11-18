@@ -16,7 +16,7 @@ the science its makers want its rocky planets in the ecosphere pushed toward Ear
 | `plentiful` | 1 in 37 |
 | `abundant` | 1 in 10 |
 
-A tier turns five dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`):
+A tier turns six dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`):
 
 1. `water_share`: the share of candidates (`candidate`) whose water class is given by the tier and not drawn from the Bern law at the
    distance the planet formed at.
@@ -31,6 +31,10 @@ A tier turns five dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`
 5. `quiet_share` (GEN.1721; Boss, 9:43 PM EST 2026-11-14: "tweak the volcanic activity a bit"): the share of candidates whose interior is quiet, so
    that its volcanic gases take `tuning.ABUNDANCE_QUIET_SINK_FACTOR` of the oxygen a body of the same heat loses (`quiet_interior`;
    `biogenic_oxygen.reductant_flux`). One draw per candidate, made once when the planet is first drawn.
+6. `cycle_share` (GEN.1720; Boss, 11:58 PM EST 2026-11-14, "recommendation approved"): the share of candidates whose two carbon-cycle constants, the exponent of the heat flow in the outgassing and the
+   factor of the weathering law's thermodynamic limit, are drawn from the part of their published ranges that holds the balance nearest the Earth's (`tuning.ABUNDANCE_CYCLE_OUTGASSING_RANGE`,
+   `ABUNDANCE_CYCLE_LAMBDA_RANGE`; `continental_weathering.draw_cycle`). The balance goes as the outgassing to about the fifth power, so over the whole ranges most Earth-shaped planets hold under 2 Pa
+   of CO2 or over 70 kPa (reports/gen1720-co2-attribution-2026-11-14.md). One draw per candidate under a tier, none on `science`.
 
 No dial touches a class limit, names a class letter or sets a count: each one moves a draw, and the class of every body is still derived
 from its finished conditions. The targets are what the dial values are calibrated to by census; the tier never checks or enforces them.
@@ -57,10 +61,10 @@ TARGET_SYSTEMS_PER_CLASS_M = {"science": None, "sparse": 500, "scattered": 135, 
 measured 1 in 2,800: `sparse` 1 in 500, `abundant` 1 in 10 and the two between split evenly on a log scale, each step about 3.7 times; they replace his
 first set of 1,000, 100, 30 and 10 of 11:19 PM EST 2026-11-13); `None` for `science`, which has no target."""
 
-Dials = namedtuple("Dials", ["water_share", "bare_share", "request_share", "dry_part", "quiet_share"])
-"""The five dials of a tier, each a share from 0 (off) to 1."""
+Dials = namedtuple("Dials", ["water_share", "bare_share", "request_share", "dry_part", "quiet_share", "cycle_share"])
+"""The six dials of a tier, each a share from 0 (off) to 1."""
 
-OFF = Dials(0.0, 0.0, 0.0, 0.0, 0.0)
+OFF = Dials(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 """Dials: Every dial off: `science`."""
 
 
@@ -121,6 +125,11 @@ def quiet_share(body):
 def quiet_interior(body):
     """Whether a tier drew `body` with a quiet interior (`body._quiet_interior`, set by `Planet._draw_body` under a tier only; never on `science`)."""
     return bool(getattr(body, "_quiet_interior", False))
+
+
+def cycle_share(body):
+    """The share of candidates whose carbon-cycle constants are drawn from the part of their ranges nearest the Earth's balance under the tier of `body` (GEN.1720): 0 for a body that is not a `candidate`, and on `science`."""
+    return dials_of(body).cycle_share if candidate(body) else 0.0
 
 
 def bare_share(body):
