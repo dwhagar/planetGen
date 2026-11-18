@@ -54,6 +54,39 @@ def test_a_conflict_with_the_base_is_found_and_a_clean_merge_is_not(tmp_path, mo
     assert clean is False and files == ["a.txt"]
 
 
+def test_generated_files_stale_only_in_the_merge_are_found(tmp_path, monkeypatch):
+    _repo(tmp_path)
+    monkeypatch.setattr(pregate, "ROOT", tmp_path)
+    script = tmp_path / "scripts" / "regenerate_generated.py"
+    script.parent.mkdir()
+    script.write_text(
+        "import pathlib, sys\n"
+        "root = pathlib.Path(__file__).resolve().parents[1]\n"
+        "total = sum(int(p.read_text()) for p in sorted(root.glob('src_*.txt')))\n"
+        "ok = (root / 'copy.txt').read_text().strip() == str(total)\n"
+        "sys.exit(0 if ok else 1)\n")
+    (tmp_path / "src_a.txt").write_text("1\n")
+    (tmp_path / "copy.txt").write_text("1\n")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "generator")
+    _git(tmp_path, "checkout", "-q", "-b", "feature")
+    (tmp_path / "src_b.txt").write_text("1\n")
+    (tmp_path / "copy.txt").write_text("2\n")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "feature adds a source")
+    _git(tmp_path, "checkout", "-q", "main")
+    (tmp_path / "src_c.txt").write_text("1\n")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "main adds another source, copy not touched")
+    _git(tmp_path, "checkout", "-q", "feature")
+    ok, _ = pregate.merged_generated_check("main")
+    assert ok is False
+    (tmp_path / "copy.txt").write_text("3\n")
+    _git(tmp_path, "commit", "-q", "-am", "regenerate for the merge")
+    assert pregate.merged_generated_check("main")[0] is True
+    assert _git(tmp_path, "worktree", "list").count("\n") == 1
+
+
 def test_the_set_files_name_real_test_files_and_the_prs_own_tests_are_added():
     fixed = pregate.test_files([])
     assert fixed and all((ROOT / name).exists() for name in fixed)
