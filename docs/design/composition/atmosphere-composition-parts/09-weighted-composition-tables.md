@@ -75,7 +75,7 @@ Design requirement (project owner): for every composition category there is a ta
 | d3 | Tenuous | same | P_K(1<r<=2.5) | same | DERIVED | |
 | d4 | Moderate | same | P_K(0.7<r<=1) | same | DERIVED | |
 | d5 | Dense | same | P_K(r<=0.7) | same | DERIVED | |
-| d6 | Pressure cap of the winning row (PARAM) | d1 to d5 | P_max = 0, 1e-5, 0.01, 0.1 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapor) | smooth caps suggested in the project doc s3.6 (values DESIGN) | DESIGN R4 | |
+| d6 | Pressure cap of the winning row (PARAM) | d1 to d5 | P_max = 0, 1e-5 bar for d1, d2; none for d3, d4, d5 (the caps of 0.01 and 0.1 bar of d3 and d4 are retired, GEN.1558); P = min(supply, P_max, vapor) | smooth caps suggested in the project doc s3.6 (values DESIGN) | DESIGN R4 | |
 | d7 | Primary H/He kept (flag outside the d1 to d5 draw) | M 1 to 30, lambda_H2=2.016 amu v_esc^2/(2 k T_exo)>=30 (T_exo = Teq + min(1500, 750 sqrt(F_xuv_rel)) K) | goes to table e (e1 or e2) | same doc s3.2 and s3.4 ([C]) | DERIVED | gate only |
 
 **Example d (COMPUTED).** r = X/(K v^4), v = 11.186 sqrt(M/R) km/s, K log-uniform, so P_K(r in [r0,r1]) is the log-length of the K interval. Planet M=0.3, R=0.68 gives v=7.43 km/s. Sun-like host with X=1.5: d5 dense 0.000, d4 moderate 0.372, d3 tenuous 0.628, d2 trace 0.000, d1 none 0.000. Same planet, M-dwarf host with X=15 (the doc's factor of 10 in XUV exposure): d5 dense 0.000, d4 moderate 0.000, d3 tenuous 0.000, d2 trace 1.000, d1 none 0.000.
