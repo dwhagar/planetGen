@@ -281,3 +281,38 @@ def test_a_recommended_value_needs_the_reason_it_is_recommended():
     assert marked.json_schema_extra["x-should-set"] == "Why." and marked.json_schema_extra["x-recommended"] == 2
     plain = settings.opt(1, "x", label="x", summary="x.", group="site")
     assert "x-should-set" not in plain.json_schema_extra and "x-recommended" not in plain.json_schema_extra
+
+
+# --- Retired options (OPS.235 slice 1d) -------------------------------------------------
+
+def test_retire_takes_only_the_retired_keys_out_and_adds_nothing(config):
+    document = json.loads(config.read_text())
+    document["queue"] = {**document.get("queue", {}), "max_host_workers": 5, "long_workers": 2}
+    document["old_option"] = 1                                          # stale, but not retired: left alone
+    _write(config, document)
+    result = settings_writer.retire(actor="update", retired=("queue.max_host_workers",))
+    assert result.saved and result.backup and [change.path for change in result.removed] == ["queue.max_host_workers"]
+    after = json.loads(config.read_text())
+    assert "max_host_workers" not in after["queue"] and after["queue"]["long_workers"] == 2 and after["old_option"] == 1
+    assert dict(_leaves(after)) == {path: value for path, value in _leaves(document) if path != "queue.max_host_workers"}      # nothing added, nothing else touched
+
+
+def test_retire_with_nothing_retired_in_the_file_changes_nothing(config):
+    before = config.read_text()
+    result = settings_writer.retire(actor="update", retired=("queue.max_host_workers",))
+    assert not result.saved and not result.changes and config.read_text() == before
+
+
+def test_the_retired_options_are_not_options_of_the_model():
+    assert settings.RETIRED_OPTIONS == ("queue.max_host_workers",)
+    assert not {path for path, _i, _m in settings.iter_fields()} & set(settings.RETIRED_OPTIONS)
+
+
+def test_the_config_command_retires_and_the_check_passes_after(config, capsys):
+    from planetgen.cli import config as config_cli
+    document = json.loads(config.read_text())
+    document["queue"] = {**document.get("queue", {}), "max_host_workers": 5}
+    _write(config, document)
+    assert config_cli.main(["retire"]) == 0
+    assert "queue.max_host_workers" in capsys.readouterr().out and "max_host_workers" not in config.read_text()
+    assert config_cli.main(["retire"]) == 0 and "Nothing to change." in capsys.readouterr().out

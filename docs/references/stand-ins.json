@@ -12443,11 +12443,7 @@
       "number": "6.21",
       "rows": [
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
@@ -12471,25 +12467,21 @@
             ],
             [
               "Evidence",
-              "RECALLED ([R1859], about 1e13 mol C a year)"
+              "READ ([R5300: Table 1]: organic carbon burial, the oxygen source, 10 plus or minus 3.3 x 10^12 mol O2 a year, one mole of O2 per mole buried; GEN.1789 measured that moving it inside that range moves no Class M; earlier RECALLED [R1859])"
             ]
           ],
           "id": "BO1",
           "key": "6.21:BO1",
           "kind": "P",
           "slug": "6-21-bo1",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.EARTH_BURIAL_MOL_YR 1e13: the source S of oxygen at Earth"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
@@ -12513,16 +12505,16 @@
             ],
             [
               "Evidence",
-              "RECALLED ([R1980] few 1e12)"
+              "READ ([R5300: Table 1]: reduced volcanic and metamorphic gases, minus (3 plus or minus 1) x 10^12 mol O2 a year, after Holland 1978; the same paper finds the mantle changes the H2 over CO2 ratio by only about 1.8 and metamorphic gases do not follow it; GEN.1789; earlier RECALLED [R1980])"
             ]
           ],
           "id": "BO2",
           "key": "6.21:BO2",
           "kind": "P",
           "slug": "6-21-bo2",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth"
         },
@@ -12631,15 +12623,15 @@
             ],
             [
               "Evidence",
-              "RECALLED (about half a heterotroph's)"
+              "READ ([R5299]: the effective activation energy of photosynthesis is about 0.32 eV, from Rubisco carboxylation, against 0.65 eV for respiration; their net primary production fit gives 0.35 eV, 95 percent interval 0.20 to 0.50; GEN.1789)"
             ]
           ],
           "id": "BO5",
           "key": "6.21:BO5",
           "kind": "T",
           "slug": "6-21-bo5",
-          "tier": "T4",
-          "tier_code": "T4",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.TEMPERATURE_ACTIVATION_EV 0.32: the Boltzmann factor on production"
@@ -31395,6 +31387,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "scatter.REACH_ZONE_WIDTHS 3.0 (read by belt_origin.STIR_ZONE_WIDTHS, row BG8): how many chaotic half-widths (row SX1) a giant's scattering reaches over the age of a system, so the disk between the cold zone's edge (one half-width) and the reach is scattered; Neptune destabilizes objects 5 to 8 AU beyond its orbit, about 10 Hill radii, in 4 Gyr (Morbidelli, Levison and Gomes, Kuiper belt chapter, read)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5"
+            ],
+            [
+              "Where it holds",
+              "giants of 0.01 to 10 Jupiter masses, systems of 1 to 10 Gyr"
+            ],
+            [
+              "What would show it wrong",
+              "a scattered-disk or comet census that is far off the share this gives, or a long N-body run with a different stability edge"
+            ],
+            [
+              "What replaces it",
+              "a Gyr-long N-body run of the system's own giants and disk"
+            ],
+            [
+              "Evidence",
+              "[Morbidelli, Levison and Gomes, the Kuiper belt chapter: unstable out to q 35 to 38 AU for Neptune at 30 AU, 4 Gyr] second-hand, the paper itself not opened by Boss; the age dependence of the reach is not modelled"
+            ]
+          ],
+          "id": "SX6",
+          "key": "6.83:SX6",
+          "kind": "P",
+          "slug": "6-83-sx6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "scatter.REACH_ZONE_WIDTHS 3.0 (read by belt_origin.STIR_ZONE_WIDTHS, row BG8): how many chaotic half-widths (row SX1) a giant's scattering reaches over the age of a system, so the disk between the cold zone's edge (one half-width) and the reach is scattered; Neptune destabilizes objects 5 to 8 AU beyond its orbit, about 10 Hill radii, in 4 Gyr (Morbidelli, Levison and Gomes, Kuiper belt chapter, read)"
         }
       ],
       "slug": "6-83-stand-ins-of-the-scatter-step-of-an-outer-disk",

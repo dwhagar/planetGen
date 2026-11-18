@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1904 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1905 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,23 +42,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1877 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1878 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 221 | 22 | 12 | 1 | 0 | 256 |
-| T2 | 174 | 73 | 4 | 1 | 0 | 252 |
-| T3 | 126 | 63 | 13 | 11 | 0 | 213 |
-| T4 | 89 | 16 | 8 | 24 | 14 | 151 |
+| T1 | 224 | 22 | 12 | 1 | 0 | 259 |
+| T2 | 175 | 73 | 4 | 0 | 0 | 252 |
+| T3 | 126 | 63 | 13 | 10 | 0 | 212 |
+| T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 108 | 29 | 8 | 2 | 2 | 149 |
 | T6 | 240 | 131 | 37 | 81 | 5 | 494 |
 | T7 | 70 | 37 | 10 | 32 | 0 | 149 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1081 | 391 | 98 | 270 | 64 | 1904 |
+| All | 1084 | 391 | 98 | 268 | 64 | 1905 |
 
 ## How the labels were given
 
@@ -504,11 +504,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| BO1 | P | T2 | L3 | biogenic_oxygen.EARTH_BURIAL_MOL_YR 1e13: the source S of oxygen at Earth | 0.5e13 to 2e13 | the oxygen balance | test_biogenic_oxygen.test_earth_numbers_balance_at_the_oxygen_of_earths_air | the oxygen cycle of a measured world | RECALLED ([R1859], about 1e13 mol C a year) | predicted only | - | no data |
-| BO2 | P | T3 | L3 | biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth | 1e12 to 5e12 | the oxygen balance | the same | the same | RECALLED ([R1980] few 1e12) | predicted only | - | no data |
+| BO1 | P | T1 | L0 | biogenic_oxygen.EARTH_BURIAL_MOL_YR 1e13: the source S of oxygen at Earth | 0.5e13 to 2e13 | the oxygen balance | test_biogenic_oxygen.test_earth_numbers_balance_at_the_oxygen_of_earths_air | the oxygen cycle of a measured world | READ ([R5300: Table 1]: organic carbon burial, the oxygen source, 10 plus or minus 3.3 x 10^12 mol O2 a year, one mole of O2 per mole buried; GEN.1789 measured that moving it inside that range moves no Class M; earlier RECALLED [R1859]) | predicted only | - | - |
+| BO2 | P | T1 | L0 | biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth | 1e12 to 5e12 | the oxygen balance | the same | the same | READ ([R5300: Table 1]: reduced volcanic and metamorphic gases, minus (3 plus or minus 1) x 10^12 mol O2 a year, after Holland 1978; the same paper finds the mantle changes the H2 over CO2 ratio by only about 1.8 and metamorphic gases do not follow it; GEN.1789; earlier RECALLED [R1980]) | predicted only | - | - |
 | BO3 | P | T3 | L1 | biogenic_oxygen.EARTH_STORE_MOL 2.4e21 (4e21 until GEN.1762, 5e21 until GEN.1463; GEN.1762 read the Earth twin's heat from the one reference, so R of an Earth-mass body is 1.07 of Earth's and not 0.76, and the store was set again to keep the 0.714 Gyr): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, `biogenic_oxygen.reductant_history_factor`) | 2.1e21 to 7e21 (0.3 to 1 Gyr at Earth's surplus of 7e12 mol a year) | the delay of the oxygen | the same (0.714 Gyr) | a measured Great Oxidation delay, or a sink inventory that sums to a different store | READ ([R0689] section 4.2: oxygenic photosynthesis existed at least 0.3 Gyr, and perhaps 1 Gyr or more, before the initial rise of oxygen, with excess reductants scavenging the oxygen as the explanation proposed; no source sums the sinks into a store, so it stays a stand-in set inside the bracket of the delay; GEN.1405) | predicted only | - | - |
 | BO4 | P | T6 | L3 | biogenic_oxygen.LIGHT_EXPONENT 0.5 and LIGHT_RANGE (0, 2): production goes as the active light to this power | 0.3 to 1.0 | worlds with a sunlit sea | test_biogenic_oxygen.test_the_sea_makes_nothing_outside_its_liquid_range_and_most_near_the_reference | a measured productivity against light | design (production saturates) | predicted only | - | no data |
-| BO5 | T | T4 | L0 | biogenic_oxygen.TEMPERATURE_ACTIVATION_EV 0.32: the Boltzmann factor on production | 0.2 to 0.7 eV | the liquid range | the same | the same | RECALLED (about half a heterotroph's) | predicted only | - | - |
+| BO5 | T | T1 | L0 | biogenic_oxygen.TEMPERATURE_ACTIVATION_EV 0.32: the Boltzmann factor on production | 0.2 to 0.7 eV | the liquid range | the same | the same | READ ([R5299]: the effective activation energy of photosynthesis is about 0.32 eV, from Rubisco carboxylation, against 0.65 eV for respiration; their net primary production fit gives 0.35 eV, 95 percent interval 0.20 to 0.50; GEN.1789) | predicted only | - | - |
 | BO6 | P | T6 | L3 | biogenic_oxygen.OCEAN_SPAN_K (258, 275, 315, 343): where the liquid range's factor rises to 1 and falls to 0 | a few K each | worlds with a sunlit sea | the same | a measured temperature range of marine production | design | predicted only | - | no data |
 | BO7 | P | T3 | L0 | biogenic_oxygen.EUKARYOTE_MINIMUM_PA 200: the oxygen the air must hold for the wait for complex cells to start | 100 to 2000 Pa | complex cells | test_life_schedule.test_a_chemistry_that_never_makes_oxygen_stops_at_photosynthesis_in_an_air_without_it | a measured oxygen need of early eukaryotes | RECALLED ([R3084], about 1 percent of the present level) | predicted only | - | - |
 | BO8 | P | T7 | L3 | biogenic_oxygen.REDOX_DECADE_PER_UNIT 0.25 and REDOX_FACTOR_RANGE (0.2, 5): a mantle one log unit more reduced puts out and stores 10 ** 0.25 times the reductants | 0.1 to 0.5 | rocky bodies | test_biogenic_oxygen.test_a_more_reduced_mantle_puts_out_more_reductants_inside_the_range | a mantle gas model | design | predicted only | - | no data |
@@ -1318,6 +1318,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SX3 | P | T9 | L3 | scatter.THETA_EJECT 10: the Safronov number at which 63 percent of the swept mass is ejected | 3 to 30 | giants of Safronov number 1 to 20 | the ejected share of a scattering run at a given giant | [R2654] | educated guess from physics ([R3867] ejection by planets of high escape speed) | predicted only | - | no data |
 | SX4 | P | T9 | L3 | scatter.HOT_SHARE 0.4: the share of the unswept cold disc that is excited after a full instability | 0.1 to 0.7 | systems with an instability | an observed hot-to-cold ratio from a survey | OSSOS [R2288] hot and cold populations | educated guess from physics | predicted only | - | no data |
 | SX5 | P | T9 | L3 | scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared | each within a factor of 3 | the swept mass | a population synthesis | [R2654] | educated guess from needed output | predicted only | - | no data |
+| SX6 | P | T2 | L0 | scatter.REACH_ZONE_WIDTHS 3.0 (read by belt_origin.STIR_ZONE_WIDTHS, row BG8): how many chaotic half-widths (row SX1) a giant's scattering reaches over the age of a system, so the disk between the cold zone's edge (one half-width) and the reach is scattered; Neptune destabilizes objects 5 to 8 AU beyond its orbit, about 10 Hill radii, in 4 Gyr (Morbidelli, Levison and Gomes, Kuiper belt chapter, read) | 2 to 5 | giants of 0.01 to 10 Jupiter masses, systems of 1 to 10 Gyr | a scattered-disk or comet census that is far off the share this gives, or a long N-body run with a different stability edge | a Gyr-long N-body run of the system's own giants and disk | [Morbidelli, Levison and Gomes, the Kuiper belt chapter: unstable out to q 35 to 38 AU for Neptune at 30 AU, 4 Gyr] second-hand, the paper itself not opened by Boss; the age dependence of the reach is not modelled | predicted only | - | - |
 
 ## 6.103 Stand-ins of the interstellar asteroid fields
 

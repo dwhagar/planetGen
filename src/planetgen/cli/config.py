@@ -9,6 +9,8 @@ Checks, documents and edits the settings.
     python3 -m planetgen.cli.config get [OPTION]               # the value that applies, and where it comes from
     python3 -m planetgen.cli.config set OPTION=VALUE [...]     # save options in config.json
     python3 -m planetgen.cli.config unset OPTION [...]         # drop them, so the default applies
+    python3 -m planetgen.cli.config retire                     # take out the options a release retired (`./update.sh` runs it)
+    python3 -m planetgen.cli.config retire                     # take out the options a release retired (./update.sh runs it)
     python3 -m planetgen.cli.config restore BACKUP             # put the configuration of a backup archive back
                                                                # (`planetgen.cli.backup list` shows the archives)
 
@@ -219,6 +221,7 @@ def main(argv=None):
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("check", help="validate config.json")
     commands.add_parser("docs", help="rewrite the generated files")
+    retire = commands.add_parser("retire", help="take the options a release retired out of config.json")
     get = commands.add_parser("get", help="show the value that applies and where it comes from")
     get.add_argument("option", nargs="?")
     save = commands.add_parser("set", help="save options in config.json")
@@ -227,7 +230,7 @@ def main(argv=None):
     unset.add_argument("options", nargs="+", metavar="OPTION")
     restore = commands.add_parser("restore", help="put the configuration of a backup archive back")
     restore.add_argument("backup")
-    for sub in (save, unset, restore):
+    for sub in (save, unset, restore, retire):
         add_mysql_connection_args(sub)
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
@@ -242,6 +245,8 @@ def main(argv=None):
         return run_save(args, _read_assignments(args.assignments), "Saved")
     if args.command == "unset":
         return run_save(args, {option: settings_writer.RESET for option in args.options}, "Saved")
+    if args.command == "retire":
+        return _write_as_host(args, "Retired", lambda audit: settings_writer.retire(_actor(), audit=audit))
     return run_restore(args)
 
 

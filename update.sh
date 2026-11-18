@@ -255,6 +255,7 @@ build_reference_pages
 log_stage 4 9 "Migrating the configured MySQL database to the current schema"
 migrate_or_reset_db
 record_version_key
+retire_config_options
 warm_shape_means
 
 log_stage 5 9 "Checking the generator's math"

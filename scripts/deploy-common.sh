@@ -1066,6 +1066,14 @@ note_changed_example_configs() {
     return 0
 }
 
+# OPS.235 slice 1d: takes the options a release retired (`settings.RETIRED_OPTIONS`) out of config.json, once, so `planetgen config check` still passes: a backup, an audit row and
+# a line in the log for each key removed. Never stops an update: a file that cannot be read or written is left as it is and said.
+retire_config_options() {
+    log_info "Taking the settings this release retired out of config.json (none is a no-op):"
+    (cd / && "$PYTHON" -m planetgen.cli.config retire) \
+        || log_warning "config.json was not cleaned of retired settings (see above); run 'planetgen config check' to see what is left. The update carries on."
+}
+
 # Imports the web app and the generator package with the interpreter the
 # site runs under, as Apache's own user when that user exists, so a
 # library that's installed but unreadable to www-data (or the checkout's
