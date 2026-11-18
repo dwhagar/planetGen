@@ -6,6 +6,8 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/operations/test-
     scripts/test.py area web db           the tests of those areas (src/tests/areas.py)
     scripts/test.py browser               the headless-browser tests alone
     scripts/test.py changed [--base REF]  only the tests the changes since REF can affect (a fast loop, not a gate)
+    scripts/test.py failed [--base REF]   after a fix: the tests that failed in the last run, and the tests the changes since REF can
+                                          affect, within `--limit` minutes of test time (default 20); the rest is left to the end-of-version run
     scripts/test.py budget                the big-galaxy query budget (opt-in, builds 2,000,000 systems once; not a gate)
     scripts/test.py env                   only the check below, and the repairs it makes; runs no test
     scripts/test.py full                  everything: the end-of-version run (TEST.261, SEC.33, GEN.301), not the gate of an
@@ -74,6 +76,8 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS_FILE = os.path.join(ROOT, ".test-runs.json")
 FAILURES_FILE = os.path.join(ROOT, ".test-failures.jsonl")
+FAILED_NODEIDS_FILE = os.path.join(ROOT, ".test-progress", "failed-nodeids.txt")
+"""str: The node ids the last run's failure log held, written by `failed` before its own run clears the log (TEST.722)."""
 PROGRESS_DIR = os.path.join(ROOT, ".test-progress")
 KEEP_PROGRESS_SECONDS = 24 * 3600
 AREAS = ("web", "api", "db", "generation", "physics", "names", "ops", "other")
@@ -168,11 +172,28 @@ def build_phases(command, areas, workers, browser_workers):
     return parts
 
 
-def depmap_options(command, base, check):
+DEFAULT_LIMIT_MINUTES = 20
+"""int: How long, in minutes of wall clock, `failed` lets the tests it adds to the failed ones run (TEST.722)."""
+
+
+def write_failed_nodeids(path=FAILED_NODEIDS_FILE, failures=FAILURES_FILE):
+    """Saves the node ids of the last run's failure log for `failed`, and returns how many (0 and no file yet: none was ever recorded)."""
+    found = list(failed_tests(failures))
+    if not found and not os.path.exists(path):
+        return 0        # no failure was ever recorded here: nothing to rerun and nothing to compare with
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:     # a clean last run empties the list, so an old failure is not rerun for ever
+        f.write("".join(nodeid + "\n" for nodeid in found))
+    return len(found)
+
+
+def depmap_options(command, base, check, limit_seconds=0):
     """The dependency-map options for a command: `changed` selects, `full` refreshes the map (and, with `--check`,
     lists the failures `changed` would have missed). Others leave the map alone."""
     if command == "changed":
         return ["--changed", base]
+    if command == "failed":
+        return ["--changed", base, "--also-run", FAILED_NODEIDS_FILE, "--time-limit", str(limit_seconds)]
     if command == "full":
         return ["--record-deps"] + (["--deps-check", base] if check else [])
     return []
@@ -613,7 +634,7 @@ def minutes(seconds):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("command", choices=("quick", "area", "browser", "budget", "changed", "full", "env"))
+    parser.add_argument("command", choices=("quick", "area", "browser", "budget", "changed", "failed", "full", "env"))
     parser.add_argument("areas", nargs="*", help="for `area`: " + ", ".join(AREAS))
     parser.add_argument("-n", "--workers", type=int, default=os.cpu_count() or 1,
                         help="workers for the non-browser tests (default: every core)")
@@ -633,6 +654,9 @@ def main(argv=None):
     parser.add_argument("--no-preflight", action="store_true",
                         help="do not check (and repair) MySQL, Redis, the test variables and the packages first, and "
                         "do not watch the servers during the run (TEST.376)")
+    parser.add_argument("--limit", type=float, default=DEFAULT_LIMIT_MINUTES, metavar="MINUTES",
+                        help=f"for `failed`: the most test time, in minutes of wall clock on the workers asked for, the selection may "
+                        f"carry besides the failed tests (default {DEFAULT_LIMIT_MINUTES:g}); what does not fit is left to the end-of-version run")
     parser.add_argument("--check", action="store_true",
                         help="for `full`: list the failing tests `changed` would not have selected")
     parser.add_argument("--global-docs", action="store_true",
@@ -650,6 +674,11 @@ def main(argv=None):
             parser.error("`area` needs one or more of: " + ", ".join(AREAS))
     elif args.areas:
         parser.error(f"`{args.command}` takes no areas")
+    if args.command == "failed":
+        write_failed_nodeids()
+        if not os.path.exists(FAILED_NODEIDS_FILE):
+            parser.error("`failed` reruns what failed in the last run, and no failure is recorded (.test-failures.jsonl is empty "
+                         "or absent): run `changed` first")
     if args.check and args.command != "full":
         parser.error("`--check` goes with `full`")
     if args.check:
@@ -671,7 +700,7 @@ def main(argv=None):
             return 0
     if args.global_docs:
         os.environ["PLANETGEN_GLOBAL_DOCS"] = "1"
-    extra = depmap_options(args.command, args.base, args.check) + extra
+    extra = depmap_options(args.command, args.base, args.check, round(args.limit * 60 * max(1, args.workers))) + extra
 
     key = args.command + (" " + " ".join(args.areas) if args.areas else "")
     previous = load_runs().get(key)
