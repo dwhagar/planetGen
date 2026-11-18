@@ -65,6 +65,11 @@ from planetgen.util import logpaths
 from planetgen.util.wordlist import join_words
 
 CONFIG_VERSION = 1
+
+RETIRED_OPTIONS = ("queue.max_host_workers",)
+"""tuple: The dotted paths of options a release removed, which `./update.sh` takes out of config.json once (`settings_writer.retire`, `planetgen config retire`: a backup, an audit row and a log line each), so
+`planetgen config check` does not fail on a key the model no longer has. A path stays here only until every site has updated past the release that retired it; it is not read as a setting. OPS.235 slice 1d: the
+cap on worker processes, which nothing started any more."""
 """int: The `config_version` this code writes and reads. A file without one
 is version 1; a newer one is refused."""
 

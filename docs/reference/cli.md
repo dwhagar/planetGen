@@ -888,12 +888,15 @@ python3 -m planetgen.cli.lift_lockout --ip 203.0.113.5
 
 `get [OPTION]` prints the value that applies and where it comes from (default, `config.json` or an environment variable; a secret shows only `(set)` or `(empty)`). `set OPTION=VALUE ...` and `unset OPTION ...` change `config.json` through the same writer as the Admin settings page ([config.md](config.md#saving-settings)): every value is checked first and one bad value saves nothing, the old file is backed up, and each change gets an audit row (when the control database is reachable) and an activity-log line. The command prints what needs a restart. A value is read as JSON for a number, `true` or a list and as text otherwise (`set site_name="My galaxy" cache.max_mb=300`); `OPTION=-` reads it from standard input, which keeps a secret out of the shell history. `restore ARCHIVE` puts the settings of a backup archive back (`planetgen.cli.backup list` shows the archives), backing up the current file first. Every option may be set here, the database, the secrets and the Owner-only ones included, because whoever can run the command owns the server; the Admin page cannot change those. If `config.json` does not exist the command says so and creates nothing.
 
+`retire` takes the options a release retired (`settings.RETIRED_OPTIONS`) out of `config.json` and nothing else: a backup, an audit row and a printed line for each. `./update.sh` runs it after the database migration, so `check` passes after an update without a hand edit.
+
 ```bash
 python3 -m planetgen.cli.config check
 python3 -m planetgen.cli.config docs
 python3 -m planetgen.cli.config get cache.max_mb
 python3 -m planetgen.cli.config set cache.max_mb=300 site_name="My galaxy"
 python3 -m planetgen.cli.config unset cache.max_mb
+python3 -m planetgen.cli.config retire
 python3 -m planetgen.cli.config restore 20261016T193012Z.tar.bz2
 ```
 
