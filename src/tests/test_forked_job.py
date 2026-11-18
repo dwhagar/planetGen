@@ -2,7 +2,6 @@
 failed ends its job as the engine says. Real MySQL, Redis and processes."""
 
 import pytest
-import rq
 
 from planetgen.queue import allowlist, jobhost, memorygate, redisqueue, runrecord, units, workers
 from planetgen.cli import reset as reset_cli

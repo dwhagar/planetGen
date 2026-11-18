@@ -1,12 +1,12 @@
 # planetgen/queue/__init__.py
 
 """
-The work queue: runs of generation and the API's long jobs, on Redis with RQ.
+The work queue: runs of generation and the API's long jobs, on Redis and the job ledger (OPS.235: RQ is gone).
 
 `redisclient.py` makes the one Redis client; `redisqueue.py` holds the
-queues and the RQ worker class, `workers.py` starts the workers of the shared
-queues, counts them and stops a running job, and `planetgen.cli.worker` is
-the worker process. A run lives only in Redis: `runrecord.py` keeps its
+connection, the JSON serializer and the time limits, `workers.py` sizes
+the workers of a stage, and the supervisor's launcher forks each job from
+a template process (`template.py`, `launcher.py`). A run lives only in Redis: `runrecord.py` keeps its
 record and counters, `runeta.py` works out the time left from them,
 `progress_rate.py` the rate behind every bar's estimate, and
 `progress_file.py` the progress a web-started run writes for the page.

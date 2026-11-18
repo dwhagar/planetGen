@@ -15,7 +15,7 @@ import time
 import pytest
 
 from planetgen.admin import updateguard
-from planetgen.cli import queue as queue_cli, worker as worker_cli
+from planetgen.cli import queue as queue_cli
 from planetgen.queue import pause, redisqueue, stopall
 from planetgen.web import job_runner, jobs
 from planetgen.web.lib import tileprefetch
@@ -58,8 +58,8 @@ def _only_my_children(monkeypatch):
 
 
 def _spawn_worker(code):
-    """A process whose command line names the worker module, as a real worker's does."""
-    return subprocess.Popen([PYTHON, "-c", code, "planetgen.cli.worker"], start_new_session=True)
+    """A process whose command line names a module `stopall` ends (`planetgen.cli.warm`), as a real command's does (OPS.235: there is no worker module any more)."""
+    return subprocess.Popen([PYTHON, "-c", code, "planetgen.cli.warm"], start_new_session=True)
 
 
 def _gone(pid, seconds=10):
@@ -96,7 +96,6 @@ def test_nothing_starts_while_everything_is_stopped(tmp_path, monkeypatch):
         updateguard.refuse_while_updating("A run")      # the guard every start of a run, a job or the orbit update calls
     with pytest.raises(updateguard.UpdateRunning):
         jobs.start_job("galaxy", "Held", [{"label": "x", "argv": [PYTHON, "-c", "pass"]}], spawn=False)
-    assert worker_cli.main(["--burst"]) == updateguard.EX_TEMPFAIL
 
 
 def test_the_tile_prefetch_queues_nothing_while_stopped(monkeypatch):
@@ -112,8 +111,8 @@ def test_the_tile_prefetch_queues_nothing_while_stopped(monkeypatch):
 
 def test_find_targets_takes_workers_and_everything_they_started_and_spares_the_rest():
     table = {
-        10: (1, "/venv/bin/python -m planetgen.cli.worker --url redis://x planetgen-bulk"),
-        11: (10, "/venv/bin/python -m planetgen.cli.worker --url redis://x planetgen-bulk"),    # its work horse
+        10: (1, "/venv/bin/python -m planetgen.cli.warm --url redis://x planetgen-bulk"),
+        11: (10, "/venv/bin/python -m planetgen.cli.warm --url redis://x planetgen-bulk"),    # its work horse
         12: (11, "sleep 100"),                                                                    # whatever it started
         20: (1, "/venv/bin/python -m planetgen.cli.generate sectors --radius-pc 12"),
         21: (20, "/venv/bin/python -c from multiprocessing.spawn import spawn_main"),
@@ -121,7 +120,7 @@ def test_find_targets_takes_workers_and_everything_they_started_and_spares_the_r
         40: (1, "/venv/bin/python -m planetgen.cli.migrate"),
         41: (1, "apache2 -k start"),
         42: (1, "/usr/sbin/mysqld"),
-        50: (1, "/venv/bin/python -m planetgen.cli.worker planetgen-bulk"),                      # protected
+        50: (1, "/venv/bin/python -m planetgen.cli.warm planetgen-bulk"),                      # protected
     }
     assert sorted(stopall.find_targets(table, protected={50})) == [10, 11, 12, 20, 21, 30]
     order = stopall.find_targets(table, protected={50})
@@ -151,11 +150,11 @@ def test_kill_processes_ends_a_worker_its_children_and_one_that_ignores_sigterm(
 def test_stop_all_holds_cancels_empties_the_queues_and_kills(redis_server, monkeypatch, tmp_path):
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path / "jobs"))
     _only_my_children(monkeypatch)
+    from planetgen.queue import lightjobs
+    monkeypatch.setattr(lightjobs, "ask_supervisor", lambda connection=None, url=None: None)
     connection = redisqueue.connect(redis_server)
-    queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
-    queue.empty()
-    queue.enqueue("time.sleep", 1, job_timeout=60)
-    queue.enqueue("time.sleep", 1, job_timeout=60)
+    for _ in range(2):
+        lightjobs.add_job(connection, "math:pow", [2, 3])      # OPS.235: the jobs that wait are the site's light jobs
     worker = _spawn_worker("import time; time.sleep(60)")
     time.sleep(0.5)
     try:
@@ -163,7 +162,7 @@ def test_stop_all_holds_cancels_empties_the_queues_and_kills(redis_server, monke
         assert done["already"] is False
         assert done["queued"] >= 2
         assert done["killed"] >= 1
-        assert queue.count == 0
+        assert lightjobs.live(connection) == []
         assert stopall.state()["by"] == "boss"
         assert pause.is_paused(connection)
         assert _gone(worker.pid)

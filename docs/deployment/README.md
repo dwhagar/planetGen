@@ -240,8 +240,8 @@ before it changes anything, so the only thing that runs is the update:
 A job whose worker was killed (the out-of-memory killer, a restart) used to stay "running" in Redis for ever and hold
 the update; the guard and every worker now clear such a job when they start. When a job is stuck some other way,
 `sudo ./update.sh --reset-jobs` (or `python3 -m planetgen.cli.reset_jobs` on its own, `--dry-run` to only look) stops
-what the guard lists, kills the queue workers on the machine, and empties the jobs table and the work lease of the
-control database and the queues in Redis (the RQ keys only: the admin's worker count and the caches stay). It cancels
+what the guard lists, asks the supervisor to stop every job it forked, and empties the jobs table and the work lease of the
+control database and the run records in Redis (and any keys an older release's RQ left; the caches stay). It cancels
 without asking, so use it when nothing needs to finish.
 
 `python3 -m planetgen.cli.migrate` run by hand does the same when it has something to migrate (`--yes`
