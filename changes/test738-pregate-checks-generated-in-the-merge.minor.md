@@ -1,0 +1,4 @@
+**Headline:** The pre-gate lane now checks generated files in the merge of a PR with main, so a generated copy that is stale only after the merge is found before the train head is.
+
+### Added
+- **`generated (merged)` step in `scripts/pregate.py`** (TEST.738): builds the merge of the PR head with the base in a temporary detached worktree (`git merge-tree`, `git commit-tree`) and runs that tree's `scripts/regenerate_generated.py --check`. Two PRs that each change a source of one generated file (the stand-in list, the life-class rules) were each current alone and stale together; the check names the file and the repair (merge main, run `python scripts/regenerate_generated.py`, commit). A conflicted merge is left to step 1. Reuses `regenerate_generated.py --check` and `pregate.merges_cleanly`'s `git merge-tree` call; nothing is rebuilt a second way.

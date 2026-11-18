@@ -17,7 +17,8 @@ or `FAIL`, and the exit status is 1 when any failed:
 3. duplicate-definitions: no module-level `def` or `class` defined twice in a changed file (the second silently replaces the first;
    OPS.142 shadowed `_duration` of the Queue page this way). pyflakes' F811 is not used: it flags every pytest fixture import.
 4. ruff: undefined names and syntax errors (`F821`, `F822`, `F823`, `E9`) in the changed Python files.
-5. generated: `scripts/regenerate_generated.py --check`, where the script exists.
+5. generated: `scripts/regenerate_generated.py --check`, where the script exists, on the PR head and (TEST.738) on the merge of the PR head
+   with the base: a generated file can be current on both sides and stale in the merge, because two PRs each changed a source the file is built from.
 6. tests: the files of `scripts/data/pregate_set.txt` (the reds that kept recurring: spelling, citations, settings, own log
    formatting, constants, docs links and index, wiring guard, architecture map) plus the test files the PR edits that need no
    database, on every free core (with `--train` also the train fast set). Tests that need MySQL, a browser or a real queue worker are the gate's long run.
@@ -33,6 +34,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SET_FILE = ROOT / "scripts" / "data" / "pregate_set.txt"
@@ -75,6 +77,35 @@ def merges_cleanly(base):
             break
         names.append(line.strip())
     return False, names
+
+
+def merged_generated_check(base):
+    """
+    `(ok, text)`: whether the generated files are up to date in the merge of HEAD with `base` (TEST.738).
+
+    The merge is built in a temporary detached worktree (`git merge-tree` writes the merged tree, `git commit-tree` makes it a commit) and the merged tree's own
+    `scripts/regenerate_generated.py --check` runs there, so a stale copy that neither side shows is found before the train head is. A merge with a conflict is
+    not checked here (step 1 reports it) and counts as ok.
+    """
+    tree = _run(["git", "merge-tree", "--write-tree", base, "HEAD"])
+    if tree.returncode != 0:
+        return True, "merge has conflicts, not checked"
+    commit = _run(["git", "-c", "user.name=pregate", "-c", "user.email=pregate@localhost", "commit-tree", tree.stdout.split()[0], "-p", "HEAD", "-p", base, "-m", "pregate merge"])
+    if commit.returncode != 0:
+        return False, commit.stderr[-300:]
+    with tempfile.TemporaryDirectory(prefix="pregate-merge-") as folder:
+        work = pathlib.Path(folder) / "tree"
+        added = _run(["git", "worktree", "add", "--detach", str(work), commit.stdout.strip()])
+        if added.returncode != 0:
+            return False, added.stderr[-300:]
+        try:
+            script = work / "scripts" / "regenerate_generated.py"
+            if not script.exists():
+                return True, "no script in the merge"
+            gen = subprocess.run([sys.executable, str(script), "--check"], cwd=work, capture_output=True, text=True)
+            return gen.returncode == 0, (gen.stdout + gen.stderr)[-600:]
+        finally:
+            _run(["git", "worktree", "remove", "--force", str(work)])
 
 
 def duplicate_definitions(files):
@@ -166,6 +197,8 @@ def main(argv=None):
     if regenerate.exists():
         gen = _run([sys.executable, str(regenerate), "--check"])
         results.append(step("generated files", gen.returncode == 0, (gen.stdout + gen.stderr)[-600:]))
+        ok, text = merged_generated_check(args.base)
+        results.append(step("generated (merged)", ok, text + "\nrepair: merge %s, then python scripts/regenerate_generated.py, commit" % args.base))
 
     if not args.no_tests and tests:
         env = dict(os.environ, PYTHONPATH=str(ROOT / "src"))
