@@ -176,7 +176,8 @@ def designed_airs(count, rng, families=None):
     families = FAMILIES if families is None else families
     airs = []
     for number in range(count):
-        name, shares, pressures, fluxes, haze = families[number % len(families)]
+        name, shares, pressures, fluxes, haze, *rest = families[number % len(families)]
+        gravities = rest[0] if rest else (2.0, 25.0)
         drawn = {}
         for formula, (low, high) in shares.items():
             if high / max(low, 1.0e-12) > 100.0:
@@ -186,7 +187,7 @@ def designed_airs(count, rng, families=None):
         total = sum(drawn.values())
         pressure = math.exp(rng.uniform(math.log(pressures[0]), math.log(pressures[1])))
         partials = {formula: share / total * pressure for formula, share in drawn.items() if share > 0.0}
-        gravity = math.exp(rng.uniform(math.log(2.0), math.log(25.0)))
+        gravity = math.exp(rng.uniform(math.log(gravities[0]), math.log(gravities[1])))
         flux = math.exp(rng.uniform(math.log(fluxes[0]), math.log(fluxes[1])))
         share = math.exp(rng.uniform(math.log(0.003), math.log(0.9))) if rng.random() < haze else 0.0
         aloft = pressure * 10.0 ** rng.uniform(-5.5, -1.0)
@@ -198,6 +199,11 @@ COLD_FAMILIES = (
     ("cold-dense-nitrogen", {"N2": (0.1, 0.99), "CO2": (1.0e-3, 0.9), "Ar": (0.0, 0.02), "CH4": (0.0, 0.02), "H2O": (1.0e-6, 1.0e-3)}, (3.0e5, 3.0e7), (0.05, 30.0), 0.1),
     ("cold-dense-carbon-dioxide", {"CO2": (0.5, 1.0), "N2": (0.0, 0.3), "Ar": (0.0, 0.02), "H2O": (1.0e-6, 1.0e-3), "CH4": (0.0, 0.01)}, (1.0e5, 3.0e7), (0.05, 30.0), 0.1),
 )
+COLD_CIA_FAMILIES = (
+    ("cold-dense-nitrogen-with-ir-gases", {"N2": (0.9, 0.999), "CO2": (0.0, 0.05), "H2S": (0.0, 0.02), "HCl": (0.0, 0.01), "SO2": (0.0, 0.01), "CH4": (0.0, 0.02), "Ar": (0.0, 0.02), "H2O": (0.0, 1.0e-4)}, (1.0e5, 1.0e7), (0.3, 30.0), 0.0, (0.4, 25.0)),
+    ("cold-dense-nitrogen-light-world", {"N2": (0.6, 0.99), "CO2": (1.0e-3, 0.35), "Ar": (0.0, 0.02), "CH4": (0.0, 0.02)}, (1.0e5, 1.0e7), (0.3, 30.0), 0.0, (0.4, 8.0)),
+)
+"""tuple: GEN.1796: the families of `cold --cia`, the cold dense nitrogen airs of a small or light world (0.4 to 25 m/s2, where every other family starts at 2) with a few percent of infrared-active gases (CO2, H2S, HCl, SO2, CH4) on the nitrogen collision-induced absorption, at an effective temperature of 50 to 150 K. A family's sixth item is its gravity range in m/s2; the others take 2 to 25."""
 COLD_DEEP_FAMILIES = (
     ("cold-deep-nitrogen", {"N2": (0.6, 0.95), "CO2": (0.03, 0.35), "Ar": (0.0, 0.02), "CH4": (0.0, 0.01)}, (1.5e6, 2.0e7), (0.3, 6.0), 0.0),
     ("cold-deep-carbon-dioxide", {"CO2": (0.85, 1.0), "H2": (0.0, 0.05), "N2": (0.0, 0.1)}, (1.0e6, 2.0e7), (0.3, 6.0), 0.0),
@@ -482,7 +488,7 @@ def cold(args):
     if os.path.exists(path):
         with open(path, "rb") as handle:
             samples = pickle.load(handle)
-    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
+    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), COLD_CIA_FAMILIES if args.cia else COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
     with open(path, "wb") as handle:
         pickle.dump(samples, handle)
     print(f"{args.count} cold dense airs added, {len(samples)} samples in {path}")
@@ -673,11 +679,14 @@ def predict(network, features):
 def temperature_error(network, features, targets):
     """Percentiles of the relative error of the surface temperature, `T_table / T_model - 1`, and its absolute size in kelvin."""
     effective = np.exp(features[:, 0])
-    model = effective * np.exp(targets)
-    table = effective * np.exp(predict(network, features))
+    return temperature_error_between(effective * np.exp(targets), effective * np.exp(predict(network, features)), len(targets))
+
+
+def temperature_error_between(model, table, samples):
+    """The same figures for the model's surface temperatures and the table's (arrays of kelvin)."""
     relative = table / model - 1.0
     absolute = table - model
-    return {"samples": int(len(targets)),
+    return {"samples": int(samples),
             "relative_percentiles": {str(q): float(np.percentile(np.abs(relative), q)) for q in (50, 90, 99, 100)},
             "kelvin_percentiles": {str(q): float(np.percentile(np.abs(absolute), q)) for q in (50, 90, 99, 100)},
             "kelvin_bias": float(np.mean(absolute))}
@@ -703,15 +712,15 @@ HYDROGEN_RICH_SHARE = 0.1
 """float: The hydrogen mole fraction from which an air is counted with the giants' and envelopes' (`validate` states it apart; the same line `tests/test_infrared_doubling.py` draws, TEST.790)."""
 
 
-def validate_set(network, features, targets):
-    """The figures `validate` states for one set of airs: all of them, by the model's surface temperature, and the cool ones by class."""
-    model = np.exp(features[:, 0]) * np.exp(targets)
-    result = temperature_error(network, features, targets)
+def validate_set(features, model, table):
+    """The figures `validate` states for one set of airs (`features`, the model's surface temperature `model` and the table's `table`, in kelvin): all of them, by the
+    model's surface temperature, and the cool ones by class."""
+    result = temperature_error_between(model, table, len(model))
     result["by_surface_temperature_k"] = {}
     for low, high in BANDS_K:
         chosen = (model >= low) & (model < high)
         if chosen.any():
-            result["by_surface_temperature_k"][f"{low:g} to {high:g}"] = temperature_error(network, features[chosen], targets[chosen])
+            result["by_surface_temperature_k"][f"{low:g} to {high:g}"] = temperature_error_between(model[chosen], table[chosen], int(chosen.sum()))
     names = list(greenhouse_table_features())
     haze = features[:, names.index("aloft_share")] > 0.0
     infrared = features[:, names.index("ln_fraction_ir")] > math.log(CLASS_IR_SHARE)
@@ -720,28 +729,68 @@ def validate_set(network, features, targets):
     for label, chosen in (("clear", ~haze & ~infrared), ("other_infrared_gases", ~haze & infrared), ("haze", haze)):
         chosen = chosen & cool
         if chosen.any():
-            result["cool_by_class"][label] = temperature_error(network, features[chosen], targets[chosen])
+            result["cool_by_class"][label] = temperature_error_between(model[chosen], table[chosen], int(chosen.sum()))
     return result
+
+
+def solved_airs(work, name):
+    """The airs of the set `name` the model solved (converged, not under the sunlight alone, as `load` takes them) with the model's surface temperature: `(airs, kelvin)`."""
+    from planetgen.physics import constants
+
+    with open(os.path.join(work, name + ".pkl"), "rb") as handle:
+        samples = pickle.load(handle)
+    airs, kelvin = [], []
+    with open(os.path.join(work, name + ".jsonl"), encoding="utf-8") as handle:
+        for line in handle:
+            index, surface, converged, _seconds, error = json.loads(line)
+            if error or surface is None or not converged:
+                continue
+            partials, gravity, flux, share, aloft = samples[index]
+            if surface < UNPHYSICAL_BELOW * (flux / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25:
+                continue
+            airs.append(samples[index])
+            kelvin.append(surface)
+    return airs, np.array(kelvin)
+
+
+def read_through_warming(path, airs):
+    """What the generator reads from the table file `path` for each air: `greenhouse_table.warming` itself (minor gases counted by their share, the haze guard, the thin-air
+    and the deep-air rules), so the accuracy the file states is the accuracy the product has (GEN.1717 measured it so; GEN.1796 restores it)."""
+    from planetgen.physics import greenhouse_table
+
+    saved = greenhouse_table.DATA_FILE
+    greenhouse_table.DATA_FILE = path
+    greenhouse_table.table.cache_clear()
+    try:
+        return np.array([greenhouse_table.warming(*air).surface_temperature_k for air in airs])
+    finally:
+        greenhouse_table.DATA_FILE = saved
+        greenhouse_table.table.cache_clear()
 
 
 def validate(args):
     """Measures the file `--out` on the sample set `--name` (made by `sample --no-perturb` on seeds the fit never saw, and `solve`) and writes the
-    result into the file as `summary.validation`, with the same percentiles broken down by the model's surface temperature and class. GEN.1780: the airs with
+    result into the file as `summary.validation`, with the same percentiles broken down by the model's surface temperature and class. The table is read as the
+    generator reads it, through `greenhouse_table.warming` (`read_through_warming`), not by the bare network. GEN.1780: the airs with
     `HYDROGEN_RICH_SHARE` of hydrogen or more (the hydrogen envelopes and giants, where the table is weakest, GEN.1781) are stated apart under `hydrogen_rich`, so the
     figures of the air the habitability and the life read are not mixed with theirs."""
     with open(args.out, encoding="utf-8") as handle:
         data = json.load(handle)
-    network = read_file(args.out)
-    features, targets = load(args.work, args.name)
+    from planetgen.physics import greenhouse_table
+
+    airs, model = solved_airs(args.work, args.name)
+    table = read_through_warming(os.path.abspath(args.out), airs)
+    features = np.array([greenhouse_table.features(*air) for air in airs])
     names = list(greenhouse_table_features())
     rich = np.exp(features[:, names.index("ln_fraction_H2")]) >= HYDROGEN_RICH_SHARE
-    result = validate_set(network, features[~rich], targets[~rich])
+    result = validate_set(features[~rich], model[~rich], table[~rich])
     result["set"] = args.name
-    result["hydrogen_rich"] = validate_set(network, features[rich], targets[rich]) if rich.any() else None
+    result["hydrogen_rich"] = validate_set(features[rich], model[rich], table[rich]) if rich.any() else None
     data["summary"]["validation"] = result
     if args.envelope_name and os.path.exists(os.path.join(args.work, args.envelope_name + ".jsonl")):
-        envelope_features, envelope_targets = load(args.work, args.envelope_name)
-        envelope_result = temperature_error(network, envelope_features, envelope_targets)
+        envelope_airs, envelope_model = solved_airs(args.work, args.envelope_name)
+        envelope_table = read_through_warming(os.path.abspath(args.out), envelope_airs)
+        envelope_result = temperature_error_between(envelope_model, envelope_table, len(envelope_model))
         envelope_result["what"] = "hydrogen envelopes and giants of the generator (GEN.1717), airs the fit never saw, read through greenhouse_table.warming"
         data["summary"]["envelope_validation"] = envelope_result
     with open(args.out, "w", encoding="utf-8") as handle:
@@ -796,6 +845,7 @@ def main():
     parser.add_argument("--penalty", type=float, default=1.0e-7)
     parser.add_argument("--out", default=OUT)
     parser.add_argument("--deep", action="store_true", help="cold: the deep families (`COLD_DEEP_FAMILIES`)")
+    parser.add_argument("--cia", action="store_true", help="cold: the light-world nitrogen families with infrared gases (`COLD_CIA_FAMILIES`, GEN.1796)")
     parser.add_argument("--rng-offset", type=int, default=0, help="envelope, hot: another stream of bodies than the fit's (GEN.1780: 1 draws bodies the fit never saw, for the validation)")
     parser.add_argument("--envelope-name", default=None, help="validate: also state the accuracy on this set of envelope airs (made by `envelope` and `solve`) as `envelope_validation`")
     parser.add_argument("--cool-below", type=float, default=0.0, help="solve: only the airs the file in the repository puts under this surface temperature (K)")
