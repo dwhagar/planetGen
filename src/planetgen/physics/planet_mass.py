@@ -11,8 +11,8 @@ giant. A pure law over the star and the formation distance; it reads no class an
 1. **Solids.** The isolation mass at the formation distance (`formation.isolation_mass_kg`, [R2709]; Kokubo & Ida
    2000) for a feeding zone `OLIGARCH_SEPARATION_MEDIAN` mutual Hill radii wide, from the minimum-mass nebula scaled for the star's
    mass (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`), [Fe/H] and the disk's own scatter (`DISK_SOLIDS_SCATTER_DEX`, [R0114]),
-   boosted beyond the snow line and steeper inside 1 AU (`PLANET_INNER_DISK_STEEPENING`). Beyond `PLANET_OUTER_GROWTH_AU` the slow
-   outer disk has built less: the mass falls as a power of the distance. `planet_architecture` builds a whole chain of these
+   boosted beyond the snow line and steeper inside 1 AU (`PLANET_INNER_DISK_STEEPENING`). Beyond `growth_limit_au` (`PLANET_OUTER_GROWTH_AU`
+   at one solar mass, scaling with the star's mass, GEN.1539) the slow outer disk has built less: the mass falls as a power of the distance. `planet_architecture` builds a whole chain of these
    (`oligarch_core_kg`) and thins it; a planet asked for alone at a distance draws one.
 2. **Runaway.** A core of `GIANT_CORE_CRITICAL_MASS_EARTH` or more, beyond the snow line, that finds gas left (a share
    scaled with the star's [Fe/H]) becomes a gas giant of the observed mass function `dN/dlogM ~ M^-0.31` (Cumming et al.
@@ -53,10 +53,30 @@ def solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_r
     return density
 
 
+def growth_limit_au(star_mass_kg, snow_line_au, disk_edge_au=math.inf):
+    """
+    Where the disk of a star of `star_mass_kg` has built less (GEN.1539): `PLANET_OUTER_GROWTH_AU` at one solar mass, going as the star's mass to the power `PLANET_SOLIDS_STELLAR_MASS_EXPONENT` less a half.
+    A core assembles in a time of the orbital period (the star's mass to the minus a half, Kepler) times the star's mass over the solids' surface density and the square of the distance (a Safronov-type
+    argument, recalled). With the solids going as the star's mass to `PLANET_SOLIDS_STELLAR_MASS_EXPONENT` (1.2) and as the distance to the minus 3/2, that time goes as the distance times the star's mass to
+    the minus 0.7, so for a disk that lasts as long round any star the distance the cores reach in that time goes as the star's mass to the 0.7. The limit never falls inside the star's snow line (a
+    heavy star's limit would reach it) and never lies outside `disk_edge_au`, the disk's own edge.
+
+    Args:
+        star_mass_kg (float): The star's mass at its birth, kilograms.
+        snow_line_au (float): The star's own snow line, AU.
+        disk_edge_au (float): The disk's outer edge, AU (infinite when none is known).
+
+    Returns:
+        float: The growth limit, AU.
+    """
+    limit = tuning.PLANET_OUTER_GROWTH_AU * _kg_to_msun(star_mass_kg) ** (tuning.PLANET_SOLIDS_STELLAR_MASS_EXPONENT - 0.5)
+    return min(disk_edge_au, max(limit, snow_line_au))
+
+
 def oligarch_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatter, separation):
     """
     The mass of the oligarch a feeding zone `separation` mutual Hill radii wide builds at `distance_au` in a disk scattered by `scatter`: the
-    isolation mass, less beyond `PLANET_OUTER_GROWTH_AU` where the disk has built less, never above `PLANET_MAX_STAR_MASS_RATIO` of the star
+    isolation mass, less beyond `growth_limit_au` where the disk has built less, never above `PLANET_MAX_STAR_MASS_RATIO` of the star
     nor above the brown dwarf edge (GEN.1096: a metal-rich star of 1.5 to 2 solar masses has a 0.01 ratio of 15 to 21 Jupiter masses, and
     `gas_outcome` returns the larger of the runaway mass and the core, so the core was the planet's mass).
     """
@@ -64,8 +84,9 @@ def oligarch_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatt
     if tuning.PLANET_ROCKY_ZONE_START_AU <= distance_au < snow_line_au:
         density *= tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST      # GEN.1560: the solids the terrestrial zone's oligarchs are built from, which the giant-impact stage then merges; belts and dust read the plain density
     mass = formation.isolation_mass_kg(distance_au, density, star_mass_kg, separation)
-    if distance_au > tuning.PLANET_OUTER_GROWTH_AU:
-        mass *= (tuning.PLANET_OUTER_GROWTH_AU / distance_au) ** tuning.PLANET_OUTER_GROWTH_EXPONENT
+    limit_au = growth_limit_au(star_mass_kg, snow_line_au)
+    if distance_au > limit_au:
+        mass *= (limit_au / distance_au) ** tuning.PLANET_OUTER_GROWTH_EXPONENT
     return min(mass, tuning.PLANET_MAX_STAR_MASS_RATIO * star_mass_kg, _BROWN_DWARF_LIMIT_KG)
 
 
