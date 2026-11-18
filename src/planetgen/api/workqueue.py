@@ -15,7 +15,7 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import controls, held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, waiting, warmphases, workers as queueWorkers
+from planetgen.queue import controls, held, jobbeat, jobview, ledger, planrows, load as systemLoad, pause as queuePause, profileclaim, redisqueue, runcontrol, runrecord, runview, stopall, supervisor, unitwatch, waiting, warmphases
 from planetgen.util import log
 
 from .authz import audit, require_admin
@@ -61,8 +61,7 @@ def _status(connection, now):
         "paused": paused["paused"], "paused_by": paused["by"], "paused_at": paused["at"],
         "holder": holder, "holder_title": held["title"] if held else None, "heartbeat_age_s": heard,
         "stale": runrecord.is_stale(held, now) if held else False,
-        "workers_active": sum(queueWorkers.live_worker_count(redisqueue.queue(name, connection))
-                              for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE)),
+        "workers_active": controls.running_units(connection),
         "runs_active": len(live),
     }
 

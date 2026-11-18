@@ -344,3 +344,15 @@ def test_stop_all_stops_a_real_job_between_pieces_and_kills_one_that_will_not_st
     assert _until(lambda: not jobhost._pid_alive(polite.pid) and not jobhost._pid_alive(stubborn.pid), 10)
     assert _states(control, engine) == ["canceled"] * 4
     assert control.execute("SELECT state FROM engine_runs WHERE id = ?", (engine,)).fetchone()["state"] == "canceled"
+
+
+def test_the_workers_tile_counts_the_jobs_the_ledger_has_running_in_every_run(conn, control, mysql_config, monkeypatch):
+    """OPS.235 slice 1d: `controls.running_units` is what the Queue page's workers tile shows now that no RQ worker is counted."""
+    real = store.get_control_connection
+    monkeypatch.setattr(store, "get_control_connection", lambda *a, **k: real(mysql_config, ensure_schema=True))
+    base = controls.running_units(conn)
+    _run(control)                       # two of its units are running
+    _run(control, count=3)              # and two of this one's
+    assert controls.running_units(conn) == base + 4
+    monkeypatch.setattr(store, "get_control_connection", lambda *a, **k: 1 / 0)
+    assert controls.running_units(conn) == 0                # a ledger that cannot be read counts none
