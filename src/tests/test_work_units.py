@@ -12,6 +12,7 @@ import threading
 
 import pytest
 
+from tests import rq_units
 from planetgen.queue import commands, planrows, redisqueue, runline, runrecord, units, wrapper
 from planetgen.util.settings import get_settings
 
@@ -124,23 +125,12 @@ def test_every_unit_runs_once_and_the_run_ends_done(monkeypatch, conn):
     assert not conn.hgetall(runrecord.progress_key(run_id, 0)), "a unit that finished reports nothing more"
 
 
-def test_the_arguments_travel_as_json_and_carry_no_credentials(monkeypatch, conn):
-    _handlers(monkeypatch, test=_square)
-    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=1)])
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": 3, "database": {"host": "h", "user": "u"}}, 1.0)])
-    queue = redisqueue.queue(redisqueue.BULK_QUEUE, conn)
-    job = queue.jobs[0]
-    assert job.func_name == units.UNIT_FUNCTION and job.id == units.job_id(run_id, 0, 0)
-    assert tuple(job.args[:4]) == (run_id, 0, 0, "test") and job.args[4]["n"] == 3
-    assert job.serializer is redisqueue.JsonSerializer and "password" not in job.args[4].get("database", {})
-
-
 def test_a_unit_found_done_has_its_result_and_a_repeated_unit_counts_once(monkeypatch, conn):
     _handlers(monkeypatch, test=_square)
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=2)])
     runrecord.begin_stage(conn, run_id, 0)
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # unit 0 queued twice (a retry)
+    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
+    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # unit 0 queued twice (a retry)
     from planetgen.queue import workers
     workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
     got = {}
@@ -169,7 +159,7 @@ def test_the_units_of_a_run_that_is_no_longer_live_do_nothing(monkeypatch, conn)
     ran = []
     _handlers(monkeypatch, test=lambda args, report: ran.append(args["n"]) or {})
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
     runrecord.request_cancel(conn, run_id)
     from planetgen.queue import workers
     workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
@@ -182,9 +172,8 @@ def test_an_interrupt_in_the_starter_cancels_the_run_and_frees_the_machine(monke
     def interrupted(*args, **kwargs):
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(wrapper.workers, "ensure_workers", interrupted)      # Ctrl+C while the starter waits
     with pytest.raises(KeyboardInterrupt):
-        wrapper.run("T", [_step(2)], lambda index, plan: None, lambda index, unit, result: None)
+        wrapper.run("T", [_step(2)], interrupted, lambda index, unit, result: None)      # Ctrl+C while the starter follows the stage
     run = runrecord.read_run(conn, runrecord.recent_runs(conn)[0])
     assert run["state"] == "canceled" and runrecord.active_run(conn) is None
 
@@ -283,42 +272,18 @@ def test_a_stage_of_no_units_ends_at_once(monkeypatch, conn):
     assert results == {} and runrecord.read_run(conn, run_id)["state"] == "done"
 
 
-def test_a_units_time_limit_is_the_backstop_whatever_its_stages_expected_time_and_never_none(monkeypatch, conn):
+def test_a_units_time_limit_is_the_backstop_whatever_its_stages_expected_time_and_never_none():
     assert units.unit_timeout(None) == units.unit_timeout(0) == units.unit_timeout(1000) == units.unit_timeout(1) == redisqueue.MAX_TIMEOUT_SECONDS     # OPS.140
     assert units.unit_timeout(10 ** 9) == redisqueue.MAX_TIMEOUT_SECONDS
-    _handlers(monkeypatch, test=_square)
-    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("a", "A", units=1), runrecord.Stage("b", "B", units=1)])
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)], expected_seconds=2000)
-    units.enqueue_units(conn, run_id, 1, "test", [({"n": 2}, 1.0)])
-    jobs = {job.id: job for job in redisqueue.queue(redisqueue.BULK_QUEUE, conn).jobs}
-    assert {job.timeout for job in jobs.values()} == {redisqueue.MAX_TIMEOUT_SECONDS}, "OPS.140: the time limit is only a backstop"
 
 
 def test_a_stage_with_a_recorded_time_gets_it_as_its_expected_seconds(monkeypatch, conn):
     _handlers(monkeypatch, test=_square)
     monkeypatch.setattr(wrapper, "expected_seconds", lambda step, row: 3000.0 if row else None)
     row = {"command": "plan", "n": 1, "total": 1, "label": "A test stage", "settings": {"workers": 1}}
-    seen, real = [], units.enqueue_units
-    monkeypatch.setattr(units, "enqueue_units", lambda *args, **kwargs: seen.append(kwargs) or real(*args, **kwargs))
     run_id = wrapper.run("T", [_step(1)], lambda index, plan: None, lambda index, unit, result: None, rows={"test": row})
     stage = runrecord.read_run(conn, run_id)["stages"][0]
     assert stage["expected_seconds"] == 3000.0 and stage["row"] == row
-    assert [{key: value for key, value in kwargs.items() if key != "rows"} for kwargs in seen] == [{"queue_name": redisqueue.BULK_QUEUE, "expected_seconds": 3000.0}]
-    assert len(seen[0]["rows"]) == 1, "the unit is handed to the queue with its row in the ledger (OPS.216)"
-
-
-def test_a_killed_worker_process_fails_its_run_at_once_naming_the_unit(monkeypatch, conn):
-    _handlers(monkeypatch, test=_square)
-    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
-    job = redisqueue.queue(redisqueue.BULK_QUEUE, conn).jobs[1]
-    units.horse_killed(job, 4242, -9, None)
-    run = runrecord.read_run(conn, run_id)
-    assert run["state"] == "failed" and "unit 1 of stage T was killed" in run["error"] and "4242" in run["error"]
-    assert runrecord.active_run(conn) is None, "the machine is free at once"
-    from planetgen.queue import workers
-    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)             # RQ's retry finds the run over and does nothing
-    assert runrecord.read_run(conn, run_id)["stages"][0]["done"] == 0
 
 
 def test_a_unit_that_rq_fails_after_it_was_done_does_not_fail_the_run(monkeypatch, conn):
@@ -326,17 +291,17 @@ def test_a_unit_that_rq_fails_after_it_was_done_does_not_fail_the_run(monkeypatc
     up after them, and each failure ended the whole run."""
     _handlers(monkeypatch, test=_square)
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
     from planetgen.queue import workers
     workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
     assert runrecord.read_run(conn, run_id)["stages"][0]["done"] == 3
     job = type("Job", (), {"func_name": units.UNIT_FUNCTION, "args": (run_id, 0, 1, "test", {"n": 1}, 1.0)})()
-    units.unit_failed(job, conn, ValueError, ValueError("Execution 9ed8 not found in Redis"), None)
+    rq_units.unit_failed(job, conn, ValueError, ValueError("Execution 9ed8 not found in Redis"), None)
     assert runrecord.read_run(conn, run_id)["state"] == "done", "the unit was done: the run is not failed"
     open_run = runrecord.start_run(conn, "T2", [runrecord.Stage("test", "T", units=3)])
-    units.enqueue_units(conn, open_run, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    rq_units.ledger_units(conn, open_run, 0, "test", [({"n": n}, 1.0) for n in range(3)])
     job = type("Job", (), {"func_name": units.UNIT_FUNCTION, "args": (open_run, 0, 1, "test", {"n": 1}, 1.0)})()
-    units.unit_failed(job, conn, ValueError, ValueError("no stars here"), None)
+    rq_units.unit_failed(job, conn, ValueError, ValueError("no stars here"), None)
     assert runrecord.read_run(conn, open_run)["state"] == "failed", "a unit that was not done still fails the run"
 
 
@@ -345,58 +310,13 @@ def test_a_unit_found_done_is_not_run_again(monkeypatch, conn):
     _handlers(monkeypatch, test=lambda args, report: ran.append(args["n"]) or {})
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=2)])
     runrecord.begin_stage(conn, run_id, 0)
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
+    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
     from planetgen.queue import workers
     workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
     assert sorted(ran) == [1, 2]
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # RQ's retry of unit 0, after it was done
+    rq_units.ledger_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # RQ's retry of unit 0, after it was done
     workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
     assert sorted(ran) == [1, 2]
-
-
-def test_a_unit_survives_a_warm_that_outlasts_an_execution_record(monkeypatch, conn):
-    """PERF.146's warm used to run after RQ created the unit's execution record, which expires 90 s after its last beat
-    (the first beat is 30 s after the fork), so a warm of over a minute on a loaded host left a unit that finished
-    before the first beat without its record, and RQ failed it with `ValueError: Execution ... not found in Redis`
-    when it cleaned up. Here the warm drops every execution record of the job, as the expiry would."""
-    from planetgen.cli import worker
-    _handlers(monkeypatch, test=_square)
-    # TEST.713: the worker starts itself over (`os.execv`) for a unit that needs no star tables when its process holds them (PERF.226, `units.sheds_tables_for`). A test process that
-    # an earlier test left holding the tables (a parallel run's) was replaced by a worker there, and its pytest-xdist node went down; this test is about the warm, so none is held.
-    monkeypatch.setattr(units, "tables_held", lambda: False)
-    seen = []
-
-    def long_warm(job):
-        for key in conn.scan_iter(match=f"rq:execution:{job.id}:*"):
-            seen.append(key)
-            conn.delete(key)
-
-    monkeypatch.setattr(units, "warm_unit", long_warm)
-    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=1)])
-    runrecord.begin_stage(conn, run_id, 0)
-    units.enqueue_units(conn, run_id, 0, "test", [({"n": 3}, 1.0)])
-    queue = redisqueue.queue(redisqueue.BULK_QUEUE, conn)
-    worker.worker_class()([queue], connection=conn, serializer=redisqueue.JsonSerializer).work(
-        burst=True, logging_level="WARNING")
-    assert seen == [], "no execution record exists while the worker warms"
-    assert queue.failed_job_registry.count == 0
-    run = runrecord.read_run(conn, run_id)
-    assert run["state"] != "failed" and run["stages"][0]["done"] == 1
-
-
-def test_a_killed_job_that_is_not_a_unit_is_left_to_rq(conn):
-    other = type("Job", (), {"func_name": "planetgen.somewhere.else", "args": ("x", 1, 2), "connection": conn})()
-    units.horse_killed(other, 1, -9, None)               # no run to fail, nothing raised
-
-
-def test_more_units_than_the_cap_are_refused(monkeypatch, conn):
-    _handlers(monkeypatch, test=_square)
-    monkeypatch.setattr(units, "MAX_UNITS", 2)
-    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
-    with pytest.raises(ValueError, match="at most 2 units"):
-        units.enqueue_units(conn, run_id, 0, "test", [({}, 1.0)] * 3)
-    with pytest.raises(ValueError, match="no unit kind"):
-        units.enqueue_units(conn, run_id, 0, "nope", [({}, 1.0)])
 
 
 def test_only_the_table_names_what_a_unit_runs(monkeypatch):
@@ -1143,12 +1063,3 @@ def test_the_shells_of_a_scatter_are_weighed_in_processes_to_the_same_weights_as
         monkeypatch.setattr(run_plan.os, "cpu_count", lambda: 4)
         assert run_plan._shell_weights(skeleton, shells, 1.0, {}, estimates) == loop
     assert run_plan._weighing is None
-
-
-def test_a_killed_unit_says_which_signal_ended_its_worker_process():
-    """SIGKILL is the kernel's out-of-memory killer; SIGTERM is something asking the process to end, which the message no longer calls an OOM."""
-    assert "SIGKILL: the machine may be out of memory" in units._ended_with(9)
-    assert "SIGKILL" in units._ended_with(-9)
-    sigterm = units._ended_with(15)
-    assert "SIGTERM" in sigterm and "may be out of memory" not in sigterm
-    assert units._ended_with(256) == "status 256", "an exit code is no signal"

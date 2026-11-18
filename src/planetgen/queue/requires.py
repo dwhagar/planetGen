@@ -118,21 +118,6 @@ def log_held(job, ids):
 
 def _say(connection, job, text, kind):
     log.normal(text)
-    run = _run_of(job)
-    if run is not None:
-        from planetgen.queue import runrecord
-        try:
-            runrecord.log(connection, run[0], text, level="info", kind=kind, stage=run[1])
-        except Exception as exc:  # noqa: BLE001 -- a line in the run's log must never fail the job
-            log.swallowed("queue/requires", "_say", exc)
-
-
-def _run_of(job):
-    """`(run id, stage)` of a unit of a run, `None` for any other job."""
-    from planetgen.queue import units
-    if getattr(job, "func_name", None) != units.UNIT_FUNCTION or len(job.args) < 2:
-        return None
-    return job.args[0], job.args[1]
 
 
 def _text(value):
@@ -294,8 +279,7 @@ def held_overview(connection, limit=HELD_SHOWN):
             job = redisqueue.fetch_job(job_id, connection, serializer)
             if job is None:
                 continue
-            run = _run_of(job)
             items.append({"id": job_id, "queue": name, "label": getattr(job, "func_name", None) or "",
                           "waits_for": [other for other in job.dependency_ids if connection.exists(f"rq:job:{other}")],
-                          "run": run[0] if run else None, "stage": run[1] if run else None})
+                          "run": None, "stage": None})        # a run's units are ledger rows, not jobs on a queue (OPS.271)
     return {"total": total, "items": items}

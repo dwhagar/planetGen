@@ -208,46 +208,24 @@ def test_a_new_skeleton_forgets_what_the_galaxy_had():
     assert needs.exists_after([("plan-skeleton", ["skeleton"]), ("scatter-mass", ["bright-stars-mass"]), ("plan-skeleton", ["skeleton"])]) == {"skeleton"}
     assert needs.exists_after([("scatter-mass", ["bright-stars-mass"]), ("reset-galaxy", [])]) == set()
 
-def _no_ledger(monkeypatch, error):
-    def refuse(*args):
-        raise error
-    monkeypatch.setattr(planrows, "control_connection", refuse)
-
-
-def _check_plan_kept_in_the_record(monkeypatch, steps):
+def test_a_run_that_names_no_database_keeps_its_plan_in_the_ledger_of_the_configured_control_database(monkeypatch, mysql_config):
+    """OPS.271: `system --output` touches no galaxy database, and its plan, cut and end marks are rows of the ledger all the same (the control database the machine is configured with)."""
     _register(monkeypatch, first=_units(2))
-    run_id = wrapper.run("Rows", steps, lambda index, plan: None, lambda index, unit, result: None)
+    run_id = wrapper.run("Rows", [commands.Step("a", "first", "A", {"x": 1, "database": None})], lambda index, plan: None, lambda index, unit, result: None)
     conn = redisqueue.connect()
-    assert not planrows.ledgered(conn, run_id)
+    assert conn.hget(runrecord.run_key(run_id), planrows.ENGINE_RUN_FIELD) is not None
     assert planrows.read_plan(conn, run_id, 0) == {"kind": "first", "units": 2, "cost": 2.0, "detail": {"count": 2}}
-    assert planrows.record_cut(conn, run_id, 0, "first", [({}, 1.0)], 1.0, {}) == [None, None], "a stage already cut is not cut again, and its units have no rows"
     assert planrows.ended(conn, run_id, 0) >= {planrows.CONCLUDE, planrows.FINISH, planrows.RELEASE}
-    planrows.mark_ended(conn, run_id, 0, planrows.RELEASE)
-    assert planrows.RELEASE in planrows.ended(conn, run_id, 0)
 
 
-def test_a_run_that_names_no_database_opens_no_ledger_connection(monkeypatch):
-    """TEST.769: a run whose every step says `database: None` never opens the control database."""
-    monkeypatch.setattr(planrows, "control_connection", lambda *args: pytest.fail("a run with no database opened the ledger"))
-    _check_plan_kept_in_the_record(monkeypatch, [commands.Step("a", "first", "A", {"x": 1, "database": None})])
-
-
-def test_a_run_with_no_control_database_keeps_its_plan_in_its_record_and_writes_no_ledger_row(monkeypatch):
-    """TEST.769: `system --output` touches no database; its plan, cut, end marks and rows answer as the ledger's do."""
-    _no_ledger(monkeypatch, OSError("no control database"))
-    _check_plan_kept_in_the_record(monkeypatch, [commands.Step("a", "first", "A", {"x": 1, "database": None})])
-
-
-def test_a_run_before_the_migration_made_the_ledger_tables_still_runs(monkeypatch):
-    """OPS.263: `update.sh` runs the math check (stage 4) before the migration (stage 5) makes the ledger's tables; the run must not fail with `Table 'engine_runs' doesn't exist`."""
-    class NoTable:
-        def execute(self, *args, **kwargs):
-            raise RuntimeError("(1146, \"Table 'planetgen_control.engine_runs' doesn't exist\")")
-
-        def close(self):
-            pass
-    monkeypatch.setattr(planrows, "control_connection", lambda *args: NoTable())
-    _check_plan_kept_in_the_record(monkeypatch, [commands.Step("a", "first", "A", {"x": 1})])
+def test_a_run_with_no_control_database_is_refused_and_not_run_without_a_ledger(monkeypatch):
+    """OPS.271: there is no run without the ledger; a control database that does not answer is the run's error."""
+    def refuse(*args):
+        raise OSError("no control database")
+    monkeypatch.setattr(planrows, "control_connection", refuse)
+    _register(monkeypatch, first=_units(2))
+    with pytest.raises(OSError, match="no control database"):
+        wrapper.run("Rows", [commands.Step("a", "first", "A", {"x": 1, "database": None})], lambda index, plan: None, lambda index, unit, result: None)
 
 
 def test_the_units_of_a_cut_stage_are_released_for_the_launcher_except_the_ones_skipped(monkeypatch, mysql_config):
