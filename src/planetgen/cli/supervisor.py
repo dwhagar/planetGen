@@ -46,9 +46,10 @@ def main(argv=None):
     connection = redisqueue.connect(args.url)
     templates = jobhost.TemplateSet(background=True)        # one set of warm templates for both hand-outs
     lights = lightjobs.LightJobs(connection, forker=templates)
-    controller = pressure.Controller(launcher=lambda: launches.launcher, recorder=pressurelearn.Recorder(store.get_control_connection))      # OPS.231: the one memory controller; it looks first each turn, so both hand-outs ask it before they admit
+    recorder = pressurelearn.Recorder(store.get_control_connection)
+    controller = pressure.Controller(launcher=lambda: launches.launcher, recorder=recorder)      # OPS.231: the one memory controller; it looks first each turn, so both hand-outs ask it before they admit
     prober = dbsignal.Prober(store.get_control_connection).start()
-    database = dbsignal.controller(prober)      # OPS.248: the same hold with the database's latency for its signal
+    database = dbsignal.controller(prober, record=recorder.note_database)      # OPS.248: the same hold with the database's latency for its signal
     hold = lambda: controller.holding() or database.holding()      # noqa: E731 -- either says why nothing of the bulk or upkeep lanes is admitted
     launches = supervisor.Launches(connection, forker=templates, also_held=lights.holders, hold=hold)
     lights.also_held = launches.holders      # each hand-out is judged against the claims of the other (OPS.230)

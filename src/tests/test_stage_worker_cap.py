@@ -10,7 +10,9 @@ def test_a_scatter_stage_gets_the_workers_the_memory_holds(monkeypatch):
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)         # the host that was killed
     caps = {kind: workers.stage_worker_cap(kind)
             for kind in ("scatter-mass", "scatter-luminosity", "scatter-backfill", "scatter-band")}
-    assert set(caps.values()) == {3}                                                       # half of 15,992 MB in 2,100 MB workers (PERF.252)
+    assert {kind: cap for kind, cap in caps.items() if kind != "scatter-backfill"} == {"scatter-mass": 3, "scatter-luminosity": 3, "scatter-band": 3}      # half of 15,992 MB in 2,100 MB workers (PERF.252)
+    assert caps["scatter-backfill"] == 4                                                   # half of 15,992 MB in 1,650 MB shares (OPS.270)
+    assert 4 * workers.SKY_SHARE_WORKER_MEMORY_MB < 0.5 * 15_992
     assert 3 * workers.SCATTER_WORKER_MEMORY_MB < 0.5 * 15_992 and 36 * 452 > 15_992        # at the peak size they leave half the host free
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 64 * GB)
     assert workers.stage_worker_cap("scatter-luminosity") == 15

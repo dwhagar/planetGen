@@ -298,6 +298,7 @@ PRINT_ALLOWED = {
     "cli/maintenance.py": "Shows whether maintenance mode is on: the answer to the command.",
     "cli/migrate.py": "The database state answer, and the one-time admin password box that must never reach a log file.",
     "cli/query.py": "Lists the sectors and systems the person asked for: the data, not a log.",
+    "cli/pressure.py": "Says what the memory controller's record holds and the edges it gives: the answer to the command.",
     "cli/queue.py": "Lists what is running or queued and whether work is on hold: the answer to the command.",
     "cli/reset.py": "The confirmation prompt before a wipe: an interactive display, not a record.",
     "cli/smoke.py": "The smoke report table the person asked for.",
