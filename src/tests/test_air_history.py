@@ -239,3 +239,78 @@ def test_the_oxygen_trajectory_ends_at_the_oxygen_the_air_is_given_at_the_star_s
     assert air_history.oxygen_cuts(body, none) == []
     flat = air_history.oxygen_trajectory(body, none, ages)
     assert len({value for _, value in flat}) == 1
+
+
+def _class(number):
+    from planetgen.physics import life_classes
+    return next(row for row in life_classes.CLASSES if row.number == number)
+
+
+def _a_world_for_the_ledger_gases(monkeypatch, fluxes):
+    """A copy of the oxygen world with an oxygen-free air of nitrogen, water and carbon dioxide stored on it, and the methane flux of each class number fixed."""
+    from planetgen.physics import biogenic_oxygen, life_air
+    body, _, _ = _a_world_the_oxygen_rises_on()
+    body = copy.deepcopy(body)
+    biogenic_oxygen.store_air(body, {"N2": 70000.0, "CO2": 30000.0})
+    body.star.age = 3.0
+    monkeypatch.setattr(life_air, "methane_flux_mol_yr", lambda b, life_class, supplies=None: fluxes.get(life_class.number, 0.0))
+    return body
+
+
+def test_the_methane_of_a_class_is_in_the_air_from_the_age_its_producers_begin_and_a_second_class_adds_to_it(monkeypatch):
+    """GEN.1745 slice 2b: the ledger gases are counted at each age: none before the first producers, the first class's methane, then both classes' fuels summed from the age the second begins."""
+    from planetgen.physics import biogenic_oxygen, life_air, life_classes
+    body = _a_world_for_the_ledger_gases(monkeypatch, {2: 1.0e12, 8: 3.0e11})
+    living = [life_air.Living(_class(2), 0.6, 0.5), life_air.Living(_class(8), 0.4, 1.5)]
+    found = biogenic_oxygen.air_moles(body)
+    ages = air_history.schedule(body.star.age, [0.5, 1.5])
+    trajectory = air_history.gas_trajectory(body, living, ages, found)
+    assert [age for age, _ in trajectory] == ages
+    methane = [moles.get("CH4", 0.0) for _, moles in trajectory]
+    assert all(value == 0.0 for (age, _), value in zip(trajectory, methane) if age < 0.5)
+    assert all(value > 0.0 for (age, _), value in zip(trajectory, methane) if age >= 0.5)
+    assert len({round(value, 3) for (age, _), value in zip(trajectory, methane) if 0.5 <= age < 1.5}) == 1
+    assert methane[-1] > max(value for (age, _), value in zip(trajectory, methane) if age < 1.5)          # the second class's fuel is added
+    assert methane[-1] == pytest.approx(life_air.methane_target_mol(1.0e12 + 3.0e11, found), rel=1e-3)
+
+
+def test_the_last_step_of_the_ledger_gases_is_the_air_apply_gases_stores(monkeypatch):
+    """The last value is `life_air.ledger_air` at the star's age: the air `apply_gases` stores (the same body, the same gases)."""
+    from planetgen.physics import biogenic_oxygen, life_air, life_classes
+    body = _a_world_for_the_ledger_gases(monkeypatch, {2: 1.0e12})
+    living = [life_air.Living(_class(2), 1.0, 0.5)]
+    found = biogenic_oxygen.air_moles(body)
+    last = air_history.gas_trajectory(body, living, air_history.schedule(body.star.age, [0.5]), found)[-1][1]
+    twin = copy.deepcopy(body)
+    assert life_air.apply_gases(twin, living, False)
+    biogenic_oxygen.store_air(body, biogenic_oxygen.partials_pa(body, {formula: mol for formula, mol in last.items() if mol > 0.0}))
+    now, stored = biogenic_oxygen.air_moles(body), biogenic_oxygen.air_moles(twin)
+    assert set(now) == set(stored)
+    assert all(now[formula] == pytest.approx(stored[formula], rel=1e-9) for formula in now)
+
+
+def test_a_methane_row_that_ends_at_the_oxygen_rise_gives_the_risen_air_from_the_rise_on(monkeypatch):
+    """Class 1a gives methane until the oxygen: from `rise_gyr` the trajectory reads the risen air (the caller's burnt air) and its methane row is over; before it the air as found."""
+    from planetgen.physics import biogenic_oxygen, life_air, life_classes
+    body = _a_world_for_the_ledger_gases(monkeypatch, {1: 1.0e12})
+    row = life_classes.BY_ID["1a"]
+    assert life_air.row_of(row)["methane"].get("until") == "oxygen"
+    living = [life_air.Living(row, 1.0, 0.5)]
+    found = biogenic_oxygen.air_moles(body)
+    risen = {**found, "O2": 5.0e19}
+    trajectory = air_history.gas_trajectory(body, living, air_history.schedule(body.star.age, [0.5, 2.0]), found, risen, 2.0)
+    before = [moles for age, moles in trajectory if 0.5 <= age < 2.0]
+    after = [moles for age, moles in trajectory if age >= 2.0]
+    assert before and all(moles.get("CH4", 0.0) > 0.0 and "O2" not in moles for moles in before)
+    assert after and all(moles.get("CH4", 0.0) == 0.0 and moles["O2"] == 5.0e19 for moles in after)
+
+
+def test_a_giant_and_a_body_with_no_air_get_the_air_they_have_at_every_age(monkeypatch):
+    from planetgen.physics import life_air, life_classes
+    body = _a_world_for_the_ledger_gases(monkeypatch, {2: 1.0e12})
+    living = [life_air.Living(_class(2), 1.0, 0.5)]
+    ages = air_history.schedule(body.star.age)
+    assert [moles for _, moles in air_history.gas_trajectory(body, living, ages, {})] == [{}] * len(ages)
+    body.body_type = "g"
+    found = {"H2": 1.0e20}
+    assert [moles for _, moles in air_history.gas_trajectory(body, living, ages, found)] == [found] * len(ages)
