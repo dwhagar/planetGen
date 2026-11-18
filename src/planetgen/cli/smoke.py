@@ -29,6 +29,7 @@ import uuid
 from planetgen import tuning
 from planetgen.cli import benchmark
 from planetgen.db import login, store
+from planetgen.queue import pagerun
 from planetgen.util import log
 from planetgen.util.format import format_duration_seconds, format_megabytes
 from planetgen.web import generate_page, job_runner, jobs
@@ -142,14 +143,18 @@ def run_smoke(args):
         job_id = f"smoke-{suffix}"
         job_dir = os.path.join(root, job_id)
         os.makedirs(job_dir)
-        with open(os.path.join(job_dir, "job.json"), "w", encoding="utf-8") as f:
-            json.dump({"id": job_id, "kind": "new_galaxy", "title": title, "admin": "smoke", "database": database,
-                       "created_at": time.time(), "cwd": jobs.REPO_DIR, "steps": steps, "env": env, "draft": []}, f)
-        code = job_runner.run(job_dir)
+        os.environ.update(env)          # this process runs the job's steps itself: the ledger it writes to and every step see the scratch databases
+        control_connection = pagerun.connect()
+        try:
+            pagerun.start(control_connection, {"id": job_id, "kind": "new_galaxy", "title": title, "admin": "smoke", "database": database, "created_at": time.time(),
+                                               "cwd": jobs.REPO_DIR, "root": root, "draft": []}, steps)
+            code = job_runner.run_to_end(job_id)
+            found = pagerun.read(control_connection, job_id)
+        finally:
+            control_connection.close()
         entries = _entries(job_dir)
         if code != 0:
-            with open(os.path.join(job_dir, "state.json"), "r", encoding="utf-8") as f:
-                log.error(f"The smoke job failed: {json.load(f).get('error')}\nIts log: {os.path.join(job_dir, 'output.log')}")
+            log.error(f"The smoke job failed: {(found or {}).get('error')}\nIts log: {os.path.join(job_dir, 'output.log')}")
             args.keep = True
             return 2
         over = over_budget(entries, budgets)

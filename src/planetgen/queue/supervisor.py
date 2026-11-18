@@ -97,6 +97,11 @@ def requests_key():
     return runrecord._k("supervisor", "requests")
 
 
+def pages_key():
+    """The hash of the Generate page jobs that have not ended (OPS.244): job id -> the time it began. A supervisor with one on it has something to watch (`busy`), so it does not end while a step of a job runs."""
+    return runrecord._k("supervisor", "pages")
+
+
 def starting_key():
     """The string a caller sets to say it is starting the supervisor, so the callers that follow do not."""
     return runrecord._k("supervisor", "starting")
@@ -130,7 +135,7 @@ class RedisStore:
     def busy(self):
         """Whether there is anything for a supervisor to watch: a live run, a run waiting for the machine, or an ask for workers not acted on yet."""
         return bool(self.connection.hlen(nudges_key())) or bool(self.connection.llen(requests_key())) or bool(self.connection.hlen(runline._starts_key())) or any(runrecord.active_run(self.connection, kind) for kind in (runrecord.GENERATION, runrecord.MAINTENANCE, runrecord.CHECK)) \
-            or bool(self.connection.zcard(runline._line_key())) or bool(self.connection.zcard(lightjobs.pending_key())) or bool(self.connection.scard(lightjobs.running_key()))
+            or bool(self.connection.zcard(runline._line_key())) or bool(self.connection.hlen(pages_key())) or bool(self.connection.zcard(lightjobs.pending_key())) or bool(self.connection.scard(lightjobs.running_key()))
 
 
 class SystemClock:

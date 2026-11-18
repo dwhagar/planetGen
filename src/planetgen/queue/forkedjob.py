@@ -44,10 +44,18 @@ def run_opening(job, link):
     return 0
 
 
+def run_page_step(job, link):
+    """Runs the step of a Generate page job that `job` names (`web.job_runner.run_step`) and returns the exit code of the job process: 0 when the step ended well or was stopped, `template.EXIT_FAILED` when it failed."""
+    from planetgen.web import job_runner
+    return job_runner.run_step(job, link)
+
+
 def run(job, link):
     """Runs the unit `job` names (or the opening of a stage, for a job that says `opening`) and returns the exit code of the job process."""
     if job.get("opening"):
         return run_opening(job, link)
+    if job.get("page_step"):
+        return run_page_step(job, link)
     conn = redisqueue.connect(job.get("redis_url"))
     run_id, stage, unit, kind = job["run_id"], job["stage"], job["unit"], job["kind"]
     try:

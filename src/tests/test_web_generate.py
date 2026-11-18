@@ -30,6 +30,7 @@ from planetgen.api.config import Config
 from planetgen.web.lib import apiclient, estimatejob  # noqa: E402
 from planetgen.queue import progress_file, redisqueue  # noqa: E402
 from planetgen.web import csrf, generate_flow, generate_page, jobs, limit_sliders  # noqa: E402
+from tests import page_jobs  # noqa: E402
 
 DB = "planetgen_generate_test"
 PY = sys.executable
@@ -45,7 +46,10 @@ class _FakeConfig(Config):
 def jobs_root(tmp_path, monkeypatch):
     root = tmp_path / "jobs"
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(root))
-    return str(root)
+    page_jobs.forget_all_jobs()
+    page_jobs.runs_in_threads(monkeypatch)
+    yield str(root)
+    page_jobs.forget_all_jobs()
 
 
 class FakeSite:
@@ -140,27 +144,7 @@ def _post(client, headers=None, **form):
     return client.post("/admin/generate", data=form, headers=headers)
 
 
-def _wait_finished(job_id, root, timeout=30):
-    """Waits until the job is really over: its runner wrote a final status
-    and released the job lock. `get_job` can call a still-running job
-    interrupted for a moment under load (its runner's command line is not
-    readable), and the lock is released a moment after the final status is
-    written, so starting the next job on `finished` alone met JobBusy
-    (TEST.94)."""
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        job = jobs.get_job(job_id, root)
-        if job and job["finished"]:
-            try:
-                with open(os.path.join(root, job_id, "state.json"), "r", encoding="utf-8") as f:
-                    final = json.load(f).get("status") in ("succeeded", "failed", "canceled")
-            except (OSError, ValueError):
-                final = False
-            holder = jobs._read_lock(redisqueue.connect())
-            if final and holder != job_id:
-                return job
-        time.sleep(0.05)
-    raise AssertionError(f"job {job_id} did not finish: {jobs.get_job(job_id, root)}")
+_wait_finished = page_jobs.wait_finished
 
 
 # --- Access -----------------------------------------------------------------------
@@ -339,7 +323,7 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
     assert _argv(_work_steps(job)[0]) == ["plan", "--arm-count", "3"]
     assert _work_steps(job)[0]["argv"][1:3] == jobs.GENERATE_COMMAND
     assert job["admin"] == "boss" and job["database"] == DB
-    assert job["env"]["PLANETGEN_MYSQL_DATABASE"] == DB
+    assert job["database"] == DB
 
 
 @pytest.mark.parametrize("new, old", [
@@ -1006,39 +990,24 @@ def _wait_until_exec(pid, marker, timeout=10):
     raise AssertionError(f"process {pid} never showed {marker!r} in its command line")
 
 
-def test_a_just_started_job_with_no_live_runner_yet_is_starting(jobs_root):
-    """TEST.92: in its first moments a job's runner may not show the job
-    in its command line yet; within the grace period that is still a
-    start, not an interruption."""
+def test_a_just_started_job_is_starting(jobs_root):
+    """In its first moments no step has begun: the supervisor has to take the job, and a cold one has to start (95 s in the
+    OPS.244 tests), so the job is starting, not interrupted."""
     job_id = jobs.start_job("plan", "Plan", [{"label": "x", "argv": ["true"]}], spawn=False)
-    with open(os.path.join(jobs_root, job_id, "runner.pid"), "w") as f:
-        f.write(str(os.getpid()))  # alive, but its command line doesn't name the job
     job = jobs.get_job(job_id)
     assert job["status"] == "starting" and not job["finished"]
 
 
-def test_a_slow_runner_still_alive_is_starting_not_interrupted(jobs_root):
-    """TEST.90: a runner that hasn't written `state.json` after the grace
-    period but is still alive was called interrupted (finished), and then
-    came back as running, so the next job found it busy."""
+def test_a_step_whose_process_is_gone_is_interrupted_and_a_live_one_is_running(jobs_root):
+    """TEST.90: a job whose step is in a live process is running and holds the lock; once the process is gone the job is interrupted."""
     import subprocess
     job_id = jobs.start_job("plan", "Plan", [{"label": "x", "argv": ["true"]}], spawn=False)
-    path = os.path.join(jobs_root, job_id)
-    with open(os.path.join(path, "job.json")) as f:
-        body = json.load(f)
-    body["created_at"] -= jobs.STARTING_GRACE_SECONDS + 5
-    with open(os.path.join(path, "job.json"), "w") as f:
-        json.dump(body, f)
-    runner = subprocess.Popen([PY, "-c", "import time; time.sleep(30)", path])
+    page_jobs.backdate(job_id, jobs.STARTING_GRACE_SECONDS + 5)
+    runner = subprocess.Popen([PY, "-c", "import time; time.sleep(30)"])
     try:
-        with open(os.path.join(path, "runner.pid"), "w") as f:
-            f.write(str(runner.pid))
-        _wait_until_exec(runner.pid, path)
+        page_jobs.running(job_id, pid=runner.pid)
         job = jobs.get_job(job_id)
-        assert job["status"] == "starting", (
-            f"pid {runner.pid} alive={jobs._runner_alive(runner.pid, job_id)} "
-            f"created_at={body['created_at']} now={time.time()} state={job}")
-        assert not jobs.get_job(job_id)["finished"]
+        assert job["status"] == "running" and not job["finished"]
         with pytest.raises(jobs.JobBusy):
             jobs.start_job("reset", "Reset", [{"label": "x", "argv": ["true"]}], spawn=False)
     finally:
@@ -1049,13 +1018,8 @@ def test_a_slow_runner_still_alive_is_starting_not_interrupted(jobs_root):
 
 def test_stale_lock_is_cleared(jobs_root, monkeypatch):
     job_id = jobs.start_job("plan", "Plan", [{"label": "x", "argv": ["true"]}], spawn=False)
-    # Pretend it was spawned long ago by a runner that is gone.
-    path = os.path.join(jobs_root, job_id, "job.json")
-    with open(path) as f:
-        body = json.load(f)
-    body["created_at"] -= 3600
-    with open(path, "w") as f:
-        json.dump(body, f)
+    # Pretend it was started long ago and nothing ever began it.
+    page_jobs.backdate(job_id, 3600)
     assert jobs.get_job(job_id)["status"] == "interrupted"
     assert jobs.active_job() is None
     second = jobs.start_job("reset", "Reset", [{"label": "x", "argv": ["true"]}], spawn=False)
@@ -1075,26 +1039,25 @@ def _step(label, code):
     return {"label": label, "argv": [PY, "-c", code]}
 
 
-@pytest.mark.real_queue
 def test_runner_runs_steps_in_order_and_reports_progress(jobs_root, redis_server):
     progress = (
         "from planetgen.queue import progress_file; "
         "progress_file.report(3, 10, 'Sectors', force=True); print('made three')"
     )
     job_id = jobs.start_job("galaxy", "Two steps", [
-        _step("First", "print('hello from one')"),
+        _step("First", "import os; print('hello from one', os.environ['PLANETGEN_MYSQL_DATABASE'])"),
         _step("Second", progress),
-    ], env={"PLANETGEN_MYSQL_DATABASE": "passed_through"})
+    ], database="passed_through")
     job = _wait_finished(job_id, jobs_root)
     assert job["status"] == "succeeded"
     assert job["step"] == 2 and job["step_label"] == "Second"
     output = jobs.log_tail(job_id)
-    assert output.index("Stage 1 of 2: First") < output.index("hello from one") < output.index("Stage 2 of 2: Second")
+    assert output.index("Stage 1 of 2: First") < output.index("hello from one passed_through") < output.index("Stage 2 of 2: Second")
     assert "made three" in output
     with open(os.path.join(jobs_root, job_id, "progress.json")) as f:
         assert json.load(f)["completed"] == 3
     assert jobs.active_job() is None
-    # The runner writes its final state.json and only then drops the lock
+    # The runner ends the rows and only then drops the lock
     # (a finished holder's lock already counts as free), so give it a moment.
     deadline = time.time() + 10
     while jobs._read_lock(redisqueue.connect()) is not None:
@@ -1102,7 +1065,6 @@ def test_runner_runs_steps_in_order_and_reports_progress(jobs_root, redis_server
         time.sleep(0.05)
 
 
-@pytest.mark.real_queue
 def test_runner_stops_at_the_first_failure(jobs_root, redis_server):
     job_id = jobs.start_job("new_galaxy", "Fails", [
         _step("Breaks", "import sys; print('boom'); sys.exit(3)"),
@@ -1112,9 +1074,10 @@ def test_runner_stops_at_the_first_failure(jobs_root, redis_server):
     assert job["status"] == "failed"
     assert job["error"] == "Breaks exited with status 3."
     assert "should not run" not in jobs.log_tail(job_id)
+    with page_jobs.ledger_rows() as control:
+        assert [row["state"] for row in control.execute("SELECT state FROM engine_jobs WHERE command = 'page-step' AND run_id = ? ORDER BY item_key", (page_jobs.pagerun.run_of(control, job_id),)).fetchall()] == ["failed", "canceled"]
 
 
-@pytest.mark.real_queue
 def test_cancel_stops_the_running_step(site, client, jobs_root, redis_server):
     job_id = jobs.start_job("galaxy", "Slow", [
         _step("Sleeps", "import time; print('sleeping', flush=True); time.sleep(60)"),
@@ -1135,7 +1098,6 @@ def test_cancel_stops_the_running_step(site, client, jobs_root, redis_server):
     assert "canceled" in html and "Cancel job" not in html
 
 
-@pytest.mark.real_queue
 def test_cancel_stops_the_steps_own_children(jobs_root, tmp_path, redis_server):
     """Cancel stops the step's whole process tree (a `plan` pool's
     workers), not just the step: a grandchild that would write a file
@@ -1159,29 +1121,24 @@ def test_cancel_stops_the_steps_own_children(jobs_root, tmp_path, redis_server):
     assert not marker.exists()
 
 
-def test_cancel_is_a_file_the_runner_reads(jobs_root):
+def test_a_job_canceled_before_its_first_step_begins_runs_nothing(jobs_root):
     job_id = jobs.start_job("reset", "Never starts", [_step("x", "print('ran')")], spawn=False)
-    path = os.path.join(jobs_root, job_id)
-    with open(os.path.join(path, jobs.CANCEL_NAME), "w") as f:
-        f.write("now")
-    from planetgen.web import job_runner as jobRunner
-    assert jobRunner.CANCEL_NAME == jobs.CANCEL_NAME
-    assert jobRunner.run(path) == 1
+    assert jobs.cancel_job(job_id)
     job = jobs.get_job(job_id)
-    assert job["status"] == "canceled"
+    assert job["status"] == "canceled" and job["finished"]
+    from planetgen.web import job_runner
+    assert job_runner.run_to_end(job_id) == 1          # the steps were canceled: none is ready to hand out
     assert "ran" not in (jobs.log_tail(job_id) or "")
     assert jobs.active_job() is None
 
 
-@pytest.mark.real_queue
 def test_cancel_of_a_finished_job_does_nothing(jobs_root, redis_server):
     job_id = jobs.start_job("reset", "Quick", [_step("x", "pass")])
     _wait_finished(job_id, jobs_root)
     assert jobs.cancel_job(job_id) is False
-    assert not os.path.exists(os.path.join(jobs_root, job_id, jobs.CANCEL_NAME))
+    assert jobs.get_job(job_id)["status"] == "succeeded"
 
 
-@pytest.mark.real_queue
 def test_cancel_of_a_job_cancels_the_runs_it_started_at_once(site, client, jobs_root, redis_server):
     """PERF.99: the runs the job's step started are canceled by the cancel itself, through the stop command, not left to
     the step noticing; the machine is free before the step is gone."""
@@ -1242,16 +1199,6 @@ def test_the_job_page_lists_the_runs_the_job_started(site, client, jobs_root, re
     assert f"/admin/queue/{run_id}" in html and f"/admin/queue/{run_id}/log" in html and "Stars of the shell" in html
 
 
-def test_runner_liveness_on_this_platform(jobs_root):
-    """The page's liveness check sees this process as alive and a pid
-    that has exited as dead."""
-    import subprocess
-    proc = subprocess.Popen([PY, "-c", "pass"])
-    proc.wait()
-    assert not jobs._runner_alive(proc.pid, "20260101-000000-abcd")
-
-
-@pytest.mark.real_queue
 def test_old_jobs_are_pruned(jobs_root, monkeypatch, redis_server):
     monkeypatch.setattr(jobs, "keep_count", lambda: 2)
     ids = []
@@ -1261,6 +1208,8 @@ def test_old_jobs_are_pruned(jobs_root, monkeypatch, redis_server):
         ids.append(job_id)
         time.sleep(1.01)  # job ids are per second
     assert sorted(n for n in os.listdir(jobs_root) if n != "step-times.json") == sorted(ids[-2:])
+    with page_jobs.ledger_rows() as control:
+        assert [page_jobs.pagerun.run_of(control, job_id) is not None for job_id in ids] == [False, False, True, True], "the ledger's rows of a pruned job go with its folder"
 
 
 def test_log_tail_collapses_carriage_returns(jobs_root):
@@ -1289,7 +1238,6 @@ def test_python_executable_falls_back_when_embedded(monkeypatch):
 
 # --- Real database ----------------------------------------------------------------
 
-@pytest.mark.real_queue
 def test_reset_job_empties_a_real_database(mysql_config, jobs_root, redis_server):
     from planetgen.db import store as _db
     from planetgen.galaxy.sector import SpaceSector
@@ -1304,7 +1252,7 @@ def test_reset_job_empties_a_real_database(mysql_config, jobs_root, redis_server
 
     job_id = jobs.start_job("reset", "Reset", [{
         "label": "Reset the galaxy", "argv": [PY, *jobs.RESET_COMMAND, "--yes"],
-    }], env=jobs.mysql_env(mysql_config, mysql_config.database))
+    }], database=mysql_config.database)
     job = _wait_finished(job_id, jobs_root, timeout=240)  # the reset is a queued run now: a cold worker takes a while to start
     assert job["status"] == "succeeded", jobs.log_tail(job_id)
     conn = _db.get_connection(mysql_config)
@@ -1680,14 +1628,13 @@ def test_without_redis_no_job_starts(jobs_root, redis_server, monkeypatch):
     assert not os.listdir(jobs_root), "no job folder left behind"
 
 
-@pytest.mark.real_queue
-def test_a_job_runs_on_its_own_queue_and_leaves_none_behind(jobs_root, redis_server):
-
+def test_a_job_uses_no_queue_of_its_own_and_keeps_only_its_logs_in_its_folder(jobs_root, redis_server):
     job_id = jobs.start_job("reset", "Queued", [_step("x", "print('queued')")])
     job = _wait_finished(job_id, jobs_root)
     assert job["status"] == "succeeded"
-    queue = redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server))
-    assert queue.count == 0 and queue.key.encode() not in redisqueue.connect(redis_server).smembers("rq:queues")
+    assert not any(key.startswith(b"rq:queue:planetgen-web-") for key in redisqueue.connect(redis_server).scan_iter(match="rq:queue:*"))
+    assert sorted(os.listdir(os.path.join(jobs_root, job_id))) == ["memory.json", "output.log", "records.log"]
+    assert redisqueue.connect(redis_server).hget(page_jobs.supervisor.pages_key(), job_id) is None, "a job that is over is not kept on the supervisor's list"
 
 
 def test_the_generate_form_reports_every_bad_field_at_once():

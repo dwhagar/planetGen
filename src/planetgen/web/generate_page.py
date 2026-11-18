@@ -1489,7 +1489,7 @@ def generate():
         kind, title, steps = build_job(action, request.form, database, edge_pc=_edge_pc(action, request.form, database))
     except FormError as exc:
         return refuse(str(exc), 400)
-    env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
+    env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)       # the size estimate's process takes it; a job's steps build it when they start
     if estimate_needed(kind, request.form) and not request.form.get(ESTIMATE_CONFIRM_FIELD):
         # PERF.3: show the size and time first; the admin confirms (or the disk refuses it) before the job starts.
         try:
@@ -1506,7 +1506,7 @@ def generate():
             }), 409))
         return generate_flow.review_page(admin, action, kind, title, steps, request.form, estimate=_estimate_view(estimate))
     try:
-        submitted = jobs.submit(kind, title, steps, env=env, admin=admin.get("username"), database=database,
+        submitted = jobs.submit(kind, title, steps, admin=admin.get("username"), database=database,
                                 draft=generate_flow.draft_of(action, request.form))
     except runline.LineFull as exc:
         return refuse(str(exc), 409)

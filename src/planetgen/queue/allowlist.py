@@ -38,7 +38,6 @@ FUNCTIONS = frozenset({
     "planetgen.queue.requires.job_failed",              # the callbacks every job gets (PERF.247)
     "planetgen.queue.requires.job_succeeded",
     "planetgen.queue.lightjobs.run",                    # a light job as a process the template forked (OPS.230): the API's long operations, dispatched through `API_FUNCTIONS`
-    "planetgen.web.job_runner.run",                     # a Generate page job
 })
 """frozenset: The dotted names a queued job or callback may name."""
 

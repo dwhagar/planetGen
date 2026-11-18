@@ -479,7 +479,7 @@ def _beating_view(body):
     jobs = (body or {}).get("jobs") or []
     if not jobs:
         return None
-    names = {"api": "API job", "web": "Generate page job", "tile-prefetch": "Map tile prefetch"}
+    names = {"api": "API job", "tile-prefetch": "Map tile prefetch"}
     return {"rows": [{"kind": names.get(job["kind"], job["kind"]), "label": job["label"], "id": job["job"], "state": job["state"], "dead": job["state"] == "dead",
                       "phase": job["phase"], "running": format_duration_seconds(job["running_seconds"]), "heard": format_duration_seconds(job["beat_age_seconds"])} for job in jobs]}
 
@@ -830,10 +830,8 @@ def _start_retry(admin, plan, retry_of):
     if plan["database"] and plan["database"] != database:
         return None, (f"That run wrote {plan['database']}, but this site shows {database}. "
                       f"Run it again from the command line instead.")
-    env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
     try:
-        submitted = jobs.submit(plan["kind"], plan["title"], plan["steps"], env=env, admin=admin.get("username"),
-                                database=database)
+        submitted = jobs.submit(plan["kind"], plan["title"], plan["steps"], admin=admin.get("username"), database=database)
     except runline.LineFull as exc:
         return None, str(exc)
     except OSError as exc:

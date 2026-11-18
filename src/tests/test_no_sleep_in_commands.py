@@ -30,7 +30,7 @@ ALLOWED = {
     ("util/log.py", "RelayReader.finish"): "a tenth of a second for the last lines of a child to arrive",
     ("queue/unitstuck.py", "request_dump"): "the starter waits a tenth of a second for a stack dump to land",
     ("admin/updateguard.py", "wait_until_idle"): OUTSIDE + " (update.sh)",
-    ("web/jobs.py", "_end_orphan"): OUTSIDE,
+    ("web/jobs.py", "_end_step_group"): OUTSIDE,
     ("web/generate_page.py", "generate_job_stream.events"): OUTSIDE,
     ("web/lib/singleflight.py", "wait"): OUTSIDE,
     ("queue/wrapper.py", "_await"): OUTSIDE + " (the follower of a run, waiting for a stage's plan or conclusion: `_await_plan` and `_await_conclusion` share it)",

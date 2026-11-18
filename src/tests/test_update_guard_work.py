@@ -189,25 +189,23 @@ def test_a_marker_of_a_process_that_died_is_ignored_and_removed():
     assert os.listdir(updateguard.running_dir()) == []
 
 
-def test_a_generate_job_is_listed_with_its_title_and_canceled_through_its_own_cancel_file(tmp_path, monkeypatch):
+def test_a_generate_job_is_listed_with_its_title_and_canceled_through_its_ledger_run(tmp_path, monkeypatch):
     from planetgen.web import jobs
+    from tests import page_jobs
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path))
-    runner = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)", "fake-runner"])
+    page_jobs.forget_all_jobs()
+    job_id = jobs.start_job("galaxy", "Generate sectors 1-9", [{"label": "step", "argv": ["true"]}], root=str(tmp_path), spawn=False)
     try:
-        job_id = jobs.start_job("galaxy", "Generate sectors 1-9", [{"label": "step", "argv": ["true"]}],
-                                root=str(tmp_path), spawn=False)
-        with open(os.path.join(tmp_path, job_id, "state.json"), "w", encoding="utf-8") as handle:
-            handle.write('{"status": "running", "pid": %d, "started_at": %f, "step": 1}' % (runner.pid, time.time()))
-        # the job's runner is recognised by its command line naming the job
-        monkeypatch.setattr(jobs, "_runner_alive", lambda pid, name: pid == runner.pid)
+        page_jobs.running(job_id)               # its step runs in this process
         source = updateguard.GenerateJobSource()
         found = source.items()
         assert [(item["id"], item["title"], item["queued"]) for item in found] == [(job_id, "Generate sectors 1-9", False)]
         assert source.cancel(found[0]) is True
-        assert os.path.exists(os.path.join(tmp_path, job_id, jobs.CANCEL_NAME))
+        assert jobs.get_job(job_id, str(tmp_path))["status"] == "canceled"
+        assert source.items() == []
     finally:
-        runner.kill()
-        runner.wait()
+        page_jobs.forget_all_jobs()
+        jobs.release_lock(job_id)
 
 
 def test_no_jobs_directory_is_listed_as_nothing_and_not_created(tmp_path, monkeypatch):

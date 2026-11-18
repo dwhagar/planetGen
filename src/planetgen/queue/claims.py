@@ -44,10 +44,8 @@ UNIT_BY_NATURE_MB = {
 """dict: What a unit of a command that is one unit by nature (`CommandSpec.one_unit`) claims, MB, where `workers.STAGE_WORKER_MEMORY_MB` has no figure.
 Unmeasured: first claims by what the command reads, until the gate has learned the kind."""
 
-FUNCTION_CLAIMS = {
-    "planetgen.web.job_runner.run": (SUPERVISOR_MB, 0.5),
-}
-"""dict: The functions a queue runs that need no more than a figure of their own: `{dotted name: (MB, cores)}`. Unmeasured."""
+FUNCTION_CLAIMS = {}
+"""dict: The functions a queue runs that need no more than a figure of their own: `{dotted name: (MB, cores)}`. Unmeasured. None is left: the Generate page's job is rows of the ledger (`pagerun`), claimed by their rows."""
 
 CALLBACKS = frozenset({
     "planetgen.queue.requires.job_failed",

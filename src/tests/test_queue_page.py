@@ -490,22 +490,24 @@ def test_retry_refuses_another_database_and_a_run_with_no_command(web_app, admin
 
 
 def test_retry_plan_for_a_run_a_web_job_started_begins_at_the_step_that_failed(tmp_path, monkeypatch):
+    from tests import page_jobs
     root_dir = tmp_path / "jobs"
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(root_dir))
-    job_id = jobs.start_job("new_galaxy", "New galaxy", [
-        {"label": "Reset", "argv": ["x"]}, {"label": "Plan", "argv": ["y"]}, {"label": "Fill", "argv": ["z"]},
-    ], spawn=False)
-    path = root_dir / job_id
-    (path / "state.json").write_text('{"status": "failed", "step": 2, "started_at": 1, "finished_at": 2}')
-    jobs.release_lock(job_id)
-    job, steps = jobs.remaining_steps(job_id)
-    assert job["status"] == "failed" and [step["label"] for step in steps] == ["Plan", "Fill"]
+    page_jobs.forget_all_jobs()
+    steps = [{"label": "Reset", "argv": ["x"]}, {"label": "Plan", "argv": ["y"]}, {"label": "Fill", "argv": ["z"]}]
+    job_id = jobs.start_job("new_galaxy", "New galaxy", steps, spawn=False)
+    page_jobs.end(job_id, "failed", step=2)
+    job, remaining = jobs.remaining_steps(job_id)
+    assert job["status"] == "failed" and [step["label"] for step in remaining] == ["Plan", "Fill"]
     run = {"kind": "generation", "job": job_id, "title": "Fill", "argv": ["galaxy"], "database": None}
     plan = queue_page._retry_plan(run)
     assert plan["describe"] == "Plan, then Fill" and plan["title"] == "Retry: New galaxy"
-    (path / "state.json").write_text('{"status": "succeeded", "step": 3, "started_at": 1, "finished_at": 2}')
-    assert jobs.remaining_steps(job_id) is None
-    assert queue_page._retry_plan(run)["describe"] == "planetgen galaxy"        # the job is done: the command alone
+    page_jobs.forget_all_jobs()
+    done_id = jobs.start_job("new_galaxy", "New galaxy", steps, spawn=False)
+    page_jobs.end(done_id, "succeeded")
+    assert jobs.remaining_steps(done_id) is None
+    assert queue_page._retry_plan({**run, "job": done_id})["describe"] == "planetgen galaxy"        # the job is done: the command alone
+    page_jobs.forget_all_jobs()
 
 
 def test_the_worker_count_is_read_and_set_through_the_api(admin_client, redis_server):

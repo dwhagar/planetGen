@@ -299,8 +299,8 @@ def _job_roots():
 
 
 def _stop_jobs():
-    """Drops the Generate page's waiting jobs and tells its running one to stop (the cancel file); the processes
-    themselves are ended by `kill_processes`. Returns `(jobs stopped, folders)`."""
+    """Drops the Generate page's waiting jobs and cancels its running one (`jobs.cancel_job`: a request to the supervisor that ends its rows and stops its step); the processes
+    that are left are ended by `kill_processes`. Returns `(jobs stopped, folders)`."""
     from planetgen.web import jobs
 
     stopped, roots = 0, _job_roots()
@@ -310,9 +310,7 @@ def _stop_jobs():
         with contextlib.suppress(Exception):
             active = jobs.active_job(root)
             if active:
-                with contextlib.suppress(OSError):
-                    with open(os.path.join(root, active["id"], jobs.CANCEL_NAME), "w", encoding="utf-8") as handle:
-                        handle.write(str(_now()))
+                jobs.cancel_job(active["id"], root)
                 stopped += 1
     return stopped, roots
 

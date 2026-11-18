@@ -101,6 +101,16 @@ def test_the_redis_store_publishes_a_sign_of_life_that_expires_and_is_taken_down
     assert not supervisor.is_alive(conn)
 
 
+def test_the_redis_store_sees_a_generate_page_job_that_has_not_ended_as_something_to_watch(conn):
+    """OPS.244: the supervisor stays alive while a step of a Generate page job runs, so the step's process has a launcher to settle it."""
+    store = supervisor.RedisStore(conn)
+    assert not store.busy()
+    conn.hset(supervisor.pages_key(), "20261118-aaaa", 1000.0)
+    assert store.busy()
+    conn.hdel(supervisor.pages_key(), "20261118-aaaa")
+    assert not store.busy()
+
+
 def test_the_redis_store_sees_a_waiting_run_as_something_to_watch(conn):
     store = supervisor.RedisStore(conn)
     assert not store.busy()

@@ -5,7 +5,6 @@ Every job queued to RQ has a finite time limit taken from the best estimate of h
 expires the entry of a job whose worker was killed, and ends a job that hangs. The sites that queue:
 
 * a run's units (`units.enqueue_units`): the stage's expected seconds;
-* the Generate page's job (`jobs._spawn`): the sum of its steps' recorded times;
 * an API job (`api_jobs.submit`): the route's estimate, else a fixed limit;
 * the node prefetch and rebuild (`tileprefetch._enqueue_chunks`): the size of the chunk.
 
@@ -13,13 +12,9 @@ expires the entry of a job whose worker was killed, and ends a job that hangs. T
 """
 
 import ast
-import json
 import math
-import os
 import pathlib
 import secrets
-import signal
-import sys
 import time
 
 import pytest
@@ -27,7 +22,6 @@ import rq
 
 from tests import rq_units
 from planetgen.queue import allowlist, api_jobs, redisqueue, units, workers
-from planetgen.web import job_runner, jobs
 from planetgen.web.lib import tileprefetch
 
 pytestmark = pytest.mark.real_queue
@@ -188,138 +182,6 @@ def test_a_unit_that_names_its_own_expected_time_gets_the_same_ceiling_as_any_ot
         redisqueue.queue(redisqueue.BULK_QUEUE, connection).empty()
     stage_limit = max(units.unit_timeout(188.5), 1)
     assert [timeout for _name, _func, timeout in limits] == [stage_limit] * 4 and stage_limit == redisqueue.MAX_TIMEOUT_SECONDS
-
-
-@pytest.fixture
-def jobs_root(tmp_path, monkeypatch):
-    root = tmp_path / "jobs"
-    monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(root))
-    monkeypatch.setattr(jobs, "_start_detached", lambda *args: None)
-    return str(root)
-
-
-@pytest.mark.parametrize("expected, limit", [
-    (None, jobs.JOB_CEILING_SECONDS),
-    (60.0, jobs.JOB_FLOOR_SECONDS),
-    (2 * 3600.0, 20 * 3600),
-    (10 ** 9, jobs.JOB_CEILING_SECONDS)])
-def test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take(
-        jobs_root, redis_server, limits, monkeypatch, expected, limit):
-    monkeypatch.setattr(job_runner, "expected_seconds", lambda job: expected)
-    job_id = jobs.start_job("reset", "Timed", [{"label": "x", "argv": [sys.executable, "-c", "pass"]}], root=jobs_root)
-    try:
-        assert [(name, timeout) for name, _func, timeout in limits] == [(jobs.QUEUE_PREFIX + job_id, limit)]
-    finally:
-        jobs.release_lock(job_id)       # the job lock is one Redis key: a job left holding it makes the next case's start raise JobBusy
-        redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server)).delete(delete_jobs=True)
-
-
-GENERATOR_COMMANDS = (["galaxy"], ["plan"], ["sectors"], ["sector"], ["finish-run"], ["warm"], ["check-db"], ["backfill"],
-                      ["run-job", json.dumps([{"command": "plan", "argv": []}, {"command": "galaxy", "argv": []}])])
-"""tuple: Command lines of the generator that a Generate page job, a retry, a finish and a waiting job can hold."""
-
-
-def _limits_of_jobs(jobs_root, redis_server, limits, steps, **start):
-    job_id = jobs.start_job("galaxy", "Timed", steps, root=jobs_root, **start)
-    try:
-        return [(name, timeout) for name, _func, timeout in limits]
-    finally:
-        jobs.release_lock(job_id)
-        redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server)).delete(delete_jobs=True)
-
-
-@pytest.mark.parametrize("command", GENERATOR_COMMANDS, ids=lambda command: command[0])
-def test_a_job_that_runs_on_the_queue_is_never_ended_by_a_clock_of_a_smaller_galaxy_s_recorded_time(jobs_root, redis_server, limits, monkeypatch, command):
-    """OPS.255: a New galaxy run could lose its starter when RQ's limit (ten times an estimate recorded on a smaller galaxy) ended the job and the runner stopped its step; a job with a command of the generator
-    takes the ceiling whatever the command is, since the run's watch judges its units by their progress."""
-    monkeypatch.setattr(job_runner, "expected_seconds", lambda job: 60.0)
-    steps = [{"label": "x", "argv": [sys.executable, *jobs.GENERATE_COMMAND, *command]}]
-    assert [timeout for _name, timeout in _limits_of_jobs(jobs_root, redis_server, limits, steps)] == [jobs.JOB_CEILING_SECONDS]
-
-
-def test_a_job_with_no_command_of_the_generator_keeps_the_limit_its_recorded_time_gives(jobs_root, redis_server, limits, monkeypatch):
-    monkeypatch.setattr(job_runner, "expected_seconds", lambda job: 60.0)
-    steps = [{"label": "x", "argv": [sys.executable, *jobs.RESET_COMMAND]}]
-    assert [timeout for _name, timeout in _limits_of_jobs(jobs_root, redis_server, limits, steps)] == [jobs.JOB_FLOOR_SECONDS]
-
-
-def test_every_way_a_generate_job_starts_gets_the_same_limit(jobs_root, redis_server, limits, monkeypatch):
-    """The Generate page's job (`submit`, which starts it) and the one that waited in the list for the job before it (`promote_queued`) both go through `start_job`: the ceiling, either way."""
-    monkeypatch.setattr(job_runner, "expected_seconds", lambda job: 60.0)
-    steps = [{"label": "x", "argv": [sys.executable, *jobs.GENERATE_COMMAND, "galaxy"]}]
-    first = jobs.submit("galaxy", "First", steps, root=jobs_root)
-    second = jobs.submit("galaxy", "Second", steps, root=jobs_root)          # the first holds the lock: this one waits in the list
-    started = None
-    try:
-        assert second.job_id is None and [timeout for _name, _func, timeout in limits] == [jobs.JOB_CEILING_SECONDS]
-        jobs.release_lock(first.job_id)
-        started = jobs.promote_queued(jobs_root, force=True)
-        assert started is not None and [timeout for _name, _func, timeout in limits] == [jobs.JOB_CEILING_SECONDS] * 2
-    finally:
-        for name in (first.job_id, started):
-            if name:
-                jobs.release_lock(name)
-                redisqueue.queue(jobs.QUEUE_PREFIX + name, redisqueue.connect(redis_server)).delete(delete_jobs=True)
-
-
-def test_a_jobs_expected_seconds_are_the_sum_of_what_its_steps_took_before(monkeypatch, tmp_path):
-    steps = [{"label": "Reset", "argv": ["reset"]}, {"label": "Other", "argv": ["other"]}]
-    control = object()
-    both = {"Reset": 30.0, "Other": 90.0}
-    assert job_runner.step_estimates(control, steps, both)[0] == [30.0, 90.0]
-    assert job_runner.step_estimates(control, steps, {"Reset": 30.0})[0] == [30.0, None]
-
-    class Connection:
-        def close(self):
-            pass
-
-    from planetgen.db import store
-    from planetgen.web import jobs
-    monkeypatch.setattr(store, "get_control_connection", lambda config: Connection())
-    monkeypatch.setattr(jobs, "configured_jobs_dir", lambda: str(tmp_path))
-    job = {"steps": steps, "env": {}}
-    assert job_runner.expected_seconds(job) is None             # nothing recorded yet
-    for label, seconds in both.items():
-        job_runner._record_step_seconds(str(tmp_path), label, seconds)
-    assert job_runner.expected_seconds(job) == 120.0
-    job_runner._record_step_seconds(str(tmp_path), "Reset", 50.0)
-    assert job_runner.recorded_step_seconds(str(tmp_path)) == {"Reset": 40.0, "Other": 90.0}
-    monkeypatch.setattr(store, "get_control_connection", lambda config: (_ for _ in ()).throw(OSError("no database")))
-    assert job_runner.expected_seconds(job) is None
-
-
-def test_a_job_the_queue_ends_for_its_limit_stops_its_step_and_says_why(tmp_path):
-    job_dir = tmp_path / "20261021-120000-abcd"
-    job_dir.mkdir()
-    marker = tmp_path / "step.pid"
-    step = f"import os, time; open({str(marker)!r}, 'w').write(str(os.getpid())); time.sleep(60)"
-    (job_dir / "job.json").write_text(json.dumps({
-        "id": job_dir.name, "kind": "reset", "title": "Slow", "admin": None, "database": None,
-        "created_at": time.time(), "cwd": str(tmp_path), "env": {},
-        "steps": [{"label": "Sleep", "argv": [sys.executable, "-c", step]}]}), encoding="utf-8")
-    old = signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGINT)
-    try:
-        with rq.timeouts.UnixSignalDeathPenalty(2, rq.timeouts.JobTimeoutException):
-            assert job_runner.run(str(job_dir)) == 1
-    finally:
-        signal.signal(signal.SIGTERM, old[0])
-        signal.signal(signal.SIGINT, old[1])
-    state = json.loads((job_dir / "state.json").read_text(encoding="utf-8"))
-    assert state["status"] == "failed" and "past its time limit" in state["error"]
-    # OPS.255: the log says so too, as the failure of the stage the job was at
-    log_text = (job_dir / "output.log").read_text(encoding="utf-8")
-    assert "failed after" in log_text and "past its time limit" in log_text
-    assert "past its time limit" in (job_dir / job_runner.RECORDS_FILE).read_text(encoding="utf-8")
-    pid = int(marker.read_text(encoding="utf-8"))
-    for _ in range(100):
-        try:
-            os.kill(pid, 0)
-        except ProcessLookupError:
-            break
-        time.sleep(0.1)
-    else:
-        os.kill(pid, signal.SIGKILL)
-        pytest.fail("the step kept running after its job was ended")
 
 
 def test_an_api_job_gets_the_routes_estimate_else_a_fixed_limit(redis_server, monkeypatch):

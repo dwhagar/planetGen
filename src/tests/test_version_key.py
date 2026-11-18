@@ -7,11 +7,8 @@ its seed), and the run history (`generation_runs`, one row per
 line every generation run writes first.
 """
 
-import json
-import os
 import secrets
 import sys
-import time
 
 import pytest
 
@@ -242,30 +239,23 @@ def test_the_line_is_first_in_a_debug_file_too(mysql_config, monkeypatch, tmp_pa
     assert first.endswith("| " + versionKey.run_line(SEED, " ".join(GALAXY_RUN)))
 
 
-def test_a_web_job_log_starts_with_the_line(mysql_config, tmp_path):
+def test_a_web_job_log_starts_with_the_line(mysql_config, tmp_path, monkeypatch):
     from planetgen.web import job_runner as jobRunner
+    from tests import page_jobs
 
     _seed_skeleton(mysql_config, galaxy_seed=SEED)
-    job_dir = tmp_path / "jobs" / "20261002-120000-abcd"
-    job_dir.mkdir(parents=True)
-    env = {
-        "PLANETGEN_MYSQL_HOST": mysql_config.host, "PLANETGEN_MYSQL_PORT": str(mysql_config.port),
-        "PLANETGEN_MYSQL_USER": mysql_config.user, "PLANETGEN_MYSQL_PASSWORD": mysql_config.password or "",
-        "PLANETGEN_MYSQL_DATABASE": mysql_config.database,
-    }
-    (job_dir / "job.json").write_text(json.dumps({
-        "id": job_dir.name, "kind": "galaxy", "title": "Generate sectors", "database": mysql_config.database,
-        "created_at": time.time(), "cwd": os.getcwd(), "env": env,
-        "steps": [{"label": "Step one", "argv": [sys.executable, "-c", "print('stepping')"]}],
-    }))
-    assert jobRunner.run(str(job_dir)) == 0
-    lines = (job_dir / "output.log").read_text(encoding="utf-8").splitlines()
+    monkeypatch.setattr(jobRunner, "_mysql_config", lambda job: mysql_config)
+    _job_id, job_dir, code = page_jobs.run_steps(tmp_path / "jobs", [{"label": "Step one", "argv": [sys.executable, "-c", "print('stepping')"]}], title="Generate sectors", database=mysql_config.database)
+    assert code == 0
+    lines = (tmp_path / "jobs" / _job_id / "output.log").read_text(encoding="utf-8").splitlines()
     assert lines[0] == versionKey.run_line(SEED, "Generate sectors")
     assert "stepping" in lines
 
 
-def test_a_web_job_without_a_database_still_gets_the_line(tmp_path):
+def test_a_web_job_without_a_database_still_gets_the_line(tmp_path, monkeypatch):
+    from planetgen.db import store
     from planetgen.web import job_runner as jobRunner
 
-    job = {"id": "x", "title": "Reset", "env": {"PLANETGEN_MYSQL_HOST": "127.0.0.1", "PLANETGEN_MYSQL_PORT": "1"}}
+    monkeypatch.setattr(jobRunner, "_mysql_config", lambda job: store.MySQLConfig(host="127.0.0.1", port=1, database=None))
+    job = {"id": "x", "title": "Reset"}
     assert jobRunner._run_line(job) == versionKey.run_line(None, "Reset")

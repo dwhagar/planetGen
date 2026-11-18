@@ -434,8 +434,7 @@ def _start_neighborhood_job(sector_id, admin, generate_anyway=False):
             "center_radius_pc": str(tuning.DEFAULT_GENERATE_RADIUS_PC)}
     try:
         kind, title, steps = generate_page.build_job("galaxy", form, database)
-        env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
-        submitted = jobs.submit(kind, title, steps, env=env, admin=admin.get("username"), database=database)
+        submitted = jobs.submit(kind, title, steps, admin=admin.get("username"), database=database)
     except generate_page.FormError as exc:
         return str(exc), None
     except runline.LineFull as exc:
