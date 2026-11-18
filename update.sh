@@ -33,10 +33,7 @@
 #      where each piece comes from (GEN.600). Then the data of the References
 #      pages (`scripts/build_reference_pages.py`, DOC.88), built from the
 #      reference list and the stand-in registry; a failure only warns.
-#   4. `planetgen check-math`: the math check (TEST.68). A failure only
-#      warns (repeated at the end). Generation does not run it (PERF.170); the
-#      admin page can run it any time.
-#   5. `planetgen.cli.migrate`: brings the database up to the current schema
+#   4. `planetgen.cli.migrate`: brings the database up to the current schema
 #      (a no-op when it already is), with a progress bar. When a migration
 #      is pending, it first asks (y/N, 30 seconds, default N) whether to
 #      delete the galaxy data instead of migrating it; see
@@ -45,6 +42,11 @@
 #      hand when wanted.
 #      Then it records the version key (OPS.13): one row per galaxy in the
 #      control database, the last 10 kept; `planetgen versions` lists them.
+#   5. `planetgen check-math`: the math check (TEST.68). A failure only
+#      warns (repeated at the end). Generation does not run it (PERF.170); the
+#      admin page can run it any time.
+#      It runs after the migration: it is a run, and every run is a row in the
+#      control database (OPS.271).
 #   6. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
@@ -249,13 +251,14 @@ ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
 build_reference_pages
 
-log_stage 4 9 "Checking the generator's math"
-check_math
-
-log_stage 5 9 "Migrating the configured MySQL database to the current schema"
+# OPS.271: the math check is a run, and every run is a row in the control database's ledger, so the database is migrated first.
+log_stage 4 9 "Migrating the configured MySQL database to the current schema"
 migrate_or_reset_db
 record_version_key
 warm_shape_means
+
+log_stage 5 9 "Checking the generator's math"
+check_math
 
 log_stage 6 9 "Checking Apache's modules (macOS: the gunicorn daemon)"
 APACHE_NEEDS_RESTART=0
@@ -293,7 +296,7 @@ install_maintenance_units || log_warning "the maintenance units were not all set
 
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
-    log_warning "the math check failed (step 4): charted data may be wrong until it is fixed."
+    log_warning "the math check failed (step 5): charted data may be wrong until it is fixed."
 fi
 if [[ "$DATASETS_MISSING" == 1 ]]; then
     log_warning "some data sets could not be downloaded (step 3): bulk generation refuses to start until they are."
@@ -327,7 +330,7 @@ else
         print_reload_commands >&2
         exit 1
     elif (( reload_status == 3 )); then
-        # The migration finished (step 5) and the reload itself succeeded: only the probe got no good answer, which
+        # The migration finished (step 4) and the reload itself succeeded: only the probe got no good answer, which
         # can be the address's fault (another virtual host, no https listener) as much as the app's. The site opens.
         log_warning "the site was reloaded but /api/health did not answer well (see the warning above); the database is migrated and current, so the site is opened. Check it by hand."
         SITE_NOTE="site reloaded at $(date '+%H:%M:%S %Z'), /api/health did not answer well"

@@ -14,32 +14,6 @@ from planetgen.generation import star_population
 from planetgen.queue import redisqueue
 
 
-def test_warm_imports_the_task_modules_and_builds_no_tables():
-    """PERF.226: the tables are built by the units that draw stars (`units.warm_unit`), not by every worker at its start."""
-    star_population._bright_table.cache_clear()
-    worker.warm([redisqueue.GENERATION_QUEUE])
-    for name in worker.WARM_MODULES:
-        assert name in sys.modules
-    assert star_population._bright_table.cache_info().currsize == 0
-
-
-def test_a_unit_that_draws_stars_builds_the_tables_in_the_worker():
-    from planetgen.queue import units
-
-    class Job:
-        func_name = units.UNIT_FUNCTION
-        args = ("run", 1, 0, "generate-sectors", {"database": None}, 1.0)
-    star_population._bright_table.cache_clear()
-    units.warm_unit(Job)
-    assert star_population._bright_table.cache_info().currsize == (
-        len(star_population.POPULATIONS) * len(star_population.FE_H_BINS))
-    assert units.tables_held()
-    Job.args = ("run", 1, 0, "link-neighbors", {}, 1.0)
-    assert units.sheds_tables_for(Job)
-    star_population._bright_table.cache_clear()
-    assert not units.sheds_tables_for(Job)
-
-
 def test_a_warm_table_is_the_table_a_cold_call_builds():
     from planetgen.queue import units
     star_population._bright_table.cache_clear()
@@ -49,36 +23,9 @@ def test_a_warm_table_is_the_table_a_cold_call_builds():
     assert star_population._bright_table(1000.0, star_population.POPULATIONS[0], None, None, -0.5) == cold
 
 
-def test_a_worker_with_tables_puts_a_unit_that_needs_none_back_and_starts_over(monkeypatch):
-    from planetgen.queue import units
-    execs, deaths, pushed = [], [], []
-
-    class Queue:
-        name = "q"
-        def push_job_id(self, job_id, at_front=False):
-            pushed.append((job_id, at_front))
-
-    class Job:
-        id = "job-1"
-        origin = "q"
-        func_name = units.UNIT_FUNCTION
-        args = ("run", 1, 0, "link-neighbors", {}, 1.0)
-    cls = worker.worker_class()
-    instance = cls.__new__(cls)
-    instance.register_death = lambda: deaths.append(1)
-    instance.queues = [Queue()]
-    instance._take_claim = lambda job: None             # PERF.254: the memory gate is tested in test_memory_gate.py
-    monkeypatch.setattr(units, "tables_held", lambda: True)
-    monkeypatch.setattr(worker.os, "execv", lambda *args: execs.append(args))
-    monkeypatch.setattr(units, "warm_unit", lambda job: None)
-    monkeypatch.setattr(rq.Worker, "prepare_execution", lambda self, job: None)
-    instance.prepare_execution(Job)
-    assert pushed == [("job-1", True)] and deaths == [1] and execs and execs[0][1][1:3] == ["-m", "planetgen.cli.worker"]
-
-
 def test_the_worker_takes_its_claim_on_the_memory_gate_before_it_warms_and_gives_it_up_after_the_job(monkeypatch):
-    """PERF.254: the claim comes before the warm (the tables are part of what the job claims) and is released when the job ends, however it ends."""
-    from planetgen.queue import claims, memorygate, units
+    """PERF.254: the claim comes before the job is prepared and is released when the job ends, however it ends."""
+    from planetgen.queue import claims, memorygate
     seen = []
     claim = memorygate.Claim("unit:link-neighbors", 700.0, 1.0, "bulk")
     monkeypatch.setattr(claims, "claim_for", lambda job, conn: claim)
@@ -86,15 +33,13 @@ def test_the_worker_takes_its_claim_on_the_memory_gate_before_it_warms_and_gives
     monkeypatch.setattr(memorygate, "release", lambda conn, name: seen.append(("release", name)) or 0.0)
     monkeypatch.setattr(rq.Worker, "prepare_execution", lambda self, job: seen.append(("execution",)))
     monkeypatch.setattr(rq.Worker, "execute_job", lambda self, job, queue: (self.prepare_execution(job), (_ for _ in ()).throw(RuntimeError("the job failed"))))
-    monkeypatch.setattr(units, "warm_unit", lambda job: seen.append(("warm",)))
-    monkeypatch.setattr(units, "sheds_tables_for", lambda job: False)
     cls = worker.worker_class()
     instance = cls.__new__(cls)
     instance.connection, instance.name = object(), "w1"
-    job = type("Job", (), {"id": "j1", "func_name": units.UNIT_FUNCTION, "args": ("run", 1, 0, "link-neighbors", {}, 1.0), "origin": "q"})()
+    job = type("Job", (), {"id": "j1", "func_name": "planetgen.web.job_runner.run", "args": (), "origin": "q"})()
     with pytest.raises(RuntimeError):
         instance.execute_job(job, None)
-    assert seen == [("acquire", claim, "w1", "j1"), ("warm",), ("execution",), ("release", "w1")]
+    assert seen == [("acquire", claim, "w1", "j1"), ("execution",), ("release", "w1")]
 
 
 def test_a_job_with_no_claim_on_any_table_is_let_through_with_the_default_claim(monkeypatch):
@@ -165,49 +110,6 @@ def _unit_job(kind="scatter-mass", args=None):
     from planetgen.queue import units
     args = {"database": {"host": "h", "port": 3306, "user": "u", "database": "d"}} if args is None else args
     return type("Job", (), {"func_name": units.UNIT_FUNCTION, "args": ("run", 0, 0, kind, args, 1.0)})()
-
-
-def test_the_worker_warms_a_unit_before_rq_creates_its_execution_record(monkeypatch):
-    """The warm comes first of all, so the execution record's 90 s do not run out during it (the Execution not found
-    in Redis crash of the 2026-10-23 Generate run: nothing beats during a warm, the horse's first beat is 30 s after
-    the fork)."""
-    from planetgen.queue import commands
-    order = []
-    monkeypatch.setattr(commands, "warm_function", lambda kind: lambda args: order.append(("warm", kind, args)))
-    monkeypatch.setattr(rq.Worker, "prepare_execution", lambda self, job: order.append(("execution",)))
-    monkeypatch.setattr(rq.Worker, "fork_work_horse", lambda self, job, queue: order.append(("fork",)))
-    cls = worker.worker_class()
-    job = _unit_job()
-    instance = cls.__new__(cls)
-    instance._take_claim = lambda job: order.append(("gate",))
-    instance.prepare_execution(job)
-    instance.fork_work_horse(job, None)
-    assert order == [("gate",), ("warm", "scatter-mass", job.args[4]), ("execution",), ("fork",)]
-
-
-def test_a_warm_that_fails_does_not_stop_the_horse(monkeypatch):
-    from planetgen.queue import commands
-    forked = []
-
-    def broken(args):
-        raise OSError("the database is away")
-
-    monkeypatch.setattr(commands, "warm_function", lambda kind: broken)
-    monkeypatch.setattr(rq.Worker, "prepare_execution", lambda self, job: forked.append(job))
-    cls = worker.worker_class()
-    instance = cls.__new__(cls)
-    instance._take_claim = lambda job: None
-    instance.prepare_execution(_unit_job())
-    assert len(forked) == 1
-
-
-def test_a_job_that_is_not_a_unit_and_a_command_without_a_warm_are_not_warmed(monkeypatch):
-    from planetgen.queue import commands, units
-    called = []
-    monkeypatch.setattr(commands, "warm_function", lambda kind: lambda args: called.append(kind))
-    units.warm_unit(type("Job", (), {"func_name": "planetgen.somewhere.else", "args": ("x", 1, 2, "scatter-mass", {})})())
-    units.warm_unit(_unit_job("warm-lists"))
-    assert called == []
 
 
 def test_every_warm_function_a_command_names_is_there():

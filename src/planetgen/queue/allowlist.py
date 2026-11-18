@@ -32,10 +32,6 @@ run (`math:pow`). Only whoever starts the worker can set it, and that process co
 cannot."""
 
 FUNCTIONS = frozenset({
-    "planetgen.queue.units.run_unit",                   # a run's unit of work (PERF.95)
-    "planetgen.queue.units.unit_failed",                # its failure callback
-    "planetgen.queue.units.open_stage",                 # the opening (cut) of a run's next stage (PERF.254)
-    "planetgen.queue.units.open_failed",                # its failure callback
     "planetgen.queue.forkedjob.run",                    # a unit as a job process the template forked (OPS.226)
     "planetgen.web.warmup.warm_app",                    # the warm set of the maintenance lane's template (OPS.229): the site's app, built once
     "planetgen.queue.units.warm_star_tables",           # the warm set of a template (OPS.226): the sampling tables every job forked from it shares

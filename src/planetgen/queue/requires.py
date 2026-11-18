@@ -118,21 +118,6 @@ def log_held(job, ids):
 
 def _say(connection, job, text, kind):
     log.normal(text)
-    run = _run_of(job)
-    if run is not None:
-        from planetgen.queue import runrecord
-        try:
-            runrecord.log(connection, run[0], text, level="info", kind=kind, stage=run[1])
-        except Exception as exc:  # noqa: BLE001 -- a line in the run's log must never fail the job
-            log.swallowed("queue/requires", "_say", exc)
-
-
-def _run_of(job):
-    """`(run id, stage)` of a unit of a run, `None` for any other job."""
-    from planetgen.queue import units
-    if getattr(job, "func_name", None) != units.UNIT_FUNCTION or len(job.args) < 2:
-        return None
-    return job.args[0], job.args[1]
 
 
 def _text(value):
