@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4566] - 2026-11-18
+
+**Headline:** a sector made under two different Python hash seeds is the same sector to the last digit again.
+
+### Fixed
+- The blend of an air before and after photolysis (`surface_air._photolysed`) and the blend of two nebula mixtures (`nebula_composition._mix`) listed their gases in the order a set of the names gave, which follows the process's `PYTHONHASHSEED`, so every sum over that air added in a different order and one air in the probe sector ended 1e-11 K and up to 3e-7 of a gas share different between two seeds (`test_a_sector_does_not_depend_on_hash_seed_or_locale`). They list the gases in the order they were given.
+
+generation-output: changed within the solvers' tolerance (no golden, no epoch, lock item)
+
 ## [8.0.4565] - 2026-11-18
 
 **Headline:** A belt's bodies are no longer piled on the eccentricity and inclination caps: their orbit draws are truncated, not clipped.
