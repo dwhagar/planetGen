@@ -24,6 +24,9 @@ from typing import NamedTuple
 import numpy as np
 from numba import njit
 
+from planetgen.physics import constants
+from planetgen.util import detmath
+
 G = 4.0 * math.pi ** 2
 """float: The constant of gravity in AU^3 / (solar mass yr^2), from Kepler's third law with the year, the AU and the solar mass as units."""
 
@@ -39,8 +42,11 @@ EJECT_FACTOR = 10.0
 ENERGY_TOLERANCE = 1.0e-3
 """float: The relative energy change above which a run is called unconverged. Stand-in."""
 
-AU_PER_KM = 1.0 / 1.495978707e8
-SOLAR_MASS_KG = 1.98847e30
+AU_PER_KM = 1.0 / constants.AU_TO_KM
+"""float: AU per kilometre, the package's own astronomical unit (`constants.AU_TO_KM`)."""
+
+SOLAR_MASS_KG = constants.SOLAR_MASS_TO_KG
+"""float: The solar mass in kilograms, the package's own (`constants.SOLAR_MASS_TO_KG`)."""
 
 
 class Planet(NamedTuple):
@@ -102,7 +108,7 @@ def state_vector(planet, star_mass_sol, argument_deg, anomaly_deg):
     rot = np.array([[cn * cw - sn * sw * ci, -cn * sw - sn * cw * ci],
                     [sn * cw + cn * sw * ci, -sn * sw + cn * cw * ci],
                     [sw * si, cw * si]])
-    return rot @ np.array([x_orb, y_orb]), rot @ np.array([vx_orb, vy_orb])
+    return detmath.dot(rot, [x_orb, y_orb]), detmath.dot(rot, [vx_orb, vy_orb])
 
 
 @njit(cache=True)
@@ -196,9 +202,9 @@ def integrate(star_mass_sol, planets, orbits=20000, seed=0, steps_per_orbit=STEP
     pos, vel = np.zeros((n, 3)), np.zeros((n, 3))
     for k, planet in enumerate(planets, start=1):
         pos[k], vel[k] = state_vector(planet, star_mass_sol, rng.uniform(0.0, 360.0), rng.uniform(0.0, 360.0))
-    centre = (mass[:, None] * pos).sum(axis=0) / mass.sum()
+    center = (mass[:, None] * pos).sum(axis=0) / mass.sum()
     drift = (mass[:, None] * vel).sum(axis=0) / mass.sum()
-    pos -= centre
+    pos -= center
     vel -= drift
     hill_pairs = np.zeros((n, n))
     for i in range(1, n):
