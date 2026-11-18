@@ -783,21 +783,22 @@ def test_a_tiered_pass_travels_as_json_and_comes_back_equal():
         assert scatter_limits.tiered_from_json(sent, skeleton) == tiered
 
 
-def test_the_sectors_are_cut_into_the_same_units_whatever_the_worker_count(monkeypatch):
+def test_the_sectors_are_cut_into_the_same_units_whatever_the_worker_count(monkeypatch, tmp_path):
     import json
 
     from planetgen.generation import run_galaxy
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))
     items = [value for sector in range(25) for value in (3, sector % 4 - 1, sector)]
     params = {"database": {"host": "h", "port": 1, "user": "u", "database": "d"}, "args": {"num_systems": 2},
               "edge_pc": 10.0, "items": items, "workers": 1}
     for workers in (1, 8):
         assert run_galaxy.expand_generate_sectors({**params, "workers": workers}).units \
             == run_galaxy.expand_generate_sectors(json.loads(json.dumps(params))).units
-    monkeypatch.setattr(run_galaxy, "SECTOR_UNITS_MAX", 4)
-    expansion = run_galaxy.expand_generate_sectors(params)
-    assert len(expansion.units) == 4 and expansion.plan == {"sectors": 25}
-    assert [value for unit_args, _cost in expansion.units for value in unit_args["items"]] == items, "in order, whole"
-    assert sum(cost for _args, cost in expansion.units) == 25
+    expansion = run_galaxy.expand_generate_sectors({**params, "window": 4, "run_id": "r", "stage": "s"})
+    assert len(expansion.units) == 4 and expansion.plan == {"sectors": 25} and expansion.total == 25 and expansion.cost == 25
+    later = run_galaxy.sector_window(expansion.later, 4, 100)
+    assert len(later) == 21 and all(len(unit_args["items"]) == 3 and cost == 1.0 for unit_args, cost in [*expansion.units, *later])
+    assert [value for unit_args, _cost in [*expansion.units, *later] for value in unit_args["items"]] == items, "one sector a unit, in order, whole"
 
 
 def test_the_arguments_of_a_sector_unit_carry_no_credentials_and_round_trip():

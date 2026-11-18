@@ -68,6 +68,9 @@ class CommandSpec:
     object a piece is handed (`engine.Context`: the database, `ctx.commit()`, `ctx.sql`). The unit's result is the list of the pieces' results in order, or, when the command gives
     `gather(args, results, ctx)`, what that makes of them (`ctx.state` is what the pieces left for it). `pieces` and `do` replace `unit`: a command has one or the other. A command with `unit` runs as before until its family converts it.
 
+    **Windows (OPS.240).** A command whose stage has more units than the ledger should hold at once (a sector for each unit, whatever the galaxy's size) gives `window(later, start, count)`: the `(args, cost)` of units `start`
+    up to `start + count`, which the stage's spawner writes as rows a window at a time (`planrows.spawn_window`); `later` is the JSON-able `Expansion.later` its `expand` gave, from which any process can say them.
+
     **Checkpoints (OPS.219).** A command with `resumes` true says its unit may be started again after the pieces an earlier attempt finished: the engine stores the number of finished pieces and what each returned
     with the data (`ctx.commit()`), and an attempt that follows starts at `pieces(args, cursor)` and hands `gather` the stored results beside its own. That holds only where (1) `pieces(args, cursor)` is the same list less its
     first `cursor` whatever the database holds by then (a list read from what is not yet done would skip the wrong pieces), (2) no piece reads what an earlier piece left in `ctx.state` that `ctx.kept` would not make again, and
@@ -87,6 +90,7 @@ class CommandSpec:
     gather: tuple = None
     resumes: bool = False
     tokens: tuple = ()
+    window: tuple = None
 
     def __post_init__(self):
         if self.resumes and self.pieces is None:
@@ -97,6 +101,8 @@ class CommandSpec:
             raise ValueError(f"command {self.kind!r}: a unit is its own `unit` function or the engine's loop over `pieces` and `do`, not both")
         if self.gather is not None and self.pieces is None:
             raise ValueError(f"command {self.kind!r}: `gather` makes the result of the engine's loop, so it needs `pieces`")
+        if self.window is not None and self.expand is None:
+            raise ValueError(f"command {self.kind!r}: `window` writes the later units of a stage its `expand` cut, so it needs `expand`")
 
     @property
     def one_unit(self):
@@ -115,11 +121,17 @@ class Expansion:
     predicted cost the stage's bar and ETA use), and `plan`, a JSON-able summary of the stage that any process
     following the run reads the units' results by. `split` is the `splitter.Decision` the cut was made from, when the command's `expand` asked the queue
     engine for it (OPS.161); it is written to the stage's plan and the run's log when the stage opens.
+
+    A stage of a command with `window` (OPS.240) gives only its first window as `units`: `total` is how many units the stage has in all (`None` is `len(units)`), `cost` their total predicted cost (`None` is the sum of
+    the units' costs) and `later` what the command's `window` needs to say the others (`None` for a stage with every unit in `units`).
     """
 
     units: list = field(default_factory=list)
     plan: dict = field(default_factory=dict)
     split: object = None
+    total: int = None
+    cost: float = None
+    later: dict = None
 
 
 @dataclass(frozen=True)
@@ -251,23 +263,26 @@ REGISTRY = _commands(
                 expand=("planetgen.generation.run_plan", "expand_draw_nebula_field"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=6, resumes=True),
-    CommandSpec("generate-start-sector", "Generate the starting sector: one unit per run of sectors",
+    CommandSpec("generate-start-sector", "Generate the starting sector: one unit per sector, written in windows",
                 pieces=("planetgen.generation.run_galaxy", "generate_sectors_pieces"), do=("planetgen.generation.run_galaxy", "generate_sectors_do"),
                 gather=("planetgen.generation.run_galaxy", "generate_sectors_gather"),
                 expand=("planetgen.generation.run_galaxy", "expand_generate_sectors"),
                 warm=("planetgen.queue.units", "warm_shape"),
+                window=("planetgen.generation.run_galaxy", "sector_window"),
                 unit_seconds=20),
-    CommandSpec("generate-neighborhood", "Generate the neighborhood: one unit per run of sectors",
+    CommandSpec("generate-neighborhood", "Generate the neighborhood: one unit per sector, written in windows",
                 pieces=("planetgen.generation.run_galaxy", "generate_sectors_pieces"), do=("planetgen.generation.run_galaxy", "generate_sectors_do"),
                 gather=("planetgen.generation.run_galaxy", "generate_sectors_gather"),
                 expand=("planetgen.generation.run_galaxy", "expand_generate_sectors"),
                 warm=("planetgen.queue.units", "warm_shape"),
+                window=("planetgen.generation.run_galaxy", "sector_window"),
                 unit_seconds=20),
-    CommandSpec("generate-sectors", "Generate the sectors: one unit per run of sectors",
+    CommandSpec("generate-sectors", "Generate the sectors: one unit per sector, written in windows",
                 pieces=("planetgen.generation.run_galaxy", "generate_sectors_pieces"), do=("planetgen.generation.run_galaxy", "generate_sectors_do"),
                 gather=("planetgen.generation.run_galaxy", "generate_sectors_gather"),
                 expand=("planetgen.generation.run_galaxy", "expand_generate_sectors"),
                 warm=("planetgen.queue.units", "warm_shape"),
+                window=("planetgen.generation.run_galaxy", "sector_window"),
                 unit_seconds=20),
     CommandSpec("link-neighbors", "Link the neighbors: one unit per run of sectors",
                 pieces=("planetgen.generation.run_galaxy", "link_neighbors_pieces"), do=("planetgen.generation.run_galaxy", "link_neighbors_do"),
@@ -637,6 +652,19 @@ def end_name(kind, role):
     """The command of the ledger row that ends the stage of `kind` in `role`: its end command's name, else `role` itself."""
     end = end_command(kind, role)
     return role if end is None else end.name
+
+
+def window_function(kind):
+    """The function that says units `start` up to `start + count` of a stage of `kind` that was cut into windows (`CommandSpec.window`).
+
+    Raises:
+        KeyError: No such command.
+        ValueError: The command has no windows.
+    """
+    command = REGISTRY[kind]
+    if command.window is None:
+        raise ValueError(f"command {kind!r} writes no windows of units")
+    return _function(command.window)
 
 
 def expand_function(kind):

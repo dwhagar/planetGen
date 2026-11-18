@@ -181,6 +181,8 @@ def retry_held(conn, run_id, who=None, now=None):
             # the launcher hands a failed (held) or waiting unit out again as it was cut (the arguments and the cost its row holds); one that is ready or running already goes on as it is
             requeued += control.execute("UPDATE engine_jobs SET state = 'ready', waited = NULL, updated_at = NOW(6) WHERE id = ? AND state IN ('failed', 'waiting')", (row,)).rowcount
         if engine:
+            control.execute("UPDATE engine_jobs SET state = 'waiting', waited = NULL, updated_at = NOW(6) WHERE run_id = ? AND command = ? AND item_key = '' AND state = 'failed'",
+                            (int(runrecord._s(engine)), planrows.SPAWN))        # the spawner of a stage that could not write its next window (OPS.240) tries again
             ledger.set_run_state(control, int(runrecord._s(engine)), "running")
         control.commit()
     finally:

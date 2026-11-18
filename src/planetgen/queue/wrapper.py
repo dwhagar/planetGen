@@ -168,28 +168,34 @@ def _open(conn, run_id, index):
     if commands.spec(step.kind).warm is not None:       # its workers read the galaxy's shape first thing: make the field once
         _ensure_cluster_field(params)
         held = _say_opening(conn, run_id, index, "the cluster field is ready", held)
+    windowed = commands.spec(step.kind).window is not None        # OPS.240: a stage of a command that writes its units a window at a time is cut to its first window
+    if windowed:
+        params.update(window=planrows.stage_window(conn, run_id, index), run_id=run_id, stage=key)      # the window, and what names the stage's item file
+        window = params["window"]
     expansion = commands.expand_function(step.kind)(params)
-    held = _say_opening(conn, run_id, index, f"cut into {len(expansion.units):,} unit(s) after {format_duration_seconds(time.time() - started)}", held)
-    cost = sum(unit_cost for _args, unit_cost in expansion.units)
+    total = len(expansion.units) if expansion.total is None else int(expansion.total)
+    held = _say_opening(conn, run_id, index, f"cut into {total:,} unit(s) after {format_duration_seconds(time.time() - started)}", held)
+    cost = sum(unit_cost for _args, unit_cost in expansion.units) if expansion.cost is None else expansion.cost
     if expansion.split is not None:             # OPS.161: the cut the queue engine chose, fixed with the plan so a restarted unit has the same one
         splitter.announce(conn, run_id, index, expansion.split)
     if len(expansion.units) > units.MAX_UNITS:
         raise ValueError(f"a stage queues at most {units.MAX_UNITS} units, not {len(expansion.units)}")
     rows = planrows.record_cut(conn, run_id, index, step.kind, expansion.units, cost, expansion.plan,       # OPS.216: the plan is rows, cut and marked done in one transaction
-                               split=None if expansion.split is None else expansion.split.as_dict())
-    runrecord.set_stage_size(conn, run_id, index, len(expansion.units), cost)
+                               split=None if expansion.split is None else expansion.split.as_dict(),
+                               total=total, later=expansion.later, window=window if windowed else None, prior=prior)
+    runrecord.set_stage_size(conn, run_id, index, total, cost)
     runrecord.begin_stage(conn, run_id, index, now=started)
     _log_released(conn, run_id, index, step)
     carried = resumed.carry(conn, run_id, index, prior, step.kind, rows, expansion.units) if prior else resumed.Carried()
     if carried.done:
-        _say_carried(conn, run_id, index, prior, carried, len(expansion.units))
-    left = len(expansion.units) - len(carried.done)
+        _say_carried(conn, run_id, index, prior, carried, total)
+    left = total - len(carried.done)
     if carried.done and not left:
         resumed.settle(conn, run_id, index, carried)            # every unit is done: the stage ends as the unit that completes a stage ends it, its conclusion reading the stored results
         from planetgen.queue import wrapper as this
         units._end_stage(conn, run_id, index, this)
-        return len(expansion.units)         # the next opening is queued by the end: the caller waits for it as it does for units
-    if not expansion.units and commands.end_command(step.kind, planrows.CONCLUDE) is not None:
+        return total         # the next opening is queued by the end: the caller waits for it as it does for units
+    if not total and commands.end_command(step.kind, planrows.CONCLUDE) is not None:
         _conclude_empty_stage(conn, run_id, index, stage_label(conn, run_id, index))
         return 0
     resumed.settle(conn, run_id, index, carried)

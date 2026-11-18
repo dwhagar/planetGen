@@ -61,13 +61,17 @@ def _same(row, args, cost):
     return earlier == new
 
 
-def _earlier_rows(control, run, stage):
-    """`{item key: row}` of the units of `stage` in the earlier run's ledger run."""
+def _earlier_rows(control, run, stage, keys=None):
+    """`{item key: row}` of the units of `stage` in the earlier run's ledger run; only the units whose item keys are in `keys` when it is given (a window of a stage written in windows, OPS.240)."""
+    where, values = "", ()
+    if keys is not None:
+        keys = [str(key) for key in keys]
+        where, values = " AND item_key IN (" + ", ".join(["?"] * len(keys)) + ")", tuple(keys)
     return {row["item_key"]: row for row in control.execute(
-        "SELECT id, item_key, state, arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key <> ''", (run, stage)).fetchall()}
+        "SELECT id, item_key, state, arguments FROM engine_jobs WHERE run_id = ? AND stage = ? AND item_key <> ''" + where, (run, stage, *values)).fetchall()}
 
 
-def carry(conn, run_id, index, prior, kind, rows, units):
+def carry(conn, run_id, index, prior, kind, rows, units, first=0):
     """
     Subtracts the earlier run `prior`'s done units from the cut of stage `index` of `run_id` and gives the rest the earlier run's checkpoints (see the module).
 
@@ -78,6 +82,7 @@ def carry(conn, run_id, index, prior, kind, rows, units):
     Args:
         rows (list[int]): The new run's unit rows, in unit order (`planrows.record_cut`).
         units (list[tuple]): `(args, cost)` per unit, as the cut gave them.
+        first (int): The number of the first of `units`, for a window of a stage written in windows (OPS.240): `rows` and `units` are that window's and the earlier run's rows are read for its numbers only.
 
     Returns:
         Carried: The units done (their rows are marked done here), and how many others resume. Empty when the earlier run has no rows for the stage.
@@ -92,9 +97,10 @@ def carry(conn, run_id, index, prior, kind, rows, units):
     control = planrows.control_connection(conn, run_id)
     galaxies = {}
     try:
-        earlier = _earlier_rows(control, int(runrecord._s(engine)), stage)
+        earlier = _earlier_rows(control, int(runrecord._s(engine)), stage, range(first, first + len(units)))
         resumes = commands.spec(kind).resumes
-        for unit, (args, cost) in enumerate(units):
+        for place, (args, cost) in enumerate(units):
+            unit = first + place
             row = earlier.get(str(unit))
             if row is None or not _same(row, args, cost):
                 continue
@@ -103,9 +109,9 @@ def carry(conn, run_id, index, prior, kind, rows, units):
             raw = conn.hget(runrecord.results_key(prior, index), unit)
             if raw is not None and (row["state"] == "done" or (item is not None and item["done_at"] is not None) or conn.sismember(runrecord.done_key(prior, index), unit)):
                 found.done[unit] = (runrecord._s(raw), cost)
-                ledger.set_job_state(control, rows[unit], "done")
+                ledger.set_job_state(control, rows[place], "done")
             elif resumes and item is not None and _cursor(item) > 0:
-                _copy_checkpoint(galaxies[json.dumps(named, sort_keys=True)], row["id"], rows[unit], _cursor(item))
+                _copy_checkpoint(galaxies[json.dumps(named, sort_keys=True)], row["id"], rows[place], _cursor(item))
                 found.resumed += 1
         control.commit()
     finally:
