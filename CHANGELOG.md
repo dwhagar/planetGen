@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4514] - 2026-11-18
+
+**Headline:** The N-body spot-check integrates the planets the spacing screen judges, not the belt members promoted to planets.
+
+### Fixed
+- `scripts/nbody_spotcheck.py` and its test leave out belt members promoted to planets (`validation.slot_planets`), which the spacing screen exempts with their belt (GEN.1510). On 80 seeds all 47 integrated systems stay stable.
+
+generation-output: unchanged
+
 ## [8.0.4513] - 2026-11-18
 
 **Headline:** An update that changes nothing the bright-star sampling tables read no longer starts the next run with cold tables, and a table is built once however many workers ask for it.
