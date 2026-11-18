@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4563] - 2026-11-18
+
+**Headline:** The sources behind the gas-disk edge stand-ins are in the reference list, and the notes write them by their IDs.
+
+### Fixed
+- The gas-disk edge note (`docs/design/generation/gas-disk-edge.md`), the GDE rows of `gap-filling-plan.md` and the docstrings of `disk_size.py` wrote four sources by author and year, so `test_citations_outside_the_registry` failed. The three new papers are in the registry (R5301 to R5303) and the four sources are written as their IDs [R0602, R5301, R5302, R5303].
+
+generation-output: unchanged
+
 ## [8.0.4562] - 2026-11-18
 
 **Headline:** A star's protoplanetary disk now ends at a radius that follows the star's mass (100 au for the Sun, mass to the half power, a factor of 2 of scatter per star) instead of 18 snow lines, so Sun-like stars grow cold giants and belts farther out and small stars get larger disks than before.
