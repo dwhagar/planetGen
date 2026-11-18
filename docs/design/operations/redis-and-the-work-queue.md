@@ -1,5 +1,7 @@
 # Redis and the work queue: how planetGen uses it, how it should be used, and what to change
 
+> **Superseded in part (OPS.252, 2026-11-17 EST).** The queue, worker, lane and retry parts of this note are replaced by [job-engine.md](job-engine.md), the engine as built. The Redis uses it recommends are still the reason Redis keeps display, wake-ups and light jobs; the work lanes, workers and leases it describes are gone or going (OPS.235, OPS.271).
+
 Boss (2026-10-14 20:01Z) asked for three things in order: look at how planetGen uses Redis now, research how Redis is best used and what the industry standards are, and recommend how to change the task process to use Redis fully and correctly. This note is that, in one piece. It is the research PERF.86 (redo the work queue, GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)) asked for before the rebuild starts, so section 4 gives Boss options first and section 5 recommends one.
 
 Informs: PERF.86 (and the items it folds in or drops: PERF.29, PERF.30, PERF.40, PERF.78, ADM.15), PERF.20, PERF.33, ADM.22, UX.3, DOC.20, DOC.44, OPS.21, OPS.46.

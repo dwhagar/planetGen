@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>One wrapper run per Generate job (PERF.203) - planetGen docs</title>
-<meta name="description" content="Status: design note, not built.">
+<meta name="description" content="Superseded in part (OPS.252, 2026-11-17 EST).">
 <style>
 :root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
 @media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
@@ -44,6 +44,9 @@ main{padding:16px 16px 60px}}
 <nav id="nav" data-root="../../" data-here="design/operations/one-run-per-job.html"><a href="../../index.html">Site index</a></nav>
 <main>
 <h1 id="one-wrapper-run-per-generate-job-perf203">One wrapper run per Generate job (PERF.203)</h1><p class="meta">docs/design/operations/one-run-per-job.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#where-it-stands">Where it stands</a></li><li style="margin-left:0px"><a href="#target">Target</a></li><li style="margin-left:0px"><a href="#the-pieces">The pieces</a></li><li style="margin-left:0px"><a href="#order-of-work">Order of work</a></li><li style="margin-left:0px"><a href="#risks-and-questions-for-boss">Risks and questions for Boss</a></li></ul></details>
+<blockquote>
+<p><strong>Superseded in part (OPS.252, 2026-11-17 EST).</strong> The queue, worker, lane and retry parts of this note are replaced by <a href="job-engine.html">job-engine.md</a>, the engine as built. The Generate page job as one wrapper run stays here until OPS.244 slice B changes it; the page job as a ledger run is described there when built.</p>
+</blockquote>
 <p>Status: design note, not built. Owner: Aux 2 (lock-free). Prerequisite PERF.202 is done: every verb is a list of units run by <code>queue/wrapper.py</code>, and the tests/test_one_wrapper_run.py guard keeps <code>wrapper.run(</code> inside <code>generation/followed.py</code> and a short allowed list.</p>
 <h2 id="where-it-stands">Where it stands</h2>
 <p>The Generate page (<code>web/generate_page.py</code>, <code>_build_job_steps</code>) turns a form into a list of steps, each one command line: the data check, <code>reset</code>, <code>plan</code>, <code>sectors</code>, <code>link</code>, the scatter kinds, <code>backfill</code>, <code>settle</code>. <code>web/job_runner.py</code> runs them one after another as subprocesses, keeps <code>state.json</code>, <code>progress.json</code>, <code>output.log</code>, <code>records.log</code> and the step times, stops at the first failed step, and cancels the whole process tree. Each <code>planetgen ...</code> step starts its own wrapper run (<code>run_followed</code>), so one job leaves several rows in <code>generation_runs</code> and <code>jobs.job_runs(job_id)</code> lists them. <code>planetgen galaxy</code> already shows the target in small: it puts the followers of every stage it takes into one <code>run_followed</code>, so a galaxy is one run with one estimate.</p>
