@@ -2942,7 +2942,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.144 | Admin Queue page: a Resume run button, and a stored killed flag on the run record so the page knows when to show it | none | done (Train 22 or earlier, 2026-11-11) |
 | OPS.145 | Heartbeat part 11: after a unit is restarted, the other tasks pause and the restarted unit runs alone until it completes | OPS.140 | done (Train 22 or earlier, 2026-11-11) |
 | OPS.146 | Heartbeat part 12: a config setting runs any restarted job in debug mode with its own dedicated debug log file | OPS.140 | open |
-| OPS.147 | Per-stage golden digests so a train's declared stages can be checked against what its golden moved | OPS.133 | open |
+| OPS.147 | Per-stage golden digests so a train's declared stages can be checked against what its golden moved | OPS.133 | done (PR 7133 merged 8:46 PM EST 11-17: the golden build writes one digest per stage; scripts/train.py stages compares them) |
 | OPS.148 | Adaptive bulk worker limit: lower the workers when a job waits over 30 s for memory, raise them when memory is free, never below 1, log each change | none | done, PR #6147 |
 | OPS.149 | Apply the adaptive worker limit to the maintenance lane (warm-ups) | OPS.148 | open |
 | OPS.150 | Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent) | OPS.148 | open |
@@ -2975,7 +2975,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.278 | The exobase search takes 15 percent of a build: a fixed 0.25 scale-height step (lock) | closed, not worth it as speed (Lane 07, 3:50 AM EST 11-17: 2.6 percent of a build after the cache); accuracy fault is GEN.1784 |
 | PERF.279 | Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes) | TEST.788 | open (Lane 16) |
 | PERF.280 | Stage 9 skip or batch near-empty sky cells (design and measure first) | OPS.270 | open (Lane 07) |
-| PERF.281 | Stage 9 sampling tables: cache keyed by their inputs, built once before the shares | PERF.280 | open (Lane 07) |
+| PERF.281 | Stage 9 sampling tables: cache keyed by their inputs, built once before the shares | PERF.280 | done (PR 7129) |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
 | OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | done, PR #6336 (11:34 PM EST 11-14) |
