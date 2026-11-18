@@ -431,7 +431,8 @@ def _build_air(planet, cands):
     """
     Gives the air what the life of `planet` has put into it by its star's age, summed over the classes that live there (GEN.1213): the oxygen of the
     classes that split water (GEN.855) and the rest of their ledgers, the methane and the hydrogen drawdown (`physics.life_air`, GEN.857, GEN.858,
-    GEN.859). When either changes the air, everything that reads it is made again once (`_rebuild`).
+    GEN.859). When either changes the air, everything that reads it is made again once (`_rebuild`). The oxygen is asked first, on the air the life found; when it is not there and the methane
+    that the life then made has changed the air, it is asked again at the temperature that methane left (the oxygen rise of a world its own life thaws, GEN.1745 slice 3).
     """
     if not planet_type.has_ground(planet):      # a giant, or a planet under a deep envelope (GEN.1334): no ground for life to change the air of
         return
@@ -439,6 +440,11 @@ def _build_air(planet, cands):
     was = (planet.surface_temperature, planet.atmospheric_pressure)
     rose = _build_oxygen(planet, living)
     changed = life_air.apply_gases(planet, living, rose)
+    if changed and not rose and _build_oxygen(planet, living):
+        # GEN.1745 slice 3: the methane the life made warmed the world, and the oxygen law reads the temperature of its sea (the producers' temperature factor); the air that was asked for oxygen when it was
+        # cold is asked again at the temperature the life left it, as the history reads the law at each age. The rise burns the methane, so the gases of the rows that go on are put in again.
+        rose = True
+        life_air.apply_gases(planet, living, True)
     if rose or changed:
         _rebuild(planet, remake_water=(planet.surface_temperature, planet.atmospheric_pressure) != was)
     if changed:
