@@ -10,7 +10,7 @@ stage, what is older than the running epoch and which stages that makes a galaxy
 (`util/generator_epoch.stages_between`). `None` is an epoch the record does not know (a galaxy made before it was kept).
 """
 
-from planetgen.db import store
+from planetgen.db import derived_stamp, store
 from planetgen.util import generator_epoch
 
 
@@ -47,6 +47,24 @@ def _by_epoch(rows):
 
 def _counts(conn, table):
     return _by_epoch(conn.execute(f"SELECT generator_epoch, COUNT(*) AS n FROM {table} GROUP BY generator_epoch").fetchall())
+
+
+def derived_stale(conn):
+    """
+    The derived stage (OPS.133, OPS.272): the stored values that are a pure function of other stored values and were written by code that is no longer the running one. Each family carries a stamp
+    on `system_summary` (`derived_stamp`), so the record needs no epoch of its own: a system is behind when its stamp is not `derived_stamp.current(family)`.
+
+    Returns:
+        dict: `{family: systems behind}` for the families with any (`habitability`, `ledger`), empty when every stored value is current.
+    """
+    found = {}
+    for family in derived_stamp.STAMP_COLUMNS:
+        condition, values = derived_stamp.stale_condition(family, "sm")
+        count = conn.execute("SELECT COUNT(*) AS n FROM star_systems ss LEFT JOIN system_summary sm ON sm.star_system_id = ss.id"
+                             f" WHERE {condition}", values).fetchone()["n"]
+        if count:
+            found[family] = int(count)
+    return found
 
 
 def needs(stage, epoch, current):

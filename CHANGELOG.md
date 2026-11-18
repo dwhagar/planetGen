@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4559] - 2026-11-18
+
+**Headline:** Bringing a galaxy to the running epoch now also refills the stored values worked out from other stored values (habitability scores, the effect ledger) when the code that wrote them has changed, instead of leaving them old or regenerating sectors.
+
+### Added
+- **Bring-to-epoch refills derived values.** A new derived stage, after the population stage, finds systems whose habitability score or effect ledger was written by older code (the existing stamps, GEN.1479) and refills them with the existing refill jobs. No sector is generated again and `sectors.modified_at` is not touched. The survey and the dry run report it.
+
 ## [8.0.4558] - 2026-11-18
 
 **Headline:** The class census draws ten stars a cell, so one star's age no longer decides a cell's class and life shares.
