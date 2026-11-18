@@ -337,20 +337,22 @@ def _fill_context(args, address):
             # GEN.281: a cell above the ceiling is taken down to the cap and no further.
             run_plan._draw_sector_bands(conn, skeleton, [tuple(address)], resolution.luminosity_cap_sol,
                                         limits, backfill_seed)
+        if not resolution.capped:
+            _take_to_the_deepest_floor(config, skeleton, address, limits, backfill_seed)
+            conn.commit()   # the draw ran on a connection of its own: this one's snapshot must see its stars (and the remnants it drew, GEN.1682)
         phenomena = below_cut = None
         settings = store.phenomenon_scatter_settings(conn)
         if settings is not None:
             phenomena = store.phenomena_for_sector(conn, *address)
             seed, min_mass_solar = settings
-            if min_mass_solar is not None and not resolution.capped:
+            if min_mass_solar is not None and not resolution.capped and not store.sector_holds_below_cut_remnants(conn, address, min_mass_solar):
                 # GEN.168: what the scatter left below its cut, at the
                 # density it used (the plan's, not this sector's own roll). A capped cell makes no remnant of its
-                # own: they are dark, below the cap, and part of what it leaves unresolved.
+                # own: they are dark, below the cap, and part of what it leaves unresolved. A sector the backfill
+                # drew them for before (GEN.1682) holds them as scatter rows, which `phenomena` has just read: the
+                # fill builds those and draws none again.
                 expected = profile.expected_systems
                 below_cut = brightStars.BelowCut(tuple(address), min_mass_solar, seed, expected)
-        if not resolution.capped:
-            _take_to_the_deepest_floor(config, skeleton, address, limits, backfill_seed)
-            conn.commit()   # the draw ran on a connection of its own: this one's snapshot must see its stars
         level = store.bright_star_fill_level(conn, *address)
         mass_limit = store.bright_star_fill_mass_limit(conn, *address)
         emission_hosts = _emission_hosts(conn, skeleton, address, profile)

@@ -7612,6 +7612,46 @@ def phenomena_for_sector(conn, shell_index, band_index, wedge_index):
         " AND built_at IS NULL ORDER BY id", (shell_index, band_index, wedge_index)).fetchall()]
 
 
+BELOW_CUT_REMNANT_KINDS = ("neutron-star", "black-hole")
+"""tuple: The kinds of scatter row that can hold a mass under the phenomenon scatter's cut (GEN.1682): the neutron stars and the black holes the scatter's draws below the cut make. A magnetar is scattered whatever the
+cut (its mass is a neutron star's), so a row of that subtype is not one of them."""
+
+
+def sector_holds_below_cut_remnants(conn, address, min_mass_solar):
+    """
+    Whether the scatter holds, in the cell `address`, a neutron star or a black hole of a mass under `min_mass_solar` (GEN.1682): the remnants a backfill ring's sector got before it was filled
+    (`phenomenon_scatter.ring_remnant_rows`), built or not. A sector that holds them has had its below-cut draw, so its fill makes none of its own. The cut `None` (a galaxy with no cut) holds none.
+    """
+    if min_mass_solar is None:
+        return False
+    marks = ", ".join("?" * len(BELOW_CUT_REMNANT_KINDS))
+    return conn.execute(
+        f"SELECT 1 FROM phenomenon_scatter WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND kind IN ({marks})"
+        " AND COALESCE(subtype, '') <> 'magnetar' AND mass_solar < ? LIMIT 1",
+        (*[int(value) for value in address], *BELOW_CUT_REMNANT_KINDS, float(min_mass_solar))).fetchone() is not None
+
+
+def addresses_holding_below_cut_remnants(conn, min_mass_solar):
+    """
+    `sector_holds_below_cut_remnants` for every cell at once: the set of `(shell, band, wedge)` whose scatter rows include a below-cut neutron star or black hole, from one read of the table. For the unit that draws
+    the ring remnants while the table has no indexes (a read per cell would be a scan each).
+    """
+    if min_mass_solar is None:
+        return set()
+    marks = ", ".join("?" * len(BELOW_CUT_REMNANT_KINDS))
+    rows = conn.execute(
+        f"SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE kind IN ({marks}) AND COALESCE(subtype, '') <> 'magnetar' AND mass_solar < ?",
+        (*BELOW_CUT_REMNANT_KINDS, float(min_mass_solar))).fetchall()
+    return {(int(row["shell_index"]), int(row["band_index"]), int(row["wedge_index"])) for row in rows}
+
+
+def backfilled_uncharted_addresses(conn):
+    """The `(shell, band, wedge)` of every sector a mass backfill took down (`sector_stats.bright_mass_sol` set) that is not yet charted (filled): the sectors of the backfill rings (GEN.187, GEN.1682), in address order."""
+    charted = chart_ledger.charted_addresses(conn)
+    rows = conn.execute("SELECT shell_index, band_index, wedge_index FROM sector_stats WHERE bright_mass_sol IS NOT NULL").fetchall()
+    return sorted(address for address in ((int(row["shell_index"]), int(row["band_index"]), int(row["wedge_index"])) for row in rows) if address not in charted)
+
+
 def mark_phenomena_built(conn, scatter_ids):
     """Stamps the scattered phenomena a sector's save has built."""
     ids = [int(value) for value in scatter_ids]
