@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4580] - 2026-11-18
+
+**Headline:** The habitability and effect-ledger refills are now tested to write the same values when units of the refill are killed and retried.
+
+### Added
+- **A kill test for rescore-habitability and refill-effect-ledger (OPS.225).** Five systems with blanked scores and old stamps are refilled undisturbed and with units killed at drawn commits; the scores, the ledger rows and the stamps must match. No double write found.
+
 ## [8.0.4579] - 2026-11-18
 
 **Headline:** Clearing the scatter is now tested to leave the same result when units of the clear are killed and retried.
