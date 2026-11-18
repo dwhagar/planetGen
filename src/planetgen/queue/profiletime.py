@@ -10,7 +10,8 @@ kind's last `profileclaim.WINDOW` finished units on this machine (`jobprofiles` 
 
 * at least `MIN_SAMPLES` samples from this machine shape and generator epoch; samples from another shape or epoch count at half weight (the mean of their median and the typed figure, or
   their median alone where there is none); fewer than that, no figure and the readers keep what they had (`None`);
-* worked out once per run (the run's id is the token), moving at most 25 percent from the last run's figure;
+* worked out once per run (the run's id is the token), moving at most 25 percent from the last run's figure, unless the kind is proven (`profileclaim.PROVEN_SAMPLES` samples from this machine, OPS.250): then the median is the
+  figure, held between the typed seconds over `profileclaim.CLAMP` and times it where a typed figure is given;
 * every change is logged with the kind, old and new value, samples and reason, and kept for the Queue page (`profileclaim.log_change`).
 
 A figure here never changes what a run generates: it only sets expectations and the judge's threshold, and `PLANETGEN_SELF_TUNING=0` turns it off.
@@ -59,7 +60,7 @@ def target(rows, typed_seconds, host_memory, host_cores, epoch):
     own = [r["seconds"] for r in rows if profileclaim._shape_of(r, host_memory, host_cores, epoch)]
     other = [r["seconds"] for r in rows if not profileclaim._shape_of(r, host_memory, host_cores, epoch)]
     if len(own) >= profileclaim.MIN_SAMPLES:
-        return statistics.median(own), {"source": "own", "samples": len(own)}
+        return statistics.median(own), {"source": "own", "samples": len(own), "proven": len(own) >= profileclaim.PROVEN_SAMPLES}
     if len(other) >= profileclaim.MIN_SAMPLES:
         theirs = statistics.median(other)
         return (theirs if typed_seconds is None else 0.5 * theirs + 0.5 * typed_seconds), {"source": "other", "samples": len(other)}
@@ -95,10 +96,14 @@ def unit_seconds(conn, command, token=None, typed_seconds=None, read_rows=None, 
             conn.hset(_key(), field, json.dumps({"token": token, "figure": figure, "asked": now}))      # PERF.269: the supervisor's watch asks every beat, and a kind with too few samples opened a database connection each time
             return figure
         previous = row["figure"] if row and row["figure"] is not None else typed_seconds
-        figure = wanted if previous is None else min(max(wanted, previous * (1.0 - profileclaim.MAX_MOVE)), previous * (1.0 + profileclaim.MAX_MOVE))
+        proven = details.get("proven", False)
+        if proven:
+            figure = profileclaim.clamp(wanted, typed_seconds)
+        else:
+            figure = wanted if previous is None else min(max(wanted, previous * (1.0 - profileclaim.MAX_MOVE)), previous * (1.0 + profileclaim.MAX_MOVE))
         conn.hset(_key(), field, json.dumps({"token": token, "figure": figure}))
         if previous is None or abs(figure - previous) >= (0.05 if column == "seconds" else 1e-6):
-            reason = f"median of {details['samples']} samples ({details['source']})" + ("" if abs(figure - wanted) <= 0.01 * wanted else f", limited to 25 percent a run from {format_duration_seconds(previous)}")
+            reason = f"median of {details['samples']} samples ({details['source']})" + ("" if abs(figure - wanted) <= 0.01 * wanted else (", held to the typed figure's clamp" if proven else f", limited to 25 percent a run from {format_duration_seconds(previous)}")) + (", proven here, so the profile leads" if proven else "")
             profileclaim.log_change(conn, "expected unit seconds" if column == "seconds" else "expected seconds per item", kind, previous, figure, reason, now=now, **details)
         return figure
     except Exception as exc:        # noqa: BLE001 -- an expectation is never worth a run

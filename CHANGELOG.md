@@ -2,6 +2,50 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4525] - 2026-11-18
+
+**Headline:** The life classes' animal grade count is derived from the grade table, so the constants census passes again.
+
+### Fixed
+
+- GEN.1307: `life_classes.ANIMAL_GRADES` is the length of `life_complexity.GRADES` instead of a bare 3, which `test_constants_completeness` (TEST.715) asked to be tagged. No value or behavior changes.
+
+## [8.0.4524] - 2026-11-18
+
+**Headline:** The N-body check follows the package's spelling, deterministic-maths and constants rules.
+
+### Fixed
+- `physics/nbody_check.py` writes "center", takes its matrix product through `detmath.dot`, and reads the astronomical unit and the solar mass from `physics.constants` (GEN.1468).
+
+generation-output: unchanged
+
+## [8.0.4523] - 2026-11-18
+
+**Headline:** The band-table cache's lock poll interval carries its tag, so the constants census passes again.
+
+### Fixed
+
+- PERF.281: `band_table_cache.LOCK_POLL_SECONDS` says in its docstring that it is machinery, not physics, and defined where it stands, which `test_constants_completeness` (TEST.715) asks of a numeric constant in the generator's own modules. No value or behavior changes.
+
+## [8.0.4522] - 2026-11-18
+
+**Headline:** `planetgen reset-jobs` starts again: it no longer looks for the worker-start counters that OPS.235 slice 1b removed.
+
+### Fixed
+- `cli/reset_jobs.py` named `workers.STARTING_PREFIX`, which slice 1b deleted, so importing the command raised `AttributeError` and `tests/test_reset_jobs.py` failed at collection. The key patterns are now the RQ keys and the runs' keys; its docstring no longer mentions the start counters or the admin's worker count.
+- `tests/test_reset_jobs.py` and `tests/test_maintenance_lane.py` no longer set or clean the counters and the worker-count key.
+
+## [8.0.4521] - 2026-11-18
+
+**Headline:** A job kind whose profile holds a full window of finished units from this machine is now sized by what it measured, and the typed figure is only its default and its clamp.
+
+### Changed
+- **OPS.250 (absorbs OPS.160).** `profileclaim` marks a kind *proven* when its own history (this machine shape, this generator epoch) holds `PROVEN_SAMPLES` (30) finished units. A proven kind's memory claim and expected unit seconds (`profiletime`) are no longer held to 25 percent a run from the last figure or the typed one: the learned figure is the figure, held between the typed figure over `CLAMP` (4) and times it where there is one. A memory kill still wins above the clamp. A kind with fewer samples, from another machine shape or from another epoch behaves as before.
+- The stage cut's worker count (`splitter.resources_now`) and the "largest worker held" line of a stage (`wrapper._log_peak_memory`) read the learned figure, not `workers.STAGE_WORKER_MEMORY_MB` alone; the line no longer tells an admin to raise the typed constant when the profile leads.
+- The Queue page's learned-per-kind table has a Leads column (Fixed, Profile (proven), Profile, Typed).
+- Reuse: `profileclaim.settle`, `claim` and `target`, `profiletime.target` and `unit_seconds`, `workers.stage_worker_mb` and `stage_worker_cap`, and the existing overview and change log; the new part is the proven flag and the clamp.
+- Output unchanged, no epoch.
+
 ## [8.0.4520] - 2026-11-18
 
 **Headline:** The known-issue ship rule now says a late output-moving add-on to a train re-runs the pins and the golden seed on the final head.

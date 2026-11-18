@@ -58,8 +58,41 @@ def test_history_lowers_a_claim_below_the_typed_figure_but_not_by_more_than_a_qu
 
 
 def test_it_settles_on_the_profile_and_can_rise_by_a_quarter_a_run(conn):
-    assert profileclaim.claim(conn, "unit:x", 1000.0, token="r1", read_rows=history(*[800.0] * 30)) == pytest.approx(880.0)       # 800 x 1.10
-    assert profileclaim.claim(conn, "unit:x", 1000.0, token="r2", read_rows=history(*[2000.0] * 30)) == pytest.approx(880.0 * 1.25)
+    first = profileclaim.claim(conn, "unit:x", 1000.0, token="r1", read_rows=history(*[800.0] * 10))
+    assert first == pytest.approx(800.0 * profileclaim.margin(10))          # a kind that is not proven yet (fewer than a full window)
+    assert profileclaim.claim(conn, "unit:x", 1000.0, token="r2", read_rows=history(*[2000.0] * 10)) == pytest.approx(first * 1.25)
+
+
+def test_a_proven_kind_is_led_by_its_profile_not_held_to_a_quarter_a_run(conn):
+    """OPS.250: a full window of this machine's units; the typed figure is the default and the clamp."""
+    rows = history(*[2000.0] * profileclaim.PROVEN_SAMPLES)
+    assert profileclaim.claim(conn, "unit:x", 1000.0, token="r1", read_rows=rows) == pytest.approx(2200.0)           # 2000 x 1.10, not 1250
+    assert profileclaim.claim(conn, "unit:x", 1000.0, token="r2", read_rows=history(*[3000.0] * 30)) == pytest.approx(3300.0)
+    assert profileclaim.claim(conn, "unit:x", 1000.0, token="r3", read_rows=history(*[1200.0] * 30)) == pytest.approx(1320.0)     # and straight down again
+    assert profileclaim.overview(conn)["kinds"][0]["proven"] is True
+
+
+def test_a_proven_figure_stays_between_a_quarter_and_four_times_the_typed_one(conn):
+    assert profileclaim.claim(conn, "unit:big", 1000.0, token="r1", read_rows=history(*[10000.0] * 30)) == pytest.approx(4000.0)
+    assert profileclaim.claim(conn, "unit:small", 1000.0, token="r1", read_rows=history(*[20.0] * 30)) == pytest.approx(250.0)
+    assert profileclaim.claim(conn, "unit:untyped", None, token="r1", read_rows=history(*[10000.0] * 30)) == pytest.approx(11000.0)      # no typed figure, no clamp
+    assert profileclaim.clamp(500.0, 1000.0) == 500.0 and profileclaim.clamp(500.0, None) == 500.0
+
+
+def test_a_memory_kill_stands_above_the_clamp_of_a_proven_kind(conn):
+    rows = lambda kind: [row(6000.0, outcome="killed_memory")] + [row(100.0)] * 30       # noqa: E731
+    assert profileclaim.claim(conn, "unit:x", 1000.0, token="r1", read_rows=rows) == pytest.approx(6000.0 * memorygate.LEARN_MARGIN)
+
+
+def test_history_from_another_shape_never_proves_a_kind(conn):
+    assert profileclaim.target([row(1000.0, OTHER)] * 40, 2000.0, *HOST)[2].get("proven") is None
+    assert profileclaim.target([row(1000.0)] * 29, 2000.0, *HOST)[2]["proven"] is False
+    assert profileclaim.target([row(1000.0)] * 30, 2000.0, *HOST)[2]["proven"] is True
+
+
+def test_the_queue_page_says_which_figure_leads(conn):
+    from planetgen.web import queue_page
+    assert [queue_page._leads(r) for r in ({"pinned_mb": 900.0}, {}, {"figure_mb": 500.0}, {"figure_mb": 500.0, "proven": True})] == ["Fixed", "Typed", "Profile", "Profile (proven)"]
 
 
 def test_a_memory_kill_raises_the_claim_at_once(conn):
