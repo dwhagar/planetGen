@@ -75,3 +75,60 @@ def test_a_long_gram_matrix_is_bit_for_bit_the_loops():
     """The seasonal swing's case: 6 series of 138,240 values, whose products do not fit at once."""
     a = np.random.default_rng(5).standard_normal((6, 138240)) * 10.0
     assert detmath.matmul(a, a.T).tobytes() == loop(a, a.T).tobytes()
+
+
+@pytest.mark.parametrize("chains", [0, 10 ** 9])
+@pytest.mark.parametrize("seed", range(30))
+def test_the_compiled_sum_is_bit_for_bit_the_loops(monkeypatch, seed, chains):
+    """PERF.279: the compiled kernels (`detmath_kernel`) add each output's products left to right as the loop does, whether the outputs' chains advance together (`chains` huge) or a row at a time."""
+    monkeypatch.setattr(detmath, "_KERNEL_FROM", 0)
+    monkeypatch.setattr(detmath, "_KERNEL_CHAINS", chains)
+    rng = np.random.default_rng(300 + seed)
+    inner = int(rng.integers(1, 200))
+    columns = int(rng.integers(1, 20))
+    leading = tuple(int(x) for x in rng.integers(1, 12, size=int(rng.integers(0, 3))))
+    a = rng.standard_normal(leading + (inner,)) * 10.0 ** rng.integers(-30, 30, size=inner)
+    b = rng.standard_normal((inner, columns)) * rng.choice([1e-9, 1.0, 1e9])
+    a[..., int(rng.integers(0, inner))] = 0.0
+    b[int(rng.integers(0, inner))] = -0.0
+    got, want = detmath.matmul(a, b), loop(a, b)
+    assert detmath._kernel() is not None
+    assert got.shape == want.shape and got.tobytes() == want.tobytes()
+
+
+def test_the_compiled_sum_reads_strided_views_and_keeps_the_sign_of_a_zero_sum(monkeypatch):
+    monkeypatch.setattr(detmath, "_KERNEL_FROM", 0)
+    rng = np.random.default_rng(7)
+    series = rng.standard_normal((6, 500))
+    assert detmath.matmul(series[2:3], series[:4].T).tobytes() == loop(series[2:3], series[:4].T).tobytes()          # b is a transposed view
+    assert detmath.matmul(series[::2], series[1, :, None]).tobytes() == loop(series[::2], series[1, :, None]).tobytes()    # a is every second row
+    zero = detmath.matmul(np.array([[-0.0, -0.0]]), np.array([[1.0], [1.0]]))
+    assert zero.tobytes() == loop(np.array([[-0.0, -0.0]]), np.array([[1.0], [1.0]])).tobytes() and np.signbit(zero[0, 0])    # -0.0 + -0.0 stays -0.0, not 0.0 + -0.0
+
+
+def test_a_tiny_term_is_still_lost_to_the_sum_before_it_in_the_compiled_sum(monkeypatch):
+    monkeypatch.setattr(detmath, "_KERNEL_FROM", 0)
+    a = np.array([[1.0] + [2.0 ** -53] * 99])
+    assert detmath.matmul(a, np.ones((100, 1)))[0, 0] == 1.0
+
+
+def test_a_long_gram_matrix_and_a_mix_of_long_series_use_the_kernel_and_have_the_loops_bits(monkeypatch):
+    """The seasonal swing's three sums at its largest size: the Gram row, the right-hand side and the mixed series."""
+    rng = np.random.default_rng(11)
+    series, change, gamma = rng.standard_normal((6, 190080)) * 10.0, rng.standard_normal(190080), rng.standard_normal(6)
+    calls = []
+    kernel = detmath._kernel()
+    for name in ("chains", "wide"):
+        real = getattr(kernel, name)
+        monkeypatch.setattr(kernel, name, lambda a, b, real=real, name=name: (calls.append(name), real(a, b))[1])
+    assert detmath.matmul(series[3:4], series.T).tobytes() == loop(series[3:4], series.T).tobytes()
+    assert detmath.matmul(series, change[:, None]).tobytes() == loop(series, change[:, None]).tobytes()
+    assert detmath.matmul(gamma, series).tobytes() == loop(gamma, series).tobytes()
+    assert calls == ["chains", "chains", "wide"]
+
+
+def test_without_numba_the_sum_keeps_the_numpy_way_and_its_bits(monkeypatch):
+    monkeypatch.setattr(detmath, "_KERNEL_FROM", 0)
+    monkeypatch.setattr(detmath, "_kernel_module", [None])
+    a, b = np.random.default_rng(1).standard_normal((3, 90)), np.random.default_rng(2).standard_normal((90, 4))
+    assert detmath.matmul(a, b).tobytes() == loop(a, b).tobytes()
