@@ -12,3 +12,6 @@
 - `GET /api/admin/work` `status.workers_active` is now `controls.running_units`: the jobs the ledger has `running`, in every run and class. It counted RQ workers, which no run uses. The page's tile reads the same number.
 - `tests/test_maintenance_lane.py` keeps only its queue-of-a-kind test; the rest tested the worker starts and the host cap.
 - Reuse: the ledger's `engine_jobs` state, as `controls.running_jobs` already reads it for one run; the tile and the API answer the same figure.
+
+### Fixed
+- `tests/test_settings.py` was red on main since OPS.249 (PR 7114): `PLANETGEN_PRESSURE_LEARN`, the switch `queue/pressurelearn.py` reads, was not on the list of variables that are not settings. It is listed now, with its reason.
