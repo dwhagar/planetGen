@@ -26476,6 +26476,11 @@
       "label": "Catling and Zahnle 2003",
       "title": "EVOLUTION OF ATMOSPHERIC OXYGEN"
     },
+    "R5301": {
+      "kind": "paper",
+      "label": "Hendler et al. 2020",
+      "title": "The Evolution of Dust Disk Sizes from a Homogeneous Analysis of 1–10 Myr old Stars"
+    },
     "R5302": {
       "kind": "paper",
       "label": "Wood et al. 2021",
@@ -26505,6 +26510,31 @@
       "kind": "paper",
       "label": "Mamajek et al. 2009",
       "title": "Initial Conditions of Planet Formation: Lifetimes of Primordial Disks"
+    },
+    "R5308": {
+      "kind": "paper",
+      "label": "Sanchis et al. 2021",
+      "title": "Measuring the ratio of the gas and dust emission radii of protoplanetary disks in the Lupus star-forming region"
+    },
+    "R5309": {
+      "kind": "paper",
+      "label": "Andrews et al. 2018",
+      "title": "Scaling Relations Associated with Millimeter Continuum Sizes in Protoplanetary Disks"
+    },
+    "R5310": {
+      "kind": "paper",
+      "label": "Waddington et al. 1962",
+      "title": "CARBON DISULFIDE AS A REFERENCE SUBSTANCE FOR VAPOR-FLOW CALORIMETRY; THE CHEMICAL THERMODYNAMIC PROPERTIES"
+    },
+    "R5311": {
+      "kind": "paper",
+      "label": "Brown and Manov 1937",
+      "title": "The Heat Capacity of Carbon Disulfide from 15 to 300°K. The Entropy and Heat of Fusion of Carbon Disulfide"
+    },
+    "R5312": {
+      "kind": "paper",
+      "label": "Abercromby and Tiley 1963",
+      "title": "937. The Condensed phases of sulphur trioxide. Part II. Vapour pressure of the liquid at temperatures up to the critical point"
     }
   }
 }

@@ -2,6 +2,250 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4582] - 2026-11-18
+
+**Headline:** The map luminosity fill is now tested to write the same values when units of the fill are killed and retried.
+
+### Added
+- **A kill test for fill-map-luminosity (OPS.225).** The scattered phenomena get their map luminosity emptied and filled again, undisturbed and with units killed at drawn commits; the filled values and the block light parts rolled from them must match. No double write found.
+
+## [8.0.4581] - 2026-11-18
+
+**Headline:** The whole-system fuzz tests pass again: belt members promoted to planets are checked as members, and a body's snow-line flag is a plain bool.
+
+### Fixed
+- `assert_orbits_sane` (`test_every_star_type_generates_a_sane_system[IA-B-subclasses0-4]`) counted belt members promoted to planets (GEN.1510) as slot bodies, so a class C member 6,748 AU out failed "closer than MIN_ASTEROID_BELT_SEPARATION to the belt ending at 8,799 AU". Such a member lives inside its belt by design, which the spacing screen exempts (`validation.slot_planets`). The test now requires each member to lie inside a belt of the list and checks the spacing on the slot bodies only; `test_planet_hill_sphere_clears_the_belt_inside_it` skips members the same way.
+- `planets.formed_beyond_snow_line` returned a numpy bool when the snow line was a numpy float, so `born_beyond_snow_line` (a planet or moon of a giant, bright giant or subdwarf star) made `to_dict` fail strict JSON in 25 star-type fuzz cases and in `test_explicit_slot_lists` and `test_extreme_orbit_counts`. It now returns a Python bool. Values are unchanged.
+
+generation-output: unchanged
+
+## [8.0.4580] - 2026-11-18
+
+**Headline:** The habitability and effect-ledger refills are now tested to write the same values when units of the refill are killed and retried.
+
+### Added
+- **A kill test for rescore-habitability and refill-effect-ledger (OPS.225).** Five systems with blanked scores and old stamps are refilled undisturbed and with units killed at drawn commits; the scores, the ledger rows and the stamps must match. No double write found.
+
+## [8.0.4579] - 2026-11-18
+
+**Headline:** Clearing the scatter is now tested to leave the same result when units of the clear are killed and retried.
+
+### Added
+- **A kill test for the clear-scatter command (OPS.225).** The phenomena, luminosity and mass scatters are cleared one kind at a time, undisturbed and with units killed at drawn commits; what each clear leaves must match. No double write found.
+
+## [8.0.4578] - 2026-11-18
+
+**Headline:** The sky drawn by a galaxy run is now tested to come out the same when units of the run are killed and retried.
+
+### Added
+- **A kill test for the sky backfill (OPS.225).** A galaxy run with the sky drawn is made undisturbed and again with units killed at drawn commits; the bright stars, the cells' levels and the sky ledger must match. No double write was found.
+
+## [8.0.4577] - 2026-11-18
+
+**Headline:** The surface-air test knows a surface held at the moist limit of its air, which the retired 10 kPa cap had hidden, so a 500 bar steam and oxygen world no longer reads as a failed fixed point.
+
+### Fixed
+
+- `test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives` (a Train 46 gate red from GEN.1558): with the cap gone, seed 0 to 9 holds a 50 MPa steam, oxygen, carbon dioxide and sulfur trioxide air (Aeshuon II) whose warming asks for 622 K and whose surface is held at the moist limit of its air, 600 K (GEN.1579, `moist_limit.limit_k`). Its stored greenhouse factor 50.06 is the one at the held temperature, `(T / T_e)^4 - 1`; the test compared it to the warming the air asks for (57.9) and failed. A surface held at the limit is now checked against the held temperature, counted, and bounded to a tenth of the bodies; no bound of the other bodies is loosened.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4576] - 2026-11-18
+
+**Headline:** The same galaxy seed now makes the same rogue planets whether the database is new or was reset, because a rogue is drawn from where its donor system sits and not from the donor's Object ID.
+
+### Fixed
+
+- OPS.273: a rogue planet's draws (its ejection events, pairs and body) were seeded from its donor system's Object ID, and a system's ID serial starts past the scatter-star counter, which a reset keeps on purpose. A run after a reset therefore put the rogues in other cells (95 `sector_paths` rows on a fresh run, 93 after a reset). The draws now key on the donor's galaxy-frame position, which the galaxy's seed decides, and the re-roll of an unstable wide binary is seeded from the system's position too, with no row-id fallback. Rogue planet places and bodies change.
+
+## [8.0.4575] - 2026-11-18
+
+**Headline:** The three papers behind the new OCS, CS2 and SO3 vapour-pressure curves are now in the reference registry and cited by their ids.
+
+### Changed
+
+- GEN.1794: the rows SV2 to SV6, the section text and the notes of `saturation_pressure.json` cite their sources by registry id ([R5310, R5311, R5312]; the melting point of sulfur trioxide is read from the NIST WebBook page, no second paper named). No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4574] - 2026-11-18
+
+**Headline:** Carbonyl sulfide, carbon disulfide and sulfur trioxide now freeze out of a cold air like every other gas with a vapour-pressure curve, so a body at 8 K no longer keeps thousands of pascals of them.
+
+### Fixed
+
+- GEN.1794: `saturation` gains rows for OCS, CS2 and SO3: the NIST WebBook Antoine equation of the liquid (a new `antoine` liquid form, carried from the triple point to the critical temperature of the gas table) and a Clausius-Clapeyron solid below the row's own triple point (134.33 K, 161.11 K and 290.1 K; the gas table has no triple point for sulfur trioxide), with the sublimation enthalpy the vaporisation plus the fusion, since NIST lists none. Stand-ins SV2 to SV5. Three bodies of 0.003 to 0.0046 Earth masses at 8 K held 9,700 Pa of OCS because `freeze_out` leaves a gas with no curve alone; at 8 K the pressures are now under 1e-150 Pa.
+- The gases the equilibrium solve can carry that still have no curve are named with a reason under `no_law` of `saturation_pressure.json` (`saturation.reason_without_law`; stand-in SV6): H, Cl, S, SO, PO, PS, PN and P2 are fragments of the hot equilibrium, and CH3Cl, HCOOH, N2O, NO2 and PH3 are traces with no curve filed yet. `tests/test_saturation.py` fails on a carried gas with neither a curve nor a reason.
+- Carried over unchanged: the 10 kPa retention cap of the d6 row (GEN.1558 retires it separately).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4573] - 2026-11-18
+
+**Headline:** A planet tipped by a chaotic zone or a Cassini state now carries the extreme-tilt oddity it stands in.
+
+### Fixed
+- **W1 (extreme tilt seasons) and G1 (giant tipped by an impact) are judged again when a step moves the tilt (GEN.1785).** `settle_obliquity` (the chaotic zone) and the Cassini state of a locked planet change a tilt after the oddities were judged on it, so a planet tipped to 60 to 120 degrees did not carry W1, and one righted kept it. On 40 G2V systems 40 of 275 bodies in W1's tilt range did not carry it (all of them chaotic, mostly belt members made planets); now none is missing. The rows draw nothing and change nothing on the body (they only name the tilt), so no tilt, orbit or class moves; only the oddity lists of those bodies.
+
+## [8.0.4572] - 2026-11-18
+
+**Headline:** An air with a haze that takes more of the sunlight aloft is never read as warmer at the ground, so a hazy world no longer has several fixed points that depend on where its solve began.
+
+### Changed
+
+- GEN.1780: `greenhouse_table.warming` reads an air with sunlight taken aloft (`aloft_share` over 0) as the running minimum of the network's readings at the shares of the same haze from none up to the share asked (`ALOFT_MONOTONE_NODES` 10 nodes per unit share, interpolated between the two nodes around the share), so the ground is never warmer at a larger share. The table gave 171, 199 and 229 K where the full model gave 166, 155 and 139 K for shares 0, 0.3 and 0.7 of a nitrogen and methane air under a faint star; the rise made a second and third fixed point that the solve found or missed by its start. Stand-in row IR20 (T5, L0).
+- The table file itself is unchanged (a refit that is better on every held-out set but does not yet meet the stated-accuracy bounds goes with GEN.1781). `scripts/fit_greenhouse_table.py` gains the `hazy`, `cold` (with `--deep`) and `designed` families, held-out `validate` figures with hydrogen-rich airs stated apart (`hydrogen_rich`) and `--rng-offset`, which the refit needs.
+- The haze replay test (`tests/test_haze_in_the_air.py`) no longer skips the world whose replays disagreed (seed 106, 118 K): its replays now converge to one answer.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4571] - 2026-11-18
+
+**Headline:** the sectors around a generated region now hold their neutron stars and black holes below the scatter's cut before anyone fills them.
+
+### Changed
+- GEN.1682: a backfill ring sector (GEN.187) had its stars but none of the neutron stars and none of the 60 percent of stellar black holes that fall below the phenomenon scatter's cut (14 solar masses, drawn only when a sector was filled, GEN.168). They are now drawn when the backfill reaches the sector: `phenomenon_scatter.ring_remnant_rows` runs the fill's own `below_cut_draws` on the sector's own stream (same counts and mass ranges) and gives each remnant a point in the sector's cell, a seed and a mass, as scatter rows. A galaxy run draws them in a third piece of the `write-special-phenomena` unit (`remnants`: every sector a backfill took down that no run has charted, written with its members and its classes in one transaction with the unit's cursor); a backfill that runs after the scatter (a visit, a run that adds sectors) draws them in the same transaction as its chunk. A cell above the ceiling (`resolution.capped`) gets none, as before, and a sector that already holds some is not drawn again.
+- The fill builds those rows at their stored points like any scattered row, and draws no below-cut remnants of its own for a sector that holds some (`store.sector_holds_below_cut_remnants`). A sector filled without a backfill draws them as before. The fill's context is now worked out after the sector is taken down to its deepest floor (it read the scattered rows before it), so a sector whose backfill draws its remnants at that moment builds them.
+- Needs and touches of `write-special-phenomena`: it needs the backfill (`bright-stars-backfill`) and reads `sector_stats`. No schema change, so there is no migration.
+
+generation-output: changed (no golden, no epoch, lock item; the toy galaxies the golden files hold have no ring sectors in their scatter)
+generation-affects: scatter, fill
+
+## [8.0.4570] - 2026-11-18
+
+**Headline:** hydrogen chloride now condenses on a liquid curve above its triple point, so it boils at one atmosphere where the gas table says it does.
+
+### Fixed
+- GEN.1630: the HCl vapour pressure above its triple point (159.07 K) was the solid's curve carried on, 36 percent high at the normal boiling point (137.6 kPa at 188.17 K) and 6.9 MPa at 273.15 K, and `condensation_temperature_k("HCl", 1 atm)` returned nothing. HCl now has a Wagner liquid curve in `saturation_pressure.json` whose four coefficients are fixed by values the gas table holds (the triple point, the normal boiling point, the acentric factor and the Edmister slope at the critical point; registry row AM104, tier 6, tweak L0). It gives 101.3 kPa at 188.17 K and 2.61 MPa (25.8 atm) at 0 C against the handbook's 25.6 atm, which the fit did not use.
+- Stored values move only where HCl is in an air above 159 K: 12 of 1,226 bodies in 80 sample systems changed, by under 0.02 K and 0.1 percent of the pressure, no class or state changed.
+
+generation-output: changed within the solvers' tolerance (no golden, no epoch, lock item)
+generation-affects: fill
+
+## [8.0.4569] - 2026-11-18
+
+**Headline:** A rocky planet's air is no longer held at 1 kPa or 10 kPa by a design cap: supply, sinks and escape set its pressure, and only the airless and trace caps stay.
+
+### Changed
+
+- GEN.1558: the recipe row d6 caps of d3 (0.01 bar, 1 kPa) and d4 (0.1 bar, 10 kPa) are retired (`atmosphere_recipes.json` and `scripts/atmosphere_recipes_data.py` give them none; d1 and d2, the airless and trace caps, stay, so the shoreline still decides who keeps any air). `surface_air._retention_cap_pa` stays because d1 and d2 still use it; nothing else was clipping. Evidence that the caps were design and not physics: the class census of 11-11 found 137 of 500 natural bodies with air pinned at exactly 1 kPa (56) or 10 kPa (81), and 6 of 153 class E bodies at exactly 10.000 kPa with no carbon dioxide in 100 G2V systems (GEN.1785); the cosmic-shoreline odds of the five retention rows are sourced and unchanged.
+- No loss term is added: heavy-gas stripping of a rocky air is already covered in the one escape subtraction (`mixture_escape.apply` through `thermosphere.kept_shares`, which already reads `thermosphere.energy_limited_mass_loss_kg_s` and `ion_escape.ion_loss_kg_s` over the star's XUV history), so no second pass and no redraw. `atmosphere_retention.energy_limited_loss_fraction` stays unread (that module is by design a held library, wiring register line 68).
+- Register: stand-in row SH3 marked retired (not wired as a cap); the d6 row keeps its d1 and d2 caps and says the d3 and d4 caps are retired.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4568] - 2026-11-18
+
+**Headline:** A world that rolled the other-branch oddity stops looking for its second climate once two starts end on the answer it already has, so a dense warm planet no longer costs a dozen extra air solves.
+
+### Changed
+
+- W20 (`air_branches.other_branch`) solved the air again from `COLD_STARTS_K` (four starts) or `WARM_STARTS_K` (three) until one ended on a distinct answer. Of 214 searches of worlds that rolled W20 in 57 `world-requested` redraw systems (numbers 1 to 113), 199 had every start end on the first answer, 14 had starts that ended elsewhere without being a branch, and one found a second branch (from the fourth start, 260 K, after one start that agreed and two that ended elsewhere). The search now stops when `AGREEING_STARTS_TO_STOP` (2) starts have ended less than `MIN_BRANCH_GAP_K` and `MIN_ICE_GAP` from the first answer, a start that ends elsewhere not counting. The stand-in row NEB8 names the new bound (tier T6, tweak level L1).
+- Why now: the Train 45 head took 192 s for `world-requested` system 10 (7 s on main) because the request redraws a habitable world 68 times and half of those rolled W20, each paying three or four 2.5 to 3 s solves of a 2 bar air; 139 of the first 182 s were in `other_branch`. The test limit of 180 s is unchanged.
+- Output: a world that rolled W20, whose first two starts agree with its first answer and whose later start would have found a distinct answer, now keeps its first answer. None of the 214 sampled does. Every other world, and every world that did not roll W20, is unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4567] - 2026-11-18
+
+**Headline:** The surface-air storage test now skips an unsettled air by its gases as well as its pressure.
+
+### Changed
+
+tests/test_surface_air.py: the test that reads the stored density, scale height and greenhouse multiplier of every generated body skipped any body whose pressure equalled an unsettled air's pressure to a part in a billion. A Train 45 sample (seeds 0 to 9 after GEN.1520) held one air that did not settle at exactly 10 kPa and three bodies of 0.003 Earth masses at 8 K with exactly 10 kPa of another mixture, so four bodies were skipped against a bound of two. The skip now also requires the stored gases that hold 1 percent of the pressure or more to match the unsettled air's to a part in a thousand. The bound (max(1, bodies // 20)) is unchanged. Test only; no generation output changes.
+
+generation-output: unchanged
+
+## [8.0.4566] - 2026-11-18
+
+**Headline:** a sector made under two different Python hash seeds is the same sector to the last digit again.
+
+### Fixed
+- The blend of an air before and after photolysis (`surface_air._photolysed`) and the blend of two nebula mixtures (`nebula_composition._mix`) listed their gases in the order a set of the names gave, which follows the process's `PYTHONHASHSEED`, so every sum over that air added in a different order and one air in the probe sector ended 1e-11 K and up to 3e-7 of a gas share different between two seeds (`test_a_sector_does_not_depend_on_hash_seed_or_locale`). They list the gases in the order they were given.
+
+generation-output: changed within the solvers' tolerance (no golden, no epoch, lock item)
+
+## [8.0.4565] - 2026-11-18
+
+**Headline:** A belt's bodies are no longer piled on the eccentricity and inclination caps: their orbit draws are truncated, not clipped.
+
+### Fixed
+- **A third of a wide belt's bodies sat at exactly e = 0.5 (and the widest at exactly 60 degrees).** `belt_roster.entry_of` cut each Rayleigh draw with `min(draw, cap)`, which moved the whole tail onto the cap (37 percent of a belt three times as wide). The draw is now truncated by its inverse distribution (`trojan_swarm.truncated_rayleigh`, reused; one draw per body, no extra stream numbers), so no body is piled on a cap and the shape below it is the Rayleigh. Registry row 6.182 MR3 says truncated (GEN.1792).
+- Every stored belt member's eccentricity and inclination change slightly for the same seed; the forced eccentricity sum of `belt.py` is unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4564] - 2026-11-18
+
+**Headline:** A giant of a planetary nebula's white dwarf no longer stops the build when a trace of vapor cycles over its ice cap.
+
+### Fixed
+- `mixture_giant.cap_ices` raised "the ice caps did not settle" on a sulfur-rich layer at 91 K: its S2 is capped at about 1e-39 of the layer, and each of 1,000 rounds took 3e-39 of it while the equilibrium made it again from the rest of the sulfur. The settle test asked only whether the budget could make more than `MIN_CONDENSED` of the species; it now also asks whether the excess over the cap is more than that. An excess under it is not a condensate worth recording, which is what the test already says for a species the budget cannot make. Found by the Train 45 gate in `test_census_nebula_wholesphere` (B0VII central star, seed 2 of the hunt).
+
+generation-output: unchanged
+
+## [8.0.4563] - 2026-11-18
+
+**Headline:** The sources behind the gas-disk edge stand-ins are in the reference list, and the notes write them by their IDs.
+
+### Fixed
+- The gas-disk edge note (`docs/design/generation/gas-disk-edge.md`), the GDE rows of `gap-filling-plan.md` and the docstrings of `disk_size.py` wrote four sources by author and year, so `test_citations_outside_the_registry` failed. The three new papers are in the registry (R5301 to R5309) and the four sources are written as their IDs [R0602, R5301, R5308, R5309].
+
+generation-output: unchanged
+
+## [8.0.4562] - 2026-11-18
+
+**Headline:** A star's protoplanetary disk now ends at a radius that follows the star's mass (100 au for the Sun, mass to the half power, a factor of 2 of scatter per star) instead of 18 snow lines, so Sun-like stars grow cold giants and belts farther out and small stars get larger disks than before.
+
+### Changed
+
+- The outer edge of the gas disk a star's planets, belts and comets formed in is `physics/disk_size.edge_au`: median 100 au x (M/Msun)^0.5 (45 au at 0.2 Msun, 71 au at 0.5, 118 au at 1.4), drawn once per star with a 0.3 dex log-normal scatter cut at 2 sigma from a stream keyed by the star (no stored column, no other draw moves). It replaces `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` (18 snow lines, 49 au for the Sun, 5.8 au for an M2V dwarf), which followed the star's light rather than its mass. Evidence and the decision are in `reports/gen1520-disk-size-by-mass-2026-11-11.md` (Boss approved 3:04 PM EST 11-11); stand-ins DS1 to DS4 in `gap-filling-plan.md` section 6.274, design note `docs/design/generation/gas-disk-edge.md`.
+- It sets where random planet slots end and the oligarch chain's limit (`system.py`), the outer-disk belt and the scatter shares (`belt_birth.py`), the zone a comet's ice formed in (`comet.py`) and where the pebbles end and which volatile ices evaporate on the way in (`disk_drift.py` through `mixture_subject` and `mixture_giant`, now taking the edge as an argument; a larger edge is a colder one, so more of the CO2, CO and N2 lines lie inside the disk).
+- New redraw kind `disk_edge.scatter`. Planet, giant, belt and comet counts, the outer planet and belt distances, comet reservoirs and giant C/O change for every star; the before and after sweep (150 systems, same seeds) is in the report.
+
+generation-output: changed
+generation-affects: plan, scatter, fill, population
+
+## [8.0.4561] - 2026-11-18
+
+**Headline:** The bright-star backfill draws each sky row once from a bound that follows the stars it is drawing, so a sky share walks 5 to 10 times faster.
+
+### Fixed
+
+- PERF.280: the bright-star candidate draw (GEN.308/GEN.309) takes one Poisson count and one stream a row and luminosity band (it took one a block of 256 wedges), and its bound is the most each population's density can be in the row times its share of the band (`galaxy.density.population_bounds_array`), where it was the whole disk's and bulge's largest density times the young stars' share, a hundred times what a cell expects. A deep sky tier listed 340 candidates for each star it kept; it now lists about one. The bounds of a couple of thousand rows are worked out together from arrays. The walk of one 1/16 share of a tier takes 0.1 to 1.8 s where it took 1.1 to 8.5 s. The stars are drawn from the same exact thinning, so counts and distributions are unchanged (tier 28, three shares, 64 seeds: 83.6 stars, 82.7 expected), but the random streams differ, so every candidate-path star moves: a lock item.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.4560] - 2026-11-18
+
+**Headline:** The air history now follows the methane, hydrogen and sulfur gases a world's life makes through time, ending at the air the generator already gives it, with no change to any generated world.
+
+### Added
+
+- GEN.1745 slice 2b: `air_history.gas_trajectory(body, living, ages, found, risen, rise_gyr)` gives the air, mol of each gas, at each age as the ledger rows of the classes of `living` make it: the methane the classes that have begun hold together (and the carbon dioxide it is made from) and the hydrogen, hydrogen sulfide and the like each draws down, counted at each age and not once at the star's age; a methane row that ends at the oxygen's rise stops there. Its last value is the air `life_air.apply_gases` stores. Reuse: `life_air.ledger_air`, `_producing`, `_with_ledger_gases`, `summed_methane_flux_mol_yr`. Nothing in the generator reads it yet.
+
+### Changed
+
+- `life_air.apply_gases` is now `life_air.ledger_air` (the air, as moles, the ledger gives at an age, with its water settled) plus the store of that air; `_producing` and `_with_ledger_gases` take the age the classes are counted at (the star's age when not given). No generated world changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4559] - 2026-11-18
+
+**Headline:** Bringing a galaxy to the running epoch now also refills the stored values worked out from other stored values (habitability scores, the effect ledger) when the code that wrote them has changed, instead of leaving them old or regenerating sectors.
+
+### Added
+- **Bring-to-epoch refills derived values.** A new derived stage, after the population stage, finds systems whose habitability score or effect ledger was written by older code (the existing stamps, GEN.1479) and refills them with the existing refill jobs. No sector is generated again and `sectors.modified_at` is not touched. The survey and the dry run report it.
+
 ## [8.0.4558] - 2026-11-18
 
 **Headline:** The class census draws ten stars a cell, so one star's age no longer decides a cell's class and life shares.

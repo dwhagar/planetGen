@@ -477,6 +477,38 @@ def below_cut_draws(address, center_pc, shape, expected_stars, min_mass_solar, s
     return draws, rng
 
 
+def ring_remnant_rows(address, center_pc, shape, expected_stars, min_mass_solar, seed, edge_pc):
+    """
+    The neutron stars and black holes below the scatter's mass cut that one sector of a backfill ring holds before it is filled (GEN.1682): the draws `below_cut_draws` counts for the sector (the same counts the
+    fill would draw, from the same stream), each as a scatter row in `PHENOMENON_SCATTER_COLUMNS` order with a mass below the cut (the class's law, `mass_range` below), a point uniform in the sector's cell and a seed
+    of its own, all from the sector's own stream (`FILL_STREAM`, after the counts). The sector's fill builds them like any other scattered row, from the row's seed at the row's point, so a ring sector that is
+    later filled holds the same objects it held before (and the fill draws none of its own: `run_sector.add_below_cut_remnants` skips a sector that has them).
+
+    Returns:
+        list: The rows, none when the sector draws no remnant (a neutron star is 0.7 percent of the stars of a sector, so most sectors draw none).
+    """
+    draws, rng = below_cut_draws(address, center_pc, shape, expected_stars, min_mass_solar, seed)
+    shell_index, band_index, wedge = address
+    rows = []
+    for kind, subtype, bounds, count in draws:
+        if bounds is None:
+            continue
+        low, high = bounds
+        logarithmic = mass_law(kind, subtype)[1]
+        for _ in range(count):
+            point = None
+            for _redraw in range(bright_stars.SLOT_REDRAWS):
+                point = bright_stars._point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
+                if point is not None:
+                    break
+            uniform = rng.random()
+            mass = low if low >= high else (math.exp(math.log(low) + uniform * (math.log(high) - math.log(low))) if logarithmic else low + uniform * (high - low))
+            if point is None:
+                continue       # every point rounded out of the cell: the sector's own draw skips such an object the same way
+            rows.append(_row(shell_index, band_index, wedge, kind, point, rng, subtype=subtype, mass_solar=mass))
+    return rows
+
+
 def shell_expected(shape, shell_index, high_band, edge_pc, expected_at_density_1, min_mass_solar=None):
     """About how many objects `scatter_shell` places in one shell (the
     progress bar's weight): the same per-band means on evenly spaced

@@ -176,6 +176,19 @@ def test_a_planet_in_a_chaotic_zone_is_named_by_the_wandering_tilt_oddity_and_a_
     assert regular.oddities == ()
 
 
+def test_a_planet_whose_tilt_is_moved_is_named_by_the_extreme_tilt_oddity_only_while_the_new_tilt_is_in_its_range(monkeypatch, quiet):
+    """GEN.1785: W1 (a tilt of 60 to 120 degrees, no large moon) names the tilt the planet has now, not the one it was drawn with; before, a planet the chaotic zone tipped over
+    did not carry it (about one in six of the bodies in W1's range) and one it righted kept it."""
+    monkeypatch.setattr(ov, "analyse", lambda alpha, tilt, modes: ov.Variation(70.0, 100.0, True, True, 0.0, (), alpha))
+    tipped, righted = _planet(1.0, tilt=23.0), _planet(2.0, tilt=80.0)
+    tipped.oddities, righted.oddities = (), ("W1",)
+    planets.settle_obliquity([tipped, righted], SUN)
+    assert 70.0 <= tipped.axial_tilt_deg <= 100.0 and "W1" in tipped.oddities and "W6" in tipped.oddities
+    monkeypatch.setattr(ov, "analyse", lambda alpha, tilt, modes: ov.Variation(10.0, 40.0, True, True, 0.0, (), alpha))
+    planets.settle_obliquity([righted, _planet(5.0)], SUN, only=[righted])
+    assert righted.axial_tilt_deg < 60.0 and "W1" not in righted.oddities
+
+
 def test_a_locked_moon_takes_the_cassini_tilt_of_its_nodal_regression_in_its_planets_frame(monkeypatch):
     """GEN.1556: the moon's axis is set against its orbit normal in the planet's equator frame and turned back; a free-spinning moon is left."""
     monkeypatch.setattr(planets, "internal_heat_flux_w_m2", lambda body: 0.02)

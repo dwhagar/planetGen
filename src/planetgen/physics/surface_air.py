@@ -564,7 +564,7 @@ def _photolysed(partials_pa, setting, temperature_k):
     after = photochemical_loss.lose(partials_pa, setting.gravity_m_s2, setting.age_gy * GY_S, setting.far_uv, setting.star_temperature_k)
     if share >= 1.0:
         return after
-    return {formula: (1.0 - share) * partials_pa.get(formula, 0.0) + share * after.get(formula, 0.0) for formula in set(partials_pa) | set(after)}
+    return {formula: (1.0 - share) * partials_pa.get(formula, 0.0) + share * after.get(formula, 0.0) for formula in dict.fromkeys([*partials_pa, *after])}       # in the order the gases are given: a set would order them by the process's hash seed, and the sums over this air would add in that order
 
 
 def _damped(damping, residual, previous, tolerance):

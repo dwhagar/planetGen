@@ -6197,7 +6197,7 @@
             ],
             [
               "Where it holds",
-              "HF from 68 K to its critical point, HCl up to its triple point (above it the solid's curve is carried on)"
+              "HF from 68 K to its critical point, HCl up to its triple point (above it the liquid curve of AM104)"
             ],
             [
               "What would show it wrong",
@@ -6559,6 +6559,44 @@
           "tweak": "L2",
           "unread": null,
           "what": "continental_weathering.EARTH_ABSORBED_FLUX_W_M2"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design (source tier 6, tweak level 0; GEN.1630: the HCl liquid curve has no source we can open, so its four Wagner coefficients are fixed by four values the gas table holds: the triple point 159.07 K and 13828 Pa, the normal boiling point 188.17 K at 101325 Pa, the acentric factor 0.132 (P = Pc 10^-(1+w) at T/Tc 0.7) and the Edmister slope at the critical point; the handbook's 25.6 atm at 0 C, recalled, is the check the fit did not use and the curve gives 25.8)"
+            ],
+            [
+              "What it is",
+              "saturation_pressure.json HCl liquid (t_max_k 324.68, pc_pa 8313000, coefficients -6.08224, -0.36624, 1.46855, -4.98396)"
+            ],
+            [
+              "The range it moves in",
+              "the four anchors, fixed"
+            ],
+            [
+              "Where it holds",
+              "HCl from its triple point to its critical point"
+            ],
+            [
+              "What would show it wrong",
+              "test_saturation::test_the_hcl_liquid_curve_follows_its_four_anchors_and_the_handbooks_0_c_pressure"
+            ],
+            [
+              "What replaces it",
+              "a measured HCl vapour-pressure table (NIST fit)"
+            ]
+          ],
+          "id": "AM104",
+          "key": "6.7:AM104",
+          "kind": "P",
+          "slug": "6-7-am104",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation_pressure.json HCl liquid (t_max_k 324.68, pc_pa 8313000, coefficients -6.08224, -0.36624, 1.46855, -4.98396)"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
@@ -20359,7 +20397,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER (18, the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
+              "disk_size.edge_au (GEN.1520: 100 au for the Sun, mass to the 0.5, a factor of 2 of scatter; the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
             ],
             [
               "The range it moves in",
@@ -20390,7 +20428,7 @@
           "tier_code": "T9",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER (18, the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
+          "what": "disk_size.edge_au (GEN.1520: 100 au for the Sun, mass to the 0.5, a factor of 2 of scatter; the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
         }
       ],
       "slug": "6-46-stand-ins-of-the-comet-ice-budget",
@@ -27683,7 +27721,7 @@
           "fields": [
             [
               "What it is",
-              "atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
+              "RETIRED (GEN.1558: the stepped caps are not wired, and the recipe row d6 lost its d3 and d4 caps; supply, sinks and escape set the pressure): atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
             ],
             [
               "The range it moves in",
@@ -27714,7 +27752,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": "by design",
-          "what": "atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
+          "what": "RETIRED (GEN.1558: the stepped caps are not wired, and the recipe row d6 lost its d3 and d4 caps; supply, sinks and escape set the pressure): atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
         },
         {
           "burn_down": null,
@@ -28033,7 +28071,7 @@
           "fields": [
             [
               "What it is",
-              "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
+              "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1, NEAR_WINDOW_MAX_K 330 and AGREEING_STARTS_TO_STOP 2 (the search ends when two starts end on the first answer, L1: 199 of 214 searches of worlds that rolled W20 had every start agree): the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
             ],
             [
               "The range it moves in",
@@ -28064,7 +28102,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
+          "what": "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1, NEAR_WINDOW_MAX_K 330 and AGREEING_STARTS_TO_STOP 2 (the search ends when two starts end on the first answer, L1: 199 of 214 searches of worlds that rolled W20 had every start agree): the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
         }
       ],
       "slug": "6-75-stand-ins-of-the-nightside-collapse-of-a-locked-planet-s-air",
@@ -35123,7 +35161,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L2",
-          "unread": "GEN.1151",
+          "unread": null,
           "what": "trojan_swarm.LIBRATION_SIGMA_DEG 13: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150, GEN.1643)"
         },
         {
@@ -35161,7 +35199,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1151",
+          "unread": null,
           "what": "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
         },
         {
@@ -35199,7 +35237,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1151",
+          "unread": null,
           "what": "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
         }
       ],
@@ -49923,7 +49961,7 @@
           "fields": [
             [
               "What it is",
-              "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+              "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the truncations of the Rayleigh tails (inverse CDF, GEN.1792; a clip piled a third of a wide belt's bodies on the cap)"
             ],
             [
               "The range it moves in",
@@ -49954,7 +49992,7 @@
           "tier_code": "T9",
           "tweak": "L0",
           "unread": null,
-          "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+          "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the truncations of the Rayleigh tails (inverse CDF, GEN.1792; a clip piled a third of a wide belt's bodies on the cap)"
         }
       ],
       "slug": "6-182-stand-ins-of-where-a-stored-belt-member-lies",
@@ -60167,7 +60205,7 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the star's own gas disk edge, disk_size.EDGE_AT_SUN_AU and its mass and scatter laws, GEN.1520; 18 snow lines before it); before GEN.1514 it was a step to zero when the front reached the edge"
             ],
             [
               "The range it moves in",
@@ -60198,7 +60236,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the star's own gas disk edge, disk_size.EDGE_AT_SUN_AU and its mass and scatter laws, GEN.1520; 18 snow lines before it); before GEN.1514 it was a step to zero when the front reached the edge"
         },
         {
           "burn_down": null,
@@ -70253,6 +70291,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "greenhouse_table.ALOFT_MONOTONE_NODES 10 (GEN.1780): the table's ground temperature under a haze is read as the running minimum of the network over the shares of the haze's light from none up to the share asked, at a node every tenth and interpolated between them, so a larger share is never warmer"
+            ],
+            [
+              "The range it moves in",
+              "5 to 20 nodes (the shape is the same; only how finely the dips between nodes are caught)"
+            ],
+            [
+              "Where it holds",
+              "any air with sunlight taken aloft (aloft_share over 0): the tholin, soot and sulfuric hazes of cold and warm worlds"
+            ],
+            [
+              "What would show it wrong",
+              "tests/test_greenhouse_table.py::test_sunlight_taken_aloft_never_warms_the_ground; tests/test_haze_in_the_air.py (the replays of one world converge to one answer); a radiative-convective run of any air whose ground is warmer at a larger share of the same haze"
+            ],
+            [
+              "What replaces it",
+              "a refit of the table on hazy airs that is itself non-increasing in the share (scripts/fit_greenhouse_table.py hazy, GEN.1781)"
+            ],
+            [
+              "Evidence",
+              "a bound of the physics and not a fitted number: sunlight taken aloft is sunlight the ground does not get, and the full model cools the ground as the share rises; the network fitted to it rose between samples (171, 199 and 229 K where the model gave 166, 155 and 139 K for shares 0, 0.3 and 0.7 of a nitrogen and methane air under a faint star), which made fixed points that are not physical"
+            ]
+          ],
+          "id": "IR20",
+          "key": "6.6c:IR20",
+          "kind": "P",
+          "slug": "6-6c-ir20",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "greenhouse_table.ALOFT_MONOTONE_NODES 10 (GEN.1780): the table's ground temperature under a haze is read as the running minimum of the network over the shares of the haze's light from none up to the share asked, at a node every tenth and interpolated between them, so a larger share is never warmer"
         }
       ],
       "slug": "6-6c-stand-ins-of-the-greenhouse-table-above-and-below-what-it-was-fitted-on-gen-1238-gen-1580-gen-1588",
@@ -74481,6 +74557,364 @@
       ],
       "slug": "6-306-stand-ins-of-the-cosmic-dust-a-planet-s-air-takes-in-for-the-v8-layer-gen-1542",
       "title": "Stand-ins of the cosmic dust a planet's air takes in for the V8 layer (GEN.1542)"
+    },
+    {
+      "key": "6.307",
+      "number": "6.307",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_AT_SUN_AU 100: the median gas-disk edge of a 1 solar-mass star, au; the geometric middle of the 62 au at which the planet-formation models of [R0602] cut the disk and the roughly 200 au the observed CO radii of 1 to 3 Myr disks give"
+            ],
+            [
+              "The range it moves in",
+              "62 to 200"
+            ],
+            [
+              "Where it holds",
+              "Sun-like stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured median CO disk radius of Sun-like stars outside 62 to 200 au"
+            ],
+            [
+              "What replaces it",
+              "the median of a mass-complete CO disk survey"
+            ],
+            [
+              "Evidence",
+              "the dust radius of ALMA disks is 27 to 60 au at the median [R5301] and the CO gas disk a median 2.5 times that [R5308]"
+            ]
+          ],
+          "id": "GDE1",
+          "key": "6.307:GDE1",
+          "kind": "P",
+          "slug": "6-307-gde1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_size.EDGE_AT_SUN_AU 100: the median gas-disk edge of a 1 solar-mass star, au; the geometric middle of the 62 au at which the planet-formation models of [R0602] cut the disk and the roughly 200 au the observed CO radii of 1 to 3 Myr disks give"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_MASS_EXPONENT 0.5: the edge rises as the star's mass to this power"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.625"
+            ],
+            [
+              "Where it holds",
+              "stars of 0.1 to 3 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a size-mass slope of gas disks outside 0.2 to 0.625"
+            ],
+            [
+              "What replaces it",
+              "the slope fitted to a complete survey of gas disk radii"
+            ],
+            [
+              "Evidence",
+              "the direct fits of dust radius against star mass are 0.2 to 0.57 [R5301] and 0.6 [R5309]; the models use 0.625 [R0602]"
+            ]
+          ],
+          "id": "GDE2",
+          "key": "6.307:GDE2",
+          "kind": "P",
+          "slug": "6-307-gde2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_size.EDGE_MASS_EXPONENT 0.5: the edge rises as the star's mass to this power"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_SCATTER_DEX 0.3: the scatter of a star's own edge around the median, dex in log10, a factor of 2 either way (Boss, 2026-11-17)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "every star's own disk"
+            ],
+            [
+              "What would show it wrong",
+              "a measured scatter of gas disk radii at one stellar mass outside 0.2 to 0.6 dex"
+            ],
+            [
+              "What replaces it",
+              "the scatter measured on a complete survey"
+            ],
+            [
+              "Evidence",
+              "real disks of one mass vary by about a factor of 4 either way in dust radius [R5301]; the factor of 2 is the narrower end"
+            ]
+          ],
+          "id": "GDE3",
+          "key": "6.307:GDE3",
+          "kind": "P",
+          "slug": "6-307-gde3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_size.EDGE_SCATTER_DEX 0.3: the scatter of a star's own edge around the median, dex in log10, a factor of 2 either way (Boss, 2026-11-17)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 4 either way"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "every star's own disk"
+            ],
+            [
+              "What would show it wrong",
+              "a gas disk of a Sun-like star measured beyond a factor of 4 of the median"
+            ],
+            [
+              "What replaces it",
+              "the tail of the measured distribution"
+            ],
+            [
+              "Evidence",
+              "the same cut as the snow line's (SNL2)"
+            ]
+          ],
+          "id": "GDE4",
+          "key": "6.307:GDE4",
+          "kind": "P",
+          "slug": "6-307-gde4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_size.EDGE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 4 either way"
+        }
+      ],
+      "slug": "6-307-stand-ins-of-the-gas-disk-edge-gen-1520",
+      "title": "Stand-ins of the gas disk edge (GEN.1520)"
+    },
+    {
+      "key": "6.308",
+      "number": "6.308",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation OCS liquid: Antoine log10(P/bar) = 4.0436 - 808.49/(T - 22.72), 161.8 to 223.84 K, carried from the triple point 134.33 K to the critical temperature 378.77 K"
+            ],
+            [
+              "The range it moves in",
+              "none (the table)"
+            ],
+            [
+              "Where it holds",
+              "carbonyl sulfide above its triple point"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour pressure of the liquid more than 2 percent off in 134 to 378 K"
+            ],
+            [
+              "What replaces it",
+              "a Wagner fit to the critical point"
+            ],
+            [
+              "Evidence",
+              "NIST WebBook ([R2312]; second-hand, read 11-18)"
+            ]
+          ],
+          "id": "SV2",
+          "key": "6.308:SV2",
+          "kind": "D",
+          "slug": "6-308-sv2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation OCS liquid: Antoine log10(P/bar) = 4.0436 - 808.49/(T - 22.72), 161.8 to 223.84 K, carried from the triple point 134.33 K to the critical temperature 378.77 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation CS2 liquid: Antoine log10(P/bar) = 4.06683 - 1168.62/(T - 31.616), 276.74 to 353.08 K, carried from the triple point 161.11 K to the critical temperature 552 K"
+            ],
+            [
+              "The range it moves in",
+              "none (the table)"
+            ],
+            [
+              "Where it holds",
+              "carbon disulfide above its triple point"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour pressure of the liquid more than 2 percent off in 161 to 552 K"
+            ],
+            [
+              "What replaces it",
+              "a Wagner fit to the critical point"
+            ],
+            [
+              "Evidence",
+              "NIST WebBook ([R5310, R5311] for the triple point; second-hand, read 11-18)"
+            ]
+          ],
+          "id": "SV3",
+          "key": "6.308:SV3",
+          "kind": "D",
+          "slug": "6-308-sv3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation CS2 liquid: Antoine log10(P/bar) = 4.06683 - 1168.62/(T - 31.616), 276.74 to 353.08 K, carried from the triple point 161.11 K to the critical temperature 552 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation SO3 liquid: Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K, carried down to the melting point of the gamma phase 290.1 K (the row's own triple point) and up to the critical temperature 491 K"
+            ],
+            [
+              "The range it moves in",
+              "the window edge, 10 percent at the boiling point of 317.9 K"
+            ],
+            [
+              "Where it holds",
+              "sulfur trioxide of the gamma phase; the alpha and beta phases are not modelled"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour pressure of the liquid between 290 and 333 K that differs by more than 15 percent"
+            ],
+            [
+              "What replaces it",
+              "a fit that includes the data under 333 K"
+            ],
+            [
+              "Evidence",
+              "NIST WebBook ([R5312]; NIST WebBook for the melting point; second-hand, read 11-18)"
+            ]
+          ],
+          "id": "SV4",
+          "key": "6.308:SV4",
+          "kind": "D",
+          "slug": "6-308-sv4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "saturation SO3 liquid: Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K, carried down to the melting point of the gamma phase 290.1 K (the row's own triple point) and up to the critical temperature 491 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the solid of OCS, CS2 and SO3 by Clausius-Clapeyron from the liquid curve's pressure at the triple point, with the sublimation enthalpy taken as the vaporisation plus the fusion: OCS 25.13 kJ/mol (20.4 at 176 K + 4.728), CS2 36.479 (32.09 from the NIST correlation at the triple point + 4.389), SO3 54.85 (45.5 + 9.35)"
+            ],
+            [
+              "The range it moves in",
+              "each enthalpy +-10 percent"
+            ],
+            [
+              "Where it holds",
+              "the three solids below their triple points"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sublimation pressure of the solid, which NIST does not list for any of the three"
+            ],
+            [
+              "What replaces it",
+              "measured sublimation enthalpies"
+            ],
+            [
+              "Evidence",
+              "inferred physics (the enthalpy of sublimation is that of vaporisation plus fusion at the triple point); the vaporisation of CS2 at the triple point is the NIST correlation carried below its 282 to 319 K window"
+            ]
+          ],
+          "id": "SV5",
+          "key": "6.308:SV5",
+          "kind": "P",
+          "slug": "6-308-sv5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the solid of OCS, CS2 and SO3 by Clausius-Clapeyron from the liquid curve's pressure at the triple point, with the sublimation enthalpy taken as the vaporisation plus the fusion: OCS 25.13 kJ/mol (20.4 at 176 K + 4.728), CS2 36.479 (32.09 from the NIST correlation at the triple point + 4.389), SO3 54.85 (45.5 + 9.35)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "no_law of the data file: H, Cl, S, SO, PO, PS, PN and P2 are fragments of the hot equilibrium that recombine or photolyse in a cold air; CH3Cl, HCOOH, N2O, NO2 and PH3 are trace gases with no curve filed yet"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "every gas above a billionth of the air in the sweep of tests/test_saturation.py::_carried_gases"
+            ],
+            [
+              "What would show it wrong",
+              "a gas outside the sweep that the solve carries at over a billionth of an air and that has neither a curve nor a reason (the test fails)"
+            ],
+            [
+              "What replaces it",
+              "a curve for each trace gas"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the reasons); the sweep is the redox, temperature and hydrogen range of the rocky recipe"
+            ]
+          ],
+          "id": "SV6",
+          "key": "6.308:SV6",
+          "kind": "T",
+          "slug": "6-308-sv6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "no_law of the data file: H, Cl, S, SO, PO, PS, PN and P2 are fragments of the hot equilibrium that recombine or photolyse in a cold air; CH3Cl, HCOOH, N2O, NO2 and PH3 are trace gases with no curve filed yet"
+        }
+      ],
+      "slug": "6-308-stand-ins-of-the-vapor-pressure-of-carbonyl-sulfide-carbon-disulfide-and-sulfur-trioxide-and-the-gases-with-no-law-gen-1794",
+      "title": "Stand-ins of the vapor pressure of carbonyl sulfide, carbon disulfide and sulfur trioxide, and the gases with no law (GEN.1794)"
     }
   ]
 }

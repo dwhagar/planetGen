@@ -77,6 +77,11 @@ hundred thousand (the family draws from 1e-5 up), so between absent and about 1e
 optically thin limit (the effect goes with the column), and nothing at zero."""
 TRACE_EXEMPT = frozenset(("H2O", "CO2", "CH4", "N2", "O2"))
 """frozenset: The gases the fit saw at every share (the water, carbon dioxide and methane of the airs it was made on, and the bulk gases): they count in full at any share, as Earth's 400 parts per million of carbon dioxide must."""
+ALOFT_MONOTONE_NODES = 10
+"""int: The nodes per unit share (a node every tenth) at which the table is read to hold the ground no warmer at a larger share of the haze's light than at a smaller one (GEN.1780). Sunlight taken aloft is sunlight the ground does not get: the full
+model (`radiative_convective`) cools the ground as the share rises, and a network fitted to it can still rise between its samples (the table gave 171, 199 and 229 K where the model gave 166, 155 and 139 K for shares 0, 0.3 and 0.7 of a
+nitrogen and methane air under a faint star), which made fixed points that are not physical. The answer is the running minimum of the network's readings at the nodes, interpolated between the two nodes around the share (continuous and
+non-increasing). A bound of the physics and not a fitted number."""
 DEFAULT_ALOFT_SHARE_OF_PRESSURE = 0.1
 """float: The pressure aloft, as a share of the surface pressure, of an air with no sunlight taken aloft (any value: the share is zero)."""
 
@@ -202,6 +207,19 @@ def _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, abs
     return ratio
 
 
+def _ratio_not_rising_with_share(partial_pressures_pa, total_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa):
+    """`ln(T_s / T_e)` at `aloft_share` read as the running minimum, over the nodes of `ALOFT_MONOTONE_NODES` from no haze up to the share, of the network's readings, interpolated between the node below the share and the one above it."""
+    position = aloft_share * ALOFT_MONOTONE_NODES
+    below = int(position)
+    smallest, minima = math.inf, []
+    for node in range(below + 2):
+        share = node / ALOFT_MONOTONE_NODES
+        vector = features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, share, aloft_pressure_pa)
+        smallest = min(smallest, _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, absorbed_flux_w_m2, share, aloft_pressure_pa))
+        minima.append(smallest)
+    return minima[below] + (position - below) * (minima[below + 1] - minima[below])
+
+
 def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.0, aloft_pressure_pa=None):
     """
     The warming of an air under an absorbed flux (the globally averaged W/m2 of `greenhouse.absorbed_flux_w_m2`): the table's reading of what
@@ -220,7 +238,10 @@ def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=
     if aloft_pressure_pa is None:
         aloft_pressure_pa = total * DEFAULT_ALOFT_SHARE_OF_PRESSURE        # fixed by the whole air, so leaving a trace gas out does not move the level the haze takes light at
     vector = features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
-    ratio = _ratio_with_traces(partial_pressures_pa, total, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
+    if aloft_share > 0.0:       # GEN.1780: no warmer at a larger share of the same haze than at a smaller one
+        ratio = _ratio_not_rising_with_share(partial_pressures_pa, total, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
+    else:
+        ratio = _ratio_with_traces(partial_pressures_pa, total, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
     ratio += _deep_air_rise(total, vector)
     absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).ir != "none") / total
     ratio *= min(1.0, total / THIN_AIR_PA, absorbing / ABSORBER_SHARE_MIN)

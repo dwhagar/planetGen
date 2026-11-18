@@ -145,3 +145,22 @@ def test_with_nothing_cleared_the_table_is_read_as_before():
     assert belt_roster.mass_below(table, 2.0) == 0.0 and belt_roster.mass_below(table, 9.0) == table[1][-1]
     for u in (0.1, 0.5, 0.9):
         assert belt_roster.mass_below(table, belt_roster.semi_major_axis_au(table, u)) == pytest.approx(u * table[1][-1], rel=1e-9)
+
+
+def test_a_wide_belt_has_no_share_of_its_bodies_piled_on_the_eccentricity_or_inclination_caps():
+    """GEN.1792: the Rayleigh draws are truncated at the caps, not clipped to them (a belt three times as wide clipped 37 percent of its bodies to e = 0.5)."""
+    roster = _roster(count=belt_ledger.LEDGER_MAX_BODIES, lower=2.0, upper=6.0)
+    assert not [e for e in roster if e.eccentricity >= belt_roster.E_MAX]
+    assert not [e for e in roster if e.inclination_deg >= belt_roster.I_MAX_DEG]
+    assert max(e.eccentricity for e in roster) > 0.45, "the tail below the cap is still drawn, not thinned"
+
+
+def test_the_truncated_draw_is_the_rayleigh_below_the_cap_and_a_belt_of_no_spread_has_none():
+    rms, limit = 0.5, 0.5
+    sigma = rms / math.sqrt(2.0)
+    top = 1.0 - math.exp(-0.5 * (limit / sigma) ** 2)
+    for u in (0.1, 0.5, 0.9):
+        want = belt_roster.rayleigh(u * top, rms)
+        assert belt_roster.truncated(u, rms, limit) == pytest.approx(want)
+    assert belt_roster.truncated(0.999999, rms, limit) < limit
+    assert belt_roster.truncated(0.7, 0.0, limit) == 0.0

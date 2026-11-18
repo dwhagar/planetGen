@@ -202,7 +202,7 @@ def formed_beyond_snow_line(planet):
     """Whether `planet` formed at or beyond its star's snow line (False for a star with none): the water snow line (`formation_snow_line.water_snow_line_au`, GEN.1679), the one the water is read against."""
     star = getattr(planet, "star", None)
     line = None if star is None else formation_snow_line.water_snow_line_au(star)
-    return line is not None and formation_distance_au(planet) >= line
+    return line is not None and bool(formation_distance_au(planet) >= line)
 
 
 def generate_planet_properties(planet, zone_override=None):
@@ -1117,6 +1117,11 @@ def carry_spin_with_orbit(planet, old_inclination_deg, old_node_deg):
 
 
 CHAOTIC_TILT_ODDITIES = ("W6", "W61")
+TILT_NAMED_ODDITIES = ("W1", "G1")
+"""tuple: The oddities that only name a tilt the spin already holds (rate 1, no draw, an effect that changes nothing): W1 (a tilt of 60 to 120 degrees on a planet with no large moon) and G1
+(a giant of 5 to 30 Earth masses tipped 60 degrees or more). A step that moves the tilt after the spin was made (`_retilt`: the chaotic zone of `settle_obliquity`, the Cassini state of a locked
+planet) judges them again on the new tilt, as the spin does (`generate_spin` drops the L1 rows and rolls them again). GEN.1785: a belt member made a planet is often in a chaotic zone, and
+about one in six of the bodies that stood in W1's tilt range did not carry W1, because its tilt was moved after the row was judged."""
 """tuple: The oddity rows that name a planet (W6) or a giant (W61) whose tilt wanders chaotically (GEN.1535, registry OB7)."""
 
 
@@ -1244,6 +1249,8 @@ def _retilt(body, axis, new_tilt):
     normal = spin.orbit_normal(body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
     body.spin_axis_x, body.spin_axis_y, body.spin_axis_z = spin.carry_axis(axis, normal, normal, new_tilt)
     body.axial_tilt_deg = new_tilt
+    body.oddities = tuple(identifier for identifier in oddities.ids_of(body) if identifier not in TILT_NAMED_ODDITIES)       # GEN.1785: the rows that name the tilt are judged again on the new one
+    oddities.apply(body, levers=("L1",), rows=[row for row in oddities.ROWS if row.id in TILT_NAMED_ODDITIES])
     daylight.generate(body)
     body.sky_suns = sky_suns.encode(sky_suns.suns_of(
         body.star, (body.spin_axis_x, body.spin_axis_y, body.spin_axis_z), normal,

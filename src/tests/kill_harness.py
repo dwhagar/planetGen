@@ -78,11 +78,6 @@ class KillingForker(inline_queue.InlineForker):
             if paused:
                 signal.alarm(paused)
         self.exits.append(("inline", exit_))
-        if os.environ.get("KILL_DEBUG"):
-            from planetgen.db import store
-            control = store.get_control_connection()
-            print("ROWS", [(r["id"], r["command"], r["item_key"], r["state"], r["attempt"]) for r in control.execute("SELECT id, command, item_key, state, attempt FROM engine_jobs WHERE run_id = (SELECT MAX(id) FROM engine_runs) ORDER BY id").fetchall()], flush=True)
-            control.close()
         return "inline", inline_queue._InlineJob(self.made, link)
 
 
@@ -106,7 +101,7 @@ def install(monkeypatch, plan):
 
 
 def digest_of_galaxy(config):
-    """What the galaxy is, without the numbers the database gave it: the charted sectors, the systems, stars and planets by their own columns, in an order of their own, and how many paths join the sectors (a rogue planet in a cell nobody charted gets a sector row of its own, GEN.1111, which is not a sector the run made)."""
+    """What the galaxy is, without the numbers the database gave it: the charted sectors, the systems, stars and planets by their own columns, in an order of their own, the rogue planets by the cell they landed in, and how many paths join the sectors (a rogue planet in a cell nobody charted gets a sector row of its own, GEN.1111, which is not a sector the run made)."""
     from planetgen.db import store
     db = store.get_connection(config)
     try:
@@ -126,6 +121,12 @@ def digest_of_galaxy(config):
                 count += 1
             found[name] = (count, sha.hexdigest())
         found["paths"] = db.execute("SELECT COUNT(*) AS n FROM sector_paths").fetchone()["n"]
+        sha = hashlib.sha256()
+        rogues = db.execute("SELECT s.shell_index, s.band_index, s.wedge_index, r.event_index, r.mass_kg, r.radius_km FROM rogue_planets r JOIN sectors s ON s.id = r.sector_id "
+                            "ORDER BY s.shell_index, s.band_index, s.wedge_index, r.event_index, r.mass_kg").fetchall()
+        for row in rogues:
+            sha.update(repr(tuple(row.values())).encode())
+        found["rogues"] = (len(rogues), sha.hexdigest())
         return found
     finally:
         db.close()
