@@ -405,40 +405,11 @@ class StarSystem:
         self._request_draws_left = tuning.REQUEST_PLANET_DRAW_BUDGET
         for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
             with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
-                primary_ceiling_au = self._orbit_ceiling_au(self.star)
-                self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
-                self._clear_circumbinary_floor(self.planets)
-                self.validate_system(self.planets)
-                # validate_system only ever pushes a body's distance further
-                # OUTWARD to resolve a spacing collision with its inner
-                # neighbor, never closer -- for the galactic-Hill-sphere
-                # ceiling this correction is negligible next to a light-year-
-                # scale boundary, but a much tighter S-type a_crit ceiling
-                # makes it a real possibility, so re-trim afterward using each
-                # body's own final position.
-                validation.trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
-                self._add_belts(self.planets, self.star, primary_ceiling_au)
-                self._apply_star_history(self.planets, self.star)
-                # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
-                if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
-                    self.validate_system(self.planets)
-                    validation.trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
+                self.planets = self._build_host(self.star, apply_guarantees=True, circumbinary_floor=True)
 
                 self.secondary_planets = []
                 if self.binary_type == "wide":
-                    secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
-                    self.secondary_planets = self._generate_planets(
-                        self.secondary_star, self.secondary_star.habitable_zone,
-                        secondary_ceiling_au, apply_guarantees=False,
-                    )
-                    self.validate_system(self.secondary_planets)
-                    validation.trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
-                    self._add_belts(self.secondary_planets, self.secondary_star, secondary_ceiling_au, apply_guarantees=False)
-                    self._apply_star_history(self.secondary_planets, self.secondary_star)
-                    if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
-                                                          self._explicit_request()):
-                        self.validate_system(self.secondary_planets)
-                        validation.trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                    self.secondary_planets = self._build_host(self.secondary_star, apply_guarantees=False)
                     # Runs last, once both lists reflect their own truly final
                     # (post-validate_system, post-trim) positions -- see this
                     # method's own docstring.
@@ -1649,11 +1620,25 @@ class StarSystem:
         The planets and belts of a member star (GEN.332): the same draw as a wide pair's secondary's, inside the S-type
         window of the tree (`build_ledger`), never under a `SLOTS` list or a forced habitable world.
         """
+        return self._build_host(star, apply_guarantees=False)
+
+    def _build_host(self, star, apply_guarantees, circumbinary_floor=False):
+        """
+        The planets and belts of one host star, drawn and settled: its slots (`_generate_planets`; the circumbinary floor cleared after them when `circumbinary_floor`), the spacing pass
+        (`validate_system`, which only ever pushes a body outward, so the trim after it uses each body's own final place), the ceiling trim, the belts, the star's history, and a white
+        dwarf's survivors moved out and settled again (GEN.318). One path for the primary, a wide pair's secondary, a member of the tree and a node's proxy (GEN.1656; they were four copies
+        that each fix had to find). Only the primary is under the guarantees of `system_config` (`apply_guarantees`).
+
+        Returns:
+            list: The host's planets and belts, in orbital order.
+        """
         ceiling_au = self._orbit_ceiling_au(star)
-        bodies = self._generate_planets(star, star.habitable_zone, ceiling_au, apply_guarantees=False)
+        bodies = self._generate_planets(star, star.habitable_zone, ceiling_au, apply_guarantees=apply_guarantees)
+        if circumbinary_floor:
+            self._clear_circumbinary_floor(bodies)
         self.validate_system(bodies)
         validation.trim_to_orbit_ceiling(bodies, ceiling_au)
-        self._add_belts(bodies, star, ceiling_au, apply_guarantees=False)
+        self._add_belts(bodies, star, ceiling_au, apply_guarantees=apply_guarantees)
         self._apply_star_history(bodies, star)
         if remnant_orbits.widen_for_mass_loss(bodies, star, self._explicit_request()):
             self.validate_system(bodies)
@@ -1672,16 +1657,7 @@ class StarSystem:
         key = (f"node-planets:{host.host_node_no}:{first.mass!r}:{second.mass!r}:{first.age!r}:{first.metallicity_fe_h!r}"
                f":{node.separation_km!r}:{node.eccentricity!r}")
         with draw.bound(draw.Stream(key)):
-            ceiling_au = self._orbit_ceiling_au(host)
-            bodies = self._generate_planets(host, host.habitable_zone, ceiling_au, apply_guarantees=False)
-            self.validate_system(bodies)
-            validation.trim_to_orbit_ceiling(bodies, ceiling_au)
-            self._add_belts(bodies, host, ceiling_au, apply_guarantees=False)
-            self._apply_star_history(bodies, host)
-            if remnant_orbits.widen_for_mass_loss(bodies, host, self._explicit_request()):
-                self.validate_system(bodies)
-                validation.trim_to_orbit_ceiling(bodies, ceiling_au)
-        return bodies
+            return self._build_host(host, apply_guarantees=False)
 
     def _orbit_ceiling_au(self, star):
         """
