@@ -1,1 +1,0 @@
-Design note for GEN.1493: the late-accretion document now says what is on main (slices 0 and 1) and designs the part not built, the giants' and a companion's effect on the veneer and the census by architecture. Docs only; no generated value changes.
