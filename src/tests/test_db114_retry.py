@@ -1,18 +1,18 @@
 # tests/test_db114_retry.py
 
 """
-DB.114: the backfills, the special phenomena and the sky charting write their stars and Object IDs through `db.contention.run_with_retries`, the way the
-scatter units do since DB.113. Each batch is one whole transaction (locks, draw, stars with their IDs, levels, ledger, commit) at READ COMMITTED that a
-deadlock (1213) rolls back and writes again with nothing carried over.
+DB.114, OPS.261: the backfills, the special phenomena and the sky charting write their stars and Object IDs through `db.contention.run_once`. Each batch is one
+whole transaction (locks, draw, stars with their IDs, levels, ledger, commit) at READ COMMITTED. A deadlock (1213) rolls it back and is raised: the in-process
+retry is gone, the engine retries the unit from its cursor (OPS.219, OPS.220).
 
-A deadlock is made the way it happens: the batch's rows are written (and given their IDs), then MySQL kills the transaction. The tests check that the
-rollback takes the rows back, that the retry writes exactly the stars an undisturbed run writes, and that a progress tick is not given twice.
+A deadlock is made the way it happens: the batch's rows are written (and given their IDs), then MySQL kills the transaction. The tests check that the error
+reaches the caller, that the rollback takes the rows back, and that a new call (the engine's retry) writes exactly the stars an undisturbed run writes.
 """
 
 import pymysql
 import pytest
 
-from planetgen.db import contention, store
+from planetgen.db import store
 from planetgen.queue import commands
 from planetgen.generation import run_galaxy, run_plan, scatter_companions, sky_charting
 from tests.test_bright_star_scatter import EDGE_PC, SMALL_E_VALUE, THRESHOLD, _seed_galaxy, _stored_stars  # noqa: F401
@@ -33,11 +33,21 @@ class Deadlock:
         return written
 
 
+def until_landed(call, killed=1):
+    """Calls `call` again the way the engine's retry does and returns `(result, deadlocks seen)`; the deadlock must be raised, not absorbed."""
+    seen = 0
+    for _ in range(killed + 1):
+        try:
+            return call(), seen
+        except pymysql.err.OperationalError as exc:
+            assert exc.args[0] == 1213
+            seen += 1
+    raise AssertionError("the writer was still being killed")
+
+
 @pytest.fixture
 def deadlock(monkeypatch):
-    """Installs a `Deadlock` on the scatter writer all the DB.114 callers use; no waiting between tries."""
-    monkeypatch.setattr(contention.time, "sleep", lambda seconds: None)
-
+    """Installs a `Deadlock` on the scatter writer all the DB.114 callers use."""
     def install(times=1):
         wrapper = Deadlock(scatter_companions.insert_bright_stars, times)
         monkeypatch.setattr(scatter_companions, "insert_bright_stars", wrapper)
@@ -73,11 +83,13 @@ def test_the_mass_backfill_after_a_deadlock_writes_the_stars_of_an_undisturbed_r
         assert todo
         ticks = []
         wrapper = deadlock(times=2)
-        sectors, stars = run_plan._draw_sector_masses(conn, skeleton, todo, limits, seed, on_sector=lambda: ticks.append(1))
-        assert wrapper.calls >= 3 and stars > 0, "the writer should have been killed twice and then landed"
+        with pytest.raises(pymysql.err.OperationalError):
+            run_plan._draw_sector_masses(conn, skeleton, todo, limits, seed)
+        assert _stored_stars(conn) == [], "the killed try is rolled back and nothing of it is left"
+        (sectors, stars), seen = until_landed(lambda: run_plan._draw_sector_masses(conn, skeleton, todo, limits, seed, on_sector=lambda: ticks.append(1)), killed=1)
+        assert seen == 1 and wrapper.calls >= 3 and stars > 0, "the writer was killed twice (one raised to the caller, one in the rerun) and then landed"
         after_deadlocks = _stored_stars(conn)
         assert len(after_deadlocks) == stars                                  # nothing from a rolled-back try is left
-        assert len(ticks) == len(todo)                                        # a retried chunk does not tick its sectors twice
         store.clear_bright_stars(conn)
         wrapper.times = 0
         assert run_plan._draw_sector_masses(conn, skeleton, todo, limits, seed) == (sectors, stars)
@@ -94,8 +106,11 @@ def test_the_luminosity_backfill_after_a_deadlock_lands_each_star_once(galaxy, d
     before = _stored_stars(conn)
     wrapper = deadlock(times=1)
     ticks = []
+    with pytest.raises(pymysql.err.OperationalError):
+        run_plan._draw_sector_bands(conn, skeleton, addresses, 500.0, limits, seed)
+    assert _stored_stars(conn) == before, "the killed try is rolled back"
     _sectors, stars = run_plan._draw_sector_bands(conn, skeleton, addresses, 500.0, limits, seed, on_sector=lambda: ticks.append(1))
-    assert wrapper.calls == 2 and stars > 0, "the writer should have been killed once and then landed"
+    assert wrapper.calls == 2 and stars > 0, "the writer was killed once, raised, and landed on the rerun"
     after = _stored_stars(conn)
     assert len(after) == len(before) + stars and len(set(after)) == len(after)       # nothing doubled by the retry
     assert all(row in after for row in before)
@@ -117,8 +132,8 @@ def test_a_sky_tier_batch_after_a_deadlock_writes_the_stars_of_an_undisturbed_dr
     conn.commit()
     assert _stored_stars(conn) == base
     wrapper = deadlock(times=2)
-    done = sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTER)
-    assert wrapper.calls >= 3 and done.stars > 0
+    done, seen = until_landed(lambda: sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTER), killed=2)
+    assert seen == 2 and wrapper.calls >= 3 and done.stars > 0, "the writer was killed twice, each raised to the caller, and landed on the third call"
     assert _stored_stars(conn) == clean
     assert conn.execute("SELECT complete, stars FROM sky_tier_draws").fetchone() == {"complete": 1, "stars": done.stars}
 
@@ -128,7 +143,6 @@ def test_the_special_phenomena_after_a_deadlock_are_the_rows_of_an_undisturbed_w
     """the `write-special-phenomena` unit writes the nucleus and the hypervelocity stars as one retried transaction: a deadlock after the rows
     (and their Object IDs) are written takes them all back and the second try writes each exactly once."""
     from planetgen.queue import wrapper
-    monkeypatch.setattr(contention.time, "sleep", lambda seconds: None)
     _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE)
     params = {"database": wrapper.database_args(mysql_config), "seed": 7, "min_mass_solar": 20.0}
     conn = store.get_connection(mysql_config)
@@ -155,15 +169,15 @@ def test_the_special_phenomena_after_a_deadlock_are_the_rows_of_an_undisturbed_w
             return written
 
         monkeypatch.setattr(store, "insert_phenomenon_scatter", deadlocked)
-        commands.run_alone("write-special-phenomena", params)
-        assert len(calls) == 3, "the writer should have been killed twice and then landed"
+        _, seen = until_landed(lambda: commands.run_alone("write-special-phenomena", params), killed=2)
+        assert seen == 2 and len(calls) == 3, "the writer was killed twice, each raised, and landed on the third call"
         assert stored() == clean
         assert conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE uid IS NULL").fetchone()["n"] == 0
     finally:
         conn.close()
 
 
-def test_the_tick_helper_gives_each_sector_one_tick_whatever_the_number_of_tries():
+def test_the_tick_helper_gives_each_sector_one_tick_whatever_the_number_of_calls():
     ticks, ticked = [], [0]
     for _try in range(3):
         for index in range(4):
