@@ -3486,7 +3486,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     thrown_inward_kg            DOUBLE NULL,  -- v267 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v267
     lagrange_point              VARCHAR(2) NULL,  -- v269 (GEN.1150): `L4` (leading) or `L5` (trailing) for a trojan region of a giant, whose parent is the giant (`parent_type` planet), NULL for every other belt
     libration_amplitude_deg     DOUBLE NULL,  -- v269 (GEN.1150): the libration amplitude of a trojan region's bodies about its point, degrees (`physics/trojan_swarm.py`), NULL for every other belt
-    libration_phase_deg         DOUBLE NULL,  -- v269 (GEN.1150): the libration phase at the epoch, degrees, NULL for every other belt
+    libration_phase_deg         DOUBLE NULL,  -- v269 (GEN.1150): the libration phase at Unix time zero, degrees (`physics/trojan_overlay.py` adds the libration to the giant's longitude at any time from it), NULL for every other belt
     mean_eccentricity           DOUBLE NULL,  -- v269 (GEN.1150): the mean eccentricity of a trojan region's bodies, NULL for every other belt
     mean_inclination_deg        DOUBLE NULL,  -- v269 (GEN.1150): the mean inclination of a trojan region's bodies to the giant's plane, degrees, NULL for every other belt
 
