@@ -8,7 +8,7 @@ import math
 
 import pytest
 
-from planetgen.physics import saturation
+from planetgen.physics import elements, saturation
 from planetgen.physics import sulfuric_vapor as sv
 
 
@@ -48,7 +48,7 @@ def test_the_rule_file_is_complete():
 
 def test_a_rule_file_entry_without_a_tier_is_refused():
     with pytest.raises(sv.SulfuricVaporError):
-        sv._check("x", {"tweak": "L0", "basis": "b"})
+        elements.check_rule_entry("x", {"tweak": "L0", "basis": "b"}, sv.SulfuricVaporError)
 
 
 @pytest.mark.parametrize("temperature_k,x,g,mu_acid,mu_water", ZELEZNIK_TABLE_7)
