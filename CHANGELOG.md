@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4639] - 2026-11-19
+
+**Headline:** The radiation sweep's doubling rule now gives the table the world's gravity in m/s2 instead of in g.
+
+### Fixed
+- TEST.803: `test_doubling_the_infrared_active_gases_never_cools_the_ground` passed `body.gravity` (in g) to the greenhouse table, which takes m/s2, so it asked about a world a tenth as heavy as the one it sweeps. On Train 50's draws it hit a 12 bar carbon dioxide air at 1.19 g and read 353.4 K falling to 336.6 K under twice the infrared-active gases; with the gravity in m/s2 the same air rises from 299 K to 327 K. The rule and its tolerance are unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4638] - 2026-11-19
 
 **Headline:** The cloud cosmic-ray test now checks the worlds that stay airless when their life is applied again, because the early-life change lets one test world build an air.
