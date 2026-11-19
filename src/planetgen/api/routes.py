@@ -858,7 +858,7 @@ def _life_air(table, body_id):
                     history["source"] = stored_air.SOURCE_REBUILT
             # API.51: a body that keeps the record of its air history (GEN.1745 slice 4b) answers from it, every gas and the shocks; what only the life knows (its classes, the producers' and the oxygen's ages) comes from the rebuilt answer
             if row["air_history"]:
-                history = stored_air.from_text(row["air_history"], body.star.age, ages, history)
+                history = stored_air.from_text(row["air_history"], body.star.age, ages if class_id in life_classes.BY_ID else {}, history)       # a world with no life has no stages of it
     return jsonify({"id": ids.printed(conn, table[:-1], body_id), "life_class_id": class_id, "life_air": history})
 
 
