@@ -104,3 +104,8 @@ def draws_stars(job, link):
             return 0
         time.sleep(0.02)
     return 9
+
+
+def measures_its_arguments(job, link):
+    """Exits 0 when the one argument the job was given is as long as the length it was told it would be (OPS.283: arguments over the socket's limit come in a file)."""
+    return 0 if len(job.get("blob", "")) == job["size"] else 4

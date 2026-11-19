@@ -11,7 +11,7 @@ it reads no class, writes none and draws only from the stream it is given.
    disk builds nothing the size of a planet; a heavy one builds a chain. No coin flip decides whether a star has planets.
 2. **The chain.** From an inner edge (a period near 5 days, [R3193, R3196]) outwards oligarchs form one feeding zone after another, each
    at the isolation mass (`formation.isolation_mass_kg`) and `separation` mutual Hill radii from the last (`OLIGARCH_SEPARATION_MEDIAN`,
-   drawn per system). The outer disk has built less (`PLANET_OUTER_GROWTH_AU`).
+   drawn per system). The outer disk has built less (`planet_mass.growth_limit_au`).
 3. **The thinning.** Pu and Wu 2015 [R3621] integrated tight chains and fitted the chance that one survives: a pair of spacing
    `K` mutual Hill radii lasts `tau` orbits of its inner planet with probability `1 - exp(-x^2)`, `x = 0.5 K - 0.6 - 0.35 log10 tau`. Each
    pair of the chain gets an instability time drawn from that law; the earliest to go collides (the two merge, keeping their angular
@@ -194,7 +194,7 @@ def oligarch_chain(star_mass_kg, snow_line_au, metal_ratio, scatter, separation,
     """
     The oligarchs an outer disk builds between `inner_au` and `outer_au`, as `[distance_au, mass_kg]` lists in order of distance: each at
     the isolation mass of its feeding zone `separation` mutual Hill radii wide, the next one a spacing further out. The outer disk has
-    built less (the taper `PLANET_OUTER_GROWTH_AU` and `PLANET_OUTER_GROWTH_EXPONENT`). Bodies lighter than `PLANET_MIN_MASS_EARTH` are kept in the chain (they
+    built less (the taper from `planet_mass.growth_limit_au`, which scales `PLANET_OUTER_GROWTH_AU` with the star's mass, and `PLANET_OUTER_GROWTH_EXPONENT`). Bodies lighter than `PLANET_MIN_MASS_EARTH` are kept in the chain (they
     take part in the thinning) and leave it afterwards (`build`).
     """
     chain = []
@@ -508,8 +508,10 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
 
 _ROGUE_MIN_KG = tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH["terrestrial"][0] * _EARTH_KG
 """float: The least mass of a rogue planet (`tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH`), kg: an embryo under it that the planets stir stays a bound body and is not made a rogue (`losses`)."""
-_RESONANCE_3_TO_1 = 3.0 ** (2.0 / 3.0)
-"""float: Semi-major axis ratio of the 3:1 mean-motion resonance, the edge of the stretch a system's planets stir (`losses`)."""
+STIRRED_STRETCH_FACTOR = 2.3
+"""float: The ratio of semi-major axes by which the stretch a system's planets stir reaches past its innermost and outermost planet's reach band (`losses`). The 3:1 mean-motion resonance is 2.08 (3^(2/3));
+GEN.1539 moved it to 2.3, inside the 2:1 (1.59) to 4:1 (2.52) range of its registered stand-in (SM1, tweak L2): the growth limit by star mass left the embryos of the stars under 0.6 solar masses
+lighter than 0.1 Earth masses beyond it, which the terrestrial donor yield counts, and 2.3 brings that yield back inside its band (tests/test_rogue_yield_calibration.py)."""
 
 
 def strip(architecture, stripped):
@@ -581,10 +583,10 @@ def losses(architecture):
                                 scatter_rule.hill_radius_au(seed.mass_kg / _EARTH_KG, seed.distance_au, star_solar), seed.formation_au > lost.snow_line_au, fates))
     free_count, free_mass = 0, 0.0
     bands = [(scatter_rule.reach_band_au(p.distance_au, p.formation_au, p.mass_kg / _EARTH_KG, star_solar), p) for p in architecture.planets]
-    span = (min(low for (low, _), _ in bands) * _RESONANCE_3_TO_1 ** -1.0, max(high for (_, high), _ in bands) * _RESONANCE_3_TO_1) if bands else None
+    span = (min(low for (low, _), _ in bands) / STIRRED_STRETCH_FACTOR, max(high for (_, high), _ in bands) * STIRRED_STRETCH_FACTOR) if bands else None
     for distance, mass in lost.small:
-        # An embryo left below the planet minimum sits where the planets' resonances pump it, not only inside a chaotic zone: the 3:1 mean-motion resonance (period
-        # ratio 3, semi-major axis ratio 3^(2/3)) of the outermost planet and of the innermost lies at the edge of what the system stirs, so the stretch between
+        # An embryo left below the planet minimum sits where the planets' resonances pump it, not only inside a chaotic zone: a mean-motion resonance (the 3:1,
+        # semi-major axis ratio 2.08, widened to `STIRRED_STRETCH_FACTOR`) of the outermost planet and of the innermost lies at the edge of what the system stirs, so the stretch between
         # those edges holds the embryo in reach of the strongest scatterer (GEN.1299, stand-in 6.195 SM1 in section 6.113).
         reach = list(architecture.planets) if span and span[0] <= distance <= span[1] and mass >= _ROGUE_MIN_KG else []
         if not reach:

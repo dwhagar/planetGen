@@ -8,9 +8,9 @@ The air of a rocky body takes the nitrogen its mantle holds (`mixture_rocky.rock
 (`surface_pressure.degassed_share` x an efficiency). Both were wrong for nitrogen alone: the efficiency was 1 (all that degasses stays
 as gas), carbon's share being the Earth's calibration, and nothing took nitrogen back to the metal. Two pieces fix that, both neutral for an Earth twin.
 
-* *The metal takes nitrogen (A).* Nitrogen is siderophile: the metal/silicate partition coefficient `D_N` is 10 to 31 in the experiments (Suer and others 2023, their
-  section 2.3.3), 20 +/- 10 measured and 1.8 thermodynamic in [R2171], nominal 10 with a range of 1 to 100 in Johansen and others 2023, and it
-  rises with the oxygen fugacity: 1 (dIW -4) to 39 (dIW -1) at 20 GPa and 3000 K, 5 to 265 at 5 GPa and 2000 K (Suer and others 2023, Table 1). The mantle keeps
+* *The metal takes nitrogen (A).* Nitrogen is siderophile: the metal/silicate partition coefficient `D_N` is 10 to 31 in the experiments ([R5317], their
+  section 2.3.3), 20 +/- 10 measured and 1.8 thermodynamic in [R2171], nominal 10 with a range of 1 to 100 in [R5318], and it
+  rises with the oxygen fugacity: 1 (dIW -4) to 39 (dIW -1) at 20 GPa and 3000 K, 5 to 265 at 5 GPa and 2000 K ([R5317: Table 1]). The mantle keeps
   `1 / (1 + D_N x)` of the nitrogen the body brought, `x` the core over the mantle mass. `D_N` here is the 20 GPa pair, log-linear in the redox (`metal_silicate_d`), held between 1
   and the 5 GPa oxidized value 265. The inventory's bracket is the Earth's, which already has the Earth's partition inside it, so only a body more oxidized than the reference
   redox (`REFERENCE_DIW`, the Earth-mass mean of the magma-ocean redox `a1`) loses more; a more reduced one keeps what its bracket gives (`mantle_retention`).
@@ -25,11 +25,11 @@ Every number is a design constant with its tier and tweak level in `docs/design/
 import math
 
 REDUCED_DIW = -4.0
-"""float: The redox of the reduced end of the partition table, log10 units above the iron-wuestite buffer (measured, Suer and others 2023, Table 1)."""
+"""float: The redox of the reduced end of the partition table, log10 units above the iron-wuestite buffer (measured, [R5317: Table 1])."""
 OXIDIZED_DIW = -1.0
 """float: The oxidized end (measured, the same table)."""
 D_N_REDUCED = 1.0
-"""float: `D_N` at the reduced end, 20 GPa and 3000 K (Suer and others 2023, Table 1: 'embryo or intermediate magma ocean')."""
+"""float: `D_N` at the reduced end, 20 GPa and 3000 K ([R5317: Table 1]: 'embryo or intermediate magma ocean')."""
 D_N_OXIDIZED = 39.0
 """float: `D_N` at the oxidized end, same conditions (measured)."""
 D_N_MAX = 265.0

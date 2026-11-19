@@ -17775,7 +17775,7 @@
             ],
             [
               "Evidence",
-              "tuned to [R1479] ([R1479], READ) and the [R4271] microlensing rate (recalled); re-tuned on the wiring with GEN.950's 182 K snow line and ice boost 2.17, then with GEN.1396's jump of 1.967 (the mass law's own PM1 is retired into this row; the enhancement and the outer growth stay: the giants at 2 to 8 AU were recovered by PM5 and PA2, and the outer disk beyond 11 AU is not what the jump changed); GEN.1406: the enhancement 0.4647 to 0.58 after the inner systems lost mass (below, PA4) moved the share of Sun-like stars with a giant at 2 to 8 AU on the test's seeds from 0.105 to 0.102 with the survey at 0.141 +- 0.019; over 8 blocks of 2,500 systems 0.52 gives 0.114, 0.55 gives 0.120, 0.58 gives 0.127 (inside one sigma) and 0.61 gives 0.136, so 0.58 is the smallest step that returns the share inside one sigma of [R1479]"
+              "tuned to [R1479] ([R1479], READ) and the [R4271] microlensing rate (recalled); re-tuned on the wiring with GEN.950's 182 K snow line and ice boost 2.17, then with GEN.1396's jump of 1.967 (the mass law's own PM1 is retired into this row; the enhancement and the outer growth stay: the giants at 2 to 8 AU were recovered by PM5 and PA2, and the outer disk beyond 11 AU is not what the jump changed); GEN.1406: the enhancement 0.4647 to 0.58 after the inner systems lost mass (below, PA4) moved the share of Sun-like stars with a giant at 2 to 8 AU on the test's seeds from 0.105 to 0.102 with the survey at 0.141 +- 0.019; over 8 blocks of 2,500 systems 0.52 gives 0.114, 0.55 gives 0.120, 0.58 gives 0.127 (inside one sigma) and 0.61 gives 0.136, so 0.58 is the smallest step that returns the share inside one sigma of [R1479]; GEN.1539: the growth distance 11.36 is the value at one solar mass and goes as the star's mass to the power PLANET_SOLIDS_STELLAR_MASS_EXPONENT less 1/2 (0.7), from the time a core takes to assemble (the orbital period times the star's mass over the solids' surface density and the square of the distance, a Safronov-type argument, recalled; tier T6, inferred physics, L0 for the exponent), floored at the star's snow line and capped at its disk's edge (planet_mass.growth_limit_au); planets and belts read the one limit"
             ]
           ],
           "id": "PA1",
@@ -42083,7 +42083,7 @@
           "fields": [
             [
               "What it is",
-              "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+              "planet_architecture.STIRRED_STRETCH_FACTOR (2.3; the 3:1 resonance, 3^(2/3) = 2.08, until GEN.1539 moved it inside the range, tuned to the donor yield band of tests/test_rogue_yield_calibration.py, 0.77 to 0.90 per star): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
             ],
             [
               "The range it moves in",
@@ -42112,9 +42112,9 @@
           "slug": "6-195-sm1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L1",
+          "tweak": "L2",
           "unread": null,
-          "what": "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+          "what": "planet_architecture.STIRRED_STRETCH_FACTOR (2.3; the 3:1 resonance, 3^(2/3) = 2.08, until GEN.1539 moved it inside the range, tuned to the donor yield band of tests/test_rogue_yield_calibration.py, 0.77 to 0.90 per star): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
         },
         {
           "burn_down": null,
@@ -72007,7 +72007,7 @@
             ],
             [
               "The range it moves in",
-              "1 to 100 (Johansen and others 2023 range), 10 to 31 measured (Suer and others 2023)"
+              "1 to 100 ([R5318] range), 10 to 31 measured [R5317]"
             ],
             [
               "Where it holds",
@@ -72019,11 +72019,11 @@
             ],
             [
               "What replaces it",
-              "a D_N law fitted on pressure, temperature and redox together (Grewal and others 2019 style)"
+              "a D_N law fitted on pressure, temperature and redox together (the kind of fit [R1684] makes for the speciation)"
             ],
             [
               "Evidence",
-              "Suer and others 2023, Front. Earth Sci. 11:1159412, Table 1 (a review of the experiments); [R2171] K_D 20 +/- 10 measured, 1.8 thermodynamic"
+              "[R5317: Table 1] (a review of the experiments); [R5318] (range 1 to 100); [R2171] K_D 20 +/- 10 measured, 1.8 thermodynamic"
             ]
           ],
           "id": "NB1",
@@ -74915,6 +74915,90 @@
       ],
       "slug": "6-308-stand-ins-of-the-vapor-pressure-of-carbonyl-sulfide-carbon-disulfide-and-sulfur-trioxide-and-the-gases-with-no-law-gen-1794",
       "title": "Stand-ins of the vapor pressure of carbonyl sulfide, carbon disulfide and sulfur trioxide, and the gases with no law (GEN.1794)"
+    },
+    {
+      "key": "6.309",
+      "number": "6.309",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.wet_land_fraction: the weathering land is land x min(1, ocean_cover / OCEAN_COVER_EARTH); rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it"
+            ],
+            [
+              "The range it moves in",
+              "the cover that saturates it (0.5 to 0.8)"
+            ],
+            [
+              "Where it holds",
+              "worlds with a liquid ocean and some land"
+            ],
+            [
+              "What would show it wrong",
+              "a measured planet whose weathering does not fall with its sea (the insensitivity to land fraction of [R0009] is at a given sea)"
+            ],
+            [
+              "What replaces it",
+              "a runoff model with the hydrological cycle over the land"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics; the form is not in a source read"
+            ]
+          ],
+          "id": "WW1",
+          "key": "6.309:WW1",
+          "kind": "T",
+          "slug": "6-309-ww1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_pressure.wet_land_fraction: the weathering land is land x min(1, ocean_cover / OCEAN_COVER_EARTH); rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "as WW1"
+            ],
+            [
+              "What would show it wrong",
+              "as WW1"
+            ],
+            [
+              "What replaces it",
+              "as WW1"
+            ],
+            [
+              "Evidence",
+              "the Earth's value (0.71); using it as a saturation is a stand-in"
+            ]
+          ],
+          "id": "WW2",
+          "key": "6.309:WW2",
+          "kind": "P",
+          "slug": "6-309-ww2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+        }
+      ],
+      "slug": "6-309-stand-ins-of-the-water-limited-silicate-weathering-gen-1403",
+      "title": "Stand-ins of the water-limited silicate weathering (GEN.1403)"
     }
   ]
 }

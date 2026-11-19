@@ -22,9 +22,9 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.792 |
+| TEST | TEST.793 |
 | USR | USR.33 |
-| OPS | OPS.280 |
+| OPS | OPS.284 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2191,7 +2191,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1400 | Class-letter leftovers: m_count, the unused trojan_bodies and hycean_candidate letter code, the dead pass-throughs in bodylook and habitability_world, the stale tuning docstring (audit F7 and F8) | none | done, PR #5667 |
 | GEN.1401 | Importing planetgen.physics.hydrosphere or bulk_draw alone fails with a circular import unless planet_type is imported first, and GEN codes show in describe/sheet.py and stellar_abundances.py text (bug) | none | done, PR #5697 |
 | GEN.1402 | A rocky planet whose orbit eccentricity settled after its air was made keeps the air, temperature, dose and UV of the older light: remake its end stages when the eccentricity moved past a tolerance, even if the star's age did not (bug) | none | done (Train 23, 2026-11-11) |
-| GEN.1403 | Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever) | none | open |
+| GEN.1403 | Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever) | none | done (PR 7218, Train 47, PR 7235, merged 9:53 PM EST 11-18: water-limited weathering; stand-ins WW1, WW2 section 6.309) |
 | GEN.1404 | Land fraction against the water inventory: read the Cowan and Abbot mantle-water land fraction paper and the mantle water cap work, and report whether the model's 95 to 100 percent ocean cover for most sea worlds is what the physics gives | none | done as research, no retune (reports/gen1404-land-fraction-water-inventory-2026-11-11.md) |
 | GEN.1405 | Oxygen store delay: source the time an oxygen world takes to fill its stores before oxygen rises (EARTH_STORE_MOL, T9, L3, tuned to a 0.7 Gyr delay) from the geochemistry | none | done, PR #5783 |
 | GEN.1406 | Inner-planet Earth-size share against the Kepler occurrence rate: the generator gives 3.3 percent of stars an Earth-size inner planet (0.8 to 1.5 Earth radii) against the 16.5 percent the survey implies | none | done, PR #5869 |
@@ -3042,7 +3042,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.222 | Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted | none | done, part A PR #6657 (6:49 AM EST 11-15), part B PR #6703 (1:14 PM EST 11-15) |
 | OPS.223 | Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146 | none | done, PR #6621 (4:38 AM EST 11-15) |
 | OPS.224 | Job engine stage 3: Queue page from the ledger (jobs and history by query; a job shows its attempts and why it waits) | none | done, PRs #6622 (5:02 AM EST) and #6644 (5:44 AM EST 11-15) |
-| OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | open |
+| OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | done (Lane 13 kill tests PRs 7220, 7221, 7222, 7224, 7242, 7243, 7245; merged 11-18 and 11-19 by 4:00 AM EST; no double write found) |
 | OPS.226 | Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side | none | done (built and in use since OPS.228, Lane 06 check 1:27 AM EST 11-18; docstrings PR 7182; kill tests are OPS.236) |
 | OPS.227 | Job engine stage 4: the dispatch rule over the whole backlog (site lanes first against kept places, then scheduler.judge; reservations last until used; each job's last reason stored); absorbs OPS.124 with OPS.231 and OPS.232 | none | done, PR #6652 (6:34 AM EST 11-15) |
 | OPS.228 | Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane) | none | done (PRs 6995, 7011, 7027, 7040, 7062; 7:58 AM EST 11-17: every ledgered run's bulk lane runs as forked jobs; deleting the RQ unit path moves to OPS.271 then OPS.229) |
@@ -3063,7 +3063,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.243 | Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261 | none | done, PRs #6757, #6767 (9:45 PM EST 11-15) |
 | OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | done (slice A PR 7107, slice B PR 7163, slice C PR 7168 merged 11:47 PM EST 11-17: Generate page jobs are ledger runs; Lane 15 re-measures the cold one-off request after the Train 45 gate) |
 | OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | done (PR 7191, Lane 16, merged 2:04 AM EST 11-18: seeded random runs with windows, holds, kills; no engine bug found) |
-| OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | open |
+| OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | done (PRs 7244, 7246 and 7247, Lane 13, merged by 4:15 AM EST 11-19: launcher window kills, seeded chain kill test with seed and kill switches for the end-of-version hunt, TRANSITIONS table, cancel while killed) |
 | OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | open |
 | OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | done (PR 7094 merged 12:41 PM EST 11-17: ledger-read latency is a second signal for the memory controller's hold) |
 | OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | open |
@@ -3094,9 +3094,13 @@ Parents marked "new parent" had no old number of their own.
 | OPS.274 | Resume and finish tests follow the hold-and-continue rule | none | done (PR 7179, Lane 15, merged 1:03 AM EST 11-18) |
 | OPS.275 | A held unit's error keeps its last traceback frames | none | done (PR 7185, Lane 15, merged 1:41 AM EST 11-18: last 3 frames, file:line in function, masked) |
 | OPS.276 | A unit held with IndexError (sky charting, bright star scatter) | none | open (Lane 16) |
-| OPS.277 | Held-run reds in maintenance and finish-run tests | none | open (Lane 15) |
-| OPS.278 | Galaxy test database lacks engine_runs | none | open (Lane 07) |
+| OPS.277 | Held-run reds in maintenance and finish-run tests | none | done (PR 7231, Lane 15, merged 8:30 PM EST 11-18: both test faults; the held-run outcome is right) |
+| OPS.278 | Galaxy test database lacks engine_runs | none | done (PR 7233, Lane 07, merged 8:58 PM EST 11-18: shared control_config fixture builds the control schema in the test database) |
 | OPS.279 | Template heap copied into each sky share | OPS.270 | open (Lane 13) |
+| OPS.280 | New galaxy job stops at the luminosity scatter (stage 7 already stored it) | none | done (PR 7240, Lane 13, merged 2:58 AM EST 11-19: a prepared luminosity scatter no longer refuses after the backfill) |
+| OPS.281 | Generation runs never show as running | none | done (PR 7239, Lane 16, merged 2:35 AM EST 11-19: runs record running and started_at, and done with finished_at) |
+| OPS.282 | Stage 7 backfill shows no counts | none | done (PR 7239, Lane 16, merged 2:35 AM EST 11-19: backfill progress line with counts and HMS time left) |
+| OPS.283 | Big unit arguments overflow the template socket; a unit that cannot start leaves its run waiting | none | done (PR 7248, Lane 15, merged 4:20 AM EST 11-19: arguments over 64 KB go by a file in the state folder; a start failure holds the run with its error) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -3883,7 +3887,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1536 | The Cassini state of a planet's tilt from its real precession constant (needs the stored J2 or C22 figure), replacing the log-uniform stand-in | GEN.1535 | done earlier (commit 1137306dd6, merged 11-11, Release 8.0.4005: physics/cassini_state.py from J2 and C22; moon part GEN.1556; found stale by Lane 04, 4:53 AM EST 11-16) |
 | GEN.1537 | Class and life census re-tag after trains 22 and 23 (epochs 144 to 146): re-measure the census shares and re-baseline the class and life ranges the trains moved | GEN.1501 | done, PR #6066 |
 | GEN.1538 | Design check: settle the orbit before making the air (birth orbit, settle, air once) instead of making the air and remaking it after the settle | none | retired, superseded by GEN.1548 (air once on the settled orbit) |
-| GEN.1539 | Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size | GEN.1520 | open |
+| GEN.1539 | Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size | GEN.1520 | done (PR 7214 with 7229 and 7232, Train 47, PR 7235, merged 9:53 PM EST 11-18: growth limit 11.36 au x (M/Msun)^0.7) |
 | GEN.1540 | (bug) A rare captured moon's position radius is outside its allowed range (a wrong or stale frame), so test_orbital_motion fails by draw luck | none | done, Train 24 PR #6033 (b8a0163b7) |
 | GEN.1541 | The tide a large asteroid or dwarf planet raises on its own moons (GEN.1464 part C) | GEN.1464 | done, covered by GEN.1510 (promoted belt planets carry moons and read tide_sources like any planet; PR 6824 pins it with tests, merged 6:24 AM EST 11-16; unpromoted asteroid binaries wait on a satellite size law source) |
 | GEN.1542 | Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists | GEN.1425 | done (slice 0 PR 7039, slice 1 PR 7049, 11-17) |
@@ -3927,7 +3931,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1580 | Raise the 2,000 K upper temperature cap to a sourced, very high physical ceiling (the ionization or plasma temperature of the air's main gas at its pressure, tens of thousands of K), after checking nothing assumes 2,000 K | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1581 | Research the lowest carbon dioxide at which oxygen-making (oxygenic) photosynthesis works, and replace the 5 Pa stand-in gate of life classes 1a, 1b and 1c with the sourced value | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1582 | Move the upper oxygen edge of classes M, O, H, P and R clear of the biotic oxygen cap (the edge is 35,500 Pa and the cap 35,463.75 Pa, so M passes by 36 Pa) | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
-| GEN.1583 | Research the nitrogen budget: nitrogen degasses at efficiency 1.0 with no sink, so an Earth analog holds a median 164 kPa and 37 percent hold over 300 kPa; find why the inventory is so wide and what retention and sinks the papers give | none | open |
+| GEN.1583 | Research the nitrogen budget: nitrogen degasses at efficiency 1.0 with no sink, so an Earth analog holds a median 164 kPa and 37 percent hold over 300 kPa; find why the inventory is so wide and what retention and sinks the papers give | none | closed (Lane 04, 2:42 AM EST 11-19: research built as GEN.1584 and GEN.1646; Earth analog N2 quartiles 29, 81, 131 kPa; no Class M gain; NB1 sources R5317, R5318 in PR 7241) |
 | GEN.1584 | Build the nitrogen degassing share and sink from the GEN.1583 research so Earth-mass air centres near 80 kPa of nitrogen instead of 164 | none | done, Train 25 PR 6236, 2:55 AM EST 11-13; piece B dropped by Boss |
 | GEN.1585 | Re-check that classes H and P are reachable after GEN.1581 and GEN.1584 (0 in 4,800 Earth-analog trials today); if still 0, look at the brine-seep rule and P's oxygen need | GEN.1581, GEN.1584 | done (measured, Lane 05, 12:28 AM EST 11-18: 0 H and 0 P in 2,400 Earth-analog trials; both stop at oxygen, the 600 Pa plateau BO11 held until R < S/BO12; levers to GEN.1791) |
 | GEN.1586 | Replace how the classes read wet-bulb temperature: today the daytime peak of the hottest band is read against M's 28 C edge, which is about 15 K over the band mean, so Earth itself sits on the edge (median 28.0 C at 288 K) | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
@@ -5017,6 +5021,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.789 | test_secular_exchange_generation fails under load: find the load-order effect | done (PR 7007, 1:49 AM EST 11-17: one test moved the shared systems; it now builds its own) |
 | TEST.790 | A controlled greenhouse test: doubled infrared-active gases never lower the greenhouse | done (PR 7019, 2:41 AM EST 11-17; hydrogen-rich airs scoped out, see GEN.1781) |
 | TEST.791 | Stale test reds on main (fill order, unit reports, readme, cut neutral, stats) | none | open (Lane 14) |
+| TEST.792 | Main reds after Train 47: test_page_shell (galaxynebulae.js import) and test_user_agent (gaia_nearby.py not in OUTGOING) | none | done (PR 7237, Lane 16, merged 10:15 PM EST 11-18: galaxynebulae.js import with VERSION_QUERY; gaia_nearby.py listed in OUTGOING) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
