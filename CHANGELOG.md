@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4603] - 2026-11-19
+
+**Headline:** Kill test for a run canceled while its job is killed (OPS.246).
+
+### Added
+
+- A kill test with real processes: a run canceled while its job process is killed, in either order, ends with the unit canceled, never handed out again, and no piece done twice. The table of killed engine transitions names it.
+
 ## [8.0.4602] - 2026-11-19
 
 **Headline:** Kill matrix over a whole galaxy run and the warm-up after it, with every engine transition named (OPS.246).
