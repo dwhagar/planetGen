@@ -213,6 +213,14 @@ COLD_GEN_FAMILIES = (
                                                      "Ar": (0.0, 0.01), "CH4": (0.0, 0.01)}, (3.0e5, 3.0e6), (0.3, 30.0), 0.0, (3.0, 16.0)),
 )
 """tuple: GEN.1796: the families of `cold --gen`, cold dense nitrogen airs with the minor gases the generator's own airs of that kind carry (the held-out airs of the generator's seeds, 2.7 and 5.1 MPa of nitrogen at an effective temperature of 69 and 131 K, which the hand-made families left 60 to 70 K off): more gases at a few parts in a thousand, water vapor from nothing to 2e-3."""
+COLD_MORE_FAMILIES = (
+    ("cold-hydrogen-sulfide-rich", {"H2S": (0.05, 0.9), "N2": (0.05, 0.9), "SO2": (0.0, 0.1), "CO2": (0.0, 0.05), "H2": (0.0, 0.01), "H2O": (0.0, 2.0e-3), "Ar": (0.0, 0.01)},
+     (1.0e5, 1.5e6), (1.0, 90.0), 0.0, (3.0, 16.0)),
+    ("cold-dense-nitrogen-carbon-monoxide", {"N2": (0.8, 0.99), "CO": (0.0, 0.03), "CO2": (0.0, 0.01), "H2": (0.0, 0.01), "CH4": (0.0, 0.005), "Ar": (0.0, 0.01), "H2O": (0.0, 1.0e-3)},
+     (1.0e6, 8.0e6), (0.3, 30.0), 0.0, (3.0, 16.0)),
+)
+"""tuple: GEN.1796: the families of `cold --more`, the two kinds of cold airs the generator's own validation airs showed the table 50 to 60 K cold on after `COLD_GEN_FAMILIES`: an air that is mostly hydrogen sulfide
+with sulfur dioxide and nitrogen (0.1 to 1.5 MPa), and dense nitrogen with up to 3 percent carbon monoxide."""
 COLD_DEEP_FAMILIES = (
     ("cold-deep-nitrogen", {"N2": (0.6, 0.95), "CO2": (0.03, 0.35), "Ar": (0.0, 0.02), "CH4": (0.0, 0.01)}, (1.5e6, 2.0e7), (0.3, 6.0), 0.0),
     ("cold-deep-carbon-dioxide", {"CO2": (0.85, 1.0), "H2": (0.0, 0.05), "N2": (0.0, 0.1)}, (1.0e6, 2.0e7), (0.3, 6.0), 0.0),
@@ -497,7 +505,7 @@ def cold(args):
     if os.path.exists(path):
         with open(path, "rb") as handle:
             samples = pickle.load(handle)
-    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), COLD_GEN_FAMILIES if args.gen else COLD_CIA_FAMILIES if args.cia else COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
+    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), COLD_MORE_FAMILIES if args.more else COLD_GEN_FAMILIES if args.gen else COLD_CIA_FAMILIES if args.cia else COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
     with open(path, "wb") as handle:
         pickle.dump(samples, handle)
     print(f"{args.count} cold dense airs added, {len(samples)} samples in {path}")
@@ -923,6 +931,7 @@ def main():
     parser.add_argument("--out", default=OUT)
     parser.add_argument("--deep", action="store_true", help="cold: the deep families (`COLD_DEEP_FAMILIES`)")
     parser.add_argument("--census", nargs="+", default=[], help="nullgas: the `.jsonl.gz` files of the class census whose airs are taken (GEN.1629)")
+    parser.add_argument("--more", action="store_true", help="cold: the hydrogen sulfide and carbon monoxide families (`COLD_MORE_FAMILIES`, GEN.1796)")
     parser.add_argument("--gen", action="store_true", help="cold: the generator-like cold dense nitrogen families (`COLD_GEN_FAMILIES`, GEN.1796)")
     parser.add_argument("--cia", action="store_true", help="cold: the light-world nitrogen families with infrared gases (`COLD_CIA_FAMILIES`, GEN.1796)")
     parser.add_argument("--rng-offset", type=int, default=0, help="envelope, hot: another stream of bodies than the fit's (GEN.1780: 1 draws bodies the fit never saw, for the validation)")
