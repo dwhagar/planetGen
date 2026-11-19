@@ -23,8 +23,8 @@ the seed-based sector repair (DB.9, DB.17). What is dropped: `generate.py
 reproduce` (OPS.12), the pages and routes that show the seed and version
 (ADM.17, API.16), the net-difference JSON of admin changes (GEN.59), the
 daily merge, the 18 backup slots and their dashboard (GEN.61, OPS.18,
-ADM.19, ADM.20), and repair from the JSON deltas (DB.10). OPS.16 now runs
-the positional update only. Sections below that describe the dropped
+ADM.19, ADM.20), and repair from the JSON deltas (DB.10). The daily run
+(OPS.16, OPS.17) is planned, not built, and would run the positional update and the nightly backup only. Sections below that describe the dropped
 parts are kept as history and are not planned.
 
 **Status (2026-10-09, checked against main at 27220d8): partly built.**
@@ -516,26 +516,10 @@ ownership). Needs OPS.16, GEN.61 and OPS.18.
 
 ## 8. The daily maintenance run (phase 2)
 
-- **The script (OPS.16).** The logic lives once, in
-  `planetgen.cli.maintenance`; `scripts/maintenance.sh` is a thin launcher that runs it as
-  the web user. It runs once a day: the positional update
-  (`planetgen.cli.orbits`, for every galaxy database), then the delta
-  merge (GEN.61), then the backup rotation (OPS.18). A lock file stops two
-  runs overlapping, and the run is skipped (exit 75) while a Generate job
-  is running; each step logs and any failure exits non-zero. `--if-due`
-  makes the run a no-op when the last success is under about 20 hours old,
-  which enforces "once every 24 hours" however often the scheduler fires.
-  Redis is optional here, so an unreachable Redis is a warning. Optionally
-  it runs OPS.15's fingerprint check too.
-- **The schedule (OPS.17).** Install and update set it up by calling the
-  installers that already exist in `examples/maintenance/`: a systemd
-  timer (cron.d where there is no systemd) on Linux, launchd on macOS. The daily run replaces the monthly orbit timers,
-  tasks and plists (`planetgen-orbits@`, `org.planetgen.orbits.*`), which
-  are removed when it is installed, since it runs orbits itself. Update
-  keeps an existing schedule and adds a missing one; a
-  `maintenance.schedule` key in `config.json` (`auto` or `off`) is the off
-  switch that survives updates. The deployment docs say how to change the
-  time. Lands after OPS.7, OPS.8 and OPS.13, which change the same scripts.
+**Status (2026-11-19, checked against main at 9b8c9037): the daily run is planned, not built.** OPS.16 and OPS.17 stay open, moved to 8.9 with the backup chain (OPS.55, ADM.88, ADM.91), since a daily run is the natural home of the nightly backup. What runs today is the monthly orbit update: `planetgen.cli.orbits` fired by the `planetgen-orbits@` timer (one instance per database; systemd, cron.d or launchd), placed by `update.sh` through `scripts/deploy-common.sh` from the files in `examples/maintenance/`. `planetgen.cli.maintenance` is only the maintenance-mode switch (UX.112); there is no `scripts/maintenance.sh`, no `--if-due` and no daily lock. The descriptions below are the plan.
+
+- **The script (OPS.16, planned).** The logic would live once, in a module run as the web user by a thin launcher. It would run once a day: the positional update (`planetgen.cli.orbits`, for every galaxy database), then the nightly backup (OPS.55). (The delta merge and the 18-slot rotation of the first plan were dropped, see the status above.) A lock file stops two runs overlapping, and the run is skipped (exit 75) while a Generate job is running; each step logs and any failure exits non-zero. `--if-due` makes the run a no-op when the last success is under about 20 hours old, which enforces "once every 24 hours" however often the scheduler fires. Redis is optional here, so an unreachable Redis is a warning. Optionally it runs OPS.15's fingerprint check too.
+- **The schedule (OPS.17, planned).** Install and update would set it up by calling the installers that already exist in `examples/maintenance/`: a systemd timer (cron.d where there is no systemd) on Linux, launchd on macOS. The daily run replaces the monthly orbit timers, tasks and plists (`planetgen-orbits@`, `org.planetgen.orbits.*`), which are removed when it is installed, since it runs orbits itself. Update keeps an existing schedule and adds a missing one; a `maintenance.schedule` key in `config.json` (`auto` or `off`) is the off switch that survives updates. The deployment docs say how to change the time.
 - **18 backups (OPS.18).** After each merge the files are kept by
   grandfather-father-son rotation with calendar periods taken from the UTC
   time in each file name: the newest file of each of the last 7 days, 4 ISO

@@ -443,10 +443,11 @@ def test_an_edited_world_in_a_cloud_keeps_the_cosmic_ray_multiplier(mysql_config
         grounded = []
         for planet in loaded.planets:
             if planet.body_type == "t" and planet_type.has_ground(planet):
-                grounded.append(planet.db_id)
                 validation.reapply_life(planet)
                 rad.generate_dose(planet)                      # what a changed air does in `life._rebuild`
                 assert planet.dose_helio_mult == 1.0         # the drawn dose is the open-space one until the container is read
+                if not planet.atmospheric_pressure:          # GEN.1798: a world whose life has reached photosynthesis builds an air when its life is applied again, and that air
+                    grounded.append(planet.db_id)            # shields it, so its multiplier is lower than 2.5; the test is about the worlds left airless
         with conn:
             edit_store.save_system_edits(conn, system_id, loaded)
         assert grounded
