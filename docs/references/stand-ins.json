@@ -35417,7 +35417,7 @@
           "fields": [
             [
               "What it is",
-              "trojan_bodies.FORMATION_EFFICIENCY 0.03: the share of the solids in the secondary's co-orbital zone that grow into the trojan (was 0.1: the measure of GEN.1151, reports/gen1151/, found 36 percent of giants over 0.5 AU holding a planet-mass trojan at 0.1, because the zone's solids were counted as free though the giant's own core had taken them, so it is tuned near the foot of its range, to 3 of 22 giants over 0.5 AU holding a planet-mass trojan)"
+              "trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan (kept at 0.1 by GEN.1151: the ramp of TB4 already cuts the median G dwarf's ceiling to about a fifth, reports/gen1151/)"
             ],
             [
               "The range it moves in",
@@ -35446,15 +35446,15 @@
           "slug": "6-125-tb3",
           "tier": "T4",
           "tier_code": "T4",
-          "tweak": "L2",
+          "tweak": "L4",
           "unread": null,
-          "what": "trojan_bodies.FORMATION_EFFICIENCY 0.03: the share of the solids in the secondary's co-orbital zone that grow into the trojan (was 0.1: the measure of GEN.1151, reports/gen1151/, found 36 percent of giants over 0.5 AU holding a planet-mass trojan at 0.1, because the zone's solids were counted as free though the giant's own core had taken them, so it is tuned near the foot of its range, to 3 of 22 giants over 0.5 AU holding a planet-mass trojan)"
+          "what": "trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan (kept at 0.1 by GEN.1151: the ramp of TB4 already cuts the median G dwarf's ceiling to about a fifth, reports/gen1151/)"
         },
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "no source read gives the shortest disc life for a trojan to grow; a formation map replaces it"
+            "GEN.1151 (2026-11-19): lowered to L2; the flat 1 Myr minimum is a ramp whose two ends are the ends of the row's own range 0.3 to 3 Myr, and the ramp is checked against the median disc life of a G dwarf (0.9 Myr, `reports/gen1151/`); no source read gives the shortest disc life for a trojan to grow"
           ],
           "fields": [
             [
@@ -35488,7 +35488,7 @@
           "slug": "6-125-tb4",
           "tier": "T4",
           "tier_code": "T4",
-          "tweak": "L1",
+          "tweak": "L2",
           "unread": null,
           "what": "trojan_bodies.DISK_LIFETIME_RAMP_MYR (0.3, 3.0): under 0.3 Myr of gas no trojan of planet mass grows, at 3 Myr the whole zone's growth time is allowed, a straight ramp between (was a flat minimum of 1 Myr that sat on the median 0.9 Myr dispersal time of a G dwarf's disk)"
         },
@@ -35569,7 +35569,11 @@
           "what": "trojan_bodies.ZONE_AZIMUTH_SHARE 1/3: the share of the circle the two tadpole zones take, 60 degrees about each of L4 and L5"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "no source read gives how far a giant may move before the zone its trojan grew in is lost; an N-body migration run replaces it"
+          ],
           "fields": [
             [
               "What it is",

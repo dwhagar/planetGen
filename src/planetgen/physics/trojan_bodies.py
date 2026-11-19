@@ -39,7 +39,7 @@ FORMATION_EFFICIENCY = 0.1
 solids as free and found the flat disk-life minimum of TB4 on the median disk, and the ramp that replaces it already cuts the ceiling to about a fifth for the median G dwarf disk (0.9 Myr), which is the cut the over-count asked for.]"""
 
 DISK_LIFETIME_RAMP_MYR = (0.3, 3.0)
-"""tuple: The gas-disk life (Myr) under which no trojan of planet mass grows beside its secondary and the life at which the whole zone's growth time is allowed; a straight ramp between. [Stand-in 6.125 TB4, tier T4, tweak L1:
+"""tuple: The gas-disk life (Myr) under which no trojan of planet mass grows beside its secondary and the life at which the whole zone's growth time is allowed; a straight ramp between. [Stand-in 6.125 TB4, tier T4, tweak L2:
 the two ends of the row's range 0.3 to 3, replacing the flat 1 Myr minimum, which sat on the median dispersal time of a G dwarf's disk (0.9 Myr) and shut out three in four of its giants.]"""
 
 ZONE_HALF_WIDTH_HILL = 2.0
