@@ -492,20 +492,23 @@ def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_
         entry = draw.getstate()
         result = real_solve(setting, start_temperature_k)
         if setting.giant and result is not None and result.partials_pa:
-            seen.append((setting, entry, result))
+            seen.append((setting, entry, result, start_temperature_k))
         return result
 
     monkeypatch.setattr(sa, "solve", recording_solve)
     for _ in _generated(range(6)):
         pass
     assert len(seen) >= 3, "the seeds make giants"
-    for setting, entry, first in seen[:6]:
-        assert first.converged and first.steps > 1 and first.pressure_pa == pytest.approx(sa.REFERENCE_PRESSURE_BAR * 1.0e5)
+    for setting, entry, first, began in seen[:6]:
+        assert first.converged and first.pressure_pa == pytest.approx(sa.REFERENCE_PRESSURE_BAR * 1.0e5)
+        # a giant whose air adds no greenhouse starts on its fixed point and settles in the one step that shows it (a cold giant of GEN.1797's spacing at 112 K); any other iterates
+        assert first.steps > 1 or first.temperature_k == pytest.approx(began, abs=sa.TOLERANCE_K)
         for start in (150.0, 600.0, 1500.0):
             draw.setstate(entry)
             again = real_solve(setting, start)
             assert again.converged
             assert again.temperature_k == pytest.approx(first.temperature_k, abs=5.0 * sa.TOLERANCE_K), start
+    assert any(first.steps > 1 for _setting, _entry, first, _began in seen[:6]), "a giant iterates: the one step that took the start for the answer is gone"
 
 
 def test_a_system_replays_to_the_same_air():
