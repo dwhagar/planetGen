@@ -98,9 +98,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.rogue_collision.galaxy_rate_per_year | by design | the galaxy's rogue-rogue collision rate: the figure the per-sector rate of `collision_field` is checked against in a test |
 | function | planetgen.physics.trojans.allows | GEN.1150 | the mass rule for a body at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | function | planetgen.physics.trojans.max_trojan_mass | GEN.1150 | the largest body a pair can hold at L4 or L5; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
-| function | planetgen.physics.trojans.point_label | GEN.1150 | the map label of a point, `Jupiter-L4`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | function | planetgen.physics.trojans.pair_text | GEN.1150 | the page text of a point, `L4 of Sun and Jupiter`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
-| function | planetgen.physics.trojan_swarm.draw_regions | GEN.1151 | the two regions of a swarm and the libration overlay (lock-free, GEN.1150 slice 0); the whole-body draw reads it, the stored swarm waits for GEN.1006 (the module is read now for `truncated_rayleigh`, GEN.1792) |
 | module | planetgen.physics.trojan_bodies | GEN.1151 | how much mass the rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it |
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
