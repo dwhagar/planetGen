@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4606] - 2026-11-19
+
+**Headline:** A world's history now has a list of shocks: flood basalts that follow the heat of its interior and large impacts that follow the flux of its young sky, drawn on a stream of the body's own, each with the share of species it would kill; nothing reads it yet, so no world changes.
+
+### Added
+
+- GEN.1746 slice 1: new `physics/air_events.py`: `events_of(body, start_gyr, end_gyr, min_impact_km)` draws the flood basalts (the Earth's one in 25 Myr [R5319] times the body's heat flux over the model Earth's) and the impacts over a size (the Earth's 1 km and 5 km rates through a power law of slope 2.1, times the cross section and the decay of the flux of the lunar cratering chronology [R5322]) of a body on `flavor_tree.seed_of("air-events", body)`, so the run's stream does not move, and gives each the share of species it kills from the kill curve of the marine record [R5320] read at how often events as large recur. `RECOVERY_GYR` holds the 10 Myr origination lag [R5321]. Stand-ins EV1 to EV7 in section 6.313. The effects on the air, the extinctions, the life ages table, storage and the API are the next slices.
+
 ## [8.0.4605] - 2026-11-19
 
 **Headline:** Test that a retry never overlaps a live attempt, closing the old OPS.188 and OPS.190 audit bugs against the new engine.
