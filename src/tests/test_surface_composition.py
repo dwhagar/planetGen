@@ -128,6 +128,35 @@ def test_tidal_sulfur():
     assert "sulfur" in result.mix
 
 
+def _moon_with_tide(tidal_flux_w_m2):
+    """A rocky airless moon with its own heat flow of 0.01 W/m^2 and `tidal_flux_w_m2` stored as `interior_heat` stores it."""
+    return types.SimpleNamespace(
+        body_type="t", surface_temperature=110.0, atmospheric_pressure=0.0, water_mass_fraction=0.0, ice_mass_fraction=0.0, rock_mass_fraction=0.67,
+        metal_mass_fraction=0.33, rock_feo_fraction=None, carbon_rock=False, ocean_fraction=0.0, ice_cover_fraction=0.0, hydrosphere="dry",
+        ocean_class=None, internal_heat_flux_w_m2=0.01, tidal_flux_w_m2=tidal_flux_w_m2, star=types.SimpleNamespace(age=4.5), ice_species=None)
+
+
+def test_the_ground_inputs_carry_the_tidal_heat_flux_the_body_stores(monkeypatch):
+    """GEN.835: `inputs_of` reads `tidal_flux_w_m2` (before, it was never passed and the sulfur rule always read zero)."""
+    from planetgen.physics import interior_heat, planets
+    monkeypatch.setattr(planets, "internal_heat_flux_w_m2", lambda body: body.internal_heat_flux_w_m2)
+    monkeypatch.setattr(interior_heat, "lid_of", lambda body: "stagnant")
+    monkeypatch.setattr(sc, "_volatile_shares", lambda body: {})
+    assert sc.inputs_of(_moon_with_tide(2.0)).tidal_heat_flux_w_m2 == 2.0
+    assert sc.inputs_of(_moon_with_tide(None)).tidal_heat_flux_w_m2 == 0.0
+
+
+def test_a_strongly_tide_heated_moon_gets_the_sulfur_surface_and_a_weakly_heated_one_does_not(monkeypatch):
+    """GEN.835: the sulfur share follows the stored tide: an Io-like moon (2 W/m^2 against its own 0.01) has it, one the tide barely warms does not."""
+    from planetgen.physics import interior_heat, planets
+    monkeypatch.setattr(planets, "internal_heat_flux_w_m2", lambda body: body.internal_heat_flux_w_m2)
+    monkeypatch.setattr(interior_heat, "lid_of", lambda body: "stagnant")
+    monkeypatch.setattr(sc, "_volatile_shares", lambda body: {})
+    hot = sc.draw_surface(sc.inputs_of(_moon_with_tide(2.0)))
+    cold = sc.draw_surface(sc.inputs_of(_moon_with_tide(0.001)))
+    assert "sulfur" in hot.mix and "sulfur" not in cold.mix
+
+
 def test_the_metal_ground_is_hus_pyrite_sample_alone():
     """GEN.1384: Hu et al. 2012 Table 2 gives the metal-rich crust as pyrite; the row exists, so no troilite or kamacite stands in."""
     base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False)

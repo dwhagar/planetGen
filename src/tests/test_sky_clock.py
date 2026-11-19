@@ -120,7 +120,7 @@ class _Conn:
 def _system():
     star = {"id": 1, "mass_kg": SUN_M, "radius_km": SUN_R}
     earth = {"id": 5, "star_system_id": 1, "star_id": 1, "name": "Earth", "mass_kg": EARTH_M, "radius_km": EARTH_R, "distance_km": KM, "period_years": 1.0,
-             "orbital_inclination_deg": 0.0}
+             "orbital_inclination_deg": 0.0, "sky_suns": None}
     venus = {"id": 4, "star_system_id": 1, "star_id": 1, "name": "Venus", "mass_kg": 4.867e24, "radius_km": 6051.8, "distance_km": 0.723 * KM, "period_years": 0.6152,
              "orbital_inclination_deg": 3.39}
     moon = {"id": 9, "parent_type": "planet", "parent_id": 5, "name": "Moon", "mass_kg": 7.342e22, "radius_km": 1737.4, "distance_km": 384_400.0,
@@ -140,3 +140,45 @@ def test_the_sheet_rows_of_a_star_a_planet_and_a_moon():
     moon = {row[1]: row for row in clock_rows.rows(conn, "moon", 9)}
     assert 0.46 < moon[clock_rows.CLOCK_KEY][4] < planet[clock_rows.CLOCK_KEY][4]      # a clock on the Moon is above the Earth's surface potential
     assert clock_rows.rows(conn, "belt", 1) == []
+    from_the_moon = [row for row in clock_rows.rows(conn, "moon", 9) if row[1].startswith(clock_rows.ECLIPSE_KEY_PREFIX)]
+    assert [row[2] for row in from_the_moon] == ["Eclipses of its star by its planet"]
+    assert not any(row[1].startswith(clock_rows.SUN_ECLIPSE_KEY_PREFIX) for row in clock_rows.rows(conn, "planet", 5))      # a lone star has no other sun to eclipse
+
+
+def test_the_sun_is_hidden_by_the_earth_from_the_moon_for_hours_about_twice_a_year():
+    earth = sky_clock.moon_eclipse(SUN_R, KM, 1.0, EARTH_R, 384_400.0, 27.3216 / 365.25, 5.145)       # the Earth is the blocker, the Moon the observer
+    assert 0.4 < earth.interval_yr < 0.7                                      # a lunar eclipse every 6 to 7 months by the disks alone (the real count adds the penumbra)
+    assert earth.longest_total_h > 1.5 and earth.deepest_cover == 1.0          # the Earth's disk is the larger one: totality for hours
+    assert earth.longest_total_h < earth.longest_contact_h
+
+
+def test_the_crossings_that_touch_a_source_off_the_plane_follow_the_height_of_the_track():
+    reach = 0.02
+    assert sky_clock.touching_share(0.015, 0.005, 0.1) == pytest.approx(2.0 / math.pi * math.asin(0.2), rel=1e-12)
+    assert sky_clock.touching_share(0.015, 0.005, 0.1, offset=0.0) == sky_clock.touching_share(0.015, 0.005, 0.1)
+    assert sky_clock.touching_share(0.015, 0.005, 0.1, 0.05) == pytest.approx(sky_clock.touching_share(0.015, 0.005, 0.1, -0.05), rel=1e-12)      # above or below alike
+    assert sky_clock.touching_share(0.015, 0.005, 0.1, 0.05) == pytest.approx((math.asin(0.7) - math.asin(0.3)) / math.pi, rel=1e-12)
+    assert sky_clock.touching_share(0.015, 0.005, 0.1, 0.1) > sky_clock.touching_share(0.015, 0.005, 0.1)       # a track dwells at the top of its swing, so a source there is crossed more often
+    assert sky_clock.touching_share(0.015, 0.005, 0.1, 0.2) == 0.0              # a source higher than the track and the reach together is never touched
+    assert sky_clock.touching_share(0.015, 0.005, 0.0, reach - 1e-9) == 1.0 and sky_clock.touching_share(0.015, 0.005, 0.0, reach + 1e-9) == 0.0      # a flat track keeps one height
+
+
+def test_the_hidden_share_of_two_disks_runs_from_none_to_all():
+    assert sky_clock.overlap_share(0.01, 0.005, 0.02) == 0.0
+    assert sky_clock.overlap_share(0.01, 0.005, 0.0) == 1.0                       # the larger disk centered on the smaller covers it
+    assert sky_clock.overlap_share(0.005, 0.01, 0.0) == pytest.approx(0.25)       # the smaller disk centered: (r / R)^2
+    half = sky_clock.overlap_share(0.01, 0.01, 0.01)
+    assert half == pytest.approx((2.0 * math.acos(0.5) - math.sin(2.0 * math.acos(0.5))) / math.pi, rel=1e-9)       # two equal disks a radius apart: the lens, 39 percent
+    assert 0.0 < sky_clock.overlap_share(0.01, 0.005, 0.012) < 1.0
+
+
+def test_a_moon_hides_another_sun_each_month_when_the_sun_stands_in_the_reach_of_its_track():
+    alpha_s = 0.004
+    near = sky_clock.companion_eclipse(alpha_s, 0.0, 1737.4, 384_400.0, 27.3216 / 365.25, 5.145)
+    assert near.interval_yr > 27.3216 / 365.25                                   # the sidereal month at best: the sun stands still
+    assert near.interval_yr == pytest.approx(27.3216 / 365.25 / sky_clock.touching_share(1737.4 / 384_400.0, alpha_s, math.radians(5.145)), rel=1e-9)
+    high = sky_clock.companion_eclipse(alpha_s, math.radians(20.0), 1737.4, 384_400.0, 27.3216 / 365.25, 5.145)
+    assert high is None                                                           # 20 degrees off the plane is beyond the moon's track and its disk
+    edge = sky_clock.companion_eclipse(alpha_s, math.radians(5.145) + 0.004 + 1737.4 / 384_400.0 - 1e-4, 1737.4, 384_400.0, 27.3216 / 365.25, 5.145)
+    assert edge is not None and edge.longest_contact_h < near.longest_contact_h   # a graze lasts less than a central crossing
+    assert sky_clock.companion_eclipse(None, 0.0, 1737.4, 384_400.0, 0.07, 5.0) is None and sky_clock.companion_eclipse(alpha_s, 0.0, 1737.4, 0.0, 0.07, 5.0) is None

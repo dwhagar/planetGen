@@ -12,10 +12,17 @@ from planetgen.db import store
 from planetgen.generation import run_common, run_galaxy, stages
 from planetgen.queue import wrapper
 from planetgen.util import draw
+from tests import first_fill
 from tests.bughunt_support import mysql_argv
 from tests.test_galaxy_gen import EDGE_PC, WIDE_GALAXY_HIGH_BAND, _address, _charted_sectors, _plan_wide_galaxy
 
 pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans")]
+
+@pytest.fixture(autouse=True)
+def no_deepest_floor(monkeypatch):
+    """TEST.417: every test here is about which sectors a plan cuts and saves (and the draws the plan makes), not the first fill's draw of each sector, which is the same either way and most of a run's cost (the file ran 55 minutes)."""
+    first_fill.without_the_deepest_floor(monkeypatch)
+
 
 MODES = (
     ("random start", ["--radius-pc", "4"]),

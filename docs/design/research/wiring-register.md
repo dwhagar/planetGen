@@ -43,9 +43,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.mantle_stripping.strip_probability | by design | the share of random impacts inside the head-on angle (MT7); the W10 rate (WR4) is already a rate on the merged population, so the effect does not apply it again |
 | data | fudge_matrix.json | by design | the measured movement of every class quantity under every stand-in row (GEN.1313, `scripts/stand_in_sensitivity.py screen --frozen`); `scripts/build_fudge_table.py` turns it into `fudge_table.json` and `test_fudge_table.py` holds the table to it; the generator reads the table, not the matrix |
 | function | planetgen.galaxy.nebula_density.octave_bound | by design | the most one more noise octave can move the density, which the tests of the finer levels (the coarse blobs stay put as filaments are added) and the tuning of the drawing read; the node reader asks for the density only |
-| function | planetgen.physics.mixture_trace.draw_trace_gases | GEN.524 | the mixture-level draw of the trace gases; `physics.trace_air` reads `draw_trace_amounts` instead, so a later part of GEN.524 deletes this or wires it |
-| module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
-| data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
+| module | planetgen.physics.design_flags | by design | the conformance check of the atmosphere recipes against decision D4 (the life-linked gases m3, m4 and m11 are off unless a flag allows them and are never tuned), run by `test_design_flags`; it reads no generation value and the rows it holds (`mixture_trace`, `trace_air`) are read by the generator (GEN.1559) |
+| data | design_flags.json | by design | the registry `design_flags` checks the recipes against (GEN.1559) |
 | function | planetgen.physics.equilibrium_edges.h2_dissociation_temperature | by design | the temperature at which half of the hydrogen is atomic, the third regime edge of the module; no recipe row has an edge there (row h3 starts at the water line), the test checks it against the recorded computation |
 
 
@@ -226,7 +225,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.acid_freezing | GEN.1644 | the freezing curve of the sulfuric acid hydrates; GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7) |
 | module | planetgen.physics.nbody_check | by design | the GEN.1468 N-body spot-check of the stability screens; scripts/nbody_spotcheck.py and its test read it, the generator never does (a check, not a law) |
 | data | acid_freezing.json | GEN.1644 | read by `physics/acid_freezing.py` only |
-| row | 6.289:AT4 | GEN.1706 | read only by `scripts/class_m_meter.py` (the meter), which the guard does not count; it is the calibration target, not a generator input |
+| row | 6.289:AT4 | by design | read only by `scripts/class_m_meter.py`, the Class M meter, which the guard does not count: the calibration target of the tier dials and not a generator input (GEN.1706, GEN.1559) |
 | function | planetgen.physics.ice_light.light_below | by design | the light under a lid for a given surface light, the caller's own star: the refuge term reads `transmission` and the light floor, so this is the form the tests and later climate lanes read (GEN.1726) |
 | function | planetgen.physics.ice_light.thickest_ice_m | by design | the thickest bare ice that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |
 | function | planetgen.physics.ice_light.deepest_snow_m | by design | the deepest snow that passes a given share of the light, the inverse the notes and tests use (GEN.1726) |

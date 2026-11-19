@@ -35,10 +35,21 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     veil        (solid world with air, MAP.350) how far the surface is tinted toward the sky colour `glow`, 0 to 1: `1 - exp(-tau_550)`,
                 the vertical optical depth of the air at 550 nm (gas and aerosol, `AtmosphereColour.tau_550`); a thin air leaves the ground as
                 it is, a thick one drowns it in its own colour
-    haze        the washing-out of the ground's contrast by haze and dust, 0 to 1: `1 - exp(-(tau_haze + tau_dust))`; left out when neither is stored
-    cloudCover  the share of the sky the cloud covers (the stored `cloud_cover`), left out when none is stored
+    haze        the washing-out of the ground's contrast by haze and dust, 0 to 1: `1 - exp(-(tau_haze + tau_dust))`; left out when neither is stored; a giant has it too
+                (MAP.421), from its stored haze and dust, and `giantpaint.js` tints its bands with it
+    cloudCover  the share of the sky the cloud covers (the stored `cloud_cover`), left out when none is stored; a giant has it too (MAP.421)
     cloudTau    the vertical optical depth of the cloud at 550 nm (the stored `tau_cloud`), left out when none is stored; the painter
                 draws a cloud layer over the ground, thicker and whiter with the depth
+    cloudColor  (MAP.418) the colour of the cloud by its material, `#rrggbb` (`CLOUD_COLOURS`: water white, sulfuric acid pale yellow, carbon dioxide
+                ice grey-white, ammonia ice cream, methane ice pale blue-white); the material is the one that makes most of the cloud
+                (`aerosol_material.cloud_material`); left out when no cloud is stored
+    hazeReach   (MAP.420) how far the haze shell reaches past the limb, in radii, 0.04 to 0.14 from the depth of the stored `tau_haze` (`HAZE_SHELL_REACH`); left out under
+                `HAZE_SHELL_MIN_TAU`, where the haze only washes out the ground
+    hazeStrength  (MAP.420) how strongly the shell is drawn, 0.25 to 0.8 (`HAZE_SHELL_STRENGTH`), with `hazeColor`
+    cloudMaterial (MAP.422) what the cloud is made of, a key of `CLOUD_COLOURS` (H2O, H2SO4, CO2, NH3, CH4); with `cloudColor`, for the info panel's account
+    hazeMaterial  (MAP.422) what the haze layer is made of, `["tholin"]`, `["dust"]` or both, the thicker first; with `hazeColor`
+    hazeColor   (MAP.418) the colour of the haze layer, `#rrggbb`: tholin orange and dust tan blended by their stored depths (`HAZE_COLOURS`); left out
+                when neither `tau_haze` nor `tau_dust` is over 0
     twilight    how far past the day and night line the light of the star is carried by the air, as a cosine of the light
                 on the ground (0 for no air to `TWILIGHT_MAX` for a thick one): the terminator of a world with air is softer
                 and lies a little onto the night side
@@ -81,7 +92,7 @@ import math
 from types import SimpleNamespace
 
 from planetgen.physics import (
-    atmosphere, atmosphere_colour, gases, giant_colour, photometry, regional_temperature, stellar_library, surface_composition)
+    aerosol_material, atmosphere, atmosphere_colour, gases, giant_colour, photometry, regional_temperature, stellar_library, surface_composition)
 from planetgen.web.maps.ringlook import ring_look
 from planetgen.web.maps.starmap import star_color
 from planetgen.physics import unit_registry as units
@@ -291,6 +302,14 @@ def _put_veil(look, row, colour):
     """
     if colour is not None and colour.tau_550 is not None and math.isfinite(colour.tau_550):
         look["veil"] = round(-math.expm1(-max(0.0, colour.tau_550) / VEIL_TAU_SCALE), 3)
+    _put_aerosol_depths(look, row)
+
+
+def _put_aerosol_depths(look, row):
+    """
+    `haze` from the stored haze and dust depths and `cloudCover` and `cloudTau` as stored, for a solid world (`_put_veil`) and a giant (MAP.421); each left
+    out when its input is not stored, and the painter then leaves the picture as it was.
+    """
     depths = [row.get(name) for name in ("tau_haze", "tau_dust")]
     depths = [d for d in depths if d is not None and math.isfinite(d)]
     if depths:
@@ -299,6 +318,78 @@ def _put_veil(look, row, colour):
     if cover is not None and depth is not None and math.isfinite(cover) and math.isfinite(depth) and cover > 0.0 and depth > 0.0:
         look["cloudCover"] = round(min(1.0, cover), 3)
         look["cloudTau"] = round(depth, 3)
+
+
+CLOUD_COLOURS = {
+    "H2O": "#f4f6f8",       # water droplets and ice: white
+    "H2SO4": "#f0e4b4",     # sulfuric acid droplets: pale yellow (Venus)
+    "CO2": "#d9dde0",       # carbon dioxide ice: grey-white
+    "NH3": "#f1eadf",       # ammonia ice: cream white
+    "CH4": "#e6eff0",       # methane ice: white with a trace of blue
+}
+"""dict: The colour of a cloud by its material (`aerosol_material.cloud_material`, MAP.418): water white, sulfuric acid pale yellow, carbon dioxide ice grey-white, as Boss asked (11-09);
+ammonia and methane ice are the same kind of near-white (display colours, not measurements)."""
+
+HAZE_COLOURS = {"tholin": "#c47a35", "dust": "#b59a6c"}
+"""dict: The colour of a haze layer by its material (MAP.418): tholin orange, dust tan (display colours, as Boss asked, 11-09)."""
+
+
+CLOUD_NAMES = {"H2O": "water", "H2SO4": "sulfuric acid", "CO2": "carbon dioxide ice", "NH3": "ammonia ice", "CH4": "methane ice"}
+"""dict: What the info panel calls each cloud material (MAP.422)."""
+
+
+HAZE_SHELL_MIN_TAU = 0.3
+"""float: The haze depth (`tau_haze`, 550 nm) from which a body has a haze shell of its own (MAP.420): under it the haze only washes out the ground (`haze`); Titan's is about 5."""
+
+HAZE_SHELL_TAU_SCALE = 3.0
+"""float: The haze depth at which a shell has reached 63 percent of the way from the least to the most `HAZE_SHELL_REACH` and `HAZE_SHELL_STRENGTH` (display values)."""
+
+HAZE_SHELL_REACH = (0.04, 0.14)
+"""tuple: How far a haze shell reaches past the limb, in radii, from the thinnest to the thickest haze (MAP.420): the most is the 1.14 radii of the 3D air shell, the most the System Map frames; Titan's detached haze stands about 0.2 radii up. A display value, exaggerated as the air glow's width is."""
+
+HAZE_SHELL_STRENGTH = (0.25, 0.8)
+"""tuple: How strongly the shell is drawn at its limb, 0 to 1, from the thinnest to the thickest haze (the same scale as `glowStrength`)."""
+
+
+def _aerosol_body(row):
+    """The body-like record of a row that `aerosol_material` reads: its stored mixture, gravity, temperature, greenhouse factor, aerosol draw and optical depths."""
+    return SimpleNamespace(
+        body_type=row.get("body_type"), gravity=row.get("gravity_g"), atmospheric_pressure=row.get("atmospheric_pressure_pa"),
+        surface_temperature=row.get("surface_temperature_k"), greenhouse_factor=row.get("greenhouse_factor"), aerosol_draw=row.get("aerosol_draw"),
+        tau_cloud=row.get("tau_cloud"), tau_haze=row.get("tau_haze"), tau_dust=row.get("tau_dust"), cloud_cover=row.get("cloud_cover"),
+        **{atmosphere.GAS_FIELD: atmosphere.gas_partials_pa(row)})
+
+
+def _blend_hex(parts):
+    """The `#rrggbb` of the mean of `(hex, weight)` parts by weight."""
+    total = math.fsum(weight for _, weight in parts)
+    channels = [math.fsum(int(colour[1 + 2 * i:3 + 2 * i], 16) * weight for colour, weight in parts) / total for i in range(3)]
+    return "#" + "".join(f"{round(value):02x}" for value in channels)
+
+
+def _put_layers(look, row):
+    """
+    `cloudColor` and `hazeColor` of a body with air (MAP.418): one `#rrggbb` per layer, from the material of the layer (`aerosol_material`), left out when the layer is not stored
+    (the cloud when `cloud_cover` or `tau_cloud` is 0 or missing, the haze when `tau_haze` and `tau_dust` are both 0 or missing).
+    """
+    if not any((row.get(name) or 0.0) > 0.0 for name in ("tau_cloud", "tau_haze", "tau_dust")):
+        return
+    body = _aerosol_body(row)
+    cover = row.get("cloud_cover")
+    if cover is not None and cover > 0.0:
+        material = aerosol_material.cloud_material(body)
+        if material in CLOUD_COLOURS:
+            look["cloudColor"] = CLOUD_COLOURS[material]
+            look["cloudMaterial"] = material
+    mix = aerosol_material.haze_mix(body)
+    if mix:
+        look["hazeColor"] = _blend_hex([(HAZE_COLOURS[material], depth) for material, depth in mix.items()])
+        look["hazeMaterial"] = sorted(mix, key=lambda material: -mix[material])
+    tau = row.get("tau_haze")
+    if tau is not None and math.isfinite(tau) and tau >= HAZE_SHELL_MIN_TAU:
+        grown = -math.expm1(-tau / HAZE_SHELL_TAU_SCALE)
+        look["hazeReach"] = round(HAZE_SHELL_REACH[0] + (HAZE_SHELL_REACH[1] - HAZE_SHELL_REACH[0]) * grown, 3)
+        look["hazeStrength"] = round(HAZE_SHELL_STRENGTH[0] + (HAZE_SHELL_STRENGTH[1] - HAZE_SHELL_STRENGTH[0]) * grown, 3)
 
 
 def _put_spin(look, row):
@@ -358,8 +449,11 @@ def planet_look(planet, kind="planet"):
         if colour is not None:
             look["glow"] = (colour.atmosphere if gas else colour).hex
         look.update(glow)
-        if not gas:
+        if gas:
+            _put_aerosol_depths(look, planet)       # MAP.421: a giant's stored haze and cloud tint its bands
+        else:
             _put_veil(look, planet, colour)
+        _put_layers(look, planet)
     pressure_pa = planet.get("atmospheric_pressure_pa")
     _put(look, "pkpa", _rounded(_pa_to_kpa(pressure_pa) if pressure_pa is not None else None, 3))
     _put(look, "tempK", _rounded(temp_k, 1))
@@ -455,15 +549,35 @@ def colour_account(look):
             parts.append("limb glow from the composition of its air under its star")
         else:
             parts.append("no limb glow: the color of its air is not known")
+    if look.get("atm"):
+        parts.extend(_layer_account(look))
     if look.get("quality") == "estimate":
-        left_out = "surface composition, clouds, and haze" if body == "solid" else "chemistry bands and haze"
-        tail = f". Left out: {left_out}"
-    elif look.get("quality") == "composition":
-        # MAP.274: the land colour is the stored ground types' lab reflectance; the clouds and haze are still not stored
-        tail = ". Left out: clouds and haze"
+        tail = ". Left out: surface composition" if body == "solid" else ". Left out: chemistry bands"
     else:
-        tail = ""
+        tail = ""      # MAP.274: the land colour is the stored ground types' lab reflectance; MAP.422: the clouds and haze are drawn from what is stored
     return "; ".join(parts) + tail
+
+
+def _layer_account(look):
+    """
+    The clauses of the info panel line about the cloud and the haze of a body with air (MAP.422): what was drawn and from what (the stored cover and
+    depth of the cloud and the material it is made of; the stored depth of the haze, its material, and the shell past the limb a thick haze has), or
+    that none is stored. A pure function of the look record.
+    """
+    if look.get("cloudCover") and look.get("cloudTau"):
+        material = CLOUD_NAMES.get(look.get("cloudMaterial"))
+        cloud = f"cloud drawn from its stored cover and depth ({material})" if material else "cloud drawn from its stored cover and depth (its material is not known: shown white)"
+    else:
+        cloud = None
+    if look.get("haze"):
+        made = look.get("hazeMaterial") or []
+        shell = ", with a shell past the limb" if look.get("hazeReach") else ""
+        haze = "haze drawn from its stored depth (" + (" and ".join(made) if made else "its material is not known") + ")" + shell
+    else:
+        haze = None
+    if cloud is None and haze is None:
+        return ["no cloud or haze drawn: none is stored"]
+    return [cloud or "no cloud drawn: none is stored", haze or "no haze drawn: none is stored"]
 
 
 def look_note(look):
