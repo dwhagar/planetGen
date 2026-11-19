@@ -594,7 +594,7 @@ def inputs_of(body):
         volatile_shares=_volatile_shares(body), hydrosphere=getattr(body, "hydrosphere", None),
         ocean_fraction=getattr(body, "ocean_fraction", None) or 0.0, ice_cover_fraction=getattr(body, "ice_cover_fraction", None) or 0.0,
         ocean_class=getattr(body, "ocean_class", None),
-        internal_heat_flux_w_m2=planets.internal_heat_flux_w_m2(body),
+        internal_heat_flux_w_m2=planets.internal_heat_flux_w_m2(body), tidal_heat_flux_w_m2=getattr(body, "tidal_flux_w_m2", None) or 0.0,
         age_gy=getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY,
         mobile_lid=interior_heat.lid_of(body) == magnetism.LID_MOBILE, rock_oxides=_rock_oxides_of(body))
 
