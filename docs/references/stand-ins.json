@@ -44135,6 +44135,90 @@
           "tweak": "L0",
           "unread": null,
           "what": "condenses: the liquid forms where the acid vapor pressure of the air is above the pressure over the solution its water fixes; the mixing ratios are the caller's and are held through the window (a cloud would deplete them)"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1644",
+            "L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "warm clouds; cold ones are the window's edge"
+            ],
+            [
+              "What would show it wrong",
+              "a cold acid aerosol that is solid where this puts it liquid"
+            ],
+            [
+              "What replaces it",
+              "the freezing curve of [R4877: figure 1 and section 4.3], not yet turned into a function"
+            ],
+            [
+              "Evidence",
+              "not read into code; [R4877] prints the solid phases"
+            ]
+          ],
+          "id": "SV7",
+          "key": "6.228:SV7",
+          "kind": "P",
+          "slug": "6-228-sv7",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no measurement of the SO3 share of the sub-cloud vapor is in hand; the decomposition above 400 K is named and left out"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "below 400 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured SO3 share of the sub-cloud vapor"
+            ],
+            [
+              "What replaces it",
+              "a decomposition equilibrium"
+            ],
+            [
+              "Evidence",
+              "recalled from the Venus acid-cloud report (P8), not opened"
+            ]
+          ],
+          "id": "SV8",
+          "key": "6.228:SV8",
+          "kind": "P",
+          "slug": "6-228-sv8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split"
         }
       ],
       "slug": "6-228-stand-ins-of-the-vapor-pressure-over-aqueous-sulfuric-acid-and-its-condensation-window",
@@ -74959,7 +75043,11 @@
           "what": "carbonate_buffer.PHASES: enthalpy of formation, entropy and heat capacity (a, b, c, d) of calcite, wollastonite, quartz and CO2 from Table 2a of [R1981]; equilibrium_bar integrates them from 298.15 K and gives the CO2 pressure at which calcite and quartz, wollastonite and the gas stand together: 0.08 bar at 500 K, 3.0 at 600, 38 at 700, 88 at 740, 257 at 800, 1,100 at 900"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no carbonation rate of dry basalt against temperature at 400 to 600 K is in hand; the floor is set where the reaction pressure is 0.08 bar so a mistake moves little"
+          ],
           "fields": [
             [
               "What it is",
@@ -74997,7 +75085,11 @@
           "what": "carbonate_buffer.DRY_CARBONATION_MIN_K 500: the coolest surface at which a dry rock buffers the CO2 of its air; under it the air is as before"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no measurement of the share of a crust's calcium that carbonates at a hot dry surface is in hand; the Earth's crust holds about 17 percent of its calcium as carbonate and a lower share is the first thing to tune"
+          ],
           "fields": [
             [
               "What it is",
@@ -75071,82 +75163,6 @@
           "tweak": "L0",
           "unread": null,
           "what": "the reaction's CO2 is an ideal gas and the three solids pure at one bar (their volume term would raise the pressure 3 percent at 100 bar); the b coefficients of Table 2a are read as 1e-5 kJ/K^2 (the scale that gives the 298 K heat capacities of calcite and quartz within 3 percent; a factor of 10 on b moves the curve under 10 percent at 740 K)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "warm clouds; cold ones are the window's edge"
-            ],
-            [
-              "What would show it wrong",
-              "a cold acid aerosol that is solid where this puts it liquid"
-            ],
-            [
-              "What replaces it",
-              "the freezing curve of [R4877: figure 1 and section 4.3], not yet turned into a function"
-            ],
-            [
-              "Evidence",
-              "not read into code; [R4877] prints the solid phases"
-            ]
-          ],
-          "id": "SV7",
-          "key": "6.310:SV7",
-          "kind": "P",
-          "slug": "6-310-sv7",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L3",
-          "unread": null,
-          "what": "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "below 400 K"
-            ],
-            [
-              "What would show it wrong",
-              "a measured SO3 share of the sub-cloud vapor"
-            ],
-            [
-              "What replaces it",
-              "a decomposition equilibrium"
-            ],
-            [
-              "Evidence",
-              "recalled from the Venus acid-cloud report (P8), not opened"
-            ]
-          ],
-          "id": "SV8",
-          "key": "6.310:SV8",
-          "kind": "P",
-          "slug": "6-310-sv8",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L3",
-          "unread": null,
-          "what": "no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split"
         }
       ],
       "slug": "6-310-stand-ins-of-the-dry-surface-carbonate-buffer-gen-1767",
