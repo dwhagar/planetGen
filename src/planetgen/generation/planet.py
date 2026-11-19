@@ -284,10 +284,6 @@ class Planet(PlanetaryObject):
     collision_count = 0
     """int: The mergers the planet architecture recorded for this planet (see `__init__`); 0 for a body made without them."""
 
-    plan_eccentricity = None
-    """float or None: The eccentricity the planet's slot of the architecture gave it (`planet_architecture.Seed.eccentricity`, GEN.1797), the birth value `planets.generate_orbit_shape` takes in place of a draw (cut at what the star's
-    Roche limit allows); `None` for a body whose orbit is drawn there (a slot the author named, a moon, a body made on its own)."""
-
     plan_slot = None
     """int or None: The slot of the star's planet plan the planet was made in (`StarSystem._generate_planets`, `physics.planet_architecture.Plan.seed`), which a trim of the planets (an
     instability, a merger, a planet over the orbit ceiling) leaves alone, so it names the planet's place in the star's orbits as the plan drew it (DB.75b). Stored as the planet's `body_history.born_index`;
@@ -440,7 +436,7 @@ class Planet(PlanetaryObject):
         self.obliquity_min_deg = self.obliquity_max_deg = None     # the range the tilt wanders over (`planets.settle_obliquity`, GEN.1535)
         self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
         self.collision_count = collision_count
-        self.plan_eccentricity = plan_eccentricity
+        self.build.plan_eccentricity = plan_eccentricity      # GEN.1797: runtime build state, never stored
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None
