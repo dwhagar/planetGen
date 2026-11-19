@@ -151,8 +151,7 @@ def _stored_stars(config):
         conn.close()
 
 
-def test_a_parallel_scatter_places_the_same_stars_as_a_serial_one(mysql_config, monkeypatch):
-    monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
+def test_a_parallel_scatter_places_the_same_stars_as_a_serial_one(mysql_config, control_config):
     # The galaxy's seed fixes the scatter's (GEN.39), so both draw alike.
     _seed_galaxy(mysql_config)
     serial = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--workers", "1"))
