@@ -1,0 +1,4 @@
+**Headline:** The stretch the planets stir, which makes the rocky rogue planets of a system, reaches a little farther, so the rogue donors stay inside their observed band after the growth limit by star mass.
+
+### Changed
+- **The stirred stretch of the architecture's embryos reaches 2.3 times past the planets' reach bands (stand-in SM1, tweak L2).** It was the 3:1 resonance, 2.08. With the growth limit by star mass (GEN.1539) the embryos of the stars under 0.6 solar masses weigh less than 0.1 Earth masses beyond that limit, so the terrestrial rogue donors fell from 1.17 to 0.77 a star, under the lower edge of the observed band (2.5 a star over three, [R0258]); 2.3, inside the registered range of 1.59 (2:1) to 2.52 (4:1), gives 0.90. Output moves only for the embryos between 2.08 and 2.3 times past the planets' reach.
