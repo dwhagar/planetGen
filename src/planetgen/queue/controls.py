@@ -30,6 +30,7 @@ import uuid
 
 from planetgen.queue import attemptlog, ledger, planrows, runrecord, supervisor
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 OPS = ("pause", "resume", "stop_jobs", "stop_all", "stop_unit")
 """tuple: What a request can ask."""
@@ -413,7 +414,7 @@ class Controls:
                 item.killed = True
                 item.summary["killed"] = len(held)
                 item.deadline = now + self.grace
-                self._act("killed job processes that did not stop", f"{len(held)} still alive {self.grace:g} s after they were asked to stop")
+                self._act("killed job processes that did not stop", f"{len(held)} still alive {format_duration_seconds(self.grace)} after they were asked to stop")
             if held and now < item.deadline:
                 keep.append(item)
                 continue

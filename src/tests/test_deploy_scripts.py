@@ -1107,7 +1107,7 @@ def test_the_update_works_out_the_cluster_system_masses_after_the_migration():
     """The web daemon is stopped at 60 seconds and building the galaxy shape needs a mean system mass for every stored
     cluster age, which takes longer on a big galaxy: the update does it once and the web app reads the result."""
     update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
-    assert update.index("migrate_or_reset_db\nrecord_version_key\nwarm_shape_means") < update.index("log_stage 6 9")
+    assert update.index("migrate_or_reset_db\nrecord_version_key\nretire_config_options\nwarm_shape_means") < update.index("log_stage 6 9")
     assert "run_cli warm_shape" in (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
 
 

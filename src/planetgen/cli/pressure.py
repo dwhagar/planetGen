@@ -26,13 +26,13 @@ from planetgen.util.format import format_duration_seconds
 def lines(found):
     """The sentences of a `pressurelearn.Report`, one a line."""
     if not found.minutes:
-        return [f"The record is empty: no minute of the last {pressurelearn.WINDOW_DAYS} days was recorded (no supervisor ran, or {pressurelearn.ENV_VAR} was off), so the typed edges stand."]
+        return [f"The record is empty: no minute of the last {format_duration_seconds(pressurelearn.WINDOW_DAYS * 86400)} was recorded (no supervisor ran, or {pressurelearn.ENV_VAR} was off), so the typed edges stand."]
     edges = found.edges
     return [
-        f"Record: {found.minutes} minutes over {format_duration_seconds(found.span_seconds)} of the last {pressurelearn.WINDOW_DAYS} days, {found.psi_minutes} of them read by PSI.",
+        f"Record: {found.minutes} recorded minutes over {format_duration_seconds(found.span_seconds)} of the last {format_duration_seconds(pressurelearn.WINDOW_DAYS * 86400)}, {found.psi_minutes} of them read by PSI.",
         f"Memory kills: {found.kills}, of which {found.unforeseen_kills} no pressed reading came before (the edges move down at {pressurelearn.MIN_KILLS}).",
         f"Holds: {found.holds}, of which {found.idle_holds} were not needed (the edges move up at {pressurelearn.MIN_EPISODES} holds with {pressurelearn.IDLE_SHARE:.0%} of them not needed and no kill).",
-        f"Database probes: {found.probe_minutes} minutes carry one" + (f", the slowest took {found.slowest_probe_ms:.0f} ms." if found.probe_minutes else "."),
+        f"Database probes: {found.probe_minutes} recorded minutes carry one" + (f", the slowest took {format_duration_seconds(found.slowest_probe_ms / 1000)}." if found.probe_minutes else "."),
         f"Edges now: sensitivity {edges.sensitivity:.2f}, {edges.words()}.",
     ]
 
@@ -67,7 +67,7 @@ def main(argv=None):
             writer = csv.writer(handle)
             writer.writerow(("killed_at_utc",))
             writer.writerows((time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(killed)),) for killed in kills)
-        print(f"Wrote {len(minutes)} minutes to {args.csv} and {len(kills)} kills to {kills_path}.")
+        print(f"Wrote {len(minutes)} recorded minutes to {args.csv} and {len(kills)} kills to {kills_path}.")
     return 0
 
 
