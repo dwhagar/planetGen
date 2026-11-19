@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4629] - 2026-11-19
+
+**Headline:** The info panel line now says which of the cloud and the haze were drawn and what each is made of, instead of "Left out: clouds and haze".
+
+### Changed
+- MAP.422: the line under a body's picture names the cloud ("cloud drawn from its stored cover and depth (water)"), the haze ("haze drawn from its stored depth (tholin), with a shell past the limb"), or that none is stored. The look record carries `cloudMaterial` and `hazeMaterial` for it. The old "Left out: clouds and haze" is gone since the picture draws them; the surface composition (a solid world coloured by its temperature band) and the chemistry bands (a giant) are still named as left out.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4628] - 2026-11-19
 
 **Headline:** Gas and ice giants now show their stored haze and cloud: a tholin haze reddens and softens the bands, a cloud deck whitens them.
