@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.432 |
 | NAV | NAV.78 |
-| GEN | GEN.1798 |
+| GEN | GEN.1802 |
 | PERF | PERF.282 |
 | DB | DB.136 |
 | API | API.52 |
@@ -4137,11 +4137,15 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1790 | Envelope past the climate ceiling boils off; lava vapor held and logged | GEN.1745 | open (Lane 14) |
 | GEN.1791 | Lever search for Class M and M-like worlds at the Abundant tier (report) | GEN.1789 | open (Class M levers thread) |
 | GEN.1792 | (bug) Dwarf planets pile up at the e 0.5 and i 60 degree caps | GEN.1468 | done (PR 7137, Train 45, PR 7202, merged 4:36 AM EST 11-18: belt orbit draws truncated by inverse CDF) |
-| GEN.1793 | M dwarfs carry about half the observed close-in small planets | none | open (Lane 04) |
+| GEN.1793 | M dwarfs carry about half the observed close-in small planets | none | closed, no output change (PR 7227, Lane 04, merged 6:44 PM EST 11-18: the code already follows the sourced fixed-period edge [R3196]; row note and cube-root test) |
 | GEN.1794 | Cold-air condensation laws for OCS, CS2 and SO3 | none | done (PR 7207 with 7212 and 7213, Train 46, PR 7215, merged 6:54 AM EST 11-18: OCS, CS2 and SO3 condensation) |
 | GEN.1795 | Train 45 gate: the W20 other-branch search stops after two agreeing starts | none | done (PR 7190, Train 45, PR 7202, merged 4:36 AM EST 11-18) |
 | GEN.1796 | Greenhouse table refit for cold dense nitrogen airs (TEST.790 red) | none | open (Lane 05) |
 | GEN.1797 | Giant occurrence at 2 to 8 au under the observed range (0.050 against 0.0556 to 0.2283) | none | open (Lane 06) |
+| GEN.1798 | Build earlier life steps (LF49) for the Class M set | GEN.1791 | open (Class M levers thread) |
+| GEN.1799 | Build the lower oxygenic CO2 floor (class 1 0.5 Pa, class 2 2 Pa) | GEN.1791 | open (Class M levers thread) |
+| GEN.1800 | Build the quiet interior lever, sink factor inside the published range | GEN.1791 | open (Class M levers thread) |
+| GEN.1801 | Build second oxygen rise ratio 2 (BO12) | GEN.1791 | open (Class M levers thread) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

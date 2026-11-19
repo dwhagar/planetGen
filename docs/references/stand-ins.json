@@ -18389,7 +18389,7 @@
             ],
             [
               "Evidence",
-              "[R2020: Table 2] (READ: 0.20 to 0.25 planets of 0.5 to 2.5 Earth radii per star per factor of 2 in period from 4 to 128 days, flat from 8 days; no fall beyond 64 days); the median and width tuned to that shape and to the planets inside 400 days of the occurrence bands (tweak L2)"
+              "[R2020: Table 2] (READ: 0.20 to 0.25 planets of 0.5 to 2.5 Earth radii per star per factor of 2 in period from 4 to 128 days, flat from 8 days; no fall beyond 64 days); the median and width tuned to that shape and to the planets inside 400 days of the occurrence bands (tweak L2). The same period for every star is not a choice: [R3196] (abstract read) puts the drop in occurrence inward of 10 days at every spectral type, at a distance that goes as the cube root of the stellar mass, the pre-main-sequence co-rotation radius, and a distance that goes as the cube root of the mass at a fixed spin period is a fixed orbital period (Kepler's third law); a dust-sublimation edge (a as the square root of the luminosity) would put F5V at 60 days and M2V at 2.5 days for the same G2V fit, against it, so the median takes no stellar-mass term (GEN.1793)"
             ]
           ],
           "id": "PA19",

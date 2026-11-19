@@ -337,7 +337,8 @@ def sublimation_au(luminosity_w):
 def first_distance_au(star_mass_kg, stream=None, floor_au=0.0, median_days=None, sigma_dex=None):
     """Where a chain that has to start from nothing begins: the inner edge of the disk, a period near `OLIGARCH_INNER_EDGE_PERIOD_DAYS`
     (log-normal in dex by `OLIGARCH_INNER_EDGE_SIGMA_DEX`, [R3193, R3196]), no closer than `floor_au`; an inner system gives its own median and width
-    (`INNER_FIRST_PERIOD_MEDIAN_DAYS`, GEN.1709). One normal from the stream."""
+    (`INNER_FIRST_PERIOD_MEDIAN_DAYS`, GEN.1709). One normal from the stream. The period does not depend on the star, so the edge in AU goes as the cube root of the star's mass: the co-rotation
+    radius of [R3196], which is a fixed period (GEN.1793; no stellar-mass term, a dust-sublimation edge would not match it)."""
     source = stream or draw
     median = tuning.OLIGARCH_INNER_EDGE_PERIOD_DAYS if median_days is None else median_days
     sigma = tuning.OLIGARCH_INNER_EDGE_SIGMA_DEX if sigma_dex is None else sigma_dex

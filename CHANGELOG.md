@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4584] - 2026-11-18
+
+**Headline:** The first planet of an inner system keeps one orbital period for every star because the edge it sits outside is the co-rotation radius.
+
+### Changed
+
+- The notes on the first-planet period of an inner system (registry row PA19, `tuning.INNER_FIRST_PERIOD_MEDIAN_DAYS`, `planet_architecture.first_distance_au`) now say why it has no stellar-mass term: [R3196] puts the drop in planet occurrence at a distance that goes as the cube root of the stellar mass, the pre-main-sequence co-rotation radius, and that is a fixed period. A dust-sublimation edge would put F stars' first planets near 60 days and M2 dwarfs' near 2.5 days. A test pins the edge in AU to the cube root of the star's mass at one period. No generated value changes (GEN.1793).
+
 ## [8.0.4583] - 2026-11-18
 
 **Headline:** the greenhouse table's fit script reads the table the way the generator does, and gains the cold dense families that show where the table is weak; the table file is unchanged.
