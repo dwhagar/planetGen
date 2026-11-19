@@ -2,6 +2,7 @@
 
 """GEN.727: the eccentricity and inclination of planets and moons, and what follows from them (the light, the seasons, the spacing)."""
 
+import itertools
 import math
 import types
 
@@ -200,19 +201,22 @@ def _absorbed_light_ratio(planet, base_temperature, base_albedo):
 
 
 def test_an_eccentric_planet_is_as_warm_as_a_circle_with_the_same_mean_light():
-    planet = _airless_planet()
-    for seed in range(77, 277):          # the first seed that leaves the body with no air at either eccentricity (a thin air has a greenhouse that moves with the temperature)
-        planet.eccentricity = 0.0
-        draw.set_run_seed(seed)
-        planet_physics.calculate_atmospheric_conditions(planet)
-        circle, circle_albedo, circle_air = planet.surface_temperature, planet.bond_albedo, planet.atmospheric_pressure
-        planet.eccentricity = 0.6
-        draw.set_run_seed(seed)
-        planet_physics.calculate_atmospheric_conditions(planet)
-        if not circle_air and not planet.atmospheric_pressure:
-            break
+    for planet in itertools.islice(_airless_planets(), 20):       # the first planet whose draws leave it airless at both eccentricities (which planet that is follows the architecture's draws, GEN.1797)
+        for seed in range(77, 277):          # the first seed that leaves the body with no air at either eccentricity (a thin air has a greenhouse that moves with the temperature)
+            planet.eccentricity = 0.0
+            draw.set_run_seed(seed)
+            planet_physics.calculate_atmospheric_conditions(planet)
+            circle, circle_albedo, circle_air = planet.surface_temperature, planet.bond_albedo, planet.atmospheric_pressure
+            planet.eccentricity = 0.6
+            draw.set_run_seed(seed)
+            planet_physics.calculate_atmospheric_conditions(planet)
+            if not circle_air and not planet.atmospheric_pressure:
+                break
+        else:
+            continue
+        break
     else:
-        pytest.fail("no draw leaves the body airless at both eccentricities")
+        pytest.fail("no draw leaves a body airless at both eccentricities")
     # the light an orbit gives, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4): 1 / sqrt(1 - e^2) times a circle's (GEN.727). The albedo is not the same
     # (the warmer eccentric planet has less ice), so the light is found from the temperature and the body's own albedo.
     assert _absorbed_light_ratio(planet, circle, circle_albedo) == pytest.approx((1.0 - 0.36) ** -0.5, rel=1e-6)

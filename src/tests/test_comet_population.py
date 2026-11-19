@@ -217,7 +217,7 @@ def test_a_species_without_a_source_or_with_a_state_it_does_not_know_is_refused(
 def test_a_geometric_mean_outside_its_bounds_or_a_bad_number_is_refused():
     with pytest.raises(DataError, match="geometric mean.*not inside"):
         broken(lambda d: d["species"][0].update(geo_mean_percent=5.0))
-    with pytest.raises(DataError, match="not a positive number"):
+    with pytest.raises(DataError, match="must be a positive number"):
         broken(lambda d: d["species"][0].update(sigma_dex=0))
     with pytest.raises(DataError, match="not a fraction"):
         broken(lambda d: d["co_fraction"]["median"].update(long_period=1.0))

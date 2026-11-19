@@ -63,6 +63,7 @@ import math
 from collections import namedtuple
 
 from planetgen import tuning
+from planetgen.physics import vec3
 from planetgen.util.format import format_period_years
 from planetgen.util import detmath
 
@@ -115,29 +116,9 @@ Attributes:
 """
 
 
-def _sub(a, b):
-    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
-
-
-def _dot(a, b):
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-
-
-def _cross(a, b):
-    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
-
-
-def _scale(v, k):
-    return (v[0] * k, v[1] * k, v[2] * k)
-
-
-def _norm(v):
-    return math.sqrt(_dot(v, v))
-
-
 def _flatten(v, up):
     """`v` with its component along the unit vector `up` removed."""
-    return _sub(v, _scale(up, _dot(v, up)))
+    return vec3.sub(v, vec3.scale(up, vec3.dot(v, up)))
 
 
 def course_between(origin, destination, frame=FRAME_GALACTIC, center=_ORIGIN, up=_UP):
@@ -166,28 +147,28 @@ def course_between(origin, destination, frame=FRAME_GALACTIC, center=_ORIGIN, up
     Raises:
         ValueError: If `up` is the zero vector.
     """
-    up_length = _norm(up)
+    up_length = vec3.norm(up)
     if up_length == 0:
         raise ValueError("a frame's up vector can't be zero")
-    u_hat = _scale(up, 1 / up_length)
+    u_hat = vec3.scale(up, 1 / up_length)
 
-    displacement = _sub(destination, origin)
-    distance = _norm(displacement)
+    displacement = vec3.sub(destination, origin)
+    distance = vec3.norm(displacement)
     if distance == 0:
         return Course(distance_ly=0.0, bearing_deg=0.0, mark_deg=0.0, elevation_deg=0.0, frame=frame)
 
-    north = _flatten(_sub(center, origin), u_hat)
+    north = _flatten(vec3.sub(center, origin), u_hat)
     # Relative to the ship-to-center distance, so a ship a few light-years
     # from the axis of a galaxy-sized frame still counts as off-axis.
-    if _norm(north) <= 1e-9 * max(_norm(_sub(center, origin)), 1.0):
+    if vec3.norm(north) <= 1e-9 * max(vec3.norm(vec3.sub(center, origin)), 1.0):
         fallback = (0.0, 1.0, 0.0) if abs(u_hat[0]) > 0.9 else (1.0, 0.0, 0.0)
         north = _flatten(fallback, u_hat)
-    n_hat = _scale(north, 1 / _norm(north))
-    e_hat = _cross(n_hat, u_hat)
+    n_hat = vec3.scale(north, 1 / vec3.norm(north))
+    e_hat = vec3.cross(n_hat, u_hat)
 
-    d_north = _dot(displacement, n_hat)
-    d_east = _dot(displacement, e_hat)
-    d_up = _dot(displacement, u_hat)
+    d_north = vec3.dot(displacement, n_hat)
+    d_east = vec3.dot(displacement, e_hat)
+    d_up = vec3.dot(displacement, u_hat)
 
     bearing = math.degrees(math.atan2(d_east, d_north)) % 360.0
     elevation = math.degrees(math.atan2(d_up, detmath.hypot(d_north, d_east)))

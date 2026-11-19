@@ -64,8 +64,7 @@ class LifeLedgerError(ValueError):
 
 
 def _check_entry(owner, entry):
-    if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) or not entry.get("basis"):
-        raise LifeLedgerError(f"{owner}: every number and class needs a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
+    elements.check_rule_entry(owner, entry, LifeLedgerError)
 
 
 def species_atoms(species):

@@ -112,7 +112,8 @@ def test_a_local_neighborhood_generates_its_sectors_in_the_fill_order_and_says_h
     from tests.test_galaxy_gen import _all_sectors, _mysql_argv, _plan_wide_galaxy, _run_cli
     _plan_wide_galaxy(mysql_config)
     _run_cli(["--shell", "1", "--band", "0", "--limit", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
-    (seed,) = _all_sectors(mysql_config)
+    # The run also stores the sectors of the below-cut remnants it draws outside its wedge (GEN.1682, the backfill ring), so the sector asked for is the one at the address.
+    (seed,) = [row for row in _all_sectors(mysql_config) if (row["shell_index"], row["band_index"], row["wedge_index"]) == (1, 0, 0)]
     center = (seed["center_x_pc"], seed["center_y_pc"], seed["center_z_pc"])
     submitted = []
     monkeypatch.setattr(run_galaxy.followed, "run_followed",

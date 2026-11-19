@@ -132,15 +132,12 @@ def min_distance_after_au(body, inner_bodies):
         if last.body_type == 'a':
             return last.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION
         return apoapsis_au(last) + last.min_orbit_distance
-    needed = 0.0
     eccentricity = body.eccentricity or 0.0
+    needed = clearance_ledger.pairwise_needed_au([(inner.distance, inner.eccentricity or 0.0, inner.mass) for inner in inner_bodies if inner.body_type != 'a'],
+                                                 body.mass, eccentricity, body.star.mass)
     for inner in inner_bodies:
         if inner.body_type == 'a':
-            edge = clearance_ledger.belt_exclusion(inner.lower_limit, inner.upper_limit, body.mass, body.star.mass, eccentricity)[1]
-        else:
-            edge = clearance_ledger.planet_exclusion(inner.distance, inner.eccentricity or 0.0, inner.mass, body.star.mass, body.mass,
-                                                     eccentricity)[1]
-        needed = max(needed, edge)
+            needed = max(needed, clearance_ledger.belt_exclusion(inner.lower_limit, inner.upper_limit, body.mass, body.star.mass, eccentricity)[1])
     return _chain_needed(body, inner_bodies, needed)
 
 

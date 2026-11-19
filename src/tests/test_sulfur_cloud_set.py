@@ -7,7 +7,7 @@ import math
 
 import pytest
 
-from planetgen.physics import atmosphere, sulfur_cloud_set as sc, sulfuric_vapor
+from planetgen.physics import atmosphere, elements, sulfur_cloud_set as sc, sulfuric_vapor
 
 GAS = atmosphere.GAS_FIELD
 VENUS_PRESSURE_PA = 92.0e5
@@ -40,7 +40,7 @@ def test_the_rule_file_is_the_ten_species_with_tiers_and_numbers_with_bases():
 
 def test_a_rule_file_entry_without_a_tweak_is_refused():
     with pytest.raises(sc.SulfurCloudSetError):
-        sc._check("x", {"tier": "T3"})
+        elements.check_rule_entry("x", {"tier": "T3"}, sc.SulfurCloudSetError, basis=False)
 
 
 def test_a_hot_volcanic_carbon_dioxide_world_under_a_bright_star_gets_the_acid_cloud_the_gases_and_the_sulfur_species():

@@ -44,7 +44,6 @@ Use:
 """
 
 import json
-import math
 import os
 from dataclasses import dataclass
 
@@ -241,10 +240,11 @@ def gate_classes(gate):
 
 
 def _number(label, value, positive=False):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        raise DataError(f"materials.json: {label} is not a finite number")
-    if positive and not value > 0:
-        raise DataError(f"materials.json: {label} is not above zero")
+    owner = f"materials.json: {label}"
+    if positive:
+        elements.positive_number(value, owner)
+    else:
+        elements.finite_number(owner, value)
 
 
 def _prop(row_id, key, item, sources):

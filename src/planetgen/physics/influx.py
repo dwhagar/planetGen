@@ -33,7 +33,10 @@ import math
 from dataclasses import dataclass
 
 from planetgen.physics import constants, scatter
+from planetgen.physics import unit_registry as units
 from planetgen.util import detmath
+
+_msun_to_kg = units.converter("Msun", "kg")
 
 BELT_DUST_SHARE = 0.03
 """float: The share of a belt's collisional mass loss that reaches the inner system as dust and small bodies. A stand-in, in the range of the share of a cascade's mass that is in grains small enough for
@@ -96,13 +99,13 @@ def reach(reservoir, planet_au):
 
 def radiation_ratio(star_mass_solar, star_luminosity_solar):
     """`beta`, the ratio of the light's push on a grain of `GRAIN_RADIUS_M` to the star's pull: `3 L / (16 pi G M c rho s)` (a perfectly absorbing grain)."""
-    mass_kg = star_mass_solar * constants.SOLAR_MASS_TO_KG
+    mass_kg = _msun_to_kg(star_mass_solar)
     return 3.0 * star_luminosity_solar * constants.SOLAR_LUMINOSITY / (16.0 * math.pi * constants.G * mass_kg * constants.SPEED_OF_LIGHT_M_S * GRAIN_DENSITY_KG_M3 * GRAIN_RADIUS_M)
 
 
 def drift_speed_m_s(planet_au, star_mass_solar, star_luminosity_solar):
     """How fast a grain spirals in at `planet_au`, m/s: Poynting-Robertson drag, `2 beta G M / (c a)`."""
-    mass_kg = star_mass_solar * constants.SOLAR_MASS_TO_KG
+    mass_kg = _msun_to_kg(star_mass_solar)
     return 2.0 * radiation_ratio(star_mass_solar, star_luminosity_solar) * constants.G * mass_kg / (constants.SPEED_OF_LIGHT_M_S * planet_au * constants.AU_TO_M)
 
 
@@ -119,7 +122,7 @@ def capture_share(radius_km, mass_kg, planet_au, star_mass_solar, star_luminosit
     if planet_au <= 0.0 or radius_km <= 0.0 or mass_kg <= 0.0 or star_luminosity_solar <= 0.0:
         return 0.0
     a_m = planet_au * constants.AU_TO_M
-    star_kg = star_mass_solar * constants.SOLAR_MASS_TO_KG
+    star_kg = _msun_to_kg(star_mass_solar)
     v_orbit = math.sqrt(constants.G * star_kg / a_m)
     v_rel = v_orbit * detmath.hypot(DUST_ECCENTRICITY, DUST_INCLINATION_RAD)
     radius_m = radius_km * 1000.0

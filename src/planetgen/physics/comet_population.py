@@ -129,12 +129,6 @@ def _phi(x):
     return 0.5 * math.erfc(-x / math.sqrt(2.0))
 
 
-def _positive(owner, value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
-        raise DataError(f"{owner}: {value!r} is not a positive number")
-    return float(value)
-
-
 def _provenance(owner, item, sources):
     for key in ("source", "label", "state"):
         if not item.get(key):
@@ -149,8 +143,8 @@ def _provenance(owner, item, sources):
 
 def _species(name, item, sources):
     _provenance(name, item, sources)
-    lo, hi = _positive(name, item["lo_percent"]), _positive(name, item["hi_percent"])
-    mean, sigma = _positive(name, item["geo_mean_percent"]), _positive(name, item["sigma_dex"])
+    lo, hi = elements.positive_number(item["lo_percent"], name), elements.positive_number(item["hi_percent"], name)
+    mean, sigma = elements.positive_number(item["geo_mean_percent"], name), elements.positive_number(item["sigma_dex"], name)
     if not lo < mean < hi:
         raise DataError(f"{name}: the geometric mean {mean} is not inside its bounds {lo} to {hi}")
     return Species(name, mean, sigma, lo, hi, int(item["n"]), item["source"], item["label"], item["state"],
@@ -170,15 +164,15 @@ def _parse(data):
     sources = data["sources"]
     total = data["total_carbon_oxide"]
     _provenance("total_carbon_oxide", total, sources)
-    _positive("total_carbon_oxide", total["median_percent"])
-    _positive("total_carbon_oxide", total["sigma_dex"])
+    elements.positive_number(total["median_percent"], "total_carbon_oxide")
+    elements.positive_number(total["sigma_dex"], "total_carbon_oxide")
     fraction = data["co_fraction"]
     _provenance("co_fraction", fraction, sources)
     for period in PERIOD_CLASSES:
         median = fraction["median"].get(period)
         if not (isinstance(median, (int, float)) and 0.0 < median < 1.0):
             raise DataError(f"co_fraction: the median of {period} is not a fraction between 0 and 1")
-    _positive("co_fraction", fraction["logit_sigma"])
+    elements.positive_number(fraction["logit_sigma"], "co_fraction")
     flag = data["carbon_chain_depleted"]
     _provenance("carbon_chain_depleted", flag, sources)
     for period in PERIOD_CLASSES:
@@ -189,7 +183,7 @@ def _parse(data):
         raise DataError("interstellar must hold co_over_h2o and co2_over_h2o")
     for name, item in data["interstellar"].items():
         _provenance(f"interstellar {name}", item, sources)
-        if not 0 < _positive(name, item["lo"]) < _positive(name, item["hi"]):
+        if not 0 < elements.positive_number(item["lo"], name) < elements.positive_number(item["hi"], name):
             raise DataError(f"interstellar {name}: the range is not 0 < low < high")
     oxides = {name: _species(name, item, sources) for name, item in data["carbon_oxides"].items()}
     if set(oxides) != {"CO", "CO2"}:
