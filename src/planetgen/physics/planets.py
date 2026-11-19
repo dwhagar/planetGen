@@ -928,7 +928,11 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
         birth = orbit_elements.draw_moon_eccentricity(planet.moon_origin, e_max)
     else:
         e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
-        birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max, giant=planet.body_type == 'g')
+        planned = getattr(planet, "plan_eccentricity", None)
+        if planned is not None:
+            birth = min(planned, e_max)       # GEN.1797: the orbit the architecture drew and held to its neighbours, cut only where the star's Roche limit asks
+        else:
+            birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max, giant=planet.body_type == 'g')
     if planet.is_moon and planet.moon_origin not in moon_composition.CAPTURE_ORBIT_ORIGINS:
         planet.eccentricity = birth
         return

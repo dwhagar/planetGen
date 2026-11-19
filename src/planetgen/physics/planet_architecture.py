@@ -35,7 +35,7 @@ import collections
 import math
 
 from planetgen import tuning
-from planetgen.physics import bulk_structure, constants, planet_mass, scatter as scatter_rule, unit_registry as units
+from planetgen.physics import bulk_structure, clearance_ledger, constants, orbit_elements, planet_kind, planet_mass, scatter as scatter_rule, unit_registry as units
 from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -59,10 +59,11 @@ SURVIVAL_K_MINIMUM_SLOPE = 0.7
 MAX_LOG_TAU = 40.0
 """float: An instability time beyond this many decades of orbits is never (the draw is capped so the power cannot overflow)."""
 
-Seed = collections.namedtuple("Seed", ("distance_au", "mass_kg", "core_kg", "runaway", "merged", "migrated", "formation_au"))
+Seed = collections.namedtuple("Seed", ("distance_au", "mass_kg", "core_kg", "runaway", "merged", "migrated", "formation_au", "eccentricity"), defaults=(0.0,))
 """One planet of the architecture: where it ends (`distance_au`), its mass, the solid core it grew from, whether it is a runaway giant,
 how many oligarchs merged into it, whether it migrated in to a hot Jupiter orbit and where it formed (`formation_au`: the origin the
-composition reads, the snow line it was born past)."""
+composition reads, the snow line it was born past) and its eccentricity (GEN.1797: drawn here, by the law of the planet it is, and held to what the planets inside it allow, so the spacing
+pass finds it as the plan made it; 0 for a seed built by hand)."""
 
 Lost = collections.namedtuple("Lost", ("chain_mass_kg", "merge_debris_kg", "merges", "capped_kg", "capped", "small", "swept", "thrown", "snow_line_au",
                                        "star_mass_kg", "stripped", "disk_time_yr"), defaults=(scatter_rule.DISK_LIFETIME_YR,))
@@ -283,7 +284,7 @@ def _clear_split(seeds, star_mass_kg):
     """
     `(kept, swept, thrown)` for `seeds`: the planets a giant scattered, kept as losses. `swept` is `[(seed, giant)]`, the planets inside a hot Jupiter's orbit
     (a migrating giant sweeps the inner chain: hot Jupiters rarely have companions, [R4897]) or within `GIANT_CLEARING_SPACING` mutual Hill
-    radii of a giant that moved in (a giant that did not move clears nothing), and `thrown` is `_scatter_split`'s.
+    radii of a giant that moved in (a giant that did not move clears nothing), and `thrown` is `_stability_split`'s.
     """
     moved = [s for s in seeds if s.runaway and s.migrated]
     hot = [s for s in moved if s.distance_au < tuning.GIANT_HOT_ORBIT_AU]
@@ -302,29 +303,76 @@ def _clear_split(seeds, star_mass_kg):
             swept.append((s, crowding))
             continue
         kept.append(s)
-    kept, thrown = _scatter_split(kept, star_mass_kg)
+    kept, thrown = _stability_split(kept, star_mass_kg)
     return kept, swept, thrown
 
 
-def _scatter_split(seeds, star_mass_kg):
+def _giant(seed, snow_line_au):
+    """Whether the planet the seed becomes is a giant (`planet_kind.kind_of_given`, the rule the planet's own kind follows), the law its eccentricity is drawn from."""
+    return planet_kind.kind_of_given(seed.mass_kg, None, seed.formation_au >= snow_line_au) == "giant"
+
+
+def _inner_rows(inner):
+    return [(seed.distance_au, seed.eccentricity, seed.mass_kg) for seed in inner]
+
+
+def _held_eccentricity(seed, inner, multiple, star_mass_kg, snow_line_au):
     """
-    `(kept, thrown)`: `seeds` (in order of distance) without the lighter of any neighbouring pair closer than `GIANT_CLEARING_SPACING` mutual Hill radii that
-    holds a giant: each giant moves in on its own, so two can land on one another, and the heavier throws the lighter out (the same spacing
-    inside which a moved giant clears the planets around it). Pairs the thinning left apart are not touched. `thrown` is `[(seed, heavier)]`.
+    `seed` with an eccentricity drawn by the law of the planet it is (`orbit_elements.draw_planet_eccentricity`: the Kepler law of the systems of several planets, the Beta law of the giants), held to the largest the planets
+    inside it (`inner`, in order of distance, with their own) allow: the distance the spacing pass asks of a planet with that eccentricity (`clearance_ledger.planets_needed_au`, ten mutual Hill radii from the inner
+    planet's apoapsis to this one's periapsis, GEN.1797) is never past where the seed sits. A planet whose orbit would cross its inner neighbour's is made rounder by what that neighbour allows, not moved out by the pass
+    to a distance no planet of that mass was drawn at. The seed's eccentricity is 0 where even a circle is closer than the rule asks (`_stability_split` then decides which of the pair stays).
     """
-    kept = list(seeds)
-    thrown = []
-    i = 0
-    while i < len(kept) - 1:
-        inner, outer = kept[i], kept[i + 1]
-        k = spacing_k(inner.distance_au, inner.mass_kg, outer.distance_au, outer.mass_kg, star_mass_kg)
-        if (inner.runaway or outer.runaway) and k < tuning.GIANT_CLEARING_SPACING:
-            lighter, heavier = (inner, outer) if inner.mass_kg < outer.mass_kg else (outer, inner)
-            kept.pop(i if lighter is inner else i + 1)
-            thrown.append((lighter, heavier))
-            i = max(i - 1, 0)
-        else:
-            i += 1
+    with draw.bound(draw.body_stream("planet-eccentricity", seed.mass_kg, seed.formation_au, star_mass_kg)):      # the planet's own stream (GEN.1547): the build's draws are not moved by it
+        eccentricity = orbit_elements.draw_planet_eccentricity(multiple, orbit_elements.MAX_ECCENTRICITY, giant=_giant(seed, snow_line_au))
+    rows = _inner_rows(inner)
+
+    def needed(e):
+        return clearance_ledger.planets_needed_au(rows, seed.mass_kg, e, star_mass_kg)
+
+    if not rows or needed(eccentricity) <= seed.distance_au:
+        return seed._replace(eccentricity=eccentricity)
+    if needed(0.0) > seed.distance_au:
+        return seed._replace(eccentricity=0.0)
+    low, high = 0.0, eccentricity                  # the largest eccentricity the rule holds: it rises with the eccentricity, so the crossing is bisected
+    for _ in range(30):
+        middle = 0.5 * (low + high)
+        low, high = (middle, high) if needed(middle) <= seed.distance_au else (low, middle)
+    return seed._replace(eccentricity=low)
+
+
+def _with_eccentricities(seeds, star_mass_kg, snow_line_au):
+    """`seeds` (in order of distance) each with its eccentricity, drawn in that order and held to the planets inside it (`_held_eccentricity`)."""
+    out = []
+    for seed in seeds:
+        out.append(_held_eccentricity(seed, out, len(seeds) > 1, star_mass_kg, snow_line_au))
+    return out
+
+
+def _stability_split(seeds, star_mass_kg):
+    """
+    `(kept, thrown)`: `seeds` (in order of distance) without the planets that cannot stand beside their neighbours by the rule the spacing pass keeps (`clearance_ledger.planets_needed_au`, GEN.1797): a planet closer than
+    that to the planets inside it even on a circular orbit, in a pair that holds a giant, is thrown out if it is the lighter of the two, else it throws out the one inside it (the same law as before: the heavier throws the lighter, the
+    pair `thrown` records as `(lighter, heavier)`). The pass found the same pairs too close and moved the outer one out, and a giant it moved was no longer where the giant had formed. A pair of planets with no giant is left to the
+    thinning (`sculpt`) and the pass, as it was.
+    """
+    kept, thrown = [], []
+    for seed in seeds:
+        while kept:
+            inner = kept[-1]
+            if not (inner.runaway or seed.runaway):
+                break
+            needed = clearance_ledger.planets_needed_au(_inner_rows(kept), seed.mass_kg, seed.eccentricity, star_mass_kg)
+            if seed.distance_au >= needed:
+                break
+            if seed.mass_kg < inner.mass_kg:
+                thrown.append((seed, inner))
+                seed = None
+                break
+            kept.pop()
+            thrown.append((inner, seed))
+        if seed is not None:
+            kept.append(seed)
     return kept, thrown
 
 
@@ -366,7 +414,8 @@ def extra_seed(previous, architecture, star_mass_kg, snow_line_au, metal_ratio, 
         distance = next_distance_au(previous.distance_au, previous.mass_kg, star_mass_kg, architecture.separation)
     core = planet_mass.oligarch_core_kg(distance, star_mass_kg, snow_line_au, metal_ratio, architecture.disk_scatter, architecture.separation)
     outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source, gas_factor)
-    return Seed(distance, outcome.mass_kg, outcome.core_kg, outcome.runaway, 1, False, distance)
+    seed = Seed(distance, outcome.mass_kg, outcome.core_kg, outcome.runaway, 1, False, distance)
+    return _held_eccentricity(seed, [] if previous is None else [previous], True, star_mass_kg, snow_line_au)
 
 
 class Plan:
@@ -450,6 +499,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
                 distance *= math.exp(-abs(source.gauss(0.0, tuning.GIANT_INWARD_MIGRATION_SIGMA_LN)))
         seeds.append(Seed(distance, outcome.mass_kg, outcome.core_kg, outcome.runaway, merged, migrated, formed_au))
     seeds.sort(key=lambda s: s.distance_au)
+    seeds = _with_eccentricities(seeds, star_mass_kg, snow_line_au)
     seeds, swept, thrown = _clear_split(seeds, star_mass_kg)
     lost = Lost(sum(body[1] for body in chain), merge_debris, merges, capped_kg, capped, tuple((body[0], body[1]) for body in small), tuple(swept), tuple(thrown),
                 snow_line_au, star_mass_kg, (), disk_time_yr)
