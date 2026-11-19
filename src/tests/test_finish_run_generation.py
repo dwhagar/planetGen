@@ -24,12 +24,17 @@ def conn(redis_server):
     return redisqueue.connect(redis_server)
 
 
+KNOTS_BY_OBJECT = ("SELECT k.position, k.t_years, k.x_pc, k.y_pc, k.z_pc, k.vx_kms, k.vy_kms, k.vz_kms, p.object_table, p.object_id"
+                   " FROM sector_path_knots k JOIN sector_paths p ON p.id = k.path_id")
+"""str: A path's knots named by the object the path is of: the path's row id is a surrogate that a run settled in two stretches does not give the same numbers as one settled whole (OPS.277)."""
+
+
 def _digest(config, table, leave_out=("id",)):
     """The rows of `table` as one hash, row ids and the columns in `leave_out` left out, in an order that does not depend on
-    the order they were written in."""
+    the order they were written in (the knots of a path by the object it is of, not by the path's row id)."""
     conn = store.get_connection(config)
     try:
-        rows = conn.execute(f"SELECT * FROM {table}").fetchall()
+        rows = conn.execute(KNOTS_BY_OBJECT if table == "sector_path_knots" else f"SELECT * FROM {table}").fetchall()
     finally:
         conn.close()
     lines = sorted(repr(sorted((name, value) for name, value in dict(row).items() if name not in leave_out))

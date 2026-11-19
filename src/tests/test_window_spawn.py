@@ -248,3 +248,30 @@ def test_a_stage_that_ended_with_many_rows_folds_the_history_of_the_ones_that_fi
         assert planrows.fold_finished(conn, run_id, 0) == 0, "folded once, nothing left to fold"
     finally:
         control.close()
+
+
+def test_a_unit_that_cannot_be_started_holds_its_run_with_the_error_text_like_a_unit_that_failed(mysql_config):
+    """OPS.283: a unit whose process was never forked (its arguments could not be handed over) is `failed` and its run is held, the unit among the stage's held ones with the text of the error."""
+    from planetgen.queue import launcher, memorygate
+
+    class Refusing:
+        def fork(self, kind, runner, job=None, template=None):
+            raise OSError("Message too long")
+
+        def poll(self, timeout=0.0):
+            return []
+
+    conn, run_id = _started(mysql_config)
+    control = store.get_control_connection(store.control_mysql_config(mysql_config))
+    try:
+        one = launcher.Launcher(control, Refusing(), read_host=lambda: memorygate.Host(10 ** 6, 10 ** 6, 64, 0.0), spawner=conn)
+        row = control.execute("SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, attempt FROM engine_jobs WHERE command = 'windowed' AND state = 'ready' ORDER BY id").fetchone()
+        assert row is not None
+        with pytest.raises(OSError):
+            one.start(row)
+        assert control.execute("SELECT state FROM engine_jobs WHERE id = ?", (row["id"],)).fetchone()["state"] == "failed"
+        said = {runrecord._s(field): runrecord._s(value) for field, value in conn.hgetall(runrecord.held_key(run_id, 0)).items()}
+        assert int(row["item_key"]) in {int(field) for field in said} and "Message too long" in " ".join(said.values())
+        assert runrecord.run_state(conn, run_id) == "running", "the run is held when the stage has nothing left to run, not at the first unit held (`held.settle`)"
+    finally:
+        control.close()

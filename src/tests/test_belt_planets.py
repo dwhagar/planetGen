@@ -16,7 +16,7 @@ from planetgen.generation import belt_planets, validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.names import bodies as body_names
-from planetgen.physics import body_strength, compaction
+from planetgen.physics import body_strength, compaction, envelope_share
 from planetgen.util import draw
 
 SEEDS = range(1, 25)
@@ -74,7 +74,7 @@ def test_a_promoted_planet_has_the_orbit_and_makeup_of_its_member(promoted_syste
         if body.mass < compaction.TAPER_END_KG:
             assert body.density == pytest.approx(member["density_g_cm3"], rel=1e-6)          # the member's own density, below the taper's end
         assert body_strength.ratio_for(body.mass, body.water_mass_fraction + body.ice_mass_fraction) >= 1.0          # the floor is roundness, as Lane 21 asked, one call; the ice of the strength is the water and the other ices together, as the belt's own status reads it (`belt_page`)
-        assert body.envelope_mass_fraction == 0.0 and body.planet_class is not None        # no gas captured, a class from the finished body
+        assert envelope_share.captured_fraction(body) == 0.0 and body.planet_class is not None        # no gas captured (a cold small body can hold a secondary hydrogen air, which the envelope fraction counts, GEN.1226), a class from the finished body
         total = sum(shares.values())
         for name, share in shares.items():
             assert getattr(body, f"{name}_mass_fraction") == pytest.approx(share / total, abs=1e-6)
@@ -236,15 +236,25 @@ def test_the_oligarch_mass_of_a_belt_is_the_isolation_mass_of_its_stretch(promot
         assert all(member["mass_kg"] <= cap for member in belt.members if member["status"] != "moon")       # none is left over it
 
 
+def _belt_with_light_members(promoted_system):
+    """`(system, order, belt, light members)` of the first belt, in the promoted system and then in the other seeds, that still holds members under the taper's end: the belts of a star whose disk built little are
+    all heavy bodies (GEN.1539 moved a red dwarf's belts in), so the first belt of the first system is not always one."""
+    seed, system = promoted_system
+    for other in (seed, *(candidate for candidate in SEEDS if candidate != seed)):
+        system = system if other == seed else _system(other)
+        for order, belt in belt_planets.irregular_moons.belts_of(system.planets).items():
+            light = [member for member in belt.members if member["mass_kg"] < compaction.TAPER_END_KG and member["radius_km"] > 0.0]
+            if light and _promoted(system):
+                return system, order, belt, light
+    pytest.fail("no belt with members under the taper's end in the seeds")
+
+
 def test_a_promoted_body_under_the_taper_has_the_radius_of_the_structure_model_even_where_its_member_was_denser_than_its_grains(promoted_system):
     """GEN.1692: below `compaction.TAPER_END_KG` the planet keeps the member's porosity but takes the radius the structure model gives it, as every planet does (`tests/audit/sweep_bulk.py`, 1e-6); a member
     denser than the grains' zero-pressure mix (porosity clamped to none) used to keep its own, smaller radius."""
     from tests.audit import sweep, sweep_bulk
     rule = next(rule for rule in sweep_bulk.RULES if rule.name == "radius-from-structure")
-    _seed, system = promoted_system
-    order, belt = next(iter(belt_planets.irregular_moons.belts_of(system.planets).items()))
-    light = [member for member in belt.members if member["mass_kg"] < compaction.TAPER_END_KG and member["radius_km"] > 0.0]
-    assert light, "the belt has members under the taper's end"
+    system, order, belt, light = _belt_with_light_members(promoted_system)
     for member in (light[0], dict(light[0], radius_km=0.7 * light[0]["radius_km"])):       # as the belt drew it, and denser than any grain mix could be
         planet = belt_planets.planet_of(system, system.star, belt, order, member)
         assert rule.check(sweep.Entry(planet, None, None, "x")) == []
