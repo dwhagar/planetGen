@@ -204,11 +204,11 @@ def _items(conn, picked):
         below[kind] = _below_counts(conn, kind, ids)
     if "system" in by_kind:
         star_types = _star_types(conn, by_kind["system"])
-    belt_numbers = belt_names.numbers_for_belts(conn, by_kind.get("belt", ()))      # GEN.1508: numbered among the star's own belts, not by slot
+    belt_titles = belt_names.names_for_belts(conn, by_kind.get("belt", ()))      # GEN.1508: numbered among the star's own belts, not by slot; a trojan region is named for its giant (GEN.1150)
     items = []
     for kind, row_id in picked:
         row = rows[kind][row_id]
-        name = belt_names.label(belt_numbers[row_id]) if kind == "belt" else row.pop("name", None)
+        name = belt_titles[row_id] if kind == "belt" else row.pop("name", None)
         summary = {key: value for key, value in row.items() if key not in ("id", "name")}
         if kind == "system":
             summary["is_binary"] = bool(summary["is_binary"])

@@ -3484,6 +3484,11 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     history_text                TEXT NULL,  -- v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
     host_node_id                SMALLINT NULL,  -- v258 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets`
     thrown_inward_kg            DOUBLE NULL,  -- v267 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v267
+    lagrange_point              VARCHAR(2) NULL,  -- v269 (GEN.1150): `L4` (leading) or `L5` (trailing) for a trojan region of a giant, whose parent is the giant (`parent_type` planet), NULL for every other belt
+    libration_amplitude_deg     DOUBLE NULL,  -- v269 (GEN.1150): the libration amplitude of a trojan region's bodies about its point, degrees (`physics/trojan_swarm.py`), NULL for every other belt
+    libration_phase_deg         DOUBLE NULL,  -- v269 (GEN.1150): the libration phase at the epoch, degrees, NULL for every other belt
+    mean_eccentricity           DOUBLE NULL,  -- v269 (GEN.1150): the mean eccentricity of a trojan region's bodies, NULL for every other belt
+    mean_inclination_deg        DOUBLE NULL,  -- v269 (GEN.1150): the mean inclination of a trojan region's bodies to the giant's plane, degrees, NULL for every other belt
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -6688,6 +6693,9 @@ CREATE TABLE IF NOT EXISTS engine_items (
 
 -- v267 (GEN.1231): `asteroid_belts.thrown_inward_kg` (DOUBLE, NULL), the mass of the belt the star's mass loss threw inward (`physics/belt_history.py`): the source of the rock
 -- that falls on a white dwarf, so the star's page can say the rate at which it accretes. NULL for a belt of no remnant system and for a row made before v267, nothing is backfilled.
+
+-- v269 (GEN.1150): `asteroid_belts` gains `lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity` and `mean_inclination_deg`: a trojan region of a giant (its swarm at L4 or L5)
+-- is a belt-like row whose parent is the giant. NULL for every other belt and for a row made before v269, nothing is backfilled.
 
 -- engine_piece_results (v263, OPS.219): what each finished piece of a job returned, in the job's own galaxy, written in the transaction that stores the cursor in `engine_items` and the piece's data. A unit that
 -- stopped part way and is run again starts after its stored cursor and hands its `gather` these results beside the new ones (`planetgen/queue/engine.py`). One row for each piece that returned something.

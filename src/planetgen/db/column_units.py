@@ -178,6 +178,8 @@ TABLES = {
         "unix_s": ("epoch_unix", "next_update_due"),
         "g_cm3": ("density_g_cm3",),
         "frac": ("ice_mass_fraction",),
+        "deg": ("libration_amplitude_deg", "libration_phase_deg", "mean_inclination_deg"),
+        "orbit-e": ("mean_eccentricity",),
         "au": ("formation_snow_line_au",),
         "Mearth": ("primordial_mass_earth", "cleared_mass_earth", "scattered_mass_earth"),
         "flag": ("stirred",),

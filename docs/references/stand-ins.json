@@ -35239,6 +35239,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_region.TrojanRegion limits a (1 -/+ e): the orbit radii a trojan region spans are the giant's distance less and more than the region's mean eccentricity (GEN.1150); how often a giant holds a swarm is not set, it is what the outer disk it swept leaves (about 1 percent of G2V systems in 160)"
+            ],
+            [
+              "The range it moves in",
+              "none (geometry)"
+            ],
+            [
+              "Where it holds",
+              "every region"
+            ],
+            [
+              "What would show it wrong",
+              "a region whose bodies lie outside its limits"
+            ],
+            [
+              "What replaces it",
+              "the radial width of a tadpole from its libration, when the orbit updater's overlay (slice 2) draws the bodies"
+            ],
+            [
+              "Evidence",
+              "the swarm's mass is swept_hand_on.trojan_part (GEN.1455 survival, the scatter SX5 split); measured 2 of 160 G2V systems with a swept outer disk, one of 1.1e22 kg and one of 3e7 kg (reports/gen1150)"
+            ]
+          ],
+          "id": "TJ12",
+          "key": "6.121:TJ12",
+          "kind": "P",
+          "slug": "6-121-tj12",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "trojan_region.TrojanRegion limits a (1 -/+ e): the orbit radii a trojan region spans are the giant's distance less and more than the region's mean eccentricity (GEN.1150); how often a giant holds a swarm is not set, it is what the outer disk it swept leaves (about 1 percent of G2V systems in 160)"
         }
       ],
       "slug": "6-121-stand-ins-of-the-lagrange-trojans",
@@ -68259,7 +68297,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1706",
+          "unread": "by design",
           "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy"
         },
         {
