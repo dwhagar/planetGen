@@ -350,6 +350,24 @@ def test_nebula_page_draws_its_cloud_in_3d(page, base_url, site_app, monkeypatch
     assert page.locator("#nebulaview-canvas").get_attribute("data-nebula-view") is None and page.locator(".phenomrender-still").is_visible()
 
 
+def test_asteroid_field_page_draws_its_cloud_in_3d(page, base_url, site_app):
+    """GEN.361: a field's page swaps its still drawing for the 3D view of its own bodies (the numbers of `phenomenonrender.field_view`): the canvas turns live
+    and draws points on black, and the caption under it states the real body count."""
+    import io
+
+    from PIL import Image
+
+    field = next(p for p in _phenomena(site_app) if p["type"] == "asteroid_field")
+    _open(page, f"{base_url}/phenomenon/asteroid_field/{field['id']}", "#phenomrender")
+    page.locator("#phenomrender.phenomrender-live").wait_for(state="attached", timeout=15000)
+    assert page.locator("#phenomrender-canvas").is_visible() and page.locator("#phenomenonmap-svg").count() == 0
+    assert "bodies larger than 1 km" in page.locator(".phenomrender-caption").inner_text() or "of its bodies" in page.locator(".phenomrender-caption").inner_text()
+    page.wait_for_timeout(400)
+    shot = Image.open(io.BytesIO(_shot(page, "#phenomrender-canvas"))).convert("L")
+    lit = sum(1 for value in shot.getdata() if value > 60)
+    assert lit > 40, f"the field's view drew only {lit} lit pixels"
+
+
 # --- TEST.55, TEST.59: the Galaxy Map ------------------------------------------------
 
 def _crumbs(page):

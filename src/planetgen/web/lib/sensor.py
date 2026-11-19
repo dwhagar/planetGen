@@ -6,7 +6,7 @@ the record a painter draws, and which painter that is. The Sensor view is the pi
 outside, painted from the stored row and the Object ID seed alone (`bodylook.seed_for`), never from a cached sky.
 
 This registry only names and gathers what exists: the look records of `web/maps/bodylook.py` (stars, planets, moons), the parameters of
-`web/maps/phenomenonrender.py` (neutron stars, black holes, quasars, rogue planets, interstellar comets) and the nebula view's record. The
+`web/maps/phenomenonrender.py` (neutron stars, black holes, quasars, rogue planets, interstellar comets, asteroid fields) and the nebula view's record. The
 painters are in `static/sensorview.js`, which names the same painter ids (`tests/test_sensor.py` checks the two lists agree). A kind no painter
 draws yet has an entry that says so, so the guard test fails only for a kind nobody has thought about: a new kind in the property sheet has to
 get an entry, with a painter or with the reason it has none.
@@ -118,10 +118,10 @@ REGISTRY = {entry.kind: entry for entry in (
     Entry("black_hole", "phenomenon", _phenomenon("black_hole"), inputs=("mass class, spin, accretion disk",)),
     Entry("quasar", "phenomenon", _phenomenon("quasar"), inputs=("radio loudness",)),
     Entry("interstellar_comet", "phenomenon", _phenomenon("interstellar_comet"), inputs=("activity",)),
+    Entry("asteroid_field", "phenomenon", _phenomenon("asteroid_field"), inputs=("age, speed, shape, mass, composition family",)),
     Entry("nebula", "nebula", _nebula, inputs=("type, size, the galaxy's density",)),
     _none("belt", "no painter draws a belt yet (the grain field is still to build)"),
     _none("comet", "no painter draws a comet of a system yet (a nucleus with its coma and tail is still to build)"),
-    _none("asteroid_field", "no painter draws an asteroid field yet"),
     _none("supernova_remnant", "no painter draws a remnant yet; the map draws its shell from the density"),
     _none("globular_cluster", "no painter draws a cluster yet (a star field from its counts is still to build)"),
     _none("superbubble", "no painter draws a superbubble yet"),
