@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4598] - 2026-11-19
+
+**Headline:** Kill test for the population and territories passes (OPS.225).
+
+### Added
+
+- A kill test for `run-population` and `run-territories`: units are killed once each at random commits, the same galaxy is populated again from its own stored ids, and the species, polities and owners match an undisturbed pass. No double write was found.
+
 ## [8.0.4597] - 2026-11-19
 
 **Headline:** The two 2023 papers behind the nitrogen partition table are in the citation registry.
