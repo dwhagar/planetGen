@@ -617,6 +617,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.308", "6.308 Stand-ins of the vapor pressure of carbonyl sulfide, carbon disulfide and sulfur trioxide, and the gases with no law (GEN.1794)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.309", "6.309 Stand-ins of the water-limited silicate weathering (GEN.1403)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.310", "6.310 Stand-ins of the dry-surface carbonate buffer (GEN.1767)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )

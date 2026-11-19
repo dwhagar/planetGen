@@ -199,7 +199,9 @@ def _run_life(planet, letter=None):
         return begun[-1]
 
     draw.set_run_seed(LIFE_STREAM_SEED)
-    with mock.patch.object(life, "_begun", recorded):
+    from planetgen.physics import planets
+    keep_the_letter = mock.patch.object(planets, "apply_class", lambda body: None)
+    with mock.patch.object(life, "_begun", recorded), keep_the_letter:    # GEN.1745: the life step reads the class once at its end; the letter the audit gives the copy (or the world's own) is the question, not an answer to re-derive
         life.apply_life_data(clone)
     outcome = clone.life_class_id, clone.life_stage, tuple(getattr(clone, field, None) for field in evolution.SCHEDULE_FIELDS)
     age = getattr(clone.star, "age", None)

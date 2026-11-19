@@ -56,3 +56,12 @@ def test_the_balance_root_is_the_stable_crossing_the_supply_or_the_floor():
     assert sp.balance_root_bar(0.0, rising) == 0.0
     assert sp.balance_root_bar(1.0, lambda p_bar: 1.0) == sp.MIN_PCO2_BAR            # a sink that takes everything even at the floor
     assert sp.balance_root_bar(1.0, lambda p_bar: -1.0) == 1.0                       # one that never keeps up: the air holds the supply
+
+
+def test_wet_land_is_the_land_the_sea_waters_GEN1403():
+    earth = sp.wet_land_fraction(sp.LAND_FRACTION_EARTH, sp.OCEAN_COVER_EARTH)
+    assert earth == pytest.approx(sp.LAND_FRACTION_EARTH), "the Earth is the reference: all of its land is wet"
+    assert sp.wet_land_fraction(0.5, 0.5) == pytest.approx(0.5 * 0.5 / sp.OCEAN_COVER_EARTH)
+    assert sp.wet_land_fraction(0.1, 0.9) == pytest.approx(0.1), "a sea above the Earth's cover adds no rain to the land"
+    assert sp.wet_land_fraction(1.0, 0.0) == 0.0, "a world with land and no sea weathers nothing"
+    assert sp.wet_land_fraction(-0.1, 0.5) == 0.0 and sp.wet_land_fraction(0.3, -0.1) == 0.0

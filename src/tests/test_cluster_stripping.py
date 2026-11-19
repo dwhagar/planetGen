@@ -81,6 +81,11 @@ def test_a_draw_outside_zero_to_one_is_refused():
         cu.unbinding_epoch_myr(1000.0, 1.0, DENSE, 1.0, 3.0)
 
 
+SEEDS = 120
+"""int: How many seeds the dense-cluster test may try before it gives up. A seed qualifies when its plain system ejects nothing, its dense system strips a planet and holds fewer planets than the plain one: about 1 seed
+in 40 (main: seed 7 of 0 to 39; the growth limit by star mass, GEN.1539, moved it to seed 68). The three conditions and the assertions below are as they were; only the number of seeds tried is wider."""
+
+
 def _seed(distance, mass_earth):
     return pa.Seed(distance, mass_earth * EARTH, 0.1 * mass_earth * EARTH, False, 1, False, distance)
 
@@ -109,7 +114,7 @@ def _system(history, seed):
 
 def test_a_system_with_no_cluster_history_is_the_system_it_always_was_and_a_dense_one_loses_its_wide_planets():
     found = None
-    for seed in range(40):
+    for seed in range(SEEDS):
         plain, dense = _system(None, seed), _system(DENSE, seed)
         # The cluster history draws one number per planet before the architecture is built, so the two systems are not the same beyond the stripping (GEN.1611 slice 1 moved the
         # architecture of seed 1 from 15 planets to 23 under the history): take the first seed where the history also leaves the dense system with fewer planets.
@@ -117,7 +122,7 @@ def test_a_system_with_no_cluster_history_is_the_system_it_always_was_and_a_dens
                 and len(dense.planets) < len(plain.planets)):
             found = plain, dense
             break
-    assert found, "no system of 40 seeds had a planet to strip"
+    assert found, f"no system of {SEEDS} seeds had a planet to strip"
     plain, dense = found
     assert len(dense.planets) < len(plain.planets)
     assert all(loss.kind == "stripped" for _star, loss in dense.ejected_losses())

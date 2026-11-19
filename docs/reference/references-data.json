@@ -246116,6 +246116,41 @@
    "volume": "2",
    "year": 2015
   },
+  "10.3389/feart.2023.1159412": {
+   "authors": [
+    [
+     "Suer",
+     "T. A."
+    ],
+    [
+     "Jackson",
+     "C."
+    ],
+    [
+     "Grewal",
+     "D. S."
+    ],
+    [
+     "Dalou",
+     "C."
+    ],
+    [
+     "Lichtenberg",
+     "T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3389/feart.2023.1159412",
+   "editors": [],
+   "journal": "Front. Earth Sci.",
+   "page": "1159412",
+   "publisher": "Frontiers Media SA",
+   "src": "crossref",
+   "title": "The distribution of volatile elements during rocky planet formation",
+   "type": "journal-article",
+   "volume": "11",
+   "year": 2023
+  },
   "10.3389/feart.2023.1197363": {
    "authors": [
     [
@@ -280622,6 +280657,40 @@
    "volume": "",
    "year": 2022
   },
+  "arXiv:2207.09807": {
+   "arxiv": "2207.09807",
+   "authors": [
+    [
+     "Johansen",
+     "A."
+    ],
+    [
+     "Ronnet",
+     "T."
+    ],
+    [
+     "Schiller",
+     "M."
+    ],
+    [
+     "Deng",
+     "Z."
+    ],
+    [
+     "Bizzarro",
+     "M."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": "A&A 671, A76 (2023)",
+   "page": "",
+   "src": "arxiv",
+   "title": "Anatomy of rocky planets formed by rapid pebble accretion III. Partitioning of volatiles between planetary core, mantle, and atmosphere",
+   "type": "preprint",
+   "volume": "",
+   "year": 2022
+  },
   "arXiv:2207.14675": {
    "arxiv": "2207.14675",
    "authors": [
@@ -286997,7 +287066,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5317,
+ "id_next": 5319,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -291458,6 +291527,7 @@
   "10.3367/ufne.2025.05.039904": "R4994",
   "10.3367/ufnr.0089.196607g.0483": "R1213",
   "10.3389/feart.2014.00038": "R5157",
+  "10.3389/feart.2023.1159412": "R5317",
   "10.3389/feart.2023.1197363": "R2089",
   "10.3389/fmicb.2017.01212": "R4346",
   "10.3389/fmicb.2018.02152": "R1449",
@@ -293140,6 +293210,7 @@
   "arxiv:2207.03151": "R4574",
   "arxiv:2207.04800": "R0410",
   "arxiv:2207.05124": "R3804",
+  "arxiv:2207.09807": "R5318",
   "arxiv:2207.10238": "R0976",
   "arxiv:2207.10243": "R0977",
   "arxiv:2207.12731": "R0430",

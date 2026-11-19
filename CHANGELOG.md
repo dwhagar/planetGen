@@ -2,6 +2,112 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4597] - 2026-11-19
+
+**Headline:** The two 2023 papers behind the nitrogen partition table are in the citation registry.
+
+### Changed
+
+- The metal/silicate partition coefficient of nitrogen (registry row NB1, `nitrogen_budget`) now cites its sources by id: [R5317] (a review of the experiments) and [R5318] (a pebble accretion model of the volatiles between core, mantle and air), where the notes named them by author and year. No value changes (GEN.1583).
+
+## [8.0.4596] - 2026-11-19
+
+**Headline:** A New galaxy job no longer stops at its luminosity scatter, which took the backfill's sky stars for a luminosity scatter already stored.
+
+### Fixed
+- **The luminosity scatter of a job refused the job's own backfill (OPS.280).** In a job where a backfill comes before the massive-star scatter, the massive-star scatter already refuses a galaxy that holds a scatter and empties the table before the backfill; the luminosity scatter after it then found the backfill's sky stars under the mass limit and stopped with "The bright-star scatter is already stored". A luminosity scatter prepared that way no longer checks. A luminosity scatter on its own still refuses a stored one. A test runs the job's chain end to end.
+
+## [8.0.4595] - 2026-11-19
+
+**Headline:** A generation run now shows as running with its start time in the job ledger, and the bright-star backfill stage writes a status line with real counts and a time left every five minutes.
+
+### Changed
+
+- OPS.281: a run's row in `engine_runs` stays `waiting` with no start time while its units run; it is now `running` with `started_at` set when its first job starts (`ledger.begin_attempt`), a held or ended run keeps its state, and a run that finishes done is `done` with `finished_at` in the ledger too (it followed a cancel and a hold before, not a finish).
+- OPS.282: the backfill stage (the mass scatter from the neighborhood plus the sky tiers) took hours with one log line. `BackfillFollower` now writes a line every five minutes: sectors visited of those to draw, sky parts done of all, stars placed by the finished parts, what the working parts count inside themselves, and the time left as hours, minutes and seconds.
+- A test used the old name `rq_units` after the module became `unit_helpers`; it uses the new one.
+
+generation-output: unchanged
+
+## [8.0.4594] - 2026-11-19
+
+**Headline:** The nebula layer of the Galaxy Map loads its sibling script with its own version, and the Gaia download is listed as an outgoing request that sends the project's user agent.
+
+### Changed
+
+- `galaxynebulae.js` imported `galaxyblocks.js` with a static import, which drops the `?v=` query so the sibling was cached unversioned (and could load twice); it now imports it the way every other script does, with `VERSION_QUERY`.
+- `tests/test_user_agent.py` lists `datasets/gaia_nearby.py` among the outgoing request paths; it already sent `user_agent()` and no personal details, and the test now checks that it does.
+
+generation-output: unchanged
+
+## [8.0.4593] - 2026-11-19
+
+**Headline:** Two Train 47 gate reds are fixed: the life sweep audit keeps the class letter it puts in (so its "same conditions as another class" check still compares something now that the class is read once at the end of the life pass), and the stand-ins of the water-limited weathering (WW1, WW2) have their registry section.
+
+### Fixed
+
+- `test_a_generator_that_skips_life_for_one_letter_is_reported` (a Train 47 gate red from GEN.1745 slice 3, PR 7211): the audit (`tests/audit/sweep_life.py`, `_run_life`) puts another class letter on a copy of a world and runs the life step to see whether the outcome follows the letter. Since the class is read once at the end of `life.apply_life_data`, the letter it put in was overwritten by the world's own class before the check, so every letter gave the same outcome and the audit compared nothing. While the audit runs the life step on a copy, `planets.apply_class` is now held off, so the copy keeps the letter it was given (or the world's own letter), as it did before the class moved to the end of the life pass. No generator code changes.
+- `test_every_registry_table_row_of_the_plan_is_in_the_registry` and `test_every_tag_of_the_code_names_its_section_and_an_id` (PR 7218, GEN.1403): the plan's section 6.309 (rows WW1 and WW2) was not in the registry's section list (`scripts/build_stand_in_values.py`), and the two tags in `surface_pressure.py` named no section. The section is added to the list, the tags read `[Stand-in 6.309 WW1, ...]` and `[Stand-in 6.309 WW2, ...]`, and the stand-in list and reference pages are regenerated. No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4592] - 2026-11-19
+
+**Headline:** A world whose own methane warms it is now asked for its oxygen again at the temperature the methane left, as the history reads the oxygen law at each age.
+
+### Changed
+
+- GEN.1745 slice 3: `life._build_air` asked the oxygen law once, on the air as the life found it, and then added the methane that warms the world by 10 K or more; the law reads the temperature of the sea (the producers' Boltzmann factor), so a world its own life thaws kept the oxygen answer of its cold state. When the first ask gives no oxygen and the methane has changed the air, the oxygen is now asked again at the temperature the methane left; if it rises, the rise burns the methane (as it does for any world) and the gases of the rows that go on are put in again. Worlds that rise on the first ask, and worlds the methane does not change, are asked once as before.
+- Measured against main: 2,487 bodies in 120 generated systems (no body changes class, oxygen or temperature) and the 12 Plentiful worlds of the slice 3 first read (one V world, Tilangette II, gains 0.6 kPa of oxygen and cools from 292 K to 280 K; no class changes). The full-tier census is the train's.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4591] - 2026-11-19
+
+**Headline:** A world's class is now read once, from the finished body after its life pass, as Boss ruled (no class until the evolution is finished); on 60 generated systems no class changes.
+
+### Changed
+
+- GEN.1745 slice 3 (class last): `life._rebuild` and `life._remake_ground_if_thawed` no longer read the class in the middle of the life pass, and `StarSystem._finish_planet` and `_finish_moon` prepare the class (the body type and the roundness ratio, `planets.prepare_class`) without classifying; `life.apply_life_data` reads the class once, at its end, from the body as the life pass left it (the air, the water and the score after the life, the trace gases and the stage it reached). A small body that has air or life from its life pass is now classed by that finished body, never by the one it had before (GEN.1752). Nothing in the generator reads a body's class between those points. Measured on 60 generated systems (1,247 bodies) against main: no body changes class, variant or match.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4590] - 2026-11-19
+
+**Headline:** The stretch the planets stir, which makes the rocky rogue planets of a system, reaches a little farther, so the rogue donors stay inside their observed band after the growth limit by star mass.
+
+### Changed
+- **The stirred stretch of the architecture's embryos reaches 2.3 times past the planets' reach bands (stand-in SM1, tweak L2).** It was the 3:1 resonance, 2.08. With the growth limit by star mass (GEN.1539) the embryos of the stars under 0.6 solar masses weigh less than 0.1 Earth masses beyond that limit, so the terrestrial rogue donors fell from 1.17 to 0.77 a star, under the lower edge of the observed band (2.5 a star over three, [R0258]); 2.3, inside the registered range of 1.59 (2:1) to 2.52 (4:1), gives 0.90. Output moves only for the embryos between 2.08 and 2.3 times past the planets' reach.
+
+## [8.0.4589] - 2026-11-19
+
+**Headline:** The distance beyond which planets and belts stop growing now scales with the star's mass, so a red dwarf's planets and belts end closer in and a bright star's go farther out.
+
+### Changed
+- **The outer growth limit follows the star's mass (GEN.1539).** The fixed 11.36 au limit that tapered planet cores and set where the belts' tail and outer disk begin is now 11.36 au times the star's mass in Suns to the 0.7 (the core assembly time's scaling), never nearer than the snow line and never beyond the gas disk's edge. Planets and belts read the same limit (`planet_mass.growth_limit_au`). A red dwarf's outer disk belts begin at about 3 to 6 au instead of 11, and its belt bodies that become planets, and its cold giants, are fewer; an A star's planets reach farther out. The stand-in row PA1 in the registry carries the new scaling.
+
+## [8.0.4588] - 2026-11-19
+
+**Headline:** The dense-cluster stripping test tries 120 seeds instead of 40 to find a system that loses a planet to its birth cluster.
+
+### Changed
+- **`test_cluster_stripping` tries 120 seeds, not 40.** A seed qualifies when its plain system ejects nothing, its dense system strips a planet and holds fewer planets; that is about one seed in 40 (seed 7 on main; the growth limit by star mass moved it to seed 68). The three conditions and the assertions are unchanged.
+
+## [8.0.4587] - 2026-11-19
+
+**Headline:** Rock weathering on a world now counts only the land its sea waters, so dry worlds and worlds with a small sea keep more carbon dioxide and run warmer.
+
+### Changed
+
+- GEN.1403 (Boss, 7:25 PM EST 11-17, "Build it"; the form is Lane 14's PR 6062 rebuilt on the runoff weathering law): `surface_air._weathering_land` scales the land with `surface_pressure.wet_land_fraction`: the land times the share of the Earth's ocean cover the world has, `min(1, ocean_cover / 0.71)`. A world with the Earth's sea or more is unchanged; a dry world's land, which has no sea to rain on it, weathers less and keeps more of the carbon dioxide its volcanoes gave it. Stand-ins WW1 and WW2 (educated guess from physics, L1) in section 6.309.
+- Changes the carbon dioxide, and with it the temperature and class, of every world with land and less than the Earth's ocean cover, so it is a lock item.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4586] - 2026-11-19
 
 **Headline:** A test that runs a stage gets the job-engine tables it reads, so the plan and scatter tests that failed on main pass.

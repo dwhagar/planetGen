@@ -26555,6 +26555,16 @@
       "kind": "paper",
       "label": "Gillmann et al. 2022",
       "title": "The Long-Term Evolution of the Atmosphere of Venus: Processes and Feedback Mechanisms"
+    },
+    "R5317": {
+      "kind": "paper",
+      "label": "Suer et al. 2023",
+      "title": "The distribution of volatile elements during rocky planet formation"
+    },
+    "R5318": {
+      "kind": "paper",
+      "label": "Johansen et al. 2022",
+      "title": "Anatomy of rocky planets formed by rapid pebble accretion III. Partitioning of volatiles between planetary core, mantle, and atmosphere"
     }
   }
 }
