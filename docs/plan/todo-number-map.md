@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.432 |
 | NAV | NAV.78 |
-| GEN | GEN.1797 |
+| GEN | GEN.1802 |
 | PERF | PERF.282 |
 | DB | DB.136 |
 | API | API.52 |
@@ -4115,7 +4115,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1768 | (bug) A hot thick non-steam body holds 339 bar of oxygen in a 374 bar air (Ebge Angus V on main, 180-system run): check where that oxygen comes from in the oxygen balance | closed, no code change (Lane 02, 12:23 PM EST 11-16, traced on main a756e09b0a seed 4008): the 339 bar O2 is the abiotic-oxygen recipe row j5, oxygen left by photolyzed ocean water with a drawn crust sink of 0.11; it is under what the body's own water loss implies (about 880 bar), so no ledger error; the weak part, the drawn sink, is GEN.1769 |
 | GEN.1769 | Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw | open |
 | GEN.1770 | (bug) Tiny far bodies (belt bodies that became planets, GEN.1510) let none of their interior heat out: a cold mantle past the convecting range returns 0 flux, giving Urey ratios up to 2e7 (test_migration_interior_heat red) | done (PR 6903, Lane 07, merged in Train 40, PR 6938, 6:47 PM EST 11-16) |
-| GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | open |
+| GEN.1771 | (bug) physics/atmospheric_radiation passes more UV-C through a thicker or more oxygen-rich air at fixed ozone: on a class N world the UV-C transmission rises from 2.1e-5 to 3.1e-4 as oxygen goes from half to 16 times, and a doubled air column passes 13 percent more | closed, not reproduced (Lane 02, 7:08 AM EST 11-18: on main bbc8ddd196 no body passes more UV-C under a doubled column or more oxygen; the reported world no longer exists after the draws moved) |
 | GEN.1772 | (bug) Civilizations on worlds whose air the species placement refuses (the air cannot be breathed) | done (PR 6963, Lane 04, merged 9:05 PM EST 11-16) |
 | GEN.1773 | (bug) A body past the runaway limit keeps an ocean (Venus twin at 586 K, 118 bar) | done (Train 43, PR 7084, 11-17) |
 | GEN.1774 | Check the envelope escape law against the radius valley (temperate super-Earths with no ground) | done (Train 42 (PR 7003, 1:32 AM EST 11-17), PR 6978: smooth keep share 1 to 3 Earth masses, registered tweak) |
@@ -4129,7 +4129,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1782 | Class D small bodies do not scale with metallicity (more in the halo) | closed, not a bug (Lane 06, 3:33 AM EST 11-17: 11.2 disk against 11.9 halo over 130 systems each, within noise; the count is pinned at ten per belt; cap question stays GEN.1674) |
 | GEN.1783 | (bug) A wide-binary planet's apoapsis passes the stability limit the validator uses | done (Train 43, PR 7084, 11-17) |
 | GEN.1784 | The exobase search underestimates the exobase height (median 6 percent, up to 25) (lock) | done (Train 43, PR 7084, 11-17) |
-| GEN.1785 | Class census shifts since 8656686b7: explain each, fix faults, renew ranges | GEN.1390 | open (Lane 04) |
+| GEN.1785 | Class census shifts since 8656686b7: explain each, fix faults, renew ranges | GEN.1390 | done (W1/G1 fix PR 7208 in Train 46, PR 7215; harness PR 7205; Lane 04 census on bbc8ddd196: W1 4185 of 4185, G1 22 of 22; giants 2 to 8 au flag moved to GEN.1797) |
 | GEN.1786 | Held resonance eccentricity not saved or restored since GEN.1651 (bug) | GEN.1651 | done (PR 7057, 11-17) |
 | GEN.1787 | Version- or library-dependent maths uses fail the GEN.135 scan; switch to detmath (bug) | GEN.135 | done (Train 44, PR 7149) |
 | GEN.1788 | Review giant scattering physics; comets follow (Science comets 0 percent) | GEN.1775 | done (Train 44, PR 7149) |
@@ -4137,10 +4137,15 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1790 | Envelope past the climate ceiling boils off; lava vapor held and logged | GEN.1745 | open (Lane 14) |
 | GEN.1791 | Lever search for Class M and M-like worlds at the Abundant tier (report) | GEN.1789 | open (Class M levers thread) |
 | GEN.1792 | (bug) Dwarf planets pile up at the e 0.5 and i 60 degree caps | GEN.1468 | done (PR 7137, Train 45, PR 7202, merged 4:36 AM EST 11-18: belt orbit draws truncated by inverse CDF) |
-| GEN.1793 | M dwarfs carry about half the observed close-in small planets | none | open (Lane 04) |
+| GEN.1793 | M dwarfs carry about half the observed close-in small planets | none | closed, no output change (PR 7227, Lane 04, merged 6:44 PM EST 11-18: the code already follows the sourced fixed-period edge [R3196]; row note and cube-root test) |
 | GEN.1794 | Cold-air condensation laws for OCS, CS2 and SO3 | none | done (PR 7207 with 7212 and 7213, Train 46, PR 7215, merged 6:54 AM EST 11-18: OCS, CS2 and SO3 condensation) |
 | GEN.1795 | Train 45 gate: the W20 other-branch search stops after two agreeing starts | none | done (PR 7190, Train 45, PR 7202, merged 4:36 AM EST 11-18) |
 | GEN.1796 | Greenhouse table refit for cold dense nitrogen airs (TEST.790 red) | none | open (Lane 05) |
+| GEN.1797 | Giant occurrence at 2 to 8 au under the observed range (0.050 against 0.0556 to 0.2283) | none | open (Lane 06) |
+| GEN.1798 | Build earlier life steps (LF49) for the Class M set | GEN.1791 | open (Class M levers thread) |
+| GEN.1799 | Build the lower oxygenic CO2 floor (class 1 0.5 Pa, class 2 2 Pa) | GEN.1791 | open (Class M levers thread) |
+| GEN.1800 | Build the quiet interior lever, sink factor inside the published range | GEN.1791 | open (Class M levers thread) |
+| GEN.1801 | Build second oxygen rise ratio 2 (BO12) | GEN.1791 | open (Class M levers thread) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

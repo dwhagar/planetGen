@@ -2,6 +2,35 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4585] - 2026-11-19
+
+**Headline:** two tests that the job engine turned red now say what a held run really does, and the finish-run comparison no longer mistakes a row number for content.
+
+### Fixed
+- OPS.277 (bug, test only): `test_maintenance`'s map rebuild test named a database ("x") that does not exist. Since every unit's attempt is written to the `engine_items` table of the unit's own database (OPS.217), a run on such a name is held with a connection error, which is right: a run that cannot reach its galaxy cannot fence its attempts. The test now uses a real, empty database and reaches the step it is about (reopening the site) again.
+- OPS.277 (bug, test only): `test_finish_run_generation` compared the knots of the sector paths by the path's row number, which is not content: a run settled in two stretches numbers its paths differently from one settled whole, so a galaxy finished after a hold looked different from one made without a stop. The knots are now compared by the object each path is of. The three tests were not hung: each takes about 15 minutes alone, and the shared gate's 1,500 second cap ended them under load.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4584] - 2026-11-18
+
+**Headline:** The first planet of an inner system keeps one orbital period for every star because the edge it sits outside is the co-rotation radius.
+
+### Changed
+
+- The notes on the first-planet period of an inner system (registry row PA19, `tuning.INNER_FIRST_PERIOD_MEDIAN_DAYS`, `planet_architecture.first_distance_au`) now say why it has no stellar-mass term: [R3196] puts the drop in planet occurrence at a distance that goes as the cube root of the stellar mass, the pre-main-sequence co-rotation radius, and that is a fixed period. A dust-sublimation edge would put F stars' first planets near 60 days and M2 dwarfs' near 2.5 days. A test pins the edge in AU to the cube root of the star's mass at one period. No generated value changes (GEN.1793).
+
+## [8.0.4583] - 2026-11-18
+
+**Headline:** the greenhouse table's fit script reads the table the way the generator does, and gains the cold dense families that show where the table is weak; the table file is unchanged.
+
+### Changed
+- GEN.1796 (tools only): `scripts/fit_greenhouse_table.py` `validate` now reads each air through `greenhouse_table.warming` (minor gases counted by share, the haze guard, the thin-air and deep-air rules) instead of the bare network, so the stated accuracy is what the product has (the first fit stated it so; round 3 of GEN.1780 had read the bare network, 79 K against 55 K for the same file). New: `cold --cia` and `cold --gen` (cold dense nitrogen airs of light worlds and with the generator's own minor gases), `nullgas` (census airs holding a gas with no ir flag, held at the starting file's answer), `solve --cold-dense` (the held airs the starting file had wrong), `fit --boost`. Findings and the round files are in `/mnt/project-files/reports/gen1796-refit-2026-11-18/`; the table still misses the 50 K clear-air bound on its stated set and the refit is open under GEN.1796 and GEN.1781.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4582] - 2026-11-18
 
 **Headline:** The map luminosity fill is now tested to write the same values when units of the fill are killed and retried.
