@@ -65,7 +65,7 @@ def test_a_hazy_envelope_colder_than_its_albedo_gives_keeps_the_balance_in_the_a
 
     state = types.SimpleNamespace(mean_molar_mass_kg_mol=0.002, density_kg_m3=0.5, scale_height_m=2.0e4)
     air = types.SimpleNamespace(partials_pa={"H2": 1.0e5}, temperature_k=180.7723, greenhouse_factor=0.0, albedo=None, at_ceiling=False, warming=None, knee=False,
-                                pressure_pa=1.0e5, state=state, retention_cap_pa=None, co2_sink=None)
+                                pressure_pa=1.0e5, state=state, retention_cap_pa=None, co2_sink=None, entry_state=None)
     monkeypatch.setattr(surface_air, "solve", lambda setting, start_k: air)
     flux, albedo = 2400.0, 0.3383
     final = air_final.make(_moon(), types.SimpleNamespace(albedo_law=None, haze_draws=None), 190.0, flux, 0.155, albedo, True, None)

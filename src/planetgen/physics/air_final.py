@@ -89,6 +89,7 @@ def make(planet, setting, no_air_temperature_k, starlight_w_m2, distance_au, alb
     air = surface_air.solve(setting, start_k)
     if not planet.is_moon and not giant and air is not None and air.partials_pa:       # GEN.1493: the late accretion this air was made with and what it is small or large against, for `remake_air`
         planet.build.air_replay = (*planet.build.air_replay[:3], (setting, air.late_state, air.late, air.degassed))
+    planet.build.air_input = None if air is None else (setting, start_k, air.entry_state)     # GEN.1745: kept, not stored; the history solves the air again from these at each age
     planet.build.retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
     air = _air_oddities(planet, setting, air, steam, starlight_w_m2, distance_au, albedo, giant)
     planet.build.co2_sink = None if air is None else air.co2_sink                      # GEN.1309 A: kept, not stored; the life stage balances the CO2 again at the temperature the oxygen rise leaves
