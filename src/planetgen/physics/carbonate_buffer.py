@@ -6,7 +6,7 @@ The dry-surface carbonate buffer: the CO2 a hot rock surface holds against the a
 
 `surface_air._weathers` switches the weathering of carbon off on a body whose water has all gone to vapor or whose surface is over the
 critical temperature of water. The carbon its volcanoes brought up then stayed in the air whole, at pressures the rock does not allow:
-a hot surface of calcium silicate and silica holds the CO2 of the air at the pressure of the Urey reaction (Urey 1952)
+a hot surface of calcium silicate and silica holds the CO2 of the air at the pressure of the Urey reaction
 
     CaCO3 (calcite) + SiO2 (quartz) = CaSiO3 (wollastonite) + CO2,
 
@@ -25,7 +25,7 @@ CO2 out of the air; below it the carbonate breaks down and gives it back.
 * *Where it applies.* To a body with a surface whose carbon is not weathered (`surface_air._shares`: not a giant, weathering off: a body that never had an
   ocean, or whose water is all vapor, or whose surface is over the critical temperature of water) and whose surface is at least `DRY_CARBONATION_MIN_K`. Venus is the
   case the equilibrium reading is made for ([R5313] take it dry); [R5315] call the CO2-silicate reactions of Venus kinetically inhibited, and the newer source wins. Below that
-  temperature a dry rock carbonates too slowly to count ([R5316], citing Tanner et al. 1985: without liquid water the CO2 "may not be controlled by silicate-carbonate
+  temperature a dry rock carbonates too slowly to count ([R5316], citing the earlier measurements it names: without liquid water the CO2 "may not be controlled by silicate-carbonate
   equilibria because of the inefficient carbonation of dry near-surface rocks"), so a cool dry body keeps its air as it is. No upper limit is needed: above about 800 K the pressure of the reaction is over
   what any body holds, and the buffer takes nothing.
 
@@ -42,12 +42,12 @@ from functools import lru_cache
 from planetgen.physics import elements, gases, sulfur_balance
 
 GAS_CONSTANT_KJ = 8.314462618e-3
-"""float: The gas constant, kJ per mole per kelvin (CODATA 2018, measured)."""
+"""float: The gas constant, kJ per mole per kelvin ([R4361], measured)."""
 
 REFERENCE_K = 298.15
-"""float: The temperature of the standard state of the data set, K ([R1981])."""
+"""float: The temperature of the standard state of the data set, K [R1981]."""
 
-# Table 2a of [R1981] (Holland and Powell 2011, J. Metamorphic Geol. 29, 333): enthalpy of formation (kJ/mol), entropy (J/K/mol) and the heat capacity a, b, c, d of
+# Table 2a of [R1981] ([R1981], J. Metamorphic Geol. 29, 333): enthalpy of formation (kJ/mol), entropy (J/K/mol) and the heat capacity a, b, c, d of
 # Cp = a + b T + c T^-2 + d T^-1/2 in kJ/K/mol (b read as the 1e-5 kJ/K^2 scale that reproduces the 298 K heat capacities to 3 percent: [Stand-in 6.310 CB4, tier T6 educated guess from physics, tweak L0]).
 PHASES = {
     "calcite": (-1207.88, 92.50, 0.1409, 0.5029e-5, -950.7, -0.8584),
@@ -59,7 +59,7 @@ PHASES = {
 
 DRY_CARBONATION_MIN_K = 500.0
 """float: The coolest surface at which a dry rock buffers the CO2 of its air, K. [Stand-in 6.310 CB2, tier T6 educated guess from physics, tweak L3: below it dry rock
-carbonates too slowly to count ([R5316]); the pressure of the reaction is 0.08 bar there, so a body just over it holds under a tenth of a bar.]"""
+carbonates too slowly to count [R5316]; the pressure of the reaction is 0.08 bar there, so a body just over it holds under a tenth of a bar.]"""
 
 CALCIUM_SHARE = 1.0
 """float: The share of the crust's calcium (less the sulfate's) that can carbonate. [Stand-in 6.310 CB3, tier T6 educated guess from physics, tweak L3: the item sets the limit at the crust's

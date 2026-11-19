@@ -12,7 +12,7 @@ EARTH_CRUST_COLUMN_KG_M2 = 2.8e22 / 5.1e14
 
 
 def test_the_pressure_of_the_urey_reaction_follows_the_data_set_and_the_sources_read():
-    """[R1981: Table 2a] gives 88 bar at 740 K against the 92.1 bar Venus holds ([R5313]) and about 275 bar of pure CO2 near 800 K in the experiments of [R5314]."""
+    """[R1981: Table 2a] gives 88 bar at 740 K against the 92.1 bar Venus holds [R5313] and about 275 bar of pure CO2 near 800 K in the experiments of [R5314]."""
     assert cb.equilibrium_bar(740.0) == pytest.approx(92.1, rel=0.10)
     assert cb.equilibrium_bar(800.0) == pytest.approx(275.0, rel=0.15)
     assert cb.equilibrium_bar(500.0) == pytest.approx(0.081, rel=0.05)
