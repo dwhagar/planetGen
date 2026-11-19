@@ -35,8 +35,9 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     veil        (solid world with air, MAP.350) how far the surface is tinted toward the sky colour `glow`, 0 to 1: `1 - exp(-tau_550)`,
                 the vertical optical depth of the air at 550 nm (gas and aerosol, `AtmosphereColour.tau_550`); a thin air leaves the ground as
                 it is, a thick one drowns it in its own colour
-    haze        the washing-out of the ground's contrast by haze and dust, 0 to 1: `1 - exp(-(tau_haze + tau_dust))`; left out when neither is stored
-    cloudCover  the share of the sky the cloud covers (the stored `cloud_cover`), left out when none is stored
+    haze        the washing-out of the ground's contrast by haze and dust, 0 to 1: `1 - exp(-(tau_haze + tau_dust))`; left out when neither is stored; a giant has it too
+                (MAP.421), from its stored haze and dust, and `giantpaint.js` tints its bands with it
+    cloudCover  the share of the sky the cloud covers (the stored `cloud_cover`), left out when none is stored; a giant has it too (MAP.421)
     cloudTau    the vertical optical depth of the cloud at 550 nm (the stored `tau_cloud`), left out when none is stored; the painter
                 draws a cloud layer over the ground, thicker and whiter with the depth
     cloudColor  (MAP.418) the colour of the cloud by its material, `#rrggbb` (`CLOUD_COLOURS`: water white, sulfuric acid pale yellow, carbon dioxide
@@ -296,6 +297,14 @@ def _put_veil(look, row, colour):
     """
     if colour is not None and colour.tau_550 is not None and math.isfinite(colour.tau_550):
         look["veil"] = round(-math.expm1(-max(0.0, colour.tau_550) / VEIL_TAU_SCALE), 3)
+    _put_aerosol_depths(look, row)
+
+
+def _put_aerosol_depths(look, row):
+    """
+    `haze` from the stored haze and dust depths and `cloudCover` and `cloudTau` as stored, for a solid world (`_put_veil`) and a giant (MAP.421); each left
+    out when its input is not stored, and the painter then leaves the picture as it was.
+    """
     depths = [row.get(name) for name in ("tau_haze", "tau_dust")]
     depths = [d for d in depths if d is not None and math.isfinite(d)]
     if depths:
@@ -411,7 +420,9 @@ def planet_look(planet, kind="planet"):
         if colour is not None:
             look["glow"] = (colour.atmosphere if gas else colour).hex
         look.update(glow)
-        if not gas:
+        if gas:
+            _put_aerosol_depths(look, planet)       # MAP.421: a giant's stored haze and cloud tint its bands
+        else:
             _put_veil(look, planet, colour)
         _put_layers(look, planet)
     pressure_pa = planet.get("atmospheric_pressure_pa")

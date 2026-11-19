@@ -411,6 +411,19 @@ def test_a_cloud_takes_the_colour_of_its_material_and_a_haze_of_its_own():
     assert not {"cloudColor", "hazeColor"} & set(airless)
 
 
+def test_a_giant_carries_its_stored_haze_and_cloud_in_its_look():
+    """MAP.421: a giant's look has `haze`, `cloudCover`, `cloudTau` and the layers' colours when the row stores them, none when it stores none (the veil stays a solid world's)."""
+    giant = _aerosol_air({"H2": 90000.0, "He": 9000.0, "CH4": 2000.0, "NH3": 100.0}, body_type="g", planet_class="G", surface_temperature_k=150.0, radius_km=60000.0,
+                         cloud_cover=0.6, tau_cloud=4.0, tau_haze=2.0)
+    look = bl.planet_look(giant)
+    assert look["haze"] == round(1 - math.exp(-2.0 / bl.HAZE_TAU_SCALE), 3)
+    assert look["cloudCover"] == 0.6 and look["cloudTau"] == 4.0
+    assert look["hazeColor"] == bl.HAZE_COLOURS["tholin"] and "veil" not in look
+    assert look["cloudColor"] in bl.CLOUD_COLOURS.values()
+    bare = bl.planet_look(dict(giant, cloud_cover=None, tau_cloud=None, tau_haze=None))
+    assert not {"haze", "cloudCover", "cloudTau", "cloudColor", "hazeColor"} & set(bare)
+
+
 def test_a_body_hotter_than_the_draper_point_glows_in_the_colour_of_its_heat_and_a_cooler_one_does_not():
     """MAP.275: `thermal` is {hex, strength}, 0 at 800 K rising to 1 at 2400 K, the blackbody colour of the temperature."""
     assert bl.thermal_glow(700.0) is None and bl.thermal_glow(800.0) is None and bl.thermal_glow(None) is None
