@@ -742,6 +742,8 @@ def finish_run(conn, run_id, state="done", error=None, now=None, killed=False, f
     if state != "done":
         _log_unrun_dependents(conn, run_id, state, now)
     else:
+        from planetgen.queue import held
+        held.mark_run(conn, run_id, "done", "")        # OPS.281: the ledger's run row says it is done and when (best effort, as for a cancel)
         try:
             from planetgen.queue import commandgaps
             commandgaps.fold(conn, run_id)          # OPS.135: what the commands learned about how long a counter stands still
