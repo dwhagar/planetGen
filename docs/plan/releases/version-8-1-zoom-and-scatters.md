@@ -591,9 +591,12 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1781 | Doubling methane cools hydrogen-rich airs | none | Lane 02, 2026-11-17 |
 | GEN.1790 | A blown-off hydrogen envelope is stripped past the climate ceiling | none | Lane 14, 2026-11-17 |
 | GEN.1791 | Best stand-in lever set for Class M and M-like worlds | none | Class M levers thread, 2026-11-17 |
-| GEN.1793 | M dwarfs get their observed share of close-in small planets | none | Lane 04, 2026-11-17 |
 | GEN.1796 | Cold thick nitrogen air warms as its greenhouse gases rise | none | Lane 05, 2026-11-18 |
 | GEN.1797 | Giant planets at 2 to 8 au as common as observed | none | Lane 06, 2026-11-18 |
+| GEN.1798 | Life starts sooner on likely worlds | GEN.1791 | Class M levers thread, 2026-11-18 |
+| GEN.1799 | Plants make oxygen at lower CO2 | GEN.1791 | Class M levers thread, 2026-11-18 |
+| GEN.1800 | Quieter volcanoes on likely worlds let oxygen build | GEN.1791 | Class M levers thread, 2026-11-18 |
+| GEN.1801 | The second oxygen rise is gentler | GEN.1791 | Class M levers thread, 2026-11-18 |
 | OPS.276 | Sky jobs no longer stop on an out-of-range list | none | Lane 16, 2026-11-18 |
 | OPS.277 | Map rebuild and finish-run failures report clearly | none | Lane 15, 2026-11-18 |
 | OPS.278 | Galaxy and progress tests see the job engine tables | none | Lane 07, 2026-11-18 |
