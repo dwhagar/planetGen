@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4604] - 2026-11-19
+
+**Headline:** A job whose arguments are bigger than the control socket takes is handed them by a file, and a job that cannot be started holds its run (OPS.283).
+
+### Fixed
+
+- OPS.283 (bug): the arguments of a unit over 64 KB go to the job in a file in the state folder (`job-arguments`) instead of down the control socket, which refused a message over about 213 KB. The template reads the file and deletes it, the supervisor deletes it when the hand-over fails, and a file left by a supervisor that ended is swept after a day. The template reads only files of that folder.
+- OPS.283 (bug): a job that cannot be started (its process was never forked) left its row `failed` while its run went on `running` with a unit that would never end. The run now holds with the error text, the unit among the stage's held ones, as for a unit that failed after it ran. A page step fails the steps after it and an opening holds its run.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4603] - 2026-11-19
 
 **Headline:** Kill test for a run canceled while its job is killed (OPS.246).
