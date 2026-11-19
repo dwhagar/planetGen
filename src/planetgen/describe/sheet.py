@@ -598,7 +598,6 @@ def _phenomenon_not_shown(kind, **extra):
 
 
 _BODY_NOT_SHOWN = {
-    "cloud_decks": "a giant's cloud decks and trace-gas ceilings as stored text; the rows of each cloud and gas are shown (`describe/deck_rows.py`), not the text",
     "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
     "shape_temperature_k": "the temperature the body took its shape at; the roundness it sets is shown, not the temperature",
     "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
@@ -658,6 +657,7 @@ NOT_SHOWN = {
                    "spin_axis_z", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), _VECTORS),
     },
     "planet": {**_BODY_NOT_SHOWN, "host_node_id": "the orbit tree node; bookkeeping",
+               "cloud_decks": "a giant's cloud decks and trace-gas ceilings as stored text; the rows of each cloud and gas are shown (`describe/deck_rows.py`), not the text",
                "belt_order": "the number of the belt a promoted planet came from, which its designation carries; bookkeeping",
                "belt_rank": "the rank a promoted planet had among its belt's members, which its designation carries; bookkeeping",
                **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km"), _VECTORS)},
