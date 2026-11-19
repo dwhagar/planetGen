@@ -19,7 +19,10 @@ itself, chosen per type (UX.17), instead of the flat AU-scale diagram
   keeps internal heat.
 - Interstellar comet: a nucleus (grey-white when active, dark red-brown
   when not), with a coma and tail when it is active.
-- Asteroid field: no view at all (`view_kind` returns `None`).
+- Asteroid field (GEN.361): its own bodies as points in a cloud, each at the place `field_dispersal.member_position_m` gives it at the field's age (a
+  ball for a collision, a thin ring for a belt a supernova unbound), the heaviest ranks drawn larger. The caption states how many bodies the field
+  really holds above 1 km, that each point is drawn far larger than any body, and the field's column density, how soon after it began to spread its
+  pieces stopped colliding and how far galactic shear has drawn it out.
 - Nebula (MAP.105, MAP.142): the nebula drawn from its own points in 3D, with the brightest stars of the
   galaxy round it dimmed for reference (`render_nebula_view_panel`,
   `static/nebulaview.js`).
@@ -33,12 +36,13 @@ draws one still frame under `prefers-reduced-motion`.
 import json
 import math
 
+from planetgen.physics import belt_ledger, constants, field_dispersal
 from planetgen.web.lib.fmt import esc, format_duration_seconds, format_number
 from planetgen.web.maps import bodylook
 from planetgen.web.maps.starmap import NEBULA_SURROUNDINGS_PATH, NEBULA_VOLUME_PATH, nebula_look
 
-_RENDERED = {"neutron_star", "black_hole", "quasar", "rogue_planet", "interstellar_comet"}
-_NO_VIEW = {"asteroid_field"}
+_RENDERED = {"neutron_star", "black_hole", "quasar", "rogue_planet", "interstellar_comet", "asteroid_field"}
+_NO_VIEW = set()
 
 _SHOWN_PERIOD_MIN_S = 0.6
 """float: How long the fastest pulsar (1 ms) takes per turn on screen."""
@@ -56,6 +60,62 @@ def view_kind(phenomenon_type):
     if phenomenon_type == "nebula":
         return "nebula"
     return "render" if phenomenon_type in _RENDERED else "map"
+
+
+FIELD_VIEW_POINTS = 480
+"""int: How many bodies of a field the view draws (the first ranks of the field's seed): enough to show the shape of the cloud, few enough that the record stays about 11 KB."""
+FIELD_VIEW_HEROES = 12
+"""int: How many of those, the heaviest ranks, the view draws larger."""
+FIELD_REFERENCE_DIAMETER_M = 1000.0
+"""float: The size the caption counts bodies above, and the pieces whose freeze-out it states: 1 km."""
+FIELD_RING_RADIUS_M = constants.AU_M
+"""float: The ring a belt that a supernova unbound left from, for the view only: the cloud is a ring of light-years, so the ring it started on (a belt of tens of AU, not stored) is a point
+beside it; a stand-in for the drawing, not a stored number."""
+
+
+def _field_bodies_text(count):
+    """`count` as a rounded phrase, "about 2 billion", "about 3.4 million"; the power of ten from a trillion."""
+    for scale, word in ((1e12, "trillion"), (1e9, "billion"), (1e6, "million"), (1e3, "thousand")):
+        if count >= scale:
+            return f"about {format_number(count / scale, ',.2g')} {word}"
+    return f"about {format_number(count, ',.2g')}"
+
+
+def field_view(detail):
+    """
+    The numbers of an asteroid field's view and the line under it (GEN.361): `(parameters, caption)`.
+
+    The bodies are the field's own: body `rank` (1 to `FIELD_VIEW_POINTS`) of the seed made from the field's Object ID is at `field_dispersal.member_position_m` at the field's age and rms
+    speed, the same cloud after a database rebuild. The positions are scaled so that their rms distance is 1 (the page draws the cloud at its own scale and states the size in the caption). A field
+    stored without its age or speed (an old store) is drawn as a ball of the radius it has, the speed the age implies.
+    """
+    uid = str(detail.get("uid") or detail.get("id"))
+    radius_m = max(float(detail.get("radius_ly") or 0.0), 1e-9) * constants.LIGHTYEAR_M
+    age_yr = float(detail.get("birth_age_yr") or 0.0)
+    speed_ms = float(detail.get("rms_speed_kms") or 0.0) * 1000.0
+    if not (age_yr > 0.0 and speed_ms > 0.0):
+        age_yr = 1.0e6
+        speed_ms = radius_m / (age_yr * constants.SECONDS_PER_YEAR)
+    shape = detail.get("shape") if detail.get("shape") in field_dispersal.SHAPES else "ball"
+    positions = [field_dispersal.member_position_m(uid, rank, age_yr, speed_ms, shape, FIELD_RING_RADIUS_M) for rank in range(1, FIELD_VIEW_POINTS + 1)]
+    scale = math.sqrt(sum(x * x + y * y + z * z for x, y, z in positions) / len(positions)) or 1.0
+    points = [round(value / scale, 3) for position in positions for value in position]
+    mass_kg = float(detail.get("mass_kg") or 0.0)
+    law = belt_ledger.ICY_LAW if detail.get("composition_family") == "icy" else belt_ledger.ROCKY_LAW
+    caption = (f"{format_number(len(positions))} of its bodies, each at the place its field's seed gives it after "
+               f"{format_duration_seconds(age_yr * constants.SECONDS_PER_YEAR)} of drifting apart; the heaviest are drawn larger. ")
+    if mass_kg > 0.0:
+        reference_kg = math.pi / 6.0 * FIELD_REFERENCE_DIAMETER_M ** 3 * law.density_kg_m3
+        caption += (f"It really holds {_field_bodies_text(belt_ledger.count_above(law, mass_kg, reference_kg))} bodies larger than 1 km, each point here "
+                    "drawn far larger than any of them: seen close, the field is almost empty space. "
+                    f"Seen end on, its mass comes to {format_number(field_dispersal.column_density_kg_m2(mass_kg, radius_m), '.2g')} kg per square metre; "
+                    f"pieces of 1 km stopped colliding {format_duration_seconds(field_dispersal.freeze_out_time_s(mass_kg, FIELD_REFERENCE_DIAMETER_M, speed_ms))} after it began to spread. ")
+    if age_yr <= field_dispersal.SHEAR_VALID_YEARS:
+        caption += (f"Galactic shear has drawn its far side "
+                    f"{format_number(field_dispersal.shear_displacement_m(radius_m, age_yr) / constants.LIGHTYEAR_M, ',.2g')} ly along its orbit.")
+    else:
+        caption += "It is older than the galaxy's shear is followed for (26 Myr), so the shear is left out of this account."
+    return {"points": points, "heroes": FIELD_VIEW_HEROES, "ring": shape == "annulus", "seed": bodylook.seed_for("asteroid_field", uid)}, caption
 
 
 def shown_spin_period_s(spin_period_ms):
@@ -106,6 +166,8 @@ def _params(phenomenon_type, detail):
             caption += f" It radiates at about {format_number(detail['effective_temperature_k'], ',.0f')} K."
         look = bodylook.rogue_planet_look(detail)
         return {"gas": gas, "heat": heat, "look": look, "seed": look["seed"]}, caption
+    if phenomenon_type == "asteroid_field":
+        return field_view(detail)
     active = bool(detail.get("is_active"))
     caption = ("The nucleus is shedding gas and dust into a coma and tail." if active else
                "Far from any star it is frozen and inactive: a bare nucleus with no tail.")
@@ -123,7 +185,7 @@ def view_params(phenomenon_type, detail):
 
 _STILL_COLORS = {
     "neutron_star": "#cfe8ff", "black_hole": "#ffb070", "quasar": "#fff3d6",
-    "rogue_planet": "#5a6878", "interstellar_comet": "#a8d0e0",
+    "rogue_planet": "#5a6878", "interstellar_comet": "#a8d0e0", "asteroid_field": "#b9a88c",
 }
 
 
@@ -142,6 +204,12 @@ def _still_svg(phenomenon_type, params, name):
                      'fill="#a8c8ff" fill-opacity="0.5"/>')
     if phenomenon_type == "interstellar_comet" and params["active"]:
         parts.append('<path d="M0 -8 L95 -30 L95 30 L0 8 Z" fill="#a8d0e0" fill-opacity="0.3"/>')
+    if phenomenon_type == "asteroid_field":
+        for number in range(60):      # a still scatter from the field's own points: x and y of the first 60 bodies, drawn at 70 units across
+            x, y = params["points"][3 * number], params["points"][3 * number + 1]
+            parts.append(f'<circle cx="{max(-95.0, min(95.0, x * 40)):.1f}" cy="{max(-95.0, min(95.0, y * 40)):.1f}" r="{2.6 if number < 8 else 1.2}" fill="{color}" fill-opacity="0.8"/>')
+        return (f'<svg class="phenomrender-still" viewBox="-100 -100 200 200" role="img" '
+                f'aria-label="{esc(name)}, a still drawing"><rect x="-100" y="-100" width="200" height="200" fill="#000000"/>' + "".join(parts) + "</svg>")
     core = {"black_hole": ("22", "#000"), "quasar": ("16", "#fffbe8"),
             "neutron_star": ("12", color), "rogue_planet": ("40", color),
             "interstellar_comet": ("7", "#8a8f96")}[phenomenon_type]

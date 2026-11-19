@@ -546,7 +546,7 @@ The map panels and their data.
 | [`galaxymap3d.py`](../../../src/planetgen/web/maps/galaxymap3d.py) | Builds the Galaxy Map panel and its first embedded nodes. |
 | [`navmap.py`](../../../src/planetgen/web/maps/navmap.py) | The NAV page's top-down SVG of origin, destination and route. |
 | [`phenomenonmap.py`](../../../src/planetgen/web/maps/phenomenonmap.py) | A phenomenon's AU-scale SVG diagram (now only for nebulae and supernova remnants). |
-| [`phenomenonrender.py`](../../../src/planetgen/web/maps/phenomenonrender.py) | The phenomenon page's View panel: which view suits each type (`view_kind`), the numbers for the three.js render, and a static SVG still for no JavaScript. Asteroid fields get no view. |
+| [`phenomenonrender.py`](../../../src/planetgen/web/maps/phenomenonrender.py) | The phenomenon page's View panel: which view suits each type (`view_kind`), the numbers for the three.js render, and a static SVG still for no JavaScript. An asteroid field's view is its own bodies at the places `field_dispersal.member_position_m` gives them at its age (GEN.361). |
 | [`starmap.py`](../../../src/planetgen/web/maps/starmap.py) | Data for the 3D Sector Map (systems, phenomena, neighbor indicators). |
 | [`systemmap.py`](../../../src/planetgen/web/maps/systemmap.py) | The System Map: a top-down SVG of real body positions. |
 | [`systemscene.py`](../../../src/planetgen/web/maps/systemscene.py) | The 3D system view's data (MAP.69): one star system as JSON that a client can draw with orbits in three dimensions. |
