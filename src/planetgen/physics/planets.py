@@ -928,7 +928,11 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
         birth = orbit_elements.draw_moon_eccentricity(planet.moon_origin, e_max)
     else:
         e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
-        birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max, giant=planet.body_type == 'g')
+        planned = planet.build.plan_eccentricity
+        if planned is not None:
+            birth = min(planned, e_max)       # GEN.1797: the orbit the architecture drew and held to its neighbours, cut only where the star's Roche limit asks
+        else:
+            birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max, giant=planet.body_type == 'g')
     if planet.is_moon and planet.moon_origin not in moon_composition.CAPTURE_ORBIT_ORIGINS:
         planet.eccentricity = birth
         return
@@ -1094,8 +1098,8 @@ def carry_spin_with_orbit(planet, old_inclination_deg, old_node_deg):
     is kept too), and a locked or resonant body, whose obliquity is its Cassini state's share of the inclination (`tidal_spin.cassini_tilt_deg`), keeps that share of the new inclination.
     The sky of the other suns follows the new normal, the day and night shares the new tilt, and the moons are set in the new equator again. No draws.
     """
-    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
-    if any(c is None for c in axis):
+    axis = spin.spin_axis_of(planet)
+    if axis is None:
         return
     new_inclination = planet.orbital_inclination_deg or 0.0
     tilt = None
@@ -1175,8 +1179,8 @@ def settle_obliquity(planets, host_mass_kg, only=None):
             continue
         tilt = getattr(body, "axial_tilt_deg", None)
         rotation = getattr(body, "rotation_period_hours", None)
-        axis = tuple(getattr(body, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
-        if tilt is None or not rotation or not body.radius or any(c is None for c in axis):
+        axis = spin.spin_axis_of(body)
+        if tilt is None or not rotation or not body.radius or axis is None:
             continue
         state, turns = spin.spin_state(rotation, body.period)
         if state in ("locked", "resonant"):
@@ -1223,8 +1227,8 @@ def settle_moon_tilts(planets, host_mass_kg, only=None):
             continue
         for moon in getattr(planet, "moons", None) or ():
             rotation = getattr(moon, "rotation_period_hours", None)
-            axis = tuple(getattr(moon, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
-            if not (rotation and moon.period and moon.mass and moon.radius and moon.distance) or any(c is None for c in axis):
+            axis = spin.spin_axis_of(moon)
+            if not (rotation and moon.period and moon.mass and moon.radius and moon.distance) or axis is None:
                 continue
             if spin.spin_state(rotation, moon.period)[0] != "locked":
                 continue
@@ -1594,8 +1598,8 @@ def orient_moons(planet):
     planet's orbit. A turn only, no draws; the planet's wobble from its moons (`reflex_offset_*`) follows the new positions. The irregular moons keep
     their own frame (`generation/irregular_moons.py`).
     """
-    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
-    if any(c is None for c in axis):
+    axis = spin.spin_axis_of(planet)
+    if axis is None:
         return
     release_moons(planet)
     for moon in planet.moons:

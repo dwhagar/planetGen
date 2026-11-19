@@ -9,7 +9,7 @@ from tests import standin_registry_support as support
 
 STANDINS = (
     "mixture_evolved.WATER_RESIDUAL", "mixture_evolved.SULFUR_SINK", "mixture_evolved.WATER_PHOTOLYSED",
-    "mixture_evolved.OCEAN_WATER_WT_PERCENT", "mixture_evolved.CARBON_PER_OCEAN_WATER", "mixture_evolved.OXYGEN_SINK",
+    "mixture_evolved.OCEAN_WATER_WT_PERCENT", "mixture_evolved.CARBON_PER_OCEAN_WATER", "mixture_evolved.OXYGEN_ESCAPE",
     "mixture_evolved.TITAN_HUMIDITY", "mixture_evolved.TITAN_HYDROGEN", "mixture_evolved.FROST_ICE",
     "mixture_lava.ALKALI_ACTIVITY_COEFFICIENT", "mixture_lava.COMPOSITION_SCATTER", "mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT", "mixture_coma.DOMINANCE",
     "mixture_rocky.INVENTORY", "mixture_rocky.MAGMATIC_TEMPERATURE_K", "mixture_rocky.QUENCH_TEMPERATURE_K",

@@ -38,3 +38,8 @@ def scale(a, k):
 def add(a, b):
     """The sum `a + b`."""
     return (a[0] + b[0], a[1] + b[1], a[2] + b[2])
+
+
+def sub(a, b):
+    """The difference `a - b`."""
+    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])

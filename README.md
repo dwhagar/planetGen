@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.4608 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.4625 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -339,7 +339,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Replaces: SEP1: the share of the galactic Hill spheres that random placement keeps between two systems.
 - Bulk generation does not need it (only a test reads it), so nothing falls back and nothing is refused.
 - Files (URL, then the file name it is kept under in the dataset's folder):
-  - <https://gea.esac.esa.int/tap-server/tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=csv&QUERY=SELECT+source_id%2C+ra%2C+dec%2C+parallax%2C+parallax_error%2C+pmra%2C+pmdec%2C+phot_g_mean_mag%2C+bp_rp+FROM+gaiadr3.gaia_source+WHERE+parallax+%3E+40+AND+parallax_over_error+%3E+10+ORDER+BY+source_id> as `gaia_dr3_25pc.csv`
+  - <https://gea.esac.esa.int/tap-server/tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=csv&QUERY=SELECT+g.source_id%2C+g.ra%2C+g.dec%2C+g.parallax%2C+g.parallax_error%2C+g.pmra%2C+g.pmdec%2C+g.phot_g_mean_mag%2C+g.bp_rp+FROM+gaiadr3.gaia_source+AS+g+WHERE+g.parallax+%3E+40+AND+g.parallax_over_error+%3E+10+ORDER+BY+g.source_id> as `gaia_dr3_25pc.csv`
 
 <!-- external-files:end -->
 

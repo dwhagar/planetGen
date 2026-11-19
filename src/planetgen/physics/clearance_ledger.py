@@ -184,6 +184,24 @@ def planet_exclusion(distance_au, eccentricity, mass_kg, central_mass_kg, new_ma
     return inner, outer
 
 
+def pairwise_needed_au(inner_planets, new_mass_kg, new_eccentricity, central_mass_kg):
+    """
+    The nearest distance a new planet may sit outside `inner_planets` (`(distance_au, eccentricity, mass_kg)` of each planet inside it, in orbital order) by the pairwise rule alone:
+    the farthest edge of the stretch each excludes (`planet_exclusion`). 0 for no planet inside. The spacing pass (`validation.min_distance_after_au`) and the planet architecture's
+    stability test (`planet_architecture._stability_split`, GEN.1797) both read it, so the plan builds a system the pass does not have to move.
+    """
+    needed = 0.0
+    for distance, eccentricity, mass in inner_planets:
+        needed = max(needed, planet_exclusion(distance, eccentricity, mass, central_mass_kg, new_mass_kg, new_eccentricity)[1])
+    return needed
+
+
+def planets_needed_au(inner_planets, new_mass_kg, new_eccentricity, central_mass_kg):
+    """`pairwise_needed_au` raised, for a planet that would be the last of a chain of `tuning.CHAIN_WINDOW` planets (no belt among them), to the nearest distance that holds the chain's effective spacing (`chain_distance_au`)."""
+    return chain_distance_au(inner_planets, new_mass_kg, new_eccentricity, central_mass_kg,
+                             pairwise_needed_au(inner_planets, new_mass_kg, new_eccentricity, central_mass_kg))
+
+
 def edge_gap_hill_radii(inner_au, inner_eccentricity, inner_mass_kg, outer_au, outer_eccentricity, outer_mass_kg, central_mass_kg):
     """The gap between two planets in mutual Hill radii (at their mean distance), from the inner one's apoapsis to the outer one's periapsis: what the pairwise floor `MUTUAL_HILL_RADII_SEPARATION` counts."""
     radius = 0.5 * (inner_au + outer_au) * ((inner_mass_kg + outer_mass_kg) / (3.0 * central_mass_kg)) ** (1.0 / 3.0)

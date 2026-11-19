@@ -651,8 +651,8 @@ NOT_SHOWN = {
         "slot": "the star's slot in its system; bookkeeping",
         "flags": "bit flags the generator keeps; each one is shown by the row it stands for",
         "cluster_id": "the cluster it belongs to, shown by the Location block",
-        "initial_mass_sol": "the mass the population model gave the star at birth (DB.133), kept so a restored star starts from it; the mass it has now is shown",
-        "phase_end_age_gy": "the age the star leaves the phase it was drawn in (DB.133), kept so a restored star starts from it; the age and the class it has now are shown",
+        "initial_mass_sol": "the mass the population model gave the star at birth, kept so a restored star starts from it; the mass it has now is shown",
+        "phase_end_age_gy": "the age the star leaves the phase it was drawn in, kept so a restored star starts from it; the age and the class it has now are shown",
         **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "spin_axis_x", "spin_axis_y",
                    "spin_axis_z", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), _VECTORS),
     },
@@ -955,7 +955,7 @@ def _locked(row):
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
     (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount"), lambda klass, row: row is None or row.get("roundness_ratio") is None or roundness.is_round(row["roundness_ratio"]) or planet_classes.holds_air_liquid_or_life(row),
-     "a body under a roundness ratio of 1 that holds no air, no surface liquid and no life is an Asteroid and has no class letter, digit or match (GEN.1752: one that holds any of them is classed by the fit)"),
+     "a body under a roundness ratio of 1 that holds no air, no surface liquid and no life is an Asteroid and has no class letter, digit or match (one that holds any of them is classed by the fit)"),
     (("runner_up_class",), lambda klass, row: row is None or (row.get("runner_up_match") or 0.0) > 0.0,
      "a runner-up is a second class that fits the body at more than 0 percent; where only one class fits (a class that matches 0 percent is no runner-up, `class_fit.classify`) the column is empty and the match is 0"),
     (("class_fudge_values",), lambda klass, row: row is None or (row.get("class_fudge_amount") or 0.0) > 0.0,
@@ -1092,7 +1092,7 @@ _BELT_RULES = [
     (("history_text",), lambda klass, row: row is None or row.get("history_text") is not None,
      "only a belt the star's evolution acted on (the giant branch engulfed part of it, or the mass loss threw some of it inward) has a history to tell; a belt it left alone has none"),
     (("thrown_inward_kg",), lambda klass, row: row is None or row.get("thrown_inward_kg") is not None,
-     "only a belt of a white dwarf's system has a mass its star's mass loss threw inward (GEN.1231); the belt of a star that has not lost its envelope has none to count"),
+     "only a belt of a white dwarf's system has a mass its star's mass loss threw inward; the belt of a star that has not lost its envelope has none to count"),
 ]
 
 _ROGUE_RULES = [

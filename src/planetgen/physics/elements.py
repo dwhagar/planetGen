@@ -206,6 +206,16 @@ TWEAKS = tuple(f"L{n}" for n in range(5))
 """tuple: The stand-in tiers and tweak levels a rule file's number declares (GEN.725)."""
 
 
+def check_rule_entry(owner, entry, error, basis=True):
+    """
+    Checks that a rule file's `entry` (a number, a class, a row) states a tier `T1`..`T9`, a tweak `L0`..`L4` and, unless `basis` is false, a
+    basis (the stand-in registry's columns, GEN.725); else `error` (the module's own `ValueError` class) is raised naming `owner`.
+    """
+    if entry.get("tier") not in TIERS or entry.get("tweak") not in TWEAKS or (basis and not entry.get("basis")):
+        needs = "a tier T1..T9, a tweak L0..L4" + (" and a basis" if basis else "")
+        raise error(f"{owner}: every entry needs {needs}, got {entry!r}")
+
+
 def load_rule_numbers(path, error):
     """
     Reads the JSON rule file at `path` and checks its `numbers`: every entry has a `value`, a tier `T1`..`T9`, a
@@ -215,8 +225,9 @@ def load_rule_numbers(path, error):
     with open(path, encoding="utf-8") as handle:
         document = json.load(handle)
     for name, entry in document["numbers"].items():
-        if entry.get("tier") not in TIERS or entry.get("tweak") not in TWEAKS or not entry.get("basis") or "value" not in entry:
-            raise error(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
+        check_rule_entry(name, entry, error)
+        if "value" not in entry:
+            raise error(f"{name}: a number needs a value, got {entry!r}")
     return document
 
 

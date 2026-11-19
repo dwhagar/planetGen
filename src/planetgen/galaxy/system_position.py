@@ -14,7 +14,7 @@ while its sector and galactic coordinates follow.
 
 import math
 
-from planetgen.physics import system_tree
+from planetgen.physics import system_tree, vec3
 from planetgen.physics.position import SpatialPosition3D
 from planetgen.util import draw
 from planetgen.util import detmath
@@ -46,10 +46,6 @@ def _star_offsets_au(system):
         offsets.append((star, tuple(float(getattr(pair, template.format(which=which, axis=axis), 0.0) or 0.0)
                                     for axis in _AXES)))
     return offsets
-
-
-def _add(a, b):
-    return tuple(x + y for x, y in zip(a, b))
 
 
 def galactic_velocity_ms(position, speed_kms):
@@ -97,7 +93,7 @@ def system_velocity_ms(system, position):
     """The velocity, galactic axes, m/s, of `system` at `position` (any
     galactic unit): the rotation curve's tangent plus its runaway motion."""
     speed = getattr(getattr(system, "star", None), "galactic_orbital_speed_kms", None)
-    return _add(galactic_velocity_ms(position, speed), peculiar_velocity_ms(system))
+    return vec3.add(galactic_velocity_ms(position, speed), peculiar_velocity_ms(system))
 
 
 def set_system_epoch(system, epoch_unix):
@@ -173,7 +169,7 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     # differing by that much, GEN.527).
     star_centers, star_velocities = {}, {}
     for star, offset in _star_offsets_au(system):
-        at = _add(center_au, offset)
+        at = vec3.add(center_au, offset)
         star_centers[id(star)] = at
         star_velocities[id(star)] = system_velocity
         mass = getattr(star, "mass", None)

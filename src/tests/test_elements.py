@@ -258,3 +258,24 @@ def test_the_radon_isotopes_the_ground_dose_reads_are_in_the_chains():
     assert elements.isotope("Rn-222").half_life_s == pytest.approx(3.8215 * 86400, rel=1e-4)
     assert elements.isotope("Rn-220").half_life_s == pytest.approx(55.6, rel=1e-2)
     assert elements.isotope("Ra-226").half_life_s / (365.25 * 86400) == pytest.approx(1600, rel=1e-3)
+
+
+def test_a_rule_entry_needs_a_tier_a_tweak_and_a_basis_and_names_what_is_missing():
+    """GEN.1671: the one check every rule file's reader shares (`check_rule_entry`); a row without a basis passes when its file asks for none."""
+    good = {"tier": "T3", "tweak": "L1", "basis": "a paper", "value": 1.0}
+    elements.check_rule_entry("x", good, ValueError)
+    for broken in ({**good, "tier": "T0"}, {**good, "tweak": "L5"}, {**good, "basis": ""}):
+        with pytest.raises(ValueError, match="x: every entry needs"):
+            elements.check_rule_entry("x", broken, ValueError)
+    elements.check_rule_entry("x", {**good, "basis": ""}, ValueError, basis=False)
+    with pytest.raises(ValueError, match="a tier T1..T9, a tweak L0..L4,? got"):
+        elements.check_rule_entry("x", {**good, "tier": None}, ValueError, basis=False)
+
+
+def test_a_rule_file_number_without_a_value_is_refused(tmp_path):
+    path = tmp_path / "rules.json"
+    path.write_text(json.dumps({"numbers": {"a": {"tier": "T1", "tweak": "L0", "basis": "b"}}}), encoding="utf-8")
+    with pytest.raises(ValueError, match="a: a number needs a value"):
+        elements.load_rule_numbers(str(path), ValueError)
+    path.write_text(json.dumps({"numbers": {"a": {"tier": "T1", "tweak": "L0", "basis": "b", "value": 2}}}), encoding="utf-8")
+    assert elements.load_rule_numbers(str(path), ValueError)["numbers"]["a"]["value"] == 2

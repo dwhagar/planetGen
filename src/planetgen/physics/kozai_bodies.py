@@ -300,10 +300,10 @@ def moon_free_inclination(planet, moon, torque_ratio):
     stored = math.radians(getattr(moon, "orbital_inclination_deg", None) or 0.0)
     if getattr(moon, "moon_origin", None) != "captured":
         return min(stored, math.pi - stored) if stored > math.pi / 2.0 else stored
-    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
-    if any(c is None for c in axis):
+    axis = spin.spin_axis_of(planet)
+    if axis is None:
         return stored
-    orbit = spin.orbit_normal(getattr(planet, "orbital_inclination_deg", None) or 0.0, getattr(planet, "orbital_ascending_node_deg", None) or 0.0)
+    orbit = spin.orbit_normal_of(planet)
     if sum(a * b for a, b in zip(axis, orbit)) < 0.0:
         axis = tuple(-c for c in axis)
     epsilon = math.acos(max(-1.0, min(1.0, sum(a * b for a, b in zip(axis, orbit)))))
