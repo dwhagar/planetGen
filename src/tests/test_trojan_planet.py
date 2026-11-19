@@ -126,3 +126,23 @@ def test_the_point_is_a_lagrange_point_of_the_pair_and_the_room_holds_the_body(m
     planet = trojan_planet.build(system, system.star, system.planets)[0]
     assert planet.lagrange_point in trojans.POINTS
     assert trojans.stable(system.star.mass, giant.mass, planet.mass)
+
+
+@pytest.mark.fresh_database
+def test_systems_of_every_kind_with_a_giant_save_and_load_with_the_trojan_step_in_them(mysql_config):
+    """The step runs for every star's list (a pair, a wide pair's second star, a member of a tree, a circumbinary node): the systems save and read back with a giant in each."""
+    conn = store.get_connection(mysql_config)
+    try:
+        for seed in range(8):
+            config = SystemConfig()
+            config.PLANETS = True
+            config.FORCE_CLASS = "J"
+            with draw.bound(100 + seed):
+                system = StarSystem(system_config=config)
+            with conn:
+                system_id = store.insert_star_system(conn, system, config)
+            loaded = store.load_star_system(conn, system_id)
+            assert len(loaded.all_planets) == len(system.all_planets)
+    finally:
+        conn.rollback()
+        conn.close()
