@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4634] - 2026-11-19
+
+**Headline:** The reproducible-galaxies design now says the daily maintenance run is planned (OPS.16, OPS.17), and that the monthly orbit timer is what runs today.
+
+### Changed
+
+- Section 8 of `docs/design/generation/reproducible-galaxies.md` carries a status line (2026-11-19) and marks the script and its schedule as planned; the dropped delta merge and 18-slot rotation are no longer part of the daily run's description.
+
+## [8.0.4633] - 2026-11-19
+
+**Headline:** A test that runs a stage no longer waits for ever when the test box sets only the `PLANETGEN_TEST_MYSQL_*` account (TEST.801).
+
+### Fixed
+
+- The test queue's pump (`tests/inline_queue.run_ready_rows`) opened the control database with the process default account, built from `PLANETGEN_MYSQL_*`. On a box that sets only `PLANETGEN_TEST_MYSQL_*` the login was refused, the pump swallowed the error and ran no unit, and a stage's follower (`units.follow_stage`) waited for a stage end that never came (test_habitability_fill hung). The pump now logs in with the test server's account, and only an unknown control database ends it quietly.
+
+## [8.0.4632] - 2026-11-19
+
+**Headline:** The hydrosphere test no longer fails on a halite sea: the water activity a chloride brine can hold now includes the saturated rock-salt solution.
+
+### Fixed
+
+- **`test_generated_bodies_store_a_consistent_hydrosphere` failed on main since GEN.1730.** A halite sea's water activity is the saturated rock-salt solution's 0.753 (set, not drawn), above the 0.30 to 0.65 chloride-brine range the deliquescent brines are drawn in. The test now checks a liquid body against the range it can hold (its class's drawn range; only a chloride brine whose activity is exactly `NACL_SATURATION_ACTIVITY`, a saturated halite sea, may reach that figure; an ordinary chloride brine stays 0.30 to 0.65). No product code changes, no draw and no stored value changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4631] - 2026-11-19
 
 **Headline:** The wiring burn-down starts: a trace-gas function nothing read is retired and two things the guard listed are marked as by design.

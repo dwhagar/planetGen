@@ -180,6 +180,15 @@ def test_ocean_worlds_are_mostly_ice_sealed():
     assert all(world.hp_ice_km > 0 for world in sealed)
 
 
+def _held_activity_range(body):
+    """The water activities a liquid body can hold, `(low, high)`: its class's drawn range, and for a chloride brine that is a saturated halite sea (activity exactly GEN.1730's
+    `NACL_SATURATION_ACTIVITY`, set and not drawn) up to that figure; an ordinary chloride brine stays in its drawn range (TEST.803)."""
+    low, high = hy.OCEAN_CHEMISTRY[body.ocean_class][1]
+    if body.ocean_class == "chloride brine" and body.water_activity == hy.NACL_SATURATION_ACTIVITY:
+        high = hy.NACL_SATURATION_ACTIVITY
+    return low, high
+
+
 def test_generated_bodies_store_a_consistent_hydrosphere():
     seen = set()
     for seed in range(40):
@@ -202,10 +211,22 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
                 liquid = body.hydrosphere in ("ice-covered ocean", "surface ocean", "brine seep", "hycean")
                 assert (body.ocean_depth_km is not None) == liquid == (body.ocean_class is not None)
                 if liquid:
-                    (ph_lo, ph_hi), (aw_lo, aw_hi) = hy.OCEAN_CHEMISTRY[body.ocean_class]
+                    ph_lo, ph_hi = hy.OCEAN_CHEMISTRY[body.ocean_class][0]
+                    aw_lo, aw_hi = _held_activity_range(body)      # a halite sea's saturated 0.753 is set, not drawn (GEN.1730, TEST.803)
                     assert ph_lo <= body.ocean_ph <= ph_hi and aw_lo <= body.water_activity <= aw_hi
     # a runaway-greenhouse vapor world is rare (2 in 590 bodies) and is checked by hand above, so a sample need not hold one
     assert {"ice", "dry"} <= seen
+
+
+def test_only_a_saturated_halite_sea_may_hold_the_saturated_salt_activity():
+    """TEST.803: a halite sea holds the saturated rock-salt solution's 0.753 (GEN.1730), above the 0.65 the deliquescent brines are drawn to; any other chloride brine, and the other classes, stay in their drawn range."""
+    def body(kind, activity):
+        return types.SimpleNamespace(ocean_class=kind, water_activity=activity)
+    assert hy.NACL_SATURATION_ACTIVITY > hy.OCEAN_CHEMISTRY["chloride brine"][1][1]
+    assert _held_activity_range(body("chloride brine", hy.NACL_SATURATION_ACTIVITY)) == (0.30, hy.NACL_SATURATION_ACTIVITY)
+    assert _held_activity_range(body("chloride brine", 0.5)) == hy.OCEAN_CHEMISTRY["chloride brine"][1]
+    for kind in ("ice-sealed", "acid sulfate", "soda", "neutral"):
+        assert _held_activity_range(body(kind, hy.NACL_SATURATION_ACTIVITY)) == hy.OCEAN_CHEMISTRY[kind][1]
 
 
 def _moon(planet_class, mass_earth, radius_km, distance_au, **extra):
