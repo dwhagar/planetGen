@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4636] - 2026-11-19
+
+**Headline:** A planet is built where the spacing pass would put it, so the water, bare-core and quiet-interior dials of a Class M tier reach every planet that ends in the ecosphere and none that ends outside it.
+
+### Changed
+
+- GEN.1802 (from GEN.1791): the tier dials are drawn once, at the zone a planet holds when it is first drawn (`Planet._draw_body`, `bulk_draw._rocky_water`), and `validation.space_orbits` later moved planets across a zone edge (`planets.reconcile_zone` redraws nothing): on 400 abundant systems 0.25 rocky planets a system went from hot into the ecosphere with no dial (14 percent of the ecosphere's planets) and 0.41 a system were drawn in the ecosphere with dials and ended cold. `StarSystem._generate_planets` now builds each planet at the nearer of its planned distance and the distance the pass asks of it (`StarSystem._distance_clear_of`, the pass's own rule through `clearance_ledger.planets_needed_au`, with the eccentricity the plan drew, GEN.1797), so the pass has no planet of the plan left to move. Belts are added afterwards and the pass still settles them, so `reconcile_zone` keeps that job. A planet planned inside another's reach is now born further out instead of being moved there after its air and water were drawn; no planet's mass, composition or eccentricity changes by it.
+
 ## [8.0.4635] - 2026-11-19
 
 **Headline:** Class M worlds are about twice as common at the top tier because four stand-ins now sit at the favoured end of their published ranges.
