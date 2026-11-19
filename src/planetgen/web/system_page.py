@@ -328,7 +328,8 @@ def generate_in_process(command, words, debug, system_file):
                     text = _read(page_path)
         except SystemExit as exc:
             return {**failed, "output": _tail("\n".join([*lines, said.getvalue().strip(), f"The generator stopped with status {exc.code}."]).strip())}
-        except Exception:  # noqa: BLE001 -- the page shows what went wrong
+        except Exception as exc:  # noqa: BLE001 -- the page shows what went wrong
+            planetgen_log.swallowed("web/system_page", "the one-off generation, shown on the page", exc)
             return {**failed, "output": _tail(traceback.format_exc().strip())}
         shown = _tail(_debug_lines(os.path.join(tmp, "debug.log"), args.debug_areas)) if debug else ""
     output = _tail("\n".join([*lines, *([shown] if shown else [])]).strip())

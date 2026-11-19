@@ -291,6 +291,7 @@ class Template:
             try:
                 job = unspill(message["job_file"]) if message.get("job_file") else message.get("job") or {}
             except Exception as exc:  # noqa: BLE001 -- the supervisor is told why the job could not be made and the unit fails with the reason
+                log.swallowed("template", "reading a job's arguments", exc)
                 self.say({"event": "error", "id": message.get("id"), "error": f"the job's arguments could not be read: {type(exc).__name__}: {exc}"})
                 return
             self.fork(message["id"], message["runner"], job)

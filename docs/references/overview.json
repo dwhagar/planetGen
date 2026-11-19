@@ -14,12 +14,12 @@
   "stand_ins": {
     "by_tier": {
       "T1": 262,
-      "T2": 258,
+      "T2": 259,
       "T3": 216,
       "T4": 150,
       "T5": 152,
       "T6": 503,
-      "T7": 152,
+      "T7": 151,
       "T8": 7,
       "T9": 233
     },
@@ -113,7 +113,7 @@
     },
     "educated_guess_from_physics": {
       "percent": 42,
-      "rows": 814
+      "rows": 813
     },
     "fitted_to_a_result": {
       "percent": 23,
@@ -121,7 +121,7 @@
     },
     "read_from_a_source": {
       "percent": 27,
-      "rows": 520
+      "rows": 521
     },
     "unverified": {
       "percent": 19,

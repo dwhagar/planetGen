@@ -21,7 +21,10 @@ coplanar (a mutual inclination only moves the cut further out); the factor does 
 
 import math
 
-from planetgen.physics import constants, pre_main_sequence, radiation_field
+from planetgen.physics import pre_main_sequence, radiation_field
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 TRUNCATION_OF_ROCHE_LOBE = 0.733
 """float: The share of the host's Roche lobe at periastron where a circumstellar disk ends (disks of binaries truncate at about 0.7 of the Roche lobe in simulations of the disk's tidal
@@ -62,7 +65,7 @@ def disk_time_yr(star):
     reader of the end of the disk for the star's bodies: the time a thrown-out body leaves (`planet_architecture.build`, `disk_ejection`), and when its planets exist for the cluster that unbinds them.
     """
     holder = star.stars[0] if getattr(star, "stars", None) else star          # a close pair's proxy keeps its primary's mass
-    mass_sol = getattr(holder, "initial_mass_sol", None) or holder.mass / constants.SOLAR_MASS_TO_KG
+    mass_sol = getattr(holder, "initial_mass_sol", None) or _kg_to_msun(holder.mass)
     return pre_main_sequence.dispersal_yr(mass_sol, has_close_companion(star))
 
 

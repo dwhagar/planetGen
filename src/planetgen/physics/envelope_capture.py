@@ -112,6 +112,7 @@ the heaviest is `super_puff.START_MAX_MASS_EARTH` (row PF1)."""
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 _kg_to_msun = units.converter("kg", "Msun")
+_mearth_to_kg = units.converter("Mearth", "kg")
 _DAYS_PER_YEAR = 365.25
 
 
@@ -179,7 +180,7 @@ def nebular_water_fraction(start, helium_share=0.27):
         return 0.0
     (low, oceans_low), (high, oceans_high) = YOUNG_WATER_CASES
     exponent = math.log(oceans_high / oceans_low) / math.log(high / low)
-    return oceans_low * (hydrogen / low) ** exponent * OCEAN_MASS_KG / (YOUNG_EMBRYO_MASS_EARTH * constants.EARTH_MASS_TO_KG)
+    return oceans_low * (hydrogen / low) ** exponent * OCEAN_MASS_KG / _mearth_to_kg(YOUNG_EMBRYO_MASS_EARTH)
 
 
 def period_days(body):

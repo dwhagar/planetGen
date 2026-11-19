@@ -28,7 +28,6 @@ Use:
     point_label("Jupiter", "L4")           # "Jupiter-L4"
 """
 
-import json
 import math
 import os
 
@@ -40,13 +39,7 @@ class TrojanError(ValueError):
 
 
 def _load():
-    with open(os.path.join(elements.DATA_DIRECTORY, "trojans.json"), encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) \
-                or not entry.get("basis") or "value" not in entry:
-            raise TrojanError(f"{name}: every number needs a value, a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
-    return document
+    return elements.load_rule_numbers(os.path.join(elements.DATA_DIRECTORY, "trojans.json"), TrojanError)
 
 
 DOCUMENT = _load()

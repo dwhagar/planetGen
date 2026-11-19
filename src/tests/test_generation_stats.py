@@ -328,7 +328,7 @@ def test_a_run_the_disk_cant_hold_warns_and_goes_ahead(mysql_config, monkeypatch
     _run_cli(FIRST_THREE + ["--yes"] + _mysql_argv(mysql_config))
     assert len(_charted_sectors(mysql_config)) == 3
     out = capsys.readouterr().out
-    assert "WARNING:" in out and "at least 5 GB must stay free" in out
+    assert "warning:" in out and "at least 5 GB must stay free" in out        # the console says a warning in lower case ("warning: ...")
 
 
 def test_estimate_only_reports_a_refusal(mysql_config, monkeypatch, capsys):

@@ -3083,15 +3083,15 @@
           "fields": [
             [
               "Evidence",
-              "design"
+              "READ ([R3946: Sec. 5.2]: 90 to 99 percent of the oxygen of the photolysis is lost to space; [R4774: Sec. 3.1]: the hydrogen drags the oxygen with it)"
             ],
             [
               "What it is",
-              "mixture_evolved.OXYGEN_SINK"
+              "mixture_evolved.OXYGEN_ESCAPE"
             ],
             [
               "The range it moves in",
-              "0 to 0.9, uniform"
+              "0.90 to 0.99, uniform"
             ],
             [
               "Where it holds",
@@ -3099,22 +3099,22 @@
             ],
             [
               "What would show it wrong",
-              "none: no measurement of the share the crust oxidises away; the 95 percent ceiling test bounds the outcome"
+              "test_atmosphere_mixture_evolved::test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air"
             ],
             [
               "What replaces it",
-              "the redox and crust model (GEN.481, lane K)"
+              "GEN.1769 slices 2 and 3 (the magma ocean's uptake and the crust's iron and sulfur) and a drag-derived escape from the body's hydrogen flux"
             ]
           ],
           "id": "AM6",
           "key": "6.7:AM6",
-          "kind": "P",
+          "kind": "B",
           "slug": "6-7-am6",
-          "tier": "T7",
-          "tier_code": "T7",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "mixture_evolved.OXYGEN_SINK"
+          "what": "mixture_evolved.OXYGEN_ESCAPE"
         },
         {
           "burn_down": null,
