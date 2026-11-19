@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4616] - 2026-11-19
+
+**Headline:** The life-constant registry test knows `habitability.GAS_ORDER` is the names of four gases, not a value.
+
+### Fixed
+- `test_every_life_constant_has_a_row_or_a_reason_to_have_none` failed on `habitability.GAS_ORDER` (CO2, CO, H2S, SO2; GEN.1772): it is the order the four gas bands are read in, a structure like `DOMAINS` and `TIERS`, so it gets a reason to have no stand-in row in `NEEDS_NO_ROW`. The test is not loosened and the generator is not touched.
+
+generation-output: unchanged
+
 ## [8.0.4615] - 2026-11-19
 
 **Headline:** The planets of a system keep the places the architecture gave them because the architecture and the spacing pass now follow one spacing rule, so a giant planned at 2 to 8 au is no longer pushed out to tens of au.
