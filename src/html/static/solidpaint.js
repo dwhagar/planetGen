@@ -79,6 +79,7 @@ function waterState(look) {
 export var CLOUD_COLOR = "#f4f6f8";
 var VEIL_TINT_MAX = 0.55;
 var VEIL_FLATTEN_MAX = 0.4;
+var HAZE_TINT_MAX = 0.45;
 var HAZE_FLATTEN_MAX = 0.6;
 var CLOUD_OPACITY_MAX = 0.85;
 var CLOUD_TAU_SCALE = 2;
@@ -107,12 +108,20 @@ function applyAir(look, rgb, w, h, seed) {
     var tint = look.glow ? parseHex(look.glow) : null;
     var tintLum = tint ? luminance(tint) : 0;
     var amount = tint && tintLum > 0 ? VEIL_TINT_MAX * veil : 0;
+    // MAP.418: the haze layer is coloured by its material (tholin orange, dust tan), at the picture's own brightness.
+    var hazeTint = look.hazeColor ? parseHex(look.hazeColor) : null;
+    var hazeLum = hazeTint ? luminance(hazeTint) : 0;
+    var hazeAmount = hazeTint && hazeLum > 0 ? HAZE_TINT_MAX * haze : 0;
     for (var j = 0; j < n; j++) {
       var c = [rgb[j * 3], rgb[j * 3 + 1], rgb[j * 3 + 2]];
       c = mix(mean, c, keep);
       if (amount > 0) {
         var k = luminance(c) / tintLum;
         c = mix(c, [tint[0] * k, tint[1] * k, tint[2] * k], amount);
+      }
+      if (hazeAmount > 0) {
+        var kh = luminance(c) / hazeLum;
+        c = mix(c, [hazeTint[0] * kh, hazeTint[1] * kh, hazeTint[2] * kh], hazeAmount);
       }
       rgb[j * 3] = Math.min(255, c[0]);
       rgb[j * 3 + 1] = Math.min(255, c[1]);
@@ -130,7 +139,7 @@ function applyAir(look, rgb, w, h, seed) {
     }
     var cut = seaLevel(field.map(function (f) { return clamp01(f); }), w, h, 1 - cover);
     var opacity = CLOUD_OPACITY_MAX * (1 - Math.exp(-cloudTau / CLOUD_TAU_SCALE));
-    var white = parseHex(CLOUD_COLOR);
+    var white = parseHex(look.cloudColor || CLOUD_COLOR);       // MAP.418: the cloud's own colour when its material is known
     for (var m = 0; m < n; m++) {
       var t = clamp01((field[m] - cut) / 0.12 + 0.5);
       if (cover >= 1) t = 1;

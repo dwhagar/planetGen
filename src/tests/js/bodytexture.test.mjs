@@ -133,6 +133,20 @@ test("a haze softens, and a cloud layer whitens by its cover", () => {
   assert.ok(total(solid) > total(clouded), "full cover is whiter still");
 });
 
+test("a cloud and a haze take the colour of their material (MAP.418)", () => {
+  const w = 64, h = 32;
+  const plain = { ...EARTHLIKE, atm: true, tempK: 320, cloudCover: 1, cloudTau: 20 };
+  const channels = (px) => { let r = 0, g = 0, b = 0; for (let i = 0; i < w * h; i++) { r += px[i * 4]; g += px[i * 4 + 1]; b += px[i * 4 + 2]; } return [r, g, b]; };
+  const white = channels(P.paintSolid(plain, w, h));
+  const acid = channels(P.paintSolid({ ...plain, cloudColor: "#f0e4b4" }, w, h));
+  assert.ok(acid[2] / acid[0] < white[2] / white[0] * 0.95, "a sulfuric acid cloud is yellower than a water cloud");
+  assert.equal(P.solidFingerprint(plain, w, h), P.solidFingerprint({ ...plain, cloudColor: "#f4f6f8" }, w, h), "the water colour is the default");
+  const hazy = { ...EARTHLIKE, atm: true, tempK: 320, haze: 0.9 };
+  const grey = channels(P.paintSolid(hazy, w, h));
+  const orange = channels(P.paintSolid({ ...hazy, hazeColor: "#c47a35" }, w, h));
+  assert.ok(orange[0] / orange[2] > grey[0] / grey[2] * 1.1, "a tholin haze is redder than a bare one");
+});
+
 // --- Stars (MAP.276) ---------------------------------------------------------
 
 const S = await importPage("starpaint.js");
