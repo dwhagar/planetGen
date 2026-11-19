@@ -20,13 +20,6 @@ from planetgen.web import job_runner as jobRunner, jobs
 from tests import page_jobs
 
 
-@pytest.fixture
-def control_config(mysql_config, monkeypatch):
-    store.get_control_connection(mysql_config, ensure_schema=True).close()
-    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
-    return mysql_config
-
-
 def test_the_run_argv_leaves_out_the_database_and_debug_options():
     argv = ["galaxy", "--shell", "3", "--mysql-password", "secret", "--debug", "f.log", "--band=1",
             "--mysql-user=u", "--mysql-database", "db", "--debug", "--yes"]
