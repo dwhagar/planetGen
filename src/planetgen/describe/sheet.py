@@ -668,6 +668,8 @@ NOT_SHOWN = {
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                    "velocity_z_kms"), _VECTORS),
         "host_node_id": "the orbit tree node; bookkeeping",
+        **{column: "of a trojan region of a giant (GEN.1150): its page prints them under the belt's rows (`describe/build.py` `_belt_section`: the point, the libration, the mean eccentricity and inclination)"
+           for column in ("lagrange_point", "libration_amplitude_deg", "libration_phase_deg", "mean_eccentricity", "mean_inclination_deg")},
         "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
         "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
         "scatter_fates": "the share of an outer disk in each population after the scatter step, a mapping; the belt's information page lists the shares (`belt_page.fates_list`)",
