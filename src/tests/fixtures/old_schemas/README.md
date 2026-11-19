@@ -40,3 +40,4 @@ Commit each file came from:
 - v266: after GEN.1753's migration 0266 (body_history birth numbers, lost_moons), before GEN.1231's migration 0267 (belt thrown inward) (main's schema.sql with its comment and blank lines removed)
 - v267: after GEN.1231's migration 0267 (belt thrown inward), before DB.132 and DB.133's migration 0268 (stars birth mass and phase end, body_history held and forced eccentricity) (main's schema.sql with its comment and blank lines removed)
 - v268: after DB.132 and DB.133's migration 0268 (stars birth mass and phase end, body_history held and forced eccentricity), before GEN.1150's migration 0269 (trojan regions) (main's schema.sql with its comment and blank lines removed)
+- v269: after GEN.1150's migration 0269 (trojan regions), before GEN.1151's migration 0270 (trojan planets) (the GEN.1150 branch's schema.sql with its comment and blank lines removed; at the train it is main's)

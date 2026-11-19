@@ -297,6 +297,8 @@ FIELDS = (
     F('obliquity_max_deg', 'DOUBLE', unit='deg', c="v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees"),
     F('belt_order', 'INT', unit='index', c="v248 (GEN.1510): for a planet promoted from an asteroid belt, the belt's number among its star's belts (as `irregular_moons.belt_order`), NULL for every other planet and for a row made before v244", t='p'),
     F('belt_rank', 'INT', unit='index', c="v248 (GEN.1510): for a planet promoted from an asteroid belt, the rank it had among the belt's members (the number is not reused), NULL for every other planet", t='p'),
+    F('lagrange_point', 'VARCHAR(2)', c="v270 (GEN.1151): `L4` (60 degrees ahead) or `L5` (60 degrees behind) for a planet that shares its giant's orbit and was grown in its zone, NULL for every other planet", t='p'),
+    F('lagrange_host_id', 'BIGINT UNSIGNED', unit='id', c="v270 (GEN.1151): the `planets.id` of the giant a planet at L4 or L5 shares its orbit with, NULL for every other planet", t='p'),
     F('energy_flux_w_m2', 'DOUBLE', unit='W_m2', c={'pm': None, 'r': 'v153'}),
     F('flux_variation', 'DOUBLE', unit='frac', c={'pm': None, 'r': 'v207 (GEN.1111)'}),
     F('reflex_offset_x_km', 'DOUBLE', unit='km', lead=('-- v20 (see header comment): this planet\'s own reflex-offset "wobble"', '-- from the combined pull of its own moons -- NULL/0 with no moons.'), t='p'),
