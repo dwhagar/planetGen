@@ -19,8 +19,8 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
 * **Abiotic oxygen (`j5`).** The outgassed gas, its carbon, nitrogen and sulfur rescaled to a carbon of `CARBON_PER_OCEAN_WATER` per molecule of the
   surface water of one to ten oceans (`OCEAN_WATER_WT_PERCENT`) added to it; the
   hydrogen of the water escapes (the fraction `WATER_PHOTOLYSED`) and the oxygen it leaves behind stays in the closed gas, except for
-  the share `OXYGEN_SINK` that the crust takes up ([R2769]: the O2 builds to tens or hundreds of bar around a late M
-  dwarf). Nothing holds the oxygen fugacity here: the gas is free to have O2.
+  the share `OXYGEN_ESCAPE` that leaves with the hydrogen (GEN.1769 slice 1: 90 to 99 percent of the oxygen the photolysis makes is lost to space, [R3946]; the hydrogen drags it along, [R4774]; the O2 builds to tens or hundreds of bar around a late M dwarf only for the very wet bodies, [R2769]). Nothing holds the oxygen fugacity here: the gas is free to have O2. The
+  magma ocean's uptake (at most 10 percent of the oxygen in [R3946], most of it in [R4774]) and the crust's iron and sulfur are the next slices of GEN.1769.
 * **Titan-like (`j3`): nitrogen and methane at the methane's saturation.** The nitrogen is the balance, and it is the nitrogen of the
   body's ammonia ice (GEN.821): the share `AMMONIA_OUTGASSED` of the ammonia leaves the interior and the share `AMMONIA_TO_N2` of
   that is converted to N2 ([R1282], section 4.2), added to what the rocky inventory degasses; the methane is the
@@ -62,8 +62,9 @@ CARBON_PER_OCEAN_WATER = (0.01, 0.2, "log")
 """tuple: The carbon of an abiotic-oxygen world's gas per water molecule of its oceans, mole per mole: the Earth's atmosphere and carbonate
 crust hold about 5e19 kg of carbon against 1.4e21 kg of ocean, 0.054 per molecule; a design bracket around it that GEN.481 replaces."""
 
-OXYGEN_SINK = (0.0, 0.9, "uniform")
-"""tuple: The share of the oxygen the lost water leaves that the crust oxidises away instead of the air keeping it; design."""
+OXYGEN_ESCAPE = (0.90, 0.99, "uniform")
+"""tuple: The share of the oxygen the lost water leaves that escapes to space with the hydrogen instead of the air keeping it: "between 90 to 99 % of the total oxygen produced by photolysis of water vapor is lost to
+space" ([R3946: Sec. 5.2], for both of its XUV models); the hydrogen escaping by the diffusion limit drags the oxygen with it while its share in the upper air is a few percent or less ([R4774: Sec. 3.1]). [Stand-in 6.7 AM6, tier T2 confident unverified, tweak L0.]"""
 
 TITAN_HUMIDITY = (0.3, 1.0, "uniform")
 """tuple: The methane's relative humidity at the surface (Titan: 5.65 percent near the surface at 94 K against a saturation of 12 percent;
@@ -149,7 +150,7 @@ def evolved_oxidized(subject, recipe, row, supply=None):
         atoms["O"] += ocean / 2.0
         lost = atoms["H"] * bracket(constants, "water_photolysed", WATER_PHOTOLYSED)
         atoms["H"] -= lost
-        atoms["O"] -= (lost / 2.0) * bracket(constants, "oxygen_sink", OXYGEN_SINK)
+        atoms["O"] -= (lost / 2.0) * bracket(constants, "oxygen_escape", OXYGEN_ESCAPE)
     atoms = {symbol: value for symbol, value in atoms.items() if value > 0.0}
     result = mixture_rocky.cool(atoms, subject, constants, held_diw=held, quenched=False)
     draw_result = finish(result, family=FAMILY_OF_ROW[row], drawn={group: drawn.name for group, drawn in recipe.groups.items()},
