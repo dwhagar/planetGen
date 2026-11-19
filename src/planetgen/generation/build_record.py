@@ -50,6 +50,8 @@ class BuildRecord:
         deferred_climate (tuple or None): `(moon_count, distance_override)` of a body built with `defer_climate` whose air and moons `finish_climate` still owes (GEN.1282).
         kozai (object or None): The `Kozai` outcome of a moon that cycles.
         late_accreted_percent (float or None): The percent of the body's mass the late accretion added (`planets.remake_air`).
+        plan_eccentricity (float or None): The eccentricity the planet architecture drew for the body's slot and held to its neighbours (`planet_architecture.Seed.eccentricity`, GEN.1797), the birth value
+            `planets.generate_orbit_shape` takes in place of a draw (cut at what the star's Roche limit allows); `None` for a body whose orbit is drawn there (a slot the author named, a moon, a body made on its own).
     """
 
     air_replay: tuple = None
@@ -72,6 +74,7 @@ class BuildRecord:
     deferred_climate: tuple = None
     kozai: object = None
     late_accreted_percent: float = None
+    plan_eccentricity: float = None
 
     def __getstate__(self):
         state = dict(self.__dict__)
