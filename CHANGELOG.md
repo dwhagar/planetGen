@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4589] - 2026-11-19
+
+**Headline:** The distance beyond which planets and belts stop growing now scales with the star's mass, so a red dwarf's planets and belts end closer in and a bright star's go farther out.
+
+### Changed
+- **The outer growth limit follows the star's mass (GEN.1539).** The fixed 11.36 au limit that tapered planet cores and set where the belts' tail and outer disk begin is now 11.36 au times the star's mass in Suns to the 0.7 (the core assembly time's scaling), never nearer than the snow line and never beyond the gas disk's edge. Planets and belts read the same limit (`planet_mass.growth_limit_au`). A red dwarf's outer disk belts begin at about 3 to 6 au instead of 11, and its belt bodies that become planets, and its cold giants, are fewer; an A star's planets reach farther out. The stand-in row PA1 in the registry carries the new scaling.
+
 ## [8.0.4588] - 2026-11-19
 
 **Headline:** The dense-cluster stripping test tries 120 seeds instead of 40 to find a system that loses a planet to its birth cluster.
