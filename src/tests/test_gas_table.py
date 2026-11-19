@@ -55,7 +55,7 @@ def test_the_ten_stored_partials_are_rows_and_agree_with_the_stored_molar_masses
 
 
 def test_a_gas_with_no_flag_takes_the_class_its_structure_gives():
-    """GEN.1629: 52 rows have no `ir` flag (the atoms, radicals and rock vapours added after the first 72); the table, the thin-air scaling and the line opacity read
+    """GEN.1629: 52 rows have no `ir` flag (the atoms, radicals and rock vapors added after the first 72); the table, the thin-air scaling and the line opacity read
     `infrared_class` instead, the gas table's own rule: an atom `none`, a diatomic of one element `cia`, any other molecule `ir`. A row with a flag keeps it."""
     unflagged = [gas for gas in gases.GASES if gas.ir is None]
     assert len(unflagged) >= 40

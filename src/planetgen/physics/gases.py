@@ -333,7 +333,7 @@ class Gas:
     @property
     def infrared_class(self):
         """
-        The infrared flag the code reads (GEN.1629): the row's `ir`, and for a row that has none (52 of the 124: the atoms, the radicals and the rock vapours added after the
+        The infrared flag the code reads (GEN.1629): the row's `ir`, and for a row that has none (52 of the 124: the atoms, the radicals and the rock vapors added after the
         first 72) the class its structure gives, the gas table's own rule (composition-model.md: monatomic none, homonuclear diatomics collision-induced only, the rest
         infrared): an atom `none`, a homonuclear diatomic `cia`, any other molecule `ir` (the generic stand-in band). Stand-in, registry row IR21.
         """
