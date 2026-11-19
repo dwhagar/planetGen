@@ -17,6 +17,7 @@ from planetgen.physics import constants, dust_supply, habitability_world, influx
 from planetgen.physics import unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_msun = units.converter("kg", "Msun")
 _km_to_rearth = units.converter("km", "Rearth")
 
 
@@ -39,7 +40,7 @@ def influx_of(planet, planets, comets):
     reservoirs = reservoirs_of(planet, planets, comets)
     if not reservoirs:
         return 0.0
-    return influx.planet_influx_kg_per_yr(planet.radius, planet.mass, planet.distance, star.mass / constants.SOLAR_MASS_TO_KG,
+    return influx.planet_influx_kg_per_yr(planet.radius, planet.mass, planet.distance, _kg_to_msun(star.mass),
                                           star.luminosity / constants.SOLAR_LUMINOSITY, reservoirs, giants)[0]
 
 
