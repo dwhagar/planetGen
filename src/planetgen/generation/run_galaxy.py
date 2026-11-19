@@ -337,20 +337,22 @@ def _fill_context(args, address):
             # GEN.281: a cell above the ceiling is taken down to the cap and no further.
             run_plan._draw_sector_bands(conn, skeleton, [tuple(address)], resolution.luminosity_cap_sol,
                                         limits, backfill_seed)
+        if not resolution.capped:
+            _take_to_the_deepest_floor(config, skeleton, address, limits, backfill_seed)
+            conn.commit()   # the draw ran on a connection of its own: this one's snapshot must see its stars (and the remnants it drew, GEN.1682)
         phenomena = below_cut = None
         settings = store.phenomenon_scatter_settings(conn)
         if settings is not None:
             phenomena = store.phenomena_for_sector(conn, *address)
             seed, min_mass_solar = settings
-            if min_mass_solar is not None and not resolution.capped:
+            if min_mass_solar is not None and not resolution.capped and not store.sector_holds_below_cut_remnants(conn, address, min_mass_solar):
                 # GEN.168: what the scatter left below its cut, at the
                 # density it used (the plan's, not this sector's own roll). A capped cell makes no remnant of its
-                # own: they are dark, below the cap, and part of what it leaves unresolved.
+                # own: they are dark, below the cap, and part of what it leaves unresolved. A sector the backfill
+                # drew them for before (GEN.1682) holds them as scatter rows, which `phenomena` has just read: the
+                # fill builds those and draws none again.
                 expected = profile.expected_systems
                 below_cut = brightStars.BelowCut(tuple(address), min_mass_solar, seed, expected)
-        if not resolution.capped:
-            _take_to_the_deepest_floor(config, skeleton, address, limits, backfill_seed)
-            conn.commit()   # the draw ran on a connection of its own: this one's snapshot must see its stars
         level = store.bright_star_fill_level(conn, *address)
         mass_limit = store.bright_star_fill_mass_limit(conn, *address)
         emission_hosts = _emission_hosts(conn, skeleton, address, profile)
@@ -818,6 +820,11 @@ class BackfillFollower(followed.Follower):
         self.chunks = 0
         self.credited = {}
         self.sky_cells, self.sky_floors = 0, []
+        self.clock = time.monotonic
+        self.opened = self.said = None
+        self.step = None
+        self.total = 0.0
+        self.sectors_planned = 0
 
     def params(self):
         from planetgen.generation import sky_charting
@@ -840,7 +847,10 @@ class BackfillFollower(followed.Follower):
         self.chunks = plan["units"] - len(self.sky_costs)
         self.bar = self.hold(steps.Step("Bright-star backfill (sectors)", "backfill", 1, args=self.args,
                                         progress=self.progress, workers=self.workers))
-        self.bar.update(total=max(plan["detail"]["sectors"] + sum(self.sky_costs), 1))
+        self.total = float(max(plan["detail"]["sectors"] + sum(self.sky_costs), 1))
+        self.sectors_planned = int(plan["detail"]["sectors"])
+        self.bar.update(total=self.total)
+        self.opened = self.said = self.clock()
 
     def _credit(self, unit, amount):
         """Moves the bar to `amount` of the bar's own unit (sectors) for `unit`, never back: a unit's own counter and its result both say how far it is."""
@@ -857,6 +867,48 @@ class BackfillFollower(followed.Follower):
             self._credit(unit, min(done, estimate))
         elif unit - self.chunks < len(self.sky_costs):
             self._credit(unit, self.sky_costs[unit - self.chunks] * min(done / estimate, 1.0))
+        self.say()
+
+    def on_step(self, step):
+        """The count inside the units still working (OPS.192) is kept for the status line (OPS.282) and drawn as the run's second bar."""
+        self.step = step
+        super().on_step(step)
+        self.say()
+
+    STATUS_SECONDS = 300.0
+    """float: How often the log gets a line with the stage's real counts while it runs (OPS.282; the stage takes hours and its bars are not in a log)."""
+
+    def status_line(self, now):
+        """
+        The stage's counts as a line (OPS.282): the sectors visited of those to draw, the sky parts finished of all, the stars placed by the units that are done, what the working units count inside
+        themselves (`on_step`), and how long it still takes by the bar's own credit (HMS), or `None` before the stage has been cut.
+        """
+        if self.opened is None:
+            return None
+        visited = sum(credit for unit, credit in self.credited.items() if unit < self.chunks)
+        parts = len(self.sky_costs)
+        sky_done = len(self.sky)
+        text = f"Backfill: {min(visited, self.sectors_planned):,.0f} of {self.sectors_planned:,} sectors visited"
+        if parts:
+            text += f", {sky_done:,} of {parts:,} sky parts done"
+        text += f", {self.summary['stars']:,} stars placed by finished parts"
+        if self.step:
+            text += f"; working parts: {self.step['name']} {self.step['done']:,.0f} of {self.step['total']:,.0f}"
+        share = sum(self.credited.values()) / self.total
+        elapsed = now - self.opened
+        if 0.0 < share < 1.0 and elapsed > 0.0:
+            text += f"; about {format_duration_seconds(elapsed * (1.0 - share) / share)} left ({share * 100:.1f} percent of the work, {format_duration_seconds(elapsed)} in)"
+        return text + "."
+
+    def say(self):
+        """Puts `status_line` in the log when `STATUS_SECONDS` have passed since the last one."""
+        now = self.clock()
+        if self.said is None or now - self.said < self.STATUS_SECONDS:
+            return
+        self.said = now
+        line = self.status_line(now)
+        if line:
+            log.normal(line)
 
     def on_result(self, unit, result):
         self.summary["sectors"] += result["sectors"]

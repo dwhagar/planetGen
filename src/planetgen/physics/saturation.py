@@ -49,6 +49,10 @@ vapor-pressure curve lives; the callers (GEN.452) read it.
 * **Sulfur (S2) is a fit to a computed table** (GEN.1564, `log-fit`): `ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T` for 312 to 925 K (8.8 percent at
   worst against the gas table's NASA-polynomial vapor pressure over condensed sulfur, stand-in 6.285 SV1), carried on outside the window; the condensate is solid
   below 388.36 K and liquid above. The gas table has no triple point for it, so the checks that read one skip it.
+* **Carbonyl sulfide, carbon disulfide and sulfur trioxide (GEN.1794)** have the NIST WebBook Antoine equation of their liquid (`antoine` form: `log10(P/bar) = A - B/(T + C)`, carried beyond its window
+  from the triple point to the critical temperature; sulfur trioxide's is 10 percent over 1 atm at its boiling point, below its window) and a Clausius-Clapeyron solid from the liquid's pressure at the row's own
+  triple point (`triple_point_k`: the gas table has none for sulfur trioxide), the sublimation enthalpy taken as the vaporisation plus the fusion (stand-ins SV2 to SV5, NIST lists no sublimation enthalpy).
+  A gas the equilibrium solve can carry that has no curve is named with a reason under `no_law` of the data file (`reason_without_law`).
 * **Hydrogen's solid** is Clausius-Clapeyron from its triple point with a latent heat of sublimation of 1.02 kJ/mol (the
   gas table's 0.90 of vaporisation plus 0.12 of fusion, a stand-in, unchecked against any measurement). Helium and the species
   without a curve raise `UnknownSpecies`.
@@ -163,11 +167,12 @@ class Liquid:
     The liquid branch, from the triple point to `t_max_k`.
 
     Attributes:
-        form (str): `"wagner"` (`P = Pc exp((a x + b x^1.5 + c x^2.5 + d x^5) / Tr)`, `x = 1 - T/Tc`, `Tr = T/Tc`) or
-            `"dippr101"` (`ln P = A + B/T + C ln T + D T^E`).
+        form (str): `"wagner"` (`P = Pc exp((a x + b x^1.5 + c x^2.5 + d x^5) / Tr)`, `x = 1 - T/Tc`, `Tr = T/Tc`),
+            `"dippr101"` (`ln P = A + B/T + C ln T + D T^E`) or `"antoine"` (`log10 (P / bar) = A - B / (T + C)`, GEN.1794: a fit to the measurements of a window that it is
+            carried beyond, the critical pressure not met).
         t_max_k (float): The critical temperature, or the end of the correlation.
         pc_pa (float or None): The critical pressure (Wagner).
-        coefficients (tuple): `a, b, c, d` (Wagner) or `A, B, C, D, E` (DIPPR 101).
+        coefficients (tuple): `a, b, c, d` (Wagner), `A, B, C, D, E` (DIPPR 101) or `A, B, C` (Antoine).
     """
 
     form: str
@@ -215,6 +220,9 @@ class Species:
         sublimation_kj_mol (float or None): The latent heat of the Clausius-Clapeyron solid.
         liquid (Liquid or None): The liquid branch; `None` where there is none.
         note (str): What is known to be wrong or unread about the row.
+        log_fit (LogFit or None): The sulfur fit.
+        triple_point_k, triple_point_pa (float or None): The row's own triple point where the gas table holds none (GEN.1794: carbonyl sulfide, carbon disulfide, sulfur trioxide); the
+            pressure, where not given, is the liquid curve's at the temperature, so the two branches meet.
     """
 
     formula: str
@@ -229,6 +237,8 @@ class Species:
     liquid: Optional[Liquid]
     note: str
     log_fit: Optional[LogFit] = None
+    triple_point_k: Optional[float] = None
+    triple_point_pa: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -275,8 +285,10 @@ def _load():
         liquid = None
         if row.get("liquid"):
             item = row["liquid"]
-            if item["form"] not in ("wagner", "dippr101"):
+            if item["form"] not in ("wagner", "dippr101", "antoine"):
                 raise ValueError(f"saturation_pressure.json: {formula} has an unknown liquid form {item['form']!r}")
+            if item["form"] == "antoine" and len(item["coefficients"]) != 3:
+                raise ValueError(f"saturation_pressure.json: {formula} antoine liquid needs the three coefficients A, B, C")
             liquid = Liquid(item["form"], float(item["t_max_k"]), item.get("pc_pa"), tuple(float(a) for a in item["coefficients"]))
         log_fit = None
         if row["form"] == "log-fit":
@@ -286,11 +298,11 @@ def _load():
                              float(row["max_error_percent"]), row.get("note", ""))
         rows[formula] = Species(formula, row["name"], row["form"], row["selection"], curves, cold_end, span_wagner,
                                 tuple(float(e) for e in row.get("coefficients", ())) if row["form"] != "log-fit" else (), row.get("sublimation_kj_mol"), liquid,
-                                row.get("note", ""), log_fit)
-    return data["cold_unverified_below_k"], rows
+                                row.get("note", ""), log_fit, row.get("triple_point_k"), row.get("triple_point_pa"))
+    return data["cold_unverified_below_k"], rows, dict(data.get("no_law", {}))
 
 
-COLD_UNVERIFIED_BELOW_K, _TABLE = _load()
+COLD_UNVERIFIED_BELOW_K, _TABLE, NO_LAW_REASONS = _load()
 """float: Below this temperature the answer is `cold-unverified` (model error of the fits in the cold, finding 11)."""
 
 SULFUR_MELTING_POINT_K = 388.36
@@ -315,6 +327,11 @@ def formulas():
 def has(formula):
     """Whether `formula` has a saturation curve."""
     return formula in _TABLE
+
+
+def reason_without_law(formula):
+    """Why `formula` has no saturation curve (`no_law` in the data file, GEN.1794), or `None` where it has a curve or no reason is registered."""
+    return None if formula in _TABLE else NO_LAW_REASONS.get(formula)
 
 
 def curve_at(formula, temperature_k):
@@ -374,9 +391,15 @@ def _water_pa(coefficients, temperature_k):
 
 
 def _clausius_clapeyron_pa(formula, sublimation_kj_mol, temperature_k):
-    row = gases.gas(formula)
-    return row.triple_point_pa * math.exp(
-        -sublimation_kj_mol * 1000.0 / GAS_CONSTANT_J_MOL_K * (1.0 / temperature_k - 1.0 / row.triple_point_k))
+    row = species(formula)
+    triple_k = row.triple_point_k
+    if triple_k is None:
+        triple_k, triple_pa = gases.gas(formula).triple_point_k, gases.gas(formula).triple_point_pa
+    elif row.triple_point_pa is not None:
+        triple_pa = row.triple_point_pa
+    else:
+        triple_pa = _liquid_pa(row.liquid, triple_k)
+    return max(PRESSURE_FLOOR_PA, triple_pa * math.exp(-sublimation_kj_mol * 1000.0 / GAS_CONSTANT_J_MOL_K * (1.0 / temperature_k - 1.0 / triple_k)))
 
 
 EDMISTER_COEFFICIENT = 5.373
@@ -395,14 +418,20 @@ def _liquid_pa(liquid, temperature_k):
         reduced = temperature_k / liquid.t_max_k
         x = 1.0 - reduced
         return liquid.pc_pa * math.exp((a * x + b * x ** 1.5 + c * x ** 2.5 + d * x ** 5) / reduced)
+    if liquid.form == "antoine":
+        a, b, c = liquid.coefficients
+        return BAR_TO_PA * 10.0 ** (a - b / (temperature_k + c))
     a, b, c, d, e = liquid.coefficients
     return math.exp(a + b / temperature_k + c * math.log(temperature_k) + d * temperature_k ** e)
 
 
 def triple_point_k(formula):
     """The triple-point temperature of `formula` (water's from this table, the others from the gas table); `None` if unknown."""
-    if species(formula).form == "feistel-wagner":
+    row = species(formula)
+    if row.form == "feistel-wagner":
         return WATER_TRIPLE_POINT_K
+    if row.triple_point_k is not None:
+        return row.triple_point_k
     return gases.gas(formula).triple_point_k
 
 

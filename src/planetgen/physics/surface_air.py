@@ -500,11 +500,11 @@ def _weathers(setting, water_left, temperature_k):
 
 def _weathering_land(setting, temperature_k):
     """
-    The share of the surface continental weathering works on at `temperature_k` (GEN.1697): the land (`1 - ocean_cover`) less what the ice has covered, by the ice share of the body's own
+    The share of the surface continental weathering works on at `temperature_k` (GEN.1697): the wet land (`surface_pressure.wet_land_fraction`, GEN.1403: the land, `1 - ocean_cover`, that the sea waters) less what the ice has covered, by the ice share of the body's own
     albedo law (`climate_branches.IceAlbedoLaw.ice_fraction`, the one that sets its albedo at that temperature). Under a global ice sheet there is no rain on bare rock, so the volcanic CO2
     builds up and melts it [R5259]. A body with no ice law keeps its whole land.
     """
-    land = 1.0 - setting.ocean_cover
+    land = surface_pressure.wet_land_fraction(1.0 - setting.ocean_cover, setting.ocean_cover)
     if setting.albedo_law is None:
         return land
     return land * (1.0 - setting.albedo_law.ice_fraction(temperature_k))
@@ -564,7 +564,7 @@ def _photolysed(partials_pa, setting, temperature_k):
     after = photochemical_loss.lose(partials_pa, setting.gravity_m_s2, setting.age_gy * GY_S, setting.far_uv, setting.star_temperature_k)
     if share >= 1.0:
         return after
-    return {formula: (1.0 - share) * partials_pa.get(formula, 0.0) + share * after.get(formula, 0.0) for formula in set(partials_pa) | set(after)}
+    return {formula: (1.0 - share) * partials_pa.get(formula, 0.0) + share * after.get(formula, 0.0) for formula in dict.fromkeys([*partials_pa, *after])}       # in the order the gases are given: a set would order them by the process's hash seed, and the sums over this air would add in that order
 
 
 def _damped(damping, residual, previous, tolerance):

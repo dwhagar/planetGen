@@ -18,7 +18,7 @@ admin edited (the bring-to-epoch run's own rule, GEN.764).
 """
 
 from planetgen.db import store
-from planetgen.galaxy import mass_chain, object_uid, seed as galaxy_seed
+from planetgen.galaxy import mass_chain, seed as galaxy_seed
 from planetgen.generation import sector_context, validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -105,9 +105,13 @@ def describe(system):
 
 
 def _seed_address(conn, system_id):
-    row = conn.execute("SELECT uid FROM star_systems WHERE id = ?", (system_id,)).fetchone()
-    raw = None if row is None else row["uid"]
-    return object_uid.format_id(object_uid.from_bytes(bytes(raw))) if raw is not None else f"row-{system_id}"
+    """The address a system's re-roll is seeded from: where the system sits in the galaxy, which the galaxy's seed decides (never an Object ID or a row number, which a reset or an older run changes). A system with no galaxy place is named by its sector's cell and its name."""
+    row = conn.execute("SELECT cell_key, name, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+    if row is not None and None not in (row["galaxy_x_pc"], row["galaxy_y_pc"], row["galaxy_z_pc"]):
+        return "at:" + ":".join(format(float(row[key]), ".12g") for key in ("galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc"))
+    if row is None:
+        raise ValueError(f"star system {system_id} is not stored")
+    return f"named:{row['cell_key']}:{row['name']}"
 
 
 def blockers(conn, item, edited_sector_ids=()):

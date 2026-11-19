@@ -103,6 +103,27 @@ def test_each_dispatch_raises_the_attempt_in_the_ledger_and_in_the_galaxy(contro
     assert control.execute("SELECT state, attempt FROM engine_jobs WHERE id = ?", (job["id"],)).fetchone() == {"state": "running", "attempt": 2}
 
 
+def test_a_run_is_running_from_the_start_of_its_first_job_and_a_held_or_ended_run_keeps_its_state(control):
+    """OPS.281: a generation run stayed `waiting` with no `started_at` while its units ran."""
+    run, _ = _plan(control, 2)
+    first, second = _jobs(control, run)
+
+    def row():
+        return control.execute("SELECT state, started_at, finished_at FROM engine_runs WHERE id = ?", (run,)).fetchone()
+
+    assert row() == {"state": "waiting", "started_at": None, "finished_at": None}
+    ledger.begin_attempt(control, first["id"])
+    began = row()
+    assert began["state"] == "running" and began["started_at"] is not None and began["finished_at"] is None
+    ledger.begin_attempt(control, second["id"])
+    assert row()["started_at"] == began["started_at"], "the second job does not move the start"
+    ledger.set_run_state(control, run, "held", "a unit failed")
+    control.commit()
+    ledger.end_attempt(control, second["id"], 1, "lost")
+    ledger.begin_attempt(control, second["id"])
+    assert row()["state"] == "held", "a held run is held until it is retried"
+
+
 def test_an_attempt_keeps_what_it_cost_and_how_it_failed(control):
     run, _ = _plan(control, 1)
     (job,) = _jobs(control, run)

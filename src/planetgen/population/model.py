@@ -275,10 +275,11 @@ def population_pieces(conn, rescan=False):
     return pieces
 
 
-def do_population_piece(conn, piece):
+def do_population_piece(conn, piece, progress=None):
     """
     One piece of the population pass (`population_pieces`). It writes what it writes and does not commit: the caller takes the pass lock around it and commits before
-    it lets the lock go (the job engine does through its context; `run_population` outside it).
+    it lets the lock go (the job engine does through its context; `run_population` outside it). `progress` (the engine's context, which has `step(name, total)` and `advance(amount)`) is given the
+    count of a piece that works through many rows (PERF.147); the rows written do not depend on it.
 
     Returns:
         dict: What the piece counted: `added` of a scan, the counts of `counts`, nothing for the rest.
@@ -294,11 +295,11 @@ def do_population_piece(conn, piece):
         drop_species_without_civilization(conn)
         return {}
     if kind == "civilizations":
-        refresh_civilizations(conn)
+        refresh_civilizations(conn, progress)
         return {}
     if kind == "technology":
         from planetgen.db import interests  # here: the db package imports this one
-        interests.refresh_technology(conn)    # MAP.344: the map's civilization rows carry their most advanced species' level
+        interests.refresh_technology(conn, progress)    # MAP.344: the map's civilization rows carry their most advanced species' level
         return {}
     if kind == "counts":
         counts = conn.execute(
@@ -550,7 +551,21 @@ TECH_INDEX_COLUMNS = tuple(f"{domain}_index" for domain in tech.DOMAINS)
 """tuple: The six `species` index columns, in `tuning.TECH_DOMAINS` order."""
 
 
-def refresh_tech_levels(conn):
+COUNT_BATCH_ROWS = 20_000
+"""int: How many rows one statement writes, and how often a piece that works through many rows says where it is (PERF.147); a stand-in for a size that keeps a statement to a second or so, not a physical value."""
+
+
+def _written(conn, sql, rows, progress):
+    """`executemany(sql, rows)`, a batch at a time with the count moving after each when `progress` is given (the same rows are written either way)."""
+    if progress is None:
+        conn.executemany(sql, rows)
+        return
+    for start in range(0, len(rows), COUNT_BATCH_ROWS):
+        conn.executemany(sql, rows[start:start + COUNT_BATCH_ROWS])
+        progress.advance(min(COUNT_BATCH_ROWS, len(rows) - start))
+
+
+def refresh_tech_levels(conn, progress=None):
     """
     Draws the six tech indices and the tech level of every species that has none (POP.9): a new species, or
     one that existed before the columns. A species whose `tech_source` is `'admin'` (edited by hand) is never
@@ -568,12 +583,18 @@ def refresh_tech_levels(conn):
         f"AND ({missing})"
     ).fetchall()
     updates = []
-    for row in rows:
+    if progress is not None and rows:
+        progress.step("Drawing the tech levels of species", len(rows))
+    for number, row in enumerate(rows, start=1):
         indices = tech.draw_indices(row["civilization_age_years"], draw.Stream(f"tech:{object_key(row['uid'])}"))
         updates.append((*(indices[domain] for domain in tech.DOMAINS), tech.tech_level(indices), row["id"]))
+        if progress is not None and number % COUNT_BATCH_ROWS == 0:
+            progress.advance(COUNT_BATCH_ROWS)
     if updates:
+        if progress is not None:
+            progress.step("Writing the tech levels of species", len(updates))
         sets = ", ".join(f"{column} = ?" for column in TECH_INDEX_COLUMNS)
-        conn.executemany(f"UPDATE species SET {sets}, tech_level = ?, tech_source = 'generated' WHERE id = ?", updates)
+        _written(conn, f"UPDATE species SET {sets}, tech_level = ?, tech_source = 'generated' WHERE id = ?", updates, progress)
         if log.debug_log_active():
             log.debug(f"Population: {len(updates)} species given tech levels.")
     return len(updates)
@@ -585,7 +606,7 @@ def _founding_row(species):
     return (polity_name(species["name"], government), species["id"], species["star_system_id"], government, polity_color(species["uid"]))
 
 
-def refresh_civilizations(conn):
+def refresh_civilizations(conn, progress=None):
     """
     Recomputes every civilization's era from its stored age (picking up
     retuned `CIVILIZATION_ERAS`), founds a polity for each newly
@@ -593,7 +614,7 @@ def refresh_civilizations(conn):
     polities whose species is no longer spacefaring. Species with no tech indices get theirs
     (`refresh_tech_levels`).
     """
-    refresh_tech_levels(conn)
+    refresh_tech_levels(conn, progress)
     rows = conn.execute(
         "SELECT id, civilization_age_years, era, spacefaring FROM species "
         "WHERE civilization_age_years IS NOT NULL"
@@ -604,7 +625,9 @@ def refresh_civilizations(conn):
         if era != row["era"] or int(spacefaring) != row["spacefaring"]:
             updates.append((era, int(spacefaring), row["id"]))
     if updates:
-        conn.executemany("UPDATE species SET era = ?, spacefaring = ? WHERE id = ?", updates)
+        if progress is not None:
+            progress.step("Writing the eras of civilizations", len(updates))
+        _written(conn, "UPDATE species SET era = ?, spacefaring = ? WHERE id = ?", updates, progress)
     conn.execute(
         "DELETE p FROM polities p JOIN species s ON s.id = p.species_id WHERE s.spacefaring = 0"
     )
@@ -614,18 +637,19 @@ def refresh_civilizations(conn):
         "LEFT JOIN polities p ON p.species_id = s.id WHERE s.spacefaring = 1 AND p.id IS NULL"
     ).fetchall()
     if founding:
-        conn.executemany(
-            "INSERT INTO polities (name, species_id, capital_system_id, government, color, reach_ly) "
-            "VALUES (?, ?, ?, ?, ?, 0)",
-            [_founding_row(row) for row in founding],
-        )
+        if progress is not None:
+            progress.step("Founding polities", len(founding))
+        _written(conn, "INSERT INTO polities (name, species_id, capital_system_id, government, color, reach_ly) VALUES (?, ?, ?, ?, ?, 0)",
+                 [_founding_row(row) for row in founding], progress)
     reaches = conn.execute(
         "SELECT p.id, p.reach_ly, s.civilization_age_years FROM polities p JOIN species s ON s.id = p.species_id"
     ).fetchall()
     changed = [(reach_ly(row["civilization_age_years"]), row["id"]) for row in reaches
                if not math.isclose(reach_ly(row["civilization_age_years"]), row["reach_ly"])]
     if changed:
-        conn.executemany("UPDATE polities SET reach_ly = ? WHERE id = ?", changed)
+        if progress is not None:
+            progress.step("Updating the reach of polities", len(changed))
+        _written(conn, "UPDATE polities SET reach_ly = ? WHERE id = ?", changed, progress)
 
 
 _POSITION_MPC = ", ".join(f"ss.position_{axis}_mpc + sec.center_{axis}_pc * 1000 AS {axis}" for axis in "xyz")

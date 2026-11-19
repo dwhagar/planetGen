@@ -218,15 +218,24 @@ def _carbon_share(setting, water_world, temperature_k=288.0, carbon=1.0e-2):
 
 
 def test_the_land_weathering_works_on_shrinks_with_the_ice_cover_of_the_bodys_own_law():
-    """GEN.1697: no rain on bare rock under a global ice sheet; a body with no ice law keeps its whole land."""
+    """GEN.1697: no rain on bare rock under a global ice sheet; a body with no ice law keeps its whole wet land (GEN.1403: the land the sea waters)."""
     law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
     held = _ocean_setting(0.7, 1.4e21)
     iced = dataclasses.replace(held, albedo_law=law)
-    assert sa._weathering_land(held, 200.0) == pytest.approx(0.3)
-    assert sa._weathering_land(iced, 310.0) == pytest.approx(0.3)
+    wet = surface_pressure.wet_land_fraction(0.3, 0.7)
+    assert wet == pytest.approx(0.3 * 0.7 / surface_pressure.OCEAN_COVER_EARTH) and wet < 0.3
+    assert sa._weathering_land(held, 200.0) == pytest.approx(wet)
+    assert sa._weathering_land(iced, 310.0) == pytest.approx(wet)
     assert sa._weathering_land(iced, 200.0) == 0.0
     middle = sa._weathering_land(iced, 0.5 * (law.free_above_k + law.covered_below_k))
-    assert 0.0 < middle < 0.3 and middle == pytest.approx(0.3 * (1.0 - law.ice_fraction(0.5 * (law.free_above_k + law.covered_below_k))))
+    assert 0.0 < middle < wet and middle == pytest.approx(wet * (1.0 - law.ice_fraction(0.5 * (law.free_above_k + law.covered_below_k))))
+
+
+def test_the_land_of_a_dry_world_weathers_less_than_its_area_says_and_the_land_of_an_earth_sea_is_all_wet():
+    """GEN.1403: the land the sea does not water weathers nothing; with the Earth's sea cover or more all the land is wet."""
+    assert sa._weathering_land(_ocean_setting(0.2, 1.4e21), 288.0) == pytest.approx(0.8 * 0.2 / surface_pressure.OCEAN_COVER_EARTH)
+    assert sa._weathering_land(_ocean_setting(0.8, 1.4e21), 288.0) == pytest.approx(0.2)
+    assert sa._weathering_land(_ocean_setting(0.0, 1.4e21), 288.0) == 0.0
 
 
 def test_a_frozen_world_with_the_ice_law_keeps_the_carbon_the_volcanoes_give_and_a_warm_one_does_not():
@@ -310,6 +319,13 @@ def test_the_stored_partials_add_up_to_the_pressure_and_the_state_follows_from_t
     assert bodies > 0
 
 
+def _same_main_gases(stored, solved):
+    """Whether the partial pressures `stored` on a body are those of the air `solved`, to a part in a thousand for every gas that holds 1 percent of the pressure or more. The pressure alone does not name an air:
+    a Train 45 sample held three bodies of 0.003 Earth masses at 8 K with exactly 10 kPa of another mixture beside one unsettled air of exactly 10 kPa, and all four were skipped."""
+    total = sum(solved.values())
+    return all(stored.get(formula, 0.0) == pytest.approx(pressure, rel=1e-3) for formula, pressure in solved.items() if pressure >= 0.01 * total)
+
+
 def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives(monkeypatch):
     """GEN.423 and DB.67: the molar density, the density, the scale height and the greenhouse multiplier a body stores are the ones
     its stored partial pressures give at its surface temperature and gravity: the molar mass is `sum x_i M_i`, the density `P M / (R T)`,
@@ -322,18 +338,18 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
     def recording_solve(setting, start_temperature_k):
         result = real_solve(setting, start_temperature_k)
         if result is not None and result.partials_pa and not result.converged:
-            unsettled.append(result.pressure_pa)         # a fixed point that has not settled in `MAX_STEPS` keeps its last step (`Air.converged`)
+            unsettled.append((result.pressure_pa, result.partials_pa))         # a fixed point that has not settled in `MAX_STEPS` keeps its last step (`Air.converged`)
         return result
 
     monkeypatch.setattr(sa, "solve", recording_solve)
-    bodies = skipped = 0
+    bodies = skipped = held_cool = 0
     for body in _generated(range(10)):
         air = atmosphere.gas_partials_pa(body)
         if not air or body.atmosphere == "None":
             assert body.greenhouse_factor == 0.0 or body.greenhouse_factor is None
             continue
         bodies += 1
-        if any(body.atmospheric_pressure == pytest.approx(pressure, rel=1e-9) for pressure in unsettled):
+        if any(body.atmospheric_pressure == pytest.approx(pressure, rel=1e-9) and _same_main_gases(air, partials) for pressure, partials in unsettled):
             skipped += 1        # the test reads the settled airs: an unsettled one (a 2-cycle between a cool air and a hot one, GEN.1323 hydrogen on a hazy methane air) is a step off its own mixture
             continue
         gravity = body.gravity * constants.EARTH_GRAVITY
@@ -359,12 +375,19 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             assert body.surface_temperature == pytest.approx(warming.surface_temperature_k, rel=5e-3)
             continue
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
+        if warming.surface_temperature_k > body.surface_temperature * (1.0 + 1e-6) and body.surface_temperature == pytest.approx(sa.moist_limit.limit_k(air, gravity), rel=1e-9):
+            # GEN.1579: a surface held at the hottest a moist state of its air can have (a 500 bar steam and oxygen air that GEN.1558 no longer caps to 10 kPa): the air asks for more than the hold
+            # gives, so its warming is not the stored temperature's; the stored G is the one at the held temperature, `T_e (1 + G)^(1/4)`
+            held_cool += 1
+            assert body.greenhouse_factor == pytest.approx((body.surface_temperature / warming.effective_temperature_k) ** 4 - 1.0, rel=1.5e-2)
+            continue
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=2e-3)       # a thin cold air's G of a few 1e-4 moves T by under 0.05 percent and cannot be read back from the stored haze closer than that
     assert bodies > 5
     # the unsettled airs are few: more would mean the fixed point stopped settling, not that the test cannot read them (GEN.1555). The share is a property of the solver, not of one sample:
     # over seeds 10 to 59 it was 10 of 132 airs on main and 8 of 129 on Train 24 (GEN.993, near water's boiling point a world swung between a cool air and a steam one, GEN.1344), which is why
     # the bound was a fifth; after the solver work of GEN.1716, GEN.1718 and GEN.1646 it is 0 of 35 on this sample (Train 36 head), so the bound is a twentieth, one air of 35
     assert skipped <= max(1, bodies // 20)
+    assert held_cool <= max(1, bodies // 10)        # a held surface is the exception (the air asks for more than a moist state can have), not the rule
 
 
 def _first_air_of(key, monkeypatch):
@@ -742,7 +765,7 @@ def test_a_giant_a_body_with_no_star_or_no_mantle_takes_no_late_accretion():
 
 
 def test_the_supply_adds_the_late_nitrogen_to_the_degassed_and_the_carbonate_cycle_acts_on_the_carbon_of_both():
-    draw.set_run_seed(30)       # (GEN.1584: the nitrogen draw moved the stream; at this setting the cycle takes nearly all of the added carbon, and the sign of what is left, 1e-19, depends on the seed)
+    draw.set_run_seed(30)       # (GEN.1584 and GEN.1403: at 288 K the cycle takes all of the added carbon and what is left, 1e-19 of 2e-3, is rounding whose sign depends on the seed; the world is read at 255 K, where the cycle takes a fifth of it and 1.55e-3 of the 2e-3 stays in the air)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = continental_weathering.draw_cycle(design)
@@ -751,11 +774,12 @@ def test_the_supply_adds_the_late_nitrogen_to_the_degassed_and_the_carbonate_cyc
     inventory = {"C": 1.0e-2, "N": 1.0e-3}
 
     def shares(late):
-        return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND, late)(inventory)
+        return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 255.0, LAND, late)(inventory)
     before, after = shares({}), shares({"C": 2.0e-3, "N": 5.0e-4})
     assert after["N"] == pytest.approx(before["N"] + 5.0e-4 / 1.0e-3)
     assert after["C"] * inventory["C"] > before["C"] * inventory["C"]                                  # more carbon reaches the air...
     assert after["C"] * inventory["C"] < before["C"] * inventory["C"] + 2.0e-3                         # ...but the cycle takes a share of the added
+    assert after["C"] * inventory["C"] - before["C"] * inventory["C"] > 1.0e-3         # a share of it, not a rounding
 
 
 def test_the_earth_twin_late_accretion_leaves_the_nitrogen_the_earth_has_and_venus_within_a_factor_of_five():

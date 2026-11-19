@@ -72,6 +72,10 @@ OUTGASSING_EXPONENT = (1.0, 2.0, "uniform")
 LAND_FRACTION_EARTH = 0.29
 """float: The land share of the Earth's surface, the reference of the weathering law."""
 
+OCEAN_COVER_EARTH = 0.71
+"""float: The ocean share of the Earth's surface (1 - `LAND_FRACTION_EARTH`, rounded): the sea that waters the Earth's land, and the cover above which a larger sea adds no rain to the land
+(GEN.1403, `wet_land_fraction`). [Stand-in 6.309 WW2, tier T6 educated guess from physics, tweak L1.]"""
+
 CO2_MODERN_BAR = 288e-6
 """float: The preindustrial CO2 pressure of the Earth [R2628]."""
 
@@ -88,6 +92,16 @@ MIN_PCO2_BAR = 1e-12
 
 LIQUID_WATER_K = (273.15, 647.0)
 """tuple: The surface temperatures between which an ocean can exist (freezing point and critical point of water)."""
+
+
+def wet_land_fraction(land_fraction, ocean_cover):
+    """
+    The share of the surface that is wet land (GEN.1403, from Lane 14's PR 6062): the land, `land_fraction`, times the share of the Earth's ocean cover the world has, `min(1, ocean_cover / OCEAN_COVER_EARTH)`.
+    Silicate weathering needs rain to run off the rock, and the rain on the land comes from the sea, so a dry world's land weathers less than its area says and a world with the Earth's
+    ocean or more waters all of it. ([R0009] find the weathering of a world nearly insensitive to its land fraction, because less land is rained on harder: that is a
+    statement about land at a given sea, and does not make a land with no sea at all wet.) [Stand-in 6.309 WW1, tier T6 educated guess from physics, tweak L1.]
+    """
+    return max(land_fraction, 0.0) * min(1.0, max(ocean_cover, 0.0) / OCEAN_COVER_EARTH)
 
 
 def degassed_share(released_j, mantle_kg):

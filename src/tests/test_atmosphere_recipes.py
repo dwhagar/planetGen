@@ -251,8 +251,10 @@ def test_example_d_the_shoreline_is_the_published_logistic_and_the_regimes_share
     # the slope in the escape speed is 5.9 and in the luminosity 1.17 [R0364]
     assert at(shore * 2 ** 5.9, v=11.186 * 2)["d1"] == pytest.approx(0.5, abs=1e-9)
     assert at(shore * 10 ** 1.17, lum=10.0)["d1"] == pytest.approx(0.5, abs=1e-9)
-    assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d3"})) == {"p_max_bar": 0.01}
-    assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d5"})) == {"p_max_bar": None}
+    assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d1"})) == {"p_max_bar": 0.0}
+    assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d2"})) == {"p_max_bar": 1e-5}
+    for row in ("d3", "d4", "d5"):      # GEN.1558: the stepped caps of 1 and 10 kPa are retired; supply, sinks and escape set the pressure
+        assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": row})) == {"p_max_bar": None}, row
 
 
 def test_the_hydrogen_flag_of_d7_uses_the_jeans_parameter_of_the_part():

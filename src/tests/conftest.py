@@ -381,6 +381,19 @@ def mysql_config(request, _mysql_server_available):
 
 
 @pytest.fixture
+def control_config(mysql_config, monkeypatch):
+    """
+    OPS.278: the test database doubling as the control database, with the control schema in it. A test that runs a stage (`plan`, a scatter, a job) needs the tables the job engine
+    reads, `engine_runs`, `engine_jobs` and `engine_attempts` (OPS.215, OPS.216), which are in the control schema and not the galaxy's; this makes them and points
+    `PLANETGEN_CONTROL_DATABASE` at the database. The pool sees the schema changed and replaces the database after the test, as it does for any test that adds a table.
+    """
+    from planetgen.db import store
+    store.get_control_connection(mysql_config, ensure_schema=True).close()
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
+    return mysql_config
+
+
+@pytest.fixture
 def fresh_mysql_config(_mysql_server_available):
     """
     Creates a uniquely-named, empty MySQL database for the duration of one test -- no tables at all, until

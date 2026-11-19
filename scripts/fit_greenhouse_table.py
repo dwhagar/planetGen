@@ -15,6 +15,11 @@ seconds to minutes an air. Four steps, each resumable, each writing into the wor
     python3 scripts/fit_greenhouse_table.py hot WORK --name hot --count 800             the airs of hot rocky planets, to hold at the starting file's answer (GEN.1717)
     python3 scripts/fit_greenhouse_table.py hazy WORK --name hazy --seeds 0 2400         the airs of hazy bodies and each one at a ladder of haze shares and levels (GEN.1780)
     python3 scripts/fit_greenhouse_table.py cold WORK --name cold --count 800         the cold dense airs of the far edge of a system (GEN.1780)
+    python3 scripts/fit_greenhouse_table.py cold WORK --name coldcia --cia --count 1500   cold dense nitrogen airs of light worlds with a few percent of infrared gases (GEN.1796)
+    python3 scripts/fit_greenhouse_table.py cold WORK --name coldgen --gen --count 2000   cold dense nitrogen airs with the minor gases the generator's own airs carry (GEN.1796)
+    python3 scripts/fit_greenhouse_table.py nullgas WORK --name nullgas --census A.jsonl.gz ...   the census airs that hold a gas with no ir flag, to hold at the starting file's answer (GEN.1629)
+    python3 scripts/fit_greenhouse_table.py solve WORK --name bulk --cold-dense         only the clear airs of 0.5 MPa and more under 170 K, which a held set had at a wrong answer (GEN.1796)
+    python3 scripts/fit_greenhouse_table.py fit WORK --start --distill --boost coldgen=4   count the errors of a set more where the network underfits (GEN.1796)
     python3 scripts/fit_greenhouse_table.py solve WORK --name train --workers 4      the model's surface temperature of each air (train.jsonl)
     python3 scripts/fit_greenhouse_table.py solve WORK --name validation --workers 4
     python3 scripts/fit_greenhouse_table.py wet WORK --count 6000                     add temperate wet airs (GEN.1304; train.pkl grows)

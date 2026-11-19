@@ -26,6 +26,10 @@ ice-albedo branch (`reports/gen1745-slice1b-measure-2026-11-16.md`).
 or the balance of the source against the reductant sink of that age (the laws of `biogenic_oxygen` and `life_air.oxygen_state`, read at each age and not once at the star's age). Its last value is the oxygen `biogenic_oxygen.apply` puts into the air, to the last
 digit (`reports/gen1745-slice2a-check-2026-11-17.md`: 9 worlds on which the oxygen rose in 120 generated systems, every one equal). Nothing reads it yet; slice 2c swaps it in for `life._build_oxygen`.
 
+**The ledger gases (slice 2b).** `gas_trajectory(body, living, ages, found, risen, rise_gyr)` gives the air, mol of each gas, at each age as the ledger rows of `living` make it: the methane the classes that have begun hold together
+(and the carbon dioxide it is made from), the hydrogen, hydrogen sulfide and the like each draws down, counted at each age (`life_air.ledger_air`, `life_air._producing` with an age) and not once at the star's age. Its last value is the air
+`life_air.apply_gases` stores. Nothing reads it yet; slice 2c swaps it in for `life_air.apply_gases`.
+
 **The oxygen law's label** of a step (`oxygen_law`): `"none"` while the reductant sink `R(t)` is above the source `S` (no free oxygen can stand), `"rise"` once it is under `S` (the store the first
 oxygen goes to can fill, `biogenic_oxygen.rise_age_gyr`), `"balance"` once it is under `S / SECOND_RISE_RATIO` (the second rise, GEN.1707); `None` for a body whose life makes no oxygen.
 """
@@ -293,4 +297,28 @@ def oxygen_trajectory(body, living, ages):
         steady = min(biogenic_oxygen._oxygen_mol_at(body, burnt, biogenic_oxygen.balance_pa(surplus, area)), fire) if surplus > 0.0 else 0.0
         target = 0.0 if profile.steady_mol <= 0.0 else steady if reductant <= profile.source_mol_yr / biogenic_oxygen.SECOND_RISE_RATIO else min(steady, plateau)
         trajectory.append((age, max(held, min(target, fire))))
+    return trajectory
+
+
+def gas_trajectory(body, living, ages, found, risen=None, rise_gyr=None):
+    """
+    The air, mol of each gas, that `body` holds at each of `ages` (ascending, Gyr) as the classes of `living` make it (GEN.1745 slice 2b): `[(age_gyr, moles), ...]`. It is the ledger gases of
+    `life_air` (the methane the classes that have begun hold together, the carbon dioxide it is made from, and the hydrogen, hydrogen sulfide and the like each draws down) counted at each age
+    instead of once at the star's age: a class counts from the age its producers began (`life_air._producing`), and a methane row that ends at the oxygen's rise stops there (`rise_gyr`).
+    `found` is the air as the life found it, before the oxygen was made; `risen` is the air the oxygen rise leaves (the oxygen put in and the reduced gases burnt, `biogenic_oxygen.apply`), read
+    from the rise on (`None` or `rise_gyr` `None`: the oxygen has not risen, so the air is `found` at every age). The last value is the air `life_air.apply_gases` stores (`life_air.ledger_air`,
+    to the last digit; `reports/gen1745-slice2b-check-2026-11-18.md`). The temperature of the air at an age is the final air's, as in slice 2a: the history's own temperature path
+    (`temperatures`) reaches the gases in slice 3. The air only changes where a class begins or the oxygen rises, so each distinct state is worked once.
+    Reuse: `life_air.ledger_air`, `_producing`, `_with_ledger_gases`, `summed_methane_flux_mol_yr`.
+    """
+    if getattr(body, "body_type", "t") == "g" or not found:       # a giant, or no air: the ledger gives it nothing (`life_air.apply_gases`)
+        return [(age, found) for age in ages]
+    states = {}
+    trajectory = []
+    for age in ages:
+        rose = rise_gyr is not None and risen is not None and age >= rise_gyr
+        key = (rose, tuple((life_air._producing(body, one, rose, age), life_air._producing(body, one, False, age)) for one in living))
+        if key not in states:
+            states[key] = life_air.ledger_air(body, living, rose, risen if rose else found, age)[0]
+        trajectory.append((age, states[key]))
     return trajectory

@@ -6197,7 +6197,7 @@
             ],
             [
               "Where it holds",
-              "HF from 68 K to its critical point, HCl up to its triple point (above it the solid's curve is carried on)"
+              "HF from 68 K to its critical point, HCl up to its triple point (above it the liquid curve of AM104)"
             ],
             [
               "What would show it wrong",
@@ -6559,6 +6559,44 @@
           "tweak": "L2",
           "unread": null,
           "what": "continental_weathering.EARTH_ABSORBED_FLUX_W_M2"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design (source tier 6, tweak level 0; GEN.1630: the HCl liquid curve has no source we can open, so its four Wagner coefficients are fixed by four values the gas table holds: the triple point 159.07 K and 13828 Pa, the normal boiling point 188.17 K at 101325 Pa, the acentric factor 0.132 (P = Pc 10^-(1+w) at T/Tc 0.7) and the Edmister slope at the critical point; the handbook's 25.6 atm at 0 C, recalled, is the check the fit did not use and the curve gives 25.8)"
+            ],
+            [
+              "What it is",
+              "saturation_pressure.json HCl liquid (t_max_k 324.68, pc_pa 8313000, coefficients -6.08224, -0.36624, 1.46855, -4.98396)"
+            ],
+            [
+              "The range it moves in",
+              "the four anchors, fixed"
+            ],
+            [
+              "Where it holds",
+              "HCl from its triple point to its critical point"
+            ],
+            [
+              "What would show it wrong",
+              "test_saturation::test_the_hcl_liquid_curve_follows_its_four_anchors_and_the_handbooks_0_c_pressure"
+            ],
+            [
+              "What replaces it",
+              "a measured HCl vapour-pressure table (NIST fit)"
+            ]
+          ],
+          "id": "AM104",
+          "key": "6.7:AM104",
+          "kind": "P",
+          "slug": "6-7-am104",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation_pressure.json HCl liquid (t_max_k 324.68, pc_pa 8313000, coefficients -6.08224, -0.36624, 1.46855, -4.98396)"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
@@ -17737,7 +17775,7 @@
             ],
             [
               "Evidence",
-              "tuned to [R1479] ([R1479], READ) and the [R4271] microlensing rate (recalled); re-tuned on the wiring with GEN.950's 182 K snow line and ice boost 2.17, then with GEN.1396's jump of 1.967 (the mass law's own PM1 is retired into this row; the enhancement and the outer growth stay: the giants at 2 to 8 AU were recovered by PM5 and PA2, and the outer disk beyond 11 AU is not what the jump changed); GEN.1406: the enhancement 0.4647 to 0.58 after the inner systems lost mass (below, PA4) moved the share of Sun-like stars with a giant at 2 to 8 AU on the test's seeds from 0.105 to 0.102 with the survey at 0.141 +- 0.019; over 8 blocks of 2,500 systems 0.52 gives 0.114, 0.55 gives 0.120, 0.58 gives 0.127 (inside one sigma) and 0.61 gives 0.136, so 0.58 is the smallest step that returns the share inside one sigma of [R1479]"
+              "tuned to [R1479] ([R1479], READ) and the [R4271] microlensing rate (recalled); re-tuned on the wiring with GEN.950's 182 K snow line and ice boost 2.17, then with GEN.1396's jump of 1.967 (the mass law's own PM1 is retired into this row; the enhancement and the outer growth stay: the giants at 2 to 8 AU were recovered by PM5 and PA2, and the outer disk beyond 11 AU is not what the jump changed); GEN.1406: the enhancement 0.4647 to 0.58 after the inner systems lost mass (below, PA4) moved the share of Sun-like stars with a giant at 2 to 8 AU on the test's seeds from 0.105 to 0.102 with the survey at 0.141 +- 0.019; over 8 blocks of 2,500 systems 0.52 gives 0.114, 0.55 gives 0.120, 0.58 gives 0.127 (inside one sigma) and 0.61 gives 0.136, so 0.58 is the smallest step that returns the share inside one sigma of [R1479]; GEN.1539: the growth distance 11.36 is the value at one solar mass and goes as the star's mass to the power PLANET_SOLIDS_STELLAR_MASS_EXPONENT less 1/2 (0.7), from the time a core takes to assemble (the orbital period times the star's mass over the solids' surface density and the square of the distance, a Safronov-type argument, recalled; tier T6, inferred physics, L0 for the exponent), floored at the star's snow line and capped at its disk's edge (planet_mass.growth_limit_au); planets and belts read the one limit"
             ]
           ],
           "id": "PA1",
@@ -18351,7 +18389,7 @@
             ],
             [
               "Evidence",
-              "[R2020: Table 2] (READ: 0.20 to 0.25 planets of 0.5 to 2.5 Earth radii per star per factor of 2 in period from 4 to 128 days, flat from 8 days; no fall beyond 64 days); the median and width tuned to that shape and to the planets inside 400 days of the occurrence bands (tweak L2)"
+              "[R2020: Table 2] (READ: 0.20 to 0.25 planets of 0.5 to 2.5 Earth radii per star per factor of 2 in period from 4 to 128 days, flat from 8 days; no fall beyond 64 days); the median and width tuned to that shape and to the planets inside 400 days of the occurrence bands (tweak L2). The same period for every star is not a choice: [R3196] (abstract read) puts the drop in occurrence inward of 10 days at every spectral type, at a distance that goes as the cube root of the stellar mass, the pre-main-sequence co-rotation radius, and a distance that goes as the cube root of the mass at a fixed spin period is a fixed orbital period (Kepler's third law); a dust-sublimation edge (a as the square root of the luminosity) would put F5V at 60 days and M2V at 2.5 days for the same G2V fit, against it, so the median takes no stellar-mass term (GEN.1793)"
             ]
           ],
           "id": "PA19",
@@ -20359,7 +20397,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER (18, the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
+              "disk_size.edge_au (GEN.1520: 100 au for the Sun, mass to the 0.5, a factor of 2 of scatter; the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
             ],
             [
               "The range it moves in",
@@ -20390,7 +20428,7 @@
           "tier_code": "T9",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER (18, the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
+          "what": "disk_size.edge_au (GEN.1520: 100 au for the Sun, mass to the 0.5, a factor of 2 of scatter; the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
         }
       ],
       "slug": "6-46-stand-ins-of-the-comet-ice-budget",
@@ -27683,7 +27721,7 @@
           "fields": [
             [
               "What it is",
-              "atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
+              "RETIRED (GEN.1558: the stepped caps are not wired, and the recipe row d6 lost its d3 and d4 caps; supply, sinks and escape set the pressure): atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
             ],
             [
               "The range it moves in",
@@ -27714,7 +27752,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": "by design",
-          "what": "atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
+          "what": "RETIRED (GEN.1558: the stepped caps are not wired, and the recipe row d6 lost its d3 and d4 caps; supply, sinks and escape set the pressure): atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
         },
         {
           "burn_down": null,
@@ -28033,7 +28071,7 @@
           "fields": [
             [
               "What it is",
-              "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
+              "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1, NEAR_WINDOW_MAX_K 330 and AGREEING_STARTS_TO_STOP 2 (the search ends when two starts end on the first answer, L1: 199 of 214 searches of worlds that rolled W20 had every start agree): the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
             ],
             [
               "The range it moves in",
@@ -28064,7 +28102,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1 and NEAR_WINDOW_MAX_K 330: the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
+          "what": "oddity W20 history draw 0.5, with air_branches.COLD_STARTS_K 200, 150, 220 and 260 (tried in turn, GEN.1715), WARM_STARTS_K 320, 280 and 340, MIN_BRANCH_GAP_K 20, MIN_ICE_GAP 0.1, NEAR_WINDOW_MAX_K 330 and AGREEING_STARTS_TO_STOP 2 (the search ends when two starts end on the first answer, L1: 199 of 214 searches of worlds that rolled W20 had every start agree): the share of worlds in a bistable window that sit on the branch the first solve does not find, and the tests that two answers are two branches"
         }
       ],
       "slug": "6-75-stand-ins-of-the-nightside-collapse-of-a-locked-planet-s-air",
@@ -35123,7 +35161,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L2",
-          "unread": "GEN.1151",
+          "unread": null,
           "what": "trojan_swarm.LIBRATION_SIGMA_DEG 13: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150, GEN.1643)"
         },
         {
@@ -35161,7 +35199,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1151",
+          "unread": null,
           "what": "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
         },
         {
@@ -35199,7 +35237,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1151",
+          "unread": null,
           "what": "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
         }
       ],
@@ -42045,7 +42083,7 @@
           "fields": [
             [
               "What it is",
-              "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+              "planet_architecture.STIRRED_STRETCH_FACTOR (2.3; the 3:1 resonance, 3^(2/3) = 2.08, until GEN.1539 moved it inside the range, tuned to the donor yield band of tests/test_rogue_yield_calibration.py, 0.77 to 0.90 per star): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
             ],
             [
               "The range it moves in",
@@ -42074,9 +42112,9 @@
           "slug": "6-195-sm1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L1",
+          "tweak": "L2",
           "unread": null,
-          "what": "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+          "what": "planet_architecture.STIRRED_STRETCH_FACTOR (2.3; the 3:1 resonance, 3^(2/3) = 2.08, until GEN.1539 moved it inside the range, tuned to the donor yield band of tests/test_rogue_yield_calibration.py, 0.77 to 0.90 per star): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
         },
         {
           "burn_down": null,
@@ -49923,7 +49961,7 @@
           "fields": [
             [
               "What it is",
-              "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+              "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the truncations of the Rayleigh tails (inverse CDF, GEN.1792; a clip piled a third of a wide belt's bodies on the cap)"
             ],
             [
               "The range it moves in",
@@ -49954,7 +49992,7 @@
           "tier_code": "T9",
           "tweak": "L0",
           "unread": null,
-          "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+          "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the truncations of the Rayleigh tails (inverse CDF, GEN.1792; a clip piled a third of a wide belt's bodies on the cap)"
         }
       ],
       "slug": "6-182-stand-ins-of-where-a-stored-belt-member-lies",
@@ -60167,7 +60205,7 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the star's own gas disk edge, disk_size.EDGE_AT_SUN_AU and its mass and scatter laws, GEN.1520; 18 snow lines before it); before GEN.1514 it was a step to zero when the front reached the edge"
             ],
             [
               "The range it moves in",
@@ -60198,7 +60236,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the star's own gas disk edge, disk_size.EDGE_AT_SUN_AU and its mass and scatter laws, GEN.1520; 18 snow lines before it); before GEN.1514 it was a step to zero when the front reached the edge"
         },
         {
           "burn_down": null,
@@ -72007,7 +72045,7 @@
             ],
             [
               "The range it moves in",
-              "1 to 100 (Johansen and others 2023 range), 10 to 31 measured (Suer and others 2023)"
+              "1 to 100 ([R5318] range), 10 to 31 measured [R5317]"
             ],
             [
               "Where it holds",
@@ -72019,11 +72057,11 @@
             ],
             [
               "What replaces it",
-              "a D_N law fitted on pressure, temperature and redox together (Grewal and others 2019 style)"
+              "a D_N law fitted on pressure, temperature and redox together (the kind of fit [R1684] makes for the speciation)"
             ],
             [
               "Evidence",
-              "Suer and others 2023, Front. Earth Sci. 11:1159412, Table 1 (a review of the experiments); [R2171] K_D 20 +/- 10 measured, 1.8 thermodynamic"
+              "[R5317: Table 1] (a review of the experiments); [R5318] (range 1 to 100); [R2171] K_D 20 +/- 10 measured, 1.8 thermodynamic"
             ]
           ],
           "id": "NB1",
@@ -74557,6 +74595,848 @@
       ],
       "slug": "6-306-stand-ins-of-the-cosmic-dust-a-planet-s-air-takes-in-for-the-v8-layer-gen-1542",
       "title": "Stand-ins of the cosmic dust a planet's air takes in for the V8 layer (GEN.1542)"
+    },
+    {
+      "key": "6.307",
+      "number": "6.307",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_AT_SUN_AU 100: the median gas-disk edge of a 1 solar-mass star, au; the geometric middle of the 62 au at which the planet-formation models of [R0602] cut the disk and the roughly 200 au the observed CO radii of 1 to 3 Myr disks give"
+            ],
+            [
+              "The range it moves in",
+              "62 to 200"
+            ],
+            [
+              "Where it holds",
+              "Sun-like stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured median CO disk radius of Sun-like stars outside 62 to 200 au"
+            ],
+            [
+              "What replaces it",
+              "the median of a mass-complete CO disk survey"
+            ],
+            [
+              "Evidence",
+              "the dust radius of ALMA disks is 27 to 60 au at the median [R5301] and the CO gas disk a median 2.5 times that [R5308]"
+            ]
+          ],
+          "id": "GDE1",
+          "key": "6.307:GDE1",
+          "kind": "P",
+          "slug": "6-307-gde1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_size.EDGE_AT_SUN_AU 100: the median gas-disk edge of a 1 solar-mass star, au; the geometric middle of the 62 au at which the planet-formation models of [R0602] cut the disk and the roughly 200 au the observed CO radii of 1 to 3 Myr disks give"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_MASS_EXPONENT 0.5: the edge rises as the star's mass to this power"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.625"
+            ],
+            [
+              "Where it holds",
+              "stars of 0.1 to 3 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a size-mass slope of gas disks outside 0.2 to 0.625"
+            ],
+            [
+              "What replaces it",
+              "the slope fitted to a complete survey of gas disk radii"
+            ],
+            [
+              "Evidence",
+              "the direct fits of dust radius against star mass are 0.2 to 0.57 [R5301] and 0.6 [R5309]; the models use 0.625 [R0602]"
+            ]
+          ],
+          "id": "GDE2",
+          "key": "6.307:GDE2",
+          "kind": "P",
+          "slug": "6-307-gde2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_size.EDGE_MASS_EXPONENT 0.5: the edge rises as the star's mass to this power"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_SCATTER_DEX 0.3: the scatter of a star's own edge around the median, dex in log10, a factor of 2 either way (Boss, 2026-11-17)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "every star's own disk"
+            ],
+            [
+              "What would show it wrong",
+              "a measured scatter of gas disk radii at one stellar mass outside 0.2 to 0.6 dex"
+            ],
+            [
+              "What replaces it",
+              "the scatter measured on a complete survey"
+            ],
+            [
+              "Evidence",
+              "real disks of one mass vary by about a factor of 4 either way in dust radius [R5301]; the factor of 2 is the narrower end"
+            ]
+          ],
+          "id": "GDE3",
+          "key": "6.307:GDE3",
+          "kind": "P",
+          "slug": "6-307-gde3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "disk_size.EDGE_SCATTER_DEX 0.3: the scatter of a star's own edge around the median, dex in log10, a factor of 2 either way (Boss, 2026-11-17)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_size.EDGE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 4 either way"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "every star's own disk"
+            ],
+            [
+              "What would show it wrong",
+              "a gas disk of a Sun-like star measured beyond a factor of 4 of the median"
+            ],
+            [
+              "What replaces it",
+              "the tail of the measured distribution"
+            ],
+            [
+              "Evidence",
+              "the same cut as the snow line's (SNL2)"
+            ]
+          ],
+          "id": "GDE4",
+          "key": "6.307:GDE4",
+          "kind": "P",
+          "slug": "6-307-gde4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_size.EDGE_SCATTER_MAX_SIGMA 2.0: the draw is redrawn beyond plus and minus 2 sigma, a factor of 4 either way"
+        }
+      ],
+      "slug": "6-307-stand-ins-of-the-gas-disk-edge-gen-1520",
+      "title": "Stand-ins of the gas disk edge (GEN.1520)"
+    },
+    {
+      "key": "6.308",
+      "number": "6.308",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation OCS liquid: Antoine log10(P/bar) = 4.0436 - 808.49/(T - 22.72), 161.8 to 223.84 K, carried from the triple point 134.33 K to the critical temperature 378.77 K"
+            ],
+            [
+              "The range it moves in",
+              "none (the table)"
+            ],
+            [
+              "Where it holds",
+              "carbonyl sulfide above its triple point"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour pressure of the liquid more than 2 percent off in 134 to 378 K"
+            ],
+            [
+              "What replaces it",
+              "a Wagner fit to the critical point"
+            ],
+            [
+              "Evidence",
+              "NIST WebBook ([R2312]; second-hand, read 11-18)"
+            ]
+          ],
+          "id": "SV2",
+          "key": "6.308:SV2",
+          "kind": "D",
+          "slug": "6-308-sv2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation OCS liquid: Antoine log10(P/bar) = 4.0436 - 808.49/(T - 22.72), 161.8 to 223.84 K, carried from the triple point 134.33 K to the critical temperature 378.77 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation CS2 liquid: Antoine log10(P/bar) = 4.06683 - 1168.62/(T - 31.616), 276.74 to 353.08 K, carried from the triple point 161.11 K to the critical temperature 552 K"
+            ],
+            [
+              "The range it moves in",
+              "none (the table)"
+            ],
+            [
+              "Where it holds",
+              "carbon disulfide above its triple point"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour pressure of the liquid more than 2 percent off in 161 to 552 K"
+            ],
+            [
+              "What replaces it",
+              "a Wagner fit to the critical point"
+            ],
+            [
+              "Evidence",
+              "NIST WebBook ([R5310, R5311] for the triple point; second-hand, read 11-18)"
+            ]
+          ],
+          "id": "SV3",
+          "key": "6.308:SV3",
+          "kind": "D",
+          "slug": "6-308-sv3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation CS2 liquid: Antoine log10(P/bar) = 4.06683 - 1168.62/(T - 31.616), 276.74 to 353.08 K, carried from the triple point 161.11 K to the critical temperature 552 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "saturation SO3 liquid: Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K, carried down to the melting point of the gamma phase 290.1 K (the row's own triple point) and up to the critical temperature 491 K"
+            ],
+            [
+              "The range it moves in",
+              "the window edge, 10 percent at the boiling point of 317.9 K"
+            ],
+            [
+              "Where it holds",
+              "sulfur trioxide of the gamma phase; the alpha and beta phases are not modelled"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour pressure of the liquid between 290 and 333 K that differs by more than 15 percent"
+            ],
+            [
+              "What replaces it",
+              "a fit that includes the data under 333 K"
+            ],
+            [
+              "Evidence",
+              "NIST WebBook ([R5312]; NIST WebBook for the melting point; second-hand, read 11-18)"
+            ]
+          ],
+          "id": "SV4",
+          "key": "6.308:SV4",
+          "kind": "D",
+          "slug": "6-308-sv4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "saturation SO3 liquid: Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K, carried down to the melting point of the gamma phase 290.1 K (the row's own triple point) and up to the critical temperature 491 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the solid of OCS, CS2 and SO3 by Clausius-Clapeyron from the liquid curve's pressure at the triple point, with the sublimation enthalpy taken as the vaporisation plus the fusion: OCS 25.13 kJ/mol (20.4 at 176 K + 4.728), CS2 36.479 (32.09 from the NIST correlation at the triple point + 4.389), SO3 54.85 (45.5 + 9.35)"
+            ],
+            [
+              "The range it moves in",
+              "each enthalpy +-10 percent"
+            ],
+            [
+              "Where it holds",
+              "the three solids below their triple points"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sublimation pressure of the solid, which NIST does not list for any of the three"
+            ],
+            [
+              "What replaces it",
+              "measured sublimation enthalpies"
+            ],
+            [
+              "Evidence",
+              "inferred physics (the enthalpy of sublimation is that of vaporisation plus fusion at the triple point); the vaporisation of CS2 at the triple point is the NIST correlation carried below its 282 to 319 K window"
+            ]
+          ],
+          "id": "SV5",
+          "key": "6.308:SV5",
+          "kind": "P",
+          "slug": "6-308-sv5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the solid of OCS, CS2 and SO3 by Clausius-Clapeyron from the liquid curve's pressure at the triple point, with the sublimation enthalpy taken as the vaporisation plus the fusion: OCS 25.13 kJ/mol (20.4 at 176 K + 4.728), CS2 36.479 (32.09 from the NIST correlation at the triple point + 4.389), SO3 54.85 (45.5 + 9.35)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "no_law of the data file: H, Cl, S, SO, PO, PS, PN and P2 are fragments of the hot equilibrium that recombine or photolyse in a cold air; CH3Cl, HCOOH, N2O, NO2 and PH3 are trace gases with no curve filed yet"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "every gas above a billionth of the air in the sweep of tests/test_saturation.py::_carried_gases"
+            ],
+            [
+              "What would show it wrong",
+              "a gas outside the sweep that the solve carries at over a billionth of an air and that has neither a curve nor a reason (the test fails)"
+            ],
+            [
+              "What replaces it",
+              "a curve for each trace gas"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the reasons); the sweep is the redox, temperature and hydrogen range of the rocky recipe"
+            ]
+          ],
+          "id": "SV6",
+          "key": "6.308:SV6",
+          "kind": "T",
+          "slug": "6-308-sv6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "no_law of the data file: H, Cl, S, SO, PO, PS, PN and P2 are fragments of the hot equilibrium that recombine or photolyse in a cold air; CH3Cl, HCOOH, N2O, NO2 and PH3 are trace gases with no curve filed yet"
+        }
+      ],
+      "slug": "6-308-stand-ins-of-the-vapor-pressure-of-carbonyl-sulfide-carbon-disulfide-and-sulfur-trioxide-and-the-gases-with-no-law-gen-1794",
+      "title": "Stand-ins of the vapor pressure of carbonyl sulfide, carbon disulfide and sulfur trioxide, and the gases with no law (GEN.1794)"
+    },
+    {
+      "key": "6.309",
+      "number": "6.309",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.wet_land_fraction: the weathering land is land x min(1, ocean_cover / OCEAN_COVER_EARTH); rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it"
+            ],
+            [
+              "The range it moves in",
+              "the cover that saturates it (0.5 to 0.8)"
+            ],
+            [
+              "Where it holds",
+              "worlds with a liquid ocean and some land"
+            ],
+            [
+              "What would show it wrong",
+              "a measured planet whose weathering does not fall with its sea (the insensitivity to land fraction of [R0009] is at a given sea)"
+            ],
+            [
+              "What replaces it",
+              "a runoff model with the hydrological cycle over the land"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics; the form is not in a source read"
+            ]
+          ],
+          "id": "WW1",
+          "key": "6.309:WW1",
+          "kind": "T",
+          "slug": "6-309-ww1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_pressure.wet_land_fraction: the weathering land is land x min(1, ocean_cover / OCEAN_COVER_EARTH); rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "as WW1"
+            ],
+            [
+              "What would show it wrong",
+              "as WW1"
+            ],
+            [
+              "What replaces it",
+              "as WW1"
+            ],
+            [
+              "Evidence",
+              "the Earth's value (0.71); using it as a saturation is a stand-in"
+            ]
+          ],
+          "id": "WW2",
+          "key": "6.309:WW2",
+          "kind": "P",
+          "slug": "6-309-ww2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+        }
+      ],
+      "slug": "6-309-stand-ins-of-the-water-limited-silicate-weathering-gen-1403",
+      "title": "Stand-ins of the water-limited silicate weathering (GEN.1403)"
+    },
+    {
+      "key": "6.313",
+      "number": "6.313",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "air_events.FLOOD_BASALT_PER_GYR 40, FLOOD_BASALT_VOLUME_KM3 2.5e6, FLOOD_BASALT_YEARS 1e6: a flood basalt about every 25 Myr on the Earth, about 2.5 million km3 erupted in about 1 Myr; the rate of a body is this times its heat flux at that age over the model Earth's (surface_pressure.HEAT_FLUX_EARTH_W_M2)"
+            ],
+            [
+              "The range it moves in",
+              "none (the data)"
+            ],
+            [
+              "Where it holds",
+              "bodies with an interior heat flow"
+            ],
+            [
+              "What would show it wrong",
+              "a count of the large igneous provinces of the last 300 Myr far from a dozen, or a province volume far from 2.5 million km3"
+            ],
+            [
+              "What replaces it",
+              "the record of another body with a surface age"
+            ],
+            [
+              "Evidence",
+              "[R5319]: a dozen in the last 300 Myr; the four largest extinctions of the last 260 Myr coincide with four traps"
+            ]
+          ],
+          "id": "EV1",
+          "key": "6.313:EV1",
+          "kind": "D",
+          "slug": "6-313-ev1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "air_events.FLOOD_BASALT_PER_GYR 40, FLOOD_BASALT_VOLUME_KM3 2.5e6, FLOOD_BASALT_YEARS 1e6: a flood basalt about every 25 Myr on the Earth, about 2.5 million km3 erupted in about 1 Myr; the rate of a body is this times its heat flux at that age over the model Earth's (surface_pressure.HEAT_FLUX_EARTH_W_M2)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the volcanism goes with the heat: the rate scales linearly with the interior's heat flux (a stagnant lid is not asked: its plumes erupt too)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose volcanic output does not follow its heat flow (Venus against the Earth)"
+            ],
+            [
+              "What replaces it",
+              "a rate from the melt production of degassing"
+            ],
+            [
+              "Evidence",
+              "educated guess from inferred physics"
+            ]
+          ],
+          "id": "EV2",
+          "key": "6.313:EV2",
+          "kind": "T",
+          "slug": "6-313-ev2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the volcanism goes with the heat: the rate scales linearly with the interior's heat flux (a stagnant lid is not asked: its plumes erupt too)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "air_events.IMPACT_ONE_KM_PER_GYR 2,000 and IMPACT_FIVE_KM_PER_GYR 66.7: the Earth's impacts of bodies over 1 km (every 0.5 Myr) and over 5 km (every 10 to 20 Myr, the middle used)"
+            ],
+            [
+              "The range it moves in",
+              "the 5 km interval 10 to 20 Myr"
+            ],
+            [
+              "Where it holds",
+              "the Earth now"
+            ],
+            [
+              "What would show it wrong",
+              "a measured impact flux at the Earth more than 2 times different"
+            ],
+            [
+              "What replaces it",
+              "the bolide flux of a sky survey"
+            ],
+            [
+              "Evidence",
+              "two figures on one secondary page (a secondary page that cites an earlier estimate), not read in the paper"
+            ]
+          ],
+          "id": "EV3",
+          "key": "6.313:EV3",
+          "kind": "D",
+          "slug": "6-313-ev3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": "GEN.1746",
+          "what": "air_events.IMPACT_ONE_KM_PER_GYR 2,000 and IMPACT_FIVE_KM_PER_GYR 66.7: the Earth's impacts of bodies over 1 km (every 0.5 Myr) and over 5 km (every 10 to 20 Myr, the middle used)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "air_events.IMPACT_SIZE_EXPONENT 2.1: the cumulative number of impacts over a diameter goes as D^-2.1, the slope through the two figures of EV3"
+            ],
+            [
+              "The range it moves in",
+              "the exponent follows EV3"
+            ],
+            [
+              "Where it holds",
+              "1 to 100 km"
+            ],
+            [
+              "What would show it wrong",
+              "a size distribution of the near-Earth objects with a slope far from 2.1"
+            ],
+            [
+              "What replaces it",
+              "the observed size law"
+            ],
+            [
+              "Evidence",
+              "derived from EV3"
+            ]
+          ],
+          "id": "EV4",
+          "key": "6.313:EV4",
+          "kind": "T",
+          "slug": "6-313-ev4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": "GEN.1746",
+          "what": "air_events.IMPACT_SIZE_EXPONENT 2.1: the cumulative number of impacts over a diameter goes as D^-2.1, the slope through the two figures of EV3"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "air_events.NEUKUM_A 5.44e-14, NEUKUM_LAMBDA_PER_GYR 6.93, NEUKUM_B_PER_GYR 8.38e-4: the lunar cratering chronology function N(1) = a (exp(lambda T) - 1) + b T; the impact rate of a body is its cross section over the Earth's (radius squared, no gravitational focusing) times the derivative of the function at the time before now of its age on the Earth's own clock, over its present value"
+            ],
+            [
+              "The range it moves in",
+              "none (the data)"
+            ],
+            [
+              "Where it holds",
+              "the Moon's range, 0 to 4.5 Ga; applied to every body as the Earth's decay of the leftover planetesimals"
+            ],
+            [
+              "What would show it wrong",
+              "a decay of the impact flux of another body's record that differs by over a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "a flux from the disk's own leftover planetesimal mass (impact_history)"
+            ],
+            [
+              "Evidence",
+              "[R5322] prints the function from Neukum et al.; the paper itself is not read here"
+            ]
+          ],
+          "id": "EV5",
+          "key": "6.313:EV5",
+          "kind": "D",
+          "slug": "6-313-ev5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "GEN.1746",
+          "what": "air_events.NEUKUM_A 5.44e-14, NEUKUM_LAMBDA_PER_GYR 6.93, NEUKUM_B_PER_GYR 8.38e-4: the lunar cratering chronology function N(1) = a (exp(lambda T) - 1) + b T; the impact rate of a body is its cross section over the Earth's (radius squared, no gravitational focusing) times the derivative of the function at the time before now of its age on the Earth's own clock, over its present value"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "air_events.KILL_CURVE: the share of species killed by events that recur every 1, 10 and 100 Myr: 0.10, 0.30, 0.65; straight in the log between and held at the ends. An event kills the share its own recurrence on the Earth gives (T6, L3: the kill curve \"does not imply any cause\", so reading an event by how often events as large recur is a choice of this model)"
+            ],
+            [
+              "The range it moves in",
+              "none (the data); the mapping of an event to a recurrence is the choice"
+            ],
+            [
+              "Where it holds",
+              "marine genera of the Phanerozoic"
+            ],
+            [
+              "What would show it wrong",
+              "a kill of the largest impacts or traps against the curve more than 2 times off"
+            ],
+            [
+              "What replaces it",
+              "a shock-to-kill law, its own research item"
+            ],
+            [
+              "Evidence",
+              "[R5320], numbers from a secondary article, the table not read"
+            ]
+          ],
+          "id": "EV6",
+          "key": "6.313:EV6",
+          "kind": "D",
+          "slug": "6-313-ev6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "GEN.1746",
+          "what": "air_events.KILL_CURVE: the share of species killed by events that recur every 1, 10 and 100 Myr: 0.10, 0.30, 0.65; straight in the log between and held at the ends. An event kills the share its own recurrence on the Earth gives (T6, L3: the kill curve \"does not imply any cause\", so reading an event by how often events as large recur is a choice of this model)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "air_events.RECOVERY_GYR 0.010: the origination that follows an extinction lags it by about 10 Myr, the same after the large ones as after the small"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the fossil record"
+            ],
+            [
+              "What would show it wrong",
+              "a recovery lag that goes with the size of the kill"
+            ],
+            [
+              "Evidence",
+              "[R5321]"
+            ]
+          ],
+          "id": "EV7",
+          "key": "6.313:EV7",
+          "kind": "D",
+          "slug": "6-313-ev7",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1746",
+          "what": "air_events.RECOVERY_GYR 0.010: the origination that follows an extinction lags it by about 10 Myr, the same after the large ones as after the small"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no record of impacts over 100 km after the formation is in hand; the cap leaves the giant impacts to the formation"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "air_events.IMPACT_LARGEST_KM 100: the largest impactor the size law draws; over it an impact is a giant impact, the formation's and not the history's"
+            ],
+            [
+              "The range it moves in",
+              "50 to 300 km"
+            ],
+            [
+              "Where it holds",
+              "1 to 100 km"
+            ],
+            [
+              "What would show it wrong",
+              "a record of impacts over 100 km after the formation that the air history should list"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the Chicxulub body is 10 to 15 km, the largest known post-formation Earth impact is of that order"
+            ]
+          ],
+          "id": "EV8",
+          "key": "6.313:EV8",
+          "kind": "P",
+          "slug": "6-313-ev8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": "GEN.1746",
+          "what": "air_events.IMPACT_LARGEST_KM 100: the largest impactor the size law draws; over it an impact is a giant impact, the formation's and not the history's"
+        }
+      ],
+      "slug": "6-313-stand-ins-of-the-shocks-of-a-world-s-history-gen-1746",
+      "title": "Stand-ins of the shocks of a world's history (GEN.1746)"
+    },
+    {
+      "key": "6.314",
+      "number": "6.314",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no record of the share of species an era boundary must kill is in hand; the Boss to pick 30 or 65 percent"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve"
+            ],
+            [
+              "The range it moves in",
+              "0.15 to 0.65"
+            ],
+            [
+              "Where it holds",
+              "the Earth's marine record, applied to every world with life"
+            ],
+            [
+              "What would show it wrong",
+              "a record of eras whose boundaries are not the extinctions that kill 30 percent or more, or a Boss pick of another share"
+            ],
+            [
+              "What replaces it",
+              "the Boss's pick of the threshold"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the design proposed it as the size [R5320] gives once per 10 Myr"
+            ]
+          ],
+          "id": "LA1",
+          "key": "6.314:LA1",
+          "kind": "P",
+          "slug": "6-314-la1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": "GEN.1746",
+          "what": "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "events that fall within air_events.RECOVERY_GYR of the extinction before are part of it, keeping the larger kill and its cause (no background process: the kill of an event is read from the curve at its own recurrence, so the impacts that reach the threshold fill the curve and nothing is left over)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any world"
+            ],
+            [
+              "What would show it wrong",
+              "a fossil record in which a second extinction within 10 Myr of the first starts an age of its own"
+            ],
+            [
+              "What replaces it",
+              "a diversity model with the regrowth of [R5321]"
+            ],
+            [
+              "Evidence",
+              "inferred from the 10 Myr lag after an extinction whatever its size"
+            ]
+          ],
+          "id": "LA2",
+          "key": "6.314:LA2",
+          "kind": "T",
+          "slug": "6-314-la2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": "GEN.1746",
+          "what": "events that fall within air_events.RECOVERY_GYR of the extinction before are part of it, keeping the larger kill and its cause (no background process: the kill of an event is read from the curve at its own recurrence, so the impacts that reach the threshold fill the curve and nothing is left over)"
+        }
+      ],
+      "slug": "6-314-stand-ins-of-the-life-ages-gen-1746",
+      "title": "Stand-ins of the life ages (GEN.1746)"
     }
   ]
 }

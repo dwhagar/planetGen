@@ -1,9 +1,9 @@
 # tests/test_block_sampler.py
 
 """
-GEN.308: the block-first sampler of the backfill (`bright_stars.block_candidates`): one Poisson count from a block's
+GEN.308, PERF.280: the row-first sampler of the backfill (`bright_stars.row_candidates`): one Poisson count from a row's
 density bound, thinned to each cell's own rate. It is exact (a cell ends with a Poisson count of its own mean, whatever
-the bound), keyed by the seed, the block and the luminosity band alone, and its bound holds for every cell.
+the bound), keyed by the seed, the row and the luminosity band alone, and its bound holds for every cell.
 """
 
 import collections
@@ -15,8 +15,8 @@ from planetgen.galaxy.spherical import band_range, wedge_count
 from planetgen.generation import bright_stars as brightStars
 from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, SHAPE
 
-SHELL, BAND = 120, 0                  # a band of 756 wedges: a full block of 256 and then some
-CELLS = brightStars.BLOCK_WEDGES
+SHELL, BAND = 120, 0                  # a band of 756 wedges
+CELLS = wedge_count(SHELL, BAND)
 REPLICATES = 3000
 CHI_SQUARE_CRITICAL = {1: 10.83, 2: 13.82, 3: 16.27, 4: 18.47, 5: 20.52}      # p = 0.001
 LAMBDAS = [1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 0.1, 0.3, 1.0]                  # half-decade strata, the lowest first
@@ -30,12 +30,21 @@ def _poisson_probabilities(mean, top):
     return probabilities + [max(1.0 - sum(probabilities), 0.0)]
 
 
+def _kept(seed, k, bound, rate_of, shell=SHELL, band=BAND):
+    """The candidates of a row that the thinning keeps, as `candidate_path` keeps them: each with the chance `rate / bound` of its own cell."""
+    kept = []
+    for wedge, found in brightStars.row_candidates(seed, shell, band, k, bound).items():
+        rate = rate_of(wedge)
+        assert rate <= bound * (1.0 + 1e-9)
+        kept += [c for c in found if c.accept * bound < rate]
+    return kept
+
+
 def _multiplicities(mean, bound):
-    """A histogram of how many stars each of the cells of REPLICATES blocks holds, from the real draw."""
+    """A histogram of how many stars each of the cells of REPLICATES rows holds, from the real draw."""
     counts = collections.Counter()
     for replicate in range(REPLICATES):
-        found = collections.Counter(c.wedge for c in brightStars.block_candidates(
-            replicate, SHELL, BAND, 0, 16, bound, lambda wedge: mean))
+        found = collections.Counter(c.wedge for c in _kept(replicate, 16, bound, lambda wedge: mean))
         counts.update(collections.Counter(found.values()))
         counts[0] += CELLS - len(found)
     return counts
@@ -43,7 +52,7 @@ def _multiplicities(mean, bound):
 
 @pytest.mark.parametrize("mean", LAMBDAS)
 def test_a_cells_count_is_poisson_whatever_the_bound(mean):
-    """Stratified by the cell's mean (half decades, 3,000 blocks a stratum, the lowest strata being GEN.43's floor
+    """Stratified by the cell's mean (half decades, 3,000 rows a stratum, the lowest strata being GEN.43's floor
     test): the multiplicities match exact Poisson probabilities, which drop-and-boost does not (P(2) would be
     mean^2 / (2q))."""
     counts = _multiplicities(mean, bound=4.0 * mean)
@@ -60,22 +69,20 @@ def test_a_cells_count_is_poisson_whatever_the_bound(mean):
 
 
 def test_a_cell_with_no_chance_is_never_kept_and_a_bound_of_zero_draws_nothing():
-    assert brightStars.block_candidates(1, SHELL, BAND, 0, 16, 2.0, lambda wedge: 0.0) == []
-    assert brightStars.block_candidates(1, SHELL, BAND, 0, 16, 0.0, lambda wedge: pytest.fail("asked")) == []
+    assert _kept(1, 16, 2.0, lambda wedge: 0.0) == []
+    assert brightStars.row_candidates(1, SHELL, BAND, 16, 0.0) == {}
 
 
 def test_a_cell_above_its_bound_is_refused():
-    with pytest.raises(ValueError, match="above its block's bound"):
-        brightStars.block_candidates(1, SHELL, BAND, 0, 16, 0.5, lambda wedge: 3.0)
+    shares = {population: brightStars.bright_band_fraction(BANDS[0][1], BANDS[0][2], population, None) for population in brightStars.POPULATIONS}
+    memo = {("candidates", SHELL, BAND, 16, None): {5: [brightStars.BlockCandidate(5, 0, 0.5, 0.1)]}}
+    with pytest.raises(ValueError, match="above its row's bound"):
+        brightStars._kept_candidates(memo, SHAPE, (SHELL, BAND, 5), EDGE_PC, E_VALUE, 1, 16, shares, None, 1e-12)
 
 
-def test_the_last_block_of_a_band_holds_only_the_wedges_that_are_left():
-    cells = wedge_count(SHELL, BAND)
-    last = (cells - 1) // CELLS
-    wedges = {c.wedge for seed in range(40) for c in brightStars.block_candidates(
-        seed, SHELL, BAND, last, 16, 1.0, lambda wedge: 1.0)}
-    assert wedges and all(last * CELLS <= w < cells for w in wedges)
-    assert brightStars.block_candidates(1, SHELL, BAND, cells // CELLS + 1, 16, 1.0, lambda wedge: 1.0) == []
+def test_a_row_holds_only_its_own_wedges():
+    wedges = {wedge for seed in range(40) for wedge in brightStars.row_candidates(seed, SHELL, BAND, 16, 1.0)}
+    assert wedges and all(0 <= wedge < CELLS for wedge in wedges)
 
 
 # --- Keyed by the seed, the block and the band alone --------------------------------------------------------------
@@ -85,28 +92,27 @@ def _rate(wedge):
     return 0.05 + 0.01 * (wedge % 7)
 
 
-def _block(seed, chunk, k=16):
-    return brightStars.block_candidates(seed, SHELL, BAND, chunk, k, 0.12, _rate)
+def _row(seed, band=BAND, k=16):
+    return _kept(seed, k, 0.12, _rate, band=band)
 
 
-def test_a_block_gives_the_same_stars_whatever_region_order_or_worker_reaches_it():
-    chunks = list(range(3))
-    together = {chunk: _block(7, chunk) for chunk in chunks}
+def test_a_row_gives_the_same_stars_whatever_region_order_or_worker_reaches_it():
+    rows = [0, 1, 2]
+    together = {band: _row(7, band) for band in rows}
     assert all(together.values())
-    assert {chunk: _block(7, chunk) for chunk in reversed(chunks)} == together
-    assert {chunk: _block(7, chunk) for chunk in chunks[1:]} == {chunk: together[chunk] for chunk in chunks[1:]}
-    assert _block(7, 0) == together[0]                                  # asked again later, alone
+    assert {band: _row(7, band) for band in reversed(rows)} == together
+    assert _row(7, 0) == together[0]                                  # asked again later, alone
 
 
-def test_another_seed_block_or_band_draws_another_set():
-    base = _block(7, 0)
-    assert _block(8, 0) != base and _block(7, 1) != base and _block(7, 0, k=17) != base
+def test_another_seed_row_or_band_draws_another_set():
+    base = _row(7, 0)
+    assert _row(8, 0) != base and _row(7, 1) != base and _row(7, 0, k=17) != base
 
 
-def test_a_candidates_star_stream_depends_only_on_its_place_in_the_block():
-    one = brightStars.candidate_stream(7, SHELL, BAND, 0, 16, 3)
-    again = brightStars.candidate_stream(7, SHELL, BAND, 0, 16, 3)
-    other = brightStars.candidate_stream(7, SHELL, BAND, 0, 16, 4)
+def test_a_candidates_star_stream_depends_only_on_its_place_in_the_row():
+    one = brightStars.candidate_stream(7, SHELL, BAND, brightStars.ROW_STREAM, 16, 3)
+    again = brightStars.candidate_stream(7, SHELL, BAND, brightStars.ROW_STREAM, 16, 3)
+    other = brightStars.candidate_stream(7, SHELL, BAND, brightStars.ROW_STREAM, 16, 4)
     assert [one.random() for _ in range(5)] == [again.random() for _ in range(5)] != [other.random() for _ in range(5)]
 
 
@@ -115,7 +121,7 @@ def test_a_candidates_star_stream_depends_only_on_its_place_in_the_block():
 
 @pytest.mark.parametrize("shell", [1, 5, 20, 50, 150, 500, 2000])
 @pytest.mark.parametrize("band", [0, 1, 3, 10, 30])
-def test_every_cells_rate_is_at_most_its_blocks_bound(shell, band):
+def test_every_cells_rate_is_at_most_its_rows_bound(shell, band):
     if band > band_range(shell)[1]:
         pytest.skip("the shell has no such band")
     count = wedge_count(shell, band)
@@ -129,19 +135,19 @@ def test_every_cells_rate_is_at_most_its_blocks_bound(shell, band):
             assert rate <= bound * (1.0 + 1e-9), (shell, band, wedge, k, rate, bound)
 
 
-def test_a_real_block_keeps_each_cell_at_its_own_rate():
-    """The block-first draw over a real band of the galaxy puts as many stars in the block as the cells' own rates
+def test_a_real_row_keeps_each_cell_at_its_own_rate():
+    """The row-first draw over a real band of the galaxy puts as many stars in the row as the cells' own rates
     sum to, and favours the denser cells."""
     shell, band, k = 30, 0, BANDS[8][0]
     shares = {population: brightStars.bright_band_fraction(BANDS[8][1], BANDS[8][2], population, None)
               for population in brightStars.POPULATIONS}
     bound = brightStars.block_bound(SHAPE, shell, band, EDGE_PC, E_VALUE, shares)
     first = {wedge: brightStars.cell_band_rate(SHAPE, (shell, band, wedge), EDGE_PC, E_VALUE, shares)
-             for wedge in range(min(CELLS, wedge_count(shell, band)))}
+             for wedge in range(wedge_count(shell, band))}
     runs = 4000
     found = collections.Counter()
     for seed in range(runs):
-        found.update(c.wedge for c in brightStars.block_candidates(seed, shell, band, 0, k, bound, first.__getitem__))
+        found.update(c.wedge for c in _kept(seed, k, bound, first.__getitem__, shell, band))
     expected = sum(first.values()) * runs
     assert abs(sum(found.values()) - expected) < 4.5 * math.sqrt(expected)
     dense = sorted(first, key=first.get)[-len(first) // 4:]

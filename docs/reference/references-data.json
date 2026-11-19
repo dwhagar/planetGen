@@ -97795,6 +97795,33 @@
    "volume": "333",
    "year": 2019
   },
+  "10.1016/j.icarus.2019.06.020": {
+   "authors": [
+    [
+     "Iqbal",
+     "W."
+    ],
+    [
+     "Hiesinger",
+     "H."
+    ],
+    [
+     "van der Bogert",
+     "C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2019.06.020",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "528",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Geological mapping and chronology of lunar landing sites: Apollo 11",
+   "type": "journal-article",
+   "volume": "333",
+   "year": 2019
+  },
   "10.1016/j.icarus.2019.07.014": {
    "arxiv": "1907.04368",
    "authors": [
@@ -103748,6 +103775,29 @@
    "volume": "4",
    "year": 2004
   },
+  "10.1016/s1631-0713(03)00006-3": {
+   "authors": [
+    [
+     "Courtillot",
+     "V. E."
+    ],
+    [
+     "Renne",
+     "P. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/s1631-0713(03)00006-3",
+   "editors": [],
+   "journal": "Comptes Rendus. Géoscience",
+   "page": "113",
+   "publisher": "MathDoc/Centre Mersenne",
+   "src": "crossref",
+   "title": "On the ages of flood basalt events",
+   "type": "journal-article",
+   "volume": "335",
+   "year": 2003
+  },
   "10.1017/9781139020558": {
    "authors": [
     [
@@ -105079,6 +105129,25 @@
    "type": "journal-article",
    "volume": "3",
    "year": 1937
+  },
+  "10.1017/s0094837300010332": {
+   "authors": [
+    [
+     "Raup",
+     "D. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/s0094837300010332",
+   "editors": [],
+   "journal": "Paleobiology",
+   "page": "37",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "A kill curve for Phanerozoic marine species",
+   "type": "journal-article",
+   "volume": "17",
+   "year": 1991
   },
   "10.1017/s0252921100109674": {
    "authors": [
@@ -107982,6 +108051,37 @@
    "volume": "68",
    "year": 1964
   },
+  "10.1021/j100812a025": {
+   "authors": [
+    [
+     "Waddington",
+     "G."
+    ],
+    [
+     "Smith",
+     "J. C."
+    ],
+    [
+     "Williamson",
+     "K. D."
+    ],
+    [
+     "Scott",
+     "D. W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1021/j100812a025",
+   "editors": [],
+   "journal": "JPhCh",
+   "page": "1074",
+   "publisher": "American Chemical Society (ACS)",
+   "src": "crossref",
+   "title": "CARBON DISULFIDE AS A REFERENCE SUBSTANCE FOR VAPOR-FLOW CALORIMETRY; THE CHEMICAL THERMODYNAMIC PROPERTIES",
+   "type": "journal-article",
+   "volume": "66",
+   "year": 1962
+  },
   "10.1021/j100854a056": {
    "authors": [
     [
@@ -108283,6 +108383,29 @@
    "title": "Ammonia. The Heat Capacity and Vapor Pressure of Solid and Liquid. Heat of Vaporization. The Entropy Values from Thermal and Spectroscopic Data",
    "type": "article",
    "via": "openalex search on author, year and the citing sentences",
+   "volume": "59",
+   "year": 1937
+  },
+  "10.1021/ja01282a022": {
+   "authors": [
+    [
+     "Brown",
+     "O. L. I."
+    ],
+    [
+     "Manov",
+     "G. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1021/ja01282a022",
+   "editors": [],
+   "journal": "JAChS",
+   "page": "500",
+   "publisher": "American Chemical Society (ACS)",
+   "src": "crossref",
+   "title": "The Heat Capacity of Carbon Disulfide from 15 to 300°K. The Entropy and Heat of Fusion of Carbon Disulfide",
+   "type": "journal-article",
    "volume": "59",
    "year": 1937
   },
@@ -119203,6 +119326,29 @@
    "type": "journal-article",
    "volume": "348",
    "year": 1990
+  },
+  "10.1038/35004564": {
+   "authors": [
+    [
+     "Kirchner",
+     "J. W."
+    ],
+    [
+     "Weil",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/35004564",
+   "editors": [],
+   "journal": "Nature",
+   "page": "177",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Delayed biological recovery from extinctions throughout the fossil record",
+   "type": "journal-article",
+   "volume": "404",
+   "year": 2000
   },
   "10.1038/35015531": {
    "authors": [
@@ -133267,6 +133413,29 @@
    "volume": "",
    "year": 1963
   },
+  "10.1039/jr9630004902": {
+   "authors": [
+    [
+     "Abercromby",
+     "D. C."
+    ],
+    [
+     "Tiley",
+     "P. F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1039/jr9630004902",
+   "editors": [],
+   "journal": "J. Chem. Soc.",
+   "page": "4902",
+   "publisher": "Royal Society of Chemistry (RSC)",
+   "src": "crossref",
+   "title": "937. The Condensed phases of sulphur trioxide. Part II. Vapour pressure of the liquid at temperatures up to the critical point",
+   "type": "journal-article",
+   "volume": "",
+   "year": 1963
+  },
   "10.1046/j.1365-246x.1998.00521.x": {
    "authors": [
     [
@@ -145180,6 +145349,93 @@
    "title": "How drifting and evaporating pebbles shape giant planets",
    "type": "journal-article",
    "volume": "654",
+   "year": 2021
+  },
+  "10.1051/0004-6361/202039733": {
+   "authors": [
+    [
+     "Sanchis",
+     "E."
+    ],
+    [
+     "Testi",
+     "L."
+    ],
+    [
+     "Natta",
+     "A."
+    ],
+    [
+     "Facchini",
+     "S."
+    ],
+    [
+     "Manara",
+     "C. F."
+    ],
+    [
+     "Miotello",
+     "A."
+    ],
+    [
+     "Ercolano",
+     "B."
+    ],
+    [
+     "Henning",
+     "T."
+    ],
+    [
+     "Preibisch",
+     "T."
+    ],
+    [
+     "Carpenter",
+     "J. M."
+    ],
+    [
+     "de Gregorio-Monsalvo",
+     "I."
+    ],
+    [
+     "Jayawardhana",
+     "R."
+    ],
+    [
+     "Lopez",
+     "C."
+    ],
+    [
+     "Mužić",
+     "K."
+    ],
+    [
+     "Pascucci",
+     "I."
+    ],
+    [
+     "Santamaría-Miranda",
+     "A."
+    ],
+    [
+     "van Terwisga",
+     "S."
+    ],
+    [
+     "Williams",
+     "J. P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202039733",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A19",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Measuring the ratio of the gas and dust emission radii of protoplanetary disks in the Lupus star-forming region",
+   "type": "journal-article",
+   "volume": "649",
    "year": 2021
   },
   "10.1051/0004-6361/202040058": {
@@ -245815,6 +246071,41 @@
    "volume": "2",
    "year": 2015
   },
+  "10.3389/feart.2023.1159412": {
+   "authors": [
+    [
+     "Suer",
+     "T. A."
+    ],
+    [
+     "Jackson",
+     "C."
+    ],
+    [
+     "Grewal",
+     "D. S."
+    ],
+    [
+     "Dalou",
+     "C."
+    ],
+    [
+     "Lichtenberg",
+     "T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3389/feart.2023.1159412",
+   "editors": [],
+   "journal": "Front. Earth Sci.",
+   "page": "1159412",
+   "publisher": "Frontiers Media SA",
+   "src": "crossref",
+   "title": "The distribution of volatile elements during rocky planet formation",
+   "type": "journal-article",
+   "volume": "11",
+   "year": 2023
+  },
   "10.3389/feart.2023.1197363": {
    "authors": [
     [
@@ -254852,6 +255143,45 @@
    "volume": "866",
    "year": 2018
   },
+  "10.3847/1538-4357/aadd9f": {
+   "authors": [
+    [
+     "Andrews",
+     "S. M."
+    ],
+    [
+     "Terrell",
+     "M."
+    ],
+    [
+     "Tripathi",
+     "A."
+    ],
+    [
+     "Ansdell",
+     "M."
+    ],
+    [
+     "Williams",
+     "J. P."
+    ],
+    [
+     "Wilner",
+     "D. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/aadd9f",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "157",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Scaling Relations Associated with Millimeter Continuum Sizes in Protoplanetary Disks",
+   "type": "journal-article",
+   "volume": "865",
+   "year": 2018
+  },
   "10.3847/1538-4357/aade96": {
    "authors": [
     [
@@ -256722,6 +257052,49 @@
    "title": "Deflating Super-puffs: Impact of Photochemical Hazes on the Observed Mass–Radius Relationship of Low-mass Planets",
    "type": "journal-article",
    "volume": "890",
+   "year": 2020
+  },
+  "10.3847/1538-4357/ab70ba": {
+   "authors": [
+    [
+     "Hendler",
+     "N."
+    ],
+    [
+     "Pascucci",
+     "I."
+    ],
+    [
+     "Pinilla",
+     "P."
+    ],
+    [
+     "Tazzari",
+     "M."
+    ],
+    [
+     "Carpenter",
+     "J."
+    ],
+    [
+     "Malhotra",
+     "R."
+    ],
+    [
+     "Testi",
+     "L."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/ab70ba",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "126",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Evolution of Dust Disk Sizes from a Homogeneous Analysis of 1–10 Myr old Stars",
+   "type": "journal-article",
+   "volume": "895",
    "year": 2020
   },
   "10.3847/1538-4357/ab7e27": {
@@ -280239,6 +280612,40 @@
    "volume": "",
    "year": 2022
   },
+  "arXiv:2207.09807": {
+   "arxiv": "2207.09807",
+   "authors": [
+    [
+     "Johansen",
+     "A."
+    ],
+    [
+     "Ronnet",
+     "T."
+    ],
+    [
+     "Schiller",
+     "M."
+    ],
+    [
+     "Deng",
+     "Z."
+    ],
+    [
+     "Bizzarro",
+     "M."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": "A&A 671, A76 (2023)",
+   "page": "",
+   "src": "arxiv",
+   "title": "Anatomy of rocky planets formed by rapid pebble accretion III. Partitioning of volatiles between planetary core, mantle, and atmosphere",
+   "type": "preprint",
+   "volume": "",
+   "year": 2022
+  },
   "arXiv:2207.14675": {
    "arxiv": "2207.14675",
    "authors": [
@@ -286614,7 +287021,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5301,
+ "id_next": 5323,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -287421,6 +287828,7 @@
   "10.1016/j.icarus.2019.04.023": "R0949",
   "10.1016/j.icarus.2019.05.008": "R2634",
   "10.1016/j.icarus.2019.05.034": "R0440",
+  "10.1016/j.icarus.2019.06.020": "R5322",
   "10.1016/j.icarus.2019.07.014": "R4563",
   "10.1016/j.icarus.2019.113401": "R3303",
   "10.1016/j.icarus.2019.113442": "R4332",
@@ -287601,6 +288009,7 @@
   "10.1016/s1359-6462(97)00246-7": "R1613",
   "10.1016/s1464-1917(00)00041-6": "R4759",
   "10.1016/s1567-1356(03)00160-0": "R1619",
+  "10.1016/s1631-0713(03)00006-3": "R5319",
   "10.1017/9781139020558": "R0692",
   "10.1017/9781316650684.003": "R5147",
   "10.1017/9781316650684.019": "R1207",
@@ -287655,6 +288064,7 @@
   "10.1017/s007418090022295x": "R3710",
   "10.1017/s0074180900227496": "R4457",
   "10.1017/s0079497x00021289": "R2304",
+  "10.1017/s0094837300010332": "R5320",
   "10.1017/s0252921100109674": "R0941",
   "10.1017/s0364009403390051": "R3423",
   "10.1017/s0364009403391007": "R3424",
@@ -287753,6 +288163,7 @@
   "10.1021/j100704a036": "R4068",
   "10.1021/j100792a055": "R0725",
   "10.1021/j100794a608": "R0724",
+  "10.1021/j100812a025": "R5310",
   "10.1021/j100854a056": "R3174",
   "10.1021/j150488a013": "R4359",
   "10.1021/j150542a017": "R0146",
@@ -287765,6 +288176,7 @@
   "10.1021/ja01274a001": "R2311",
   "10.1021/ja01280a018": "R2312",
   "10.1021/ja01281a008": "R3388",
+  "10.1021/ja01282a022": "R5311",
   "10.1021/ja01333a002": "R1817",
   "10.1021/ja01338a026": "R1818",
   "10.1021/ja01346a004": "R0819",
@@ -288124,6 +288536,7 @@
   "10.1038/338487a0": "R3025",
   "10.1038/340687a0": "R1918",
   "10.1038/348651a0": "R1639",
+  "10.1038/35004564": "R5321",
   "10.1038/35015531": "R1220",
   "10.1038/35059215": "R3825",
   "10.1038/35081000": "R0896",
@@ -288357,6 +288770,7 @@
   "10.1039/fs9811600033": "R1903",
   "10.1039/jr9350000506": "R4168",
   "10.1039/jr9630002853": "R1764",
+  "10.1039/jr9630004902": "R5312",
   "10.1046/j.1365-246x.1998.00521.x": "R3154",
   "10.1046/j.1365-8711.1998.01227.x": "R3107",
   "10.1046/j.1365-8711.1998.01369.x": "R5143",
@@ -288577,6 +288991,7 @@
   "10.1051/0004-6361/202039141": "R4528",
   "10.1051/0004-6361/202039507": "R4177",
   "10.1051/0004-6361/202039640": "R5210",
+  "10.1051/0004-6361/202039733": "R5308",
   "10.1051/0004-6361/202040058": "R2433",
   "10.1051/0004-6361/202040175": "R0860",
   "10.1051/0004-6361/202140390": "R0602",
@@ -291067,6 +291482,7 @@
   "10.3367/ufne.2025.05.039904": "R4994",
   "10.3367/ufnr.0089.196607g.0483": "R1213",
   "10.3389/feart.2014.00038": "R5157",
+  "10.3389/feart.2023.1159412": "R5317",
   "10.3389/feart.2023.1197363": "R2089",
   "10.3389/fmicb.2017.01212": "R4346",
   "10.3389/fmicb.2018.02152": "R1449",
@@ -291276,6 +291692,7 @@
   "10.3847/1538-4357/aad908": "R0309",
   "10.3847/1538-4357/aadd09": "R2757",
   "10.3847/1538-4357/aadd9b": "R1813",
+  "10.3847/1538-4357/aadd9f": "R5309",
   "10.3847/1538-4357/aade96": "R2079",
   "10.3847/1538-4357/aadfd6": "R0961",
   "10.3847/1538-4357/aadfdb": "R3758",
@@ -291329,6 +291746,7 @@
   "10.3847/1538-4357/ab68e4": "R2889",
   "10.3847/1538-4357/ab6a92": "R3252",
   "10.3847/1538-4357/ab6a9b": "R1515",
+  "10.3847/1538-4357/ab70ba": "R5301",
   "10.3847/1538-4357/ab7e27": "R2635",
   "10.3847/1538-4357/ab7fad": "R4610",
   "10.3847/1538-4357/ab846a": "R3232",
@@ -292746,6 +293164,7 @@
   "arxiv:2207.03151": "R4574",
   "arxiv:2207.04800": "R0410",
   "arxiv:2207.05124": "R3804",
+  "arxiv:2207.09807": "R5318",
   "arxiv:2207.10238": "R0976",
   "arxiv:2207.10243": "R0977",
   "arxiv:2207.12731": "R0430",

@@ -31,6 +31,7 @@ from planetgen.generation import generator_battery as generatorBattery
 from planetgen.generation import containers as generationContainers
 from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
+from planetgen.generation import ring_remnants as ringRemnants
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.galaxy import nebula_field as nebulaField, seed as galaxySeed
@@ -210,11 +211,32 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
         return rows, (target, own)
 
     return _draw_sector_chunks(conn, skeleton, sorted(targets), limits, draw_one, store.set_sector_bright_masses,
-                               "Sector mass backfill", settled_levels_now=True, on_sector=on_sector, shells=shells, blocks=blocks, sky_ledger=sky_ledger)
+                               "Sector mass backfill", settled_levels_now=True, on_sector=on_sector, shells=shells, blocks=blocks, sky_ledger=sky_ledger, ring_remnants=True)
+
+
+def _write_ring_remnants(c, skeleton, limits, addresses):
+    """
+    The below-cut neutron stars and black holes of `addresses`, sectors a backfill chunk has just taken down (GEN.1682), written into `phenomenon_scatter` with their classes in the chunk's own transaction
+    (the caller commits). Nothing is drawn while the galaxy has no recorded phenomenon scatter (a run's backfill: its `write-special-phenomena` unit draws them) or the scatter has no cut.
+    """
+    settings = store.phenomenon_scatter_settings(c)
+    if settings is None or settings[1] is None:
+        return
+    seed, min_mass = settings
+    rows = ringRemnants.rows_for(c, skeleton, limits, seed, min_mass, addresses)
+    if rows:
+        scatterCompanions.insert_phenomenon_scatter(c, rows)
+        store.add_phenomenon_scatter_classes(c, _class_counts(rows))
+
+
+def _class_counts(rows):
+    """`{(kind, subtype): count}` of scatter rows, as `store.add_phenomenon_scatter_classes` takes them."""
+    counts = collections.Counter(phenomenon_scatter.class_label(row[3], row[4]) for row in rows)
+    return {phenomenon_scatter.split_label(label): count for label, count in counts.items()}
 
 
 def _draw_sector_chunks(conn, skeleton, addresses, limits, draw_one, write_states, label, settled_levels_now,
-                        counts=None, on_sector=None, shells=None, blocks=None, sky_ledger=None):
+                        counts=None, on_sector=None, shells=None, blocks=None, sky_ledger=None, ring_remnants=False):
     """
     The one sector backfill loop (GEN.1662), shared by `_draw_sector_bands` and `_draw_sector_masses`: takes
     `addresses` `BACKFILL_CHUNK_SECTORS` at a time, each chunk one transaction (DB.114) run with retries: locks the
@@ -222,7 +244,9 @@ def _draw_sector_chunks(conn, skeleton, addresses, limits, draw_one, write_state
     (VIEW.25; `settled_levels_now` writes the settled levels at once, as the mass draw does, else they go out with
     the chunk's own states), then calls `draw_one(c, address, locked, masses, filled, blocks)` per address, which
     returns `None` to skip the cell or `(rows, state)`: the rows to insert and the state `write_states(c, {address:
-    state})` records for it. `counts`, `on_sector` and `shells` are as in `_draw_sector_bands`.
+    state})` records for it. `counts`, `on_sector` and `shells` are as in `_draw_sector_bands`. `ring_remnants` (the mass backfill's, GEN.1682) also
+    draws, in the same transaction, the below-cut neutron stars and black holes of the sectors the chunk took down, when the galaxy's phenomenon scatter has
+    run (`ring_remnants.rows_for`); while a run's scatter is being drawn it has not (the seed is recorded at its end), and the run's `write-special-phenomena` unit draws them.
 
     Returns:
         tuple: `(sectors drawn, stars written)`.
@@ -257,15 +281,19 @@ def _draw_sector_chunks(conn, skeleton, addresses, limits, draw_one, write_state
             else:
                 states.update(settled.levels)
             locked.update(settled.levels)
+            took_down = []
             for index, address in enumerate(chunk):
                 drawn = draw_one(c, address, locked, masses, filled, blocks)
                 if drawn is not None:
                     new_rows, states[address] = drawn
                     rows.extend(new_rows)
+                    took_down.append(address)
                 if on_sector is not None:
                     _tick(on_sector, ticked, index)
             scatterCompanions.insert_bright_stars(c, rows)
             write_states(c, states)
+            if ring_remnants and took_down:
+                _write_ring_remnants(c, skeleton, limits, took_down)
             c.commit()
             return rows, states
 
@@ -793,6 +821,8 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
     mysql_config = store.mysql_config_from_args(args)
     min_luminosity_sol = float(args.bright_star_min_luminosity)
     passes = [name for name in ("mass", "luminosity") if name in set(passes)]
+    if prepare and passes == ["luminosity"]:
+        refuse = None       # OPS.280: the prepared mass scatter before the backfill already refused a galaxy that held a scatter and emptied the table; what is under the mass limit now is the backfill's own (the sky tiers)
 
     def settings(stage):
         """What the stage's seed, mass limit and clearing are, worked out from the database when it opens (`resolve_scatter_settings`)."""
@@ -3441,7 +3471,7 @@ class WriteSpecialPhenomenaFollower(followed.Follower):
         self.bar = self.hold(steps.Step("Drawing the special phenomena", "phenomena-special", 1, args=self.args, progress=self.progress, force=True))
 
     def on_progress(self, unit, done, estimate):
-        self.bar.update(completed=done, total=estimate, description=("Drawing the special phenomena", "Writing the special phenomena")[min(int(done), 1)])
+        self.bar.update(completed=done, total=estimate, description=("Drawing the special phenomena", "Writing the special phenomena", "Drawing the backfill rings' neutron stars and black holes")[min(int(done), 2)])
 
     def on_result(self, unit, result):
         special = result["special"]
@@ -3659,8 +3689,11 @@ def expand_write_special_phenomena(params):
     return commands.Expansion([(params, 1.0)], {})
 
 
-WRITE_SPECIAL_PIECES = ("draw", "write")
-"""tuple: The two pieces of the `write-special-phenomena` unit, in order (OPS.199, OPS.239): the special rows drawn, and written with their classes."""
+WRITE_SPECIAL_PIECES = ("draw", "write", "remnants")
+"""tuple: The three pieces of the `write-special-phenomena` unit, in order (OPS.199, OPS.239, GEN.1682): the special rows drawn, written with their classes, and the below-cut neutron stars and black holes of the backfill ring sectors drawn and written with theirs."""
+
+RING_REMNANT_DRAW_SECTORS = 200
+"""int: How many backfill ring sectors the `remnants` piece draws before it writes what they hold. Defined by the program, not a physical value."""
 
 
 def write_special_pieces(params, cursor):
@@ -3683,6 +3716,8 @@ def write_special_do(params, piece, ctx):
         filled = store.filled_sector_addresses(conn)
         reach = getattr(skeleton, "reach_shell_index", None) if program_constants.SCATTER_COVERS_REACH else None
         return [list(row) for row in phenomenon_scatter.special_rows(extents, skeleton.edge_pc, params["seed"], skeleton.shape, filled, reach)]
+    if piece == "remnants":
+        return _write_special_remnants(params, ctx)
     special = ctx.results[0]
     counts = collections.Counter(phenomenon_scatter.class_label(row[3], row[4]) for row in special)
 
@@ -3697,9 +3732,48 @@ def write_special_do(params, piece, ctx):
     return dict(counts)
 
 
+def _write_special_remnants(params, ctx):
+    """
+    The `remnants` piece of the `write-special-phenomena` unit (GEN.1682): draws the neutron stars and black holes below the scatter's cut for every backfill ring sector (`store.backfilled_uncharted_addresses`: a sector the
+    mass backfill took down and no run has charted) that holds none yet, `RING_REMNANT_DRAW_SECTORS` sectors at a time, and writes them with their members and classes as one transaction with the piece's cursor (`ctx.commit_piece`).
+    The galaxy's scatter is not recorded until a later unit, so the backfill itself, which ran before this unit, drew none. Reads the cells that hold some from one read of the table (it has no index now).
+
+    Returns:
+        dict: `{label: count}` of what was written, as the `write` piece returns.
+    """
+    conn = ctx.db
+    min_mass = params["min_mass_solar"]
+    skeleton = ctx.kept("skeleton", lambda: store.get_galaxy_shape(conn))
+    limits = store.scatter_limits_of(conn, skeleton)
+    addresses = store.backfilled_uncharted_addresses(conn)
+    held = store.addresses_holding_below_cut_remnants(conn, min_mass)
+    ctx.step("Neutron stars and black holes of the backfill rings", len(addresses))
+    counts = collections.Counter()
+
+    def write_remnants(c):
+        """Every chunk's rows, their members and classes, as one transaction (DB.114): a try that fails is rolled back whole."""
+        contention.begin_read_committed(c)
+        counts.clear()
+        for start in range(0, len(addresses), RING_REMNANT_DRAW_SECTORS):
+            chunk = addresses[start:start + RING_REMNANT_DRAW_SECTORS]
+            rows = ringRemnants.rows_for(c, skeleton, limits, params["seed"], min_mass, chunk, held=held)
+            if rows:
+                scatterCompanions.insert_phenomenon_scatter(c, rows)
+                counts.update(phenomenon_scatter.class_label(row[3], row[4]) for row in rows)
+            ctx.advance(len(chunk))
+        store.add_phenomenon_scatter_classes(c, {phenomenon_scatter.split_label(label): count for label, count in counts.items()})
+        ctx.commit_piece(dict(counts))
+
+    contention.run_once(conn, write_remnants)
+    return dict(counts)
+
+
 def write_special_result(params, results, ctx):
-    """The `write-special-phenomena` unit's result: `special`, how many special phenomena of each class were written (the last piece's result)."""
-    return {"special": dict(results[-1])}
+    """The `write-special-phenomena` unit's result: `special`, how many phenomena of each class were written (the `write` and `remnants` pieces' results added)."""
+    special = collections.Counter()
+    for result in results[1:]:
+        special.update(result)
+    return {"special": dict(special)}
 
 
 def expand_build_phenomenon_indexes(params):

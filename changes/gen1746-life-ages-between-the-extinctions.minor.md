@@ -1,0 +1,5 @@
+**Headline:** A world's life now has a table of ages: the stretches between its mass extinctions, cut at the events that kill 30 percent or more of the species, each starting one recovery lag after the extinction before it; nothing reads it yet, so no world changes.
+
+### Added
+
+- GEN.1746 slice 2: new `physics/life_ages.py`: `ages_of(body, begin_gyr)` takes the flood basalts and impacts of `air_events.events_of` from the age life began and cuts the history at the ones that kill at least `AGE_KILL_THRESHOLD` (0.30) of the species, giving each `LifeAge` its start, end, cause and kill share and the open age the world is in; events within the 10 Myr recovery lag [R5321] of an extinction are part of it. `smallest_impact_km(threshold)` solves the impact size law for the size whose kill reaches a threshold (4.1 km at 30 percent). On generated worlds from 1 Gyr: 1 to 4 extinctions on the worlds that left the heavy bombardment, 70 to 200 on the ones still in it; 0.03 to 6 s a body. Stand-ins LA1 and LA2 in section 6.314.

@@ -10,7 +10,9 @@
 // screen (the node has long since split it), and at most REGION_BUDGET are drawn, the strongest on the screen. No DOM and no
 // three.js here: tests/js/galaxynebulae.test.mjs holds it to this description.
 
-import { COVER_EDGES } from "./galaxyblocks.js";
+// The sibling is imported with this file's own version (a static import would drop `?v=`).
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { COVER_EDGES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 
 // The most regions drawn at once; the weakest of more are not drawn, and the last tenth of the budget fades out so none pops.
 // MAP.367: half of what it was (600).

@@ -175,7 +175,7 @@ REGISTRY = _commands(
                 expand=("planetgen.generation.run_plan", "expand_scatter_phenomena"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=6, resumes=True),
-    CommandSpec("write-special-phenomena", "Draw and write the special phenomena (the nucleus and the hypervelocity stars) with their classes, one unit",
+    CommandSpec("write-special-phenomena", "Draw and write the special phenomena (the nucleus and the hypervelocity stars) and the below-cut neutron stars and black holes of the backfill rings, with their classes, one unit",
                 pieces=("planetgen.generation.run_plan", "write_special_pieces"), do=("planetgen.generation.run_plan", "write_special_do"),
                 gather=("planetgen.generation.run_plan", "write_special_result"),
                 expand=("planetgen.generation.run_plan", "expand_write_special_phenomena"), breaks=ONE_UNIT, resumes=True),

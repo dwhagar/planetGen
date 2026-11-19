@@ -126,7 +126,7 @@ READS = {
     ),
     "write-special-phenomena": (
         "bright_stars", "chart_ledger", "galaxy_block_light_parts", "galaxy_components", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters",
-        "orbit_simulation_state", "phenomenon_scatter",
+        "orbit_simulation_state", "phenomenon_scatter", "sector_stats",
     ),
     "finish-warm-galaxy-deep-nodes": ("*",),
     "finish-warm-galaxy-nodes": ("*",),
@@ -225,7 +225,7 @@ WRITES = {
         "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
     ),
     "write-special-phenomena": (
-        "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs",
+        "galaxy_block_light_parts", "galaxy_shape", "generator_epoch", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_epochs", "scatter_members", "scatter_nodes",
     ),
     "finish-warm-galaxy-deep-nodes": (),
     "finish-warm-galaxy-nodes": (),
@@ -252,7 +252,7 @@ WRITES = {
     "count-population": ("population_state", "species", "system_interests"),
     "run-territories": ("system_owners",),
     "scatter-backfill": (
-        "bright_stars", "galaxy_block_light_parts", "id_counters", "scatter_members", "scatter_nodes", "sector_stats",
+        "bright_stars", "galaxy_block_light_parts", "id_counters", "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_members", "scatter_nodes", "sector_stats",
     ),
     "scatter-band": SCATTER_STAR_WRITES,
     "scatter-luminosity": SCATTER_STAR_WRITES,

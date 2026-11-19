@@ -114,7 +114,7 @@ PLANET_ROCKY_ZONE_START_AU = 0.45
 # orbits are slow and the disk is thin (Uranus and Neptune grow in a few Myr only by pebble accretion,
 # recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
 # stand-in (tier T6, tweak L3) tuned with the giants' occurrence (`GIANT_GAS_SURVIVAL_SHARE`) and the count of the Neptune-mass planets beyond the
-# snow line ([R4271]: about 0.5 per star, recalled).
+# snow line ([R4271]: about 0.5 per star, recalled). This is the distance at one solar mass: `planet_mass.growth_limit_au` scales it with the star's mass (GEN.1539, registered in PA1).
 PLANET_OUTER_GROWTH_AU = 11.36
 PLANET_OUTER_GROWTH_EXPONENT = 2.889
 # A planet's solids are never more than this fraction of its star's mass (a disk holds about 1% of its star).
@@ -211,7 +211,8 @@ INNER_SPACING_SIGMA_LN = 0.25
 # The period of the first planet of an inner system, days: log-normal about this median with this width in dex (GEN.1709). The occurrence of small planets
 # is flat per logarithm of period from 8 to 128 days ([R2020: Table 2], read), so the first planet of the Kepler-like systems sits anywhere in
 # that range and its neighbours follow outward at the spacing above; a first planet at 5 days with a width of 0.2 dex put every inner planet inside 30 days. A planetGen
-# stand-in (tier T6, tweak L2: tuned to that flat shape and to the planets inside 400 days per star), registry row PA19.
+# stand-in (tier T6, tweak L2: tuned to that flat shape and to the planets inside 400 days per star), registry row PA19. The period is the same for every star on purpose (GEN.1793): the
+# edge the first planet sits outside is the co-rotation radius, whose distance goes as the cube root of the stellar mass, which is one orbital period ([R3196], abstract read).
 INNER_FIRST_PERIOD_MEDIAN_DAYS = 25.0
 INNER_FIRST_PERIOD_SIGMA_DEX = 0.7
 # The inner system ends at this period (days); the outer chain starts this many times beyond it (as a period) or past the last inner planet (as a distance).
@@ -428,16 +429,10 @@ CHAIN_K_EFF = 12.0
 DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
 
 # Real disks are truncated far short of a star's own galactic-tidal Hill
-# sphere (`Star.system_perimeter`, tens to hundreds of thousands of AU) --
-# viscous spreading and photoevaporation cut them off at tens to a few
-# hundred AU (ALMA disk-size surveys). Rather than a flat AU figure, this
-# scales with the same star-dependent quantity that sets where solids can
-# even condense in the first place: the snow line
-# (`formation.snow_line_au`, drawn per star and stored: `Star.snow_line_au`) --
-# our own Solar System's own giant-planet/Kuiper-belt region extends to
-# roughly this same multiple (~18x) of its own ~2.7 AU snow line. See
-# `StarSystem._plan_architecture`.
-DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
+# sphere (`Star.system_perimeter`, tens to hundreds of thousands of AU): the
+# gas disk's outer edge is drawn per star from its mass at formation
+# (`physics/disk_size.py`, GEN.1520: 100 au for the Sun, M^0.5, a factor of 2
+# of scatter), and `StarSystem._disk_outer_edge_au` places the planets to it.
 
 # The scatter of a star's own snow line around the blackbody position for its
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
