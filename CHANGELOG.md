@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4596] - 2026-11-19
+
+**Headline:** A New galaxy job no longer stops at its luminosity scatter, which took the backfill's sky stars for a luminosity scatter already stored.
+
+### Fixed
+- **The luminosity scatter of a job refused the job's own backfill (OPS.280).** In a job where a backfill comes before the massive-star scatter, the massive-star scatter already refuses a galaxy that holds a scatter and empties the table before the backfill; the luminosity scatter after it then found the backfill's sky stars under the mass limit and stopped with "The bright-star scatter is already stored". A luminosity scatter prepared that way no longer checks. A luminosity scatter on its own still refuses a stored one. A test runs the job's chain end to end.
+
 ## [8.0.4595] - 2026-11-19
 
 **Headline:** A generation run now shows as running with its start time in the job ledger, and the bright-star backfill stage writes a status line with real counts and a time left every five minutes.
