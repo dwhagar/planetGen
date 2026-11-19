@@ -11267,13 +11267,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14 prebuild (profile function), Lane 03 review and the wiring. Prerequisites: GEN.994 (equilibrium_edges, PR 5976). Related: GEN.994, GEN.1559, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **GEN.1583 Research the nitrogen budget: nitrogen degasses at efficiency 1.0 with no sink, so an Earth analog holds a median 164 kPa and 37 percent hold over 300 kPa; find why the inventory is so wide and what retention and sinks the papers give**
-  Class M audit (coordinator relay, 2026-11-12), reports/class-m-audit-2026-11-12/class-m-generation-audit-2026-11-12.md section 3.3 and fix 2. Measured on 800 Earth-analog trials: median surface 335 K, nitrogen median 164 kPa against Earth's 78, over 300 kPa in 37 percent. The audit did not trace why the inventory is that wide (the recipe draw against the late-accretion share); that is the first step. Do: trace the nitrogen inventory draw to its source in the recipe and late-accretion code, then research mantle and magma-ocean nitrogen retention (nitrogen is siderophile-leaning and partly retained in the mantle and core) and any surface sink (biological and abiotic fixation, burial, nitrogen in sediments), reading papers in full and citing as [R....] ids (secondary sources accepted); propose a degassing share and sink in the way hydrogen's is done (reuse that code and its structure), with a range so the uncertain parts are drawn, not one value. Done: a report (reports/gen1583-nitrogen-budget-...md) with the proposed law and the expected Earth-analog median pressure (target near 80 kPa for an Earth-mass planet at 1 au), the GEN.725 stand-in rows to register, and the before and after on scripts/earth_analog.py (TEST.726). Research only; the build is GEN.1584.
-  Boss, 9:46 PM EST on 2026-11-11 (as the coordinator relayed, audit item 3): 'Alright, research it.' Approved as research; the build GEN.1584 waits for the report.
-  Correction (TODO, 2026-11-12): Boss's 'Fix that please' (9:46 PM relay) was for the nitrogen break, so the build GEN.1584 is approved now; this research runs beside it and supplies the sourced sink and share, it does not hold the build. Boss, 8:55 PM EST on 2026-11-11 (as the coordinator relayed): 'Confirmed fix all' and 'Build it and Ship it': every Class M audit item is approved and buildable, for the earliest train (Train 25 first).
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 02. Prerequisites: none. Related: GEN.1584, GEN.1581, GEN.725, TEST.726.
-  Filed by the TODO thread. Class M audit.
-
 - [ ] **UX.305 (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212**
   From the class description audit (as reported 9:58 PM EST on 2026-11-11; report reports/class-descriptions-vs-code-2026-11-12.md; text-only fixes in PR 6142). Do: read planet_class_text.description instead, and test that each class facet has a tooltip. Lock-free.
   Version 8.1 (Class M and class fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1212. Boss's call on the choice where noted.
@@ -11407,20 +11400,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-14): absorbed by the job engine (Boss 6:57 PM EST 11-13), built as OPS.217 (stage 3). Prerequisites: none. Related: OPS.181, OPS.130.
   Filed by the TODO thread.
 
-- [ ] **OPS.225 Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle L11); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row L11 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: grows with OPS.216-222. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-  Slice 2 merged (PR 7116, 2026-11-17): a seeded proof that a held run resumes to the undisturbed result with done units run once. Last piece (TODO accepted Lane 13's plan, 7:48 PM EST): real-MySQL kill tests in five slices by command family, order sector making, scatters, maintenance writes, resets and clears, checks and warm-ups; a double write found is fixed in the same PR, and an output change goes to a train.
-  Slices so far (Lane 13): sector making PR 7161 and kill_harness (10:39 PM EST 2026-11-17); scatter family PR 7169 (11:50 PM EST: clear-bright-stars, scatter-mass, scatter-luminosity, scatter-band, scatter-phenomena; no double write). Still to cover: scatter-backfill, clear-scatter, store-scatter-limits.
-  Lane 13, 2026-11-18: kill tests merged for sky backfill (PR 7220), clear-scatter (PR 7221), rescore-habitability and refill-effect-ledger (PR 7222), fill-map-luminosity (PR 7224); no double write found. Slice 1 done; slice 3 continues with block refreshes, date-civilizations, run-territories, scan-species, write-special-phenomena, nebula field and phenomenon index; then slices 4 and 5.
-
-- [ ] **OPS.246 Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt)**
-  From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H1); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row H1 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
-  Version 8.1. Owner (TODO, 2026-11-14): Lane 13. Prerequisites: stages 3 to 5. Related: OPS.191, OPS.207, OPS.212.
-  Filed by the TODO thread.
-  From OPS.240 (Lane 16, 1:26 AM EST 2026-11-18): add a test that kills the launcher process itself between two windows; OPS.240 covers it only by a window written twice, an unreadable window holding the run, and a carry across windows after a held unit.
-
 - [ ] **OPS.247 Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143**
   From the job-engine stage 3-6 breakdown (/mnt/project-files/reports/job-engine-items-stage-3-6-2026-11-13.md, handle H2); design /mnt/project-files/reports/job-engine-design-2026-11-13.md. Boss, 6:57 PM EST 11-13: stages 3 to 6 released and every deferred queue item folded into this plan ("send all of that to the thread to build its plan and design to ship to TODO to be built"); stages build in order after OPS.191-214. Do: as the breakdown's row H2 says (reuse and delete columns named there; name reuse in the PR; lands with its simulator scenario or kill test). Size M. Lock-free unless the PR finds otherwise. Output unchanged, no epoch.
   Version 8.1. Owner (TODO, 2026-11-18): Lane 15 (moved from Lane 07, not started there), after Train 45 merges. Prerequisites: stage 4. Related: OPS.191, OPS.207, OPS.212.
@@ -11524,21 +11503,6 @@ clears each one.
 - [ ] **OPS.279 Shrink the job-engine template's own heap so forked sky shares copy less (about 960 MB of each 1,295 MB share is the template's pages copied on touch; 268 MB of its objects are small sets)**
   Lane 13, 6:27 AM EST 2026-11-18 (OPS.270 slice 2, /mnt/project-files/engine/ops270/): the stellar-evolution caches total about 330 MB and are worth their size, so no cache size change and the 1,650 MB claim stays. The lever for more shares at once is the template heap. Inference from two figures, not a page count: measure copied pages first. Do: count copied pages per share, find what builds the small sets, and shrink or freeze them before fork; report the new share size and claim.
   Version 8.1. Owner (TODO, 2026-11-18): Lane 13, after OPS.225 and OPS.246, lock-free. Prerequisites: OPS.270. Related: OPS.237, OPS.225.
-  Filed by the TODO thread.
-
-- [ ] **OPS.280 (bug, high) Boss's New galaxy job fails after 4 h at stage 9: scatter --luminosity finds the bright-star scatter already stored, because stage 7's sky tiers next to the backfill store 2,133,783 bright stars under 14 solar masses**
-  Lane 15, 1:40 AM EST 2026-11-19 (OPS.247 Run A, Boss's exact New galaxy job spec and seed, 8.0.4584, database trial247a): "The bright-star scatter is already stored -- run 'planetgen clear-scatter --luminosity' first" when the spec's next command opens; scatter_stored('luminosity') is true from stage 7's rows. Do: decide whether stage 7 should not store the luminosity tier or the spec should not run a separate luminosity scatter; fix that side once (no guard that hides it); add a test that runs the job's command chain end to end.
-  Version 8.1. Owner (TODO, 2026-11-19): Lane 13, ahead of the rest of OPS.225; lock item if stored output changes. Prerequisites: none. Related: OPS.247, OPS.225.
-  Filed by the TODO thread.
-
-- [ ] **OPS.281 (bug) Generation runs stay 'waiting' with no started_at in engine_runs while they run (only page runs and retry-held runs set 'running')**
-  Lane 15, 1:40 AM EST 2026-11-19 (OPS.247 Run A, Boss's exact New galaxy job spec and seed, 8.0.4584, database trial247a). Do: every run records running and started_at when its first unit starts, so the admin pages and ETAs read the truth.
-  Version 8.1. Owner (TODO, 2026-11-19): Lane 16, lock-free. Prerequisites: none. Related: OPS.247, OPS.225.
-  Filed by the TODO thread.
-
-- [ ] **OPS.282 (bug) Stage 7 (mass scatter from the neighborhood plus backfill) shows no real-count line for 1 h 57 m**
-  Lane 15, 1:40 AM EST 2026-11-19 (OPS.247 Run A, Boss's exact New galaxy job spec and seed, 8.0.4584, database trial247a): only "Backfilling the bright stars out from the edge of the run...". Boss's standing order: every long step shows real counts. Do: a secondary progress line with counts (cells or sky tiers done of total, stars placed) and an HMS ETA.
-  Version 8.1. Owner (TODO, 2026-11-19): Lane 16, lock-free. Prerequisites: none. Related: OPS.247, OPS.225.
   Filed by the TODO thread.
 
 - [ ] **TEST.791 (bug) Stale test reds on main after the job engine and fill changes: test_gen_fill_order (ValueError unpack at line 115), test_unit_reports (reports[0] is (0.0, 10.0), expects (0, 1)), test_readme_external_files (Gaia query text differs), test_cut_neutral (no page_cache on the namespace), test_generation_stats (disk space)**

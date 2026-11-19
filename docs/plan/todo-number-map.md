@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.51 |
 | TEST | TEST.793 |
 | USR | USR.33 |
-| OPS | OPS.283 |
+| OPS | OPS.284 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3042,7 +3042,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.222 | Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted | none | done, part A PR #6657 (6:49 AM EST 11-15), part B PR #6703 (1:14 PM EST 11-15) |
 | OPS.223 | Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146 | none | done, PR #6621 (4:38 AM EST 11-15) |
 | OPS.224 | Job engine stage 3: Queue page from the ledger (jobs and history by query; a job shows its attempts and why it waits) | none | done, PRs #6622 (5:02 AM EST) and #6644 (5:44 AM EST 11-15) |
-| OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | open |
+| OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | done (Lane 13 kill tests PRs 7220, 7221, 7222, 7224, 7242, 7243, 7245; merged 11-18 and 11-19 by 4:00 AM EST; no double write found) |
 | OPS.226 | Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side | none | done (built and in use since OPS.228, Lane 06 check 1:27 AM EST 11-18; docstrings PR 7182; kill tests are OPS.236) |
 | OPS.227 | Job engine stage 4: the dispatch rule over the whole backlog (site lanes first against kept places, then scheduler.judge; reservations last until used; each job's last reason stored); absorbs OPS.124 with OPS.231 and OPS.232 | none | done, PR #6652 (6:34 AM EST 11-15) |
 | OPS.228 | Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane) | none | done (PRs 6995, 7011, 7027, 7040, 7062; 7:58 AM EST 11-17: every ledgered run's bulk lane runs as forked jobs; deleting the RQ unit path moves to OPS.271 then OPS.229) |
@@ -3063,7 +3063,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.243 | Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261 | none | done, PRs #6757, #6767 (9:45 PM EST 11-15) |
 | OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | done (slice A PR 7107, slice B PR 7163, slice C PR 7168 merged 11:47 PM EST 11-17: Generate page jobs are ledger runs; Lane 15 re-measures the cold one-off request after the Train 45 gate) |
 | OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | done (PR 7191, Lane 16, merged 2:04 AM EST 11-18: seeded random runs with windows, holds, kills; no engine bug found) |
-| OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | open |
+| OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | done (PRs 7244, 7246 and 7247, Lane 13, merged by 4:15 AM EST 11-19: launcher window kills, seeded chain kill test with seed and kill switches for the end-of-version hunt, TRANSITIONS table, cancel while killed) |
 | OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | open |
 | OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | done (PR 7094 merged 12:41 PM EST 11-17: ledger-read latency is a second signal for the memory controller's hold) |
 | OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | open |
@@ -3097,9 +3097,10 @@ Parents marked "new parent" had no old number of their own.
 | OPS.277 | Held-run reds in maintenance and finish-run tests | none | done (PR 7231, Lane 15, merged 8:30 PM EST 11-18: both test faults; the held-run outcome is right) |
 | OPS.278 | Galaxy test database lacks engine_runs | none | done (PR 7233, Lane 07, merged 8:58 PM EST 11-18: shared control_config fixture builds the control schema in the test database) |
 | OPS.279 | Template heap copied into each sky share | OPS.270 | open (Lane 13) |
-| OPS.280 | New galaxy job stops at the luminosity scatter (stage 7 already stored it) | none | open (Lane 13) |
-| OPS.281 | Generation runs never show as running | none | open (Lane 16) |
-| OPS.282 | Stage 7 backfill shows no counts | none | open (Lane 16) |
+| OPS.280 | New galaxy job stops at the luminosity scatter (stage 7 already stored it) | none | done (PR 7240, Lane 13, merged 2:58 AM EST 11-19: a prepared luminosity scatter no longer refuses after the backfill) |
+| OPS.281 | Generation runs never show as running | none | done (PR 7239, Lane 16, merged 2:35 AM EST 11-19: runs record running and started_at, and done with finished_at) |
+| OPS.282 | Stage 7 backfill shows no counts | none | done (PR 7239, Lane 16, merged 2:35 AM EST 11-19: backfill progress line with counts and HMS time left) |
+| OPS.283 | Big unit arguments overflow the template socket; a unit that cannot start leaves its run waiting | none | done (PR 7248, Lane 15, merged 4:20 AM EST 11-19: arguments over 64 KB go by a file in the state folder; a start failure holds the run with its error) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -3930,7 +3931,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1580 | Raise the 2,000 K upper temperature cap to a sourced, very high physical ceiling (the ionization or plasma temperature of the air's main gas at its pressure, tens of thousands of K), after checking nothing assumes 2,000 K | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1581 | Research the lowest carbon dioxide at which oxygen-making (oxygenic) photosynthesis works, and replace the 5 Pa stand-in gate of life classes 1a, 1b and 1c with the sourced value | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1582 | Move the upper oxygen edge of classes M, O, H, P and R clear of the biotic oxygen cap (the edge is 35,500 Pa and the cap 35,463.75 Pa, so M passes by 36 Pa) | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
-| GEN.1583 | Research the nitrogen budget: nitrogen degasses at efficiency 1.0 with no sink, so an Earth analog holds a median 164 kPa and 37 percent hold over 300 kPa; find why the inventory is so wide and what retention and sinks the papers give | none | open |
+| GEN.1583 | Research the nitrogen budget: nitrogen degasses at efficiency 1.0 with no sink, so an Earth analog holds a median 164 kPa and 37 percent hold over 300 kPa; find why the inventory is so wide and what retention and sinks the papers give | none | closed (Lane 04, 2:42 AM EST 11-19: research built as GEN.1584 and GEN.1646; Earth analog N2 quartiles 29, 81, 131 kPa; no Class M gain; NB1 sources R5317, R5318 in PR 7241) |
 | GEN.1584 | Build the nitrogen degassing share and sink from the GEN.1583 research so Earth-mass air centres near 80 kPa of nitrogen instead of 164 | none | done, Train 25 PR 6236, 2:55 AM EST 11-13; piece B dropped by Boss |
 | GEN.1585 | Re-check that classes H and P are reachable after GEN.1581 and GEN.1584 (0 in 4,800 Earth-analog trials today); if still 0, look at the brine-seep rule and P's oxygen need | GEN.1581, GEN.1584 | done (measured, Lane 05, 12:28 AM EST 11-18: 0 H and 0 P in 2,400 Earth-analog trials; both stop at oxygen, the 600 Pa plateau BO11 held until R < S/BO12; levers to GEN.1791) |
 | GEN.1586 | Replace how the classes read wet-bulb temperature: today the daytime peak of the hottest band is read against M's 28 C edge, which is about 15 K over the band mean, so Earth itself sits on the edge (median 28.0 C at 288 K) | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |

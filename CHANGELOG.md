@@ -2,6 +2,67 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4604] - 2026-11-19
+
+**Headline:** A job whose arguments are bigger than the control socket takes is handed them by a file, and a job that cannot be started holds its run (OPS.283).
+
+### Fixed
+
+- OPS.283 (bug): the arguments of a unit over 64 KB go to the job in a file in the state folder (`job-arguments`) instead of down the control socket, which refused a message over about 213 KB. The template reads the file and deletes it, the supervisor deletes it when the hand-over fails, and a file left by a supervisor that ended is swept after a day. The template reads only files of that folder.
+- OPS.283 (bug): a job that cannot be started (its process was never forked) left its row `failed` while its run went on `running` with a unit that would never end. The run now holds with the error text, the unit among the stage's held ones, as for a unit that failed after it ran. A page step fails the steps after it and an opening holds its run.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4603] - 2026-11-19
+
+**Headline:** Kill test for a run canceled while its job is killed (OPS.246).
+
+### Added
+
+- A kill test with real processes: a run canceled while its job process is killed, in either order, ends with the unit canceled, never handed out again, and no piece done twice. The table of killed engine transitions names it.
+
+## [8.0.4602] - 2026-11-19
+
+**Headline:** Kill matrix over a whole galaxy run and the warm-up after it, with every engine transition named (OPS.246).
+
+### Added
+
+- A seeded chain test: the sectors, the sky charting and the settling of the paths, then the object index warm-up, with units killed at drawn commits along the whole chain, ends as an undisturbed chain ends (galaxy, stars, cells, spheres, and an index holding every object once). The gate runs 2 seeds with at most 4 kills each; `PLANETGEN_ENGINE_CHAIN_SEEDS` and `PLANETGEN_ENGINE_CHAIN_KILLS` raise both for the end-of-version hunt.
+- A table of the engine's named transitions (claim, commit, end of a unit, hold, retry, finish of a run, end of a stage, window write, launcher hand-over, template and kernel kills) with the test that kills each, and a test that every one of those tests exists.
+
+## [8.0.4601] - 2026-11-19
+
+**Headline:** Kill test for the object index warm-up (OPS.225).
+
+### Added
+
+- A kill test for `warm-object-index`: the unit is killed once before or after a write or sweep of the index at drawn steps, and the rerun leaves an index with every object once and nothing missing, different or extra (`objectindex.check`). No double write was found.
+
+## [8.0.4600] - 2026-11-19
+
+**Headline:** Kill test for the launcher stopped between two windows of a stage (OPS.246).
+
+### Added
+
+- A kill test that stops `planrows.spawn_window` before and after every commit of a window, one kill at a time over a whole stage, with the next launcher carrying on: every unit row is written once, no gap, and the cursor reaches the end. No double write was found.
+
+## [8.0.4599] - 2026-11-19
+
+**Headline:** Kill test for the galaxy reset (OPS.225).
+
+### Added
+
+- A kill test for `reset-galaxy`: the wipe is killed once before or after a table or the tidying at drawn steps, and the rerun leaves every content table empty with the Object ID counters kept, as an undisturbed reset does. No double write was found.
+
+## [8.0.4598] - 2026-11-19
+
+**Headline:** Kill test for the population and territories passes (OPS.225).
+
+### Added
+
+- A kill test for `run-population` and `run-territories`: units are killed once each at random commits, the same galaxy is populated again from its own stored ids, and the species, polities and owners match an undisturbed pass. No double write was found.
+
 ## [8.0.4597] - 2026-11-19
 
 **Headline:** The two 2023 papers behind the nitrogen partition table are in the citation registry.
