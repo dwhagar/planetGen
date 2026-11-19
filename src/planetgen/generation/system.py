@@ -1475,7 +1475,7 @@ class StarSystem:
                         break
                     continue
 
-                given = dict(planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au, collision_count=max(int(seed.merged) - 1, 0))
+                given = dict(planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au, collision_count=max(int(seed.merged) - 1, 0), plan_eccentricity=seed.eccentricity)
                 if apply_guarantees and hz and self._habitable_requested():
                     planet = self._planet_in_ecosphere(star, habitable_zone, estimated_distance, **given)
                 else:
