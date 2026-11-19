@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.51 |
 | TEST | TEST.793 |
 | USR | USR.33 |
-| OPS | OPS.280 |
+| OPS | OPS.283 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3097,6 +3097,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.277 | Held-run reds in maintenance and finish-run tests | none | done (PR 7231, Lane 15, merged 8:30 PM EST 11-18: both test faults; the held-run outcome is right) |
 | OPS.278 | Galaxy test database lacks engine_runs | none | done (PR 7233, Lane 07, merged 8:58 PM EST 11-18: shared control_config fixture builds the control schema in the test database) |
 | OPS.279 | Template heap copied into each sky share | OPS.270 | open (Lane 13) |
+| OPS.280 | New galaxy job stops at the luminosity scatter (stage 7 already stored it) | none | open (Lane 13) |
+| OPS.281 | Generation runs never show as running | none | open (Lane 16) |
+| OPS.282 | Stage 7 backfill shows no counts | none | open (Lane 16) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -5017,7 +5020,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.789 | test_secular_exchange_generation fails under load: find the load-order effect | done (PR 7007, 1:49 AM EST 11-17: one test moved the shared systems; it now builds its own) |
 | TEST.790 | A controlled greenhouse test: doubled infrared-active gases never lower the greenhouse | done (PR 7019, 2:41 AM EST 11-17; hydrogen-rich airs scoped out, see GEN.1781) |
 | TEST.791 | Stale test reds on main (fill order, unit reports, readme, cut neutral, stats) | none | open (Lane 14) |
-| TEST.792 | Main reds after Train 47: test_page_shell (galaxynebulae.js import) and test_user_agent (gaia_nearby.py not in OUTGOING) | none | open (Lane 16) |
+| TEST.792 | Main reds after Train 47: test_page_shell (galaxynebulae.js import) and test_user_agent (gaia_nearby.py not in OUTGOING) | none | done (PR 7237, Lane 16, merged 10:15 PM EST 11-18: galaxynebulae.js import with VERSION_QUERY; gaia_nearby.py listed in OUTGOING) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

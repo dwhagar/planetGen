@@ -11526,14 +11526,24 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-18): Lane 13, after OPS.225 and OPS.246, lock-free. Prerequisites: OPS.270. Related: OPS.237, OPS.225.
   Filed by the TODO thread.
 
+- [ ] **OPS.280 (bug, high) Boss's New galaxy job fails after 4 h at stage 9: scatter --luminosity finds the bright-star scatter already stored, because stage 7's sky tiers next to the backfill store 2,133,783 bright stars under 14 solar masses**
+  Lane 15, 1:40 AM EST 2026-11-19 (OPS.247 Run A, Boss's exact New galaxy job spec and seed, 8.0.4584, database trial247a): "The bright-star scatter is already stored -- run 'planetgen clear-scatter --luminosity' first" when the spec's next command opens; scatter_stored('luminosity') is true from stage 7's rows. Do: decide whether stage 7 should not store the luminosity tier or the spec should not run a separate luminosity scatter; fix that side once (no guard that hides it); add a test that runs the job's command chain end to end.
+  Version 8.1. Owner (TODO, 2026-11-19): Lane 13, ahead of the rest of OPS.225; lock item if stored output changes. Prerequisites: none. Related: OPS.247, OPS.225.
+  Filed by the TODO thread.
+
+- [ ] **OPS.281 (bug) Generation runs stay 'waiting' with no started_at in engine_runs while they run (only page runs and retry-held runs set 'running')**
+  Lane 15, 1:40 AM EST 2026-11-19 (OPS.247 Run A, Boss's exact New galaxy job spec and seed, 8.0.4584, database trial247a). Do: every run records running and started_at when its first unit starts, so the admin pages and ETAs read the truth.
+  Version 8.1. Owner (TODO, 2026-11-19): Lane 16, lock-free. Prerequisites: none. Related: OPS.247, OPS.225.
+  Filed by the TODO thread.
+
+- [ ] **OPS.282 (bug) Stage 7 (mass scatter from the neighborhood plus backfill) shows no real-count line for 1 h 57 m**
+  Lane 15, 1:40 AM EST 2026-11-19 (OPS.247 Run A, Boss's exact New galaxy job spec and seed, 8.0.4584, database trial247a): only "Backfilling the bright stars out from the edge of the run...". Boss's standing order: every long step shows real counts. Do: a secondary progress line with counts (cells or sky tiers done of total, stars placed) and an HMS ETA.
+  Version 8.1. Owner (TODO, 2026-11-19): Lane 16, lock-free. Prerequisites: none. Related: OPS.247, OPS.225.
+  Filed by the TODO thread.
+
 - [ ] **TEST.791 (bug) Stale test reds on main after the job engine and fill changes: test_gen_fill_order (ValueError unpack at line 115), test_unit_reports (reports[0] is (0.0, 10.0), expects (0, 1)), test_readme_external_files (Gaia query text differs), test_cut_neutral (no page_cache on the namespace), test_generation_stats (disk space)**
   Train Manager and Lane 16 (Train 46 gate, 6:54 AM EST 2026-11-18; Lane 13 at 6:18 AM EST): red on main bbc8ddd196. Do: per test, say whether the product or the test is wrong and fix that side (a test follows a deliberate product change; a product fault is fixed in the product); test_generation_stats: check whether it is the gate box's disk or a real write size. No loosened bounds, no skips.
   Version 8.1. Owner (TODO, 2026-11-18): Lane 14, lock-free unless stored output changes. Prerequisites: none. Related: OPS.277, OPS.278.
-  Filed by the TODO thread.
-
-- [ ] **TEST.792 (bug) Main reds after Train 47: test_page_shell (the galaxynebulae.js import line) and test_user_agent (gaia_nearby.py makes an outgoing request that is not in OUTGOING)**
-  Train Manager, 9:53 PM EST 2026-11-18 (Train 47 gate, main 2ba1d82066): both red on main only. Do: for test_user_agent, register the Gaia request in OUTGOING with the project user agent (no personal details) or route it through the existing outgoing helper; for test_page_shell, fix the page's import line or the shell list so the page loads as the test states. No skips.
-  Version 8.1. Owner (TODO, 2026-11-18): Lane 16, lock-free. Prerequisites: none. Related: TEST.791, MAP.429.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
