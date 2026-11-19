@@ -73,6 +73,10 @@ NULL_IN_THIS_GALAXY = {
     ("planets", "sky_suns"): CHANCE,
     ("moons", "sky_suns"): "a moon is not given the suns of the sky (GEN.1458)",
     ("rogue_planets", "sky_suns"): "a rogue planet has no star (GEN.1458)",
+    # GEN.1745 slice 4b: the record of the air history; a giant and an air under 500 Pa get none, so a small galaxy may hold none, and a rogue planet has no star and so no age to run the history over
+    ("planets", "air_history"): CHANCE,
+    ("moons", "air_history"): CHANCE,
+    ("rogue_planets", "air_history"): "a rogue planet has no star, so no age to run the history over (GEN.1745)",
     **{("rogue_planets", name): "a rogue planet has no star, so no day (GEN.1496)" for name in ("days_per_year", "night_hours", "polar_circle_deg", "solar_day_hours")},
     # GEN.1484: the light a circumbinary planet keeps after its stars eclipse each other; a small galaxy may hold no planet of a close pair, a moon and a rogue planet are given none
     ("planets", "light_factor"): CHANCE,
