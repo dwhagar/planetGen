@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1919 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1933 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,23 +42,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1892 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1906 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 224 | 22 | 12 | 1 | 0 | 259 |
-| T2 | 177 | 75 | 4 | 0 | 0 | 256 |
-| T3 | 127 | 65 | 13 | 10 | 0 | 215 |
+| T1 | 227 | 22 | 12 | 1 | 0 | 262 |
+| T2 | 180 | 75 | 4 | 0 | 0 | 259 |
+| T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 111 | 29 | 8 | 2 | 2 | 152 |
-| T6 | 242 | 132 | 38 | 81 | 5 | 498 |
-| T7 | 70 | 37 | 10 | 32 | 0 | 149 |
+| T6 | 243 | 132 | 38 | 85 | 5 | 503 |
+| T7 | 72 | 37 | 10 | 32 | 0 | 151 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1092 | 396 | 99 | 268 | 64 | 1919 |
+| All | 1102 | 396 | 99 | 272 | 64 | 1933 |
 
 ## How the labels were given
 
@@ -197,7 +197,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AM3 | P | T6 | L0 | mixture_evolved.WATER_PHOTOLYSED | 0.3 to 1.0, uniform | abiotic-oxygen worlds (row j5) | test_atmosphere_mixture_evolved::test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air | GEN.511 (row weights) and the water-loss model | design | predicted only | - | - |
 | AM4 | B | T2 | L0 | mixture_evolved.OCEAN_WATER_WT_PERCENT | 0.0233 to 0.233 weight percent, log | abiotic-oxygen worlds | test_atmosphere_mixture_evolved::test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air | the body water budget of lane J | READ ([R2769]: up to ten oceans) | predicted only | - | - |
 | AM5 | B | T3 | L0 | mixture_evolved.CARBON_PER_OCEAN_WATER | 0.01 to 0.2, log | abiotic-oxygen worlds | test_atmosphere_mixture_evolved::test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air | GEN.481 | COMPUTED (Earth's carbon over ocean water 0.054) | predicted only | - | - |
-| AM6 | P | T7 | L0 | mixture_evolved.OXYGEN_SINK | 0 to 0.9, uniform | abiotic-oxygen worlds | none: no measurement of the share the crust oxidises away; the 95 percent ceiling test bounds the outcome | the redox and crust model (GEN.481, lane K) | design | predicted only | - | - |
+| AM6 | B | T2 | L0 | mixture_evolved.OXYGEN_ESCAPE | 0.90 to 0.99, uniform | abiotic-oxygen worlds | test_atmosphere_mixture_evolved::test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air | GEN.1769 slices 2 and 3 (the magma ocean's uptake and the crust's iron and sulfur) and a drag-derived escape from the body's hydrogen flux | READ ([R3946: Sec. 5.2]: 90 to 99 percent of the oxygen of the photolysis is lost to space; [R4774: Sec. 3.1]: the hydrogen drags the oxygen with it) | predicted only | - | - |
 | AM7 | B | T2 | L0 | mixture_evolved.TITAN_HUMIDITY | 0.3 to 1.0, uniform | methane-nitrogen air of a cold body | test_atmosphere_mixture_evolved::test_a_titan_like_air_is_nitrogen_with_methane_at_the_saturation_and_a_hydrogen_trace | a methane cycle model | READ ([R3289]: Titan methane humidity about 0.5) | predicted only | - | - |
 | AM8 | B | T2 | L0 | mixture_evolved.TITAN_HYDROGEN | 3e-4 to 3e-3, log | methane-nitrogen air | test_atmosphere_mixture_evolved::test_a_titan_like_air_is_nitrogen_with_methane_at_the_saturation_and_a_hydrogen_trace | photochemistry (GEN.496) | READ ([R3289]: H2 1.0e-3 +/- 0.16e-3) | predicted only | - | - |
 | AM9 | P | T7 | L0 | mixture_evolved.FROST_ICE | CH4 3e-3 to 0.3, CO 1e-3 to 0.1, both log | surface ice of a cold nitrogen body | test_atmosphere_mixture_evolved::test_a_pluto_like_air_follows_raoults_law_over_the_ice | the ice composition item of lane K | design | predicted only | - | - |
@@ -3399,3 +3399,32 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | WW1 | T | T6 | L1 | `surface_pressure.wet_land_fraction`: the weathering land is `land x min(1, ocean_cover / OCEAN_COVER_EARTH)`; rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it | the cover that saturates it (0.5 to 0.8) | worlds with a liquid ocean and some land | a measured planet whose weathering does not fall with its sea (the insensitivity to land fraction of [R0009] is at a given sea) | a runoff model with the hydrological cycle over the land | educated guess from physics; the form is not in a source read | predicted only | - | - |
 | WW2 | P | T6 | L1 | `surface_pressure.OCEAN_COVER_EARTH` 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land | 0.5 to 0.8 | as WW1 | as WW1 | as WW1 | the Earth's value (0.71); using it as a saturation is a stand-in | predicted only | - | - |
+
+## 6.310 Stand-ins of the dry-surface carbonate buffer (GEN.1767)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CB1 | D | T1 | L0 | `carbonate_buffer.PHASES`: enthalpy of formation, entropy and heat capacity (a, b, c, d) of calcite, wollastonite, quartz and CO2 from Table 2a of [R1981]; `equilibrium_bar` integrates them from 298.15 K and gives the CO2 pressure at which calcite and quartz, wollastonite and the gas stand together: 0.08 bar at 500 K, 3.0 at 600, 38 at 700, 88 at 740, 257 at 800, 1,100 at 900 | none (the data) | surfaces of calcium carbonate, silica and wollastonite at 400 to 1,400 K | a measured pure-CO2 curve of the reaction that differs from it by more than 15 percent at 740 to 800 K | the next edition of the data set | [R1981: Table 2a] read from the printed rows; Venus 740 K, 92.1 bar [R5313] against 88; about 275 bar near 800 K ([R5314], through a later paper) against 257 | predicted only | - | - |
+| CB2 | P | T6 | L3 | `carbonate_buffer.DRY_CARBONATION_MIN_K` 500: the coolest surface at which a dry rock buffers the CO2 of its air; under it the air is as before | 400 to 600 | non-weathering bodies with a solid surface | a measured carbonation rate of dry basalt at 400 to 600 K fast enough to hold the pressure of the reaction on a geological time | a carbonation rate law of dry rock against temperature | educated guess from physics: [R5316] (citing the earlier measurements it names) say dry near-surface rocks carbonate inefficiently; the reaction pressure is 0.08 bar at 500 K, so a mistake there moves little | predicted only | - | no data |
+| CB3 | P | T6 | L3 | `carbonate_buffer.CALCIUM_SHARE` 1.0: the share of the crust's calcium (`sulfur_balance.CRUST_CALCIUM_WT`, less the calcium of the sulfate sink) that can become carbonate, one CO2 per calcium | 0.1 to 1 | crust the volcanism has built | a body whose carbonate holds a smaller share of its calcium at its surface temperature; the Earth's crust holds about 17 percent of its calcium as carbonate | a depth-limited carbonation of the crust | educated guess from physics: the item sets the limit at the crust's calcium | predicted only | - | no data |
+| CB4 | T | T6 | L0 | the reaction's CO2 is an ideal gas and the three solids pure at one bar (their volume term would raise the pressure 3 percent at 100 bar); the `b` coefficients of Table 2a are read as 1e-5 kJ/K^2 (the scale that gives the 298 K heat capacities of calcite and quartz within 3 percent; a factor of 10 on `b` moves the curve under 10 percent at 740 K) | none | below about 300 bar | a fugacity of CO2 over 20 percent from its pressure in the range where bodies hold it | a fugacity coefficient of CO2 and the volume terms | derived: the limits of the form, stated; checked against the Venus pressure | predicted only | - | - |
+
+## 6.313 Stand-ins of the shocks of a world's history (GEN.1746)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| EV1 | D | T1 | L0 | `air_events.FLOOD_BASALT_PER_GYR` 40, `FLOOD_BASALT_VOLUME_KM3` 2.5e6, `FLOOD_BASALT_YEARS` 1e6: a flood basalt about every 25 Myr on the Earth, about 2.5 million km3 erupted in about 1 Myr; the rate of a body is this times its heat flux at that age over the model Earth's (`surface_pressure.HEAT_FLUX_EARTH_W_M2`) | none (the data) | bodies with an interior heat flow | a count of the large igneous provinces of the last 300 Myr far from a dozen, or a province volume far from 2.5 million km3 | the record of another body with a surface age | [R5319]: a dozen in the last 300 Myr; the four largest extinctions of the last 260 Myr coincide with four traps | predicted only | - | - |
+| EV2 | T | T7 | L0 | the volcanism goes with the heat: the rate scales linearly with the interior's heat flux (a stagnant lid is not asked: its plumes erupt too) | none | rocky bodies | a body whose volcanic output does not follow its heat flow (Venus against the Earth) | a rate from the melt production of `degassing` | educated guess from inferred physics | predicted only | - | - |
+| EV3 | D | T3 | L0 | `air_events.IMPACT_ONE_KM_PER_GYR` 2,000 and `IMPACT_FIVE_KM_PER_GYR` 66.7: the Earth's impacts of bodies over 1 km (every 0.5 Myr) and over 5 km (every 10 to 20 Myr, the middle used) | the 5 km interval 10 to 20 Myr | the Earth now | a measured impact flux at the Earth more than 2 times different | the bolide flux of a sky survey | two figures on one secondary page (a secondary page that cites an earlier estimate), not read in the paper | predicted only | GEN.1746 | - |
+| EV4 | T | T7 | L0 | `air_events.IMPACT_SIZE_EXPONENT` 2.1: the cumulative number of impacts over a diameter goes as `D^-2.1`, the slope through the two figures of EV3 | the exponent follows EV3 | 1 to 100 km | a size distribution of the near-Earth objects with a slope far from 2.1 | the observed size law | derived from EV3 | predicted only | GEN.1746 | - |
+| EV5 | D | T2 | L0 | `air_events.NEUKUM_A` 5.44e-14, `NEUKUM_LAMBDA_PER_GYR` 6.93, `NEUKUM_B_PER_GYR` 8.38e-4: the lunar cratering chronology function `N(1) = a (exp(lambda T) - 1) + b T`; the impact rate of a body is its cross section over the Earth's (radius squared, no gravitational focusing) times the derivative of the function at the time before now of its age on the Earth's own clock, over its present value | none (the data) | the Moon's range, 0 to 4.5 Ga; applied to every body as the Earth's decay of the leftover planetesimals | a decay of the impact flux of another body's record that differs by over a factor of 3 | a flux from the disk's own leftover planetesimal mass (`impact_history`) | [R5322] prints the function from Neukum et al.; the paper itself is not read here | predicted only | GEN.1746 | - |
+| EV6 | D | T2 | L0 | `air_events.KILL_CURVE`: the share of species killed by events that recur every 1, 10 and 100 Myr: 0.10, 0.30, 0.65; straight in the log between and held at the ends. An event kills the share its own recurrence on the Earth gives (T6, L3: the kill curve "does not imply any cause", so reading an event by how often events as large recur is a choice of this model) | none (the data); the mapping of an event to a recurrence is the choice | marine genera of the Phanerozoic | a kill of the largest impacts or traps against the curve more than 2 times off | a shock-to-kill law, its own research item | [R5320], numbers from a secondary article, the table not read | predicted only | GEN.1746 | - |
+| EV7 | D | T1 | L0 | `air_events.RECOVERY_GYR` 0.010: the origination that follows an extinction lags it by about 10 Myr, the same after the large ones as after the small | none | the fossil record | a recovery lag that goes with the size of the kill |  | [R5321] | predicted only | GEN.1746 | - |
+| EV8 | P | T6 | L3 | `air_events.IMPACT_LARGEST_KM` 100: the largest impactor the size law draws; over it an impact is a giant impact, the formation's and not the history's | 50 to 300 km | 1 to 100 km | a record of impacts over 100 km after the formation that the air history should list | none | educated guess from physics: the Chicxulub body is 10 to 15 km, the largest known post-formation Earth impact is of that order | predicted only | GEN.1746 | no data |
+
+## 6.314 Stand-ins of the life ages (GEN.1746)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| LA1 | P | T6 | L3 | `life_ages.AGE_KILL_THRESHOLD` 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve | 0.15 to 0.65 | the Earth's marine record, applied to every world with life | a record of eras whose boundaries are not the extinctions that kill 30 percent or more, or a Boss pick of another share | the Boss's pick of the threshold | educated guess from physics: the design proposed it as the size [R5320] gives once per 10 Myr | predicted only | GEN.1746 | no data |
+| LA2 | T | T7 | L0 | events that fall within `air_events.RECOVERY_GYR` of the extinction before are part of it, keeping the larger kill and its cause (no background process: the kill of an event is read from the curve at its own recurrence, so the impacts that reach the threshold fill the curve and nothing is left over) | none | any world | a fossil record in which a second extinction within 10 Myr of the first starts an age of its own | a diversity model with the regrowth of [R5321] | inferred from the 10 Myr lag after an extinction whatever its size | predicted only | GEN.1746 | - |

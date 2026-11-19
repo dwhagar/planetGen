@@ -181,17 +181,41 @@ def _score_sql(reason):
     return "GREATEST(COALESCE(" + ", -1), COALESCE(".join(parts) + ", -1))", _params_of(reason)
 
 
-def refresh_technology(conn):
+TECH_BATCH_SYSTEMS = 200_000
+"""int: How many system ids one statement of `refresh_technology` covers when the caller counts (PERF.147): a stage of millions of systems says where it is every batch. A stand-in for a size that
+keeps one statement to a few seconds, not a physical value."""
+
+
+def refresh_technology(conn, progress=None):
     """
     Puts the `best_score` of the `TECH_REASONS` rows right (MAP.344): the technology level of the most advanced species on a world the reason
     counts. The species are drawn by the population pass after the planets are stored, and a species' level can change, so the pass and the
     migration that added the score call this; the rows themselves (which systems, how many worlds) do not depend on a species.
+
+    Args:
+        conn: The connection to write on; the caller commits.
+        progress (optional): Anything with `step(name, total)` and `advance(amount)` (`engine.Context`): when given, the statements run a range of `TECH_BATCH_SYSTEMS` system ids at a time and the
+            count is the ids covered of the ids there are, so a long update shows its real count (PERF.147). The rows written are the same.
     """
+    if progress is None:
+        for reason in TECH_REASONS:
+            score_sql, score_params = _score_sql(reason)
+            conn.execute(
+                "UPDATE system_interests i JOIN star_systems ss ON ss.id = i.star_system_id"
+                f" SET i.best_score = NULLIF({score_sql}, -1) WHERE i.reason = ?", (*score_params, reason))
+        return
+    found = conn.execute("SELECT COALESCE(MIN(star_system_id), 0) AS low, COALESCE(MAX(star_system_id), -1) AS high FROM system_interests").fetchone()
+    low, high = int(found["low"]), int(found["high"])
+    total = (high - low + 1) * len(TECH_REASONS)
+    progress.step("Technology levels of the map's systems", total if total > 0 else None)
     for reason in TECH_REASONS:
         score_sql, score_params = _score_sql(reason)
-        conn.execute(
-            "UPDATE system_interests i JOIN star_systems ss ON ss.id = i.star_system_id"
-            f" SET i.best_score = NULLIF({score_sql}, -1) WHERE i.reason = ?", (*score_params, reason))
+        for start in range(low, high + 1, TECH_BATCH_SYSTEMS):
+            end = min(start + TECH_BATCH_SYSTEMS, high + 1)
+            conn.execute(
+                "UPDATE system_interests i JOIN star_systems ss ON ss.id = i.star_system_id"
+                f" SET i.best_score = NULLIF({score_sql}, -1) WHERE i.reason = ? AND i.star_system_id >= ? AND i.star_system_id < ?", (*score_params, reason, start, end))
+            progress.advance(end - start)
 
 
 def record(conn, where, params):
