@@ -2,6 +2,63 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4615] - 2026-11-19
+
+**Headline:** The planets of a system keep the places the architecture gave them because the architecture and the spacing pass now follow one spacing rule, so a giant planned at 2 to 8 au is no longer pushed out to tens of au.
+
+### Changed
+
+- GEN.1797: the giants planned at 2 to 8 au were thrown out of that band by the spacing pass (`validation.space_orbits`), not by the law that makes giants (which matches the observed 0.141 [R1479] among stars with room). The architecture thinned and cleared its neighbours on circular orbits at 8 mutual Hill radii, the pass then asked for 10 from apoapsis to periapsis with the eccentricities the planets drew later, and settled the difference by moving the outer planet out (6 to 90 au in the cases traced). Now each planet's eccentricity is drawn in the architecture (`planet_architecture._with_eccentricities`, the Kepler law of several planets or the Beta law of giants, from the planet's own keyed stream so no other draw moves), held to what the planets inside it allow by the pass's own rule (`clearance_ledger.planets_needed_au`, which `validation.min_distance_after_au` now also reads), and a pair with a giant that cannot stand by that rule is thrown out of the lighter one (`_stability_split`, recorded as a loss like any other thrown planet, so the rogue donors see it). `GIANT_CLEARING_SPACING` now counts only what a giant that moved in scatters. The planet takes the planned eccentricity (`Planet.plan_eccentricity`, `generate_orbit_shape`) instead of drawing it again. No range is widened.
+
+## [8.0.4614] - 2026-11-19
+
+**Headline:** The giant fixed-point test accepts a cold giant that starts on its fixed point and settles in the one step that shows it.
+
+### Changed
+
+- GEN.1797 (test only): `test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_solve_began` asserted that each of the first six sampled giants took more than one step of the temperature solve. The seeds now give a cold giant (start 111.8 K, fixed point 111.9 K) whose air adds no greenhouse, so the start is already the answer and it settles in one step; the solve itself is unchanged (the other giants take 3 to 5 steps). Each giant now either iterates or ends where it began within `TOLERANCE_K`, and at least one of the six must iterate, so the one-step shortcut of GEN.1716 is still caught.
+
+## [8.0.4613] - 2026-11-19
+
+**Headline:** The promoted-belt-planet test compares a body's makeup with its member's after the body's own hydrogen air is taken out of the mass.
+
+### Changed
+
+- GEN.1797 (test only): `test_a_promoted_planet_has_the_orbit_and_makeup_of_its_member` held each mass fraction of a promoted belt planet to its member's share to 1e-6, but a cold small body can hold a secondary hydrogen air (GEN.1226) of a few millionths of its mass, and the other fractions make room for it (rock 0.75 x (1 - 2.9e-6) = 0.7499978). The seeds the test reads draw a body with such an air now that the architecture draws its own eccentricities; the expected fraction is now the member's share times (1 - the envelope fraction), at 1e-9, a tighter match than before.
+
+- GEN.1797: the eccentricity a planet's slot of the architecture drew (`plan_eccentricity`) is now a field of the planet's build record (`BuildRecord.plan_eccentricity`, runtime state never stored) and not an attribute of the planet, which `test_bughunt_serialization_fuzz` found unlisted in `SERIALIZABLE_FIELDS`. Nothing is stored, so no column, migration or golden digest changes, and no generated value changes.
+
+- GEN.1797 (test only): `test_a_nodes_planets_are_drawn_from_a_stream_of_its_own` compared the regenerated node planets with every stored planet, but the stored list holds the belts' promoted members (GEN.1510, `belt_rank` set), which come with the belts after the draw it regenerates; the sample the architecture's new draws give has ten of them. The stored side leaves them out.
+
+## [8.0.4612] - 2026-11-19
+
+**Headline:** An abiotic-oxygen world (recipe row j5) now loses 90 to 99 percent of the oxygen its lost water leaves to space with the hydrogen, instead of a drawn 0 to 90 percent going into the crust, so the hundreds of bar of O2 it used to keep fall to a few bar except for the very wet bodies.
+
+### Changed
+
+- GEN.1769 slice 1: `mixture_evolved.OXYGEN_SINK` (a share of 0 to 0.9 drawn uniform for the crust) is replaced by `OXYGEN_ESCAPE` (0.90 to 0.99 uniform, the share of the oxygen made by the photolysis that escapes with the hydrogen: [R3946: Sec. 5.2], with the drag of the hydrogen of [R4774: Sec. 3.1]). The crust holds at most a quarter of one ocean's oxygen (57 bar of the 237 bar one ocean leaves; `reports/gen1769-oxygen-sink/report.md`), so the sink the item named is small; the oxygen the magma ocean takes (at most 10 percent in [R3946], most of it in [R4774]) and the crust's iron and sulfur are the next slices. Registry row AM6 is the escape share (T2 L0, was T7 L0 design).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4611] - 2026-11-19
+
+**Headline:** The engine's own wording and tests now follow the house rules for units, logging and the command list (TEST.795).
+
+### Changed
+
+- The pressure report, the stop-grace line, the database-signal line, the item-file size errors and the light-job time lines now write durations and sizes with the shared formatters (`format_duration_seconds`, `format_bytes`) instead of by hand.
+- The template logs, at debug level, why a job's arguments could not be read before telling the supervisor.
+- The help test no longer lists the removed `worker` command, and the update-order test knows the `retire_config_options` step.
+
+## [8.0.4610] - 2026-11-19
+
+**Headline:** A legacy/ folder with the one script that brings a pre-8.0 database up to the oldest structure 8.0 accepts (OPS.177, DB.126).
+
+### Added
+
+- `legacy/bump_database_to_8_0.py`: run by hand on a database you keep (back it up first), it runs the old revisions 0062 to 0130 (kept in `legacy/db_revisions/`, as they were before DB.98 replaced them with an empty baseline) and records each version, stopping at v130. Then `update.sh` takes it on. The error that a too-old database gets has named this script since DB.127; now it exists. Nothing in the install, update, migration or program calls it, and it does nothing else.
+
 ## [8.0.4609] - 2026-11-19
 
 **Headline:** A hot dry body now holds the CO2 of its air at the pressure of the Urey reaction (calcite + quartz = wollastonite + CO2) instead of keeping every gram its volcanoes brought up: 88 bar at 740 K like Venus, 3 bar at 600 K, 0.08 bar at 500 K, limited by the calcium of its crust; on the four bodies of 120 systems it reaches, the CO2 falls from 120 to 223 bar to 0.07 to 9 bar.
