@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4586] - 2026-11-19
+
+**Headline:** A test that runs a stage gets the job-engine tables it reads, so the plan and scatter tests that failed on main pass.
+
+### Fixed
+
+- OPS.278: one `control_config` fixture in `tests/conftest.py` (the leased test database as the control database, with the control schema in it and `PLANETGEN_CONTROL_DATABASE` pointed at it) replaces the two copies in `test_stages` and `test_job_runner_step_times`, and `test_galaxy_seed` (its three `plan` tests) and `test_progress_eta` use it instead of pointing the control database at a database with no `engine_runs`, `engine_jobs` or `engine_attempts` (OPS.215, OPS.216), which failed them with error 1146 on main. No product code changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4585] - 2026-11-19
 
 **Headline:** two tests that the job engine turned red now say what a held run really does, and the finish-run comparison no longer mistakes a row number for content.
