@@ -49,13 +49,6 @@ def test_fits_follows_the_room_and_the_orbit_limits():
     assert not tb.fits(SUN_EARTH, 0.5 * SUN_EARTH, 1.0)
 
 
-def test_the_formation_gate_needs_solids_and_a_long_enough_disk():
-    assert tb.can_form(0.1, solids_in_zone_earth=12.0, disk_lifetime_myr=3.0)
-    assert not tb.can_form(0.1, solids_in_zone_earth=4.0, disk_lifetime_myr=3.0)          # 0.02 of 4 Earth masses is 0.08
-    assert not tb.can_form(0.1, solids_in_zone_earth=12.0, disk_lifetime_myr=0.3)         # no growth time under the ramp's foot
-    assert tb.can_form(0.1, solids_in_zone_earth=12.0, disk_lifetime_myr=3.0) and not tb.can_form(0.0, 12.0, 3.0)
-
-
 def test_the_disk_life_is_a_ramp_from_the_foot_to_the_full_growth_time():
     low, high = tb.DISK_LIFETIME_RAMP_MYR
     assert tb.disk_life_factor(low - 0.1) == 0.0 and tb.disk_life_factor(high + 5.0) == 1.0

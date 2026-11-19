@@ -30,7 +30,7 @@ def _disk_scatter(system, star):
     return next((architecture.disk_scatter for planned, architecture in getattr(system, "architectures", ()) if planned is star), 1.0)
 
 
-def ceiling_of(system, star, giant, giants):
+def zone_ceiling(system, star, giant, giants):
     """
     `(ceiling in Earth masses, solids in the zone in Earth masses)` of what the zone of `giant` grew, or `(0.0, 0.0)` for a giant that moved from where it formed. `giants` are the star's giants, nearest first.
     """
@@ -59,7 +59,7 @@ def build(system, star, bodies):
     made = []
     for giant in giants:
         stream = draw.Stream(f"trojan-planet:{giant.distance!r}:{giant.mass!r}:{star.mass!r}")
-        ceiling, solids = ceiling_of(system, star, giant, giants)
+        ceiling, solids = zone_ceiling(system, star, giant, giants)
         mass_earth = trojan_bodies.draw_mass_earth(ceiling, tuning.PLANET_MIN_MASS_EARTH, stream.random())
         leading, stays = trojans.leading_share(stream.random()), stream.random()      # the same draws whether or not a body forms, so the stream keeps its place
         if mass_earth is None or stays >= survival_of(star, giant, giants):

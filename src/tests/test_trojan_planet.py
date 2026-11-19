@@ -37,7 +37,7 @@ def _giant(system):
 
 
 def _force(monkeypatch, ceiling=2.0, survival=1.0):
-    monkeypatch.setattr(trojan_planet, "ceiling_of", lambda system, star, giant, giants: (ceiling, 10.0 * ceiling))
+    monkeypatch.setattr(trojan_planet, "zone_ceiling", lambda system, star, giant, giants: (ceiling, 10.0 * ceiling))
     monkeypatch.setattr(trojan_planet, "survival_of", lambda star, giant, giants: survival)
 
 
@@ -84,11 +84,11 @@ def test_the_zone_is_lost_when_the_giant_moved_from_where_it_formed():
 def test_the_ceiling_is_the_gate_of_the_zone_the_giant_formed_in(made):
     system, _config = made
     giant = _giant(system)
-    ceiling, solids = trojan_planet.ceiling_of(system, system.star, giant, [giant])
+    ceiling, solids = trojan_planet.zone_ceiling(system, system.star, giant, [giant])
     assert ceiling >= 0.0 and solids >= 0.0 and ceiling <= trojan_bodies.FORMATION_EFFICIENCY * solids + 1e-12
     giant.formation_distance_au = giant.distance * 3.0           # it moved in: the zone is gone
     try:
-        assert trojan_planet.ceiling_of(system, system.star, giant, [giant]) == (0.0, 0.0)
+        assert trojan_planet.zone_ceiling(system, system.star, giant, [giant]) == (0.0, 0.0)
     finally:
         giant.formation_distance_au = None
 

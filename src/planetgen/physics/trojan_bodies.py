@@ -20,24 +20,23 @@ A world is allowed when the room is at least its mass: `room_earth >= mass_earth
 The formation gate (GEN.1151 slice A, the star and giant case): a trojan grows from the solids in the 1:1 zone of its giant. `zone_solids_earth` reads the solids the disk held in the two tadpole zones of the giant
 (the disk's solid surface density where the giant formed, `planet_mass.solids_surface_density_gcm2`, times the area of the zone: `ZONE_HALF_WIDTH_HILL` Hill radii either side of the orbit, `ZONE_AZIMUTH_SHARE` of the circle).
 The heaviest body the zone grows is `FORMATION_EFFICIENCY` of those solids times the share of the growth time the gas disk allowed (`disk_life_factor`: nothing under the first number of `DISK_LIFETIME_RAMP_MYR`, the whole at the
-second, a straight ramp between), held to the room the mass rule leaves (`ceiling_earth`). `can_form` asks whether a given body is under that ceiling and `draw_mass_earth` draws one: no rate is set, a giant whose ceiling is
+second, a straight ramp between), held to the room the mass rule leaves (`ceiling_earth`). `draw_mass_earth` draws one: no rate is set, a giant whose ceiling is
 under the lightest planet has none, and one whose ceiling is over it draws a mass between the two, log-uniform. Nothing here reads a class letter.
 
 Use:
 
     room_earth(1.0 * 332946, 318.0)         # a Sun and a Jupiter, in Earth masses
     fits(332946.0, 318.0, 35.0)             # True: a 35 Earth-mass body fits at L4 of a Sun and a Jupiter
-    can_form(0.05, solids_in_zone_earth=3.0, disk_lifetime_myr=3.0)
+    ceiling_earth(3.0, 3.0, 332946.0, 318.0)    # the heaviest body a zone of 3 Earth masses of solids grows in a 3 Myr disk
 """
 
 import math
 
 from planetgen.physics import trojans
 
-FORMATION_EFFICIENCY = 0.02
-"""float: The share of the solids in the secondary's co-orbital zone that grow into the trojan; the zone must hold `trojan mass / this`. [Stand-in 6.125 TB3, tier T4, tweak L2: tuned (GEN.1151) from 0.1 to the foot of the row's
-range 0.02 to 0.5 so that the giants of the generated systems do not hold a planet-mass trojan at a rate the searches (none among 2244 Kepler candidates) forbid, the giant's own core having taken the solids of the zone
-the measure counted as free.]"""
+FORMATION_EFFICIENCY = 0.1
+"""float: The share of the solids in the secondary's co-orbital zone that grow into the trojan; the zone must hold `trojan mass / this`. [Stand-in 6.125 TB3, tier T4, tweak L4, kept at 0.1 (GEN.1151): the measure counted the zone's
+solids as free and found the flat disk-life minimum of TB4 on the median disk, and the ramp that replaces it already cuts the ceiling to about a fifth for the median G dwarf disk (0.9 Myr), which is the cut the over-count asked for.]"""
 
 DISK_LIFETIME_RAMP_MYR = (0.3, 3.0)
 """tuple: The gas-disk life (Myr) under which no trojan of planet mass grows beside its secondary and the life at which the whole zone's growth time is allowed; a straight ramp between. [Stand-in 6.125 TB4, tier T4, tweak L1:
@@ -112,13 +111,6 @@ def ceiling_earth(solids_in_zone_earth, disk_lifetime_myr, host_mass_earth, seco
     """The heaviest trojan (Earth masses) the zone's solids and the disk's life allow, held to the room the mass rule leaves."""
     grown = FORMATION_EFFICIENCY * solids_in_zone_earth * disk_life_factor(disk_lifetime_myr)
     return min(grown, room_earth(host_mass_earth, secondary_mass_earth))
-
-
-def can_form(trojan_mass_earth, solids_in_zone_earth, disk_lifetime_myr):
-    """The formation gate (TB3, TB4): the zone's solids, at the efficiency and the share of the growth time the disk's life allowed, make a body of this mass."""
-    if trojan_mass_earth <= 0.0:
-        return False
-    return FORMATION_EFFICIENCY * solids_in_zone_earth * disk_life_factor(disk_lifetime_myr) >= trojan_mass_earth
 
 
 def draw_mass_earth(ceiling_earth_mass, minimum_earth, u):
