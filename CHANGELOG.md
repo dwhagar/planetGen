@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4642] - 2026-11-19
+
+**Headline:** The fingerprint test file builds only the sectors each of its tests reads, not the whole shell four times.
+
+### Fixed
+
+- `tests/test_fingerprint.py` (45 to 70 minutes in the Train 49 gate) generated the whole of shell 1, about 12 minutes a galaxy, in four tests. The test that one changed sector moves only its own digest now builds two sectors, the test that one changed number moves only its section's float digest builds one, and the another-seed test builds the first eight sectors of each galaxy (it asserts at least eight in common). The assertions are unchanged, and the file passes in 21 minutes (TEST.417).
+
+generation-output: unchanged
+
 ## [8.0.4641] - 2026-11-19
 
 **Headline:** The stored-outputs test now says where a belt's caught mass is kept, so it stops failing on a runtime-only number.
