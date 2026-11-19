@@ -50,6 +50,7 @@ class BuildRecord:
         deferred_climate (tuple or None): `(moon_count, distance_override)` of a body built with `defer_climate` whose air and moons `finish_climate` still owes (GEN.1282).
         kozai (object or None): The `Kozai` outcome of a moon that cycles.
         late_accreted_percent (float or None): The percent of the body's mass the late accretion added (`planets.remake_air`).
+        air_input (tuple or None): `(setting, start_k, entry_state)` of the final air solve (`air_final.make`): what `air_history.temperatures` solves the air again from at each age (GEN.1745).
     """
 
     air_replay: tuple = None
@@ -72,6 +73,7 @@ class BuildRecord:
     deferred_climate: tuple = None
     kozai: object = None
     late_accreted_percent: float = None
+    air_input: tuple = None
 
     def __getstate__(self):
         state = dict(self.__dict__)
