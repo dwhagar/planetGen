@@ -155,6 +155,14 @@ export function buildSystemScene(scene, layout, options) {
       air.scale.setScalar(shell);
       mesh.add(air);
     }
+    if (look && look.hazeReach && look.body !== "star" && opts.glow !== false) {
+      // MAP.420: the haze shell of a hazy body, in the haze's own colour.
+      const hazeShell = 1 + look.hazeReach;
+      const haze = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 20, 14), makeGlowMaterial(THREE, look.hazeColor || "#c47a35", AIR_GLOW_POWER, look.hazeStrength || 0.5, hazeShell));
+      haze.scale.setScalar(hazeShell);
+      mesh.add(haze);
+    }
     if (item.kind === "star") {
       // The Galaxy Map draws on a logarithmic depth buffer, which the glow
       // shader doesn't write, so a system drawn there has none (opts.glow false).

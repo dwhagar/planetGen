@@ -411,6 +411,25 @@ def test_a_cloud_takes_the_colour_of_its_material_and_a_haze_of_its_own():
     assert not {"cloudColor", "hazeColor"} & set(airless)
 
 
+def test_a_hazy_body_has_a_haze_shell_that_grows_with_its_haze_depth_and_a_clear_or_dusty_one_has_none():
+    """MAP.420: `hazeReach` and `hazeStrength` come from the stored `tau_haze` only (tholin), start at `HAZE_SHELL_MIN_TAU`, grow with the depth and stay inside their ranges; dust has no shell of its own."""
+    methane = {"N2": 100000.0, "CH4": 5000.0}
+    thin = bl.planet_look(_aerosol_air(methane, surface_temperature_k=90.0, tau_haze=bl.HAZE_SHELL_MIN_TAU))
+    titan = bl.planet_look(_aerosol_air(methane, surface_temperature_k=90.0, tau_haze=5.0))
+    thick = bl.planet_look(_aerosol_air(methane, surface_temperature_k=90.0, tau_haze=60.0))
+    low, high = bl.HAZE_SHELL_REACH
+    assert low < thin["hazeReach"] < titan["hazeReach"] < thick["hazeReach"] <= high
+    weak, strong = bl.HAZE_SHELL_STRENGTH
+    assert weak < thin["hazeStrength"] < titan["hazeStrength"] < thick["hazeStrength"] <= strong
+    assert titan["hazeColor"] == bl.HAZE_COLOURS["tholin"]
+    veiled = bl.planet_look(_aerosol_air(methane, surface_temperature_k=90.0, tau_haze=0.1))
+    assert "hazeColor" in veiled and not {"hazeReach", "hazeStrength"} & set(veiled)
+    dusty = bl.planet_look(_aerosol_air({"CO2": 600.0, "N2": 20.0}, surface_temperature_k=210.0, tau_dust=5.0))
+    assert not {"hazeReach", "hazeStrength"} & set(dusty)
+    airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, tau_haze=5.0))
+    assert not {"hazeReach", "hazeStrength"} & set(airless)
+
+
 def test_a_body_hotter_than_the_draper_point_glows_in_the_colour_of_its_heat_and_a_cooler_one_does_not():
     """MAP.275: `thermal` is {hex, strength}, 0 at 800 K rising to 1 at 2400 K, the blackbody colour of the temperature."""
     assert bl.thermal_glow(700.0) is None and bl.thermal_glow(800.0) is None and bl.thermal_glow(None) is None
