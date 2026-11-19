@@ -8898,8 +8898,11 @@ def _body_slots(conn, system_id):
         slot = ("planet", roles.get(row["star_id"], "system"), place)
         slots["planets", row["id"]] = planet_slots[row["id"]] = slot
     belt_rank = collections.Counter()
-    for row in conn.execute("SELECT id, star_id FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index, id", (system_id,)).fetchall():
+    for row in conn.execute("SELECT id, star_id, parent_id, lagrange_point FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index, id", (system_id,)).fetchall():
         host = roles.get(row["star_id"], "system")
+        if row["lagrange_point"] is not None and row["parent_id"] in planet_slots:         # GEN.1150: a trojan region is its giant's and takes no number among the belts
+            slots["asteroid_belts", row["id"]] = ("belt", planet_slots[row["parent_id"]], f"trojan:{row['lagrange_point']}")
+            continue
         slots["asteroid_belts", row["id"]] = ("belt", host, f"rank:{belt_rank[host]}")
         belt_rank[host] += 1
     for row in conn.execute("SELECT id, planet_id, orbital_index FROM moons WHERE star_system_id = ?", (system_id,)).fetchall():

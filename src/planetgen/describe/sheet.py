@@ -1485,7 +1485,7 @@ def _belt_origin_provider(conn, kind, object_id, row):
     """GEN.1511: the belt a planet was made from (GEN.1510) and its rank there, the parent a promoted planet keeps. The belt is the `belt_order`-th of its star's belts, as `query` counts them."""
     if row["belt_rank"] is None or row["belt_order"] is None:
         return
-    belts = conn.execute("SELECT uid FROM asteroid_belts WHERE star_system_id = ? AND star_id <=> ? ORDER BY orbital_index, id", (row["star_system_id"], row["star_id"])).fetchall()
+    belts = conn.execute("SELECT uid FROM asteroid_belts WHERE star_system_id = ? AND star_id <=> ? AND lagrange_point IS NULL ORDER BY orbital_index, id", (row["star_system_id"], row["star_id"])).fetchall()
     if row["belt_order"] >= len(belts) or belts[row["belt_order"]]["uid"] is None:
         return
     belt_id = object_uid.from_bytes(belts[row["belt_order"]]["uid"])

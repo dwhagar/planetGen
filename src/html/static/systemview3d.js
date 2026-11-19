@@ -261,13 +261,19 @@ export function buildSystemScene(scene, layout, options) {
     hang(belt.around, memberGroup);
   }
 
+  // MAP.433: a trojan region (`belt.region`, GEN.1150) is an arc about its giant's L4 or L5, not a ring: its particles are made about longitude zero and the
+  // whole set is turned about the star's axis each update to the giant's longitude plus 60 degrees (L4) or minus 60 (L5) plus the libration.
+  const regionArcs = []; // {object, anchor, base, region, around}
   scene.belts.forEach((belt) => {
     const random = randomStream(belt.id * 2654435761);
     const positions = new Float32Array(BELT_PARTICLES * 3);
+    const region = belt.region || null;
     for (let n = 0; n < BELT_PARTICLES; n += 1) {
       const km = belt.inner_km + (belt.outer_km - belt.inner_km) * random();
-      const angle = random() * Math.PI * 2;
-      const lift = (random() - 0.5) * 0.08 * km;
+      const angle = region ? (random() * 2 - 1) * region.half_arc_deg * Math.PI / 180 : random() * Math.PI * 2;
+      const lift = region
+        ? (random() * 2 - 1) * Math.sin(Math.max(region.mean_inclination_deg, 0.5) * Math.PI / 180) * km
+        : (random() - 0.5) * 0.08 * km;
       const placed = layout.place(belt.around, [km * Math.cos(angle), km * Math.sin(angle), lift]);
       positions.set(placed, n * 3);
     }
@@ -281,11 +287,33 @@ export function buildSystemScene(scene, layout, options) {
     hang(belt.around, points);
     addBeltMembers(belt);
     // MAP.321: where the belt's symbol sits, on the belt's ring half way across it, riding what the belt goes round.
-    beltAnchors.push({
+    const anchor = {
       ref: belt.ref, kind: "belt", name: belt.name || "Asteroid belt", body: belt, hung: points,
       local: layout.place(belt.around, [(belt.inner_km + belt.outer_km) / 2, 0, 0]), x: 0, y: 0, z: 0, radius: 0,
-    });
+    };
+    beltAnchors.push(anchor);
+    if (region && region.host) regionArcs.push({ object: points, anchor: anchor, base: anchor.local.slice(), region: region, around: belt.around });
   });
+
+  // Where a region's centre lies from its giant at `years` after the epoch, degrees: the point's 60 plus the libration A sin(2 pi t / P + phase),
+  // `t` counted from Unix time zero as the stored phase is (physics/trojan_overlay.py).
+  const SECONDS_PER_YEAR = 365.25 * 86400;
+  function regionOffsetDeg(region, years) {
+    const base = region.point === "L4" ? 60 : -60;
+    if (!region.libration_period_years || !(region.amplitude_deg > 0)) return base;
+    const t = (scene.epoch_unix || 0) / SECONDS_PER_YEAR + years;
+    return base + region.amplitude_deg * Math.sin((2 * Math.PI * t) / region.libration_period_years + (region.phase_deg * Math.PI) / 180);
+  }
+  function turnRegions(placed, years) {
+    regionArcs.forEach((arc) => {
+      const host = placed[arc.region.host];
+      const centre = arc.around === "barycenter" ? [0, 0, 0] : placed[arc.around];
+      if (!host || !centre) return;
+      const angle = Math.atan2(host[1] - centre[1], host[0] - centre[0]) + (regionOffsetDeg(arc.region, years || 0) * Math.PI) / 180;
+      arc.object.rotation.z = angle;
+      arc.anchor.local = [arc.base[0] * Math.cos(angle) - arc.base[1] * Math.sin(angle), arc.base[0] * Math.sin(angle) + arc.base[1] * Math.cos(angle), arc.base[2]];
+    });
+  }
 
   if (scene.system.heliopause_au) {
     const radius = layout.distance("barycenter", scene.system.heliopause_au * AU_KM);
@@ -359,6 +387,7 @@ export function buildSystemScene(scene, layout, options) {
       const p = parent === "barycenter" ? [0, 0, 0] : placed[parent];
       hangers[parent].forEach((object) => object.position.set(p[0], p[1], p[2]));
     }
+    turnRegions(placed, years);
     memberPlaces.forEach((one) => {
       one.place.x = one.hung.position.x + one.local[0];
       one.place.y = one.hung.position.y + one.local[1];

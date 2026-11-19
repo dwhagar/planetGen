@@ -126,6 +126,14 @@ def test_the_survival_of_the_swarm_is_the_one_the_scatter_step_uses():
     assert belt_birth._swarm_survival(star, star.mass, giants[:1]) == 1.0
 
 
+def test_a_region_is_no_belt_of_the_count_a_stored_moon_or_a_promoted_planet_names_a_belt_by():
+    from planetgen.generation import irregular_moons
+    plain = [types.SimpleNamespace(body_type="a", lagrange_point=None), types.SimpleNamespace(body_type="a")]
+    region = types.SimpleNamespace(body_type="a", lagrange_point="L4")
+    found = irregular_moons.belts_of([plain[0], region, plain[1]])
+    assert list(found) == [0, 1] and found[0] is plain[0] and found[1] is plain[1]
+
+
 @pytest.mark.fresh_database
 def test_regions_are_saved_with_their_giant_as_parent_and_read_back_beside_it(mysql_config):
     config = SystemConfig()
