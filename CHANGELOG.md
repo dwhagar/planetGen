@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4610] - 2026-11-19
+
+**Headline:** A legacy/ folder with the one script that brings a pre-8.0 database up to the oldest structure 8.0 accepts (OPS.177, DB.126).
+
+### Added
+
+- `legacy/bump_database_to_8_0.py`: run by hand on a database you keep (back it up first), it runs the old revisions 0062 to 0130 (kept in `legacy/db_revisions/`, as they were before DB.98 replaced them with an empty baseline) and records each version, stopping at v130. Then `update.sh` takes it on. The error that a too-old database gets has named this script since DB.127; now it exists. Nothing in the install, update, migration or program calls it, and it does nothing else.
+
 ## [8.0.4609] - 2026-11-19
 
 **Headline:** A hot dry body now holds the CO2 of its air at the pressure of the Urey reaction (calcite + quartz = wollastonite + CO2) instead of keeping every gram its volcanoes brought up: 88 bar at 740 K like Venus, 3 bar at 600 K, 0.08 bar at 500 K, limited by the calcium of its crust; on the four bodies of 120 systems it reaches, the CO2 falls from 120 to 223 bar to 0.07 to 9 bar.
