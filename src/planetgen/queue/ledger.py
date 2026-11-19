@@ -117,6 +117,8 @@ def begin_attempt(conn, job_id, galaxy_conn=None, pid=None):
     conn.execute("UPDATE engine_jobs SET attempt = attempt + 1, state = 'running', waited = NULL, updated_at = NOW(6) WHERE id = ?", (job_id,))
     attempt = conn.execute("SELECT attempt FROM engine_jobs WHERE id = ?", (job_id,)).fetchone()["attempt"]
     conn.execute("INSERT INTO engine_attempts (job_id, attempt, pid, started_at, outcome) VALUES (?, ?, ?, NOW(6), 'running')", (job_id, attempt, pid))
+    conn.execute("UPDATE engine_runs r JOIN engine_jobs j ON j.run_id = r.id SET r.state = 'running', r.started_at = COALESCE(r.started_at, NOW(6))"
+                 " WHERE j.id = ? AND r.state = 'waiting'", (job_id,))        # OPS.281: a run is running from the start of its first job (a held or finished run keeps its state)
     conn.commit()
     if galaxy_conn is not None:
         galaxy_conn.execute("INSERT INTO engine_items (job_id, attempt, updated_at) VALUES (?, ?, NOW(6))"

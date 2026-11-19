@@ -164,3 +164,67 @@ def test_a_template_set_that_builds_in_the_background_answers_not_ready_until_th
         assert forked is not None and forked[0] == "plain"
     finally:
         templates.stop()
+
+
+# --- OPS.283: arguments bigger than the socket's limit -------------------------------------------------------------------------------------------
+
+BIG = 300 * 1024                                            # over the 213 KB a control-socket message can carry (the socket's send buffer)
+
+
+@pytest.fixture
+def state_dir(tmp_path, monkeypatch):
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))          # the template process inherits it, so both ends name the same folder
+    return tmp_path
+
+
+def _spilled(folder):
+    return sorted(os.listdir(folder)) if os.path.isdir(folder) else []
+
+
+def test_a_job_whose_arguments_are_over_the_socket_limit_gets_them_by_a_file_that_is_gone_when_it_ends(state_dir, host):
+    blob = "x" * BIG
+    from socket import SOL_SOCKET, SO_SNDBUF
+    assert len(template.encode({"op": "fork", "id": 1, "runner": "r", "job": {"blob": blob}})) > host.control.getsockopt(SOL_SOCKET, SO_SNDBUF), "this test must give more than the socket takes in one message"
+    job = host.fork(f"{R}.measures_its_arguments", {"blob": blob, "size": BIG})
+    assert _exits(host, 1)[0].code == 0, "the job saw all of its arguments"
+    assert _spilled(template.spill_folder()) == [], "the file the arguments came in is deleted"
+    job.close()
+
+
+def test_the_file_is_deleted_when_the_job_could_not_be_handed_out(state_dir, host):
+    class Refusing:
+        def __init__(self, real):
+            self.real = real
+
+        def send(self, data):
+            raise BrokenPipeError
+
+        def __getattr__(self, name):
+            return getattr(self.real, name)
+
+    host.control = Refusing(host.control)
+    with pytest.raises(jobhost.NotReady):
+        host.fork(f"{R}.measures_its_arguments", {"blob": "x" * BIG, "size": BIG})
+    assert _spilled(template.spill_folder()) == []
+
+
+def test_a_job_with_small_arguments_gets_no_file(state_dir, host):
+    host.fork(f"{R}.measures_its_arguments", {"blob": "x" * 100, "size": 100})
+    assert _exits(host, 1)[0].code == 0 and _spilled(template.spill_folder()) == []
+
+
+def test_the_template_reads_only_files_in_the_arguments_folder(state_dir, tmp_path_factory):
+    outside = tmp_path_factory.mktemp("elsewhere") / "job.json"
+    outside.write_bytes(template.encode({"blob": "x"}))
+    with pytest.raises(ValueError):
+        template.unspill(str(outside))
+    assert outside.exists(), "a file that is not ours is left where it was"
+    path = template.spill({"blob": "y"}, 7)
+    assert template.unspill(path) == {"blob": "y"} and not os.path.exists(path)
+
+
+def test_argument_files_an_earlier_supervisor_left_are_swept_after_a_day(state_dir):
+    old, new = template.spill({"a": 1}, 1), template.spill({"a": 2}, 2)
+    aged = time.time() - template.SPILL_KEPT_SECONDS - 60
+    os.utime(old, (aged, aged))
+    assert template.sweep() == 1 and not os.path.exists(old) and os.path.exists(new)

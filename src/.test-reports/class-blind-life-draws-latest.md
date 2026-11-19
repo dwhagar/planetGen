@@ -1,12 +1,12 @@
-draw-rates: 0 problems over 224 planets and moons of the sweep
+draw-rates: 0 problems over 229 planets and moons of the sweep
 class letter: planets, supported by the model, given life by the generator, supported but waiting for the star's age:
-  B: 2, 1, 1, 0
-  C: 21, 12, 9, 3
-  D: 123, 31, 27, 4
-  E: 22, 11, 11, 0
-  F: 2, 2, 2, 0
+  B: 4, 2, 2, 0
+  C: 27, 19, 18, 1
+  D: 127, 52, 41, 11
+  E: 14, 8, 8, 0
+  G: 1, 1, 1, 0
   I: 4, 0, 0, 0
-  N: 11, 0, 0, 0
-  T: 27, 1, 1, 0
-  W: 1, 1, 1, 0
-  Z: 3, 0, 0, 0
+  N: 19, 0, 0, 0
+  T: 19, 2, 2, 0
+  W: 4, 4, 4, 0
+  X: 1, 1, 1, 0

@@ -24,6 +24,7 @@ from typing import NamedTuple
 
 from planetgen.queue import pressure
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 PROBE_SECONDS = 2.0
 """float: How often the prober sends its statement. Stand-in."""
@@ -60,7 +61,7 @@ class Reading(NamedTuple):
     level: int
 
     def words(self):
-        return f"a ledger read took {self.latency_ms:.0f} ms where it takes {self.baseline_ms:.0f} ms when calm"
+        return f"a ledger read took {format_duration_seconds(self.latency_ms / 1000)} where it takes {format_duration_seconds(self.baseline_ms / 1000)} when calm"
 
 
 class Baseline:
