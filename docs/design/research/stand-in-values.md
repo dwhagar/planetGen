@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 127 | 65 | 13 | 10 | 0 | 215 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 111 | 29 | 8 | 2 | 2 | 152 |
-| T6 | 242 | 131 | 37 | 81 | 5 | 496 |
+| T6 | 242 | 130 | 38 | 81 | 5 | 496 |
 | T7 | 70 | 37 | 10 | 32 | 0 | 149 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1092 | 395 | 98 | 268 | 64 | 1917 |
+| All | 1092 | 394 | 99 | 268 | 64 | 1917 |
 
 ## How the labels were given
 
@@ -1795,7 +1795,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| SM1 | P | T6 | L1 | planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it | the 2:1 resonance (1.59) to the 4:1 (2.52) | embryos of 0.1 Earth masses and more in a system with at least one planet | an N-body run of a disk of embryos about a giant at 5 AU that leaves the embryos beyond 2 times its orbit on their orbits for the disk's life and after | the stirred stretch from a direct integration of the architecture's planets and embryos | the 3:1 resonance is where the Kirkwood gaps open (a body there is pumped to a planet-crossing orbit); using it as the stirred stretch's edge is ours | predicted only | - | - |
+| SM1 | P | T6 | L2 | planet_architecture.STIRRED_STRETCH_FACTOR (2.3; the 3:1 resonance, 3^(2/3) = 2.08, until GEN.1539 moved it inside the range, tuned to the donor yield band of tests/test_rogue_yield_calibration.py, 0.77 to 0.90 per star): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it | the 2:1 resonance (1.59) to the 4:1 (2.52) | embryos of 0.1 Earth masses and more in a system with at least one planet | an N-body run of a disk of embryos about a giant at 5 AU that leaves the embryos beyond 2 times its orbit on their orbits for the disk's life and after | the stirred stretch from a direct integration of the architecture's planets and embryos | the 3:1 resonance is where the Kirkwood gaps open (a body there is pumped to a planet-crossing orbit); using it as the stirred stretch's edge is ours | predicted only | - | - |
 | SM2 | P | T6 | L0 | planet_architecture.losses: the embryo is scattered by the planet that gives the highest Safronov number at its distance (as for a chain body in a reach band), over the disk lifetime of `scatter.DISK_LIFETIME_YR` | none | embryos in the stirred stretch | an architecture where a weaker planet scatters an embryo the strongest does not reach | the encounter rates of each planet with the embryo | the Safronov scatter rule already registered for the reach bands (GEN.1119) | predicted only | - | - |
 | SM3 | P | T6 | L0 | planet_architecture._ROGUE_MIN_KG: an embryo under 0.1 Earth masses is never made a rogue and stays one bound record | the bin edge | the generator's rogue classes | a catalogued rogue of under 0.1 Earth masses | the rogue classes below the terrestrial bin | `tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH` | predicted only | - | - |
 

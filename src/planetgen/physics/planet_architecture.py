@@ -457,8 +457,10 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
 
 _ROGUE_MIN_KG = tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH["terrestrial"][0] * _EARTH_KG
 """float: The least mass of a rogue planet (`tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH`), kg: an embryo under it that the planets stir stays a bound body and is not made a rogue (`losses`)."""
-_RESONANCE_3_TO_1 = 3.0 ** (2.0 / 3.0)
-"""float: Semi-major axis ratio of the 3:1 mean-motion resonance, the edge of the stretch a system's planets stir (`losses`)."""
+STIRRED_STRETCH_FACTOR = 2.3
+"""float: The ratio of semi-major axes by which the stretch a system's planets stir reaches past its innermost and outermost planet's reach band (`losses`). The 3:1 mean-motion resonance is 2.08 (3^(2/3));
+GEN.1539 moved it to 2.3, inside the 2:1 (1.59) to 4:1 (2.52) range of its registered stand-in (SM1, tweak L2): the growth limit by star mass left the embryos of the stars under 0.6 solar masses
+lighter than 0.1 Earth masses beyond it, which the terrestrial donor yield counts, and 2.3 brings that yield back inside its band (tests/test_rogue_yield_calibration.py)."""
 
 
 def strip(architecture, stripped):
@@ -530,10 +532,10 @@ def losses(architecture):
                                 scatter_rule.hill_radius_au(seed.mass_kg / _EARTH_KG, seed.distance_au, star_solar), seed.formation_au > lost.snow_line_au, fates))
     free_count, free_mass = 0, 0.0
     bands = [(scatter_rule.reach_band_au(p.distance_au, p.formation_au, p.mass_kg / _EARTH_KG, star_solar), p) for p in architecture.planets]
-    span = (min(low for (low, _), _ in bands) * _RESONANCE_3_TO_1 ** -1.0, max(high for (_, high), _ in bands) * _RESONANCE_3_TO_1) if bands else None
+    span = (min(low for (low, _), _ in bands) / STIRRED_STRETCH_FACTOR, max(high for (_, high), _ in bands) * STIRRED_STRETCH_FACTOR) if bands else None
     for distance, mass in lost.small:
-        # An embryo left below the planet minimum sits where the planets' resonances pump it, not only inside a chaotic zone: the 3:1 mean-motion resonance (period
-        # ratio 3, semi-major axis ratio 3^(2/3)) of the outermost planet and of the innermost lies at the edge of what the system stirs, so the stretch between
+        # An embryo left below the planet minimum sits where the planets' resonances pump it, not only inside a chaotic zone: a mean-motion resonance (the 3:1,
+        # semi-major axis ratio 2.08, widened to `STIRRED_STRETCH_FACTOR`) of the outermost planet and of the innermost lies at the edge of what the system stirs, so the stretch between
         # those edges holds the embryo in reach of the strongest scatterer (GEN.1299, stand-in 6.195 SM1 in section 6.113).
         reach = list(architecture.planets) if span and span[0] <= distance <= span[1] and mass >= _ROGUE_MIN_KG else []
         if not reach:

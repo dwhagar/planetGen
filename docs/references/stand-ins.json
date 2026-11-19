@@ -42083,7 +42083,7 @@
           "fields": [
             [
               "What it is",
-              "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+              "planet_architecture.STIRRED_STRETCH_FACTOR (2.3; the 3:1 resonance, 3^(2/3) = 2.08, until GEN.1539 moved it inside the range, tuned to the donor yield band of tests/test_rogue_yield_calibration.py, 0.77 to 0.90 per star): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
             ],
             [
               "The range it moves in",
@@ -42112,9 +42112,9 @@
           "slug": "6-195-sm1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L1",
+          "tweak": "L2",
           "unread": null,
-          "what": "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+          "what": "planet_architecture.STIRRED_STRETCH_FACTOR (2.3; the 3:1 resonance, 3^(2/3) = 2.08, until GEN.1539 moved it inside the range, tuned to the donor yield band of tests/test_rogue_yield_calibration.py, 0.77 to 0.90 per star): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
         },
         {
           "burn_down": null,
