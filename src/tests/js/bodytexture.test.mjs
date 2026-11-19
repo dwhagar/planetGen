@@ -133,6 +133,36 @@ test("a haze softens, and a cloud layer whitens by its cover", () => {
   assert.ok(total(solid) > total(clouded), "full cover is whiter still");
 });
 
+test("a cloud and a haze take the colour of their material (MAP.418)", () => {
+  const w = 64, h = 32;
+  const plain = { ...EARTHLIKE, atm: true, tempK: 320, cloudCover: 1, cloudTau: 20 };
+  const channels = (px) => { let r = 0, g = 0, b = 0; for (let i = 0; i < w * h; i++) { r += px[i * 4]; g += px[i * 4 + 1]; b += px[i * 4 + 2]; } return [r, g, b]; };
+  const white = channels(P.paintSolid(plain, w, h));
+  const acid = channels(P.paintSolid({ ...plain, cloudColor: "#f0e4b4" }, w, h));
+  assert.ok(acid[2] / acid[0] < white[2] / white[0] * 0.95, "a sulfuric acid cloud is yellower than a water cloud");
+  assert.equal(P.solidFingerprint(plain, w, h), P.solidFingerprint({ ...plain, cloudColor: "#f4f6f8" }, w, h), "the water colour is the default");
+  const hazy = { ...EARTHLIKE, atm: true, tempK: 320, haze: 0.9 };
+  const grey = channels(P.paintSolid(hazy, w, h));
+  const orange = channels(P.paintSolid({ ...hazy, hazeColor: "#c47a35" }, w, h));
+  assert.ok(orange[0] / orange[2] > grey[0] / grey[2] * 1.1, "a tholin haze is redder than a bare one");
+});
+
+test("a giant's stored haze and cloud tint its bands, and a look with neither is painted as before (MAP.421)", () => {
+  const w = 64, h = 32;
+  const channels = (px) => { let r = 0, g = 0, b = 0, spread = 0; for (let i = 0; i < w * h; i++) { r += px[i * 4]; g += px[i * 4 + 1]; b += px[i * 4 + 2]; } for (let y = 1; y < h; y++) spread += Math.abs(px[(y * w) * 4] - px[((y - 1) * w) * 4]); return { r, g, b, spread }; };
+  const bare = channels(G.paintGiant(JOVIAN, w, h));
+  assert.equal(G.giantFingerprint(JOVIAN, w, h), G.giantFingerprint({ ...JOVIAN, cloudCover: 0, haze: 0 }, w, h), "no stored layer, no change");
+  const hazy = channels(G.paintGiant({ ...JOVIAN, haze: 0.9, hazeColor: "#c47a35" }, w, h));
+  assert.ok(hazy.r / hazy.b > bare.r / bare.b * 1.05, "a tholin haze reddens the bands");
+  assert.ok(hazy.spread < bare.spread * 0.8, "and softens them");
+  const decked = G.paintGiant({ ...JOVIAN, cloudCover: 1, cloudTau: 20, cloudColor: "#f4f6f8" }, w, h);
+  const deck = channels(decked);
+  assert.ok(deck.r + deck.g + deck.b > (bare.r + bare.g + bare.b) * 1.02, "a thick water deck whitens the giant");
+  assert.notEqual(G.giantFingerprint(JOVIAN, w, h), G.giantFingerprint({ ...JOVIAN, cloudCover: 1, cloudTau: 20 }, w, h));
+  const hot = { ...JOVIAN, tempK: 2000, thermal: { hex: "#ffb040", strength: 1 } };
+  assert.equal(G.giantFingerprint(hot, w, h), G.giantFingerprint({ ...hot, cloudCover: 1, cloudTau: 20 }, w, h), "a giant at full thermal glow keeps its picture under a deck");
+});
+
 // --- Stars (MAP.276) ---------------------------------------------------------
 
 const S = await importPage("starpaint.js");

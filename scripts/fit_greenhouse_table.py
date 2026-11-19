@@ -237,6 +237,22 @@ EARTH_FAMILIES = tuple(
 """tuple: GEN.1796: the families of `cold --earth`, temperate nitrogen and oxygen airs (80 to 450 W/m2 absorbed, 0.02 to 0.5 MPa) with carbon dioxide from nothing (a seventh of the draws) to a fifth and one infrared gas at 1e-7 to 2e-2 of the air: the small steps between absent and present that a refit on cold and hot airs left flat or the wrong way (Earth's 41 Pa of carbon dioxide gave 0.4 K, 10 Pa of hydrogen cyanide cooled it 13 K)."""
 
 
+DENSE_HOT_FAMILIES = (
+    ("dense-hot-carbon-dioxide", {"CO2": (0.85, 0.999), "N2": (0.0, 0.1), "CO": (0.0, 0.01), "SO2": (0.0, 0.003), "H2O": (0.0, 0.01), "Ar": (0.0, 0.01), "O2": (0.0, 0.001)},
+     (3.0e5, 6.0e7), (150.0, 3000.0), 0.0, (3.0, 25.0)),
+    ("dense-hot-carbon-dioxide-ladder", {"CO2": (0.97, 1.0), "N2": (0.0, 0.02), "CO": (1.0e-6, 3.0e-2), "H2O": (1.0e-6, 3.0e-2), "CH4": (1.0e-6, 1.0e-2), "SO2": (1.0e-6, 1.0e-2)},
+     (3.0e5, 6.0e7), (150.0, 3000.0), 0.0, (3.0, 25.0)),
+)
+"""tuple: GEN.1796 round 13: the families of `cold --dense`, the very dense hot carbon dioxide airs (3 to 600 bar, 150 to 3000 W/m2 absorbed, a class N world) with a few percent of carbon monoxide, vapor,
+methane or sulfur dioxide, where the table stood 200 K above the solver on a 270 bar air and fell under twice the infrared-active gases (`test_doubling_the_infrared_active_gases_never_cools_the_ground`)."""
+HALOGEN_FAMILIES = (
+    ("cold-halogen-nitrogen", {"N2": (0.3, 0.95), "HCl": (0.01, 0.45), "HF": (0.0, 0.02), "CO2": (0.0, 0.05), "Ar": (0.0, 0.01), "NH3": (0.0, 1.0e-3), "H2O": (0.0, 1.0e-3)},
+     (3.0e4, 6.0e5), (0.5, 60.0), 0.0, (3.0, 16.0)),
+    ("cold-halogen-carbon-dioxide", {"CO2": (0.3, 0.95), "HCl": (0.005, 0.3), "N2": (0.0, 0.3), "SO2": (0.0, 0.003), "Ar": (0.0, 0.01)},
+     (3.0e4, 6.0e5), (0.5, 60.0), 0.0, (3.0, 16.0)),
+)
+"""tuple: GEN.1796 round 13: the families of `cold --halogen`, cold airs (0.03 to 0.6 MPa, 0.5 to 60 W/m2 absorbed) in which hydrogen chloride is a tenth to a half of the air, where the table put a 22 kPa
+hydrogen chloride and nitrogen air 9 K above the solver and cooled it under twice the infrared-active gases."""
 COLD_CO_FAMILIES = (
     ("cold-carbon-monoxide-nitrogen", {"CO": (0.05, 0.9), "N2": (0.1, 0.9), "Ar": (0.0, 0.01), "HCl": (0.0, 0.003), "CH4": (0.0, 0.005), "H2": (0.0, 0.002), "CO2": (0.0, 0.005), "N2O": (0.0, 1.0e-5),
                                       "NH3": (0.0, 1.0e-5), "HF": (0.0, 1.0e-7)}, (3.0e4, 1.0e6), (3.0, 40.0), 0.0, (0.5, 4.0)),
@@ -525,7 +541,7 @@ def cold(args):
     if os.path.exists(path):
         with open(path, "rb") as handle:
             samples = pickle.load(handle)
-    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), COLD_CO_FAMILIES if args.co else EARTH_FAMILIES if args.earth else COLD_MORE_FAMILIES if args.more else COLD_GEN_FAMILIES if args.gen else COLD_CIA_FAMILIES if args.cia else COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
+    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), DENSE_HOT_FAMILIES if args.dense else HALOGEN_FAMILIES if args.halogen else COLD_CO_FAMILIES if args.co else EARTH_FAMILIES if args.earth else COLD_MORE_FAMILIES if args.more else COLD_GEN_FAMILIES if args.gen else COLD_CIA_FAMILIES if args.cia else COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
     with open(path, "wb") as handle:
         pickle.dump(samples, handle)
     print(f"{args.count} cold dense airs added, {len(samples)} samples in {path}")
@@ -1084,6 +1100,8 @@ def main():
     parser.add_argument("--deep", action="store_true", help="cold: the deep families (`COLD_DEEP_FAMILIES`)")
     parser.add_argument("--census", nargs="+", default=[], help="nullgas: the `.jsonl.gz` files of the class census whose airs are taken (GEN.1629)")
     parser.add_argument("--co", action="store_true", help="cold: the cold carbon monoxide and nitrogen families (`COLD_CO_FAMILIES`, GEN.1796)")
+    parser.add_argument("--dense", action="store_true", help="cold: the very dense hot carbon dioxide families (`DENSE_HOT_FAMILIES`, GEN.1796 round 13)")
+    parser.add_argument("--halogen", action="store_true", help="cold: the cold hydrogen chloride families (`HALOGEN_FAMILIES`, GEN.1796 round 13)")
     parser.add_argument("--earth", action="store_true", help="cold: the temperate air families with carbon dioxide and one infrared gas from nothing upward (`EARTH_FAMILIES`, GEN.1796)")
     parser.add_argument("--more", action="store_true", help="cold: the hydrogen sulfide and carbon monoxide families (`COLD_MORE_FAMILIES`, GEN.1796)")
     parser.add_argument("--gen", action="store_true", help="cold: the generator-like cold dense nitrogen families (`COLD_GEN_FAMILIES`, GEN.1796)")

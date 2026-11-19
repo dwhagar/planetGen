@@ -55,10 +55,10 @@
     },
     {
      "quantity": "co2_partial_pa",
-     "min": 2.0,
+     "min": 0.5,
      "tier": "T2",
      "tweak": "L1",
-     "basis": "Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)"
+     "basis": "Carbon dioxide at least 5 ppm of one atmosphere, 0.5 Pa: freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241] and cyanobacteria with the carbon-concentrating mechanism induced grow from 20 ppm [R5240], so a gate at 5 ppm sits inside the measured range, near its geometric middle, and a cooler or lower-CO2 sea world still counts (GEN.1581 retired the 5 Pa stand-in; GEN.1799 moved the gate from 2.0 Pa, the edge of the culture data, to the middle of the compensation points)"
     },
     {
      "quantity": "band_light_vs_earth",
@@ -144,10 +144,10 @@
     },
     {
      "quantity": "co2_partial_pa",
-     "min": 2.0,
+     "min": 0.5,
      "tier": "T2",
      "tweak": "L1",
-     "basis": "Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)"
+     "basis": "Carbon dioxide at least 5 ppm of one atmosphere, 0.5 Pa: freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241] and cyanobacteria with the carbon-concentrating mechanism induced grow from 20 ppm [R5240], so a gate at 5 ppm sits inside the measured range, near its geometric middle, and a cooler or lower-CO2 sea world still counts (GEN.1581 retired the 5 Pa stand-in; GEN.1799 moved the gate from 2.0 Pa, the edge of the culture data, to the middle of the compensation points)"
     },
     {
      "quantity": "band_light_vs_earth",
@@ -238,10 +238,10 @@
     },
     {
      "quantity": "co2_partial_pa",
-     "min": 2.0,
+     "min": 0.5,
      "tier": "T2",
      "tweak": "L1",
-     "basis": "Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)"
+     "basis": "Carbon dioxide at least 5 ppm of one atmosphere, 0.5 Pa: freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241] and cyanobacteria with the carbon-concentrating mechanism induced grow from 20 ppm [R5240], so a gate at 5 ppm sits inside the measured range, near its geometric middle, and a cooler or lower-CO2 sea world still counts (GEN.1581 retired the 5 Pa stand-in; GEN.1799 moved the gate from 2.0 Pa, the edge of the culture data, to the middle of the compensation points)"
     },
     {
      "quantity": "band_light_vs_earth",
@@ -328,10 +328,10 @@
     },
     {
      "quantity": "co2_partial_pa",
-     "min": 5.0,
+     "min": 2.0,
      "tier": "T7",
      "tweak": "L3",
-     "basis": "Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)"
+     "basis": "Carbon dioxide at least about 2 Pa for a carbon fixer: the same range of measured compensation points as Class 1, 0.2 to 41.5 ppm [R5241], and the old Class 1 gate of 2.0 Pa (life-classes.md 3.1, Class 2 window; GEN.1799 lowered it from 5 Pa)"
     },
     {
      "quantity": "band_light_vs_earth",

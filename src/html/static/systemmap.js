@@ -171,6 +171,11 @@ function initSphereField(canvasEl) {
   var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, 1.0, GLOW_R / SPHERE_R);
   var glow = new THREE.Mesh(new THREE.SphereGeometry(GLOW_R, 48, 32), glowMaterial);
   bodyGroup.add(glow);
+  // MAP.420: the haze shell of a hazy body, the same glow shader in the haze's own colour, a little farther out than the air's glow.
+  var hazeMaterial = makeGlowMaterial(THREE, 0xc47a35, PLANET_GLOW_POWER, 1.0, GLOW_R / SPHERE_R);
+  var hazeGlow = new THREE.Mesh(new THREE.SphereGeometry(GLOW_R, 48, 32), hazeMaterial);
+  hazeGlow.visible = false;
+  bodyGroup.add(hazeGlow);
 
   // The markers of whichever scene is currently visible -- see
   // `gatherSphereMarkers` -- and, in lockstep, each one's own on-canvas
@@ -291,6 +296,7 @@ function initSphereField(canvasEl) {
       // as "this is the light source", not just a faint haze.
       ambient.intensity = AMBIENT_STAR;
       glow.visible = true;
+      hazeGlow.visible = false;
       glow.scale.setScalar(marker.glowScale);
       glowMaterial.uniforms.glowColor.value.set(marker.color);
       glowMaterial.uniforms.glowPower.value = STAR_GLOW_POWER;
@@ -334,6 +340,15 @@ function initSphereField(canvasEl) {
       glowMaterial.uniforms.glowPower.value = PLANET_GLOW_POWER;
       glowMaterial.uniforms.glowStrength.value = marker.airGlowStrength;
       glowMaterial.uniforms.innerRatio.value = glowInnerRatio(reach / SPHERE_R);
+    }
+    hazeGlow.visible = marker.hazeReach > 0;
+    if (marker.hazeReach > 0) {
+      var hazeReach = 1 + marker.hazeReach;
+      hazeGlow.scale.setScalar(hazeReach / GLOW_R);
+      hazeMaterial.uniforms.glowColor.value.set(marker.hazeColor);
+      hazeMaterial.uniforms.glowPower.value = PLANET_GLOW_POWER;
+      hazeMaterial.uniforms.glowStrength.value = marker.hazeStrength;
+      hazeMaterial.uniforms.innerRatio.value = glowInnerRatio(hazeReach / SPHERE_R);
     }
   }
 
@@ -475,6 +490,9 @@ function gatherSphereMarkers(sceneEl) {
       hasGlow: !!look.glowStrength,
       airGlowStrength: look.glowStrength || 0,
       glowWidth: look.glowWidth,
+      hazeReach: look.hazeReach || 0,
+      hazeStrength: look.hazeStrength || 0,
+      hazeColor: look.hazeColor || "#c47a35",
       twilight: look.twilight || 0,
       glowColor: look.glow || "#bcdfff",
       axis: Spin.pictureAxisOf(look),

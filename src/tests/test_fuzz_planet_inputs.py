@@ -93,9 +93,11 @@ def test_a_planet_class_can_no_longer_be_pinned(star):
         Planet(SystemConfig(), star, star.habitable_zone, _distance(star, "e"), planet_class="M")
 
 
-def test_every_class_has_a_composition_and_type():
+def test_every_class_has_a_kind_and_a_phrase():
+    """GEN.1619 retired the composition strings of `tuning.PLANET_CLASSES`: a class is its kind there and its words in the class table."""
     for cls, data in prog_c.PLANET_CLASSES.items():
-        assert data["composition"] and data["type"] in ("t", "g"), cls
+        assert data["type"] in ("t", "g"), cls
+        assert planets.planet_classes.describe(cls).phrase, cls
 
 
 # --- orbital period ------------------------------------------------------------

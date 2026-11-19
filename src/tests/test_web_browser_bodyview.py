@@ -21,8 +21,9 @@ AIRS = {
     "noair": {},
     "thinair": {"atm": True, "glow": "#88aaff", "glowStrength": 0.02, "glowWidth": 0.03, "twilight": 0.005},
     "thickair": {"atm": True, "glow": "#88aaff", "glowStrength": 0.8, "glowWidth": 0.2, "twilight": 0.2},
+    "hazyair": {"hazeReach": 0.14, "hazeStrength": 0.8, "hazeColor": "#c47a35"},
 }
-"""The air of a still world in `_app`: none has no glow fields, a thin one almost none and a thick one the most (MAP.277)."""
+"""The air of a still world in `_app`: none has no glow fields, a thin one almost none and a thick one the most (MAP.277); a hazy one has no air glow but a haze shell (MAP.420)."""
 
 
 def _app():
@@ -329,3 +330,4 @@ def test_the_glow_and_the_dusk_follow_the_air_of_the_world(browser, url):
     assert seen["noair"][0] == 0, seen
     assert seen["thinair"][0] < 10 and seen["thickair"][0] > 40, seen
     assert seen["thickair"][1] > 1.5 * seen["noair"][1], seen
+    assert seen["hazyair"][0] > 20, seen        # MAP.420: the haze shell shows past the limb with no air glow of its own
