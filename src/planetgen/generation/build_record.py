@@ -52,6 +52,7 @@ class BuildRecord:
         late_accreted_percent (float or None): The percent of the body's mass the late accretion added (`planets.remake_air`).
         plan_eccentricity (float or None): The eccentricity the planet architecture drew for the body's slot and held to its neighbours (`planet_architecture.Seed.eccentricity`, GEN.1797), the birth value
             `planets.generate_orbit_shape` takes in place of a draw (cut at what the star's Roche limit allows); `None` for a body whose orbit is drawn there (a slot the author named, a moon, a body made on its own).
+        air_input (tuple or None): `(setting, start_k, entry_state)` of the final air solve (`air_final.make`): what `air_history.temperatures` solves the air again from at each age (GEN.1745).
     """
 
     air_replay: tuple = None
@@ -75,6 +76,7 @@ class BuildRecord:
     kozai: object = None
     late_accreted_percent: float = None
     plan_eccentricity: float = None
+    air_input: tuple = None
 
     def __getstate__(self):
         state = dict(self.__dict__)
