@@ -321,7 +321,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.3a:`--class-m` | no data | - | the Class M abundance tier is Boss's choice (card, 11:19 PM EST 2026-11-13) and nobody knows how common an Earth is; the dial values behind each word (6.289:AT1 to AT4) are calibrated by the meter, and the choice itself has no measurement to replace it |
 | 6.3a:`--comet-abundance` | no data | - | the comet abundance tier is Boss's choice (GEN.1775) and nobody knows how many comets a star keeps; the multipliers behind each word (6.303:CMT10) scale the registered comet chance (6.303:CMT8), and the choice itself has no measurement to replace it |
 | 6.6b:IR12 | no data | - | the cloud's longwave share is fitted to the Earth's cloud effect at its surface humidity; no measured cloud longwave effect of another air exists to replace it |
-| 6.6c:IR19 | no data | - | the fit has no samples of a minor gas between absent and about 1e-5, so the thin-gas scaling is hand-chosen against the sweep; a refit on airs with minor gases replaces it |
 | 6.179a:SPR1 | no data | - | a display limit chosen so a sprite narrower than a few pixels is left to the glow band; no measurement stands behind it |
 | 6.179a:SPR2 | no data | - | a display limit chosen so faint dark clouds are not drawn; no measurement stands behind it |
 | 6.179a:SPR3 | no data | - | a search distance chosen for the cost of the sky route; no measurement stands behind it |
