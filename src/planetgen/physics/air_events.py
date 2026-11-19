@@ -20,7 +20,7 @@ it yet (the later slices of GEN.1746 feed the air and the life ages from it), so
 * *The kill of an event.* The kill curve of the marine record gives the share of species killed by the events that recur at a given interval ([R5320]: about 10 percent once per Myr, 30 percent once per 10 Myr, 65
   percent once per 100 Myr; "does not imply any cause"). An event kills the share the curve gives for how often events as large as it recur on the Earth: an impact by the recurrence of its size, a flood basalt by its
   25 Myr. A body with more events than the Earth's has more kills, not larger ones.
-* *Recovery.* The origination that follows an extinction lags it by about 10 Myr, whatever its size ([R5321]).
+* *Recovery.* The origination that follows an extinction lags it by about 10 Myr, whatever its size [R5321].
 
 The events of a body are drawn on a stream keyed to the body (`flavor_tree.seed_of`, the one the flavors use: what is final about the body and its star, nothing about the order the system made its bodies in), so the
 run's own stream does not move and the same body has the same events whenever it is made again. They are a draw of the history, not of the run.
@@ -43,9 +43,9 @@ KINDS = (FLOOD_BASALT, IMPACT)
 FLOOD_BASALT_PER_GYR = 40.0
 """float: The flood basalts of the Earth a gigayear, 40 (one about every 25 Myr; about a dozen in the last 300 Myr, [R5319]). [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
 FLOOD_BASALT_VOLUME_KM3 = 2.5e6
-"""float: The modal volume of one flood basalt, km3 ([R5319]), erupted in `FLOOD_BASALT_YEARS` (its pulse of CO2 and SO2 is the next slice). [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
+"""float: The modal volume of one flood basalt, km3 [R5319], erupted in `FLOOD_BASALT_YEARS` (its pulse of CO2 and SO2 is the next slice). [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
 FLOOD_BASALT_YEARS = 1.0e6
-"""float: The time the bulk of a flood basalt takes, years ([R5319]). [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
+"""float: The time the bulk of a flood basalt takes, years [R5319]. [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
 FLOOD_BASALT_RECURRENCE_MYR = 1000.0 / FLOOD_BASALT_PER_GYR
 """float: How often the Earth has a flood basalt, Myr: the interval at which the kill curve is read for one. [Stand-in 6.313 EV1.]"""
 
@@ -67,7 +67,7 @@ KILL_CURVE = ((1.0, 0.10), (10.0, 0.30), (100.0, 0.65))
 """tuple: The kill curve of the marine record: `(recurrence interval Myr, share of species killed)` ([R5320], through a secondary article; the table itself is not read). [Stand-in 6.313 EV6, tier T2 confident unverified, tweak L0.]"""
 
 RECOVERY_GYR = 0.010
-"""float: The lag of the origination behind an extinction, Gyr, the same after the large ones as after the small ([R5321]). [Stand-in 6.313 EV7, tier T1 verified, tweak L0.]"""
+"""float: The lag of the origination behind an extinction, Gyr, the same after the large ones as after the small [R5321]. [Stand-in 6.313 EV7, tier T1 verified, tweak L0.]"""
 
 EVENT_STEP_GYR = 0.05
 """float: The longest span over which an event rate is held constant when the events are drawn, Gyr (a numerical setting, defined by the integration: GEN.1739)."""
