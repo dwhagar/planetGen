@@ -112,7 +112,7 @@ def _stored_seed(mysql_config):
 
 
 def _plan(mysql_config, monkeypatch, *extra):
-    monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
+    """Runs `plan` against `mysql_config`; the caller takes `control_config`, which makes the control schema and points the control database at it (OPS.278)."""
     monkeypatch.setattr(sys, "argv", ["planetgen", "plan", "--edge=160pc", *extra]
                         + _mysql_argv(mysql_config))
     generate_cli.main()
@@ -129,13 +129,13 @@ def test_the_seed_is_stored_bit_for_bit(mysql_config):
             conn.close()
 
 
-def test_plan_stores_its_seed_and_logs_it(mysql_config, monkeypatch, capsys):
+def test_plan_stores_its_seed_and_logs_it(mysql_config, control_config, monkeypatch, capsys):
     _plan(mysql_config, monkeypatch, "--seed", SEED_HEX.lower())
     assert _stored_seed(mysql_config) == SEED
     assert f"Galaxy seed {SEED_HEX} (from --seed)" in capsys.readouterr().out
 
 
-def test_a_plan_without_seed_draws_one_and_a_re_plan_keeps_it(mysql_config, monkeypatch, capsys):
+def test_a_plan_without_seed_draws_one_and_a_re_plan_keeps_it(mysql_config, control_config, monkeypatch, capsys):
     _plan(mysql_config, monkeypatch)
     drawn = _stored_seed(mysql_config)
     assert drawn is not None and len(drawn) == 16
@@ -161,7 +161,7 @@ def _place_a_sector(mysql_config):
         conn.close()
 
 
-def test_a_new_seed_replaces_the_old_only_before_any_sector(mysql_config, monkeypatch):
+def test_a_new_seed_replaces_the_old_only_before_any_sector(mysql_config, control_config, monkeypatch):
     _plan(mysql_config, monkeypatch, "--seed", SEED_HEX)
     other = "F" * 32
     _plan(mysql_config, monkeypatch, "--seed", other)

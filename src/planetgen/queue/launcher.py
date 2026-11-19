@@ -353,14 +353,37 @@ class Launcher:
             self.control.commit()
             return None
         except Exception as exc:
-            ledger.set_job_state(self.control, row["id"], "failed", waited=f"{type(exc).__name__}: {exc}"[:ledger.WAITED_CHARS])
+            text = f"{type(exc).__name__}: {exc}"
+            ledger.set_job_state(self.control, row["id"], "failed", waited=text[:ledger.WAITED_CHARS])
             self.control.commit()
+            self._hold_unstarted(row, text)
             raise
         if row["command"] in (planrows.OPENING, pagerun.STEP):          # an opening and a page step have no unit to begin their attempt: the launcher does, with the process that runs it
             ledger.begin_attempt(self.control, row["id"], pid=forked.pid)
         started = Started(row, forked, key, self.claim(row), self.clock())
         self.running[row["id"]] = started
         return started
+
+    def _hold_unstarted(self, row, text):
+        """A job that could not be started (its process was never forked: its arguments could not be handed over, its template is gone) is as lasting a failure as one that ran and failed: its run is held
+        with the error text, the unit joining its stage's held ones (OPS.283). Before this the row was `failed` and the run went on `running` with a unit that would never end, so nothing settled it."""
+        if self.spawner is None:
+            return
+        from planetgen.queue import held
+        try:
+            if row["command"] == pagerun.STEP:
+                pagerun.fail_rest(self.control, row["run_id"], text)
+            elif row["command"] == planrows.OPENING:
+                named = _arguments(row)
+                reason = f"stage {named['index'] + 1} could not be opened: {text}"
+                if runrecord.hold_run(self.spawner, named["run_id"], reason):
+                    held.mark_run(self.spawner, named["run_id"], "held", reason)
+                log.warning(f"Run {named['run_id']}: {reason}")
+            else:
+                job = self._job_of(row)
+                held.hold_unit(self.spawner, job["run_id"], job["stage"], job["unit"], row["id"], text)
+        except Exception as exc:  # noqa: BLE001 -- the row is failed already; say that the run could not be held
+            log.swallowed("queue/launcher", "_hold_unstarted", exc)
 
     def spawn(self):
         """

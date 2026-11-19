@@ -73,6 +73,29 @@ def test_the_belts_of_a_system_carry_where_they_came_from():
                 assert left_earth >= belt_birth.MIN_PRESENT_MASS_EARTH
 
 
+@pytest.mark.parametrize("star_type, lighter_than_sun", [("M3V", True), ("F2V", False)])
+def test_the_belts_read_the_growth_limit_of_their_own_star_the_planets_were_built_with(monkeypatch, star_type, lighter_than_sun):
+    """GEN.1539: one disk, one limit: the belts of a red dwarf are cut off where its disk built less, not at the Sun's 11.36 au."""
+    from planetgen import tuning
+    from planetgen.physics import planet_mass
+    seen = []
+    real = belt_origin.build
+
+    def spy(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, *args, **kwargs):
+        seen.append(growth_limit_au)
+        return real(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, *args, **kwargs)
+
+    monkeypatch.setattr(belt_origin, "build", spy)
+    with deterministic_entropy(1539):
+        draw.set_run_seed(5)
+        system = StarSystem(system_config=_config(STAR_TYPE=star_type))
+    assert seen, "the belts were built"
+    star = system.star
+    expected = planet_mass.growth_limit_au(star.mass, star.snow_line_au, system._disk_outer_edge_au(star))
+    assert seen[-1] == pytest.approx(expected)
+    assert (seen[-1] < tuning.PLANET_OUTER_GROWTH_AU) == lighter_than_sun
+
+
 def test_a_stored_belt_reads_back_with_its_origin():
     with deterministic_entropy(1068):
         for seed in range(1, 25):

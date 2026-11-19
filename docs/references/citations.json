@@ -26535,6 +26535,16 @@
       "kind": "paper",
       "label": "Abercromby and Tiley 1963",
       "title": "937. The Condensed phases of sulphur trioxide. Part II. Vapour pressure of the liquid at temperatures up to the critical point"
+    },
+    "R5317": {
+      "kind": "paper",
+      "label": "Suer et al. 2023",
+      "title": "The distribution of volatile elements during rocky planet formation"
+    },
+    "R5318": {
+      "kind": "paper",
+      "label": "Johansen et al. 2022",
+      "title": "Anatomy of rocky planets formed by rapid pebble accretion III. Partitioning of volatiles between planetary core, mantle, and atmosphere"
     }
   }
 }

@@ -821,6 +821,8 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
     mysql_config = store.mysql_config_from_args(args)
     min_luminosity_sol = float(args.bright_star_min_luminosity)
     passes = [name for name in ("mass", "luminosity") if name in set(passes)]
+    if prepare and passes == ["luminosity"]:
+        refuse = None       # OPS.280: the prepared mass scatter before the backfill already refused a galaxy that held a scatter and emptied the table; what is under the mass limit now is the backfill's own (the sky tiers)
 
     def settings(stage):
         """What the stage's seed, mass limit and clearing are, worked out from the database when it opens (`resolve_scatter_settings`)."""
