@@ -27,7 +27,7 @@ TRANSITIONS = {
     "end of a unit (its attempt written)": ("test_engine_kill_processes.py", "test_a_supervisor_killed_after_its_job_wrote_its_end_has_nothing_to_recover"),
     "hold of a unit that fails for good": ("test_engine_random_runs.py", "test_a_run_drawn_by_a_seed_ends_done_with_every_piece_once_and_every_stage_in_order"),
     "retry of a held run": ("test_engine_random_runs.py", "test_a_run_drawn_by_a_seed_ends_done_with_every_piece_once_and_every_stage_in_order"),
-    "cancel and finish of a run": ("test_engine_random_runs.py", "test_a_run_drawn_by_a_seed_ends_done_with_every_piece_once_and_every_stage_in_order"),
+    "finish of a run": ("test_engine_random_runs.py", "test_a_run_drawn_by_a_seed_ends_done_with_every_piece_once_and_every_stage_in_order"),
     "end of a stage": ("test_engine_random_runs.py", "test_a_run_drawn_by_a_seed_ends_done_with_every_piece_once_and_every_stage_in_order"),
     "write of a window": ("test_engine_kill_launcher_windows.py", "test_every_commit_of_a_window_has_a_kill_that_leaves_the_stage_written_whole"),
     "launcher hand-over (a supervisor killed)": ("test_engine_kill_processes.py", "test_a_supervisor_killed_with_a_job_running_leaves_a_job_that_stops_at_its_piece_and_the_next_supervisor_finishes_it"),
