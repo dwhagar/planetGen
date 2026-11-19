@@ -25,7 +25,7 @@ it yet (the later slices of GEN.1746 feed the air and the life ages from it), so
 The events of a body are drawn on a stream keyed to the body (`flavor_tree.seed_of`, the one the flavors use: what is final about the body and its star, nothing about the order the system made its bodies in), so the
 run's own stream does not move and the same body has the same events whenever it is made again. They are a draw of the history, not of the run.
 
-Every number that is not read from a source is a design constant with its tier and tweak level in `docs/design/research/gap-filling-plan.md` (GEN.725 rule, section 6.311).
+Every number that is not read from a source is a design constant with its tier and tweak level in `docs/design/research/gap-filling-plan.md` (GEN.725 rule, section 6.313).
 """
 
 import math
@@ -41,33 +41,33 @@ KINDS = (FLOOD_BASALT, IMPACT)
 """tuple: The kinds of event."""
 
 FLOOD_BASALT_PER_GYR = 40.0
-"""float: The flood basalts of the Earth a gigayear, 40 (one about every 25 Myr; about a dozen in the last 300 Myr, [R5319]). [Stand-in 6.311 EV1, tier T1 verified, tweak L0.]"""
+"""float: The flood basalts of the Earth a gigayear, 40 (one about every 25 Myr; about a dozen in the last 300 Myr, [R5319]). [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
 FLOOD_BASALT_VOLUME_KM3 = 2.5e6
-"""float: The modal volume of one flood basalt, km3 ([R5319]), erupted in `FLOOD_BASALT_YEARS` (its pulse of CO2 and SO2 is the next slice). [Stand-in 6.311 EV1, tier T1 verified, tweak L0.]"""
+"""float: The modal volume of one flood basalt, km3 ([R5319]), erupted in `FLOOD_BASALT_YEARS` (its pulse of CO2 and SO2 is the next slice). [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
 FLOOD_BASALT_YEARS = 1.0e6
-"""float: The time the bulk of a flood basalt takes, years ([R5319]). [Stand-in 6.311 EV1, tier T1 verified, tweak L0.]"""
+"""float: The time the bulk of a flood basalt takes, years ([R5319]). [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
 FLOOD_BASALT_RECURRENCE_MYR = 1000.0 / FLOOD_BASALT_PER_GYR
-"""float: How often the Earth has a flood basalt, Myr: the interval at which the kill curve is read for one. [Stand-in 6.311 EV1.]"""
+"""float: How often the Earth has a flood basalt, Myr: the interval at which the kill curve is read for one. [Stand-in 6.313 EV1.]"""
 
 IMPACT_ONE_KM_PER_GYR = 2000.0
-"""float: The Earth's impacts a gigayear of bodies over 1 km across: one about every 0.5 Myr. [Stand-in 6.311 EV3, tier T3 marginal unverified (two figures on one secondary page: the 5 km one is "10 to 20 Myr"), tweak L0.]"""
+"""float: The Earth's impacts a gigayear of bodies over 1 km across: one about every 0.5 Myr. [Stand-in 6.313 EV3, tier T3 marginal unverified (two figures on one secondary page: the 5 km one is "10 to 20 Myr"), tweak L0.]"""
 IMPACT_FIVE_KM_PER_GYR = 1000.0 / 15.0
-"""float: The Earth's impacts a gigayear of bodies over 5 km across: one about every 15 Myr (the middle of 10 to 20). [Stand-in 6.311 EV3, tier T3 marginal unverified, tweak L0.]"""
+"""float: The Earth's impacts a gigayear of bodies over 5 km across: one about every 15 Myr (the middle of 10 to 20). [Stand-in 6.313 EV3, tier T3 marginal unverified, tweak L0.]"""
 IMPACT_SIZE_EXPONENT = math.log(IMPACT_ONE_KM_PER_GYR / IMPACT_FIVE_KM_PER_GYR) / math.log(5.0)
-"""float: The slope of the cumulative size law, 2.1: the number of impacts over `D` goes as `D^-2.1` through the two figures above. [Stand-in 6.311 EV4, tier T7 educated guess based on inferred physics, tweak L0.]"""
+"""float: The slope of the cumulative size law, 2.1: the number of impacts over `D` goes as `D^-2.1` through the two figures above. [Stand-in 6.313 EV4, tier T7 educated guess based on inferred physics, tweak L0.]"""
 IMPACT_LARGEST_KM = 100.0
-"""float: The largest body the size law draws, km: over it an event is a giant impact, which is the formation's and not the history's. [Stand-in 6.311 EV8, tier T6 marginal educated guess based on physics, tweak L3.]"""
+"""float: The largest body the size law draws, km: over it an event is a giant impact, which is the formation's and not the history's. [Stand-in 6.313 EV8, tier T6 marginal educated guess based on physics, tweak L3.]"""
 
 NEUKUM_A = 5.44e-14
 NEUKUM_LAMBDA_PER_GYR = 6.93
 NEUKUM_B_PER_GYR = 8.38e-4
-"""float: The three constants of the lunar cratering chronology function `N(1) = a (exp(lambda T) - 1) + b T` for craters over 1 km a square kilometre at an age T Ga before now ([R5322], printed from Neukum et al.). [Stand-in 6.311 EV5, tier T2 confident unverified, tweak L0.]"""
+"""float: The three constants of the lunar cratering chronology function `N(1) = a (exp(lambda T) - 1) + b T` for craters over 1 km a square kilometre at an age T Ga before now ([R5322], printed from Neukum et al.). [Stand-in 6.313 EV5, tier T2 confident unverified, tweak L0.]"""
 
 KILL_CURVE = ((1.0, 0.10), (10.0, 0.30), (100.0, 0.65))
-"""tuple: The kill curve of the marine record: `(recurrence interval Myr, share of species killed)` ([R5320], through a secondary article; the table itself is not read). [Stand-in 6.311 EV6, tier T2 confident unverified, tweak L0.]"""
+"""tuple: The kill curve of the marine record: `(recurrence interval Myr, share of species killed)` ([R5320], through a secondary article; the table itself is not read). [Stand-in 6.313 EV6, tier T2 confident unverified, tweak L0.]"""
 
 RECOVERY_GYR = 0.010
-"""float: The lag of the origination behind an extinction, Gyr, the same after the large ones as after the small ([R5321]). [Stand-in 6.311 EV7, tier T1 verified, tweak L0.]"""
+"""float: The lag of the origination behind an extinction, Gyr, the same after the large ones as after the small ([R5321]). [Stand-in 6.313 EV7, tier T1 verified, tweak L0.]"""
 
 EVENT_STEP_GYR = 0.05
 """float: The longest span over which an event rate is held constant when the events are drawn, Gyr (a numerical setting, defined by the integration: GEN.1739)."""

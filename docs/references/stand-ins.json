@@ -75001,8 +75001,8 @@
       "title": "Stand-ins of the water-limited silicate weathering (GEN.1403)"
     },
     {
-      "key": "6.311",
-      "number": "6.311",
+      "key": "6.313",
+      "number": "6.313",
       "rows": [
         {
           "burn_down": null,
@@ -75033,9 +75033,9 @@
             ]
           ],
           "id": "EV1",
-          "key": "6.311:EV1",
+          "key": "6.313:EV1",
           "kind": "D",
-          "slug": "6-311-ev1",
+          "slug": "6-313-ev1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -75071,9 +75071,9 @@
             ]
           ],
           "id": "EV2",
-          "key": "6.311:EV2",
+          "key": "6.313:EV2",
           "kind": "T",
-          "slug": "6-311-ev2",
+          "slug": "6-313-ev2",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -75109,9 +75109,9 @@
             ]
           ],
           "id": "EV3",
-          "key": "6.311:EV3",
+          "key": "6.313:EV3",
           "kind": "D",
-          "slug": "6-311-ev3",
+          "slug": "6-313-ev3",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -75147,9 +75147,9 @@
             ]
           ],
           "id": "EV4",
-          "key": "6.311:EV4",
+          "key": "6.313:EV4",
           "kind": "T",
-          "slug": "6-311-ev4",
+          "slug": "6-313-ev4",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -75185,9 +75185,9 @@
             ]
           ],
           "id": "EV5",
-          "key": "6.311:EV5",
+          "key": "6.313:EV5",
           "kind": "D",
-          "slug": "6-311-ev5",
+          "slug": "6-313-ev5",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -75223,9 +75223,9 @@
             ]
           ],
           "id": "EV6",
-          "key": "6.311:EV6",
+          "key": "6.313:EV6",
           "kind": "D",
-          "slug": "6-311-ev6",
+          "slug": "6-313-ev6",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -75257,9 +75257,9 @@
             ]
           ],
           "id": "EV7",
-          "key": "6.311:EV7",
+          "key": "6.313:EV7",
           "kind": "D",
-          "slug": "6-311-ev7",
+          "slug": "6-313-ev7",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -75267,7 +75267,11 @@
           "what": "air_events.RECOVERY_GYR 0.010: the origination that follows an extinction lags it by about 10 Myr, the same after the large ones as after the small"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no record of impacts over 100 km after the formation is in hand; the cap leaves the giant impacts to the formation"
+          ],
           "fields": [
             [
               "What it is",
@@ -75295,9 +75299,9 @@
             ]
           ],
           "id": "EV8",
-          "key": "6.311:EV8",
+          "key": "6.313:EV8",
           "kind": "P",
-          "slug": "6-311-ev8",
+          "slug": "6-313-ev8",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
@@ -75305,7 +75309,7 @@
           "what": "air_events.IMPACT_LARGEST_KM 100: the largest impactor the size law draws; over it an impact is a giant impact, the formation's and not the history's"
         }
       ],
-      "slug": "6-311-stand-ins-of-the-shocks-of-a-world-s-history-gen-1746",
+      "slug": "6-313-stand-ins-of-the-shocks-of-a-world-s-history-gen-1746",
       "title": "Stand-ins of the shocks of a world's history (GEN.1746)"
     }
   ]
