@@ -400,13 +400,10 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1554 | K and M dwarf zone edges against the greenhouse spectrum: K5V worlds are cold in the inner third of the zone | none | Boss, 2026-11-11, Class M fixes. |
 | GEN.1574 | Mantle water partition as a seafloor-pressure feedback instead of the log-uniform 1 to 8 ocean mantle buffer (MANTLE_CAP_OCEANS), so the mantle takes up less when the seafloor pressure is high | GEN.1566 | Boss, 2026-11-11, water-law research. |
 | GEN.1577 | Upper-atmosphere temperature-pressure profile of a hot giant (1e-6 to 1e3 bar), so the cloud decks and trace-gas ceilings of GEN.994 (hot_condensates) have a profile to read | GEN.994 | Lane 03 triage finding, 2026-11-11. |
-| DB.126 | legacy/ script that bumps a pre-8.0 database to the 8.0 structure in one step | none | Lane 03, 2026-11-12. |
 | UX.305 | (bug) Search facet tooltips for planet classes are empty: db/query.py (about lines 7177 and 7317) reads PLANET_CLASSES[letter]["description"], removed in GEN.1212 | none | Lane 13, 2026-11-12. |
 | GEN.1621 | (bug) The greenhouse table gives Earth's air 314 K against 289 K in the model it was fitted to: N2O at 0.033 Pa or O3 at 0.03 Pa each add 21 K in the table against 1 K in the model | none | Lane 02, 2026-11-12, deferred. |
 | GEN.1622 | (bug) The climate model gives Venus 586 K (real 735 K) and Titan 114 K (real 94 K): no cloud greenhouse and no haze cooling in thick airs | none | Lane 02, 2026-11-12, deferred. |
 | GEN.1629 | (bug) 52 of 124 gases have ir null, and the null is handled two different ways | none | Lane 02, 2026-11-12, deferred. |
-| OPS.143 | Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine | OPS.137, OPS.140, OPS.141 | Boss approved the heartbeat, 5:16 PM EST on 2026-11-09. |
-| OPS.177 | A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else | none | Lane 03, 2026-11-12. |
 | OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | Lane 07, 2026-11-14 |
 | OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | Lane 06, 2026-11-14. |
 | GEN.1434 | Derived sky and clock fields from physics: gravitational time dilation, the host's sky size, the eclipse calendar and the solar-lens focus distance |  | Boss, 2026-11-08. |
@@ -512,7 +509,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 |  |
-| OPS.118 | Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug) |  |  |
 
 ### Physics rectification: winds and ring darkening
 
@@ -570,13 +566,11 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1745 | A forward air history engine (physics/air_history.py): light, heat, escape, weathering and oxygen laws at stepped ages; the final solve takes its stores from the history; removes the backwards life_air.air_history rebuild and the one-shot apply_gases and _build_oxygen; a packed air_history column on planets, moons and rogues with a migration; progress counts | GEN.1743, GEN.1741 | Lane 02, 2026-11-15 |
 | API.51 | The life-air API and the page chart read the stored air history, every gas | GEN.1745 | Lane 16, 2026-11-15 |
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | Lane 03, 2026-11-15 |
-| GEN.1767 | Research a dry-surface carbonate buffer for bodies whose ocean has gone (carbonate-silicate equilibrium on dry rock, limited by the crust's calcium): today weathering switches off when the ocean is all vapor and nothing takes the carbon | GEN.1763 | Lane 03, 2026-11-16. |
 | GEN.1769 | Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw | none | Lane 02, 2026-11-16. |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs | none | Lane 02, 2026-11-17 |
 | GEN.1790 | A blown-off hydrogen envelope is stripped past the climate ceiling | none | Lane 14, 2026-11-17 |
 | GEN.1791 | Best stand-in lever set for Class M and M-like worlds | none | Class M levers thread, 2026-11-17 |
 | GEN.1796 | Cold thick nitrogen air warms as its greenhouse gases rise | none | Lane 05, 2026-11-18 |
-| GEN.1797 | Giant planets at 2 to 8 au as common as observed | none | Lane 06, 2026-11-18 |
 | GEN.1798 | Life starts sooner on likely worlds | GEN.1791 | Class M levers thread, 2026-11-18 |
 | GEN.1799 | Plants make oxygen at lower CO2 | GEN.1791 | Class M levers thread, 2026-11-18 |
 | GEN.1800 | Quieter volcanoes on likely worlds let oxygen build | GEN.1791 | Class M levers thread, 2026-11-18 |
@@ -584,5 +578,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1802 | Planets keep the spacing they are born with near the ecosphere | GEN.1797 | Lane 06, 2026-11-19 |
 | PERF.282 | Stage 9 workers share the stellar-evolution tables | OPS.247, OPS.279 | Lane 13, 2026-11-19 |
 | OPS.276 | Sky jobs no longer stop on an out-of-range list | none | Lane 16, 2026-11-18 |
-| TEST.791 | Five test files back to green on main | none | Lane 14, 2026-11-18 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
