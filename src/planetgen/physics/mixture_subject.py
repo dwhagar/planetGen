@@ -117,6 +117,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["water_mass_fraction"] = fractions.water
         quantities["rock_mass_fraction"] = fractions.rock
         quantities["metal_mass_fraction"] = fractions.metal        # GEN.1584: the core the nitrogen is partitioned into
+        quantities["rock_feo_fraction"] = getattr(body, "rock_feo_fraction", None)       # GEN.1769: the FeO of the rock, which the magma ocean oxidises
         dialed = getattr(body, "_water_dialed", None)
         if dialed:       # Class M abundance tier: the tier gave the body's water class (Earth's or the dry one), so its air takes that class's row (a candidate the law gave the class by itself keeps the air the law draws)
             quantities["pinned_row_b"] = next(row for row, name in delivered_water.ROWS.items() if name == dialed)
@@ -188,7 +189,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("pinned_row_b", "disk_edge_au", "envelope_helium_y", "log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metal_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
+OPTIONAL_INPUTS = ("pinned_row_b", "disk_edge_au", "envelope_helium_y", "log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metal_mass_fraction", "rock_feo_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.

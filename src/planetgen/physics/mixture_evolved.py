@@ -20,7 +20,7 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
   surface water of one to ten oceans (`OCEAN_WATER_WT_PERCENT`) added to it; the
   hydrogen of the water escapes (the fraction `WATER_PHOTOLYSED`) and the oxygen it leaves behind stays in the closed gas, except for
   the share `OXYGEN_ESCAPE` that leaves with the hydrogen (GEN.1769 slice 1: 90 to 99 percent of the oxygen the photolysis makes is lost to space, [R3946]; the hydrogen drags it along, [R4774]; the O2 builds to tens or hundreds of bar around a late M dwarf only for the very wet bodies, [R2769]). Nothing holds the oxygen fugacity here: the gas is free to have O2. The
-  magma ocean's uptake (at most 10 percent of the oxygen in [R3946], most of it in [R4774]) and the crust's iron and sulfur are the next slices of GEN.1769.
+  magma ocean takes up what the oxygen left in the air can turn of its FeO to FeO1.5 (`magma_uptake_atoms`, up to the ferric share `MAGMA_FE3_REACHED`: at most 10 percent of the oxygen in [R3946], most of it in [R4774], so the bracket spans both); the crust's iron and sulfur are the next slice of GEN.1769.
 * **Titan-like (`j3`): nitrogen and methane at the methane's saturation.** The nitrogen is the balance, and it is the nitrogen of the
   body's ammonia ice (GEN.821): the share `AMMONIA_OUTGASSED` of the ammonia leaves the interior and the share `AMMONIA_TO_N2` of
   that is converted to N2 ([R1282], section 4.2), added to what the rocky inventory degasses; the methane is the
@@ -65,6 +65,12 @@ crust hold about 5e19 kg of carbon against 1.4e21 kg of ocean, 0.054 per molecul
 OXYGEN_ESCAPE = (0.90, 0.99, "uniform")
 """tuple: The share of the oxygen the lost water leaves that escapes to space with the hydrogen instead of the air keeping it: "between 90 to 99 % of the total oxygen produced by photolysis of water vapor is lost to
 space" ([R3946: Sec. 5.2], for both of its XUV models); the hydrogen escaping by the diffusion limit drags the oxygen with it while its share in the upper air is a few percent or less ([R4774: Sec. 3.1]). [Stand-in 6.7 AM6, tier T2 confident unverified, tweak L0.]"""
+
+MAGMA_FE3_REACHED = (0.03, 0.30, "uniform")
+"""tuple: The share of the iron of the body's magma ocean that the oxygen of the lost water turns from FeO to FeO1.5 (Fe3+ over the iron): 0.03 is the ferric share the Earth's mantle has and the nominal reach of the melt in [R3946: Sec. 5.3] (0 to 0.03 tried), where the ocean takes 8 to 10 percent of the oxygen; 0.3 is the share at which the melt is oxidised enough for O2 to build in the air, [R4774: Sec. 4], where it takes most. The two disagree and the bracket is the widest range. [Stand-in 6.315 MU1, tier T3 bracket from sources that disagree, tweak L0.]"""
+
+FEO_G_MOL = 71.844
+"""float: The molar mass of FeO, g/mol (Fe 55.845, O 15.999)."""
 
 TITAN_HUMIDITY = (0.3, 1.0, "uniform")
 """tuple: The methane's relative humidity at the surface (Titan: 5.65 percent near the surface at 94 K against a saturation of 12 percent;
@@ -118,6 +124,17 @@ def _from_fractions(fractions, *, family, recipe, temperature_k, pressure_bar, i
         temperature_k=temperature_k, pressure_bar=pressure_bar, inventory=inventory, constants=constants)
 
 
+def magma_uptake_atoms(subject, reached):
+    """
+    The oxygen atoms per 100 g of body that the body's magma ocean can take up (GEN.1769 slice 2): its rock's FeO turned to FeO1.5 up to the ferric share `reached`, half an oxygen atom per iron atom. The whole rock is the reservoir (the ocean is as deep as the mantle).
+    0 for a body whose subject carries no rock or no FeO of it.
+    """
+    rock, feo = subject.get("rock_mass_fraction"), subject.get("rock_feo_fraction")
+    if not rock or not feo or rock <= 0.0 or feo <= 0.0:
+        return 0.0
+    return 0.5 * reached * 100.0 * rock * feo / FEO_G_MOL
+
+
 def evolved_oxidized(subject, recipe, row, supply=None):
     """
     The gas of a Venus-like (`j1`), Mars-like (`j2`) or abiotic-oxygen (`j5`) body.
@@ -143,14 +160,23 @@ def evolved_oxidized(subject, recipe, row, supply=None):
     else:
         ocean = 2.0 * bracket(constants, "ocean_water_wt_percent", OCEAN_WATER_WT_PERCENT) / mixture_rocky.AMU_G_MOL["H2O"]
         carbon = ocean / 2.0 * bracket(constants, "carbon_per_ocean_water", CARBON_PER_OCEAN_WATER)
+        # the oxygen the volcanic gas has beyond its water, carbon dioxide and sulfur dioxide is its redox (negative for a reduced gas); like the
+        # nitrogen and the sulfur it stays per carbon atom, and the oxygen of the carbon and the sulfur that replace the gas's follows them,
+        # so the old gas's oxygen is not left free (GEN.1769 slice 2)
+        old_carbon = atoms.get("C", 0.0)
+        excess = atoms["O"] - atoms.get("H", 0.0) / 2.0 - 2.0 * old_carbon - 2.0 * atoms.get("S", 0.0)
+        excess *= carbon / old_carbon if old_carbon > 0.0 else 0.0
         for symbol in ("N", "S"):
             atoms[symbol] = carbon * inventory[symbol] / inventory["C"]        # nitrogen and sulfur stayed per carbon atom
         atoms["C"] = carbon
         atoms["H"] = atoms.get("H", 0.0) + ocean
-        atoms["O"] += ocean / 2.0
+        atoms["O"] = excess + atoms["H"] / 2.0 + 2.0 * (atoms["C"] + atoms["S"])
         lost = atoms["H"] * bracket(constants, "water_photolysed", WATER_PHOTOLYSED)
         atoms["H"] -= lost
-        atoms["O"] -= (lost / 2.0) * bracket(constants, "oxygen_escape", OXYGEN_ESCAPE)
+        made = lost / 2.0                        # oxygen atoms the photolysis made, per 100 g of body
+        kept = made * (1.0 - bracket(constants, "oxygen_escape", OXYGEN_ESCAPE))
+        reached = bracket(constants, "magma_fe3_reached", MAGMA_FE3_REACHED)
+        atoms["O"] -= made - kept + min(kept, magma_uptake_atoms(subject, reached))
     atoms = {symbol: value for symbol, value in atoms.items() if value > 0.0}
     result = mixture_rocky.cool(atoms, subject, constants, held_diw=held, quenched=False)
     draw_result = finish(result, family=FAMILY_OF_ROW[row], drawn={group: drawn.name for group, drawn in recipe.groups.items()},
