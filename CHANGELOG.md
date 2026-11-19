@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4594] - 2026-11-19
+
+**Headline:** The nebula layer of the Galaxy Map loads its sibling script with its own version, and the Gaia download is listed as an outgoing request that sends the project's user agent.
+
+### Changed
+
+- `galaxynebulae.js` imported `galaxyblocks.js` with a static import, which drops the `?v=` query so the sibling was cached unversioned (and could load twice); it now imports it the way every other script does, with `VERSION_QUERY`.
+- `tests/test_user_agent.py` lists `datasets/gaia_nearby.py` among the outgoing request paths; it already sent `user_agent()` and no personal details, and the test now checks that it does.
+
+generation-output: unchanged
+
 ## [8.0.4593] - 2026-11-19
 
 **Headline:** Two Train 47 gate reds are fixed: the life sweep audit keeps the class letter it puts in (so its "same conditions as another class" check still compares something now that the class is read once at the end of the life pass), and the stand-ins of the water-limited weathering (WW1, WW2) have their registry section.
