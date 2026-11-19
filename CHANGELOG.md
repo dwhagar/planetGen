@@ -2,6 +2,30 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4644] - 2026-11-19
+
+**Headline:** A test now holds that a system is the same after other systems were made in the process.
+
+### Added
+
+- `test_a_system_is_the_same_after_other_systems_were_made_in_the_process` (in `test_reproducible_draws.py`) makes the Tatooine example from seed 5, then the Solar example from seed 6, then Tatooine from seed 5 again, in one process, and asserts the two Tatooine stored forms are equal. GEN.1805 suspected a state that carried from one generation to the next; measured, none does (the zeta ophiuchi hunt's repeats were my log parsing, not the generator), and the test keeps it so (GEN.1805).
+
+generation-output: unchanged
+
+## [8.0.4643] - 2026-11-19
+
+**Headline:** A moon's page now says how often its planet hides its star, and a planet's page how often its moons hide the other suns of its sky.
+
+### Added
+
+- GEN.1434: the eclipse calendar counts the rest of the sky. `sky_clock.companion_eclipse` gives the eclipses of another sun of a planet's sky (GEN.1443) by each of the planet's moons: the sun stands still at its latitude off the orbit plane, the moon's track rises and falls with its tilt, and the mean interval, the longest eclipse and the deepest cover follow (`touching_share` takes the source's offset, `overlap_share` the hidden part of a partly covered disk). A planet's sheet gains "Eclipses of its second sun by <moon>" rows (`sun_eclipses_1` and on, the shortest interval first, at most four); a moon's sheet gains "Eclipses of its star by its planet" (`moon_eclipse` with the planet as the blocker).
+- GEN.725: rows SK4 (the other suns), SK5 (the planet as blocker) and SK6 (the line-ups the calendar leaves out: sibling moons, a planet by a sibling planet, another sun by an inner planet) of section 6.272.
+
+Derived on demand from stored masses, radii and orbits; nothing is stored and no number already shown moves.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4642] - 2026-11-19
 
 **Headline:** The fingerprint test file builds only the sectors each of its tests reads, not the whole shell four times.
