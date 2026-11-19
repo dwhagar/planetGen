@@ -941,6 +941,15 @@ SAFE_EXTENT_PC = 10000
 """float: The farthest, in parsecs, a layer's buffer values may be from the object's own origin (`static/camerarelative.js`'s
 SAFE_EXTENT_PC): float32 holds 10 kpc to 0.001 pc, a tenth of a pixel at the closest zoom of a layer."""
 
+WHOLE_GALAXY_PIXEL_PC = 100.0
+"""A pixel of the view of the whole galaxy, at the least (camerarelative.js: "a pixel is 100 pc or more"), where its blocks are drawn."""
+
+
+def _float32_step_pc(extent_pc):
+    """The spacing of float32 values at `extent_pc`: the step the farthest vertex of a part can be off by (MAP.240)."""
+    return 2.0 ** (math.floor(math.log2(extent_pc)) - 23)
+
+
 BUFFER_EXTENTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyBufferExtents()"
 
 
@@ -989,7 +998,10 @@ def test_layers_far_from_the_center_are_built_relative_to_origins_of_their_own(p
     layers = {e["layer"] for e in extents}
     assert {"superbubbles", "territory dots"} <= layers, layers
     for e in extents:
-        assert e["extentPc"] <= SAFE_EXTENT_PC, e
+        if e["layer"] == "block prisms":
+            assert _float32_step_pc(e["extentPc"]) <= WHOLE_GALAXY_PIXEL_PC / 10, e      # the whole galaxy's two block meshes (MAP.150): the bound's own rule
+        else:
+            assert e["extentPc"] <= SAFE_EXTENT_PC, e
     far = {e["layer"] for e in extents if max(abs(v) for v in e["origin"]) > 100000}
     assert {"superbubbles", "territory dots"} <= far, "the bubble and the dots are really out there"
     assert sum(1 for e in extents if e["layer"] == "territory dots") >= 2, "dots spread over several kpc are split into cubes"

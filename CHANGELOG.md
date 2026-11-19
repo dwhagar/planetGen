@@ -2,6 +2,100 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4631] - 2026-11-19
+
+**Headline:** The wiring burn-down starts: a trace-gas function nothing read is retired and two things the guard listed are marked as by design.
+
+### Removed
+- GEN.1559: `mixture_trace.draw_trace_gases`, the mixture-level draw of the trace gases, is gone. It duplicated what `physics.trace_air` does with `draw_trace_amounts`, which the generator reads; only one test called it, and that test now checks `draw_trace_amounts`.
+
+### Changed
+- GEN.1559: the wiring register marks `design_flags` (the check that the life-linked gases m3, m4 and m11 stay off unless a flag allows them, run by its test) and the Class M meter's row AT4 as by design, with the reason.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4630] - 2026-11-19
+
+**Headline:** A map-marker test no longer assumes some capital letter is not a planet class.
+
+### Fixed
+- TEST.802: `bodymarkers.test.mjs` looked for a capital letter missing from the class list to prove a non-class has no symbol, but all 26 letters are classes now (`planetgen.tuning.PLANET_CLASSES`, held to the map's list by `test_system_interests.py`), so it failed. It now uses a lower-case letter and a sign. The marker code was right.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4629] - 2026-11-19
+
+**Headline:** The info panel line now says which of the cloud and the haze were drawn and what each is made of, instead of "Left out: clouds and haze".
+
+### Changed
+- MAP.422: the line under a body's picture names the cloud ("cloud drawn from its stored cover and depth (water)"), the haze ("haze drawn from its stored depth (tholin), with a shell past the limb"), or that none is stored. The look record carries `cloudMaterial` and `hazeMaterial` for it. The old "Left out: clouds and haze" is gone since the picture draws them; the surface composition (a solid world coloured by its temperature band) and the chemistry bands (a giant) are still named as left out.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4628] - 2026-11-19
+
+**Headline:** Gas and ice giants now show their stored haze and cloud: a tholin haze reddens and softens the bands, a cloud deck whitens them.
+
+### Added
+- MAP.421: a giant's look record carries its stored haze and cloud (`haze`, `cloudCover`, `cloudTau`, `hazeColor`, `cloudColor`), and `static/giantpaint.js` lays them over the bands: the haze softens the bands and tints them in its colour, the cloud is a patchy deck in the colour of its material, thicker with its depth, and a hot giant's deck fades with its thermal glow so the glow stays. A giant that stores neither is painted as before. Nothing new is stored.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4627] - 2026-11-19
+
+**Headline:** A hazy body, Titan-like, now has a coloured haze shell past its limb, as deep as its haze.
+
+### Added
+- MAP.420: a body with a stored haze depth (`tau_haze`) of 0.3 or more has a haze shell in the haze's own colour. The look record carries `hazeReach` (0.04 to 0.14 radii past the limb) and `hazeStrength` (0.25 to 0.8), both growing with the haze depth, and the System Map marker, the 3D system view and the body picture each draw a second glow shell in the haze colour with the glow shader they already have. Nothing new is stored, and a body with a thin haze, dust only, or no air has no shell.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4626] - 2026-11-19
+
+**Headline:** A cloud and a haze are painted in the colour of what they are made of: water white, sulfuric acid pale yellow, carbon dioxide ice grey-white, tholin orange, dust tan.
+
+### Fixed
+- MAP.418: every cloud was painted white and a haze only softened the picture. The look record now carries `cloudColor` (from the material that makes most of the cloud: the largest condensate by mass over particle density, or the sulfuric acid cloud where its depth is over the rest) and `hazeColor` (tholin and dust blended by their stored depths), worked from the stored air and aerosol values with no new column (`physics/aerosol_material.py`), and `static/solidpaint.js` paints the cloud in its colour and tints the haze deck toward its colour.
+- MAP.416: the census of the data behind it (5,000 systems, `reports/map416/`) shows clouds are stored on 47 percent and haze on 54 percent of the bodies with air, so the thin look was the painting, not the data.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4625] - 2026-11-19
+
+**Headline:** The far-from-center buffer test holds the whole-galaxy block prisms to the float precision rule that the 10 kpc limit stands for.
+
+### Fixed
+
+- `test_layers_far_from_the_center_are_built_relative_to_origins_of_their_own` held every layer to `SAFE_EXTENT_PC` (10 kpc), including the "block prisms" of the one whole-galaxy view, whose two meshes (solid and glass, MAP.150) are 15,540 pc across. The limit is a float32 precision bound, and `camerarelative.js` says that view draws its blocks as one part that spans more, where a pixel is 100 pc or more. The test now checks that layer by the rule itself: the float32 step at the part's farthest vertex (0.001 pc here) stays under a tenth of the 100 pc pixel. Every other layer keeps the 10 kpc check, and an opened sector's blocks are still held to it. The two-mesh design is kept (MAP.432).
+
+generation-output: unchanged
+
+## [8.0.4624] - 2026-11-19
+
+**Headline:** The ten browser and menu test files that use `page_targets` import the `sample_ledger_job` fixture it now needs.
+
+### Fixed
+
+- `page_targets` (in `test_web_a11y.py`) gained a `sample_ledger_job` argument with OPS.271, but the ten test files that import `page_targets` by name did not import that fixture, so every test using it ended in `fixture 'sample_ledger_job' not found` (370 errors in `test_web_browser_controls.py` alone, TEST.696). Each file now imports it beside `sample_job`. No product code changed.
+
+generation-output: unchanged
+
+## [8.0.4623] - 2026-11-19
+
+**Headline:** The planet-input fuzz test checks each class for a kind and a phrase, since the composition strings were retired.
+
+### Fixed
+
+- `test_every_class_has_a_composition_and_type` read `PLANET_CLASSES[letter]["composition"]`, which GEN.1619 removed, so it failed with `KeyError: 'composition'` on main (TEST.798). It is now `test_every_class_has_a_kind_and_a_phrase`: each class keeps its kind ('t' or 'g') in `tuning.PLANET_CLASSES`, and has a phrase in the class table (`planet_classes.describe`). The test was stale, not the code.
+
+generation-output: unchanged
+
 ## [8.0.4622] - 2026-11-19
 
 **Headline:** The planet-input fuzz test checks each class for a kind and a phrase, since the composition strings were retired.

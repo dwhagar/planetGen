@@ -49,7 +49,7 @@ from planetgen.util import draw
 
 CATEGORIES = "".join(letter for letter in atmosphere_recipes.DRAW_ORDER if letter <= "l")
 """str: The recipe tables that decide the major gases, in the recipes' draw order (a to l). The trace and minor gases `m` read the
-life stage (`o2_pal`), so they are drawn after it (`mixture_trace.draw_trace_gases`), and the clouds `n`, the radioisotopes `o` and the
+life stage (`o2_pal`), so they are drawn after it (`mixture_trace.draw_trace_amounts`, added to the air by `trace_air`), and the clouds `n`, the radioisotopes `o` and the
 ultraviolet regime `p` by their own lanes, all from the same stream."""
 
 

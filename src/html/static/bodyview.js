@@ -107,7 +107,7 @@ function drawLockLabel(context, size, look, arrowY) {
 function prepare(canvas, look) {
   const size = canvas.width;
   const star = look.body === "star";
-  const halfWidth = star ? glowFor(look.lumSolar).scale : 1.04 + (look.glow ? look.glowWidth || DEFAULT_GLOW_WIDTH : 0);
+  const halfWidth = star ? glowFor(look.lumSolar).scale : 1.04 + Math.max(look.glow ? look.glowWidth || DEFAULT_GLOW_WIDTH : 0, look.hazeReach || 0);
   const pixels = texture(look);
   const locked = Spin.isLocked(look) && !star;
   // The square the disk and its halo fill: the whole canvas, or for a locked world what the arrow and the label leave.
@@ -151,6 +151,10 @@ function prepare(canvas, look) {
   const halo = document.createElement("canvas");
   halo.width = halo.height = size;
   const rim = star ? look.color : look.glow;
+  if (look.hazeReach && !star) {
+    // MAP.420: the haze shell, in the haze's own colour, reaching as far as the look says.
+    drawHalo(halo.getContext("2d"), centerX, centerY, radius, radius * (1.04 + look.hazeReach), look.hazeColor || "#c47a35", look.hazeStrength || 0.5);
+  }
   if (rim) drawHalo(halo.getContext("2d"), centerX, centerY, radius, box / 2, rim, star ? glowFor(look.lumSolar).strength * 0.8 : look.glowStrength);
   // The sphere is drawn on a scratch canvas so its soft edge blends with what is behind it.
   const scratch = document.createElement("canvas");
