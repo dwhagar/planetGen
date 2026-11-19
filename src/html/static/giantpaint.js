@@ -19,6 +19,11 @@
 //     gravity and spin, 2000 km at Jupiter), an aspect ratio of 1.2 to 1.9, nine in ten anticyclones (tinted by the minor chromophore) and the rest
 //     dark cyclones, and a field of small ones (1000 to 3000 km) as texture.
 //
+//   * MAP.421: a giant that stores a haze (`look.haze`, `look.hazeColor`) and a cloud (`look.cloudCover`, `look.cloudTau`, `look.cloudColor`) has them laid over
+//     its bands: the haze flattens the bands toward their mean and tints them toward its colour at the picture's own brightness, the cloud is a
+//     patchy deck, streaked along the longitude, in the cloud's colour, thicker with `cloudTau` and over `cloudCover` of the disk; a hot giant's deck
+//     fades with its thermal glow so the glow stays. A look with none of these keys is painted as before.
+//
 // Same look, same size: same pixels. Do not change the noise or the constants without a changelog note.
 
 // Versioned like every sibling import (a static import would drop `?v=`).
@@ -69,6 +74,11 @@ var WATER_END_K = 800;
 var H2S_FULL = 3e-4;
 var CH4_FULL = 0.02;
 var H2O_FULL = 1e-3;
+export var HAZE_TINT_MAX = 0.4;                 // MAP.421: the share of a giant's colour a thick haze replaces
+export var HAZE_FLATTEN_MAX = 0.5;              // and how far it pulls the bands toward their mean
+export var DECK_OPACITY_MAX = 0.6;              // a thick cloud deck hides this much of the bands under it
+export var DECK_TAU_SCALE = 2;                  // the cloud depth at which a deck is 63 percent of the way there
+var DECK_COLOUR = "#f4f6f8";
 
 function clamp01(x) {
   return x < 0 ? 0 : x > 1 ? 1 : x;
@@ -174,6 +184,7 @@ export function giantRecipe(look) {
     contrast: contrast,
     chromo: chromo,
     waviness: 0.25 + 0.5 * rand(),
+    meanColour: mix(zone, belt, 0.5),
     storms: stormCount,
     stormStrength: clamp01(contrast * 4) * 0.6 + 0.2,
     zone: zone,
@@ -214,6 +225,33 @@ export function stormsFor(look, r, edges, rand) {
   return storms;
 }
 
+function luminance(c) {
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+
+// What a giant's stored haze and cloud do to its bands (MAP.421): null when the look stores neither, so the bands are painted as they were.
+function airOf(look, r) {
+  var haze = clamp01(typeof look.haze === "number" ? look.haze : 0);
+  var cover = clamp01(typeof look.cloudCover === "number" ? look.cloudCover : 0);
+  var tau = typeof look.cloudTau === "number" ? look.cloudTau : 0;
+  var thermal = look.thermal && typeof look.thermal.strength === "number" ? clamp01(look.thermal.strength) : 0;
+  var hazeTint = haze > 0 && look.hazeColor ? parseHex(look.hazeColor) : null;
+  var hazeLum = hazeTint ? luminance(hazeTint) : 0;
+  if (hazeLum <= 0) hazeTint = null;
+  var deckOpacity = cover > 0 && tau > 0 ? DECK_OPACITY_MAX * (1 - Math.exp(-tau / DECK_TAU_SCALE)) * (1 - thermal) : 0;
+  if (haze <= 0 && deckOpacity <= 0) return null;
+  return {
+    hazeKeep: 1 - HAZE_FLATTEN_MAX * haze,
+    hazeTint: hazeTint,
+    hazeLum: hazeLum,
+    hazeAmount: hazeTint ? HAZE_TINT_MAX * haze : 0,
+    cover: cover,
+    deckOpacity: deckOpacity,
+    deckCut: 0.8 - 0.6 * cover,          // the share of the field over the cut is about the cover
+    deckColour: parseHex(look.cloudColor || DECK_COLOUR),
+  };
+}
+
 // Equirectangular RGBA pixels, w by h (row 0 is the north pole, column 0 the 0-degree meridian).
 export function paintGiant(look, w, h) {
   var r = giantRecipe(look);
@@ -228,6 +266,7 @@ export function paintGiant(look, w, h) {
   var storms = stormsFor(look, r, edges, rand);
 
   var out = new Uint8ClampedArray(w * h * 4);
+  var air = airOf(look, r);
   var edgeWidth = (1 - r.sharp) * 0.45 + 0.05; // transition width as a share of a band
   for (var y = 0; y < h; y++) {
     var v = (y + 0.5) / h;
@@ -262,6 +301,29 @@ export function paintGiant(look, w, h) {
           pr += (st.colour[0] - pr) * a;
           pg += (st.colour[1] - pg) * a;
           pb += (st.colour[2] - pb) * a;
+        }
+      }
+      if (air) {
+        // MAP.421: the haze over the bands, then the cloud deck over the haze.
+        if (air.hazeKeep < 1) {
+          pr = r.meanColour[0] + (pr - r.meanColour[0]) * air.hazeKeep;
+          pg = r.meanColour[1] + (pg - r.meanColour[1]) * air.hazeKeep;
+          pb = r.meanColour[2] + (pb - r.meanColour[2]) * air.hazeKeep;
+        }
+        if (air.hazeTint) {
+          var kh = luminance([pr, pg, pb]) / air.hazeLum;
+          pr += (Math.min(255, air.hazeTint[0] * kh) - pr) * air.hazeAmount;
+          pg += (Math.min(255, air.hazeTint[1] * kh) - pg) * air.hazeAmount;
+          pb += (Math.min(255, air.hazeTint[2] * kh) - pb) * air.hazeAmount;
+        }
+        if (air.deckOpacity > 0) {
+          var field = fbm(u, v * 6, seed + 53, 8, 3);       // streaked along the longitude, as the bands are
+          var cover = clamp01((field - air.deckCut) / 0.15 + 0.5);
+          var da = air.cover >= 1 ? air.deckOpacity : air.deckOpacity * cover;
+          var shade = 0.9 + 0.2 * field;
+          pr += (Math.min(255, air.deckColour[0] * shade) - pr) * da;
+          pg += (Math.min(255, air.deckColour[1] * shade) - pg) * da;
+          pb += (Math.min(255, air.deckColour[2] * shade) - pb) * da;
         }
       }
       var o = (y * w + x) * 4;

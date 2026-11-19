@@ -411,6 +411,19 @@ def test_a_cloud_takes_the_colour_of_its_material_and_a_haze_of_its_own():
     assert not {"cloudColor", "hazeColor"} & set(airless)
 
 
+def test_a_giant_carries_its_stored_haze_and_cloud_in_its_look():
+    """MAP.421: a giant's look has `haze`, `cloudCover`, `cloudTau` and the layers' colours when the row stores them, none when it stores none (the veil stays a solid world's)."""
+    giant = _aerosol_air({"H2": 90000.0, "He": 9000.0, "CH4": 2000.0, "NH3": 100.0}, body_type="g", planet_class="G", surface_temperature_k=150.0, radius_km=60000.0,
+                         cloud_cover=0.6, tau_cloud=4.0, tau_haze=2.0)
+    look = bl.planet_look(giant)
+    assert look["haze"] == round(1 - math.exp(-2.0 / bl.HAZE_TAU_SCALE), 3)
+    assert look["cloudCover"] == 0.6 and look["cloudTau"] == 4.0
+    assert look["hazeColor"] == bl.HAZE_COLOURS["tholin"] and "veil" not in look
+    assert look["cloudColor"] in bl.CLOUD_COLOURS.values()
+    bare = bl.planet_look(dict(giant, cloud_cover=None, tau_cloud=None, tau_haze=None))
+    assert not {"haze", "cloudCover", "cloudTau", "cloudColor", "hazeColor"} & set(bare)
+
+
 def test_a_hazy_body_has_a_haze_shell_that_grows_with_its_haze_depth_and_a_clear_or_dusty_one_has_none():
     """MAP.420: `hazeReach` and `hazeStrength` come from the stored `tau_haze` only (tholin), start at `HAZE_SHELL_MIN_TAU`, grow with the depth and stay inside their ranges; dust has no shell of its own."""
     methane = {"N2": 100000.0, "CH4": 5000.0}
