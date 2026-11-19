@@ -597,6 +597,8 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1801 | The second oxygen rise is gentler | GEN.1791 | Class M levers thread, 2026-11-18 |
 | OPS.276 | Sky jobs no longer stop on an out-of-range list | none | Lane 16, 2026-11-18 |
 | OPS.279 | More sky shares fit in memory at once | OPS.270 | Lane 13, 2026-11-18 |
+| OPS.280 | The New galaxy job runs every stage without stopping | none | Lane 13, 2026-11-19 |
+| OPS.281 | Running jobs show as running | none | Lane 16, 2026-11-19 |
+| OPS.282 | The bright star backfill shows real counts | none | Lane 16, 2026-11-19 |
 | TEST.791 | Five test files back to green on main | none | Lane 14, 2026-11-18 |
-| TEST.792 | Page shell and outgoing request tests back to green | none | Lane 16, 2026-11-18 |
 | OPS.270 | (high) Only 3 of 16 sky shares of Stage 9 run at once | none | Lane 13, 2026-11-16 |
