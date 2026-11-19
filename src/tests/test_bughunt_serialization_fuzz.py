@@ -183,7 +183,7 @@ def test_starsystem_star_and_planet_roundtrip_fuzz():
 
         for obj in system.planets:
             if isinstance(obj, AsteroidBelt):
-                _assert_roundtrip(obj, AsteroidBelt, f"AsteroidBelt seed={seed}", cfg)
+                _assert_roundtrip(obj, type(obj), f"{type(obj).__name__} seed={seed}", cfg)       # GEN.1150: a trojan region is a belt with its own class
             elif isinstance(obj, Planet):
                 _assert_roundtrip(obj, Planet, f"Planet seed={seed}", system.star, cfg)
                 for moon in obj.moons:
