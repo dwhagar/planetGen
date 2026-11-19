@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4641] - 2026-11-19
+
+**Headline:** The stored-outputs test now says where a belt's caught mass is kept, so it stops failing on a runtime-only number.
+
+### Fixed
+- TEST.804: `test_stored_outputs[asteroid belts]` failed on `captured_mass_kg`. The store is not behind: the number is a runtime tally that `irregular_moons.take_from_disks` adds to a belt (the docstring and the serialization fuzz test already list it as not stored), and the belt's stored `mass_kg` already has the caught mass taken out, so reading a belt back loses nothing. The test's `KIND_HOMES` had no line for it, because it shows up on a belt only once a planet catches moons from it. One line is added that says so; no check is loosened.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4640] - 2026-11-19
 
 **Headline:** Two of the slowest gate files skip the first fill's draw of every sector they make, which their assertions never read.
