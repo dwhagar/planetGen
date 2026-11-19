@@ -8,6 +8,7 @@ import pytest
 
 from planetgen.db import scatter_uids, store
 from planetgen.galaxy import object_uid as ou
+from tests import first_fill
 
 SOLAR = 3.828e26
 
@@ -109,7 +110,8 @@ def test_only_the_scatter_tables_are_numbered(conn):
         scatter_uids.assign(conn, "stars")
 
 
-def test_a_system_built_round_a_scatter_star_keeps_its_id_and_the_fill_starts_past_the_stars(mysql_config):
+def test_a_system_built_round_a_scatter_star_keeps_its_id_and_the_fill_starts_past_the_stars(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about the IDs of the stars' systems and the fill's serials, not the first fill's draw (most of a sector's cost)
     from planetgen.names import naming_key
     from tests import test_bright_star_scatter as scatter_tests
     naming_key.set_resolver(lambda: "00AB12CD")     # GEN.1257: charting keeps the name each star's ID spelled

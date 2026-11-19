@@ -71901,6 +71901,120 @@
           "tweak": "L0",
           "unread": null,
           "what": "sky_clock.focal_distance_m: the vacuum weak-field focus R^2 c^2 / (4 G M) of the light that grazes the surface, for a body larger than four Schwarzschild radii"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_clock.companion_eclipse: another sun of a planet's sky (GEN.1443) stands still at its latitude off the planet's orbit plane through a moon's month (its own period is far longer, sky_suns), and a moon's orbit, tilted i to that plane, passes above it at the height i sin(u); the moon passes the direction once a sidereal period, so the mean interval is the period over the touching share (touching_share with an offset: (asin(min(1, (b + reach) / i)) - asin(max(-1, (b - reach) / i))) / pi) and the longest eclipse is the closest pass 2 sqrt(reach^2 - h^2) / omega"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a planet with moons whose other suns are far enough that they stand still for a month"
+            ],
+            [
+              "What would show it wrong",
+              "a moon whose recorded eclipses of a companion star differ in rate by a third from this"
+            ],
+            [
+              "What replaces it",
+              "the true positions of the companion along its own orbit and the node phase of the moon's plane"
+            ],
+            [
+              "Evidence",
+              "derived: a moon like ours (1737 km at 384,400 km, 5.1 degrees) against a sun 0.5 degrees wide in the plane of the orbit crosses it about every 1.2 years (a sun the moon is a hair larger than, hidden whole for minutes), a sun 20 degrees out of the plane is never touched"
+            ]
+          ],
+          "id": "SK4",
+          "key": "6.272:SK4",
+          "kind": "P",
+          "slug": "6-272-sk4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky_clock.companion_eclipse: another sun of a planet's sky (GEN.1443) stands still at its latitude off the planet's orbit plane through a moon's month (its own period is far longer, sky_suns), and a moon's orbit, tilted i to that plane, passes above it at the height i sin(u); the moon passes the direction once a sidereal period, so the mean interval is the period over the touching share (touching_share with an offset: (asin(min(1, (b + reach) / i)) - asin(max(-1, (b - reach) / i))) / pi) and the longest eclipse is the closest pass 2 sqrt(reach^2 - h^2) / omega"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a moon seen as the observer uses sky_clock.moon_eclipse with its planet as the blocker (the planet's disk R_p / a against the star's R_s / d): the star's direction turns with the planet's year as it does for the planet's observer, the planet's atmosphere and the penumbra are left out (the reach is the geometric disks)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a moon whose planet is far larger than the moon and nearer to it than to the star"
+            ],
+            [
+              "What would show it wrong",
+              "a lunar eclipse count that differs from the disks' by a third (the Earth gives an eclipse every 0.53 year by the disks, the real count with the penumbra is about two a year)"
+            ],
+            [
+              "What replaces it",
+              "an atmosphere ring and the penumbral share added to the reach"
+            ],
+            [
+              "Evidence",
+              "derived: the Earth hides the Sun from the Moon for up to 2.7 hours, the disk of the Earth the larger one"
+            ]
+          ],
+          "id": "SK5",
+          "key": "6.272:SK5",
+          "kind": "P",
+          "slug": "6-272-sk5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a moon seen as the observer uses sky_clock.moon_eclipse with its planet as the blocker (the planet's disk R_p / a against the star's R_s / d): the star's direction turns with the planet's year as it does for the planet's observer, the planet's atmosphere and the penumbra are left out (the reach is the geometric disks)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the calendar leaves out the eclipses of one planet's moon by another moon of the same planet, those of a planet by a sibling planet, those of another sun by an inner planet, and the second suns a moon sees: each needs the phase of three orbits to line up, which has no closed form in the way the two-orbit cases have, so the rows give only the pairs the geometry has one for"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the sheet's calendar rows"
+            ],
+            [
+              "What would show it wrong",
+              "a world whose recorded eclipses are mostly of the pairs left out (a ring of close moons on a planet)"
+            ],
+            [
+              "What replaces it",
+              "a numerical search of the joint orbit phases over a few thousand years, stored per planet"
+            ],
+            [
+              "Evidence",
+              "inferred from the geometry: a three-body line-up is an event of a joint phase, not of one synodic period"
+            ]
+          ],
+          "id": "SK6",
+          "key": "6.272:SK6",
+          "kind": "B",
+          "slug": "6-272-sk6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the calendar leaves out the eclipses of one planet's moon by another moon of the same planet, those of a planet by a sibling planet, those of another sun by an inner planet, and the second suns a moon sees: each needs the phase of three orbits to line up, which has no closed form in the way the two-orbit cases have, so the rows give only the pairs the geometry has one for"
         }
       ],
       "slug": "6-272-stand-ins-of-the-clock-the-calendar-of-eclipses-and-the-lens-of-a-body-gen-1434",
