@@ -4,6 +4,8 @@ import math
 import json
 
 import pytest
+
+from planetgen.physics import atmosphere
 from planetgen.web.maps import bodylook as bl
 
 from tests.air_support import fold_air
@@ -380,6 +382,35 @@ def test_the_air_veils_the_ground_by_its_optical_depth_and_stored_haze_and_cloud
     airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, cloud_cover=0.5, tau_cloud=3.0))
     assert not {"veil", "haze", "cloudCover"} & set(airless)
     assert "veil" not in bl.planet_look(_planet(body_type="g"))
+def _aerosol_air(partials, **over):
+    row = dict(atmosphere="x", atmospheric_pressure_pa=sum(partials.values()), gravity_g=1.0, greenhouse_factor=0.4, aerosol_draw=0.37, **{atmosphere.GAS_FIELD: partials})
+    row.update(over)
+    return _planet(**row)
+
+
+def test_a_cloud_takes_the_colour_of_its_material_and_a_haze_of_its_own():
+    """MAP.418: the cloud's material is the one that makes most of it (water, carbon dioxide ice, methane ice, ammonia ice, sulfuric acid), the haze's is tholin and dust blended by their depths; each layer is left out when it is not stored."""
+    water = bl.planet_look(_aerosol_air({"N2": 78000.0, "O2": 21000.0, "H2O": 1500.0}, cloud_cover=0.5, tau_cloud=5.0))
+    assert water["cloudColor"] == bl.CLOUD_COLOURS["H2O"] and "hazeColor" not in water
+    ice = bl.planet_look(_aerosol_air({"CO2": 50000.0, "N2": 500.0}, surface_temperature_k=160.0, cloud_cover=0.5, tau_cloud=3.0))
+    assert ice["cloudColor"] == bl.CLOUD_COLOURS["CO2"]
+    methane = bl.planet_look(_aerosol_air({"N2": 100000.0, "CH4": 5000.0}, surface_temperature_k=90.0, cloud_cover=0.5, tau_cloud=1.0))
+    assert methane["cloudColor"] == bl.CLOUD_COLOURS["CH4"]
+    acid = bl.planet_look(_aerosol_air({"CO2": 8.9e6, "N2": 3.3e5, "SO2": 150.0, "H2O": 30.0}, surface_temperature_k=737.0, gravity_g=0.9, greenhouse_factor=100.0, aerosol_draw=0.42,
+                                       cloud_cover=1.0, tau_cloud=25.0))
+    assert acid["cloudColor"] == bl.CLOUD_COLOURS["H2SO4"]
+    hazy = bl.planet_look(_aerosol_air({"N2": 100000.0, "CH4": 5000.0}, surface_temperature_k=90.0, tau_haze=2.0))
+    assert hazy["hazeColor"] == bl.HAZE_COLOURS["tholin"] and "cloudColor" not in hazy
+    dusty = bl.planet_look(_aerosol_air({"CO2": 600.0, "N2": 20.0}, surface_temperature_k=210.0, tau_dust=0.5))
+    assert dusty["hazeColor"] == bl.HAZE_COLOURS["dust"]
+    both = bl.planet_look(_aerosol_air({"N2": 100000.0, "CH4": 5000.0}, surface_temperature_k=90.0, tau_haze=1.0, tau_dust=1.0))
+    assert both["hazeColor"] == bl._blend_hex([(bl.HAZE_COLOURS["tholin"], 1.0), (bl.HAZE_COLOURS["dust"], 1.0)])
+    clear = bl.planet_look(_aerosol_air({"N2": 100000.0}, surface_temperature_k=288.0))
+    assert not {"cloudColor", "hazeColor"} & set(clear)
+    airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, cloud_cover=0.5, tau_cloud=3.0, tau_haze=1.0))
+    assert not {"cloudColor", "hazeColor"} & set(airless)
+
+
 def test_a_body_hotter_than_the_draper_point_glows_in_the_colour_of_its_heat_and_a_cooler_one_does_not():
     """MAP.275: `thermal` is {hex, strength}, 0 at 800 K rising to 1 at 2400 K, the blackbody colour of the temperature."""
     assert bl.thermal_glow(700.0) is None and bl.thermal_glow(800.0) is None and bl.thermal_glow(None) is None

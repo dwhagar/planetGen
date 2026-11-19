@@ -39,6 +39,11 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     cloudCover  the share of the sky the cloud covers (the stored `cloud_cover`), left out when none is stored
     cloudTau    the vertical optical depth of the cloud at 550 nm (the stored `tau_cloud`), left out when none is stored; the painter
                 draws a cloud layer over the ground, thicker and whiter with the depth
+    cloudColor  (MAP.418) the colour of the cloud by its material, `#rrggbb` (`CLOUD_COLOURS`: water white, sulfuric acid pale yellow, carbon dioxide
+                ice grey-white, ammonia ice cream, methane ice pale blue-white); the material is the one that makes most of the cloud
+                (`aerosol_material.cloud_material`); left out when no cloud is stored
+    hazeColor   (MAP.418) the colour of the haze layer, `#rrggbb`: tholin orange and dust tan blended by their stored depths (`HAZE_COLOURS`); left out
+                when neither `tau_haze` nor `tau_dust` is over 0
     twilight    how far past the day and night line the light of the star is carried by the air, as a cosine of the light
                 on the ground (0 for no air to `TWILIGHT_MAX` for a thick one): the terminator of a world with air is softer
                 and lies a little onto the night side
@@ -81,7 +86,7 @@ import math
 from types import SimpleNamespace
 
 from planetgen.physics import (
-    atmosphere, atmosphere_colour, gases, giant_colour, photometry, regional_temperature, stellar_library, surface_composition)
+    aerosol_material, atmosphere, atmosphere_colour, gases, giant_colour, photometry, regional_temperature, stellar_library, surface_composition)
 from planetgen.web.maps.ringlook import ring_look
 from planetgen.web.maps.starmap import star_color
 from planetgen.physics import unit_registry as units
@@ -301,6 +306,54 @@ def _put_veil(look, row, colour):
         look["cloudTau"] = round(depth, 3)
 
 
+CLOUD_COLOURS = {
+    "H2O": "#f4f6f8",       # water droplets and ice: white
+    "H2SO4": "#f0e4b4",     # sulfuric acid droplets: pale yellow (Venus)
+    "CO2": "#d9dde0",       # carbon dioxide ice: grey-white
+    "NH3": "#f1eadf",       # ammonia ice: cream white
+    "CH4": "#e6eff0",       # methane ice: white with a trace of blue
+}
+"""dict: The colour of a cloud by its material (`aerosol_material.cloud_material`, MAP.418): water white, sulfuric acid pale yellow, carbon dioxide ice grey-white, as Boss asked (11-09);
+ammonia and methane ice are the same kind of near-white (display colours, not measurements)."""
+
+HAZE_COLOURS = {"tholin": "#c47a35", "dust": "#b59a6c"}
+"""dict: The colour of a haze layer by its material (MAP.418): tholin orange, dust tan (display colours, as Boss asked, 11-09)."""
+
+
+def _aerosol_body(row):
+    """The body-like record of a row that `aerosol_material` reads: its stored mixture, gravity, temperature, greenhouse factor, aerosol draw and optical depths."""
+    return SimpleNamespace(
+        body_type=row.get("body_type"), gravity=row.get("gravity_g"), atmospheric_pressure=row.get("atmospheric_pressure_pa"),
+        surface_temperature=row.get("surface_temperature_k"), greenhouse_factor=row.get("greenhouse_factor"), aerosol_draw=row.get("aerosol_draw"),
+        tau_cloud=row.get("tau_cloud"), tau_haze=row.get("tau_haze"), tau_dust=row.get("tau_dust"), cloud_cover=row.get("cloud_cover"),
+        **{atmosphere.GAS_FIELD: atmosphere.gas_partials_pa(row)})
+
+
+def _blend_hex(parts):
+    """The `#rrggbb` of the mean of `(hex, weight)` parts by weight."""
+    total = math.fsum(weight for _, weight in parts)
+    channels = [math.fsum(int(colour[1 + 2 * i:3 + 2 * i], 16) * weight for colour, weight in parts) / total for i in range(3)]
+    return "#" + "".join(f"{round(value):02x}" for value in channels)
+
+
+def _put_layers(look, row):
+    """
+    `cloudColor` and `hazeColor` of a body with air (MAP.418): one `#rrggbb` per layer, from the material of the layer (`aerosol_material`), left out when the layer is not stored
+    (the cloud when `cloud_cover` or `tau_cloud` is 0 or missing, the haze when `tau_haze` and `tau_dust` are both 0 or missing).
+    """
+    if not any((row.get(name) or 0.0) > 0.0 for name in ("tau_cloud", "tau_haze", "tau_dust")):
+        return
+    body = _aerosol_body(row)
+    cover = row.get("cloud_cover")
+    if cover is not None and cover > 0.0:
+        material = aerosol_material.cloud_material(body)
+        if material in CLOUD_COLOURS:
+            look["cloudColor"] = CLOUD_COLOURS[material]
+    mix = aerosol_material.haze_mix(body)
+    if mix:
+        look["hazeColor"] = _blend_hex([(HAZE_COLOURS[material], depth) for material, depth in mix.items()])
+
+
 def _put_spin(look, row):
     """The spin the row stores, for `static/spin.js` (MAP.328): `spinH` (rotation period, hours), `axis` (the unit spin
     axis, right-handed, in the system's frame) and `tiltDeg` (axial tilt, 0 to 180; past 90 the body turns backwards).
@@ -360,6 +413,7 @@ def planet_look(planet, kind="planet"):
         look.update(glow)
         if not gas:
             _put_veil(look, planet, colour)
+        _put_layers(look, planet)
     pressure_pa = planet.get("atmospheric_pressure_pa")
     _put(look, "pkpa", _rounded(_pa_to_kpa(pressure_pa) if pressure_pa is not None else None, 3))
     _put(look, "tempK", _rounded(temp_k, 1))
