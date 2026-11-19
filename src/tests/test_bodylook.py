@@ -4,6 +4,8 @@ import math
 import json
 
 import pytest
+
+from planetgen.physics import atmosphere
 from planetgen.web.maps import bodylook as bl
 
 from tests.air_support import fold_air
@@ -275,15 +277,35 @@ def test_the_colour_account_names_the_inputs_the_picture_used_and_what_it_leaves
     """UX.158, DOC.93: the info panel line says which stored values gave the colour and what the picture leaves out, in the words of the story."""
     earth = bl.look_note(bl.planet_look(_planet()))
     assert earth.startswith("Ground color from its mean surface temperature (288 K); sea color from its ocean class (neutral); ")
-    assert earth.endswith("Left out: surface composition, clouds, and haze")
+    assert earth.endswith("no cloud or haze drawn: none is stored. Left out: surface composition")
     bare = bl.colour_account(bl.planet_look(_planet(surface_temperature_k=None, ocean_class=None, atmosphere="None")))
     assert "Ground color is a typical one: its temperature is not known" in bare
     assert "sea color is a typical one: its ocean class is not known" in bare and "limb" not in bare
     giant = bl.colour_account(bl.planet_look(_planet(body_type="g", surface_temperature_k=165.0)))
     assert giant.startswith("Cloud-top color from its mean cloud-top temperature (165 K)")
-    assert "chemistry bands and haze" in giant and "sea color" not in giant
+    assert giant.endswith("no cloud or haze drawn: none is stored. Left out: chemistry bands") and "sea color" not in giant
     rogue = bl.colour_account(bl.planet_look(_planet(), "rogue_planet"))
     assert "limb" not in rogue
+
+
+def test_the_colour_account_says_which_of_cloud_and_haze_were_drawn_and_from_what():
+    """MAP.422: the info panel names the cloud (stored cover and depth, and its material) and the haze (stored depth, its material, a shell past the limb) that were drawn, or that none is stored."""
+    water = bl.colour_account(bl.planet_look(_aerosol_air({"N2": 78000.0, "O2": 21000.0, "H2O": 1500.0}, cloud_cover=0.5, tau_cloud=5.0)))
+    assert "cloud drawn from its stored cover and depth (water); no haze drawn: none is stored" in water
+    titan = bl.colour_account(bl.planet_look(_aerosol_air({"N2": 100000.0, "CH4": 5000.0}, surface_temperature_k=90.0, tau_haze=5.0)))
+    assert "no cloud drawn: none is stored; haze drawn from its stored depth (tholin), with a shell past the limb" in titan
+    both = bl.colour_account(bl.planet_look(_aerosol_air({"N2": 100000.0, "CH4": 5000.0}, surface_temperature_k=90.0, tau_haze=1.0, tau_dust=0.5)))
+    assert "haze drawn from its stored depth (tholin and dust)" in both and "with a shell" in both
+    dusty = bl.colour_account(bl.planet_look(_aerosol_air({"CO2": 600.0, "N2": 20.0}, surface_temperature_k=210.0, tau_dust=0.5)))
+    assert "haze drawn from its stored depth (dust)" in dusty and "shell" not in dusty
+    acid = bl.colour_account(bl.planet_look(_aerosol_air({"CO2": 8.9e6, "N2": 3.3e5, "SO2": 150.0, "H2O": 30.0}, surface_temperature_k=737.0, gravity_g=0.9, greenhouse_factor=100.0,
+                                                          aerosol_draw=0.42, cloud_cover=1.0, tau_cloud=25.0)))
+    assert "(sulfuric acid)" in acid
+    giant = bl.colour_account(bl.planet_look(_aerosol_air({"H2": 90000.0, "He": 9000.0, "CH4": 2000.0, "NH3": 100.0}, body_type="g", planet_class="G", surface_temperature_k=150.0,
+                                                          radius_km=60000.0, cloud_cover=0.6, tau_cloud=4.0, tau_haze=2.0)))
+    assert "cloud drawn from its stored cover and depth (" in giant and "haze drawn from its stored depth (tholin)" in giant
+    airless = bl.colour_account(bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, cloud_cover=0.5, tau_cloud=3.0, tau_haze=1.0)))
+    assert "cloud" not in airless and "haze" not in airless
 
 
 def test_the_colour_account_of_a_star_comes_from_its_temperature_or_its_spectral_class():
@@ -291,10 +313,10 @@ def test_the_colour_account_of_a_star_comes_from_its_temperature_or_its_spectral
     assert bl.colour_account(bl.star_look(star)) == "Color from its temperature (5,772 K) and gravity"
     assert bl.colour_account(bl.star_look(dict(star, temperature_k=None))) == "Color from its spectral class"
     assert bl.colour_account({"body": "nebula"}) is None
-    # MAP.274: a solid world coloured from its stored ground types no longer lacks the surface composition, but the cloud and haze are still left out
+    # MAP.274: a solid world coloured from its stored ground types no longer lacks the surface composition; MAP.422: the cloud and haze are drawn from what is stored
     composed = bl.colour_account(dict(bl.planet_look(_planet()), quality="composition"))
     assert composed.startswith("Ground color from its ground types")
-    assert composed.endswith("Left out: clouds and haze") and "surface composition" not in composed
+    assert composed.endswith("no cloud or haze drawn: none is stored") and "Left out" not in composed
 
 
 def _air_look(pressure_kpa, gravity_g=1.0, **over):
@@ -380,6 +402,67 @@ def test_the_air_veils_the_ground_by_its_optical_depth_and_stored_haze_and_cloud
     airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, cloud_cover=0.5, tau_cloud=3.0))
     assert not {"veil", "haze", "cloudCover"} & set(airless)
     assert "veil" not in bl.planet_look(_planet(body_type="g"))
+def _aerosol_air(partials, **over):
+    row = dict(atmosphere="x", atmospheric_pressure_pa=sum(partials.values()), gravity_g=1.0, greenhouse_factor=0.4, aerosol_draw=0.37, **{atmosphere.GAS_FIELD: partials})
+    row.update(over)
+    return _planet(**row)
+
+
+def test_a_cloud_takes_the_colour_of_its_material_and_a_haze_of_its_own():
+    """MAP.418: the cloud's material is the one that makes most of it (water, carbon dioxide ice, methane ice, ammonia ice, sulfuric acid), the haze's is tholin and dust blended by their depths; each layer is left out when it is not stored."""
+    water = bl.planet_look(_aerosol_air({"N2": 78000.0, "O2": 21000.0, "H2O": 1500.0}, cloud_cover=0.5, tau_cloud=5.0))
+    assert water["cloudColor"] == bl.CLOUD_COLOURS["H2O"] and "hazeColor" not in water
+    ice = bl.planet_look(_aerosol_air({"CO2": 50000.0, "N2": 500.0}, surface_temperature_k=160.0, cloud_cover=0.5, tau_cloud=3.0))
+    assert ice["cloudColor"] == bl.CLOUD_COLOURS["CO2"]
+    methane = bl.planet_look(_aerosol_air({"N2": 100000.0, "CH4": 5000.0}, surface_temperature_k=90.0, cloud_cover=0.5, tau_cloud=1.0))
+    assert methane["cloudColor"] == bl.CLOUD_COLOURS["CH4"]
+    acid = bl.planet_look(_aerosol_air({"CO2": 8.9e6, "N2": 3.3e5, "SO2": 150.0, "H2O": 30.0}, surface_temperature_k=737.0, gravity_g=0.9, greenhouse_factor=100.0, aerosol_draw=0.42,
+                                       cloud_cover=1.0, tau_cloud=25.0))
+    assert acid["cloudColor"] == bl.CLOUD_COLOURS["H2SO4"]
+    hazy = bl.planet_look(_aerosol_air({"N2": 100000.0, "CH4": 5000.0}, surface_temperature_k=90.0, tau_haze=2.0))
+    assert hazy["hazeColor"] == bl.HAZE_COLOURS["tholin"] and "cloudColor" not in hazy
+    dusty = bl.planet_look(_aerosol_air({"CO2": 600.0, "N2": 20.0}, surface_temperature_k=210.0, tau_dust=0.5))
+    assert dusty["hazeColor"] == bl.HAZE_COLOURS["dust"]
+    both = bl.planet_look(_aerosol_air({"N2": 100000.0, "CH4": 5000.0}, surface_temperature_k=90.0, tau_haze=1.0, tau_dust=1.0))
+    assert both["hazeColor"] == bl._blend_hex([(bl.HAZE_COLOURS["tholin"], 1.0), (bl.HAZE_COLOURS["dust"], 1.0)])
+    clear = bl.planet_look(_aerosol_air({"N2": 100000.0}, surface_temperature_k=288.0))
+    assert not {"cloudColor", "hazeColor"} & set(clear)
+    airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, cloud_cover=0.5, tau_cloud=3.0, tau_haze=1.0))
+    assert not {"cloudColor", "hazeColor"} & set(airless)
+
+
+def test_a_giant_carries_its_stored_haze_and_cloud_in_its_look():
+    """MAP.421: a giant's look has `haze`, `cloudCover`, `cloudTau` and the layers' colours when the row stores them, none when it stores none (the veil stays a solid world's)."""
+    giant = _aerosol_air({"H2": 90000.0, "He": 9000.0, "CH4": 2000.0, "NH3": 100.0}, body_type="g", planet_class="G", surface_temperature_k=150.0, radius_km=60000.0,
+                         cloud_cover=0.6, tau_cloud=4.0, tau_haze=2.0)
+    look = bl.planet_look(giant)
+    assert look["haze"] == round(1 - math.exp(-2.0 / bl.HAZE_TAU_SCALE), 3)
+    assert look["cloudCover"] == 0.6 and look["cloudTau"] == 4.0
+    assert look["hazeColor"] == bl.HAZE_COLOURS["tholin"] and "veil" not in look
+    assert look["cloudColor"] in bl.CLOUD_COLOURS.values()
+    bare = bl.planet_look(dict(giant, cloud_cover=None, tau_cloud=None, tau_haze=None))
+    assert not {"haze", "cloudCover", "cloudTau", "cloudColor", "hazeColor"} & set(bare)
+
+
+def test_a_hazy_body_has_a_haze_shell_that_grows_with_its_haze_depth_and_a_clear_or_dusty_one_has_none():
+    """MAP.420: `hazeReach` and `hazeStrength` come from the stored `tau_haze` only (tholin), start at `HAZE_SHELL_MIN_TAU`, grow with the depth and stay inside their ranges; dust has no shell of its own."""
+    methane = {"N2": 100000.0, "CH4": 5000.0}
+    thin = bl.planet_look(_aerosol_air(methane, surface_temperature_k=90.0, tau_haze=bl.HAZE_SHELL_MIN_TAU))
+    titan = bl.planet_look(_aerosol_air(methane, surface_temperature_k=90.0, tau_haze=5.0))
+    thick = bl.planet_look(_aerosol_air(methane, surface_temperature_k=90.0, tau_haze=60.0))
+    low, high = bl.HAZE_SHELL_REACH
+    assert low < thin["hazeReach"] < titan["hazeReach"] < thick["hazeReach"] <= high
+    weak, strong = bl.HAZE_SHELL_STRENGTH
+    assert weak < thin["hazeStrength"] < titan["hazeStrength"] < thick["hazeStrength"] <= strong
+    assert titan["hazeColor"] == bl.HAZE_COLOURS["tholin"]
+    veiled = bl.planet_look(_aerosol_air(methane, surface_temperature_k=90.0, tau_haze=0.1))
+    assert "hazeColor" in veiled and not {"hazeReach", "hazeStrength"} & set(veiled)
+    dusty = bl.planet_look(_aerosol_air({"CO2": 600.0, "N2": 20.0}, surface_temperature_k=210.0, tau_dust=5.0))
+    assert not {"hazeReach", "hazeStrength"} & set(dusty)
+    airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, tau_haze=5.0))
+    assert not {"hazeReach", "hazeStrength"} & set(airless)
+
+
 def test_a_body_hotter_than_the_draper_point_glows_in_the_colour_of_its_heat_and_a_cooler_one_does_not():
     """MAP.275: `thermal` is {hex, strength}, 0 at 800 K rising to 1 at 2400 K, the blackbody colour of the temperature."""
     assert bl.thermal_glow(700.0) is None and bl.thermal_glow(800.0) is None and bl.thermal_glow(None) is None

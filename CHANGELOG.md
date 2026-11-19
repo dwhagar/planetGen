@@ -2,6 +2,159 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4639] - 2026-11-19
+
+**Headline:** The radiation sweep's doubling rule now gives the table the world's gravity in m/s2 instead of in g.
+
+### Fixed
+- TEST.803: `test_doubling_the_infrared_active_gases_never_cools_the_ground` passed `body.gravity` (in g) to the greenhouse table, which takes m/s2, so it asked about a world a tenth as heavy as the one it sweeps. On Train 50's draws it hit a 12 bar carbon dioxide air at 1.19 g and read 353.4 K falling to 336.6 K under twice the infrared-active gases; with the gravity in m/s2 the same air rises from 299 K to 327 K. The rule and its tolerance are unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4638] - 2026-11-19
+
+**Headline:** The cloud cosmic-ray test now checks the worlds that stay airless when their life is applied again, because the early-life change lets one test world build an air.
+
+### Changed
+
+- `test_an_edited_world_in_a_cloud_keeps_the_cosmic_ray_multiplier` (GEN.1607) keeps only the grounded worlds whose air is still empty after `reapply_life`. With GEN.1798 one world of the test's system has reached photosynthesis, so applying its life again builds a 15.9 kPa air that shields it (multiplier 1.16 instead of 2.5), which is right. The check on the airless worlds is unchanged.
+
+## [8.0.4637] - 2026-11-19
+
+**Headline:** A moon or planet the tide heats harder than its own heat now gets the sulfur ground of an Io, which no body had before.
+
+### Fixed
+
+- **The ground draw never read the tidal heat flux.** `surface_composition.inputs_of` did not pass `tidal_flux_w_m2` on, so the sulfur rule ("sulfur where the tide beats the body's own heat") always read zero. On 200 systems (3,256 rocky bodies) sulfur ground goes from 0 bodies to 41: 8 of 224 moons and 33 of 3,032 planets (81 bodies have a tide above their own heat; the rest are ice ground or have none, where the rule does not apply). One body changes ground type.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4636] - 2026-11-19
+
+**Headline:** A planet is built where the spacing pass would put it, so the water, bare-core and quiet-interior dials of a Class M tier reach every planet that ends in the ecosphere and none that ends outside it.
+
+### Changed
+
+- GEN.1802 (from GEN.1791): the tier dials are drawn once, at the zone a planet holds when it is first drawn (`Planet._draw_body`, `bulk_draw._rocky_water`), and `validation.space_orbits` later moved planets across a zone edge (`planets.reconcile_zone` redraws nothing): on 400 abundant systems 0.25 rocky planets a system went from hot into the ecosphere with no dial (14 percent of the ecosphere's planets) and 0.41 a system were drawn in the ecosphere with dials and ended cold. `StarSystem._generate_planets` now builds each planet at the nearer of its planned distance and the distance the pass asks of it (`StarSystem._distance_clear_of`, the pass's own rule through `clearance_ledger.planets_needed_au`, with the eccentricity the plan drew, GEN.1797), so the pass has no planet of the plan left to move. Belts are added afterwards and the pass still settles them, so `reconcile_zone` keeps that job. A planet planned inside another's reach is now born further out instead of being moved there after its air and water were drawn; no planet's mass, composition or eccentricity changes by it.
+
+## [8.0.4635] - 2026-11-19
+
+**Headline:** Class M worlds are about twice as common at the top tier because four stand-ins now sit at the favoured end of their published ranges.
+
+### Changed
+
+- GEN.1798: `tuning.LIFE_STEP_MEANS_GYR` first two means (abiogenesis, photosynthesis) 0.5 and 1.5 Gyr to 0.3 and 0.9 Gyr, 0.6 times each inside the registered range of 0.5 to 2 times (stand-in LF49, T7, L3). Measured on 40,000 timelines: animals 40 to 46 in 100 and a civilization 2.1 to 2.4 in 100 for stars of 3 to 13 Gyr.
+- GEN.1799: the carbon dioxide floor of the oxygenic light-eaters (life classes 1a, 1b, 1c) 2.0 Pa to 0.5 Pa, and of class 2 (carbon fixers) 5 Pa to 2 Pa, both inside the measured compensation points of 0.2 to 41.5 ppm (stand-ins LF31 to LF34).
+- GEN.1800: the quiet interior share (`ABUNDANCE_TIER_DIALS`, stand-in AT6) 0.5 to 1 at Plentiful and Abundant; the sink factor stays at the published floor of one third (the lever run tried 0.2, under the range, and it is not built).
+- GEN.1801: `biogenic_oxygen.SECOND_RISE_RATIO` 3 to 2.5, inside the model's range of 2 to 4 (stand-in BO12).
+- The Class M levers run (GEN.1791) measured the four changes together on the paired 81-system subset at Abundant: Class M 8 to 17 and the M-like family 14 to 23 per 1,000 against the older main, with Class M two thirds or more of the family. On the built code against the same code with the four put back, full runs give Plentiful (1,000 systems) Class M 9 to 12 and family 12 to 15 per 1,000, and Abundant (400 systems) Class M 12.5 to 15 (one world, inside the noise). Registry: reports/class-m-levers-gen1791-2026-11-18/lever-registry.md.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4634] - 2026-11-19
+
+**Headline:** The reproducible-galaxies design now says the daily maintenance run is planned (OPS.16, OPS.17), and that the monthly orbit timer is what runs today.
+
+### Changed
+
+- Section 8 of `docs/design/generation/reproducible-galaxies.md` carries a status line (2026-11-19) and marks the script and its schedule as planned; the dropped delta merge and 18-slot rotation are no longer part of the daily run's description.
+
+## [8.0.4633] - 2026-11-19
+
+**Headline:** A test that runs a stage no longer waits for ever when the test box sets only the `PLANETGEN_TEST_MYSQL_*` account (TEST.801).
+
+### Fixed
+
+- The test queue's pump (`tests/inline_queue.run_ready_rows`) opened the control database with the process default account, built from `PLANETGEN_MYSQL_*`. On a box that sets only `PLANETGEN_TEST_MYSQL_*` the login was refused, the pump swallowed the error and ran no unit, and a stage's follower (`units.follow_stage`) waited for a stage end that never came (test_habitability_fill hung). The pump now logs in with the test server's account, and only an unknown control database ends it quietly.
+
+## [8.0.4632] - 2026-11-19
+
+**Headline:** The hydrosphere test no longer fails on a halite sea: the water activity a chloride brine can hold now includes the saturated rock-salt solution.
+
+### Fixed
+
+- **`test_generated_bodies_store_a_consistent_hydrosphere` failed on main since GEN.1730.** A halite sea's water activity is the saturated rock-salt solution's 0.753 (set, not drawn), above the 0.30 to 0.65 chloride-brine range the deliquescent brines are drawn in. The test now checks a liquid body against the range it can hold (its class's drawn range; only a chloride brine whose activity is exactly `NACL_SATURATION_ACTIVITY`, a saturated halite sea, may reach that figure; an ordinary chloride brine stays 0.30 to 0.65). No product code changes, no draw and no stored value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4631] - 2026-11-19
+
+**Headline:** The wiring burn-down starts: a trace-gas function nothing read is retired and two things the guard listed are marked as by design.
+
+### Removed
+- GEN.1559: `mixture_trace.draw_trace_gases`, the mixture-level draw of the trace gases, is gone. It duplicated what `physics.trace_air` does with `draw_trace_amounts`, which the generator reads; only one test called it, and that test now checks `draw_trace_amounts`.
+
+### Changed
+- GEN.1559: the wiring register marks `design_flags` (the check that the life-linked gases m3, m4 and m11 stay off unless a flag allows them, run by its test) and the Class M meter's row AT4 as by design, with the reason.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4630] - 2026-11-19
+
+**Headline:** A map-marker test no longer assumes some capital letter is not a planet class.
+
+### Fixed
+- TEST.802: `bodymarkers.test.mjs` looked for a capital letter missing from the class list to prove a non-class has no symbol, but all 26 letters are classes now (`planetgen.tuning.PLANET_CLASSES`, held to the map's list by `test_system_interests.py`), so it failed. It now uses a lower-case letter and a sign. The marker code was right.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4629] - 2026-11-19
+
+**Headline:** The info panel line now says which of the cloud and the haze were drawn and what each is made of, instead of "Left out: clouds and haze".
+
+### Changed
+- MAP.422: the line under a body's picture names the cloud ("cloud drawn from its stored cover and depth (water)"), the haze ("haze drawn from its stored depth (tholin), with a shell past the limb"), or that none is stored. The look record carries `cloudMaterial` and `hazeMaterial` for it. The old "Left out: clouds and haze" is gone since the picture draws them; the surface composition (a solid world coloured by its temperature band) and the chemistry bands (a giant) are still named as left out.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4628] - 2026-11-19
+
+**Headline:** Gas and ice giants now show their stored haze and cloud: a tholin haze reddens and softens the bands, a cloud deck whitens them.
+
+### Added
+- MAP.421: a giant's look record carries its stored haze and cloud (`haze`, `cloudCover`, `cloudTau`, `hazeColor`, `cloudColor`), and `static/giantpaint.js` lays them over the bands: the haze softens the bands and tints them in its colour, the cloud is a patchy deck in the colour of its material, thicker with its depth, and a hot giant's deck fades with its thermal glow so the glow stays. A giant that stores neither is painted as before. Nothing new is stored.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4627] - 2026-11-19
+
+**Headline:** A hazy body, Titan-like, now has a coloured haze shell past its limb, as deep as its haze.
+
+### Added
+- MAP.420: a body with a stored haze depth (`tau_haze`) of 0.3 or more has a haze shell in the haze's own colour. The look record carries `hazeReach` (0.04 to 0.14 radii past the limb) and `hazeStrength` (0.25 to 0.8), both growing with the haze depth, and the System Map marker, the 3D system view and the body picture each draw a second glow shell in the haze colour with the glow shader they already have. Nothing new is stored, and a body with a thin haze, dust only, or no air has no shell.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4626] - 2026-11-19
+
+**Headline:** A cloud and a haze are painted in the colour of what they are made of: water white, sulfuric acid pale yellow, carbon dioxide ice grey-white, tholin orange, dust tan.
+
+### Fixed
+- MAP.418: every cloud was painted white and a haze only softened the picture. The look record now carries `cloudColor` (from the material that makes most of the cloud: the largest condensate by mass over particle density, or the sulfuric acid cloud where its depth is over the rest) and `hazeColor` (tholin and dust blended by their stored depths), worked from the stored air and aerosol values with no new column (`physics/aerosol_material.py`), and `static/solidpaint.js` paints the cloud in its colour and tints the haze deck toward its colour.
+- MAP.416: the census of the data behind it (5,000 systems, `reports/map416/`) shows clouds are stored on 47 percent and haze on 54 percent of the bodies with air, so the thin look was the painting, not the data.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4625] - 2026-11-19
+
+**Headline:** The far-from-center buffer test holds the whole-galaxy block prisms to the float precision rule that the 10 kpc limit stands for.
+
+### Fixed
+
+- `test_layers_far_from_the_center_are_built_relative_to_origins_of_their_own` held every layer to `SAFE_EXTENT_PC` (10 kpc), including the "block prisms" of the one whole-galaxy view, whose two meshes (solid and glass, MAP.150) are 15,540 pc across. The limit is a float32 precision bound, and `camerarelative.js` says that view draws its blocks as one part that spans more, where a pixel is 100 pc or more. The test now checks that layer by the rule itself: the float32 step at the part's farthest vertex (0.001 pc here) stays under a tenth of the 100 pc pixel. Every other layer keeps the 10 kpc check, and an opened sector's blocks are still held to it. The two-mesh design is kept (MAP.432).
+
+generation-output: unchanged
+
 ## [8.0.4624] - 2026-11-19
 
 **Headline:** The ten browser and menu test files that use `page_targets` import the `sample_ledger_job` fixture it now needs.

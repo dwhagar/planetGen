@@ -80,12 +80,12 @@ def test_every_pressure_condition_of_a_rule_file_is_a_listed_converted_rule():
 
 
 def test_a_pressure_threshold_is_in_pascals_and_not_a_share():
-    """A share is at most 1; no oxygen or carbon dioxide pressure edge is under a pascal."""
+    """A share is at most 1; no oxygen or carbon dioxide pressure edge is under a tenth of a pascal (GEN.1799: the carbon dioxide floor of the light classes is 0.5 Pa, 5 ppm, inside the measured compensation points)."""
     for filename in TABLE_KEY:
         for key, _kind, quantity, condition in _rules(filename):
             for bound in ("min", "lt", "low", "high"):
                 if bound in condition and quantity in PRESSURE:
-                    assert condition[bound] >= 1.0, f"{filename} row {key}: {quantity} {bound} {condition[bound]} looks like a share, not Pa"
+                    assert condition[bound] >= 0.1, f"{filename} row {key}: {quantity} {bound} {condition[bound]} looks like a share, not Pa"
                 if bound in condition and quantity in SHARE:
                     assert 0.0 <= condition[bound] <= 1.0, f"{filename} row {key}: {quantity} {bound} {condition[bound]} is not a share"
 

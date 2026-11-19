@@ -81,8 +81,8 @@ Two makers of systems inside a galaxy build their config without the galaxy's sh
 |---|---|---|---|---|---|---|
 | Sparse | 0.5 | 0 | 0 | 0.2 | 0 | 0.5 |
 | Scattered | 1 | 1 | 0 | 0.2 | 0.5 | 1 |
-| Plentiful | 1 | 1 | 0.5 | 0.2 | 0.5 | 1 |
-| Abundant | 1 | 1 | 1 | 0.2 | 0.5 | 1 |
+| Plentiful | 1 | 1 | 0.5 | 0.2 | 1 | 1 |
+| Abundant | 1 | 1 | 1 | 0.2 | 1 | 1 |
 
 These are first-pass values from the estimates of the report (every candidate given Earth's water gives about 1 Class M world per 500 Sun-like systems; 1 per 100 needs the envelopes gone as well; the two top tiers need the request). They are registered as stand-ins of tier T9, tweak level L4 (`docs/design/research/gap-filling-plan.md` section 6.289).
 
@@ -112,7 +112,7 @@ The dials of the family, each on the tiers only and each off on Science:
 |---|---|---|
 | `dry_part` | built (section 3) | Part of the dialed planets take the dry water class, so desert-shaped planets are made beside the temperate ones. |
 | desert seas | built (section 3) | A desert world's water leaves a few small seas, and each is a halite-saturated sea of real depth that life can start in, not a seep. This also answers the groundwater lever Boss named: a world with a sea passes Class H's groundwater condition, and the dry planets that failed it had no surface water at all. |
-| `quiet_share` | built (section 3) | Quiet volcanoes: a third of the oxygen sink on half of the candidates (Boss, 9:43 PM EST 2026-11-14). It helps every class with a living sea and does nothing for a world without one. |
+| `quiet_share` | built (section 3) | Quiet volcanoes: a third of the oxygen sink on half of the candidates (Boss, 9:43 PM EST 2026-11-14); GEN.1800 (Boss, 7:01 PM EST 2026-11-18) takes the share to all of the candidates at Plentiful and Abundant and keeps the sink at the published third, the 0.2 the lever run tried being under the published range. It helps every class with a living sea and does nothing for a world without one. |
 | early warm phase | to build | A warm, wet early age of at least 0.8 Gyr in which oxygen-making life starts (the research of GEN.1722), before the planet settles to its present state. |
 | hardier oxygen life | to build | How far past the sourced limits of real oxygen-making life the tiers let it live. The sourced limits themselves are GEN.1723, for every tier, Science included (Boss, 8:39 PM EST 2026-11-14: the minimal reasonable, educated guess). |
 

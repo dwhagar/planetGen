@@ -167,8 +167,9 @@ def doubled_infrared_problems(body, warming=atmosphere_state.greenhouse_warming)
     partials, flux, albedo = inputs
     absorbed = greenhouse.absorbed_flux_w_m2(flux, albedo)
     doubled = {formula: pa * 2.0 if gases.gas(formula).is_infrared_active else pa for formula, pa in partials.items()}
-    as_it_is = warming(partials, body.gravity, absorbed).surface_temperature_k
-    with_more = warming(doubled, body.gravity, absorbed).surface_temperature_k
+    gravity = body.gravity * constants.EARTH_GRAVITY       # the table takes m/s2 and a body stores g (the rule fed it g, a world a tenth as heavy as it is, until Train 50 drew a 12 bar carbon dioxide air at 1.19 g)
+    as_it_is = warming(partials, gravity, absorbed).surface_temperature_k
+    with_more = warming(doubled, gravity, absorbed).surface_temperature_k
     if with_more < as_it_is * (1.0 - DOUBLING_TOLERANCE):
         return [f"twice the infrared-active gases cools the ground from {as_it_is:.1f} K to {with_more:.1f} K"]
     return []
