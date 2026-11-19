@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Brings a planetGen database from before 8.0 up to the oldest structure 8.0 accepts (DB.126, OPS.177).
+Brings a planetGen database from before 8.0 up to the oldest structure 8.0 accepts.
 
 Run only by hand, once, on a database you want to keep (back it up first). Nothing in `install.sh`, `update.sh`, the migrations or the program calls this. Boss's hard cut (2026-11-12):
 no database structure before 8.0 is accepted, so a database below v130 is refused (`store.SchemaTooOldError`) and the program never converts it. This script is the one way to keep one:

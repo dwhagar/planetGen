@@ -26,7 +26,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 SKIP_PREFIX = (
     "docs/TODO.md", "docs/plan/", "docs/design/", "docs/generated/", "docs/site/", "docs/references/", "docs/REFERENCES.md", "docs/REFERENCES.html", "docs/reference/references-data.json",
     "docs/reference/api-versions.json", "docs/reference/api-compatibility.md", "CHANGELOG.md", "changes/", "DATA-LICENSE.md", ".github/",
-    "src/planetgen/db/migrations/versions/", "src/tests/fixtures/", "src/tests/golden/", "src/html/static/vendor/",
+    "src/planetgen/db/migrations/versions/", "legacy/db_revisions/", "src/tests/fixtures/", "src/tests/golden/", "src/html/static/vendor/",
 )
 """tuple: Paths (files or folders, from the repository root) that keep their words."""
 
