@@ -1211,6 +1211,21 @@ build_reference_pages() {
     fi
 }
 
+# Checks the fudge table against what it was built from (GEN.1317): `scripts/build_fudge_table.py --check-inputs` compares the stamp in the table's header (SHA-256 of the in-scope
+# registry rows, the class table and the matrix) with the files, and says how many generator epochs have passed since the matrix was measured and how many of them change the stage it
+# reads. Silent when the table is current. It never runs the matrix (hours, on a lane machine) and never stops the update: the table is committed, so a server keeps generating with it.
+FUDGE_TABLE_FAILED=0
+check_fudge_table() {
+    local output="" status=0 line
+    output=$("$PYTHON" "$SCRIPT_DIR/scripts/build_fudge_table.py" --check-inputs 2>&1) || status=$?
+    FUDGE_TABLE_FAILED=$status
+    [[ -z "$output" ]] && return 0
+    log_info "Checking the fudge table against its inputs:"
+    while IFS= read -r line; do
+        if (( status == 0 )); then log_info "$line"; else log_warning "$line"; fi
+    done <<< "$output"
+}
+
 # Optionally runs the population pass and the territories pass (`planetgen population`: species,
 # civilizations and polities, then `planetgen territories`, docs/design/habitability/population-and-politics.md)
 # over the stored galaxy. Off by default (Boss, 2026-10-01): it runs only
