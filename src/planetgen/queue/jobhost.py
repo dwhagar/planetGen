@@ -133,6 +133,7 @@ class JobHost:
 
     def start(self, ready_seconds=READY_SECONDS):
         """Starts the template and waits until its warm set is built. Returns the seconds that took."""
+        template.sweep()            # OPS.283: the argument files an earlier supervisor left unread
         mine, theirs = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
         self.process = subprocess.Popen([self.python, "-m", "planetgen.queue.template", str(theirs.fileno()), *([] if self.pidfd else [template.NO_PIDFD_FLAG]), *self.warm], pass_fds=(theirs.fileno(),))
         theirs.close()
@@ -179,8 +180,13 @@ class JobHost:
     def fork(self, runner, job=None, seconds=FORK_SECONDS):
         """Asks the template to fork one job that runs `runner(job, link)` (a dotted name the allow-list permits). Returns the `Job`."""
         job_id = next(self._ids)
+        raw = template.encode({"op": "fork", "id": job_id, "runner": runner, "job": job or {}})
+        spilled = None
+        if len(raw) > template.SPILL_BYTES:         # OPS.283: arguments too large for the socket go in a file the template reads
+            spilled = template.spill(job or {}, job_id)
+            raw = template.encode({"op": "fork", "id": job_id, "runner": runner, "job_file": spilled})
         try:
-            self.control.send(template.encode({"op": "fork", "id": job_id, "runner": runner, "job": job or {}}))
+            self.control.send(raw)
             message, fds = self._expect("forked", seconds, job_id)
         except (BrokenPipeError, ConnectionResetError):
             self._dead = True
@@ -189,6 +195,12 @@ class JobHost:
             if self._dead:                  # killed between the ask and the answer: the job was not handed out (OPS.236)
                 raise NotReady("the template ended while the job was being handed to it; a new one starts at the next turn") from exc
             raise
+        finally:
+            if spilled is not None:         # read and deleted by the template when it forked; what is left is the file of a job that was not handed out
+                try:
+                    os.unlink(spilled)
+                except FileNotFoundError:
+                    pass
         sock = socket.socket(fileno=fds[0])
         pidfd = fds[1] if len(fds) > 1 else None
         held = Job(job_id, message["pid"], sock, pidfd)
