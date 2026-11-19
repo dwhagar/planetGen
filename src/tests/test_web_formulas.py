@@ -17,6 +17,7 @@ from tests.test_web_a11y import (  # noqa: F401 -- fixtures
     admin_token,
     page_targets,
     sample_job,
+    sample_ledger_job,
     sample_run,
     sample_params,
     site_app,

@@ -16,6 +16,7 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     browser,
     page_targets,
     sample_job,
+    sample_ledger_job,
     sample_run,
     sample_params,
     site_app,
