@@ -74915,6 +74915,90 @@
       ],
       "slug": "6-308-stand-ins-of-the-vapor-pressure-of-carbonyl-sulfide-carbon-disulfide-and-sulfur-trioxide-and-the-gases-with-no-law-gen-1794",
       "title": "Stand-ins of the vapor pressure of carbonyl sulfide, carbon disulfide and sulfur trioxide, and the gases with no law (GEN.1794)"
+    },
+    {
+      "key": "6.309",
+      "number": "6.309",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.wet_land_fraction: the weathering land is land x min(1, ocean_cover / OCEAN_COVER_EARTH); rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it"
+            ],
+            [
+              "The range it moves in",
+              "the cover that saturates it (0.5 to 0.8)"
+            ],
+            [
+              "Where it holds",
+              "worlds with a liquid ocean and some land"
+            ],
+            [
+              "What would show it wrong",
+              "a measured planet whose weathering does not fall with its sea (the insensitivity to land fraction of [R0009] is at a given sea)"
+            ],
+            [
+              "What replaces it",
+              "a runoff model with the hydrological cycle over the land"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics; the form is not in a source read"
+            ]
+          ],
+          "id": "WW1",
+          "key": "6.309:WW1",
+          "kind": "T",
+          "slug": "6-309-ww1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_pressure.wet_land_fraction: the weathering land is land x min(1, ocean_cover / OCEAN_COVER_EARTH); rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "as WW1"
+            ],
+            [
+              "What would show it wrong",
+              "as WW1"
+            ],
+            [
+              "What replaces it",
+              "as WW1"
+            ],
+            [
+              "Evidence",
+              "the Earth's value (0.71); using it as a saturation is a stand-in"
+            ]
+          ],
+          "id": "WW2",
+          "key": "6.309:WW2",
+          "kind": "P",
+          "slug": "6-309-ww2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+        }
+      ],
+      "slug": "6-309-stand-ins-of-the-water-limited-silicate-weathering-gen-1403",
+      "title": "Stand-ins of the water-limited silicate weathering (GEN.1403)"
     }
   ]
 }
