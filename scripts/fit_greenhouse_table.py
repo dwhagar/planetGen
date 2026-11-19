@@ -221,6 +221,14 @@ COLD_MORE_FAMILIES = (
 )
 """tuple: GEN.1796: the families of `cold --more`, the two kinds of cold airs the generator's own validation airs showed the table 50 to 60 K cold on after `COLD_GEN_FAMILIES`: an air that is mostly hydrogen sulfide
 with sulfur dioxide and nitrogen (0.1 to 1.5 MPa), and dense nitrogen with up to 3 percent carbon monoxide."""
+EARTH_TRACE_GASES = ("HCN", "O3", "NH3", "SO2", "H2S", "N2O", "CO", "C2H6", "HCl", "OCS", "He", "H2", "CH4", "NO2")
+EARTH_FAMILIES = tuple(
+    (f"earth-like-with-{gas}", {"N2": (0.7, 0.8), "O2": (0.0, 0.3), "Ar": (0.0, 0.015), "CO2": (1.0e-6, 0.1), "H2O": (1.0e-4, 0.04), gas: (1.0e-7, 2.0e-2)}, (2.0e4, 5.0e5), (80.0, 450.0), 0.0, (3.0, 20.0))
+    for gas in EARTH_TRACE_GASES) + (
+    ("earth-like-carbon-dioxide-ladder", {"N2": (0.7, 0.8), "O2": (0.0, 0.3), "Ar": (0.0, 0.015), "CO2": (1.0e-7, 0.2), "H2O": (1.0e-4, 0.04)}, (2.0e4, 5.0e5), (80.0, 450.0), 0.0, (3.0, 20.0)),)
+"""tuple: GEN.1796: the families of `cold --earth`, temperate nitrogen and oxygen airs (80 to 450 W/m2 absorbed, 0.02 to 0.5 MPa) with carbon dioxide from nothing (a seventh of the draws) to a fifth and one infrared gas at 1e-7 to 2e-2 of the air: the small steps between absent and present that a refit on cold and hot airs left flat or the wrong way (Earth's 41 Pa of carbon dioxide gave 0.4 K, 10 Pa of hydrogen cyanide cooled it 13 K)."""
+
+
 COLD_DEEP_FAMILIES = (
     ("cold-deep-nitrogen", {"N2": (0.6, 0.95), "CO2": (0.03, 0.35), "Ar": (0.0, 0.02), "CH4": (0.0, 0.01)}, (1.5e6, 2.0e7), (0.3, 6.0), 0.0),
     ("cold-deep-carbon-dioxide", {"CO2": (0.85, 1.0), "H2": (0.0, 0.05), "N2": (0.0, 0.1)}, (1.0e6, 2.0e7), (0.3, 6.0), 0.0),
@@ -505,7 +513,7 @@ def cold(args):
     if os.path.exists(path):
         with open(path, "rb") as handle:
             samples = pickle.load(handle)
-    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), COLD_MORE_FAMILIES if args.more else COLD_GEN_FAMILIES if args.gen else COLD_CIA_FAMILIES if args.cia else COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
+    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), EARTH_FAMILIES if args.earth else COLD_MORE_FAMILIES if args.more else COLD_GEN_FAMILIES if args.gen else COLD_CIA_FAMILIES if args.cia else COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
     with open(path, "wb") as handle:
         pickle.dump(samples, handle)
     print(f"{args.count} cold dense airs added, {len(samples)} samples in {path}")
@@ -931,6 +939,7 @@ def main():
     parser.add_argument("--out", default=OUT)
     parser.add_argument("--deep", action="store_true", help="cold: the deep families (`COLD_DEEP_FAMILIES`)")
     parser.add_argument("--census", nargs="+", default=[], help="nullgas: the `.jsonl.gz` files of the class census whose airs are taken (GEN.1629)")
+    parser.add_argument("--earth", action="store_true", help="cold: the temperate air families with carbon dioxide and one infrared gas from nothing upward (`EARTH_FAMILIES`, GEN.1796)")
     parser.add_argument("--more", action="store_true", help="cold: the hydrogen sulfide and carbon monoxide families (`COLD_MORE_FAMILIES`, GEN.1796)")
     parser.add_argument("--gen", action="store_true", help="cold: the generator-like cold dense nitrogen families (`COLD_GEN_FAMILIES`, GEN.1796)")
     parser.add_argument("--cia", action="store_true", help="cold: the light-world nitrogen families with infrared gases (`COLD_CIA_FAMILIES`, GEN.1796)")
