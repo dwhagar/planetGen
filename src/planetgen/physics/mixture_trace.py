@@ -6,9 +6,9 @@ The trace and minor gases of an air, drawn after the life stage (GEN.479; table 
 
 The major gases of `mixture_draw.draw_mixture` come from chemistry before anything lives on the body. The trace gases of table `m`
 read the life stage (`o2_pal`, `life_chemical`, `lightning`, whether the air is CO2-rich), so they are drawn after it, from the same
-seeded stream, on top of the mixture: `draw_trace_gases(subject, draw)` returns the mixture with the drawn gases added at their
-mole fractions and everything renormalised. What the rows decide is presence; the amounts are design brackets, each a stand-in with the
-measured value as its TEST anchor:
+seeded stream, on top of the mixture: `draw_trace_amounts(subject)` returns the gases the rows draw present and their mole fractions, and
+`physics.trace_air` adds them to the air of the body and renormalises. What the rows decide is presence; the amounts are design brackets, each a
+stand-in with the measured value as its TEST anchor:
 
 | row | gas | mole fraction bracket | TEST anchor |
 |---|---|---|---|
@@ -20,8 +20,6 @@ The rows that are not abundances of this module: the ozone rows m1 and m2 are re
 (a fit by the host's temperature and the oxygen level, with an abiotic branch below 0.01 percent PAL), the alkali rows m7 and m8 decide the sodium and potassium gas of a giant and are read by `mixture_giant`, m9 (OCS)
 is a formation equilibrium the solver already gives, and m10 (radon) is the ground source of the radiation chain.
 """
-
-import dataclasses
 
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics import atmosphere_recipes
@@ -84,35 +82,3 @@ def draw_trace_amounts(subject, rows=WIRED_ROWS, drawn=None):
             for formula, spec in ABUNDANCES[row].items():
                 amounts[formula] = bracket(constants, f"trace_{formula}", spec)
     return amounts, constants, recipe
-
-
-def draw_trace_gases(subject, mixture, rows=WIRED_ROWS):
-    """
-    The mixture with the trace gases of table m added.
-
-    Args:
-        subject (Subject): The body, with the quantities `required_trace_inputs(subject.body_class)` names.
-        mixture (MixtureDraw): From `draw_mixture`; its `recipe` is the draw the rows of table m follow.
-        rows (tuple): The rows whose gases are added (the `WIRED_ROWS`).
-
-    Returns:
-        MixtureDraw: The same mixture with the present trace gases added (mole fractions renormalised to 1), `trace` in `constants`
-            holding the rows drawn and the amounts, and `recipe` the table-m draw's `RecipeDraw` merged into the first (so
-            `recipe.binaries` has the ozone rows for the ozone code).
-
-    Raises:
-        MixtureError: A quantity the rows read is missing (named) or the mixture has no recipe.
-    """
-    if mixture.recipe is None:
-        raise MixtureError("the mixture carries no recipe draw")
-    added, drawn_constants, trace_recipe = draw_trace_amounts(subject, rows, drawn=mixture.recipe.subject.quantities)
-    constants = {**mixture.constants, **drawn_constants}
-    fractions = dict(mixture.mole_fractions)
-    if fractions:
-        for formula, value in added.items():
-            fractions[formula] = fractions.get(formula, 0.0) + value
-        total = sum(fractions.values())
-        fractions = dict(sorted(((formula, value / total) for formula, value in fractions.items()), key=lambda item: -item[1]))
-    constants["trace_rows"] = sorted(row for row, (present, _) in trace_recipe.binaries.items() if present)
-    merged = dataclasses.replace(mixture.recipe, binaries={**mixture.recipe.binaries, **trace_recipe.binaries})
-    return dataclasses.replace(mixture, mole_fractions=fractions, constants=constants, recipe=merged)
