@@ -140,17 +140,6 @@ OCEAN_CHEMISTRY = {
 """dict: Each class's `(pH range, water activity range)`, drawn uniformly
 (section 5.4; neutral's water activity is 20 to 50 g/kg of salt)."""
 
-def ocean_activity_range(body):
-    """
-    The water activities the liquid body `body` can hold, `(low, high)`: the drawn range of its ocean class in `OCEAN_CHEMISTRY`, and for a chloride brine that is a saturated halite sea
-    (GEN.1730, whose activity is the set `NACL_SATURATION_ACTIVITY` and not a draw) up to that figure. An ordinary chloride brine stays held to its drawn range.
-    """
-    low, high = OCEAN_CHEMISTRY[body.ocean_class][1]
-    if body.ocean_class == "chloride brine" and body.water_activity == NACL_SATURATION_ACTIVITY:
-        high = NACL_SATURATION_ACTIVITY
-    return low, high
-
-
 ICY_MIN_WATER_FRACTION = 0.01
 """float: The water mass fraction from which a body's surface is ice (an icy body holds guest gases in the cages of its ice skin, `surface_air`)."""
 
