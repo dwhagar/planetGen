@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1917 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1919 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1890 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1892 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 127 | 65 | 13 | 10 | 0 | 215 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 111 | 29 | 8 | 2 | 2 | 152 |
-| T6 | 242 | 131 | 37 | 81 | 5 | 496 |
+| T6 | 242 | 133 | 37 | 81 | 5 | 498 |
 | T7 | 70 | 37 | 10 | 32 | 0 | 149 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1092 | 395 | 98 | 268 | 64 | 1917 |
+| All | 1092 | 397 | 98 | 268 | 64 | 1919 |
 
 ## How the labels were given
 
@@ -3392,3 +3392,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SV4 | D | T2 | L1 | saturation SO3 liquid: Antoine log10(P/bar) = 4.20515 - 892.175/(T - 103.564), 333 to 483 K, carried down to the melting point of the gamma phase 290.1 K (the row's own triple point) and up to the critical temperature 491 K | the window edge, 10 percent at the boiling point of 317.9 K | sulfur trioxide of the gamma phase; the alpha and beta phases are not modelled | a measured vapour pressure of the liquid between 290 and 333 K that differs by more than 15 percent | a fit that includes the data under 333 K | NIST WebBook ([R5312]; NIST WebBook for the melting point; second-hand, read 11-18) | predicted only | - | - |
 | SV5 | P | T5 | L0 | the solid of OCS, CS2 and SO3 by Clausius-Clapeyron from the liquid curve's pressure at the triple point, with the sublimation enthalpy taken as the vaporisation plus the fusion: OCS 25.13 kJ/mol (20.4 at 176 K + 4.728), CS2 36.479 (32.09 from the NIST correlation at the triple point + 4.389), SO3 54.85 (45.5 + 9.35) | each enthalpy +-10 percent | the three solids below their triple points | a measured sublimation pressure of the solid, which NIST does not list for any of the three | measured sublimation enthalpies | inferred physics (the enthalpy of sublimation is that of vaporisation plus fusion at the triple point); the vaporisation of CS2 at the triple point is the NIST correlation carried below its 282 to 319 K window | predicted only | - | - |
 | SV6 | T | T5 | L0 | `no_law` of the data file: H, Cl, S, SO, PO, PS, PN and P2 are fragments of the hot equilibrium that recombine or photolyse in a cold air; CH3Cl, HCOOH, N2O, NO2 and PH3 are trace gases with no curve filed yet | none | every gas above a billionth of the air in the sweep of `tests/test_saturation.py::_carried_gases` | a gas outside the sweep that the solve carries at over a billionth of an air and that has neither a curve nor a reason (the test fails) | a curve for each trace gas | educated guess from physics (the reasons); the sweep is the redox, temperature and hydrogen range of the rocky recipe | predicted only | - | - |
+
+## 6.309 Stand-ins of the water-limited silicate weathering (GEN.1403)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| WW1 | T | T6 | L1 | `surface_pressure.wet_land_fraction`: the weathering land is `land x min(1, ocean_cover / OCEAN_COVER_EARTH)`; rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it | the cover that saturates it (0.5 to 0.8) | worlds with a liquid ocean and some land | a measured planet whose weathering does not fall with its sea (the insensitivity to land fraction of [R0009] is at a given sea) | a runoff model with the hydrological cycle over the land | educated guess from physics; the form is not in a source read | predicted only | - | - |
+| WW2 | P | T6 | L1 | `surface_pressure.OCEAN_COVER_EARTH` 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land | 0.5 to 0.8 | as WW1 | as WW1 | as WW1 | the Earth's value (0.71); using it as a saturation is a stand-in | predicted only | - | - |
