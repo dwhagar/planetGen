@@ -31,7 +31,10 @@ real cycle (the circular orbits the model keeps; EC1 of section 6.249).
 Sun, the nearest a spacecraft sees the whole Einstein ring of a distant star. A body whose radius is not larger than four Schwarzschild radii bends by more than a weak field allows and has no
 such focus (`None`). The Sun's corona bends light too and pushes the real focus to about 650 AU; the figure here is the vacuum one.
 
-Stand-ins are the rows SK1 to SK3 of section 6.263 of the gap plan.
+**Other suns and the moon's own sky** (`companion_eclipse`; `moon_eclipse` with the planet as the blocker). A planet's other suns (GEN.1443) are eclipsed by its moons on the same geometry, the source standing still at its
+latitude off the orbit plane; a moon sees its star hidden by its planet each month the orbit's tilt lets the planet's disk reach the star's. What the calendar leaves out is in the rows SK4 to SK6 of section 6.272.
+
+Stand-ins are the rows SK1 to SK6 of section 6.272 of the gap plan.
 """
 
 import math
@@ -88,24 +91,47 @@ class Eclipse:
     deepest_cover: float
 
 
-def touching_share(alpha_c, alpha_s, beta_max):
-    """The share of the crossings that touch the star's disk, for a crossing at the height `beta_max sin(u)` (`u` uniform) of the reach `alpha_c + alpha_s`."""
+def touching_share(alpha_c, alpha_s, beta_max, offset=0.0):
+    """
+    The share of the crossings that touch the star's disk, for a crossing at the height `beta_max sin(u)` (`u` uniform) above a source that stands `offset` (radians) off the plane the
+    blocker's height is measured from, with the reach `alpha_c + alpha_s`: the crossings with `|beta_max sin(u) - offset| <= reach`. With no offset it is `(2 / pi) asin(min(1, reach / beta_max))`.
+    """
     if alpha_c <= 0.0 or alpha_s <= 0.0:
         return 0.0
+    reach = alpha_c + alpha_s
     if beta_max <= 0.0:
-        return 1.0
-    return 2.0 / math.pi * math.asin(min(1.0, (alpha_c + alpha_s) / beta_max))
+        return 1.0 if abs(offset) <= reach else 0.0
+    low, high = max(-1.0, (offset - reach) / beta_max), min(1.0, (offset + reach) / beta_max)
+    if high <= low:
+        return 0.0
+    return (math.asin(high) - math.asin(low)) / math.pi
 
 
-def _eclipse(alpha_c, alpha_s, beta_max, synodic_yr, omega_rad_yr):
-    """The `Eclipse` of the disks `alpha_c` and `alpha_s` (radians) crossing every `synodic_yr` at the angular rate `omega_rad_yr`, or `None` when they never touch."""
-    share = touching_share(alpha_c, alpha_s, beta_max)
+def overlap_share(alpha_c, alpha_s, separation):
+    """The share of the star's disk (radius `alpha_s`) hidden by a blocker's disk (radius `alpha_c`) whose center stands `separation` from the star's center, all in the same angle."""
+    if separation >= alpha_c + alpha_s:
+        return 0.0
+    if separation <= abs(alpha_c - alpha_s):
+        return 1.0 if alpha_c >= alpha_s else (alpha_c / alpha_s) ** 2
+    a2, c2 = alpha_s * alpha_s, alpha_c * alpha_c
+    first = a2 * math.acos((separation * separation + a2 - c2) / (2.0 * separation * alpha_s))
+    second = c2 * math.acos((separation * separation + c2 - a2) / (2.0 * separation * alpha_c))
+    kite = 0.5 * math.sqrt(max((-separation + alpha_s + alpha_c) * (separation + alpha_s - alpha_c) * (separation - alpha_s + alpha_c) * (separation + alpha_s + alpha_c), 0.0))
+    return (first + second - kite) / (math.pi * a2)
+
+
+def _eclipse(alpha_c, alpha_s, beta_max, synodic_yr, omega_rad_yr, offset=0.0):
+    """The `Eclipse` of the disks `alpha_c` and `alpha_s` (radians) crossing every `synodic_yr` at the angular rate `omega_rad_yr` (above a source `offset` radians off the blocker's plane, see
+    `touching_share`), or `None` when they never touch."""
+    share = touching_share(alpha_c, alpha_s, beta_max, offset)
     if share <= 0.0 or synodic_yr <= 0.0 or omega_rad_yr <= 0.0:
         return None
     reach = alpha_c + alpha_s
-    total_h = 2.0 * max(alpha_c - alpha_s, 0.0) / omega_rad_yr * _HOURS_PER_YEAR
-    deepest = 1.0 if alpha_c >= alpha_s else (alpha_c / alpha_s) ** 2
-    return Eclipse(synodic_yr / share, 2.0 * reach / omega_rad_yr * _HOURS_PER_YEAR, total_h, deepest)
+    closest = max(abs(offset) - beta_max, 0.0)         # the nearest the blocker's track comes to the star's center
+    contact = 2.0 * math.sqrt(max(reach * reach - closest * closest, 0.0)) / omega_rad_yr * _HOURS_PER_YEAR
+    whole = max(alpha_c - alpha_s, 0.0)
+    total = 2.0 * math.sqrt(max(whole * whole - closest * closest, 0.0)) / omega_rad_yr * _HOURS_PER_YEAR
+    return Eclipse(synodic_yr / share, contact, total, overlap_share(alpha_c, alpha_s, closest))
 
 
 def moon_eclipse(star_radius_km, star_distance_km, planet_period_yr, moon_radius_km, moon_distance_km, moon_period_yr, inclination_deg):
@@ -129,3 +155,15 @@ def planet_eclipse(star_radius_km, observer_km, observer_period_yr, blocker_radi
     synodic = 1.0 / abs(1.0 / blocker_period_yr - 1.0 / observer_period_yr)
     beta_max = blocker_km * math.sin(math.radians(inclination_deg)) / gap_km
     return _eclipse(blocker_radius_km / gap_km, star_radius_km / observer_km, beta_max, synodic, eclipses.transit_rate(observer_km, observer_period_yr, blocker_km, blocker_period_yr))
+
+
+def companion_eclipse(companion_angular_radius_rad, companion_latitude_rad, moon_radius_km, moon_distance_km, moon_period_yr, inclination_deg):
+    """
+    The eclipses of another sun of a planet's sky (GEN.1443, `sky_suns`) by one of its moons, seen from the planet. The other sun is a source that stands still in the sky through the moon's
+    month (its own period is far longer), so the moon passes the direction of it once a sidereal period `moon_period_yr`, at the angular rate `2 pi / period`; it stands `companion_latitude_rad`
+    off the planet's orbit plane (the third component of `sky_suns.placed`'s offset), and the moon's orbit, tilted `inclination_deg` to that plane, passes above it at the height `i sin(u)`.
+    `None` for a moon that never touches the other sun's disk from there.
+    """
+    if not (companion_angular_radius_rad and moon_radius_km and moon_distance_km and moon_period_yr and moon_period_yr > 0.0):
+        return None
+    return _eclipse(moon_radius_km / moon_distance_km, companion_angular_radius_rad, math.radians(inclination_deg), moon_period_yr, _TWO_PI / moon_period_yr, companion_latitude_rad)

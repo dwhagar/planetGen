@@ -48,6 +48,12 @@ def is_derived_key(key):
     return key in (SUN_KEY, PLANET_KEY) or key.startswith(OTHER_KEY_PREFIX)
 
 
+def source_phrase(number, body):
+    """The words for the `number`-th other source of a sky (`sky_view.Body`): "second sun", "third night light"."""
+    word = "sun" if body.role == "sun" else "night light"
+    return f"{_ORDINALS[min(number - 1, len(_ORDINALS) - 1)]} {word}"
+
+
 def width_deg(radius_km, distance_km):
     """The angular diameter of a disk of `radius_km` at `distance_km`, degrees; 0 for no size or no distance."""
     if not radius_km or not distance_km or distance_km <= 0.0:
@@ -88,8 +94,7 @@ def _other_rows(conn, kind, object_id, planet, parent):
     sky = sky_view.bodies(star, orbit_elements.flux_distance_au(host.distance, getattr(host, "eccentricity", None) or 0.0))
     rows = []
     for number, body in enumerate(sky[1:MAX_OTHER_ROWS + 1], 1):
-        word = "sun" if body.role == "sun" else "night light"
-        rows.append(_row(f"{OTHER_KEY_PREFIX}{number}", f"Width of its {_ORDINALS[min(number - 1, len(_ORDINALS) - 1)]} {word} in the sky ({body.kind})", body.angular_deg))
+        rows.append(_row(f"{OTHER_KEY_PREFIX}{number}", f"Width of its {source_phrase(number, body)} in the sky ({body.kind})", body.angular_deg))
     return rows
 
 
