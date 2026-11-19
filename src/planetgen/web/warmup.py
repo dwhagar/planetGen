@@ -406,11 +406,33 @@ def _cap(cap):
     return get_settings().page_cache.warm_max_objects if cap is None else int(cap)
 
 
-def _objects(visitor, fetch, cap, start=0):
-    """Yields the rows of a paginated listing from place `start`, at most `cap` of them, and sets `visitor.total` to how many
-    exist."""
-    seen = 0
+def _objects(visitor, fetch, cap, start=0, aligned=False):
+    """
+    Yields the rows of a paginated listing from place `start`, at most `cap` of them, and sets `visitor.total` to how many
+    exist.
+
+    With `aligned` (a slice of a unit) it asks for the listing's own windows, `PAGE_SIZE` rows from a multiple of `PAGE_SIZE`, which are the windows a visitor's listing page asks for and the
+    cache keeps: a slice of one object and a slice of a thousand leave the same windows in the cache, so the cut of the stage does not change what it stores (PERF.260).
+    """
     visitor.total = 0
+    if aligned:
+        position, end = start, start + cap
+        while position < end:
+            page = position - position % PAGE_SIZE
+            envelope = fetch(limit=PAGE_SIZE, offset=page)
+            visitor.total = envelope["total"]
+            if not envelope["items"]:
+                return
+            for place, row in enumerate(envelope["items"], page):
+                if place >= end:
+                    return
+                if place >= position:
+                    yield row
+            position = page + len(envelope["items"])
+            if position >= envelope["total"]:
+                return
+        return
+    seen = 0
     while seen < cap:
         envelope = fetch(limit=min(PAGE_SIZE, cap - seen), offset=start + seen)
         visitor.total = envelope["total"]
@@ -480,7 +502,7 @@ def _warm_objects(visitor, cap, fetch, pages, noun, window=None):
     counter it had (`pagecache.ResponseCache.slice_is_current`, PERF.239), is not visited again: an unchanged warm-up costs a
     few round trips to Redis a slice, not two requests through the app for every object. Its answers count as already cached."""
     start = 0 if window is None else window["offset"]
-    rows = list(_objects(visitor, fetch, _cap(cap) if window is None else window["count"], start))
+    rows = list(_objects(visitor, fetch, _cap(cap) if window is None else window["count"], start, aligned=window is not None))
     cache = apiclient.response_cache()
     name = f"{noun}:" + hashlib.sha256(json.dumps([[row.get("type"), row["id"]] for row in rows]).encode("utf-8")).hexdigest()
     answers = cache.slice_is_current(visitor.db, name) if cache is not None and rows else None

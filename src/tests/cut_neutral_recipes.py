@@ -180,7 +180,10 @@ def _prepare_warm_nodes(context):
     from planetgen.web import warmup
 
     _prepare_warm(context)
-    context.monkeypatch.setattr(warmup, "get_settings", lambda: types.SimpleNamespace(tile_cache=types.SimpleNamespace(warm_zoom_floor=81)))
+    from planetgen.util import settings
+
+    # The warm-up reads `page_cache` too (the cap of its objects), so the stand-in carries the real defaults of it beside the one `tile_cache` value the recipe pins.
+    context.monkeypatch.setattr(warmup, "get_settings", lambda: types.SimpleNamespace(tile_cache=types.SimpleNamespace(warm_zoom_floor=81), page_cache=settings.PageCache()))
     whole = warmup.zoom_run_nodes
     context.monkeypatch.setattr(warmup, "zoom_run_nodes", lambda *args: whole(*args)[:DEEP_SLICE])
     conn = store.get_connection(context.mysql_config)

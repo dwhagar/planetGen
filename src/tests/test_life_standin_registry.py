@@ -27,6 +27,7 @@ NEEDS_NO_ROW = {
     "habitability.TIERS": "the four colour names: structure",
     "habitability.COVERAGE_EDGE_SCORES": "the (share, score) pairs built from the three livable edges (LF63) and the four score levels: structure",
     "habitability.POTENTIALLY_HABITABLE_TIERS": "which colours count as habitable: structure",
+    "habitability.GAS_ORDER": "the names of the four gases (CO2, CO, H2S, SO2) in the order the check reads them: structure",
     "habitability.LIFE_STAGES": "the names of the four life stages: structure",
     "habitability.CORE_DOMAINS": "the names of the five core domains: structure",
     "habitability.DOMAINS": "the names of the six domains: structure",
