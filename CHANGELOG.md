@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4615] - 2026-11-19
+
+**Headline:** The planets of a system keep the places the architecture gave them because the architecture and the spacing pass now follow one spacing rule, so a giant planned at 2 to 8 au is no longer pushed out to tens of au.
+
+### Changed
+
+- GEN.1797: the giants planned at 2 to 8 au were thrown out of that band by the spacing pass (`validation.space_orbits`), not by the law that makes giants (which matches the observed 0.141 [R1479] among stars with room). The architecture thinned and cleared its neighbours on circular orbits at 8 mutual Hill radii, the pass then asked for 10 from apoapsis to periapsis with the eccentricities the planets drew later, and settled the difference by moving the outer planet out (6 to 90 au in the cases traced). Now each planet's eccentricity is drawn in the architecture (`planet_architecture._with_eccentricities`, the Kepler law of several planets or the Beta law of giants, from the planet's own keyed stream so no other draw moves), held to what the planets inside it allow by the pass's own rule (`clearance_ledger.planets_needed_au`, which `validation.min_distance_after_au` now also reads), and a pair with a giant that cannot stand by that rule is thrown out of the lighter one (`_stability_split`, recorded as a loss like any other thrown planet, so the rogue donors see it). `GIANT_CLEARING_SPACING` now counts only what a giant that moved in scatters. The planet takes the planned eccentricity (`Planet.plan_eccentricity`, `generate_orbit_shape`) instead of drawing it again. No range is widened.
+
 ## [8.0.4614] - 2026-11-19
 
 **Headline:** The giant fixed-point test accepts a cold giant that starts on its fixed point and settles in the one step that shows it.
