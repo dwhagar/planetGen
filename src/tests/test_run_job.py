@@ -233,3 +233,59 @@ def test_the_run_job_command_numbers_its_stages_across_the_job_and_records_one_r
     finally:
         conn.close()
     assert [(row["command"], row["outcome"]) for row in runs] == [("run-job", "ok")]
+
+
+def _settings_marker(followers):
+    return followers[0].params()["settings"]
+
+
+def test_a_luminosity_scatter_prepared_by_a_backfill_before_it_is_not_refused_for_the_backfills_stars(mysql_config):
+    """OPS.280: the massive-star scatter before the backfill refuses a galaxy that holds a scatter and empties the table (`prepare_flags`); the luminosity scatter after it finds the backfill's own sky stars
+    under the mass limit, so it must not refuse (`scatter_stored` reads them as a stored luminosity pass). An unprepared luminosity scatter still refuses."""
+    _seed_galaxy(mysql_config)
+    args = _scatter_args(mysql_config, "--luminosity")
+    prepared, _book = run_plan.bright_star_followers(args, ["luminosity"], "luminosity", "#5", prepare=True)
+    standing, _book = run_plan.bright_star_followers(args, ["luminosity"], "luminosity", "#5", prepare=False)
+    assert _settings_marker(prepared)["refuse"] is None
+    assert _settings_marker(standing)["refuse"] == "luminosity"
+
+
+
+@pytest.mark.slow
+@pytest.mark.db
+def test_a_new_galaxy_job_draws_both_star_passes_after_a_backfill_that_drew_the_sky(mysql_config):
+    """OPS.280, the job's command chain end to end (Boss's New galaxy order: sectors, link, backfill with the sky tiers, then the massive-star and luminosity scatters): the backfill stores stars under the mass
+    limit, the luminosity scatter does not refuse them and records its own pass (it has no clear stage of its own, `bright_star_followers`)."""
+    from tests import inline_queue
+    from tests.test_galaxy_gen import _seed_skeleton
+    from tests.test_sky_sliced_draw import toy_tiers   # noqa: F401 (a fixture, called below by its function)
+    from planetgen.generation import bright_stars as brightStars
+    from planetgen.generation import run_galaxy, sky_charting
+    from tests.test_sky_charting import a_tier
+
+    real_plan = sky_charting.plan
+
+    def small_plan(observer_pc, limit_mag, edge_pc, **options):
+        center, tiers = real_plan(observer_pc, limit_mag, edge_pc, **options)
+        return center, tiers._replace(luminosity=(a_tier(low=1000.0, high=3000.0), a_tier(low=500.0, high=1000.0)),
+                                      rings=(a_tier("mass", low=5.0, high=8.0),), dropped=())
+
+    patch = pytest.MonkeyPatch()
+    try:
+        patch.setattr(sky_charting, "plan", small_plan)
+        patch.setattr(run_galaxy, "SKY_PARTS", 2)
+        patch.setattr(brightStars, "SPHERE_BATCH_CELLS", 4)
+        _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1)])
+        spec = [("sectors", ["--shell", "1", "--limit", "3", "--num-systems", "1"]), ("link", []), ("backfill", ["--sky-limit", "7.5"]),
+                ("scatter", ["--mass", *FLOOR]), ("scatter", ["--luminosity", *FLOOR]), ("settle", [])]
+        with inline_queue.inline_queue():
+            job.run_job(_job_args(mysql_config, spec))
+    finally:
+        patch.undo()
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.scatter_epochs(conn).keys() >= {"mass", "luminosity"}, "both passes were drawn and recorded"
+        limit = store.bright_star_mass_limit(conn)
+        assert limit is not None and conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE initial_mass_sol < ?", (limit,)).fetchone()["n"] > 0
+    finally:
+        conn.close()
