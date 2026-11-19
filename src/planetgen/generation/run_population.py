@@ -77,7 +77,7 @@ def _under_the_lock(ctx, work):
 
 def population_do(params, piece, ctx):
     """One piece of the population pass (`model.do_population_piece`), under the pass lock and committed through `ctx.commit()`: the `do` of all four commands of the pass."""
-    return _under_the_lock(ctx, lambda: model.do_population_piece(ctx.db, piece))
+    return _under_the_lock(ctx, lambda: model.do_population_piece(ctx.db, piece, ctx))
 
 
 def scan_species_gather(params, results, ctx):
