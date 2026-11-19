@@ -72007,7 +72007,7 @@
             ],
             [
               "The range it moves in",
-              "1 to 100 (Johansen and others 2023 range), 10 to 31 measured (Suer and others 2023)"
+              "1 to 100 ([R5318] range), 10 to 31 measured [R5317]"
             ],
             [
               "Where it holds",
@@ -72019,11 +72019,11 @@
             ],
             [
               "What replaces it",
-              "a D_N law fitted on pressure, temperature and redox together (Grewal and others 2019 style)"
+              "a D_N law fitted on pressure, temperature and redox together (the kind of fit [R1684] makes for the speciation)"
             ],
             [
               "Evidence",
-              "Suer and others 2023, Front. Earth Sci. 11:1159412, Table 1 (a review of the experiments); [R2171] K_D 20 +/- 10 measured, 1.8 thermodynamic"
+              "[R5317: Table 1] (a review of the experiments); [R5318] (range 1 to 100); [R2171] K_D 20 +/- 10 measured, 1.8 thermodynamic"
             ]
           ],
           "id": "NB1",

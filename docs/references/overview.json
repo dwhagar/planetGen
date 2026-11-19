@@ -6,10 +6,10 @@
   "papers": {
     "books": 31,
     "datasets": 26,
-    "entries": 5213,
-    "with_arxiv": 1541,
-    "with_doi": 4975,
-    "without_doi": 238
+    "entries": 5215,
+    "with_arxiv": 1542,
+    "with_doi": 4976,
+    "without_doi": 239
   },
   "stand_ins": {
     "by_tier": {
