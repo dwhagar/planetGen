@@ -42,7 +42,8 @@ ORBIT_SAMPLES = 96
 
 _KEPLER_ITERATIONS = 12
 _MIN_DENOMINATOR_SHARE = 0.05
-"""float: A source nearer the host than the body (never in a stable system) is held to `R^2 - d^2 >= 0.05 R^2`, so the average cannot blow up."""
+"""float: A source whose orbit comes within a share of the body's (the two orbits nearly cross, never in a stable system) is held to `|R^2 - d^2| >= 0.05 R^2`, so the
+average cannot blow up (numerical guard, stand-in RF9)."""
 
 
 @dataclass(frozen=True)
@@ -92,10 +93,13 @@ def separations_au(axis_au, eccentricity):
 def mean_inverse_square(distance_au, axis_au, eccentricity):
     """
     `g`, the time-averaged `1/d^2` (1/AU^2) between a body at `distance_au` from its host (taken as a circle) and a source on an orbit of semi-major axis
-    `axis_au` and `eccentricity` round the host, both orbits coplanar: the mean of `1 / (R^2 - d^2)` over the source's orbit.
+    `axis_au` and `eccentricity` round the host, both orbits coplanar: the mean of `1 / |R^2 - d^2|` over the source's orbit. The mean of `1 / (R^2 + d^2 - 2 R d cos(phi))`
+    over the angle between the two is `1 / |R^2 - d^2|` for a source outside the body's orbit (R > d, a body that orbits one member of a wide pair) and for one inside it
+    (R < d, a body round a close pair, which the light of the pair then gives as `1 / d^2` far out). GEN.1790: the first form alone was taken, and a source inside the
+    body's orbit was floored at `_MIN_DENOMINATOR_SHARE` of `R^2`, so two companions at 0.27 and 1.2 AU lit a planet at 35 AU 2e4 times too hard (23,000 K asks of the air).
     """
     separation = _distances_au(axis_au, eccentricity)
-    denominator = np.maximum(separation ** 2 - distance_au ** 2, _MIN_DENOMINATOR_SHARE * separation ** 2)
+    denominator = np.maximum(np.abs(separation ** 2 - distance_au ** 2), _MIN_DENOMINATOR_SHARE * separation ** 2)
     return float(np.mean(1.0 / denominator))
 
 
