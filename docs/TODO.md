@@ -11236,13 +11236,6 @@ clears each one.
   Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 05 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: MAP.418. Related: MAP.418.
   Filed by the TODO thread.
 
-- [ ] **GEN.1539 Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size**
-  Lane 14 (as the lane reported 3:32 PM EST on 2026-11-11), found in the GEN.1520 after-sweep (PR 6035): outer-disk belts start at the fixed tuning.PLANET_OUTER_GROWTH_AU for every star, so every spectral type now shows a median belt at 11.4 au even though the disk edge now scales with the star's mass (100 au x (M/Msun)^0.5). Do: replace the fixed start with a limit that follows the star (the snow line, the disk edge of GEN.1520, or both), register the new constants in GEN.725 at the right tier and tweak level, check the belt census by spectral type before and after, and say in the change note what moved. Lock item (it changes belts).
-  Version 8.1. Owner (TODO, 2026-11-18): Lane 06 (from closed Lane 03), lock item at build, Train 46. Prerequisites: GEN.1520. Related: GEN.1520, GEN.1509, GEN.725.
-  Filed by the TODO thread.
-  Lane 06 report (2:29 AM EST 2026-11-18, /mnt/project-files/reports/gen1539/gen1539-growth-limit-by-star-mass-2026-11-18.md): PLANET_OUTER_GROWTH_AU is the growth limit of the whole disk (planet_mass.oligarch_core_kg and belt_origin), so it scales for planets and belts together. Decision (TODO): 11.36 au x (M/Msun)^0.7 from the model's own core-assembly time and solids law (inferred physics, L0, Sun unchanged), floor at the snow line, never beyond the GEN.1520 gas edge; planet census by spectral type and belt census in the PR.
-  Lane 06, 6:48 AM EST 2026-11-18: built, PR 7214, lock item for Train 47. Sun-like stars do not move; M2V planets over 5 au 1.09 to 0.57, M5V outer belt start 11.4 to 2.8 au, A2V outer planets 3.48 to 3.94.
-
 - [ ] **GEN.1552 Bodies appear only once the star's own disk is gone: the fixed 10 Myr planet cut (PLANET_MIN_STAR_AGE_GY in _apply_star_history) becomes the star's own dispersal time, with belts as the debris that follows**
   Boss, 5:51 PM EST on 2026-11-11 ("fix it, all steps"); research reports/young-stars-disks-no-bodies-2026-11-11.md, step 3. Today planets are removed from every star younger than 10 Myr, so 3 to 10 Myr stars are empty (no disk, no bodies). Do: replace the fixed cut with the star's own dispersal time of GEN.1551 (planets exist only after the disk is gone; belts as the debris that follows; an explicit request still overrides). Place it with the single forward order of GEN.1548 (star state, then the disk, then bodies). Option for later, not part of this item: let a small share of disk-holding stars show a forming giant (real examples at about 5 Myr). Done: no star holds both a disk and bodies unless requested; no empty 3 to 10 Myr window; tests. Lock item, new epoch.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 14, with GEN.1548. Prerequisites: GEN.1551, GEN.1546. Related: GEN.1548, GEN.1551.
@@ -11457,6 +11450,7 @@ clears each one.
   Boss, 8:41 PM EST 2026-11-16: "yes please" to building the dry-surface carbonate balance (equilibrium buffer, newest source wins). Build it after the report, lock item.
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02 (moved from Lane 03, whose thread Boss closed at 5:07 PM EST 2026-11-16); R5297 to R5301 reserved. Prerequisites: GEN.1763. Related: GEN.1763, GEN.1713, GEN.1720.
   Filed by the TODO thread.
+  Lane 02, 9:28 PM EST 2026-11-18: built, PR 7234 (lock, Train 48). Scope changed from ocean-lost bodies to every non-giant body with weathering off and a surface at or above 500 K (the hot bodies are drawn dry, as Venus is); floor 500 K and calcium share 1.0 are T6 L3 knobs Boss may veto; stand-ins CB1 to CB4 section 6.310; citations R5313 to R5316. About 1.6 bodies per 1,000 move.
 
 - [ ] **GEN.1769 Research a derived oxygen sink for abiotic-oxygen worlds (crust iron and sulfur oxidized by the lost water's oxygen, and the magma ocean's uptake) in place of the uniform 0 to 0.9 OXYGEN_SINK draw**
   Lane 02, 12:23 PM EST 2026-11-16 (GEN.1768 trace, main a756e09b0a, seed 4008): an M dwarf world of recipe row j5 keeps 339 bar of O2 because the crust takes only the drawn share OXYGEN_SINK (0.11 here, drawn 0 to 0.9); the water loss itself is sound. Do: read sources for the crust and magma-ocean oxygen budget, derive the sink from the body's iron, sulfur and magma history, carry it in the GEN.1745 air history as a step term (oxygen and reductant stores at every age), and check OXYGEN_SINK is registered in GEN.725 until then. Report before building; lock item when built.
@@ -11500,6 +11494,7 @@ clears each one.
   Lane 04, 7:34 AM EST 2026-11-18 (GEN.1785 follow-up on main bbc8ddd196): the one census flag left after the W1/G1 fix; it was 0.040 before GEN.1520 (PR 7118) moved the giant disk. GEN.1539 (PR 7214) lowers M-dwarf cold giants further. Do: measure on main and on 7214 by star type, find which law sets giant occurrence at 2 to 8 au (gas disk edge, core growth limit, giant threshold) and fix the physics; the observed range is not widened. Report before any change that moves output.
   Version 8.1. Owner (TODO, 2026-11-18): Lane 06, lock item at build. Prerequisites: none. Related: GEN.1520, GEN.1539, GEN.1785.
   Filed by the TODO thread.
+  Lane 06, 8:06 PM EST 2026-11-18 (/mnt/project-files/reports/gen1797/gen1797-giants-2-8au-2026-11-19.md): GEN.1520 and 7214 do not move giant occurrence at the architecture (G 0.097, 0.100, 0.095); the census flag is mostly sampling noise (100 systems, standard error 0.03); the real loss is validation.space_orbits pushing about 40 percent of planned 2 to 8 au giants out with eccentricities drawn after the architecture. Decision (TODO): option A, one spacing rule (eccentricity drawn in the architecture, capped by neighbours, space_orbits spacing reused), measured at 500 systems a type first; lock item, Train 48.
 
 - [ ] **GEN.1798 Build the earlier life steps (LF49 hard-step means) for the Class M set: abiogenesis and photosynthesis sooner, tuned to a reasonable value**
   Boss, 7:01 PM EST 2026-11-18 ("inject those into TODO and start to build them for output, we'll need to tune them reasonable (don't do anything weird or way outside of reasonability) to our Class M planet set"), from the GEN.1791 lever registry (/mnt/project-files/reports/class-m-levers-gen1791-2026-11-18/lever-registry.md; stack of four takes Abundant Class M 8 to 17 and M-like 14 to 23 per 1,000 on the paired 81 systems). Registry row 1: halving the first two means (0.5 and 1.5 Gyr to 0.25 and 0.75) is worth 4 M inside the stack. It also brings animals and civilizations forward by up to 1 Gyr, so measure those rates too and pick the value (tier dial or global) that stays reasonable. Rule: values stay inside sourced or plausible ranges, registered in GEN.725 with tier and tweak level; build as a reshape of the registered stand-in, re-measure Class M and M-like per 1,000 at every tier and Science, and record the result as a registry row.
@@ -11526,16 +11521,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-18): Lane 16, lock-free unless stored output changes. Prerequisites: none. Related: OPS.275, PERF.281.
   Filed by the TODO thread.
 
-- [ ] **OPS.277 (bug) Held-run reds on main: test_maintenance (the map rebuild that cannot reopen the site now ends with the held-run text instead of MaintenanceWriteError) and test_finish_run_generation (3 tests hang 30 minutes)**
-  Train Manager and Lane 16 (Train 46 gate, 6:54 AM EST 2026-11-18; Lane 13 at 6:18 AM EST): both red on main f1ad724842, same held-run family as OPS.274 (done, PR 7179). Log /mnt/project-files/reports/train46/gate-logs/tests_test_finish_run_generation.py.log. Do: decide per test whether the held-run outcome is the right product behavior (then the test states it) or the engine swallows a loud failure (then fix the engine); find why the three finish-run tests hang instead of failing. No loosened bounds.
-  Version 8.1. Owner (TODO, 2026-11-18): Lane 15, lock-free. Prerequisites: none. Related: OPS.274, OPS.235, OPS.275.
-  Filed by the TODO thread.
-
-- [ ] **OPS.278 (bug) The galaxy test database has no engine_runs table since OPS.216 and OPS.244 (test_galaxy_seed 3 reds, test_progress_eta; the same cause may sit under test_run_job, test_engine_kill_scatter and test_sky_sliced_draw)**
-  Train Manager and Lane 16 (Train 46 gate, 6:54 AM EST 2026-11-18; Lane 13 at 6:18 AM EST): red on main bbc8ddd196. Do: confirm the missing table is the one cause, make the galaxy test fixture build the schema the engine reads (no per-test shim), then run each named file on main and list what is left.
-  Version 8.1. Owner (TODO, 2026-11-18): Lane 07, lock-free. Prerequisites: none. Related: OPS.216, OPS.244, OPS.277.
-  Filed by the TODO thread.
-
 - [ ] **OPS.279 Shrink the job-engine template's own heap so forked sky shares copy less (about 960 MB of each 1,295 MB share is the template's pages copied on touch; 268 MB of its objects are small sets)**
   Lane 13, 6:27 AM EST 2026-11-18 (OPS.270 slice 2, /mnt/project-files/engine/ops270/): the stellar-evolution caches total about 330 MB and are worth their size, so no cache size change and the 1,650 MB claim stays. The lever for more shares at once is the template heap. Inference from two figures, not a page count: measure copied pages first. Do: count copied pages per share, find what builds the small sets, and shrink or freeze them before fork; report the new share size and claim.
   Version 8.1. Owner (TODO, 2026-11-18): Lane 13, after OPS.225 and OPS.246, lock-free. Prerequisites: OPS.270. Related: OPS.237, OPS.225.
@@ -11544,6 +11529,11 @@ clears each one.
 - [ ] **TEST.791 (bug) Stale test reds on main after the job engine and fill changes: test_gen_fill_order (ValueError unpack at line 115), test_unit_reports (reports[0] is (0.0, 10.0), expects (0, 1)), test_readme_external_files (Gaia query text differs), test_cut_neutral (no page_cache on the namespace), test_generation_stats (disk space)**
   Train Manager and Lane 16 (Train 46 gate, 6:54 AM EST 2026-11-18; Lane 13 at 6:18 AM EST): red on main bbc8ddd196. Do: per test, say whether the product or the test is wrong and fix that side (a test follows a deliberate product change; a product fault is fixed in the product); test_generation_stats: check whether it is the gate box's disk or a real write size. No loosened bounds, no skips.
   Version 8.1. Owner (TODO, 2026-11-18): Lane 14, lock-free unless stored output changes. Prerequisites: none. Related: OPS.277, OPS.278.
+  Filed by the TODO thread.
+
+- [ ] **TEST.792 (bug) Main reds after Train 47: test_page_shell (the galaxynebulae.js import line) and test_user_agent (gaia_nearby.py makes an outgoing request that is not in OUTGOING)**
+  Train Manager, 9:53 PM EST 2026-11-18 (Train 47 gate, main 2ba1d82066): both red on main only. Do: for test_user_agent, register the Gaia request in OUTGOING with the project user agent (no personal details) or route it through the existing outgoing helper; for test_page_shell, fix the page's import line or the shell list so the page loads as the test states. No skips.
+  Version 8.1. Owner (TODO, 2026-11-18): Lane 16, lock-free. Prerequisites: none. Related: TEST.791, MAP.429.
   Filed by the TODO thread.
 
 - [ ] **GEN.1706 Calibrate the Class M tier dial values by census once the phase 1 bugs are fixed**
@@ -11591,6 +11581,7 @@ clears each one.
   Slice 2b: PR 7209 (Lane 02) merged 4:10 AM EST 2026-11-18: air_history.gas_trajectory gives the ledger gases at each age, last value equal to stored air (763 bodies, difference 0.0). Slice 2c folded into slice 3. Abundant first read (3:40 AM EST, reports/gen1745-slice3-first-read-2026-11-17.md): Class M 10.0 per 1,000; slice 3 on the existing laws adds 0 to 1 in 300.
   Lane 02, 2026-11-18: slice 3 piece 1 is PR 7211, lock item after Train 46.
   Lane 02, 7:05 AM EST 2026-11-18: slice 3 piece 2 is PR 7217 (oxygen asked again at the temperature the life's methane left; 2,487 bodies unchanged, one V world gains 0.6 kPa O2), lock, Train 47 with 7211.
+  Train Manager, 9:53 PM EST 2026-11-18: slice 3 (PR 7211 class read once after the life pass, PR 7217 oxygen asked again after methane, Lane 02 fix 7230) merged in Train 47 (PR 7235).
 
 - [ ] **API.51 The life-air API and the page chart read the stored air history, every gas**
   Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
@@ -11601,14 +11592,6 @@ clears each one.
   Boss picked option 1 "Full history, events, life ages" at 11:23 AM EST 2026-11-15 (GEN.1739; report reports/air-history-design-gen1739-2026-11-15.md, sections 5 and 7).
   Version 8.1. Owner (TODO, 2026-11-16): Lane 02 (moved from Lane 03, whose thread Boss closed at 5:07 PM EST 2026-11-16), after GEN.1745 slice 2; lock item. Prerequisites: GEN.1745, GEN.1740. Related: GEN.1739, GEN.1740.
   Filed by the TODO thread.
-
-- [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
-  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 4. GEN.909 was closed as a diagnosis (cold by the physics); its option 3 was measured: temperate worlds with at least 10 kPa went from 16 of 45 to 19 or 20 of 45 (G2V) and from 6 of 40 to 6 or 9 of 40 (K5V), the cold share from 60 to 48 or 49 percent (G2V). Small, and it does not recover the zone by itself. Do: source the form (land times min(1, ocean cover over the Earth value 0.71), or a cap of land at Earth's 0.29), register it in GEN.725 with tier and tweak level (an educated guess from physics, L1 inside the published range), build it behind the carbon dioxide step of GEN.1309 and re-measure. Lock item (changes the temperature of nearly every dry world and moves E and W worlds into other classes). Do not start before GEN.1309 steps A and B merge; Boss decides whether to build.
-  Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 7: ocean cover is bimodal (47 of 77 temperate sea worlds at 95 to 100 percent), measured with this lever on and off in GEN.1566; GEN.1565 follows with the oxygen worlds.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 03 (moved up from 8.2 for the Class M fixes), lock item for Train 25. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
-  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
-  Boss decision (7:25 PM EST 2026-11-17, "Build it"): build water-limited weathering. It may shift carbon dioxide and Class M, so measure the class mix and CO2 before and after at the Abundant tier and report both. Owner (TODO, 2026-11-17): Lane 02 after GEN.1780, starting from Lane 14's PR 6062 (reuse rule); lock item for a train.
-  Lane 02, 7:05 AM EST 2026-11-18: built as PR 7218 from Lane 14's PR 6062 on the current runoff law; stand-ins WW1 and WW2 in section 6.309; lock, Train 47; Abundant before/after to the PR body.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
