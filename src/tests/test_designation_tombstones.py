@@ -30,7 +30,7 @@ def galaxy(mysql_config, admin_client):  # noqa: F811
     for seed in range(80):      # two systems, the first with a moon
         with draw.bound(seed):
             system = StarSystem(system_config=config)
-        if made == 0 and not any(getattr(p, "moons", None) for p in system.planets):
+        if made == 0 and not any(getattr(p, "moons", None) for p in system.primary.orbiters):
             continue
         sector.add_system(system, position=(made + 1.0, 1.0, 1.0), system_config=config)
         made += 1
@@ -122,10 +122,10 @@ def test_an_edit_that_drops_a_planet_keeps_the_ids_of_the_planet_and_its_moons(g
     try:
         system_id = conn.execute("SELECT s.id FROM star_systems s JOIN moons m ON m.star_system_id = s.id ORDER BY s.id LIMIT 1").fetchone()["id"]
         system = store.load_star_system(conn, system_id)
-        victim = next(p for p in system.planets if getattr(p, "moons", None))
+        victim = next(p for p in system.primary.orbiters if getattr(p, "moons", None))
         planet_uid = ou.from_bytes(conn.execute("SELECT uid FROM planets WHERE id = ?", (victim.db_id,)).fetchone()["uid"])
         moon_uids = [ou.from_bytes(conn.execute("SELECT uid FROM moons WHERE id = ?", (moon.db_id,)).fetchone()["uid"]) for moon in victim.moons]
-        system.planets = [p for p in system.planets if p is not victim]
+        system.primary.orbiters = [p for p in system.primary.orbiters if p is not victim]
         with conn:
             edits.save_system_edits(conn, system_id, system)
         assert conn.execute("SELECT 1 FROM planets WHERE id = ?", (victim.db_id,)).fetchone() is None
@@ -133,7 +133,7 @@ def test_an_edit_that_drops_a_planet_keeps_the_ids_of_the_planet_and_its_moons(g
             kept = rows.retired_uid(conn, uid)
             assert kept is not None and kept.reason == "deleted" and kept.gone_epoch is not None
         # the planets that stayed keep what they had
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             assert not rows.history(conn, "planets", planet.db_id)
     finally:
         conn.close()

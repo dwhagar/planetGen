@@ -30,7 +30,7 @@ def planet_counts(systems):
     """`Counter` of the planet classes over the planets of `systems` (belts and comets have none)."""
     counts = collections.Counter()
     for system in systems:
-        counts.update(planet.planet_class for planet in system.planets if hasattr(planet, "planet_class"))
+        counts.update(planet.planet_class for planet in system.primary.orbiters if hasattr(planet, "planet_class"))
     return counts
 
 
@@ -65,7 +65,7 @@ def fill(per_class=30, seed=0, letters=None, systems=(), tries_per_body=TRIES_PE
                 if system.unmet_requirements:
                     continue
                 systems.append(system)
-                counts.update(planet.planet_class for planet in system.planets if hasattr(planet, "planet_class"))
+                counts.update(planet.planet_class for planet in system.primary.orbiters if hasattr(planet, "planet_class"))
             if counts[letter] < per_class:
                 short.append(letter)
     return systems, counts, short

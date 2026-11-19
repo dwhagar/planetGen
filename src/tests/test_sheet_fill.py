@@ -82,7 +82,7 @@ def test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies():
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "moons"):
                 continue
             for body in [planet, *planet.moons]:
@@ -115,7 +115,7 @@ def test_a_generated_body_stores_porosity_and_high_pressure_ice_wherever_the_she
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "moons"):
                 continue
             for body in [planet, *planet.moons]:

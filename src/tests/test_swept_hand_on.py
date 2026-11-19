@@ -64,11 +64,11 @@ def _system(seed):
 
 def test_the_mass_an_outer_disk_lost_is_all_accounted_for_in_a_built_system():
     def swept(system):
-        disks = [body for body in system.planets if body.body_type == 'a' and body.swept_kg]
+        disks = [body for body in system.primary.orbiters if body.body_type == 'a' and body.swept_kg]
         return len(disks) == 1 and disks[0].swept_kg["ejected"] > disks[0].swept_kg["implanted"] > 0.0 and disks[0].swept_kg["captured"] > 0.0
     # TEST.714: a system whose outer disk a giant swept and handed on to an inner belt and to captured moons, found by search (the draws behind a seed move with every change to the generator)
     _seed, system = first_seed_with(_system, swept, seeds=range(1, 121), what="a system whose outer disk a giant swept")
-    belts = [body for body in system.planets if body.body_type == 'a']
+    belts = [body for body in system.primary.orbiters if body.body_type == 'a']
     [disk] = [belt for belt in belts if belt.swept_kg]
     gone = (disk.cleared_mass_earth + disk.scattered_mass_earth) * EARTH_KG
     assert sum(disk.swept_kg.values()) == pytest.approx(gone, rel=1e-9)
@@ -81,7 +81,7 @@ def test_the_mass_an_outer_disk_lost_is_all_accounted_for_in_a_built_system():
 def test_an_inner_belt_that_receives_an_implant_grows_by_it_and_says_so():
     for seed in range(1, 60):                  # the first system with exactly one belt that is not the outer disk (the draws behind a seed move with every change to the generator)
         system = _system(seed)
-        inners = [body for body in system.planets if body.body_type == 'a' and body.origin != "outer-disk"]
+        inners = [body for body in system.primary.orbiters if body.body_type == 'a' and body.origin != "outer-disk"]
         if len(inners) == 1:
             break
     [inner] = inners

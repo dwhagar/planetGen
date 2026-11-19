@@ -47,7 +47,7 @@ def _system(binary=False, wide=None):
         cfg.BINARY_SYSTEM = binary
         cfg.WIDE_BINARY = wide
         system = StarSystem(system_config=cfg)
-        lists = [system.planets] + ([system.secondary_planets] if system.binary_type == "wide" else [])
+        lists = [system.primary.orbiters] + ([system.secondary.orbiters] if system.binary_type == "wide" else [])
         if all(any(p.body_type != "a" for p in bodies) for bodies in lists):
             if any(p.moons for bodies in lists for p in bodies if p.body_type != "a"):
                 return system
@@ -66,7 +66,7 @@ def _assert_numbered(prefix, bodies):
 
 def _all_names(system):
     names = [star.name for star in system.stars]
-    for planet in system.planets + system.secondary_planets:
+    for planet in system.primary.orbiters + system.secondary.orbiters:
         if planet.body_type != "a":
             names.append(planet.name)
             names.extend(m.name for m in planet.moons)
@@ -77,7 +77,7 @@ def test_single_star_system_numbers_planets_and_lettered_moons():
     system = _system()
     assert system.binary_type is None
     assert system.star.name == system.name
-    _assert_numbered(system.name, system.planets)
+    _assert_numbered(system.name, system.primary.orbiters)
     assert render_support.text(system).startswith(system.name)
 
 
@@ -87,7 +87,7 @@ def test_close_binary_stars_are_the_systems_a_and_b_and_planets_orbit_both():
     assert system.primary_star.name == f"{system.name} A"
     assert system.secondary_star.name == f"{system.name} B"
     assert system.star.name == system.name  # the pair's proxy titles the page
-    _assert_numbered(system.name, system.planets)
+    _assert_numbered(system.name, system.primary.orbiters)
     assert f"{system.name} A / B Binary System" in render_support.text(system)
 
 
@@ -98,8 +98,8 @@ def test_wide_binary_planets_are_numbered_after_their_own_star():
     primary_word, secondary_word = system.star_words
     assert system.primary_star.name == f"{first} {primary_word}"
     assert system.secondary_star.name == f"{first} {secondary_word}"
-    _assert_numbered(first, system.planets)
-    _assert_numbered(secondary_word, system.secondary_planets)
+    _assert_numbered(first, system.primary.orbiters)
+    _assert_numbered(secondary_word, system.secondary.orbiters)
     # The page is titled with the system, not the primary star.
     assert render_support.text(system).startswith(system.name)
 
@@ -132,8 +132,8 @@ def test_assign_names_follows_a_new_system_name():
     system.assign_names("Rigel")
     assert system.name == "Rigel"
     assert [star.name for star in system.stars] == [f"Rigel {word}" for word in words]
-    _assert_numbered("Rigel", system.planets)
-    _assert_numbered(words[1], system.secondary_planets)
+    _assert_numbered("Rigel", system.primary.orbiters)
+    _assert_numbered(words[1], system.secondary.orbiters)
 
 
 @pytest.mark.parametrize("system_name", ["Blue", "Blue Sky"])
@@ -144,8 +144,8 @@ def test_a_wide_pairs_stars_share_the_first_word_and_name_their_own_planets(syst
     system.star_words = ("Green", "Red")
     system.assign_names(system_name)
     assert [star.name for star in system.stars] == ["Blue Green", "Blue Red"]
-    _assert_numbered("Blue", system.planets)
-    _assert_numbered("Red", system.secondary_planets)
+    _assert_numbered("Blue", system.primary.orbiters)
+    _assert_numbered("Red", system.secondary.orbiters)
 
 
 @pytest.mark.parametrize("wide", [False, True])
@@ -186,7 +186,7 @@ def test_serialization_round_trip_keeps_the_system_name():
     restored = StarSystem.from_dict(system.to_dict())
     assert restored.name == system.name
     assert restored.primary_star.name == system.primary_star.name
-    assert [getattr(p, "name", None) for p in restored.planets] == [getattr(p, "name", None) for p in system.planets]
+    assert [getattr(p, "name", None) for p in restored.primary.orbiters] == [getattr(p, "name", None) for p in system.primary.orbiters]
 
 
 def test_star_words_are_always_one_word(monkeypatch):

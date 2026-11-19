@@ -34,7 +34,7 @@ def galaxy(mysql_config):
     for attempt in range(40):
         with draw.bound(f"facility-pages-{attempt}"):      # TEST.737: fixed streams, the same system in every run
             system = StarSystem(system_config=cfg)
-        if any(p.body_type == "t" for p in system.planets):
+        if any(p.body_type == "t" for p in system.primary.orbiters):
             break
     else:
         pytest.fail("none of 40 fixed streams drew a system with a rocky planet")

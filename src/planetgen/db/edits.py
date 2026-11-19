@@ -15,6 +15,8 @@ its row (with what points at it).
 
 import uuid
 
+from planetgen.generation.hosts import MEMBER, NODE
+
 from planetgen.db import designation_rows, fingerprint, fingerprint_tree, kind_tables, object_rows, storage_checksum, store, system_summary
 from planetgen.galaxy import object_uid as objectUid
 from planetgen.physics import effect_ledger, insolation, unit_registry as units
@@ -45,15 +47,15 @@ def _star_ids(conn, system_id, system):
     system's planet lists is stored under (`None` for a close pair's
     circumbinary planets) and the node a list of an inner pair node's planets
     goes round (`planets.host_node_id`, GEN.332; `None` for every other list)."""
-    members = [(member.db_id, bodies, None) for member, bodies in system.member_hosts()]    # GEN.332
-    members += [(None, bodies, host.host_node_no) for host, bodies in system.node_planet_hosts()]
+    members = [(host.star.db_id, host.orbiters, None) for host in system.hosts_of(MEMBER)]    # GEN.332
+    members += [(None, host.orbiters, host.star.host_node_no) for host in system.hosts_of(NODE)]
     if system.binary_type == "wide":
-        return [(system.primary_star.db_id, system.planets, None),
-                (system.secondary_star.db_id, system.secondary_planets, None), *members]
+        return [(system.primary_star.db_id, system.primary.orbiters, None),
+                (system.secondary_star.db_id, system.secondary.orbiters, None), *members]
     if system.binary_type == "close":
-        return [(None, system.planets, None), *members]
+        return [(None, system.primary.orbiters, None), *members]
     row = conn.execute("SELECT id FROM stars WHERE star_system_id = ? AND role = 'single'", (system_id,)).fetchone()
-    return [(row["id"] if row else None, system.planets, None), *members]
+    return [(row["id"] if row else None, system.primary.orbiters, None), *members]
 
 
 def _update_body(conn, table, body, assignments, key_values):

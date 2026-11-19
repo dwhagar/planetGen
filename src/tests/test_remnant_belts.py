@@ -98,7 +98,7 @@ def _white_dwarf_system(seed):
 def test_a_white_dwarfs_belt_has_been_through_the_swelling_and_the_mass_loss_of_its_progenitor():
     for seed in range(300):
         system = _white_dwarf_system(seed)
-        belts = [body for body in system.planets if body.body_type == 'a']
+        belts = [body for body in system.primary.orbiters if body.body_type == 'a']
         if belts:
             break
     else:

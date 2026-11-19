@@ -167,7 +167,7 @@ def _airless_planets():
         system = StarSystem(system_config=SystemConfig())
         if len(system.stars) != 1:      # a companion star adds light that does not follow the planet's orbit (GEN.1441, GEN.1500), and the laws held here are those of one star
             continue
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if isinstance(planet, Planet) and planet.atmosphere == "None" and planet.body_type == "t" and not planet.is_moon:
                 yield planet
 
@@ -244,8 +244,8 @@ def test_a_moon_gets_the_light_of_its_parents_orbit():
 
 def test_the_orbits_swing_is_the_seasons_of_a_lone_star_and_adds_to_a_companions():
     system = _first_system(lambda s: s.binary_type is None and any(
-        isinstance(p, Planet) and p.body_type == "t" and p.eccentricity > 0.02 for p in s.planets))
-    for planet in system.planets:
+        isinstance(p, Planet) and p.body_type == "t" and p.eccentricity > 0.02 for p in s.primary.orbiters))
+    for planet in system.primary.orbiters:
         if isinstance(planet, Planet) and planet.body_type == "t":
             assert planet.flux_variation == pytest.approx(oe.flux_swing(planet.eccentricity))
             assert all(moon.flux_variation == planet.flux_variation for moon in planet.moons)
@@ -374,7 +374,7 @@ def _first_system(predicate, seed=11, tries=600):
 
 
 def _bodies(system):
-    for planet in system.planets + getattr(system, "secondary_planets", []):
+    for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
         if isinstance(planet, Planet):
             yield planet
             yield from planet.moons
@@ -393,7 +393,7 @@ def test_every_generated_orbit_is_the_ellipse_it_was_drawn_on():
             assert orbit["periapsis_distance"] == pytest.approx(validation.periapsis_au(body), rel=1e-9)
             seen_eccentric += body.eccentricity > 0.05
             seen_moons += body.is_moon
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if isinstance(planet, Planet):
                 assert planet.orbital_inclination_deg >= 0.0
                 assert validation.check_lunar_system(planet) == []
@@ -404,7 +404,7 @@ def test_the_orbits_of_neighbours_do_not_cross():
     draw.set_run_seed(22)
     for _ in range(60):
         system = StarSystem(system_config=SystemConfig())
-        for planets in (system.planets, getattr(system, "secondary_planets", [])):
+        for planets in (system.primary.orbiters, (system.secondary.orbiters if system.secondary else [])):
             assert validation.check_orbit_spacing(planets) == []
             slots = validation.slot_planets(planets)       # GEN.1510: a body promoted from a belt is on the belt's orbit, not a slot
             for inner, outer in zip(slots, slots[1:]):

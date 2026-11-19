@@ -111,7 +111,7 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "a":
                 continue
             if planet.surface_dose_msv_yr is None:
@@ -124,7 +124,7 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
                 assert moon.surface_dose_msv_yr >= moon.dose_belt_msv_yr + moon.dose_ground_msv_yr
                 assert moon.dose_belt_msv_yr <= radiation_exposure(planet, moon) * (1.0 + 1e-9)
                 moons_in_belts += moon.dose_belt_msv_yr > 0.0
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if giant is None and planet.body_type == "g" and planet.moons and planet.moons[0].dose_belt_msv_yr is not None:
                 giant = planet
         if moons_in_belts:
@@ -144,10 +144,10 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
                 return planet.body_type == "g" and planet.moons and planet.moons[0].dose_belt_msv_yr is not None
 
             def has_giant_with_moons(system):
-                return any(_fit(planet) for planet in system.planets)
+                return any(_fit(planet) for planet in system.primary.orbiters)
 
             _seed, system = first_seed_with(build, has_giant_with_moons, seeds=range(5, 60), what="a giant with moons")
-            giant = next(planet for planet in system.planets if _fit(planet))
+            giant = next(planet for planet in system.primary.orbiters if _fit(planet))
             giant.magnetic_moment_a_m2 = JUPITER_MOMENT      # the generated giant's field is as it is drawn (often none); the belts need one
         moon = giant.moons[0]
         moon.distance = _orbit_au(giant, 9.4)

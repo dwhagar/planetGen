@@ -106,7 +106,7 @@ def _binary_with_other_suns():
             system = StarSystem(system_config=cfg)
         if len(system.stars) < 2:
             continue
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if getattr(planet, "body_type", None) == "a" or getattr(planet, "star", None) is None:
                 continue
             sky = sky_view.bodies(planet.star, orbit_elements.flux_distance_au(planet.distance, planet.eccentricity or 0.0))
@@ -124,7 +124,7 @@ def test_a_stored_multiple_system_lists_the_other_suns_with_the_widths_of_the_sk
             system_id = store.insert_star_system(conn, system, cfg)
         row = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND name = ?", (system_id, name)).fetchone()
         assert row is not None
-        planet = next(p for p in system.planets if getattr(p, "name", None) == name)
+        planet = next(p for p in system.primary.orbiters if getattr(p, "name", None) == name)
         sky = sky_view.bodies(planet.star, orbit_elements.flux_distance_au(planet.distance, planet.eccentricity or 0.0))
         found = {item[1]: item for item in sky_size_rows.rows(conn, "planet", row["id"])}
         assert sky_size_rows.SUN_KEY in found

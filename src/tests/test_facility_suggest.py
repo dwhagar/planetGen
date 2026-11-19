@@ -156,7 +156,7 @@ def test_the_example_type_installs_once_and_works(admin, anonymous, world):
 
 
 def _scored_rocky_planet(system):
-    return any(p.body_type not in ("a", "g") and getattr(p, "phi4", None) is not None for p in system.planets)
+    return any(p.body_type not in ("a", "g") and getattr(p, "phi4", None) is not None for p in system.primary.orbiters)
 
 
 def test_a_facility_on_a_world_reads_its_suitability_radiation_food_and_biota(admin, mysql_config):

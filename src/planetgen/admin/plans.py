@@ -171,7 +171,7 @@ def _ident(obj, fallback):
 
 def _host(system, owner):
     """The star whose planet list is `owner`."""
-    for star, planets in validation.star_lists(system):
+    for star, planets in system.hosts:
         if planets is owner:
             return star
     raise PlanError("that body is not in a star's planet list")
@@ -538,8 +538,8 @@ def _add_planet(sim, op, system):
         planet.distance = distance
         validation.reconcile_moved_planet(planet)
     planet.name, planet.db_id = name, op.new_id
-    system.planets.append(planet)
-    system.planets.sort(key=lambda item: item.distance)
+    system.primary.orbiters.append(planet)
+    system.primary.orbiters.sort(key=lambda item: item.distance)
     edits.finish_new_planet(planet)
     for moon in planet.moons:
         moon.db_id = f"{op.new_id}-{moon.name}"
@@ -575,8 +575,8 @@ def _add_belt(sim, op, system):
         raise PlanError(f"{upper:.4g} AU is beyond the farthest stable orbit")
     belt = AsteroidBelt(system.system_config, star, distance, lower, upper)
     belt.db_id = op.new_id
-    system.planets.append(belt)
-    system.planets.sort(key=lambda item: item.distance)
+    system.primary.orbiters.append(belt)
+    system.primary.orbiters.sort(key=lambda item: item.distance)
     return _settle(system, f"Added an asteroid belt at {distance:.4g} AU.")
 
 
@@ -704,7 +704,7 @@ def _index(system_id, system):
     found[Ref(system_id).key] = (Ref(system_id), system)
     for index, star in enumerate(system.stars):
         put(STAR, _ident(star, f"@{index}"), star)
-    for star_index, (_star, planets) in enumerate(validation.star_lists(system)):
+    for star_index, (_star, planets) in enumerate(system.hosts):
         for index, body in enumerate(planets):
             if body.body_type == 'a':
                 put(BELT, _ident(body, f"@{star_index}.{index}"), body)

@@ -151,7 +151,7 @@ def test_the_inner_system_spreads_over_the_periods_the_surveys_see():
     bins = {(8, 16): 0, (16, 32): 0, (32, 64): 0, (64, 128): 0}
     inside = 0
     for seed in range(stars):
-        for planet in pa.build(SUN, 2.7, 1.0, 0.0, 50.0, stream=draw.Stream(seed)).planets:
+        for planet in pa.build(SUN, 2.7, 1.0, 0.0, 50.0, stream=draw.Stream(seed)).primary.orbiters:
             period = period_d(SUN, planet.distance_au)
             mass_earth = planet.mass_kg / EARTH
             if period < 400.0 and mass_earth >= 0.8:
@@ -303,7 +303,7 @@ def test_a_star_gets_its_planets_in_order_with_the_masses_a_planet_has_and_a_see
 
 def test_the_architecture_of_a_dim_disk_is_empty_and_of_a_massive_one_is_not():
     draw.set_run_seed(13)
-    counts = [len(pa.build(**sun_like()).planets) for _ in range(300)]
+    counts = [len(pa.build(**sun_like()).primary.orbiters) for _ in range(300)]
     assert min(counts) == 0 and max(counts) >= 6
 
 

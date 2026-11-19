@@ -35,10 +35,10 @@ def _make_system_with_moons():
         # Pinned False for the same reason test_db_persistence.py's own
         # helper pins it: a binary system's secondary star can add planets
         # this test's own bookkeeping (picking two planets by name/class
-        # off `system.planets` alone) doesn't account for.
+        # off `system.primary.orbiters` alone) doesn't account for.
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        planets = [obj for obj in system.planets if obj.body_type != "a"]
+        planets = [obj for obj in system.primary.orbiters if obj.body_type != "a"]
         classes = {p.planet_class for p in planets}
         if len(classes) >= 2 and any(p.moons for p in planets):
             return system, cfg
@@ -58,7 +58,7 @@ def _insert(mysql_config, system, cfg):
 def test_list_planets_returns_every_planet_with_no_filter(mysql_config):
     system, cfg = _make_system_with_moons()
     system_id = _insert(mysql_config, system, cfg)
-    expected_names = sorted(p.name for p in system.planets if p.body_type != "a")
+    expected_names = sorted(p.name for p in system.primary.orbiters if p.body_type != "a")
 
     conn = store.get_connection(mysql_config)
     try:
@@ -74,7 +74,7 @@ def test_list_planets_filters_by_a_written_class_code(mysql_config):
     """GEN.1208: "F2" is the letter F at digit 2; the letter alone still matches every digit."""
     system, cfg = _make_system_with_moons()
     system_id = _insert(mysql_config, system, cfg)
-    planets = [p for p in system.planets if p.body_type != "a"]
+    planets = [p for p in system.primary.orbiters if p.body_type != "a"]
     letter = planets[0].planet_class
     conn = store.get_connection(mysql_config)
     try:
@@ -93,7 +93,7 @@ def test_list_planets_filters_by_a_written_class_code(mysql_config):
 def test_list_planets_filters_by_class(mysql_config):
     system, cfg = _make_system_with_moons()
     system_id = _insert(mysql_config, system, cfg)
-    planets = [p for p in system.planets if p.body_type != "a"]
+    planets = [p for p in system.primary.orbiters if p.body_type != "a"]
     target_class = planets[0].planet_class
     expected_names = sorted(p.name for p in planets if p.planet_class == target_class)
 
@@ -112,7 +112,7 @@ def test_list_planets_filters_by_radius_range(mysql_config):
     system_id = _insert(mysql_config, system, cfg)
     # Planet's in-memory radius attribute is just `radius` (km) --
     # `radius_km` is only the DB column name, not a Python attribute.
-    planets = sorted((p for p in system.planets if p.body_type != "a"), key=lambda p: p.radius)
+    planets = sorted((p for p in system.primary.orbiters if p.body_type != "a"), key=lambda p: p.radius)
     # A midpoint bound that necessarily excludes the smallest planet (and
     # keeps at least the largest), so the filter is provably doing
     # something rather than vacuously matching everything.
@@ -149,7 +149,7 @@ def test_list_planets_filters_by_sector_id(mysql_config):
     finally:
         conn.close()
 
-    expected_names = sorted(p.name for p in system_in.planets if p.body_type != "a")
+    expected_names = sorted(p.name for p in system_in.primary.orbiters if p.body_type != "a")
     assert sorted(r["name"] for r in rows) == expected_names
 
 
@@ -159,7 +159,7 @@ def test_list_moons_filters_by_class_and_radius(mysql_config):
     # AsteroidBelt has no .moons -- filter belts out first, the same way
     # the other tests in this file already do before touching planet-only
     # attributes.
-    all_moons = [m for p in system.planets if p.body_type != "a" for m in p.moons]
+    all_moons = [m for p in system.primary.orbiters if p.body_type != "a" for m in p.moons]
     assert all_moons, "test fixture must actually contain moons"
     target_class = all_moons[0].planet_class
     expected_names = sorted(m.name for m in all_moons if m.planet_class == target_class)

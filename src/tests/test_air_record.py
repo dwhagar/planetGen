@@ -16,7 +16,7 @@ def _a_world_with_air():
         config.HABITABLE_WORLD = True
         with deterministic_entropy(7400 + seed):
             system = StarSystem(system_config=config)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if air_record.eligible(planet) and planet.star.age > 2.0 and planet.build.air_input is not None:
                 return planet
     pytest.fail("no generated rocky world with an air of 500 Pa or more")

@@ -28,7 +28,7 @@ def bodies(seeds):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             for body in [planet, *getattr(planet, "moons", [])]:
                 if body.body_type not in ("a", "g"):
                     yield body

@@ -28,7 +28,7 @@ def _system_with_moons():
         cfg.BINARY_SYSTEM = False
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if sum(len(p.moons) for p in system.planets if p.body_type != "a") >= 2:
+        if sum(len(p.moons) for p in system.primary.orbiters if p.body_type != "a") >= 2:
             return system, cfg
     pytest.fail("no system with two moons in 60 seeds")
 
@@ -66,8 +66,8 @@ def test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them(mysql_c
                 assert row["surface_temperature_k"] == pytest.approx(
                     climate_draws.surface_temperature_k(row["bond_albedo"], row["greenhouse_factor"], flux), rel=1e-9)
         loaded = store.load_star_system(conn, system_id)
-        for planet, original in zip((p for p in loaded.planets if p.body_type != "a"),
-                                    (p for p in system.planets if p.body_type != "a")):
+        for planet, original in zip((p for p in loaded.primary.orbiters if p.body_type != "a"),
+                                    (p for p in system.primary.orbiters if p.body_type != "a")):
             assert planet.bond_albedo == pytest.approx(original.bond_albedo)
             assert planet.greenhouse_factor == pytest.approx(original.greenhouse_factor)
             assert planet.albedo_basis == original.albedo_basis

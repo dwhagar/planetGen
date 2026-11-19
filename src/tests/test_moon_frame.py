@@ -34,7 +34,7 @@ def _planets_with_moons(count, giants_only=False):
         cfg.STAR_TYPE = "G2V"
         cfg.MOONS = True
         cfg.MAX_PLANETS = True
-        for planet in StarSystem(system_config=cfg).planets:
+        for planet in StarSystem(system_config=cfg).primary.orbiters:
             if planet.body_type != "a" and planet.moons and (planet.body_type == "g" or not giants_only):
                 found.append(planet)
         if len(found) >= count:

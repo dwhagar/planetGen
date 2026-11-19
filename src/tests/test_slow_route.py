@@ -189,7 +189,7 @@ def _add_an_m_class_planet(config):
     cfg.BINARY_SYSTEM = False
     for _ in range(60):
         system = StarSystem(system_config=cfg)
-        if any(planet.body_type != "a" for planet in system.planets):
+        if any(planet.body_type != "a" for planet in system.primary.orbiters):
             break
     sector = SpaceSector("Mclass Field", edge_ly=10.0)
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)

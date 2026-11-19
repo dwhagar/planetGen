@@ -44,7 +44,7 @@ def draw_population(systems, seed, progress=None):
     for index in range(systems):
         system = StarSystem(system_config=SystemConfig())
         star = {name: getattr(system.star, name, None) for name in STAR_FIELDS}
-        planets = [planet for planet in system.planets if hasattr(planet, "planet_class")]
+        planets = [planet for planet in system.primary.orbiters if hasattr(planet, "planet_class")]
         for position, planet in enumerate(planets):
             for body, is_moon in [(planet, False)] + [(moon, True) for moon in planet.moons]:
                 row = {name: getattr(body, name, None) for name in FIELDS}

@@ -25,7 +25,7 @@ def _systems_by_planet_count(seeds=range(1, 80), enough=4):
     found = {}
     for seed in seeds:
         system, config = _system(seed)
-        count = len(system.planets)
+        count = len(system.primary.orbiters)
         if count >= 2 and count not in found:
             found[count] = (system, config)
             if len(found) >= enough:
@@ -150,7 +150,7 @@ SEARCH = range(1, 120)
 def _seed_with_three_planned_planets():
     for seed in SEARCH:
         system, _config = _system(seed)
-        slots = sorted(planet.plan_slot for planet in system.planets if planet.body_type != "a" and planet.plan_slot is not None)
+        slots = sorted(planet.plan_slot for planet in system.primary.orbiters if planet.body_type != "a" and planet.plan_slot is not None)
         if len(slots) >= 3:
             return seed
     raise AssertionError(f"none of the {len(SEARCH)} systems tried held three planned planets")
@@ -160,7 +160,7 @@ def _seed_with_three_planned_planets():
 def _seed_with_two_born_moons():
     for seed in SEARCH:
         system, _config = _system(seed)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             born = planet.build.born_moons if planet.body_type != "a" else None
             kept = [moon for moon in (born or ()) if any(moon is have for have in planet.moons)]
             if planet.body_type != "a" and planet.plan_slot is not None and len(kept) >= 2:
@@ -174,9 +174,9 @@ def test_a_draw_that_trims_a_planet_leaves_the_id_of_every_planet_it_keeps(mysql
     system, config = _system(seed)
     system_id = store.save_system(system, config, config=mysql_config)
     again, _config = _system(seed)
-    planned = [planet for planet in again.planets if planet.body_type != "a" and planet.plan_slot is not None]
+    planned = [planet for planet in again.primary.orbiters if planet.body_type != "a" and planet.plan_slot is not None]
     gone = planned[1]
-    again.planets.remove(gone)
+    again.primary.orbiters.remove(gone)
     conn = store.open_write(mysql_config)
     try:
         before = _numbers(conn, system_id)
@@ -200,7 +200,7 @@ def test_a_draw_that_trims_a_moon_leaves_the_id_of_every_moon_it_keeps(mysql_con
     system, config = _system(seed)
     system_id = store.save_system(system, config, config=mysql_config)
     again, _config = _system(seed)
-    planet = next(p for p in again.planets if p.body_type != "a" and p.plan_slot is not None
+    planet = next(p for p in again.primary.orbiters if p.body_type != "a" and p.plan_slot is not None
                   and len([m for m in (p.build.born_moons or ()) if any(m is have for have in p.moons)]) >= 2)
     planet.moons.remove(planet.moons[0])
     conn = store.open_write(mysql_config)
@@ -249,8 +249,8 @@ def test_a_stored_planet_gets_its_slot_in_the_plan_back_so_an_edit_writes_it_aga
         loaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
-    made = sorted(planet.plan_slot for planet in system.planets if planet.body_type != "a" and planet.plan_slot is not None)
-    got = sorted(planet.plan_slot for planet in loaded.planets if planet.body_type != "a" and planet.plan_slot is not None)
+    made = sorted(planet.plan_slot for planet in system.primary.orbiters if planet.body_type != "a" and planet.plan_slot is not None)
+    got = sorted(planet.plan_slot for planet in loaded.primary.orbiters if planet.body_type != "a" and planet.plan_slot is not None)
     assert made and got == made
 
 

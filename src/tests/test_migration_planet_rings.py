@@ -24,13 +24,13 @@ def _system():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(getattr(p, "ring_kind", None) for p in system.planets):
+        if any(getattr(p, "ring_kind", None) for p in system.primary.orbiters):
             return system, cfg
     pytest.fail("no system with a ringed planet in 60 seeds")
 
 
 def _rings_of(system):
-    return [tuple(getattr(body, name, None) for name in rings.BODY_FIELDS) for body in system.planets if body.body_type != "a"]
+    return [tuple(getattr(body, name, None) for name in rings.BODY_FIELDS) for body in system.primary.orbiters if body.body_type != "a"]
 
 
 def test_a_saved_system_keeps_every_planets_ring(mysql_config):

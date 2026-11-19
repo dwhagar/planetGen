@@ -149,7 +149,7 @@ def test_sections_split_the_page_per_body(mysql_config):
         for blocks in sections[key].values():
             assert blocks, key
     assert sections["overview"]
-    planets = [p for p in system.planets if p.body_type != "a"]
+    planets = [p for p in system.primary.orbiters if p.body_type != "a"]
     assert len(sections["planets"]) == len(planets)
     assert len(sections["moons"]) == sum(len(p.moons) for p in planets)
 

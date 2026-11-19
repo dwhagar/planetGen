@@ -143,7 +143,7 @@ class StellarObject(LazySaladName, MassObject):
     orbiting it directly -- the "wobble" half of a proper two-body
     treatment, alongside the planets' own unchanged `position_x/y/z` (see
     `orbits.calculate_reflex_offset`'s docstring). Zero for a star with no
-    planets. Set directly by `StarSystem.__init__` once `self.planets`
+    planets. Set directly by `StarSystem.__init__` once the primary host's orbiters
     exists -- a `Star` never computes this on its own construction, the
     same reasoning `a_crit_au` documents above. Applies identically to a
     `BlackHole`/`NeutronStar` (both subclass `Star`), consistent with

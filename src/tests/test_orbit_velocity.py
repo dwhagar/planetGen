@@ -32,12 +32,12 @@ def _system(predicate):
 
 
 def _with_planets_and_comets(system):
-    return any(isinstance(p, Planet) for p in system.planets) and bool(system.comets)
+    return any(isinstance(p, Planet) for p in system.primary.orbiters) and bool(system.comets)
 
 
 def test_a_planet_moon_and_comet_move_at_their_orbital_speed_along_their_orbit():
-    system = _system(lambda s: _with_planets_and_comets(s) and any(getattr(p, "moons", None) for p in s.planets))
-    planet = next(p for p in system.planets if isinstance(p, Planet) and p.moons)
+    system = _system(lambda s: _with_planets_and_comets(s) and any(getattr(p, "moons", None) for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if isinstance(p, Planet) and p.moons)
     for body in (planet, planet.moons[0], system.comets[0]):
         assert _speed(body) == pytest.approx(body.orbital_speed_kms, rel=1e-9)
     for body in (planet, planet.moons[0]):  # the velocity is vis-viva's (GEN.727: the orbit is an ellipse; a circle's is perpendicular to the radius)
@@ -60,7 +60,7 @@ def test_a_comet_velocity_conserves_the_orbits_energy():
 
 def test_the_velocity_survives_a_dict_round_trip_and_staging():
     system = _system(_with_planets_and_comets)
-    planet = next(p for p in system.planets if isinstance(p, Planet))
+    planet = next(p for p in system.primary.orbiters if isinstance(p, Planet))
     clone = Planet.from_dict(planet.to_dict(), system.star, system.system_config)
     assert (clone.velocity_x_kms, clone.velocity_y_kms, clone.velocity_z_kms) == pytest.approx(
         (planet.velocity_x_kms, planet.velocity_y_kms, planet.velocity_z_kms))
@@ -96,7 +96,7 @@ def test_stars_move_on_the_rotation_curve_and_their_bodies_carry_it():
     assert system.star.galactic_orbital_speed_kms > 0
     galactic = entry.spatial.get_velocity_vector("galactic")
     assert math.sqrt(sum(v * v for v in galactic)) == pytest.approx(system.star.galactic_orbital_speed_kms * 1000.0, rel=1e-6)
-    planet = next(p for p in system.planets if isinstance(p, Planet))
+    planet = next(p for p in system.primary.orbiters if isinstance(p, Planet))
     # A planet's galactic velocity is its star's plus its own round it; its system velocity is its own.
     own = tuple(c * 1000.0 for c in (planet.velocity_x_kms, planet.velocity_y_kms, planet.velocity_z_kms))
     assert planet.spatial.get_velocity_vector("system") == pytest.approx(own)
@@ -127,7 +127,7 @@ def test_a_phenomenon_entry_moves_with_its_own_galactic_speed():
 
 def _saved_system(mysql_config, with_moons=True):
     system = _system(lambda s: _with_planets_and_comets(s) and (not with_moons or any(
-        getattr(p, "moons", None) for p in s.planets)))
+        getattr(p, "moons", None) for p in s.primary.orbiters)))
     conn = store.get_connection(mysql_config)
     try:
         with conn:
@@ -151,8 +151,8 @@ def test_a_saved_system_keeps_every_bodys_velocity(mysql_config):
         loaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
-    original = next(p for p in system.planets if isinstance(p, Planet) and p.moons)
-    reloaded = next(p for p in loaded.planets if isinstance(p, Planet) and p.name == original.name)
+    original = next(p for p in system.primary.orbiters if isinstance(p, Planet) and p.moons)
+    reloaded = next(p for p in loaded.primary.orbiters if isinstance(p, Planet) and p.name == original.name)
     assert (reloaded.velocity_x_kms, reloaded.velocity_y_kms, reloaded.velocity_z_kms) == pytest.approx(
         (original.velocity_x_kms, original.velocity_y_kms, original.velocity_z_kms))
     assert reloaded.spatial.get_speed("system") == pytest.approx(original.spatial.get_speed("system"))

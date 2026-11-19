@@ -161,7 +161,7 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
     for seed in range(8):
         with deterministic_entropy(seed):
             system = StarSystem(system_config=SystemConfig())
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "moons"):
                 continue
             for body in [planet, *planet.moons]:

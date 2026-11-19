@@ -49,19 +49,19 @@ def _assert_scores_are_current(mysql_config, system_id):
 
 
 def _with_moons(system):
-    return any(p.body_type != "a" and p.moons for p in system.planets)
+    return any(p.body_type != "a" and p.moons for p in system.primary.orbiters)
 
 
 def test_a_regenerated_planet_and_its_moons_hold_current_scores(admin, mysql_config):  # noqa: F811
     _sector_id, system_id = _saved_system(mysql_config, _with_moons)
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != "a" and p.moons)
+    planet = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type != "a" and p.moons)
     assert admin.post(f"/api/planets/{pid('planet', planet.db_id)}/regenerate").status_code == 200
     _assert_scores_are_current(mysql_config, system_id)
 
 
 def test_a_regenerated_moon_holds_a_current_score(admin, mysql_config):  # noqa: F811
     _sector_id, system_id = _saved_system(mysql_config, _with_moons)
-    moon = next(p for p in _load(mysql_config, system_id).planets if p.body_type != "a" and p.moons).moons[0]
+    moon = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type != "a" and p.moons).moons[0]
     assert admin.post(f"/api/moons/{pid('moon', moon.db_id)}/regenerate").status_code == 200
     _assert_scores_are_current(mysql_config, system_id)
 
@@ -84,7 +84,7 @@ def _saved_binary_system(mysql_config):
             system = StarSystem(cfg)
         if system.binary_type is None:
             continue
-        if not any(p.body_type not in ("a", "g") and (getattr(p, "flux_variation", None) or 0.0) > 0.0 for p in system.planets):
+        if not any(p.body_type not in ("a", "g") and (getattr(p, "flux_variation", None) or 0.0) > 0.0 for p in system.primary.orbiters):
             continue
         sector = SpaceSector("Edit Sector", edge_ly=10.0)
         sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
@@ -99,7 +99,7 @@ def _saved_binary_system(mysql_config):
 
 def test_an_edit_in_a_binary_system_works_the_light_swing_out_again(admin, mysql_config):  # noqa: F811
     system_id = _saved_binary_system(mysql_config)
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type not in ("a", "g"))
+    planet = next(p for p in _load(mysql_config, system_id).primary.orbiters if p.body_type not in ("a", "g"))
     assert admin.post(f"/api/planets/{pid('planet', planet.db_id)}/regenerate").status_code == 200
     conn = store.get_connection(mysql_config)
     try:

@@ -145,7 +145,7 @@ def _build(mysql_config):
         config.BINARY_SYSTEM = True
         config.COMETS = True        # GEN.1775: a star holds comets only where its outer disk was scattered, so the comets are asked for
         system = StarSystem(system_config=config)
-        if len(system.stars) > 1 and system.comets and any(getattr(p, "moons", None) for p in system.planets):
+        if len(system.stars) > 1 and system.comets and any(getattr(p, "moons", None) for p in system.primary.orbiters):
             break
     else:
         raise AssertionError(f"none of {SEARCH} binary systems held comets and a planet with moons")

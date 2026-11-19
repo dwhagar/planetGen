@@ -155,7 +155,7 @@ def test_a_seeded_system_is_the_same_under_science_and_unset():
             return StarSystem(system_config=config)
 
     def fingerprint(system):
-        return [tuple(getattr(p, name, None) for name in ("body_type", "zone", "mass", "radius", "water_mass_fraction", "surface_pressure", "atmosphere")) for p in system.planets]
+        return [tuple(getattr(p, name, None) for name in ("body_type", "zone", "mass", "radius", "water_mass_fraction", "surface_pressure", "atmosphere")) for p in system.primary.orbiters]
 
     for seed in range(3):
         assert fingerprint(build(None, seed)) == fingerprint(build("science", seed))

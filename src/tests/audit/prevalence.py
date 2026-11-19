@@ -108,9 +108,9 @@ def finish_bodies(system, planets):
     one it was drawn with, before the final-age refresh."""
     from planetgen.physics import insolation, rings
 
-    system.planets = list(planets)
-    system.secondary_planets = []
-    system.member_planets = []
+    system.primary.orbiters = list(planets)
+    for host in system.hosts[1:]:
+        host.orbiters = []
     for planet in planets:
         planet.finish_moons()       # GEN.1548: the moons added bare take their air, class and spin once the orbit is settled
     for planet in planets:

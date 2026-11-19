@@ -31,16 +31,16 @@ def saved_belt(mysql_config):
     for seed in range(1, 30):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)
-        made = [body for body in system.planets if getattr(body, "belt_rank", None) is not None]
+        made = [body for body in system.primary.orbiters if getattr(body, "belt_rank", None) is not None]
         if not made:
             continue
         saved = store.save_system(system, config, config=mysql_config)
         with store.get_connection(mysql_config) as conn:
             loaded = store.load_star_system(conn, saved)
-            order = next(b for b in loaded.planets if getattr(b, "belt_rank", None) is not None).belt_order
-            belt = list(irregular_moons.belts_of(loaded.planets).items())
+            order = next(b for b in loaded.primary.orbiters if getattr(b, "belt_rank", None) is not None).belt_order
+            belt = list(irregular_moons.belts_of(loaded.primary.orbiters).items())
             belt = dict(belt)[order]
-            return belt.db_id, [p for p in loaded.planets if getattr(p, "belt_rank", None) is not None], mysql_config
+            return belt.db_id, [p for p in loaded.primary.orbiters if getattr(p, "belt_rank", None) is not None], mysql_config
     pytest.fail("no belt that made planets in 29 systems")
 
 

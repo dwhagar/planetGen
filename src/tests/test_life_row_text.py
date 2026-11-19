@@ -29,15 +29,15 @@ def _system():
         config.MOONS = True
         with deterministic_entropy(7300 + seed):
             system = StarSystem(system_config=config)
-        bodies = [b for p in system.planets if p.body_type != "a" for b in (p, *p.moons)]
-        planets = [p for p in system.planets if p.body_type != "a"]
+        bodies = [b for p in system.primary.orbiters if p.body_type != "a" for b in (p, *p.moons)]
+        planets = [p for p in system.primary.orbiters if p.body_type != "a"]
         if len(planets) >= 3 and sum(1 for b in bodies if b.life_class and b.has_timeline) >= 2:
             return system, config
     pytest.fail("no system with three planets and two worlds with a timeline in 80 seeds")
 
 
 def _bodies(system):
-    return [b for p in system.planets if p.body_type != "a" for b in (p, *p.moons)]
+    return [b for p in system.primary.orbiters if p.body_type != "a" for b in (p, *p.moons)]
 
 
 def _save(config):

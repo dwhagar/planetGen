@@ -24,7 +24,7 @@ def test_a_giant_says_reference_level_and_a_rocky_planet_says_surface(mysql_conf
     for seed in range(1, 60):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)
-        if any(b.body_type == "g" for b in system.planets) and any(b.body_type == "t" for b in system.planets):
+        if any(b.body_type == "g" for b in system.primary.orbiters) and any(b.body_type == "t" for b in system.primary.orbiters):
             saved = store.save_system(system, config, config=mysql_config)
             break
     else:

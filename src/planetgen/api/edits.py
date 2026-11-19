@@ -174,7 +174,7 @@ def _removed_rows(system_before_ids, system):
 def _body_ids(system):
     """`[(kind, row id)]` of every planet, belt and moon of `system` (`None` for a body not stored yet)."""
     ids = []
-    for _star, planets in validation.star_lists(system):
+    for _star, planets in system.hosts:
         for body in planets:
             ids.append(("belt" if body.body_type == 'a' else "planet", getattr(body, "db_id", None)))
             for moon in getattr(body, "moons", ()):

@@ -27,7 +27,7 @@ def _worlds(seeds, star="G2V"):
         config.HABITABLE_WORLD = True
         with deterministic_entropy(seed):
             system = StarSystem(system_config=config)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "a":
                 continue
             for body in (planet, *planet.moons):

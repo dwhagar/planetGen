@@ -103,7 +103,7 @@ def scored_galaxy(_mysql_server_available):
                 cfg.BINARY_SYSTEM = False
                 with draw.bound(seed):
                     system = StarSystem(system_config=cfg)
-                moons = [moon for planet in system.planets if planet.body_type != "a" for moon in planet.moons]
+                moons = [moon for planet in system.primary.orbiters if planet.body_type != "a" for moon in planet.moons]
                 if len(moons) < MIN_MOONS and not any(getattr(moon, "ocean_depth_km", None) for moon in moons):
                     continue
                 system_ids.append(store.insert_star_system(conn, system, cfg, sector_id=sector_id))

@@ -249,7 +249,7 @@ def _system_with(predicate):
     pytest.fail("no system matching")
 
 
-def _placed_system(predicate=lambda system: bool(system.planets)):
+def _placed_system(predicate=lambda system: bool(system.primary.orbiters)):
     from planetgen.galaxy.sector import SpaceSector
 
     system = _system_with(predicate)
@@ -270,8 +270,8 @@ def _system_origin_au(entry, system):
 
 
 def test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star():
-    _sector, entry, system = _placed_system(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
-    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    _sector, entry, system = _placed_system(lambda s: any(getattr(p, "spatial", None) for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "spatial", None))
     system_frame = planet.spatial.get_coordinates("system", "cartesian")
     assert (planet.position_x, planet.position_y, planet.position_z) == pytest.approx(system_frame, rel=1e-9, abs=1e-9)
     assert planet.spatial.length_unit == "au"
@@ -287,8 +287,8 @@ def test_placing_a_system_keeps_every_offset_and_follows_in_galactic_coordinates
     from planetgen.galaxy.sector import SpaceSector
 
     sector = SpaceSector("Move", edge_ly=11.5)
-    system = _system_with(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
-    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    system = _system_with(lambda s: any(getattr(p, "spatial", None) for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "spatial", None))
     offset = (planet.position_x, planet.position_y, planet.position_z)
     entry = sector.add_system(system, position=(1.0, 1.0, 1.0))
     sector.place_in_galaxy((100.0, 0.0, 0.0))
@@ -302,8 +302,8 @@ def test_placing_a_system_keeps_every_offset_and_follows_in_galactic_coordinates
 
 
 def test_a_moon_is_anchored_on_its_planet():
-    _sector, _entry, system = _placed_system(lambda s: any(getattr(p, "moons", None) for p in s.planets))
-    planet = next(p for p in system.planets if getattr(p, "moons", None))
+    _sector, _entry, system = _placed_system(lambda s: any(getattr(p, "moons", None) for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "moons", None))
     moon = planet.moons[0]
     planet_galactic = planet.spatial.get_coordinates("galactic", "cartesian")
     moon_galactic = moon.spatial.get_coordinates("galactic", "cartesian")
@@ -330,8 +330,8 @@ def test_a_comet_holds_one():
 def test_a_planet_rebuilt_from_its_dict_has_its_position_back():
     from planetgen.generation.planet import Planet
 
-    _sector, _entry, system = _placed_system(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
-    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    _sector, _entry, system = _placed_system(lambda s: any(getattr(p, "spatial", None) for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "spatial", None))
     again = Planet.from_dict(planet.to_dict(), system.star, system.system_config)
     assert (again.position_x, again.position_y, again.position_z) == (
         planet.position_x, planet.position_y, planet.position_z)
@@ -343,8 +343,8 @@ def test_a_close_pairs_planets_are_offset_from_its_center_not_its_primary_star()
     binary's primary star sits off by a fraction of an AU (a wide pair's is
     its primary star, thousands of AU from the system center)."""
     _sector, entry, system = _placed_system(
-        lambda s: getattr(s, "binary_type", None) == "close" and any(getattr(p, "spatial", None) for p in s.planets))
-    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+        lambda s: getattr(s, "binary_type", None) == "close" and any(getattr(p, "spatial", None) for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "spatial", None))
     center = _system_origin_au(entry, system)
     star = system.primary_star.spatial.get_coordinates("galactic", "cartesian")
     assert max(abs(c - s) for c, s in zip(center, star)) > 1e-3
@@ -518,7 +518,7 @@ def test_bodies_in_a_system_know_their_sector():
     edge_ly = EDGE_PC * constants.PARSEC_M / constants.LY_TO_M
     center_pc = spherical.sector_position_pc(1200, 5, 321, EDGE_PC)
     center_ly = tuple(c * constants.PARSEC_M / constants.LY_TO_M for c in center_pc)
-    system = _system_with(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
+    system = _system_with(lambda s: any(getattr(p, "spatial", None) for p in s.primary.orbiters))
     sector = SpaceSector("Addressed", edge_ly=edge_ly)
     early = sector.add_system(_system_with(lambda s: True), position=(0.5, 0.5, 0.5))
     assert early.spatial.sector_address is None  # not in the grid yet
@@ -527,7 +527,7 @@ def test_bodies_in_a_system_know_their_sector():
     assert early.spatial.sector_address == entry.spatial.sector_address == (1200, 5, 321)
     for star in system.stars:
         assert star.spatial.sector_address == (1200, 5, 321)
-    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "spatial", None))
     assert planet.spatial.sector_address == (1200, 5, 321)
     entry.position = (1.0, 1.0, 1.0)
     assert planet.spatial.sector_address == (1200, 5, 321)

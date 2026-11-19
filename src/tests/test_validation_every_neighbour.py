@@ -1,4 +1,5 @@
-# tests/test_validation_every_neighbour.py
+
+from planetgen.generation.hosts import Host# tests/test_validation_every_neighbour.py
 
 """GEN.1460: the spacing rules hold a body against every neighbour, not only the last one (moons) or the two outermost bodies (the planets of a wide pair)."""
 
@@ -12,7 +13,7 @@ JUPITER = 1.898e27
 
 
 def _wide(planets, secondary, periapsis_au=200.0):
-    return SimpleNamespace(binary_type="wide", planets=list(planets), secondary_planets=list(secondary), wide_binary=SimpleNamespace(periapsis_au=periapsis_au),
+    return SimpleNamespace(binary_type="wide", primary=Host(None, "primary", list(planets)), secondary=Host(None, "secondary", list(secondary)), wide_binary=SimpleNamespace(periapsis_au=periapsis_au),
                            primary_star=SimpleNamespace(mass=SUN, a_crit_au=80.0), secondary_star=SimpleNamespace(mass=SUN, a_crit_au=80.0))
 
 

@@ -51,7 +51,7 @@ def system_counts(seed):
                 counts[(group, "ejected share after")] += new[2]
                 if not giants:
                     counts[(group, "changed with no giant")] += 1
-        if len(architecture.planets) <= 1 and before != after:
+        if len(architecture.primary.orbiters) <= 1 and before != after:
             counts[(group, "changed with one planet")] += 1
     return counts
 

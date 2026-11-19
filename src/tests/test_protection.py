@@ -234,7 +234,7 @@ def test_a_sample_of_generated_planets_and_moons_each_carry_the_ratings_block():
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
         document = describe.describe(system)
         by_name = {section["title"]: section for section in describe.model.sections(document)}
-        planets = [planet for planet in system.planets if hasattr(planet, "moons")]
+        planets = [planet for planet in system.primary.orbiters if hasattr(planet, "moons")]
         bodies = planets + [moon for planet in planets for moon in planet.moons]
         for body in bodies:
             blocks = [b for b in by_name[body.name]["blocks"] if b["type"] == "ratings"]

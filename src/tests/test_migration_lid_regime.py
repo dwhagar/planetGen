@@ -21,7 +21,7 @@ def test_a_saved_system_keeps_every_rocky_bodys_regime(mysql_config):
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        rocky = [p for p in system.planets if p.body_type == "t"]
+        rocky = [p for p in system.primary.orbiters if p.body_type == "t"]
         if rocky:
             break
     conn = store.get_connection(mysql_config)
@@ -30,7 +30,7 @@ def test_a_saved_system_keeps_every_rocky_bodys_regime(mysql_config):
             system_id = store.insert_star_system(conn, system, cfg)
         loaded = store.load_star_system(conn, system_id)
         made = {p.name: p for p in rocky}
-        for planet in loaded.planets:
+        for planet in loaded.primary.orbiters:
             if planet.body_type == "t" and planet.name in made:
                 assert planet.lid_regime == made[planet.name].lid_regime in ("mobile", "stagnant")
             elif planet.body_type == "g":

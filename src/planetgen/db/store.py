@@ -92,6 +92,7 @@ from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronSta
 from planetgen.population import facilities as facility_rules, facility_attrs
 from planetgen.generation.comet import Comet, comet_designation, rename_comet_designation
 from planetgen.generation.config import SystemConfig
+from planetgen.generation.hosts import MEMBER, NODE, PRIMARY, SECONDARY, Host
 from planetgen.generation.prevalence import FEATURES as PREVALENCE_FEATURES
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.density import GalaxyShape, with_family_columns, with_system_richness
@@ -5159,36 +5160,18 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
     member_ids = [insert_star(conn, member, star_system_id, "member", *place)
                   for member, place in zip(star_system.member_stars, places[2:])]
 
-    for orbital_index, obj in enumerate(star_system.planets):
-        if obj.body_type == "a":
-            insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=primary_star_id)
-        else:
-            insert_planet(conn, obj, star_system_id, primary_star_id, orbital_index)
-
-    # Only ever non-empty for a 'wide' binary (see StarSystem.__init__) --
-    # its own, independent index space, disambiguated from star_system.planets'
-    # by secondary_star_id (see load_star_system's own per-star_id grouping).
-    for orbital_index, obj in enumerate(star_system.secondary_planets):
-        if obj.body_type == "a":
-            insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=secondary_star_id)
-        else:
-            insert_planet(conn, obj, star_system_id, secondary_star_id, orbital_index)
-
-    # A member star's planets (GEN.332): each member has its own orbital-index space, told apart by its star_id.
-    for member_id, bodies in zip(member_ids, star_system.member_planets):
-        for orbital_index, obj in enumerate(bodies):
+    # One loop over the hosts (GEN.1664), each its own orbital-index space told apart by its star_id: the primary's (a close pair's, which orbit the proxy, have none), a wide
+    # binary's secondary, each member star (GEN.332), and the circumbinary planets of an inner pair node (GEN.332, slice A), which have no star row and name the node in `host_node_id`.
+    member_star_ids = iter(member_ids)
+    star_ids = {PRIMARY: primary_star_id, SECONDARY: secondary_star_id}
+    for host in star_system.hosts:
+        star_id = next(member_star_ids) if host.role == MEMBER else star_ids.get(host.role)
+        node_no = host.star.host_node_no if host.role == NODE else None
+        for orbital_index, obj in enumerate(host.orbiters):
             if obj.body_type == "a":
-                insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=member_id)
+                insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=star_id, host_node_id=node_no)
             else:
-                insert_planet(conn, obj, star_system_id, member_id, orbital_index)
-
-    # The circumbinary planets of an inner pair node (GEN.332, slice A): no star row, the node in `host_node_id`; each node has its own orbital-index space.
-    for host, bodies in star_system.node_planet_hosts():
-        for orbital_index, obj in enumerate(bodies):
-            if obj.body_type == "a":
-                insert_asteroid_belt(conn, obj, star_system_id, orbital_index, host_node_id=host.host_node_no)
-            else:
-                insert_planet(conn, obj, star_system_id, None, orbital_index, host_node_id=host.host_node_no)
+                insert_planet(conn, obj, star_system_id, star_id, orbital_index, host_node_id=node_no)
 
     # Comets have their own list, own table, and no orbital_index -- see
     # insert_comet's own docstring for why they don't share the
@@ -10732,6 +10715,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
             conn.execute("SELECT parent_node_id, slot FROM stars WHERE star_system_id = ? AND role = 'single'",
                          (star_system_id,)).fetchone(),)
         system.star_slots = tuple((place["parent_node_id"], place["slot"]) for place in places)
+    system.hosts = [Host(star, PRIMARY)]
+    system.build_ledger()    # the tree is known: the hosts are made from it (GEN.1664) before the bodies are put in them
 
     planet_rows = conn.execute(
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (star_system_id,)
@@ -10761,7 +10746,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     def _build_object_list(planet_rows_subset, belt_rows_subset, owning_star):
         # planets/belts owned by the same star share one orbital_index
         # space (see insert_star_system's enumerate over
-        # star_system.planets/secondary_planets) -- merge and re-sort by
+        # the hosts' orbiters) -- merge and re-sort by
         # it to restore that original interleaved order.
         combined = [("p", r) for r in planet_rows_subset] + [("b", r) for r in belt_rows_subset]
         combined.sort(key=lambda item: item[1]["orbital_index"])
@@ -10797,12 +10782,12 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         # spaces (both restart at 0 -- see insert_star_system) -- group by
         # it before restoring each star's own orbital order.
         primary_db_id, secondary_db_id = primary_row["id"], secondary_row["id"]
-        system.planets = _build_object_list(
+        system.primary.orbiters = _build_object_list(
             [r for r in planet_rows if r["star_id"] == primary_db_id],
             [r for r in belt_rows if r["star_id"] == primary_db_id],
             star,
         )
-        system.secondary_planets = _build_object_list(
+        system.secondary.orbiters = _build_object_list(
             [r for r in planet_rows if r["star_id"] == secondary_db_id],
             [r for r in belt_rows if r["star_id"] == secondary_db_id],
             secondary_star,
@@ -10811,21 +10796,18 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         system.secondary_comets = _build_comet_list([r for r in comet_rows if r["star_id"] == secondary_db_id])
     else:
         member_star_ids = {member.db_id for member in system.member_stars}
-        system.planets = _build_object_list([r for r in planet_rows if r["star_id"] not in member_star_ids and r["host_node_id"] is None],
-                                            [r for r in belt_rows if r["star_id"] not in member_star_ids and r["host_node_id"] is None], star)
-        system.secondary_planets = []
+        system.primary.orbiters = _build_object_list([r for r in planet_rows if r["star_id"] not in member_star_ids and r["host_node_id"] is None],
+                                                     [r for r in belt_rows if r["star_id"] not in member_star_ids and r["host_node_id"] is None], star)
         system.comets = _build_comet_list([r for r in comet_rows if r["star_id"] not in member_star_ids])
         system.secondary_comets = []
     # GEN.332: a member star's planets, each its own orbital-index space
-    system.member_planets = [
-        _build_object_list([r for r in planet_rows if r["star_id"] == member.db_id],
-                           [r for r in belt_rows if r["star_id"] == member.db_id], member)
-        for member in system.member_stars]
-    system.build_ledger()
+    for host in system.hosts_of(MEMBER):
+        host.orbiters = _build_object_list([r for r in planet_rows if r["star_id"] == host.star.db_id],
+                                           [r for r in belt_rows if r["star_id"] == host.star.db_id], host.star)
     # GEN.332, slice A: the planets of an inner pair node, told from the pair's by `host_node_id`
-    system.node_planets = [_build_object_list([r for r in planet_rows if r["host_node_id"] == host.host_node_no],
-                                              [r for r in belt_rows if r["host_node_id"] == host.host_node_no], host)
-                           for host in system.node_hosts]
+    for host in system.hosts_of(NODE):
+        host.orbiters = _build_object_list([r for r in planet_rows if r["host_node_id"] == host.star.host_node_no],
+                                           [r for r in belt_rows if r["host_node_id"] == host.star.host_node_no], host.star)
     attach_body_history(conn, system, star_system_id)
 
     system.system_flavor_text = row["system_flavor_text"]

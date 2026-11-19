@@ -236,7 +236,7 @@ def test_a_pulsar_that_rolls_planets_becomes_a_system_at_its_own_point(certain):
             continue
         (made,) = systems
         assert sector.phenomena == [] and sector.entries == [made]
-        assert made.star_system.star is star and made.star_system.planets
+        assert made.star_system.star is star and made.star_system.primary.orbiters
         assert made.position == position and made.preplaced and made.scatter_id == 77
         assert sector.stage_counts[(fill_stages.SYSTEM_PASS, key + ":system")] == 1
         break
@@ -252,7 +252,7 @@ def test_the_system_is_the_same_from_the_same_seed_and_in_any_order(certain):
             entry.system_seed = s
         system_pass.run(sector, _args(), entries)
         return {entry.star_system.star.mass: [(type(planet).__name__, round(planet.distance, 9))
-                                              for planet in entry.star_system.planets]
+                                              for planet in entry.star_system.primary.orbiters]
                 for entry in sector.entries}
 
     # Only a disk origin (a quarter of the pulsars that roll planets, GEN.317) leaves a system: take two seeds that do.
@@ -359,10 +359,10 @@ def test_a_filled_sector_gives_its_scattered_pulsar_planets_at_fill_from_the_row
     assert len(systems) == rolled.get("neutron-star:millisecond:system", 0)
     assert len(bare) == rolled.get("neutron-star:millisecond:empty", 0)
     assert {entry.scatter_id for entry in systems + bare} == {1, 2}
-    assert all(entry.star_system.planets for entry in systems)
+    assert all(entry.star_system.primary.orbiters for entry in systems)
     if len(seeds) >= 2:
         again = fill(list(reversed(seeds[:2])))
-        key = lambda s: sorted((entry.star_system.star.mass, len(entry.star_system.planets)) for entry in s.entries
+        key = lambda s: sorted((entry.star_system.star.mass, len(entry.star_system.primary.orbiters)) for entry in s.entries
                                if isinstance(entry.star_system.star, NeutronStar))
         assert key(again) == key(sector)
 

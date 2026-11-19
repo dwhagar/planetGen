@@ -64,7 +64,7 @@ def _system():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if sum(1 for body in system.planets if hasattr(body, "moons") and body.body_type != "g") >= 2:
+        if sum(1 for body in system.primary.orbiters if hasattr(body, "moons") and body.body_type != "g") >= 2:
             return system, cfg
     pytest.fail("no system with two rocky planets in 60 seeds")
 
@@ -72,7 +72,7 @@ def _system():
 @pytest.mark.fresh_database
 def test_a_pluto_like_and_a_co2_frost_mars_like_body_keep_their_species_through_the_database(mysql_config):
     system, cfg = _system()
-    rocky = [planet for planet in system.planets if hasattr(planet, "moons") and planet.body_type != "g"]
+    rocky = [planet for planet in system.primary.orbiters if hasattr(planet, "moons") and planet.body_type != "g"]
     pluto, mars = rocky[0], rocky[-1]
     split = {pluto: _bulk(0.15, {"N2": 0.97, "CH4": 0.02, "CO": 0.01}), mars: _bulk(0.01, {"CO2": 1.0})}
     for planet, bulk in split.items():
@@ -83,7 +83,7 @@ def test_a_pluto_like_and_a_co2_frost_mars_like_body_keep_their_species_through_
         with conn:
             system_id = store.insert_star_system(conn, system, cfg)
         loaded = store.load_star_system(conn, system_id)
-        index = {planet.name: planet for planet in loaded.planets if hasattr(planet, "moons")}
+        index = {planet.name: planet for planet in loaded.primary.orbiters if hasattr(planet, "moons")}
         for before in rocky:
             for field in ice_species.BODY_FIELDS:
                 assert getattr(index[before.name], field) == pytest.approx(getattr(before, field)), (before.name, field)

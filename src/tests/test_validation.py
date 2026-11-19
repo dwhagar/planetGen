@@ -173,7 +173,7 @@ def test_check_lunar_system_reports_a_moon_outside_the_stable_range(star):
 def test_stabilize_star_system_fixes_a_crowded_system():
     for seed in range(40):
         system = make_system("G2V", seed=seed, PLANETS=True, MAX_PLANETS=True)
-        planets = [p for p in system.planets if p.body_type != 'a']
+        planets = [p for p in system.primary.orbiters if p.body_type != 'a']
         if len(planets) >= 2:
             break
     else:
@@ -188,11 +188,11 @@ def test_stabilize_star_system_fixes_a_crowded_system():
 def test_stabilize_reports_rather_than_removes_by_default():
     for seed in range(40):
         system = make_system("G2V", seed=seed, PLANETS=True)
-        if system.planets:
+        if system.primary.orbiters:
             break
     else:
         pytest.fail("none of 40 fixed streams drew a system with a body")
-    outer = system.planets[-1]
+    outer = system.primary.orbiters[-1]
     ceiling = validation.orbit_ceiling_au(system.star)
     if outer.body_type == 'a':
         span = outer.upper_limit - outer.lower_limit
@@ -235,7 +235,7 @@ def test_a_body_past_the_survival_limit_but_inside_the_stable_orbit_validates():
             break
     else:
         pytest.fail("none of 40 fixed streams drew a star with a stable orbit past the survival limit")
-    system.planets[:] = [planet_at(star, survival * 1.5, GIANT_EARTH)]
+    system.primary.orbiters[:] = [planet_at(star, survival * 1.5, GIANT_EARTH)]
     assert not any("beyond" in p.message for p in validation.check_star_system(system))
 
 

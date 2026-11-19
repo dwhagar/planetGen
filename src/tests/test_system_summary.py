@@ -64,12 +64,12 @@ def test_an_edit_that_removes_a_body_changes_the_figures(mysql_config):
         conn = store.get_connection(mysql_config)
         try:
             system = store.load_star_system(conn, system_id)
-            planets = [p for p in system.planets if p.body_type != "a"]
+            planets = [p for p in system.primary.orbiters if p.body_type != "a"]
             if len(planets) < 2:
                 continue
             before = _stored(conn, system_id)
             gone = planets[-1]
-            system.planets.remove(gone)
+            system.primary.orbiters.remove(gone)
             with conn:
                 edits.save_system_edits(conn, system_id, system)
             after = _stored(conn, system_id)

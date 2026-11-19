@@ -61,7 +61,7 @@ def planet_block(system, star, belt, rank):
     The planet the body of `rank` is when asked for (GEN.1674): `belt_ondemand.planet_of_rank` makes it with the one planet generator, and this is its class and a few of what the pass gave it. `None` for a
     belt whose body the generator cannot make a planet of (a body under `FLOOR_KG` is not asked for).
     """
-    order = next((place for place, held in irregular_moons.belts_of(system.planets).items() if held is belt), 1)
+    order = next((place for place, held in irregular_moons.belts_of(system.primary.orbiters).items() if held is belt), 1)
     planet = belt_ondemand.planet_of_rank(system, star, belt, order, rank)
     q = page_data._q
     return {

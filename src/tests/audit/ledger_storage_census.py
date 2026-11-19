@@ -64,10 +64,10 @@ def bodies_of(system):
         sep = 100.0
     for index, star in enumerate(stars):
         out.append(Body(star, "star", None, 0.0, star.mass, star.radius, luminosity=star.luminosity, temperature=getattr(star, "temperature", 5772.0) or 5772.0, index=index))
-    hosts = [(system.planets, 0)]
-    if system.secondary_planets:
-        hosts.append((system.secondary_planets, 1 if len(stars) > 1 else 0))
-    for i, group in enumerate(system.member_planets):
+    hosts = [(system.primary.orbiters, 0)]
+    if system.secondary.orbiters:
+        hosts.append((system.secondary.orbiters, 1 if len(stars) > 1 else 0))
+    for i, group in enumerate([h.orbiters for h in system.hosts_of("member")]):
         hosts.append((group, min(2 + i, len(stars) - 1)))
     for group, host in hosts:
         for planet in group:

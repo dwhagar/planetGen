@@ -89,11 +89,11 @@ def test_longest_system_name_saves_with_every_body_named_after_it(mysql_config):
     ids = []
     for _ in range(2):  # the second collides, so both gain a Greek-letter prefix
         system, cfg = _system(name, PLANETS=True, MAX_PLANETS=True, MOONS=True)
-        assert system.planets, "the test needs planets named after the system"
+        assert system.primary.orbiters, "the test needs planets named after the system"
         ids.append(store.save_system(system, cfg, config=mysql_config))
     loaded = [_load(mysql_config, system_id) for system_id in ids]
     assert sorted(system.name for system in loaded) == [f"Alpha {name}", f"Beta {name}"]
-    assert all(planet.name.startswith(loaded[0].name) for planet in loaded[0].planets if hasattr(planet, "name"))
+    assert all(planet.name.startswith(loaded[0].name) for planet in loaded[0].primary.orbiters if hasattr(planet, "name"))
 
 
 def test_too_long_system_name_is_refused_before_saving(mysql_config):
@@ -131,7 +131,7 @@ def test_four_byte_names_round_trip(mysql_config, admin_client, name):
     system_id = store.save_system(system, cfg, config=mysql_config)
     loaded = _load(mysql_config, system_id)
     assert loaded.name == name
-    assert all(planet.name.startswith(name) for planet in loaded.planets if hasattr(planet, "name"))
+    assert all(planet.name.startswith(name) for planet in loaded.primary.orbiters if hasattr(planet, "name"))
 
     renamed = f"{name} ⭐"
     response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"name": renamed})

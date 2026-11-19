@@ -167,7 +167,7 @@ def test_every_generated_system_body_spins(seed):
     for star in system.stars:
         _assert_spin(star, spin.GALACTIC_POLE)
         assert star.rotation_period_hours > 0
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         if not hasattr(planet, "moons"):
             continue  # an asteroid belt
         for body in [planet, *planet.moons]:
@@ -188,7 +188,7 @@ def test_close_in_planets_lock_to_their_star():
     for seed in range(20):
         with deterministic_entropy(seed):
             system = StarSystem(system_config=SystemConfig())
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "moons"):
                 continue
             orbit_hours = planet.period * constants.SECONDS_PER_YEAR / 3600
