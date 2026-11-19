@@ -136,7 +136,7 @@ def test_a_field_view_is_the_fields_own_bodies_at_its_age():
     assert abs(math.sqrt(sum(v * v for v in points) / phenomenonrender.FIELD_VIEW_POINTS) - 1.0) < 1e-2
     assert phenomenonrender.field_view(dict(FIELD))[0] == params
     assert phenomenonrender.field_view(dict(FIELD, id="AF-4"))[0]["points"] != points
-    assert "bodies larger than 1 km" in caption and "kg per square metre" in caption and "stopped colliding" in caption and "ly along its orbit" in caption
+    assert "bodies larger than 1 km" in caption and "kg per square meter" in caption and "stopped colliding" in caption and "ly along its orbit" in caption
     assert params["ring"] is False and phenomenonrender.field_view(dict(FIELD, shape="annulus"))[0]["ring"] is True
 
 

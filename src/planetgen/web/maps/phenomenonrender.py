@@ -108,7 +108,7 @@ def field_view(detail):
         reference_kg = math.pi / 6.0 * FIELD_REFERENCE_DIAMETER_M ** 3 * law.density_kg_m3
         caption += (f"It really holds {_field_bodies_text(belt_ledger.count_above(law, mass_kg, reference_kg))} bodies larger than 1 km, each point here "
                     "drawn far larger than any of them: seen close, the field is almost empty space. "
-                    f"Seen end on, its mass comes to {format_number(field_dispersal.column_density_kg_m2(mass_kg, radius_m), '.2g')} kg per square metre; "
+                    f"Seen end on, its mass comes to {format_number(field_dispersal.column_density_kg_m2(mass_kg, radius_m), '.2g')} kg per square meter; "
                     f"pieces of 1 km stopped colliding {format_duration_seconds(field_dispersal.freeze_out_time_s(mass_kg, FIELD_REFERENCE_DIAMETER_M, speed_ms))} after it began to spread. ")
     if age_yr <= field_dispersal.SHEAR_VALID_YEARS:
         caption += (f"Galactic shear has drawn its far side "
