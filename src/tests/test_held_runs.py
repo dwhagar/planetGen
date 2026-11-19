@@ -103,7 +103,7 @@ def test_where_names_the_last_frames_of_a_failure_innermost_first_and_nothing_wi
 def test_a_held_unit_keeps_where_it_failed_in_its_error_and_the_log_and_masks_a_secret(conn, run, rows):
     exc, tb = _traceback_of(1)
     exc = ValueError("could not reach mysql://planetgen:hunter2pass@db/x")
-    rq_units.unit_failed(_Job(conn, run, 1, rows[1]), conn, ValueError, exc, tb)
+    unit_helpers.unit_failed(_Job(conn, run, 1, rows[1]), conn, ValueError, exc, tb)
     kept = runrecord._s(conn.hget(runrecord.held_key(run, 0), 1))
     assert "(at test_held_runs.py:" in kept and " in _deep" in kept
     assert "hunter2pass" not in kept
@@ -138,6 +138,19 @@ def test_a_run_with_no_held_unit_is_left_alone_and_a_run_that_is_over_is_not_hel
     assert not held.settle(conn, run) and runrecord.run_state(conn, run) == "running"
     runrecord.finish_run(conn, run, "canceled", error="stop")
     assert not held.settle(conn, run)
+
+
+def test_a_run_that_finishes_done_is_done_in_the_ledger_with_its_end_time(conn, run, rows):
+    """OPS.281: the ledger's run row followed a cancel and a hold but not a finish."""
+    for unit in range(3):
+        _done(conn, run, rows, unit)
+    assert runrecord.finish_run(conn, run, "done")
+    control = planrows.control_connection(conn, run)
+    try:
+        row = control.execute("SELECT state, finished_at FROM engine_runs WHERE id = ?", (jobview.engine_run(conn, run),)).fetchone()
+    finally:
+        control.close()
+    assert row["state"] == "done" and row["finished_at"] is not None
 
 
 def test_a_unit_without_a_row_still_fails_the_run(conn, run):
