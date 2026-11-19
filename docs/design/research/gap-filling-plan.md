@@ -4493,7 +4493,7 @@ Three rows of `physics/data/saturation_pressure.json` (form `clausius-clapeyron`
 
 ### 6.309 Stand-ins of the water-limited silicate weathering (GEN.1403)
 
-The continental weathering law of Lehmer et al. ([R2628]) scales with the land share of the surface and, since GEN.1697, with the land the ice has not covered (`surface_air._weathering_land`). `surface_pressure.wet_land_fraction` makes the land the land the sea waters: the land times the share of the Earth's ocean cover the world has, so a dry world's land weathers less than its area says (lever 4 of `reports/class-m-rarity-and-levers-2026-11-08.md`, the GEN.909 option 3; the form is Lane 14's PR 6062, rebuilt on the runoff law).
+The continental weathering law of Lehmer et al. [R2628] scales with the land share of the surface and, since GEN.1697, with the land the ice has not covered (`surface_air._weathering_land`). `surface_pressure.wet_land_fraction` makes the land the land the sea waters: the land times the share of the Earth's ocean cover the world has, so a dry world's land weathers less than its area says (lever 4 of `reports/class-m-rarity-and-levers-2026-11-08.md`, the GEN.909 option 3; the form is Lane 14's PR 6062, rebuilt on the runoff law).
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
