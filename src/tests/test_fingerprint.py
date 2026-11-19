@@ -81,6 +81,9 @@ def _region(config, **kwargs):
         conn.close()
 
 
+SEED_SECTORS = 8
+"""int: The sectors of the shell each galaxy of the another-seed test generates (it asserts at least eight sectors in common)."""
+
 ROW_ID_SECTORS = 2
 """int: The sectors of the shell the row-id test generates (a sector takes about a minute, with its scatter cells; the second galaxy starts its ids at 5000 so none of them can match the first's)."""
 
@@ -102,8 +105,8 @@ def test_one_seed_gives_one_fingerprint_whatever_the_row_ids(make_database, monk
 
 def test_another_seed_gives_another_fingerprint(make_database, monkeypatch):
     first, second = make_database(), make_database()
-    _generate(first, monkeypatch)
-    _generate(second, monkeypatch, seed=bytes([GALAXY_SEED[0] ^ 0x80]) + GALAXY_SEED[1:])
+    _generate(first, monkeypatch, limit=SEED_SECTORS)        # TEST.417: the first SEED_SECTORS sectors of the shell are enough for the eight common ones this asserts; the whole shell took 12 minutes a galaxy
+    _generate(second, monkeypatch, seed=bytes([GALAXY_SEED[0] ^ 0x80]) + GALAXY_SEED[1:], limit=SEED_SECTORS)
     assert _region(first).region != _region(second).region
     a, b = _region(first, shells=[1]), _region(second, shells=[1])
     common = dict(a.sectors).keys() & dict(b.sectors).keys()
@@ -113,7 +116,7 @@ def test_another_seed_gives_another_fingerprint(make_database, monkeypatch):
 
 def test_a_change_moves_only_its_own_sectors_digest(make_database, monkeypatch):
     config = make_database()
-    _generate(config, monkeypatch)
+    _generate(config, monkeypatch, limit=ROW_ID_SECTORS)        # TEST.417: two sectors show that one changed sector moves only its own digest; the whole shell took 12 minutes
     before = _region(config)
     conn = store.get_connection(config)
     try:
@@ -143,7 +146,7 @@ def test_a_change_moves_only_its_own_sectors_digest(make_database, monkeypatch):
 def test_a_changed_number_moves_only_its_sections_float_digest(make_database, monkeypatch):
     """GEN.304: the structural digest of a section holds when a number changes; the float digest moves."""
     config = make_database()
-    _generate(config, monkeypatch)
+    _generate(config, monkeypatch, limit=1)        # TEST.417: one planet in one sector is all this changes
     conn = store.get_connection(config)
     try:
         planet = conn.execute(
