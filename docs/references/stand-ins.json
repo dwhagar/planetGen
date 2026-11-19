@@ -44137,15 +44137,11 @@
           "what": "condenses: the liquid forms where the acid vapor pressure of the air is above the pressure over the solution its water fixes; the mixing ratios are the caller's and are held through the window (a cloud would deplete them)"
         },
         {
-          "burn_down": [
-            "replace",
-            "GEN.1644",
-            "L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
+              "the acid cloud is liquid only above the freezing point of its droplets: a level at or below acid_freezing.freezing_point_k of its strength (AF1) is out of the cloud (sulfur_cloud_set.acid_cloud_of_column), so an air whose acid is liquid at no level has no acid cloud; replaces the 185 K floor"
             ],
             [
               "The range it moves in",
@@ -44153,30 +44149,30 @@
             ],
             [
               "Where it holds",
-              "warm clouds; cold ones are the window's edge"
+              "acid clouds from the freezing line up to the 350 K of the solution model"
             ],
             [
               "What would show it wrong",
-              "a cold acid aerosol that is solid where this puts it liquid"
+              "a cold acid cloud seen liquid well under the equilibrium line (supercooled droplets reach 20 K or more below it), which this takes as solid"
             ],
             [
               "What replaces it",
-              "the freezing curve of [R4877: figure 1 and section 4.3], not yet turned into a function"
+              "the vapor pressure over the solid hydrates ([R4877] prints their Gibbs energies) so a solid cloud is modelled and not dropped"
             ],
             [
               "Evidence",
-              "not read into code; [R4877] prints the solid phases"
+              "educated guess from physics: the equilibrium liquidus bounds the liquid, supercooling and the solid cloud are not modelled"
             ]
           ],
           "id": "SV7",
           "key": "6.228:SV7",
           "kind": "P",
           "slug": "6-228-sv7",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
           "unread": null,
-          "what": "no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5])"
+          "what": "the acid cloud is liquid only above the freezing point of its droplets: a level at or below acid_freezing.freezing_point_k of its strength (AF1) is out of the cloud (sulfur_cloud_set.acid_cloud_of_column), so an air whose acid is liquid at no level has no acid cloud; replaces the 185 K floor"
         },
         {
           "burn_down": [
@@ -68259,7 +68255,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1706",
+          "unread": "by design",
           "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy"
         },
         {
