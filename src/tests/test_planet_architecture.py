@@ -254,6 +254,35 @@ def test_two_giants_that_land_on_one_another_leave_the_heavier():
     assert pa._clear_split([light, heavy, apart], SUN)[0] == [heavy, apart]
 
 
+def test_gen1797_a_pair_with_a_giant_that_the_spacing_pass_would_move_is_thrown_by_the_lighter_one():
+    giant = pa.Seed(3.0, 300 * EARTH, 30 * EARTH, True, 4, False, 3.0, 0.5)
+    close = pa.Seed(4.0, 5 * EARTH, 5 * EARTH, False, 1, False, 4.0, 0.0)
+    far = pa.Seed(30.0, 5 * EARTH, 5 * EARTH, False, 1, False, 30.0, 0.0)
+    kept, thrown = pa._stability_split([giant, close, far], SUN)
+    assert kept == [giant, far]
+    assert thrown == [(close, giant)]
+    heavier = close._replace(mass_kg=900 * EARTH, runaway=True)
+    kept, thrown = pa._stability_split([giant, heavier], SUN)
+    assert kept == [heavier] and thrown == [(giant, heavier)]      # the heavier keeps its place and throws the one inside it
+    small = pa.Seed(3.0, 2 * EARTH, 2 * EARTH, False, 1, False, 3.0, 0.5)
+    kept, thrown = pa._stability_split([small, close], SUN)      # a pair with no giant is the thinning's, as it was
+    assert kept == [small, close] and not thrown
+
+
+def test_gen1797_an_eccentricity_is_held_to_what_the_spacing_pass_allows_at_the_planned_distance():
+    from planetgen.physics import clearance_ledger
+    snow_line = 3.0
+    inner = [pa.Seed(1.0, 300 * EARTH, 30 * EARTH, True, 4, False, 1.0, 0.1)]
+    for seed_mass in (3 * EARTH, 80 * EARTH, 300 * EARTH):
+        for distance in (1.6, 2.5, 5.0):
+            seed = pa.Seed(distance, seed_mass, seed_mass, seed_mass > 30 * EARTH, 1, False, distance)
+            held = pa._held_eccentricity(seed, inner, True, SUN, snow_line)
+            assert 0.0 <= held.eccentricity <= 1.0
+            needed = clearance_ledger.planets_needed_au(pa._inner_rows(inner), seed_mass, held.eccentricity, SUN)
+            if held.eccentricity > 0.0:
+                assert needed <= distance + 1e-9
+
+
 # --- the whole architecture ------------------------------------------------------------------------------------------------
 
 
