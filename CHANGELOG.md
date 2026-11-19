@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4588] - 2026-11-19
+
+**Headline:** The dense-cluster stripping test tries 120 seeds instead of 40 to find a system that loses a planet to its birth cluster.
+
+### Changed
+- **`test_cluster_stripping` tries 120 seeds, not 40.** A seed qualifies when its plain system ejects nothing, its dense system strips a planet and holds fewer planets; that is about one seed in 40 (seed 7 on main; the growth limit by star mass moved it to seed 68). The three conditions and the assertions are unchanged.
+
 ## [8.0.4587] - 2026-11-19
 
 **Headline:** Rock weathering on a world now counts only the land its sea waters, so dry worlds and worlds with a small sea keep more carbon dioxide and run warmer.
