@@ -32,9 +32,10 @@ test("a body has every reason it qualifies for, strongest first, from the stored
   assert.deepEqual(B.reasonsOfBody(planet({ inhabited: true, tier: "Green" }))[0], { reason: "inhabited", tier: 1 });
   assert.deepEqual(B.reasonsOfBody(planet({ life_microbial: 2, tier: "Green" })).map((one) => one.tier), [null, 1], "only the world reasons carry the habitability tier");
   assert.deepEqual(reasons(planet({ body_type: "g", planet_class: "J" })), ["gas-giant", "class-J"]);
-  const notAClass = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").find((letter) => M.PLANET_CLASS_LETTERS.indexOf(letter) < 0);
-  assert.ok(notAClass, "the class list leaves at least one capital letter out");
-  assert.deepEqual(reasons(planet({ planet_class: notAClass })), [], "a letter that is not a class has no symbol");
+  // Every capital letter is a class now (all 26 of `planetgen.tuning.PLANET_CLASSES`), so a value that is not one is a lower-case letter, a digit or a sign.
+  assert.deepEqual(reasons(planet({ planet_class: "m" })), [], "a lower-case letter is not a class and has no symbol");
+  assert.deepEqual(reasons(planet({ planet_class: "?" })), [], "a sign is not a class and has no symbol");
+  assert.ok(M.PLANET_CLASS_LETTERS.indexOf("m") < 0 && M.PLANET_CLASS_LETTERS.indexOf("?") < 0);
   assert.deepEqual(reasons({ kind: "moon", body_type: "t", tier: "Red", planet_class: "D", life_microbial: 1 }), ["life", "uninhabitable", "class-D"]);
   assert.deepEqual(reasons({ kind: "star", life_microbial: 9 }), []);
   assert.deepEqual(reasons(null), []);
