@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1929 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1933 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,23 +42,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1902 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1906 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 226 | 22 | 12 | 1 | 0 | 261 |
+| T1 | 227 | 22 | 12 | 1 | 0 | 262 |
 | T2 | 180 | 75 | 4 | 0 | 0 | 259 |
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 111 | 29 | 8 | 2 | 2 | 152 |
-| T6 | 242 | 132 | 38 | 83 | 5 | 500 |
+| T6 | 243 | 132 | 38 | 85 | 5 | 503 |
 | T7 | 72 | 37 | 10 | 32 | 0 | 151 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1100 | 396 | 99 | 270 | 64 | 1929 |
+| All | 1102 | 396 | 99 | 272 | 64 | 1933 |
 
 ## How the labels were given
 
@@ -3399,6 +3399,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | WW1 | T | T6 | L1 | `surface_pressure.wet_land_fraction`: the weathering land is `land x min(1, ocean_cover / OCEAN_COVER_EARTH)`; rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it | the cover that saturates it (0.5 to 0.8) | worlds with a liquid ocean and some land | a measured planet whose weathering does not fall with its sea (the insensitivity to land fraction of [R0009] is at a given sea) | a runoff model with the hydrological cycle over the land | educated guess from physics; the form is not in a source read | predicted only | - | - |
 | WW2 | P | T6 | L1 | `surface_pressure.OCEAN_COVER_EARTH` 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land | 0.5 to 0.8 | as WW1 | as WW1 | as WW1 | the Earth's value (0.71); using it as a saturation is a stand-in | predicted only | - | - |
+
+## 6.310 Stand-ins of the dry-surface carbonate buffer (GEN.1767)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CB1 | D | T1 | L0 | `carbonate_buffer.PHASES`: enthalpy of formation, entropy and heat capacity (a, b, c, d) of calcite, wollastonite, quartz and CO2 from Table 2a of [R1981]; `equilibrium_bar` integrates them from 298.15 K and gives the CO2 pressure at which calcite and quartz, wollastonite and the gas stand together: 0.08 bar at 500 K, 3.0 at 600, 38 at 700, 88 at 740, 257 at 800, 1,100 at 900 | none (the data) | surfaces of calcium carbonate, silica and wollastonite at 400 to 1,400 K | a measured pure-CO2 curve of the reaction that differs from it by more than 15 percent at 740 to 800 K | the next edition of the data set | [R1981: Table 2a] read from the printed rows; Venus 740 K, 92.1 bar [R5313] against 88; about 275 bar near 800 K ([R5314], through a later paper) against 257 | predicted only | - | - |
+| CB2 | P | T6 | L3 | `carbonate_buffer.DRY_CARBONATION_MIN_K` 500: the coolest surface at which a dry rock buffers the CO2 of its air; under it the air is as before | 400 to 600 | non-weathering bodies with a solid surface | a measured carbonation rate of dry basalt at 400 to 600 K fast enough to hold the pressure of the reaction on a geological time | a carbonation rate law of dry rock against temperature | educated guess from physics: [R5316] (citing the earlier measurements it names) say dry near-surface rocks carbonate inefficiently; the reaction pressure is 0.08 bar at 500 K, so a mistake there moves little | predicted only | - | no data |
+| CB3 | P | T6 | L3 | `carbonate_buffer.CALCIUM_SHARE` 1.0: the share of the crust's calcium (`sulfur_balance.CRUST_CALCIUM_WT`, less the calcium of the sulfate sink) that can become carbonate, one CO2 per calcium | 0.1 to 1 | crust the volcanism has built | a body whose carbonate holds a smaller share of its calcium at its surface temperature; the Earth's crust holds about 17 percent of its calcium as carbonate | a depth-limited carbonation of the crust | educated guess from physics: the item sets the limit at the crust's calcium | predicted only | - | no data |
+| CB4 | T | T6 | L0 | the reaction's CO2 is an ideal gas and the three solids pure at one bar (their volume term would raise the pressure 3 percent at 100 bar); the `b` coefficients of Table 2a are read as 1e-5 kJ/K^2 (the scale that gives the 298 K heat capacities of calcite and quartz within 3 percent; a factor of 10 on `b` moves the curve under 10 percent at 740 K) | none | below about 300 bar | a fugacity of CO2 over 20 percent from its pressure in the range where bodies hold it | a fugacity coefficient of CO2 and the volume terms | derived: the limits of the form, stated; checked against the Venus pressure | predicted only | - | - |
 
 ## 6.313 Stand-ins of the shocks of a world's history (GEN.1746)
 
