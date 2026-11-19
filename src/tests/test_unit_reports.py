@@ -115,7 +115,7 @@ def test_the_fill_and_the_stamped_system_units_report_their_ranges(mysql_config)
         assert len(reports) == result["systems"] + 1, kind
     reports = []
     commands.run_alone("fill-map-luminosity", {"low": 1, "high": 10, "database": _database(mysql_config)}, lambda done, total: reports.append((done, total)))
-    assert reports[0] == (0, 1) and reports[-1] == (1, 1)      # OPS.198: the engine counts the unit's pieces, one range of ids here
+    assert reports[0] == (0, 10) and reports[-1] == (10, 10)      # OPS.198, OPS.243: the engine counts the unit's pieces, one range of ids here, and a piece weighs its ids (10)
 
 
 
