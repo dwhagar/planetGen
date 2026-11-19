@@ -23,7 +23,7 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, model, sky_size_rows
+from planetgen.describe import clock_rows, day_rows, deck_rows, heavy_rows, influx_row, model, sky_size_rows
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import object_uid, scales
@@ -598,6 +598,7 @@ def _phenomenon_not_shown(kind, **extra):
 
 
 _BODY_NOT_SHOWN = {
+    "cloud_decks": "a giant's cloud decks and trace-gas ceilings as stored text; the rows of each cloud and gas are shown (`describe/deck_rows.py`), not the text",
     "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
     "shape_temperature_k": "the temperature the body took its shape at; the roundness it sets is shown, not the temperature",
     "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
@@ -1468,7 +1469,7 @@ def _ice_capped_provider(conn, kind, object_id, row):
 
 def _module_rows_provider(conn, kind, object_id, row):
     for group, key, label, value, raw in (*clock_rows.rows(conn, kind, object_id), *heavy_rows.rows(conn, kind, object_id),
-                                            *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id)):
+                                            *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id), *deck_rows.rows(conn, kind, object_id)):
         yield group, _sheet_row(key, label, value, raw=raw)
 
 

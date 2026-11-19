@@ -49,9 +49,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 
 
 
-| module | planetgen.physics.hot_giant_profile | GEN.1577 | the Guillot semi-grey profile of a hot giant's atmosphere; the hot-giant regime wiring (GEN.994) calls `profile_function` for the cloud deck and deletes this line |
-| row | 6.288:HGP1 | GEN.1577 | `hot_giant_profile.KAPPA_THERMAL_M2_KG`, not read until the hot-giant wiring calls the profile |
-| row | 6.288:HGP2 | GEN.1577 | `hot_giant_profile.GAMMA_AT_2000_K`, not read until the hot-giant wiring calls the profile |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
@@ -210,13 +207,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.planet_classes.classify_values | by design | the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier |
 | function | planetgen.physics.volatile_depletion.earth_over_ci | by design | the Earth-over-CI abundance of an element, read by the tests to check the retention curve against it |
 | function | planetgen.physics.volatile_depletion.retained_fractions | by design | the retained share of every element in the table at once, read by the tests; the generator reads one element's share at a time |
-| module | planetgen.physics.hot_condensates | GEN.1577 | the host-scaled condensation temperatures of the Cr, MnS, Na2S, ZnS and KCl clouds and the trace elements and gases of hot atmospheres; the hot-giant regime wiring reads them when it places the cloud decks |
-| data | hot_condensates.json | GEN.1577 | read by `physics/hot_condensates.py` only |
-| module | planetgen.physics.hot_cloud_deck | GEN.1577 | the cloud base of each hot-atmosphere species along a profile and the ceiling of each trace gas, as the one-column-per-species plan stores them; the hot-giant regime wiring (GEN.1577) reads it, adds the columns and the migration, and deletes this line |
-| row | 6.217:HK1 | GEN.1577 | the trace elements' [X/Fe] follow the cloud and gas reader |
-| row | 6.217:HK2 | GEN.1577 | the trace gas ceiling is read when the thermochemistry places the gases |
-| row | 6.217:HK3 | GEN.1577 | the chromium cloud temperature is read with the cloud decks |
-| row | 6.217:HK4 | GEN.1577 | the potassium chloride cloud temperature is read with the cloud decks |
 | row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |
 | row | 6.270:AUD25 | by design | the scope of the radius valley survey (`radius_valley`, a check run by the tuning tests; the generator never reads it, see the module's line) |
 | row | 6.270:AUD26 | by design | the scope of the iron branch sample (`iron_branch_tuning`, run by the tuning tests; the generator never reads it, see the module's line) |

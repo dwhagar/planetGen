@@ -64,9 +64,75 @@ def test_ceilings_cover_every_trace_gas_and_equal_gas_ceiling():
     assert ceilings["HCP"] == hc.gas_ceiling("HCP", host)
 
 
-def test_the_column_plan_has_one_name_per_species_and_gas_and_the_stored_quantities_match():
-    names = hcd.column_names()
-    assert len(names) == len(set(names)) == len(hc.CLOUD_SPECIES) + len(hc.HOT_TRACE_GASES)
-    stored = hcd.stored_quantities(_host(), lambda p: 5000.0)
-    assert tuple(stored) == names
-    assert all(stored[f"cloud_base_bar_{name.lower()}"] is None for name in hc.CLOUD_SPECIES)
+def test_the_adiabat_floor_is_the_mixed_gas_exponent():
+    assert hcd.ADIABAT_EXPONENT == pytest.approx(2.0 / 7.0)
+
+
+def test_the_text_of_the_column_gives_back_the_deck_and_the_ceilings():
+    host = _host()
+    clouds = hcd.deck(host, _profile(1000.0, 0.15))
+    ceilings = hcd.trace_gas_ceilings(host)
+    record = hcd.unpack(hcd.pack(clouds, ceilings))
+    assert [(c.species, c.reaches_bottom) for c in record.clouds] == [(c.species, c.reaches_bottom) for c in clouds]
+    assert [c.base_bar for c in record.clouds] == pytest.approx([c.base_bar for c in clouds], rel=1e-3)
+    assert record.ceilings == pytest.approx(ceilings, rel=1e-3)
+    assert hcd.unpack(None) is None and hcd.unpack("") is None
+
+
+def test_a_cloud_deeper_than_the_grid_is_kept_flagged():
+    clouds = hcd.deck(_host(), lambda p: 100.0)
+    record = hcd.unpack(hcd.pack(clouds, {}))
+    assert record.clouds and all(c.reaches_bottom and c.base_bar == hcd.GRID_BAR[-1] for c in record.clouds)
+
+
+def _giants(seeds):
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from tests.fuzz_support import deterministic_entropy
+    found = []
+    for seed in seeds:
+        config = SystemConfig()
+        config.PLANETS = True
+        with deterministic_entropy(seed):
+            system = StarSystem(system_config=config)
+        found += list(system.all_planets)
+    return found
+
+
+@pytest.fixture(scope="module")
+def bodies():
+    return _giants((111, 127))
+
+
+def test_a_giant_of_a_star_stores_its_decks_and_nothing_else_does(bodies):
+    giants = [body for body in bodies if body.body_type == "g" and not body.is_moon]
+    assert giants
+    for body in bodies:
+        if body in giants:
+            record = hcd.unpack(body.cloud_decks)
+            assert record is not None and set(record.ceilings) == set(hc.HOT_TRACE_GASES)
+            assert [c.base_bar for c in record.clouds] == sorted((c.base_bar for c in record.clouds), reverse=True)
+        elif hasattr(body, "cloud_decks"):
+            assert body.cloud_decks is None
+
+
+def test_a_warmer_giant_has_its_clouds_higher_than_a_cooler_one():
+    def deck_of(starlight):
+        body = [b for b in _giants((111,)) if b.body_type == "g" and not b.is_moon][0]
+        body.bond_albedo = 0.3
+        hcd.generate(body, starlight)
+        return {c.species: c.base_bar for c in hcd.unpack(body.cloud_decks).clouds}
+
+    cool, warm = deck_of(2.0e3), deck_of(1.5e5)
+    shared = set(cool) & set(warm)
+    assert shared and all(warm[name] < cool[name] for name in shared)
+
+
+def test_no_starlight_or_no_albedo_gives_no_decks(bodies):
+    body = [b for b in bodies if b.body_type == "g" and not b.is_moon][0]
+    hcd.generate(body, 0.0)
+    assert body.cloud_decks is None
+    albedo, body.bond_albedo = body.bond_albedo, None
+    hcd.generate(body, 1.0e4)
+    assert body.cloud_decks is None
+    body.bond_albedo = albedo

@@ -1,29 +1,39 @@
 # planetgen/physics/hot_cloud_deck.py
 
 """
-Where the clouds of a hot atmosphere sit, and the most each trace gas can hold (GEN.994, built ahead by Lane 07 for Lane 14, stacked on PR 5976)
-====================================================================================================================================================
+Where the clouds of a hot atmosphere sit, and the most each trace gas can hold (GEN.994 and GEN.1577)
+=====================================================================================================
 
 `hot_condensates` gives the temperature at which a cloud species starts to condense at a pressure (`cloud_temperature_k`) and the most molecules of a trace gas the host
-leaves room for (`gas_ceiling`). The hot-giant regime wiring needs the two answers it will store: the *deck*, where each cloud species meets a temperature-pressure
-profile, and the *ceiling* of each trace gas. This module is that step and nothing more: pure functions of the host and the profile, no draw, no call into
-`mixture_giant`, no stored column yet.
+leaves room for (`gas_ceiling`). This module places them on a giant: the *deck*, where each cloud species meets the giant's temperature-pressure profile, and the *ceiling* of each
+trace gas, packed into the one text column `cloud_decks` of its `planets` row (`pack`, `unpack`; JSON, as `sky_suns` is).
+
+**The profile** (`giant_profile`) is the grey radiative-equilibrium profile of `hot_giant_profile` on the giant's equilibrium temperature, its own heat flux and its gravity, floored from
+below by a dry adiabat down from the giant's 1 bar temperature (`ADIABAT_EXPONENT`): the grey profile alone is nearly isothermal below 1 bar and never meets a cloud curve inside the grid
+(GEN.1577 measurement), where a giant's interior is convective and hotter with depth. The 1 bar temperature is the one every giant's air is solved at (`giant_draw.ONE_BAR_OVER_EFFECTIVE`
+times its effective temperature, as `mixture_subject` reads it). Stand-in 6.317 DA1.
 
 **The deck.** A profile is a function `T(P)` in K of the pressure in bar that rises with depth. A species condenses where the profile is cooler than its condensation
 curve, so the cloud base is the deepest pressure where the two meet and the cloud lies above it. `cloud_base` finds that meeting on a log-spaced grid of pressures
 (`GRID_BAR`) and refines it by bisection. It returns None for a species the profile never cools enough to condense, and flags `reaches_bottom` when the profile is cooler than
-the curve down to the deepest grid pressure (the cloud has no base inside the grid).
+the curve down to the deepest grid pressure (the cloud has no base inside the grid: its base is at least `GRID_BAR[-1]`).
 
-**Column plan (option (a), Lane 14).** One stored quantity per species, not one row per layer: for each of `hot_condensates.CLOUD_SPECIES` the base pressure in bar (NULL for
-no cloud), and for each of `hot_condensates.HOT_TRACE_GASES` the ceiling in molecules per hydrogen atom. `column_names` gives the column names in a fixed order
-(`cloud_base_bar_<species lowercased>`, `trace_ceiling_<formula lowercased>`) so the migration, `db/column_units.py` (unit "bar" and "mol/mol H") and the describe page
-are written from one list. The migration, the unit registry entry and the epoch belong to the item that wires this (GEN.994); none is claimed here.
+**What is stored.** `generate` sets `cloud_decks` on a giant planet of a star (not a moon, not a rogue planet): the base pressure (bar) and temperature (K) of each cloud species that
+forms, deepest first, and the ceiling of each trace gas in molecules per hydrogen atom. NULL for a body that is not a giant and for a giant with no star. No draw is made.
 """
 
+import json
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import hot_condensates
+from planetgen.physics import bulk_draw, climate_draws, constants, giant_draw, hot_condensates, hot_giant_profile
+
+FIELDS = ("cloud_decks",)
+"""tuple: The stored column of a giant planet (`generate`; `pack` and `unpack` make and read its text)."""
+
+ADIABAT_EXPONENT = (constants.ADIABATIC_INDEX_H2_HE - 1.0) / constants.ADIABATIC_INDEX_H2_HE
+"""float: `d ln T / d ln P` of the dry adiabat below a giant's 1 bar level, (gamma - 1) / gamma of the H2-He gas (2/7 at `constants.ADIABATIC_INDEX_H2_HE` 1.4, the value `mixture_giant`
+takes down to its quench level). Stand-in 6.317 DA1."""
 
 GRID_BAR = tuple(10.0 ** (exponent / 4.0) for exponent in range(-24, 13))
 """tuple: The pressures, bar, the profile is searched on: 1e-6 to 1e3, four to the decade."""
@@ -77,15 +87,59 @@ def trace_gas_ceilings(host):
     return {formula: hot_condensates.gas_ceiling(formula, host) for formula in hot_condensates.HOT_TRACE_GASES}
 
 
-def column_names():
-    """The stored columns of the plan, in order: a base pressure per cloud species, then a ceiling per trace gas."""
-    return (tuple(f"cloud_base_bar_{name.lower()}" for name in hot_condensates.CLOUD_SPECIES)
-            + tuple(f"trace_ceiling_{formula.lower()}" for formula in hot_condensates.HOT_TRACE_GASES))
+def one_bar_temperature_k(planet, starlight_w_m2):
+    """The temperature at a giant's 1 bar level, K: `giant_draw.ONE_BAR_OVER_EFFECTIVE` times the temperature it radiates at (the starlight `starlight_w_m2` and its own heat), as its air is solved."""
+    return giant_draw.ONE_BAR_OVER_EFFECTIVE * giant_draw.effective_temperature_k(starlight_w_m2, giant_draw.own_flux_w_m2(planet))
 
 
-def stored_quantities(host, profile):
-    """`column_names` mapped to the numbers to store: the base pressure of each cloud (None where none forms) and the ceiling of each trace gas."""
-    bases = {base.species: base.base_bar for base in deck(host, profile)}
-    values = [bases.get(name) for name in hot_condensates.CLOUD_SPECIES]
-    values += [ceiling for ceiling in trace_gas_ceilings(host).values()]
-    return dict(zip(column_names(), values))
+def giant_profile(planet, starlight_w_m2):
+    """The profile (a function of pressure in bar giving K) of a giant lit by `starlight_w_m2`: the grey profile floored by the dry adiabat from its 1 bar temperature, or None without a Bond albedo."""
+    albedo = getattr(planet, "bond_albedo", None)
+    if albedo is None:
+        return None
+    grey = hot_giant_profile.profile_function(climate_draws.equilibrium_temperature_k(albedo, starlight_w_m2), giant_draw.own_flux_w_m2(planet),
+                                              planet.gravity * constants.EARTH_GRAVITY)
+    one_bar_k = one_bar_temperature_k(planet, starlight_w_m2)
+    return lambda pressure_bar: max(grey(pressure_bar), one_bar_k * pressure_bar ** ADIABAT_EXPONENT)
+
+
+def _rounded(value):
+    return None if value is None else float(f"{value:.4g}")
+
+
+def pack(clouds, ceilings):
+    """The text of the column: JSON `{"clouds": [[species, base bar, base K, 1 if no base inside the grid], ...], "ceilings": {formula: molecules per H atom}}`, deepest cloud first."""
+    return json.dumps({"clouds": [[base.species, _rounded(base.base_bar), _rounded(base.base_k), int(base.reaches_bottom)] for base in clouds],
+                       "ceilings": {formula: _rounded(value) for formula, value in ceilings.items()}}, separators=(",", ":"))
+
+
+@dataclass(frozen=True)
+class Record:
+    """What a giant's column holds: its `clouds` (`CloudBase`, deepest first) and the `ceilings` of its trace gases, formula to molecules per hydrogen atom."""
+
+    clouds: tuple
+    ceilings: dict
+
+
+def unpack(text):
+    """The `Record` of a column's text, or None for NULL or an empty text."""
+    if not text:
+        return None
+    data = json.loads(text)
+    return Record(tuple(CloudBase(species, bar, kelvin, bool(bottom)) for species, bar, kelvin, bottom in data["clouds"]), dict(data["ceilings"]))
+
+
+def generate(planet, starlight_w_m2):
+    """
+    Sets `cloud_decks` on `planet` (call after its air, which sets its Bond albedo and gravity; no draw): the deck along `giant_profile` and the trace-gas ceilings of its star's gas,
+    packed; None for a moon, a body that is not a giant, a giant with no star or no [Fe/H], and one with no starlight.
+    """
+    planet.cloud_decks = None
+    star = getattr(planet, "star", None)
+    if planet.is_moon or planet.body_type != "g" or star is None or getattr(star, "starless", False) or not starlight_w_m2 or starlight_w_m2 <= 0.0:
+        return
+    host = bulk_draw.composition_of(star)
+    profile = giant_profile(planet, starlight_w_m2)
+    if host is None or profile is None:
+        return
+    planet.cloud_decks = pack(deck(host, profile), trace_gas_ceilings(host))
