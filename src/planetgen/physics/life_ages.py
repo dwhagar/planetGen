@@ -14,7 +14,7 @@ give the API and the page their rows, and let the extinctions touch the air), so
 * *No background.* The design proposed drawing a background of kills for whatever the events do not explain, so that a world with no events still has the Earth's turnover. The kill of an event here is read from
   the kill curve at how often the Earth has events as large (`air_events.impact_kill_share`), so the impacts that kill the threshold's share recur exactly as often as the curve says kills of it do: on the
   Earth's record the impacts alone fill the curve, nothing is left over for a background, and the flood basalts are added on top of it. A body with fewer events than the Earth's has fewer extinctions.
-* *Recovery.* The origination that follows an extinction lags it by `air_events.RECOVERY_GYR` ([R5321]), the same whatever its size, so an event that falls within the lag of the one before is part of the
+* *Recovery.* The origination that follows an extinction lags it by `air_events.RECOVERY_GYR` [R5321], the same whatever its size, so an event that falls within the lag of the one before is part of the
   same extinction (it does not start an age of its own): the extinction keeps the larger kill and its cause. The next age starts one lag after the extinction. [Stand-in 6.314 LA2, tier T7 educated guess
   based on inferred physics, tweak L0.]
 
