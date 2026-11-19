@@ -25,11 +25,11 @@ from dataclasses import dataclass
 from planetgen.physics import air_history, atmosphere, biogenic_oxygen, life_ages
 
 MAX_STEPS = 60
-"""int: The most steps a record keeps (the design's 20 to 60; the cost of a packed column goes with it)."""
+"""int: The most steps a record keeps: a design size limit of GEN.1745 (the design of GEN.1739 section 5.9 keeps 20 to 60 recorded steps; the size of a packed column goes with it), not a physical constant."""
 PARTIAL_FLOOR_PA = 0.1
 """float: The partial pressure, Pa, under which a gas is left out of a step (the design of GEN.1739 section 5.9)."""
 MIN_AIR_PA = 500.0
-"""float: The surface pressure, Pa, from which a body gets a record (Boss, 5:14 PM EST 2026-11-16: under 500 Pa the air is built as today, with no full history)."""
+"""float: The surface pressure, Pa, from which a body gets a record: a decision of the Boss (GEN.1745, 5:14 PM EST 2026-11-16: under 500 Pa the air is built as today, with no full history), not a physical constant."""
 
 
 @dataclass(frozen=True)
