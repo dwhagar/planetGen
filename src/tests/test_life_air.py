@@ -51,6 +51,7 @@ def world(airy_world):
     body = copy.deepcopy(airy_world)
     body.life_age_photosynthesis_gyr = 0.5
     body.star.age = 3.0
+    body.fixture_air_mol = sum(bo.air_moles(body).values())
     return body
 
 
@@ -107,8 +108,17 @@ def test_the_methane_the_air_holds_is_the_flux_times_its_life_within_the_share_c
     assert life_air.methane_target_mol(1e12, carbon_poor) == pytest.approx((1.0 - life_air.number("carbon_left_share")) * 1.0e6)
 
 
+REFERENCE_AIR_MOL = 3.1e20
+"""float: The air, mol, the fluxes of these tests were chosen for: a flux of F mol/yr is F on an air of this size and in proportion on a bigger or smaller world."""
+
+
+def _scaled(body, mol_yr):
+    """`mol_yr` in proportion to the air the fixture world held when it was made (`world`), so the steps do not depend on how big the generated world is (the air changes as methane is added, this does not)."""
+    return mol_yr * getattr(body, "fixture_air_mol", REFERENCE_AIR_MOL) / REFERENCE_AIR_MOL
+
+
 def _force_flux(monkeypatch, mol_yr):
-    monkeypatch.setattr(life_air, "methane_flux_mol_yr", lambda body, life_class, supplies=None: mol_yr)
+    monkeypatch.setattr(life_air, "methane_flux_mol_yr", lambda body, life_class, supplies=None: _scaled(body, mol_yr))
 
 
 def test_producers_put_methane_in_the_oxygen_free_air_and_take_its_carbon_from_the_carbon_dioxide(world, monkeypatch):
@@ -245,7 +255,7 @@ def test_the_generated_worlds_keep_one_air_and_methane_beside_life_leaves_no_fre
         partials = atmosphere.gas_partials_pa(body)
         assert sum(partials.values()) == pytest.approx(body.atmospheric_pressure, rel=2e-3), body.name
         if body.life_class and atmosphere.partial_kpa(body, "ch4") > 0.05:
-            assert atmosphere.partial_kpa(body, "o2") < 0.5, body.name
+            assert atmosphere.partial_kpa(body, "o2") * 1000.0 <= life_air.number("oxygen_max_share") * body.atmospheric_pressure * (1.0 + 2e-3), body.name
 
 
 def test_a_methane_under_a_pascal_is_not_worth_redoing_the_air(world, monkeypatch):
@@ -346,7 +356,7 @@ def test_a_world_with_nothing_to_chart_has_no_history(world, change):
 # ---- GEN.1213: the air of the whole mix of living classes
 
 def _per_class_flux(monkeypatch, fluxes):
-    monkeypatch.setattr(life_air, "methane_flux_mol_yr", lambda body, life_class, supplies=None: fluxes.get(life_class.number, 0.0))
+    monkeypatch.setattr(life_air, "methane_flux_mol_yr", lambda body, life_class, supplies=None: _scaled(body, fluxes.get(life_class.number, 0.0)))
 
 
 def test_the_methane_of_two_classes_on_different_fuels_is_the_sum_of_their_fuel_fluxes_whatever_their_shares(world, monkeypatch):
@@ -354,7 +364,7 @@ def test_the_methane_of_two_classes_on_different_fuels_is_the_sum_of_their_fuel_
     before = bo.air_moles(world)
     assert life_air.apply_gases(world, [life_air.Living(_class(2), 0.6), life_air.Living(_class(8), 0.4)], False)
     after = bo.air_moles(world)
-    assert after["CH4"] == pytest.approx(life_air.methane_target_mol(1.0e12 + 3.0e11, before), rel=1e-6)
+    assert after["CH4"] == pytest.approx(life_air.methane_target_mol(_scaled(world, 1.0e12 + 3.0e11), before), rel=1e-6)
 
 
 def test_a_class_whose_producers_are_not_yet_begun_adds_nothing(world, monkeypatch):
@@ -422,9 +432,7 @@ def test_no_oxygen_when_the_star_is_younger_than_the_rise(world, monkeypatch):
 
 
 def test_the_history_of_two_classes_steps_at_each_start_and_at_the_rise(world, monkeypatch):
-    # fluxes in proportion to the air the world holds (1e12 and 5e12 mol/yr on an air of 3.1e20 mol), so the steps do not depend on how big the generated world is
-    air = sum(bo.air_moles(world).values())
-    _per_class_flux(monkeypatch, {2: 1.0e12 * air / 3.1e20, 8: 5.0e12 * air / 3.1e20})
+    _per_class_flux(monkeypatch, {2: 1.0e12, 8: 5.0e12})
     living = [life_air.Living(_class(2), 0.5, producers_gyr=0.5), life_air.Living(_class(8), 0.5, producers_gyr=1.5)]
     assert life_air.apply_gases(world, living, False)
     history = life_air.air_history(world, living, STAGES)
