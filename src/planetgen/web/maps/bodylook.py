@@ -43,6 +43,9 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     cloudColor  (MAP.418) the colour of the cloud by its material, `#rrggbb` (`CLOUD_COLOURS`: water white, sulfuric acid pale yellow, carbon dioxide
                 ice grey-white, ammonia ice cream, methane ice pale blue-white); the material is the one that makes most of the cloud
                 (`aerosol_material.cloud_material`); left out when no cloud is stored
+    hazeReach   (MAP.420) how far the haze shell reaches past the limb, in radii, 0.04 to 0.14 from the depth of the stored `tau_haze` (`HAZE_SHELL_REACH`); left out under
+                `HAZE_SHELL_MIN_TAU`, where the haze only washes out the ground
+    hazeStrength  (MAP.420) how strongly the shell is drawn, 0.25 to 0.8 (`HAZE_SHELL_STRENGTH`), with `hazeColor`
     hazeColor   (MAP.418) the colour of the haze layer, `#rrggbb`: tholin orange and dust tan blended by their stored depths (`HAZE_COLOURS`); left out
                 when neither `tau_haze` nor `tau_dust` is over 0
     twilight    how far past the day and night line the light of the star is carried by the air, as a cosine of the light
@@ -329,6 +332,19 @@ HAZE_COLOURS = {"tholin": "#c47a35", "dust": "#b59a6c"}
 """dict: The colour of a haze layer by its material (MAP.418): tholin orange, dust tan (display colours, as Boss asked, 11-09)."""
 
 
+HAZE_SHELL_MIN_TAU = 0.3
+"""float: The haze depth (`tau_haze`, 550 nm) from which a body has a haze shell of its own (MAP.420): under it the haze only washes out the ground (`haze`); Titan's is about 5."""
+
+HAZE_SHELL_TAU_SCALE = 3.0
+"""float: The haze depth at which a shell has reached 63 percent of the way from the least to the most `HAZE_SHELL_REACH` and `HAZE_SHELL_STRENGTH` (display values)."""
+
+HAZE_SHELL_REACH = (0.04, 0.14)
+"""tuple: How far a haze shell reaches past the limb, in radii, from the thinnest to the thickest haze (MAP.420): the most is the 1.14 radii of the 3D air shell, the most the System Map frames; Titan's detached haze stands about 0.2 radii up. A display value, exaggerated as the air glow's width is."""
+
+HAZE_SHELL_STRENGTH = (0.25, 0.8)
+"""tuple: How strongly the shell is drawn at its limb, 0 to 1, from the thinnest to the thickest haze (the same scale as `glowStrength`)."""
+
+
 def _aerosol_body(row):
     """The body-like record of a row that `aerosol_material` reads: its stored mixture, gravity, temperature, greenhouse factor, aerosol draw and optical depths."""
     return SimpleNamespace(
@@ -361,6 +377,11 @@ def _put_layers(look, row):
     mix = aerosol_material.haze_mix(body)
     if mix:
         look["hazeColor"] = _blend_hex([(HAZE_COLOURS[material], depth) for material, depth in mix.items()])
+    tau = row.get("tau_haze")
+    if tau is not None and math.isfinite(tau) and tau >= HAZE_SHELL_MIN_TAU:
+        grown = -math.expm1(-tau / HAZE_SHELL_TAU_SCALE)
+        look["hazeReach"] = round(HAZE_SHELL_REACH[0] + (HAZE_SHELL_REACH[1] - HAZE_SHELL_REACH[0]) * grown, 3)
+        look["hazeStrength"] = round(HAZE_SHELL_STRENGTH[0] + (HAZE_SHELL_STRENGTH[1] - HAZE_SHELL_STRENGTH[0]) * grown, 3)
 
 
 def _put_spin(look, row):
