@@ -77141,6 +77141,25 @@
    "volume": "148",
    "year": 2000
   },
+  "10.1006/icar.2000.6570": {
+   "authors": [
+    [
+     "Bullock",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.2000.6570",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "19",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The Recent Evolution of Climate on Venus",
+   "type": "journal-article",
+   "volume": "150",
+   "year": 2001
+  },
   "10.1006/icar.2001.6596": {
    "authors": [
     [
@@ -82432,6 +82451,78 @@
    "publisher": "Springer Science and Business Media LLC",
    "src": "crossref",
    "title": "The Exosphere as a Boundary: Origin and Evolution of Airless Bodies in the Inner Solar System and Beyond Including Planets with Silicate Atmospheres",
+   "type": "journal-article",
+   "volume": "218",
+   "year": 2022
+  },
+  "10.1007/s11214-022-00924-0": {
+   "arxiv": "2204.08540",
+   "authors": [
+    [
+     "Gillmann",
+     "C."
+    ],
+    [
+     "Way",
+     "M. J."
+    ],
+    [
+     "Avice",
+     "G."
+    ],
+    [
+     "Breuer",
+     "D."
+    ],
+    [
+     "Golabek",
+     "G. J."
+    ],
+    [
+     "Höning",
+     "D."
+    ],
+    [
+     "Krissansen-Totton",
+     "J."
+    ],
+    [
+     "Lammer",
+     "H."
+    ],
+    [
+     "O’Rourke",
+     "J. G."
+    ],
+    [
+     "Persson",
+     "M."
+    ],
+    [
+     "Plesa",
+     "A. C."
+    ],
+    [
+     "Salvador",
+     "A."
+    ],
+    [
+     "Scherf",
+     "M."
+    ],
+    [
+     "Zolotov",
+     "M. Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s11214-022-00924-0",
+   "editors": [],
+   "journal": "SSRv",
+   "page": "56",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "The Long-Term Evolution of the Atmosphere of Venus: Processes and Feedback Mechanisms",
    "type": "journal-article",
    "volume": "218",
    "year": 2022
@@ -167243,6 +167334,29 @@
    "volume": "727",
    "year": 2011
   },
+  "10.1088/0004-637x/729/1/6": {
+   "authors": [
+    [
+     "Schaefer",
+     "L."
+    ],
+    [
+     "Fegley",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/729/1/6",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "6",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "ATMOSPHERIC CHEMISTRY OF VENUS-LIKE EXOPLANETS",
+   "type": "journal-article",
+   "volume": "729",
+   "year": 2011
+  },
   "10.1088/0004-637x/729/2/142": {
    "authors": [
     [
@@ -244814,6 +244928,29 @@
    "volume": "324",
    "year": 2024
   },
+  "10.2475/ajs.254.4.239": {
+   "authors": [
+    [
+     "Harker",
+     "R. I."
+    ],
+    [
+     "Tuttle",
+     "O. F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.2475/ajs.254.4.239",
+   "editors": [],
+   "journal": "American Journal of Science",
+   "page": "239",
+   "publisher": "American Journal of Science (AJS)",
+   "src": "crossref",
+   "title": "Experimental data on the P (sub co 2 ) -T curve for the reaction; calcite-quartzwollastonite-carbon dioxide",
+   "type": "journal-article",
+   "volume": "254",
+   "year": 1956
+  },
   "10.2475/ajs.293.8.758": {
    "authors": [
     [
@@ -286860,7 +286997,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5313,
+ "id_next": 5317,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286982,6 +287119,7 @@
   "10.1006/icar.2000.6471": "R2255",
   "10.1006/icar.2000.6498": "R0879",
   "10.1006/icar.2000.6523": "R1389",
+  "10.1006/icar.2000.6570": "R5315",
   "10.1006/icar.2001.6596": "R2260",
   "10.1006/icar.2001.6598": "R2261",
   "10.1006/icar.2001.6632": "R2600",
@@ -287172,6 +287310,7 @@
   "10.1007/s11214-021-00825-8": "R2729",
   "10.1007/s11214-022-00875-6": "R4783",
   "10.1007/s11214-022-00876-5": "R2546",
+  "10.1007/s11214-022-00924-0": "R5316",
   "10.1007/s11214-024-01098-7": "R4275",
   "10.1007/s11214-024-01104-y": "R5090",
   "10.1007/s11214-025-01243-w": "R4155",
@@ -289460,6 +289599,7 @@
   "10.1088/0004-637x/726/1/15": "R1890",
   "10.1088/0004-637x/727/1/57": "R4170",
   "10.1088/0004-637x/727/2/91": "R2289",
+  "10.1088/0004-637x/729/1/6": "R5313",
   "10.1088/0004-637x/729/2/142": "R3907",
   "10.1088/0004-637x/730/1/3": "R4042",
   "10.1088/0004-637x/730/2/70": "R3327",
@@ -291280,6 +291420,7 @@
   "10.2458/azu_uapress_9780816532131-ch035": "R2216",
   "10.2472/jsms.18.240": "R4069",
   "10.2475/001c.118215": "R2694",
+  "10.2475/ajs.254.4.239": "R5314",
   "10.2475/ajs.293.8.758": "R4284",
   "10.2475/ajs.296.1.23": "R2882",
   "10.2475/ajs.304.5.397": "R5280",
@@ -292980,6 +293121,7 @@
   "arxiv:2204.00342": "R3722",
   "arxiv:2204.04243": "R4468",
   "arxiv:2204.07517": "R4705",
+  "arxiv:2204.08540": "R5316",
   "arxiv:2205.02331": "R3017",
   "arxiv:2205.02780": "R2200",
   "arxiv:2205.04444": "R3298",

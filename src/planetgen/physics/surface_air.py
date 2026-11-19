@@ -44,7 +44,7 @@ from dataclasses import dataclass, field, replace
 from scipy.optimize import brentq
 
 from planetgen.physics import (
-    ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, continental_weathering, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
+    ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, carbonate_buffer, continental_weathering, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
     mixture_escape, mixture_rocky, moist_limit, photochemical_loss,
     mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, starlight_aloft, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
@@ -744,6 +744,21 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             if record is not None:
                 record["sink"] = CarbonSink(supply_bar=supply_bar, solved_bar=kept_bar, solved_temperature_k=temperature_k, kept_at=kept_at)
             shares_["C"] *= min(1.0, kept_bar / supply_bar)
+        elif carbon > 0.0 and not weathers and not setting.giant:
+            # GEN.1767: a body with a surface that does not weather (it never had an ocean, or its water is all vapor, or it is over the critical temperature of water) holds the CO2 of its air
+            # at the pressure of the Urey reaction on its hot dry rock, `carbonate_buffer`, while the crust's calcium lasts and the surface is hot enough to carbonate; the rest of the carbon stays in the air as before.
+            supply_bar = carbon * gases.gas("CO2").molar_mass * setting.gravity_m_s2 / setting.area_m2 / 1.0e5
+            capacity_bar = carbonate_buffer.capacity_bar(crust_kg_m2, sulfate_mol_m2, setting.gravity_m_s2)
+
+            def kept_at(ts_k):
+                """The CO2 pressure, bar, the dry carbonate buffer of this step's carbon holds at the surface temperature `ts_k`."""
+                return carbonate_buffer.kept_bar(supply_bar, ts_k, capacity_bar)
+
+            kept_bar = kept_at(temperature_k)
+            if kept_bar < supply_bar:
+                if record is not None:
+                    record["sink"] = CarbonSink(supply_bar=supply_bar, solved_bar=kept_bar, solved_temperature_k=temperature_k, kept_at=kept_at)
+                shares_["C"] *= kept_bar / supply_bar
         return shares_
 
     return shares
