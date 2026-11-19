@@ -46,6 +46,8 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     hazeReach   (MAP.420) how far the haze shell reaches past the limb, in radii, 0.04 to 0.14 from the depth of the stored `tau_haze` (`HAZE_SHELL_REACH`); left out under
                 `HAZE_SHELL_MIN_TAU`, where the haze only washes out the ground
     hazeStrength  (MAP.420) how strongly the shell is drawn, 0.25 to 0.8 (`HAZE_SHELL_STRENGTH`), with `hazeColor`
+    cloudMaterial (MAP.422) what the cloud is made of, a key of `CLOUD_COLOURS` (H2O, H2SO4, CO2, NH3, CH4); with `cloudColor`, for the info panel's account
+    hazeMaterial  (MAP.422) what the haze layer is made of, `["tholin"]`, `["dust"]` or both, the thicker first; with `hazeColor`
     hazeColor   (MAP.418) the colour of the haze layer, `#rrggbb`: tholin orange and dust tan blended by their stored depths (`HAZE_COLOURS`); left out
                 when neither `tau_haze` nor `tau_dust` is over 0
     twilight    how far past the day and night line the light of the star is carried by the air, as a cosine of the light
@@ -332,6 +334,10 @@ HAZE_COLOURS = {"tholin": "#c47a35", "dust": "#b59a6c"}
 """dict: The colour of a haze layer by its material (MAP.418): tholin orange, dust tan (display colours, as Boss asked, 11-09)."""
 
 
+CLOUD_NAMES = {"H2O": "water", "H2SO4": "sulfuric acid", "CO2": "carbon dioxide ice", "NH3": "ammonia ice", "CH4": "methane ice"}
+"""dict: What the info panel calls each cloud material (MAP.422)."""
+
+
 HAZE_SHELL_MIN_TAU = 0.3
 """float: The haze depth (`tau_haze`, 550 nm) from which a body has a haze shell of its own (MAP.420): under it the haze only washes out the ground (`haze`); Titan's is about 5."""
 
@@ -374,9 +380,11 @@ def _put_layers(look, row):
         material = aerosol_material.cloud_material(body)
         if material in CLOUD_COLOURS:
             look["cloudColor"] = CLOUD_COLOURS[material]
+            look["cloudMaterial"] = material
     mix = aerosol_material.haze_mix(body)
     if mix:
         look["hazeColor"] = _blend_hex([(HAZE_COLOURS[material], depth) for material, depth in mix.items()])
+        look["hazeMaterial"] = sorted(mix, key=lambda material: -mix[material])
     tau = row.get("tau_haze")
     if tau is not None and math.isfinite(tau) and tau >= HAZE_SHELL_MIN_TAU:
         grown = -math.expm1(-tau / HAZE_SHELL_TAU_SCALE)
@@ -541,15 +549,35 @@ def colour_account(look):
             parts.append("limb glow from the composition of its air under its star")
         else:
             parts.append("no limb glow: the color of its air is not known")
+    if look.get("atm"):
+        parts.extend(_layer_account(look))
     if look.get("quality") == "estimate":
-        left_out = "surface composition, clouds, and haze" if body == "solid" else "chemistry bands and haze"
-        tail = f". Left out: {left_out}"
-    elif look.get("quality") == "composition":
-        # MAP.274: the land colour is the stored ground types' lab reflectance; the clouds and haze are still not stored
-        tail = ". Left out: clouds and haze"
+        tail = ". Left out: surface composition" if body == "solid" else ". Left out: chemistry bands"
     else:
-        tail = ""
+        tail = ""      # MAP.274: the land colour is the stored ground types' lab reflectance; MAP.422: the clouds and haze are drawn from what is stored
     return "; ".join(parts) + tail
+
+
+def _layer_account(look):
+    """
+    The clauses of the info panel line about the cloud and the haze of a body with air (MAP.422): what was drawn and from what (the stored cover and
+    depth of the cloud and the material it is made of; the stored depth of the haze, its material, and the shell past the limb a thick haze has), or
+    that none is stored. A pure function of the look record.
+    """
+    if look.get("cloudCover") and look.get("cloudTau"):
+        material = CLOUD_NAMES.get(look.get("cloudMaterial"))
+        cloud = f"cloud drawn from its stored cover and depth ({material})" if material else "cloud drawn from its stored cover and depth (its material is not known: shown white)"
+    else:
+        cloud = None
+    if look.get("haze"):
+        made = look.get("hazeMaterial") or []
+        shell = ", with a shell past the limb" if look.get("hazeReach") else ""
+        haze = "haze drawn from its stored depth (" + (" and ".join(made) if made else "its material is not known") + ")" + shell
+    else:
+        haze = None
+    if cloud is None and haze is None:
+        return ["no cloud or haze drawn: none is stored"]
+    return [cloud or "no cloud drawn: none is stored", haze or "no haze drawn: none is stored"]
 
 
 def look_note(look):
