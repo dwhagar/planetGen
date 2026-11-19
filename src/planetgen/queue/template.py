@@ -49,6 +49,66 @@ NO_PIDFD_FLAG = "--no-pidfd"
 MESSAGE_BYTES = 1 << 20
 """int: The most one message may hold."""
 
+SPILL_BYTES = 64 * 1024
+"""int: The most a job's arguments may take on the socket (OPS.283). A `SOCK_SEQPACKET` message cannot be larger than the socket's send buffer (212,992 bytes by default on Linux), and a unit of a luminosity scatter named every cluster of the galaxy (463,278 bytes): the send failed with "Message too long" and the unit was never started. Arguments larger than this go in a file in the state folder (`spill`) and the message names it."""
+
+SPILL_FOLDER = "job-arguments"
+"""str: The folder of the state folder that holds the arguments of the jobs that were too large to send."""
+
+SPILL_KEPT_SECONDS = 24 * 3600
+"""float: How long a spilled file nobody read stays (a supervisor that ended between writing it and the template reading it): `sweep` deletes older ones."""
+
+
+def spill_folder():
+    from planetgen.util import settings as settings_module
+    return os.path.join(settings_module.state_dir(), SPILL_FOLDER)
+
+
+def spill(job, job_id):
+    """Writes `job` (a job's arguments, too large for the socket) as a file in the state folder, by a write and a rename. Returns its path. The template reads it and deletes it (`unspill`); the sender deletes it when the send fails."""
+    folder = spill_folder()
+    os.makedirs(folder, mode=0o700, exist_ok=True)
+    path = os.path.join(folder, f"{os.getpid()}-{job_id}-{time.time_ns()}.json")
+    with open(path + ".part", "wb") as handle:
+        handle.write(encode(job))
+    os.replace(path + ".part", path)
+    return path
+
+
+def unspill(path):
+    """The arguments a spilled file holds; the file is deleted. Only a file of the spill folder is read: a message cannot make the template read any other."""
+    folder = os.path.realpath(spill_folder())
+    real = os.path.realpath(path)
+    if os.path.dirname(real) != folder:
+        raise ValueError(f"{path!r} is not a file of the job arguments' folder")
+    try:
+        with open(real, "rb") as handle:
+            return decode(handle.read())
+    finally:
+        try:
+            os.unlink(real)
+        except FileNotFoundError:
+            pass
+
+
+def sweep(now=None):
+    """Deletes the spilled files older than `SPILL_KEPT_SECONDS`: the ones of a supervisor that ended before its template read them. Returns how many."""
+    folder, removed = spill_folder(), 0
+    cutoff = (time.time() if now is None else now) - SPILL_KEPT_SECONDS
+    try:
+        names = os.listdir(folder)
+    except FileNotFoundError:
+        return 0
+    for name in names:
+        path = os.path.join(folder, name)
+        try:
+            if os.path.getmtime(path) < cutoff:
+                os.unlink(path)
+                removed += 1
+        except OSError:
+            pass
+    return removed
+
 
 class SupervisorGone(Exception):
     """The pipe to the supervisor closed: whoever watches this job is gone, so it finishes what it is committing and exits."""
@@ -228,7 +288,13 @@ class Template:
             except allowlist.ForbiddenFunction as exc:
                 self.say({"event": "error", "id": message.get("id"), "error": str(exc)})
                 return
-            self.fork(message["id"], message["runner"], message.get("job") or {})
+            try:
+                job = unspill(message["job_file"]) if message.get("job_file") else message.get("job") or {}
+            except Exception as exc:  # noqa: BLE001 -- the supervisor is told why the job could not be made and the unit fails with the reason
+                log.swallowed("template", "reading a job's arguments", exc)
+                self.say({"event": "error", "id": message.get("id"), "error": f"the job's arguments could not be read: {type(exc).__name__}: {exc}"})
+                return
+            self.fork(message["id"], message["runner"], job)
 
     def serve(self):
         """The template's loop: builds the warm set, says it is ready, and forks jobs and reports their ends until it is told to stop or the supervisor closes the channel; then it waits for the jobs it has left and ends."""

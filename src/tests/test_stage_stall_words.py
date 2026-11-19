@@ -10,6 +10,7 @@ import pytest
 
 from planetgen.generation import run_galaxy
 from planetgen.queue import redisqueue, runrecord, runview, units
+from planetgen.util.format import format_duration_seconds
 from planetgen.web import queue_page
 
 
@@ -84,6 +85,39 @@ def test_the_backfill_bar_counts_a_sky_cell_by_its_own_counter_and_never_goes_ba
         follower.on_result(2, {"sectors": 0, "stars": 5, "visited": 0, "shells": {}})     # the cell ends: its whole cost
         follower.on_result(0, {"sectors": 10, "stars": 1, "visited": 100, "shells": {}})
         assert bar.done == 1000.0 + 100.0
+    finally:
+        run_galaxy.steps.Step = saved
+
+
+def test_the_backfill_says_its_real_counts_in_the_log_every_few_minutes_with_an_hms_eta(monkeypatch):
+    """OPS.282: the stage took 1 h 57 m and its log held one line; the counts are the bar's own credit, the finished parts and what the working parts count inside themselves."""
+    saved = run_galaxy.steps.Step
+    said = []
+    monkeypatch.setattr(run_galaxy.log, "normal", lambda text, *a, **k: said.append(text))
+    try:
+        now = [1000.0]
+        follower = _follower([1000.0, 3000.0], chunks=2)
+        said.clear()                                                # the lines of the cut
+        follower.clock = lambda: now[0]
+        follower.opened = follower.said = now[0]
+        assert follower.status_line(now[0]).startswith("Backfill: 0 of 200 sectors visited, 0 of 2 sky parts done, 0 stars placed by finished parts")
+        follower.on_progress(0, 50.0, 100.0)
+        follower.on_progress(2, 25.0, 100.0)                         # a quarter of the first sky part
+        follower.on_result(1, {"sectors": 10, "stars": 7, "visited": 40, "shells": {}})
+        now[0] += 120.0
+        follower.on_step({"name": "Sky tiers", "done": 25.0, "total": 100.0})
+        assert said == [], "no line before the interval has passed"
+        now[0] += 200.0                                            # 320 s since the opening: over the 300 s interval
+        follower.on_step({"name": "Sky tiers", "done": 25.0, "total": 100.0})
+        assert len(said) == 1
+        line = said[0]
+        assert "90 of 200 sectors visited" in line and "0 of 2 sky parts done" in line and "7 stars placed by finished parts" in line
+        assert "working parts: Sky tiers 25 of 100" in line
+        credit = 50.0 + 40.0 + 250.0                                # sectors visited, plus a quarter of 1000
+        share = credit / 4200.0
+        assert f"about {format_duration_seconds(320.0 * (1 - share) / share)} left (8.1 percent of the work, 5m 20s in)" in line
+        follower.on_step(None)
+        assert len(said) == 1, "one line each interval"
     finally:
         run_galaxy.steps.Step = saved
 

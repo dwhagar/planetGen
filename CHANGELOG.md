@@ -2,6 +2,156 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4611] - 2026-11-19
+
+**Headline:** The engine's own wording and tests now follow the house rules for units, logging and the command list (TEST.795).
+
+### Changed
+
+- The pressure report, the stop-grace line, the database-signal line, the item-file size errors and the light-job time lines now write durations and sizes with the shared formatters (`format_duration_seconds`, `format_bytes`) instead of by hand.
+- The template logs, at debug level, why a job's arguments could not be read before telling the supervisor.
+- The help test no longer lists the removed `worker` command, and the update-order test knows the `retire_config_options` step.
+
+## [8.0.4610] - 2026-11-19
+
+**Headline:** A legacy/ folder with the one script that brings a pre-8.0 database up to the oldest structure 8.0 accepts (OPS.177, DB.126).
+
+### Added
+
+- `legacy/bump_database_to_8_0.py`: run by hand on a database you keep (back it up first), it runs the old revisions 0062 to 0130 (kept in `legacy/db_revisions/`, as they were before DB.98 replaced them with an empty baseline) and records each version, stopping at v130. Then `update.sh` takes it on. The error that a too-old database gets has named this script since DB.127; now it exists. Nothing in the install, update, migration or program calls it, and it does nothing else.
+
+## [8.0.4609] - 2026-11-19
+
+**Headline:** A hot dry body now holds the CO2 of its air at the pressure of the Urey reaction (calcite + quartz = wollastonite + CO2) instead of keeping every gram its volcanoes brought up: 88 bar at 740 K like Venus, 3 bar at 600 K, 0.08 bar at 500 K, limited by the calcium of its crust; on the four bodies of 120 systems it reaches, the CO2 falls from 120 to 223 bar to 0.07 to 9 bar.
+
+### Changed
+
+- GEN.1767: new `physics/carbonate_buffer.py`: `equilibrium_bar(T)` from the printed enthalpies, entropies and heat capacities of calcite, wollastonite, quartz and CO2 of [R1981] [R1981: Table 2a] (88 bar at 740 K against the 92.1 bar Schaefer and Fegley find on Venus [R5313], 257 bar at 800 K against about 275 in the experiments of [R5314]), `capacity_bar` (the crust's calcium, `sulfur_balance.CRUST_CALCIUM_WT`, less the sulfate sink's), and `kept_bar`. `surface_air._shares` uses it for a body with a surface whose carbon is not weathered (never had an ocean, or its water is all vapor, or over water's critical temperature) when its surface is at least 500 K: the CO2 of the air is the pressure of the reaction while the calcium lasts and the surplus after it, recorded as the body's `CarbonSink` so the life stage asks it again at the temperature it ends at. A cool dry body keeps its air as it was, and a body hotter than about 800 K holds nothing more or less (the reaction pressure is over its supply). Sources that disagree: [R5315] call the CO2-silicate reactions of Venus kinetically inhibited, [R5313] take them as the buffer; the newer wins (Boss, 8:41 PM EST 2026-11-16). Stand-ins CB1 to CB4 in section 6.310 (data T1 L0; the 500 K floor and the calcium share T6 L3).
+- Measured on four systems that hold the bodies of 120 Abundant-style systems (2,491 bodies) that this reaches (seeds 40080, 40115, 40119 and the others of that scan): the CO2 of Eleo I falls from 223 to 9.2 bar (647 K), of Afredaris III from 120 to 0.07 bar (500 K), a steam world (Eogounar II, 223 bar of carbon) settles at 765 K and 140 bar of carbon where it was at 1,265 K, and a 600 K body with more carbon than its calcium can hold (Eogounar VII) keeps the surplus.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4608] - 2026-11-19
+
+**Headline:** A world's life now has a table of ages: the stretches between its mass extinctions, cut at the events that kill 30 percent or more of the species, each starting one recovery lag after the extinction before it; nothing reads it yet, so no world changes.
+
+### Added
+
+- GEN.1746 slice 2: new `physics/life_ages.py`: `ages_of(body, begin_gyr)` takes the flood basalts and impacts of `air_events.events_of` from the age life began and cuts the history at the ones that kill at least `AGE_KILL_THRESHOLD` (0.30) of the species, giving each `LifeAge` its start, end, cause and kill share and the open age the world is in; events within the 10 Myr recovery lag [R5321] of an extinction are part of it. `smallest_impact_km(threshold)` solves the impact size law for the size whose kill reaches a threshold (4.1 km at 30 percent). On generated worlds from 1 Gyr: 1 to 4 extinctions on the worlds that left the heavy bombardment, 70 to 200 on the ones still in it; 0.03 to 6 s a body. Stand-ins LA1 and LA2 in section 6.314.
+
+## [8.0.4607] - 2026-11-19
+
+**Headline:** The population pass's long pieces say where they are with real counts (PERF.147).
+
+### Changed
+
+- The `civilizations` piece of `date-civilizations` (tech levels drawn, eras written, polities founded, reaches updated) and the `technology` piece of `refresh-technology` (the map's technology scores, a range of system ids at a time) now report a count of rows or system ids done, so the Queue page, the Generate page and the log show a bar, rate and time left for them like any other long step. The rows written are the same; each statement just covers a batch.
+
+## [8.0.4606] - 2026-11-19
+
+**Headline:** A world's history now has a list of shocks: flood basalts that follow the heat of its interior and large impacts that follow the flux of its young sky, drawn on a stream of the body's own, each with the share of species it would kill; nothing reads it yet, so no world changes.
+
+### Added
+
+- GEN.1746 slice 1: new `physics/air_events.py`: `events_of(body, start_gyr, end_gyr, min_impact_km)` draws the flood basalts (the Earth's one in 25 Myr [R5319] times the body's heat flux over the model Earth's) and the impacts over a size (the Earth's 1 km and 5 km rates through a power law of slope 2.1, times the cross section and the decay of the flux of the lunar cratering chronology [R5322]) of a body on `flavor_tree.seed_of("air-events", body)`, so the run's stream does not move, and gives each the share of species it kills from the kill curve of the marine record [R5320] read at how often events as large recur. `RECOVERY_GYR` holds the 10 Myr origination lag [R5321]. Stand-ins EV1 to EV7 in section 6.313. The effects on the air, the extinctions, the life ages table, storage and the API are the next slices.
+
+## [8.0.4605] - 2026-11-19
+
+**Headline:** Test that a retry never overlaps a live attempt, closing the old OPS.188 and OPS.190 audit bugs against the new engine.
+
+### Added
+
+- A real-process test: a job whose process is alive but silent (stopped) is not handed out again by `recover` or `turn`, keeps its first attempt, and finishes once with every piece done once when it goes on. With the fence tests of `test_attempts.py` (a replaced attempt's late commit rolls back) this shows OPS.190 fixed; OPS.188 (the unit watch, the top-up and the run's alive key outside the starter) is shown fixed by the supervisor carrying a run whose starter was killed (`test_supervisor_kill.py`).
+
+## [8.0.4604] - 2026-11-19
+
+**Headline:** A job whose arguments are bigger than the control socket takes is handed them by a file, and a job that cannot be started holds its run (OPS.283).
+
+### Fixed
+
+- OPS.283 (bug): the arguments of a unit over 64 KB go to the job in a file in the state folder (`job-arguments`) instead of down the control socket, which refused a message over about 213 KB. The template reads the file and deletes it, the supervisor deletes it when the hand-over fails, and a file left by a supervisor that ended is swept after a day. The template reads only files of that folder.
+- OPS.283 (bug): a job that cannot be started (its process was never forked) left its row `failed` while its run went on `running` with a unit that would never end. The run now holds with the error text, the unit among the stage's held ones, as for a unit that failed after it ran. A page step fails the steps after it and an opening holds its run.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4603] - 2026-11-19
+
+**Headline:** Kill test for a run canceled while its job is killed (OPS.246).
+
+### Added
+
+- A kill test with real processes: a run canceled while its job process is killed, in either order, ends with the unit canceled, never handed out again, and no piece done twice. The table of killed engine transitions names it.
+
+## [8.0.4602] - 2026-11-19
+
+**Headline:** Kill matrix over a whole galaxy run and the warm-up after it, with every engine transition named (OPS.246).
+
+### Added
+
+- A seeded chain test: the sectors, the sky charting and the settling of the paths, then the object index warm-up, with units killed at drawn commits along the whole chain, ends as an undisturbed chain ends (galaxy, stars, cells, spheres, and an index holding every object once). The gate runs 2 seeds with at most 4 kills each; `PLANETGEN_ENGINE_CHAIN_SEEDS` and `PLANETGEN_ENGINE_CHAIN_KILLS` raise both for the end-of-version hunt.
+- A table of the engine's named transitions (claim, commit, end of a unit, hold, retry, finish of a run, end of a stage, window write, launcher hand-over, template and kernel kills) with the test that kills each, and a test that every one of those tests exists.
+
+## [8.0.4601] - 2026-11-19
+
+**Headline:** Kill test for the object index warm-up (OPS.225).
+
+### Added
+
+- A kill test for `warm-object-index`: the unit is killed once before or after a write or sweep of the index at drawn steps, and the rerun leaves an index with every object once and nothing missing, different or extra (`objectindex.check`). No double write was found.
+
+## [8.0.4600] - 2026-11-19
+
+**Headline:** Kill test for the launcher stopped between two windows of a stage (OPS.246).
+
+### Added
+
+- A kill test that stops `planrows.spawn_window` before and after every commit of a window, one kill at a time over a whole stage, with the next launcher carrying on: every unit row is written once, no gap, and the cursor reaches the end. No double write was found.
+
+## [8.0.4599] - 2026-11-19
+
+**Headline:** Kill test for the galaxy reset (OPS.225).
+
+### Added
+
+- A kill test for `reset-galaxy`: the wipe is killed once before or after a table or the tidying at drawn steps, and the rerun leaves every content table empty with the Object ID counters kept, as an undisturbed reset does. No double write was found.
+
+## [8.0.4598] - 2026-11-19
+
+**Headline:** Kill test for the population and territories passes (OPS.225).
+
+### Added
+
+- A kill test for `run-population` and `run-territories`: units are killed once each at random commits, the same galaxy is populated again from its own stored ids, and the species, polities and owners match an undisturbed pass. No double write was found.
+
+## [8.0.4597] - 2026-11-19
+
+**Headline:** The two 2023 papers behind the nitrogen partition table are in the citation registry.
+
+### Changed
+
+- The metal/silicate partition coefficient of nitrogen (registry row NB1, `nitrogen_budget`) now cites its sources by id: [R5317] (a review of the experiments) and [R5318] (a pebble accretion model of the volatiles between core, mantle and air), where the notes named them by author and year. No value changes (GEN.1583).
+
+## [8.0.4596] - 2026-11-19
+
+**Headline:** A New galaxy job no longer stops at its luminosity scatter, which took the backfill's sky stars for a luminosity scatter already stored.
+
+### Fixed
+- **The luminosity scatter of a job refused the job's own backfill (OPS.280).** In a job where a backfill comes before the massive-star scatter, the massive-star scatter already refuses a galaxy that holds a scatter and empties the table before the backfill; the luminosity scatter after it then found the backfill's sky stars under the mass limit and stopped with "The bright-star scatter is already stored". A luminosity scatter prepared that way no longer checks. A luminosity scatter on its own still refuses a stored one. A test runs the job's chain end to end.
+
+## [8.0.4595] - 2026-11-19
+
+**Headline:** A generation run now shows as running with its start time in the job ledger, and the bright-star backfill stage writes a status line with real counts and a time left every five minutes.
+
+### Changed
+
+- OPS.281: a run's row in `engine_runs` stays `waiting` with no start time while its units run; it is now `running` with `started_at` set when its first job starts (`ledger.begin_attempt`), a held or ended run keeps its state, and a run that finishes done is `done` with `finished_at` in the ledger too (it followed a cancel and a hold before, not a finish).
+- OPS.282: the backfill stage (the mass scatter from the neighborhood plus the sky tiers) took hours with one log line. `BackfillFollower` now writes a line every five minutes: sectors visited of those to draw, sky parts done of all, stars placed by the finished parts, what the working parts count inside themselves, and the time left as hours, minutes and seconds.
+- A test used the old name `rq_units` after the module became `unit_helpers`; it uses the new one.
+
+generation-output: unchanged
+
 ## [8.0.4594] - 2026-11-19
 
 **Headline:** The nebula layer of the Galaxy Map loads its sibling script with its own version, and the Gaia download is listed as an outgoing request that sends the project's user agent.

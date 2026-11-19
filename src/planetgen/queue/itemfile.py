@@ -19,6 +19,7 @@ import struct
 import zlib
 
 from planetgen.util import settings
+from planetgen.util.format import format_bytes
 
 MAGIC = b"PGSI"
 """bytes: What the first four bytes of an item file are."""
@@ -112,7 +113,7 @@ class Reader:
         try:
             head = self._handle.read(HEADER.size)
             if len(head) < HEADER.size:
-                raise ItemFileError(f"the item file {path} is cut short: {len(head)} bytes is not a header")
+                raise ItemFileError(f"the item file {path} is cut short: {format_bytes(len(head))} is not a header")
             magic, version, count, flags, crc = HEADER.unpack(head)
             if magic != MAGIC or version != VERSION:
                 raise ItemFileError(f"the item file {path} is not a version {VERSION} file of this program (magic {magic!r}, version {version})")
@@ -121,7 +122,7 @@ class Reader:
             table = count * SUFFIX_OFFSET.size if self.has_suffixes else 0
             floor = HEADER.size + count * RECORD.size + table
             if size < floor or (not self.has_suffixes and size != floor):
-                raise ItemFileError(f"the item file {path} is {size:,} bytes, not the {floor:,} its header says: it is torn")
+                raise ItemFileError(f"the item file {path} is {format_bytes(size)}, not the {format_bytes(floor)} its header says: it is torn")
             self._blob_at = floor
             self._size = size
         except BaseException:

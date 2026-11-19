@@ -32,6 +32,7 @@ import types
 
 from planetgen.queue import dispatch, jobhost, memorygate, redisqueue, runrecord, template, work
 from planetgen.util import log
+from planetgen.util.format import format_duration_seconds
 
 RESULT_TTL_SECONDS = 86400
 """int: How long a finished job's result or error is kept."""
@@ -467,7 +468,7 @@ class LightJobs:
             if record.get("stop") == "1":
                 started.killed = "the job was stopped"
             elif started.limit and now - started.started > started.limit:
-                started.killed = f"the job ran past its time limit of {int(started.limit)} s and was ended"
+                started.killed = f"the job ran past its time limit of {format_duration_seconds(int(started.limit))} and was ended"
             else:
                 continue
             try:
@@ -523,7 +524,7 @@ class LightJobs:
                 self.connection.delete(*keys)
             finish(self.connection, job_id, "failed", error=DROPPED_TEXT)
             dropped.append(job_id)
-            self._act(f"dropped light job {job_id}", f"nobody asked after {record.get('function', 'it')} for {float(record['wanted']):g} s")
+            self._act(f"dropped light job {job_id}", f"nobody asked after {record.get('function', 'it')} for {format_duration_seconds(float(record['wanted']))}")
         return dropped
 
     def claim_of(self, record):

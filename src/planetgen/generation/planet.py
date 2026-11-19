@@ -341,7 +341,7 @@ class Planet(PlanetaryObject):
                  radius=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
                  planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False, late_core=False, collision_count=0,
-                 belt_member=None, belt_order=None):
+                 belt_member=None, belt_order=None, plan_eccentricity=None):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -387,6 +387,8 @@ class Planet(PlanetaryObject):
             collision_count (int, optional): How many mergers the planet architecture recorded in making this planet (the oligarchs
                                          that collided into it, `planet_architecture.Seed.merged` less its own); the gate of the
                                          impact oddities (`physics/oddities.py`, W10). Defaults to none.
+            plan_eccentricity (float, optional): The eccentricity the planet architecture drew for this planet's slot and held to its neighbours (`planet_architecture.Seed.eccentricity`, GEN.1797);
+                                         the planet takes it as its birth eccentricity (cut at its star's Roche limit) instead of drawing one. Defaults to a draw.
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
                                          `generate_moons`: the orbit's inclination follows from it (GEN.714). A moon built
                                          without one keeps the old regular orbit.
@@ -434,6 +436,7 @@ class Planet(PlanetaryObject):
         self.obliquity_min_deg = self.obliquity_max_deg = None     # the range the tilt wanders over (`planets.settle_obliquity`, GEN.1535)
         self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
         self.collision_count = collision_count
+        self.build.plan_eccentricity = plan_eccentricity      # GEN.1797: runtime build state, never stored
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None

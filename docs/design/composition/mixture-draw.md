@@ -227,7 +227,7 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   abstract only), added AlO, Al2O, AlO2 and Al2O2 and the liquid Al2O3 to the species table (99 species), and put Al in the vapour's
   elements: a BSE melt at 2500 K now has about 2e-7 of its vapour as aluminium, mostly AlO and Al (Al is refractory), 6e-5 at 3000 K.
 - Design brackets this module added, each to be replaced by the research item named: `WATER_RESIDUAL`, `SULFUR_SINK`,
-  `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_SINK`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `AMMONIA_OUTGASSED`, `AMMONIA_PER_WATER`, `AMMONIA_TO_N2`, `FROST_ICE`
+  `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_ESCAPE`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `AMMONIA_OUTGASSED`, `AMMONIA_PER_WATER`, `AMMONIA_TO_N2`, `FROST_ICE`
   (`mixture_evolved`; GEN.481 and the ice composition item), `ALKALI_ACTIVITY_COEFFICIENT` and `COMPOSITION_SCATTER` (`mixture_lava`; the
   melt activity model of GEN.499 and the bulk composition of lane J), the k1 to k3 ordering rule of the coma.
 

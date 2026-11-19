@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.432 |
 | NAV | NAV.78 |
-| GEN | GEN.1802 |
-| PERF | PERF.282 |
+| GEN | GEN.1803 |
+| PERF | PERF.283 |
 | DB | DB.136 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
 | TEST | TEST.793 |
 | USR | USR.33 |
-| OPS | OPS.283 |
+| OPS | OPS.284 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2941,15 +2941,15 @@ Parents marked "new parent" had no old number of their own.
 | OPS.143 | Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine | OPS.137, OPS.140, OPS.141 | open |
 | OPS.144 | Admin Queue page: a Resume run button, and a stored killed flag on the run record so the page knows when to show it | none | done (Train 22 or earlier, 2026-11-11) |
 | OPS.145 | Heartbeat part 11: after a unit is restarted, the other tasks pause and the restarted unit runs alone until it completes | OPS.140 | done (Train 22 or earlier, 2026-11-11) |
-| OPS.146 | Heartbeat part 12: a config setting runs any restarted job in debug mode with its own dedicated debug log file | OPS.140 | open |
+| OPS.146 | Heartbeat part 12: a config setting runs any restarted job in debug mode with its own dedicated debug log file | OPS.140 | superseded (built as OPS.223, PR 6621; Lane 13 sweep 4:22 AM EST 11-19) |
 | OPS.147 | Per-stage golden digests so a train's declared stages can be checked against what its golden moved | OPS.133 | done (PR 7133 merged 8:46 PM EST 11-17: the golden build writes one digest per stage; scripts/train.py stages compares them) |
 | OPS.148 | Adaptive bulk worker limit: lower the workers when a job waits over 30 s for memory, raise them when memory is free, never below 1, log each change | none | done, PR #6147 |
-| OPS.149 | Apply the adaptive worker limit to the maintenance lane (warm-ups) | OPS.148 | open |
-| OPS.150 | Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent) | OPS.148 | open |
-| OPS.151 | Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log | OPS.148 | open |
+| OPS.149 | Apply the adaptive worker limit to the maintenance lane (warm-ups) | OPS.148 | superseded (built as OPS.231, PR 7088; Lane 13 sweep 4:22 AM EST 11-19) |
+| OPS.150 | Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent) | OPS.148 | superseded (built as OPS.233, PR 7064; Lane 13 sweep 4:22 AM EST 11-19) |
+| OPS.151 | Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log | OPS.148 | superseded (carried by OPS.249; Lane 13 sweep 4:22 AM EST 11-19) |
 | OPS.152 | (bug) Galaxy job 20261111-223907-a86a goes quiet at Stage 17 of 19, 'Make the block light totals' | none | done, PRs #6261 (live logging) and #6262 (recount removed); the uncharted index is OPS.153 |
 | OPS.153 | Uncharted-sector index of Stage 17 as per-shell-range units across all workers (it runs at about 10k rows/s in one process: about 40 h at 1.5 billion sectors) | OPS.152 | done, PR #6266 (one roll-up unit plus one index unit per run of about 300,000 cells) |
-| OPS.154 | Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB | OPS.153 | open |
+| OPS.154 | Stop writing placeholder rows for uncharted sectors: derive an empty cell from its address and the block-light parts table, so Stage 17 takes minutes instead of hours and the sectors table does not grow to about 600 GB | OPS.153 | done (PR 6402 with migration 0254; Lane 13 sweep 4:22 AM EST 11-19) |
 | OPS.155 | Self-tuning step 1: job_profiles table in the control database and writers that record time, memory and CPU (peak and average) for every stage and part of every job, plus peak MB, seconds, items, MB per item and seconds per item for every finished unit of every job kind and size bucket (no readers; nothing changes in a run) | none | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
 | OPS.156 | Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback | OPS.155 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
 | OPS.157 | Self-tuning step 3: stage worker caps and the adaptive starting limit read the job profile | OPS.156 | done, Ops train 1 PR #6305 (7:44 PM EST 11-12) |
@@ -2966,7 +2966,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.269 | Supervisor heartbeat reuses one control DB connection instead of opening one every 0.3 s | OPS.207 | done, PR #6671 (9:23 AM EST 11-15) |
 | PERF.270 | A per-sector timing line in the job log for the neighborhood stage | none | done, PR #6618 (2:47 AM EST 11-15) |
 | PERF.271 | Build each planet's air once per system, not twice (surface_air.solve is 52 percent of a system) | none | done, Train 35 PR #6763 (9:35 PM EST 11-15), PR #6743 |
-| PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | open |
+| PERF.272 | Promote belt members only when they are read (15 percent of a system's time) | none | rejected (Boss, 11-15) |
 | PERF.273 | (bug) One body's seasonal solve stalls 4 to 6.6 s inside a single call (seasonal_swing.temperature_series from refresh_at_final_age of a pre-placed system's moon) on 4 of 7 runs, where its mean is 66 ms; the three sector commands keep 12 s rows in RECORDED_SILENCE for it | done (PR 6820, Lane 16, merged 9:06 AM EST 11-16: the bright-star sampling table builds report per cell; the three 12 s silence rows are gone; Gate PASS) |
 | PERF.274 | (bug) Warming the galaxy lists and stats every tile-cache file once per warm chunk (tilecache.cache_is_full from web/warmup.py line 854): the warm-galaxy-deep-nodes case stood 58 s walking 181,000 files on a cold file cache | done (PR 6866, Lane 16, merged 10:33 AM EST 11-16: the tile-cache size walk reports each folder to the unit beat, and a walk of 1 s or more is reused for ten times its length, so the 58 s silence on a cold disk is gone) |
 | PERF.275 | (high) A Stage 9 sky share takes about 5 hours: profile and cut | done (PR 6999, 19 percent less per sky share; the rest is the draw itself) |
@@ -2976,8 +2976,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.279 | Habitability seasonal solve per pre-placed system (sectors fixture over 30 minutes) | TEST.788 | done (Train 44, PR 7149) |
 | PERF.280 | Stage 9 skip or batch near-empty sky cells (design and measure first) | OPS.270 | done (fix A PR 7101; fix B PR 7162, Train 45, PR 7202, merged 4:36 AM EST 11-18) |
 | PERF.281 | Stage 9 sampling tables: cache keyed by their inputs, built once before the shares | PERF.280 | done (PR 7129) |
+| PERF.282 | Stage 9 stellar-evolution tables as flat numpy arrays shared by workers | OPS.247, OPS.279 | open (Lane 13, gated on OPS.247) |
 | OPS.159 | Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime | OPS.155 | done, Ops train 2 PR 6398 (PR 6307), 5:02 AM EST 11-13 |
-| OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | open |
+| OPS.160 | Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp) | OPS.157 | superseded (built as OPS.250, PR 7143; Lane 13 sweep 4:22 AM EST 11-19) |
 | OPS.161 | Dynamic queue chain: every job entering the queue declares suggested break points (with a flag saying whether a dynamic split is byte identical or the suggested split must be used, and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources | OPS.155, PERF.260 | done, PR #6336 (11:34 PM EST 11-14) |
 | OPS.162 | Failed units reach error.log with run id, stage, unit, kind and traceback (unit_failed) | none | done, PR #6276 |
 | OPS.163 | Run-failure line names the cause and stage; a cancel logs as notice, not error (wrapper.py) | none | done, PR #6277 |
@@ -2989,7 +2990,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.169 | One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp | none | done, PR #6296 |
 | OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | done, PR 6300, 3:58 PM EST 11-13 |
 | OPS.171 | connection_loss.explain on every lost-connection retry | none | done, PR #6280 |
-| OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | open |
+| OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | done (built; Lane 13 sweep 4:22 AM EST 11-19) |
 | OPS.173 | Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted | none | done, PR #6281 |
 | OPS.174 | Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields | OPS.173 | done, PR 6327, 4:44 PM EST 11-13 |
 | OPS.175 | Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments) | OPS.173 | done, PR 6328 via 6329, 4:45 PM EST 11-13 |
@@ -3005,9 +3006,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.185 | Audit the OPS.170 unit phases: list each _UnitPhases unit whose single phase can run past the 300 s quiet floor on a slow host, and give each a fine counter | OPS.184 | done, PR #6440 (11-13) |
 | OPS.186 | (bug) A finished stage can fail to advance: if the horse running units._end_stage is killed with a retry left, or enqueue_open raises, the retry skips, unit_failed says the run goes on and no opening is queued, so the starter waits for ever | none | done, job engine stage 2 stack, PR #6571 (4:23 AM EST 11-15; squash of PRs 6443 to 6571) |
 | OPS.187 | (bug) open_failed has no already-done guard, so an RQ housekeeping failure after a finished cut fails the run | none | done, job engine stage 2 stack, PR #6571 (4:23 AM EST 11-15; squash of PRs 6443 to 6571) |
-| OPS.188 | (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run | none | open |
+| OPS.188 | (bug) UnitWatch, worker top-up and the run's alive key live only in the process that started the run | none | done (proved fixed by the job engine, PR 7251, Lane 13, merged 4:25 AM EST 11-19) |
 | OPS.189 | (bug) A worker killed between pop and start loses its job: the maintenance lane's RoundRobinWorker serves three queues and RQ pops several queues with plain BLPOP | none | done (closed by OPS.229, PR 7082, 11-17) |
-| OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | open |
+| OPS.190 | (bug) A stopped unit's retry can overlap the old attempt; nothing fences a late commit | none | done (proved fixed by the job engine, PR 7251, Lane 13, merged 4:25 AM EST 11-19) |
 | OPS.191 | Job engine stage 1: the engine owns the loop (CommandSpec pieces and do; units._do_unit counts pieces into the beat and checks pause and stop between pieces) | none | done, PR #6478 (4:29 PM EST 11-14) |
 | OPS.192 | Job engine stage 1: second-level counts (ctx.step and ctx.advance; a second bar with real numbers and rate on the Queue and Generate pages) | none | done, PR #6482 (4:56 PM EST 11-14) |
 | OPS.193 | Job engine stage 1: evidence in the beat (processor seconds, bytes read and written, and the running SQL statement label every 10 s) | none | done, PR #6432 (Lane 05, 8:00 PM EST 11-13) |
@@ -3042,7 +3043,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.222 | Job engine stage 3: resume from rows (finish-run subtracts what the rows say is done; an update drains to held 'stopped for update'); REWIND_WITH deleted | none | done, part A PR #6657 (6:49 AM EST 11-15), part B PR #6703 (1:14 PM EST 11-15) |
 | OPS.223 | Job engine stage 3: attempt history rows and debug retries (a setting runs any restarted job in debug mode with its own log file); absorbs OPS.146 | none | done, PR #6621 (4:38 AM EST 11-15) |
 | OPS.224 | Job engine stage 3: Queue page from the ledger (jobs and history by query; a job shows its attempts and why it waits) | none | done, PRs #6622 (5:02 AM EST) and #6644 (5:44 AM EST 11-15) |
-| OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | open |
+| OPS.225 | Job engine stage 3: proof (simulator: two attempts never both commit, a finished stage advances once, a held run resumes to the same result; real-MySQL kill tests per command family ending identical to an undisturbed run); absorbs OPS.127 as its method and the fake-clock half of OPS.143 | none | done (Lane 13 kill tests PRs 7220, 7221, 7222, 7224, 7242, 7243, 7245; merged 11-18 and 11-19 by 4:00 AM EST; no double write found) |
 | OPS.226 | Job engine stage 4: template process and forked jobs (warm template, each job a fresh fork with a pipe to the supervisor; built and tested, not yet used); split template, job process, supervisor side | none | done (built and in use since OPS.228, Lane 06 check 1:27 AM EST 11-18; docstrings PR 7182; kill tests are OPS.236) |
 | OPS.227 | Job engine stage 4: the dispatch rule over the whole backlog (site lanes first against kept places, then scheduler.judge; reservations last until used; each job's last reason stored); absorbs OPS.124 with OPS.231 and OPS.232 | none | done, PR #6652 (6:34 AM EST 11-15) |
 | OPS.228 | Job engine stage 4: the bulk lane moves to forked jobs (WarmWorker, claim expiry and the gate wait deleted for this lane) | none | done (PRs 6995, 7011, 7027, 7040, 7062; 7:58 AM EST 11-17: every ledgered run's bulk lane runs as forked jobs; deleting the RQ unit path moves to OPS.271 then OPS.229) |
@@ -3063,7 +3064,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.243 | Job engine stage 5: the engine picks the split (OPS.161 break points become piece boundaries; split from job profiles and free resources); carries OPS.161 and PERF.261 | none | done, PRs #6757, #6767 (9:45 PM EST 11-15) |
 | OPS.244 | Job engine stage 5: Generate page jobs join the ledger (job folder files, private queue and third cancel path deleted); finishes PERF.203 | none | done (slice A PR 7107, slice B PR 7163, slice C PR 7168 merged 11:47 PM EST 11-17: Generate page jobs are ledger runs; Lane 15 re-measures the cold one-off request after the Train 45 gate) |
 | OPS.245 | Job engine stage 5: proof (simulator: random graphs with crashes anywhere; nothing runs before its needs or twice) | none | done (PR 7191, Lane 16, merged 2:04 AM EST 11-18: seeded random runs with windows, holds, kills; no engine bug found) |
-| OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | open |
+| OPS.246 | Job engine stage 6: the full kill matrix and a soak in the gate (in full at the end-of-version hunt) | none | done (PRs 7244, 7246 and 7247, Lane 13, merged by 4:15 AM EST 11-19: launcher window kills, seeded chain kill test with seed and kill switches for the end-of-version hunt, TRANSITIONS table, cancel while killed) |
 | OPS.247 | Job engine stage 6: full-galaxy trial on the lane machine under the new engine, with its report (PERF.254's 16 GB check answered from Boss's next full-run log, nothing asked of him); absorbs the trial half of OPS.143 | none | open |
 | OPS.248 | Job engine stage 6: MySQL as a signal (admission slows when statement latency says the database is the limit) | none | done (PR 7094 merged 12:41 PM EST 11-17: ledger-read latency is a second signal for the memory controller's hold) |
 | OPS.249 | Job engine stage 6: controller pressure thresholds learned from recorded runs; answers OPS.151's question | none | open |
@@ -3096,10 +3097,11 @@ Parents marked "new parent" had no old number of their own.
 | OPS.276 | A unit held with IndexError (sky charting, bright star scatter) | none | open (Lane 16) |
 | OPS.277 | Held-run reds in maintenance and finish-run tests | none | done (PR 7231, Lane 15, merged 8:30 PM EST 11-18: both test faults; the held-run outcome is right) |
 | OPS.278 | Galaxy test database lacks engine_runs | none | done (PR 7233, Lane 07, merged 8:58 PM EST 11-18: shared control_config fixture builds the control schema in the test database) |
-| OPS.279 | Template heap copied into each sky share | OPS.270 | open (Lane 13) |
-| OPS.280 | New galaxy job stops at the luminosity scatter (stage 7 already stored it) | none | open (Lane 13) |
-| OPS.281 | Generation runs never show as running | none | open (Lane 16) |
-| OPS.282 | Stage 7 backfill shows no counts | none | open (Lane 16) |
+| OPS.279 | Template heap copied into each sky share | OPS.270 | done (measured, Lane 13, 4:20 AM EST 11-19: 341 MB copied per worker, 256 MB of it refcount only, mostly stellar-evolution tables; gc.freeze no help; report /mnt/project-files/engine/ops279/REPORT.md; follow-up PERF.282) |
+| OPS.280 | New galaxy job stops at the luminosity scatter (stage 7 already stored it) | none | done (PR 7240, Lane 13, merged 2:58 AM EST 11-19: a prepared luminosity scatter no longer refuses after the backfill) |
+| OPS.281 | Generation runs never show as running | none | done (PR 7239, Lane 16, merged 2:35 AM EST 11-19: runs record running and started_at, and done with finished_at) |
+| OPS.282 | Stage 7 backfill shows no counts | none | done (PR 7239, Lane 16, merged 2:35 AM EST 11-19: backfill progress line with counts and HMS time left) |
+| OPS.283 | Big unit arguments overflow the template socket; a unit that cannot start leaves its run waiting | none | done (PR 7248, Lane 15, merged 4:20 AM EST 11-19: arguments over 64 KB go by a file in the state folder; a start failure holds the run with its error) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -3247,7 +3249,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.144 | Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires | none | done, PR #2366 |
 | PERF.145 | The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner | none | done, PR #2416 |
 | PERF.146 | A performance profile of every generation option and scatter, with a repeatable benchmark command, a report and a ranked optimization list: one of the last three 8.1 stages | none | done, PR #2559 |
-| PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds | none | open |
+| PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds | none | done (PR 7255, Lane 13, merged 5:08 AM EST 11-19: date-civilizations and refresh-technology show real counts) |
 | PERF.148 | Boss's stalled-job fix: find why generation jobs stall and fix it, with units of equal expected work shown in the log line | none | done, PR #2397 |
 | PERF.149 | A map visit queues the missing sector as a run instead of generating it in the web request, and the Galaxy View is closed while a galaxy generation runs | none | done, PR #3723 |
 | PERF.150 | Maintenance lane: warm-up, tile prefetch and rebuild and the database check run on their own queue with its own worker cap, a guaranteed minimum and a lend rule (F1) | none | done, PR #2588 |
@@ -3930,7 +3932,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1580 | Raise the 2,000 K upper temperature cap to a sourced, very high physical ceiling (the ionization or plasma temperature of the air's main gas at its pressure, tens of thousands of K), after checking nothing assumes 2,000 K | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1581 | Research the lowest carbon dioxide at which oxygen-making (oxygenic) photosynthesis works, and replace the 5 Pa stand-in gate of life classes 1a, 1b and 1c with the sourced value | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
 | GEN.1582 | Move the upper oxygen edge of classes M, O, H, P and R clear of the biotic oxygen cap (the edge is 35,500 Pa and the cap 35,463.75 Pa, so M passes by 36 Pa) | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
-| GEN.1583 | Research the nitrogen budget: nitrogen degasses at efficiency 1.0 with no sink, so an Earth analog holds a median 164 kPa and 37 percent hold over 300 kPa; find why the inventory is so wide and what retention and sinks the papers give | none | open |
+| GEN.1583 | Research the nitrogen budget: nitrogen degasses at efficiency 1.0 with no sink, so an Earth analog holds a median 164 kPa and 37 percent hold over 300 kPa; find why the inventory is so wide and what retention and sinks the papers give | none | closed (Lane 04, 2:42 AM EST 11-19: research built as GEN.1584 and GEN.1646; Earth analog N2 quartiles 29, 81, 131 kPa; no Class M gain; NB1 sources R5317, R5318 in PR 7241) |
 | GEN.1584 | Build the nitrogen degassing share and sink from the GEN.1583 research so Earth-mass air centres near 80 kPa of nitrogen instead of 164 | none | done, Train 25 PR 6236, 2:55 AM EST 11-13; piece B dropped by Boss |
 | GEN.1585 | Re-check that classes H and P are reachable after GEN.1581 and GEN.1584 (0 in 4,800 Earth-analog trials today); if still 0, look at the brine-seep rule and P's oxygen need | GEN.1581, GEN.1584 | done (measured, Lane 05, 12:28 AM EST 11-18: 0 H and 0 P in 2,400 Earth-analog trials; both stop at oxygen, the 600 Pa plateau BO11 held until R < S/BO12; levers to GEN.1791) |
 | GEN.1586 | Replace how the classes read wet-bulb temperature: today the daytime peak of the hottest band is read against M's 28 C edge, which is about 15 K over the band mean, so Earth itself sits on the edge (median 28.0 C at 288 K) | none | done, Train 25 PR 6236, 2:55 AM EST 11-13 |
@@ -4149,6 +4151,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1799 | Build the lower oxygenic CO2 floor (class 1 0.5 Pa, class 2 2 Pa) | GEN.1791 | open (Class M levers thread) |
 | GEN.1800 | Build the quiet interior lever, sink factor inside the published range | GEN.1791 | open (Class M levers thread) |
 | GEN.1801 | Build second oxygen rise ratio 2 (BO12) | GEN.1791 | open (Class M levers thread) |
+| GEN.1802 | Planets spaced at birth from dials drawn for the first zone (dial reach) | GEN.1797 | open (Lane 06) |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

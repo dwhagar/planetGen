@@ -77141,6 +77141,25 @@
    "volume": "148",
    "year": 2000
   },
+  "10.1006/icar.2000.6570": {
+   "authors": [
+    [
+     "Bullock",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.2000.6570",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "19",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The Recent Evolution of Climate on Venus",
+   "type": "journal-article",
+   "volume": "150",
+   "year": 2001
+  },
   "10.1006/icar.2001.6596": {
    "authors": [
     [
@@ -82432,6 +82451,78 @@
    "publisher": "Springer Science and Business Media LLC",
    "src": "crossref",
    "title": "The Exosphere as a Boundary: Origin and Evolution of Airless Bodies in the Inner Solar System and Beyond Including Planets with Silicate Atmospheres",
+   "type": "journal-article",
+   "volume": "218",
+   "year": 2022
+  },
+  "10.1007/s11214-022-00924-0": {
+   "arxiv": "2204.08540",
+   "authors": [
+    [
+     "Gillmann",
+     "C."
+    ],
+    [
+     "Way",
+     "M. J."
+    ],
+    [
+     "Avice",
+     "G."
+    ],
+    [
+     "Breuer",
+     "D."
+    ],
+    [
+     "Golabek",
+     "G. J."
+    ],
+    [
+     "Höning",
+     "D."
+    ],
+    [
+     "Krissansen-Totton",
+     "J."
+    ],
+    [
+     "Lammer",
+     "H."
+    ],
+    [
+     "O’Rourke",
+     "J. G."
+    ],
+    [
+     "Persson",
+     "M."
+    ],
+    [
+     "Plesa",
+     "A. C."
+    ],
+    [
+     "Salvador",
+     "A."
+    ],
+    [
+     "Scherf",
+     "M."
+    ],
+    [
+     "Zolotov",
+     "M. Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s11214-022-00924-0",
+   "editors": [],
+   "journal": "SSRv",
+   "page": "56",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "The Long-Term Evolution of the Atmosphere of Venus: Processes and Feedback Mechanisms",
    "type": "journal-article",
    "volume": "218",
    "year": 2022
@@ -97795,6 +97886,33 @@
    "volume": "333",
    "year": 2019
   },
+  "10.1016/j.icarus.2019.06.020": {
+   "authors": [
+    [
+     "Iqbal",
+     "W."
+    ],
+    [
+     "Hiesinger",
+     "H."
+    ],
+    [
+     "van der Bogert",
+     "C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2019.06.020",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "528",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Geological mapping and chronology of lunar landing sites: Apollo 11",
+   "type": "journal-article",
+   "volume": "333",
+   "year": 2019
+  },
   "10.1016/j.icarus.2019.07.014": {
    "arxiv": "1907.04368",
    "authors": [
@@ -103748,6 +103866,29 @@
    "volume": "4",
    "year": 2004
   },
+  "10.1016/s1631-0713(03)00006-3": {
+   "authors": [
+    [
+     "Courtillot",
+     "V. E."
+    ],
+    [
+     "Renne",
+     "P. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/s1631-0713(03)00006-3",
+   "editors": [],
+   "journal": "Comptes Rendus. Géoscience",
+   "page": "113",
+   "publisher": "MathDoc/Centre Mersenne",
+   "src": "crossref",
+   "title": "On the ages of flood basalt events",
+   "type": "journal-article",
+   "volume": "335",
+   "year": 2003
+  },
   "10.1017/9781139020558": {
    "authors": [
     [
@@ -105079,6 +105220,25 @@
    "type": "journal-article",
    "volume": "3",
    "year": 1937
+  },
+  "10.1017/s0094837300010332": {
+   "authors": [
+    [
+     "Raup",
+     "D. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/s0094837300010332",
+   "editors": [],
+   "journal": "Paleobiology",
+   "page": "37",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "A kill curve for Phanerozoic marine species",
+   "type": "journal-article",
+   "volume": "17",
+   "year": 1991
   },
   "10.1017/s0252921100109674": {
    "authors": [
@@ -119257,6 +119417,29 @@
    "type": "journal-article",
    "volume": "348",
    "year": 1990
+  },
+  "10.1038/35004564": {
+   "authors": [
+    [
+     "Kirchner",
+     "J. W."
+    ],
+    [
+     "Weil",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/35004564",
+   "editors": [],
+   "journal": "Nature",
+   "page": "177",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Delayed biological recovery from extinctions throughout the fossil record",
+   "type": "journal-article",
+   "volume": "404",
+   "year": 2000
   },
   "10.1038/35015531": {
    "authors": [
@@ -167241,6 +167424,29 @@
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
    "volume": "727",
+   "year": 2011
+  },
+  "10.1088/0004-637x/729/1/6": {
+   "authors": [
+    [
+     "Schaefer",
+     "L."
+    ],
+    [
+     "Fegley",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/729/1/6",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "6",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "ATMOSPHERIC CHEMISTRY OF VENUS-LIKE EXOPLANETS",
+   "type": "journal-article",
+   "volume": "729",
    "year": 2011
   },
   "10.1088/0004-637x/729/2/142": {
@@ -244814,6 +245020,29 @@
    "volume": "324",
    "year": 2024
   },
+  "10.2475/ajs.254.4.239": {
+   "authors": [
+    [
+     "Harker",
+     "R. I."
+    ],
+    [
+     "Tuttle",
+     "O. F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.2475/ajs.254.4.239",
+   "editors": [],
+   "journal": "American Journal of Science",
+   "page": "239",
+   "publisher": "American Journal of Science (AJS)",
+   "src": "crossref",
+   "title": "Experimental data on the P (sub co 2 ) -T curve for the reaction; calcite-quartzwollastonite-carbon dioxide",
+   "type": "journal-article",
+   "volume": "254",
+   "year": 1956
+  },
   "10.2475/ajs.293.8.758": {
    "authors": [
     [
@@ -245978,6 +246207,41 @@
    "type": "journal-article",
    "volume": "2",
    "year": 2015
+  },
+  "10.3389/feart.2023.1159412": {
+   "authors": [
+    [
+     "Suer",
+     "T. A."
+    ],
+    [
+     "Jackson",
+     "C."
+    ],
+    [
+     "Grewal",
+     "D. S."
+    ],
+    [
+     "Dalou",
+     "C."
+    ],
+    [
+     "Lichtenberg",
+     "T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3389/feart.2023.1159412",
+   "editors": [],
+   "journal": "Front. Earth Sci.",
+   "page": "1159412",
+   "publisher": "Frontiers Media SA",
+   "src": "crossref",
+   "title": "The distribution of volatile elements during rocky planet formation",
+   "type": "journal-article",
+   "volume": "11",
+   "year": 2023
   },
   "10.3389/feart.2023.1197363": {
    "authors": [
@@ -280485,6 +280749,40 @@
    "volume": "",
    "year": 2022
   },
+  "arXiv:2207.09807": {
+   "arxiv": "2207.09807",
+   "authors": [
+    [
+     "Johansen",
+     "A."
+    ],
+    [
+     "Ronnet",
+     "T."
+    ],
+    [
+     "Schiller",
+     "M."
+    ],
+    [
+     "Deng",
+     "Z."
+    ],
+    [
+     "Bizzarro",
+     "M."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": "A&A 671, A76 (2023)",
+   "page": "",
+   "src": "arxiv",
+   "title": "Anatomy of rocky planets formed by rapid pebble accretion III. Partitioning of volatiles between planetary core, mantle, and atmosphere",
+   "type": "preprint",
+   "volume": "",
+   "year": 2022
+  },
   "arXiv:2207.14675": {
    "arxiv": "2207.14675",
    "authors": [
@@ -286860,7 +287158,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5313,
+ "id_next": 5323,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286982,6 +287280,7 @@
   "10.1006/icar.2000.6471": "R2255",
   "10.1006/icar.2000.6498": "R0879",
   "10.1006/icar.2000.6523": "R1389",
+  "10.1006/icar.2000.6570": "R5315",
   "10.1006/icar.2001.6596": "R2260",
   "10.1006/icar.2001.6598": "R2261",
   "10.1006/icar.2001.6632": "R2600",
@@ -287172,6 +287471,7 @@
   "10.1007/s11214-021-00825-8": "R2729",
   "10.1007/s11214-022-00875-6": "R4783",
   "10.1007/s11214-022-00876-5": "R2546",
+  "10.1007/s11214-022-00924-0": "R5316",
   "10.1007/s11214-024-01098-7": "R4275",
   "10.1007/s11214-024-01104-y": "R5090",
   "10.1007/s11214-025-01243-w": "R4155",
@@ -287667,6 +287967,7 @@
   "10.1016/j.icarus.2019.04.023": "R0949",
   "10.1016/j.icarus.2019.05.008": "R2634",
   "10.1016/j.icarus.2019.05.034": "R0440",
+  "10.1016/j.icarus.2019.06.020": "R5322",
   "10.1016/j.icarus.2019.07.014": "R4563",
   "10.1016/j.icarus.2019.113401": "R3303",
   "10.1016/j.icarus.2019.113442": "R4332",
@@ -287847,6 +288148,7 @@
   "10.1016/s1359-6462(97)00246-7": "R1613",
   "10.1016/s1464-1917(00)00041-6": "R4759",
   "10.1016/s1567-1356(03)00160-0": "R1619",
+  "10.1016/s1631-0713(03)00006-3": "R5319",
   "10.1017/9781139020558": "R0692",
   "10.1017/9781316650684.003": "R5147",
   "10.1017/9781316650684.019": "R1207",
@@ -287901,6 +288203,7 @@
   "10.1017/s007418090022295x": "R3710",
   "10.1017/s0074180900227496": "R4457",
   "10.1017/s0079497x00021289": "R2304",
+  "10.1017/s0094837300010332": "R5320",
   "10.1017/s0252921100109674": "R0941",
   "10.1017/s0364009403390051": "R3423",
   "10.1017/s0364009403391007": "R3424",
@@ -288372,6 +288675,7 @@
   "10.1038/338487a0": "R3025",
   "10.1038/340687a0": "R1918",
   "10.1038/348651a0": "R1639",
+  "10.1038/35004564": "R5321",
   "10.1038/35015531": "R1220",
   "10.1038/35059215": "R3825",
   "10.1038/35081000": "R0896",
@@ -289460,6 +289764,7 @@
   "10.1088/0004-637x/726/1/15": "R1890",
   "10.1088/0004-637x/727/1/57": "R4170",
   "10.1088/0004-637x/727/2/91": "R2289",
+  "10.1088/0004-637x/729/1/6": "R5313",
   "10.1088/0004-637x/729/2/142": "R3907",
   "10.1088/0004-637x/730/1/3": "R4042",
   "10.1088/0004-637x/730/2/70": "R3327",
@@ -291280,6 +291585,7 @@
   "10.2458/azu_uapress_9780816532131-ch035": "R2216",
   "10.2472/jsms.18.240": "R4069",
   "10.2475/001c.118215": "R2694",
+  "10.2475/ajs.254.4.239": "R5314",
   "10.2475/ajs.293.8.758": "R4284",
   "10.2475/ajs.296.1.23": "R2882",
   "10.2475/ajs.304.5.397": "R5280",
@@ -291317,6 +291623,7 @@
   "10.3367/ufne.2025.05.039904": "R4994",
   "10.3367/ufnr.0089.196607g.0483": "R1213",
   "10.3389/feart.2014.00038": "R5157",
+  "10.3389/feart.2023.1159412": "R5317",
   "10.3389/feart.2023.1197363": "R2089",
   "10.3389/fmicb.2017.01212": "R4346",
   "10.3389/fmicb.2018.02152": "R1449",
@@ -292980,6 +293287,7 @@
   "arxiv:2204.00342": "R3722",
   "arxiv:2204.04243": "R4468",
   "arxiv:2204.07517": "R4705",
+  "arxiv:2204.08540": "R5316",
   "arxiv:2205.02331": "R3017",
   "arxiv:2205.02780": "R2200",
   "arxiv:2205.04444": "R3298",
@@ -292998,6 +293306,7 @@
   "arxiv:2207.03151": "R4574",
   "arxiv:2207.04800": "R0410",
   "arxiv:2207.05124": "R3804",
+  "arxiv:2207.09807": "R5318",
   "arxiv:2207.10238": "R0976",
   "arxiv:2207.10243": "R0977",
   "arxiv:2207.12731": "R0430",
