@@ -32,7 +32,7 @@ import math
 
 from planetgen.admin import activity_log
 from planetgen.galaxy import object_uid
-from planetgen.physics import closest_approach, collision_outcome, constants
+from planetgen.physics import closest_approach, collision_outcome, constants, vec3
 
 M_PER_KM = 1000.0
 M_PER_PC = constants.PARSEC_M
@@ -87,19 +87,15 @@ def key_of(uid):
     return object_uid.format_id(object_uid.from_bytes(bytes(uid)))
 
 
-def _norm(vector):
-    return math.sqrt(sum(c * c for c in vector))
-
-
 def _miss_distance(dp, dv):
     """How near the straight relative path `dp + dv t` passes, `t >= 0`: the distance at the closest approach, or `|dp|` when the pair is moving apart."""
     speed2 = sum(c * c for c in dv)
     if speed2 == 0.0:
-        return _norm(dp)
+        return vec3.norm(dp)
     t = -sum(p * v for p, v in zip(dp, dv)) / speed2
     if t <= 0.0:
-        return _norm(dp)
-    return _norm(tuple(p + v * t for p, v in zip(dp, dv)))
+        return vec3.norm(dp)
+    return vec3.norm(tuple(p + v * t for p, v in zip(dp, dv)))
 
 
 def find_contact(x, y, radius_sum_m, previous_epoch_x_s, now_x_s, omega_s=0.0, edge_m=math.inf):
@@ -116,14 +112,14 @@ def find_contact(x, y, radius_sum_m, previous_epoch_x_s, now_x_s, omega_s=0.0, e
     start, end = window
     state_at = closest_approach.linear_state_at(x, y)
     dp0, dv0 = state_at(start)
-    v_rel = _norm(dv0)
+    v_rel = vec3.norm(dv0)
     cap = closest_approach.window_cap(radius_sum_m, v_rel, omega_s, edge_m) if math.isfinite(edge_m) else math.inf
     approach = closest_approach.first_hit(state_at, start, end, radius_sum_m, cap_s=cap)
     if not approach.hit:
         return None
     # The miss distance of the straight path: from the relative state at the window's start, not at the hit (the hit is on the way in).
     b = min(_miss_distance(dp0, dv0), radius_sum_m)
-    return Contact(approach.t_hit_s, b, _norm(dp0), start, end, bool(end - start > cap), _norm(dp0) <= radius_sum_m)
+    return Contact(approach.t_hit_s, b, vec3.norm(dp0), start, end, bool(end - start > cap), vec3.norm(dp0) <= radius_sum_m)
 
 
 def resolve_contact(a, b, contact, always_destroy_terrestrial=None):
@@ -184,8 +180,8 @@ def _conservation(outcome, parties):
     if outcome.debris is not None:
         mass_out += outcome.debris.mass_kg
         momentum_out = [momentum_out[i] + outcome.debris.mass_kg * outcome.debris.velocity_ms[i] for i in range(3)]
-    scale = max(_norm(momentum_in), mass_in * max(_norm(party.body.velocity_ms) for party in parties), 1e-300)
-    return abs(mass_out - mass_in) / mass_in, _norm(tuple(o - i for o, i in zip(momentum_out, momentum_in))) / scale
+    scale = max(vec3.norm(momentum_in), mass_in * max(vec3.norm(party.body.velocity_ms) for party in parties), 1e-300)
+    return abs(mass_out - mass_in) / mass_in, vec3.norm(tuple(o - i for o, i in zip(momentum_out, momentum_in))) / scale
 
 
 def event_row(outcome, parties, contact, detected_time_unix, kind=None, run_id=None, containing_uid=None, influence_body_count=None,

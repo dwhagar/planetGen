@@ -53,8 +53,7 @@ def _load():
         document = json.load(handle)
     numbers = document["numbers"]
     for name, entry in numbers.items():
-        if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) or not entry.get("basis"):
-            raise LifeSupplyError(f"{name}: every number needs a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
+        elements.check_rule_entry(name, entry, LifeSupplyError)
         if "value" not in entry and not all(key in entry for key in REDOXES):
             raise LifeSupplyError(f"{name}: a number is a value or one value for each of {REDOXES}")
     return document, numbers

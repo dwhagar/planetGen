@@ -59,6 +59,7 @@ from planetgen.physics import constants
 from planetgen.physics import planets
 from planetgen.physics import relations
 from planetgen.physics import stellar_abundances, unit_registry as units
+from planetgen.physics import vec3
 
 _kg_to_msun = units.converter("kg", "Msun")
 _mjup_to_kg = units.converter("Mjup", "kg")
@@ -152,17 +153,9 @@ class Outcome:
     seed: str
 
 
-def _add(a, b):
-    return tuple(x + y for x, y in zip(a, b))
-
-
 def _weighted(m1, v1, m2, v2):
     total = m1 + m2
     return tuple((m1 * x + m2 * y) / total for x, y in zip(v1, v2))
-
-
-def _norm(v):
-    return math.sqrt(sum(c * c for c in v))
 
 
 def escape_speed(m_total, r_sum):
@@ -287,7 +280,7 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
 
     target, projectile = (a, b) if (a.mass_kg, b.key) >= (b.mass_kg, a.key) else (b, a)
     m_total = a.mass_kg + b.mass_kg
-    v_inf = _norm(tuple(x - y for x, y in zip(a.velocity_ms, b.velocity_ms)))
+    v_inf = vec3.norm(tuple(x - y for x, y in zip(a.velocity_ms, b.velocity_ms)))
     v_esc = escape_speed(m_total, r_sum)
     v_imp = math.sqrt(v_inf ** 2 + v_esc ** 2)
     sine = min(impact_parameter_m / r_sum, 1.0)
@@ -411,6 +404,6 @@ def conservation_error(a, b, outcome):
         carrier = _velocity(a, b) if outcome.code != "hit_and_run" else _weighted(1.0, a.velocity_ms, 1.0, b.velocity_ms)
         for i in range(3):
             momentum_out[i] += outcome.lost_mass_kg * carrier[i]
-    scale = sum(p.mass_kg * _norm(p.velocity_ms) for p in parents) or 1.0
+    scale = sum(p.mass_kg * vec3.norm(p.velocity_ms) for p in parents) or 1.0
     return (abs(mass_out - mass_in) / mass_in,
-            _norm(tuple(o - i for o, i in zip(momentum_out, momentum_in))) / scale)
+            vec3.norm(tuple(o - i for o, i in zip(momentum_out, momentum_in))) / scale)

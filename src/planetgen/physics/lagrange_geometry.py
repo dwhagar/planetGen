@@ -18,28 +18,15 @@ map draws at the center. Only L4 and L5 hold natural bodies (`trojans`), but L1 
 
 import math
 
-from planetgen.physics import trojans
+from planetgen.physics import trojans, vec3
 
 _ALL = ("L1", "L2", "L3", "L4", "L5")
 
 
-def _sub(a, b):
-    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-
-
-def _cross(a, b):
-    return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
-
-
-def _norm(a):
-    return math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
-
-
 def _unit(a):
-    n = _norm(a)
-    if n == 0.0:
+    if vec3.norm(a) == 0.0:
         raise trojans.TrojanError("a zero vector has no direction")
-    return [a[0] / n, a[1] / n, a[2] / n]
+    return vec3.unit(a)
 
 
 def collinear_offsets(mu):
@@ -70,11 +57,11 @@ def collinear_offsets(mu):
 
 def points(host_pos, host_mass, secondary_pos, secondary_mass, secondary_velocity, host_velocity=(0.0, 0.0, 0.0)):
     """`{"L1": [x, y, z], ..., "L5": [...]}`: the five points in the frame of the positions, for a secondary moving with `secondary_velocity` (relative to the host's `host_velocity`)."""
-    separation_vector = _sub(secondary_pos, host_pos)
-    a = _norm(separation_vector)
+    separation_vector = vec3.sub(secondary_pos, host_pos)
+    a = vec3.norm(separation_vector)
     u = _unit(separation_vector)
-    normal = _unit(_cross(separation_vector, _sub(secondary_velocity, host_velocity)))
-    w = _unit(_cross(normal, u))
+    normal = _unit(vec3.cross(separation_vector, vec3.sub(secondary_velocity, host_velocity)))
+    w = _unit(vec3.cross(normal, u))
     mu = trojans.mass_parameter(host_mass, secondary_mass)
     total = host_mass + secondary_mass
     barycenter = [(host_mass * host_pos[i] + secondary_mass * secondary_pos[i]) / total for i in range(3)]
