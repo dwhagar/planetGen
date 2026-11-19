@@ -17,6 +17,7 @@ seconds to minutes an air. Four steps, each resumable, each writing into the wor
     python3 scripts/fit_greenhouse_table.py cold WORK --name cold --count 800         the cold dense airs of the far edge of a system (GEN.1780)
     python3 scripts/fit_greenhouse_table.py cold WORK --name coldcia --cia --count 1500   cold dense nitrogen airs of light worlds with a few percent of infrared gases (GEN.1796)
     python3 scripts/fit_greenhouse_table.py cold WORK --name coldgen --gen --count 2000   cold dense nitrogen airs with the minor gases the generator's own airs carry (GEN.1796)
+    python3 scripts/fit_greenhouse_table.py traces WORK --name traces --count 3000     temperate, cold and carbon dioxide airs with one to three minor gases from 1e-9 to 3e-3 of the air (GEN.1621)
     python3 scripts/fit_greenhouse_table.py nullgas WORK --name nullgas --census A.jsonl.gz ...   the census airs that hold a gas with no ir flag, to hold at the starting file's answer (GEN.1629)
     python3 scripts/fit_greenhouse_table.py solve WORK --name bulk --cold-dense         only the clear airs of 0.5 MPa and more under 170 K, which a held set had at a wrong answer (GEN.1796)
     python3 scripts/fit_greenhouse_table.py fit WORK --start --distill --boost coldgen=4   count the errors of a set more where the network underfits (GEN.1796)
@@ -508,6 +509,47 @@ def cold(args):
     print(f"{args.count} cold dense airs added, {len(samples)} samples in {path}")
 
 
+TRACE_POOL = ("N2O", "O3", "HCN", "NH3", "SO2", "H2S", "CO", "H2", "He", "HCl", "HF", "NO", "PH3", "OCS", "C2H6", "C2H2", "C2H4", "SO3", "CS2", "NO2", "HNO3", "H2O2", "Ne")
+"""tuple: GEN.1621: the minor gases `traces` adds (the gases that are not `greenhouse_table.TRACE_EXEMPT`, with the infrared, collision-induced and no-flag classes all present)."""
+TRACE_SHARE = (1.0e-9, 3.0e-3)
+"""tuple: GEN.1621: the mole share of each minor gas `traces` adds, log-uniform: from the floor the features take (`greenhouse_table.FRACTION_FLOOR`) to a little over the share at which the table counted a gas in full (`TRACE_FULL_SHARE`, 1e-3)."""
+TRACE_BASE_PRESSURE_MAX_PA = 2.0e6
+TRACE_BASE_FLUX_MAX_W_M2 = 800.0
+
+
+def trace_airs(count, rng):
+    """GEN.1621: airs with one to three minor gases (`TRACE_POOL`) at shares from `TRACE_SHARE[0]` to `TRACE_SHARE[1]`, added to a base air: half temperate nitrogen-oxygen airs with vapor
+    free (`wet_airs`, Earth's own among them) and half drawn from the terrestrial, carbon dioxide and cold methane families (`designed_airs`), kept under `TRACE_BASE_PRESSURE_MAX_PA`
+    and `TRACE_BASE_FLUX_MAX_W_M2` so the model's solve of each stays in seconds. A third of the airs carry one gas at a time, so the effect of a gas on its own is what the model gives."""
+    families = [family for family in FAMILIES if family[0] in ("terrestrial", "carbon-dioxide", "cold-methane")]
+    bases = wet_airs(count // 2, rng)
+    while len(bases) < count:
+        for air in designed_airs(len(families), rng, families):
+            if sum(air[0].values()) <= TRACE_BASE_PRESSURE_MAX_PA and air[2] <= TRACE_BASE_FLUX_MAX_W_M2 and len(bases) < count:
+                bases.append(air)
+    airs = []
+    for partials, gravity, flux, share, aloft in bases:
+        total = sum(partials.values())
+        added = dict(partials)
+        for formula in rng.sample(TRACE_POOL, rng.choice((1, 1, 1, 2, 3))):
+            added[formula] = added.get(formula, 0.0) + math.exp(rng.uniform(math.log(TRACE_SHARE[0]), math.log(TRACE_SHARE[1]))) * total
+        airs.append((added, gravity, flux, share, aloft))
+    return airs
+
+
+def traces(args):
+    """GEN.1621: add `--count` airs with minor gases (`trace_airs`) to the samples of `--name`, for `solve` and then `fit` (the network reads these at run time as they are)."""
+    path = os.path.join(args.work, args.name + ".pkl")
+    samples = []
+    if os.path.exists(path):
+        with open(path, "rb") as handle:
+            samples = pickle.load(handle)
+    samples.extend(trace_airs(args.count, random.Random(PERTURB_SEED + 11 + len(samples) + 1000 * args.rng_offset)))
+    with open(path, "wb") as handle:
+        pickle.dump(samples, handle)
+    print(f"{args.count} airs with minor gases added, {len(samples)} samples in {path}")
+
+
 def nullgas(args):
     """GEN.1629: the airs of a census (`--census`, the `.jsonl.gz` files of the class census) that hold a gas with no `ir` flag (`gases.Gas.ir` null) at any share, as the table
     reads them at run time (the air without its traces, and that base with each trace gas on its own, `greenhouse_table.strip_traces`), added to the samples of `--name`
@@ -913,7 +955,7 @@ def fit(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "envelope", "hot", "hazy", "cold", "nullgas", "solve", "fit", "validate"))
+    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "envelope", "hot", "hazy", "cold", "traces", "nullgas", "solve", "fit", "validate"))
     parser.add_argument("work", help="the work folder (outside the repository)")
     parser.add_argument("--name", default="train")
     parser.add_argument("--train", nargs="+", default=["train"], help="fit: the sample sets to fit to (each made by sample, designed and solve)")
@@ -940,7 +982,7 @@ def main():
     parser.add_argument("--distill", action="store_true", help="fit with --start: an air the model was not asked about takes the starting file's answer")
     args = parser.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
+    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "traces": traces, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
 
 
 if __name__ == "__main__":
