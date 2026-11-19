@@ -70221,7 +70221,7 @@
           "fields": [
             [
               "What it is",
-              "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
+              "greenhouse_table.TRACE_FULL_SHARE 1e-3 and TRACE_FULL_PA 100 Pa (with TRACE_EXEMPT): a minor gas counts by the larger of its mole share over 1e-3 and its partial pressure over 100 Pa (GEN.1796: the column, not the share, sets how thin a gas is, so 410 Pa of carbonyl sulfide in 27 bar of nitrogen counts in full) of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
             ],
             [
               "The range it moves in",
@@ -70252,7 +70252,7 @@
           "tier_code": "T5",
           "tweak": "L3",
           "unread": null,
-          "what": "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
+          "what": "greenhouse_table.TRACE_FULL_SHARE 1e-3 and TRACE_FULL_PA 100 Pa (with TRACE_EXEMPT): a minor gas counts by the larger of its mole share over 1e-3 and its partial pressure over 100 Pa (GEN.1796: the column, not the share, sets how thin a gas is, so 410 Pa of carbonyl sulfide in 27 bar of nitrogen counts in full) of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
         },
         {
           "burn_down": null,
