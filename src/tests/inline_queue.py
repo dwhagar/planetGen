@@ -133,8 +133,12 @@ def run_ready_rows():
     from planetgen.db import store
     from planetgen.queue import launcher, memorygate, redisqueue
     try:
-        control = store.get_control_connection()
-    except Exception:  # noqa: BLE001 -- a test with no control database has no ledger rows to hand out
+        # The test server's own account (TEST.801): the process default is built from `PLANETGEN_MYSQL_*`, which a box that sets only `PLANETGEN_TEST_MYSQL_*` leaves at the program's defaults, and a login that
+        # fails there once ended this pump quietly with no unit run, so a stage's follower waited for ever.
+        control = store.get_control_connection(store.control_mysql_config(store.MySQLConfig(**_server())))
+    except pymysql.err.OperationalError as exc:
+        if exc.args[0] != 1049:             # unknown database: a test with no control database has no ledger rows to hand out; anything else (a login refused, no server) is the test's to see
+            raise
         return 0
     forker = FORKER()
     one = launcher.Launcher(control, forker, read_host=lambda: memorygate.Host(10 ** 6, 10 ** 6, 64, 0.0), spawner=redisqueue.connect())
