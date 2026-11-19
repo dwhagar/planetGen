@@ -62,6 +62,8 @@ PROSE_TEXT_COLUMNS = {
     ("engine_jobs", "arguments"), ("engine_jobs", "needs"), ("engine_jobs", "makes"), ("engine_attempts", "error_text"),
     # OPS.219: the JSON result of a finished piece of a job, kept so a unit that stopped starts after it
     ("engine_piece_results", "result"),
+    # GEN.1745 slice 4b: the record of a body's air history (the steps with the gases of each and the life ages) as one JSON document the chart reads whole; the row form of 600 rows a system would double the database (design 6.3)
+    ("planets", "air_history"), ("moons", "air_history"), ("rogue_planets", "air_history"),
 }
 BLOB_TYPES = ("tinytext", "text", "mediumtext", "longtext", "json", "tinyblob", "blob", "mediumblob", "longblob")
 
