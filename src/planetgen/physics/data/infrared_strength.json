@@ -1,0 +1,430 @@
+{
+ "reference_gas": "SO2",
+ "reference_air_pa": {
+  "N2": 78084.0,
+  "O2": 20946.0,
+  "Ar": 934.0,
+  "CO2": 42.0,
+  "H2O": 1000.0
+ },
+ "gravity_m_s2": 9.81,
+ "absorbed_flux_w_m2": 240.0,
+ "reference_warming_k": {
+  "1e-09": 0.0096,
+  "1e-08": 0.0844,
+  "1e-07": 0.7128,
+  "1e-06": 3.9495,
+  "1e-05": 12.2453,
+  "0.0001": 21.0701,
+  "0.0005": 27.0125,
+  "0.002": 32.9938
+ },
+ "gas_shares": [
+  1e-06,
+  1e-05,
+  0.0001
+ ],
+ "weights": {
+  "O3": {
+   "weight": 0.328,
+   "warming_k": {
+    "1e-06": 3.3029,
+    "1e-05": 7.5745,
+    "0.0001": 12.7683
+   }
+  },
+  "HDO": {
+   "weight": 8950.0,
+   "warming_k": {
+    "1e-06": 31.675,
+    "1e-05": 66.5854,
+    "0.0001": 88.276
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "H2O2": {
+   "weight": 23200.0,
+   "warming_k": {
+    "1e-06": 41.7306,
+    "1e-05": 73.4042,
+    "0.0001": 91.7267
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "C2H2": {
+   "weight": 0.03,
+   "warming_k": {
+    "1e-06": 0.5673,
+    "1e-05": 1.8706,
+    "0.0001": 3.7819
+   }
+  },
+  "C2H4": {
+   "weight": 0.556,
+   "warming_k": {
+    "1e-06": 3.1557,
+    "1e-05": 9.1188,
+    "0.0001": 17.1967
+   }
+  },
+  "C2H6": {
+   "weight": 0.288,
+   "warming_k": {
+    "1e-06": 2.5127,
+    "1e-05": 6.9146,
+    "0.0001": 13.2756
+   }
+  },
+  "C3H8": {
+   "weight": 32500.0,
+   "warming_k": {
+    "1e-06": 45.8634,
+    "1e-05": 76.1345,
+    "0.0001": 93.1619
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "C4H10": {
+   "weight": 44700.0,
+   "warming_k": {
+    "1e-06": 50.1078,
+    "1e-05": 78.8543,
+    "0.0001": 94.5182
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "C6H6": {
+   "weight": 60900.0,
+   "warming_k": {
+    "1e-06": 54.6068,
+    "1e-05": 81.55,
+    "0.0001": 95.8914
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "CH2O": {
+   "weight": 0.113,
+   "warming_k": {
+    "1e-06": 1.8112,
+    "1e-05": 4.4868,
+    "0.0001": 6.9373
+   }
+  },
+  "CH3OH": {
+   "weight": 0.14,
+   "warming_k": {
+    "1e-06": 1.8903,
+    "1e-05": 4.8371,
+    "0.0001": 8.6275
+   }
+  },
+  "N2H4": {
+   "weight": 21200.0,
+   "warming_k": {
+    "1e-06": 40.6403,
+    "1e-05": 72.7565,
+    "0.0001": 91.3838
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "N2O": {
+   "weight": 0.128,
+   "warming_k": {
+    "1e-06": 1.7657,
+    "1e-05": 4.6148,
+    "0.0001": 8.2404
+   }
+  },
+  "NO": {
+   "weight": 19200.0,
+   "warming_k": {
+    "1e-06": 39.5084,
+    "1e-05": 72.031,
+    "0.0001": 91.0364
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "NO2": {
+   "weight": 0.135,
+   "warming_k": {
+    "1e-06": 1.8818,
+    "1e-05": 4.7636,
+    "0.0001": 8.3191
+   }
+  },
+  "N2O4": {
+   "weight": 71000.0,
+   "warming_k": {
+    "1e-06": 56.9593,
+    "1e-05": 82.9094,
+    "0.0001": 96.6164
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "HNO3": {
+   "weight": 48900.0,
+   "warming_k": {
+    "1e-06": 51.3426,
+    "1e-05": 79.683,
+    "0.0001": 94.9115
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "HNCO": {
+   "weight": 31500.0,
+   "warming_k": {
+    "1e-06": 45.4792,
+    "1e-05": 75.8811,
+    "0.0001": 93.0368
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "C3O2": {
+   "weight": 53000.0,
+   "warming_k": {
+    "1e-06": 52.5156,
+    "1e-05": 80.3561,
+    "0.0001": 95.2661
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "CN": {
+   "weight": 15300.0,
+   "warming_k": {
+    "1e-06": 36.979,
+    "1e-05": 70.4326,
+    "0.0001": 90.1859
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "C2N2": {
+   "weight": 39500.0,
+   "warming_k": {
+    "1e-06": 48.4227,
+    "1e-05": 77.8051,
+    "0.0001": 93.9779
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "CH3CN": {
+   "weight": 29700.0,
+   "warming_k": {
+    "1e-06": 44.7487,
+    "1e-05": 75.3992,
+    "0.0001": 92.7589
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "HC3N": {
+   "weight": 38700.0,
+   "warming_k": {
+    "1e-06": 48.1272,
+    "1e-05": 77.6144,
+    "0.0001": 93.8812
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "C4H2": {
+   "weight": 37800.0,
+   "warming_k": {
+    "1e-06": 47.8255,
+    "1e-05": 77.419,
+    "0.0001": 93.7833
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "PH3": {
+   "weight": 0.261,
+   "warming_k": {
+    "1e-06": 2.6524,
+    "1e-05": 6.8766,
+    "0.0001": 12.1432
+   }
+  },
+  "SO3": {
+   "weight": 62400.0,
+   "warming_k": {
+    "1e-06": 54.9739,
+    "1e-05": 81.7563,
+    "0.0001": 95.9957
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "H2SO4": {
+   "weight": 75300.0,
+   "warming_k": {
+    "1e-06": 57.8742,
+    "1e-05": 83.4264,
+    "0.0001": 96.8959
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "OCS": {
+   "weight": 0.729,
+   "warming_k": {
+    "1e-06": 3.9063,
+    "1e-05": 10.0854,
+    "0.0001": 18.5594
+   }
+  },
+  "CS2": {
+   "weight": 59400.0,
+   "warming_k": {
+    "1e-06": 54.2174,
+    "1e-05": 81.3338,
+    "0.0001": 95.7922
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "S8": {
+   "weight": 154000.0,
+   "warming_k": {
+    "1e-06": 70.2714,
+    "1e-05": 90.0944,
+    "0.0001": 100.6845
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "SO": {
+   "weight": 36000.0,
+   "warming_k": {
+    "1e-06": 47.194,
+    "1e-05": 77.0121,
+    "0.0001": 93.6053
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "CH3SH": {
+   "weight": 36100.0,
+   "warming_k": {
+    "1e-06": 47.208,
+    "1e-05": 77.0211,
+    "0.0001": 93.6083
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "(CH3)2S": {
+   "weight": 48100.0,
+   "warming_k": {
+    "1e-06": 51.1271,
+    "1e-05": 79.4938,
+    "0.0001": 94.842
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "HCl": {
+   "weight": 0.001,
+   "warming_k": {
+    "1e-06": 0.004,
+    "1e-05": 0.0074,
+    "0.0001": 0.011
+   }
+  },
+  "HF": {
+   "weight": 0.001,
+   "warming_k": {
+    "1e-06": 0.0,
+    "1e-05": 0.0001,
+    "0.0001": 0.0005
+   }
+  },
+  "CH3Cl": {
+   "weight": 0.459,
+   "warming_k": {
+    "1e-06": 3.1656,
+    "1e-05": 8.4309,
+    "0.0001": 15.5837
+   }
+  },
+  "HBr": {
+   "weight": 63100.0,
+   "warming_k": {
+    "1e-06": 55.1339,
+    "1e-05": 81.8463,
+    "0.0001": 96.0456
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "HClO4": {
+   "weight": 76800.0,
+   "warming_k": {
+    "1e-06": 58.2049,
+    "1e-05": 83.6191,
+    "0.0001": 97.0005
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "CF4": {
+   "weight": 68100.0,
+   "warming_k": {
+    "1e-06": 56.3028,
+    "1e-05": 82.5505,
+    "0.0001": 96.4211
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "SF6": {
+   "weight": 104000.0,
+   "warming_k": {
+    "1e-06": 63.2319,
+    "1e-05": 86.4433,
+    "0.0001": 98.5395
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "SiH4": {
+   "weight": 21200.0,
+   "warming_k": {
+    "1e-06": 40.6785,
+    "1e-05": 72.781,
+    "0.0001": 91.397
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "SiO": {
+   "weight": 0.034,
+   "warming_k": {
+    "1e-06": 0.893,
+    "1e-05": 1.9723,
+    "0.0001": 3.1514
+   }
+  },
+  "TiO": {
+   "weight": 49600.0,
+   "warming_k": {
+    "1e-06": 51.5481,
+    "1e-05": 79.8045,
+    "0.0001": 94.9775
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "NaCl": {
+   "weight": 45000.0,
+   "warming_k": {
+    "1e-06": 50.1907,
+    "1e-05": 78.9074,
+    "0.0001": 94.5496
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "KCl": {
+   "weight": 58200.0,
+   "warming_k": {
+    "1e-06": 53.9001,
+    "1e-05": 81.1534,
+    "0.0001": 95.6958
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  },
+  "NH4Cl": {
+   "weight": 40800.0,
+   "warming_k": {
+    "1e-06": 48.8422,
+    "1e-05": 78.0762,
+    "0.0001": 94.1122
+   },
+   "remeasure": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+  }
+ },
+ "note": "GEN.1621: moles of SO2 that warm Earth's air as much as one mole of the gas, measured against radiative_convective.warming by scripts/measure_infrared_strength.py"
+}
