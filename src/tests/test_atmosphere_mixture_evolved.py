@@ -143,14 +143,11 @@ def test_the_trace_gases_follow_the_rows_drawn_after_the_life_stage():
         subject = Subject("terrestrial", {**BASE, **life})
         with draw.bound(seed):
             first = md.draw_mixture(subject)
-            result = mt.draw_trace_gases(subject, first)
-        assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
-        assert all(gases.has(formula) for formula in result.mole_fractions)
-        for gas in ("N2O", "PH3", "HCl", "HF", "NO2", "CH3Cl"):
-            if gas in result.mole_fractions and gas not in first.mole_fractions:
-                seen.add(gas)
-        assert set(first.mole_fractions) <= set(result.mole_fractions)
-        assert "m1" not in result.recipe.binaries and "m2" not in result.recipe.binaries       # the ozone rows are retired: `physics.ozone` is the column
+            added, _, trace_recipe = mt.draw_trace_amounts(subject, drawn=first.recipe.subject.quantities)
+        assert all(gases.has(formula) for formula in added)
+        assert set(added) <= {"N2O", "PH3", "NO2", "CH3Cl"}
+        seen |= set(added) - set(first.mole_fractions)
+        assert "m1" not in trace_recipe.binaries and "m2" not in trace_recipe.binaries       # the ozone rows are retired: `physics.ozone` is the column
     assert {"N2O", "PH3"} & seen
 
 
