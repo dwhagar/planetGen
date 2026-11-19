@@ -1461,6 +1461,9 @@ class StarSystem:
                     # circumbinary stability limit (0 for any other star).
                     estimated_distance = max(seed.distance_au, self._orbit_floor_au(star))
 
+                if slot_spec is None and i > 0:
+                    estimated_distance = max(estimated_distance, self._distance_clear_of(planets, seed, star))      # GEN.1791: born where the spacing pass would put it, so its zone is the final one
+
                 hz = habitable_zone[0] < estimated_distance < habitable_zone[1]
 
                 # An explicit per-slot specification takes priority over all of the
@@ -1488,6 +1491,16 @@ class StarSystem:
                     break
 
         return planets
+
+    @staticmethod
+    def _distance_clear_of(planets, seed, star):
+        """
+        The nearest distance the planet `seed` plans may be born at outside the planets already built (`planets`): the distance the spacing pass (`validation.space_orbits`) would have moved it to, by the pass's own rule
+        (`clearance_ledger.planets_needed_au`: ten mutual Hill radii from the inner planets' apoapses to its periapsis with the eccentricity the plan drew, and the chain rule). 0 with no planet inside it. Belts are not counted:
+        they are added afterwards (`_add_belts`) and the pass still settles them.
+        """
+        rows = [(planet.distance, planet.eccentricity or 0.0, planet.mass) for planet in planets if planet.body_type != 'a']
+        return clearance_ledger.planets_needed_au(rows, seed.mass_kg, seed.eccentricity, star.mass) if rows else 0.0
 
     def _add_belts(self, bodies, star, orbit_ceiling_au, apply_guarantees=True):
         """
