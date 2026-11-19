@@ -50,12 +50,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 226 | 22 | 12 | 1 | 0 | 261 |
-| T2 | 179 | 75 | 4 | 0 | 0 | 258 |
+| T2 | 180 | 75 | 4 | 0 | 0 | 259 |
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 111 | 29 | 8 | 2 | 2 | 152 |
 | T6 | 242 | 132 | 38 | 83 | 5 | 500 |
-| T7 | 73 | 37 | 10 | 32 | 0 | 152 |
+| T7 | 72 | 37 | 10 | 32 | 0 | 151 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
 | All | 1100 | 396 | 99 | 270 | 64 | 1929 |
@@ -197,7 +197,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AM3 | P | T6 | L0 | mixture_evolved.WATER_PHOTOLYSED | 0.3 to 1.0, uniform | abiotic-oxygen worlds (row j5) | test_atmosphere_mixture_evolved::test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air | GEN.511 (row weights) and the water-loss model | design | predicted only | - | - |
 | AM4 | B | T2 | L0 | mixture_evolved.OCEAN_WATER_WT_PERCENT | 0.0233 to 0.233 weight percent, log | abiotic-oxygen worlds | test_atmosphere_mixture_evolved::test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air | the body water budget of lane J | READ ([R2769]: up to ten oceans) | predicted only | - | - |
 | AM5 | B | T3 | L0 | mixture_evolved.CARBON_PER_OCEAN_WATER | 0.01 to 0.2, log | abiotic-oxygen worlds | test_atmosphere_mixture_evolved::test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air | GEN.481 | COMPUTED (Earth's carbon over ocean water 0.054) | predicted only | - | - |
-| AM6 | P | T7 | L0 | mixture_evolved.OXYGEN_SINK | 0 to 0.9, uniform | abiotic-oxygen worlds | none: no measurement of the share the crust oxidises away; the 95 percent ceiling test bounds the outcome | the redox and crust model (GEN.481, lane K) | design | predicted only | - | - |
+| AM6 | B | T2 | L0 | mixture_evolved.OXYGEN_ESCAPE | 0.90 to 0.99, uniform | abiotic-oxygen worlds | test_atmosphere_mixture_evolved::test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air | GEN.1769 slices 2 and 3 (the magma ocean's uptake and the crust's iron and sulfur) and a drag-derived escape from the body's hydrogen flux | READ ([R3946: Sec. 5.2]: 90 to 99 percent of the oxygen of the photolysis is lost to space; [R4774: Sec. 3.1]: the hydrogen drags the oxygen with it) | predicted only | - | - |
 | AM7 | B | T2 | L0 | mixture_evolved.TITAN_HUMIDITY | 0.3 to 1.0, uniform | methane-nitrogen air of a cold body | test_atmosphere_mixture_evolved::test_a_titan_like_air_is_nitrogen_with_methane_at_the_saturation_and_a_hydrogen_trace | a methane cycle model | READ ([R3289]: Titan methane humidity about 0.5) | predicted only | - | - |
 | AM8 | B | T2 | L0 | mixture_evolved.TITAN_HYDROGEN | 3e-4 to 3e-3, log | methane-nitrogen air | test_atmosphere_mixture_evolved::test_a_titan_like_air_is_nitrogen_with_methane_at_the_saturation_and_a_hydrogen_trace | photochemistry (GEN.496) | READ ([R3289]: H2 1.0e-3 +/- 0.16e-3) | predicted only | - | - |
 | AM9 | P | T7 | L0 | mixture_evolved.FROST_ICE | CH4 3e-3 to 0.3, CO 1e-3 to 0.1, both log | surface ice of a cold nitrogen body | test_atmosphere_mixture_evolved::test_a_pluto_like_air_follows_raoults_law_over_the_ice | the ice composition item of lane K | design | predicted only | - | - |
