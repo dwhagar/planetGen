@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4607] - 2026-11-19
+
+**Headline:** The population pass's long pieces say where they are with real counts (PERF.147).
+
+### Changed
+
+- The `civilizations` piece of `date-civilizations` (tech levels drawn, eras written, polities founded, reaches updated) and the `technology` piece of `refresh-technology` (the map's technology scores, a range of system ids at a time) now report a count of rows or system ids done, so the Queue page, the Generate page and the log show a bar, rate and time left for them like any other long step. The rows written are the same; each statement just covers a batch.
+
 ## [8.0.4606] - 2026-11-19
 
 **Headline:** A world's history now has a list of shocks: flood basalts that follow the heat of its interior and large impacts that follow the flux of its young sky, drawn on a stream of the body's own, each with the share of species it would kill; nothing reads it yet, so no world changes.
