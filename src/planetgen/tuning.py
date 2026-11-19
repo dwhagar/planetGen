@@ -304,8 +304,8 @@ in this many when a request asks against them. A planetGen stand-in (tier "from 
 ABUNDANCE_TIER_DIALS = {
     "sparse": (0.5, 0.0, 0.0, 0.2, 0.0, 0.5),
     "scattered": (1.0, 1.0, 0.0, 0.2, 0.5, 1.0),
-    "plentiful": (1.0, 1.0, 0.5, 0.2, 0.5, 1.0),
-    "abundant": (1.0, 1.0, 1.0, 0.2, 0.5, 1.0),
+    "plentiful": (1.0, 1.0, 0.5, 0.2, 1.0, 1.0),
+    "abundant": (1.0, 1.0, 1.0, 0.2, 1.0, 1.0),
 }
 """dict: Class M abundance tier -> `(water_share, bare_share, request_share, dry_part, quiet_share, cycle_share)`, the six dials of `generation.abundance_tier` (GEN.1704: the share of
 rocky planets in the ecosphere whose water class the tier gives, the share of them whose starting hydrogen envelope is taken as lost, and the share of
@@ -2449,13 +2449,17 @@ LIFE_SCHEDULE_FIELDS = tuple(f"life_age_{key}_gyr" for key in LIFE_MILESTONES)
 """tuple[str]: The body columns holding a world's milestone schedule (DB.100), one age in Gyr for each `LIFE_MILESTONES`
 milestone in order: `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr`."""
 
-LIFE_STEP_MEANS_GYR = (0.5, 1.5, 2.5, 3.0, 60.0)
+LIFE_STEP_MEANS_GYR = (0.3, 0.9, 2.5, 3.0, 60.0)
 """
 tuple[float]: The mean waiting time of each hard step of `LIFE_MILESTONES`, Gyr (GEN.750; docs/design/habitability/life-timeline-and-oxygen.md,
 reports/best-guess-standins-2026-10-24.md section 14): abiogenesis, oxygenic-type photosynthesis, complex cells, multicellular animals,
 civilisation. Each step takes an exponential waiting time with this mean once the one before it is done (the hard-step model of [R4642]; the early means are shorter than the later because the first steps came early on the one world we know, which is a test point and
 not a preset). Boss chose these on 10-28 (9:03 PM EDT) from a Monte Carlo of the timeline: complex cells 2.5, animals 3 and a civilization 60
-Gyr make animals common and a civilization rare. Stand-in T7, L3.
+Gyr make animals common and a civilization rare. GEN.1798 (Boss 7:01 PM EST 2026-11-18, levers tuned inside reasonable ranges for the Class M set) took
+the first two means from 0.5 and 1.5 to 0.3 and 0.9 Gyr, 0.6 times each, inside the registered range of 0.5 to 2 times: Earth's own first oxygenic photosynthesis came
+about 0.7 to 1 Gyr after its first life (the fits put it between 3.5 and 2.7 billion years ago against a first life of 3.8 to 4.1), so a mean of 0.9 is the same size as the one
+sample. Measured on 40,000 timelines (oxygen 2 Gyr after the first photosynthesis, star ages of 3 to 13 Gyr): complex cells 65 to 72 in 100, animals 40 to 46, a civilization
+2.1 to 2.4; for stars of 1 to 10 Gyr animals 20 to 25 and a civilization 0.7 to 1.0. Stand-in T7, L3.
 """
 
 LIFE_STEP_SCALE = 1.0

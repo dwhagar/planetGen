@@ -8,7 +8,7 @@ Before this change a world's stage of life came from a table of paces per chemis
 
 ## 2. The timeline (GEN.750)
 
-Five stages, in the order of `tuning.LIFE_MILESTONES`: abiogenesis, photosynthesis (the first harvesting of light), complex cells, multicellularity, technological civilization. Each is a hard step in the sense of [R4642]: a rare event with an exponential waiting time whose mean (`LIFE_STEP_MEANS_GYR` = 0.5, 1.5, 2.5, 3, 60 Gyr, times `LIFE_STEP_SCALE` = 1; Boss chose them, 9:03 PM EDT 10-28) is often longer than the world is old. The wait for a step starts when the one before it is done. A world has reached every stage whose age is less than the age of its star. No Earth history is copied.
+Five stages, in the order of `tuning.LIFE_MILESTONES`: abiogenesis, photosynthesis (the first harvesting of light), complex cells, multicellularity, technological civilization. Each is a hard step in the sense of [R4642]: a rare event with an exponential waiting time whose mean (`LIFE_STEP_MEANS_GYR` = 0.3, 0.9, 2.5, 3, 60 Gyr, times `LIFE_STEP_SCALE` = 1; Boss chose 0.5, 1.5, 2.5, 3 and 60 on 9:03 PM EDT 10-28, and GEN.1798 took the first two to 0.6 times each, inside the registered range, for the Class M set) is often longer than the world is old. The wait for a step starts when the one before it is done. A world has reached every stage whose age is less than the age of its star. No Earth history is copied.
 
 Three things shape a world's own clock:
 

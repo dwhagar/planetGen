@@ -138,10 +138,11 @@ PLATEAU_PA = 600.0
 """float: The oxygen partial pressure of the plateau, Pa: where the oxygen stands after the first rise (the reductant sink `R` under the source `S`) until the second (GEN.1707). The models of Earth's
 plateau put it at 0.06 to 0.25 of today's oxygen, where the proxies say at most 0.001 (`docs/design/research/` oxygen plateau report: 0.001 to 0.25, 0.02 to 5 kPa); 0.03 of Earth's 21 kPa is 0.6 kPa. Tier 6 (educated guess from physics), tweak level 1."""
 
-SECOND_RISE_RATIO = 3.0
+SECOND_RISE_RATIO = 2.5
 """float: The oxygen rises again to the balance level once the reductant sink `R` is under this share of the source `S`, 1 over the ratio (GEN.1707): the deep ocean and the shelf stop recycling phosphorus
 and the oxygen gets a second jump. A single model's number (the reductant input crossing 1.5e13 mol O2-equivalent a year for the first rise and 0.5e13 for the second, [R5252]); the model's
-own range for how strongly burial depends on bottom-water oxygen is 10 to 40 percent. Tier 3, tweak level 1."""
+own range for how strongly burial depends on bottom-water oxygen is 10 to 40 percent, which is a ratio of 2 to 4. The source's own value is 3; the build takes 2.5 (GEN.1801, Boss 7:01 PM EST 2026-11-18: levers tuned
+inside their ranges for the Class M set), the middle of the lower half of the range, so a world gets its second rise when its sink is under 0.4 of its source and not under 0.33. Tier 3, tweak level 1."""
 
 REBALANCE_BRACKETS = 40
 """int: The most times `rebalance_co2` doubles the CO2 pressure while it looks for one the sink holds less than (GEN.1589: the bracket of the root; it stops at the retention cap)."""
