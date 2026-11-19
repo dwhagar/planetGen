@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4597] - 2026-11-19
+
+**Headline:** The two 2023 papers behind the nitrogen partition table are in the citation registry.
+
+### Changed
+
+- The metal/silicate partition coefficient of nitrogen (registry row NB1, `nitrogen_budget`) now cites its sources by id: [R5317] (a review of the experiments) and [R5318] (a pebble accretion model of the volatiles between core, mantle and air), where the notes named them by author and year. No value changes (GEN.1583).
+
 ## [8.0.4596] - 2026-11-19
 
 **Headline:** A New galaxy job no longer stops at its luminosity scatter, which took the backfill's sky stars for a luminosity scatter already stored.
