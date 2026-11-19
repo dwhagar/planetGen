@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4630] - 2026-11-19
+
+**Headline:** A map-marker test no longer assumes some capital letter is not a planet class.
+
+### Fixed
+- TEST.802: `bodymarkers.test.mjs` looked for a capital letter missing from the class list to prove a non-class has no symbol, but all 26 letters are classes now (`planetgen.tuning.PLANET_CLASSES`, held to the map's list by `test_system_interests.py`), so it failed. It now uses a lower-case letter and a sign. The marker code was right.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4629] - 2026-11-19
 
 **Headline:** The info panel line now says which of the cloud and the haze were drawn and what each is made of, instead of "Left out: clouds and haze".
