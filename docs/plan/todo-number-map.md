@@ -22,7 +22,7 @@ release is stamped.
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.792 |
+| TEST | TEST.793 |
 | USR | USR.33 |
 | OPS | OPS.280 |
 | DOC | DOC.121 |
@@ -2191,7 +2191,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1400 | Class-letter leftovers: m_count, the unused trojan_bodies and hycean_candidate letter code, the dead pass-throughs in bodylook and habitability_world, the stale tuning docstring (audit F7 and F8) | none | done, PR #5667 |
 | GEN.1401 | Importing planetgen.physics.hydrosphere or bulk_draw alone fails with a circular import unless planet_type is imported first, and GEN codes show in describe/sheet.py and stellar_abundances.py text (bug) | none | done, PR #5697 |
 | GEN.1402 | A rocky planet whose orbit eccentricity settled after its air was made keeps the air, temperature, dose and UV of the older light: remake its end stages when the eccentricity moved past a tolerance, even if the star's age did not (bug) | none | done (Train 23, 2026-11-11) |
-| GEN.1403 | Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever) | none | open |
+| GEN.1403 | Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever) | none | done (PR 7218, Train 47, PR 7235, merged 9:53 PM EST 11-18: water-limited weathering; stand-ins WW1, WW2 section 6.309) |
 | GEN.1404 | Land fraction against the water inventory: read the Cowan and Abbot mantle-water land fraction paper and the mantle water cap work, and report whether the model's 95 to 100 percent ocean cover for most sea worlds is what the physics gives | none | done as research, no retune (reports/gen1404-land-fraction-water-inventory-2026-11-11.md) |
 | GEN.1405 | Oxygen store delay: source the time an oxygen world takes to fill its stores before oxygen rises (EARTH_STORE_MOL, T9, L3, tuned to a 0.7 Gyr delay) from the geochemistry | none | done, PR #5783 |
 | GEN.1406 | Inner-planet Earth-size share against the Kepler occurrence rate: the generator gives 3.3 percent of stars an Earth-size inner planet (0.8 to 1.5 Earth radii) against the 16.5 percent the survey implies | none | done, PR #5869 |
@@ -3094,8 +3094,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.274 | Resume and finish tests follow the hold-and-continue rule | none | done (PR 7179, Lane 15, merged 1:03 AM EST 11-18) |
 | OPS.275 | A held unit's error keeps its last traceback frames | none | done (PR 7185, Lane 15, merged 1:41 AM EST 11-18: last 3 frames, file:line in function, masked) |
 | OPS.276 | A unit held with IndexError (sky charting, bright star scatter) | none | open (Lane 16) |
-| OPS.277 | Held-run reds in maintenance and finish-run tests | none | open (Lane 15) |
-| OPS.278 | Galaxy test database lacks engine_runs | none | open (Lane 07) |
+| OPS.277 | Held-run reds in maintenance and finish-run tests | none | done (PR 7231, Lane 15, merged 8:30 PM EST 11-18: both test faults; the held-run outcome is right) |
+| OPS.278 | Galaxy test database lacks engine_runs | none | done (PR 7233, Lane 07, merged 8:58 PM EST 11-18: shared control_config fixture builds the control schema in the test database) |
 | OPS.279 | Template heap copied into each sky share | OPS.270 | open (Lane 13) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
@@ -3883,7 +3883,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1536 | The Cassini state of a planet's tilt from its real precession constant (needs the stored J2 or C22 figure), replacing the log-uniform stand-in | GEN.1535 | done earlier (commit 1137306dd6, merged 11-11, Release 8.0.4005: physics/cassini_state.py from J2 and C22; moon part GEN.1556; found stale by Lane 04, 4:53 AM EST 11-16) |
 | GEN.1537 | Class and life census re-tag after trains 22 and 23 (epochs 144 to 146): re-measure the census shares and re-baseline the class and life ranges the trains moved | GEN.1501 | done, PR #6066 |
 | GEN.1538 | Design check: settle the orbit before making the air (birth orbit, settle, air once) instead of making the air and remaking it after the settle | none | retired, superseded by GEN.1548 (air once on the settled orbit) |
-| GEN.1539 | Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size | GEN.1520 | open |
+| GEN.1539 | Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size | GEN.1520 | done (PR 7214 with 7229 and 7232, Train 47, PR 7235, merged 9:53 PM EST 11-18: growth limit 11.36 au x (M/Msun)^0.7) |
 | GEN.1540 | (bug) A rare captured moon's position radius is outside its allowed range (a wrong or stale frame), so test_orbital_motion fails by draw luck | none | done, Train 24 PR #6033 (b8a0163b7) |
 | GEN.1541 | The tide a large asteroid or dwarf planet raises on its own moons (GEN.1464 part C) | GEN.1464 | done, covered by GEN.1510 (promoted belt planets carry moons and read tide_sources like any planet; PR 6824 pins it with tests, merged 6:24 AM EST 11-16; unpromoted asteroid binaries wait on a satellite size law source) |
 | GEN.1542 | Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists | GEN.1425 | done (slice 0 PR 7039, slice 1 PR 7049, 11-17) |
@@ -5017,6 +5017,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.789 | test_secular_exchange_generation fails under load: find the load-order effect | done (PR 7007, 1:49 AM EST 11-17: one test moved the shared systems; it now builds its own) |
 | TEST.790 | A controlled greenhouse test: doubled infrared-active gases never lower the greenhouse | done (PR 7019, 2:41 AM EST 11-17; hydrogen-rich airs scoped out, see GEN.1781) |
 | TEST.791 | Stale test reds on main (fill order, unit reports, readme, cut neutral, stats) | none | open (Lane 14) |
+| TEST.792 | Main reds after Train 47: test_page_shell (galaxynebulae.js import) and test_user_agent (gaia_nearby.py not in OUTGOING) | none | open (Lane 16) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
