@@ -77,7 +77,7 @@ def _load():
         if cls.kind == planet_classes.GIANT and cls.air is not None:
             raise FitError(f"class {cls.letter} ({cls.kind}): the air gate is null for giants")
         if cls.air not in (None, True, False):
-            raise FitError(f"class {cls.letter} ({cls.kind}): the air gate is true, false or null (a class that holds with or without an air, GEN.1737)")
+            raise FitError(f"class {cls.letter} ({cls.kind}): the air gate is true, false or null (a class that holds with or without an air)")
         for condition in cls.when:
             keys = set(condition) - {"quantity", "min", "lt", "equals"}
             if keys or len(condition) != 2:

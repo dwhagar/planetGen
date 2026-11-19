@@ -26,6 +26,8 @@ import math
 
 import numpy as np
 
+from planetgen.util import log
+
 fsum = math.fsum
 """The correctly rounded sum of an iterable of floats; the same result in every Python version."""
 
@@ -95,7 +97,8 @@ def _kernel():
         try:
             from planetgen.util import detmath_kernel
             _kernel_module.append(detmath_kernel)
-        except Exception:  # noqa: BLE001 -- numba missing, or no writable cache folder: the slower sum has the same bits
+        except Exception as exc:  # noqa: BLE001 -- numba missing, or no writable cache folder: the slower sum has the same bits
+            log.swallowed("util/detmath", "importing the compiled kernels", exc)
             _kernel_module.append(None)
     return _kernel_module[0]
 
