@@ -1277,8 +1277,8 @@ class StarSystem:
             if not result.changed:
                 continue
             star.rotation_period_hours = result.rotation_period_hours
-            axis = tuple(getattr(star, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
-            if not any(c is None for c in axis):
+            axis = spin.spin_axis_of(star)
+            if axis is not None:
                 normal = spin.orbit_normal(node.inclination_deg, node.ascending_node_deg)
                 star.spin_axis_x, star.spin_axis_y, star.spin_axis_z = star_pair_tides.aligned_axis(axis, normal, result.obliquity_factor)
                 star.axial_tilt_deg = spin.obliquity_between((star.spin_axis_x, star.spin_axis_y, star.spin_axis_z), pole)

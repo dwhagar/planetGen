@@ -30,7 +30,6 @@ V8 and V9 are single-source hypotheses and are off by default (`include_off_by_d
 The functions are pure. The numbers are in `physics/data/sulfur_cloud_set.json` with their tier and tweak level.
 """
 
-import json
 import math
 import os
 from dataclasses import dataclass, field
@@ -52,21 +51,11 @@ class SulfurCloudSetError(ValueError):
     """A rule file that is refused."""
 
 
-def _check(name, entry):
-    if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)):
-        raise SulfurCloudSetError(f"{name}: every entry needs a tier T1..T9 and a tweak L0..L4, got {entry!r}")
-
-
 def _load():
-    with open(DATA_FILE, encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        _check(name, entry)
-        if not entry.get("basis") or "value" not in entry:
-            raise SulfurCloudSetError(f"{name}: a value and a basis are needed")
+    document = elements.load_rule_numbers(DATA_FILE, SulfurCloudSetError)
     seen = []
     for row in document["species"]:
-        _check(row.get("id"), row)
+        elements.check_rule_entry(row.get("id"), row, SulfurCloudSetError, basis=False)
         if row.get("default") not in ("on", "off") or row.get("source") not in ("air", "chain") or not row.get("status") or not row.get("evidence"):
             raise SulfurCloudSetError(f"{row.get('id')}: a default (on or off), a source (air or chain), a status and an evidence are needed")
         seen.append(row["id"])

@@ -195,7 +195,7 @@ def light_factor_of(planet):
     plane = (getattr(host, "binary_mutual_orbital_inclination_deg", None), getattr(host, "binary_mutual_orbital_ascending_node_deg", None))
     if not period or None in plane:
         return None
-    tilt = spin.obliquity_between(spin.orbit_normal(getattr(planet, "orbital_inclination_deg", None) or 0.0, getattr(planet, "orbital_ascending_node_deg", None) or 0.0),
+    tilt = spin.obliquity_between(spin.orbit_normal_of(planet),
                                   spin.orbit_normal(*plane))
     lost = pair_light_lost(stars[0], stars[1], host.binary_separation_au, period, float(planet.distance), tilt, constants.AU_TO_KM)
     return None if lost <= 0.0 else max(0.0, 1.0 - lost)

@@ -25,7 +25,6 @@ value; `GEN.1425` (the cloud step of the Venus chemistry set) reads it.
 The functions are pure. The numbers are in `physics/data/sulfuric_vapor.json` with their tier and tweak level.
 """
 
-import json
 import math
 import os
 from dataclasses import dataclass
@@ -52,20 +51,9 @@ class SulfuricVaporError(ValueError):
     """A rule file that is refused."""
 
 
-def _check(name, entry):
-    if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) \
-            or not entry.get("basis"):
-        raise SulfuricVaporError(f"{name}: every entry needs a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
-
-
 def _load():
-    with open(DATA_FILE, encoding="utf-8") as handle:
-        document = json.load(handle)
-    for name, entry in document["numbers"].items():
-        _check(name, entry)
-        if "value" not in entry:
-            raise SulfuricVaporError(f"{name}: no value")
-    _check("zeleznik_1991", document["zeleznik_1991"])
+    document = elements.load_rule_numbers(DATA_FILE, SulfuricVaporError)
+    elements.check_rule_entry("zeleznik_1991", document["zeleznik_1991"], SulfuricVaporError)
     for name, coefficients in document["zeleznik_1991"]["parameters"].items():
         if len(coefficients) != 5:
             raise SulfuricVaporError(f"{name}: five coefficients (1, T, T^2, 1/T, ln T) are needed")
