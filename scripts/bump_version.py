@@ -160,8 +160,35 @@ def _git(root, *args):
 
 # -- version parsing ---------------------------------------------------------
 
+LOCAL_RE = re.compile(r"\+db(?P<db>\d+)\.gen(?P<gen>\d+)\.api(?P<api>\d+)$")
+"""re.Pattern: The PEP 440 local suffix a stamped version carries (OPS.64): `8.2.2100+db134.gen62.api5`."""
+MIGRATIONS_DIR = os.path.join("src", "planetgen", "db", "migrations", "versions")
+MIGRATION_RE = re.compile(r"^(?P<version>\d{4})_.*\.py$")
+
+
+def release_of(version):
+    """The MAJOR.REVISION.BUILD of `version`, without its local suffix."""
+    return LOCAL_RE.sub("", version)
+
+
+def version_suffix(root):
+    """The local suffix `+db<schema>.gen<epoch>.api<api>` of the tree at `root` (OPS.64), each number read from its own source:
+    the newest migration revision (its id is the schema version, as `alembic_runner` names them), the newest epoch in
+    `epochs.json` and `API_VERSION` in `api/version.py`. Never typed by hand."""
+    ids = [int(m.group("version")) for m in (MIGRATION_RE.match(n) for n in os.listdir(os.path.join(root, MIGRATIONS_DIR))) if m]
+    if not ids:
+        raise BumpError(f"no migration revisions found in {MIGRATIONS_DIR}")
+    epochs = json.loads(_read(root, EPOCHS_FILE)).get("epochs", [])
+    if not epochs:
+        raise BumpError(f"no epochs found in {EPOCHS_FILE}")
+    api = API_NUMBER_RE.search(_read(root, API_VERSION_FILE))
+    if not api:
+        raise BumpError(f"couldn't find API_VERSION in {API_VERSION_FILE}")
+    return f"+db{max(ids)}.gen{max(entry['epoch'] for entry in epochs)}.api{api.group('number')}"
+
+
 def parse_version(version):
-    parts = version.split(".")
+    parts = release_of(version).split(".")
     if len(parts) != 3 or not all(p.isdigit() for p in parts):
         raise BumpError(f"version {version!r} isn't in MAJOR.MINOR.PATCH form")
     return tuple(int(p) for p in parts)
@@ -174,7 +201,7 @@ def next_version(version, level):
     and resets REVISION, anything else bumps REVISION (and under
     `REVISION_HOLD` nothing bumps MAJOR or REVISION, `major` included).
     """
-    major, minor, build = parse_version(version)
+    major, minor, build = parse_version(version)       # a local suffix is the stamp's own: the next release is plain
     if level == "major" and not REVISION_HOLD:
         return f"{major + 1}.0.{build + 1}"
     if REVISION_HOLD:
@@ -433,6 +460,8 @@ def apply_release(root, version, date, body):
         fill_pending_epoch(root, version)
     if API_VERSION_NOTE_RE.search(body):
         fill_pending_api_version(root, version)
+    release = version
+    version = release + version_suffix(root)         # OPS.64: the code the three places show carries the schema, epoch and API numbers
     text = _read(root, VERSION_FILE)
     _write(root, VERSION_FILE, VERSION_RE.sub(lambda m: f"__version__ = {m.group(1)}{version}{m.group(1)}", text, count=1))
 
@@ -618,7 +647,7 @@ def check_pr(root, base, allow_no_fragment=False):
         if before[path] != after[path]:
             problems.append(
                 f"{path} changes the version ({before[path]} -> {after[path]}). PRs no longer "
-                f"bump the version; add a note under {CHANGES_DIR}/ instead and it's stamped "
+                f"bump the version or set its +db/gen/api suffix; add a note under {CHANGES_DIR}/ instead and it's stamped "
                 "after merge (see changes/README.md)."
             )
 

@@ -85,7 +85,7 @@ def arch_digit(machine=None):
 
 
 def _release_parts(version):
-    parts = str(version).split(".")
+    parts = str(version).partition("+")[0].split(".")       # a stamped version has a local suffix (OPS.64): `8.2.2100+db134.gen62.api5`
     if len(parts) != 3 or not all(part.isdigit() for part in parts):
         raise ValueError(f"a PlanetGen version is MAJOR.REVISION.BUILD, not {version!r}")
     return tuple(int(part) for part in parts)
