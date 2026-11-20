@@ -53,12 +53,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 180 | 75 | 4 | 0 | 0 | 259 |
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
-| T5 | 111 | 29 | 8 | 2 | 2 | 152 |
+| T5 | 112 | 29 | 8 | 2 | 2 | 153 |
 | T6 | 245 | 133 | 38 | 85 | 5 | 506 |
-| T7 | 75 | 37 | 10 | 32 | 0 | 154 |
+| T7 | 75 | 37 | 10 | 31 | 0 | 153 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1107 | 397 | 99 | 272 | 64 | 1939 |
+| All | 1108 | 397 | 99 | 271 | 64 | 1939 |
 
 ## How the labels were given
 
@@ -1911,7 +1911,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SV4 | D | T1 | L1 | the supercooled liquid water curve of [R4289: equation 1] below the triple point (185 to 260 K as printed, carried to 273.16 K where it is 0.1 percent under the liquid curve of `saturation`) | none | 185 to 273 K | a measured supercooled water pressure off it by more than 2 percent between 260 and 273 K | the Wagner supercooled curve | READ ([R4289: equation 1]); the 260 to 273 K part is carried, not printed | observed in a lab | - | - |
 | SV5 | T | T7 | L2 | the solution model and the pure acid curve carried above 350 K to the cloud base (to about 445 K), where the paper does not recommend extrapolation; the status is `extrapolated` there | none | 350 to 445 K | a measured acid or water pressure over concentrated acid above 350 K | a model that reaches the sub-cloud region | the base of the published cloud sits at 345 to 367 K, so this part is where the Venus base is decided; the 97 to 99 percent base strengths are consistent with the published over 95 percent ([R0157: Table 1]) | predicted only | - | - |
 | SV6 | T | T7 | L0 | `condenses`: the liquid forms where the acid vapor pressure of the air is above the pressure over the solution its water fixes; the mixing ratios are the caller's and are held through the window (a cloud would deplete them) | none | any air | a cloud whose base is not where this puts it for the air's own acid and water | the cloud step of GEN.1425 with the sulfur chemistry | derived from the activities above; next to no acid condenses at the dew point of the water | predicted only | - | - |
-| SV7 | P | T7 | L3 | no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5]) | none | warm clouds; cold ones are the window's edge | a cold acid aerosol that is solid where this puts it liquid | the freezing curve of [R4877: figure 1 and section 4.3], not yet turned into a function | not read into code; [R4877] prints the solid phases | predicted only | - | replace (GEN.1644) |
+| SV7 | P | T5 | L0 | the acid cloud is liquid only above the freezing point of its droplets: a level at or below `acid_freezing.freezing_point_k` of its strength (AF1) is out of the cloud (`sulfur_cloud_set.acid_cloud_of_column`), so an air whose acid is liquid at no level has no acid cloud; replaces the 185 K floor | none | acid clouds from the freezing line up to the 350 K of the solution model | a cold acid cloud seen liquid well under the equilibrium line (supercooled droplets reach 20 K or more below it), which this takes as solid | the vapor pressure over the solid hydrates ([R4877] prints their Gibbs energies) so a solid cloud is modelled and not dropped | educated guess from physics: the equilibrium liquidus bounds the liquid, supercooling and the solid cloud are not modelled | predicted only | - | - |
 | SV8 | P | T7 | L3 | no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split | none | below 400 K | a measured SO3 share of the sub-cloud vapor | a decomposition equilibrium | recalled from the Venus acid-cloud report (P8), not opened | predicted only | - | no data |
 
 ## 6.229 Stand-ins of the sulfur-cloud chemistry set and its gates
