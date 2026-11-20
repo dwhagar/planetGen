@@ -62,6 +62,8 @@ PROSE_TEXT_COLUMNS = {
     ("engine_jobs", "arguments"), ("engine_jobs", "needs"), ("engine_jobs", "makes"), ("engine_attempts", "error_text"),
     # OPS.219: the JSON result of a finished piece of a job, kept so a unit that stopped starts after it
     ("engine_piece_results", "result"),
+    # OPS.284: the copy of a run's Redis record (its hash and its stages' hashes) as one JSON document, read whole to put the run back
+    ("engine_run_records", "record"),
 }
 BLOB_TYPES = ("tinytext", "text", "mediumtext", "longtext", "json", "tinyblob", "blob", "mediumblob", "longblob")
 

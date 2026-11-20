@@ -246,6 +246,12 @@ def new_run_id(now=None):
     return time.strftime("%Y%m%d-%H%M%S", time.gmtime(time.time() if now is None else now)) + "-" + secrets.token_hex(4)
 
 
+def _keep(conn, run_id):
+    """Writes the durable copy of the run's record (`runstore.persist`, OPS.284); best effort, and nothing for a run that has no rows in the ledger."""
+    from planetgen.queue import runstore
+    runstore.persist(conn, run_id)
+
+
 def _now(now):
     return time.time() if now is None else float(now)
 
@@ -549,12 +555,14 @@ def set_stage_size(conn, run_id, index, units, cost, now=None):
     pipe.hset(run_key(run_id), mapping={"stages": json.dumps(declared), "updated": now})
     pipe.hset(stage_key(run_id, index), mapping={"units": int(units), "cost_total": float(cost)})
     pipe.execute()
+    _keep(conn, run_id)
 
 
 def set_conclusion(conn, run_id, index, conclusion, now=None):
     """Stores what the end of stage `index` found (its `conclude` end command) and marks the stage concluded, for the
     process following the run (`conclusion`)."""
     conn.hset(stage_key(run_id, index), mapping={"conclusion": json.dumps(conclusion), "concluded": _now(now)})
+    _keep(conn, run_id)
 
 
 def conclusion(conn, run_id, index):
@@ -605,6 +613,7 @@ def begin_stage(conn, run_id, index, now=None):
     pipe.hset(stage_key(run_id, index), mapping={"started": now, "last": now})
     pipe.hset(run_key(run_id), mapping={"current": index, "updated": now})
     pipe.execute()
+    _keep(conn, run_id)
     declared = declared_stages(conn, run_id)
     log(conn, run_id, logrecord.stage_start(index + 1, len(declared), _s(declared[index]["label"])),
         kind=logrecord.STAGE_START, now=now, stage=index, stages=len(declared))
@@ -614,6 +623,7 @@ def set_opened_clock(conn, run_id, index, clock):
     """Records the database's clock (as text) when stage `index` opened, for a stage a later step's parameter refers to
     (`wrapper.opened_by`, PERF.213)."""
     conn.hset(stage_key(run_id, index), "opened_clock", clock)
+    _keep(conn, run_id)
 
 
 def opened_clock(conn, run_id, index):
@@ -625,6 +635,7 @@ def opened_clock(conn, run_id, index):
 def end_stage(conn, run_id, index, now=None):
     """Marks stage `index` as ended now: the end of a stage that had no unit to end it."""
     conn.hset(stage_key(run_id, index), mapping={"ended": _now(now)})
+    _keep(conn, run_id)
 
 
 def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None, peak_mb=0.0):
@@ -755,6 +766,7 @@ def finish_run(conn, run_id, state="done", error=None, now=None, killed=False, f
     for key in _keys_of(conn, run_id):
         pipe.expire(key, KEEP_SECONDS)
     pipe.execute()
+    _keep(conn, run_id)
     return True
 
 
@@ -777,6 +789,7 @@ def hold_run(conn, run_id, error, now=None):
     for key in _keys_of(conn, run_id):
         pipe.expire(key, KEEP_SECONDS)
     pipe.execute()
+    _keep(conn, run_id)
     return True
 
 
@@ -803,6 +816,7 @@ def take_held_back(conn, run_id, now=None):
     pipe.execute()
     touch(conn, run_id)
     conn.hset(run_key(run_id), mapping={"state": "running", "updated": now, "error": "", "finished": ""})
+    _keep(conn, run_id)
     return True
 
 
@@ -851,6 +865,8 @@ def delete_run(conn, run_id):
     state = run_state(conn, run_id)
     if state is None or state in LIVE_STATES or state == HELD:           # a held run is canceled first: the ledger's row and its jobs say how it ended
         return False
+    from planetgen.queue import runstore
+    runstore.forget(conn, run_id)               # before the record goes: the control database is found from the run's steps
     conn.delete(*_keys_of(conn, run_id, every=True))
     return True
 
