@@ -1177,25 +1177,6 @@ warm_shape_means() {
     chmod -R a+rX "${PLANETGEN_DATA_DIR:-/var/cache/planetgen/datasets}" 2>/dev/null || true
 }
 
-# The math check (`planetgen check-math`, TEST.68): known answers from
-# real astronomy, identities and sampler distributions. A failure only
-# warns -- the update carries on and the site keeps serving -- but sets
-# MATH_CHECK_FAILED=1, so offer_population_pass skips the population pass
-# and the closing message repeats the warning. Generation does not run
-# the check itself (PERF.170): this is where it runs, and the admin page
-# runs it on request.
-MATH_CHECK_FAILED=0
-check_math() {
-    log_info "Running the math check:"
-    if run_cli generate check-math; then
-        MATH_CHECK_FAILED=0
-    else
-        MATH_CHECK_FAILED=1
-        log_warning "the math check failed (above). Charted data may be wrong until it is fixed;"
-        log_warning "         run 'planetgen check-math -v' for every check."
-    fi
-}
-
 # Builds the data of the References pages (DOC.88): `scripts/build_reference_pages.py` writes docs/references/*.json from the
 # reference list and the stand-in registry. The files are committed, so on a current checkout this changes nothing; it makes sure
 # a server never shows numbers older than its own registries. A failure only warns: /references then says its pages are not built.
@@ -1234,10 +1215,6 @@ check_fudge_table() {
 # `planetgen population` and `planetgen territories` can always be run by hand later.
 offer_population_pass() {
     local answer=""
-    if [[ "${MATH_CHECK_FAILED:-0}" == 1 ]]; then
-        log_info "Skipping the population pass: the math check failed."
-        return 0
-    fi
     case "${POPULATION:-}" in
         1|[Yy]|[Yy][Ee][Ss]) answer="y" ;;
         *)

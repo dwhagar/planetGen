@@ -2,6 +2,81 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4651] - 2026-11-20
+
+**Headline:** `update.sh` no longer runs the math check as a step, so an update is about 14 s (warm) to 49 s (cold) shorter (OPS.286).
+
+### Changed
+
+- The update has 8 stages instead of 9: "Checking the generator's math" is gone and the later stages are renumbered. The check took about 1 s but ran as an engine run, costing 14 s on a warm box and about 49 s on a cold one, and its result was only a warning.
+- The population pass offer no longer waits on the check, and the closing message no longer repeats its warning. `planetgen check-math`, the admin page's button, the web app's startup check and the test gate are unchanged.
+- INSTALL.md and the update's header comment say so.
+
+## [8.0.4650] - 2026-11-20
+
+**Headline:** A reset, data check or database check that is ended by SIGTERM now says who sent it, and the reset says that running it again finishes the wipe.
+
+### Changed
+
+- `planetgen reset` and the data and database checks end on a `Stopped` interrupt that carries the reason the canceller left (update guard, stop-all), or says the signal left none, in place of a bare traceback. The reset prints one line and exits 143.
+
+## [8.0.4649] - 2026-11-20
+
+**Headline:** The mixture subject of a body's air setting is a class and not a closure, so a setting can go to a process pool again
+
+### Fixed
+
+- TEST.805: `surface_air.setting_of` built `subject_of` as a local function that a process pool cannot pickle (`Can't get local object setting_of.<locals>.subject_of`), which failed `test_describe` (6 tests) and `test_insolation::test_a_lone_star_swings...` on main. It is now the module-level class `_BodySubject`, called the same way; no generated number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4648] - 2026-11-20
+
+**Headline:** The request-dial test checks the request draw alone, not the sparse tier's other dials.
+
+### Fixed
+- **TEST.806: the test that a tier with no request share makes the same system as science failed on main.** Sparse's water, dry-part, quiet-interior and carbon-cycle dials move the planets by design (GEN.1720, GEN.1721, GEN.1798 to GEN.1801), so seed 103 gave 18 planets on science and 16 on sparse. The test now holds the sparse row at no dial, which is what it means to check: a request share of 0 draws nothing.
+- generation-affects: none
+
+## [8.0.4647] - 2026-11-20
+
+**Headline:** A unit that fails for good now names the sector, or the id range, it was working on (OPS.285).
+
+### Changed
+
+- The text of a unit's failure says where the unit was working: `(on sector 12/3/0)` for a sector unit (shell, band, wedge, as the seed spells an address) and `(on ids 1,200 to 2,400)` for a batch unit. It is in the held unit's error, the run's error, the `error.log` line and the attempt's `error_text` in the ledger, so a failure names its own address after its stage ended and the stage's item file was deleted. The unit row keeps its arguments as before.
+
+## [8.0.4646] - 2026-11-20
+
+**Headline:** The memory controller's learning now sees the job processes the kernel killed for memory (OPS.249).
+
+### Fixed
+
+- A job process that ended on SIGKILL, the kernel's kill for memory, is recorded as a `killed_memory` attempt (kind `killed`, as before). Since the old queue's unit path went (OPS.271), the launcher recorded it as `lost`, so `pressurelearn.read_record` found no kill and the controller's edges could never move down however many kills there were. A job that ends on any other signal stays `lost`. The retry on a grown claim, run alone, is as it was.
+
+## [8.0.4645] - 2026-11-19
+
+**Headline:** An asteroid field's page now shows the field in 3D: its own bodies as a cloud at the places its age and speed put them, with the real body count stated under it.
+
+### Added
+
+- GEN.361: the view of an asteroid field (`web/maps/phenomenonrender.py` `field_view`, drawn by `static/phenomenonrender.js`, and the Sensor registry's entry for the kind). It draws 480 bodies of the field (the heaviest 12 larger), each at `field_dispersal.member_position_m` of the field's Object ID at its age and rms speed (a ball for a collision, a thin ring for a belt a supernova unbound), so the same field is the same cloud after a database rebuild. The line under it states how many bodies larger than 1 km the field really holds (from its mass and the size law of its makeup), that each point is drawn far larger than any of them, its column density end on (`column_density_kg_m2`), how long after it began to spread its 1 km pieces stopped colliding (`freeze_out_time_s`) and how far galactic shear has drawn its far side along its orbit (`shear_displacement_m`). A field older than the 26 Myr the shear is followed for says so.
+- Four functions of `field_dispersal` that nothing read are now read by the page (the wiring register lines are deleted).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4644] - 2026-11-19
+
+**Headline:** A test now holds that a system is the same after other systems were made in the process.
+
+### Added
+
+- `test_a_system_is_the_same_after_other_systems_were_made_in_the_process` (in `test_reproducible_draws.py`) makes the Tatooine example from seed 5, then the Solar example from seed 6, then Tatooine from seed 5 again, in one process, and asserts the two Tatooine stored forms are equal. GEN.1805 suspected a state that carried from one generation to the next; measured, none does (the zeta ophiuchi hunt's repeats were my log parsing, not the generator), and the test keeps it so (GEN.1805).
+
+generation-output: unchanged
+
 ## [8.0.4643] - 2026-11-19
 
 **Headline:** A moon's page now says how often its planet hides its star, and a planet's page how often its moons hide the other suns of its sky.

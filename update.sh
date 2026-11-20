@@ -47,15 +47,13 @@
 #      hand when wanted.
 #      Then it records the version key (OPS.13): one row per galaxy in the
 #      control database, the last 10 kept; `planetgen versions` lists them.
-#   5. `planetgen check-math`: the math check (TEST.68). A failure only
-#      warns (repeated at the end). Generation does not run it (PERF.170); the
-#      admin page can run it any time.
-#      It runs after the migration: it is a run, and every run is a row in the
-#      control database (OPS.271).
-#   6. Apache's headers, deflate and wsgi modules: enabled only if not
+#      The update does not run the math check (`planetgen check-math`, OPS.286): it is
+#      advisory and cost as much as a run; the admin page runs it on request, the web app
+#      checks at startup and the test gate runs it.
+#   5. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
-#   7. Ownership/permissions (`examples/apache/set-permissions.sh`, SEC.37):
+#   6. Ownership/permissions (`examples/apache/set-permissions.sh`, SEC.37):
 #      the code (everything but the state and jobs folders) belongs to
 #      root and is read-only to the web user, since this script runs git
 #      and Python from it as root; only the state directory (which also
@@ -63,17 +61,17 @@
 #      belong to Apache's user (www-data:www-data). The bytecode is
 #      compiled first, as root, because the web user cannot write it. The
 #      virtual environment stays root's.
-#   8. The tile cache and Generate jobs directories
+#   7. The tile cache and Generate jobs directories
 #      (`examples/apache/create-cache-dir.sh`), and the debug and activity
 #      logs (`examples/apache/setup-debug-log.sh`): each one's folder,
 #      file, owner and mode, wherever config.json or the environment puts
 #      it, and whether Apache's user can write it. A log it can't set up
 #      only warns, with the commands that fix it (OPS.5).
-#   9. Imports the web app as Apache's user, so anything still unusable
+#   8. Imports the web app as Apache's user, so anything still unusable
 #      fails here instead of as a 500.
 #
 # At the end it reloads what serves the site when that is running (OPS.8, OPS.29): Apache
-# (after its own configtest; restarted only when step 6 just installed mod_wsgi), the
+# (after its own configtest; restarted only when step 5 just installed mod_wsgi), the
 # planetgen-gunicorn unit on Linux, or the launchd gunicorn daemon on macOS, then checks
 # that /api/health answers, at config.json's api_base_url and nowhere else (OPS.86: no address is guessed; with none configured the
 # update stops before it changes the database). A failed step ends the update non-zero and prints the command
@@ -194,7 +192,7 @@ export PLANETGEN_UPDATE_PID=$$
 trap finish_update_guard EXIT
 ensure_update_guard
 
-log_stage 1 9 "Pulling the latest changes"
+log_stage 1 8 "Pulling the latest changes"
 
 # Mode changes are not local edits: set-permissions.sh makes scripts and
 # *.py files executable, which git (with core.fileMode on) would list.
@@ -240,7 +238,7 @@ source "$SCRIPT_DIR/scripts/deploy-common.sh"
 warn_if_no_swap
 warn_if_memory_guard
 
-log_stage 2 9 "Checking the Python libraries"
+log_stage 2 8 "Checking the Python libraries"
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
 use_site_python
 start_update_log
@@ -251,23 +249,20 @@ ensure_update_guard required
 resolve_api_health || { log_error "set api_base_url in config.json, then run the update again."; exit 1; }
 log_info "The API address (api_base_url in config.json) is ${API_HEALTH_URL%/health}; the update asks only that address."
 
-log_stage 3 9 "Checking the NLTK 'words' corpus and the downloaded data sets"
+log_stage 3 8 "Checking the NLTK 'words' corpus and the downloaded data sets"
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
 build_reference_pages
 check_fudge_table
 
-# OPS.271: the math check is a run, and every run is a row in the control database's ledger, so the database is migrated first.
-log_stage 4 9 "Migrating the configured MySQL database to the current schema"
+# OPS.271: every run is a row in the control database's ledger, so the database is migrated before anything runs.
+log_stage 4 8 "Migrating the configured MySQL database to the current schema"
 migrate_or_reset_db
 record_version_key
 retire_config_options
 warm_shape_means
 
-log_stage 5 9 "Checking the generator's math"
-check_math
-
-log_stage 6 9 "Checking Apache's modules (macOS: the gunicorn daemon)"
+log_stage 5 8 "Checking Apache's modules (macOS: the gunicorn daemon)"
 APACHE_NEEDS_RESTART=0
 if is_macos; then
     ensure_gunicorn_daemon
@@ -275,13 +270,13 @@ else
     ensure_apache_modules
 fi
 
-log_stage 7 9 "Setting ownership/permissions: the code belongs to root, read-only to Apache's user"
+log_stage 6 8 "Setting ownership/permissions: the code belongs to root, read-only to Apache's user"
 # The web user cannot write __pycache__ in a tree that is not its own: compile here, as root, so its requests start fast.
 "$PYTHON" -m compileall -q "$SCRIPT_DIR/src" >/dev/null 2>&1 \
     || log_warning "compiling the bytecode failed; the web app still runs, a little slower to start."
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
-log_stage 8 9 "Checking the cache, jobs and debug log locations"
+log_stage 7 8 "Checking the cache, jobs and debug log locations"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 # The logs never stop an update (OPS.5): setup-debug-log.sh warns, with
 # the commands that fix it, for anything it can't set up itself.
@@ -291,7 +286,7 @@ PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
 # Set the secret key if none is (never printed); as Apache's user so the web app can read it.
 set_secret_key
 
-log_stage 9 9 "Checking that the web app imports"
+log_stage 8 8 "Checking that the web app imports"
 check_app_imports
 
 log_info "Checking the Redis server (config.json's redis.url):"
@@ -302,9 +297,6 @@ check_redis_settings
 install_maintenance_units || log_warning "the maintenance units were not all set up (see above); the deploy carries on."
 
 note_changed_example_configs "$before" "$after"
-if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
-    log_warning "the math check failed (step 5): charted data may be wrong until it is fixed."
-fi
 if [[ "$DATASETS_MISSING" == 1 ]]; then
     log_warning "some data sets could not be downloaded (step 3): bulk generation refuses to start until they are."
 fi
