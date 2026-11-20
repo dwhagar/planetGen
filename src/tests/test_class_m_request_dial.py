@@ -63,6 +63,9 @@ def test_science_and_a_tier_without_a_request_share_make_the_same_draws(monkeypa
 
 
 def test_a_tier_with_no_request_share_makes_the_same_system_as_science(monkeypatch):
+    # TEST.806: sparse's other dials (water, dry part, quiet interior, carbon cycle) move the planets by design, so the row is held at no dial at all:
+    # what is checked is that the request draw alone, with a share of 0, changes nothing.
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "sparse", (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
     for seed in (101, 102, 103):
         signatures = []
         for tier in (None, "science", "sparse"):       # sparse has request_share 0
