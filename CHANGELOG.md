@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4657+db268.gen150.api14] - 2026-11-20
+
+**Headline:** The ledger rows of a run Redis says is over are ended too, so no run stays `running` after `finish-run` carried it on (OPS.284).
+
+### Fixed
+
+- OPS.284 (bug): `planetgen finish-run` carried a run on, but the run it carried on stayed `running` in the ledger with its unfinished jobs `waiting` (found by the OPS.247 trial after a run whose process died on a full disk). The supervisor's `LostRuns` duty now also ends the ledger rows (jobs `canceled`, the run row `canceled`) of every run whose Redis record is `done`, `failed` or `canceled` while its ledger run is `running` or `waiting`. A live or held run is not touched.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4656+db268.gen150.api14] - 2026-11-20
 
 **Headline:** A run that planned a new galaxy in its first stage can be carried on by `finish-run` from a later stage (OPS.284).
