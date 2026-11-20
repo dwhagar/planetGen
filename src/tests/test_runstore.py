@@ -5,7 +5,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.generation import finish_run
-from planetgen.queue import commands, planrows, redisqueue, runrecord, runstore, supervisor, wrapper
+from planetgen.queue import commands, controls, planrows, redisqueue, runrecord, runstore, supervisor, wrapper
 from tests.test_plan_rows import _jobs
 from tests.test_window_spawn import TOTAL, WINDOW, _cut, _rows, _units_of, _windowed   # noqa: F401 -- the fixture and helpers
 
@@ -29,6 +29,12 @@ def _no_copies_left_behind(mysql_config):
     _empty_copies(mysql_config)
     yield
     _empty_copies(mysql_config)
+    control = store.get_control_connection(store.control_mysql_config(mysql_config))
+    try:
+        controls.end_rows(control)          # the rows of a run whose Redis this file dropped stay ready: the inline launcher of a later test would start them and write a hash for each run
+        control.commit()
+    finally:
+        control.close()
 
 
 def _started(mysql_config):
@@ -150,3 +156,20 @@ def test_a_run_the_queue_page_deleted_is_not_restored_and_a_finished_run_comes_b
         assert runstore.restore_lost(conn, control) == [], "a finished run older than Redis keeps it is not restored"
     finally:
         control.close()
+
+
+def test_a_run_that_ended_in_redis_with_its_ledger_rows_open_has_them_ended_and_a_live_run_is_left_alone(mysql_config):
+    """OPS.284: a run whose process could not even write its own end (a full disk) or was found dead by `finish-run` ends in Redis, and nothing ended its ledger rows (the OPS.247 trial's run 13)."""
+    conn, ended_run, _step = _started(mysql_config)
+    runrecord.finish_run(conn, ended_run, "failed", error="its process was gone", killed=True)
+    live_run = _started(mysql_config)[1]
+    engine, state = _ledger_state(conn, ended_run, mysql_config)
+    assert state in ("running", "waiting"), "the end in Redis leaves the ledger's run row open"
+    assert runstore.settle_ended(conn) == [ended_run]
+    assert _ledger_state(conn, ended_run, mysql_config) == (engine, "canceled")
+    assert {job["state"] for job in _jobs(mysql_config, engine)} <= {"done", "canceled", "failed"}
+    assert _ledger_state(conn, live_run, mysql_config)[1] in ("running", "waiting"), "a live run's rows are not touched"
+    assert runstore.settle_ended(conn) == [], "ended once"
+    runrecord.finish_run(conn, live_run, "canceled", error="the test is over")
+    runrecord.delete_run(conn, live_run)
+    runrecord.delete_run(conn, ended_run)
