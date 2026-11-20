@@ -75,6 +75,11 @@ TRACE_FULL_SHARE = 1.0e-3
 hundred thousand (the family draws from 1e-5 up), so between absent and about 1e-3 the network invents a slope: ten parts per million of hydrogen cyanide added 76 K, a trace of helium up to
 100 K, a part in a hundred million of ozone 10 K (GEN.1588). Below this share the effect of each such gas is taken as its share over this share of what the table says it does in full, the
 optically thin limit (the effect goes with the column), and nothing at zero."""
+TRACE_FULL_PA = 100.0
+"""float: STAND-IN (IR19, tier T5, L3): the partial pressure at and above which a minor gas counts in full in any air, Pa: `TRACE_FULL_SHARE` of a bar (GEN.1796). The effect of a thin gas goes with its column, and a
+column is a partial pressure, not a share: in an air of 27 bar the 410 Pa of carbonyl sulfide that is 1.5e-4 of it has a column four times that of 1e-3 of an air of one bar, and the model warms the air by 61 K for it where
+the share rule gave it a seventh of its effect (cold dense nitrogen airs came out 50 to 70 K cold). A gas counts in full when either its share reaches `TRACE_FULL_SHARE` or its partial pressure reaches this; an air
+of a bar or less reads as before."""
 TRACE_EXEMPT = frozenset(("H2O", "CO2", "CH4", "N2", "O2"))
 """frozenset: The gases the fit saw at every share (the water, carbon dioxide and methane of the airs it was made on, and the bulk gases): they count in full at any share, as Earth's 400 parts per million of carbon dioxide must."""
 ALOFT_MONOTONE_NODES = 10
@@ -144,8 +149,8 @@ def features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share
     fractions = {formula: pressure / total for formula, pressure in partial_pressures_pa.items()}
     effective = (absorbed_flux_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
     others = [(formula, fraction) for formula, fraction in fractions.items() if formula not in TABLED_GASES and formula not in PAIRING_GASES]
-    infrared = sum(fraction for formula, fraction in others if gases.gas(formula).ir == "ir")
-    weak = sum(fraction for formula, fraction in others if gases.gas(formula).ir == "weak")
+    infrared = sum(fraction for formula, fraction in others if gases.gas(formula).infrared_class == "ir")
+    weak = sum(fraction for formula, fraction in others if gases.gas(formula).infrared_class == "weak")
     molar_mass = sum(fraction * gases.gas(formula).molar_mass for formula, fraction in fractions.items())
     if aloft_pressure_pa is None:
         aloft_pressure_pa = total * DEFAULT_ALOFT_SHARE_OF_PRESSURE
@@ -180,22 +185,27 @@ def _deep_air_rise(total_pa, vector):
     return max(1.0 - 1.0 / gamma, 0.0) * math.log(total_pa / top_pa)
 
 
+def _trace_weight(pascal, total_pa):
+    """How much of its full effect a minor gas has (`TRACE_FULL_SHARE`, `TRACE_FULL_PA`): its share over the full share or its partial pressure over the full pressure, whichever is more, and 1 at most."""
+    return min(1.0, max(pascal / total_pa / TRACE_FULL_SHARE, pascal / TRACE_FULL_PA))
+
+
 def strip_traces(partial_pressures_pa):
-    """The air without its minor gases under `TRACE_FULL_SHARE` (the base `_ratio_with_traces` reads, GEN.1588; the air itself if nothing is left). The refit of the table
+    """The air without its minor gases under `TRACE_FULL_SHARE` and `TRACE_FULL_PA` (the base `_ratio_with_traces` reads, GEN.1588; the air itself if nothing is left). The refit of the table
     is made on airs stripped like this (`scripts/fit_greenhouse_table.py envelope`, GEN.1717), so the network is asked at runtime about the airs it was fitted on."""
     total = mixture.total_pressure_pa(partial_pressures_pa)
-    base = {formula: pascal for formula, pascal in partial_pressures_pa.items() if formula in TRACE_EXEMPT or not 0.0 < pascal / total < TRACE_FULL_SHARE}
+    base = {formula: pascal for formula, pascal in partial_pressures_pa.items() if formula in TRACE_EXEMPT or not (0.0 < pascal and _trace_weight(pascal, total) < 1.0)}
     return base if base else dict(partial_pressures_pa)
 
 
 def _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa):
     """
-    `ln(T_s / T_e)` of the air with each minor gas under `TRACE_FULL_SHARE` counted by its share (GEN.1588): the air without them gives the base, and each one adds its share over
-    `TRACE_FULL_SHARE` of what the table says it adds to that base. An air with no such gas is read as it is. A gas that reaches the share moves into the base with the whole of its
+    `ln(T_s / T_e)` of the air with each minor gas under `TRACE_FULL_SHARE` and `TRACE_FULL_PA` counted by its share or column (GEN.1588, GEN.1796): the air without them gives the base, and each one adds its
+    `_trace_weight` of what the table says it adds to that base. An air with no such gas is read as it is. A gas that reaches the share moves into the base with the whole of its
     effect, so the answer does not jump at it (only the small interaction between two traces does).
     """
     traces = {formula: pascal for formula, pascal in partial_pressures_pa.items()
-              if formula not in TRACE_EXEMPT and 0.0 < pascal / total_pa < TRACE_FULL_SHARE}
+              if formula not in TRACE_EXEMPT and 0.0 < pascal and _trace_weight(pascal, total_pa) < 1.0}
     base = strip_traces(partial_pressures_pa)
     if not traces or len(base) == len(partial_pressures_pa):
         return log_ratio(vector)
@@ -203,7 +213,7 @@ def _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, abs
     ratio = base_ratio
     for formula, pascal in traces.items():
         with_gas = log_ratio(features({**base, formula: pascal}, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa))
-        ratio += pascal / total_pa / TRACE_FULL_SHARE * (with_gas - base_ratio)
+        ratio += _trace_weight(pascal, total_pa) * (with_gas - base_ratio)
     return ratio
 
 
@@ -243,7 +253,7 @@ def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=
     else:
         ratio = _ratio_with_traces(partial_pressures_pa, total, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
     ratio += _deep_air_rise(total, vector)
-    absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).ir != "none") / total
+    absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).infrared_class != "none") / total
     ratio *= min(1.0, total / THIN_AIR_PA, absorbing / ABSORBER_SHARE_MIN)
     surface = effective * math.exp(ratio)
     return Warming(effective_temperature_k=effective, surface_temperature_k=surface,
