@@ -2660,6 +2660,7 @@ planets = sa.Table(
     sa.Column('oddities', sa.String(40), nullable=True),
     sa.Column('collision_count', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('sky_suns', sa.String(400), nullable=True),
+    sa.Column('cloud_decks', sa.Text(), nullable=True),
     sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('obliquity_min_deg', mysql.DOUBLE(), nullable=True),
     sa.Column('obliquity_max_deg', mysql.DOUBLE(), nullable=True),

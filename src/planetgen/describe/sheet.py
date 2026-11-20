@@ -23,7 +23,7 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, model, sky_size_rows
+from planetgen.describe import clock_rows, day_rows, deck_rows, heavy_rows, influx_row, model, sky_size_rows
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import object_uid, scales
@@ -657,6 +657,7 @@ NOT_SHOWN = {
                    "spin_axis_z", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), _VECTORS),
     },
     "planet": {**_BODY_NOT_SHOWN, "host_node_id": "the orbit tree node; bookkeeping",
+               "cloud_decks": "a giant's cloud decks and trace-gas ceilings as stored text; the rows of each cloud and gas are shown (`describe/deck_rows.py`), not the text",
                "belt_order": "the number of the belt a promoted planet came from, which its designation carries; bookkeeping",
                "belt_rank": "the rank a promoted planet had among its belt's members, which its designation carries; bookkeeping",
                **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km"), _VECTORS)},
@@ -1468,7 +1469,7 @@ def _ice_capped_provider(conn, kind, object_id, row):
 
 def _module_rows_provider(conn, kind, object_id, row):
     for group, key, label, value, raw in (*clock_rows.rows(conn, kind, object_id), *heavy_rows.rows(conn, kind, object_id),
-                                            *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id)):
+                                            *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id), *deck_rows.rows(conn, kind, object_id)):
         yield group, _sheet_row(key, label, value, raw=raw)
 
 
