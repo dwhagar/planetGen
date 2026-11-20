@@ -143,11 +143,17 @@ def evolved_oxidized(subject, recipe, row, supply=None):
     else:
         ocean = 2.0 * bracket(constants, "ocean_water_wt_percent", OCEAN_WATER_WT_PERCENT) / mixture_rocky.AMU_G_MOL["H2O"]
         carbon = ocean / 2.0 * bracket(constants, "carbon_per_ocean_water", CARBON_PER_OCEAN_WATER)
+        # the oxygen the volcanic gas has beyond its water, carbon dioxide and sulfur dioxide is its redox (negative for a reduced gas); it stays per
+        # carbon atom like the nitrogen and the sulfur, and the oxygen of the carbon and sulfur that replace the gas's follows them, so the old gas's oxygen
+        # is not left free in the new one (GEN.1769 slice 2: it was 0.004 to 0.006 atoms per 100 g against 0.00005 to 0.0001 that the photolysis leaves)
+        old_carbon = atoms.get("C", 0.0)
+        excess = atoms["O"] - atoms.get("H", 0.0) / 2.0 - 2.0 * old_carbon - 2.0 * atoms.get("S", 0.0)
+        excess *= carbon / old_carbon if old_carbon > 0.0 else 0.0
         for symbol in ("N", "S"):
             atoms[symbol] = carbon * inventory[symbol] / inventory["C"]        # nitrogen and sulfur stayed per carbon atom
         atoms["C"] = carbon
         atoms["H"] = atoms.get("H", 0.0) + ocean
-        atoms["O"] += ocean / 2.0
+        atoms["O"] = excess + atoms["H"] / 2.0 + 2.0 * (atoms["C"] + atoms["S"])
         lost = atoms["H"] * bracket(constants, "water_photolysed", WATER_PHOTOLYSED)
         atoms["H"] -= lost
         atoms["O"] -= (lost / 2.0) * bracket(constants, "oxygen_escape", OXYGEN_ESCAPE)
