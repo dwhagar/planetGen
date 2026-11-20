@@ -25,9 +25,9 @@
     },
     "by_tweak": {
       "L0": 1105,
-      "L1": 396,
+      "L1": 397,
       "L2": 99,
-      "L3": 272,
+      "L3": 271,
       "L4": 64
     },
     "rows": 1936
@@ -117,7 +117,7 @@
     },
     "fitted_to_a_result": {
       "percent": 22,
-      "rows": 435
+      "rows": 434
     },
     "read_from_a_source": {
       "percent": 27,
