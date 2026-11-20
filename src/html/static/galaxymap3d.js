@@ -1455,23 +1455,44 @@ function initGalaxyMap3d(canvasEl, data) {
   var currentGeneration = remembered.generation || "";
   var nodeMemory = new Map();
 
-  // Map iteration order is insertion order, so re-inserting on every hit
-  // and evicting from the front makes these LRU caches.
+  // Map iteration order is insertion order, so re-inserting a hit and evicting
+  // from the front makes these LRU caches. A hit is re-inserted only when the
+  // entry was last used more than MEMORY_RECENT uses ago (PERF.200: re-inserting
+  // on every hit was 409 ms of a dive, flight and climb); an entry used since
+  // then is passed over once more at the front instead of evicted (second
+  // chance), so a hot entry is never the one to go.
+  var MEMORY_RECENT = 500;
+  var memoryTick = 0;
+  var USED = Symbol("used");
+
   function memoryGet(cache, key) {
-    if (!cache.has(key)) {
+    var value = cache.get(key);
+    if (value === undefined) {
       return undefined;
     }
-    var value = cache.get(key);
-    cache.delete(key);
-    cache.set(key, value);
+    memoryTick += 1;
+    if (memoryTick - value[USED] > MEMORY_RECENT) {
+      cache.delete(key);
+      cache.set(key, value);
+      value[USED] = memoryTick;
+    }
     return value;
   }
 
   function memorySet(cache, key, value, max) {
     cache.delete(key);
+    memoryTick += 1;
+    value[USED] = memoryTick;
     cache.set(key, value);
     while (cache.size > max) {
-      cache.delete(cache.keys().next().value);
+      var oldest = cache.keys().next().value;
+      var held = cache.get(oldest);
+      cache.delete(oldest);
+      if (memoryTick - held[USED] <= MEMORY_RECENT) {
+        // used lately without being moved: kept, as old as it now is
+        held[USED] = memoryTick - MEMORY_RECENT - 1;
+        cache.set(oldest, held);
+      }
     }
   }
 
@@ -3121,10 +3142,17 @@ function initGalaxyMap3d(canvasEl, data) {
     markersDirty = true;
     // MAP.249: a view whose nodes are the ones already drawn (a fetch that brought nothing new, a settled camera)
     // is known from the nodes alone, so nothing is built or sorted.
-    var view = drawnSignature(need.keys, getNode);
-    var settled = settledExpanded(need, function (key) { return getNode(key) !== undefined; });
+    // PERF.200: each node of the cut is looked up once (a look-up touches the node's place in the memory); the rest of
+    // this function reads it from here.
+    var nodeOf = new Map();
+    need.keys.forEach(function (key) {
+      var found = getNode(key);
+      if (found !== undefined) nodeOf.set(key, found);
+    });
+    var view = drawnSignature(need.keys, function (key) { return nodeOf.get(key); });
+    var settled = settledExpanded(need, function (key) { return nodeOf.has(key); });
     var weigh = weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), settled);
-    var held = need.keys.filter(function (key) { return getNode(key) !== undefined; });
+    var held = need.keys.filter(function (key) { return nodeOf.has(key); });
     var drawn = held.filter(function (key) {
       var block = parseNodeKey(key);
       if (weigh(block) > 0) return true;
@@ -3132,7 +3160,7 @@ function initGalaxyMap3d(canvasEl, data) {
       return parent !== null && weigh(parent) > 0;
     });
     var nodesDrawn = currentStamp + "|" + filterStamp() + "|" + drawn.map(function (key) {
-      return key + "#" + nodeRevision(getNode(key));
+      return key + "#" + nodeRevision(nodeOf.get(key));
     }).sort().join(";");
     drawnSettled = settled;
     if (nodesDrawn === starSignature) {
@@ -3141,7 +3169,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var clouds = new Map();
     cloudNodes = new Map();
     drawn.forEach(function (key) {
-      (getNode(key).clouds || []).forEach(function (cloud) {
+      (nodeOf.get(key).clouds || []).forEach(function (cloud) {
         clouds.set(cloudKey(cloud), cloud);
         if (!cloudNodes.has(cloudKey(cloud))) cloudNodes.set(cloudKey(cloud), []);
         cloudNodes.get(cloudKey(cloud)).push(key);
@@ -3151,7 +3179,7 @@ function initGalaxyMap3d(canvasEl, data) {
     starSignature = nodesDrawn;
     syncStars(drawn);
     var drawnNodes = drawn.map(function (key) {
-      return { key: key, block: parseNodeKey(key), node: getNode(key) };
+      return { key: key, block: parseNodeKey(key), node: nodeOf.get(key) };
     });
     if (glow) {
       glow.setBlobs(blobsOf(drawnNodes, NODE_EDGE_PC), [target.x, target.y, target.z]);
