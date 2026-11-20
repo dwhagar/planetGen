@@ -2,6 +2,40 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4658+db268.gen150.api14] - 2026-11-20
+
+**Headline:** The special phenomena stage no longer takes hours on a big galaxy, and it says how many ring sectors it has done and how long is left (PERF.284, OPS.289).
+
+### Fixed
+
+- The ring remnants piece of "Write the special phenomena" reads the light of the cells each chunk reaches by sector address, and the scatter has taken the address index off the phenomenon table for its inserts, so every chunk of 200 sectors scanned the whole table (2 to 3 s each, mysqld at one full core, on Lane 15's run: 2h 33m and counting). The piece now builds that one index first when it is missing; the index stage after it finds it present. On a stand-in table of 3 million rows a 500-cell read took 1.5 s without the index and 0.02 s with it, and the index took 5 s to build.
+
+### Added
+
+- The ring remnants piece says `Neutron stars and black holes of the backfill rings: 12,000 of 91,500 done (13%), 40 a second, 5m 3s elapsed, about 33m 20s left.` at the log cadence and as the unit's second bar (the real count of sectors, OPS.289), where it showed no count.
+
+## [8.0.4657+db268.gen150.api14] - 2026-11-20
+
+**Headline:** The ledger rows of a run Redis says is over are ended too, so no run stays `running` after `finish-run` carried it on (OPS.284).
+
+### Fixed
+
+- OPS.284 (bug): `planetgen finish-run` carried a run on, but the run it carried on stayed `running` in the ledger with its unfinished jobs `waiting` (found by the OPS.247 trial after a run whose process died on a full disk). The supervisor's `LostRuns` duty now also ends the ledger rows (jobs `canceled`, the run row `canceled`) of every run whose Redis record is `done`, `failed` or `canceled` while its ledger run is `running` or `waiting`. A live or held run is not touched.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4656+db268.gen150.api14] - 2026-11-20
+
+**Headline:** A run that planned a new galaxy in its first stage can be carried on by `finish-run` from a later stage (OPS.284).
+
+### Fixed
+
+- OPS.284 (bug): a run begun on an empty database could not be carried on after it stopped: `planetgen finish-run` said the run "did not record the galaxy and the build it worked on", because the galaxy's seed is read when the run starts and the galaxy did not exist yet (found by the OPS.247 trial, whose run stopped in stage 12 of 19 on a full disk). The run now records the stored galaxy's seed after the stage that planned it.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4655+db268.gen150.api14] - 2026-11-20
 
 **Headline:** A generation run's record is kept in the control database, so a restart of the machine or of Redis no longer loses the run (OPS.284).

@@ -114,7 +114,7 @@ def restore_lost(conn, control=None):
 def settle_lost(conn, control=None):
     """
     Restores the runs Redis lost (`restore_lost`) and ends each that was live when it went, as a run whose process is gone: `failed` and killed with `LOST_TEXT`, its ledger rows ended (`runcontrol.clear_run`).
-    A run that was held, done, failed or canceled comes back as it was and is left alone.
+    A run that was held, done, failed or canceled comes back as it was and is left alone. Then `settle_ended` ends the ledger rows of the runs that ended in Redis with theirs still open.
 
     Returns:
         list[str]: The ids of the runs it ended.
@@ -124,6 +124,34 @@ def settle_lost(conn, control=None):
     for run_id in restore_lost(conn, control):
         if runrecord.run_state(conn, run_id) in runrecord.LIVE_STATES and runcontrol.clear_run(conn, run_id, who="the supervisor", reason=LOST_TEXT) is not None:
             ended.append(run_id)
+    settle_ended(conn, control)
+    return ended
+
+
+def settle_ended(conn, control=None):
+    """
+    Ends the ledger rows of every run whose Redis record says it is over (`done`, `failed`, `canceled`) while its ledger run is still `running` or `waiting`: a run `finish-run` found with no process (its process was
+    killed, or could not even write its own end: a full disk), whose rows nothing else ends (found by the OPS.247 trial, run 13). The unfinished jobs become `canceled` and the run row says so (`controls.end_rows`); a
+    finished job is left as it is, and a run that is live or held is not touched.
+
+    Returns:
+        list[str]: The ids of the runs whose rows it ended.
+    """
+    from planetgen.queue import controls
+    own = control is None
+    if own:
+        from planetgen.db import store
+        control = store.get_control_connection(store.control_mysql_config())
+    ended = []
+    try:
+        for row in control.execute("SELECT r.run_id, r.ledger_run FROM engine_run_records r JOIN engine_runs e ON e.id = r.ledger_run WHERE e.state IN ('running', 'waiting')").fetchall():
+            if runrecord.run_state(conn, row["run_id"]) in runrecord.FINAL_STATES:
+                controls.end_rows(control, int(row["ledger_run"]))
+                ended.append(row["run_id"])
+        control.commit()
+    finally:
+        if own:
+            control.close()
     return ended
 
 
