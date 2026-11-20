@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4646] - 2026-11-20
+
+**Headline:** The memory controller's learning now sees the job processes the kernel killed for memory (OPS.249).
+
+### Fixed
+
+- A job process that ended on SIGKILL, the kernel's kill for memory, is recorded as a `killed_memory` attempt (kind `killed`, as before). Since the old queue's unit path went (OPS.271), the launcher recorded it as `lost`, so `pressurelearn.read_record` found no kill and the controller's edges could never move down however many kills there were. A job that ends on any other signal stays `lost`. The retry on a grown claim, run alone, is as it was.
+
 ## [8.0.4645] - 2026-11-19
 
 **Headline:** An asteroid field's page now shows the field in 3D: its own bodies as a cloud at the places its age and speed put them, with the real body count stated under it.
