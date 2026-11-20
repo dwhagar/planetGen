@@ -46,7 +46,24 @@ def _make_repo(root, version="1.2.3"):
         f.write(f"# Changelog\n\n## [{version}] - 2026-01-01\n\n### Fixed\n- Old fix.\n")
     with open(os.path.join(root, "changes", "README.md"), "w") as f:
         f.write("# Pending release notes\n")
+    _make_suffix_sources(root)
     return root
+
+
+SUFFIX = "+db7.gen1.api2"
+"""str: The local suffix the stand-in repo's sources make (OPS.64)."""
+
+
+def _make_suffix_sources(root):
+    """The three places the suffix is read from: a migration revision (its id is the schema version), the epochs and the API version."""
+    for path, text in ((bump_version.MIGRATIONS_DIR + "/0006_a.py", ""), (bump_version.MIGRATIONS_DIR + "/0007_b.py", ""),
+                       (bump_version.EPOCHS_FILE, json.dumps({"epochs": [{"epoch": 1}]})),
+                       (bump_version.API_VERSION_FILE, "API_VERSION = 2\n")):
+        full = os.path.join(root, path)
+        if not os.path.exists(full):
+            os.makedirs(os.path.dirname(full), exist_ok=True)
+            with open(full, "w") as f:
+                f.write(text)
 
 
 def _note(root, name, body):
@@ -87,15 +104,15 @@ def test_stamp_updates_all_three_places_and_removes_the_note(tmp_path):
 
     assert bump_version.stamp(root, date="2026-02-02") == ["1.3.4"]
 
-    assert '__version__ = "1.3.4"' in _read(root, bump_version.VERSION_FILE)
-    assert "**Version:** 1.3.4 &middot;" in _read(root, "README.md")
+    assert f'__version__ = "1.3.4{SUFFIX}"' in _read(root, bump_version.VERSION_FILE)
+    assert f"**Version:** 1.3.4{SUFFIX} &middot;" in _read(root, "README.md")
     changelog = _read(root, "CHANGELOG.md")
     assert changelog.startswith(
-        "# Changelog\n\n## [1.3.4] - 2026-02-02\n\n**Headline:** A thing works better.\n\n### Fixed\n- Fixed a thing.\n\n## [1.2.3]")
+        f"# Changelog\n\n## [1.3.4{SUFFIX}] - 2026-02-02\n\n**Headline:** A thing works better.\n\n### Fixed\n- Fixed a thing.\n\n## [1.2.3]")
     assert not os.path.exists(os.path.join(root, "changes", "thing.patch.md"))
     assert os.path.exists(os.path.join(root, "changes", "README.md"))
     assert bump_version.current_versions(root) == {
-        bump_version.VERSION_FILE: "1.3.4", "README.md": "1.3.4", "CHANGELOG.md": "1.3.4"}
+        bump_version.VERSION_FILE: "1.3.4" + SUFFIX, "README.md": "1.3.4" + SUFFIX, "CHANGELOG.md": "1.3.4" + SUFFIX}
 
 
 def test_each_note_gets_its_own_release(tmp_path):
@@ -106,7 +123,7 @@ def test_each_note_gets_its_own_release(tmp_path):
     # No git here, so filename order decides.
     assert bump_version.stamp(root, date="2026-02-02") == ["1.3.4", "1.4.5"]
     changelog = _read(root, "CHANGELOG.md")
-    assert changelog.index("## [1.4.5]") < changelog.index("## [1.3.4]") < changelog.index("## [1.2.3]")
+    assert changelog.index("## [1.4.5") < changelog.index("## [1.3.4") < changelog.index("## [1.2.3]")
 
 
 def test_no_notes_is_a_no_op(tmp_path):
@@ -257,7 +274,7 @@ def test_build_goes_up_by_one_on_every_release_and_never_resets(tmp_path):
     _note(root, "b-feature.minor.md", ADDED_NOTE)
     _note(root, "c-break.major.md", ADDED_NOTE)
     assert bump_version.stamp(root, date="2026-02-02") == ["1.3.4", "1.4.5", "2.0.6"]
-    assert '__version__ = "2.0.6"' in _read(root, bump_version.VERSION_FILE)
+    assert f'__version__ = "2.0.6{SUFFIX}"' in _read(root, bump_version.VERSION_FILE)
 
 
 def test_a_stale_next_free_table_is_rejected(tmp_path):
@@ -293,8 +310,8 @@ def test_revision_hold_keeps_the_revision_and_treats_major_as_minor(tmp_path, mo
     _note(root, "b-fix.patch.md", FIXED_NOTE)
     assert bump_version.stamp(root, date="2026-02-02") == ["8.0.712", "8.0.713"]
     changelog = _read(root, "CHANGELOG.md")
-    assert changelog.index("## [8.0.713]") < changelog.index("## [8.0.712]") < changelog.index("## [8.0.711]")
-    assert '__version__ = "8.0.713"' in _read(root, bump_version.VERSION_FILE)
+    assert changelog.index("## [8.0.713") < changelog.index("## [8.0.712") < changelog.index("## [8.0.711")
+    assert f'__version__ = "8.0.713{SUFFIX}"' in _read(root, bump_version.VERSION_FILE)
 
 
 def test_merge_bodies_puts_new_bullets_first_in_each_section():
@@ -310,7 +327,7 @@ def test_a_headline_line_leads_the_note_and_lands_under_the_release_heading(tmp_
     _note(root, "thing.minor.md", "**Headline:** The map opens on the biggest group.\n\n### Added\n- Added a thing.\n")
     bump_version.stamp(root, date="2026-02-02")
     changelog = _read(root, bump_version.CHANGELOG_FILE)
-    assert ("## [1.3.4] - 2026-02-02\n\n**Headline:** The map opens on the biggest group.\n\n### Added"
+    assert (f"## [1.3.4{SUFFIX}] - 2026-02-02\n\n**Headline:** The map opens on the biggest group.\n\n### Added"
             in changelog)
 
 
@@ -577,3 +594,41 @@ def test_stamping_an_api_note_names_the_release_of_the_pending_row(tmp_path):
     rows = json.load(open(os.path.join(root, bump_version.API_VERSIONS_FILE)))["versions"]
     assert rows[2]["first_release"] == "1.4.5" and "pending" not in rows[2]   # the second note's release
     assert rows[1]["first_release"] == "1.0.2"
+
+
+def test_the_suffix_is_read_from_the_schema_epoch_and_api_sources(tmp_path):
+    """OPS.64: the three numbers come from their own sources at stamp time, never typed."""
+    root = _make_repo(str(tmp_path))
+    assert bump_version.version_suffix(root) == SUFFIX
+    open(os.path.join(root, bump_version.MIGRATIONS_DIR, "0134_c.py"), "w").close()
+    with open(os.path.join(root, bump_version.EPOCHS_FILE), "w") as f:
+        json.dump({"epochs": [{"epoch": 1}, {"epoch": 62}]}, f)
+    with open(os.path.join(root, bump_version.API_VERSION_FILE), "w") as f:
+        f.write("API_VERSION = 5\n")
+    assert bump_version.version_suffix(root) == "+db134.gen62.api5"
+    _note(root, "thing.patch.md", FIXED_NOTE)
+    bump_version.stamp(root, date="2026-02-02")
+    assert '__version__ = "1.3.4+db134.gen62.api5"' in _read(root, bump_version.VERSION_FILE)
+
+
+def test_a_stamped_version_is_the_start_of_the_next_release_without_its_suffix():
+    assert bump_version.release_of("8.2.2100+db134.gen62.api5") == "8.2.2100"
+    assert bump_version.parse_version("8.2.2100+db134.gen62.api5") == (8, 2, 2100)
+    assert bump_version.next_version("1.2.3+db7.gen1.api2", "patch") == "1.3.4"
+
+
+@needs_git
+def test_check_pr_rejects_a_hand_set_suffix(tmp_path):
+    """OPS.64: a PR that sets the +db/gen/api suffix by hand (the release number the same) is refused in each place it shows."""
+    root = _make_repo(str(tmp_path))
+    _init_git(root)
+    _git(root, "checkout", "-q", "-b", "feature")
+    _note(root, "feature.patch.md", FIXED_NOTE)
+    for path in (bump_version.VERSION_FILE, "README.md", "CHANGELOG.md"):
+        text = _read(root, path).replace("1.2.3", "1.2.3+db9.gen9.api9", 1)
+        with open(os.path.join(root, path), "w") as f:
+            f.write(text)
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", "hand-set suffix")
+    problems = bump_version.check_pr(root, "main")
+    assert len([p for p in problems if "+db/gen/api suffix" in p]) == 3
