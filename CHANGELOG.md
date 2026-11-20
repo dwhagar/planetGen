@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4650] - 2026-11-20
+
+**Headline:** A reset, data check or database check that is ended by SIGTERM now says who sent it, and the reset says that running it again finishes the wipe.
+
+### Changed
+
+- `planetgen reset` and the data and database checks end on a `Stopped` interrupt that carries the reason the canceller left (update guard, stop-all), or says the signal left none, in place of a bare traceback. The reset prints one line and exits 143.
+
 ## [8.0.4649] - 2026-11-20
 
 **Headline:** The mixture subject of a body's air setting is a class and not a closure, so a setting can go to a process pool again
