@@ -60,6 +60,7 @@ One process per host (`queue/supervisor.py`, `cli/supervisor.py`). Its loop take
 
 | Duty | What it does |
 |---|---|
+| `LostRuns` | Runs Redis lost (OPS.284): a run's record (steps, galaxy seed and build, stage clocks and conclusions) is kept in the control database (`engine_run_records`, `queue/runstore.py`) at every change that matters. Every 30 s the duty puts back into Redis the runs whose record is gone and ends the ones that were live as a run whose process is gone (failed, killed, its ledger rows ended), so a restart of the machine or of Redis leaves no run `running` in the ledger and `finish-run` finds the run. Redis is the cache; a run with no ledger rows has no copy. |
 | `Reconciler` | Compares the run records with the rows and processes and corrects (R4: recompute, do not remember): a stage that finished and never queued its next opening gets it; a run whose starter is gone is carried on by the supervisor. Every correction is said in the supervisor's acts. |
 | `RunStarts` | Starts runs: a process that wants a run leaves an ask (`queue/runline.py`) and follows the run the supervisor starts for it; a run that finds the machine taken waits in the line. |
 | `RunWatches` | The watch on every live run's units (`unitwatch.UnitWatch`, `beatjudge`, `unitstuck.Stuck`) that used to live in the starter. |
