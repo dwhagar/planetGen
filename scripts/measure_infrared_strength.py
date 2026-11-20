@@ -101,7 +101,7 @@ def main():
     base = done[(None, 0.0)]
     curve = [(share, done[("SO2", share)] - base) for share in CURVE_SHARES if done.get(("SO2", share)) is not None]
     curve = [(share, k) for share, k in curve if k > 0.0]
-    weights = {}
+    weights, unmeasured = {}, {}
     for gas in gases_:
         ratios, kelvin = [], {}
         for share in GAS_SHARES:
@@ -112,19 +112,20 @@ def main():
             kelvin[f"{share:g}"] = round(warming, 4)
             if warming >= NO_EFFECT_K:
                 ratios.append(equal_share(curve, warming) / share)
-        weight = math.exp(sum(math.log(r) for r in ratios) / len(ratios)) if ratios else MIN_WEIGHT
         row = gases.gas(gas)
-        standin = row.infrared is None or not row.infrared.bands
-        weights[gas] = {"weight": float(f"{max(weight, MIN_WEIGHT):.3g}"), "warming_k": kelvin}
-        if standin:
-            weights[gas]["remeasure"] = "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so the weight is the stand-in's"
+        if row.infrared is None or not row.infrared.bands:
+            unmeasured[gas] = {"reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's", "warming_k": kelvin}
+        elif not ratios:
+            unmeasured[gas] = {"reason": f"under {NO_EFFECT_K} K of warming on Earth's air at every share measured: Earth's air cannot tell its strength (a cold dense air can)", "warming_k": kelvin}
+        else:
+            weights[gas] = {"weight": float(f"{max(math.exp(sum(math.log(r) for r in ratios) / len(ratios)), MIN_WEIGHT):.3g}"), "warming_k": kelvin}
     data = {"reference_gas": "SO2", "reference_air_pa": REFERENCE_AIR, "gravity_m_s2": GRAVITY_M_S2, "absorbed_flux_w_m2": ABSORBED_FLUX_W_M2,
-            "reference_warming_k": {f"{share:g}": round(k, 4) for share, k in curve}, "gas_shares": list(GAS_SHARES), "weights": weights,
+            "reference_warming_k": {f"{share:g}": round(k, 4) for share, k in curve}, "gas_shares": list(GAS_SHARES), "weights": weights, "unmeasured": unmeasured,
             "note": "GEN.1621: moles of SO2 that warm Earth's air as much as one mole of the gas, measured against radiative_convective.warming by scripts/measure_infrared_strength.py"}
     with open(args.out, "w", encoding="utf-8") as handle:
         json.dump(data, handle, indent=1)
         handle.write("\n")
-    print(f"written to {args.out}: {len(weights)} gases, weights {min(w['weight'] for w in weights.values()):.3g} to {max(w['weight'] for w in weights.values()):.3g}")
+    print(f"written to {args.out}: {len(weights)} gases weighed ({min(w['weight'] for w in weights.values()):.3g} to {max(w['weight'] for w in weights.values()):.3g}), {len(unmeasured)} left at 1")
 
 
 if __name__ == "__main__":

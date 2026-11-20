@@ -103,7 +103,7 @@ def test_gases_with_stand_in_bands_are_counted_by_the_strength_the_gas_table_fla
 
     strong = next(f for f in ("C2H6", "O3", "N2O") if gases.gas(f).ir == "ir")
     named = dict(zip(gt.FEATURE_NAMES, gt.features({"N2": 0.9e5, strong: 0.1e5}, 9.81, 240.0)))
-    assert named["ln_fraction_ir"] == pytest.approx(math.log(0.1 + gt.FRACTION_FLOOR))
+    assert named["ln_fraction_ir"] == pytest.approx(math.log(0.1 * gt.infrared_weights().get(strong, 1.0) + gt.FRACTION_FLOOR))
     assert named["ln_fraction_weak"] == pytest.approx(math.log(gt.FRACTION_FLOOR))
 
 
@@ -281,7 +281,7 @@ def test_the_table_keeps_the_greenhouse_of_earths_air_with_its_carbon_dioxide_an
 def test_the_infrared_input_weighs_each_gas_by_the_strength_measured_against_the_model():
     """GEN.1621: N2O warms Earth's air less than the same share of SO2 does, so the one input that sums them counts it by its measured weight (`infrared_strength.json`)."""
     weights = gt.infrared_weights()
-    assert weights["SO2"] == pytest.approx(1.0, rel=0.3)
+    assert "SO2" not in weights            # the reference gas has an input of its own
     assert 0.0 < weights["N2O"] < 1.0
     share = 1.0e-4
     named = dict(zip(gt.FEATURE_NAMES, gt.features({"N2": 1.0e5 * (1.0 - share), "N2O": 1.0e5 * share}, 9.81, 240.0)))
