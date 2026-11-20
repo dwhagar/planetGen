@@ -1,10 +1,10 @@
 # tests/test_math_gate.py
 
 """
-The math check's command and its place in an update (TEST.68, PERF.170): `planetgen
-check-math`, the warning `update.sh` gives, and that generation does not run it (Boss,
-2026-10-23: the check runs at every update and from the admin page, not before every
-generation).
+The math check's command and its place (TEST.68, PERF.170, OPS.286): `planetgen
+check-math`, and that generation does not run it (Boss,
+2026-10-23: the check runs from the admin page, at the web app's start and in the test gate; the update stopped running it in OPS.286;
+it is not part of any generation).
 """
 
 import os
@@ -133,34 +133,12 @@ def test_the_neighborhood_route_does_not_check_the_math(broken_math, monkeypatch
             view(1)
 
 
-def _deploy_common_shell(python, script):
-    """Runs `script` in bash with scripts/deploy-common.sh sourced and
-    PYTHON set to `python`."""
-    code = f'set -euo pipefail\nSCRIPT_DIR="{REPO}"\nPYTHON="{python}"\n' \
-           f'source "$SCRIPT_DIR/scripts/deploy-common.sh"\n{script}\n'
-    return subprocess.run(["bash", "-c", code], capture_output=True, text=True, timeout=120)
-
-
-def test_update_sh_check_math_passes(tmp_path):
-    result = _deploy_common_shell(sys.executable, 'check_math; echo "failed=$MATH_CHECK_FAILED"')
-    assert result.returncode == 0, result.stderr
-    assert "failed=0" in result.stdout
-
-
-def test_update_sh_check_math_failure_only_warns(tmp_path):
-    fake = tmp_path / "python"
-    fake.write_text("#!/bin/sh\necho 'FAIL bad_check'\nexit 1\n")
-    fake.chmod(0o755)
-    result = _deploy_common_shell(
-        str(fake), 'check_math; echo "failed=$MATH_CHECK_FAILED"; POPULATION=1 offer_population_pass')
-    assert result.returncode == 0, result.stderr
-    assert "failed=1" in result.stdout
-    assert "the math check failed" in result.stderr
-    assert "Skipping the population pass: the math check failed." in result.stdout
-
-
-def test_update_script_runs_the_math_check():
+def test_the_update_does_not_run_the_math_check_and_the_population_pass_does_not_wait_for_it():
+    """OPS.286: the math check is advisory and cost as much as a run (about 14 s warm, 49 s cold, for checks that take 1 s): the update no longer runs it. The command, the admin page's button, the web app's startup check and the test gate stay."""
     with open(os.path.join(REPO, "update.sh"), encoding="utf-8") as handle:
         update_sh = handle.read()
-    assert "check_math" in update_sh and "MATH_CHECK_FAILED" in update_sh
+    with open(os.path.join(REPO, "scripts", "deploy-common.sh"), encoding="utf-8") as handle:
+        common = handle.read()
+    assert "check_math" not in update_sh and "MATH_CHECK_FAILED" not in update_sh + common
+    assert "Checking the generator's math" not in update_sh
 
