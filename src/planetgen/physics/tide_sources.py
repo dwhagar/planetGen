@@ -60,11 +60,11 @@ class Source:
 
 
 def circles_mean_inverse_cube(a, b):
-    """`< 1 / d^3 >` (1 / length^3, in the unit `a` and `b` are in) between two bodies on circles of radii `a` and `b` in one plane, averaged over their phase difference."""
+    """`< 1 / d^3 >` (1 / length^3, in the unit `a` and `b` are in) between two bodies on circles of radii `a` and `b` in one plane, averaged over their phase difference. The elliptic parameter `4 a b / (a + b)^2` is 1 at the most (two circles of one radius), and rounding can put it a last digit above, where `ellipe` is NaN (GEN.1806: a source whose orbit crosses the receiver's radius)."""
     a, b = float(a), float(b)
     far = max(a, b)
     gap = max(abs(a - b), _MIN_SEPARATION_SHARE * far)
-    m = 4.0 * a * b / (a + b) ** 2
+    m = min(4.0 * a * b / (a + b) ** 2, 1.0)
     return 2.0 * float(special.ellipe(m)) / (math.pi * (a + b) * gap ** 2)
 
 
