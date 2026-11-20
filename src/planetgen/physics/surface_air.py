@@ -1231,6 +1231,21 @@ def surface_ice_kg(body):
     return {formula: kg for formula, kg in held.items() if kg > 0.0}
 
 
+class _BodySubject:
+    """`Setting.subject_of` of a body: `(ts_k, pressure_bar, ocean_present, long_lived_geology) -> Subject` of the mixture draw. A class and not a closure so that a setting can be pickled
+    for a process pool (TEST.805)."""
+
+    def __init__(self, body, water_lost, star_distance_au):
+        self.body = body
+        self.water_lost = water_lost
+        self.star_distance_au = star_distance_au
+
+    def __call__(self, ts_k, pressure_bar, ocean_present, long_lived_geology):
+        return mixture_subject.subject_of_body(self.body, ts_k=ts_k, pressure_bar=pressure_bar, ocean_present=ocean_present,
+                                               long_lived_geology=long_lived_geology, water_lost=self.water_lost,
+                                               star_distance_au=self.star_distance_au)
+
+
 def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_w, water_lost):
     """
     The `Setting` of a planet or moon whose class has an air: from its mass, radius, gravity and bulk composition, the heat its
@@ -1247,10 +1262,7 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
     orbital_speed = (math.sqrt(constants.G * star_mass_kg / (star_distance_au * constants.AU_M))
                      if star_mass_kg and star_distance_au and star_distance_au > 0.0 else None)
 
-    def subject_of(ts_k, pressure_bar, ocean_present, long_lived_geology):
-        return mixture_subject.subject_of_body(body, ts_k=ts_k, pressure_bar=pressure_bar, ocean_present=ocean_present,
-                                               long_lived_geology=long_lived_geology, water_lost=water_lost,
-                                               star_distance_au=star_distance_au)
+    subject_of = _BodySubject(body, water_lost, star_distance_au)
 
     ice_law = ice_albedo_law(body, albedo, surface_w)
     return Setting(
