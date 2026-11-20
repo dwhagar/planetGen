@@ -308,3 +308,19 @@ def test_a_run_still_running_is_not_carried_on(conn):
             _plan(conn, run_id)
     finally:
         runrecord.finish_run(conn, run_id, "canceled")
+
+
+def test_a_run_that_planned_the_galaxy_in_its_first_stage_records_the_seed_after_that_stage_and_is_carried_on(conn):
+    """OPS.284: a run begun on an empty database had no seed to record at its start, so a later stop left `finish-run` with "did not record the galaxy"; the seed is recorded after the stage that planned it."""
+    answers = iter([None, SEED, SEED])
+    FAULTS["third"] = 0
+    with pytest.raises(units.RunStopped):
+        _run([_step("first"), _step("second"), _step("third")], galaxy_seed=None, galaxy_of=lambda: next(answers))
+    FAULTS.clear()
+    CALLS.clear()
+    run_id = _newest(conn)
+    assert runrecord.read_run(conn, run_id)["galaxy_seed"] == SEED
+    found = _plan(conn, run_id)
+    assert found.first == 2
+    runrecord.set_galaxy_seed(conn, run_id, "EF" * 16)
+    assert runrecord.read_run(conn, run_id)["galaxy_seed"] == SEED, "a seed already recorded stays"

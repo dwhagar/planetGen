@@ -619,6 +619,13 @@ def begin_stage(conn, run_id, index, now=None):
         kind=logrecord.STAGE_START, now=now, stage=index, stages=len(declared))
 
 
+def set_galaxy_seed(conn, run_id, galaxy_seed):
+    """Records the galaxy's seed (hex) with run `run_id` where it has none: a run that began on an empty database planned the galaxy in its first stage, so the seed it started with was `None` and `planetgen finish-run` could not carry it on (OPS.284)."""
+    if not _s(conn.hget(run_key(run_id), "galaxy_seed")):
+        conn.hset(run_key(run_id), "galaxy_seed", galaxy_seed)
+        _keep(conn, run_id)
+
+
 def set_opened_clock(conn, run_id, index, clock):
     """Records the database's clock (as text) when stage `index` opened, for a stage a later step's parameter refers to
     (`wrapper.opened_by`, PERF.213)."""
