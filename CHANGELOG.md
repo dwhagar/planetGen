@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4648] - 2026-11-20
+
+**Headline:** The request-dial test checks the request draw alone, not the sparse tier's other dials.
+
+### Fixed
+- **TEST.806: the test that a tier with no request share makes the same system as science failed on main.** Sparse's water, dry-part, quiet-interior and carbon-cycle dials move the planets by design (GEN.1720, GEN.1721, GEN.1798 to GEN.1801), so seed 103 gave 18 planets on science and 16 on sparse. The test now holds the sparse row at no dial, which is what it means to check: a request share of 0 draws nothing.
+- generation-affects: none
+
 ## [8.0.4647] - 2026-11-20
 
 **Headline:** A unit that fails for good now names the sector, or the id range, it was working on (OPS.285).
