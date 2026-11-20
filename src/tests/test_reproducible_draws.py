@@ -299,3 +299,32 @@ def test_gamma_and_dirichlet_are_pinned():
     assert draw.Stream(12345).gamma(0.5) == pytest.approx(0.42145988346233904, rel=1e-14)
     assert draw.Stream(12345).dirichlet([0.5, 2.5, 7.0]) == pytest.approx(
         [0.038555006928356686, 0.2464048638057911, 0.7150401292658523], rel=1e-14)
+
+
+# --- A system does not depend on the systems generated before it (GEN.1805) -----------------------------------------
+
+def _system_digest(name, seed):
+    """The stored form of the system of example `name` made from `seed`, as one string, in this process."""
+    import json
+
+    from planetgen.generation import run_system
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from tests.fuzz_support import deterministic_entropy
+
+    data = run_system.load_system_file(str(SRC.parent / "examples" / "systems" / f"{name}_system.json"))
+    config = SystemConfig()
+    run_system.apply_system_file(config, data)
+    with deterministic_entropy(seed):
+        draw.set_run_seed(seed)
+        system = StarSystem(system_config=config)
+    return json.dumps(system.to_dict(), sort_keys=True, default=repr)
+
+
+def test_a_system_is_the_same_after_other_systems_were_made_in_the_process():
+    """GEN.1805: system A, then B (another seed of another example), then A again, in one process: the two A digests are equal. A module cache or a draw stream that carried
+    from one generation to the next would make the second A differ, and one seed would give two galaxies depending on what ran before it."""
+    first = _system_digest("tatooine", 5)
+    other = _system_digest("solar", 6)
+    assert other != first
+    assert _system_digest("tatooine", 5) == first

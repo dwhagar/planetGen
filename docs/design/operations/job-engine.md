@@ -42,7 +42,7 @@ Where this note and a module's docstring disagree, the docstring of a file that 
 
 **The plan is rows** (`queue/planrows.py`). `record_plan` writes a run's whole step list before its first stage opens (what each step needs and makes: `queue/needs.py`). The **cut** of a stage, `record_cut`, inserts one job row per unit, the stage's `open` row (marked `done`, holding the plan summary) and the end jobs, in one transaction: a cut that stopped half way left nothing, and a cut that finished is found by its `open` row and never made twice. A stage's end is three jobs with edges (`conclude` needs every unit, `finish` needs `conclude`, `release` needs `finish`, and `release` queues the next opening), so a stage advances inside the transaction that finishes a job. The Redis done set and the `advanced` flag are no longer the truth.
 
-A run with **no usable ledger** (no control database, or one with no tables yet: `generate system --output`, the update's math check before its migration) keeps its plan in its Redis record behind the same functions (`planrows.ledgered`). Its units have no rows and no attempts.
+A run with **no usable ledger** (no control database, or one with no tables yet: `generate system --output`) keeps its plan in its Redis record behind the same functions (`planrows.ledgered`). Its units have no rows and no attempts.
 
 **The fence** (`queue/attempts.py`, `ledger.begin_attempt`, `ledger.commit_item`). At hand-out the attempt number is raised in the control database and written to the unit's `engine_items` row in the galaxy before the job starts. Every commit the unit makes through `ctx.commit()` updates that row `WHERE attempt = mine`, in the same transaction as the data; no row touched raises `Replaced` and the unit rolls back and exits. The last commit sets the done time with the last data. The message the job sends the supervisor is only a nudge; the supervisor reads the row.
 
@@ -60,6 +60,7 @@ One process per host (`queue/supervisor.py`, `cli/supervisor.py`). Its loop take
 
 | Duty | What it does |
 |---|---|
+| `LostRuns` | Runs Redis lost (OPS.284): a run's record (steps, galaxy seed and build, stage clocks and conclusions) is kept in the control database (`engine_run_records`, `queue/runstore.py`) at every change that matters. Every 30 s the duty puts back into Redis the runs whose record is gone and ends the ones that were live as a run whose process is gone (failed, killed, its ledger rows ended), so a restart of the machine or of Redis leaves no run `running` in the ledger and `finish-run` finds the run. Redis is the cache; a run with no ledger rows has no copy. |
 | `Reconciler` | Compares the run records with the rows and processes and corrects (R4: recompute, do not remember): a stage that finished and never queued its next opening gets it; a run whose starter is gone is carried on by the supervisor. Every correction is said in the supervisor's acts. |
 | `RunStarts` | Starts runs: a process that wants a run leaves an ask (`queue/runline.py`) and follows the run the supervisor starts for it; a run that finds the machine taken waits in the line. |
 | `RunWatches` | The watch on every live run's units (`unitwatch.UnitWatch`, `beatjudge`, `unitstuck.Stuck`) that used to live in the starter. |

@@ -77,6 +77,7 @@ def test_a_phenomenon_record_is_the_parameters_its_painter_reads():
         "quasar": {"id": 5, "is_radio_loud": 1},
         "interstellar_comet": {"id": 6, "is_active": 0},
         "rogue_planet": {"id": 7, "planet_type": "t", "surface_temperature_k": 90.0, "radius_km": 6000.0, "has_internal_heat": 0},
+        "asteroid_field": {"id": 8, "radius_ly": 1.0, "birth_age_yr": 3.0e5, "rms_speed_kms": 1.0, "shape": "ball", "mass_kg": 6.0e24, "composition_family": "stony"},
     }
     for kind, row in rows.items():
         record = sensor.REGISTRY[kind].build(None, row)
@@ -86,7 +87,7 @@ def test_a_phenomenon_record_is_the_parameters_its_painter_reads():
         json.dumps(record)
         assert record == sensor.REGISTRY[kind].build(None, dict(row)), "the same row gives the same record"
     with pytest.raises(ValueError):
-        phenomenonrender.view_params("asteroid_field", {})
+        phenomenonrender.view_params("supernova_remnant", {})
 
 
 def test_a_nebula_record_names_the_volume_it_is_drawn_from():

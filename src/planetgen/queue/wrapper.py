@@ -760,7 +760,7 @@ def ask_supervisor(conn, url):
 
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
         seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None, galaxy_seed=None,
-        build=None, finishes=None, on_step=None):
+        build=None, finishes=None, on_step=None, galaxy_of=None):
     """
     Runs the queued `steps` as one run: starts the run record (the machine is busy for it), queues the first stage,
     sets the run's `--workers` count (`workers_count`, the most jobs of a stage that run at once) and follows each stage to
@@ -781,6 +781,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         galaxy_seed (str, optional): The galaxy's seed as hex and `build` the code's version key, recorded with the run
             so a later `Finish run` can tell the galaxy and the code are still the ones it was started on (PERF.182);
             `finishes` is the id of the run this one carries on from.
+        galaxy_of (callable, optional): `galaxy_of()` is the stored galaxy's seed as hex, `None` while none is planned. For a run that began on an empty database (its first stage plans the galaxy, so `galaxy_seed` was `None`): after each stage it is asked until it answers, and the answer is recorded with the run (`runrecord.set_galaxy_seed`), so `planetgen finish-run` can carry the run on from a later stage (OPS.284).
         rows (dict, optional): `{stage key: row}`, the `generation_stage_runs` row the unit that completes each stage
             writes (`generation.stages.hand_over_open_stage`, `stages.row_for`); a stage with none stores no row.
         kind (str): `runrecord.GENERATION` for a run that changes the galaxy (it owns the machine and shows the
@@ -862,6 +863,10 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                 conclusion = _await_conclusion(conn, run_id, index, ensure, on_debug=on_debug)
             if on_stage_done is not None:
                 on_stage_done(index, conclusion)
+            if galaxy_of is not None and not galaxy_seed:
+                galaxy_seed = galaxy_of()
+                if galaxy_seed:
+                    runrecord.set_galaxy_seed(conn, run_id, galaxy_seed)
         runrecord.finish_run(conn, run_id, "done")      # a stage of no units has no last unit to do it
         log.trace(f"run {run_id} finished: done", area="queue")
         if relay:

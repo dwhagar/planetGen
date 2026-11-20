@@ -133,6 +133,8 @@ def engine_run(conn, run_id, control):
     made = ledger.add_run(control, runrecord._s(conn.hget(key, "kind")) or "generate", _galaxy_name(conn, run_id))
     control.commit()
     if conn.hsetnx(key, ENGINE_RUN_FIELD, made):
+        from planetgen.queue import runstore
+        runstore.persist(conn, run_id)          # OPS.284: from here the run has a durable copy
         return made
     control.execute("DELETE FROM engine_runs WHERE id = ?", (made,))
     control.commit()
