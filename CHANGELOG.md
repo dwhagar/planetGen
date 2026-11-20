@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4652] - 2026-11-20
+
+**Headline:** The site's class catalog no longer rebuilds its two star tables in every process, so the engine's app template starts about 13 s faster on a cold box (PERF.283).
+
+### Changed
+
+- The forced-star tables (one per [Fe/H] bucket) behind the class reference catalog are kept in the sampling-table cache the bright-star tables use, so the app template, the web workers and the warm-up build each once. Measured: the class catalog took 14.3 s the first time and 1.4 s read back, with the same cells.
+
 ## [8.0.4651] - 2026-11-20
 
 **Headline:** `update.sh` no longer runs the math check as a step, so an update is about 14 s (warm) to 49 s (cold) shorter (OPS.286).
