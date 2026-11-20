@@ -359,8 +359,8 @@ def test_the_command_reports_and_writes_the_minutes_and_the_kills(control, monke
     target = tmp_path / "gate.csv"
     assert pressure_cli.main(["report", "--csv", str(target)]) == 0
     out = capsys.readouterr().out
-    assert "Record: 1 minutes over 00:01:00" in out or "Record: 1 minutes over 1m" in out
-    assert "Database probes: 1 minutes carry one, the slowest took 15 ms." in out
+    assert "Record: 1 recorded minutes over 1m of the last 14d" in out
+    assert "Database probes: 1 recorded minutes carry one, the slowest took 15 ms." in out
     written = target.read_text().splitlines()
     assert written[0].split(",") == list(pressurelearn.CSV_COLUMNS) and len(written) == 2 and written[1].endswith(",15.0,3.0")
     assert (tmp_path / "gate-kills.csv").read_text().splitlines() == ["killed_at_utc"]

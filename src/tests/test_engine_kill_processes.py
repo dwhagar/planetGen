@@ -148,7 +148,7 @@ def test_a_job_the_kernel_kills_runs_again_alone_on_a_claim_grown_by_one_and_a_h
     retry = one.running[job].claim
     assert retry.mb == pytest.approx(3000.0, rel=1e-6) and retry.solo
     _until(lambda: _state(engine, job)["state"] == "done", 60, "the retry to finish", step=one.turn)
-    assert _attempts(engine, job) == [("lost", "killed"), ("done", None)]
+    assert _attempts(engine, job) == [("killed_memory", "killed"), ("done", None)]
     _each_piece_finished_once(marks, 5)
 
 

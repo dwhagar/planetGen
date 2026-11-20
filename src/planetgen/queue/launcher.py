@@ -121,7 +121,8 @@ class Launcher:
         """`(outcome, error kind, error text)` of an end the unit did not write itself."""
         error = started.error()
         if exit_.signal is not None:
-            return "lost", KILLED, error or f"the job process ended on {signal.Signals(exit_.signal).name}"
+            outcome = "killed_memory" if exit_.signal == signal.SIGKILL else "lost"         # OPS.249: the kernel's kill for memory is a SIGKILL; it is the kill the memory controller's record learns from (`pressurelearn.read_record`)
+            return outcome, KILLED, error or f"the job process ended on {signal.Signals(exit_.signal).name}"
         if exit_.code is None:
             return "lost", "lost", error or "the job process ended and nothing said how"
         return "failed", "failed", error or f"the job process exited with code {exit_.code}"
