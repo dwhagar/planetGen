@@ -155,7 +155,7 @@ def test_a_missing_table_is_reported_not_raised(tmp_path, monkeypatch):
 
 def test_update_sh_runs_the_check_after_the_reference_pages_and_never_the_matrix():
     text = (ROOT / "update.sh").read_text(encoding="utf-8")
-    step3 = text.split("log_stage 3 9")[1].split("log_stage 4 9")[0]
+    step3 = text.split("log_stage 3 8")[1].split("log_stage 4 8")[0]
     assert step3.index("build_reference_pages") < step3.index("check_fudge_table")
     shell = (ROOT / "scripts" / "deploy-common.sh").read_text(encoding="utf-8")
     body = shell.split("check_fudge_table() {")[1].split("\n}\n")[0]
