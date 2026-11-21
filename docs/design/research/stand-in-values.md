@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1968 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1970 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1941 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1943 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,14 +51,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 227 | 22 | 12 | 1 | 0 | 262 |
 | T2 | 184 | 75 | 4 | 0 | 0 | 263 |
-| T3 | 128 | 66 | 13 | 10 | 0 | 217 |
+| T3 | 129 | 66 | 13 | 10 | 0 | 218 |
 | T4 | 89 | 17 | 9 | 25 | 13 | 153 |
 | T5 | 114 | 29 | 8 | 1 | 2 | 154 |
 | T6 | 251 | 135 | 38 | 85 | 7 | 516 |
-| T7 | 75 | 41 | 10 | 31 | 0 | 157 |
+| T7 | 75 | 42 | 10 | 31 | 0 | 158 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1123 | 405 | 100 | 275 | 65 | 1968 |
+| All | 1124 | 406 | 100 | 275 | 65 | 1970 |
 
 ## How the labels were given
 
@@ -3442,6 +3442,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | LA1 | P | T6 | L1 | `life_ages.AGE_KILL_THRESHOLD` 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve. The Boss picked 0.30 from the measured range (5:50 PM EST 11-19: an extinction that kills 30 percent or more ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages) | 0.15 to 0.65 | the Earth's marine record, applied to every world with life | a record of eras whose boundaries are not the extinctions that kill 30 percent or more, or a Boss pick of another share | none (the Boss's pick inside the measured range; another pick replaces the number) | the Boss's choice of the value inside the range the kill curve gives [R5320], the curve itself from a secondary article | predicted only | - | - |
 | LA2 | T | T7 | L0 | events that fall within `air_events.RECOVERY_GYR` of the extinction before are part of it, keeping the larger kill and its cause (no background process: the kill of an event is read from the curve at its own recurrence, so the impacts that reach the threshold fill the curve and nothing is left over) | none | any world | a fossil record in which a second extinction within 10 Myr of the first starts an age of its own | a diversity model with the regrowth of [R5321] | inferred from the 10 Myr lag after an extinction whatever its size | predicted only | - | - |
+
+## 6.316 Stand-ins of the infrared strengths of the minor gases (GEN.1621)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| IS1 | D | T3 | L0 | `greenhouse_table.INFRARED_STRENGTH_FILE`: the weight of each of the 12 gases with a band list of its own whose warming the reference air shows (O3, C2H2, C2H4, C2H6, CH2O, CH3OH, N2O, NO2, PH3, OCS, CH3Cl, SiO) in the table's `infrared` input: the moles of SO2 that warm Earth's air (N2 78084, O2 20946, Ar 934, CO2 42, H2O 1000 Pa; 9.81 m/s2; 240 W/m2 absorbed) as much as one mole of the gas, the geometric mean over the gas at shares of 1e-6, 1e-5 and 1e-4; HCl and HF warm it by under 0.02 K at those shares, so Earth's air cannot tell their strength and they keep weight 1 (as the file's `unmeasured` list says) | none (measured); the reference air and the three shares are choices of the script | gas shares up to about 1e-3 of an air near Earth's; the weight is read at one air, so in a very different air (a dense carbon dioxide or a hydrogen air) the ratio of the gas to SO2 differs and the network corrects the rest | a gas whose warming against SO2 in another reference air (a cold dense nitrogen air, a hot carbon dioxide air) differs from this weight's by over a factor of 2 | a per-gas input of the network for each gas the generator makes at over 1e-6 of an air | the model `radiative_convective.warming` (its band data, rows IR1 to IR11) read as the measure | predicted only | - | - |
+| IS2 | P | T7 | L1 | the weight 1 that the 68 gases of the file's `unmeasured` list keep in the `infrared` input: HCl and HF (no measurable warming of Earth's air) and the 66 gases whose band the model reads as the stand-in of `line_opacity.STANDIN_KAPPA0_M2_KG` (a plateau per kilogram; 32 gases HDO, H2O2, C3H8, C4H10, C6H6, N2H4, NO, N2O4, HNO3, HNCO, C3O2, CN, C2N2, CH3CN, HC3N, C4H2, SO3, H2SO4, CS2, S8, SO, CH3SH, (CH3)2S, HBr, HClO4, CF4, SF6, SiH4, TiO, NaCl, KCl, NH4Cl, and, since GEN.1629 counts a gas with no `ir` flag by its structure (IR21), 34 gases of hot airs FeH, CrH, AlH, VO, CaOH, NH4SH, OH, FeO, MgO, SiO2, TiO2, NaOH, KOH, NaO, MgOH, Mg(OH)2, Fe(OH)2, CaO, SiS, HCOOH, KO, K2O, Na2O, AlO, Al2O, AlO2, Al2O2, LiH, LiOH, LiCl, PO, PN, PS, PH): measured on Earth's air they weigh up to 1.5e5 times SO2 (S8, SF6, C6H6), a plateau and not the gas, and weights that size left the network unable to read the hydrogen envelopes (a median error of 19 percent against 4.4), so they stay at 1, the weight of the table before GEN.1621 | the weight 1 is no measurement | the generator's trace amounts of these gases only; a hot or cold dense air with many of them is read as the sum of their shares as before | a measured band strength of any of them that puts its warming in Earth's air more than a factor of 3 from SO2 per mole at a share of 1e-5 | GEN.1803: real band strengths per molecule, then the weights measured again and the table refitted | educated guess from physics, as IR1 (a weight of 1 is the table of GEN.1796) | predicted only | - | - |
 
 ## 6.317 Stand-ins of the deep branch of a giant's profile (GEN.1577)
 
