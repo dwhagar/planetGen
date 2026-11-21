@@ -30,7 +30,7 @@ from dataclasses import dataclass
 
 import math
 
-from planetgen.physics import acid_medium, life_adaptations, life_classes, life_supply, surface_refuge, sulfuric_vapor
+from planetgen.physics import acid_medium, constants, life_adaptations, life_classes, life_supply, surface_refuge, sulfuric_vapor
 
 PHOTOSYNTHETIC_CLASSES = ("1a", "1b", "1c", "2")
 """tuple: The life classes whose record is read from the refuge of GEN.1723 (GEN.1808, first slice)."""
@@ -42,7 +42,6 @@ FLOOR_CLASSES = ("3a", "3b")
 """tuple: The classes that live on the floor of an ocean (the hydrogen of the rock is what they eat), whose habitat pressure is the pressure there; the others read the top of the ocean (GEN.1819, TODO's answer). [Stand-in 6.321 AI3, tier T6, tweak L0.]"""
 DEEP_HABITAT = "deep_water"
 """str: The habitat (`life_adaptations.HABITATS`) of a water class's demand on the axis `pressure`."""
-PASCALS_PER_MPA = 1.0e6
 UMOL_PER_W = 5.0
 """float: Micromoles of photons a square metre a second in one watt a square metre of usable light: the gate's floor, 2e-3 W/m2, is 0.01 umol (`surface_refuge.LIGHT_FLOOR_W_M2`, RW2). [Stand-in 6.318 AE1, tier T6, tweak L0.]"""
 FIELD = "life_adaptations"
@@ -142,7 +141,7 @@ def chemical_demands(values, class_id):
         elif temperature > life_adaptations.ordinary("t_hot"):
             found_demands.append(("t_hot", "hot_pool" if water else CHEMICAL_HABITAT, temperature))
     if pressure:
-        found_demands.append(("pressure", DEEP_HABITAT if water else CHEMICAL_HABITAT, pressure / PASCALS_PER_MPA))
+        found_demands.append(("pressure", DEEP_HABITAT if water else CHEMICAL_HABITAT, pressure / constants.PA_PER_MPA))
     found_demands.extend((axis, CHEMICAL_HABITAT, demand) for axis, demand in medium_demands)
     return found_demands
 
