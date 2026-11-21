@@ -254,3 +254,25 @@ def test_the_page_says_the_update_failed_and_colours_the_levels(site, units):
     for level in ("debug", "info", "warning", "error"):
         assert f'<span class="log-{level}">{STAMP} {level.upper()}' in page
     assert "\nplain output\n" in page and 'data-follow-end' in page
+
+
+def test_the_fudge_table_line_follows_the_record_the_update_leaves(site, units):
+    import json
+    _become_owner(site)
+    assert webupdate.view()["fudge_table"]["state"] == "unchecked"
+    assert "has not been checked yet" in site.get("/admin/update").get_data(as_text=True)
+    record = units.state / webupdate.FUDGE_RECORD_NAME
+    record.write_text(json.dumps({"ok": True, "lines": ["the fudge matrix was measured at generator epoch 5"], "checked": 1700000000, "epoch": 9}))
+    assert webupdate.view()["fudge_table"] == {"state": "current", "lines": ["the fudge matrix was measured at generator epoch 5"],
+                                               "checked": 1700000000, "epoch": 9}
+    assert "The fudge table matches its inputs" in site.get("/admin/update").get_data(as_text=True)
+    record.write_text(json.dumps({"ok": False, "lines": ["built from other registry"], "checked": 1700000000, "epoch": 9}))
+    page = site.get("/admin/update").get_data(as_text=True)
+    assert webupdate.view()["fudge_table"]["state"] == "stale" and "The fudge table is stale." in page and 'role="alert"' in page
+
+
+def test_an_unreadable_fudge_record_is_unchecked_not_an_error(units):
+    (units.state / webupdate.FUDGE_RECORD_NAME).write_text("not json")
+    assert webupdate.fudge_table()["state"] == "unchecked"
+    (units.state / webupdate.FUDGE_RECORD_NAME).write_text("[1]")
+    assert webupdate.fudge_table()["state"] == "unchecked"
