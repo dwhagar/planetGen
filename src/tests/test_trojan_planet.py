@@ -146,3 +146,29 @@ def test_systems_of_every_kind_with_a_giant_save_and_load_with_the_trojan_step_i
     finally:
         conn.rollback()
         conn.close()
+
+
+@pytest.mark.fresh_database
+def test_a_rogue_planet_and_a_moon_of_it_are_saved_and_read_back_with_no_giant_to_share_an_orbit_with(mysql_config):
+    """GEN.1151: a rogue planet has no giant, so the link columns of a trojan planet are not its columns (`rogue_planets` has none): the insert must not name them."""
+    from planetgen.galaxy.sector import SpaceSector
+    from planetgen.generation.phenomena.rogue import RoguePlanet
+    placement = {"center_x_pc": 5.0, "center_y_pc": 1.0, "center_z_pc": 2.0, "galactic_radius_pc": 5.5}
+    sector_id = store.save_sector(SpaceSector("Free Sector", edge_ly=10.0), config=mysql_config)
+    cfg = SystemConfig()
+    cfg.STAR_TYPE, cfg.PLANETS, cfg.MAX_PLANETS, cfg.BINARY_SYSTEM = "G2V", True, True, False
+    with draw.bound(3):
+        made = StarSystem(system_config=cfg)
+    moon = next((moon for planet in made.planets for moon in getattr(planet, "moons", ())), None)
+    assert moon is not None
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            rogue_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=sector_id, placement=placement)
+            moon_id = store.insert_moon_of_rogue_planet(conn, moon, rogue_id, 0)
+        assert conn.execute("SELECT id FROM rogue_planets WHERE id = %s", (rogue_id,)).fetchone() is not None
+        assert conn.execute("SELECT id FROM moons WHERE id = %s", (moon_id,)).fetchone() is not None
+        assert not any(field for field in store.ROGUE_BODY_FIELDS if {"lagrange_point", "lagrange_host_id"} & set(field.columns))
+    finally:
+        conn.rollback()
+        conn.close()
