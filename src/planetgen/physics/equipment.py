@@ -150,7 +150,7 @@ def _body(world, limits, cold, hot, density, scale):
         required.append((6, "gravity" if _gravity_g(world) > limit("vehicle_gravity_g") else "heat"))
     if pressure > limits.pressure[5]:
         required.append((2, "diving"))
-    cold_suit, cold_clothing, comfort_low = limits.temperature[1], limits.temperature[2], limits.temperature[3]
+    cold_suit, cold_clothing, comfort_low = limits.gear_temperature[1], limits.gear_temperature[2], limits.gear_temperature[3]
     if cold < cold_suit:
         required.append((3, "cold"))
     elif cold < cold_clothing:
@@ -159,7 +159,7 @@ def _body(world, limits, cold, hot, density, scale):
             recommended.append((3, "cold"))
     elif cold < comfort_low:
         required.append((1, "cold"))
-    heat_garment, comfort_high = limits.temperature[5], limits.temperature[4]
+    heat_garment, comfort_high = limits.gear_temperature[5], limits.gear_temperature[4]
     if hot > limit("armoured_heat_c"):
         required.append((5, "heat"))
     elif hot > limit("heat_shielded_c"):
@@ -260,7 +260,7 @@ def _supply(world, limits, cold, hot, density, scale, sealed_gas, filtering, bod
         level = 2
     if oxygen > limits.o2_acute or world.partial_kpa("CO2") > habitability.GAS_LIMITS_KPA["CO2"][1] * limits.gas_scale[0] or sealed_gas:
         level = 2
-    if cold < limits.temperature[1] or hot > limit("heat_shielded_c"):
+    if cold < limits.gear_temperature[1] or hot > limit("heat_shielded_c"):
         level = 2
     recommended = 0
     if level < 2:

@@ -103,7 +103,7 @@ def test_gases_with_stand_in_bands_are_counted_by_the_strength_the_gas_table_fla
 
     strong = next(f for f in ("C2H6", "O3", "N2O") if gases.gas(f).ir == "ir")
     named = dict(zip(gt.FEATURE_NAMES, gt.features({"N2": 0.9e5, strong: 0.1e5}, 9.81, 240.0)))
-    assert named["ln_fraction_ir"] == pytest.approx(math.log(0.1 + gt.FRACTION_FLOOR))
+    assert named["ln_fraction_ir"] == pytest.approx(math.log(0.1 * gt.infrared_weights().get(strong, 1.0) + gt.FRACTION_FLOOR))
     assert named["ln_fraction_weak"] == pytest.approx(math.log(gt.FRACTION_FLOOR))
 
 
@@ -255,26 +255,47 @@ def _earth_with(formula, pascal):
     return {**EARTH, formula: pascal}
 
 
-def test_a_trace_gas_moves_the_temperature_by_its_share_of_its_full_effect_and_none_at_zero():
-    """Ten parts per million of hydrogen cyanide added 76 K to Earth's air, a part in a hundred million of ozone 10 K, a trace of helium 100 K (the fit has no samples between absent and about
-    1e-5): under `TRACE_FULL_SHARE` a gas counts by its share over it of what the table gives it in full, and the answer meets the table at the share."""
-    bare = gt.warming(EARTH, 9.81, EARTH_FLUX).surface_temperature_k
-    for formula in ("HCN", "O3", "He", "NH3", "H2", "SO2"):
-        assert abs(gt.warming(_earth_with(formula, 1.0e-3), 9.81, EARTH_FLUX).surface_temperature_k - bare) < 0.05, formula     # 1e-8 of the air
-        assert abs(gt.warming(_earth_with(formula, 1.0), 9.81, EARTH_FLUX).surface_temperature_k - bare) < 3.0, formula         # 10 ppm
-    total = sum(EARTH.values()) + gt.TRACE_FULL_SHARE * sum(EARTH.values()) / (1.0 - gt.TRACE_FULL_SHARE)
-    at_share = _earth_with("HCN", gt.TRACE_FULL_SHARE * total)
-    just_under = _earth_with("HCN", 0.999 * gt.TRACE_FULL_SHARE * total)
-    assert abs(gt.warming(just_under, 9.81, EARTH_FLUX).surface_temperature_k - gt.warming(at_share, 9.81, EARTH_FLUX).surface_temperature_k) < 1.0     # no step at the share
-    one = gt.warming(_earth_with("HCN", 0.5 * gt.TRACE_FULL_SHARE * total), 9.81, EARTH_FLUX).surface_temperature_k
-    assert bare < one < gt.warming(at_share, 9.81, EARTH_FLUX).surface_temperature_k
+@pytest.mark.skipif(not DATA_PRESENT, reason="the infrared datasets are not in this machine's cache folder")
+@pytest.mark.parametrize("formula, share", (("N2O", 1.0e-5), ("O3", 1.0e-6), ("NH3", 1.0e-4), ("SO2", 1.0e-5), ("HCN", 1.0e-5), ("PH3", 1.0e-5), ("H2", 1.0e-4), ("He", 1.0e-4)))
+def test_a_trace_gas_in_earths_air_moves_the_temperature_as_the_model_gives_it(formula, share):
+    """GEN.1621: the table reads the minor gases itself (the network is fitted on airs with a gas at shares from a part in a billion up, each gas by its measured strength), as the model does."""
+    from planetgen.physics import radiative_convective as rc
+
+    air = _earth_with(formula, share * sum(EARTH.values()))
+    model = rc.warming(air, 9.81, EARTH_FLUX)
+    assert model.converged
+    assert gt.warming(air, 9.81, EARTH_FLUX).surface_temperature_k == pytest.approx(model.surface_temperature_k, rel=0.03)
 
 
-def test_the_gases_the_fit_saw_at_every_share_count_in_full_at_any_share():
-    """Earth's 400 parts per million of carbon dioxide is 7 K of its greenhouse: the exempt gases are not scaled."""
-    without = {formula: pascal for formula, pascal in EARTH.items() if formula != "CO2"}
-    assert gt.warming(EARTH, 9.81, EARTH_FLUX).surface_temperature_k - gt.warming(without, 9.81, EARTH_FLUX).surface_temperature_k > 3.0
-    assert {"H2O", "CO2", "CH4", "N2", "O2"} <= gt.TRACE_EXEMPT
+@pytest.mark.skipif(not DATA_PRESENT, reason="the infrared datasets are not in this machine's cache folder")
+def test_the_table_keeps_the_greenhouse_of_earths_air_with_its_carbon_dioxide_and_minor_gases():
+    """GEN.1621 acceptance: the full air of the Earth (nitrogen, oxygen, argon, 42 Pa of carbon dioxide, 1000 Pa of vapor, and its trace methane, nitrous oxide and ozone) is held to the model's 289.0 K."""
+    from planetgen.physics import radiative_convective as rc
+
+    air = {**EARTH, "CO2": 42.0, "CH4": 0.19, "N2O": 0.033, "O3": 0.03}
+    model = rc.warming(air, 9.81, EARTH_FLUX)
+    assert model.converged
+    assert gt.warming(air, 9.81, EARTH_FLUX).surface_temperature_k == pytest.approx(model.surface_temperature_k, abs=1.0)
+
+
+def test_the_infrared_input_weighs_each_gas_by_the_strength_measured_against_the_model():
+    """GEN.1621: N2O warms Earth's air less than the same share of SO2 does, so the one input that sums them counts it by its measured weight (`infrared_strength.json`)."""
+    weights = gt.infrared_weights()
+    assert "SO2" not in weights            # the reference gas has an input of its own
+    assert 0.0 < weights["N2O"] < 1.0
+    share = 1.0e-4
+    named = dict(zip(gt.FEATURE_NAMES, gt.features({"N2": 1.0e5 * (1.0 - share), "N2O": 1.0e5 * share}, 9.81, 240.0)))
+    assert named["ln_fraction_ir"] == pytest.approx(math.log(share * weights["N2O"] + gt.FRACTION_FLOOR))
+
+
+def test_a_table_fitted_to_other_infrared_strengths_is_refused(monkeypatch):
+    gt.table.cache_clear()
+    monkeypatch.setattr(gt, "infrared_digest", lambda: "0" * 64)
+    try:
+        with pytest.raises(elements.DataError, match="infrared strengths"):
+            gt.table()
+    finally:
+        gt.table.cache_clear()
 
 
 def test_a_trace_changes_nothing_without_one_and_the_answer_is_deterministic():

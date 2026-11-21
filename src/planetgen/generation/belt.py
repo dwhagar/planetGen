@@ -186,6 +186,10 @@ class AsteroidBelt:
     """dict or None: Where the mass an outer disk lost went (GEN.1308, `physics/swept_hand_on.hand_on`: `ejected`, `implanted`, `captured`, `other`, kilograms); set by `belt_birth.hand_on`. Not stored."""
     scatter_giant_kg = None
     scatter_giant_radius_km = None
+    swarm_kg = 0.0
+    """float: The part of `swept_kg["other"]` the outermost giant's trojan swarm holds (GEN.1150, `swept_hand_on.trojan_part`), kg; set by `belt_birth.hand_on`, read by `trojan_region.build`. Not stored: the regions made from it are."""
+    lagrange_point = libration_amplitude_deg = libration_phase_deg = mean_eccentricity = mean_inclination_deg = None
+    """The trojan region's own fields (`generation/trojan_region.TrojanRegion`, GEN.1150): None for every other belt, so the store writes NULL."""
     implanted_kg = 0.0
     """float: The mass an outer disk's giant implanted in this inner belt (GEN.1308), kg; part of the mass and the primordial mass it has. Not stored."""
     largest_body_km = None
@@ -215,6 +219,7 @@ class AsteroidBelt:
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
         self.body_type = 'a'
+        self.swarm_kg = 0.0
         self.largest_body_km, self.mass_kg, self.density = present_state(star, distance, lower_limit, upper_limit, None if origin is None else origin.mass_earth)
         _STARS[self] = star       # what `shorten_to` needs; not stored, a belt read back from a store is not shortened
         if origin is not None:

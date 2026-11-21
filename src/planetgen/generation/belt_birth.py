@@ -30,7 +30,7 @@ mass is that of warm dust a survey could see, a stand-in. [Stand-in 6.97 BG14, t
 
 from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt, present_state
-from planetgen.generation import remnant_orbits
+from planetgen.generation import late_accretion, remnant_orbits
 from planetgen.physics import belt_origin, bulk_draw, disk_size, disk_truncation, planet_mass, scatter, swept_hand_on, trojans
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
@@ -81,6 +81,13 @@ def _debris(star, chain):
     return [found] if found is not None else []
 
 
+def _swarm_survival(star, star_mass_kg, giants):
+    """The share of the swarm of the outermost of `giants` (nearest the star first) that the other giants and the companion stars leave it (`trojans.surviving_share`, GEN.1455)."""
+    giant = giants[-1]
+    neighbours = [(other.mass, other.distance) for other in giants[:-1]]       # the other giants and the companion stars at their periastron take part of the swarm (GEN.1455)
+    return trojans.surviving_share(star_mass_kg, giant.mass, giant.distance, neighbours, getattr(star, "a_crit_au", None))
+
+
 def _fates(star, star_mass_kg, planets, origin, disk_edge_au, instability=0.0):
     """`(shares, sentence, giant_au, giant)` of an outer disk after the outermost giant (`scatter.scatter_shares`, the giant's distance and the giant itself), or `(None, None, None, None)` where the belt is not an outer disk or no giant has been."""
     giants = sorted((planet for planet in planets if planet.body_type == 'g'), key=lambda planet: planet.distance)
@@ -88,14 +95,13 @@ def _fates(star, star_mass_kg, planets, origin, disk_edge_au, instability=0.0):
         return None, None, None, None
     giant = giants[-1]
     moved_out = max(giant.distance - (giant.formation_distance_au or giant.distance), 0.0)
-    neighbours = [(other.mass, other.distance) for other in giants[:-1]]       # the other giants and the companion stars at their periastron take part of the swarm (GEN.1455)
-    survival = trojans.surviving_share(star_mass_kg, giant.mass, giant.distance, neighbours, getattr(star, "a_crit_au", None))
+    survival = _swarm_survival(star, star_mass_kg, giants)
     shares = scatter.scatter_shares(_kg_to_msun(star_mass_kg), _kg_to_mearth(giant.mass), giant.distance, _km_to_rearth(giant.radius), moved_out, origin.inner_au, disk_edge_au, instability,
                                     trojan_survival=survival)
     return shares, scatter.history_line(shares, giant.distance, moved_out), giant.distance, giant
 
 
-def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_edge_au, instability=0.0, disk_scatter=1.0):
+def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_edge_au, instability=0.0, disk_scatter=1.0, lost=None):
     """
     The `AsteroidBelt` list of a system: the stretches the planets in `planets` leave unfinished, each as `belt_origin` traced it, cut to the orbits between `orbit_floor_au` and
     `orbit_ceiling_au` and kept when `MIN_PRESENT_MASS_EARTH` is left after the star's age. Nearest the star first. A system asked to hold a belt (`ASTEROID_BELT` True) that has none
@@ -109,6 +115,8 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
         disk_edge_au (float): The disk's outer edge, AU (infinite when the star's light no longer describes its disk: then `disk_size.edge_au(star)`, GEN.1520).
         instability (float): 0 to 1, how much the system's giants scattered each other (`capture_windows.instability_level`), which excites a share of the cold outer disk (`scatter.scatter_shares`).
         disk_scatter (float): The factor the planets' disk was scattered by about the median of its star's mass (`planet_architecture.Architecture.disk_scatter`): the belts are made of the same disk (GEN.1261).
+        lost (list, optional): Filled with the `late_supply.Early` of each stretch the star's orbits hold that is not kept (cleared of everything, or under the least a belt keeps once the star's age has ground it): it sent its mass inward
+            before it went, and the air of the planets inside it reads that (GEN.1493 slice 2, `late_accretion.early_of_origin`). A belt the system keeps is read from the belt.
     """
     chain = chain_of(planets)
     star_mass_kg = remnant_orbits.formation_mass_kg(star)
@@ -128,6 +136,16 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
     kept = [item for item in found if item[0] >= MIN_PRESENT_MASS_EARTH]
     if not kept and found and system_config.ASTEROID_BELT is True:
         kept = [max(found, key=lambda item: item[0])]
+    if lost is not None:
+        kept_origins = [item[1] for item in kept]
+        for origin in origins:
+            lower, upper = max(origin.inner_au, orbit_floor_au), min(origin.outer_au, orbit_ceiling_au)
+            if any(origin is other for other in kept_origins) or not origin.primordial_mass_earth > 0.0 or upper < lower * belt_origin.MIN_BELT_RATIO:
+                continue
+            shares, _, _, _ = _fates(star, star_mass_kg, planets, origin, origin.outer_au, instability)
+            early = late_accretion.early_of_origin(origin, lower, upper, shares)
+            if early.inward_share > 0.0:         # a stretch no giant threw anything of inward left nothing for the planets
+                lost.append(early)
     belts = []
     for _mass, origin, lower, upper in kept:
         shares, sentence, giant_au, giant = _fates(star, star_mass_kg, planets, origin, origin.outer_au, instability)     # the disk's edge as a companion cut it (GEN.1451); the star's own edge when none did
@@ -154,10 +172,13 @@ def hand_on(bodies, star):
     belts = [body for body in bodies if getattr(body, "body_type", None) == 'a' and getattr(body, "origin", None) is not None]
     disks = [belt for belt in belts if belt.origin == "outer-disk" and belt.scatter_giant_kg is not None and belt.swept_kg is None]
     inner = [belt for belt in belts if belt.origin != "outer-disk"]
+    giants = sorted((body for body in bodies if getattr(body, "body_type", None) == 'g'), key=lambda body: body.distance)
     for disk in disks:
         gone = units.convert(disk.cleared_mass_earth + disk.scattered_mass_earth, "Mearth", "kg")
         theta = scatter.safronov_number(_kg_to_mearth(disk.scatter_giant_kg), units.convert(disk.scatter_giant_radius_km, "km", "Rearth"), disk.scatter_giant_au, units.convert(star.mass, "kg", "Msun"))
         disk.swept_kg = swept_hand_on.hand_on(gone, theta)
+        if disk.swept_kg is not None and giants:        # GEN.1150: the part of `other` the outermost giant's swarm holds, after what its neighbours leave it
+            disk.swarm_kg = swept_hand_on.trojan_part(gone, theta, _swarm_survival(star, remnant_orbits.formation_mass_kg(star), giants))
         if disk.swept_kg is None or not disk.swept_kg["implanted"] > 0.0 or not inner:
             continue
         receiver = min(inner, key=lambda belt: abs(belt.upper_limit - disk.lower_limit))

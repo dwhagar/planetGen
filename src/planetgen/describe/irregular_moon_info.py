@@ -83,7 +83,7 @@ def _load(conn, planet_id):
     rows = conn.execute(f"SELECT {', '.join(store.IRREGULAR_MOON_COLUMNS)} FROM irregular_moons WHERE planet_id = ? ORDER BY moon_rank", (planet_id,)).fetchall()
     held = irregular_moons.IrregularSet.from_dict(store.irregular_set_dict(summary, rows))
     belts = {order: object_uid.from_bytes(found["uid"]) for order, found in enumerate(conn.execute(
-        "SELECT uid FROM asteroid_belts WHERE star_id = ? ORDER BY orbital_index, id", (row["star_id"],)).fetchall())}
+        "SELECT uid FROM asteroid_belts WHERE star_id = ? AND lagrange_point IS NULL ORDER BY orbital_index, id", (row["star_id"],)).fetchall())}
     return object_uid.from_bytes(row["uid"]), row, belts, held
 
 

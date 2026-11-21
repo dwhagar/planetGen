@@ -46,7 +46,7 @@ from scipy.optimize import brentq
 from planetgen.physics import (
     ice_species, aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, carbonate_buffer, continental_weathering, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, ionization, mixture_draw, orbits,
     mixture_escape, mixture_rocky, moist_limit, photochemical_loss,
-    mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, starlight_aloft, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
+    melt_sulfur, mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, starlight_aloft, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
 from planetgen import tuning
 from planetgen.generation import abundance_tier
@@ -712,7 +712,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             lifetimes, age_s, oxidized_share = sulfur
             kept = sulfur_balance.balance(degassed_sulfur / setting.area_m2, age_s=age_s, ocean_present=ocean, oxidized_share=oxidized_share,
                                           crust_kg_m2=crust_kg_m2, lifetimes=lifetimes, temperature_k=temperature_k,
-                                          water_layer_m=setting.water_kg / (1000.0 * setting.area_m2))
+                                          water_layer_m=setting.water_kg / (1000.0 * setting.area_m2),
+                                          melt_capacity_mol_m2=melt_sulfur.capacity_mol_m2(temperature_k, setting.gravity_m_s2, setting.radius_m))
             shares_["S"] *= kept.air_mol_m2 * setting.area_m2 / degassed_sulfur
             sulfate_mol_m2 = kept.sulfate_mol_m2
         degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g

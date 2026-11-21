@@ -43,3 +43,14 @@ def hand_on(gone_kg, theta):
     parts = {"ejected": ejected, "implanted": bound * _SPLIT["implanted_inner_belt"], "captured": bound * _SPLIT["captured_moons"]}
     parts["other"] = gone_kg - sum(parts.values())
     return parts
+
+
+def trojan_part(gone_kg, theta, survival=1.0):
+    """
+    The part of `other` that the giant's trojan swarm holds (GEN.1150), kilograms: the bound share of the gone mass (`gone_kg` less what `ejected_share(theta)` throws out) times the swept split's `trojans`
+    row (`scatter.SWEPT_SPLIT`) times `survival`, the share the other giants and the companion stars leave it (`trojans.surviving_share`, GEN.1455). `scatter.scatter_shares` gives the same swarm the same
+    way from the swept share of the disk. 0.0 for a sweep of nothing or a giant with no Safronov number (`hand_on` is `None` there). The part is inside `other`, not added to it.
+    """
+    if not gone_kg > 0.0 or theta is None or not theta > 0.0:
+        return 0.0
+    return (gone_kg - gone_kg * ejected_share(theta)) * _SPLIT["trojans"] * max(0.0, min(survival, 1.0))

@@ -681,15 +681,21 @@ def _belt_section(belt):
     if belt.largest_body_km:
         rows.append(fact("largest-body", "Largest body", _km(belt.largest_body_km)))
     rows.append(meteorite_group_fact(belt))
+    region = bool(getattr(belt, "lagrange_point", None))
+    if region:      # GEN.1150: a giant's trojan region: which point, how its bodies librate, and how eccentric and inclined they are
+        rows += [fact("lagrange-point", "Lagrange point", f"{belt.lagrange_point} ({'leading' if belt.lagrange_point == 'L4' else 'trailing'})"),
+                 fact("libration", "Libration amplitude", qty("angle", belt.libration_amplitude_deg)),
+                 fact("mean-eccentricity", "Mean eccentricity", qty("ratio", belt.mean_eccentricity, note=ECCENTRICITY_NOTE)),
+                 fact("mean-inclination", "Mean inclination", qty("angle", belt.mean_inclination_deg))]
     parts = [{"name": component, "level": level} for component, level in belt.composition]
-    blocks = [facts("Asteroid belt", rows), model.composition("Composition", parts, format_composition_summary(belt.composition))]
+    blocks = [facts("Trojan region" if region else "Asteroid belt", rows), model.composition("Composition", parts, format_composition_summary(belt.composition))]
     if belt.origin_sentence:      # GEN.1069: where the belt came from and what shaped it, as the generator wrote it
         blocks.append(prose("summary", belt.origin_sentence, *belt.origin_history))
     if belt.history:
         blocks.append(prose("history", *belt.history))     # GEN.1232: what the giant branch and the mass loss did to it
     if belt.flavor_text:      # GEN.1433
         blocks.append(prose("flavor", f"Sensors show {belt.flavor_text}"))
-    return section("belt", _ref("belt", belt), "Asteroid Belt", blocks)
+    return section("belt", _ref("belt", belt), "Trojan Region" if region else "Asteroid Belt", blocks)
 
 
 def _comet_section(comet):

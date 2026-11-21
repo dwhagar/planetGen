@@ -1,6 +1,6 @@
 # The air reads the system's late accretion (GEN.1493, design)
 
-Status: slices 0 and 1 are built and on main (see "What is on main" below); slices 2 and 3 are designed in the last section and not built. Written by Lane 22 on 2026-11-09; the last section by Lane 06 on 2026-11-18. Slice A (GEN.1453, `physics/influx.py`) is merged.
+Status: slices 0, 1 and 3 are built and on main (see "What is on main" below); slice 2 is built on `claude/lane06-gen1493-slice2` (see "Slice 2 result" at the end). Written by Lane 22 on 2026-11-09; the last section by Lane 06 on 2026-11-18. Slice A (GEN.1453, `physics/influx.py`) is merged.
 
 ## The question
 
@@ -134,3 +134,27 @@ Comets are the other gap. `cosmic_dust` gives them a present-day dust rate, but 
 ## Slice 3 result (baseline before slice 2; `tests/audit/late_accretion_architecture_census.py`, report `reports/gen1493-veneer-by-architecture-2026-11-18.md`)
 
 In 240 Sun-like systems 71 percent of rocky planets sit on the floor (51 percent for default stars), 65 points of it because no belt lies outside the planet; every planet of a system with a giant (14) is at the floor. The median veneer is 0.04 percent of the planet's mass against the published 0.2 to 0.7 percent. So the design of slice 2 above changes: the reservoir to read is the one the system **had** (the belt's primordial mass, what the giants cleared and scattered, the outer disk that made comets), not only the belts that remain, or a giant that cleared its belt leaves the planets inside it at the floor. If the primordial mass of a fully cleared belt is not stored, storing it is the first step of slice 2. No comet-only system appears in 480 seeds (GEN.1788 rates), so the comet source needs a forced fixture.
+
+
+## Slice 2 result (Lane 06, 2026-11-21; Boss answered the three questions above yes on 2026-11-20)
+
+**What was built.** `late_supply.inward_share_of(fates, stirred, gone)` gives the share of a reservoir's primordial mass sent inward: `INWARD_SHARE` (0.1) of the part no giant swept, `CROSSING_GAIN` (0.3, row LS1a) of the part a giant threw onto crossing orbits, and `STIRRED_GAIN` (0.1, row LS1b) more for a stirred ring. "Crossing" is read from the scatter step's own populations (`scatter_disk` plus `centaurs`: bound, not ejected), so a heavy giant that throws most of its sweep out of the system (large Safronov number: more `ejected`) sends less inward than a light one, with no new constant for the ejected part. `late_supply.Early` carries the share on the reservoir; `late_accretion.early_of_belt` and `early_of_origin` build it.
+
+**The reservoir the system had.** `belt_birth.build(..., lost=[])` hands on each stretch the star's orbits held that no belt is left of; `StarSystem.lost_reservoirs` keeps them by star for the end-of-making pass. A lost stretch counts only for what the giants threw onto crossing orbits (nothing stays in a ring to be ground or stirred, and what the planets took is not a leftover); a stretch no giant threw anything from is left out. Nothing is stored: the pass runs once at generation.
+
+**Comets.** Comets come from the scattered outer disk (GEN.1765), so the source of the veneer that the comets stand for is that disk's crossing share, counted above whether or not a belt remains of it. The few sampled nuclei (`influx.Reservoir("comet", ...)`) are 1e12 to 1e15 kg each and would add nothing next to a disk of Earth masses, and counting them as well would count the same mass twice. A star with no outer disk has none (Boss, 2026-11-20: only stars with an outer disk).
+
+**Tuning (row LS1a, LS1b).** A synthetic Sun-like system (an Earth inside four giants, an outer disk of 10 to 20 Earth masses swept by a Neptune-class giant) keeps 0.2 to 0.7 percent of the Earth's mass (test). The scale is fitted and marked L4.
+
+**Census (240 G2V systems, seeds 5000 to 5239, `tests/audit/late_accretion_architecture_census.py`).** The 2026-11-18 baseline above is out of date: main has moved. On current main (gains set to zero) and with slice 2 the groups are:
+
+| Architecture | Planets | Floor | Ceiling | Median percent | Median ratio |
+|---|---|---|---|---|---|
+| no giant | 409 | 16 percent | 47 percent | 2.47 | 3.11 |
+| giant inside the belt zone | 28 | 89 percent | 0 percent | 0.035 | 0.05 |
+| giant beyond 10 AU | 34 | 94 percent | 0 percent | 0.035 | 0.05 |
+| with a companion star | 173 | 53 percent | 22 to 23 percent | 0.041 | 0.05 |
+
+Slice 2 moves almost nothing in these groups (the companion group's ceiling share goes from 22 to 23 percent). The census reads: the veneer is set by the sinks and by whether a belt is left outside the planet, not by the share. Planets of a system with a giant sit on the floor because the giant takes the sink (a Jupiter-class sink weighs 70 times an Earth's), and planets of a giant-free system with a belt sit at the ceiling because nothing else takes it. Both ends are far from the published 0.2 to 0.7 percent for the Earth.
+
+**Floor and ceiling (Boss: keep, change only in slice 2 from what it measures).** They are kept: the measurement does not isolate them. A lower ceiling would only move the giant-free planets from 3 percent to the new cap and a higher floor would only lift the giant systems, and neither gives the system the sink geometry it lacks. What the numbers do say is that the next step is the sink weight (rows LS2 and LS3, slice 3 of the scattering integration), not these two caps. That is a call for Boss with the table in hand.

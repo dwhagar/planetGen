@@ -38,7 +38,8 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import detmath, draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, belt_planets, comet_abundance, disk_ejection, abundance_tier, habitable_request, cosmic_dust, late_accretion, pulsar_planets, remnant_orbits
+from planetgen.generation import trojan_region
+from planetgen.generation import trojan_planet, belt_birth, belt_planets, comet_abundance, disk_ejection, abundance_tier, habitable_request, cosmic_dust, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star
 from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, comet_supply, dark_light, debris_dust, disk_size, disk_truncation, effect_ledger, kozai_bodies, light_ledger, moon_resonances, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
@@ -319,6 +320,7 @@ class StarSystem:
                 (`_drawn_plan`, GEN.631).
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
+        self.lost_reservoirs = {}       # GEN.1493 slice 2: `{id(star): [late_supply.Early]}`, the stretches of a star no belt is left of (runtime only, not stored)
         # A bad FORCE_CLASS request is refused here, before any draw: a check made after the star was drawn never ran for the stars that return early (a pulsar's planets, a post-AGB pair, a diskless black hole).
         if system_config.FORCE_CLASS and system_config.SLOTS:
             raise ValueError("FORCE_CLASS cannot be combined with SLOTS: a slot already names its class.")
@@ -441,7 +443,11 @@ class StarSystem:
 
         self._promote_belt_members()
 
+        self._add_trojan_planets()
+
         self._add_irregular_moons()
+
+        self._add_trojan_regions()
 
         # Comets don't participate in the planet-slot retry loop above --
         # see _generate_comets' own docstring for why -- so they're rolled
@@ -484,7 +490,7 @@ class StarSystem:
         # in the same pass (after life data, since it reads life_stage) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
         with log.timed_phase("late accretion pass"):
-            late_accretion.apply(self.all_planets)      # GEN.1493: the belts are final, so the air of a rocky planet reads them for its late accretion
+            late_accretion.apply(self.all_planets, self.lost_reservoirs)      # GEN.1493: the belts are final, so the air of a rocky planet reads them for its late accretion
             cosmic_dust.apply(self.all_planets, [(self.star, self.comets), (getattr(self, "secondary_star", None), self.secondary_comets)])      # GEN.1542: the dust each takes in decides V8 of its sulfur cloud (with the hypotheses on)
 
         with log.timed_phase("snow line pass"):
@@ -1484,7 +1490,7 @@ class StarSystem:
                 if slot_spec is None and i > 0:
                     estimated_distance = max(estimated_distance, self._distance_clear_of(planets, seed, star))      # GEN.1791: born where the spacing pass would put it, so its zone is the final one
 
-                hz = habitable_zone[0] < estimated_distance < habitable_zone[1]
+                hz = planetPhysics.in_candidate_zone(habitable_zone, estimated_distance)       # GEN.1807: the zone the request and the dials go to, wider than the habitable zone
 
                 # An explicit per-slot specification takes priority over all of the
                 # normal random/forced generation logic below.
@@ -1522,6 +1528,34 @@ class StarSystem:
         rows = [(planet.distance, planet.eccentricity or 0.0, planet.mass) for planet in planets if planet.body_type != 'a']
         return clearance_ledger.planets_needed_au(rows, seed.mass_kg, seed.eccentricity, star.mass) if rows else 0.0
 
+    def _add_trojan_planets(self):
+        """
+        The whole planets at L4 and L5 of the giants (GEN.1151, `generation/trojan_planet.py`): each made from its giant's orbit, put in its star's list after the giant and settled as a promoted belt planet is. Made once the planets, belts and
+        ages are final, before the irregular moons (they may catch bodies for these too). A system whose bodies the author named (`SLOTS`, `NUM_ORBITS`) is left as written.
+        """
+        config = self.system_config
+        if config.SLOTS or config.NUM_ORBITS is not None or config.PLANETS is False:
+            return
+        with log.timed_phase("trojan planets"):
+            for star, bodies in ((host.star, host.orbiters) for host in self.hosts):
+                if self._too_young_for_planets(star):
+                    continue
+                made = trojan_planet.build(self, star, bodies)
+                if made:
+                    bodies[:] = sorted([*bodies, *made], key=lambda body: body.distance)         # a stable sort: a trojan stands after its giant
+                    self._settle_promoted(star, bodies, made)
+
+    def _add_trojan_regions(self):
+        """
+        The trojan regions of the giants (GEN.1150, `trojan_region.build`): the L4 and L5 swarm of each giant that swept an outer disk, put at the end of the list of the star that giant orbits. They are made
+        once the planets, belts and moons are final, so the spacing pass never sees a body that shares a giant's orbit. A system whose bodies the author named (`SLOTS`, `NUM_ORBITS`) is left as written.
+        """
+        config = self.system_config
+        if config.SLOTS or config.NUM_ORBITS is not None or config.PLANETS is False:
+            return
+        for star, bodies in ((host.star, host.orbiters) for host in self.hosts if host.role in (PRIMARY, SECONDARY)):
+            bodies.extend(trojan_region.build(bodies, star, config))
+
     def _add_belts(self, bodies, star, orbit_ceiling_au, apply_guarantees=True):
         """
         Adds the belts of `star`'s finished, spaced planets to `bodies` in place (GEN.1068, `belt_birth`): the stretches the chain leaves unfinished, not slots rolled for. It runs once
@@ -1535,8 +1569,10 @@ class StarSystem:
                 or (remnant_orbits.is_diskless_black_hole(star) and config.PLANETS is not True)):
             return
         scatter = next((architecture.disk_scatter for planned, architecture in getattr(self, "architectures", ()) if planned is star), 1.0)     # the disk the planets grew in (GEN.1261)
+        lost = []
         belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star),
-                                 instability=capture_windows.instability_level(self.capture_windows(star)), disk_scatter=scatter)
+                                 instability=capture_windows.instability_level(self.capture_windows(star)), disk_scatter=scatter, lost=lost)
+        self.lost_reservoirs[id(star)] = lost       # GEN.1493 slice 2: what the star's belts were before the giants cleared them, for the air of the planets inside them
         if not belts and config.ASTEROID_BELT is True and not any(body.body_type == 'a' for body in bodies):
             belts = self._requested_belt(bodies, star, orbit_ceiling_au)
         if not belts:
@@ -1776,7 +1812,7 @@ class StarSystem:
         """
         if not self._habitable_requested():
             return True
-        in_ecosphere = any(planet.body_type == "t" and getattr(planet, "zone", None) == "e" for planet in self.primary.orbiters)
+        in_ecosphere = any(planet.body_type == "t" and abundance_tier.candidate(planet) for planet in self.primary.orbiters)
         return request_odds.keeps(in_ecosphere or habitable_request.count(self.primary.orbiters) > 0)
 
     def _habitable_found(self):
@@ -2592,7 +2628,7 @@ class StarSystem:
             if respaced and self.binary_type == "wide":
                 self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
             # GEN.1548: the orbits are final, so the air, class and spin of the bodies built bare are made now, once, and their moons (bare, with their orbits) with them
-            late_accretion.give_first_air(self.all_planets)       # PERF.271: the belts and orbits are final, so the first air reads the late accretion the system gives, and the pass at the end finds most planets done
+            late_accretion.give_first_air(self.all_planets, self.lost_reservoirs)       # PERF.271: the belts and orbits are final, so the first air reads the late accretion the system gives, and the pass at the end finds most planets done
             for obj in self.all_planets:
                 if obj.body_type != 'a':
                     obj.finish_climate()

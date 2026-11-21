@@ -251,7 +251,7 @@ class Planet(PlanetaryObject):
         *body_strength.BODY_FIELDS,
         *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "cloud_decks", "air_history", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "collision_count", "belt_order", "belt_rank",
+        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "cloud_decks", "air_history", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "collision_count", "belt_order", "belt_rank", "lagrange_point",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -297,6 +297,13 @@ class Planet(PlanetaryObject):
     `None` for every other body. The member's designation, `<belt ID>.<rank in hex>`, and its page still resolve by them."""
 
 
+    lagrange_point = None
+    """str or None: `"L4"` or `"L5"` for a planet that shares its giant's orbit, 60 degrees ahead of it or behind it (GEN.1151, `generation/trojan_planet.py`); `None` for every other planet. Stored."""
+
+    lagrange_host = None
+    lagrange_host_db_id = None
+    """The giant a trojan planet librates about (the object while generating, then the loader's link) and the `planets.id` a planet read back names as its host until the loader gives it the object. Not serialized: the row's host link names it."""
+
     light_factor = None
     """float or None: The share of its host's light a planet keeps after the eclipses of its sky (`physics/eclipses.py`, GEN.1484): below 1 for a circumbinary planet, `None` (all of it) for every other body."""
     obliquity_min_deg = None
@@ -308,6 +315,7 @@ class Planet(PlanetaryObject):
     cloud_decks = None
     """str or None: Where a giant's hot-condensate clouds sit and the most each trace gas can hold, as JSON text (`physics/hot_cloud_deck.py`, GEN.1577); `None` for a body that is not a giant of a star."""
     air_history = None
+    life_adaptations = None
     """str or None: The record of the body's air history as the short JSON text `physics/air_record.pack` makes (GEN.1745 slice 4b); `None` for a body that gets none (`air_record.eligible`) and for a body not yet through the life pass."""
     oddities = ()
     """tuple[str]: The ids of the oddities the body has (`physics/oddities.py`, GEN.1047), in table order; empty for none. Stored as comma separated text."""
@@ -345,7 +353,7 @@ class Planet(PlanetaryObject):
                  radius=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
                  planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False, late_core=False, collision_count=0,
-                 belt_member=None, belt_order=None, plan_eccentricity=None):
+                 belt_member=None, belt_order=None, plan_eccentricity=None, trojan_of=None):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -393,6 +401,7 @@ class Planet(PlanetaryObject):
                                          impact oddities (`physics/oddities.py`, W10). Defaults to none.
             plan_eccentricity (float, optional): The eccentricity the planet architecture drew for this planet's slot and held to its neighbours (`planet_architecture.Seed.eccentricity`, GEN.1797);
                                          the planet takes it as its birth eccentricity (cut at its star's Roche limit) instead of drawing one. Defaults to a draw.
+            trojan_of (tuple, optional): `(giant, point)` for a planet made at L4 or L5 of `giant` (GEN.1151): it takes the giant's orbit, its plane, node, periapsis and eccentricity, and stands 60 degrees ahead (`"L4"`) or behind (`"L5"`) in mean anomaly. Defaults to none.
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
                                          `generate_moons`: the orbit's inclination follows from it (GEN.714). A moon built
                                          without one keeps the old regular orbit.
@@ -441,8 +450,12 @@ class Planet(PlanetaryObject):
         self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
         self.cloud_decks = None     # a giant's cloud decks and trace-gas ceilings (`hot_cloud_deck.generate`, set with its air, GEN.1577)
         self.air_history = None     # the record of its air history (`air_record.pack`, set at the end of the life pass, GEN.1745)
+        self.life_adaptations = None        # what its life had to become to live where it does (`adaptation_record`, set at the end of the life pass, GEN.1808; stored by GEN.1809)
         self.collision_count = collision_count
         self.build.plan_eccentricity = plan_eccentricity      # GEN.1797: runtime build state, never stored
+        self.build.trojan_of = trojan_of                      # GEN.1151: runtime build state, never stored
+        if trojan_of is not None:
+            self.lagrange_host, self.lagrange_point = trojan_of
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None

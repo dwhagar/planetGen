@@ -5,6 +5,8 @@
 import copy
 import functools
 
+import math
+
 import pytest
 
 from planetgen.generation import evolution
@@ -214,14 +216,14 @@ def test_the_oxygen_trajectory_is_the_air_as_found_until_the_rise_and_never_fall
     from planetgen.physics import biogenic_oxygen
     body, living, rise = _a_world_the_oxygen_rises_on()
     cuts = air_history.oxygen_cuts(body, living)
-    assert rise in cuts and 0.3 in cuts
+    assert any(math.isclose(rise, cut, rel_tol=1e-6) for cut in cuts) and 0.3 in cuts        # the rise is found twice by a solve that stops at its tolerance, so to a few parts in a billion
     ages = air_history.schedule(body.star.age, cuts)
     trajectory = air_history.oxygen_trajectory(body, living, ages)
     have = biogenic_oxygen.air_moles(body).get("O2", 0.0)
     assert [age for age, _ in trajectory] == ages
-    assert all(value == have for age, value in trajectory if age < rise)
-    after = [value for age, value in trajectory if age >= rise]
-    assert after and all(b >= a - 1e-9 * max(a, 1.0) for a, b in zip(after, after[1:]))        # the reductant only falls, so the oxygen never does
+    assert all(value == have for age, value in trajectory if age < rise * (1.0 - 1.0e-6))
+    after = [value for age, value in trajectory if age >= rise * (1.0 - 1.0e-6)]
+    assert after and all(b >= a - 1e-6 * max(a, 1.0) for a, b in zip(after, after[1:]))        # the reductant only falls, so the oxygen never does
     assert after[-1] > have                                                                       # the rise put oxygen into the air
 
 
@@ -233,7 +235,7 @@ def test_the_oxygen_trajectory_ends_at_the_oxygen_the_air_is_given_at_the_star_s
     last = air_history.oxygen_trajectory(body, living, ages)[-1][1]
     rise_again, target = life_air.oxygen_state(body, living)
     burnt, _ = biogenic_oxygen.burn(biogenic_oxygen.air_moles(body))
-    assert rise_again == rise
+    assert rise_again == pytest.approx(rise, rel=1e-6)
     assert last == pytest.approx(max(burnt.get("O2", 0.0), min(target, biogenic_oxygen._fire_limit_mol(body, burnt))), rel=1e-9)
     none = [life_air.Living(living[0].life_class, 1.0, 1.0e3)]            # producers older than the star can be: no rise
     assert air_history.oxygen_cuts(body, none) == []

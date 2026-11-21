@@ -37,7 +37,8 @@ first star) or `None` for the barycenter. `physics.body_positions.positions_at` 
 A star, planet or moon carries `look` (MAP.287), the same body look record the System Map's `data-look` holds
 (`bodylook.star_look`, `bodylook.planet_look`), which the client colours and paints the sphere from; a comet carries
 `color`, its nucleus colour. A planet that was made from a belt (GEN.1510) also carries `made_from_belt` (GEN.1511): the `ref` of the belt, the body's `rank` there and the `designation` it had
-(`<belt ID>.<rank hex>`); no other planet has the key.
+(`<belt ID>.<rank hex>`); no other planet has the key. A belt row that is a trojan region of a giant (GEN.1150) also carries `region` (MAP.433): `host` (the giant's ref), `point`, `amplitude_deg`, `phase_deg`, `libration_period_years`,
+`half_arc_deg` and `mean_inclination_deg`; the view draws it as an arc about the giant's L4 or L5 (`systemview3d.js`); no other belt has the key.
 """
 
 import dataclasses
@@ -46,10 +47,10 @@ from datetime import datetime, timezone
 
 from planetgen.db import orbit_trees, query
 from planetgen.galaxy import object_uid
-from planetgen.physics import body_state, habitability, state_vectors
+from planetgen.physics import body_state, habitability, state_vectors, trojan_overlay, trojans
 from planetgen.physics import constants as pc
 from planetgen.web.maps.bodylook import comet_nucleus_color, member_look, planet_look, star_look
-from planetgen.web.maps.systemmap import finite_row, put_star_temperatures
+from planetgen.web.maps.systemmap import _TROJAN_MIN_HALF_ARC_DEG, finite_row, put_star_temperatures
 from planetgen.physics import system_bodies as ledger
 from planetgen.physics import unit_registry as units
 from planetgen.util import settings
@@ -247,20 +248,39 @@ def _belt_of(planet, belts):
     """
     if planet.get("belt_rank") is None or planet.get("belt_order") is None:
         return None
-    of_star = sorted((belt for belt in belts if belt.get("star_id") == planet.get("star_id")), key=lambda belt: (belt["orbital_index"], belt["id"]))
+    of_star = sorted((belt for belt in belts if belt.get("star_id") == planet.get("star_id") and belt.get("lagrange_point") is None), key=lambda belt: (belt["orbital_index"], belt["id"]))
     if planet["belt_order"] >= len(of_star) or of_star[planet["belt_order"]].get("uid") is None:
         return None
     belt = of_star[planet["belt_order"]]
     return {"ref": f"belt:{belt['id']}", "rank": planet["belt_rank"], "designation": object_uid.designation(object_uid.parse_id(belt["uid"]), planet["belt_rank"])}
 
 
-def _belt(belt, around, members=()):
-    return {
+def _region(belt, planets, stars):
+    """
+    What the 3D view needs to draw a trojan region (GEN.1150, MAP.433) as an arc about its giant's L4 or L5 and not as a ring: the giant's `host` ref, the point, the libration (`amplitude_deg`, `phase_deg`, the phase at Unix time zero, and
+    its `libration_period_years`, `None` for a pair that holds no tadpole), the half width of the arc in degrees and the region's mean inclination. `None` for a plain belt.
+    """
+    if belt.get("lagrange_point") is None:
+        return None
+    host = next((planet for planet in planets if planet["id"] == belt.get("parent_id")), None)
+    star = None if host is None else next((one for one in stars if one["id"] == host.get("star_id")), None)
+    mu = None if host is None or star is None else trojan_overlay.mass_parameter(host.get("mass_kg"), star.get("mass_kg"))
+    period = None if mu is None or not host.get("period_years") else trojans.libration_period(host["period_years"], mu)
+    amplitude = belt.get("libration_amplitude_deg") or 0.0
+    return {"host": None if host is None else f"planet:{host['id']}", "point": belt["lagrange_point"], "amplitude_deg": amplitude, "phase_deg": belt.get("libration_phase_deg") or 0.0,
+            "libration_period_years": period, "half_arc_deg": max(amplitude, _TROJAN_MIN_HALF_ARC_DEG), "mean_inclination_deg": belt.get("mean_inclination_deg") or 0.0}
+
+
+def _belt(belt, around, members=(), region=None):
+    item = {
         "ref": f"belt:{belt['id']}", "id": belt["id"], "kind": "belt", "name": belt.get("name"),
         "body_type": belt.get("body_type"), "around": around,
         "inner_km": belt["lower_limit_km"], "outer_km": belt["upper_limit_km"], "distance_km": belt["distance_km"],
         "members": list(members),
     }
+    if region is not None:       # MAP.433: only a trojan region has the key
+        item["region"] = region
+    return item
 
 
 def _comet(comet, around):
@@ -336,6 +356,6 @@ def build_scene(conn, system_id):
         "stars": _stars(conn, system_id, stars, row),
         "tree": tree,
         "planets": planets,
-        "belts": [_belt(b, _star_around(b, stars, row, pair_around), _belt_members(conn, b)) for b in detail["belts"]],
+        "belts": [_belt(b, _star_around(b, stars, row, pair_around), _belt_members(conn, b), _region(b, detail["planets"], stars)) for b in detail["belts"]],
         "comets": [_comet(c, _star_around(c, stars, row, pair_around)) for c in detail["comets"]],
     }

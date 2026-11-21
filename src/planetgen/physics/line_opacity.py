@@ -317,7 +317,7 @@ def _plateaus(formula):
     """`[(low, high, factor)]`, cm-1: where a gas's bands sit, from the gas table (a center is a zero-width plateau)."""
     row = gases.gas(formula)
     if row.infrared is None or not row.infrared.bands:
-        if row.ir == "ir":
+        if row.infrared_class == "ir":
             return [(*STANDIN_GENERIC_BAND_CM1, 1.0)]
         return []
     plateaus = []
@@ -330,7 +330,7 @@ def _plateaus(formula):
 
 def _wing_mass_opacity(formula):
     """The far-wing mass opacity of a gas without a table at one bar, m2/kg."""
-    flag = gases.gas(formula).ir
+    flag = gases.gas(formula).infrared_class
     if flag == "ir":
         return STANDIN_GENERIC_WING_M2_KG
     if flag == "weak":
@@ -349,7 +349,7 @@ def _standin_distribution(formula, pressure_pa):
     """A stand-in gas's mass opacity (layer, band, g), m2/kg: the plateaus (growing with the pressure) and far wings, sorted into a distribution."""
     scaling = np.asarray(pressure_pa, dtype=float) / PRESSURE_REFERENCE_PA
     nu = _subsamples()
-    kappa0 = STANDIN_KAPPA0_M2_KG if gases.gas(formula).ir == "ir" else STANDIN_WEAK_KAPPA0_M2_KG
+    kappa0 = STANDIN_KAPPA0_M2_KG if gases.gas(formula).infrared_class == "ir" else STANDIN_WEAK_KAPPA0_M2_KG
     wing = _wing_mass_opacity(formula)
     opacity = np.zeros((len(scaling), BANDS, STANDIN_SUBSAMPLES))
     for low, high, factor in _plateaus(formula):

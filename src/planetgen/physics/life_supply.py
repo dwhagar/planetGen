@@ -32,7 +32,7 @@ Use:
 import json
 import os
 
-from planetgen.physics import atmosphere, elements, habitability, habitability_world, surface_pressure
+from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world, surface_pressure, water_layer
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_supply.json")
 
@@ -113,6 +113,41 @@ def habitat_temperature_k(values):
     heat = (values.get("internal_heat_flux_w_m2") or 0.0) + (values.get("tidal_flux_w_m2") or 0.0)
     depth_m = (values.get("aquifer_depth_km") or 0.0) * 1000.0
     return min(number("habitat_max_k"), surface + depth_m * heat / number("crust_conductivity_w_m_k"))
+
+
+LIQUID_OCEANS = ("surface ocean", "brine seep", "hycean", "ice-covered ocean")
+"""tuple: The hydrospheres whose water is a liquid ocean (under a lid or not)."""
+
+
+def habitat_pressure_pa(values, place="top"):
+    """
+    The pressure, Pa, of the place a chemical class lives in (GEN.1819, slice 1: a record of the habitat, no gate reads it). The same stored fields as `habitat_temperature_k`:
+
+    * an ocean, open or under a lid: its `top` is the air's pressure plus the weight of the ice lid (`ice_shell_km` of ice at the body's gravity); its `floor` (the rock a hydrogen eater needs) is the pressure at the
+      bottom of the water layer (`water_base_pressure_pa`, the compressed column of `water_layer`); where the liquid lies on high-pressure ice (`hp_ice_km`: the ocean is ice-sealed, no rock) the floor of the
+      liquid is the pressure at which water at the lid's melting point freezes into that ice (`water_layer.liquidus_pressure_pa`); an ocean with no stored base takes the weight of `ocean_depth_km` of water;
+    * an aquifer: the air's pressure plus the weight of the rock to its depth (`crust_density_kg_m3`), for the top and the floor alike;
+    * anything else (a dry or ice-covered surface, a vapor world): the air's pressure.
+
+    `None` for a body with no gravity where the weight is needed.
+    """
+    surface = values.get("atmospheric_pressure_pa") or 0.0
+    gravity = (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY
+    if values.get("hydrosphere") in LIQUID_OCEANS:
+        shell_m = (values.get("ice_shell_km") or 0.0) * 1000.0
+        top = surface + shell_m * constants.ICE_DENSITY_KG_M3 * gravity
+        if place == "top":
+            return top
+        if values.get("hp_ice_km"):
+            return min(values.get("water_base_pressure_pa") or float("inf"), water_layer.liquidus_pressure_pa(number("ice_ocean_base_k")))
+        base = values.get("water_base_pressure_pa")
+        if base:
+            return base
+        depth_m = (values.get("ocean_depth_km") or 0.0) * 1000.0
+        return top + depth_m * constants.LIQUID_WATER_DENSITY_KG_M3 * gravity
+    if habitability_world.groundwater(values) in ("reachable", "deep") and values.get("aquifer_depth_km"):
+        return surface + values["aquifer_depth_km"] * 1000.0 * number("crust_density_kg_m3") * gravity
+    return surface
 
 
 def supplies(values):

@@ -25,6 +25,8 @@ import math
 from collections import namedtuple
 from dataclasses import dataclass, field
 
+import numpy as np
+
 from planetgen.physics import adaptation_traits, class_fit, constants, radiation
 from planetgen.physics.protection_limits import limit
 
@@ -83,13 +85,11 @@ Armstrong limit (counterpressure suit) and up to 10 MPa (the PHI-4 doc's
 hyperbaric edge, past the 7 MPa COMEX Hydra X record); Red beyond, falling to
 0 a decade further out."""
 
-TEMPERATURE_BAND = (limit("cold_outer_c"), limit("cold_suit_c"), limit("cold_clothing_c"), limit("comfort_low_c"),
-                    limit("comfort_high_c"), limit("heat_garment_c"), limit("heat_max_c"), limit("hot_outer_c"))
-"""Dry-bulb temperature, deg C (linear). Blue 0 to 31, Green -20 to 45
-(ordinary clothing or cooling garments), Yellow -50 (eutectic brines) to
-122 (the limit of carbon-based life, [R4295]; the PHI-4 doc's Red
-edge), Red beyond. A wet bulb at or above 31 deg C makes Blue or Green
-Yellow (per sample, `temperature_coverage.coverage`)."""
+TEMPERATURE_BAND = (limit("cold_outer_c"), limit("temp_yellow_low_c"), limit("temp_green_low_c"), limit("temp_blue_low_c"),
+                    limit("comfort_high_c"), limit("temp_green_high_c"), limit("heat_max_c"), limit("hot_outer_c"))
+"""Dry-bulb temperature, deg C (linear), from the conditions and never from gear (GEN.1677, Boss 11-20). Blue 5 to 31 (the climates people live in without machines),
+Green -10 to 38, Yellow -20 (water in cells stays liquid for life) to 122 (the limit of carbon-based life, [R4295]; the PHI-4 doc's Red edge), Red beyond. A wet bulb at or
+above 31 deg C makes Blue or Green Yellow (per sample, `temperature_coverage.coverage`). The gear rows of `protection_limits` (clothing, suits) are the kit list's, not these."""
 
 DOSE_BAND = (None, None, None, None, limit("dose_blue_sv_yr"), limit("dose_green_sv_yr"), limit("dose_yellow_sv_yr"),
              limit("dose_outer_sv_yr"))
@@ -103,15 +103,10 @@ the PHI-4 doc leaves between 100 mSv/yr and 10 Gy/yr (the Eigen threshold of
 hydrosphere.md 4.6, Boss's defaults of 2026-10-10 (Blue 20 mSv/yr, 50 as the
 single-year limit)."""
 
-UV_BAND = (None, None, None, None, limit("uv_cover_index"), limit("uv_suit_index"), limit("uv_lethal_index"), limit("uv_outer_index"))
-"""The DNA-weighted ultraviolet dose at the ground as a multiple of Earth's (log; `World.uv_index`, GEN.445). Blue below the index where
-sun-cover clothing starts (3), Green to where a full-cover suit starts (30), Yellow to the unfiltered light of an ozone-free world (300:
-shelter from the sun), Red beyond, 0 a decade further out. The score of the Radiation domain is the lower of this and the dose's."""
-
 SINGLE_YEAR_DOSE_SV = limit("dose_single_year_sv")
 """float: ICRP's limit for any one year, 50 mSv."""
 
-Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high uv o2_low gas_scale")
+Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high uv o2_low gas_scale gear_temperature")
 """namedtuple: The limits the five core domains are scored against: the Armstrong pressure, the least inspired
 O2, the chronic and acute inspired O2 edges, the uncompensable wet bulb, and the pressure, temperature and
 dose bands with `o2_high`, the band of too much O2, and the `gas_scale` of the four gas bands of `gas_inputs`, one factor each for `GAS_ORDER` (all 1 for the human visitor). `HUMAN` is the visitor's; `bands` builds a species'
@@ -137,12 +132,17 @@ def bands(overrides=None):
         pressure=(value("pressure_low_outer_kpa"), armstrong, value("mask_min_kpa"), value("pressure_no_gear_kpa"),
                   value("pressure_blue_max_kpa"), value("pressure_narcosis_kpa"), value("pressure_hyperbaric_max_kpa"),
                   value("pressure_outer_kpa")),
-        temperature=(value("cold_outer_c"), value("cold_suit_c"), value("cold_clothing_c"), value("comfort_low_c"),
-                     value("comfort_high_c"), value("heat_garment_c"), value("heat_max_c"), value("hot_outer_c")),
+        temperature=(value("cold_outer_c"), value("temp_yellow_low_c"), value("temp_green_low_c"), value("temp_blue_low_c"),
+                     value("comfort_high_c"), value("temp_green_high_c"), value("heat_max_c"), value("hot_outer_c")),
         dose=(None, None, None, None, value("dose_blue_sv_yr"), value("dose_green_sv_yr"), value("dose_yellow_sv_yr"),
               value("dose_outer_sv_yr")),
         o2_high=(None, None, None, None, chronic, chronic, acute, acute * 10),
-        uv=(None, None, None, None, value("uv_cover_index"), value("uv_suit_index"), value("uv_lethal_index"), value("uv_outer_index")),
+        # The DNA-weighted ultraviolet dose at the ground as a multiple of Earth's (log; `World.uv_index`, GEN.445). Blue to 3, the dose of Earth's own tropical high-altitude peak, Green to 10
+        # (fair skin burns in minutes at full sun, but the day has shade and night in it; GEN.1677, Boss 11-20: the edge is how fast the light injures, not what covers the skin), Yellow to the
+        # unfiltered light of an ozone-free world (300), Red beyond, 0 a decade further out. The score of the Radiation domain is the lower of this and the dose's.
+        uv=(None, None, None, None, value("uv_blue_index"), value("uv_green_index"), value("uv_lethal_index"), value("uv_outer_index")),
+        gear_temperature=(value("cold_outer_c"), value("cold_suit_c"), value("cold_clothing_c"), value("comfort_low_c"),
+                          value("comfort_high_c"), value("heat_garment_c"), value("heat_max_c"), value("hot_outer_c")),
         o2_low=_o2_low_band(value("inspired_o2_min_kpa"), value), gas_scale=tuple(value(f"{gas.lower()}_scale") for gas in GAS_ORDER))
 
 
@@ -426,23 +426,36 @@ BLUE_SHARE_MIN = 0.30
 """float: The share of the area and time that must be in the Blue band for the score to reach Blue: below it the score is held under 1 in proportion (a world that is Green everywhere and
 Blue almost nowhere is Green). Source tier T9, tweak level L3 (set on the sweep of GEN.1265, GEN.725)."""
 
-YELLOW_CREDIT = 0.15
-"""float: How much of a livable sample a Yellow-band one (a suit or cooling garments make it livable, -50 to -20 C, 45 to 122 C, or a wet bulb past the limit) counts for in the share the score
-is read from, so a world that is Yellow everywhere (hot, cold or humid) is Yellow and not Red, as the bands always made it; only Red-band samples count for nothing. A world with no Green
-anywhere reaches the Yellow edge (0.4) at 0.1 and is 0.44 with this. Source tier T9, tweak level L3 (set on the sweep of GEN.1265, GEN.725; 0 would score a suit-only world Red)."""
+HUMID_SAMPLE_CREDIT = 0.15
+"""float: The share of a livable sample that a sample the wet bulb rule moved to Yellow counts for (its dry bulb is in the Green band but the air cannot cool the body: the limit is the body's, Vecellio), so a
+world that is humid and hot everywhere is Yellow, as it has always been. The value the score has always given a Yellow sample, kept for this one case. Source tier T9, tweak level L3 (GEN.1677; a stand-in, GEN.725)."""
 
 COVERAGE_EDGE_SCORES = ((0.0, 0.0), (LIVABLE_YELLOW_EDGE, _EDGE_SCORES[1]), (LIVABLE_GREEN_EDGE, _EDGE_SCORES[2]), (LIVABLE_BLUE_EDGE, _EDGE_SCORES[3]))
 """tuple: The `(livable share, score)` points the coverage score runs through."""
 
+_CREDIT_SCORES = [score for _share, score in COVERAGE_EDGE_SCORES]
+_CREDIT_SHARES = [share for share, _score in COVERAGE_EDGE_SCORES]
 
-def coverage_score(livable_share, blue_share, belt_only=False, yellow_share=0.0):
+
+def sample_credit(band_score_of_sample):
     """
-    The Temperature score of a world from the share of its area and time a visitor can be out in without a suit (`livable_share`, the Green band or better, wet bulb rule applied
-    per sample) and the share in the Blue band (`blue_share`), GEN.1265: `COVERAGE_EDGE_SCORES` read by linear interpolation, so the geometric mean of `overall_score` still works. The
-    samples that need a suit (`yellow_share`) count for `YELLOW_CREDIT` of a livable one. Blue also needs `blue_share` of `BLUE_SHARE_MIN`: the score rises toward 1 with it. A world
+    The share of a livable sample that a place and time of a world counts for in `coverage_score` (GEN.1677, replacing the fixed credit a suit was assumed to give): the livable share at which a world
+    would score the sample's own band score (`band_score`), by `COVERAGE_EDGE_SCORES` read backwards. A Blue or Green sample (score 0.75 or more) counts for 1, a Yellow one for a share that rises
+    continuously from `LIVABLE_YELLOW_EDGE` at the Yellow edge to `LIVABLE_GREEN_EDGE` at the Green edge, a Red one from 0 to `LIVABLE_YELLOW_EDGE`. A Yellow or Red world with one band score everywhere then scores
+    exactly that, and the credit is continuous across the Yellow and Red bands (the one step is at the Green edge, where a place becomes livable by definition). Works on a number or an array.
+    """
+    return np.where(np.asarray(band_score_of_sample) >= _EDGE_SCORES[2], 1.0,
+                    np.interp(band_score_of_sample, _CREDIT_SCORES[:3], _CREDIT_SHARES[:3]))
+
+
+def coverage_score(livable_share, blue_share, belt_only=False):
+    """
+    The Temperature score of a world from the share of its area and time a visitor can be out in (`livable_share`, GEN.1265: each place and time counts for `sample_credit` of its own band
+    score, so a Green or Blue one counts for 1 and one in the Yellow or Red bands for part of one, wet bulb rule applied per sample) and the share in the Blue band (`blue_share`):
+    `COVERAGE_EDGE_SCORES` read by linear interpolation, so the geometric mean of `overall_score` still works. Blue also needs `blue_share` of `BLUE_SHARE_MIN`: the score rises toward 1 with it. A world
     livable only in its terminator belt (`belt_only`) is held to Yellow, whatever the share.
     """
-    livable_share = min(livable_share + YELLOW_CREDIT * yellow_share, 1.0)
+    livable_share = min(livable_share, 1.0)
     score = 0.0
     for (x0, s0), (x1, s1) in zip(COVERAGE_EDGE_SCORES, COVERAGE_EDGE_SCORES[1:]):
         if livable_share <= x1:
@@ -488,7 +501,7 @@ def temperature_score(world, limits=HUMAN):
     rise as well as fall: a cold-mean world with a warm region is livable there."""
     from planetgen.physics import temperature_coverage as coverage
     read = temperature_coverage(world, limits)
-    return coverage_score(read.livable_share, read.blue, coverage.belt_only(read), read.yellow)
+    return coverage_score(read.credited_share, read.blue, coverage.belt_only(read))
 
 
 def inspired_o2_kpa(world, limits=HUMAN):

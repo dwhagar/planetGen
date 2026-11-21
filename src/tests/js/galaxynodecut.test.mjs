@@ -88,3 +88,12 @@ test("a sector gives nothing to children and a block over 140 pixels gives every
   assert.equal(C.handover(140, { m: 729, shell: 0, band: 0, wedge: 0 }), 1);
   assert.ok(Math.abs(C.handover(105, { m: 729, shell: 0, band: 0, wedge: 0 }) - 0.5) < 1e-12);
 });
+
+test("a node key is parsed once and read back as the same block, and the keys of a block's children are the children's keys (PERF.200 slice 2)", () => {
+  const key = cut.cases[1].keys[0];
+  const block = C.parseNodeKey(key);
+  assert.equal(C.parseNodeKey(key), block, "the same key gives the same block");
+  assert.equal(C.formatNodeKey(block), key);
+  assert.deepEqual(Object.keys(block), ["m", "shell", "band", "wedge"]);
+  assert.deepEqual(C.parseNodeKey("243.1.2.3"), { m: 243, shell: 1, band: 2, wedge: 3 });
+});

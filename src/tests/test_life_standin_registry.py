@@ -41,7 +41,6 @@ NEEDS_NO_ROW = {
     "habitability.PRESSURE_BAND": "read from the human limits file",
     "habitability.TEMPERATURE_BAND": "read from the human limits file",
     "habitability.DOSE_BAND": "read from the human limits file",
-    "habitability.UV_BAND": "read from the human limits file",
     "habitability.SINGLE_YEAR_DOSE_SV": "read from the human limits file",
     "habitability.O2_HIGH_BAND": "built from the human limits read from the limits file",
     "adaptation_traits.STRESSES": "the names of the five stresses in draw order: structure",

@@ -2,6 +2,95 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4681+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The adaptation record now says what pressure the habitat of a chemical-energy life puts on it, from the ocean floor, the ocean top or an aquifer, and which piezophile adaptation reaches it (no generated number changes)
+
+### Added
+
+- GEN.1819 slice 1: `life_supply.habitat_pressure_pa(values, place)` gives the pressure of the place a chemical class lives in from the fields a body already stores: the top of an ocean (the air plus the ice lid's weight), its floor (the stored base of the water layer; where the liquid lies on high-pressure ice, the pressure at which the lid's melting point freezes into it), and an aquifer (the air plus the rock above it, a new number `crust_density_kg_m3`). The classes 3a and 3b read the floor, the other water classes the top, the acid cloud its own pressure. `life_adaptations` gets the axis `pressure` (MPa; ordinary 50) with the rows P1 (growth above 100 MPa), P2 (growth to 140 MPa, the record) and a dormant P3 (survival to 1.5 GPa) and the habitat `deep_water`; `adaptation_record` puts the habitat's pressure to it, so a floor over 140 MPa is recorded as past the table. `habitability_world.values_from_body` carries `hp_ice_km`, `ocean_depth_km` and `water_base_pressure_pa`. New stand-in section 6.321 and citations R5330 (the description of *Pyrococcus yayanosii*) and R5331 (survival to 1.5 GPa). The record moves no generated number and no class gate reads the pressure; the ceiling is slice 2 and waits for the Boss.
+
+## [8.0.4680+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The Galaxy Map's node cut parses a node key once and keeps the keys of a block's children, so the cut's own functions take about a fifth less time.
+
+### Changed
+
+- `parseNodeKey` keeps the block it made for each node key (the page parsed the same few thousand keys on every cut), `settledExpanded` keeps the keys of each block's children instead of parsing and formatting them again for every expanded block of every cut, and `blockOfKey` reads the number before the first dot without making an array (PERF.200 slice 2). The keys themselves are unchanged, so the stored nodes, the URLs and the order of the cut are the same.
+- On the MAP.249 benchmark, the node cut and node memory functions went from 3,163 ms to 2,475 ms in the profile (22 percent less); the page's stars written (3,719) and stars (3,812) are the same, the requests 8 against 9 and the bytes 315,343 against 333,029 follow how the fetches fell in the run.
+
+generation-output: unchanged
+
+## [8.0.4679+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The rich test galaxy is built once per machine and loaded by the other test files, which takes the three files that use it from about 50 minutes each to about 50 minutes for the first and under two minutes for the others.
+
+### Changed
+
+- The rich galaxy's dump cache (TEST.788) was off unless `PLANETGEN_RICH_GALAXY_CACHE` named a folder, so each of `test_cellkey_motion`, `test_db_check_constraints` and `test_db_column_round_trip` built its own copy of the galaxy, which GEN.1745 slice 4b made slow (62 minutes for the first on the Train 51 gate). It is on by default now, in `planetgen-rich-galaxy` in the machine's temporary folder; a folder every machine reaches shares it between machines, and the variable set empty turns it off. A dump nobody loaded for three days is removed when a new one is kept.
+- The cache could never have hit under pytest: the key held the folders and databases each pytest process makes for itself (`PLANETGEN_LOG_DIR`, `PLANETGEN_MAINTENANCE_FILE`, `PLANETGEN_CONTROL_DATABASE` and the like), so no two processes had the same key. Variables that only say where something is (names ending `_DIR`, `_FILE`, `_DATABASE`) are out of the key; every setting the generator reads, every file of the package, the data and the support files stay in it, so a change to generation code is a new key and a fresh build.
+- A process that loads a dump now makes the galaxy's cluster field, as the warm-up does; the dump does not carry it, and without it the pages that need it answered 503 (TEST.807).
+
+generation-output: unchanged
+
+## [8.0.4678+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The adaptation record now covers every life class: the chemical-energy classes 3a to 9 get the cold and heat rows of the water microbes, rows for the most acid and the most ammonia a cell has grown in, and a record that says where the life is past the table
+
+### Added
+
+- GEN.1811: `adaptation_record` makes a record for the classes 3a, 3b, 4a, 4b, 4c, 5a, 5b, 6, 7, 8 and 9 as well as 1a to 2 (`chemical_demands`). They have no refuge, so the habitat temperature of the class gate and the medium of the class are put to the table: a cold or hot water habitat against the cold and heat rows, the strength and water activity of a sulfuric acid, the ammonia of an ammonia-water, no water at all in dense CO2 or a hydrocarbon sea. The table `life_adaptations.json` gets the axes `acid_strength` and `ammonia_fraction`, the habitat `chemical_medium` and three rows: C17 (metabolism in a brine to -25 C, 248.15 K), A1 (acid to 4.7 percent for growth around pH 0 and 11 percent for *Picrophilus* adapted to 1.2 M) and N1 (ammonia to 0.43 percent of the water, *Halomonas*); the cold-active (C16) and hyperthermophilic (H3) microbe rows are carried by the water classes 3a to 4c (the hot record, 122 C, 395 K, is the gate's own hot edge). Where no row reaches the demand the record says the life is past the table: acid at 81 percent and more (11 measured), class 8 at 10 percent ammonia (0.43 measured), dense CO2, a hydrocarbon sea, and the temperature of every chemical class that is not of water. The class gates do not move and no generated number changes. New stand-in section 6.320, seven citations (R5323 to R5329) from the research of GEN.1810.
+
+## [8.0.4677+db270.gen150.api14] - 2026-11-21
+
+**Headline:** `generate-sectors` declares its write to the rogue planets' interior layers, so `test_command_touches` is green again.
+
+### Fixed
+
+- A rogue planet is a planet and stores its interior layers in `rogue_planet_interior_layers` (migration 0207; the writer came in with the radiation-multiplier fix), but `queue/touches.SECTOR_WRITES` did not list the table, so `test_command_touches` failed with "generate-sectors writes undeclared rogue_planet_interior_layers". The write is declared beside the other rogue-planet tables; the check is not loosened (TEST.812).
+
+generation-output: unchanged
+
+## [8.0.4676+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The test of the update script's References pages step reads the script's eight stages, so `test_references_pages` is green again.
+
+### Fixed
+
+- `test_update_script_builds_the_pages_in_step_3_and_repeats_a_failure_at_the_end` still looked for `log_stage 3 9` after the update dropped the math check as a stage (OPS.286), which made it 8 stages. It reads `log_stage 3 8` and `log_stage 4 8` now (TEST.815). The `Stage 4 of 9` lines in other tests and docs are examples of the log format, not the script, and are left as they are.
+
+generation-output: unchanged
+
+## [8.0.4675+db270.gen150.api14] - 2026-11-21
+
+**Headline:** Every body whose life lives in a refuge (a melt film, a brine seep, a spring, the sea under an ice lid) now records which adaptations of the table its life needed, for the photosynthetic classes 1a, 1b, 1c and 2
+
+### Added
+
+- GEN.1808: `physics/adaptation_record` reads a finished body's refuge and conditions and asks, for each limit the ordinary life does not reach (cold, heat, light under the ice, hours of liquid water, depth of the water table, water activity), what the life must be able to do, which grade of the table of GEN.1725 reaches it (`None` when even the extreme grade falls short: the life there is past the table) and which rows give it, plus the habitat rows (a pigment that works in no light, a crust that wakes on water) of the places the refuge counted. The life age and kinds of life the body has limit which rows apply. The record is `planet.life_adaptations`, a list of plain dicts, `None` for a body with none; nothing stores it yet (GEN.1809) and nothing in the generation reads it.
+- `Refuge` now carries the cold and hot ends of the temperatures of its wet lit steps (the middle 95 percent of the wet lit time, each step weighed by its place's share of the surface, stand-in AE2), the least light under an ice lid and the habitats it counted. Its hours, area and temperature are unchanged.
+- Stand-ins AE1 (one watt a square metre is 5 micromoles of photons, tied by the gate's own light floor) and AE2 (the share of the temperature range) in section 6.318.
+- Classes 3a to 9 get no record yet (GEN.1810 and GEN.1811), and a class 2 need beyond the five rows that apply to all classes comes out "past the table" until that research is in.
+
+## [8.0.4674+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A log line gives a duration under a second in whole milliseconds, so `test_job_logs` is green again.
+
+### Fixed
+
+- `logrecord.duration_text` read a quick run as `5.56 ms` (the time ladder's three significant figures), which turned the two `test_job_logs` tests red on main. From 0.5 ms to just under a second a log line now says whole milliseconds (`6 ms`, `340 ms`), 0.9995 s and up reads `1s`, and the pages and the ladder itself are unchanged (TEST.814).
+
+generation-output: unchanged
+
+## [8.0.4673+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The promoted-planet belt test looks in the planet's own belt only, as a member's rank belongs to its belt.
+
+### Fixed
+- TEST.813: `test_the_promoted_planet_is_not_counted_again_in_its_belt` looked for the promoted planet's `belt_rank` among the members of every belt of the system. A rank is a member's place in its own belt, so a second belt (a system with an inner and an outer belt) holds a member of the same rank and the test failed on seeds 0 and 6 with nothing wrong in the generator: the planet is in no sibling list of its own tide sources and has left its own belt's members. It now looks in the belt the planet came from (`irregular_moons.belts_of(...)[planet.belt_order]`).
+
+generation-output: unchanged
+
 ## [8.0.4672+db270.gen150.api14] - 2026-11-21
 
 **Headline:** The stopping test of the giant cloud-deck bisection is a registered stand-in, so `test_constants_completeness` is green again.

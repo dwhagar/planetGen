@@ -7,6 +7,7 @@ radius, colour, orbit elements and position at the epoch. Needs MySQL
 (`mysql_config`).
 """
 
+import functools
 import json
 import pytest
 
@@ -21,12 +22,16 @@ from planetgen.util import draw
 from tests.publicids import pid
 
 
+@functools.cache
 def _system(want_binary):
+    """The first of the fixed streams that draws a system with moons and comets (made once for the whole run: the search takes minutes since a system takes seconds to make). Comets are made under the abundant
+    tier (GEN.1775): under the default science tier only the stars the physics gives comets have them, so the search over 400 streams took hours and found none."""
     for attempt in range(400):
         cfg = SystemConfig()
         cfg.PLANETS = True
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = want_binary
+        cfg.COMET_TIER = "abundant"
         with draw.bound(f"scene-{want_binary}-{attempt}"):      # TEST.737: the same streams in every run, so the search finds the same system
             system = StarSystem(system_config=cfg)
         if want_binary and len(system.stars) < 2:
@@ -290,3 +295,22 @@ def test_the_cap_is_the_setting_unless_the_caller_gives_one():
     assert f"LIMIT {settings.get_settings().web.belt_bodies_drawn}" in conn.asked[0][0]
     quiet = _MembersOnly([_stored_row(1)])
     assert systemscene._belt_members(quiet, {"id": 7, "uid": None}, limit=0) == [] and quiet.asked == []
+
+
+def test_a_trojan_region_row_carries_what_the_3d_view_draws_its_arc_from_and_a_plain_belt_none():
+    """MAP.433: `region` names the giant, the point and the libration (period from the giant's period and its mass parameter); a plain belt has no such key."""
+    from planetgen.physics import trojan_overlay, trojans
+    from planetgen.web.maps import systemscene
+    star = {"id": 1, "mass_kg": 1.989e30}
+    giant = {"id": 7, "star_id": 1, "mass_kg": 1.898e27, "period_years": 11.86}
+    row = {"id": 3, "parent_id": 7, "lagrange_point": "L5", "libration_amplitude_deg": 12.0, "libration_phase_deg": 200.0, "mean_inclination_deg": 4.0}
+    region = systemscene._region(row, [giant], [star])
+    mu = trojan_overlay.mass_parameter(giant["mass_kg"], star["mass_kg"])
+    assert region == {"host": "planet:7", "point": "L5", "amplitude_deg": 12.0, "phase_deg": 200.0, "libration_period_years": trojans.libration_period(11.86, mu),
+                      "half_arc_deg": 12.0, "mean_inclination_deg": 4.0}
+    assert region["libration_period_years"] > 11.86
+    narrow = systemscene._region(dict(row, libration_amplitude_deg=0.5), [giant], [star])
+    assert narrow["half_arc_deg"] == 3.0                                    # an arc is never thinner than the map's minimum
+    assert systemscene._region({"id": 4, "lagrange_point": None}, [giant], [star]) is None
+    belt = systemscene._belt({"id": 4, "name": "x", "body_type": "a", "lower_limit_km": 1.0, "upper_limit_km": 2.0, "distance_km": 1.5}, "star:1")
+    assert "region" not in belt and systemscene._belt({"id": 3, "name": "x", "body_type": "a", "lower_limit_km": 1.0, "upper_limit_km": 2.0, "distance_km": 1.5}, "star:1", region=region)["region"] is region

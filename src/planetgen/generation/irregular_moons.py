@@ -193,8 +193,8 @@ def take_from_belts(belts, sets):
 
 
 def belts_of(bodies):
-    """The belts among `bodies`, nearest first, as `{order: belt}`: a belt's order is its place among them, which a stored moon names it by."""
-    return dict(enumerate(body for body in bodies if body.body_type == 'a'))
+    """The belts among `bodies`, nearest first, as `{order: belt}`: a belt's order is its place among them, which a stored moon names it by. A trojan region (GEN.1150) is made after the moons and is no belt of this count."""
+    return dict(enumerate(body for body in bodies if body.body_type == 'a' and getattr(body, "lagrange_point", None) is None))
 
 
 @dataclass(frozen=True)

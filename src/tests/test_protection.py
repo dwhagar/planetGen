@@ -52,8 +52,12 @@ def test_the_score_bands_are_built_from_the_limit_table():
                                  limit("pressure_no_gear_kpa"), limit("pressure_blue_max_kpa"),
                                  limit("pressure_narcosis_kpa"), limit("pressure_hyperbaric_max_kpa"),
                                  limit("pressure_outer_kpa"))
-    assert hab.TEMPERATURE_BAND[1:7] == (limit("cold_suit_c"), limit("cold_clothing_c"), limit("comfort_low_c"),
-                                         limit("comfort_high_c"), limit("heat_garment_c"), limit("heat_max_c"))
+    # GEN.1677: the score's temperature edges are its own rows (the climates people live in); the gear rows are the kit list's and `Bands.gear_temperature` reads them
+    assert hab.TEMPERATURE_BAND[1:7] == (limit("temp_yellow_low_c"), limit("temp_green_low_c"), limit("temp_blue_low_c"),
+                                         limit("comfort_high_c"), limit("temp_green_high_c"), limit("heat_max_c"))
+    assert hab.HUMAN.gear_temperature[1:7] == (limit("cold_suit_c"), limit("cold_clothing_c"), limit("comfort_low_c"),
+                                               limit("comfort_high_c"), limit("heat_garment_c"), limit("heat_max_c"))
+    assert hab.HUMAN.uv[4:6] == (limit("uv_blue_index"), limit("uv_green_index"))
     assert hab.DOSE_BAND[4:7] == (limit("dose_blue_sv_yr"), limit("dose_green_sv_yr"), limit("dose_yellow_sv_yr"))
     assert hab.WET_BULB_CRIT_C == limit("wet_bulb_c")
     # The mask limit is derived from the Armstrong limit and the inspired oxygen the table also holds.
@@ -210,7 +214,7 @@ def test_suitability_never_says_water_is_available_against_a_water_row_that_want
 
 def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_names_the_heated_suit():
     text = _paragraph(_world(temperature_c=-80.0))
-    assert "**Temperature: Red** (0.00). The air temperature is -80 C. Required: heated sealed suit + self-contained air. **Air:" in text
+    assert "**Temperature: Red** (0.16). The air temperature is -80 C. Required: heated sealed suit + self-contained air. **Air:" in text
     assert "Required: heated sealed suit + self-contained air." in text
 
 

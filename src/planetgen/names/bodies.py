@@ -167,8 +167,13 @@ def belt_number(belt, belts):
     closest first, from 1 (GEN.1508). Only the belts that exist count, so there are no gaps, and a lone belt is 1. `orbital_index` is the belt's slot among all the star's bodies
     (planets and belts), so it only puts the belts in order and is never the number.
     """
-    return 1 + sum(1 for other in belts if other.get("star_id") == belt.get("star_id")
+    return 1 + sum(1 for other in belts if other.get("star_id") == belt.get("star_id") and not other.get("lagrange_point")        # a trojan region has a name of its own and takes no number (GEN.1150)
                    and (other["orbital_index"], other["id"]) < (belt["orbital_index"], belt["id"]))
+
+
+def region_label(host_name, point):
+    """The name of a giant's trojan region (GEN.1150): `"<host> L4 trojan region"`; it is worked out from the host's name and never stored."""
+    return f"{host_name} {point} trojan region"
 
 
 def rename_prefix(name, old_prefix, new_prefix):

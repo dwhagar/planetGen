@@ -49,8 +49,24 @@ def test_fits_follows_the_room_and_the_orbit_limits():
     assert not tb.fits(SUN_EARTH, 0.5 * SUN_EARTH, 1.0)
 
 
-def test_the_formation_gate_needs_solids_and_a_long_enough_disk():
-    assert tb.can_form(1.0, solids_in_zone_earth=12.0, disk_lifetime_myr=3.0)
-    assert not tb.can_form(1.0, solids_in_zone_earth=5.0, disk_lifetime_myr=3.0)
-    assert not tb.can_form(1.0, solids_in_zone_earth=12.0, disk_lifetime_myr=0.5)
-    assert not tb.can_form(0.0, 12.0, 3.0)
+def test_the_disk_life_is_a_ramp_from_the_foot_to_the_full_growth_time():
+    low, high = tb.DISK_LIFETIME_RAMP_MYR
+    assert tb.disk_life_factor(low - 0.1) == 0.0 and tb.disk_life_factor(high + 5.0) == 1.0
+    assert tb.disk_life_factor((low + high) / 2.0) == pytest.approx(0.5)
+
+
+def test_the_zone_holds_the_solids_of_two_tadpoles_and_the_ceiling_is_its_share_less_the_room():
+    # A Jupiter at 5.2 au of the Sun in a nebula of 10 g/cm^2 of solids: about 4 Earth masses in the zone
+    solids = tb.zone_solids_earth(10.0, 5.2, JUPITER_EARTH, SUN_EARTH)
+    assert 2.0 < solids < 8.0
+    assert tb.zone_solids_earth(20.0, 5.2, JUPITER_EARTH, SUN_EARTH) == pytest.approx(2.0 * solids)
+    full = tb.ceiling_earth(solids, 3.0, SUN_EARTH, JUPITER_EARTH)
+    assert full == pytest.approx(tb.FORMATION_EFFICIENCY * solids)
+    assert tb.ceiling_earth(solids, 1.65, SUN_EARTH, JUPITER_EARTH) == pytest.approx(0.5 * full)
+    assert tb.ceiling_earth(solids, 3.0, SUN_EARTH, 0.5 * SUN_EARTH) == 0.0                # a pair over the limit holds nothing
+
+
+def test_the_mass_is_drawn_between_the_lightest_planet_and_the_ceiling_or_not_at_all():
+    assert tb.draw_mass_earth(0.05, 0.1, 0.5) is None
+    assert tb.draw_mass_earth(2.0, 0.1, 0.0) == pytest.approx(0.1) and tb.draw_mass_earth(2.0, 0.1, 1.0) == pytest.approx(2.0)
+    assert tb.draw_mass_earth(10.0, 0.1, 0.5) == pytest.approx(1.0)                           # log-uniform: the middle is the geometric mean

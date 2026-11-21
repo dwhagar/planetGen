@@ -46,9 +46,11 @@ def test_blue_needs_a_share_in_the_blue_band():
 
 
 def test_a_world_that_needs_a_suit_everywhere_is_yellow_and_one_that_kills_is_red():
-    assert hab.tier(hab.coverage_score(0.0, 0.0, yellow_share=1.0)) == "Yellow"
-    assert hab.tier(hab.coverage_score(0.0, 0.0, yellow_share=0.0)) == "Red"
-    assert hab.coverage_score(0.0, 0.0, yellow_share=0.5) > 0.0
+    # GEN.1677: a place is credited by its own band score (`sample_credit`), so a world of one Yellow temperature scores Yellow, one of a killing temperature Red, and the credit rises between them
+    base = dict(pressure_kpa=101.3, gases={"N2": 0.78, "O2": 0.21})
+    assert hab.tier(hab.temperature_score(World(temperature_c=-15.0, **base))) == "Yellow"
+    assert hab.tier(hab.temperature_score(World(temperature_c=-100.0, **base))) == "Red"
+    assert 0.0 == hab.sample_credit(0.0) < hab.sample_credit(0.2) < hab.sample_credit(0.4) < 1.0
 
 
 def test_a_world_livable_only_in_the_terminator_belt_is_yellow_whatever_the_share():
@@ -59,7 +61,7 @@ def test_a_world_livable_only_in_the_terminator_belt_is_yellow_whatever_the_shar
 def test_a_world_with_one_temperature_is_scored_from_it():
     base = dict(pressure_kpa=101.3, gases={"N2": 0.78, "O2": 0.21})
     tiers = {t: hab.tier(hab.temperature_score(World(temperature_c=t, **base))) for t in (15.0, 40.0, 60.0, -30.0, -90.0, 200.0)}
-    assert tiers == {15.0: "Blue", 40.0: "Green", 60.0: "Yellow", -30.0: "Yellow", -90.0: "Red", 200.0: "Red"}
+    assert tiers == {15.0: "Blue", 40.0: "Yellow", 60.0: "Yellow", -30.0: "Red", -90.0: "Red", 200.0: "Red"}
 
 
 def test_an_uncompensable_wet_bulb_makes_every_sample_yellow():
@@ -72,7 +74,7 @@ def test_an_uncompensable_wet_bulb_makes_every_sample_yellow():
 
 def test_a_visitor_with_other_limits_is_read_against_their_own_bands():
     hot = World(pressure_kpa=101.3, temperature_c=60.0, gases={"N2": 0.78, "O2": 0.21})
-    species = hab.bands({"heat_garment_c": 70.0})
+    species = hab.bands({"temp_green_high_c": 70.0})   # GEN.1677: the score's edge is its own row, not the gear's `heat_garment_c`
     assert hab.tier(hab.temperature_score(hot)) == "Yellow"
     assert hab.tier(hab.temperature_score(hot, species)) == "Green"
 
@@ -110,7 +112,7 @@ def test_a_cold_mean_world_with_a_warm_region_can_score_better_than_its_mean_did
     read = tc.coverage(series)
     mean_c = float(np.sum(celsius.mean(axis=2) * grid.row_weight[:, None]) / 12.0)
     old = hab.band_score(mean_c, hab.HUMAN.temperature)
-    new = hab.coverage_score(read.livable_share, read.blue, tc.belt_only(read), read.yellow)
+    new = hab.coverage_score(read.credited_share, read.blue, tc.belt_only(read))
     assert mean_c < -50.0 and hab.tier(old) == "Red"
     assert read.livable_share == pytest.approx(1.0 / 3.0) and hab.tier(new) == "Yellow" and new > old
 

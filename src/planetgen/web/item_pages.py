@@ -483,7 +483,15 @@ def belt_name(belt, belts):
     return body_names.belt_label(body_names.belt_number(belt, belts))
 
 
+def region_name(region, planets):
+    """The name of a giant's trojan region (GEN.1150): `<host> L4 trojan region`, the host found among the system's `planets` rows by the region's parent; a region whose host is not listed is `Trojan region L4`."""
+    host = next((planet for planet in planets if planet.get("id") == region.get("parent_id")), None)
+    return body_names.region_label(host["name"], region["lagrange_point"]) if host else f"Trojan region {region['lagrange_point']}"
+
+
 def _name_of(kind, row, detail):
+    if kind == "belt" and row.get("lagrange_point"):
+        return region_name(row, detail["planets"])
     return belt_name(row, detail["belts"]) if kind == "belt" else row["name"]
 
 
