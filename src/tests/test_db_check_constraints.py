@@ -16,7 +16,7 @@ import pytest
 from planetgen.db import store as _db
 from tests.db_schema_support import check_constraints
 
-pytestmark = pytest.mark.db
+pytestmark = [pytest.mark.db, pytest.mark.timeout(3600)]  # the first test that takes `rich_galaxy` builds the galaxy (TEST.417), 25 to 40 minutes on a loaded machine since the air history record (GEN.1745 slice 4b), over the 900 s of `pytest.ini`
 
 CHECK_VIOLATED = (3819, 4025)
 """MySQL's "Check constraint ... is violated"."""

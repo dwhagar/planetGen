@@ -14,8 +14,9 @@ The gates, in order (each later one needs the one before it):
 
 1. **Sulfur supplied, in an oxidizing air** (V2): sulfur dioxide, an oxidiser (oxygen plus carbon dioxide) and a trace of water, the floors of `acid_medium`.
 2. **An acid cloud** (V1): the air has `cloud_water_min_share` of water and, at some level of its dry adiabat, the acid vapor it holds
-   (`acid_vapor_share_of_so2` of its sulfur dioxide) is above the pressure over the solution its water fixes (`sulfuric_vapor.condenses`, GEN.1424). The base is
-   the warmest such level and the strength is that solution's.
+   (`acid_vapor_share_of_so2` of its sulfur dioxide) is above the pressure over the solution its water fixes (`sulfuric_vapor.condenses`, GEN.1424) and the
+   droplets there are above the freezing point of their strength (`acid_freezing.is_frozen`, GEN.1644; a droplet below it can be a solid, which the cloud step
+   does not model). The base is the warmest such level and the strength is that solution's; an air whose acid is liquid at no level has no acid cloud.
 3. **Reduced sulfur** (V4, V5): the star's ultraviolet-C flux at the body (`uv_c_min_w_m2`) photolyses the sulfur dioxide and carbon monoxide or carbonyl sulfide
    (`reductant_min_share`) is the reductant; V5 needs more sulfur (`sulfur_aerosol_min_so2_share`).
 4. **Chlorine** (V3 hydrogen chloride; V6, V9): hydrogen chloride in the air at `chlorine_min_share` (the star's chlorine got into the air through
@@ -35,7 +36,7 @@ import os
 from dataclasses import dataclass, field
 from statistics import NormalDist
 
-from planetgen.physics import acid_medium, aerosols, air_column, atmosphere, constants, elements, sulfuric_vapor
+from planetgen.physics import acid_freezing, acid_medium, aerosols, air_column, atmosphere, constants, elements, sulfuric_vapor
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "sulfur_cloud_set.json")
 
@@ -110,7 +111,8 @@ def acid_cloud_of_column(column, temperature_k, skin=None):
     """
     The `Cloud` of an `air_column.AirColumn` (the ground at `temperature_k`, the air turning isothermal at `skin`, else the grey factor of the ground), or `None`:
     gate 2. The water at a level is the surface mixing ratio, never more than that level's saturation (a cold trap), the acid vapor `acid_vapor_share_of_so2`
-    of the sulfur dioxide at every level, and the liquid is where `sulfuric_vapor.condenses`. The base is the warmest such level.
+    of the sulfur dioxide at every level, and the liquid is where `sulfuric_vapor.condenses` and its droplets are above their freezing point (GEN.1644).
+    The base is the warmest such level.
     """
     water, acid = column.fraction("H2O"), column.fraction("SO2") * number("acid_vapor_share_of_so2")
     if water < number("cloud_water_min_share") or acid <= 0.0:
@@ -122,7 +124,8 @@ def acid_cloud_of_column(column, temperature_k, skin=None):
         water_pa = water * float(p)
         if math.isfinite(saturation):
             water_pa = min(water_pa, saturation)
-        if sulfuric_vapor.condenses(float(t), acid * float(p), water_pa):
+        if sulfuric_vapor.condenses(float(t), acid * float(p), water_pa) \
+                and not acid_freezing.is_frozen(float(t), sulfuric_vapor.composition(float(t), water_pa).acid_fraction):
             window.append((float(p), float(t), water_pa))
     if not window:
         return None
