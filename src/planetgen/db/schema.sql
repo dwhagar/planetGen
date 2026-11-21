@@ -2886,6 +2886,24 @@ CREATE TABLE IF NOT EXISTS planet_life (
     KEY idx_planet_life_class (life_class, life_stage)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The life ages of a planet (v273, GEN.1746 slice 3): one row for each stretch of its life between two mass extinctions (`physics/life_ages.py`): its number from 1, its start and end age (Gyr; no end for the age the world is
+-- in), the cause of the extinction that ended it (`flood basalt` or `impact`) and the share of species it killed. A body with no life, a rogue planet and a row made before v270 have none. Indexed on the number and the end
+-- so "the worlds in their third life age" is cheap.
+CREATE TABLE IF NOT EXISTS planet_life_ages (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id  BIGINT UNSIGNED NOT NULL,
+    age_number  SMALLINT UNSIGNED NOT NULL CHECK (age_number >= 1),
+    start_gyr   DOUBLE NOT NULL CHECK (start_gyr >= 0),
+    end_gyr     DOUBLE NULL,
+    cause       VARCHAR(16) NULL,
+    kill_share  DOUBLE NULL CHECK (kill_share IS NULL OR (kill_share > 0 AND kill_share <= 1)),
+
+    CONSTRAINT fk_planet_life_ages_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_planet_life_ages (planet_id, age_number),
+    KEY idx_planet_life_ages_number (age_number, end_gyr)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- moons -- one row per moon, as of schema v2 (see the header comment's
 -- "v2" note). Exactly the same column shape as `planets` (moons are
@@ -3427,6 +3445,24 @@ CREATE TABLE IF NOT EXISTS moon_life (
         FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
     UNIQUE KEY uq_moon_life (moon_id, life_class),
     KEY idx_moon_life_class (life_class, life_stage)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The life ages of a moon (v273, GEN.1746 slice 3): one row for each stretch of its life between two mass extinctions (`physics/life_ages.py`): its number from 1, its start and end age (Gyr; no end for the age the world is
+-- in), the cause of the extinction that ended it (`flood basalt` or `impact`) and the share of species it killed. A body with no life, a rogue planet and a row made before v270 have none. Indexed on the number and the end
+-- so "the worlds in their third life age" is cheap.
+CREATE TABLE IF NOT EXISTS moon_life_ages (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id  BIGINT UNSIGNED NOT NULL,
+    age_number  SMALLINT UNSIGNED NOT NULL CHECK (age_number >= 1),
+    start_gyr   DOUBLE NOT NULL CHECK (start_gyr >= 0),
+    end_gyr     DOUBLE NULL,
+    cause       VARCHAR(16) NULL,
+    kill_share  DOUBLE NULL CHECK (kill_share IS NULL OR (kill_share > 0 AND kill_share <= 1)),
+
+    CONSTRAINT fk_moon_life_ages_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_moon_life_ages (moon_id, age_number),
+    KEY idx_moon_life_ages_number (age_number, end_gyr)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
