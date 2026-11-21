@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, starlight_aloft, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, air_history, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, starlight_aloft, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -430,8 +430,8 @@ def test_the_swing_of_a_fixed_point_is_told_from_a_creep_and_from_a_settling():
     assert not sa._swings([5.0, -4.0, 6.0])                                          # too few steps to say
 
 
-SWING_KEYS = (20, 26, 86, 244, 146)
-"""tuple: Seeded keys of `_first_air_of` whose first air takes many steps to settle (30 or more) and has a steady state, on the star table and the thermosphere of the day. Key 20 (a K2V planet of 0.62 Earth masses, on a carbon switch where the step map falls 375 K to 240 K over 1.1 K of iterate, GEN.1718) is the first; it lost its air to the exobase of GEN.1784, which sits where the profile puts it and not 6 percent low, so the test takes the first of the list that still has the air and fails if none does (a scan of keys 0 to 260 lists them by `steps`: 81 and 156 are `CREEP_KEYS`, then 26, 86, 244, 146)."""
+SWING_KEYS = (62, 202, 45, 77, 107)
+"""tuple: Seeded keys of `_first_air_of` whose first air takes many steps to settle (30 or more) and has a steady state, on the star table and the thermosphere of the day. Key 20 (a K2V planet of 0.62 Earth masses, on a carbon switch where the step map falls 375 K to 240 K over 1.1 K of iterate, GEN.1718) is the first; it lost its air to the exobase of GEN.1784, which sits where the profile puts it and not 6 percent low, so the test takes the first of the list that still has the air and fails if none does (a scan of keys 0 to 500 lists them by `steps`; after GEN.1796's round 14 table, 126, 201, 223, 329, 371 and 468 are over 60 steps, `CREEP_KEYS` take two of them, and 62, 202, 45, 77, 107 settle in 30 or more steps from every start to the same temperature)."""
 
 
 def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the_start(monkeypatch):
@@ -450,7 +450,7 @@ def test_an_air_the_damped_step_swings_across_settles_and_does_not_depend_on_the
         assert again.converged and again.temperature_k == pytest.approx(first.temperature_k, abs=0.5), (key, start)
 
 
-NO_STEADY_STATE_KEYS = (126, 387, 468, 96, 366, 459)
+NO_STEADY_STATE_KEYS = (96, 121, 159, 206, 298, 81)
 """tuple: Seeded keys of `_first_air_of` whose first air has no steady state on the star table of the day (GEN.1718). A change of the star draws (GEN.1623's star table) moves which keys these are, as it moved key 49 and key 156 before them: the test takes the first of the list that is one and fails if none is, so the
 list is the thing to refresh then (a scan of keys 0 to 500 lists them, `jump` True)."""
 
@@ -466,7 +466,7 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
         assert 250.0 < air.temperature_k < 335.0, (key, air.temperature_k)
 
 
-CREEP_KEYS = (81, 156)
+CREEP_KEYS = (156, 63)
 """tuple: Seeded keys of `_first_air_of` whose first air creeps at the end of its 60 steps on the star table of the day and settles in the steps `CREEP_EXTENSION` gives (GEN.1718 part 2). The star draws and the greenhouse table move which keys
 these are (key 175 before GEN.1623's star table, key 274 before Train 36's nebular water of rocky bodies, GEN.1754, key 387 before the photochemical loss of the air, GEN.1732); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
 
@@ -486,16 +486,25 @@ def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_
     """GEN.1716: a giant took one step, so the haze its greenhouse was made under was the haze of the start temperature and the stored
     temperature moved with the start (28 K at the median of 59 generated giants, 300 K on hot ones). It iterates to `TOLERANCE_K` like a rocky body,
     keeps the reference pressure, says it settled, and gives the same temperature from a cold, a warm and a hot start."""
-    seen, real_solve = [], sa.solve
+    seen, real_solve, real_history_solve, in_history = [], sa.solve, air_history._solved_temperature, []
 
     def recording_solve(setting, start_temperature_k):
         entry = draw.getstate()
         result = real_solve(setting, start_temperature_k)
-        if setting.giant and result is not None and result.partials_pa:
+        if setting.giant and result is not None and result.partials_pa and not in_history:
             seen.append((setting, entry, result, start_temperature_k))
         return result
 
+    def history_solve(setting, start_k, entry_state):
+        # GEN.1745: the air history solves the body's air again at the light and heat of other ages (a transitional world is a giant setting); those are not the final air this test is about
+        in_history.append(True)
+        try:
+            return real_history_solve(setting, start_k, entry_state)
+        finally:
+            in_history.pop()
+
     monkeypatch.setattr(sa, "solve", recording_solve)
+    monkeypatch.setattr(air_history, "_solved_temperature", history_solve)
     for _ in _generated(range(6)):
         pass
     assert len(seen) >= 3, "the seeds make giants"
@@ -731,6 +740,8 @@ def test_the_carbon_sink_of_an_air_is_the_last_steps_and_none_when_the_last_step
         return real(*args, **kwargs) if len(calls) == 1 else False
 
     monkeypatch.setattr(sa, "_weathers", first_only)
+    # a hot dry air holds its CO2 on the carbonate buffer of GEN.1767 and records that sink too, so the buffer keeps all the carbon here: the record under test is the weathering one
+    monkeypatch.setattr(sa.carbonate_buffer, "kept_bar", lambda supply_bar, ts_k, capacity_bar: supply_bar)
     again = _earth_like_planet(3)
     assert len(calls) > 1
     assert again.build.co2_sink is None

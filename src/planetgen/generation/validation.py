@@ -248,8 +248,12 @@ def belt_needs_pushing(belt, last):
 
 
 def slot_planets(planets):
-    """`planets` without the belt members promoted to planets (GEN.1510, `Planet.belt_rank`): they orbit inside a belt, which is exempt from the spacing of the slots (as the belt is), so the spacing rules do not see them."""
-    return [body for body in planets if getattr(body, "belt_rank", None) is None]
+    """
+    `planets` without the bodies that are not slots of their own (the spacing rules do not see them):
+    the belt members promoted to planets (GEN.1510, `Planet.belt_rank`), which orbit inside a belt that is itself exempt from the spacing of the slots, and the bodies that share a giant's orbit by design
+    (GEN.1150, GEN.1151: a trojan region and a trojan planet, `lagrange_point`, 60 degrees ahead of or behind the giant on its own orbit, so they stand at the giant's distance and a region is put at the end of its star's list).
+    """
+    return [body for body in planets if getattr(body, "belt_rank", None) is None and getattr(body, "lagrange_point", None) is None]
 
 
 def space_orbits(planets):

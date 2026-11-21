@@ -27,14 +27,14 @@ the thermal tide of the air on the planet's spin in the same sum (`body_spin`, G
 
 The pass draws nothing except the spin axis' precession angle that `spin.set_spin` places again, and it can be repeated: it starts from the bodies
 `_born_moons` (kept on the planet, with each moon's `_birth_distance_au`) and the planet's `_birth_spin`. A planet restored from the database has them from its rows (GEN.1753: `body_history`, the `lost_moons` table
-and `restore_born`), the moons the history lost as `LostMoon`s; one saved before that starts from the moons it has, each at the orbit it has now. A history no integrator can finish (`moon_orbits.IntegrationFailed`) leaves the moons as born (TM8). A planet cannot be spun past `spin.BREAKUP_FRACTION` of its breakup rate by the moons that fall (TM9). Stand-ins are TM5 to TM9 of `docs/design/research/gap-filling-plan.md` section 6.25.
+and `restore_born`), the moons the history lost as `LostMoon`s; one saved before that starts from the moons it has, each at the orbit it has now. A history no integrator can finish (`moon_orbits.IntegrationFailed`) is read by the inspiral time of each moon at birth: one that falls within the age is lost to its planet, the others stay as born, and `build.moon_history_unfinished` records it (TM8, GEN.1816). A planet cannot be spun past `spin.BREAKUP_FRACTION` of its breakup rate by the moons that fall (TM9). Stand-ins are TM5 to TM9 of `docs/design/research/gap-filling-plan.md` section 6.25.
 """
 
 import math
 
 from planetgen.generation.build_record import HasBuildRecord
 
-from planetgen.physics import body_spin, constants, evection, hill_perturbers, moon_orbits, moon_resonances, ring_origin, spin, spin_torques
+from planetgen.physics import body_spin, constants, evection, hill_perturbers, moon_orbits, moon_resonances, orbit_elements, ring_origin, spin, spin_torques
 from planetgen.physics.orbits import calculate_reflex_offset
 
 RESPIN_FRACTION = 1.0e-4
@@ -139,6 +139,20 @@ def _settle(planet, survivors):
     return kept, dragged
 
 
+def _damping_rate_of(moon, planet_mass_kg):
+    """
+    `damping_rate_s(axis_m)` of `moon_orbits.Moon` for a moon body (GEN.1804): the rate, 1/s, the planet's tide cuts its eccentricity by e at the semi-major axis `axis_m`, from the moon's own
+    `k2/Q` (`orbit_elements.circularisation_time_yr`, the law that wears a captured moon's orbit). `None` for a stand-in of a lost moon (`LostMoon`, no body to read) or a moon with no size.
+    """
+    if isinstance(moon, LostMoon) or not getattr(moon, "radius", None) or not getattr(moon, "mass", None):
+        return None
+
+    def rate(axis_m):
+        seconds = orbit_elements.circularisation_time_yr(moon, planet_mass_kg, axis_m / constants.AU_TO_M) * constants.SECONDS_PER_YEAR
+        return 0.0 if not math.isfinite(seconds) else 1.0 / seconds
+    return rate
+
+
 def apply(planet, primary_mass_kg):
     """
     Runs the history of `planet`'s moons and its spin together and sets them on the bodies (the module docstring). Called by `planets.generate_spin` for a planet with
@@ -153,15 +167,23 @@ def apply(planet, primary_mass_kg):
     semi_major_axis_m = planet.distance * constants.AU_TO_M
     body = body_spin.planet_of(planet)
     star = spin_torques.Raiser(primary_mass_kg, semi_major_axis_m, spin_torques.orbital_rate(primary_mass_kg, semi_major_axis_m))
-    moons = [moon_orbits.Moon(m.mass, m._birth_distance_au * constants.AU_TO_M, density_kg_m3(m), retrograde(m)) for m in born]
+    moons = [moon_orbits.Moon(m.mass, m._birth_distance_au * constants.AU_TO_M, density_kg_m3(m), retrograde(m), _damping_rate_of(m, planet.mass)) for m in born]
+    resonance = evection.Resonance(getattr(planet, "body_type", None) == "g", star.orbital_rate)
     try:
         result = moon_orbits.evolve(body, star, body_spin.dissipation_of(planet, body), moons, birth[0], age_s, body_spin.thermal_tide_of(planet, star),
                                     density_kg_m3(planet), (hill_perturbers.tidal_hill_radius_km(planet) or 0.0) * 1000.0 or None,      # GEN.1449: against every body that pulls on the planet
-                                    resonance=evection.Resonance(getattr(planet, "body_type", None) == "g", star.orbital_rate))
+                                    resonance=resonance)
     except moon_orbits.IntegrationFailed:
-        # TM8: no integrator finished (a very stiff planet): the moons stay as they were born and the planet's spin is the one it would have without them
-        planet.fallen_moons = ()
+        # TM8 (GEN.1816): no integrator finished (about one history in 1,000 over the census). The moons are read at birth by the time the tide takes to bring each in
+        # (`moon_orbits.inspiral_times_s`): one that falls in less than the age of the system is lost to its planet at that time (a `FallenMoon`, its ring material), the others stay
+        # as they were born, and the planet's spin is the one it would have without them
+        planet.build.moon_history_unfinished = True      # recorded, so a census counts the planets read by the inspiral time alone
         born = [moon for moon in born if not isinstance(moon, LostMoon)]      # a stand-in is no body of the system
+        times = moon_orbits.inspiral_times_s(body, star, body_spin.dissipation_of(planet, body), [moon_orbits.Moon(m.mass, m._birth_distance_au * constants.AU_TO_M, density_kg_m3(m), retrograde(m)) for m in born],
+                                             birth[0], body_spin.thermal_tide_of(planet, star))
+        lost = [(moon, t) for moon, t in zip(born, times) if t < age_s]
+        planet.fallen_moons = tuple(ring_origin.FallenMoon(moon.mass, t / constants.SECONDS_PER_YEAR) for moon, t in lost)
+        born = [moon for moon, t in zip(born, times) if t >= age_s]
         for moon in born:
             if abs(moon.distance / moon._birth_distance_au - 1.0) > 1.0e-12:
                 planets.move_orbit(moon, moon._birth_distance_au, planet.mass)
@@ -181,7 +203,9 @@ def apply(planet, primary_mass_kg):
                 planets.move_orbit(moon, target_au, planet.mass)
             survivors.append(moon)
             if fate.held:      # GEN.1750: caught in the evection resonance, held there with the eccentricity it raises (`evection.held_eccentricity`)
-                held_e = evection.held_eccentricity(fate.distance_m, planet.radius * 1000.0)
+                share = 0.0 if fate.moon.damping_rate_s is None else evection.damping_share(
+                    evection.coupling_rad_s(resonance, planet.mass, fate.distance_m), fate.moon.damping_rate_s(fate.distance_m))      # GEN.1804: the tide takes back its share of the growth
+                held_e = evection.held_eccentricity(fate.distance_m, planet.radius * 1000.0, share)
                 if held_e - (moon.eccentricity or 0.0) > planets.ECCENTRICITY_SETTLE_TOLERANCE:
                     moon.eccentricity = held_e
                     planets.update_orbital_position(moon)

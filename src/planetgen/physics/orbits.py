@@ -50,6 +50,19 @@ KOPPARAPU_MAXIMUM_GREENHOUSE = (0.356, 6.171e-5, 1.698e-9, -3.198e-12, -5.575e-1
 for every planet mass): the flux below which a CO2 atmosphere can no longer keep the surface warm."""
 
 
+CANDIDATE_ZONE_WIDENING = 0.5
+"""float: GEN.1807 (stand-in PA20): how far the zone the habitable-world effort goes to reaches past each edge of the star's habitable zone, as a share of the
+zone's width (0.5 on each side: the span doubles). The effort is the tier dials (`generation.abundance_tier`) and the request for a habitable world; the
+habitable zone itself, the zone letter of a body and what the pages say stay the [R2447] edges, and a planet's class still comes from its own conditions."""
+
+
+def candidate_zone(habitable_zone):
+    """The `(inner, outer)` AU of the zone the habitable-world effort goes to for a star whose habitable zone is `habitable_zone`: each edge moved out by `CANDIDATE_ZONE_WIDENING` of the zone's width (GEN.1807)."""
+    inner, outer = habitable_zone
+    reach = CANDIDATE_ZONE_WIDENING * (outer - inner)
+    return (max(inner - reach, 0.0), outer + reach)
+
+
 def kopparapu_flux(coefficients, teff):
     """The effective flux (the Sun's at the Earth = 1) of a zone edge for a star of temperature `teff` (K, inside
     `KOPPARAPU_TEFF_RANGE_K`): `S0 + a T* + b T*^2 + c T*^3 + d T*^4` with `T* = teff - 5780`."""

@@ -27,6 +27,7 @@ The table is derived: it is built from the matrix, the class table and the regis
 
 import argparse
 import collections
+import hashlib
 import json
 import math
 import os
@@ -146,6 +147,30 @@ def class_conditions(path=None):
     return [types.SimpleNamespace(letter=row["letter"], when=row["when"]) for row in document["classes"]]
 
 
+CLASS_TABLE = os.path.join(DATA, "planet_class_fit.json")
+
+CONSTANT_NAME = re.compile(r"`([A-Za-z_][\w.]*\.[A-Z][A-Z0-9_]*)`")
+
+
+def _sha(text):
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def input_hashes(matrix, rows):
+    """
+    The SHA-256 of what the table is a function of (GEN.1317): `registry` the rows the matrix measured (each row's id, tier, tweak, range and first named constant, so a prose edit moves nothing),
+    `class_table` the class table file and `matrix` the matrix as the build reads it. No epoch is in the header: the epoch is numbered at merge, and the table does not depend on it.
+    """
+    wanted = set(matrix["rows"])
+    scope = sorted((row["fill_id"], row.get("section") or "", row.get("tier") or "", row.get("tweak") or "", row.get("knobs") or "",
+                    (CONSTANT_NAME.search(row.get("constant") or "") or [None, ""])[1])
+                   for row in rows if row["fill_id"] in wanted)
+    with open(CLASS_TABLE, encoding="utf-8") as handle:
+        classes = handle.read()
+    return {"registry": _sha(json.dumps(scope)), "class_table": _sha(classes), "matrix": _sha(json.dumps(matrix, sort_keys=True)),
+            "matrix_epoch": matrix["sample"].get("epoch")}
+
+
 def build(matrix, rows, classes):
     """The table as a dict, from the matrix document, the registry `rows` (`stand_in_sensitivity.read_rows`) and the class table (`class_conditions`)."""
     by_id = {row["fill_id"]: row for row in rows}
@@ -191,6 +216,7 @@ def build(matrix, rows, classes):
                   "capped at half the gap to the next class edge. Quantities with no measured row take the hand shoulder scaled by 1 + score / 12 (registry row FT1). Correlated stand-ins are summed as independent, "
                   "which slightly understates the width."),
         "sample": matrix["sample"],
+        "inputs": input_hashes(matrix, rows),
         "tier": TIER,
         "tweak": TWEAK,
         "factors": {"tier_factors": [list(pair) for pair in TIER_FACTORS], "sigma_multiple": SIGMA_MULTIPLE},
@@ -234,7 +260,9 @@ def assemble(passes, regenerated=None):
     if regenerated:
         with open(regenerated, encoding="utf-8") as handle:
             population = sorted(set(json.load(handle)) - set(rows) - set(unstable))
-    return {"sample": {"mode": "frozen end stages (planets.remake_end_stages) of the rocky planets and moons of the systems below",
+    from planetgen.util import generator_epoch
+
+    return {"sample": {"epoch": generator_epoch.generator_epoch(), "mode": "frozen end stages (planets.remake_end_stages) of the rocky planets and moons of the systems below",
                        "passes": [{"seed": screened["seed"], "systems": screened["systems"], "bodies": screened["bodies"], "rows_run": len(screened["results"])} for screened in screens]},
             "rows": rows, "unstable_rows": unstable, "partly_unstable_rows": partly, "population_rows": population}
 
@@ -251,9 +279,46 @@ def make():
     return render(build(matrix, stand_in_sensitivity.read_rows(), class_conditions()))
 
 
+def check_inputs(table=None, matrix=None, rows=None, current_epoch=None):
+    """
+    What `update.sh` says about the table (GEN.1317): `(ok, lines)`. `ok` is False when the stamp in the table's header differs from the registry rows, the class table or the matrix as they are now (the table is
+    not what the committed files build: run this script). The lines also say how far the generator has moved since the matrix was measured: the epochs after `inputs.matrix_epoch`, and how many of them changed
+    the fill stage, which the frozen sample reads (`generator_epoch.epochs_changing`). An old matrix is reported, never refused: the table stays what it is until a lane machine measures the matrix again.
+    """
+    import stand_in_sensitivity
+    from planetgen.util import generator_epoch
+
+    try:
+        if table is None:
+            with open(OUT, encoding="utf-8") as handle:
+                table = json.load(handle)
+        if matrix is None:
+            with open(MATRIX, encoding="utf-8") as handle:
+                matrix = json.load(handle)
+    except (OSError, ValueError) as error:
+        return False, [f"the fudge table or matrix cannot be read ({error}); the class fit refuses to start without the table"]
+    now = input_hashes(matrix, stand_in_sensitivity.read_rows() if rows is None else rows)
+    stamp = table.get("inputs") or {}
+    changed = [name for name in ("registry", "class_table", "matrix") if stamp.get(name) != now[name]]
+    lines = []
+    ok = not changed
+    if changed:
+        lines.append("the fudge table was built from other " + ", ".join(changed) + " than the files now hold; run python scripts/build_fudge_table.py")
+    measured = now["matrix_epoch"]
+    current = generator_epoch.generator_epoch() if current_epoch is None else current_epoch
+    if measured is None:
+        lines.append("the matrix has no epoch stamp; assemble it again with scripts/build_fudge_table.py --assemble")
+    elif current > measured:
+        fill = len(generator_epoch.epochs_changing("fill", measured, current))
+        lines.append(f"the fudge matrix was measured at generator epoch {measured}; {current - measured} epochs since, {fill} of them change the fill stage it reads "
+                     "(remeasure on a lane machine with scripts/stand_in_sensitivity.py when the widths matter; generation keeps using the table as it is)")
+    return ok, lines
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     parser.add_argument("--check", action="store_true", help="fail if the committed table differs from the matrix")
+    parser.add_argument("--check-inputs", action="store_true", help="what update.sh runs: compare the stamp in the table with the files and say how old the matrix is; exit 1 when they differ")
     parser.add_argument("--assemble", nargs="+", metavar="PASS.json", help="write fudge_matrix.json from the frozen screening passes (the first the full pass), then build the table")
     parser.add_argument("--regenerated", help="with --assemble: the matrix JSON of the old regenerate-the-system runs, for the population rows")
     args = parser.parse_args(argv)
@@ -261,6 +326,11 @@ def main(argv=None):
         with open(MATRIX, "w", encoding="utf-8") as handle:
             handle.write(json.dumps(assemble(args.assemble, args.regenerated), indent=1) + "\n")
         print(f"wrote {os.path.relpath(MATRIX)}")
+    if args.check_inputs:
+        ok, lines = check_inputs()
+        for line in lines:
+            print(line, file=sys.stdout if ok else sys.stderr)
+        return 0 if ok else 1
     text = make()
     if args.check:
         current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""

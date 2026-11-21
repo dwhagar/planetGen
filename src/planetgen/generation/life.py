@@ -31,7 +31,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_type, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_record, adaptation_traits, aerosols, air_record, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_type, radiation, surface_liquid_world, trace_air
 from planetgen.physics import carbide_deposits, constants, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
@@ -77,6 +77,31 @@ def apply_life_data(planet, keep_stored=False):
     sedimentary_deposits.generate(planet)        # GEN.1378: the deposits that read the life timeline, on streams of their own (no draw of the run's)
     from planetgen.physics import planets       # planets imports this chain
     planets.apply_class(planet)                  # GEN.1745 (Boss, 11:25 AM EST 2026-11-15): no class until the evolution is finished; the class is read once, here, from the finished body
+    if not (keep_stored and getattr(planet, "air_history", None)):       # an edit keeps the history the body has (its air solve's inputs are not stored, so it cannot be worked again)
+        planet.air_history = _history_of(planet)
+    planet.life_adaptations = _adaptations_of(planet)        # GEN.1808: what the life had to become to live where it does, read from the finished body
+
+
+def _adaptations_of(planet):
+    """The record of the adaptations the life of `planet` needed (`adaptation_record.record_of`), made from the finished body: the classes that live on it, the age its life has reached, none when no class has a record."""
+    living = getattr(planet, life_classes.LIVING_FIELD, None) or []
+    classes = [entry["life_class"] for entry in living]
+    if not any(class_id in adaptation_record.CLASSES for class_id in classes):
+        return None
+    star_age = getattr(getattr(planet, "star", None), "age", None)
+    began = [age for age in (one.started(planet) for one in (getattr(getattr(planet, "build", None), "air_living", None) or [])) if age is not None]
+    age = None if star_age is None or not began else max(star_age - min(began), 0.0)
+    return adaptation_record.record_of(planet, classes, age)
+
+
+def _history_of(planet):
+    """The packed record of the air history of `planet` (`air_record.pack`), made from the finished body, or `None` when it gets none (`air_record.eligible`). The life it reads is what `_build_air` kept on the
+    build record: the classes, the air as they found it, the air the oxygen's rise left and the age of the rise. It draws only on the streams of the body's own (the events and the extinctions, `air_events`), so the run's draws do not move."""
+    build = planet.build
+    living = build.air_living or []
+    begin = min((age for age in (one.started(planet) for one in living) if age is not None), default=None)
+    record = air_record.record_of(planet, living, build.air_found, build.air_risen, build.air_rise_gyr, begin)
+    return None if record is None else air_record.pack(record)
 
 
 def _remake_ground_if_thawed(planet, before):
@@ -438,9 +463,14 @@ def _build_air(planet, cands):
         return
     living = _living_of(cands)
     was = (planet.surface_temperature, planet.atmospheric_pressure)
+    build = planet.build
+    build.air_living, build.air_found, build.air_risen, build.air_rise_gyr = living, biogenic_oxygen.air_moles(planet), None, None       # GEN.1745 slice 4b: what the history of the air reads
     rose = _build_oxygen(planet, living)
+    if rose:
+        build.air_risen = biogenic_oxygen.air_moles(planet)
     changed = life_air.apply_gases(planet, living, rose)
     if changed and not rose and _build_oxygen(planet, living):
+        build.air_risen = biogenic_oxygen.air_moles(planet)
         # GEN.1745 slice 3: the methane the life made warmed the world, and the oxygen law reads the temperature of its sea (the producers' temperature factor); the air that was asked for oxygen when it was
         # cold is asked again at the temperature the life left it, as the history reads the law at each age. The rise burns the methane, so the gases of the rows that go on are put in again.
         rose = True
@@ -462,6 +492,7 @@ def _build_oxygen(planet, living):
     rise, target = life_air.oxygen_state(planet, living)
     if rise is None or not biogenic_oxygen.apply(planet, target):
         return False
+    planet.build.air_rise_gyr = rise
     log.choice("Biogenic oxygen", f"{atmosphere.partial_kpa(planet, 'o2'):.2f} kPa", f"oxygenic photosynthesis from the first producers; the oxygen rose at {rise:.2f} Gyr")
     if biogenic_oxygen.rebalance_co2(planet):      # GEN.1309 A: the carbon sink is asked again at the temperature the burnt methane left
         log.choice("Carbon balance", f"{atmosphere.partial_kpa(planet, 'co2'):.3g} kPa of carbon dioxide", f"the sink solved again at {planet.surface_temperature:.0f} K after the oxygen rise")

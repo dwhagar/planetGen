@@ -37,11 +37,11 @@ A class edge is a line on a finished quantity (a temperature, a pressure, a grav
 
 ## The stand-ins, largest share of any quantity first
 
-Every stand-in that makes at least 1 percent of the variance of a class quantity (25 of the 1749 registry rows that have a constant and a knob to move). The shares column names each quantity it moves and its share.
+Every stand-in that makes at least 1 percent of the variance of a class quantity (25 of the 1836 registry rows that have a constant and a knob to move). The shares column names each quantity it moves and its share.
 
 | Rank | Id | Section | Tier | Tweak | Score | Largest share | Width falls by | Shares of the quantities it moves | What it is |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | PT1 | 6.156 | T9 | L0 | 8 | ocean_fraction 85% | 62% of ocean_fraction | ocean_fraction 85%, share_h2 69%, reducing_share 60%, pressure_pa 43%, share_co2 29%, o2_partial_pa 26%, share_ch4 21%, co2_partial_pa 19%, temperature_k 14% | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body ... |
+| 1 | PT1 | 6.156 | T9 | L0 | 8 | ocean_fraction 85% | 62% of ocean_fraction | ocean_fraction 85%, share_h2 69%, reducing_share 60%, pressure_pa 43%, share_co2 29%, o2_partial_pa 26%, share_ch4 21%, co2_partial_pa 19%, temperature_k 14% | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.002 (= `envelope_escape.BARE_BELOW`, row AM82; 0.005 until GEN.1710) ... |
 | 2 | OD1 | 6.72 | T6 | L0 | 5 | o2_partial_pa 71% | 47% of o2_partial_pa | o2_partial_pa 71%, ammonia_water_mass_fraction 64%, share_co2 43%, co2_partial_pa 41%, share_so2 35%, pressure_pa 23%, night_temperature_k 8%, coldest_region_k 7%, hottest_region_k 7%, wet_bulb_c 6%, share_h2 3%, reducing_share 3%, ocean_fraction 3%, temperature_k 3%, share_ch4 1% | tuning.WEIRDNESS_DIAL 1.0, the multiplier on every oddity rate (0 turns every oddity off) |
 | 3 | MR1 | 6.219 | T4 | L1 | 3.5 | share_so2 42% | 24% of share_so2 | share_so2 42%, co2_partial_pa 5%, share_co2 3%, hottest_region_k 3%, o2_partial_pa 2%, wet_bulb_c 2%, ocean_fraction 2%, coldest_region_k 2%, night_temperature_k 2% | mantle_reservoirs.CAPACITY_FRACTION upper mantle 0.02 wt% (200 ppm): the top of the 50 to 200 ppm the upper ... |
 | 4 | SAB2 | 6.122 | T6 | L1 | 5.5 | wet_bulb_c 41% | 23% of wet_bulb_c | wet_bulb_c 41%, hottest_region_k 40%, temperature_k 27%, coldest_region_k 27%, night_temperature_k 10%, pressure_pa 5%, ocean_fraction 3%, co2_partial_pa 3%, reducing_share 2%, share_h2 2%, share_so2 1% | albedo_color.WET_SHARE 0.5: the share of the ocean row's shift the wet range (ocean under cloud) takes |

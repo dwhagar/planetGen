@@ -278,13 +278,22 @@ export function settledExpanded(cut, loaded) {
   const kept = new Set(cut.keys);
   const settled = new Set();
   cut.expanded.forEach((key) => {
-    const ready = childrenOf(parseNodeKey(key)).every((child) => {
-      const childKey = formatDrillKey(child);
-      return !kept.has(childKey) || loaded(childKey);
-    });
+    const ready = childKeysOf(key).every((childKey) => !kept.has(childKey) || loaded(childKey));
     if (ready) settled.add(key);
   });
   return settled;
+}
+
+// The node keys of a node key's children, kept per key: the page asks again for every expanded block of every cut (PERF.200 slice 2).
+const childKeyLists = new Map();
+function childKeysOf(key) {
+  let found = childKeyLists.get(key);
+  if (found === undefined) {
+    if (childKeyLists.size > 40000) childKeyLists.clear();
+    found = childrenOf(parseNodeKey(key)).map(formatDrillKey);
+    childKeyLists.set(key, found);
+  }
+  return found;
 }
 
 // A block as its node key `m.shell.band.wedge`.
@@ -292,8 +301,17 @@ export function formatNodeKey(block) {
   return formatDrillKey(block);
 }
 
-// A node key `m.shell.band.wedge` as a block.
+// A node key `m.shell.band.wedge` as a block. Kept per key (PERF.200 slice 2: the page parses the same few thousand keys on every cut), so the block it returns is one
+// shared object: a caller reads it and does not change it.
+const parsedKeys = new Map();
 export function parseNodeKey(key) {
-  const parts = String(key).split(".").map(Number);
-  return { m: parts[0], shell: parts[1], band: parts[2], wedge: parts[3] };
+  const text = String(key);
+  let block = parsedKeys.get(text);
+  if (block === undefined) {
+    if (parsedKeys.size > 40000) parsedKeys.clear();
+    const parts = text.split(".").map(Number);
+    block = { m: parts[0], shell: parts[1], band: parts[2], wedge: parts[3] };
+    parsedKeys.set(text, block);
+  }
+  return block;
 }

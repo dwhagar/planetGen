@@ -17,6 +17,15 @@ def test_the_mean_of_inverse_cube_of_two_circles_is_the_quadrature():
         assert tide_sources.circles_mean_inverse_cube(a, b) == pytest.approx(mean, rel=1e-6)
 
 
+def test_two_circles_of_one_radius_give_a_number_not_nan_even_where_rounding_puts_the_parameter_above_one():
+    """GEN.1806: a source on an eccentric orbit crossing the receiver's radius sampled a radius whose parameter `4 a b / (a + b)^2` came out as 1.0000000000000002, and `ellipe` of it is NaN, which reached the effect ledger."""
+    a, b = 8.374261408480917, 8.374261427853401
+    assert 4.0 * a * b / (a + b) ** 2 > 1.0
+    mean = tide_sources.circles_mean_inverse_cube(a, b)
+    assert math.isfinite(mean) and mean > 0.0
+    assert tide_sources.orbit_mean_inverse_cube(8.374261408480917, 11.40029937293044, 0.4129326576787367) > 0.0
+
+
 def test_a_far_source_is_one_over_its_distance_cubed_and_the_kepler_mean_has_the_eccentricity_factor():
     assert tide_sources.circles_mean_inverse_cube(1.0, 100.0) == pytest.approx(1.0e-6, rel=1e-3)
     assert tide_sources.kepler_mean_inverse_cube(2.0, 0.0) == pytest.approx(1.0 / 8.0)

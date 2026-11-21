@@ -61,6 +61,12 @@ LIMIT_ROWS = (
     Limit("heat_max_c", 122.0, "C", "the limit of carbon-based life [R4295]: the score's Yellow edge", 122.0, None),
     Limit("heat_shielded_c", 140.0, "C", "hotter than this a mask-only visitor's skin burns at the seal: a heat-shielded suit with a liquid cooling garment", None, 140.0),
     Limit("hot_outer_c", 200.0, "C", "the score reaches 0 here", 200.0, None),
+    # The score's own temperature edges (GEN.1677, Boss 11-20): from the climates people live in without machines and the limits of life, never from clothing or a suit, so that
+    # a rating comes from the planet's conditions. The gear rows above stay for the kit list (`protection.py`) and are not read by the score.
+    Limit("temp_yellow_low_c", -20.0, "C", "the score's Yellow edge on the cold side: the coldest temperature at which water in cells stays liquid for life, about -20 C [R3040, R5341]; below it Red", -20.0, None),
+    Limit("temp_green_low_c", -10.0, "C", "the score's Green edge on the cold side: about the coldest annual mean in places people settle with no thermal engineering (Xu et al. 2020, the human climate niche); a stand-in, tier educated guess from physics, tweak L3", -10.0, None),
+    Limit("temp_blue_low_c", 5.0, "C", "the score's Blue edge on the cold side: the cool edge of the climates people live in without heating or cooling machines, the lower of the two peaks of the niche (Xu et al. 2020); a stand-in, tier educated guess from physics, tweak L3", 5.0, None),
+    Limit("temp_green_high_c", 38.0, "C", "the score's Green edge on the hot side: the niche ends near a 29 C annual mean and a sustained 35 C wet bulb is the body's theoretical limit [R4057]; 38 C dry at the world's own humidity leaves the body a few degrees of evaporative margin; a stand-in, tier educated guess from physics, tweak L3", 38.0, None),
     Limit("wet_bulb_c", 31.0, "C", "uncompensable wet-bulb temperature: cooling garments needed at or above it", 31.0, 30.0, "higher"),
     # --- Air gases ---
     Limit("co2_scale", 1.0, "x human", "how far the carbon dioxide bands of the Air domain (`habitability.GAS_LIMITS_KPA`) are moved out, every edge by the same factor; 1 is the human visitor's, a species whose homeworld air holds more of it has a larger one", 1.0, None),
@@ -92,6 +98,8 @@ LIMIT_ROWS = (
     Limit("frame_gravity_rec_g", 1.25, "g", "from here a powered frame is recommended", None, None),
     Limit("frame_gravity_g", 1.5, "g", "from here a powered frame is required", None, None),
     Limit("vehicle_gravity_g", 3.0, "g", "greater than this no suit or frame helps: a vehicle", None, None),
+    Limit("uv_blue_index", 3.0, "x Earth", "the score's Blue edge for ultraviolet: the DNA-weighted dose of Earth's own tropical high-altitude peak, which people live under (GEN.1677; no clothing in the reason)", 3.0, None),
+    Limit("uv_green_index", 10.0, "x Earth", "the score's Green edge for ultraviolet: fair skin burns in minutes at full sun (about 15 to 20 minutes at UV index 10, WHO) but shade, night and the angle of the star leave much of every day below it; a stand-in, tier educated guess from physics, tweak L3", 10.0, None),
     Limit("uv_cover_index", 3.0, "x Earth", "a DNA-weighted UV index from here: sun-cover clothing", None, None),
     Limit("uv_suit_index", 30.0, "x Earth", "a DNA-weighted UV index from here: a full-cover suit", None, None),
     Limit("corrosive_ph_low", 2.0, "pH", "a surface liquid below this pH needs a chemical-barrier suit", None, None),

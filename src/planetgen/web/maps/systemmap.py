@@ -76,6 +76,7 @@ import colorsys
 import json
 import math
 import statistics
+import time
 
 from planetgen.physics.constants import AU_TO_KM
 from planetgen.web.lib.fmt import (
@@ -92,7 +93,7 @@ from planetgen.web.lib.tabledisplay import (
 )
 
 from planetgen.names.bodies import node_pair_label
-from planetgen.physics import planet_class_text, planet_type
+from planetgen.physics import planet_class_text, planet_type, trojan_overlay, trojans
 
 # The whole diagram's fixed coordinate space -- square (unlike the old
 # short/wide letterboxed strip), since a true top-down position plot needs
@@ -916,6 +917,59 @@ def _belt_ring_svg(cx, cy, radius_px, band_px, belt):
     )
 
 
+_TROJAN_MIN_HALF_ARC_DEG = 3.0
+"""float: The least half-width, degrees, a trojan region's arc is drawn with, so a region of tightly librating bodies still shows."""
+
+_TROJAN_ARC_STEPS = 12
+"""int: The segments of a trojan region's drawn arc."""
+
+
+def _now_unix_s():
+    """The clock the libration overlay reads (a function so a test can set it)."""
+    return time.time()
+
+
+def _rotated(x_km, y_km, degrees):
+    """`(x_km, y_km)` turned `degrees` about the anchor, counter-clockwise in the generator's own convention."""
+    angle = math.radians(degrees)
+    return x_km * math.cos(angle) - y_km * math.sin(angle), x_km * math.sin(angle) + y_km * math.cos(angle)
+
+
+def _trojan_region_svg(region, planets, star_of, anchor_of, lo, hi):
+    """
+    The marker of a giant's trojan region (GEN.1150 slice 2, MAP.354): an arc on the giant's own orbit, as wide as the libration of the region's bodies, centered where the region is now (the giant's
+    direction turned by `trojan_overlay.offset_deg`: `+-60` degrees plus the libration at this moment), and a small diamond at its center with the label `<giant>-L4` (`trojans.point_label`).
+    `star_of(star_id)` gives the giant's star row and `anchor_of(star_id)` the scene point that star is drawn at. Empty for a region whose giant is not among `planets` or has no place yet.
+    """
+    host = next((planet for planet in planets if planet.get("id") == region.get("parent_id")), None)
+    if host is None:
+        return ""
+    x_km, y_km = host.get("position_x_km") or 0.0, host.get("position_y_km") or 0.0
+    if not x_km and not y_km:
+        return ""
+    r_px = _radial_px(_orbit_radius_km(host), lo, hi)
+    ax_px, ay_px = anchor_of(host.get("star_id"))
+    mu = trojan_overlay.mass_parameter(host.get("mass_kg"), star_of(host.get("star_id")).get("mass_kg"))
+    center = trojan_overlay.offset_deg(region["lagrange_point"], region.get("libration_amplitude_deg"), region.get("libration_phase_deg"), _now_unix_s(), host.get("period_years"), mu)
+    half = max(region.get("libration_amplitude_deg") or 0.0, _TROJAN_MIN_HALF_ARC_DEG)
+    points = []
+    for step in range(_TROJAN_ARC_STEPS + 1):
+        rx, ry = _rotated(x_km, y_km, center - half + 2.0 * half * step / _TROJAN_ARC_STEPS)
+        px, py = _polar_to_px(ax_px, ay_px, r_px, rx, ry)
+        points.append(f"{px:.1f},{py:.1f}")
+    cx, cy = _polar_to_px(ax_px, ay_px, r_px, *_rotated(x_km, y_km, center))
+    name = trojans.point_label(host.get("name") or "", region["lagrange_point"])
+    attrs = {
+        "kind": "belt", "id": region["id"], "name": name, "density": (region.get("density") or "").capitalize(),
+        "distance": format_distance_km(region["distance_km"]), "composition": region.get("composition_summary") or "",
+    }
+    arc = f'<polyline class="sysmap-trojan-arc" points="{" ".join(points)}"></polyline>'
+    icon = (f'<g class="sysmap-trojan" tabindex="0" role="button"{_data_attrs(attrs)} aria-label="{esc(name)} (trojan region)">'
+            f'<polygon class="sysmap-trojan-icon" points="{cx:.1f},{cy - 5:.1f} {cx + 5:.1f},{cy:.1f} {cx:.1f},{cy + 5:.1f} {cx - 5:.1f},{cy:.1f}"></polygon>'
+            f'<text class="sysmap-trojan-label" x="{cx + 8:.1f}" y="{cy + 4:.1f}">{esc(name)}</text></g>')
+    return arc + icon
+
+
 # --- Facilities (schema v42) -------------------------------------------------
 #
 # A facility is a small diamond at its host: an orbital one on a dashed
@@ -1190,6 +1244,8 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     Returns:
         str: A complete `<svg class="sysmap-svg">` scene.
     """
+    regions = [belt for belt in belts if belt.get("lagrange_point")]       # GEN.1150: a giant's trojan region is an arc about its point, not a ring
+    belts = [belt for belt in belts if not belt.get("lagrange_point")]
     lo, hi = _radial_scale_bounds(_scene_distances_km(planets, belts))
     star_r = _star_radius_px(star["radius_km"])
     orbit_paths = []
@@ -1244,7 +1300,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
         "".join(orbit_paths) + facility_orbits,
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svg/body_svgs) had.
-        f'{"".join(belt_svgs)}{star_svg}{"".join(body_svgs)}{extra_svg}{facility_markers}',
+        f'{"".join(belt_svgs)}{star_svg}{"".join(body_svgs)}{"".join(_trojan_region_svg(region, planets, lambda _id: star, lambda _id: (_CENTER_PX, _CENTER_PX), lo, hi) for region in regions)}{extra_svg}{facility_markers}',
         scale=(lo, hi), bounds=bounds, extra_attrs=_host_mass_attr(star.get("mass_kg")),
     )
 
@@ -1492,6 +1548,8 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
         star_pos_km = {}
 
     star_distances_km = [math.hypot(*star_pos_km[star["id"]]) for star in stars] if is_binary else []
+    regions = [belt for belt in belts if belt.get("lagrange_point")]       # GEN.1150: a giant's trojan region is an arc about its point, not a ring
+    belts = [belt for belt in belts if not belt.get("lagrange_point")]
     lo, hi = _radial_scale_bounds(star_distances_km + _scene_distances_km(planets, belts))
 
     # Phase 1: place and relax the star(s) alone. A close binary's tiny
@@ -1596,13 +1654,15 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers],
                                  seed_rects=[o["label_rect"] for o in obstacles] or None, bounds=bounds)
     body_svgs = _body_marker_svgs(planet_markers, placements, "sysmap-planet", _planet_marker_attrs, bounds)
+    star_by_id = {star["id"]: star for star in stars}
+    trojan_svgs = "".join(_trojan_region_svg(region, planets, lambda star_id: star_by_id.get(star_id, stars[0]), anchor_px, lo, hi) for region in regions)
 
     return [_scene_svg_pair(
         "system", f'System map for {system["name"]}', False,
         "".join(orbit_paths) + facility_orbits,
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svgs/body_svgs) had.
-        f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}{members_svg}{facility_markers}',
+        f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}{trojan_svgs}{members_svg}{facility_markers}',
         scale=(lo, hi), bounds=bounds,
         # a close pair is orbited as one (the barycenter is the scene's middle): its planets feel both stars' mass
         extra_attrs=_host_mass_attr(sum(star.get("mass_kg") or 0.0 for star in stars) if close_binary else (stars[0].get("mass_kg") if stars else None)),

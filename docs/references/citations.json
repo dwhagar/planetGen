@@ -10008,7 +10008,7 @@
     },
     "R2002": {
       "kind": "paper",
-      "label": "Hopton et al. 2025",
+      "label": "Hopton et al. 2025a",
       "title": "Ammonia sets limit to life and alters physiology independently of pH in Halomonas meridiana"
     },
     "R2003": {
@@ -26585,6 +26585,61 @@
       "kind": "paper",
       "label": "Iqbal et al. 2019",
       "title": "Geological mapping and chronology of lunar landing sites: Apollo 11"
+    },
+    "R5323": {
+      "kind": "paper",
+      "label": "Mykytczuk et al. 2013",
+      "title": "Bacterial growth at −15 °C; molecular insights from the permafrost bacterium Planococcus halocryophilus Or1"
+    },
+    "R5324": {
+      "kind": "paper",
+      "label": "Kusube et al. 2017",
+      "title": "Colwellia marinimaniae sp. nov., a hyperpiezophilic species isolated from an amphipod within the Challenger Deep, Mariana Trench"
+    },
+    "R5325": {
+      "kind": "paper",
+      "label": "Michoud and Jebbar 2016",
+      "title": "High hydrostatic pressure adaptive strategies in an obligate piezophile Pyrococcus yayanosii"
+    },
+    "R5326": {
+      "kind": "paper",
+      "label": "Fütterer et al. 2004",
+      "title": "Genome sequence of Picrophilus torridus and its implications for life around pH 0"
+    },
+    "R5327": {
+      "kind": "paper",
+      "label": "Schleper et al. 1995",
+      "title": "Picrophilus gen. nov., fam. nov.: a novel aerobic, heterotrophic, thermoacidophilic genus and family comprising archaea capable of growth around pH 0"
+    },
+    "R5328": {
+      "kind": "paper",
+      "label": "Hopton and Cockell 2025",
+      "title": "Spatiotemporal Impacts of Enceladus- and Earth-relevant Ammonia Gas On Cultivation of Extremophile Halomonas meridiana"
+    },
+    "R5329": {
+      "kind": "paper",
+      "label": "Hopton et al. 2025b",
+      "title": "Growth, physiology, and metabolism of Halomonas meridiana in aqueous ammonium sulfate with implications for icy moon astrobiology"
+    },
+    "R5330": {
+      "kind": "paper",
+      "label": "Birrien et al. 2011",
+      "title": "Pyrococcus yayanosii sp. nov., an obligate piezophilic hyperthermophilic archaeon isolated from a deep-sea hydrothermal vent"
+    },
+    "R5331": {
+      "kind": "paper",
+      "label": "Hazael et al. 2014",
+      "title": "Laboratory investigation of high pressure survival in Shewanella oneidensis MR-1 into the gigapascal pressure range"
+    },
+    "R5340": {
+      "kind": "paper",
+      "label": "Steenstra et al. 2022",
+      "title": "Sulfur solubility in a deep magma ocean and implications for the deep sulfur cycle"
+    },
+    "R5341": {
+      "kind": "paper",
+      "label": "Clarke 2014",
+      "title": "The thermal limits to life on Earth"
     }
   }
 }

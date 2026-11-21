@@ -36,6 +36,7 @@ Use:
     GASES                            # every row, in the research table's order
 """
 
+import functools
 import json
 import math
 import os
@@ -330,9 +331,18 @@ class Gas:
     data: dict
 
     @property
+    def infrared_class(self):
+        """
+        The infrared flag the code reads (GEN.1629): the row's `ir`, and for a row that has none (52 of the 124: the atoms, the radicals and the rock vapors added after the
+        first 72) the class its structure gives, the gas table's own rule (composition-model.md: monatomic none, homonuclear diatomics collision-induced only, the rest
+        infrared): an atom `none`, a homonuclear diatomic `cia`, any other molecule `ir` (the generic stand-in band). Stand-in, registry row IR21.
+        """
+        return self.ir if self.ir is not None else _structure_class(self.formula)
+
+    @property
     def is_infrared_active(self):
-        """Whether the gas can be a greenhouse gas by its own bands (`ir == "ir"` or `"weak"`)."""
-        return self.ir in ("ir", "weak")
+        """Whether the gas can be a greenhouse gas by its own bands (`infrared_class` is `"ir"` or `"weak"`)."""
+        return self.infrared_class in ("ir", "weak")
 
     def viscosity_upa_s(self, temperature_k):
         """
@@ -354,6 +364,15 @@ class Gas:
             raise NoData(f"{self.formula} at {temperature_k} K has kT/epsilon {reduced:.3g}, outside the Neufeld fit's "
                          f"{NEUFELD_RANGE[0]} to {NEUFELD_RANGE[1]}")
         return 2.6693 * math.sqrt(self.molar_mass * 1000.0 * temperature_k) / (entry.sigma_angstrom ** 2 * _omega22(reduced))
+
+
+@functools.cache
+def _structure_class(formula):
+    """The `infrared_class` of a gas with no flag of its own, from its formula: an atom `none`, a diatomic of one element `cia`, any other molecule `ir`."""
+    atoms = elements.parse_formula(formula)
+    if sum(atoms.values()) == 1:
+        return "none"
+    return "cia" if len(atoms) == 1 and sum(atoms.values()) == 2 else "ir"
 
 
 def _molar_mass(formula, isotopes):

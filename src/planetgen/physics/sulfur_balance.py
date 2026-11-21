@@ -28,7 +28,8 @@ air is the capacity excess plus that burden:
 
     air = (S - bound) + bound * min(1, tau / age)        with  bound = min(f S, C_sulfate) + min((1 - f) S, C_sulfide)
 
-The balance conserves sulfur: air, sulfate and sulfide sum to `S`.
+A molten surface has a third sink, the melt (`melt_sulfur`, GEN.1814): after the crust has taken its capacity the melt dissolves the rest up to its own, and keeps it (it is molten: no lifetime).
+The balance conserves sulfur: air, sulfate, sulfide and melt sum to `S`.
 
 What this does not do: the speciation of the sulfur that stays in the air is the equilibrium chemistry's (the caller puts the sulfur
 atoms into the closed system); the sulfur the ocean dissolves is `mixture_sinks` (Henry's law) and acts afterwards; calcium that the
@@ -133,12 +134,14 @@ class SulfurBalance:
         sulfate_mol_m2 (float): Bound as sulfate in the crust.
         sulfide_mol_m2 (float): Bound as sulfide in the crust.
         lifetime_s (float): The removal lifetime that was used.
+        melt_mol_m2 (float): Dissolved in a molten surface (`melt_sulfur`, GEN.1814): what the crust sinks could not take, up to the melt's capacity; 0 for a body with no melt.
     """
 
     air_mol_m2: float
     sulfate_mol_m2: float
     sulfide_mol_m2: float
     lifetime_s: float
+    melt_mol_m2: float = 0.0
 
 
 def sulfation_lifetime_s(reference_s, temperature_k):
@@ -206,7 +209,7 @@ def sink_capacities_mol_m2(crust_kg_m2):
     return (crust_kg_m2 * CRUST_CALCIUM_WT / elements.molar_mass("Ca"), crust_kg_m2 * CRUST_IRON_WT / elements.molar_mass("Fe"))
 
 
-def balance(degassed_mol_m2, *, age_s, ocean_present, oxidized_share, crust_kg_m2, lifetimes, temperature_k=None, water_layer_m=None):
+def balance(degassed_mol_m2, *, age_s, ocean_present, oxidized_share, crust_kg_m2, lifetimes, temperature_k=None, water_layer_m=None, melt_capacity_mol_m2=0.0):
     """
     Splits the degassed sulfur between the air, the sulfate sink and the sulfide sink.
 
@@ -221,9 +224,10 @@ def balance(degassed_mol_m2, *, age_s, ocean_present, oxidized_share, crust_kg_m
         water_layer_m (float or None): The depth, m, of the global layer the body's surface water would make (GEN.1562 N6). Without an ocean, water under `WATER_LAYER_FULL_M` removes at most one mole of
             oxidized sulfur per mole of water over the wet lifetime and the rest meets the dry lifetime; at or over it the wet lifetime holds for all of it. `None` keeps the old rule (the ocean
             alone picks the lifetime).
+        melt_capacity_mol_m2 (float): What the body's molten surface can dissolve (`melt_sulfur.capacity_mol_m2`, GEN.1814), mol per square metre; 0 for a body with no melt.
 
     Returns:
-        SulfurBalance: The three reservoirs; they sum to `degassed_mol_m2`.
+        SulfurBalance: The four reservoirs; they sum to `degassed_mol_m2`.
     """
     total = max(degassed_mol_m2, 0.0)
     share = min(max(oxidized_share, 0.0), 1.0)
@@ -244,5 +248,6 @@ def balance(degassed_mol_m2, *, age_s, ocean_present, oxidized_share, crust_kg_m
     burden_sulfide = sulfide * (wet_kept if wet_full else dry_kept)
     lifetime = lifetimes.wet_s if wet_share >= 0.5 else dry
     excess = total - sulfate - sulfide
-    return SulfurBalance(air_mol_m2=excess + burden_sulfate + burden_sulfide, sulfate_mol_m2=sulfate - burden_sulfate,
-                         sulfide_mol_m2=sulfide - burden_sulfide, lifetime_s=lifetime)
+    melt = min(excess, max(melt_capacity_mol_m2, 0.0))
+    return SulfurBalance(air_mol_m2=excess - melt + burden_sulfate + burden_sulfide, sulfate_mol_m2=sulfate - burden_sulfate,
+                         sulfide_mol_m2=sulfide - burden_sulfide, lifetime_s=lifetime, melt_mol_m2=melt)

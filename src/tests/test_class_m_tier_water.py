@@ -38,6 +38,8 @@ class _Body:
         self.system_config = SystemConfig()
         self.system_config.ABUNDANCE_TIER = tier
         self.star, self.distance, self.mass = _Star(), 1.0, 5.97e24
+        # the body stays at 1 AU (its water draw reads the distance) and the zone moves: the habitable zone widened by half its width is the effort zone (GEN.1807)
+        self.habitable_zone = {"e": (0.95, 1.37), "h": (1.7, 2.4), "c": (0.2, 0.5), None: (1.7, 2.4)}[zone]
         self.zone, self.is_moon, self.body_type = zone, is_moon, body_type
 
 

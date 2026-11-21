@@ -48,16 +48,31 @@ a retrograde moon's about 0.7; [R1138, R1771]; recalled). Source tier T2, tweak 
 RTOL = 1.0e-5
 """float: The integrator's relative tolerance. A spin held near a balance of the tides (a thermal tide against the rheology's) makes the system stiff, and at 1e-7 LSODA took
 tens of seconds to minutes on such a planet where 1e-5 takes one (the end spin agrees to 1e-6 with Radau at 1e-7); the distances are good to a part in 1e5.  Source tier T6, tweak level L0."""
+MAX_LOG_DISTANCE = 700.0
+"""float: The largest log of a distance (m) the right-hand side evaluates, so that `exp` does not overflow. [Stand-in 6.25 TM10, tier T9, tweak L0.]"""
+FAR_DISTANCE_M = 1.0e15
+"""float: The distance a moon is held at in the right-hand side when it has no Hill radius to escape through (a trial step past a terminal event is held at the edge of what it can reach). [Stand-in 6.25 TM10, tier T9, tweak L0.]"""
 MAX_EVENTS = 40
 """int: The most Roche falls and escapes handled in one run."""
-STRATEGIES = (("LSODA", RTOL, 40000), ("BDF", 1.0e-6, 20000), ("BDF", RTOL, 30000), ("BDF", 1.0e-4, 40000))
+STRATEGIES = (("LSODA", RTOL, 40000), ("BDF", 1.0e-6, 20000), ("BDF", RTOL, 30000), ("BDF", 1.0e-4, 40000), ("Radau", RTOL, 60000))
 """tuple: The integrators tried in turn, `(method, relative tolerance, most right-hand-side evaluations)`. A planet whose spin is held at a balance of the tides, or turns with
 a moon (corotation), is stiff: LSODA takes under a second for nearly every system and fails or crawls on about one in five hundred, which BDF finishes in a few seconds.
 A moon of a few percent of its planet's mass makes the problem so stiff that BDF at 1e-6 (and at 3e-6) never finishes, its steps held at the noise of the rheology (400000
 evaluations, 100 s, then the moons stayed as born); at the tolerance of the first (1e-5) it finishes in 5 s, for some planets only at 1e-4 (4 s), and for a few at none. So each
 BDF gets a few tens of thousands of evaluations (a quarter of a millisecond each) and the whole ladder at most 130000, about 30 s; a planet none of them finishes keeps its
-moons as born (`IntegrationFailed`), as it did after 100 s.
+moons as born (`IntegrationFailed`), as it did after 100 s. The last is Radau (GEN.1815): a moon of 6 percent of its planet's mass born at 3.8 radii, over a planet the star had locked, stiffened the
+problem past all three BDF runs (seed 9101 of `tests/test_aquifers`), and the moons stayed as born over a spin that took no account of them, a tide of 1.6e22 W in the planet; Radau at 1e-5 finishes it in 1.4 s
+(the moon falls in 1.4 Gyr) and a planet of that kind that none finishes is a ladder of about 190000 evaluations, about 40 s.
 Source tier T6, tweak level L0."""
+
+
+HEAT_ATOL_SHARE = 1.0e-4
+"""float: The absolute tolerance of the heat state as a share of the planet's rotational kinetic energy at the start of a stretch (GEN.1818). The last state of the history is the heat the moons' tides put
+into the planet, an integral of a power that does not feed back into the orbits, and the power is noisy (the rheology, the kink at corotation). With a fixed 1e20 J the error scale of a
+heat of 1e27 J was `RTOL` of it, 1e22 J, well inside that noise, so the steps of a stiff history were held at the noise: seed 9101 of `tests/test_aquifers` on Train 52 ran every integrator of
+`STRATEGIES` out of evaluations at a fifth to a third of its span with the orbits smooth. The energy a spin can give up is the natural size of what the tide takes from it, so the tolerance is a share of it: 1e-6
+did not finish that history, 1e-4 and 1e-2 do (the heat of the finished histories moves by a few percent where the heat is a small fraction of the spin's energy, and not where it is a
+large one). Source tier T6, tweak level L1 (nudged until the stiff history finishes). [Stand-in 6.25 TM11.]"""
 
 
 class IntegrationFailed(RuntimeError):
@@ -74,12 +89,15 @@ class Moon:
         distance_m (float): Its semi-major axis round the planet.
         density_kg_m3 (float): Its mean density (for its Roche limit).
         retrograde (bool): Whether it goes round against the planet's spin.
+        damping_rate_s (callable, optional): `damping_rate_s(axis_m)`, the rate (1/s) the planet's tide cuts this moon's eccentricity by e at the semi-major axis `axis_m`
+            (`orbit_elements.circularisation_time_yr`); the evection resonance holds it only while that is under the resonance's coupling (`evection.sustained`, GEN.1804). `None`: not checked.
     """
 
     mass_kg: float
     distance_m: float
     density_kg_m3: float = 3000.0
     retrograde: bool = False
+    damping_rate_s: object = None
 
 
 @dataclass(frozen=True)
@@ -148,6 +166,22 @@ def drift_rate_m_s(torques, spin_rate, planet_mass_kg, moon):
     return -2.0 * torque * moon.distance_m / orbital_angular_momentum(planet_mass_kg, moon)
 
 
+def inspiral_times_s(planet, star, dissipation, moons, spin_rate, thermal=None, factor=spin_torques.GRAVITATIONAL_TORQUE_FACTOR):
+    """
+    The time each of `moons` would take to fall to the planet at the rate its tide drives it in right now, s (`a / |da/dt|`, `inf` for a moon the tide moves outward or not at all),
+    at the planet's `spin_rate`, with every moon raising its tide together (GEN.1816). A history no integrator could finish is read by this one number: a moon that falls
+    in less than the age of the system is gone, as the integrator would have found.
+    """
+    raisers = ((star,) if star is not None else ()) + tuple(spin_torques.Raiser(m.mass_kg, m.distance_m, _rate(planet.mass_kg, m, m.distance_m)) for m in moons)
+    torques = spin_torques.Torques(planet, raisers, dissipation, thermal, factor, COROTATION_SOFTNESS)
+    offset = 1 if star is not None else 0
+    times = []
+    for k, moon in enumerate(moons):
+        rate = -2.0 * torques.gravitational(spin_rate, torques.raisers[offset + k]) * moon.distance_m / orbital_angular_momentum(planet.mass_kg, moon)
+        times.append(moon.distance_m / -rate if rate < 0.0 else math.inf)
+    return times
+
+
 class _TooManyEvaluations(Exception):
     pass
 
@@ -172,6 +206,21 @@ def _solve(rhs, y0, events, atol):
         if solution.success:
             return solution
     raise IntegrationFailed("the moon orbits did not integrate")
+
+
+def _hold_lasts(planet, resonance, moon, axis_m, spin, remaining_s):
+    """
+    Whether a moon the evection resonance has caught stays held to the end of the age (GEN.1804): the planet's tide on it takes back less of the resonance's growth than the resonance gives
+    (`evection.sustained`), and the planet's spin can pay the tide it dissipates at the eccentricity that leaves (`evection.affordable`, `evection.hold_power_w`). A moon with no `damping_rate_s` is held as before.
+    """
+    if moon.damping_rate_s is None:
+        return True
+    damping = moon.damping_rate_s(axis_m)
+    share = evection.damping_share(evection.coupling_rad_s(resonance, planet.mass_kg, axis_m), damping)
+    if not evection.sustained(share):
+        return False
+    held_e = evection.held_eccentricity(axis_m, planet.radius_m, share)
+    return evection.affordable(evection.hold_power_w(planet.mass_kg, moon.mass_kg, axis_m, held_e, damping), remaining_s, 0.5 * planet.inertia * spin ** 2)
 
 
 def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, planet_density_kg_m3=None, hill_radius_m=None,
@@ -216,6 +265,7 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
         horizon = age_s - time     # time runs in units of the span left, so the integrator's steps are of order one
         offset = 1 if star is not None else 0
         limits = [roche_limit_m(planet.radius_m, density, moons[i].density_kg_m3) for i in indices]
+        far_m = hill_radius_m if hill_radius_m else FAR_DISTANCE_M
         inside = next((k for k, i in enumerate(indices) if distance[i] <= limits[k]), None)
         if inside is not None:      # already at or inside its Roche limit: the moon is a ring from this moment
             i = indices[inside]
@@ -226,7 +276,7 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
             continue
 
         def rhs(t, y):
-            distances = [math.exp(v) for v in y[1:1 + len(indices)]]
+            distances = [min(max(math.exp(min(v, MAX_LOG_DISTANCE)), limits[k]), far_m) for k, v in enumerate(y[1:1 + len(indices)])]      # GEN.1816: a trial step past a terminal event (Roche, Hill) is held at its edge
             torques = torques_for(indices, distances)
             spin_now = y[0] * scale
             moon_torques = [torques.gravitational(spin_now, torques.raisers[offset + k]) for k in range(len(indices))]
@@ -268,7 +318,7 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
         y0 = [spin / scale] + [math.log(distance[i]) for i in indices] + [0.0]
 
         # the heat is the last state; its derivative is the sum of the moon powers
-        atol = [1.0e-12] + [1.0e-12] * len(indices) + [1.0e20]
+        atol = [1.0e-12] + [1.0e-12] * len(indices) + [HEAT_ATOL_SHARE * 0.5 * planet.inertia * spin ** 2]      # GEN.1818
         solution = _solve(rhs, y0, events, atol)
         end = solution.y[:, -1]
         spin = end[0] * scale
@@ -289,7 +339,7 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
             spin_now, axis = state[0] * scale, math.exp(state[1 + k])
             nu = evection.resonance_precession(resonance, spin_now, planet.mass_kg, planet.radius_m, axis)
             sweep = evection.nu_rate(spin_now, rates[0] * scale / horizon, axis, rates[1 + k] * axis / horizon, nu)
-            if evection.caught(evection.sweep_ratio(resonance, planet.mass_kg, axis, sweep)):
+            if evection.caught(evection.sweep_ratio(resonance, planet.mass_kg, axis, sweep)) and _hold_lasts(planet, resonance, moons[i], axis, spin_now, age_s - time):
                 held.add(i)
             continue
         k = hit % len(indices)

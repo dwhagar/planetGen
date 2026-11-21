@@ -23,6 +23,7 @@ HOMES = {
     "interior_layers": "`planet_interior_layers` and `moon_interior_layers` (DB.89)",
     "life_class_scores": "`planet_life_class_scores` and `moon_life_class_scores`",
     "life_living": "`planet_life` and `moon_life`, the living species a body carries",
+    "life_adaptations": "not stored yet: the adaptations the life of a body needed (`adaptation_record`, GEN.1808); GEN.1809 stores them in `planet_adaptations` and `moon_adaptations`",
     "reflection_spectrum_visible": "`planet_reflection_spectrum` and `moon_reflection_spectrum`",
     "reflection_spectrum_non_visible": "`planet_reflection_spectrum` and `moon_reflection_spectrum`",
     "isotopes": "`planet_isotopes` and `moon_isotopes`",
@@ -156,6 +157,7 @@ KIND_HOMES = {
         "cleared_spans": "not stored: the stretches of the belt the giants cleared (GEN.1092), used only to place the members; a belt read back keeps the members it was saved with",
         "scatter_giant_au": "not stored: the distance of the giant that swept an outer disk (GEN.1092), used only to place the members; the members it placed are stored",
         "oddity_quantities": "not stored: the numbers an oddity row gave the belt, read when the oddity is drawn at generation; the oddity ids are stored (`oddities`)",
+        "swarm_kg": "not stored: the part of what the outermost giant swept that its trojan swarm holds (GEN.1150), read once to make the swarm's regions; the regions are stored (`lagrange_point` and the columns beside it)",
         "captured_mass_kg": "not stored: the mass the system's planets caught from this belt as irregular moons (GEN.1308, `irregular_moons.take_from_disks`); the part that came out of the belt's own mass is already out of the stored `mass_kg`, the rest was mass the disk had already lost, and the caught moons are stored",
     },
     "comets": {
