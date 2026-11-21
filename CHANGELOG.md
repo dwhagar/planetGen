@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4677+db270.gen150.api14] - 2026-11-21
+
+**Headline:** `generate-sectors` declares its write to the rogue planets' interior layers, so `test_command_touches` is green again.
+
+### Fixed
+
+- A rogue planet is a planet and stores its interior layers in `rogue_planet_interior_layers` (migration 0207; the writer came in with the radiation-multiplier fix), but `queue/touches.SECTOR_WRITES` did not list the table, so `test_command_touches` failed with "generate-sectors writes undeclared rogue_planet_interior_layers". The write is declared beside the other rogue-planet tables; the check is not loosened (TEST.812).
+
+generation-output: unchanged
+
 ## [8.0.4676+db270.gen150.api14] - 2026-11-21
 
 **Headline:** The test of the update script's References pages step reads the script's eight stages, so `test_references_pages` is green again.
