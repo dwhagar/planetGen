@@ -21,10 +21,10 @@ EARTH = World(101.3, 15, {"N2": 0.78, "O2": 0.21, "CO2": 0.0004}, ph=8.1, relati
 EXAMPLES = {
     "Earth": (EARTH, ("Blue",) * 6, 1.0, 0.969, 0.968, ""),
     "Dense CO2": (World(300, 40, {"CO2": 0.95, "N2": 0.05}, ph=6.5, relative_humidity=0.8, energy_flux_w_m2=40),
-                  ("Green", "Yellow", "Red", "Blue", "Blue", "Red"), 0.6326, 0.969, 0.0, "B1h S2"),
+                  ("Green", "Yellow", "Red", "Blue", "Blue", "Red"), 0.6892, 0.969, 0.0, "B1h S2"),
     "Hycean": (World(2000, 60, {"H2": 0.9, "He": 0.1}, ph=7, relative_humidity=0.99, energy_flux_w_m2=20,
                      life_stage="microbial"),
-               ("Yellow", "Yellow", "Red", "Blue", "Blue", "Yellow"), 0.609, 0.969, 0.0, "B2d S3"),
+               ("Yellow", "Yellow", "Red", "Blue", "Blue", "Yellow"), 0.6504, 0.969, 0.0, "B2d S3"),
     "Photochemical CO": (World(100, 10, {"N2": 0.9, "CO2": 0.05, "CO": 0.05}, ph=7.5),
                          ("Blue", "Blue", "Red", "Blue", "Blue", "Red"), 0.7368, 0.969, 0.0, "S2"),
     "Ice-sealed ocean": (World(1e-6, -170, {}, gravity_ms2=1.3, ph=8, energy_flux_w_m2=1e-3, surface_dose_sv_yr=0.05,
@@ -35,11 +35,11 @@ EXAMPLES = {
                                 chaotropicity_kj_kg=90, ph=8, inventories={"C": 0.05, "N": 0.01, "H": 0.05},
                                 phosphate_umol_l=0.5, energy_flux_w_m2=40, water_source="ice",
                                 relative_humidity=0.05),
-                          ("Red", "Red", "Red", "Red", "Yellow", "Red"), 0.0, 0.006, 0.0, "B4p F100 S2 H3 [R2]"),
+                          ("Red", "Red", "Red", "Red", "Yellow", "Red"), 0.3921, 0.006, 0.0, "B4p F100 S2 H3 [R2]"),
     "Dune world": (World(90, 45, {"N2": 0.78, "O2": 0.21, "CO2": 0.001}, relative_humidity=0.05, water_activity=0.7,
                          ph=8, water_source="vapor", inventories={"C": 0.5, "N": 0.5, "H": 0.05},
                          life_stage="macroscopic"),
-                   ("Blue", "Green", "Blue", "Yellow", "Blue", "Red"), 0.7499, 0.638, 0.637, "B1h"),
+                   ("Blue", "Yellow", "Blue", "Yellow", "Blue", "Red"), 0.7499, 0.638, 0.637, "B1h"),
     "Europan ocean": (World(1e-9, -160, {}, gravity_ms2=1.31, ph=9, energy_flux_w_m2=1e-4, surface_dose_sv_yr=2000,
                             habitat_dose_sv_yr=0.002, water_source="ice", relative_humidity=0.05,
                             life_stage="microbial", life_on_surface=False),
@@ -71,10 +71,11 @@ def test_the_mask_limit_is_derived_from_the_armstrong_limit():
 def test_band_edges_score_their_tier_boundaries():
     band = hab.TEMPERATURE_BAND
     assert hab.band_score(10, band) == 1.0
-    assert hab.band_score(45, band) == pytest.approx(0.75)
+    assert hab.band_score(5, band) == 1.0 and hab.band_score(-10, band) == pytest.approx(0.75)       # GEN.1677: the climates people live in, not clothing
+    assert hab.band_score(38, band) == pytest.approx(0.75)
     assert hab.band_score(122, band) == pytest.approx(0.4)
     assert hab.band_score(200, band) == 0.0
-    assert hab.band_score(-50, band) == pytest.approx(0.4)
+    assert hab.band_score(-20, band) == pytest.approx(0.4)
     assert [hab.tier(s) for s in (1.0, 0.8, 0.5, 0.2)] == ["Blue", "Green", "Yellow", "Red"]
 
 

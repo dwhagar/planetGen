@@ -10851,7 +10851,7 @@
           "fields": [
             [
               "What it is",
-              "habitability.YELLOW_CREDIT 0.15: how much of a livable sample a Yellow-band sample (a suit or cooling garments make it livable) counts for in the livable share"
+              "habitability.HUMID_SAMPLE_CREDIT 0.15 (GEN.1677, replacing YELLOW_CREDIT 0.15): the share of a livable sample that a sample the wet bulb rule moved to Yellow counts for, and habitability.sample_credit, which credits every other place and time the livable share at which the world would score that sample's own band score (a Yellow sample 0.10 to 0.50, a Red one 0 to 0.10, a Green or Blue one 1)"
             ],
             [
               "The range it moves in",
@@ -10859,11 +10859,11 @@
             ],
             [
               "Where it holds",
-              "a world that is Yellow everywhere reads Yellow and not Red"
+              "a world that is Yellow everywhere reads exactly its band score; no fixed credit stands for a suit"
             ],
             [
               "What would show it wrong",
-              "a rating that puts an all-Yellow world lower than Yellow"
+              "a rating that puts an all-Yellow world lower than its band score, or one that makes a hot world Green"
             ],
             [
               "What replaces it",
@@ -10871,7 +10871,7 @@
             ],
             [
               "Evidence",
-              "planetGen's choice, set on the sweep of GEN.1265"
+              "Boss, 11-20 (a rating comes from the conditions, never from gear); census of 535 default systems in the report of GEN.1677"
             ]
           ],
           "id": "LF65",
@@ -10882,7 +10882,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "habitability.YELLOW_CREDIT 0.15: how much of a livable sample a Yellow-band sample (a suit or cooling garments make it livable) counts for in the livable share"
+          "what": "habitability.HUMID_SAMPLE_CREDIT 0.15 (GEN.1677, replacing YELLOW_CREDIT 0.15): the share of a livable sample that a sample the wet bulb rule moved to Yellow counts for, and habitability.sample_credit, which credits every other place and time the livable share at which the world would score that sample's own band score (a Yellow sample 0.10 to 0.50, a Red one 0 to 0.10, a Green or Blue one 1)"
         },
         {
           "burn_down": [
@@ -12181,6 +12181,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "life_ledger.json reaction numbers (GEN.1743, research GEN.1742): Earth's natural nitrogen fixation 15.7 Tmol N/yr (about 220 Tg N), the N2O leak 0.044 of the nitrogen fixed and its life 109 yr, the life of methane in an oxygenated air 8.4 yr and the soil eaters' share of its loss 0.052, the share of seafloor methane eaten once the sea holds sulfate 0.9, the deposition velocity of carbon monoxide into a sea with CO eaters 1.2e-4 cm/s and without 1e-8 cm/s; and the 35 balanced reactions of the class variants (reactions, stoichiometry, T1 L0, except the acid classes T8 and the anammox of Class 8 T7)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "protection_limits temp_yellow_low_c -20, temp_green_low_c -10, temp_blue_low_c 5 and temp_green_high_c 38 (GEN.1677), the score's temperature edges, which habitability.TEMPERATURE_BAND reads, with comfort_high_c 31, heat_max_c 122 and the outer edges as before"
+            ],
+            [
+              "The range it moves in",
+              "cold Yellow edge -25 to -15; cold Green edge -15 to -5; Blue edge 0 to 10; hot Green edge 35 to 45"
+            ],
+            [
+              "Where it holds",
+              "the climates people live in without heating or cooling machines (Xu et al. 2020, the human climate niche: peaks near 11 to 15 C and 20 to 25 C annual mean, ending near 29 C), a sustained wet bulb of 35 C (Sherwood and Huber 2010), liquid water in cells down to about -20 C (Clarke 2014; Merino 2019)"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which Earth is not Blue, or one that makes a hot or a cold world Green"
+            ],
+            [
+              "What replaces it",
+              "the gear edges (-50, -20, 0, 45), which are clothing and suits and now only the kit list's"
+            ],
+            [
+              "Evidence",
+              "Boss, 11-20 (choice 1: the climate people live in without machines). Census of 535 default systems: habitable 6 before and after, Temperature changes colour on 72 of 8,580 bodies"
+            ]
+          ],
+          "id": "LF74",
+          "key": "6.19:LF74",
+          "kind": "P",
+          "slug": "6-19-lf74",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "protection_limits temp_yellow_low_c -20, temp_green_low_c -10, temp_blue_low_c 5 and temp_green_high_c 38 (GEN.1677), the score's temperature edges, which habitability.TEMPERATURE_BAND reads, with comfort_high_c 31, heat_max_c 122 and the outer edges as before"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "protection_limits uv_blue_index 3 and uv_green_index 10 (GEN.1677), the score's ultraviolet edges, which habitability.UV_BAND reads, with uv_lethal_index 300 and uv_outer_index 3000 as before"
+            ],
+            [
+              "The range it moves in",
+              "Green edge 5 to 30"
+            ],
+            [
+              "Where it holds",
+              "Earth's tropical high-altitude peak is about 3 times the mean dose, and fair skin burns in about 15 to 20 minutes at UV index 10 (WHO UV index guide); the edge is how fast the light injures, not what covers the skin"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which Earth is not Blue for radiation, or a Green edge under which no Earth place can live"
+            ],
+            [
+              "What replaces it",
+              "30 (a full-cover suit)"
+            ],
+            [
+              "Evidence",
+              "Boss, 11-20 (choice 2: Green edge at 10 times Earth). Census: 26 of 8,580 bodies Green to Yellow"
+            ]
+          ],
+          "id": "LF75",
+          "key": "6.19:LF75",
+          "kind": "P",
+          "slug": "6-19-lf75",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "protection_limits uv_blue_index 3 and uv_green_index 10 (GEN.1677), the score's ultraviolet edges, which habitability.UV_BAND reads, with uv_lethal_index 300 and uv_outer_index 3000 as before"
         },
         {
           "burn_down": [
@@ -29731,11 +29807,11 @@
           "fields": [
             [
               "What it is",
-              "habitability.YELLOW_CREDIT 0.15 (a sample that needs a suit, the Yellow band, counts for this share of a livable one in the score, so a world where a person needs a suit everywhere reads Yellow and one that kills everywhere reads Red)"
+              "habitability.sample_credit (GEN.1677, replacing YELLOW_CREDIT 0.15): each place and time of a world counts for the livable share at which the world would score its own band score, so a world too cold or too hot everywhere reads its own band score (Yellow 0.4 to 0.75, Red below 0.4) and none for a suit"
             ],
             [
               "The range it moves in",
-              "0 to 0.3"
+              "0.1 and 0.5 at the Yellow and Green edges (the livable shares of LF63)"
             ],
             [
               "Where it holds",
@@ -29743,15 +29819,15 @@
             ],
             [
               "What would show it wrong",
-              "a decision of Boss that a world that needs a suit everywhere reads Red, or a sweep where the credit puts a world with a livable share under 0.1 in Green"
+              "a decision of Boss that a too cold or too hot place should count for less than its band score says"
             ],
             [
               "What replaces it",
-              "0"
+              "a fixed credit (0.15)"
             ],
             [
               "Evidence",
-              "the plan scores livable area only; with no credit every suit-only world fell from Yellow to Red, which the Yellow cap on the overall rating (unchanged) did not intend"
+              "Boss, 11-20, choice 3 of the GEN.1677 report"
             ]
           ],
           "id": "SS17",
@@ -29762,7 +29838,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "habitability.YELLOW_CREDIT 0.15 (a sample that needs a suit, the Yellow band, counts for this share of a livable one in the score, so a world where a person needs a suit everywhere reads Yellow and one that kills everywhere reads Red)"
+          "what": "habitability.sample_credit (GEN.1677, replacing YELLOW_CREDIT 0.15): each place and time of a world counts for the livable share at which the world would score its own band score, so a world too cold or too hot everywhere reads its own band score (Yellow 0.4 to 0.75, Red below 0.4) and none for a suit"
         },
         {
           "burn_down": null,
