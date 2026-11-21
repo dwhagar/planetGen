@@ -222,7 +222,7 @@ class _SpectrumConnection:
             return _Rows([{column: params[0], "life_class": name, "score": score} for name, score in self.scores.items()])
         if "_adaptations" in sql:  # GEN.1809: what the life of the body needed is read from planet_adaptations or moon_adaptations (a body with none has no rows)
             column = "moon_id" if "moon_adaptations" in sql else "planet_id"
-            return _Rows([{column: params[0], "entry_number": number, "axis": entry["axis"], "habitat": entry["habitat"], "demand": entry["demand"], "grade": entry["grade"], "row_ids": ",".join(entry["rows"])}
+            return _Rows([{column: params[0], "entry_number": number, "life_class": entry["life_class"], "axis": entry["axis"], "habitat": entry["habitat"], "demand": entry["demand"], "grade": entry["grade"], "row_ids": ",".join(entry["rows"])}
                           for number, entry in enumerate(self.adaptations, 1)])
         if "_life_ages" in sql:  # GEN.1746 slice 3: the life ages of the body are read from planet_life_ages or moon_life_ages (a body with none has no rows)
             column = "moon_id" if "moon_life_ages" in sql else "planet_id"

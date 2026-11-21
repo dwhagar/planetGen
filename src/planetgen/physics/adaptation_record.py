@@ -116,17 +116,17 @@ def needs(refuge, values, class_id, life_age_gyr=None, animals=False):
     return found
 
 
-def entries_of(found):
-    """The record of `needs` as a list of plain dicts (`axis`, `habitat`, `demand`, `grade`, `rows`), or `None` for none: the form the body keeps."""
+def entries_of(found, class_id):
+    """The record of `needs` of the class `class_id` as a list of plain dicts (`life_class`, `axis`, `habitat`, `demand`, `grade`, `rows`), or `None` for none: the form the body keeps."""
     if not found:
         return None
-    return [{"axis": need.axis, "habitat": need.habitat, "demand": need.demand, "grade": need.grade, "rows": list(need.rows)} for need in found]
+    return [{"life_class": class_id, "axis": need.axis, "habitat": need.habitat, "demand": need.demand, "grade": need.grade, "rows": list(need.rows)} for need in found]
 
 
 def record_of(body, class_ids, life_age_gyr=None, animals=False):
     """
-    The record of the finished `body`: the needs of the first of `class_ids` (the classes that live on it, the dominant one first) that has a record, as `entries_of` gives them. The refuge and the values are
-    read from the body (`habitability_world.values_from_body`, `surface_refuge.refuge_of`), once. `None` when no class has a record or the body has no refuge.
+    The record of the finished `body`: the needs of each of `class_ids` (the classes that live on it, the dominant one first) that has a record, as `entries_of` gives them, one class after the other (Boss, 5:54 PM EST
+    2026-11-20: all the life form types). The refuge and the values are read from the body (`habitability_world.values_from_body`, `surface_refuge.refuge_of`), once. `None` when no class has a record or the body has no refuge.
     """
     from planetgen.physics import habitability_world
 
@@ -135,8 +135,7 @@ def record_of(body, class_ids, life_age_gyr=None, animals=False):
         return None
     values = habitability_world.values_from_body(body)
     refuge = surface_refuge.refuge_of(values)
+    entries = []
     for class_id in wanted:
-        entries = entries_of(needs(refuge, values, class_id, life_age_gyr, animals))
-        if entries:
-            return entries
-    return None
+        entries.extend(entries_of(needs(refuge, values, class_id, life_age_gyr, animals), class_id) or ())
+    return entries or None

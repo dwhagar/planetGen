@@ -82,15 +82,15 @@ def test_the_temperature_range_holds_most_of_the_wet_time_and_not_the_one_hottes
 
 
 def test_the_record_is_a_list_of_plain_dicts_and_none_for_none():
-    assert ar.entries_of([]) is None
-    entries = ar.entries_of(_needs(_dry(0.0, temperature_k=260.0), "1a"))
-    assert entries == [{"axis": "t_cold", "habitat": "seep", "demand": pytest.approx(260.0, abs=0.5), "grade": 3, "rows": ["C8"]}]
+    assert ar.entries_of([], "1a") is None
+    entries = ar.entries_of(_needs(_dry(0.0, temperature_k=260.0), "1a"), "1a")
+    assert entries == [{"life_class": "1a", "axis": "t_cold", "habitat": "seep", "demand": pytest.approx(260.0, abs=0.5), "grade": 3, "rows": ["C8"]}]
 
 
 def test_the_light_of_the_table_and_of_the_gate_agree_at_the_gates_floor():
     assert surface_refuge.LIGHT_FLOOR_W_M2 * ar.UMOL_PER_W == pytest.approx(0.01)
 
 
-def test_the_record_of_a_body_reads_its_refuge_once_and_takes_the_first_class_that_has_one():
+def test_the_record_of_a_body_reads_its_refuge_once_and_has_none_for_a_body_with_no_surface_or_a_class_with_no_record():
     body = SimpleNamespace(surface_temperature=0.0)
     assert ar.record_of(body, ["1a"]) is None and ar.record_of(body, ["4a"]) is None
