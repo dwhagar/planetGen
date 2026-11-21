@@ -76239,6 +76239,90 @@
       "title": "Stand-ins of the deep branch of a giant's profile (GEN.1577)"
     },
     {
+      "key": "6.318",
+      "number": "6.318",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "adaptation_record.UMOL_PER_W 5.0: micromoles of photons a square metre a second in one watt a square metre of usable light, tied by the refuge gate's own floor (surface_refuge.LIGHT_FLOOR_W_M2 2e-3 W/m2 is 0.01 umol, RW2) so the light axis of the table (umol) and the gate (W/m2) agree at the floor"
+            ],
+            [
+              "The range it moves in",
+              "4 to 5 (sunlight is about 4.6 umol per watt of photosynthetically active radiation, 2 to 2.3 umol per watt of total)"
+            ],
+            [
+              "Where it holds",
+              "the light under an ice lid, where the table's floor is read"
+            ],
+            [
+              "What would show it wrong",
+              "a measured conversion of the sunlight a star of the body's class gives that differs from 5 by more than 1"
+            ],
+            [
+              "What replaces it",
+              "a conversion from the star's own spectrum (spectrum)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the energy of a 550 nm photon is 0.22 umol per J; the gate's floor was set in photons and then given in watts)"
+            ]
+          ],
+          "id": "AE1",
+          "key": "6.318:AE1",
+          "kind": "P",
+          "slug": "6-318-ae1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "adaptation_record.UMOL_PER_W 5.0: micromoles of photons a square metre a second in one watt a square metre of usable light, tied by the refuge gate's own floor (surface_refuge.LIGHT_FLOOR_W_M2 2e-3 W/m2 is 0.01 umol, RW2) so the light axis of the table (umol) and the gate (W/m2) agree at the floor"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.RANGE_SHARE 0.95: the share of the wet lit time of the refuge places that the temperature range of Refuge.coldest_k to Refuge.hottest_k holds, so the life's cold and hot limits are the temperatures it works at most of the time, not the one hottest cell of the planet"
+            ],
+            [
+              "The range it moves in",
+              "0.9 to 0.99"
+            ],
+            [
+              "Where it holds",
+              "a body with a refuge"
+            ],
+            [
+              "What would show it wrong",
+              "a record whose hot demand moves by more than 20 K between 0.9 and 0.99 on most bodies"
+            ],
+            [
+              "What replaces it",
+              "a range weighted by the production the place carries"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (a life lives where most of its water is; a quantile range is the usual way to set an organism's tolerated range from a spread of temperatures)"
+            ]
+          ],
+          "id": "AE2",
+          "key": "6.318:AE2",
+          "kind": "P",
+          "slug": "6-318-ae2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_refuge.RANGE_SHARE 0.95: the share of the wet lit time of the refuge places that the temperature range of Refuge.coldest_k to Refuge.hottest_k holds, so the life's cold and hot limits are the temperatures it works at most of the time, not the one hottest cell of the planet"
+        }
+      ],
+      "slug": "6-318-stand-ins-of-the-adaptation-record-gen-1808",
+      "title": "Stand-ins of the adaptation record (GEN.1808)"
+    },
+    {
       "key": "6.319",
       "number": "6.319",
       "rows": [
