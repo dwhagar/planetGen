@@ -70449,48 +70449,6 @@
           "what": "greenhouse_table.FITTED_UP_TO_K 4000 is no longer a clamp (GEN.1580): above the fit's 4,000 K the table gives T_e exp(ratio) of the same log ratio, an extrapolation of the fit; the surface stops at the ionization ceiling (CC7)"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the fit has no samples of a minor gas between absent and about 1e-5, so the thin-gas scaling is hand-chosen against the sweep; a refit on airs with minor gases replaces it"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "greenhouse_table.TRACE_FULL_SHARE 1e-3 and TRACE_FULL_PA 100 Pa (with TRACE_EXEMPT): a minor gas counts by the larger of its mole share over 1e-3 and its partial pressure over 100 Pa (GEN.1796: the column, not the share, sets how thin a gas is, so 410 Pa of carbonyl sulfide in 27 bar of nitrogen counts in full) of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
-            ],
-            [
-              "The range it moves in",
-              "3e-4 to 1e-2"
-            ],
-            [
-              "Where it holds",
-              "any air with a gas other than those five under a part in a thousand (HCN, NH3, SO2, CO, H2, He, PH3, HCl, NO, N2O, O3 and the noble gases)"
-            ],
-            [
-              "What would show it wrong",
-              "tests/test_greenhouse_table.py::test_a_trace_gas_moves_the_temperature_by_its_share_of_its_full_effect_and_none_at_zero; a radiative-convective run of Earth's air with 10 ppm of HCN or 0.1 Pa of ozone that gives more than a kelvin"
-            ],
-            [
-              "What replaces it",
-              "a refit of the table on airs with minor gases from 1e-9 to 1e-2 (scripts/fit_greenhouse_table.py), after which the network reads the traces itself"
-            ],
-            [
-              "Evidence",
-              "hand-chosen against the sweep of 11-12 (L3): the fit has no samples between absent and about 1e-5, and a gas at 10 ppm moved Earth's air by 76 K (HCN) or 10 K (ozone at 10 ppb), where the physics gives a fraction of a kelvin to a few; the linear scaling is the thin-gas limit and underestimates a strong absorber near the edge"
-            ]
-          ],
-          "id": "IR19",
-          "key": "6.6c:IR19",
-          "kind": "P",
-          "slug": "6-6c-ir19",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L3",
-          "unread": null,
-          "what": "greenhouse_table.TRACE_FULL_SHARE 1e-3 and TRACE_FULL_PA 100 Pa (with TRACE_EXEMPT): a minor gas counts by the larger of its mole share over 1e-3 and its partial pressure over 100 Pa (GEN.1796: the column, not the share, sets how thin a gas is, so 410 Pa of carbonyl sulfide in 27 bar of nitrogen counts in full) of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
-        },
-        {
           "burn_down": null,
           "fields": [
             [
