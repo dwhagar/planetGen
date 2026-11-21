@@ -70255,7 +70255,7 @@
           "fields": [
             [
               "What it is",
-              "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
+              "greenhouse_table.TRACE_FULL_SHARE 1e-3 and TRACE_FULL_PA 100 Pa (with TRACE_EXEMPT): a minor gas counts by the larger of its mole share over 1e-3 and its partial pressure over 100 Pa (GEN.1796: the column, not the share, sets how thin a gas is, so 410 Pa of carbonyl sulfide in 27 bar of nitrogen counts in full) of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
             ],
             [
               "The range it moves in",
@@ -70286,7 +70286,7 @@
           "tier_code": "T5",
           "tweak": "L3",
           "unread": null,
-          "what": "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
+          "what": "greenhouse_table.TRACE_FULL_SHARE 1e-3 and TRACE_FULL_PA 100 Pa (with TRACE_EXEMPT): a minor gas counts by the larger of its mole share over 1e-3 and its partial pressure over 100 Pa (GEN.1796: the column, not the share, sets how thin a gas is, so 410 Pa of carbonyl sulfide in 27 bar of nitrogen counts in full) of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
         },
         {
           "burn_down": null,
@@ -70325,6 +70325,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "greenhouse_table.ALOFT_MONOTONE_NODES 10 (GEN.1780): the table's ground temperature under a haze is read as the running minimum of the network over the shares of the haze's light from none up to the share asked, at a node every tenth and interpolated between them, so a larger share is never warmer"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "gases.Gas.infrared_class (GEN.1629): a gas whose row has no ir flag (52 of 124: the atoms, radicals and rock vapours added after the first 72) takes the class its structure gives, the gas table's own rule (composition-model.md section 4a: monatomic none, homonuclear diatomics collision-induced only, the rest infrared): an atom none, a diatomic of one element cia, any other molecule ir (so the generic stand-in band of line_opacity and the ir share of the greenhouse table); the table, the thin-air scaling and the opacity all read it, where they read the null three ways before"
+            ],
+            [
+              "The range it moves in",
+              "none (a class, not a number)"
+            ],
+            [
+              "Where it holds",
+              "the greenhouse table's features and thin-air scaling, the line opacity's stand-in bands, Gas.is_infrared_active for a gas with no flag (OH, FeH, VO, MgO, SiO2, TiO2, NaOH, HCOOH and 44 more, in the hot early states of an air history and in rock-vapour airs)"
+            ],
+            [
+              "What would show it wrong",
+              "tests/test_gas_table.py::test_a_gas_with_no_flag_takes_the_class_its_structure_gives"
+            ],
+            [
+              "What replaces it",
+              "the k-tables or bands of those gases, where a source gives them (none of the 52 is in the k-tables the catalog fetches)"
+            ],
+            [
+              "Evidence",
+              "the rule is the one the gas table was built on; a hot-rock vapour is not measured to be a greenhouse gas by this code, only to be treated as the structure says"
+            ]
+          ],
+          "id": "IR21",
+          "key": "6.6c:IR21",
+          "kind": "P",
+          "slug": "6-6c-ir21",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "gases.Gas.infrared_class (GEN.1629): a gas whose row has no ir flag (52 of 124: the atoms, radicals and rock vapours added after the first 72) takes the class its structure gives, the gas table's own rule (composition-model.md section 4a: monatomic none, homonuclear diatomics collision-induced only, the rest infrared): an atom none, a diatomic of one element cia, any other molecule ir (so the generic stand-in band of line_opacity and the ir share of the greenhouse table); the table, the thin-air scaling and the opacity all read it, where they read the null three ways before"
         }
       ],
       "slug": "6-6c-stand-ins-of-the-greenhouse-table-above-and-below-what-it-was-fitted-on-gen-1238-gen-1580-gen-1588",
