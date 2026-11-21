@@ -23,6 +23,7 @@ HOMES = {
     "interior_layers": "`planet_interior_layers` and `moon_interior_layers` (DB.89)",
     "life_class_scores": "`planet_life_class_scores` and `moon_life_class_scores`",
     "life_living": "`planet_life` and `moon_life`, the living species a body carries",
+    "life_adaptations": "not stored yet: the adaptations the life of a body needed (`adaptation_record`, GEN.1808); GEN.1809 stores them in `planet_adaptations` and `moon_adaptations`",
     "reflection_spectrum_visible": "`planet_reflection_spectrum` and `moon_reflection_spectrum`",
     "reflection_spectrum_non_visible": "`planet_reflection_spectrum` and `moon_reflection_spectrum`",
     "isotopes": "`planet_isotopes` and `moon_isotopes`",
