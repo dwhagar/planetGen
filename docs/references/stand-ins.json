@@ -12187,7 +12187,11 @@
           "what": "life_ledger.json reaction numbers (GEN.1743, research GEN.1742): Earth's natural nitrogen fixation 15.7 Tmol N/yr (about 220 Tg N), the N2O leak 0.044 of the nitrogen fixed and its life 109 yr, the life of methane in an oxygenated air 8.4 yr and the soil eaters' share of its loss 0.052, the share of seafloor methane eaten once the sea holds sulfate 0.9, the deposition velocity of carbon monoxide into a sea with CO eaters 1.2e-4 cm/s and without 1e-8 cm/s; and the 35 balanced reactions of the class variants (reactions, stoichiometry, T1 L0, except the acid classes T8 and the anammox of Class 8 T7)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.1677: the temperature edges of the score are chosen from the climates people live in without machines (the Yellow, Green and Blue edges proposed, the Blue and Green cut by Boss); no rated catalogue of worlds exists to fit them"
+          ],
           "fields": [
             [
               "What it is",
@@ -12225,7 +12229,11 @@
           "what": "protection_limits temp_yellow_low_c -20, temp_green_low_c -10, temp_blue_low_c 5 and temp_green_high_c 38 (GEN.1677), the score's temperature edges, which habitability.TEMPERATURE_BAND reads, with comfort_high_c 31, heat_max_c 122 and the outer edges as before"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.1677: the UV Green edge at 10 times Earth is Boss's choice; no rated catalogue of worlds exists to fit it"
+          ],
           "fields": [
             [
               "What it is",
