@@ -24,7 +24,14 @@
     "bodies": 178,
     "rows_run": 30
    }
-  ]
+  ],
+  "epoch": 143
+ },
+ "inputs": {
+  "registry": "951571e6e96aa27f53dfebae2d948a92b4438a591bbd6938e1b897aebea557c5",
+  "class_table": "57c8b4c37e97f17a764a6830df8b14e4bc9f5c2edede08b79186c9be7c4b94ad",
+  "matrix": "6cc05ee357e842e259e0fdf5ca80576db3a16098889032b2f4f70bf2e8cd7122",
+  "matrix_epoch": 143
  },
  "tier": "T6",
  "tweak": "L0",

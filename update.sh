@@ -32,7 +32,12 @@
 #      happened to it (fetched, kept, failed and why), so the output says
 #      where each piece comes from (GEN.600). Then the data of the References
 #      pages (`scripts/build_reference_pages.py`, DOC.88), built from the
-#      reference list and the stand-in registry; a failure only warns.
+#      reference list and the stand-in registry; a failure only warns. Then
+#      the fudge table check (`scripts/build_fudge_table.py --check-inputs`,
+#      GEN.1317): says when the committed table was built from other files
+#      than the checkout holds, and how many generator epochs have passed
+#      since its matrix was measured; silent when current, warns only, and
+#      never runs the matrix.
 #   4. `planetgen.cli.migrate`: brings the database up to the current schema
 #      (a no-op when it already is), with a progress bar. When a migration
 #      is pending, it first asks (y/N, 30 seconds, default N) whether to
@@ -248,6 +253,7 @@ log_stage 3 8 "Checking the NLTK 'words' corpus and the downloaded data sets"
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
 build_reference_pages
+check_fudge_table
 
 # OPS.271: every run is a row in the control database's ledger, so the database is migrated before anything runs.
 log_stage 4 8 "Migrating the configured MySQL database to the current schema"
@@ -296,6 +302,9 @@ if [[ "$DATASETS_MISSING" == 1 ]]; then
 fi
 if [[ "${REFERENCE_PAGES_FAILED:-0}" == 1 ]]; then
     log_warning "the References pages could not be built (step 3): /references may show old numbers."
+fi
+if [[ "${FUDGE_TABLE_FAILED:-0}" != 0 ]]; then
+    log_warning "the fudge table was not built from the files in this checkout (step 3): run 'python3 scripts/build_fudge_table.py'."
 fi
 log_info "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
 log_info "  planetgen population && planetgen territories"
