@@ -229,7 +229,7 @@ def test_every_class_is_a_likelihood_between_zero_and_one_for_odd_worlds():
             assert 0.0 <= result.likelihood <= 1.0 and math.isfinite(result.likelihood)
 
 
-def test_a_sealed_oceans_life_runs_at_the_temperature_of_its_water_not_of_its_surface():
+def test_a_sealed_oceans_and_an_aquifers_life_runs_at_the_temperature_of_its_water_not_of_its_surface():
     """GEN.1822: an icy moon's 100 K surface is not where its ocean's life lives; the water under the lid is at the melting point of ice."""
     from planetgen.physics import life_supply, life_timeline
     moon = world(hydrosphere="ice-covered ocean", surface_temperature_k=100.0, atmospheric_pressure_pa=0.0, **{atmosphere.GAS_FIELD: {}})
@@ -242,8 +242,14 @@ def test_a_sealed_oceans_life_runs_at_the_temperature_of_its_water_not_of_its_su
     assert life_timeline.rate_factor(water_k) > life_timeline.rate_factor(100.0)
     open_sea = world()
     assert life_classes.clock_temperature_k(life_classes.describe("4b"), open_sea) == open_sea["surface_temperature_k"]      # an open sea's water is the surface's
-    aquifer = world(hydrosphere="dry", groundwater="reachable", aquifer_depth_km=3.0, surface_temperature_k=283.0)
-    assert life_classes.clock_temperature_k(life_classes.describe("3a"), aquifer) == 283.0          # an aquifer's life keeps the surface's clock (a separate change)
+    aquifer = world(hydrosphere="dry", aquifer_thickness_km=2.0, aquifer_depth_km=3.0, surface_temperature_k=283.0, internal_heat_flux_w_m2=0.1)
+    deep = life_supply.habitat_temperature_k(aquifer)
+    assert deep > 283.0                                                                              # groundwater is warmer with depth
+    for class_id in ("3a", "3b", "4a", "4b", "4c", "8"):
+        assert life_classes.clock_temperature_k(life_classes.describe(class_id), aquifer) == pytest.approx(deep)      # an aquifer's life runs at its water's temperature
+    assert life_classes.clock_temperature_k(life_classes.describe("1a"), aquifer) == 283.0            # a class of the surface keeps the surface's
+    dry = world(hydrosphere="dry", aquifer_thickness_km=0.0, surface_temperature_k=283.0)
+    assert life_classes.clock_temperature_k(life_classes.describe("3a"), dry) == 283.0                # no liquid water: the surface's
 
 
 def test_a_sealed_ocean_has_no_abiotic_nitrate_unless_oxygen_makes_it():

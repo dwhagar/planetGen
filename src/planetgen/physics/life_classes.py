@@ -319,13 +319,13 @@ def lives_in_habitat_water(row):
 def clock_temperature_k(row, values):
     """
     The temperature, K, that the clock of class `row` runs at on a body of `values` (a column-named mapping): where the life lives. A class of the surface reads the surface
-    temperature; a class of the water of its habitat (`lives_in_habitat_water`: 3a to 4c and 8) in an ocean under an ice lid reads `life_supply.habitat_temperature_k`, the water's own
-    temperature that its gate already reads (GEN.1822: an icy moon's 100 K surface held its sealed ocean's life at the slowest clock, though the water is at the melting point of ice);
+    temperature; a class of the water of its habitat (`lives_in_habitat_water`: 3a to 4c and 8) reads `life_supply.habitat_temperature_k`, the water's own
+    temperature that its gate already reads (GEN.1822: an icy moon's 100 K surface held its sealed ocean's life at the slowest clock, though the water is at the melting point of ice), and in an aquifer the water's temperature at the aquifer's depth (the surface's plus the rise with depth, capped at `habitat_max_k`; the same change, extended to groundwater);
     a class of the acid cloud layer (`habitat` `acid_cloud`, GEN.1307) reads the cloud layer's own temperature (`acid_medium.medium`), which a hot surface does not set, and the surface's where the body holds no layer.
-    An aquifer's life keeps the surface's clock, as before (its water is hotter with depth; that is a separate change).
+    Under an open ocean, and on a body with no liquid water, `habitat_temperature_k` returns the surface temperature, so those clocks are unchanged.
     """
     surface = values.get("surface_temperature_k")
-    if lives_in_habitat_water(row) and values.get("hydrosphere") == "ice-covered ocean":
+    if lives_in_habitat_water(row):
         found = life_supply.habitat_temperature_k(values)
         return found if found is not None else surface
     if getattr(row, "habitat", None) != "acid_cloud":
