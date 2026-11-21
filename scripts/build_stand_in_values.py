@@ -625,6 +625,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.314", "6.314 Stand-ins of the life ages (GEN.1746)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.316", "6.316 Stand-ins of the infrared strengths of the minor gases (GEN.1621)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.317", "6.317 Stand-ins of the deep branch of a giant's profile (GEN.1577)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.318", "6.318 Stand-ins of the adaptation record (GEN.1808)",
