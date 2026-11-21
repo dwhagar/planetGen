@@ -74,6 +74,35 @@ def test_the_average_matches_a_brute_force_average_over_both_orbits():
     assert rf.mean_inverse_square(d, axis, e) == pytest.approx(total / grid, rel=2e-3)
 
 
+@pytest.mark.parametrize("axis,e,d", [(0.268, 0.0, 35.0), (1.2385, 0.1322, 35.0), (0.5, 0.2, 5.0)])
+def test_a_source_inside_the_bodys_orbit_is_averaged_as_it_is(axis, e, d):
+    """GEN.1790: a body round a close pair (the source's orbit well inside its own) gets the exact coplanar mean, `1 / (d^2 - R^2)` for a circle, and not the
+    floor of a source taken to be outside: a planet at 35 AU was lit 2e4 times too hard by two companions at 0.27 and 1.2 AU."""
+    grid = 400
+    mean = (np.arange(grid) + 0.5) * 2 * math.pi / grid
+    anomaly = mean.copy()
+    for _ in range(40):
+        anomaly = anomaly - (anomaly - e * np.sin(anomaly) - mean) / (1 - e * np.cos(anomaly))
+    radius = axis * (1 - e * np.cos(anomaly))
+    true = 2 * np.arctan2(np.sqrt(1 + e) * np.sin(anomaly / 2), np.sqrt(1 - e) * np.cos(anomaly / 2))
+    phase = np.linspace(0, 2 * math.pi, 361)[:-1]
+    total = 0.0
+    for r, nu in zip(radius, true):
+        sep2 = (r * np.cos(nu) - d * np.cos(phase)) ** 2 + (r * np.sin(nu) - d * np.sin(phase)) ** 2
+        total += np.mean(1.0 / sep2)
+    assert rf.mean_inverse_square(d, axis, e) == pytest.approx(total / grid, rel=2e-3)
+    assert rf.mean_inverse_square(d, axis, 0.0) == pytest.approx(1.0 / (d * d - axis * axis), rel=1e-12)
+
+
+def test_the_light_of_a_close_pair_at_a_far_body_is_the_light_of_one_point_at_the_pair():
+    host = star(SUN_W * 1.0e6)
+    pair = star(SUN_W * 5.0e4)
+    rf.attach(host, [rf.Companion(pair, 1, 0.268, 0.0)])
+    far = rf.starlight_w_m2(host, 35.0)
+    host_alone = SUN_W * 1.0e6 / (4.0 * math.pi * (35.0 * constants.AU_M) ** 2)
+    assert far == pytest.approx(host_alone * 1.05, rel=2e-3)
+
+
 def test_the_field_has_each_band_as_a_total_and_per_source():
     host = star(l_xuv_w=1.0e-3 * SUN_W, xuv_fluence_j=1.0e13, flare_n33_per_yr=0.5)
     companion = star(0.5 * SUN_W, l_xuv_w=1.0e-3 * 0.5 * SUN_W, xuv_fluence_j=2.0e13, flare_n33_per_yr=20.0)
