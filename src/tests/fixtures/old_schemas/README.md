@@ -43,3 +43,5 @@ Commit each file came from:
 - v269: after GEN.1577's migration 0269 (planets cloud_decks), before GEN.1745 slice 4b's migration 0270 (air_history on planets, moons and rogue_planets) (main's schema.sql with its comment and blank lines removed)
 - v270: after GEN.1745 slice 4b's migration 0270 (air_history on planets, moons and rogue_planets), before GEN.1150's migration 0271 (trojan regions) (main's schema.sql with its comment and blank lines removed)
 - v271: after GEN.1150's migration 0271 (trojan regions), before GEN.1151's migration 0272 (trojan planets) (main's schema.sql with its comment and blank lines removed)
+- v272: after GEN.1151's migration 0272 (trojan planets), before GEN.1746 slice 3's migration 0273 (life ages) (main's schema.sql with its comment and blank lines removed)
+- v273: after GEN.1746 slice 3's migration 0273 (planet_life_ages, moon_life_ages), before GEN.1809's migration 0274 (planet_adaptations, moon_adaptations) (the schema.sql of that step with its comment and blank lines removed)

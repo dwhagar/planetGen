@@ -8,10 +8,10 @@ The gases a life class puts into the air besides oxygen (GEN.891, GEN.857, GEN.8
 (`physics/data/life_ledger.json`, docs/design/habitability/life-classes.md section 4): the methane that anoxygenic, hydrogen-eating and
 (before the oxygen rise) oxygenic life makes, and the hydrogen the hydrogen-eaters draw down.
 
-**Reactions.** Every class variant also lists its balanced reactions (GEN.1743, `reactions_of`, `takes`, `gives`): what it takes and gives off, the energy it
+**Reactions.** Every class variant also lists its balanced reactions (GEN.1743, `REACTIONS`): what it takes and gives off, the energy it
 runs on, what limits its flux (`REACTION_FLUXES`) and whether it changes the air. The loader refuses a reaction that does not balance every element and the
-charge (`imbalance`), so no class can give off a gas without taking what it is made of. The present air reads the class rows below; the air history
-(GEN.1745) reads the reactions.
+charge (`imbalance`), so no class can give off a gas without taking what it is made of. The air, and the air history (GEN.1745), read the class rows below; the reactions are the ledger the tests hold the
+class rows to (what a class eats and gives off, and the gases its row draws down and makes), GEN.1820.
 
 **Methane.** A class's flux is its fuel supply (a share of Earth's, `physics/life_supply.py`; for the oxygenic class the organic carbon its
 photosynthesis buries, `biogenic_oxygen.productivity`) times the area over Earth's times the flux Earth's supply gives
@@ -166,21 +166,6 @@ def number(name):
 def row_of(life_class):
     """The ledger row of a `life_classes.LifeClass` (by its class number)."""
     return CLASSES[str(life_class.number)]
-
-
-def reactions_of(life_class):
-    """The reactions of a `life_classes.LifeClass` (by its id, `"1a"` or `"2"`), as `{name: reaction}` in the ledger's order (GEN.1743)."""
-    return {name: reaction for name, reaction in REACTIONS.items() if life_class.id in reaction["classes"]}
-
-
-def takes(life_class):
-    """The species the reactions of a class take, sorted (GEN.1743): what the class consumes."""
-    return sorted({species for reaction in reactions_of(life_class).values() for species in reaction["takes"]})
-
-
-def gives(life_class):
-    """The species the reactions of a class give, sorted (GEN.1743): what the class gives off."""
-    return sorted({species for reaction in reactions_of(life_class).values() for species in reaction["gives"]})
 
 
 def methane_flux_mol_yr(body, life_class, supplies=None):

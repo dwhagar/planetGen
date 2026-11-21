@@ -3005,7 +3005,7 @@
         {
           "burn_down": [
             "replace",
-            "GEN.1769",
+            "GEN.1493",
             "L3, the upper end of 1 percent of the body's mass (about 43 oceans) is the Boss's call to widen the range of [R2769] (one to ten oceans); the body water budget of lane J, which gives each world its own water, replaces the range"
           ],
           "fields": [
@@ -12161,7 +12161,7 @@
             ],
             [
               "Where it holds",
-              "the air history of GEN.1745 (the present air does not read them)"
+              "the tests of tests/test_life_air.py (the reactions are the ledger the class rows are held to; the air and the air history read the class rows, GEN.1820)"
             ],
             [
               "What would show it wrong",
@@ -76115,6 +76115,90 @@
       ],
       "slug": "6-314-stand-ins-of-the-life-ages-gen-1746",
       "title": "Stand-ins of the life ages (GEN.1746)"
+    },
+    {
+      "key": "6.316",
+      "number": "6.316",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "greenhouse_table.INFRARED_STRENGTH_FILE: the weight of each of the 12 gases with a band list of its own whose warming the reference air shows (O3, C2H2, C2H4, C2H6, CH2O, CH3OH, N2O, NO2, PH3, OCS, CH3Cl, SiO) in the table's infrared input: the moles of SO2 that warm Earth's air (N2 78084, O2 20946, Ar 934, CO2 42, H2O 1000 Pa; 9.81 m/s2; 240 W/m2 absorbed) as much as one mole of the gas, the geometric mean over the gas at shares of 1e-6, 1e-5 and 1e-4; HCl and HF warm it by under 0.02 K at those shares, so Earth's air cannot tell their strength and they keep weight 1 (as the file's unmeasured list says)"
+            ],
+            [
+              "The range it moves in",
+              "none (measured); the reference air and the three shares are choices of the script"
+            ],
+            [
+              "Where it holds",
+              "gas shares up to about 1e-3 of an air near Earth's; the weight is read at one air, so in a very different air (a dense carbon dioxide or a hydrogen air) the ratio of the gas to SO2 differs and the network corrects the rest"
+            ],
+            [
+              "What would show it wrong",
+              "a gas whose warming against SO2 in another reference air (a cold dense nitrogen air, a hot carbon dioxide air) differs from this weight's by over a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a per-gas input of the network for each gas the generator makes at over 1e-6 of an air"
+            ],
+            [
+              "Evidence",
+              "the model radiative_convective.warming (its band data, rows IR1 to IR11) read as the measure"
+            ]
+          ],
+          "id": "IS1",
+          "key": "6.316:IS1",
+          "kind": "D",
+          "slug": "6-316-is1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "greenhouse_table.INFRARED_STRENGTH_FILE: the weight of each of the 12 gases with a band list of its own whose warming the reference air shows (O3, C2H2, C2H4, C2H6, CH2O, CH3OH, N2O, NO2, PH3, OCS, CH3Cl, SiO) in the table's infrared input: the moles of SO2 that warm Earth's air (N2 78084, O2 20946, Ar 934, CO2 42, H2O 1000 Pa; 9.81 m/s2; 240 W/m2 absorbed) as much as one mole of the gas, the geometric mean over the gas at shares of 1e-6, 1e-5 and 1e-4; HCl and HF warm it by under 0.02 K at those shares, so Earth's air cannot tell their strength and they keep weight 1 (as the file's unmeasured list says)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the weight 1 that the 68 gases of the file's unmeasured list keep in the infrared input: HCl and HF (no measurable warming of Earth's air) and the 66 gases whose band the model reads as the stand-in of line_opacity.STANDIN_KAPPA0_M2_KG (a plateau per kilogram; 32 gases HDO, H2O2, C3H8, C4H10, C6H6, N2H4, NO, N2O4, HNO3, HNCO, C3O2, CN, C2N2, CH3CN, HC3N, C4H2, SO3, H2SO4, CS2, S8, SO, CH3SH, (CH3)2S, HBr, HClO4, CF4, SF6, SiH4, TiO, NaCl, KCl, NH4Cl, and, since GEN.1629 counts a gas with no ir flag by its structure (IR21), 34 gases of hot airs FeH, CrH, AlH, VO, CaOH, NH4SH, OH, FeO, MgO, SiO2, TiO2, NaOH, KOH, NaO, MgOH, Mg(OH)2, Fe(OH)2, CaO, SiS, HCOOH, KO, K2O, Na2O, AlO, Al2O, AlO2, Al2O2, LiH, LiOH, LiCl, PO, PN, PS, PH): measured on Earth's air they weigh up to 1.5e5 times SO2 (S8, SF6, C6H6), a plateau and not the gas, and weights that size left the network unable to read the hydrogen envelopes (a median error of 19 percent against 4.4), so they stay at 1, the weight of the table before GEN.1621"
+            ],
+            [
+              "The range it moves in",
+              "the weight 1 is no measurement"
+            ],
+            [
+              "Where it holds",
+              "the generator's trace amounts of these gases only; a hot or cold dense air with many of them is read as the sum of their shares as before"
+            ],
+            [
+              "What would show it wrong",
+              "a measured band strength of any of them that puts its warming in Earth's air more than a factor of 3 from SO2 per mole at a share of 1e-5"
+            ],
+            [
+              "What replaces it",
+              "GEN.1803: real band strengths per molecule, then the weights measured again and the table refitted"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics, as IR1 (a weight of 1 is the table of GEN.1796)"
+            ]
+          ],
+          "id": "IS2",
+          "key": "6.316:IS2",
+          "kind": "P",
+          "slug": "6-316-is2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "the weight 1 that the 68 gases of the file's unmeasured list keep in the infrared input: HCl and HF (no measurable warming of Earth's air) and the 66 gases whose band the model reads as the stand-in of line_opacity.STANDIN_KAPPA0_M2_KG (a plateau per kilogram; 32 gases HDO, H2O2, C3H8, C4H10, C6H6, N2H4, NO, N2O4, HNO3, HNCO, C3O2, CN, C2N2, CH3CN, HC3N, C4H2, SO3, H2SO4, CS2, S8, SO, CH3SH, (CH3)2S, HBr, HClO4, CF4, SF6, SiH4, TiO, NaCl, KCl, NH4Cl, and, since GEN.1629 counts a gas with no ir flag by its structure (IR21), 34 gases of hot airs FeH, CrH, AlH, VO, CaOH, NH4SH, OH, FeO, MgO, SiO2, TiO2, NaOH, KOH, NaO, MgOH, Mg(OH)2, Fe(OH)2, CaO, SiS, HCOOH, KO, K2O, Na2O, AlO, Al2O, AlO2, Al2O2, LiH, LiOH, LiCl, PO, PN, PS, PH): measured on Earth's air they weigh up to 1.5e5 times SO2 (S8, SF6, C6H6), a plateau and not the gas, and weights that size left the network unable to read the hydrogen envelopes (a median error of 19 percent against 4.4), so they stay at 1, the weight of the table before GEN.1621"
+        }
+      ],
+      "slug": "6-316-stand-ins-of-the-infrared-strengths-of-the-minor-gases-gen-1621",
+      "title": "Stand-ins of the infrared strengths of the minor gases (GEN.1621)"
     },
     {
       "key": "6.317",
