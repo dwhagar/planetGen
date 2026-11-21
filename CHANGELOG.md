@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4665+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A body that tidal heat has melted no longer asks for billions of flood basalts a gigayear, which ran a system's build out of memory.
+
+### Fixed
+- GEN.1745 slice 4b: `air_events.flood_basalt_rate_per_gyr` stops at `FLOOD_BASALT_MAX_PER_GYR` (1,000 a gigayear, a numerical bound on the draw: one flood basalt takes about a million years to erupt; the Earth is at 40). A tidally heated rocky body (25 MW/m2) gave 6.5e10 flood basalts over its history, the draw never ended and `tests/test_aquifers.py` was killed at 12 GB on the train; the same system now builds in the memory it had before the air record.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4664+db270.gen150.api14] - 2026-11-21
 
 **Headline:** Every rocky world with an air of 500 Pa or more now keeps the record of its air history in a new column, `air_history` (the history is not read back yet)
