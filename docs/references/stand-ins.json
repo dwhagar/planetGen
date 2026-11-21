@@ -12187,7 +12187,11 @@
           "what": "life_ledger.json reaction numbers (GEN.1743, research GEN.1742): Earth's natural nitrogen fixation 15.7 Tmol N/yr (about 220 Tg N), the N2O leak 0.044 of the nitrogen fixed and its life 109 yr, the life of methane in an oxygenated air 8.4 yr and the soil eaters' share of its loss 0.052, the share of seafloor methane eaten once the sea holds sulfate 0.9, the deposition velocity of carbon monoxide into a sea with CO eaters 1.2e-4 cm/s and without 1e-8 cm/s; and the 35 balanced reactions of the class variants (reactions, stoichiometry, T1 L0, except the acid classes T8 and the anammox of Class 8 T7)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.1677: the temperature edges of the score are chosen from the climates people live in without machines (the Yellow, Green and Blue edges proposed, the Blue and Green cut by Boss); no rated catalogue of worlds exists to fit them"
+          ],
           "fields": [
             [
               "What it is",
@@ -12199,7 +12203,7 @@
             ],
             [
               "Where it holds",
-              "the climates people live in without heating or cooling machines (Xu et al. 2020, the human climate niche: peaks near 11 to 15 C and 20 to 25 C annual mean, ending near 29 C), a sustained wet bulb of 35 C (Sherwood and Huber 2010), liquid water in cells down to about -20 C (Clarke 2014; Merino 2019)"
+              "the climates people live in without heating or cooling machines (Xu et al. 2020, the human climate niche: peaks near 11 to 15 C and 20 to 25 C annual mean, ending near 29 C), a sustained wet bulb of 35 C [R4057], liquid water in cells down to about -20 C [R3040, R5341]"
             ],
             [
               "What would show it wrong",
@@ -12225,7 +12229,11 @@
           "what": "protection_limits temp_yellow_low_c -20, temp_green_low_c -10, temp_blue_low_c 5 and temp_green_high_c 38 (GEN.1677), the score's temperature edges, which habitability.TEMPERATURE_BAND reads, with comfort_high_c 31, heat_max_c 122 and the outer edges as before"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.1677: the UV Green edge at 10 times Earth is Boss's choice; no rated catalogue of worlds exists to fit it"
+          ],
           "fields": [
             [
               "What it is",
@@ -18567,7 +18575,11 @@
           "what": "tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, planet_architecture.giant_impacts) and GIANT_IMPACT_END_AU 3 (the stage ends there, or at the snow line when nearer: farther out the merging does not finish in the disk's age, and for A stars with snow lines at 10 AU and more it moved the outer disk inward and tripled the debris disks)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the zone the habitable-world effort goes to is the habitable zone widened by half its width on each side (GEN.1807, Boss 5:49 PM EST 11-20: more worlds get the effort); no source gives an edge past the maximum greenhouse limit and no survey measures where a temperate sea can be made, so the 0.5 is Boss's choice kept as a design number; tier T9 stays"
+          ],
           "fields": [
             [
               "What it is",
