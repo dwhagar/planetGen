@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4660+db268.gen150.api14] - 2026-11-21
+
+**Headline:** The scored search sample keeps adding systems until enough moons hold every searched value, instead of stopping at six systems that may fall short.
+
+### Fixed
+
+- `tests/scored_site.py` stopped at `MAX_SYSTEMS` (6) systems even when some moon column (for example the period or ocean depth) was held by fewer than four moons, so `test_search_values.py` errored 27 times after the generator moved. The fixture now keeps scanning seeds 11 to 80 until four systems exist and every searched value is on four moons, and its failure message gives the real count per column. The requirement is unchanged (TEST.810).
+
+generation-output: unchanged
+
 ## [8.0.4659+db268.gen150.api14] - 2026-11-21
 
 **Headline:** The cosmic dust tests find a default system with an acid cloud by searching seeds, instead of relying on one seed that has stopped holding one.
