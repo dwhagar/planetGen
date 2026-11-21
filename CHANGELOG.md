@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4705+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The trojan stack reads its astronomical unit and year from the constants module and tags its rounded Earth mass.
+
+### Changed
+- `trojan_bodies.AU_CM` and `trojan_overlay.SECONDS_PER_YEAR` now come from `physics/constants.py` (`AU_M` times 100, `SECONDS_PER_YEAR`): the same numbers as before (the IAU astronomical unit and the Julian year). `trojan_bodies.EARTH_MASS_G` keeps the rounded 5.972e27 g and says in its docstring that it is derived from the constants module's Earth mass, so the generated output does not move. The constants-completeness gate (TEST.715) no longer lists the three.
+
+generation-output: unchanged
+
 ## [8.0.4704+db272.gen150.api14] - 2026-11-21
 
 **Headline:** The system-scene tests find a system with comets in minutes instead of hours.
