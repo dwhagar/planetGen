@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 112 | 29 | 8 | 2 | 2 | 153 |
-| T6 | 245 | 133 | 38 | 85 | 5 | 506 |
+| T6 | 245 | 134 | 38 | 84 | 5 | 506 |
 | T7 | 74 | 37 | 10 | 31 | 0 | 152 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1107 | 397 | 99 | 271 | 64 | 1938 |
+| All | 1107 | 398 | 99 | 270 | 64 | 1938 |
 
 ## How the labels were given
 
@@ -3429,7 +3429,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| LA1 | P | T6 | L3 | `life_ages.AGE_KILL_THRESHOLD` 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve | 0.15 to 0.65 | the Earth's marine record, applied to every world with life | a record of eras whose boundaries are not the extinctions that kill 30 percent or more, or a Boss pick of another share | the Boss's pick of the threshold | educated guess from physics: the design proposed it as the size [R5320] gives once per 10 Myr | predicted only | - | no data |
+| LA1 | P | T6 | L1 | `life_ages.AGE_KILL_THRESHOLD` 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve. The Boss picked 0.30 from the measured range (5:50 PM EST 11-19: an extinction that kills 30 percent or more ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages) | 0.15 to 0.65 | the Earth's marine record, applied to every world with life | a record of eras whose boundaries are not the extinctions that kill 30 percent or more, or a Boss pick of another share | none (the Boss's pick inside the measured range; another pick replaces the number) | the Boss's choice of the value inside the range the kill curve gives [R5320], the curve itself from a secondary article | predicted only | - | - |
 | LA2 | T | T7 | L0 | events that fall within `air_events.RECOVERY_GYR` of the extinction before are part of it, keeping the larger kill and its cause (no background process: the kill of an event is read from the curve at its own recurrence, so the impacts that reach the threshold fill the curve and nothing is left over) | none | any world | a fossil record in which a second extinction within 10 Myr of the first starts an age of its own | a diversity model with the regrowth of [R5321] | inferred from the 10 Myr lag after an extinction whatever its size | predicted only | - | - |
 
 ## 6.317 Stand-ins of the deep branch of a giant's profile (GEN.1577)
