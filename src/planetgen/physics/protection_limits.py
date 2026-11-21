@@ -98,7 +98,7 @@ LIMIT_ROWS = (
     Limit("frame_gravity_rec_g", 1.25, "g", "from here a powered frame is recommended", None, None),
     Limit("frame_gravity_g", 1.5, "g", "from here a powered frame is required", None, None),
     Limit("vehicle_gravity_g", 3.0, "g", "greater than this no suit or frame helps: a vehicle", None, None),
-    Limit("uv_blue_index", 3.0, "x Earth", "the score's Blue edge for ultraviolet: the DNA-weighted dose of Earth's own tropical high-altitude peak, which people live under (GEN.1677; no clothing in the reason)", 3.0, None),
+    Limit("uv_blue_index", 3.0, "x Earth", "the score's Blue edge for ultraviolet: the DNA-weighted dose of Earth's own tropical high-altitude peak, which people live under (no clothing in the reason)", 3.0, None),
     Limit("uv_green_index", 10.0, "x Earth", "the score's Green edge for ultraviolet: fair skin burns in minutes at full sun (about 15 to 20 minutes at UV index 10, WHO) but shade, night and the angle of the star leave much of every day below it; a stand-in, tier educated guess from physics, tweak L3", 10.0, None),
     Limit("uv_cover_index", 3.0, "x Earth", "a DNA-weighted UV index from here: sun-cover clothing", None, None),
     Limit("uv_suit_index", 30.0, "x Earth", "a DNA-weighted UV index from here: a full-cover suit", None, None),

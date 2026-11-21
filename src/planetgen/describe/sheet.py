@@ -601,7 +601,7 @@ _BODY_NOT_SHOWN = {
     "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
     "shape_temperature_k": "the temperature the body took its shape at; the roundness it sets is shown, not the temperature",
     "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
-    "air_history": "the record of the air's history (the steps with the gases of each, and the life ages) as stored text; nothing shows it yet, the chart of GEN.1745 reads it later",
+    "air_history": "the record of the air's history (the steps with the gases of each, and the life ages) as stored text; the body page shows it as a chart, not as text",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
@@ -672,7 +672,7 @@ NOT_SHOWN = {
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                    "velocity_z_kms"), _VECTORS),
         "host_node_id": "the orbit tree node; bookkeeping",
-        **{column: "of a trojan region of a giant (GEN.1150): its page prints them under the belt's rows (`describe/build.py` `_belt_section`: the point, the libration, the mean eccentricity and inclination)"
+        **{column: "of a trojan region of a giant: its page prints them under the belt's rows (`describe/build.py` `_belt_section`: the point, the libration, the mean eccentricity and inclination)"
            for column in ("lagrange_point", "libration_amplitude_deg", "libration_phase_deg", "mean_eccentricity", "mean_inclination_deg")},
         "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
         "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
