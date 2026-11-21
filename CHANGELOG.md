@@ -2,6 +2,86 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4677+db270.gen150.api14] - 2026-11-21
+
+**Headline:** `generate-sectors` declares its write to the rogue planets' interior layers, so `test_command_touches` is green again.
+
+### Fixed
+
+- A rogue planet is a planet and stores its interior layers in `rogue_planet_interior_layers` (migration 0207; the writer came in with the radiation-multiplier fix), but `queue/touches.SECTOR_WRITES` did not list the table, so `test_command_touches` failed with "generate-sectors writes undeclared rogue_planet_interior_layers". The write is declared beside the other rogue-planet tables; the check is not loosened (TEST.812).
+
+generation-output: unchanged
+
+## [8.0.4676+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The test of the update script's References pages step reads the script's eight stages, so `test_references_pages` is green again.
+
+### Fixed
+
+- `test_update_script_builds_the_pages_in_step_3_and_repeats_a_failure_at_the_end` still looked for `log_stage 3 9` after the update dropped the math check as a stage (OPS.286), which made it 8 stages. It reads `log_stage 3 8` and `log_stage 4 8` now (TEST.815). The `Stage 4 of 9` lines in other tests and docs are examples of the log format, not the script, and are left as they are.
+
+generation-output: unchanged
+
+## [8.0.4675+db270.gen150.api14] - 2026-11-21
+
+**Headline:** Every body whose life lives in a refuge (a melt film, a brine seep, a spring, the sea under an ice lid) now records which adaptations of the table its life needed, for the photosynthetic classes 1a, 1b, 1c and 2
+
+### Added
+
+- GEN.1808: `physics/adaptation_record` reads a finished body's refuge and conditions and asks, for each limit the ordinary life does not reach (cold, heat, light under the ice, hours of liquid water, depth of the water table, water activity), what the life must be able to do, which grade of the table of GEN.1725 reaches it (`None` when even the extreme grade falls short: the life there is past the table) and which rows give it, plus the habitat rows (a pigment that works in no light, a crust that wakes on water) of the places the refuge counted. The life age and kinds of life the body has limit which rows apply. The record is `planet.life_adaptations`, a list of plain dicts, `None` for a body with none; nothing stores it yet (GEN.1809) and nothing in the generation reads it.
+- `Refuge` now carries the cold and hot ends of the temperatures of its wet lit steps (the middle 95 percent of the wet lit time, each step weighed by its place's share of the surface, stand-in AE2), the least light under an ice lid and the habitats it counted. Its hours, area and temperature are unchanged.
+- Stand-ins AE1 (one watt a square metre is 5 micromoles of photons, tied by the gate's own light floor) and AE2 (the share of the temperature range) in section 6.318.
+- Classes 3a to 9 get no record yet (GEN.1810 and GEN.1811), and a class 2 need beyond the five rows that apply to all classes comes out "past the table" until that research is in.
+
+## [8.0.4674+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A log line gives a duration under a second in whole milliseconds, so `test_job_logs` is green again.
+
+### Fixed
+
+- `logrecord.duration_text` read a quick run as `5.56 ms` (the time ladder's three significant figures), which turned the two `test_job_logs` tests red on main. From 0.5 ms to just under a second a log line now says whole milliseconds (`6 ms`, `340 ms`), 0.9995 s and up reads `1s`, and the pages and the ladder itself are unchanged (TEST.814).
+
+generation-output: unchanged
+
+## [8.0.4673+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The promoted-planet belt test looks in the planet's own belt only, as a member's rank belongs to its belt.
+
+### Fixed
+- TEST.813: `test_the_promoted_planet_is_not_counted_again_in_its_belt` looked for the promoted planet's `belt_rank` among the members of every belt of the system. A rank is a member's place in its own belt, so a second belt (a system with an inner and an outer belt) holds a member of the same rank and the test failed on seeds 0 and 6 with nothing wrong in the generator: the planet is in no sibling list of its own tide sources and has left its own belt's members. It now looks in the belt the planet came from (`irregular_moons.belts_of(...)[planet.belt_order]`).
+
+generation-output: unchanged
+
+## [8.0.4672+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The stopping test of the giant cloud-deck bisection is a registered stand-in, so `test_constants_completeness` is green again.
+
+### Fixed
+
+- `hot_cloud_deck.TOLERANCE` (1e-3 of a decade in pressure, the stopping test of the bisection of a giant's profile, GEN.1577) had no registry row, tag or place in the constants module, which turned `test_constants_completeness` red on main from Train 51. It is row DA3 of section 6.317 (a numerical stopping test, tier T9, tweak L0, like belt_ledger's BR21 tolerance) and its docstring carries the tag (TEST.811).
+
+generation-output: unchanged
+
+## [8.0.4671+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A planet's Life and air chart now shows every gas of its stored air history, with the mass extinctions and the life ages between them.
+
+### Added
+- **The life-air route reads the stored air history (API.51).** `GET /api/planets/<id>/life-air` and `/api/moons/<id>/life-air` answer from the body's `air_history` column (GEN.1745 slice 4b) when it has one: every gas the record keeps (any gas of 0.1 Pa or more at some age, the biggest first), the surface temperature and total pressure at each recorded age, the mass extinctions that start a step and the life ages between them. The answer keeps the old shape and adds `source` (`stored` or `rebuilt`), `temperature_k`, `pressure_kpa`, `events` and `life_ages`; the classes, the producers' and the oxygen rise's ages and what each class made of a gas still come from the rebuilt history. A body with no stored history (a giant, thin air, a rogue planet, a row made before v269) keeps the air worked backwards on request, and says `rebuilt`. New `physics/stored_air.py`.
+- **The planet page's Life and air chart draws every gas, for any body that has a stored history, living or not (Boss: the full air history of every body at 500 Pa or more).** Gases beyond oxygen, carbon dioxide and methane get a line and a legend key of their own, mass extinctions are dashed lines with the cause and the share of species killed listed under the chart, and the life ages are listed with how each ended.
+
+generation-output: unchanged
+
+## [8.0.4670+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The share of species an extinction must kill to end a life age is registered as the Boss's pick, 30 percent
+
+### Changed
+
+- GEN.1746: `life_ages.AGE_KILL_THRESHOLD` stays 0.30 and its stand-in row (section 6.314, LA1) now records why: the Boss picked 0.30 from the measured range of the kill curve [R5320] (an extinction that kills 30 percent or more of the species ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages), tweak L1 where it was L3. No number moves.
+
+generation-output: unchanged
+
 ## [8.0.4669+db270.gen150.api14] - 2026-11-21
 
 **Headline:** The cold and heat adaptation traits of a life world now read the temperature of the water the life lives in, so a frozen world with warm crust no longer draws a cold trait.

@@ -9,6 +9,7 @@ from is not counted twice (the member left the belt's mass when it was promoted)
 
 import pytest
 
+from planetgen.generation import irregular_moons
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import tide_sources
@@ -75,5 +76,5 @@ def test_the_promoted_planet_is_not_counted_again_in_its_belt(cases):
     for system, planet in cases:
         listed = [source.body for source in tide_sources.sources_of(planet, None, _siblings(system))]
         assert planet not in listed
-        belts = [b for b in system.planets if getattr(b, "body_type", None) == "a"]
-        assert all(planet.belt_rank not in [member["rank"] for member in belt.members] for belt in belts)
+        own = irregular_moons.belts_of(system.planets)[planet.belt_order]        # the planet's own belt: a rank is the member's place in ITS belt, so another belt may hold a member of the same rank
+        assert planet.belt_rank not in [member["rank"] for member in own.members]

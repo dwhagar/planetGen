@@ -18487,7 +18487,11 @@
           "what": "tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, planet_architecture.giant_impacts) and GIANT_IMPACT_END_AU 3 (the stage ends there, or at the snow line when nearer: farther out the merging does not finish in the disk's age, and for A stars with snow lines at 10 AU and more it moved the outer disk inward and tripled the debris disks)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the zone the habitable-world effort goes to is the habitable zone widened by half its width on each side (GEN.1807, Boss 5:49 PM EST 11-20: more worlds get the effort); no source gives an edge past the maximum greenhouse limit and no survey measures where a temperate sea can be made, so the 0.5 is Boss's choice kept as a design number; tier T9 stays"
+          ],
           "fields": [
             [
               "What it is",
@@ -75791,10 +75795,132 @@
           "tweak": "L1",
           "unread": null,
           "what": "the floor is anchored at the giant's 1 bar temperature, giant_draw.ONE_BAR_OVER_EFFECTIVE (1.33) times its effective temperature, the one its air is solved at; for a strongly irradiated giant this is hotter than a deep adiabat set by its own heat (the radiative zone is an isotherm down to the radiative-convective boundary), so a giant above about 1,400 K equilibrium gets no chromium or manganese sulfide cloud"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_cloud_deck.TOLERANCE 1e-3: the bisection of the giant's profile stops when its bracket is this narrow in log10 of the pressure (the profile is searched on a grid four to the decade, so the bracket is a quarter of a decade wide before it starts)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "every giant's cloud deck"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable (a numerical stopping test)"
+            ],
+            [
+              "What replaces it",
+              "a guard from the cost of the search"
+            ],
+            [
+              "Evidence",
+              "needed output (a pressure good to a part in a thousand of a decade)"
+            ]
+          ],
+          "id": "DA3",
+          "key": "6.317:DA3",
+          "kind": "P",
+          "slug": "6-317-da3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hot_cloud_deck.TOLERANCE 1e-3: the bisection of the giant's profile stops when its bracket is this narrow in log10 of the pressure (the profile is searched on a grid four to the decade, so the bracket is a quarter of a decade wide before it starts)"
         }
       ],
       "slug": "6-317-stand-ins-of-the-deep-branch-of-a-giant-s-profile-gen-1577",
       "title": "Stand-ins of the deep branch of a giant's profile (GEN.1577)"
+    },
+    {
+      "key": "6.318",
+      "number": "6.318",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "adaptation_record.UMOL_PER_W 5.0: micromoles of photons a square metre a second in one watt a square metre of usable light, tied by the refuge gate's own floor (surface_refuge.LIGHT_FLOOR_W_M2 2e-3 W/m2 is 0.01 umol, RW2) so the light axis of the table (umol) and the gate (W/m2) agree at the floor"
+            ],
+            [
+              "The range it moves in",
+              "4 to 5 (sunlight is about 4.6 umol per watt of photosynthetically active radiation, 2 to 2.3 umol per watt of total)"
+            ],
+            [
+              "Where it holds",
+              "the light under an ice lid, where the table's floor is read"
+            ],
+            [
+              "What would show it wrong",
+              "a measured conversion of the sunlight a star of the body's class gives that differs from 5 by more than 1"
+            ],
+            [
+              "What replaces it",
+              "a conversion from the star's own spectrum (spectrum)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the energy of a 550 nm photon is 0.22 umol per J; the gate's floor was set in photons and then given in watts)"
+            ]
+          ],
+          "id": "AE1",
+          "key": "6.318:AE1",
+          "kind": "P",
+          "slug": "6-318-ae1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "adaptation_record.UMOL_PER_W 5.0: micromoles of photons a square metre a second in one watt a square metre of usable light, tied by the refuge gate's own floor (surface_refuge.LIGHT_FLOOR_W_M2 2e-3 W/m2 is 0.01 umol, RW2) so the light axis of the table (umol) and the gate (W/m2) agree at the floor"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.RANGE_SHARE 0.95: the share of the wet lit time of the refuge places that the temperature range of Refuge.coldest_k to Refuge.hottest_k holds, so the life's cold and hot limits are the temperatures it works at most of the time, not the one hottest cell of the planet"
+            ],
+            [
+              "The range it moves in",
+              "0.9 to 0.99"
+            ],
+            [
+              "Where it holds",
+              "a body with a refuge"
+            ],
+            [
+              "What would show it wrong",
+              "a record whose hot demand moves by more than 20 K between 0.9 and 0.99 on most bodies"
+            ],
+            [
+              "What replaces it",
+              "a range weighted by the production the place carries"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (a life lives where most of its water is; a quantile range is the usual way to set an organism's tolerated range from a spread of temperatures)"
+            ]
+          ],
+          "id": "AE2",
+          "key": "6.318:AE2",
+          "kind": "P",
+          "slug": "6-318-ae2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_refuge.RANGE_SHARE 0.95: the share of the wet lit time of the refuge places that the temperature range of Refuge.coldest_k to Refuge.hottest_k holds, so the life's cold and hot limits are the temperatures it works at most of the time, not the one hottest cell of the planet"
+        }
+      ],
+      "slug": "6-318-stand-ins-of-the-adaptation-record-gen-1808",
+      "title": "Stand-ins of the adaptation record (GEN.1808)"
     }
   ]
 }

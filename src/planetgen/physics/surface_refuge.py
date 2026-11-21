@@ -80,6 +80,9 @@ ROOTED = ("macroscopic", "biosphere")
 """tuple: The native-life stages (`habitability_world.native_life`) with mosses and the first land plants (`habitability.LIFE_STAGES`): the roots reach the water table (LA7)."""
 ROOT_SEEP_SHARE = 0.27
 """float: The share of the land a rooted plant draws groundwater from once the stage is reached: the middle of the 22 to 32 percent of Earth's land under shallow groundwater influence ([R5271], read). LA7, tier T1 to T6, tweak level L1."""
+RANGE_SHARE = 0.95
+"""float: The share of the wet lit time of the refuge places that the temperature range of `Refuge.coldest_k` to `Refuge.hottest_k` holds (GEN.1808): the life lives where most of the water is, so the range leaves out the coldest and hottest
+`(1 - RANGE_SHARE) / 2` of it each. A design choice of the adaptation record, not a measured one. [Stand-in 6.318 AE2, tier T6, tweak L0.]"""
 ROOT_DEPTH_KM = 0.0095
 """float: The depth, km, a water table falls by 1/e in the share of the land a rooted plant reaches: the mean maximum rooting depth of desert plants, 9.5 m (the record is 68 m; [R5274], read at second hand). LA7, tier T1, tweak level L0."""
 DEFAULT_ALBEDO = 0.3
@@ -102,6 +105,11 @@ class Refuge:
             rooted stage (`ROOTED`), on the land, each weighed by the share of the year it is wet and lit against Earth's lit half (production in proportion to the time, with no cover factor: a
             plant stand fills its wet land, as an ocean fills its sea; Earth's land is wet the whole year); 0 before that stage and for a world with no water table the roots reach.
         plants_cover (float): The part of `area` that those same places make under the cover law of `production_share` (what `plants` replaces in the oxygen source).
+        coldest_k (float or None): The cold end of the temperatures the wet lit steps of the places counted have, K (GEN.1808: what the life's cold limit must reach): the temperature under which `1 - RANGE_SHARE` over two
+            of the wet lit time of the places lies, each step weighed by its place's share of the surface; `None` for an open sea, which holds no such place, and for none.
+        hottest_k (float or None): The hot end of the same range, K (the hot limit it must reach).
+        under_ice_w_m2 (float or None): The least usable light, W/m2, of the cells of the sea under its lid that count (the light floor it must reach); `None` when no such cell counts.
+        habitats (tuple): The ids of the habitats of `life_adaptations.HABITATS` the places counted belong to (`open_water`, `brine`, `melt_film`, `seep`, `water_under_ice`).
     """
 
     hours: float
@@ -109,10 +117,14 @@ class Refuge:
     temperature_k: float | None
     plants: float = 0.0
     plants_cover: float = 0.0
+    coldest_k: float | None = None
+    hottest_k: float | None = None
+    under_ice_w_m2: float | None = None
+    habitats: tuple = ()
 
 
 NONE = Refuge(0.0, 0.0, None)
-OPEN_SEA = Refuge(YEAR_HOURS, 0.0, None)
+OPEN_SEA = Refuge(YEAR_HOURS, 0.0, None, habitats=("open_water",))
 OPEN_SEAS = ("surface ocean", "hycean")
 """tuple: The states of a wide sunlit sea (`biogenic_oxygen.LIVING_HYDROSPHERES`); their gate and source are the sea's."""
 
@@ -156,30 +168,35 @@ def refuge_of(values):
     lit = DEFAULT_LIT_SHARE if lit is None else min(max(float(lit), 0.0), 1.0)
     liquid = (temperature >= LIQUID_MIN_K) & (temperature <= LIQUID_MAX_K)
     melting = (temperature >= MELT_K) & (temperature <= LIQUID_MAX_K)
-    sources = []        # (share of each cell that is wet, the steps it is wet at, whether rooted plants stand on it)
+    sources = []        # (share of each cell that is wet, the steps it is wet at, whether rooted plants stand on it, the habitat it is)
     if state == "brine seep":
-        sources.append((np.full(ice.shape, float(values.get("ocean_fraction") or values.get("ground_ocean_fraction") or 0.0)), liquid, False))
+        sources.append((np.full(ice.shape, float(values.get("ocean_fraction") or values.get("ground_ocean_fraction") or 0.0)), liquid, False, "brine"))
     elif state == "ice-covered ocean":
-        sources.append((np.ones(ice.shape), melting, False))
+        sources.append((np.ones(ice.shape), melting, False, "melt_film"))
     elif state == "ice":
-        sources.append((ice, melting, False))
+        sources.append((ice, melting, False, "melt_film"))
     rooted = values.get("native_life") in ROOTED
     land = 1.0 - min(max(float(values.get("ocean_fraction") or 0.0), 0.0), 1.0)         # the share of each cell that is land, where the roots stand (GEN.1729)
     if aquifer:
         share, scale = (ROOT_SEEP_SHARE, ROOT_DEPTH_KM) if rooted else (SEEP_LAND_SHARE, SEEP_DEPTH_KM)
         seeps = share * math.exp(-(values.get("aquifer_depth_km") or 0.0) / scale)
         if seeps > 1.0e-6:
-            sources.append((seeps * (1.0 - ice), liquid, rooted))
+            sources.append((seeps * (1.0 - ice), liquid, rooted, "seep"))
     cells = temperature_coverage._cell_weights(series)
     rate = np.clip((temperature - RATE_ZERO_K) / (RATE_FULL_K - RATE_ZERO_K), 0.0, 1.0)         # LA1b: the oxygen makers slow from 263 K to none at 253 K
     most, area, warm, weight, plants, plants_cover = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-    for share, wet, standing in sources:
+    ends, habitats = [], []
+    for share, wet, standing, habitat_id in sources:
         wet_steps = wet.sum(axis=2)
         hours = wet_steps / steps * YEAR_HOURS * lit
         has = (share > 0.0) & (hours >= MIN_HOURS_YR)
         if not has.any():
             continue
         most = max(most, float(hours[has].max()))
+        counted = wet & has[..., None]
+        if counted.any():       # GEN.1808: the temperatures the life of these places works at, each step weighed by its place's share of the surface
+            ends.append((temperature[counted], np.broadcast_to((cells * share)[..., None], counted.shape)[counted]))
+            habitats.append(habitat_id)
         effective = (wet * rate).sum(axis=2) / steps * YEAR_HOURS * lit
         made = float((cells * np.where(has, _hours_array(effective) * share, 0.0)).sum())
         area += made
@@ -191,15 +208,33 @@ def refuge_of(values):
         warm += float((place * mean_wet).sum())
         weight += float(place.sum())
     under = _under_ice(values, state, lit, series)
+    least_light = None
     if under is not None:           # the sea under a lid that lets light through: the ocean's own production, in proportion to the light that gets through (LA4)
-        hours, produce = under
+        hours, produce, least_light = under
+        habitats.append("water_under_ice")
         most = max(most, hours)
         area += produce
         warm += UNDER_ICE_K * produce
         weight += produce
     if most < MIN_HOURS_YR:
         return NONE
-    return Refuge(most, area, warm / weight if weight > 0.0 else None, plants, plants_cover)
+    coldest, hottest = _range_of(ends)
+    return Refuge(most, area, warm / weight if weight > 0.0 else None, plants, plants_cover, coldest, hottest, least_light, tuple(dict.fromkeys(habitats)))
+
+
+def _range_of(ends):
+    """`(cold end, hot end)` K of the wet lit steps `ends` (`[(temperatures, weights)]`) that hold `RANGE_SHARE` of the weight, or `(None, None)` for none."""
+    if not ends:
+        return None, None
+    temperature = np.concatenate([t for t, _ in ends])
+    weight = np.concatenate([w for _, w in ends])
+    if weight.sum() <= 0.0:
+        return None, None
+    order = np.argsort(temperature, kind="stable")
+    temperature, weight = temperature[order], weight[order]
+    reached = np.cumsum(weight) / weight.sum()
+    tail = (1.0 - RANGE_SHARE) / 2.0
+    return float(temperature[np.searchsorted(reached, tail)]), float(temperature[min(np.searchsorted(reached, 1.0 - tail), len(temperature) - 1)])
 
 
 def _daily_mean(series):
@@ -251,7 +286,7 @@ def lid_of_cells(values, temperature):
 
 def _under_ice(values, state, lit, series):
     """
-    `(hours, production share)` of the sea under the lids of its cells, or `None` (GEN.1735, LA4): each cell's lid is `lid_of_cells`'s; a cell counts when the light that gets through is over
+    `(hours, production share, least light W/m2)` of the sea under the lids of its cells, or `None` (GEN.1735, LA4; the least light of a counted cell is GEN.1808's): each cell's lid is `lid_of_cells`'s; a cell counts when the light that gets through is over
     `LIGHT_FLOOR_W_M2` (the usable light at the surface times the transmission), for the share of the year it is frozen, and its production is the ocean's share of the surface times the transmitted share,
     linear below the full light. The hours are the longest any such cell is under its lid.
     """
@@ -266,7 +301,7 @@ def _under_ice(values, state, lit, series):
     if not has.any():
         return None
     cells = temperature_coverage._cell_weights(series)
-    return float(frozen[has].max()) * YEAR_HOURS * lit, float((cells * np.where(has, sea * through * frozen, 0.0)).sum())
+    return float(frozen[has].max()) * YEAR_HOURS * lit, float((cells * np.where(has, sea * through * frozen, 0.0)).sum()), float((through * light)[has].min())
 
 
 def lit_liquid_hours(values):
