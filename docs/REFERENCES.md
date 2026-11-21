@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5198 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5199 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -887,6 +887,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r0813"></a>**R0813** Clark, J. W. & Sandler, D. G. 1975, Evidence against solidification of a model neutron system, PhRvD, 11, 3365, doi:10.1103/physrevd.11.3365. [paper](https://doi.org/10.1103/physrevd.11.3365) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1103/physrevd.11.3365/abstract)
 - <a id="paper-r0814"></a>**R0814** Clark, R. N. & Lucey, P. G. 1984, Spectral properties of ice‐particulate mixtures and implications for remote sensing: 1. Intimate mixtures, JGRB, 89, 6341, doi:10.1029/jb089ib07p06341. [paper](https://doi.org/10.1029/jb089ib07p06341) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/jb089ib07p06341/abstract)
 - <a id="paper-r0815"></a>**R0815** Clark, R. N., Swayze, G. A., Gallagher, A. J., King, T. V., & Calvin, W. M. 1993, The U. S. Geological Survey, Digital Spectral Library: Version 1 (0.2 to 3.0um), Open-File Report, doi:10.3133/ofr93592. [paper](https://doi.org/10.3133/ofr93592) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3133/ofr93592/abstract)
+- <a id="paper-r5341"></a>**R5341** Clarke, A. 2014, The thermal limits to life on Earth, IJAsB, 13, 141, doi:10.1017/s1473550413000438. [paper](https://doi.org/10.1017/s1473550413000438) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1017/s1473550413000438/abstract)
 - <a id="paper-r0816"></a>**R0816** Clarke, A. J., Debattista, V. P., Roškar, R., & Quinn, T. 2016, The origin of type-I profiles in cluster lenticulars: An interplay between ram pressure stripping and tidally-induced spiral migration, MNRAS, slw214, doi:10.1093/mnrasl/slw214, arXiv:1610.04030. [paper](https://doi.org/10.1093/mnrasl/slw214) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnrasl/slw214/abstract)
 - <a id="paper-r0817"></a>**R0817** Clarke, C. J. & Owen, J. E. 2013, Evolutionary constraints on the planetary hypothesis for transition discs, MNRAS, 433, L69, doi:10.1093/mnrasl/slt060. [paper](https://doi.org/10.1093/mnrasl/slt060) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnrasl/slt060/abstract)
 - <a id="paper-r0818"></a>**R0818** Clay, P. L., et al. 2017, Halogens in chondritic meteorites and terrestrial accretion, Nature, 551, 614, doi:10.1038/nature24625. [paper](https://doi.org/10.1038/nature24625) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/nature24625/abstract)
