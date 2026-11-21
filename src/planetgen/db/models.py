@@ -1223,6 +1223,26 @@ lost_moons = sa.Table(
 )
 
 
+moon_adaptations = sa.Table(
+    'moon_adaptations',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('entry_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('axis', sa.String(24), nullable=True),
+    sa.Column('habitat', sa.String(24), nullable=False),
+    sa.Column('demand', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('row_ids', sa.String(64), nullable=False),
+    sa.Index('idx_moon_adaptations_axis', 'axis', 'grade'),
+    sa.Index('uq_moon_adaptations', 'moon_id', 'entry_number', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_adaptations_moon', ondelete='CASCADE'),
+    sa.CheckConstraint('(`entry_number` >= 1)', name='moon_adaptations_chk_1'),
+    sa.CheckConstraint('((`grade` is null) or (`grade` between 2 and 3))', name='moon_adaptations_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
 moon_deposit_types = sa.Table(
     'moon_deposit_types',
     metadata,
@@ -2321,6 +2341,26 @@ phenomenon_scatter_classes = sa.Table(
     sa.Column('subtype', sa.String(16), server_default=sa.text("''"), primary_key=True, nullable=False),
     sa.Column('placed', mysql.BIGINT(unsigned=True), server_default=sa.text("'0'"), nullable=False),
     sa.Column('built', mysql.BIGINT(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
+planet_adaptations = sa.Table(
+    'planet_adaptations',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('entry_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('axis', sa.String(24), nullable=True),
+    sa.Column('habitat', sa.String(24), nullable=False),
+    sa.Column('demand', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('row_ids', sa.String(64), nullable=False),
+    sa.Index('idx_planet_adaptations_axis', 'axis', 'grade'),
+    sa.Index('uq_planet_adaptations', 'planet_id', 'entry_number', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_adaptations_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('(`entry_number` >= 1)', name='planet_adaptations_chk_1'),
+    sa.CheckConstraint('((`grade` is null) or (`grade` between 2 and 3))', name='planet_adaptations_chk_2'),
     mysql_engine="InnoDB",
 )
 
