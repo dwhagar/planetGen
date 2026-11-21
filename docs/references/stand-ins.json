@@ -75595,15 +75595,11 @@
       "number": "6.314",
       "rows": [
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "L3, no record of the share of species an era boundary must kill is in hand; the Boss to pick 30 or 65 percent"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve"
+              "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve. The Boss picked 0.30 from the measured range (5:50 PM EST 11-19: an extinction that kills 30 percent or more ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages)"
             ],
             [
               "The range it moves in",
@@ -75619,11 +75615,11 @@
             ],
             [
               "What replaces it",
-              "the Boss's pick of the threshold"
+              "none (the Boss's pick inside the measured range; another pick replaces the number)"
             ],
             [
               "Evidence",
-              "educated guess from physics: the design proposed it as the size [R5320] gives once per 10 Myr"
+              "the Boss's choice of the value inside the range the kill curve gives [R5320], the curve itself from a secondary article"
             ]
           ],
           "id": "LA1",
@@ -75632,9 +75628,9 @@
           "slug": "6-314-la1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L3",
+          "tweak": "L1",
           "unread": null,
-          "what": "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve"
+          "what": "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve. The Boss picked 0.30 from the measured range (5:50 PM EST 11-19: an extinction that kills 30 percent or more ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages)"
         },
         {
           "burn_down": null,
@@ -75757,6 +75753,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "the floor is anchored at the giant's 1 bar temperature, giant_draw.ONE_BAR_OVER_EFFECTIVE (1.33) times its effective temperature, the one its air is solved at; for a strongly irradiated giant this is hotter than a deep adiabat set by its own heat (the radiative zone is an isotherm down to the radiative-convective boundary), so a giant above about 1,400 K equilibrium gets no chromium or manganese sulfide cloud"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_cloud_deck.TOLERANCE 1e-3: the bisection of the giant's profile stops when its bracket is this narrow in log10 of the pressure (the profile is searched on a grid four to the decade, so the bracket is a quarter of a decade wide before it starts)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "every giant's cloud deck"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable (a numerical stopping test)"
+            ],
+            [
+              "What replaces it",
+              "a guard from the cost of the search"
+            ],
+            [
+              "Evidence",
+              "needed output (a pressure good to a part in a thousand of a decade)"
+            ]
+          ],
+          "id": "DA3",
+          "key": "6.317:DA3",
+          "kind": "P",
+          "slug": "6-317-da3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hot_cloud_deck.TOLERANCE 1e-3: the bisection of the giant's profile stops when its bracket is this narrow in log10 of the pressure (the profile is searched on a grid four to the decade, so the bracket is a quarter of a decade wide before it starts)"
         }
       ],
       "slug": "6-317-stand-ins-of-the-deep-branch-of-a-giant-s-profile-gen-1577",

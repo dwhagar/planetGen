@@ -12,6 +12,7 @@ from html import escape
 from markupsafe import Markup
 
 from planetgen.generation import evolution
+from planetgen.physics import air_events
 from planetgen.web.lib import reference_urls
 
 WIDTH, HEIGHT = 640, 280
@@ -21,6 +22,24 @@ FLOOR_KPA = 1.0e-4
 
 SERIES = {"O2": "life-air-o2", "CO2": "life-air-co2", "CH4": "life-air-ch4"}
 """dict: The CSS class of each gas's line (a colour and a dash pattern, so the lines differ without colour)."""
+OTHER_STYLES = 6
+"""int: How many styles (`life-air-g0` to `life-air-g5`) the other gases of a stored history (API.51) take in turn, each a colour with a dash pattern of its own (a drawing choice, not a physical constant)."""
+
+
+def _styles(gases):
+    """`[(gas, css class)]`: the three gases of the first chart keep their own lines, every other gas takes the next of `OTHER_STYLES`, in the order the history lists them (the biggest first)."""
+    styled, other = [], 0
+    for gas in gases:
+        if gas["formula"] in SERIES:
+            styled.append((gas, SERIES[gas["formula"]]))
+        else:
+            styled.append((gas, f"life-air-g{other % OTHER_STYLES}"))
+            other += 1
+    return styled
+
+
+CAUSES = {air_events.FLOOD_BASALT: "Flood basalt eruptions", air_events.IMPACT: "A large impact"}
+"""dict: The words for what ended a life age (`air_events.FLOOD_BASALT`, `air_events.IMPACT`)."""
 
 
 def _kpa_text(value):
@@ -102,7 +121,12 @@ def chart(history, class_id, grade=0):
         stages.append({"number": number, "name": name, "age": f"{stage['age_gyr']:.2f}"})
         parts.append(f'<line class="life-air-stage" x1="{column:.1f}" x2="{column:.1f}" y1="{TOP}" y2="{HEIGHT - BOTTOM}"/>')
         parts.append(f'<text class="life-air-stage-number" x="{column:.1f}" y="{TOP - 7}" text-anchor="middle">{number}</text>')
-    styled = [(gas, SERIES.get(gas["formula"], "life-air-other")) for gas in history["gases"]]
+    extinctions = []
+    for event in history.get("events") or []:
+        column = x(event["age_gyr"])
+        extinctions.append({"age": f"{event['age_gyr']:.2f}", "cause": CAUSES.get(event["cause"], str(event["cause"])), "killed": f"{round(100.0 * event['kill_share'])} percent"})
+        parts.append(f'<line class="life-air-event" x1="{column:.1f}" x2="{column:.1f}" y1="{TOP}" y2="{HEIGHT - BOTTOM}"/>')
+    styled = _styles(history["gases"])
     for gas, css in styled:
         points, previous = [], None
         for age, value in gas["steps"]:
@@ -128,5 +152,9 @@ def chart(history, class_id, grade=0):
     if history.get("speculative"):
         note = Markup('This class\'s air numbers are less sure than the rest. <a class="reference-link" href="{}">More information</a>').format(
             reference_urls.reference_path("speculative", class_id))
-    return {"svg": "".join(parts), "legend": legend, "stages": stages, "note": note, "makers": makers,
+    ages = [{"number": age["number"], "span": f"{age['start_gyr']:.2f} to " + ("now" if age["end_gyr"] is None else f"{age['end_gyr']:.2f}"),
+             "ended": "" if age["cause"] is None else f"{CAUSES.get(age['cause'], str(age['cause']))}, {round(100.0 * age['kill_share'])} percent of species"}
+            for age in history.get("life_ages") or []]
+    return {"svg": "".join(parts), "legend": legend, "stages": stages, "note": note, "makers": makers, "stored": history.get("source") == "stored",
+            "extinctions": extinctions, "life_ages": ages,
             "table": {"header": ["Age (Gyr)"] + [gas["name"] for gas in history["gases"]], "rows": rows}}
