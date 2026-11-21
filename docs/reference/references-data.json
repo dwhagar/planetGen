@@ -80387,6 +80387,29 @@
    "volume": "52",
    "year": 2006
   },
+  "10.1007/s00248-025-02621-1": {
+   "authors": [
+    [
+     "Hopton",
+     "C. M."
+    ],
+    [
+     "Cockell",
+     "C. S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s00248-025-02621-1",
+   "editors": [],
+   "journal": "Microb Ecol",
+   "page": "111",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Spatiotemporal Impacts of Enceladus- and Earth-relevant Ammonia Gas On Cultivation of Extremophile Halomonas meridiana",
+   "type": "journal-article",
+   "volume": "88",
+   "year": 2025
+  },
   "10.1007/s00392-011-0331-2": {
    "authors": [
     [
@@ -105494,6 +105517,25 @@
    "volume": "12",
    "year": 2013
   },
+  "10.1017/s1473550413000438": {
+   "authors": [
+    [
+     "Clarke",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/s1473550413000438",
+   "editors": [],
+   "journal": "IJAsB",
+   "page": "141",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "The thermal limits to life on Earth",
+   "type": "journal-article",
+   "volume": "13",
+   "year": 2014
+  },
   "10.1017/s1473550414000172": {
    "arxiv": "1405.4780",
    "authors": [
@@ -120268,6 +120310,45 @@
    "volume": "628",
    "year": 2024
   },
+  "10.1038/ismej.2013.8": {
+   "authors": [
+    [
+     "Mykytczuk",
+     "N. C. S."
+    ],
+    [
+     "Foote",
+     "S. J."
+    ],
+    [
+     "Omelon",
+     "C. R."
+    ],
+    [
+     "Southam",
+     "G."
+    ],
+    [
+     "Greer",
+     "C. W."
+    ],
+    [
+     "Whyte",
+     "L. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/ismej.2013.8",
+   "editors": [],
+   "journal": "The ISME Journal",
+   "page": "1211",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Bacterial growth at −15 °C; molecular insights from the permafrost bacterium Planococcus halocryophilus Or1",
+   "type": "journal-article",
+   "volume": "7",
+   "year": 2013
+  },
   "10.1038/ismej.2014.219": {
    "authors": [
     [
@@ -133147,6 +133228,29 @@
    "type": "journal-article",
    "volume": "5",
    "year": 2015
+  },
+  "10.1038/srep27289": {
+   "authors": [
+    [
+     "Michoud",
+     "G."
+    ],
+    [
+     "Jebbar",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/srep27289",
+   "editors": [],
+   "journal": "Sci Rep",
+   "page": "27289",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "High hydrostatic pressure adaptive strategies in an obligate piezophile Pyrococcus yayanosii",
+   "type": "journal-article",
+   "volume": "6",
+   "year": 2016
   },
   "10.1039/c1cp21980d": {
    "authors": [
@@ -153159,6 +153263,57 @@
    "type": "journal-article",
    "volume": "28",
    "year": 2001
+  },
+  "10.1073/pnas.0401356101": {
+   "authors": [
+    [
+     "Fütterer",
+     "O."
+    ],
+    [
+     "Angelov",
+     "A."
+    ],
+    [
+     "Liesegang",
+     "H."
+    ],
+    [
+     "Gottschalk",
+     "G."
+    ],
+    [
+     "Schleper",
+     "C."
+    ],
+    [
+     "Schepers",
+     "B."
+    ],
+    [
+     "Dock",
+     "C."
+    ],
+    [
+     "Antranikian",
+     "G."
+    ],
+    [
+     "Liebl",
+     "W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1073/pnas.0401356101",
+   "editors": [],
+   "journal": "PNAS",
+   "page": "9091",
+   "publisher": "National Academy of Sciences",
+   "src": "crossref",
+   "title": "Genome sequence of Picrophilus torridus and its implications for life around pH 0",
+   "type": "journal-article",
+   "volume": "101",
+   "year": 2004
   },
   "10.1073/pnas.0405289101": {
    "authors": [
@@ -207200,6 +207355,100 @@
    "volume": "380",
    "year": 2025
   },
+  "10.1099/ijs.0.024653-0": {
+   "authors": [
+    [
+     "Birrien",
+     "J. L."
+    ],
+    [
+     "Zeng",
+     "X."
+    ],
+    [
+     "Jebbar",
+     "M."
+    ],
+    [
+     "Cambon-Bonavita",
+     "M. A."
+    ],
+    [
+     "Quérellou",
+     "J."
+    ],
+    [
+     "Oger",
+     "P."
+    ],
+    [
+     "Bienvenu",
+     "N."
+    ],
+    [
+     "Xiao",
+     "X."
+    ],
+    [
+     "Prieur",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1099/ijs.0.024653-0",
+   "editors": [],
+   "journal": "International Journal of Systematic and Evolutionary Microbiology",
+   "page": "2827",
+   "publisher": "Microbiology Society",
+   "src": "crossref",
+   "title": "Pyrococcus yayanosii sp. nov., an obligate piezophilic hyperthermophilic archaeon isolated from a deep-sea hydrothermal vent",
+   "type": "journal-article",
+   "volume": "61",
+   "year": 2011
+  },
+  "10.1099/ijsem.0.001671": {
+   "authors": [
+    [
+     "Kusube",
+     "M."
+    ],
+    [
+     "Kyaw",
+     "T. S."
+    ],
+    [
+     "Tanikawa",
+     "K."
+    ],
+    [
+     "Chastain",
+     "R. A."
+    ],
+    [
+     "Hardy",
+     "K. M."
+    ],
+    [
+     "Cameron",
+     "J."
+    ],
+    [
+     "Bartlett",
+     "D. H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1099/ijsem.0.001671",
+   "editors": [],
+   "journal": "International Journal of Systematic and Evolutionary Microbiology",
+   "page": "824",
+   "publisher": "Microbiology Society",
+   "src": "crossref",
+   "title": "Colwellia marinimaniae sp. nov., a hyperpiezophilic species isolated from an amphipod within the Challenger Deep, Mariana Trench",
+   "type": "journal-article",
+   "volume": "67",
+   "year": 2017
+  },
   "10.1101/cshperspect.a012765": {
    "authors": [
     [
@@ -238319,6 +238568,53 @@
    "volume": "188",
    "year": 2006
   },
+  "10.1128/jb.177.24.7050-7059.1995": {
+   "authors": [
+    [
+     "Schleper",
+     "C."
+    ],
+    [
+     "Puehler",
+     "G."
+    ],
+    [
+     "Holz",
+     "I."
+    ],
+    [
+     "Gambacorta",
+     "A."
+    ],
+    [
+     "Janekovic",
+     "D."
+    ],
+    [
+     "Santarius",
+     "U."
+    ],
+    [
+     "Klenk",
+     "H. P."
+    ],
+    [
+     "Zillig",
+     "W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1128/jb.177.24.7050-7059.1995",
+   "editors": [],
+   "journal": "J Bacteriol",
+   "page": "7050",
+   "publisher": "American Society for Microbiology",
+   "src": "crossref",
+   "title": "Picrophilus gen. nov., fam. nov.: a novel aerobic, heterotrophic, thermoacidophilic genus and family comprising archaea capable of growth around pH 0",
+   "type": "journal-article",
+   "volume": "177",
+   "year": 1995
+  },
   "10.1128/jb.178.3.633-637.1996": {
    "authors": [
     [
@@ -246290,6 +246586,45 @@
    "volume": "11",
    "year": 2023
   },
+  "10.3389/fmicb.2014.00612": {
+   "authors": [
+    [
+     "Hazael",
+     "R."
+    ],
+    [
+     "Foglia",
+     "F."
+    ],
+    [
+     "Kardzhaliyska",
+     "L."
+    ],
+    [
+     "Daniel",
+     "I."
+    ],
+    [
+     "Meersman",
+     "F."
+    ],
+    [
+     "McMillan",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3389/fmicb.2014.00612",
+   "editors": [],
+   "journal": "Front. Microbiol.",
+   "page": "",
+   "publisher": "Frontiers Media SA",
+   "src": "crossref",
+   "title": "Laboratory investigation of high pressure survival in Shewanella oneidensis MR-1 into the gigapascal pressure range",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2014
+  },
   "10.3389/fmicb.2017.01212": {
    "authors": [
     [
@@ -246438,6 +246773,33 @@
    "type": "journal-article",
    "volume": "11",
    "year": 2020
+  },
+  "10.3389/fmicb.2025.1642998": {
+   "authors": [
+    [
+     "Hopton",
+     "C. M."
+    ],
+    [
+     "Nienow",
+     "P."
+    ],
+    [
+     "Cockell",
+     "C. S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3389/fmicb.2025.1642998",
+   "editors": [],
+   "journal": "Front. Microbiol.",
+   "page": "1642998",
+   "publisher": "Frontiers Media SA",
+   "src": "crossref",
+   "title": "Growth, physiology, and metabolism of Halomonas meridiana in aqueous ammonium sulfate with implications for icy moon astrobiology",
+   "type": "journal-article",
+   "volume": "16",
+   "year": 2025
   },
   "10.3389/frvir.2020.587698": {
    "authors": [
@@ -287197,7 +287559,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5341,
+ "id_next": 5342,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -287456,6 +287818,7 @@
   "10.1007/s002110050024": "R1356",
   "10.1007/s00220-005-1452-0": "R0656",
   "10.1007/s00248-006-9055-7": "R5269",
+  "10.1007/s00248-025-02621-1": "R5328",
   "10.1007/s00392-011-0331-2": "R3223",
   "10.1007/s00411-025-01143-1": "R3386",
   "10.1007/s00421-022-04939-x": "R5020",
@@ -288253,6 +288616,7 @@
   "10.1017/s1473550404001910": "R3026",
   "10.1017/s147355041200002x": "R2306",
   "10.1017/s1473550413000189": "R1019",
+  "10.1017/s1473550413000438": "R5341",
   "10.1017/s1473550414000172": "R4808",
   "10.1017/s1473550414000226": "R0962",
   "10.1017/s1473550415000440": "R1495",
@@ -288750,6 +289114,7 @@
   "10.1038/d41586-023-03550-0": "R3244",
   "10.1038/d41586-024-00592-w": "R3607",
   "10.1038/d41586-024-01091-8": "R3608",
+  "10.1038/ismej.2013.8": "R5323",
   "10.1038/ismej.2014.219": "R4217",
   "10.1038/nature01584": "R4054",
   "10.1038/nature01622": "R0171",
@@ -288936,6 +289301,7 @@
   "10.1038/s41598-025-27066-x": "R3929",
   "10.1038/s43017-021-00203-6": "R1950",
   "10.1038/srep13582": "R5182",
+  "10.1038/srep27289": "R5325",
   "10.1039/c1cp21980d": "R2604",
   "10.1039/c4cp04564e": "R0242",
   "10.1039/c9cp04325j": "R1242",
@@ -289382,6 +289748,7 @@
   "10.1071/as97052": "R2835",
   "10.1071/as97092": "R0154",
   "10.1071/wr00041": "R0695",
+  "10.1073/pnas.0401356101": "R5326",
   "10.1073/pnas.0405289101": "R4119",
   "10.1073/pnas.0606083103": "R2084",
   "10.1073/pnas.0606709103": "R3249",
@@ -290757,6 +291124,8 @@
   "10.1098/rsta.2016.0252": "R0435",
   "10.1098/rsta.2019.0474": "R1892",
   "10.1098/rstb.2024.0101": "R5017",
+  "10.1099/ijs.0.024653-0": "R5330",
+  "10.1099/ijsem.0.001671": "R5324",
   "10.1101/cshperspect.a012765": "R2487",
   "10.1101/gr.7.10.959": "R1807",
   "10.1103/37nh-5ws8": "R5195",
@@ -291365,6 +291734,7 @@
   "10.1128/aem.03162-14": "R3473",
   "10.1128/aem.62.12.4486-4492.1996": "R2223",
   "10.1128/jb.00613-06": "R4864",
+  "10.1128/jb.177.24.7050-7059.1995": "R5327",
   "10.1128/jb.178.3.633-637.1996": "R2952",
   "10.1128/mmbr.00015-10": "R4115",
   "10.1128/mmbr.00016-09": "R2006",
@@ -291664,10 +292034,12 @@
   "10.3389/feart.2014.00038": "R5157",
   "10.3389/feart.2023.1159412": "R5317",
   "10.3389/feart.2023.1197363": "R2089",
+  "10.3389/fmicb.2014.00612": "R5331",
   "10.3389/fmicb.2017.01212": "R4346",
   "10.3389/fmicb.2018.02152": "R1449",
   "10.3389/fmicb.2019.00780": "R3040",
   "10.3389/fmicb.2020.01284": "R4576",
+  "10.3389/fmicb.2025.1642998": "R5329",
   "10.3389/frvir.2020.587698": "R3419",
   "10.3389/fspas.2021.689441": "R5088",
   "10.3390/app10207357": "R5067",

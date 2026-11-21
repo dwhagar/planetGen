@@ -66,6 +66,33 @@
    "ordinary_tweak": "L0",
    "basis": "no cover: the ground is at the air's temperature",
    "stress": null
+  },
+  "acid_strength": {
+   "unit": "percent of the liquid's mass that is sulfuric acid",
+   "wider": "higher",
+   "ordinary": 0.005,
+   "ordinary_tier": "T7",
+   "ordinary_tweak": "L1",
+   "basis": "about pH 3 (a thousandth of a mole of acid a litre, 0.005 percent by mass): the acid under which most cells still divide; a stand-in (GEN.1811)",
+   "stress": null
+  },
+  "ammonia_fraction": {
+   "unit": "ammonia as a share of the water's mass",
+   "wider": "higher",
+   "ordinary": 0.001,
+   "ordinary_tier": "T7",
+   "ordinary_tweak": "L1",
+   "basis": "a tenth of a percent (0.06 M): the ammonia an ordinary cell takes as a nutrient and a trace; a stand-in under the 0.25 M a measured Halomonas grows in (GEN.1811)",
+   "stress": null
+  },
+  "pressure": {
+   "unit": "MPa",
+   "wider": "higher",
+   "ordinary": 50.0,
+   "ordinary_tier": "T7",
+   "ordinary_tweak": "L1",
+   "basis": "the pressure under which an ordinary (surface) microbe still grows: the 30 to 60 MPa of the piezotolerant, no source read; the piezophiles of the table (P1, P2) go beyond it (GEN.1819)",
+   "stress": null
   }
  },
  "stages": {
@@ -209,6 +236,26 @@
    "opened_by": [
     "H1",
     "H2"
+   ],
+   "production": "refuge"
+  },
+  {
+   "id": "chemical_medium",
+   "climate": [],
+   "gate": "the medium of a chemical class that is not water at a habitable temperature: sulfuric acid (5a, 5b, 9), dense CO2 (6), a hydrocarbon sea (7), ammonia-water (8); read from the class gate (`life_classes`)",
+   "opened_by": [
+    "A1",
+    "N1"
+   ],
+   "production": "refuge"
+  },
+  {
+   "id": "deep_water",
+   "climate": [],
+   "gate": "liquid water under more pressure than an ordinary microbe takes (the ocean floor or an ocean under a thick lid), at or under the pressure limit of the table",
+   "opened_by": [
+    "P1",
+    "P2"
    ],
    "production": "refuge"
   }
@@ -633,7 +680,13 @@
    "life_types": [
     "microbe"
    ],
-   "classes": [],
+   "classes": [
+    "3a",
+    "3b",
+    "4a",
+    "4b",
+    "4c"
+   ],
    "axis": "t_cold",
    "grade2": 263.15,
    "grade3": 258.15,
@@ -645,7 +698,7 @@
    "source_rows": "GEN.1724 C16",
    "tier": "T2",
    "tweak": "L0",
-   "note": "bacterial growth to about -15 C, activity to about -25 C in permafrost brine; not oxygen makers, so no oxygen class carries it"
+   "note": "bacterial growth to about -15 C, activity to about -25 C in permafrost brine; a microbe of water, carried by the water classes 3a to 4c (GEN.1811)"
   },
   {
    "id": "H1",
@@ -710,7 +763,13 @@
    "life_types": [
     "microbe"
    ],
-   "classes": [],
+   "classes": [
+    "3a",
+    "3b",
+    "4a",
+    "4b",
+    "4c"
+   ],
    "axis": "t_hot",
    "grade2": 368.15,
    "grade3": 395.15,
@@ -722,7 +781,7 @@
    "source_rows": "GEN.1724 H3",
    "tier": "T1",
    "tweak": "L0",
-   "note": "growth to 122 C (optimum 98 C); gives no oxygen, no oxygen class carries it"
+   "note": "growth to 122 C (optimum 98 C); a microbe of water, carried by the water classes 3a to 4c (GEN.1811)"
   },
   {
    "id": "H4",
@@ -1177,6 +1236,164 @@
    "tier": "T2",
    "tweak": "L0",
    "note": "energy, not oxygen (GEN.881)"
+  },
+  {
+   "id": "C17",
+   "name": "metabolism in the cold of a brine (Planococcus type)",
+   "climate": [
+    "SB",
+    "any_cold"
+   ],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [
+    "3a",
+    "3b",
+    "4a",
+    "4b",
+    "4c"
+   ],
+   "axis": "t_cold",
+   "grade2": null,
+   "grade3": 248.15,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "brine",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1810 (R5323)",
+   "tier": "T3",
+   "tweak": "L1",
+   "note": "respiration of labelled substrate to -25 C (248.15 K) in permafrost brine, a heterotroph, not a chemolithotroph, so it stands for the cold edge of a chemical life (Marginal); the measured growth edge, -15 C, is C16's"
+  },
+  {
+   "id": "A1",
+   "name": "acid tolerance of the Picrophilus type",
+   "climate": [],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [
+    "5a",
+    "5b"
+   ],
+   "axis": "acid_strength",
+   "grade2": 4.7,
+   "grade3": 11.0,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "chemical_medium",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1810 (R5326, R5327)",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "grade 2 is growth around pH 0 (1 M of hydrogen ions, 0.5 M or 4.7 percent sulfuric acid, R5327); grade 3 is Picrophilus torridus adapted to 1.2 M sulfuric acid, 11 percent by mass (R5326; the percent is arithmetic over a density of 1.07). The classes sit at 81 percent and above: past the table, and the record says so"
+  },
+  {
+   "id": "N1",
+   "name": "ammonia tolerance of a Halomonas",
+   "climate": [],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [
+    "8"
+   ],
+   "axis": "ammonia_fraction",
+   "grade2": 0.0021,
+   "grade3": 0.0043,
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "opens_habitat": "chemical_medium",
+   "effect_on_habitat": null,
+   "source_rows": "GEN.1810 (R5328, R5329)",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "grade 3 is growth directly in 0.25 M ammonia (pH 10.18), 0.43 percent of the water's mass (R5328; none at 0.5 M); grade 2 is the geometric mean of it and the ordinary 0.1 percent, a straight guess. The class asks for 10 percent: 25 times the measured limit, past the table, and the record says so"
+  },
+  {
+   "id": "P1",
+   "name": "piezophily (growth above 100 MPa, Pyrococcus type)",
+   "axis": "pressure",
+   "grade2": 100.0,
+   "grade3": null,
+   "opens_habitat": "deep_water",
+   "source_rows": "GEN.1819 (R5330, R5325)",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "Pyrococcus yayanosii CH1 grows above 100 MPa (optimum 52 MPa at 98 C) and not at 20 MPa or under (second-hand: Wikipedia citing the description of R5330)",
+   "climate": [],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [
+    "3a",
+    "3b",
+    "4a",
+    "4b",
+    "4c"
+   ],
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "effect_on_habitat": null
+  },
+  {
+   "id": "P2",
+   "name": "hyperpiezophily (growth to 140 MPa, Colwellia type)",
+   "axis": "pressure",
+   "grade2": null,
+   "grade3": 140.0,
+   "opens_habitat": "deep_water",
+   "source_rows": "GEN.1819 (R5324)",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "Colwellia marinimaniae MTCD1, the highest pressure at which growth has been seen (second-hand: Wikipedia citing R5324); the deepest habitats explored on Earth are at 110 MPa (R5331)",
+   "climate": [],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [
+    "3a",
+    "3b",
+    "4a",
+    "4b",
+    "4c"
+   ],
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "effect_on_habitat": null
+  },
+  {
+   "id": "P3",
+   "name": "survival under pressure (1.5 GPa, Shewanella type)",
+   "axis": "pressure",
+   "grade2": null,
+   "grade3": 1500.0,
+   "opens_habitat": null,
+   "source_rows": "GEN.1819 (R5331)",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "Shewanella oneidensis MR-1 survived 1.5 GPa for 15 minutes at 21 C (about 130 colonies a millilitre of 100 million); survival only, no growth: the claim of metabolism to 1.4 GPa was disputed",
+   "climate": [],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [
+    "3a",
+    "3b",
+    "4a",
+    "4b",
+    "4c"
+   ],
+   "activity": "dormant",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "effect_on_habitat": null
   }
  ]
 }

@@ -33,7 +33,7 @@ import math
 from planetgen.physics import constants, elements, magma_ocean_redox, mixture_lava, tidal_heating
 
 SCSS_A = 11.79
-"""float: The constant of the SCSS law, ln of ppm S ([R5340], Eq. 2, fitted with an error of 0.62). Confident, tier 2: read from the journal's open page; its 2024 corrigendum could not be read."""
+"""float: The constant of the SCSS law, ln of ppm S ([R5340: Eq. 2], fitted with an error of 0.62). Confident, tier 2: read from the journal's open page; its 2024 corrigendum could not be read."""
 
 SCSS_B_K = -7073.0
 """float: The temperature term of the SCSS law, K (fitted with an error of 993)."""

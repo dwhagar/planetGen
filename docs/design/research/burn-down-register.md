@@ -93,6 +93,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.36:PA16 | no data | - | L3, the terrestrial-zone solids boost of 4 and its start at 0.45 AU were tuned to [R0572] 0.37 to 0.60 Earth-sized planets per Sun-like star in the habitable zone (with PA17); no disk-evolution or pebble-flux model of the zone is in hand |
 | 6.36:PA17 | no data | - | L3, the giant-impact spacing of 25 mutual Hill radii and its end at 3 AU were tuned to [R0572] with PA16; no N-body run of the zone's oligarchs is in hand |
 | 6.36:PA14 | no data | - | a requested planet class takes its mass log-uniform over 0.05 to 1000 Earth masses after 8 free draws; no survey measures the mass of a planet picked by class, so the range is a design choice kept wide |
+| 6.36:PA20 | no data | - | L3, the zone the habitable-world effort goes to is the habitable zone widened by half its width on each side (GEN.1807, Boss 5:49 PM EST 11-20: more worlds get the effort); no source gives an edge past the maximum greenhouse limit and no survey measures where a temperate sea can be made, so the 0.5 is Boss's choice kept as a design number; tier T9 stays |
 | 6.40:RD1 | no data | - | no atmosphere of a runaway-greenhouse planet has been measured; TRAPPIST-1 b and c only forbid keeping all of it |
 | 6.40:RD2 | no data | - | no abiotic oxygen air has been detected or ruled out on an M-dwarf habitable-zone planet; Luger and Barnes fix only the possible amount |
 | 6.40:RD3 | no data | - | no measurement of rocky exoplanet pressures by depth below the shoreline exists; GEN.483 derives the caps at these edges from the Solar System |
@@ -237,6 +238,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF63 | no data | - | the edges of the Temperature score are chosen (the Blue cut by Boss, the others proposed) and no rated catalogue of worlds exists to fit them |
 | 6.18:LF64 | no data | - | no rated catalogue of worlds exists to fit the least Blue share |
 | 6.18:LF65 | no data | - | no rated catalogue of worlds exists to fit the credit of a Yellow sample |
+| 6.19:LF74 | no data | - | GEN.1677: the temperature edges of the score are chosen from the climates people live in without machines (the Yellow, Green and Blue edges proposed, the Blue and Green cut by Boss); no rated catalogue of worlds exists to fit them |
+| 6.19:LF75 | no data | - | GEN.1677: the UV Green edge at 10 times Earth is Boss's choice; no rated catalogue of worlds exists to fit it |
 | 6.193:AW1 | no data | - | L3, the class F gravity edge 1.4 g was chosen from a sweep of 1,448 bodies; it goes when the gravity edges of classes Z and V are fixed from heavy-world physics (GEN.1136) |
 | 6.18:LF66 | no data | - | no chronic-dose growth curve for a microbe is in hand (the best known is recalled, not opened); one per life class would replace the threshold and the factors |
 | 6.18:LF67 | no data | - | no measured animal limit for the three stresses is in hand; the numbers are chosen under the microbes' |
@@ -281,7 +284,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.310:CB2 | no data | - | L3, no carbonation rate of dry basalt against temperature at 400 to 600 K is in hand; the floor is set where the reaction pressure is 0.08 bar so a mistake moves little |
 | 6.310:CB3 | no data | - | L3, no measurement of the share of a crust's calcium that carbonates at a hot dry surface is in hand; the Earth's crust holds about 17 percent of its calcium as carbonate and a lower share is the first thing to tune |
 | 6.313:EV8 | no data | - | L3, no record of impacts over 100 km after the formation is in hand; the cap leaves the giant impacts to the formation |
-| 6.314:LA1 | no data | - | L3, no record of the share of species an era boundary must kill is in hand; the Boss to pick 30 or 65 percent |
+| 6.320:AH7 | no data | - | L3, no measurement of a cell dividing in 81 percent sulfuric acid, in 10 percent ammonia, in dense CO2 or in a liquid hydrocarbon is in hand; the measured limits stop at 11 percent acid and 0.43 percent ammonia (GEN.1810) |
 | 6.229:CV10 | no data | - | L3, no paper prints the strength of the ultraviolet absorber's band as a number (only the centre and width are read); the peak depth is hand-set until a retrieval gives it |
 | 6.229:CG1 | no data | - | L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base (GEN.1425, closed); no second planet measures it, and a photochemistry model of the acid vapor would replace it |
 | 6.229:CG2 | no data | - | L3, the gate floors have no measurement behind them; one calibration planet cannot set them, and a sweep over the census would |

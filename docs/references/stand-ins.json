@@ -12187,7 +12187,11 @@
           "what": "life_ledger.json reaction numbers (GEN.1743, research GEN.1742): Earth's natural nitrogen fixation 15.7 Tmol N/yr (about 220 Tg N), the N2O leak 0.044 of the nitrogen fixed and its life 109 yr, the life of methane in an oxygenated air 8.4 yr and the soil eaters' share of its loss 0.052, the share of seafloor methane eaten once the sea holds sulfate 0.9, the deposition velocity of carbon monoxide into a sea with CO eaters 1.2e-4 cm/s and without 1e-8 cm/s; and the 35 balanced reactions of the class variants (reactions, stoichiometry, T1 L0, except the acid classes T8 and the anammox of Class 8 T7)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.1677: the temperature edges of the score are chosen from the climates people live in without machines (the Yellow, Green and Blue edges proposed, the Blue and Green cut by Boss); no rated catalogue of worlds exists to fit them"
+          ],
           "fields": [
             [
               "What it is",
@@ -12199,7 +12203,7 @@
             ],
             [
               "Where it holds",
-              "the climates people live in without heating or cooling machines (Xu et al. 2020, the human climate niche: peaks near 11 to 15 C and 20 to 25 C annual mean, ending near 29 C), a sustained wet bulb of 35 C (Sherwood and Huber 2010), liquid water in cells down to about -20 C (Clarke 2014; Merino 2019)"
+              "the climates people live in without heating or cooling machines (Xu et al. 2020, the human climate niche: peaks near 11 to 15 C and 20 to 25 C annual mean, ending near 29 C), a sustained wet bulb of 35 C [R4057], liquid water in cells down to about -20 C [R3040, R5341]"
             ],
             [
               "What would show it wrong",
@@ -12225,7 +12229,11 @@
           "what": "protection_limits temp_yellow_low_c -20, temp_green_low_c -10, temp_blue_low_c 5 and temp_green_high_c 38 (GEN.1677), the score's temperature edges, which habitability.TEMPERATURE_BAND reads, with comfort_high_c 31, heat_max_c 122 and the outer edges as before"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.1677: the UV Green edge at 10 times Earth is Boss's choice; no rated catalogue of worlds exists to fit it"
+          ],
           "fields": [
             [
               "What it is",
@@ -15679,6 +15687,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "a planet the falling moons spin up is held at spin.BREAKUP_FRACTION of its breakup rate (the rest of the ring's angular momentum is shed with the ring material)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_orbits.MAX_LOG_DISTANCE 700 and moon_orbits.FAR_DISTANCE_M 1e15: the right-hand side holds a distance a trial step carried past a terminal event (inside the Roche limit, beyond the Hill radius, or a log distance whose exp would overflow) at that edge, so the step is rejected and the event found instead of the rung ending in ZeroDivisionError or OverflowError (GEN.1816)"
+            ],
+            [
+              "The range it moves in",
+              "600 to 709 and 1e12 to 1e18"
+            ],
+            [
+              "Where it holds",
+              "any moon history"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable (a numerical guard)"
+            ],
+            [
+              "What replaces it",
+              "a guard from the cost of a failed rung"
+            ],
+            [
+              "Evidence",
+              "needed output (a history finishes)"
+            ]
+          ],
+          "id": "TM10",
+          "key": "6.25:TM10",
+          "kind": "P",
+          "slug": "6-25-tm10",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "moon_orbits.MAX_LOG_DISTANCE 700 and moon_orbits.FAR_DISTANCE_M 1e15: the right-hand side holds a distance a trial step carried past a terminal event (inside the Roche limit, beyond the Hill radius, or a log distance whose exp would overflow) at that edge, so the step is rejected and the event found instead of the rung ending in ZeroDivisionError or OverflowError (GEN.1816)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_orbits.HEAT_ATOL_SHARE 1e-4: the absolute tolerance of the integration's heat state is this share of the planet's rotational kinetic energy at the start of a stretch (GEN.1818); a fixed 1e20 J left the error scale of a 1e27 J heat (RTOL of it) inside the noise of the rheology's power and held the steps of a stiff history (seed 9101 of the aquifer tests on Train 52 failed all five integrators)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2 (1e-6 failed that history)"
+            ],
+            [
+              "Where it holds",
+              "any planet with moons"
+            ],
+            [
+              "What would show it wrong",
+              "a measured heat that is off the tight-reference heat by more than the share of the spin energy"
+            ],
+            [
+              "What replaces it",
+              "the heat taken along the orbits after they are found, or a tolerance from the power's own noise"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the energy a spin can give up is the size of what the tide can take; nudged until the stiff history finished (L1); measured on 300 systems"
+            ]
+          ],
+          "id": "TM11",
+          "key": "6.25:TM11",
+          "kind": "P",
+          "slug": "6-25-tm11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "moon_orbits.HEAT_ATOL_SHARE 1e-4: the absolute tolerance of the integration's heat state is this share of the planet's rotational kinetic energy at the start of a stretch (GEN.1818); a fixed 1e20 J left the error scale of a 1e27 J heat (RTOL of it) inside the noise of the rheology's power and held the steps of a stiff history (seed 9101 of the aquifer tests on Train 52 failed all five integrators)"
         }
       ],
       "slug": "6-25-stand-ins-of-the-moon-orbits",
@@ -18567,7 +18651,11 @@
           "what": "tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, planet_architecture.giant_impacts) and GIANT_IMPACT_END_AU 3 (the stage ends there, or at the snow line when nearer: farther out the merging does not finish in the disk's age, and for A stars with snow lines at 10 AU and more it moved the outer disk inward and tripled the debris disks)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the zone the habitable-world effort goes to is the habitable zone widened by half its width on each side (GEN.1807, Boss 5:49 PM EST 11-20: more worlds get the effort); no source gives an edge past the maximum greenhouse limit and no survey measures where a temperate sea can be made, so the 0.5 is Boss's choice kept as a design number; tier T9 stays"
+          ],
           "fields": [
             [
               "What it is",
@@ -75949,15 +76037,11 @@
       "number": "6.314",
       "rows": [
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "L3, no record of the share of species an era boundary must kill is in hand; the Boss to pick 30 or 65 percent"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve"
+              "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve. The Boss picked 0.30 from the measured range (5:50 PM EST 11-19: an extinction that kills 30 percent or more ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages)"
             ],
             [
               "The range it moves in",
@@ -75973,11 +76057,11 @@
             ],
             [
               "What replaces it",
-              "the Boss's pick of the threshold"
+              "none (the Boss's pick inside the measured range; another pick replaces the number)"
             ],
             [
               "Evidence",
-              "educated guess from physics: the design proposed it as the size [R5320] gives once per 10 Myr"
+              "the Boss's choice of the value inside the range the kill curve gives [R5320], the curve itself from a secondary article"
             ]
           ],
           "id": "LA1",
@@ -75986,9 +76070,9 @@
           "slug": "6-314-la1",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L3",
+          "tweak": "L1",
           "unread": null,
-          "what": "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve"
+          "what": "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve. The Boss picked 0.30 from the measured range (5:50 PM EST 11-19: an extinction that kills 30 percent or more ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages)"
         },
         {
           "burn_down": null,
@@ -76111,10 +76195,132 @@
           "tweak": "L1",
           "unread": null,
           "what": "the floor is anchored at the giant's 1 bar temperature, giant_draw.ONE_BAR_OVER_EFFECTIVE (1.33) times its effective temperature, the one its air is solved at; for a strongly irradiated giant this is hotter than a deep adiabat set by its own heat (the radiative zone is an isotherm down to the radiative-convective boundary), so a giant above about 1,400 K equilibrium gets no chromium or manganese sulfide cloud"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_cloud_deck.TOLERANCE 1e-3: the bisection of the giant's profile stops when its bracket is this narrow in log10 of the pressure (the profile is searched on a grid four to the decade, so the bracket is a quarter of a decade wide before it starts)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "every giant's cloud deck"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable (a numerical stopping test)"
+            ],
+            [
+              "What replaces it",
+              "a guard from the cost of the search"
+            ],
+            [
+              "Evidence",
+              "needed output (a pressure good to a part in a thousand of a decade)"
+            ]
+          ],
+          "id": "DA3",
+          "key": "6.317:DA3",
+          "kind": "P",
+          "slug": "6-317-da3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "hot_cloud_deck.TOLERANCE 1e-3: the bisection of the giant's profile stops when its bracket is this narrow in log10 of the pressure (the profile is searched on a grid four to the decade, so the bracket is a quarter of a decade wide before it starts)"
         }
       ],
       "slug": "6-317-stand-ins-of-the-deep-branch-of-a-giant-s-profile-gen-1577",
       "title": "Stand-ins of the deep branch of a giant's profile (GEN.1577)"
+    },
+    {
+      "key": "6.318",
+      "number": "6.318",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "adaptation_record.UMOL_PER_W 5.0: micromoles of photons a square metre a second in one watt a square metre of usable light, tied by the refuge gate's own floor (surface_refuge.LIGHT_FLOOR_W_M2 2e-3 W/m2 is 0.01 umol, RW2) so the light axis of the table (umol) and the gate (W/m2) agree at the floor"
+            ],
+            [
+              "The range it moves in",
+              "4 to 5 (sunlight is about 4.6 umol per watt of photosynthetically active radiation, 2 to 2.3 umol per watt of total)"
+            ],
+            [
+              "Where it holds",
+              "the light under an ice lid, where the table's floor is read"
+            ],
+            [
+              "What would show it wrong",
+              "a measured conversion of the sunlight a star of the body's class gives that differs from 5 by more than 1"
+            ],
+            [
+              "What replaces it",
+              "a conversion from the star's own spectrum (spectrum)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the energy of a 550 nm photon is 0.22 umol per J; the gate's floor was set in photons and then given in watts)"
+            ]
+          ],
+          "id": "AE1",
+          "key": "6.318:AE1",
+          "kind": "P",
+          "slug": "6-318-ae1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "adaptation_record.UMOL_PER_W 5.0: micromoles of photons a square metre a second in one watt a square metre of usable light, tied by the refuge gate's own floor (surface_refuge.LIGHT_FLOOR_W_M2 2e-3 W/m2 is 0.01 umol, RW2) so the light axis of the table (umol) and the gate (W/m2) agree at the floor"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_refuge.RANGE_SHARE 0.95: the share of the wet lit time of the refuge places that the temperature range of Refuge.coldest_k to Refuge.hottest_k holds, so the life's cold and hot limits are the temperatures it works at most of the time, not the one hottest cell of the planet"
+            ],
+            [
+              "The range it moves in",
+              "0.9 to 0.99"
+            ],
+            [
+              "Where it holds",
+              "a body with a refuge"
+            ],
+            [
+              "What would show it wrong",
+              "a record whose hot demand moves by more than 20 K between 0.9 and 0.99 on most bodies"
+            ],
+            [
+              "What replaces it",
+              "a range weighted by the production the place carries"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (a life lives where most of its water is; a quantile range is the usual way to set an organism's tolerated range from a spread of temperatures)"
+            ]
+          ],
+          "id": "AE2",
+          "key": "6.318:AE2",
+          "kind": "P",
+          "slug": "6-318-ae2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_refuge.RANGE_SHARE 0.95: the share of the wet lit time of the refuge places that the temperature range of Refuge.coldest_k to Refuge.hottest_k holds, so the life's cold and hot limits are the temperatures it works at most of the time, not the one hottest cell of the planet"
+        }
+      ],
+      "slug": "6-318-stand-ins-of-the-adaptation-record-gen-1808",
+      "title": "Stand-ins of the adaptation record (GEN.1808)"
     },
     {
       "key": "6.319",
@@ -76275,6 +76481,482 @@
       ],
       "slug": "6-319-stand-ins-of-the-sulfur-a-lava-world-s-melt-holds-gen-1814",
       "title": "Stand-ins of the sulfur a lava world's melt holds (GEN.1814)"
+    },
+    {
+      "key": "6.320",
+      "number": "6.320",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json axes acid_strength 0.005 percent of the liquid's mass (about pH 3) and ammonia_fraction 0.001 of the water's mass (0.06 M): the ordinary limit of a cell in an acid or an ammonia-water"
+            ],
+            [
+              "The range it moves in",
+              "pH 2 to 4 (0.0005 to 0.05 percent); 0.0005 to 0.002"
+            ],
+            [
+              "Where it holds",
+              "the classes 5a, 5b, 8 (the axes a demand is put to)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured acid or ammonia limit of an ordinary (mesophilic) bacterium that differs by a factor of 5"
+            ],
+            [
+              "What replaces it",
+              "the measured limits of the ordinary cells of each medium"
+            ],
+            [
+              "Evidence",
+              "the pH above which most cells divide; the ammonia an ordinary medium carries as a nutrient and a trace; both stand under the measured limits of the tolerant (A1, N1)"
+            ]
+          ],
+          "id": "AH1",
+          "key": "6.320:AH1",
+          "kind": "P",
+          "slug": "6-320-ah1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_adaptations.json axes acid_strength 0.005 percent of the liquid's mass (about pH 3) and ammonia_fraction 0.001 of the water's mass (0.06 M): the ordinary limit of a cell in an acid or an ammonia-water"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json rows A1 (acid, grade 2 4.7 percent, growth around pH 0, [R5327]; grade 3 11 percent, *Picrophilus torridus* adapted to 1.2 M sulfuric acid, [R5326]) and N1 (ammonia, grade 3 0.0043 of the water, *Halomonas meridiana* growing directly in 0.25 M ammonia, [R5328, R5329] for the ammonium salt)"
+            ],
+            [
+              "The range it moves in",
+              "the spread of the papers (the percent of A1 is arithmetic over a density of 1.07)"
+            ],
+            [
+              "Where it holds",
+              "a microbe of the classes named (5a and 5b; 8)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured growth in a stronger acid or in more ammonia"
+            ],
+            [
+              "What replaces it",
+              "the measured limits themselves"
+            ],
+            [
+              "Evidence",
+              "read in the abstracts of [R5326, R5327, R5328, R5329]; the 0.25 M and pH values are a machine summary of the paper's text (GEN.1810)"
+            ]
+          ],
+          "id": "AH2",
+          "key": "6.320:AH2",
+          "kind": "B",
+          "slug": "6-320-ah2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_adaptations.json rows A1 (acid, grade 2 4.7 percent, growth around pH 0, [R5327]; grade 3 11 percent, *Picrophilus torridus* adapted to 1.2 M sulfuric acid, [R5326]) and N1 (ammonia, grade 3 0.0043 of the water, *Halomonas meridiana* growing directly in 0.25 M ammonia, [R5328, R5329] for the ammonium salt)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json row C17: grade 3 of cold, 248.15 K (metabolism in a permafrost brine to -25 C), for the water classes 3a to 4c"
+            ],
+            [
+              "The range it moves in",
+              "243 to 253 K"
+            ],
+            [
+              "Where it holds",
+              "a chemical life in water below freezing"
+            ],
+            [
+              "What would show it wrong",
+              "a measured cold limit of a chemolithotroph below 248 K or above 258 K"
+            ],
+            [
+              "What replaces it",
+              "the cold limit of a chemolithotroph in brine, when one is measured"
+            ],
+            [
+              "Evidence",
+              "[R5323]: *Planococcus halocryophilus* Or1, a heterotroph, grows at -15 C and respires to -25 C (second-hand: the paper's page was not opened); stands for the cold edge of a chemical life, so Marginal"
+            ]
+          ],
+          "id": "AH3",
+          "key": "6.320:AH3",
+          "kind": "P",
+          "slug": "6-320-ah3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_adaptations.json row C17: grade 3 of cold, 248.15 K (metabolism in a permafrost brine to -25 C), for the water classes 3a to 4c"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json grade 2 of N1: 0.0021, the geometric mean of the ordinary 0.001 and the extreme 0.0043, a straight guess"
+            ],
+            [
+              "The range it moves in",
+              "0.0015 to 0.003"
+            ],
+            [
+              "Where it holds",
+              "class 8"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ammonia limit between 0.001 and 0.0043 that differs by a factor of 1.5"
+            ],
+            [
+              "What replaces it",
+              "the measured value"
+            ],
+            [
+              "Evidence",
+              "no source for the interpolation (as AD5 of 6.294)"
+            ]
+          ],
+          "id": "AH4",
+          "key": "6.320:AH4",
+          "kind": "P",
+          "slug": "6-320-ah4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_adaptations.json grade 2 of N1: 0.0021, the geometric mean of the ordinary 0.001 and the extreme 0.0043, a straight guess"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json rows C16 and H3 carried by the water classes 3a, 3b, 4a, 4b and 4c: the cold-active and the hyperthermophilic microbe of the table are taken to be the life of a chemical class in water"
+            ],
+            [
+              "The range it moves in",
+              "the classes that carry them"
+            ],
+            [
+              "Where it holds",
+              "the classes of water only; the other classes (5a to 9) get no row of heat or cold, and their temperature is past the table"
+            ],
+            [
+              "What would show it wrong",
+              "a hyperthermophile of the classes in the table that cannot take the reactions of a class (the life of 3a at 395 K needs hydrogen at that heat)"
+            ],
+            [
+              "What replaces it",
+              "rows of the classes by their own measurements"
+            ],
+            [
+              "Evidence",
+              "physics fixes the cell (a microbe in water at a temperature), the energy source is argued, not shown, to leave the limit alone; the record of H3 is *Methanopyrus kandleri*, which eats hydrogen [R4295]"
+            ]
+          ],
+          "id": "AH5",
+          "key": "6.320:AH5",
+          "kind": "P",
+          "slug": "6-320-ah5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_adaptations.json rows C16 and H3 carried by the water classes 3a, 3b, 4a, 4b and 4c: the cold-active and the hyperthermophilic microbe of the table are taken to be the life of a chemical class in water"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "adaptation_record.chemical_demands puts a water activity of 0 to the classes 6 (dense CO2) and 7 (a hydrocarbon sea): no row of the table reaches it"
+            ],
+            [
+              "The range it moves in",
+              "none (physics: a solvent that holds no water has no water activity to speak of)"
+            ],
+            [
+              "Where it holds",
+              "the classes 6 and 7"
+            ],
+            [
+              "What would show it wrong",
+              "none"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "by definition"
+            ]
+          ],
+          "id": "AH6",
+          "key": "6.320:AH6",
+          "kind": "P",
+          "slug": "6-320-ah6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "adaptation_record.chemical_demands puts a water activity of 0 to the classes 6 (dense CO2) and 7 (a hydrocarbon sea): no row of the table reaches it"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, no measurement of a cell dividing in 81 percent sulfuric acid, in 10 percent ammonia, in dense CO2 or in a liquid hydrocarbon is in hand; the measured limits stop at 11 percent acid and 0.43 percent ammonia (GEN.1810)"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "The medium gates of the classes (life_classes.json: 81 percent sulfuric acid and more for 5a, 5b and 9; 10 percent ammonia of the water for 8; dense CO2 for 6; a hydrocarbon sea for 7) stand as they are: the measured limits stop at 11 percent acid, 0.43 percent ammonia, a water-borne microbe under dense CO2 and no life in a nonpolar solvent, so the record says the life there is past the table"
+            ],
+            [
+              "The range it moves in",
+              "11 to 100 percent acid; 0.43 to 10 percent ammonia"
+            ],
+            [
+              "Where it holds",
+              "the classes 5a, 5b, 6, 7, 8, 9"
+            ],
+            [
+              "What would show it wrong",
+              "a growth of a cell in 81 percent acid (the water activity there is 0.004), in 10 percent ammonia, in dense CO2 or in a liquid hydrocarbon"
+            ],
+            [
+              "What replaces it",
+              "a measured limit, or a lowering of the gate to it (TODO's answer to GEN.1810: keep the gate, record the gap)"
+            ],
+            [
+              "Evidence",
+              "[R1449, R5326, R5327, R5328, R5329]: the lowest water activity at which a cell has divided is 0.585 [R4217]; the class gates are the Boss's intended classes"
+            ]
+          ],
+          "id": "AH7",
+          "key": "6.320:AH7",
+          "kind": "P",
+          "slug": "6-320-ah7",
+          "tier": "T8",
+          "tier_code": "T8",
+          "tweak": "L3",
+          "unread": null,
+          "what": "The medium gates of the classes (life_classes.json: 81 percent sulfuric acid and more for 5a, 5b and 9; 10 percent ammonia of the water for 8; dense CO2 for 6; a hydrocarbon sea for 7) stand as they are: the measured limits stop at 11 percent acid, 0.43 percent ammonia, a water-borne microbe under dense CO2 and no life in a nonpolar solvent, so the record says the life there is past the table"
+        }
+      ],
+      "slug": "6-320-stand-ins-of-the-adaptations-of-the-chemical-energy-classes-gen-1811",
+      "title": "Stand-ins of the adaptations of the chemical-energy classes (GEN.1811)"
+    },
+    {
+      "key": "6.321",
+      "number": "6.321",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json axis pressure 50 MPa: the ordinary limit of a microbe (the pressure above which a surface microbe stops growing)"
+            ],
+            [
+              "The range it moves in",
+              "30 to 60 MPa"
+            ],
+            [
+              "Where it holds",
+              "the water classes 3a to 4c"
+            ],
+            [
+              "What would show it wrong",
+              "a measured growth limit of an ordinary (piezosensitive) bacterium that differs by a factor of 1.5"
+            ],
+            [
+              "What replaces it",
+              "the measured limits of ordinary cells"
+            ],
+            [
+              "Evidence",
+              "the common range of the piezotolerant; no source read this session"
+            ]
+          ],
+          "id": "AI1",
+          "key": "6.321:AI1",
+          "kind": "P",
+          "slug": "6-321-ai1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_adaptations.json axis pressure 50 MPa: the ordinary limit of a microbe (the pressure above which a surface microbe stops growing)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json rows P1 (growth above 100 MPa, [R5330]), P2 (growth to 140 MPa, [R5324]) and P3 (survival to 1.5 GPa, dormant, [R5331])"
+            ],
+            [
+              "The range it moves in",
+              "the spread of the papers"
+            ],
+            [
+              "Where it holds",
+              "a microbe of the water classes"
+            ],
+            [
+              "What would show it wrong",
+              "a measured growth above 140 MPa; a measured metabolism above 1.5 GPa"
+            ],
+            [
+              "What replaces it",
+              "the measured limits themselves"
+            ],
+            [
+              "Evidence",
+              "[R5324, R5330] are second-hand (Wikipedia citing the papers, GEN.1810); [R5331] was read in its introduction and Table 1"
+            ]
+          ],
+          "id": "AI2",
+          "key": "6.321:AI2",
+          "kind": "B",
+          "slug": "6-321-ai2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_adaptations.json rows P1 (growth above 100 MPa, [R5330]), P2 (growth to 140 MPa, [R5324]) and P3 (survival to 1.5 GPa, dormant, [R5331])"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "adaptation_record.FLOOR_CLASSES: the classes 3a and 3b read the pressure at the floor of an ocean (rock contact, the hydrogen of serpentinisation and of radiolysis), every other class the top"
+            ],
+            [
+              "The range it moves in",
+              "3a and 3b only; or all of the water classes"
+            ],
+            [
+              "Where it holds",
+              "the water classes"
+            ],
+            [
+              "What would show it wrong",
+              "a hydrogen eater of the water column far from the rock"
+            ],
+            [
+              "What replaces it",
+              "a per-class habitat of the class rules"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (TODO's answer to GEN.1819)"
+            ]
+          ],
+          "id": "AI3",
+          "key": "6.321:AI3",
+          "kind": "P",
+          "slug": "6-321-ai3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "adaptation_record.FLOOR_CLASSES: the classes 3a and 3b read the pressure at the floor of an ocean (rock contact, the hydrogen of serpentinisation and of radiolysis), every other class the top"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.json number crust_density_kg_m3 2700: the pressure of an aquifer is the air's plus the weight of the rock to its depth"
+            ],
+            [
+              "The range it moves in",
+              "2600 to 2900"
+            ],
+            [
+              "Where it holds",
+              "an aquifer in a crust of silicate rock"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mean density of the crust of the body"
+            ],
+            [
+              "What replaces it",
+              "the density of the body's own crust (crust_thickness_km)"
+            ],
+            [
+              "Evidence",
+              "the mean density of the continental crust, 2.7 g/cm3"
+            ]
+          ],
+          "id": "AI4",
+          "key": "6.321:AI4",
+          "kind": "B",
+          "slug": "6-321-ai4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_supply.json number crust_density_kg_m3 2700: the pressure of an aquifer is the air's plus the weight of the rock to its depth"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.habitat_pressure_pa takes the floor of the liquid over high-pressure ice to be at the pressure where water at ice_ocean_base_k freezes into it (water_layer.liquidus_pressure_pa): the ocean is ice-sealed there, no rock"
+            ],
+            [
+              "The range it moves in",
+              "the lid's melting point (a little lower with salt: a few tens of MPa)"
+            ],
+            [
+              "Where it holds",
+              "an ice-covered ocean with hp_ice_km"
+            ],
+            [
+              "What would show it wrong",
+              "a stored base of the liquid that differs from the liquidus by more than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "the pressure the water layer's integration stores at the liquid's base"
+            ],
+            [
+              "Evidence",
+              "the melting curves of ice III, V and VI the water layer already holds"
+            ]
+          ],
+          "id": "AI5",
+          "key": "6.321:AI5",
+          "kind": "P",
+          "slug": "6-321-ai5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_supply.habitat_pressure_pa takes the floor of the liquid over high-pressure ice to be at the pressure where water at ice_ocean_base_k freezes into it (water_layer.liquidus_pressure_pa): the ocean is ice-sealed there, no rock"
+        }
+      ],
+      "slug": "6-321-stand-ins-of-the-pressure-of-a-habitat-gen-1819",
+      "title": "Stand-ins of the pressure of a habitat (GEN.1819)"
     }
   ]
 }

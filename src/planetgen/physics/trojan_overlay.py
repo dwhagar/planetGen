@@ -10,9 +10,9 @@ own: the orbit updater moves the giant, and the region is the giant's mean longi
 from the giant at the moment it wants, so a stored region is where it should be whenever it is read, with nothing for the updater to write.
 """
 
-from planetgen.physics import trojan_swarm, trojans
+from planetgen.physics import constants, trojan_swarm, trojans
 
-SECONDS_PER_YEAR = 365.25 * 86400.0
+SECONDS_PER_YEAR = constants.SECONDS_PER_YEAR
 """float: Seconds in a Julian year, the unit of the libration period."""
 
 
@@ -25,7 +25,7 @@ def mass_parameter(secondary_mass, host_mass):
 
 def offset_deg(point, amplitude_deg, phase_deg, unix_s, orbital_period_years, mu):
     """
-    The mean longitude of a region's centre from its giant's, degrees, at Unix time `unix_s`: `+60` for `L4`, `-60` for `L5`, plus the libration. A giant with no known period or mass
+    The mean longitude of a region's center from its giant's, degrees, at Unix time `unix_s`: `+60` for `L4`, `-60` for `L5`, plus the libration. A giant with no known period or mass
     parameter, or a pair that holds no tadpole (`trojans.libration_period` is `None`), gives the point alone.
     """
     base = trojans.longitude_offset_deg(point)

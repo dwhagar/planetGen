@@ -32,7 +32,7 @@ Use:
 
 import math
 
-from planetgen.physics import trojans
+from planetgen.physics import constants, trojans
 
 FORMATION_EFFICIENCY = 0.1
 """float: The share of the solids in the secondary's co-orbital zone that grow into the trojan; the zone must hold `trojan mass / this`. [Stand-in 6.125 TB3, tier T4, tweak L4, kept at 0.1 (GEN.1151): the measure counted the zone's
@@ -51,11 +51,11 @@ ZONE_AZIMUTH_SHARE = 1.0 / 3.0
 MAX_MIGRATION_SHARE = 0.25
 """float: The share of its formation distance a giant may have moved before the zone it grew its trojan in is lost. [Stand-in 6.125 TB7, tier T4, tweak L3.]"""
 
-AU_CM = 1.495978707e13
-"""float: Centimetres in an astronomical unit."""
+AU_CM = constants.AU_M * 100.0
+"""float: Centimetres in an astronomical unit (the IAU value of the constants module, metres times 100)."""
 
 EARTH_MASS_G = 5.972e27
-"""float: The Earth's mass in grams."""
+"""float: The Earth's mass in grams, the constants module's `EARTH_MASS_TO_KG` rounded to four digits (derived; kept at the rounded value so a trojan zone's mass, and so the generated output, is the number it was built and censused with)."""
 
 CASES = ("star_giant", "star_substellar", "star_star", "planet_moon", "moon_moon")
 

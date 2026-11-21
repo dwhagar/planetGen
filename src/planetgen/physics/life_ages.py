@@ -10,7 +10,7 @@ table, as the geological record divides the history of the Earth into its eras b
 give the API and the page their rows, and let the extinctions touch the air), so the output of a run is the one it was.
 
 * *What counts.* An event kills at least `AGE_KILL_THRESHOLD` of the species: the 30 percent that the kill curve of the marine record gives once per 10 Myr ([R5320], the size of an extinction of the Big Five
-  kind in the proposal of the design); a threshold of 65 percent (once per 100 Myr) gives fewer, longer ages. [Stand-in 6.314 LA1, tier T6 marginal educated guess based on physics, tweak L3.]
+  kind in the proposal of the design); a threshold of 65 percent (once per 100 Myr) gives fewer, longer ages. [Stand-in 6.314 LA1, tier T6, tweak L1: the Boss's pick of 0.30 inside the measured range, 11-19.]
 * *No background.* The design proposed drawing a background of kills for whatever the events do not explain, so that a world with no events still has the Earth's turnover. The kill of an event here is read from
   the kill curve at how often the Earth has events as large (`air_events.impact_kill_share`), so the impacts that kill the threshold's share recur exactly as often as the curve says kills of it do: on the
   Earth's record the impacts alone fill the curve, nothing is left over for a background, and the flood basalts are added on top of it. A body with fewer events than the Earth's has fewer extinctions.
@@ -30,7 +30,7 @@ FIELD = "life_ages"
 """str: The body attribute holding the life ages of the body as a list of `entries_of` dicts (the child tables `planet_life_ages` and `moon_life_ages`, GEN.1746 slice 3); `None` for a body with none."""
 
 AGE_KILL_THRESHOLD = 0.30
-"""float: The share of species an event must kill to end a life age. [Stand-in 6.314 LA1, tier T6 marginal educated guess based on physics, tweak L3.]"""
+"""float: The share of species an event must kill to end a life age. [Stand-in 6.314 LA1, tier T6, tweak L1: the Boss's pick of 0.30 inside the measured range, 11-19.]"""
 
 
 @dataclass(frozen=True)

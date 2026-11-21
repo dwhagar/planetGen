@@ -170,3 +170,14 @@ def test_regions_are_saved_with_their_giant_as_parent_and_read_back_beside_it(my
     finally:
         conn.rollback()
         conn.close()
+
+
+def test_a_trojan_region_and_a_trojan_planet_share_their_giants_orbit_and_are_no_slot_of_the_spacing_rules():
+    """GEN.1150, GEN.1151: a region is put at the end of its star's list and stands at its giant's distance, and a trojan planet stands at it too: `check_orbit_spacing` must not call either out of order or too close."""
+    from planetgen.generation import validation
+    outer = types.SimpleNamespace(body_type="a", distance=24.13, lower_limit=24.13, upper_limit=30.0, mass=0.0, lagrange_point=None, belt_rank=None, radius=0)
+    region = types.SimpleNamespace(body_type="a", distance=15.0, lower_limit=14.85, upper_limit=15.15, mass=0.0, lagrange_point="L4", belt_rank=None, radius=0)
+    assert validation.check_orbit_spacing([outer, region]) == []
+    assert validation.slot_planets([outer, region]) == [outer]
+    region.lagrange_point = None         # the same body with no point is a belt listed out of order: the check still sees it
+    assert [problem.message for problem in validation.check_orbit_spacing([outer, region])] == ["it is listed after asteroid belt at 24.13 AU but orbits inside it"]

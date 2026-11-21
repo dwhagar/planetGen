@@ -156,13 +156,22 @@
     </dl>
   </details>
   {%- endif %}
+  {%- endif %}
   {%- if life_air %}
   <details class="sheet-group" id="life-and-air">
     <summary><h4>Life and air through the ages</h4></summary>
-    <p class="sheet-help">How the air changed as the life took hold, worked out from the air it has now. The numbered lines are the stages of the life.</p>
+    <p class="sheet-help">{% if life_air.stored %}How the air changed through the age of its star, every gas the history keeps, from the history stored with the world.{% else %}How the air changed as the life took hold, worked out from the air it has now.{% endif %}{% if life_air.stages %} The numbered lines are the stages of the life{% if life_air.extinctions %}; the dashed lines without a number are mass extinctions{% endif %}.{% elif life_air.extinctions %} The dashed lines are mass extinctions.{% endif %}</p>
     {{ life_air.svg }}
     <ul class="life-air-legend">{{ life_air.legend }}</ul>
     <ol class="life-air-stages">{% for stage in life_air.stages %}<li value="{{ stage.number }}">{{ stage.name }}, {{ stage.age }} Gyr</li>{% endfor %}</ol>
+    {%- if life_air.extinctions %}
+    <p class="sheet-help">Mass extinctions:</p>
+    <ul class="life-air-extinctions">{% for event in life_air.extinctions %}<li>{{ event.age }} Gyr: {{ event.cause }}, {{ event.killed }} of species</li>{% endfor %}</ul>
+    {%- endif %}
+    {%- if life_air.life_ages %}
+    <p class="sheet-help">The ages of life between them:</p>
+    <ol class="life-air-ages">{% for age in life_air.life_ages %}<li value="{{ age.number }}">{{ age.span }} Gyr{% if age.ended %}, ended by {{ age.ended }}{% endif %}</li>{% endfor %}</ol>
+    {%- endif %}
     {%- if life_air.note %}<p class="sheet-help life-air-note">{{ life_air.note }}</p>{% endif %}
     {%- if life_air.makers %}
     <p class="sheet-help">Several kinds of life changed this air. What each made of the change:</p>
@@ -173,7 +182,6 @@
       <tbody>{% for row in life_air.table.rows %}<tr>{% for cell in row %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>{% endfor %}</tbody>
     </table>
   </details>
-  {%- endif %}
   {%- endif %}
   {%- if planet.civilization %}
   <h3 id="civilization-heading">Civilization and politics</h3>

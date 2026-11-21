@@ -596,10 +596,23 @@ def test_a_living_planet_whose_air_the_life_did_not_change_has_no_chart(client, 
     assert asked == [("planet", "FE81000A2B-0000005-001")]
 
 
-def test_a_planet_with_no_living_class_does_not_ask_for_a_chart(client, monkeypatch):
-    monkeypatch.setattr(apiclient, "get_life_air", lambda *args: pytest.fail("the chart is asked for only for a body with a living class"))
+def test_a_planet_with_no_living_class_and_no_stored_history_has_no_chart(client, monkeypatch):
+    asked = []
+    monkeypatch.setattr(apiclient, "get_life_air", lambda db, kind, body_id: asked.append(body_id) or {"id": body_id, "life_class_id": None, "life_air": None})
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
-    assert 'id="life-and-air"' not in page
+    assert 'id="life-and-air"' not in page and asked == ["FE81000A2B-0000005-001"]
+
+
+def test_api51_a_planet_with_no_living_class_but_a_stored_air_history_has_the_chart_of_every_gas(client, monkeypatch):
+    from planetgen.physics import stored_air
+    from tests.test_stored_air import _record
+    answer = stored_air.history_of(_record(), 4.0, {})
+    monkeypatch.setattr(apiclient, "get_life_air", lambda db, kind, body_id: {"id": body_id, "life_class_id": None, "life_air": answer})
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    block = page.split('id="life-and-air"')[1].split("</details>")[0]
+    assert '<svg class="life-air-chart"' in block and block.count("<polyline") == 6, "a line for each of the six gases of the record"
+    assert "from the history stored with the world" in block and "Mass extinctions:" in block and "Flood basalt eruptions" in block
+    assert "stages of the life" not in block and 'class="life-air-ages"' in block
 
 
 def test_gen1108_the_page_draws_the_seven_bands_as_a_table_of_columns():

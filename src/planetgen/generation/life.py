@@ -31,7 +31,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, air_record, life_ages, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_type, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_record, adaptation_traits, aerosols, air_record, life_ages, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_type, radiation, surface_liquid_world, trace_air
 from planetgen.physics import carbide_deposits, constants, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
@@ -79,6 +79,19 @@ def apply_life_data(planet, keep_stored=False):
     planets.apply_class(planet)                  # GEN.1745 (Boss, 11:25 AM EST 2026-11-15): no class until the evolution is finished; the class is read once, here, from the finished body
     if not (keep_stored and (getattr(planet, "air_history", None) or getattr(planet, life_ages.FIELD, None))):       # an edit keeps the history the body has (its air solve's inputs are not stored, so it cannot be worked again)
         _history_of(planet)
+    planet.life_adaptations = _adaptations_of(planet)        # GEN.1808: what the life had to become to live where it does, read from the finished body
+
+
+def _adaptations_of(planet):
+    """The record of the adaptations the life of `planet` needed (`adaptation_record.record_of`), made from the finished body: the classes that live on it, the age its life has reached, none when no class has a record."""
+    living = getattr(planet, life_classes.LIVING_FIELD, None) or []
+    classes = [entry["life_class"] for entry in living]
+    if not any(class_id in adaptation_record.CLASSES for class_id in classes):
+        return None
+    star_age = getattr(getattr(planet, "star", None), "age", None)
+    began = [age for age in (one.started(planet) for one in (getattr(getattr(planet, "build", None), "air_living", None) or [])) if age is not None]
+    age = None if star_age is None or not began else max(star_age - min(began), 0.0)
+    return adaptation_record.record_of(planet, classes, age)
 
 
 def _history_of(planet):
