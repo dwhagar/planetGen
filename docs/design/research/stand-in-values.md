@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1938 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1939 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1911 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1912 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -57,8 +57,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 245 | 134 | 38 | 84 | 5 | 506 |
 | T7 | 74 | 37 | 10 | 31 | 0 | 152 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1107 | 398 | 99 | 270 | 64 | 1938 |
+| T9 | 53 | 20 | 6 | 113 | 42 | 234 |
+| All | 1108 | 398 | 99 | 270 | 64 | 1939 |
 
 ## How the labels were given
 
@@ -3438,3 +3438,4 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DA1 | P | T6 | L0 | `hot_cloud_deck.ADIABAT_EXPONENT`: the dry adiabat below a giant's 1 bar level is `T = T(1 bar) P^((gamma - 1) / gamma)` with gamma 1.4 (`constants.ADIABATIC_INDEX_H2_HE`), exponent 2/7, the value `mixture_giant.ADIABAT_EXPONENT` already takes to its quench level | 0.25 to 0.30 | a hydrogen-helium envelope below 1 bar and below about 1,500 K, where the hydrogen is molecular and its vibration is not excited | a measured or modelled deep profile of a giant whose gradient differs from 2/7 by more than 0.03 (helium raises it to about 0.29, excited vibration lowers it) | the exponent of the hydrogen-helium tables along the fitted adiabat (`giant_structure.fit_adiabat`) | educated guess from physics: the textbook diatomic value, the one the quench already uses | predicted only | - | - |
 | DA2 | T | T6 | L1 | the floor is anchored at the giant's 1 bar temperature, `giant_draw.ONE_BAR_OVER_EFFECTIVE` (1.33) times its effective temperature, the one its air is solved at; for a strongly irradiated giant this is hotter than a deep adiabat set by its own heat (the radiative zone is an isotherm down to the radiative-convective boundary), so a giant above about 1,400 K equilibrium gets no chromium or manganese sulfide cloud | none | any giant, best for the ones the 1.33 was read from (Jupiter and Saturn, 166 K and 134 K at 1 bar) | a hot giant whose measured or modelled profile is isothermal at its equilibrium temperature down to 100 bar or more and so holds a chromium or manganese sulfide cloud | an adiabat that leaves the grey profile at its radiative-convective boundary, with the entropy of the giant's interior (`giant_structure.fit_adiabat`) | inferred from the 1 bar convention of every giant's air; not checked against a hot-giant model | predicted only | - | - |
+| DA3 | P | T9 | L0 | `hot_cloud_deck.TOLERANCE` 1e-3: the bisection of the giant's profile stops when its bracket is this narrow in log10 of the pressure (the profile is searched on a grid four to the decade, so the bracket is a quarter of a decade wide before it starts) | 1e-4 to 1e-2 | every giant's cloud deck | not applicable (a numerical stopping test) | a guard from the cost of the search | needed output (a pressure good to a part in a thousand of a decade) | predicted only | - | - |

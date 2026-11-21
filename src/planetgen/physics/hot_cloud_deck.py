@@ -39,7 +39,7 @@ GRID_BAR = tuple(10.0 ** (exponent / 4.0) for exponent in range(-24, 13))
 """tuple: The pressures, bar, the profile is searched on: 1e-6 to 1e3, four to the decade."""
 
 TOLERANCE = 1.0e-3
-"""float: The bisection stops when the bracket is this narrow in log10 of the pressure."""
+"""float: The bisection stops when the bracket is this narrow in log10 of the pressure. [Stand-in 6.317 DA3, tier T9, tweak L0.]"""
 
 
 @dataclass(frozen=True)
