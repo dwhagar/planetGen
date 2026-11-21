@@ -46,6 +46,8 @@ FLOOD_BASALT_VOLUME_KM3 = 2.5e6
 """float: The modal volume of one flood basalt, km3 [R5319], erupted in `FLOOD_BASALT_YEARS` (its pulse of CO2 and SO2 is the next slice). [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
 FLOOD_BASALT_YEARS = 1.0e6
 """float: The time the bulk of a flood basalt takes, years [R5319]. [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
+FLOOD_BASALT_MAX_PER_GYR = 1.0e9 / FLOOD_BASALT_YEARS
+"""float: The most flood basalts a gigayear a body can have, 1,000: one takes about a million years to erupt (`FLOOD_BASALT_YEARS`), so a body whose heat asks for more is erupting all the time, not more often than that. A tidally melted body gave 6.5e10 and the draw never ended. [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
 FLOOD_BASALT_RECURRENCE_MYR = 1000.0 / FLOOD_BASALT_PER_GYR
 """float: How often the Earth has a flood basalt, Myr: the interval at which the kill curve is read for one. [Stand-in 6.313 EV1.]"""
 
@@ -100,10 +102,10 @@ def impact_flux_ratio(age_gyr):
 
 
 def flood_basalt_rate_per_gyr(heat_flux_w_m2):
-    """The flood basalts a gigayear of a body whose interior gives off `heat_flux_w_m2` at that age: the Earth's rate times the flux over the model Earth's; 0 for no heat."""
+    """The flood basalts a gigayear of a body whose interior gives off `heat_flux_w_m2` at that age: the Earth's rate times the flux over the model Earth's, at most `FLOOD_BASALT_MAX_PER_GYR`; 0 for no heat."""
     if not heat_flux_w_m2 or heat_flux_w_m2 <= 0.0:
         return 0.0
-    return FLOOD_BASALT_PER_GYR * heat_flux_w_m2 / surface_pressure.HEAT_FLUX_EARTH_W_M2
+    return min(FLOOD_BASALT_PER_GYR * heat_flux_w_m2 / surface_pressure.HEAT_FLUX_EARTH_W_M2, FLOOD_BASALT_MAX_PER_GYR)
 
 
 def impact_rate_per_gyr(diameter_km, radius_m, flux_ratio=1.0):
