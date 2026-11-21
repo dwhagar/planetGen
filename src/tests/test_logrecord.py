@@ -260,7 +260,7 @@ def test_the_raw_form_is_the_message_as_it_is_and_a_syslog_line_has_the_time_the
 
 @pytest.mark.parametrize("seconds, text", [
     (None, "?"), (-1, "?"), (float("nan"), "?"),
-    (0, "0s"), (0.34, "340 ms"), (1, "1s"), (12.34, "12s"), (59.94, "1m"),
+    (0, "0s"), (0.34, "340 ms"), (0.00556, "6 ms"), (0.9996, "1s"), (0.0000042, "4.2 µs"), (1, "1s"), (12.34, "12s"), (59.94, "1m"),
     (65, "1m 5s"), (247, "4m 7s"), (3600, "1h"), (3912, "1h 5m 12s"), (86400, "1d"),
 ])
 def test_one_duration_form_for_every_log_line(seconds, text):
