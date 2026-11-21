@@ -122,3 +122,33 @@ def test_every_number_has_a_tier_and_a_tweak_and_a_bad_file_is_refused(tmp_path,
     monkeypatch.setattr(sc, "DATA_FILE", str(path))
     with pytest.raises(sc.SulfuricCloudError):
         sc._load()
+
+
+COLD_AIR = {"H2O": 0.0912, "CO2": 3459.2, "SO2": 0.5654, "H2S": 184.9, "N2": 5949.6, "Ar": 308.8, "OCS": 0.1072, "CH4": 53.12}
+"""dict: A cold sulfurous air of the 5,000-system census (a class E world, the ground at 198 K, 9.9 kPa): its acid condenses at every level it can, and every one of them is under the freezing point of its droplets (GEN.1644)."""
+
+
+def test_a_cloud_stands_only_where_its_droplets_are_above_their_freezing_point():
+    """GEN.1644: the acid cloud is a liquid cloud, so a level whose droplets are at or below the freezing point of their strength is not in it; the cold air that the 185 K floor gave a cloud (the census body had a 23.5 deep one) has none, the Venus air keeps its cloud with a base above its freezing point."""
+    import math
+
+    from planetgen.physics import acid_freezing, sulfur_cloud_set, sulfuric_vapor
+    cold = air_column.from_partials(COLD_AIR, 1.4559 * 9.80665)
+    temperature = 197.95
+    skin = aerosols.SKIN_FACTOR * temperature / (1.0 + 0.3549) ** 0.25
+    pressure, level_k = aerosols.profile(cold, temperature, skin_k=skin)
+    acid, water = cold.fraction("SO2") * sulfur_cloud_set.number("acid_vapor_share_of_so2"), cold.fraction("H2O")
+    condensing = []
+    for p, t in zip(pressure, level_k):
+        water_pa = water * float(p)
+        saturation = aerosols.saturation_pa("H2O", float(t))
+        if math.isfinite(saturation):
+            water_pa = min(water_pa, saturation)
+        if sulfuric_vapor.condenses(float(t), acid * float(p), water_pa):
+            condensing.append(acid_freezing.is_frozen(float(t), sulfuric_vapor.composition(float(t), water_pa).acid_fraction))
+    assert condensing and all(condensing), "the acid condenses somewhere, and only as a solid"
+    assert sc.window(cold, temperature, skin) is None
+    assert sc.draw(cold, temperature, 0.5, 0.5, skin) == (0.0, 0.0)
+    venus = sc.window(column(), 735.0, sc.skin_k(VENUS_FLUX_W_M2))
+    assert venus is not None
+    assert venus.base_temperature_k > acid_freezing.freezing_point_of_weight_percent(venus.weight_percent)
