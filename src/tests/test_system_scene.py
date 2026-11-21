@@ -7,6 +7,7 @@ radius, colour, orbit elements and position at the epoch. Needs MySQL
 (`mysql_config`).
 """
 
+import functools
 import json
 import pytest
 
@@ -21,12 +22,16 @@ from planetgen.util import draw
 from tests.publicids import pid
 
 
+@functools.cache
 def _system(want_binary):
+    """The first of the fixed streams that draws a system with moons and comets (made once for the whole run: the search takes minutes since a system takes seconds to make). Comets are made under the abundant
+    tier (GEN.1775): under the default science tier only the stars the physics gives comets have them, so the search over 400 streams took hours and found none."""
     for attempt in range(400):
         cfg = SystemConfig()
         cfg.PLANETS = True
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = want_binary
+        cfg.COMET_TIER = "abundant"
         with draw.bound(f"scene-{want_binary}-{attempt}"):      # TEST.737: the same streams in every run, so the search finds the same system
             system = StarSystem(system_config=cfg)
         if want_binary and len(system.stars) < 2:
