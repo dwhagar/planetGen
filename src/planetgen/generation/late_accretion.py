@@ -18,7 +18,7 @@ The air is made again for every rocky planet of a star (a moon, a giant and a pl
 solve of the air for each rocky planet.
 """
 
-from planetgen.physics import constants, impact_history, influx, late_supply, planets as planet_physics, planet_type
+from planetgen.physics import constants, impact_history, late_supply, planets as planet_physics, planet_type
 from planetgen.physics import unit_registry as units
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -34,13 +34,32 @@ def _primordial_kg(belt):
     return (getattr(belt, "primordial_mass_earth", None) or 0.0) * EARTH_KG
 
 
-def percent_for(planet, siblings, star_mass_solar):
-    """The late accretion of `planet`, percent of its mass, from the planets and belts `siblings` of its star (the planet among them)."""
+def early_of_belt(belt):
+    """The belt as it was early (`late_supply.Early`): its primordial mass, its ring, and the share of it sent inward by what the giants and companions did to it (`late_supply.inward_share_of`)."""
+    return late_supply.Early("belt", _primordial_kg(belt), belt.lower_limit, belt.upper_limit,
+                             inward_share=late_supply.inward_share_of(getattr(belt, "scatter_fates", None), getattr(belt, "stirred", None)))
+
+
+def early_of_origin(origin, lower_au, upper_au, fates):
+    """
+    A stretch a system made as a belt and then lost (the giants cleared it of everything, or a belt of what is left under the least a belt keeps) as it was early (`belt_birth.build` gives these to the
+    system). It sent inward what the giants threw onto crossing orbits before it went, so the planets inside it keep their share of that (GEN.1493 slice 2); what the planets or the star took from it is not a leftover and counts for nothing.
+
+    Args:
+        origin: The stretch (`belt_origin.Origin`): its primordial mass, whether it is stirred.
+        lower_au, upper_au (float): Its ring, cut to the orbits the star holds.
+        fates (dict or None): Its shares after the outermost giant (`belt_birth._fates`).
+    """
+    return late_supply.Early("belt", origin.primordial_mass_earth * EARTH_KG, lower_au, upper_au,
+                             inward_share=late_supply.inward_share_of(fates, origin.stirred, gone=True))
+
+
+def percent_for(planet, siblings, star_mass_solar, lost=()):
+    """The late accretion of `planet`, percent of its mass, from the planets and belts `siblings` of its star (the planet among them) and the `lost` reservoirs of the star (`late_supply.Early`: stretches no belt is left of)."""
     mass_earth = planet.mass / EARTH_KG
     bodies = [(body.radius, body.distance, body.mass) for body in siblings
               if body.body_type in ("t", "g") and not body.is_moon and body.mass and body.radius]
-    reservoirs = [influx.Reservoir("belt", _primordial_kg(belt), belt.lower_limit, belt.upper_limit) for belt in siblings
-                  if belt.body_type == "a" and _primordial_kg(belt) > 0.0]
+    reservoirs = [early_of_belt(belt) for belt in siblings if belt.body_type == "a" and _primordial_kg(belt) > 0.0] + list(lost)
     supply = 100.0 * late_supply.veneer_fraction((planet.radius, planet.distance, planet.mass), bodies, star_mass_solar, reservoirs)
     floor = FLOOR_SHARE * impact_history.late_accreted_percent_mean(mass_earth)
     return min(max(supply, floor), impact_history.LATE_ACCRETED_PERCENT_MAX)
@@ -58,13 +77,13 @@ def applies_to(planet):
     return is_rocky_of_a_star(planet) and planet.build.air_replay is not None
 
 
-def percent_in(planet, planets):
-    """The late accretion of `planet` from the planets and belts `planets` of the system (`StarSystem.all_planets`): those of its own star."""
+def percent_in(planet, planets, lost=None):
+    """The late accretion of `planet` from the planets and belts `planets` of the system (`StarSystem.all_planets`): those of its own star, and the reservoirs lost for it (`lost`: the `{star id: [Early]}` of the system)."""
     siblings = [body for body in planets if body.body_type == "a" and _same_star(body, planet) or body.body_type != "a" and body.star is planet.star]
-    return percent_for(planet, siblings, _kg_to_msun(planet.star.mass))
+    return percent_for(planet, siblings, _kg_to_msun(planet.star.mass), (lost or {}).get(id(planet.star), ()))
 
 
-def give_first_air(planets):
+def give_first_air(planets, lost=None):
     """
     Gives every rocky planet whose air is still to be made (`Planet.finish_climate`, GEN.1548) the late accretion the system gives it now (PERF.271), so the air is made once with a number near the final one
     instead of with the law's draw and again at `apply`: the belts and the planets' orbits are known by then, and what is left to `apply` is what the belts promoted to planets add. The number is the same
@@ -72,16 +91,16 @@ def give_first_air(planets):
     """
     for planet in planets:
         if planet.body_type != "a" and planet.build.deferred_climate is not None and is_rocky_of_a_star(planet):
-            planet.build.late_accreted_percent = percent_in(planet, planets)
+            planet.build.late_accreted_percent = percent_in(planet, planets, lost)
 
 
-def apply(planets, gate=planet_physics.LATE_ACCRETION_GATE):
-    """Makes the air again, with the late accretion the system gives, of every rocky planet of `planets` (every planet and belt of the system, `StarSystem.all_planets`). A planet whose new late accretion moves its carbon and nitrogen by under `gate` of what its volcanoes gave keeps its air (`planets.remake_air`). Returns how many were made again."""
+def apply(planets, lost=None, gate=planet_physics.LATE_ACCRETION_GATE):
+    """Makes the air again, with the late accretion the system gives, of every rocky planet of `planets` (every planet and belt of the system, `StarSystem.all_planets`). A planet whose new late accretion moves its carbon and nitrogen by under `gate` of what its volcanoes gave keeps its air (`planets.remake_air`). `lost` is the `{star id: [Early]}` of the system's lost reservoirs. Returns how many were made again."""
     made = 0
     for planet in planets:
         if planet.body_type == "a" or not applies_to(planet):
             continue
-        made += planet_physics.remake_air(planet, percent_in(planet, planets), gate)
+        made += planet_physics.remake_air(planet, percent_in(planet, planets, lost), gate)
     return made
 
 

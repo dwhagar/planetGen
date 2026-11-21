@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1936 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1938 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1909 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1911 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 111 | 29 | 8 | 2 | 2 | 152 |
-| T6 | 244 | 132 | 38 | 85 | 5 | 504 |
+| T6 | 244 | 132 | 38 | 85 | 7 | 506 |
 | T7 | 74 | 37 | 10 | 32 | 0 | 153 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1105 | 396 | 99 | 272 | 64 | 1936 |
+| All | 1105 | 396 | 99 | 272 | 66 | 1938 |
 
 ## How the labels were given
 
@@ -2777,7 +2777,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| LS1 | P | T6 | L3 | `late_supply.INWARD_SHARE` 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies | 0.03 to 0.5 | belts of a few to tens of Earth masses | a dynamical model of a primordial belt whose inward-scattered share is outside 0.03 to 0.5 | a scattering integration of the belt against the system's planets | fitted: at 0.105 the median planet of 581 generated rocky planets that takes anything takes the mean of the present late-accretion law (census, `reports/gen1493-late-supply-census-2026-11-09.md`) | predicted only | - | replace (GEN.1493) |
+| LS1 | P | T6 | L3 | `late_supply.INWARD_SHARE` 0.1: the share of the part of a belt's primordial mass that no giant swept (the part that stays in its ring) that is scattered onto planet-crossing orbits and shared among the bodies (slice 2: the part the giants swept sends `CROSSING_GAIN` and `STIRRED_GAIN` instead, rows LS1a, LS1b) | 0.03 to 0.5 | belts of a few to tens of Earth masses | a dynamical model of a primordial belt whose inward-scattered share is outside 0.03 to 0.5 | a scattering integration of the belt against the system's planets | fitted: at 0.105 the median planet of 581 generated rocky planets that takes anything takes the mean of the present late-accretion law (census, `reports/gen1493-late-supply-census-2026-11-09.md`) | predicted only | - | replace (GEN.1493) |
+| LS1a | P | T6 | L4 | `late_supply.CROSSING_GAIN` 0.3: the share of the part of an outer disk a giant threw onto orbits that cross the giants' and the planets' (the scattered disk and the centaurs of `scatter.scatter_shares`, bound, not ejected) that reaches the shared sinks inside it; a stretch the giants cleared of everything sends only this (GEN.1493 slice 2) | 0.1 to 1 | outer disks swept by a giant | a dynamical model of a swept disk whose share reaching the inner system is outside 0.1 to 1 of its crossing mass | a scattering integration of the crossing population against the system's planets | fitted: a synthetic Sun-like system (an Earth inside the four giants, an outer disk of 10 to 20 Earth masses swept by a Neptune-class giant) keeps 0.2 to 0.7 percent of the Earth's mass (test_late_supply); no source prints the number (Boss 2026-11-20: acceptable, fitted L4) | predicted only | - | replace (GEN.1493) |
+| LS1b | P | T6 | L4 | `late_supply.STIRRED_GAIN` 0.1: the share of a stirred ring's mass (a companion or a close giant raises its eccentricity, `belt_origin.stirred`, BG8) added to its inward share, because a stirred ring grinds faster and sends more inward | 0.03 to 0.3 | rings a companion star or a giant stirs | a measured dust or planetesimal flux of a stirred belt that differs by more than a factor of two from a quiet belt of the same mass | the stirring's eccentricity (`belt_forcing.combined`) over the unstirred width as a continuous share | fitted to the same Sun-like test; no source prints the number (Boss 2026-11-20: acceptable, fitted L4) | predicted only | - | no data |
 | LS2 | P | T6 | L4 | `late_supply.RELATIVE_SPEED_SHARE` 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor | 0.2 to 0.8 | bodies on near-circular orbits | a measured impact-speed distribution on a rocky planet that differs by more than a factor of two | the speed from the scattered orbits' eccentricities | no source: an eccentricity of a few tenths | predicted only | - | no data |
 | LS3 | P | T6 | L4 | `late_supply.OUTER_REACH` 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge | 2 to 6 | giants outside a belt | a giant at 4 times a belt's edge whose measured scattering of that belt is negligible | the giant's chaotic zone width (the Hill-radius law of the clearing) | no source: scattering goes both ways and a giant a few times out takes most of what a belt scatters | predicted only | - | no data |
 | LS4 | T | T6 | L0 | each body takes the scattered mass in proportion to `R^2 (1 + v_esc^2 / v_rel^2) / a^2`; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census) | none | bodies the planetesimals cross | a system whose measured veneer is set by the star's capture or by planetesimals outside any belt | an Opik collision probability per orbit with the lifetimes of the crossing population | design; the form is the Safronov focusing factor | predicted only | - | - |

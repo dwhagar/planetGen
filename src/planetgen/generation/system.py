@@ -317,6 +317,7 @@ class StarSystem:
                 (`_drawn_plan`, GEN.631).
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
+        self.lost_reservoirs = {}       # GEN.1493 slice 2: `{id(star): [late_supply.Early]}`, the stretches of a star no belt is left of (runtime only, not stored)
         # A bad FORCE_CLASS request is refused here, before any draw: a check made after the star was drawn never ran for the stars that return early (a pulsar's planets, a post-AGB pair, a diskless black hole).
         if system_config.FORCE_CLASS and system_config.SLOTS:
             raise ValueError("FORCE_CLASS cannot be combined with SLOTS: a slot already names its class.")
@@ -482,7 +483,7 @@ class StarSystem:
         # in the same pass (after life data, since it reads life_stage) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
         with log.timed_phase("late accretion pass"):
-            late_accretion.apply(self.all_planets)      # GEN.1493: the belts are final, so the air of a rocky planet reads them for its late accretion
+            late_accretion.apply(self.all_planets, self.lost_reservoirs)      # GEN.1493: the belts are final, so the air of a rocky planet reads them for its late accretion
             cosmic_dust.apply(self.all_planets, [(self.star, self.comets), (getattr(self, "secondary_star", None), self.secondary_comets)])      # GEN.1542: the dust each takes in decides V8 of its sulfur cloud (with the hypotheses on)
 
         with log.timed_phase("snow line pass"):
@@ -1515,8 +1516,10 @@ class StarSystem:
                 or (remnant_orbits.is_diskless_black_hole(star) and config.PLANETS is not True)):
             return
         scatter = next((architecture.disk_scatter for planned, architecture in getattr(self, "architectures", ()) if planned is star), 1.0)     # the disk the planets grew in (GEN.1261)
+        lost = []
         belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star),
-                                 instability=capture_windows.instability_level(self.capture_windows(star)), disk_scatter=scatter)
+                                 instability=capture_windows.instability_level(self.capture_windows(star)), disk_scatter=scatter, lost=lost)
+        self.lost_reservoirs[id(star)] = lost       # GEN.1493 slice 2: what the star's belts were before the giants cleared them, for the air of the planets inside them
         if not belts and config.ASTEROID_BELT is True and not any(body.body_type == 'a' for body in bodies):
             belts = self._requested_belt(bodies, star, orbit_ceiling_au)
         if not belts:
@@ -2580,7 +2583,7 @@ class StarSystem:
             if respaced and self.binary_type == "wide":
                 self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
             # GEN.1548: the orbits are final, so the air, class and spin of the bodies built bare are made now, once, and their moons (bare, with their orbits) with them
-            late_accretion.give_first_air(self.all_planets)       # PERF.271: the belts and orbits are final, so the first air reads the late accretion the system gives, and the pass at the end finds most planets done
+            late_accretion.give_first_air(self.all_planets, self.lost_reservoirs)       # PERF.271: the belts and orbits are final, so the first air reads the late accretion the system gives, and the pass at the end finds most planets done
             for obj in self.all_planets:
                 if obj.body_type != 'a':
                     obj.finish_climate()
