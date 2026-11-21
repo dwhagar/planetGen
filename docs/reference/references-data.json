@@ -207355,6 +207355,57 @@
    "volume": "380",
    "year": 2025
   },
+  "10.1099/ijs.0.024653-0": {
+   "authors": [
+    [
+     "Birrien",
+     "J. L."
+    ],
+    [
+     "Zeng",
+     "X."
+    ],
+    [
+     "Jebbar",
+     "M."
+    ],
+    [
+     "Cambon-Bonavita",
+     "M. A."
+    ],
+    [
+     "Quérellou",
+     "J."
+    ],
+    [
+     "Oger",
+     "P."
+    ],
+    [
+     "Bienvenu",
+     "N."
+    ],
+    [
+     "Xiao",
+     "X."
+    ],
+    [
+     "Prieur",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1099/ijs.0.024653-0",
+   "editors": [],
+   "journal": "International Journal of Systematic and Evolutionary Microbiology",
+   "page": "2827",
+   "publisher": "Microbiology Society",
+   "src": "crossref",
+   "title": "Pyrococcus yayanosii sp. nov., an obligate piezophilic hyperthermophilic archaeon isolated from a deep-sea hydrothermal vent",
+   "type": "journal-article",
+   "volume": "61",
+   "year": 2011
+  },
   "10.1099/ijsem.0.001671": {
    "authors": [
     [
@@ -246534,6 +246585,45 @@
    "type": "journal-article",
    "volume": "11",
    "year": 2023
+  },
+  "10.3389/fmicb.2014.00612": {
+   "authors": [
+    [
+     "Hazael",
+     "R."
+    ],
+    [
+     "Foglia",
+     "F."
+    ],
+    [
+     "Kardzhaliyska",
+     "L."
+    ],
+    [
+     "Daniel",
+     "I."
+    ],
+    [
+     "Meersman",
+     "F."
+    ],
+    [
+     "McMillan",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3389/fmicb.2014.00612",
+   "editors": [],
+   "journal": "Front. Microbiol.",
+   "page": "",
+   "publisher": "Frontiers Media SA",
+   "src": "crossref",
+   "title": "Laboratory investigation of high pressure survival in Shewanella oneidensis MR-1 into the gigapascal pressure range",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2014
   },
   "10.3389/fmicb.2017.01212": {
    "authors": [
@@ -291034,6 +291124,7 @@
   "10.1098/rsta.2016.0252": "R0435",
   "10.1098/rsta.2019.0474": "R1892",
   "10.1098/rstb.2024.0101": "R5017",
+  "10.1099/ijs.0.024653-0": "R5330",
   "10.1099/ijsem.0.001671": "R5324",
   "10.1101/cshperspect.a012765": "R2487",
   "10.1101/gr.7.10.959": "R1807",
@@ -291943,6 +292034,7 @@
   "10.3389/feart.2014.00038": "R5157",
   "10.3389/feart.2023.1159412": "R5317",
   "10.3389/feart.2023.1197363": "R2089",
+  "10.3389/fmicb.2014.00612": "R5331",
   "10.3389/fmicb.2017.01212": "R4346",
   "10.3389/fmicb.2018.02152": "R1449",
   "10.3389/fmicb.2019.00780": "R3040",

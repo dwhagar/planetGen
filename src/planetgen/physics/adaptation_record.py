@@ -30,7 +30,7 @@ from dataclasses import dataclass
 
 import math
 
-from planetgen.physics import acid_medium, life_adaptations, life_classes, surface_refuge, sulfuric_vapor
+from planetgen.physics import acid_medium, constants, life_adaptations, life_classes, life_supply, surface_refuge, sulfuric_vapor
 
 PHOTOSYNTHETIC_CLASSES = ("1a", "1b", "1c", "2")
 """tuple: The life classes whose record is read from the refuge of GEN.1723 (GEN.1808, first slice)."""
@@ -38,6 +38,10 @@ CLASSES = (*PHOTOSYNTHETIC_CLASSES, *life_adaptations.CHEMICAL_CLASSES)
 """tuple: The life classes a record is made for: the photosynthetic ones and the chemical-energy ones (GEN.1811)."""
 CHEMICAL_HABITAT = "chemical_medium"
 """str: The habitat (`life_adaptations.HABITATS`) of a demand that comes from the medium of a class that is not water."""
+FLOOR_CLASSES = ("3a", "3b")
+"""tuple: The classes that live on the floor of an ocean (the hydrogen of the rock is what they eat), whose habitat pressure is the pressure there; the others read the top of the ocean (GEN.1819, TODO's answer). [Stand-in 6.321 AI3, tier T6, tweak L0.]"""
+DEEP_HABITAT = "deep_water"
+"""str: The habitat (`life_adaptations.HABITATS`) of a water class's demand on the axis `pressure`."""
 UMOL_PER_W = 5.0
 """float: Micromoles of photons a square metre a second in one watt a square metre of usable light: the gate's floor, 2e-3 W/m2, is 0.01 umol (`surface_refuge.LIGHT_FLOOR_W_M2`, RW2). [Stand-in 6.318 AE1, tier T6, tweak L0.]"""
 FIELD = "life_adaptations"
@@ -110,7 +114,7 @@ def chemical_demands(values, class_id):
     values.update(life_classes.derived_quantities(values))
     found = life_classes.quantities(values)
     medium = row.solvent["medium"]
-    temperature, medium_demands = found.get("habitat_temperature_k"), []
+    temperature, medium_demands, acid = found.get("habitat_temperature_k"), [], None
     if medium == "sulfuric":
         acid = acid_medium.medium(values, cloud_only=getattr(row, "habitat", None) == "acid_cloud")
         if acid.weight_percent is None:
@@ -128,12 +132,16 @@ def chemical_demands(values, class_id):
             return []
         medium_demands.append(("ammonia_fraction", fraction))
     water = medium == "water"
+    pressure = (acid.pressure_pa if medium == "sulfuric" and getattr(row, "habitat", None) == "acid_cloud" else
+                life_supply.habitat_pressure_pa(values, "floor" if class_id in FLOOR_CLASSES else "top"))
     found_demands = []
     if temperature is not None:
         if temperature < life_adaptations.ordinary("t_cold"):
             found_demands.append(("t_cold", "brine" if water else CHEMICAL_HABITAT, temperature))
         elif temperature > life_adaptations.ordinary("t_hot"):
             found_demands.append(("t_hot", "hot_pool" if water else CHEMICAL_HABITAT, temperature))
+    if pressure:
+        found_demands.append(("pressure", DEEP_HABITAT if water else CHEMICAL_HABITAT, pressure / constants.PA_PER_MPA))
     found_demands.extend((axis, CHEMICAL_HABITAT, demand) for axis, demand in medium_demands)
     return found_demands
 

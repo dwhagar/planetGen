@@ -76759,6 +76759,204 @@
       ],
       "slug": "6-320-stand-ins-of-the-adaptations-of-the-chemical-energy-classes-gen-1811",
       "title": "Stand-ins of the adaptations of the chemical-energy classes (GEN.1811)"
+    },
+    {
+      "key": "6.321",
+      "number": "6.321",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json axis pressure 50 MPa: the ordinary limit of a microbe (the pressure above which a surface microbe stops growing)"
+            ],
+            [
+              "The range it moves in",
+              "30 to 60 MPa"
+            ],
+            [
+              "Where it holds",
+              "the water classes 3a to 4c"
+            ],
+            [
+              "What would show it wrong",
+              "a measured growth limit of an ordinary (piezosensitive) bacterium that differs by a factor of 1.5"
+            ],
+            [
+              "What replaces it",
+              "the measured limits of ordinary cells"
+            ],
+            [
+              "Evidence",
+              "the common range of the piezotolerant; no source read this session"
+            ]
+          ],
+          "id": "AI1",
+          "key": "6.321:AI1",
+          "kind": "P",
+          "slug": "6-321-ai1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_adaptations.json axis pressure 50 MPa: the ordinary limit of a microbe (the pressure above which a surface microbe stops growing)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_adaptations.json rows P1 (growth above 100 MPa, [R5330]), P2 (growth to 140 MPa, [R5324]) and P3 (survival to 1.5 GPa, dormant, [R5331])"
+            ],
+            [
+              "The range it moves in",
+              "the spread of the papers"
+            ],
+            [
+              "Where it holds",
+              "a microbe of the water classes"
+            ],
+            [
+              "What would show it wrong",
+              "a measured growth above 140 MPa; a measured metabolism above 1.5 GPa"
+            ],
+            [
+              "What replaces it",
+              "the measured limits themselves"
+            ],
+            [
+              "Evidence",
+              "[R5324, R5330] are second-hand (Wikipedia citing the papers, GEN.1810); [R5331] was read in its introduction and Table 1"
+            ]
+          ],
+          "id": "AI2",
+          "key": "6.321:AI2",
+          "kind": "B",
+          "slug": "6-321-ai2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_adaptations.json rows P1 (growth above 100 MPa, [R5330]), P2 (growth to 140 MPa, [R5324]) and P3 (survival to 1.5 GPa, dormant, [R5331])"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "adaptation_record.FLOOR_CLASSES: the classes 3a and 3b read the pressure at the floor of an ocean (rock contact, the hydrogen of serpentinisation and of radiolysis), every other class the top"
+            ],
+            [
+              "The range it moves in",
+              "3a and 3b only; or all of the water classes"
+            ],
+            [
+              "Where it holds",
+              "the water classes"
+            ],
+            [
+              "What would show it wrong",
+              "a hydrogen eater of the water column far from the rock"
+            ],
+            [
+              "What replaces it",
+              "a per-class habitat of the class rules"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (TODO's answer to GEN.1819)"
+            ]
+          ],
+          "id": "AI3",
+          "key": "6.321:AI3",
+          "kind": "P",
+          "slug": "6-321-ai3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "adaptation_record.FLOOR_CLASSES: the classes 3a and 3b read the pressure at the floor of an ocean (rock contact, the hydrogen of serpentinisation and of radiolysis), every other class the top"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.json number crust_density_kg_m3 2700: the pressure of an aquifer is the air's plus the weight of the rock to its depth"
+            ],
+            [
+              "The range it moves in",
+              "2600 to 2900"
+            ],
+            [
+              "Where it holds",
+              "an aquifer in a crust of silicate rock"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mean density of the crust of the body"
+            ],
+            [
+              "What replaces it",
+              "the density of the body's own crust (crust_thickness_km)"
+            ],
+            [
+              "Evidence",
+              "the mean density of the continental crust, 2.7 g/cm3"
+            ]
+          ],
+          "id": "AI4",
+          "key": "6.321:AI4",
+          "kind": "B",
+          "slug": "6-321-ai4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_supply.json number crust_density_kg_m3 2700: the pressure of an aquifer is the air's plus the weight of the rock to its depth"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.habitat_pressure_pa takes the floor of the liquid over high-pressure ice to be at the pressure where water at ice_ocean_base_k freezes into it (water_layer.liquidus_pressure_pa): the ocean is ice-sealed there, no rock"
+            ],
+            [
+              "The range it moves in",
+              "the lid's melting point (a little lower with salt: a few tens of MPa)"
+            ],
+            [
+              "Where it holds",
+              "an ice-covered ocean with hp_ice_km"
+            ],
+            [
+              "What would show it wrong",
+              "a stored base of the liquid that differs from the liquidus by more than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "the pressure the water layer's integration stores at the liquid's base"
+            ],
+            [
+              "Evidence",
+              "the melting curves of ice III, V and VI the water layer already holds"
+            ]
+          ],
+          "id": "AI5",
+          "key": "6.321:AI5",
+          "kind": "P",
+          "slug": "6-321-ai5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_supply.habitat_pressure_pa takes the floor of the liquid over high-pressure ice to be at the pressure where water at ice_ocean_base_k freezes into it (water_layer.liquidus_pressure_pa): the ocean is ice-sealed there, no rock"
+        }
+      ],
+      "slug": "6-321-stand-ins-of-the-pressure-of-a-habitat-gen-1819",
+      "title": "Stand-ins of the pressure of a habitat (GEN.1819)"
     }
   ]
 }
