@@ -29,9 +29,6 @@ from tests.served import served
 SYSTEMS = 4
 """int: How many systems the sample holds at least (the pages of the browser tests show 50 bodies, so the sample stays small)."""
 
-MAX_SYSTEMS = 6
-"""int: The most systems it grows to while a stored value is still short of `MOONS_WANTED` moons."""
-
 FIRST_SEED = 11
 LAST_SEED = 80
 """int: The seeds tried, in turn, from `FIRST_SEED`: a system is kept when it has `MIN_MOONS` moons or one with an ocean, until `SYSTEMS` are (TEST.737: the moons a seed makes change with the generator, and a
