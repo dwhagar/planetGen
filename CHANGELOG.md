@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4691+db272.gen150.api14] - 2026-11-21
+
+**Headline:** Habitability now rates a world by the climates people live in without machines, so a cold or hot place scores by how close it is to livable instead of by the clothing it needs.
+
+### Changed
+- **GEN.1677: the Temperature and UV edges of the PHI-6 score are condition-only.** The temperature edges are -120, -20, -10, 5, 31, 38, 122 and 200 C (Green from -10 to 38 C, Blue from 5 to 31 C) and the UV Green edge is 10 times Earth's index. Each too-cold or too-hot place is scored by its own band score, which replaces the flat Yellow credit. The gear thresholds stay as kit-list rows in `Bands.gear_temperature` and the protection limit table, apart from the rating.
+- generation-output: changed
+- generation-affects: fill
+
 ## [8.0.4690+db272.gen150.api14] - 2026-11-21
 
 **Headline:** a gas the gas table gave no infrared flag (52 of 124: the atoms, radicals and rock vapours) is now treated one way by the greenhouse table and the line opacity, by its structure.
