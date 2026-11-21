@@ -145,19 +145,22 @@ def test_a_moon_moves_with_its_planet_tide_and_keeps_its_orbit_plane():
     assert moon.distance * (1.0 - moon.eccentricity) * (1.0 - 1e-6) <= radius <= moon.distance * (1.0 + moon.eccentricity) * (1.0 + 1e-6)
 
 
-def test_a_history_no_integrator_can_finish_leaves_the_moons_as_born(monkeypatch):
-    """TM8: when `moon_orbits.evolve` gives up, the moons keep their birth distances, nothing falls and the planet's spin is the one it would have without them."""
+def test_a_history_no_integrator_can_finish_leaves_the_moons_as_born_unless_the_tide_brings_one_in(monkeypatch):
+    """TM8 (GEN.1816): when `moon_orbits.evolve` gives up, the moons keep their birth distances unless the tide takes one in within the age (that one is lost, recorded as fallen),
+    the planet is marked, and its spin is the one it would have without them."""
     from planetgen.physics import moon_orbits
 
     def fail(*args, **kwargs):
         raise moon_orbits.IntegrationFailed("stiff")
 
     planet = _planet_where(lambda p: p.build.born_moons, "a planet with the moons it was born with")
+    born = list(planet.build.born_moons)
     monkeypatch.setattr(moon_orbits, "evolve", fail)
     planets.generate_spin(planet, planet.star.mass, birth=planet.build.birth_spin)
-    assert planet.moons == planet.build.born_moons
+    assert planet.build.moon_history_unfinished
+    assert all(m in born for m in planet.moons) and len(planet.moons) + len(planet.fallen_moons) == len(born)
     assert all(m.distance == pytest.approx(m._birth_distance_au) for m in planet.moons)
-    assert planet.fallen_moons == () and planet.rotation_period_hours > 0.0
+    assert planet.rotation_period_hours > 0.0
 
 
 def test_a_planet_whose_last_moon_is_gone_early_goes_on_to_the_spin_the_tide_gives_it(monkeypatch):
