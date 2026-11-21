@@ -3105,6 +3105,7 @@ BODY_FIELDS = (
                          lambda row: {"oddities": oddities.from_column(row["oddities"])}),     # GEN.1047
     object_rows.computed("collision_count", lambda body, context: int(getattr(body, "collision_count", 0) or 0),
                          lambda row: {"collision_count": row["collision_count"] or 0}),     # DB.122: the oddity table reads it, so a loaded planet must not read 0
+    object_rows.attr("air_history"),    # GEN.1745 slice 4b: the record of the air history (`air_record.pack`), kept whole; a re-score or an edit reads it back as it was made
 )
 """tuple: The `Field`s `planets` and `moons` share (`insert_planet`/`insert_moon` write them, `db.edits` updates
 them in place, `_planet_or_moon_row_to_dict` reads them back)."""
