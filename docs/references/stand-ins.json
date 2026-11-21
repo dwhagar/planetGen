@@ -75393,7 +75393,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "GEN.1746",
+          "unread": null,
           "what": "air_events.IMPACT_ONE_KM_PER_GYR 2,000 and IMPACT_FIVE_KM_PER_GYR 66.7: the Earth's impacts of bodies over 1 km (every 0.5 Myr) and over 5 km (every 10 to 20 Myr, the middle used)"
         },
         {
@@ -75431,7 +75431,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
-          "unread": "GEN.1746",
+          "unread": null,
           "what": "air_events.IMPACT_SIZE_EXPONENT 2.1: the cumulative number of impacts over a diameter goes as D^-2.1, the slope through the two figures of EV3"
         },
         {
@@ -75469,7 +75469,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1746",
+          "unread": null,
           "what": "air_events.NEUKUM_A 5.44e-14, NEUKUM_LAMBDA_PER_GYR 6.93, NEUKUM_B_PER_GYR 8.38e-4: the lunar cratering chronology function N(1) = a (exp(lambda T) - 1) + b T; the impact rate of a body is its cross section over the Earth's (radius squared, no gravitational focusing) times the derivative of the function at the time before now of its age on the Earth's own clock, over its present value"
         },
         {
@@ -75507,7 +75507,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1746",
+          "unread": null,
           "what": "air_events.KILL_CURVE: the share of species killed by events that recur every 1, 10 and 100 Myr: 0.10, 0.30, 0.65; straight in the log between and held at the ends. An event kills the share its own recurrence on the Earth gives (T6, L3: the kill curve \"does not imply any cause\", so reading an event by how often events as large recur is a choice of this model)"
         },
         {
@@ -75541,7 +75541,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1746",
+          "unread": null,
           "what": "air_events.RECOVERY_GYR 0.010: the origination that follows an extinction lags it by about 10 Myr, the same after the large ones as after the small"
         },
         {
@@ -75583,7 +75583,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1746",
+          "unread": null,
           "what": "air_events.IMPACT_LARGEST_KM 100: the largest impactor the size law draws; over it an impact is a giant impact, the formation's and not the history's"
         }
       ],
@@ -75633,7 +75633,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1746",
+          "unread": null,
           "what": "life_ages.AGE_KILL_THRESHOLD 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve"
         },
         {
@@ -75671,7 +75671,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
-          "unread": "GEN.1746",
+          "unread": null,
           "what": "events that fall within air_events.RECOVERY_GYR of the extinction before are part of it, keeping the larger kill and its cause (no background process: the kill of an event is read from the curve at its own recurrence, so the impacts that reach the threshold fill the curve and nothing is left over)"
         }
       ],
