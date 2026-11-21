@@ -103,11 +103,6 @@ the PHI-4 doc leaves between 100 mSv/yr and 10 Gy/yr (the Eigen threshold of
 hydrosphere.md 4.6, Boss's defaults of 2026-10-10 (Blue 20 mSv/yr, 50 as the
 single-year limit)."""
 
-UV_BAND = (None, None, None, None, limit("uv_blue_index"), limit("uv_green_index"), limit("uv_lethal_index"), limit("uv_outer_index"))
-"""The DNA-weighted ultraviolet dose at the ground as a multiple of Earth's (log; `World.uv_index`, GEN.445). Blue to 3, the dose of Earth's own tropical high-altitude peak, Green to 10
-(fair skin burns in minutes at full sun, but the day has shade and night in it; GEN.1677, Boss 11-20: the edge is how fast the light injures, not what covers the skin), Yellow to the
-unfiltered light of an ozone-free world (300), Red beyond, 0 a decade further out. The score of the Radiation domain is the lower of this and the dose's."""
-
 SINGLE_YEAR_DOSE_SV = limit("dose_single_year_sv")
 """float: ICRP's limit for any one year, 50 mSv."""
 
@@ -142,6 +137,9 @@ def bands(overrides=None):
         dose=(None, None, None, None, value("dose_blue_sv_yr"), value("dose_green_sv_yr"), value("dose_yellow_sv_yr"),
               value("dose_outer_sv_yr")),
         o2_high=(None, None, None, None, chronic, chronic, acute, acute * 10),
+        # The DNA-weighted ultraviolet dose at the ground as a multiple of Earth's (log; `World.uv_index`, GEN.445). Blue to 3, the dose of Earth's own tropical high-altitude peak, Green to 10
+        # (fair skin burns in minutes at full sun, but the day has shade and night in it; GEN.1677, Boss 11-20: the edge is how fast the light injures, not what covers the skin), Yellow to the
+        # unfiltered light of an ozone-free world (300), Red beyond, 0 a decade further out. The score of the Radiation domain is the lower of this and the dose's.
         uv=(None, None, None, None, value("uv_blue_index"), value("uv_green_index"), value("uv_lethal_index"), value("uv_outer_index")),
         gear_temperature=(value("cold_outer_c"), value("cold_suit_c"), value("cold_clothing_c"), value("comfort_low_c"),
                           value("comfort_high_c"), value("heat_garment_c"), value("heat_max_c"), value("hot_outer_c")),

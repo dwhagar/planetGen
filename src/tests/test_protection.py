@@ -57,7 +57,7 @@ def test_the_score_bands_are_built_from_the_limit_table():
                                          limit("comfort_high_c"), limit("temp_green_high_c"), limit("heat_max_c"))
     assert hab.HUMAN.gear_temperature[1:7] == (limit("cold_suit_c"), limit("cold_clothing_c"), limit("comfort_low_c"),
                                                limit("comfort_high_c"), limit("heat_garment_c"), limit("heat_max_c"))
-    assert hab.UV_BAND[4:6] == (limit("uv_blue_index"), limit("uv_green_index"))
+    assert hab.HUMAN.uv[4:6] == (limit("uv_blue_index"), limit("uv_green_index"))
     assert hab.DOSE_BAND[4:7] == (limit("dose_blue_sv_yr"), limit("dose_green_sv_yr"), limit("dose_yellow_sv_yr"))
     assert hab.WET_BULB_CRIT_C == limit("wet_bulb_c")
     # The mask limit is derived from the Armstrong limit and the inspired oxygen the table also holds.
