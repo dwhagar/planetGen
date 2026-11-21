@@ -10,9 +10,9 @@ own: the orbit updater moves the giant, and the region is the giant's mean longi
 from the giant at the moment it wants, so a stored region is where it should be whenever it is read, with nothing for the updater to write.
 """
 
-from planetgen.physics import trojan_swarm, trojans
+from planetgen.physics import constants, trojan_swarm, trojans
 
-SECONDS_PER_YEAR = 365.25 * 86400.0
+SECONDS_PER_YEAR = constants.SECONDS_PER_YEAR
 """float: Seconds in a Julian year, the unit of the libration period."""
 
 
