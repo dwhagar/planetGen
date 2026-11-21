@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4690+db272.gen150.api14] - 2026-11-21
+
+**Headline:** a gas the gas table gave no infrared flag (52 of 124: the atoms, radicals and rock vapours) is now treated one way by the greenhouse table and the line opacity, by its structure.
+
+### Fixed
+- GEN.1629: 52 gases had `ir` null and three readers treated the null three ways (the greenhouse table's features counted it as no infrared share, its thin-air scaling counted it as absorbing, the line opacity gave it no band). `Gas.infrared_class` returns the row's flag, or for a row with none the gas table's own rule (monatomic none, homonuclear diatomics collision-induced only, the rest infrared): an atom `none`, a diatomic of one element `cia`, any other molecule `ir`, which takes the generic stand-in band. The table, the thin-air scaling and the line opacity read it (registry row IR21, tier 7, tweak L0). OH, FeH, VO, MgO, SiO2, TiO2, NaOH and HCOOH (and 40 more) now count as infrared-active where they are in an air; Cl, H, O and the other atoms do not.
+
+generation-output: changed (lock item)
+generation-affects: fill
+
 ## [8.0.4689+db272.gen150.api14] - 2026-11-21
 
 **Headline:** The greenhouse table reads the minor gases of an air itself: Earth's full air with its methane, nitrous oxide and ozone reads 289.3 K against the model's 289.0, where the run-time trace rule left it at 286.5 K
