@@ -127,7 +127,7 @@ def test_a_system_with_no_cluster_history_is_the_system_it_always_was_and_a_dens
     assert len(dense.primary.orbiters) < len(plain.primary.orbiters)
     assert all(loss.kind == "stripped" for _star, loss in dense.ejected_losses())
     again = _system(None, seed)
-    assert [p.distance for p in again.primary.orbiters] == [p.distance for p in plain.planets]
+    assert [p.distance for p in again.primary.orbiters] == [p.distance for p in plain.primary.orbiters]
 
 
 def test_a_stripped_loss_makes_a_rogue_that_leaves_with_the_unbinding_speed_and_says_its_birth_cluster_unbound_it():

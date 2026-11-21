@@ -33,7 +33,7 @@ def made():
 
 
 def _giant(system):
-    return next(planet for planet in system.planets if planet.body_type == "g")
+    return next(planet for planet in system.primary.orbiters if planet.body_type == "g")
 
 
 def _force(monkeypatch, ceiling=2.0, survival=1.0):
@@ -45,7 +45,7 @@ def test_a_planet_at_a_point_shares_its_giants_orbit_and_stands_60_degrees_from_
     system, _config = made
     giant = _giant(system)
     _force(monkeypatch)
-    found = trojan_planet.build(system, system.star, system.planets)
+    found = trojan_planet.build(system, system.star, system.primary.orbiters)
     assert len(found) == 1
     planet = found[0]
     assert planet.lagrange_host is giant and planet.lagrange_point in ("L4", "L5") and planet.body_type != "a"
@@ -61,8 +61,8 @@ def test_a_planet_at_a_point_shares_its_giants_orbit_and_stands_60_degrees_from_
 def test_the_mass_is_between_the_lightest_planet_and_the_ceiling_and_the_draws_are_the_giants_own(made, monkeypatch):
     system, _config = made
     _force(monkeypatch, ceiling=1.5)
-    first = trojan_planet.build(system, system.star, system.planets)
-    second = trojan_planet.build(system, system.star, system.planets)
+    first = trojan_planet.build(system, system.star, system.primary.orbiters)
+    second = trojan_planet.build(system, system.star, system.primary.orbiters)
     mass_earth = first[0].mass / 5.972e24
     assert 0.1 <= mass_earth <= 1.5 + 1e-9
     assert [(p.mass, p.lagrange_point, p.position_x, p.position_y) for p in first] == [(p.mass, p.lagrange_point, p.position_x, p.position_y) for p in second]
@@ -71,9 +71,9 @@ def test_the_mass_is_between_the_lightest_planet_and_the_ceiling_and_the_draws_a
 def test_a_giant_whose_zone_grew_less_than_a_planet_or_that_cannot_keep_it_holds_none(made, monkeypatch):
     system, _config = made
     _force(monkeypatch, ceiling=0.05)
-    assert trojan_planet.build(system, system.star, system.planets) == []
+    assert trojan_planet.build(system, system.star, system.primary.orbiters) == []
     _force(monkeypatch, ceiling=2.0, survival=0.0)
-    assert trojan_planet.build(system, system.star, system.planets) == []
+    assert trojan_planet.build(system, system.star, system.primary.orbiters) == []
 
 
 def test_the_zone_is_lost_when_the_giant_moved_from_where_it_formed():
@@ -98,20 +98,20 @@ def test_a_planet_at_a_point_is_saved_with_its_giants_row_and_read_back_beside_i
     system, config = _system(4)
     giant = _giant(system)
     _force(monkeypatch)
-    found = trojan_planet.build(system, system.star, system.planets)
+    found = trojan_planet.build(system, system.star, system.primary.orbiters)
     assert found
-    system.planets[:] = sorted([*system.planets, *found], key=lambda body: body.distance)
+    system.primary.orbiters[:] = sorted([*system.primary.orbiters, *found], key=lambda body: body.distance)
     conn = store.get_connection(mysql_config)
     try:
         with conn:
             system_id = store.insert_star_system(conn, system, config)
         rows = conn.execute("SELECT id, orbital_index, lagrange_point, lagrange_host_id FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)).fetchall()
-        giant_row = rows[system.planets.index(giant)]
+        giant_row = rows[system.primary.orbiters.index(giant)]
         trojan_rows = [row for row in rows if row["lagrange_point"] is not None]
         assert len(trojan_rows) == len(found) and all(row["lagrange_host_id"] == giant_row["id"] for row in trojan_rows)
         assert all(row["lagrange_point"] is None and row["lagrange_host_id"] is None for row in rows if row not in trojan_rows)
         loaded = store.load_star_system(conn, system_id)
-        back = [body for body in loaded.planets if getattr(body, "lagrange_point", None) and body.body_type != "a"]
+        back = [body for body in loaded.primary.orbiters if getattr(body, "lagrange_point", None) and body.body_type != "a"]
         assert [body.lagrange_point for body in back] == [found[0].lagrange_point]
         assert all(body.lagrange_host is not None and body.lagrange_host.db_id == giant_row["id"] and body.lagrange_host.body_type == "g" for body in back)
     finally:
@@ -123,7 +123,7 @@ def test_the_point_is_a_lagrange_point_of_the_pair_and_the_room_holds_the_body(m
     system, _config = made
     giant = _giant(system)
     _force(monkeypatch)
-    planet = trojan_planet.build(system, system.star, system.planets)[0]
+    planet = trojan_planet.build(system, system.star, system.primary.orbiters)[0]
     assert planet.lagrange_point in trojans.POINTS
     assert trojans.stable(system.star.mass, giant.mass, planet.mass)
 
@@ -159,7 +159,7 @@ def test_a_rogue_planet_and_a_moon_of_it_are_saved_and_read_back_with_no_giant_t
     cfg.STAR_TYPE, cfg.PLANETS, cfg.MAX_PLANETS, cfg.BINARY_SYSTEM = "G2V", True, True, False
     with draw.bound(3):
         made = StarSystem(system_config=cfg)
-    moon = next((moon for planet in made.planets for moon in getattr(planet, "moons", ())), None)
+    moon = next((moon for planet in made.primary.orbiters for moon in getattr(planet, "moons", ())), None)
     assert moon is not None
     conn = store.get_connection(mysql_config)
     try:

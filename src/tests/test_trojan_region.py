@@ -143,26 +143,26 @@ def test_regions_are_saved_with_their_giant_as_parent_and_read_back_beside_it(my
     config.FORCE_CLASS = "J"
     with draw.bound(3):
         made = StarSystem(system_config=config)
-    giant = next(planet for planet in made.planets if planet.body_type == "g")
+    giant = next(planet for planet in made.primary.orbiters if planet.body_type == "g")
     regions = [TrojanRegion(config, made.star, giant, region)
                for region in trojan_swarm.draw_regions(made.star.mass, giant.mass, 1.0e22, draw.Stream("test:trojan-store"))]
     assert len(regions) == 2
-    made.planets.extend(regions)
+    made.primary.orbiters.extend(regions)
     conn = store.get_connection(mysql_config)
     try:
         with conn:
             system_id = store.insert_star_system(conn, made, config)
         rows = conn.execute("SELECT * FROM asteroid_belts WHERE star_system_id = ? AND lagrange_point IS NOT NULL ORDER BY lagrange_point", (system_id,)).fetchall()
-        giant_row = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND orbital_index = ?", (system_id, made.planets.index(giant))).fetchone()
+        giant_row = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND orbital_index = ?", (system_id, made.primary.orbiters.index(giant))).fetchone()
         assert [row["lagrange_point"] for row in rows] == ["L4", "L5"]
         assert all(row["parent_type"] == "planet" and row["parent_id"] == giant_row["id"] for row in rows)
         assert [row["libration_amplitude_deg"] for row in rows] == [region.libration_amplitude_deg for region in regions]
         loaded = store.load_star_system(conn, system_id)
-        back = [body for body in loaded.planets if getattr(body, "lagrange_point", None)]
+        back = [body for body in loaded.primary.orbiters if getattr(body, "lagrange_point", None)]
         assert [body.lagrange_point for body in back] == ["L4", "L5"] and all(isinstance(body, TrojanRegion) for body in back)
         assert all(body.host is not None and body.host.body_type == "g" and body.host.db_id == giant_row["id"] for body in back)
         assert [body.mass_kg for body in back] == [region.mass_kg for region in regions] and [body.mean_eccentricity for body in back] == [region.mean_eccentricity for region in regions]
-        plain = [body for body in loaded.planets if body.body_type == "a" and not getattr(body, "lagrange_point", None)]
+        plain = [body for body in loaded.primary.orbiters if body.body_type == "a" and not getattr(body, "lagrange_point", None)]
         assert all(type(body) is AsteroidBelt for body in plain)
         from planetgen.db import belt_names
         names = belt_names.names_for_belts(conn, [row["id"] for row in rows])
