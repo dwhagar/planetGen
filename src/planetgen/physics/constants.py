@@ -99,6 +99,7 @@ HYDROGEN_ATOM_MASS_KG = 1.67353286206015e-27  # Mass of a hydrogen atom in kg
 ISM_MASS_PER_HYDROGEN = 1.4  # Gas mass per hydrogen atom, in hydrogen masses (helium adds ~40%)
 STAR_CLOUD_RELATIVE_SPEED_MS = 26.0 * 1000  # A star's typical speed through its surrounding gas, m/s (the Sun's through the local cloud)
 CM3_TO_M3 = 1e6  # Particles per cm^3 to particles per m^3
+PA_PER_MPA = 1.0e6  # Pascals in a megapascal (GEN.1819: the pressure of a habitat against the megapascal limits of the table of adaptations)
 SOLAR_RADIUS_M = 695_700_000.0  # Radius of the Sun in meters
 SOLAR_ESCAPE_VELOCITY = math.sqrt(2 * G * SOLAR_MASS_TO_KG / SOLAR_RADIUS_M)  # Sun's escape velocity in m/s (about 617.5 km/s)
 SOLAR_WIND_VELOCITY = 400 * 1000  # Average solar wind velocity in m/s
