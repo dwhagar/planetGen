@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4672+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The stopping test of the giant cloud-deck bisection is a registered stand-in, so `test_constants_completeness` is green again.
+
+### Fixed
+
+- `hot_cloud_deck.TOLERANCE` (1e-3 of a decade in pressure, the stopping test of the bisection of a giant's profile, GEN.1577) had no registry row, tag or place in the constants module, which turned `test_constants_completeness` red on main from Train 51. It is row DA3 of section 6.317 (a numerical stopping test, tier T9, tweak L0, like belt_ledger's BR21 tolerance) and its docstring carries the tag (TEST.811).
+
+generation-output: unchanged
+
 ## [8.0.4671+db270.gen150.api14] - 2026-11-21
 
 **Headline:** A planet's Life and air chart now shows every gas of its stored air history, with the mass extinctions and the life ages between them.
