@@ -3732,6 +3732,13 @@ def write_special_do(params, piece, ctx):
     return dict(counts)
 
 
+def _time_left_text(done, total, elapsed):
+    """How long a loop that has done `done` of `total` in `elapsed` seconds has left at the pace it has kept (`about 1h 23m 45s left`), or nothing before it has a pace (OPS.289)."""
+    if done <= 0 or elapsed <= 0 or done >= total:
+        return None
+    return f"about {logrecord.duration_text(elapsed * (total - done) / done)} left"
+
+
 def _write_special_remnants(params, ctx):
     """
     The `remnants` piece of the `write-special-phenomena` unit (GEN.1682): draws the neutron stars and black holes below the scatter's cut for every backfill ring sector (`store.backfilled_uncharted_addresses`: a sector the
@@ -3747,21 +3754,32 @@ def _write_special_remnants(params, ctx):
     limits = store.scatter_limits_of(conn, skeleton)
     addresses = store.backfilled_uncharted_addresses(conn)
     held = store.addresses_holding_below_cut_remnants(conn, min_mass)
-    ctx.step("Neutron stars and black holes of the backfill rings", len(addresses))
     counts = collections.Counter()
+    if addresses and "idx_phenomenon_scatter_address" not in store.phenomenon_scatter_index_names(conn):
+        # PERF.284: the scatter took the address index off for its inserts, and every chunk below reads the light of the cells it reached (`block_lights.note_rows`)
+        # by address: without the index each of those reads scans the whole table (2 to 3 s a chunk on a big galaxy, hours over the rings). One index, built
+        # here, is all of it; the index stage after this one finds it present.
+        ctx.phase("Building the phenomenon table's address index, which the block lights of the rings read")
+        store.add_phenomenon_scatter_index(conn, "idx_phenomenon_scatter_address")
+    label = "Neutron stars and black holes of the backfill rings"
+    ctx.step(label, len(addresses))
+    pace = Ticker(label, total=len(addresses))       # OPS.289: the count of sectors done, the rate and the time left, in the stage log and as the unit's second bar
 
     def write_remnants(c):
         """Every chunk's rows, their members and classes, as one transaction (DB.114): a try that fails is rolled back whole."""
         contention.begin_read_committed(c)
         counts.clear()
+        done = 0        # a try that fails and runs again counts from the start
         for start in range(0, len(addresses), RING_REMNANT_DRAW_SECTORS):
             chunk = addresses[start:start + RING_REMNANT_DRAW_SECTORS]
             rows = ringRemnants.rows_for(c, skeleton, limits, params["seed"], min_mass, chunk, held=held)
             if rows:
                 scatterCompanions.insert_phenomenon_scatter(c, rows)
                 counts.update(phenomenon_scatter.class_label(row[3], row[4]) for row in rows)
-            ctx.advance(len(chunk))
-        store.add_phenomenon_scatter_classes(c, {phenomenon_scatter.split_label(label): count for label, count in counts.items()})
+            done += len(chunk)
+            pace.tick(done, detail=_time_left_text(done, len(addresses), pace.clock() - pace.began))
+        pace.finish(done, detail=f"{sum(counts.values()):,} written")
+        store.add_phenomenon_scatter_classes(c, {phenomenon_scatter.split_label(kind): count for kind, count in counts.items()})
         ctx.commit_piece(dict(counts))
 
     contention.run_once(conn, write_remnants)

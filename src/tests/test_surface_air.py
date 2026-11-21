@@ -860,3 +860,12 @@ def test_the_mantle_redox_takes_one_draw_from_the_unit_whatever_the_recipe_takes
 
 def test_an_airless_mixture_has_no_column_of_its_own_to_freeze_out():
     assert sa._column_moles(types.SimpleNamespace(moles=None, mole_fractions={}), 1.0e22) == {}
+
+
+def test_the_subject_function_of_a_setting_can_be_pickled_for_a_process_pool():
+    """TEST.805: `setting_of` built `subject_of` as a closure, which a process pool cannot send (test_describe, test_insolation)."""
+    import pickle
+
+    subject = sa._BodySubject(types.SimpleNamespace(name="body"), True, 1.5)
+    again = pickle.loads(pickle.dumps(subject))
+    assert (again.body.name, again.water_lost, again.star_distance_au) == ("body", True, 1.5)

@@ -58,7 +58,7 @@ def test_update_sh_prints_its_own_lines_through_the_layer():
     assert 'source "$SCRIPT_DIR/scripts/logrecord.sh"' in text
     own = [line for line in text.splitlines() if re.match(r'\s*echo "', line)]
     assert own == [], f"update.sh's own lines go through scripts/logrecord.sh: {own}"
-    assert all(f"log_stage {n} 9 " in text for n in range(1, 10))
+    assert all(f"log_stage {n} 8 " in text for n in range(1, 9))
 
 
 DEPLOY_SCRIPTS = ("update.sh", "install.sh", "scripts/deploy-common.sh", "scripts/install-python-deps.sh", "scripts/enable-swap.sh",

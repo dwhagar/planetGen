@@ -629,3 +629,17 @@ CREATE TABLE IF NOT EXISTS pressure_minutes (
 
     CONSTRAINT chk_pressure_minutes_level CHECK (level_max IN (0, 1, 2))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v27 (OPS.284): the durable copy of a generation run's record. A run's own record (its steps, the galaxy seed and build it began on, each stage's clocks and conclusion) lives in Redis, which a
+-- restart of the machine, or of Redis, takes away with the run; `finish-run` and the Queue page need it. The supervisor's pages write it here at every change that matters
+-- (`planetgen/queue/runstore.py`) and put it back into Redis when Redis lacks the run, so Redis is the cache and this table the record. `record` is JSON: `{"run": {the run hash},
+-- "stages": [{each stage hash}]}`; `ledger_run` is the `engine_runs` id the run's rows are under. Rows older than `KEEP_DAYS` days are dropped.
+CREATE TABLE IF NOT EXISTS engine_run_records (
+    run_id        VARCHAR(64) NOT NULL PRIMARY KEY,
+    ledger_run    BIGINT UNSIGNED NULL,
+    state         VARCHAR(16) NOT NULL DEFAULT '',
+    record        MEDIUMTEXT NOT NULL,
+    updated_at    DATETIME(6) NOT NULL,
+
+    KEY idx_engine_run_records_updated (updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -23,6 +23,7 @@ from planetgen import tuning
 from planetgen.datasets import mamajek_sequence
 from planetgen.physics import imf, post_main_sequence
 from planetgen.physics import stellar_evolution as evolution
+from planetgen.generation import band_table_cache
 from planetgen.util import draw
 
 ForcedStar = namedtuple("ForcedStar", "initial_mass_sol age_gy state exact fe_h")
@@ -85,8 +86,24 @@ def _ages(line, mass_sol, fe_h):
     return out
 
 
+def _encode_cells(table):
+    """The kept form of a table (`band_table_cache`): its keys and its cells' numbers."""
+    return [[list(key), [list(cell) for cell in cells]] for key, cells in table.items()]
+
+
+def _decode_cells(form):
+    """The table again from its kept form."""
+    return {tuple(key): [_Cell(*cell) for cell in cells] for key, cells in form}
+
+
 @functools.lru_cache(maxsize=None)
 def _table(bucket):
+    """The model's cells at one [Fe/H] (`_build_table`), kept across processes (`band_table_cache`, PERF.283): the class catalog of the
+    site builds two of them, 13 s of the 18 s the site's warm app took."""
+    return band_table_cache.kept("forced-star", (bucket,), lambda: _build_table(bucket), _encode_cells, _decode_cells)
+
+
+def _build_table(bucket):
     """
     The model's cells at one [Fe/H]: `{(letter, subclass, yerkes): [_Cell, ...]}`, each cell a mass and an age with the weight
     a random star of the population would have there (the mass function per log mass times the time the cell spans), the
