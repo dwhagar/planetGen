@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4708+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The three life-ledger helpers that only the tests called are removed.
+
+### Removed
+- GEN.1820: `life_air.reactions_of`, `takes` and `gives`. The air and the air history read the class rows of the ledger, which already carry what each class draws down and makes. The 35 balanced reactions stay as the ledger `tests/test_life_air.py` holds the class rows to, and the tests read them directly.
+
+generation-output: unchanged
+
 ## [8.0.4707+db272.gen150.api14] - 2026-11-21
 
 **Headline:** The trojan page text reads `trojans.pair_text`, and the unread Python Lagrange geometry is removed (the gravity layer has its own).
