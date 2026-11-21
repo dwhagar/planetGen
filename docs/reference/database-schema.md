@@ -1586,13 +1586,14 @@ Added in v270 (GEN.1746 slice 3). The life ages of a planet or moon (`physics/li
 
 ### `planet_adaptations` / `moon_adaptations`
 
-Added in v274 (GEN.1809). What the life of a planet or moon had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): one row for each thing, written with the body and removed with it. Only bodies whose life is of a class with a record (1a, 1b, 1c and 2 for now) and that live in a refuge have rows; a body with none, a rogue planet and a body stored before v274 have none.
+Added in v274 (GEN.1809). What the life of a planet or moon had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): one row for each thing the life of each class on it needed, written with the body and removed with it. Only bodies whose life is of a class with a record (1a, 1b, 1c and 2 for now) and that live in a refuge have rows; a body with none, a rogue planet and a body stored before v274 have none.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK | |
 | `planet_id` / `moon_id` | BIGINT UNSIGNED | NOT NULL | FK -> `planets.id` / `moons.id` (`ON DELETE CASCADE`). |
 | `entry_number` | SMALLINT UNSIGNED | NOT NULL, CHECK 1 or more | The row's place in the record, from 1. UNIQUE with the owner. |
+| `life_class` | VARCHAR(3) | NOT NULL | The life class whose life the entry is for (`1a`, `1b`, `1c`, `2` for now): a body with life of several classes has the entries of each, one class after the other. |
 | `axis` | VARCHAR(24) | nullable | The axis of the table of adaptations (`life_adaptations.AXES`): `t_cold`, `t_hot`, `light_floor`, `water_hours`, `ground_water_depth` or `water_activity`; `NULL` for a habitat row (a pigment that works in no light, a crust that wakes on water). Indexed with `grade`. |
 | `habitat` | VARCHAR(24) | NOT NULL | The habitat the demand comes from (`life_adaptations.HABITATS`: `open_water`, `water_under_ice`, `melt_film`, `crust_land`, `seep`, `brine`, `hot_pool`). |
 | `demand` | DOUBLE | nullable | What the places demand on the axis, in the unit of the axis: K for the temperatures, micromoles of photons m-2 s-1 for the light, hours of liquid water a year, metres for the water table, a water activity; `NULL` for a habitat row. |

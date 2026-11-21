@@ -924,13 +924,14 @@ The life ages of a planet (v273, GEN.1746 slice 3): one row for each stretch of 
 
 ## `planet_adaptations`
 
-The adaptations the life of a planet needed (v274, GEN.1809): one row for each thing its life had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): the order from 1, the axis of the table of adaptations (none for a habitat row), the habitat, what the places demand on the axis (in the unit of the axis), the lowest grade (2 or 3) that reaches it (none when even the extreme grade falls short) and the ids of the rows of the table that give it, comma separated. A body with no such life, a rogue planet and a row made before v274 have none.
+The adaptations the life of a planet needed (v274, GEN.1809): one row for each thing the life of one class on it had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): the order from 1, the class (`life_class`), the axis of the table of adaptations (none for a habitat row), the habitat, what the places demand on the axis (in the unit of the axis), the lowest grade (2 or 3) that reaches it (none when even the extreme grade falls short) and the ids of the rows of the table that give it, comma separated. A body with no such life, a rogue planet and a row made before v274 have none.
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `planet_id` | BIGINT UNSIGNED | NOT NULL |  |
 | `entry_number` | SMALLINT UNSIGNED | NOT NULL |  |
+| `life_class` | VARCHAR(3) | NOT NULL |  |
 | `axis` | VARCHAR(24) | NULL |  |
 | `habitat` | VARCHAR(24) | NOT NULL |  |
 | `demand` | DOUBLE | NULL |  |
@@ -1436,13 +1437,14 @@ The life ages of a moon (v273, GEN.1746 slice 3): one row for each stretch of it
 
 ## `moon_adaptations`
 
-The adaptations the life of a moon needed (v274, GEN.1809): one row for each thing its life had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): the order from 1, the axis of the table of adaptations (none for a habitat row), the habitat, what the places demand on the axis (in the unit of the axis), the lowest grade (2 or 3) that reaches it (none when even the extreme grade falls short) and the ids of the rows of the table that give it, comma separated. A body with no such life, a rogue planet and a row made before v274 have none.
+The adaptations the life of a moon needed (v274, GEN.1809): one row for each thing the life of one class on it had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): the order from 1, the class (`life_class`), the axis of the table of adaptations (none for a habitat row), the habitat, what the places demand on the axis (in the unit of the axis), the lowest grade (2 or 3) that reaches it (none when even the extreme grade falls short) and the ids of the rows of the table that give it, comma separated. A body with no such life, a rogue planet and a row made before v274 have none.
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | NOT NULL |  |
 | `moon_id` | BIGINT UNSIGNED | NOT NULL |  |
 | `entry_number` | SMALLINT UNSIGNED | NOT NULL |  |
+| `life_class` | VARCHAR(3) | NOT NULL |  |
 | `axis` | VARCHAR(24) | NULL |  |
 | `habitat` | VARCHAR(24) | NOT NULL |  |
 | `demand` | DOUBLE | NULL |  |

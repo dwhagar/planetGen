@@ -22,6 +22,7 @@ CREATE TABLE {prefix}_adaptations (
     id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     {prefix}_id   BIGINT UNSIGNED NOT NULL,
     entry_number SMALLINT UNSIGNED NOT NULL CHECK (entry_number >= 1),
+    life_class   VARCHAR(3) NOT NULL,
     axis         VARCHAR(24) NULL,
     habitat      VARCHAR(24) NOT NULL,
     demand       DOUBLE NULL,

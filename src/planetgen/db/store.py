@@ -3197,7 +3197,7 @@ def body_child_rows(conn, body, body_id, owner=None):
                      (body_id, entry["number"], entry["start_gyr"], entry["end_gyr"], entry["cause"], entry["kill_share"]))
     for number, entry in enumerate(getattr(body, adaptation_record.FIELD, None) or (), 1):
         conn.execute(f"INSERT INTO {prefix}_adaptations ({id_column}, {', '.join(ADAPTATION_COLUMNS)}) VALUES (?, {', '.join('?' * len(ADAPTATION_COLUMNS))})",
-                     (body_id, number, entry["axis"], entry["habitat"], entry["demand"], entry["grade"], ",".join(entry["rows"])))
+                     (body_id, number, entry["life_class"], entry["axis"], entry["habitat"], entry["demand"], entry["grade"], ",".join(entry["rows"])))
 
 
 def body_gases(conn, body_ids, is_moon, owner=None):
@@ -3257,7 +3257,7 @@ def body_life_ages(conn, body_ids, is_moon):
     return found
 
 
-ADAPTATION_COLUMNS = ("entry_number", "axis", "habitat", "demand", "grade", "row_ids")
+ADAPTATION_COLUMNS = ("entry_number", "life_class", "axis", "habitat", "demand", "grade", "row_ids")
 """tuple: The columns of `planet_adaptations` and `moon_adaptations` after the body's id, in the order `body_child_rows` writes them (GEN.1809)."""
 
 
@@ -3270,7 +3270,7 @@ def body_adaptations(conn, body_ids, is_moon):
         chunk = ids[start:start + 1000]
         marks = ", ".join("?" * len(chunk))
         for row in conn.execute(f"SELECT {id_column}, {', '.join(ADAPTATION_COLUMNS)} FROM {table} WHERE {id_column} IN ({marks}) ORDER BY {id_column}, entry_number", tuple(chunk)).fetchall():
-            found.setdefault(row[id_column], []).append({"axis": row["axis"], "habitat": row["habitat"], "demand": row["demand"], "grade": row["grade"], "rows": row["row_ids"].split(",") if row["row_ids"] else []})
+            found.setdefault(row[id_column], []).append({"life_class": row["life_class"], "axis": row["axis"], "habitat": row["habitat"], "demand": row["demand"], "grade": row["grade"], "rows": row["row_ids"].split(",") if row["row_ids"] else []})
     return found
 
 

@@ -2904,13 +2904,14 @@ CREATE TABLE IF NOT EXISTS planet_life_ages (
     KEY idx_planet_life_ages_number (age_number, end_gyr)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- The adaptations the life of a planet needed (v274, GEN.1809): one row for each thing its life had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): the order from 1, the axis
+-- The adaptations the life of a planet needed (v274, GEN.1809): one row for each thing the life of one class on it had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): the order from 1, the class (`life_class`), the axis
 -- of the table of adaptations (none for a habitat row), the habitat, what the places demand on the axis (in the unit of the axis), the lowest grade (2 or 3) that reaches it (none when even the extreme grade falls short) and the
 -- ids of the rows of the table that give it, comma separated. A body with no such life, a rogue planet and a row made before v274 have none.
 CREATE TABLE IF NOT EXISTS planet_adaptations (
     id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     planet_id   BIGINT UNSIGNED NOT NULL,
     entry_number SMALLINT UNSIGNED NOT NULL CHECK (entry_number >= 1),
+    life_class   VARCHAR(3) NOT NULL,
     axis         VARCHAR(24) NULL,
     habitat      VARCHAR(24) NOT NULL,
     demand       DOUBLE NULL,
@@ -3484,13 +3485,14 @@ CREATE TABLE IF NOT EXISTS moon_life_ages (
     KEY idx_moon_life_ages_number (age_number, end_gyr)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- The adaptations the life of a moon needed (v274, GEN.1809): one row for each thing its life had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): the order from 1, the axis
+-- The adaptations the life of a moon needed (v274, GEN.1809): one row for each thing the life of one class on it had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): the order from 1, the class (`life_class`), the axis
 -- of the table of adaptations (none for a habitat row), the habitat, what the places demand on the axis (in the unit of the axis), the lowest grade (2 or 3) that reaches it (none when even the extreme grade falls short) and the
 -- ids of the rows of the table that give it, comma separated. A body with no such life, a rogue planet and a row made before v274 have none.
 CREATE TABLE IF NOT EXISTS moon_adaptations (
     id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     moon_id   BIGINT UNSIGNED NOT NULL,
     entry_number SMALLINT UNSIGNED NOT NULL CHECK (entry_number >= 1),
+    life_class   VARCHAR(3) NOT NULL,
     axis         VARCHAR(24) NULL,
     habitat      VARCHAR(24) NOT NULL,
     demand       DOUBLE NULL,

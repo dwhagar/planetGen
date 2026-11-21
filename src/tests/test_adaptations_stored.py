@@ -14,10 +14,10 @@ from tests.fuzz_support import deterministic_entropy
 SEEDS = (7533,)
 """tuple: The seed of a system (with `HABITABLE_WORLD`) that holds a world with a record of adaptations (Irachas I: hours of liquid water at the extreme grade and two habitat rows)."""
 RECORD = [
-    {"axis": "t_cold", "habitat": "brine", "demand": 258.25, "grade": 3, "rows": ["C8"]},
-    {"axis": "water_hours", "habitat": "melt_film", "demand": 4707.04, "grade": None, "rows": []},
-    {"axis": None, "habitat": "melt_film", "demand": None, "grade": None, "rows": ["C6"]},
-    {"axis": "light_floor", "habitat": "water_under_ice", "demand": 0.3, "grade": 2, "rows": ["C1", "C2"]},
+    {"life_class": "1a", "axis": "t_cold", "habitat": "brine", "demand": 258.25, "grade": 3, "rows": ["C8"]},
+    {"life_class": "1a", "axis": "water_hours", "habitat": "melt_film", "demand": 4707.04, "grade": None, "rows": []},
+    {"life_class": "1a", "axis": None, "habitat": "melt_film", "demand": None, "grade": None, "rows": ["C6"]},
+    {"life_class": "1a", "axis": "light_floor", "habitat": "water_under_ice", "demand": 0.3, "grade": 2, "rows": ["C1", "C2"]},
 ]
 """list: A record with every kind of row: a grade, past the table (no grade, no rows), a habitat row and two rows that give one need."""
 
@@ -52,7 +52,7 @@ def test_a_body_with_no_record_has_none_and_the_attribute_is_serialized():
     system, _config_used = _system_with_life()
     for body in _bodies(system):
         entries = getattr(body, adaptation_record.FIELD)
-        assert entries is None or all(set(entry) == {"axis", "habitat", "demand", "grade", "rows"} for entry in entries)
+        assert entries is None or all(set(entry) == {"life_class", "axis", "habitat", "demand", "grade", "rows"} for entry in entries)
 
 
 def test_an_edit_keeps_the_record_the_body_has():
@@ -83,5 +83,5 @@ def test_the_record_is_saved_with_the_body_and_loaded_with_it(mysql_config):
         want, got = stored[(body.mass, round(body.distance, 9))], getattr(body, adaptation_record.FIELD)
         assert (got is None) == (want is None)
         for g, w in zip(got or [], want or []):
-            assert g["axis"] == w["axis"] and g["habitat"] == w["habitat"] and g["grade"] == w["grade"] and g["rows"] == w["rows"]
+            assert g["life_class"] == w["life_class"] and g["axis"] == w["axis"] and g["habitat"] == w["habitat"] and g["grade"] == w["grade"] and g["rows"] == w["rows"]
             assert (g["demand"] is None) == (w["demand"] is None) and (w["demand"] is None or g["demand"] == pytest.approx(w["demand"], rel=1e-9))
