@@ -251,7 +251,7 @@ class Planet(PlanetaryObject):
         *body_strength.BODY_FIELDS,
         *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "collision_count", "belt_order", "belt_rank",
+        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "cloud_decks", "air_history", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "collision_count", "belt_order", "belt_rank",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -305,6 +305,10 @@ class Planet(PlanetaryObject):
     """float or None: The highest tilt it reaches, degrees; `None` as `obliquity_min_deg`."""
     sky_suns = None
     """str or None: The other suns in a planet's sky as JSON text (`physics/sky_suns.py`, GEN.1458); `None` for a lone star, a moon, and a body not yet placed."""
+    cloud_decks = None
+    """str or None: Where a giant's hot-condensate clouds sit and the most each trace gas can hold, as JSON text (`physics/hot_cloud_deck.py`, GEN.1577); `None` for a body that is not a giant of a star."""
+    air_history = None
+    """str or None: The record of the body's air history as the short JSON text `physics/air_record.pack` makes (GEN.1745 slice 4b); `None` for a body that gets none (`air_record.eligible`) and for a body not yet through the life pass."""
     oddities = ()
     """tuple[str]: The ids of the oddities the body has (`physics/oddities.py`, GEN.1047), in table order; empty for none. Stored as comma separated text."""
 
@@ -435,6 +439,8 @@ class Planet(PlanetaryObject):
         self.light_factor = None     # the share of its light it keeps after the eclipses of its sky (`eclipses.light_factor_of`, set with its air, GEN.1484)
         self.obliquity_min_deg = self.obliquity_max_deg = None     # the range the tilt wanders over (`planets.settle_obliquity`, GEN.1535)
         self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
+        self.cloud_decks = None     # a giant's cloud decks and trace-gas ceilings (`hot_cloud_deck.generate`, set with its air, GEN.1577)
+        self.air_history = None     # the record of its air history (`air_record.pack`, set at the end of the life pass, GEN.1745)
         self.collision_count = collision_count
         self.build.plan_eccentricity = plan_eccentricity      # GEN.1797: runtime build state, never stored
         self.atm_molar_density = None
