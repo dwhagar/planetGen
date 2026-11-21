@@ -143,6 +143,9 @@ def test_the_key_changes_with_a_file_of_the_package_or_the_data_and_not_otherwis
     assert cache.key_of(config, str(package), str(tests), str(data), extra_files=(str(system_file),), environ={}) != with_file
     plain = cache.key_of(config, str(package), str(tests), str(data), environ={"PLANETGEN_MYSQL_HOST": "one", "PLANETGEN_REDIS_URL": "x", "PLANETGEN_TEST_MYSQL_PORT": "1"})
     assert plain == cache.key_of(config, str(package), str(tests), str(data), environ={"PLANETGEN_MYSQL_HOST": "two", "PLANETGEN_REDIS_URL": "y"})      # where the servers are is not what the build makes
+    places = {"PLANETGEN_LOG_DIR": "/tmp/a", "PLANETGEN_MAINTENANCE_FILE": "/tmp/a/m.json", "PLANETGEN_CONTROL_DATABASE": "pgtest_control_a"}       # TEST.807: where a pytest process keeps its own
+    assert plain == cache.key_of(config, str(package), str(tests), str(data), environ=dict(places, PLANETGEN_MYSQL_HOST="one"))
+    assert plain == cache.key_of(config, str(package), str(tests), str(data), environ={name: "/tmp/b" for name in places})
     assert plain != cache.key_of(config, str(package), str(tests), str(data), environ={"PLANETGEN_SOME_SETTING": "on"})                                    # a setting the generator reads is
 
 

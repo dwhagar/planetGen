@@ -77,6 +77,10 @@ def prune(folder, now=time.time):
 MACHINE_VARIABLES = ("MYSQL", "REDIS", "CACHE", "DATA_DIR", "TEST_")
 """tuple: Parts of the names of `PLANETGEN_*` variables that say where a machine's servers and folders are and not what the generator makes; the others (settings the generator reads) are in the key."""
 
+PLACE_ENDINGS = ("_DIR", "_FILE", "_DATABASE")
+"""tuple: How the names of the other variables that only say where something is end (`PLANETGEN_LOG_DIR`, `PLANETGEN_MAINTENANCE_FILE`, `PLANETGEN_CONTROL_DATABASE`). The test suite gives every pytest process folders and databases of its own, so with them in the key no two processes
+ever had the same key and the cache could not hit (TEST.807)."""
+
 
 def key_of(config, package_root, tests_root, data_root=None, extra_files=(), environ=None):
     """
@@ -115,7 +119,7 @@ def key_of(config, package_root, tests_root, data_root=None, extra_files=(), env
     if data_root and os.path.isdir(data_root):
         add_tree(data_root, names_only=True)
     for name, value in sorted((os.environ if environ is None else environ).items()):
-        if name.startswith("PLANETGEN_") and not any(part in name for part in MACHINE_VARIABLES):
+        if name.startswith("PLANETGEN_") and not name.endswith(PLACE_ENDINGS) and not any(part in name for part in MACHINE_VARIABLES):
             digest.update(f"{name}={value}".encode())
     connection = pymysql.connect(host=config.host, port=config.port, user=config.user, password=config.password)
     try:
