@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4659+db268.gen150.api14] - 2026-11-21
+
+**Headline:** The cosmic dust tests find a default system with an acid cloud by searching seeds, instead of relying on one seed that has stopped holding one.
+
+### Fixed
+
+- `tests/test_cosmic_dust.py` built the default system of seed 32 and expected a hot rocky planet with an acid cloud (V1) in it; that seed no longer has one. The fixture now tries seed 137 (which holds one) and then seeds 0 to 199, stops at the first system with an acid cloud, and fails with the tried count when none has one. The cloud assertions are unchanged (TEST.809).
+
+generation-output: unchanged
+
 ## [8.0.4658+db268.gen150.api14] - 2026-11-20
 
 **Headline:** The special phenomena stage no longer takes hours on a big galaxy, and it says how many ring sectors it has done and how long is left (PERF.284, OPS.289).
