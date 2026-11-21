@@ -23,6 +23,11 @@ SEEDS = range(240)
 M_DWARF_ECOSPHERE = [{**ABIOTIC, "age_gy": age, "mass_earth": mass} for age in (1.5, 5.0, 9.0) for mass in (0.4, 1.0, 3.0)]
 
 
+def _dry_oxygen(result):
+    """The oxygen share of the air without its water (a steam air condenses to its ocean; the draw is the gas before)."""
+    return result.mole_fractions.get("O2", 0.0) / max(1.0e-9, 1.0 - result.mole_fractions.get("H2O", 0.0))
+
+
 def _draws(changes, seeds=SEEDS):
     for seed in seeds:
         with draw.bound(seed):
@@ -34,11 +39,11 @@ def test_m_dwarf_ecosphere_worlds_can_hold_an_oxygen_air_and_it_is_the_abiotic_f
     for changes in M_DWARF_ECOSPHERE:
         for result in _draws(changes, range(80)):
             families.add(result.family)
-            if result.mole_fractions.get("O2", 0.0) > 0.1:
+            if _dry_oxygen(result) > 0.1:        # GEN.1769 slice 2: the draw is the hot gas before its water condenses, so the oxygen is read on the dry air the surface keeps
                 rich.append(result)
     assert rich, "no M dwarf ecosphere world kept an oxygen air"
     assert {result.family for result in rich} == {"abiotic-oxygen"}      # oxygen above a tenth comes from the water-loss family alone
-    assert max(result.mole_fractions["O2"] for result in rich) > 0.5      # the several-oceans tail of Luger and Barnes
+    assert max(_dry_oxygen(result) for result in rich) > 0.5      # the several-oceans tail of Luger and Barnes
     assert all(result.pressure_bar > 0.0 for result in rich)
 
 
