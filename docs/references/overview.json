@@ -18,7 +18,7 @@
       "T3": 216,
       "T4": 150,
       "T5": 153,
-      "T6": 507,
+      "T6": 509,
       "T7": 154,
       "T8": 7,
       "T9": 233
@@ -28,9 +28,9 @@
       "L1": 398,
       "L2": 99,
       "L3": 271,
-      "L4": 64
+      "L4": 66
     },
-    "rows": 1943
+    "rows": 1945
   },
   "tiers": [
     [
@@ -113,11 +113,11 @@
     },
     "educated_guess_from_physics": {
       "percent": 42,
-      "rows": 821
+      "rows": 823
     },
     "fitted_to_a_result": {
       "percent": 22,
-      "rows": 434
+      "rows": 436
     },
     "read_from_a_source": {
       "percent": 27,
