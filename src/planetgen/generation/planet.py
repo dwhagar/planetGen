@@ -308,6 +308,7 @@ class Planet(PlanetaryObject):
     cloud_decks = None
     """str or None: Where a giant's hot-condensate clouds sit and the most each trace gas can hold, as JSON text (`physics/hot_cloud_deck.py`, GEN.1577); `None` for a body that is not a giant of a star."""
     air_history = None
+    life_adaptations = None
     """str or None: The record of the body's air history as the short JSON text `physics/air_record.pack` makes (GEN.1745 slice 4b); `None` for a body that gets none (`air_record.eligible`) and for a body not yet through the life pass."""
     oddities = ()
     """tuple[str]: The ids of the oddities the body has (`physics/oddities.py`, GEN.1047), in table order; empty for none. Stored as comma separated text."""
@@ -441,6 +442,7 @@ class Planet(PlanetaryObject):
         self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
         self.cloud_decks = None     # a giant's cloud decks and trace-gas ceilings (`hot_cloud_deck.generate`, set with its air, GEN.1577)
         self.air_history = None     # the record of its air history (`air_record.pack`, set at the end of the life pass, GEN.1745)
+        self.life_adaptations = None        # what its life had to become to live where it does (`adaptation_record`, set at the end of the life pass, GEN.1808; stored by GEN.1809)
         self.collision_count = collision_count
         self.build.plan_eccentricity = plan_eccentricity      # GEN.1797: runtime build state, never stored
         self.atm_molar_density = None
