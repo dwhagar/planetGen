@@ -50,6 +50,7 @@ from planetgen.physics import (
     orbit_elements,
     regional_temperature,
     sky_view,
+    trojans,
     unit_registry,
 )
 from planetgen.physics import flavor_tree
@@ -670,6 +671,15 @@ def meteorite_group_fact(body):
     return fact("meteorite-group", "Nearest meteorite group", "None fits (not a chondrite mix)" if group == meteorite_groups.NONE else f"{group} chondrites")
 
 
+def _trojan_point_text(belt):
+    """GEN.1820: the words of a region's point, `L4 of Sun and Jupiter` (`trojans.pair_text`), or the bare point when the giant or its star is not known."""
+    host = getattr(belt, "host", None)
+    star = getattr(host, "star", None)
+    if host is None or star is None:
+        return belt.lagrange_point
+    return trojans.pair_text(star.name, host.name, belt.lagrange_point)
+
+
 def _belt_section(belt):
     rows = [
         fact("inner", "Inner edge", _au(belt.lower_limit)),
@@ -682,7 +692,7 @@ def _belt_section(belt):
     rows.append(meteorite_group_fact(belt))
     region = bool(getattr(belt, "lagrange_point", None))
     if region:      # GEN.1150: a giant's trojan region: which point, how its bodies librate, and how eccentric and inclined they are
-        rows += [fact("lagrange-point", "Lagrange point", f"{belt.lagrange_point} ({'leading' if belt.lagrange_point == 'L4' else 'trailing'})"),
+        rows += [fact("lagrange-point", "Lagrange point", f"{_trojan_point_text(belt)} ({'leading' if belt.lagrange_point == 'L4' else 'trailing'})"),
                  fact("libration", "Libration amplitude", qty("angle", belt.libration_amplitude_deg)),
                  fact("mean-eccentricity", "Mean eccentricity", qty("ratio", belt.mean_eccentricity, note=ECCENTRICITY_NOTE)),
                  fact("mean-inclination", "Mean inclination", qty("angle", belt.mean_inclination_deg))]

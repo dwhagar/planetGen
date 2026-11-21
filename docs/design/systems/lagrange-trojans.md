@@ -9,7 +9,7 @@ Boss, 10-30: trojan swarms in the scatter, whole bodies at Lagrange points where
 - `stable`, `max_trojan_mass`, `allows`: L4 and L5 hold a trojan when the secondary plus the trojan stay under 0.0385 of the three masses (Gascheau-Routh; [R3984]). L1, L2, L3 hold nothing.
 - `libration_period`, `motion`: the slow libration of a tadpole, and tadpole against horseshoe by amplitude.
 - `swarm_split`, `leading_share`: the scatter's `trojans` share into L4 and L5 regions.
-- `point_label`, `pair_text`: `Jupiter-L4` and `L4 of Sun and Jupiter`, for the map.
+- `point_label`, `pair_text`: `Jupiter-L4` for the map icon and `L4 of Sun and Jupiter` for the page text (a region's Lagrange point row, a trojan planet's Shares an orbit with row; GEN.1820).
 - `longitude_offset_deg`: +60 for L4, -60 for L5, so a stored trojan has the secondary's `a`, `e` and `i` near it and `mean_anomaly_deg` = the secondary's plus the offset.
 
 ## Wiring (needs an epoch; not in this item)
@@ -50,7 +50,7 @@ Eccentricity and inclination limits (TJ5) and the leading share (TJ4) are stand-
 ## Pure parts built ahead of the wiring (GEN.1151, MAP.354)
 
 - `physics/trojan_bodies.py` (rows 6.125 TB3 to TB7): `case`, `room_earth`, `fits`, and since slice A the zone, the ceiling and the mass draw. The mass is tested alone, no class letter is read (class is decided last). A Sun and a Jupiter admit a giant-mass and a rocky-mass trojan; a 0.1 solar-mass dwarf admits a 35 Earth-mass trojan only if its giant is under about 4 Jupiter masses; two stars admit nothing; a Jupiter-mass planet holds about 11.7 Earth masses of trojan beside a 1 Earth-mass moon. The formation gate is `zone_solids_earth`, `disk_life_factor`, `ceiling_earth` and `draw_mass_earth` (the section below).
-- `physics/lagrange_geometry.py` (no stand-ins): `points` gives L1 to L5 for a pair in the system frame (L1 to L3 by bisection of the force balance, L4 and L5 equilateral, L4 ahead along the motion), `occupied` keeps those with objects and labels them `Jupiter-L4`. Shared with the gravity layer MAP.169.
+- The geometry of the five points of a pair (L1 to L3 by bisection of the force balance, L4 and L5 equilateral, L4 ahead along the motion) is in `systemgravity.js` (`lagrangePoints`, MAP.169); a Python copy built ahead of it, `physics/lagrange_geometry.py`, read nothing and was removed (GEN.1820).
 
 ## Neighbours take the swarm (GEN.1455; system-interactions.md rule 5)
 

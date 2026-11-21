@@ -28,7 +28,7 @@ from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import object_uid, scales
 from planetgen.physics import (adaptation_traits, planet_classes, agb_carbon, belt_history, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
-                               life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
+                               life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, trojans, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -1502,14 +1502,15 @@ TROJAN_PLANET_KEY = "trojan_planet"
 
 
 def _trojan_planet_provider(conn, kind, object_id, row):
-    """GEN.1151: the giant a planet shares its orbit with and the point it stands at (`planets.lagrange_point`, `lagrange_host_id`), the page text of `trojans.pair_text`."""
+    """GEN.1151, GEN.1820: the giant a planet shares its orbit with and the point it stands at (`planets.lagrange_point`, `lagrange_host_id`), worded by `trojans.pair_text` (`L4 of Sun and Jupiter`)."""
     if row["lagrange_point"] is None or row["lagrange_host_id"] is None:
         return
     host = conn.execute("SELECT name FROM planets WHERE id = ?", (row["lagrange_host_id"],)).fetchone()
-    if host is None:
+    star = conn.execute("SELECT name FROM stars WHERE id = ?", (row["star_id"],)).fetchone() if row["star_id"] else None
+    if host is None or star is None:
         return
     side = "ahead of it" if row["lagrange_point"] == "L4" else "behind it"
-    yield "identity", _sheet_row(TROJAN_PLANET_KEY, "Shares an orbit with", [f"{host['name']}, at its {row['lagrange_point']} point, 60 degrees {side} on the orbit"])
+    yield "identity", _sheet_row(TROJAN_PLANET_KEY, "Shares an orbit with", [f"{trojans.pair_text(star['name'], host['name'], row['lagrange_point'])}, 60 degrees {side} on the orbit"])
 
 
 def _star_identity_provider(conn, kind, object_id, row):
