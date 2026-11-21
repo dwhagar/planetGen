@@ -1067,7 +1067,10 @@ def finish_orbit_oddities(planet):
     """
     before = planet.eccentricity
     apply_orbit_oddities(planet)
-    if abs(planet.eccentricity - before) <= ECCENTRICITY_SETTLE_TOLERANCE:
+    moved = abs(planet.eccentricity - before)
+    if moved <= ECCENTRICITY_SETTLE_TOLERANCE:
+        if moved > 0.0:
+            follow_orbit_change(planet)      # GEN.1817: a move under the tolerance leaves the air as it is, but the position, the moons' host eccentricity and the light go with the eccentricity
         return False
     remake_after_orbit_change(planet)
     return True
