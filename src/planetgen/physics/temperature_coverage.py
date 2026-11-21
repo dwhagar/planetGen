@@ -105,6 +105,7 @@ class Coverage:
         cold, hot (float): The shares below -20 C and above 45 C.
         humid (float): The share the wet bulb rule moved to Yellow (0 when no humidity was given).
         livable_share (float): L, `blue + green`.
+        credited_share (float): L with the places and times that are not livable counted for part of one by their own band score (`habitability.sample_credit`, GEN.1677): what the Temperature score is read from.
         livable_area, livable_time (float): The two pieces of L: the share of the world livable at least `MOST_OF_THE_TIME` of the time, and the mean livable time of it.
         area_always, area_most, area_ever (float): The shares of the world livable all the time, at least `NEARLY_ALWAYS` of it, and at some time.
         place_time (ndarray): `[row, column]`, the share of the time each cell is livable.
@@ -125,6 +126,7 @@ class Coverage:
     hot: float
     humid: float
     livable_share: float
+    credited_share: float
     livable_area: float
     livable_time: float
     area_always: float
@@ -230,6 +232,23 @@ def sector_masks(series):
     return {SECTORS[0]: angle < DAY_SIDE_DEG, SECTORS[1]: (angle >= DAY_SIDE_DEG) & (angle <= NIGHT_SIDE_DEG), SECTORS[2]: angle > NIGHT_SIDE_DEG}
 
 
+def _credited(celsius, band, livable, humid):
+    """The `[row, column, step]` credit of each place and time (`habitability.sample_credit`, GEN.1677): 1 where livable, `HUMID_SAMPLE_CREDIT` where the wet bulb rule made a livable temperature Yellow, and for
+    the rest the credit of the sample's own band score (the cold and hot sides of the band, linear between the edges as `habitability.band_score` is)."""
+    score = np.zeros_like(celsius)
+    low = ((band[0], band[1], 0.0, 0.4), (band[1], band[2], 0.4, 0.75))
+    high = ((band[5], band[6], 0.75, 0.4), (band[6], band[7], 0.4, 0.0))
+    for lo, hi, s0, s1 in low:
+        mask = (celsius >= lo) & (celsius < hi)
+        score[mask] = s0 + (s1 - s0) * (celsius[mask] - lo) / (hi - lo)
+    for lo, hi, s0, s1 in high:
+        mask = (celsius > lo) & (celsius <= hi)
+        score[mask] = s0 + (s1 - s0) * (celsius[mask] - lo) / (hi - lo)
+    credit = habitability.sample_credit(score)
+    credit = np.where(humid, habitability.HUMID_SAMPLE_CREDIT, credit)
+    return np.where(livable, 1.0, credit)
+
+
 def coverage(series, relative_humidity=None, band=None, wet_bulb_limit=None):
     """
     The `Coverage` of a `TemperatureSeries`; `relative_humidity` (0 to 1) switches the wet bulb rule on. `band` is the eight edges of a visitor's temperature bands
@@ -255,6 +274,7 @@ def coverage(series, relative_humidity=None, band=None, wet_bulb_limit=None):
     red = (celsius < band[1]) | (celsius > band[6])
     yellow = ~(blue | green | red)
     livable = blue | green
+    credited = _credited(celsius, band, livable, humid)
     place_time = livable.mean(axis=2)
     most = place_time >= MOST_OF_THE_TIME
     area_most_of_time = float(np.sum(most * weights) / total)
@@ -290,7 +310,7 @@ def coverage(series, relative_humidity=None, band=None, wet_bulb_limit=None):
     everywhere = np.ones_like(temperature, dtype=bool)
     return Coverage(
         blue=share(blue), green=share(green), yellow=share(yellow), red=share(red), cold=share(cold), hot=share(hot), humid=share(humid),
-        livable_share=share(livable), livable_area=area_most_of_time, livable_time=livable_time,
+        livable_share=share(livable), credited_share=share(credited), livable_area=area_most_of_time, livable_time=livable_time,
         area_always=float(np.sum((place_time >= 1.0 - 1.0e-9) * weights) / total), area_most=float(np.sum((place_time >= NEARLY_ALWAYS) * weights) / total),
         area_ever=float(np.sum((place_time > 0.0) * weights) / total), place_time=place_time,
         coldest=_extreme(series, everywhere, False), hottest=_extreme(series, everywhere, True),
