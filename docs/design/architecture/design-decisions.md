@@ -207,8 +207,11 @@ A `major` note bumps MAJOR, any other note bumps REVISION, and BUILD was the
 sum of the TODO category counters in `docs/plan/todo-number-map.md`
 (Boss: "major feature set.revision.build"). **Changed on 2026-10-10:** Boss
 wanted BUILD to change on every stamp, so BUILD is now the previous BUILD
-plus one and never resets; the counters only allocate TODO IDs. See
-`changes/README.md`.
+plus one and never resets; the counters only allocate TODO IDs. **OPS.64
+(Boss, 2026-10-24, the PEP 440 local suffix):** the version string also carries
+`+db<schema>.gen<epoch>.api<api>`, which the stamp reads from the newest migration
+revision, `epochs.json` and `API_VERSION`, so a database, a galaxy or a client can be
+matched to a release by its version alone. See `changes/README.md`.
 
 ---
 

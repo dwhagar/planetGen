@@ -248,7 +248,7 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost, row=None, halt=None):
         except BaseException as exc:
             if latest[0] is not None:
                 kind_of_error, text, outcome = attempts.failure(exc)
-                latest[0].end(outcome, error_kind=kind_of_error, error_text=f"[{failures.classify(exc)}] {text}", stack_text=text, peak_mb=peak_resident_mb())
+                latest[0].end(outcome, error_kind=kind_of_error, error_text=f"[{failures.classify(exc)}]{_on(args)} {text}", stack_text=text, peak_mb=peak_resident_mb())
             raise
         if latest[0] is not None:
             latest[0].end("done" if "seconds" in result else "lost", error_kind=ledger.STOPPED if result.get("stopped") else None, peak_mb=peak_resident_mb())
@@ -275,7 +275,7 @@ def _retry_attempt(conn, run_id, attempt, args, latest, exc):
     if attempt is None:
         return None
     kind_of_error, text, outcome = attempts.failure(exc)
-    attempt.end(outcome, error_kind=kind_of_error, error_text=f"[{failures.classify(exc)}] {text}", stack_text=text, peak_mb=peak_resident_mb())
+    attempt.end(outcome, error_kind=kind_of_error, error_text=f"[{failures.classify(exc)}]{_on(args)} {text}", stack_text=text, peak_mb=peak_resident_mb())
     latest[0] = attempts.begin(conn, run_id, attempt.row, args, pid=os.getpid())
     return latest[0]
 
@@ -493,13 +493,46 @@ def warm_shape(unit_args):
         store.close_pool(config)
 
 
-def fail_unit(connection, run_id, stage, unit, kind, retries_left, exc_type, exc_value, _traceback, row=None):
+LABEL_ITEMS_SHOWN = 4
+"""int: How many of a unit's sectors its label names (a sector unit has one; a run of them is named by its first and its count)."""
+
+
+def unit_label(args):
+    """
+    What the unit works on, in words, for the text of its failure (OPS.285): the sectors of an `items` list of flat `shell, band, wedge` triples as their addresses (`12/3/0`, `seed.address_text`), or the ids of a
+    `low`, `high` range. A failure's text then names its own address after the stage ended and its item file went; empty for a unit that names neither. Never raises.
+    """
+    try:
+        if not isinstance(args, dict):
+            return ""
+        items = args.get("items")
+        if isinstance(items, (list, tuple)) and items and len(items) % 3 == 0:
+            from planetgen.galaxy import seed
+            places = [seed.address_text(tuple(items[start:start + 3])) for start in range(0, len(items), 3)]
+            shown = ", ".join(places[:LABEL_ITEMS_SHOWN]) + (f" and {len(places) - LABEL_ITEMS_SHOWN} more" if len(places) > LABEL_ITEMS_SHOWN else "")
+            return f"sector{'s' if len(places) > 1 else ''} {shown}"
+        if isinstance(args.get("low"), int) and isinstance(args.get("high"), int):
+            return f"ids {args['low']:,} to {args['high']:,}"
+    except Exception as exc:  # noqa: BLE001 -- the label is an addition to a failure's text, which is said without it
+        log.swallowed("queue/units", "unit_label", exc)
+    return ""
+
+
+def _on(args):
+    """` (on sector 12/3/0)` for a failure's text: where the unit was working, or empty."""
+    label = unit_label(args)
+    return f" (on {label})" if label else ""
+
+
+def fail_unit(connection, run_id, stage, unit, kind, retries_left, exc_type, exc_value, _traceback, row=None, args=None):
     """
     What a unit's failure does to its run, whoever ran the unit (`unit_failed` for RQ, `forkedjob.run` for a forked job): the run fails with the unit and the error recorded, unless the
     unit's result is stored and counted already. `row` is the unit's row in the job ledger: a unit that has one is held for a person instead (OPS.221, `held.hold_unit`) and the run goes on.
+    `args` are the unit's own arguments: the text of the failure names where the unit was working (`unit_label`, OPS.285).
     Returns whether the unit failed for good (the run was failed or the unit held).
     """
     unqueued = ""
+    where_on = _on(args)
     if connection.sismember(runrecord.done_key(run_id, stage), unit):
         unended = stage_unended(connection, run_id, stage) and runrecord._s(connection.hget(runrecord.run_key(run_id), "state")) == "running"
         if not unended or (retries_left or 0) > 0:
@@ -511,14 +544,14 @@ def fail_unit(connection, run_id, stage, unit, kind, retries_left, exc_type, exc
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     stage_name = wrapper.stage_name(connection, run_id, stage)
     # OPS.162: the failure reaches error.log with the run, stage, unit and kind beside the traceback (RQ's own copy has none of them)
-    log.record_error("queue", f"Unit {unit} of stage {stage_name} failed: {exc_type.__name__}: {exc_value}",
+    log.record_error("queue", f"Unit {unit} of stage {stage_name}{where_on} failed: {exc_type.__name__}: {exc_value}",
                      exc_info=(exc_type, exc_value, _traceback), run_id=run_id, stage=stage, stage_name=stage_name, unit=unit, kind=kind)
     if row is not None and not unqueued:
         # OPS.221: a unit with a row in the ledger is held for a person; the rest of the run goes on, and the run is held when nothing more can run
-        held.hold_unit(connection, run_id, stage, unit, row, f"{exc_type.__name__}: {exc_value}{held.where(_traceback)}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
+        held.hold_unit(connection, run_id, stage, unit, row, f"{exc_type.__name__}: {exc_value}{where_on}{held.where(_traceback)}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
         return True
     runrecord.finish_run(connection, run_id, "failed",
-                         error=f"unit {unit} of stage {stage_name} failed{failures.describe(connection, run_id, exc_value)}: "
+                         error=f"unit {unit} of stage {stage_name}{where_on} failed{failures.describe(connection, run_id, exc_value)}: "
                                f"{exc_type.__name__}: {exc_value}{unqueued}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
     return True
 

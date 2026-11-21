@@ -301,6 +301,29 @@ def wet_airs(count, rng):
     return airs
 
 
+def twin_airs(count, rng):
+    """GEN.1796 round 14: the airs of the Earth twin's fixed point (`tests/test_climate_sweep.py`), drawn densely where the climate tests read the table's slope: one bar (0.9 to 1.1) at the Earth's
+    gravity, a nitrogen-oxygen air with 100 to 2,000 ppm of carbon dioxide (a third of them the Earth's own dry air, 420 ppm), vapor from a snowball's 0.3 Pa to 1e4 Pa, and an absorbed flux of 150 to 330 W/m2.
+    The table stood a degree off the model there after round 13, which the response to the light (the published lower bound of 0.54 K per W/m2) and the ice catastrophe (a flux 10 percent down) read as 0.8 percent
+    of the slope and a fall to the snowball."""
+    airs = []
+    for _ in range(count):
+        pressure = rng.uniform(0.9e5, 1.1e5)
+        gravity = rng.uniform(9.3, 10.3)
+        flux = rng.uniform(150.0, 330.0)
+        vapor = math.exp(rng.uniform(math.log(0.3), math.log(1.0e4)))
+        if rng.random() < 1.0 / 3.0:
+            shares = {"O2": 0.2095, "Ar": 0.0093, "CO2": 4.2e-4}
+        else:
+            shares = {"O2": rng.uniform(0.15, 0.30), "Ar": rng.uniform(0.0, 0.015), "CO2": math.exp(rng.uniform(math.log(1.0e-4), math.log(2.0e-3)))}
+        dry = pressure - vapor
+        partials = {formula: share * dry for formula, share in shares.items()}
+        partials["N2"] = dry - sum(partials.values())
+        partials["H2O"] = vapor
+        airs.append((partials, gravity, flux, 0.0, None))
+    return airs
+
+
 ANCHORS = (
     # name, partial pressures Pa, gravity, flux W/m2, haze share, pressure range factor (log-uniform), flux range factor: the airs of `tests/test_greenhouse_table.py`
     ("Mars", {"CO2": 571.8, "N2": 16.2, "Ar": 9.6}, 3.71, 110.0, 0.0, 1.0e3, 3.0),
@@ -427,6 +450,19 @@ def wet(args):
     with open(path, "wb") as handle:
         pickle.dump(samples, handle)
     print(f"{args.count} temperate wet airs added, {len(samples)} samples in {path}")
+
+def twin(args):
+    """GEN.1796 round 14: add `--count` airs of the Earth twin's fixed point (`twin_airs`) to the samples of `--name` (`--rng-offset` draws another stream)."""
+    path = os.path.join(args.work, args.name + ".pkl")
+    samples = []
+    if os.path.exists(path):
+        with open(path, "rb") as handle:
+            samples = pickle.load(handle)
+    samples.extend(twin_airs(args.count, random.Random(PERTURB_SEED + 11 + len(samples) + 1000 * args.rng_offset)))
+    with open(path, "wb") as handle:
+        pickle.dump(samples, handle)
+    print(f"{args.count} Earth twin airs added, {len(samples)} samples in {path}")
+
 
 ENVELOPE_PERTURB_SEED = PERTURB_SEED + 5
 
@@ -1084,7 +1120,7 @@ def fit(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "envelope", "hot", "hazy", "cold", "traces", "earthtraces", "census", "nullgas", "solve", "fit", "validate"))
+    parser.add_argument("step", choices=("sample", "designed", "wet", "twin", "anchors", "envelope", "hot", "hazy", "cold", "traces", "earthtraces", "census", "nullgas", "solve", "fit", "validate"))
     parser.add_argument("work", help="the work folder (outside the repository)")
     parser.add_argument("--name", default="train")
     parser.add_argument("--train", nargs="+", default=["train"], help="fit: the sample sets to fit to (each made by sample, designed and solve)")
@@ -1117,7 +1153,7 @@ def main():
     parser.add_argument("--distill", action="store_true", help="fit with --start: an air the model was not asked about takes the starting file's answer")
     args = parser.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "traces": traces, "earthtraces": earthtraces, "census": census_airs, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
+    {"sample": sample, "designed": designed, "wet": wet, "twin": twin, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "traces": traces, "earthtraces": earthtraces, "census": census_airs, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
 
 
 if __name__ == "__main__":

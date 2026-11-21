@@ -205,7 +205,8 @@ def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, w
             wrapper.run(title, steps, on_plan, on_result, on_progress, workers_count=workers,
                         who=getattr(args, "who", None), database=mysql_config.database,
                         argv=getattr(args, "argv", None), seed=seed, listing=listing, rows=rows or None, kind=kind,
-                        on_stage_done=on_stage_done, galaxy_seed=galaxy_seed, build=build, on_step=on_step)
+                        on_stage_done=on_stage_done, galaxy_seed=galaxy_seed, build=build, on_step=on_step,
+                        galaxy_of=(lambda: finish_run.current_galaxy(args)[0]) if galaxy and not galaxy_seed else None)
         except BaseException as exc:
             for follower in open_ones:
                 follower.abort(type(exc), exc, exc.__traceback__)
