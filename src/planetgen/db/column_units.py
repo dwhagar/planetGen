@@ -513,6 +513,12 @@ TABLES = {
         "id": ("id", "moon_id"),
         "score9": ("score",),
     },
+    "moon_life_ages": {
+        "id": ("id", "moon_id"),
+        "Gyr": ("start_gyr", "end_gyr"),
+        "index": ("age_number",),
+        "ratio": ("kill_share",),
+    },
     "moon_life": {
         "id": ("id", "moon_id"),
         "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
@@ -698,6 +704,12 @@ TABLES = {
     "planet_life_class_scores": {
         "id": ("id", "planet_id"),
         "score9": ("score",),
+    },
+    "planet_life_ages": {
+        "id": ("id", "planet_id"),
+        "Gyr": ("start_gyr", "end_gyr"),
+        "index": ("age_number",),
+        "ratio": ("kill_share",),
     },
     "planet_life": {
         "id": ("id", "planet_id"),

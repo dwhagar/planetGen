@@ -31,7 +31,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, air_record, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_type, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, air_record, life_ages, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_type, radiation, surface_liquid_world, trace_air
 from planetgen.physics import carbide_deposits, constants, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
@@ -77,18 +77,21 @@ def apply_life_data(planet, keep_stored=False):
     sedimentary_deposits.generate(planet)        # GEN.1378: the deposits that read the life timeline, on streams of their own (no draw of the run's)
     from planetgen.physics import planets       # planets imports this chain
     planets.apply_class(planet)                  # GEN.1745 (Boss, 11:25 AM EST 2026-11-15): no class until the evolution is finished; the class is read once, here, from the finished body
-    if not (keep_stored and getattr(planet, "air_history", None)):       # an edit keeps the history the body has (its air solve's inputs are not stored, so it cannot be worked again)
-        planet.air_history = _history_of(planet)
+    if not (keep_stored and (getattr(planet, "air_history", None) or getattr(planet, life_ages.FIELD, None))):       # an edit keeps the history the body has (its air solve's inputs are not stored, so it cannot be worked again)
+        _history_of(planet)
 
 
 def _history_of(planet):
-    """The packed record of the air history of `planet` (`air_record.pack`), made from the finished body, or `None` when it gets none (`air_record.eligible`). The life it reads is what `_build_air` kept on the
-    build record: the classes, the air as they found it, the air the oxygen's rise left and the age of the rise. It draws only on the streams of the body's own (the events and the extinctions, `air_events`), so the run's draws do not move."""
+    """Gives `planet` the record of its air history (`air_history`, the text `air_record.pack` makes, `None` when it gets none: `air_record.eligible`) and its life ages (`life_ages.FIELD`, the entries of the table
+    `planet_life_ages`, GEN.1746 slice 3; `None` for a body with no life or no star age), made from the finished body. The life it reads is what `_build_air` kept on the build record: the classes, the air as
+    they found it, the air the oxygen's rise left and the age of the rise. It draws only on the streams of the body's own (the events and the extinctions, `air_events`), so the run's draws do not move."""
     build = planet.build
     living = build.air_living or []
     begin = min((age for age in (one.started(planet) for one in living) if age is not None), default=None)
-    record = air_record.record_of(planet, living, build.air_found, build.air_risen, build.air_rise_gyr, begin)
-    return None if record is None else air_record.pack(record)
+    ages = tuple(life_ages.ages_of(planet, begin)) if begin is not None else ()       # once for the table and the record
+    setattr(planet, life_ages.FIELD, life_ages.entries_of(ages))
+    record = air_record.record_of(planet, living, build.air_found, build.air_risen, build.air_rise_gyr, begin, ages)
+    planet.air_history = None if record is None else air_record.pack(record)
 
 
 def _remake_ground_if_thawed(planet, before):

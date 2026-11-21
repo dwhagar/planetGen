@@ -28,7 +28,7 @@ from planetgen.generation import bodybeat
 from planetgen.generation import abundance_tier, habitable_request, irregular_moons, prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import isotope_record, ore_deposits
-from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, core_composition, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, phosphorus_budget, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, core_composition, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_ages, life_classes, magnetism, moon_composition, ocean_tides, phosphorus_budget, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
@@ -114,6 +114,7 @@ class Planet(PlanetaryObject):
         life_class_best, life_class_best_score (str, int or None): The best-supported class and its score, 0 to 9.
         life_class_scores (dict or None): `{class id: score}` for every class the body supports (a score of 1 or more).
         life_living (list or None): The life classes that live on the body (GEN.1209): the dominant class first, each a dict (`physics.life_classes.LIVING_FIELD`).
+        life_ages (list or None): The life ages of the body, the stretches of its life between mass extinctions, each a dict (`physics.life_ages.entries_of`, GEN.1746 slice 3); `None` for a body with no life.
         life_animal_grade (int or None): The grade of its animals, 0 none to 3 large and active (`physics.life_complexity`).
         life_complexity (float or None): The complexity index of its life class (`physics.life_complexity`).
         reflection_spectrum_visible (list): Visible-light reflection descriptors
@@ -213,7 +214,7 @@ class Planet(PlanetaryObject):
         "atm_density", "surface_temperature", "density", "atmospheric_pressure",
         "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
-        *life_classes.BODY_FIELDS, life_classes.SCORES_FIELD, life_classes.LIVING_FIELD, "reflection_spectrum_visible",
+        *life_classes.BODY_FIELDS, life_classes.SCORES_FIELD, life_classes.LIVING_FIELD, life_ages.FIELD, "reflection_spectrum_visible",
         "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
         "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS, "flavor_key",
         "flavor_text_count", "habitable_zone", "volume", "period",
@@ -478,6 +479,7 @@ class Planet(PlanetaryObject):
             setattr(self, field, None)
         setattr(self, life_classes.SCORES_FIELD, None)
         setattr(self, life_classes.LIVING_FIELD, None)
+        setattr(self, life_ages.FIELD, None)       # the life ages of the world (`life_ages.entries_of`, set at the end of the life pass, GEN.1746 slice 3)
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
         self.life_stage = None # Set later by life.apply_life_data, with the next three
