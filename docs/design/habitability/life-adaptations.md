@@ -12,10 +12,10 @@ so that the generator can say how far a body's life goes and the page can say wh
 
 ## 2. The table
 
-`life_adaptations.json` holds 39 rows (the adaptations of the GEN.1724 tables C, H, D, S and L, and the three of the chemical classes, GEN.1811), the eight axes, the stages and the habitats.
+`life_adaptations.json` holds 42 rows (the adaptations of the GEN.1724 tables C, H, D, S and L, and the three of the chemical classes, GEN.1811), the nine axes, the stages and the habitats.
 
 * **Axes.** `t_cold` and `t_hot` (K, the local temperature of the water the life works in), `light_floor` (umol photons m-2 s-1), `water_hours` (hours of liquid water a year), `water_activity`, `ground_water_depth` (m),
-  `insulation` (K) and, for the classes of a solvent that is not water, `acid_strength` (percent sulfuric acid by mass) and `ammonia_fraction` (ammonia as a share of the water's mass). Each axis has **one ordinary limit** (the life with no adaptation) with its own tier and tweak, so no two rows disagree about it, and a direction (wider is lower or higher).
+  `insulation` (K) and, for the classes of a solvent that is not water, `acid_strength` (percent sulfuric acid by mass) `ammonia_fraction` (ammonia as a share of the water's mass) and `pressure` (MPa, GEN.1819). Each axis has **one ordinary limit** (the life with no adaptation) with its own tier and tweak, so no two rows disagree about it, and a direction (wider is lower or higher).
 * **Rows.** An adaptation: the climate it serves (the codes of the research), the kinds of life that carry it, the life classes (`all`, or any of the classes of `life_classes`: the oxygen-making `1a`, `1b`, `1c`, `2` and the chemical `3a` to `9`, or none), the axis, the limit at the tolerant
   (grade 2) and extreme (grade 3) grades (each wider than the one before), whether it keeps the life **active** or only **dormant** (freeze tolerance, desiccation tolerance and spores let life survive a limit, not work
   past it), the stage the life must have reached, the habitat it opens, its source rows, tier and tweak. A row that moves no number (the snow algae's sunscreen) has no axis and opens a habitat.
@@ -61,7 +61,11 @@ The classes 3a to 9 eat no light and have no refuge, so their needs are not read
 * **6 (dense CO2) and 7 (a hydrocarbon sea).** The solvent holds no water, so the demand is a water activity of 0, past every row; no life has been measured in either.
 * **8 (ammonia-water).** Row N1 reaches 0.43 percent ammonia of the water (growth directly in 0.25 M ammonia); the gate asks 10 percent, 25 times that. The record says past the table. The gate stays (TODO's answer): the gap is recorded, not closed.
 
-No gate moved and no generated number changes: the record reads the finished body. Habitat pressure (the 140 MPa record of a piezophile) is a separate item (GEN.1819).
+No gate moved and no generated number changes: the record reads the finished body.
+
+### The pressure of the habitat (GEN.1819, slice 1)
+
+`life_supply.habitat_pressure_pa(values, place)` gives the pressure of the place a class lives in, from fields the body stores: the top of an ocean is the air's pressure plus the weight of the ice lid, its floor the stored `water_base_pressure_pa` (for an ocean on high-pressure ice, the pressure where the lid's melting point freezes into it), an aquifer the air plus the rock above it. The classes 3a and 3b read the floor (the rock is what they eat), the other classes of water the top, the acid cloud its own pressure. The axis `pressure` of the table has the ordinary limit 50 MPa, the rows P1 (growth above 100 MPa, *Pyrococcus*) and P2 (growth to 140 MPa, *Colwellia*), and the dormant row P3 (survival to 1.5 GPa, *Shewanella*: a place life can sit in, never work). The record says what the habitat demands and which grade reaches it, or **past the table** where none does. Nothing scores a class by it yet: the ceiling (and its fall-off) is slice 2 and waits for the Boss, because a ceiling at the floor would end the chemical life of about two fifths of the living bodies of the 5,000-system census (`reports/habitat-pressure-gen1819-2026-11-21.md`).
 
 ## 5. What it leaves out
 

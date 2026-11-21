@@ -120,6 +120,12 @@
    "tier": "T9",
    "tweak": "L3",
    "basis": "The hottest habitat a class can sample (the hottest known hyperthermophile grows at 395 to 400 K): the temperature of a deep aquifer is capped here so a deep hot layer does not exclude a cooler one above it"
+  },
+  "crust_density_kg_m3": {
+   "value": 2700.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "basis": "Mean density of the continental crust, 2.7 g/cm3: the pressure of an aquifer is the air's plus the weight of the rock above it (`habitat_pressure_pa`, GEN.1819)"
   }
  }
 }

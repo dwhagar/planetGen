@@ -2,6 +2,37 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4680+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The Galaxy Map's node cut parses a node key once and keeps the keys of a block's children, so the cut's own functions take about a fifth less time.
+
+### Changed
+
+- `parseNodeKey` keeps the block it made for each node key (the page parsed the same few thousand keys on every cut), `settledExpanded` keeps the keys of each block's children instead of parsing and formatting them again for every expanded block of every cut, and `blockOfKey` reads the number before the first dot without making an array (PERF.200 slice 2). The keys themselves are unchanged, so the stored nodes, the URLs and the order of the cut are the same.
+- On the MAP.249 benchmark, the node cut and node memory functions went from 3,163 ms to 2,475 ms in the profile (22 percent less); the page's stars written (3,719) and stars (3,812) are the same, the requests 8 against 9 and the bytes 315,343 against 333,029 follow how the fetches fell in the run.
+
+generation-output: unchanged
+
+## [8.0.4679+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The rich test galaxy is built once per machine and loaded by the other test files, which takes the three files that use it from about 50 minutes each to about 50 minutes for the first and under two minutes for the others.
+
+### Changed
+
+- The rich galaxy's dump cache (TEST.788) was off unless `PLANETGEN_RICH_GALAXY_CACHE` named a folder, so each of `test_cellkey_motion`, `test_db_check_constraints` and `test_db_column_round_trip` built its own copy of the galaxy, which GEN.1745 slice 4b made slow (62 minutes for the first on the Train 51 gate). It is on by default now, in `planetgen-rich-galaxy` in the machine's temporary folder; a folder every machine reaches shares it between machines, and the variable set empty turns it off. A dump nobody loaded for three days is removed when a new one is kept.
+- The cache could never have hit under pytest: the key held the folders and databases each pytest process makes for itself (`PLANETGEN_LOG_DIR`, `PLANETGEN_MAINTENANCE_FILE`, `PLANETGEN_CONTROL_DATABASE` and the like), so no two processes had the same key. Variables that only say where something is (names ending `_DIR`, `_FILE`, `_DATABASE`) are out of the key; every setting the generator reads, every file of the package, the data and the support files stay in it, so a change to generation code is a new key and a fresh build.
+- A process that loads a dump now makes the galaxy's cluster field, as the warm-up does; the dump does not carry it, and without it the pages that need it answered 503 (TEST.807).
+
+generation-output: unchanged
+
+## [8.0.4678+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The adaptation record now covers every life class: the chemical-energy classes 3a to 9 get the cold and heat rows of the water microbes, rows for the most acid and the most ammonia a cell has grown in, and a record that says where the life is past the table
+
+### Added
+
+- GEN.1811: `adaptation_record` makes a record for the classes 3a, 3b, 4a, 4b, 4c, 5a, 5b, 6, 7, 8 and 9 as well as 1a to 2 (`chemical_demands`). They have no refuge, so the habitat temperature of the class gate and the medium of the class are put to the table: a cold or hot water habitat against the cold and heat rows, the strength and water activity of a sulfuric acid, the ammonia of an ammonia-water, no water at all in dense CO2 or a hydrocarbon sea. The table `life_adaptations.json` gets the axes `acid_strength` and `ammonia_fraction`, the habitat `chemical_medium` and three rows: C17 (metabolism in a brine to -25 C, 248.15 K), A1 (acid to 4.7 percent for growth around pH 0 and 11 percent for *Picrophilus* adapted to 1.2 M) and N1 (ammonia to 0.43 percent of the water, *Halomonas*); the cold-active (C16) and hyperthermophilic (H3) microbe rows are carried by the water classes 3a to 4c (the hot record, 122 C, 395 K, is the gate's own hot edge). Where no row reaches the demand the record says the life is past the table: acid at 81 percent and more (11 measured), class 8 at 10 percent ammonia (0.43 measured), dense CO2, a hydrocarbon sea, and the temperature of every chemical class that is not of water. The class gates do not move and no generated number changes. New stand-in section 6.320, seven citations (R5323 to R5329) from the research of GEN.1810.
+
 ## [8.0.4677+db270.gen150.api14] - 2026-11-21
 
 **Headline:** `generate-sectors` declares its write to the rogue planets' interior layers, so `test_command_touches` is green again.

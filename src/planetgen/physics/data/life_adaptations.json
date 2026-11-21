@@ -84,6 +84,15 @@
    "ordinary_tweak": "L1",
    "basis": "a tenth of a percent (0.06 M): the ammonia an ordinary cell takes as a nutrient and a trace; a stand-in under the 0.25 M a measured Halomonas grows in (GEN.1811)",
    "stress": null
+  },
+  "pressure": {
+   "unit": "MPa",
+   "wider": "higher",
+   "ordinary": 50.0,
+   "ordinary_tier": "T7",
+   "ordinary_tweak": "L1",
+   "basis": "the pressure under which an ordinary (surface) microbe still grows: the 30 to 60 MPa of the piezotolerant, no source read; the piezophiles of the table (P1, P2) go beyond it (GEN.1819)",
+   "stress": null
   }
  },
  "stages": {
@@ -237,6 +246,16 @@
    "opened_by": [
     "A1",
     "N1"
+   ],
+   "production": "refuge"
+  },
+  {
+   "id": "deep_water",
+   "climate": [],
+   "gate": "liquid water under more pressure than an ordinary microbe takes (the ocean floor or an ocean under a thick lid), at or under the pressure limit of the table",
+   "opened_by": [
+    "P1",
+    "P2"
    ],
    "production": "refuge"
   }
@@ -1294,6 +1313,87 @@
    "tier": "T2",
    "tweak": "L0",
    "note": "grade 3 is growth directly in 0.25 M ammonia (pH 10.18), 0.43 percent of the water's mass (R5328; none at 0.5 M); grade 2 is the geometric mean of it and the ordinary 0.1 percent, a straight guess. The class asks for 10 percent: 25 times the measured limit, past the table, and the record says so"
+  },
+  {
+   "id": "P1",
+   "name": "piezophily (growth above 100 MPa, Pyrococcus type)",
+   "axis": "pressure",
+   "grade2": 100.0,
+   "grade3": null,
+   "opens_habitat": "deep_water",
+   "source_rows": "GEN.1819 (R5330, R5325)",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "Pyrococcus yayanosii CH1 grows above 100 MPa (optimum 52 MPa at 98 C) and not at 20 MPa or under (second-hand: Wikipedia citing the description of R5330)",
+   "climate": [],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [
+    "3a",
+    "3b",
+    "4a",
+    "4b",
+    "4c"
+   ],
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "effect_on_habitat": null
+  },
+  {
+   "id": "P2",
+   "name": "hyperpiezophily (growth to 140 MPa, Colwellia type)",
+   "axis": "pressure",
+   "grade2": null,
+   "grade3": 140.0,
+   "opens_habitat": "deep_water",
+   "source_rows": "GEN.1819 (R5324)",
+   "tier": "T2",
+   "tweak": "L0",
+   "note": "Colwellia marinimaniae MTCD1, the highest pressure at which growth has been seen (second-hand: Wikipedia citing R5324); the deepest habitats explored on Earth are at 110 MPa (R5331)",
+   "climate": [],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [
+    "3a",
+    "3b",
+    "4a",
+    "4b",
+    "4c"
+   ],
+   "activity": "active",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "effect_on_habitat": null
+  },
+  {
+   "id": "P3",
+   "name": "survival under pressure (1.5 GPa, Shewanella type)",
+   "axis": "pressure",
+   "grade2": null,
+   "grade3": 1500.0,
+   "opens_habitat": null,
+   "source_rows": "GEN.1819 (R5331)",
+   "tier": "T1",
+   "tweak": "L0",
+   "note": "Shewanella oneidensis MR-1 survived 1.5 GPa for 15 minutes at 21 C (about 130 colonies a millilitre of 100 million); survival only, no growth: the claim of metabolism to 1.4 GPa was disputed",
+   "climate": [],
+   "life_types": [
+    "microbe"
+   ],
+   "classes": [
+    "3a",
+    "3b",
+    "4a",
+    "4b",
+    "4c"
+   ],
+   "activity": "dormant",
+   "production_factor": null,
+   "stage_needed": "microbe",
+   "effect_on_habitat": null
   }
  ]
 }

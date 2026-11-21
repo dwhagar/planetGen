@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1949 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1954 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1922 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1927 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,15 +50,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 227 | 22 | 12 | 1 | 0 | 262 |
-| T2 | 181 | 75 | 4 | 0 | 0 | 260 |
+| T2 | 183 | 75 | 4 | 0 | 0 | 262 |
 | T3 | 128 | 66 | 13 | 10 | 0 | 217 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
-| T5 | 113 | 29 | 8 | 2 | 2 | 154 |
-| T6 | 248 | 134 | 38 | 84 | 5 | 509 |
-| T7 | 74 | 39 | 10 | 31 | 0 | 154 |
+| T5 | 114 | 29 | 8 | 2 | 2 | 155 |
+| T6 | 249 | 134 | 38 | 84 | 5 | 510 |
+| T7 | 74 | 40 | 10 | 31 | 0 | 155 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 53 | 20 | 6 | 114 | 42 | 235 |
-| All | 1113 | 401 | 99 | 272 | 64 | 1949 |
+| All | 1117 | 402 | 99 | 272 | 64 | 1954 |
 
 ## How the labels were given
 
@@ -3459,3 +3459,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AH5 | P | T6 | L0 | `life_adaptations.json` rows C16 and H3 carried by the water classes 3a, 3b, 4a, 4b and 4c: the cold-active and the hyperthermophilic microbe of the table are taken to be the life of a chemical class in water | the classes that carry them | the classes of water only; the other classes (5a to 9) get no row of heat or cold, and their temperature is past the table | a hyperthermophile of the classes in the table that cannot take the reactions of a class (the life of 3a at 395 K needs hydrogen at that heat) | rows of the classes by their own measurements | physics fixes the cell (a microbe in water at a temperature), the energy source is argued, not shown, to leave the limit alone; the record of H3 is *Methanopyrus kandleri*, which eats hydrogen [R4295] | predicted only | - | - |
 | AH6 | P | T5 | L0 | `adaptation_record.chemical_demands` puts a water activity of 0 to the classes 6 (dense CO2) and 7 (a hydrocarbon sea): no row of the table reaches it | none (physics: a solvent that holds no water has no water activity to speak of) | the classes 6 and 7 | none | none | by definition | predicted only | - | - |
 | AH7 | P | T8 | L3 | The medium gates of the classes (`life_classes.json`: 81 percent sulfuric acid and more for 5a, 5b and 9; 10 percent ammonia of the water for 8; dense CO2 for 6; a hydrocarbon sea for 7) stand as they are: the measured limits stop at 11 percent acid, 0.43 percent ammonia, a water-borne microbe under dense CO2 and no life in a nonpolar solvent, so the record says the life there is past the table | 11 to 100 percent acid; 0.43 to 10 percent ammonia | the classes 5a, 5b, 6, 7, 8, 9 | a growth of a cell in 81 percent acid (the water activity there is 0.004), in 10 percent ammonia, in dense CO2 or in a liquid hydrocarbon | a measured limit, or a lowering of the gate to it (TODO's answer to GEN.1810: keep the gate, record the gap) | [R1449, R5326, R5327, R5328, R5329]: the lowest water activity at which a cell has divided is 0.585 [R4217]; the class gates are the Boss's intended classes | predicted only | - | no data |
+
+## 6.321 Stand-ins of the pressure of a habitat (GEN.1819)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AI1 | P | T7 | L1 | `life_adaptations.json` axis `pressure` 50 MPa: the ordinary limit of a microbe (the pressure above which a surface microbe stops growing) | 30 to 60 MPa | the water classes 3a to 4c | a measured growth limit of an ordinary (piezosensitive) bacterium that differs by a factor of 1.5 | the measured limits of ordinary cells | the common range of the piezotolerant; no source read this session | predicted only | - | - |
+| AI2 | B | T2 | L0 | `life_adaptations.json` rows P1 (growth above 100 MPa, [R5330]), P2 (growth to 140 MPa, [R5324]) and P3 (survival to 1.5 GPa, dormant, [R5331]) | the spread of the papers | a microbe of the water classes | a measured growth above 140 MPa; a measured metabolism above 1.5 GPa | the measured limits themselves | [R5324, R5330] are second-hand (Wikipedia citing the papers, GEN.1810); [R5331] was read in its introduction and Table 1 | predicted only | - | - |
+| AI3 | P | T6 | L0 | `adaptation_record.FLOOR_CLASSES`: the classes 3a and 3b read the pressure at the floor of an ocean (rock contact, the hydrogen of serpentinisation and of radiolysis), every other class the top | 3a and 3b only; or all of the water classes | the water classes | a hydrogen eater of the water column far from the rock | a per-class habitat of the class rules | educated guess from physics (TODO's answer to GEN.1819) | predicted only | - | - |
+| AI4 | B | T2 | L0 | `life_supply.json` number `crust_density_kg_m3` 2700: the pressure of an aquifer is the air's plus the weight of the rock to its depth | 2600 to 2900 | an aquifer in a crust of silicate rock | a measured mean density of the crust of the body | the density of the body's own crust (`crust_thickness_km`) | the mean density of the continental crust, 2.7 g/cm3 | predicted only | - | - |
+| AI5 | P | T5 | L0 | `life_supply.habitat_pressure_pa` takes the floor of the liquid over high-pressure ice to be at the pressure where water at `ice_ocean_base_k` freezes into it (`water_layer.liquidus_pressure_pa`): the ocean is ice-sealed there, no rock | the lid's melting point (a little lower with salt: a few tens of MPa) | an ice-covered ocean with `hp_ice_km` | a stored base of the liquid that differs from the liquidus by more than 10 percent | the pressure the water layer's integration stores at the liquid's base | the melting curves of ice III, V and VI the water layer already holds | predicted only | - | - |
