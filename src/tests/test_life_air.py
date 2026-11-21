@@ -536,27 +536,37 @@ def test_a_reaction_that_does_not_balance_is_refused(tmp_path, monkeypatch):
         life_air._load()
 
 
+def _reactions_of(row):
+    """The reactions of a `life_classes.LifeClass`, as `{name: reaction}` (what the ledger lists for its id)."""
+    return {name: reaction for name, reaction in life_air.REACTIONS.items() if row.id in reaction["classes"]}
+
+
+def _species(row, side):
+    """The species the reactions of a class take (`side` "takes") or give ("gives")."""
+    return {species for reaction in _reactions_of(row).values() for species in reaction[side]}
+
+
 def test_every_class_variant_has_reactions_and_every_reaction_names_real_variants():
     ids = {row.id for row in life_classes.CLASSES}
     for name, reaction in life_air.REACTIONS.items():
         assert set(reaction["classes"]) <= ids, name
-    assert all(life_air.reactions_of(row) for row in life_classes.CLASSES)
+    assert all(_reactions_of(row) for row in life_classes.CLASSES)
 
 
 @pytest.mark.parametrize("row", life_classes.CLASSES, ids=lambda row: row.id)
 def test_the_reactions_of_a_class_take_what_its_words_say_it_eats_and_give_what_they_say_it_gives_off(row):
     for word, species in _named(row.eats):
-        assert species & set(life_air.takes(row)), (row.id, word)
+        assert species & _species(row, "takes"), (row.id, word)
     for word, species in _named(row.gives_off):
-        assert species & set(life_air.gives(row)), (row.id, word)
+        assert species & _species(row, "gives"), (row.id, word)
 
 
 @pytest.mark.parametrize("row", life_classes.CLASSES, ids=lambda row: row.id)
 def test_the_reactions_of_a_class_hold_the_gases_its_ledger_row_draws_down_and_makes(row):
     ledger = life_air.row_of(row)
     for gas in ledger["draws_down"]:
-        assert gas in life_air.takes(row), (row.id, gas)
+        assert gas in _species(row, "takes"), (row.id, gas)
     for product in (ledger.get("products") or {}).values():
-        assert product["gas"] in life_air.gives(row), row.id
+        assert product["gas"] in _species(row, "gives"), row.id
     if ledger.get("methane"):
-        assert "CH4" in life_air.gives(row), row.id
+        assert "CH4" in _species(row, "gives"), row.id
