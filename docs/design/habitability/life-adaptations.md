@@ -31,7 +31,7 @@ reaches the measured edges: 253 K (lichen, field, -20 C), 346 K (cyanobacteria, 
 GEN.876's traits widen a limit the habitability index holds, by a factor. Cold and heat widen a limit in the units of an axis (the temperature the life is active down to and up to), so a grade means a limit from the table,
 not a factor (`adaptation_traits.limit`). They are drawn once per body from its own stress, like the three before them, and stored in `life_traits` (`cold:3,heat:2`, shown as "cold (extreme)"):
 
-* the stress is the shortfall in K of the body's **mean surface temperature** past the ordinary limit (273.15 K for cold, 313.15 K for heat), scored on a straight line from 0 to the width of the table for class 1a (20 K for cold,
+* the stress is the shortfall in K of the **habitat temperature** (`life_supply.habitat_temperature_k`, the temperature of the water the life works in: the surface's under an open ocean or on a dry surface, the melting point of ice under an ice lid, the surface's plus the rise with depth in an aquifer; TEST.800) past the ordinary limit (273.15 K for cold, 313.15 K for heat), scored on a straight line from 0 to the width of the table for class 1a (20 K for cold,
   33 K for heat); the chance and the grade follow the same law as the other traits (`P_CAP` 0.8 times the score; extreme with chance `GRADE3_SHARE` times the score squared);
 * they come **last** in the draw order, so the radiation, sulfide and carbon dioxide traits of every body are what they were (a test pins it); a body now draws ten uniforms, two for each of five stresses;
 * **nothing reads them yet.** The scores of the habitability index and the life classes are unchanged, and a trait never makes a world habitable to people. The refuge gate of GEN.1723 reads `adaptation_traits.limit` to widen where
@@ -39,7 +39,7 @@ not a factor (`adaptation_traits.limit`). They are drawn once per body from its 
 * the **light floor** under ice has no trait: nothing stores the ice a world's ocean wears (GEN.1728), so its stress cannot be read. The same goes for dryness (no stored hours of liquid water) and brine (the water activity
   has its column, but no body has been scored for it). They are rows of the table with no draw.
 
-The mean temperature stands for the habitat's until GEN.1723 stores the local one; a world with a cold mean and a warm tropics draws the cold trait too often, and one with a warm mean and cold poles too seldom.
+The habitat temperature is one value for the body, not the local one of each habitat (GEN.1723 stores that): a world with a cold mean and a warm tropics still draws the cold trait a little too often, and one with a warm mean and cold poles too seldom. Before TEST.800 the trait read the surface mean, which gave a cold trait to 95 of 143 life worlds in a 40-system sample (66 percent; 94 of the 137 chemical-class worlds, whose crust is warm under a frozen surface); with the habitat temperature it is 13 of 144 (9 percent), and 23 of 144 carry any trait.
 
 ## 4. Reuse
 

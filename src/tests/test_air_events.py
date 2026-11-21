@@ -57,6 +57,13 @@ def test_flood_basalts_follow_the_heat_of_the_interior_and_stop_without_it():
     assert air_events.flood_basalt_rate_per_gyr(0.0) == 0.0 and air_events.flood_basalt_rate_per_gyr(None) == 0.0
 
 
+def test_a_body_melted_by_tides_erupts_all_the_time_and_not_billions_of_times_faster():
+    """A tidally heated body (25 MW/m2 in the 9101 sweep) asked for 6.5e10 flood basalts and the draw never ended (12 GB): one takes a million years, so the rate stops at one at a time."""
+    assert air_events.FLOOD_BASALT_MAX_PER_GYR == pytest.approx(1000.0)
+    assert air_events.flood_basalt_rate_per_gyr(2.5e7) == air_events.FLOOD_BASALT_MAX_PER_GYR
+    assert len(air_events._waits(draw.Stream("tidal-melt"), [air_events.flood_basalt_rate_per_gyr(2.5e7)], [4.0])) < 6000
+
+
 def test_a_poisson_process_has_its_expected_count_over_a_constant_and_a_stepped_rate():
     counts = []
     for seed in range(300):

@@ -8,14 +8,14 @@ life something (`ONSET`), 1 where the extreme grade is needed (`FULL`, the onset
 `P_CAP * s` and is extreme with chance `GRADE3_SHARE * s^2`, otherwise tolerant. Two uniform draws per stress, always, so ten per body whatever it holds:
 the caller binds the stream of the body's own (`draw.Stream`), so no other draw of any body moves when a trait's numbers change.
 
-The two stresses of GEN.1725 (`cold`, `heat`) are a **shortfall** in kelvin and not a ratio: the stress is how far the world's mean surface temperature is past the ordinary limit of
+The two stresses of GEN.1725 (`cold`, `heat`) are a **shortfall** in kelvin and not a ratio: the stress is how far the temperature of the water the life lives in (`life_supply.habitat_temperature_k`: the surface's under an open ocean or on a dry surface, the melting point of ice under an ice lid, the rise with depth in an aquifer; TEST.800, the surface mean before it drew a cold trait for most of the chemical-class worlds, whose crust is warm under a frozen surface) is past the ordinary limit of
 an oxygen-making life (`life_adaptations`, axes `t_cold` and `t_hot`), the onset is 0 (the ordinary limit itself) and the full stress is the whole width the table gives (from the ordinary
 limit to the extreme grade's). They come last in the draw order, so the three earlier traits of every body are the ones they were.
 """
 
 import math
 
-from planetgen.physics import adaptation_traits, atmosphere, habitability, habitability_world, life_adaptations
+from planetgen.physics import adaptation_traits, atmosphere, habitability, habitability_world, life_adaptations, life_supply
 
 ONSET = {"radiation": habitability.DOSE_THRESH_GY, "sulfide": habitability.H2S_TOX_KPA, "carbon_dioxide": habitability.CO2_TOX_KPA, "cold": 0.0, "heat": 0.0}
 """dict: The stress at which each ordinary limit starts to cost the life: the dose an animal takes (Gy/yr), the hydrogen sulfide and the carbon dioxide
@@ -37,7 +37,7 @@ SHORTFALL_STRESSES = ("cold", "heat")
 def stresses(values):
     """`{stress: the body's stress}` from a body's column-named `values` (`habitability_world.values_from_body`): the absorbed dose where the life is (Gy/yr)
     and the partial pressures of hydrogen sulfide and carbon dioxide (kPa)."""
-    temperature = values.get("surface_temperature_k")
+    temperature = life_supply.habitat_temperature_k(values)
     return {"radiation": habitability_world.habitat_dose_sv_yr(values) / habitability.SV_PER_GY,
             "sulfide": atmosphere.partial_kpa(values, "h2s"),
             "carbon_dioxide": atmosphere.partial_kpa(values, "co2"),
