@@ -31,7 +31,7 @@ def system_rows(seed):
         return []
     star_mass = system.star.mass / 1.98841e30
     bodies = [(body.radius, body.distance, body.mass) for body in system.planets if body.body_type in ("t", "g") and body.mass and body.radius]
-    reservoirs = [influx.Reservoir("belt", belt.primordial_mass_earth * EARTH_KG, belt.lower_limit, belt.upper_limit)
+    reservoirs = [late_supply.Early("belt", belt.primordial_mass_earth * EARTH_KG, belt.lower_limit, belt.upper_limit)
                   for belt in system.planets if belt.body_type == "a" and belt.primordial_mass_earth]
     rows = []
     for body in system.planets:

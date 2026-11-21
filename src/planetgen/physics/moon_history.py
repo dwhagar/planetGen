@@ -27,7 +27,7 @@ the thermal tide of the air on the planet's spin in the same sum (`body_spin`, G
 
 The pass draws nothing except the spin axis' precession angle that `spin.set_spin` places again, and it can be repeated: it starts from the bodies
 `_born_moons` (kept on the planet, with each moon's `_birth_distance_au`) and the planet's `_birth_spin`. A planet restored from the database has them from its rows (GEN.1753: `body_history`, the `lost_moons` table
-and `restore_born`), the moons the history lost as `LostMoon`s; one saved before that starts from the moons it has, each at the orbit it has now. A history no integrator can finish (`moon_orbits.IntegrationFailed`) leaves the moons as born (TM8). A planet cannot be spun past `spin.BREAKUP_FRACTION` of its breakup rate by the moons that fall (TM9). Stand-ins are TM5 to TM9 of `docs/design/research/gap-filling-plan.md` section 6.25.
+and `restore_born`), the moons the history lost as `LostMoon`s; one saved before that starts from the moons it has, each at the orbit it has now. A history no integrator can finish (`moon_orbits.IntegrationFailed`) is read by the inspiral time of each moon at birth: one that falls within the age is lost to its planet, the others stay as born, and `build.moon_history_unfinished` records it (TM8, GEN.1816). A planet cannot be spun past `spin.BREAKUP_FRACTION` of its breakup rate by the moons that fall (TM9). Stand-ins are TM5 to TM9 of `docs/design/research/gap-filling-plan.md` section 6.25.
 """
 
 import math
@@ -174,9 +174,16 @@ def apply(planet, primary_mass_kg):
                                     density_kg_m3(planet), (hill_perturbers.tidal_hill_radius_km(planet) or 0.0) * 1000.0 or None,      # GEN.1449: against every body that pulls on the planet
                                     resonance=resonance)
     except moon_orbits.IntegrationFailed:
-        # TM8: no integrator finished (a very stiff planet): the moons stay as they were born and the planet's spin is the one it would have without them
-        planet.fallen_moons = ()
+        # TM8 (GEN.1816): no integrator finished (about one history in 1,000 over the census). The moons are read at birth by the time the tide takes to bring each in
+        # (`moon_orbits.inspiral_times_s`): one that falls in less than the age of the system is lost to its planet at that time (a `FallenMoon`, its ring material), the others stay
+        # as they were born, and the planet's spin is the one it would have without them
+        planet.build.moon_history_unfinished = True      # recorded, so a census counts the planets read by the inspiral time alone
         born = [moon for moon in born if not isinstance(moon, LostMoon)]      # a stand-in is no body of the system
+        times = moon_orbits.inspiral_times_s(body, star, body_spin.dissipation_of(planet, body), [moon_orbits.Moon(m.mass, m._birth_distance_au * constants.AU_TO_M, density_kg_m3(m), retrograde(m)) for m in born],
+                                             birth[0], body_spin.thermal_tide_of(planet, star))
+        lost = [(moon, t) for moon, t in zip(born, times) if t < age_s]
+        planet.fallen_moons = tuple(ring_origin.FallenMoon(moon.mass, t / constants.SECONDS_PER_YEAR) for moon, t in lost)
+        born = [moon for moon, t in zip(born, times) if t >= age_s]
         for moon in born:
             if abs(moon.distance / moon._birth_distance_au - 1.0) > 1.0e-12:
                 planets.move_orbit(moon, moon._birth_distance_au, planet.mass)

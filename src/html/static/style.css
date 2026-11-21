@@ -2888,6 +2888,37 @@ code {
   stroke: #8a7f72d0;
 }
 
+/* A giant's trojan region (GEN.1150, MAP.354): an arc on the giant's orbit where its bodies librate about L4 or L5, and a diamond with the label `<giant>-L4` at its center. */
+.sysmap-trojan {
+  cursor: pointer;
+}
+
+.sysmap-trojan-arc {
+  fill: none;
+  stroke: #8a7f72d0;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.sysmap-trojan-icon {
+  fill: #8a7f72;
+  stroke: var(--text, #ddd);
+  stroke-width: 1px;
+}
+
+.sysmap-trojan:hover .sysmap-trojan-icon,
+.sysmap-trojan:focus-visible .sysmap-trojan-icon {
+  stroke: var(--accent);
+  stroke-width: 2px;
+}
+
+.sysmap-trojan-label {
+  font-size: 10px;
+  fill: currentColor;
+  pointer-events: none;
+}
+
 .sysmap-halo,
 .sysmap-ring {
   pointer-events: none;

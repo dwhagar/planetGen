@@ -26620,6 +26620,26 @@
       "kind": "paper",
       "label": "Hopton et al. 2025b",
       "title": "Growth, physiology, and metabolism of Halomonas meridiana in aqueous ammonium sulfate with implications for icy moon astrobiology"
+    },
+    "R5330": {
+      "kind": "paper",
+      "label": "Birrien et al. 2011",
+      "title": "Pyrococcus yayanosii sp. nov., an obligate piezophilic hyperthermophilic archaeon isolated from a deep-sea hydrothermal vent"
+    },
+    "R5331": {
+      "kind": "paper",
+      "label": "Hazael et al. 2014",
+      "title": "Laboratory investigation of high pressure survival in Shewanella oneidensis MR-1 into the gigapascal pressure range"
+    },
+    "R5340": {
+      "kind": "paper",
+      "label": "Steenstra et al. 2022",
+      "title": "Sulfur solubility in a deep magma ocean and implications for the deep sulfur cycle"
+    },
+    "R5341": {
+      "kind": "paper",
+      "label": "Clarke 2014",
+      "title": "The thermal limits to life on Earth"
     }
   }
 }

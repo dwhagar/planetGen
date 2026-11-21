@@ -14,7 +14,8 @@ from planetgen.generation.config import SystemConfig
 def _planet(tier, zone="e", body_type="t", is_moon=False):
     config = SystemConfig()
     config.ABUNDANCE_TIER = tier
-    return SimpleNamespace(system_config=config, zone=zone, body_type=body_type, is_moon=is_moon)
+    distance = {"e": 1.0, "h": 0.3, "c": 3.0, None: 0.3}[zone]       # the habitable zone of the Sun, 0.95 to 1.37 AU, widened by half its width: 0.74 to 1.58 AU (GEN.1807)
+    return SimpleNamespace(system_config=config, zone=zone, body_type=body_type, is_moon=is_moon, habitable_zone=(0.95, 1.37), distance=distance, star=None)
 
 
 def test_science_is_the_default_and_every_dial_is_off():
@@ -89,3 +90,11 @@ def test_the_desert_water_range_is_inside_the_dry_class_and_the_quiet_sink_is_in
     assert dry_low <= low < high <= dry_high
     assert 1.0e12 / biogenic_oxygen.EARTH_REDUCTANT_MOL_YR <= tuning.ABUNDANCE_QUIET_SINK_FACTOR < 1.0        # registry row BO2: 1e12 to 5e12 mol a year
 
+
+
+def test_the_dials_act_on_rocky_planets_in_the_widened_zone():
+    # GEN.1807 (PA20): the habitable zone 0.95 to 1.37 AU widened by half its width on each side is 0.74 to 1.58 AU for these bodies
+    config_planet = _planet("abundant")
+    for distance, expected in ((0.7, False), (0.75, True), (1.0, True), (1.55, True), (1.6, False)):
+        config_planet.distance = distance
+        assert abundance_tier.candidate(config_planet) is expected, distance

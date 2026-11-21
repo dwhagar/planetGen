@@ -180,3 +180,47 @@ def test_an_ammonia_water_life_needs_an_ammonia_tolerance_the_measured_life_does
     mild = {need.axis: need for need in _chemical("8", surface_temperature_k=290.0, ammonia_water_mass_fraction=0.003)}
     assert (mild["ammonia_fraction"].grade, mild["ammonia_fraction"].rows) == (3, ("N1",))
     assert _chemical("8", surface_temperature_k=290.0, ammonia_water_mass_fraction=0.0005) == []
+
+
+# --- the pressure of the habitat (GEN.1819 slice 1) ---
+
+def _sea(**over):
+    base = dict(hydrosphere="ice-covered ocean", gravity_g=0.14, atmospheric_pressure_pa=0.0, ice_shell_km=20.0, ocean_depth_km=100.0, water_base_pressure_pa=1.6e8, surface_temperature_k=270.0, hp_ice_km=None)
+    base.update(over)
+    return base
+
+
+def test_the_pressure_of_a_habitat_is_the_air_plus_the_lid_at_the_top_of_an_ocean_and_the_stored_base_at_its_floor():
+    from planetgen.physics import life_supply
+
+    values = world(**_sea())
+    top, floor = life_supply.habitat_pressure_pa(values, "top"), life_supply.habitat_pressure_pa(values, "floor")
+    assert top == pytest.approx(20000.0 * 917.0 * 0.14 * 9.80665, rel=1e-9) and floor == pytest.approx(1.6e8)
+    assert life_supply.habitat_pressure_pa(world(**_sea(water_base_pressure_pa=None)), "floor") == pytest.approx(top + 1.0e5 * 1000.0 * 0.14 * 9.80665)
+    sealed = life_supply.habitat_pressure_pa(world(**_sea(hp_ice_km=300.0, water_base_pressure_pa=3.0e9)), "floor")
+    assert sealed < 7.0e8          # the liquid lies on ice VI and VII, and freezes at the pressure of the lid's melting point (about 0.63 GPa), not at the base of the layer
+    assert life_supply.habitat_pressure_pa(world(hydrosphere="dry", atmospheric_pressure_pa=9.0e6), "floor") == 9.0e6
+
+
+def test_a_floor_over_the_pressure_limit_is_past_the_table_for_a_class_that_lives_there_and_not_for_one_that_lives_on_top():
+    values = _sea(water_base_pressure_pa=2.5e8)
+    floor, = [need for need in _chemical("3a", **values) if need.axis == "pressure"]
+    assert floor.habitat == ar.DEEP_HABITAT and floor.demand == pytest.approx(250.0) and floor.grade is None and floor.rows == ()
+    assert not [need for need in _chemical("4a", **values) if need.axis == "pressure"]          # the top: 20 km of ice at 0.14 g is 38 MPa, under the ordinary 50
+    close, = [need for need in _chemical("3b", **_sea(water_base_pressure_pa=1.3e8)) if need.axis == "pressure"]
+    assert (close.grade, close.rows) == (3, ("P2",))          # past the 100 MPa of the piezophile, inside the 140 of the hyperpiezophile
+    mid, = [need for need in _chemical("3a", **_sea(water_base_pressure_pa=8.0e7)) if need.axis == "pressure"]
+    assert (mid.grade, mid.rows) == (2, ("P1",))
+
+
+def test_the_dormant_row_of_survival_is_in_the_table_and_gives_a_life_no_growth():
+    assert la.limit("pressure", 3, class_id="3a") == pytest.approx(140.0) and la.limit("pressure", 3, class_id="3a", dormant=True) == pytest.approx(1500.0)
+    assert la.limit("pressure", 3, class_id="5a") == la.ordinary("pressure")
+
+
+def test_an_aquifer_has_the_pressure_of_the_rock_above_it():
+    from planetgen.physics import life_supply
+
+    values = world(hydrosphere="dry", atmospheric_pressure_pa=1.0e5, gravity_g=1.0, aquifer_depth_km=3.0, aquifer_thickness_km=1.0)
+    assert life_supply.habitat_pressure_pa(values, "floor") == pytest.approx(1.0e5 + 3000.0 * 2700.0 * 9.80665)
+    assert life_supply.habitat_pressure_pa(values, "top") == life_supply.habitat_pressure_pa(values, "floor")

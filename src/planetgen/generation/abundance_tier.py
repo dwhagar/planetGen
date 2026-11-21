@@ -96,10 +96,14 @@ def active(subject):
 
 def candidate(body):
     """
-    Whether the dials act on `body`: a rocky planet (`body_type` "t", never a moon) whose orbit lies in its star's ecosphere (`zone` "e").
+    Whether the dials act on `body`: a rocky planet (`body_type` "t", never a moon) whose orbit lies in the zone the effort goes to: its star's habitable zone
+    widened by half its width on each side (GEN.1807, `orbits.candidate_zone`; the body's `zone` letter stays the habitable zone's own).
     The one definition the water and envelope dials share, and the first row of the meter's funnel.
     """
-    return getattr(body, "body_type", None) == "t" and not getattr(body, "is_moon", False) and getattr(body, "zone", None) == "e"
+    if getattr(body, "body_type", None) != "t" or getattr(body, "is_moon", False):
+        return False
+    from planetgen.physics import planets as planetPhysics      # here: the physics modules import this one
+    return planetPhysics.in_candidate_zone(body.habitable_zone, body.distance, body.star)
 
 
 def water_share(body):

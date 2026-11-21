@@ -11002,7 +11002,7 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1820 Wire or remove the functions GEN.1745 and GEN.1150 built that nothing reads**
-  TODO docs pass, 2026-11-21: retiring GEN.1745, GEN.1150 and MAP.354 left wiring-register rows whose named item is done while the code is still unread: life_air.gives (GEN.1745, Lane 02), trojans.allows, trojans.max_trojan_mass, trojans.point_label, trojans.pair_text (GEN.1150, Lane 06) and the module lagrange_geometry (MAP.354, Lane 06). Do: wire each where its register line says it belongs, or delete it if the built path made it redundant (reuse rule, no dead code).
+  TODO docs pass, 2026-11-21: retiring GEN.1745, GEN.1150 and MAP.354 left wiring-register rows whose named item is done while the code is still unread: life_air.gives (GEN.1745, Lane 02), trojans.pair_text (GEN.1150, Lane 06) and the module lagrange_geometry (MAP.354, Lane 06). Do: wire each where its register line says it belongs, or delete it if the built path made it redundant (reuse rule, no dead code).
   Version 8.1. Owner (TODO, 2026-11-21): Lane 06 (trojans, lagrange_geometry), Lane 02 (life_air.gives), lock-free unless output moves. Prerequisites: none. Related: GEN.1150, GEN.1151, GEN.1745, MAP.354, GEN.754.
   Filed by the TODO thread.
 

@@ -28,10 +28,25 @@ def numbers_for_systems(conn, system_ids):
         return {}
     marks = ", ".join("?" * len(system_ids))
     rows = [dict(row) for row in conn.execute(
-        f"SELECT id, star_system_id, star_id, orbital_index FROM asteroid_belts WHERE star_system_id IN ({marks}) ORDER BY star_system_id, orbital_index, id", tuple(system_ids)).fetchall()]
+        f"SELECT id, star_system_id, star_id, orbital_index, lagrange_point FROM asteroid_belts WHERE star_system_id IN ({marks}) ORDER BY star_system_id, orbital_index, id", tuple(system_ids)).fetchall()]
     count, found = {}, {}
     for row in rows:
+        if row["lagrange_point"]:
+            continue                      # a trojan region has a name of its own and takes no number (GEN.1150)
         key = (row["star_system_id"], row["star_id"])
         count[key] = count.get(key, 0) + 1
         found[row["id"]] = count[key]
     return found
+
+
+def names_for_belts(conn, belt_ids):
+    """`{belt id: name}` for the belts `belt_ids`: `Asteroid belt N` for a belt, `<host> L4 trojan region` for a giant's trojan region (GEN.1150, the host's name read from its row)."""
+    belt_ids = list(belt_ids)
+    if not belt_ids:
+        return {}
+    numbers = numbers_for_belts(conn, belt_ids)
+    marks = ", ".join("?" * len(belt_ids))
+    regions = {row["id"]: row for row in conn.execute(
+        f"SELECT b.id, b.lagrange_point, p.name AS host_name FROM asteroid_belts b LEFT JOIN planets p ON p.id = b.parent_id WHERE b.id IN ({marks}) AND b.lagrange_point IS NOT NULL",
+        tuple(belt_ids)).fetchall()}
+    return {belt_id: (bodies.region_label(regions[belt_id]["host_name"], regions[belt_id]["lagrange_point"]) if belt_id in regions else label(numbers[belt_id])) for belt_id in belt_ids}

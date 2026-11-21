@@ -17,7 +17,7 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
   a few ppm of CO and water, as Venus is). A Mars-like body's carbon dioxide ice and carbonate sink is the freeze-out of the
   pressure bookkeeping (GEN.452), applied to this gas.
 * **Abiotic oxygen (`j5`).** The outgassed gas, its carbon, nitrogen and sulfur rescaled to a carbon of `CARBON_PER_OCEAN_WATER` per molecule of the
-  surface water of one to ten oceans (`OCEAN_WATER_WT_PERCENT`) added to it; the
+  surface water of one ocean to 1 percent of the body's mass (`OCEAN_WATER_WT_PERCENT`) added to it; the
   hydrogen of the water escapes (the fraction `WATER_PHOTOLYSED`) and the oxygen it leaves behind stays in the closed gas, except for
   the share `OXYGEN_ESCAPE` that leaves with the hydrogen (GEN.1769 slice 1: 90 to 99 percent of the oxygen the photolysis makes is lost to space, [R3946]; the hydrogen drags it along, [R4774]; the O2 builds to tens or hundreds of bar around a late M dwarf only for the very wet bodies, [R2769]). Nothing holds the oxygen fugacity here: the gas is free to have O2. The
   magma ocean's uptake (at most 10 percent of the oxygen in [R3946], most of it in [R4774]) and the crust's iron and sulfur are the next slices of GEN.1769.
@@ -54,9 +54,10 @@ air above 0.7 km is more oxidizing still), which the source does not reach: tier
 WATER_PHOTOLYSED = (0.3, 1.0, "uniform")
 """tuple: The share of the water an abiotic-oxygen world loses its hydrogen from (the tail of Luger and Barnes: up to ten oceans); design."""
 
-OCEAN_WATER_WT_PERCENT = (0.0233, 0.233, "log")
-"""tuple: The water an abiotic-oxygen world's surface holds before its hydrogen is lost, weight percent of the body: one to ten
-Earth oceans (one ocean is 0.0233 percent of the Earth's mass; the ten are the top of the range [R2769] consider)."""
+OCEAN_WATER_WT_PERCENT = (0.0233, 1.0, "log")
+"""tuple: The water an abiotic-oxygen world's surface holds before its hydrogen is lost, weight percent of the body: one Earth ocean (0.0233 percent of the
+Earth's mass) up to 1 percent, about 43 oceans. The papers consider one to ten oceans [R2769]; the Boss asked for the range widened (GEN.1769 slice 2, 5:45 PM EST 11-20) so the water-rich rocky worlds an M dwarf's long
+bright youth can dry are in it too. Above 1 percent the dry oxygen share does not change in the measured draws (the carbon and the steam that stay grow with the water). [Stand-in 6.7 AM4, tier T6, tweak L3.]"""
 
 CARBON_PER_OCEAN_WATER = (0.01, 0.2, "log")
 """tuple: The carbon of an abiotic-oxygen world's gas per water molecule of its oceans, mole per mole: the Earth's atmosphere and carbonate
@@ -143,11 +144,17 @@ def evolved_oxidized(subject, recipe, row, supply=None):
     else:
         ocean = 2.0 * bracket(constants, "ocean_water_wt_percent", OCEAN_WATER_WT_PERCENT) / mixture_rocky.AMU_G_MOL["H2O"]
         carbon = ocean / 2.0 * bracket(constants, "carbon_per_ocean_water", CARBON_PER_OCEAN_WATER)
+        # the oxygen the volcanic gas has beyond its water, carbon dioxide and sulfur dioxide is its redox (negative for a reduced gas); it stays per
+        # carbon atom like the nitrogen and the sulfur, and the oxygen of the carbon and sulfur that replace the gas's follows them, so the old gas's oxygen
+        # is not left free in the new one (GEN.1769 slice 2: it was 0.004 to 0.006 atoms per 100 g against 0.00005 to 0.0001 that the photolysis leaves)
+        old_carbon = atoms.get("C", 0.0)
+        excess = atoms["O"] - atoms.get("H", 0.0) / 2.0 - 2.0 * old_carbon - 2.0 * atoms.get("S", 0.0)
+        excess *= carbon / old_carbon if old_carbon > 0.0 else 0.0
         for symbol in ("N", "S"):
             atoms[symbol] = carbon * inventory[symbol] / inventory["C"]        # nitrogen and sulfur stayed per carbon atom
         atoms["C"] = carbon
         atoms["H"] = atoms.get("H", 0.0) + ocean
-        atoms["O"] += ocean / 2.0
+        atoms["O"] = excess + atoms["H"] / 2.0 + 2.0 * (atoms["C"] + atoms["S"])
         lost = atoms["H"] * bracket(constants, "water_photolysed", WATER_PHOTOLYSED)
         atoms["H"] -= lost
         atoms["O"] -= (lost / 2.0) * bracket(constants, "oxygen_escape", OXYGEN_ESCAPE)
