@@ -55,8 +55,21 @@ def scratch_rich_galaxy():
             here = os.path.dirname(os.path.abspath(__file__))
             key = rich_galaxy_cache.key_of(config, os.path.join(here, "..", "planetgen"), here, os.environ.get("PLANETGEN_DATA_DIR"),
                                            extra_files=(SYSTEM_FILE, os.path.join(here, "..", "..", "config.json")))
-            rich_galaxy_cache.build_or_load(config, lambda: build_rich_galaxy(config), folder, key)
+            if rich_galaxy_cache.build_or_load(config, lambda: build_rich_galaxy(config), folder, key) == "loaded":
+                _make_the_cluster_field(config)
         yield config
+
+
+def _make_the_cluster_field(config):
+    """
+    TEST.807: the galaxy a process built has the galaxy's cluster field in its memory (and a file of its state folder), which the dump does not carry; a visitor's request for a
+    page that needs it is refused (503, `CacheRebuilding`) until the warm-up has made it. The process that loads a dump makes it here, as the warm-up does, outside a request.
+    """
+    conn = store.get_connection(config)
+    try:
+        store.get_galaxy_shape(conn)
+    finally:
+        conn.close()
 
 
 def build_rich_galaxy(config, seed=20261001):
