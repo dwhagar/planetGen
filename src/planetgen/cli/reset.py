@@ -366,6 +366,10 @@ def main():
     except (pymysql.MySQLError, SchemaTooNewError, redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
         log.error(str(exc))
         sys.exit(1)
+    except process.Stopped as stop:
+        log.error(f"The reset was stopped by {stop.reason}.")
+        log.info("Tables wiped so far stay wiped, and running the reset again finishes the rest.")
+        sys.exit(143)
 
     if not did_reset and not args.dry_run:
         sys.exit(1)

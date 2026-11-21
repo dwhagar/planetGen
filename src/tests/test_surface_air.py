@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, starlight_aloft, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, air_history, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, starlight_aloft, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -486,16 +486,25 @@ def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_
     """GEN.1716: a giant took one step, so the haze its greenhouse was made under was the haze of the start temperature and the stored
     temperature moved with the start (28 K at the median of 59 generated giants, 300 K on hot ones). It iterates to `TOLERANCE_K` like a rocky body,
     keeps the reference pressure, says it settled, and gives the same temperature from a cold, a warm and a hot start."""
-    seen, real_solve = [], sa.solve
+    seen, real_solve, real_history_solve, in_history = [], sa.solve, air_history._solved_temperature, []
 
     def recording_solve(setting, start_temperature_k):
         entry = draw.getstate()
         result = real_solve(setting, start_temperature_k)
-        if setting.giant and result is not None and result.partials_pa:
+        if setting.giant and result is not None and result.partials_pa and not in_history:
             seen.append((setting, entry, result, start_temperature_k))
         return result
 
+    def history_solve(setting, start_k, entry_state):
+        # GEN.1745: the air history solves the body's air again at the light and heat of other ages (a transitional world is a giant setting); those are not the final air this test is about
+        in_history.append(True)
+        try:
+            return real_history_solve(setting, start_k, entry_state)
+        finally:
+            in_history.pop()
+
     monkeypatch.setattr(sa, "solve", recording_solve)
+    monkeypatch.setattr(air_history, "_solved_temperature", history_solve)
     for _ in _generated(range(6)):
         pass
     assert len(seen) >= 3, "the seeds make giants"
@@ -860,3 +869,12 @@ def test_the_mantle_redox_takes_one_draw_from_the_unit_whatever_the_recipe_takes
 
 def test_an_airless_mixture_has_no_column_of_its_own_to_freeze_out():
     assert sa._column_moles(types.SimpleNamespace(moles=None, mole_fractions={}), 1.0e22) == {}
+
+
+def test_the_subject_function_of_a_setting_can_be_pickled_for_a_process_pool():
+    """TEST.805: `setting_of` built `subject_of` as a closure, which a process pool cannot send (test_describe, test_insolation)."""
+    import pickle
+
+    subject = sa._BodySubject(types.SimpleNamespace(name="body"), True, 1.5)
+    again = pickle.loads(pickle.dumps(subject))
+    assert (again.body.name, again.water_lost, again.star_distance_au) == ("body", True, 1.5)

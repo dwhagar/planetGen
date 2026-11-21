@@ -25,6 +25,13 @@ releases (Boss, 2026-10-10: "I want build to always change"): every note
 takes the previous BUILD plus one and it never resets, so 7.58.2 -> 7.59.3
 for a `patch` or `minor` note and 7.58.2 -> 8.0.3 for a `major` one. The
 TODO counters no longer feed the version.
+**The version code (OPS.64, Boss, 2026-10-24: the PEP 440 local suffix).** What the three places show is
+`MAJOR.REVISION.BUILD+db<schema>.gen<epoch>.api<api>`, for example `8.2.2100+db134.gen62.api5`: the database
+schema version (the newest migration revision), the generator epoch (the newest in `epochs.json`) and `API_VERSION`.
+The stamp reads the three from their own sources when it stamps and writes them; nobody types them, and the PR check
+refuses a change to the version, the badge or the top changelog entry, a suffix included. Everything that counts
+releases (BUILD, REVISION, `first_release` in `epochs.json` and `api-versions.json`, the release commit's name) uses the
+plain `MAJOR.REVISION.BUILD`.
 **Revision hold (Boss, 2026-10-09):** no release goes to 8.1 until Phase 1
 is complete. While `REVISION_HOLD` in `scripts/bump_version.py` is on, a
 `patch` or `minor` note keeps REVISION as it is (BUILD still goes up by

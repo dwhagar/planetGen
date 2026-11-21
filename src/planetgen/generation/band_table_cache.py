@@ -70,6 +70,7 @@ INPUT_FILES = (
     "generation/battery_progress.py",
     "generation/bodybeat.py",
     "generation/close_binary_trend.py",
+    "generation/forced_star.py",
     "generation/mass_ratio.py",
     "generation/member_record.py",
     "generation/multistar.py",

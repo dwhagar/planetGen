@@ -388,8 +388,7 @@ sudo ./update.sh
 It pulls the latest code (a `git reset --hard` to the tracked
 branch; `config.json` and other untracked files are kept), checks the
 Python libraries and installs only a missing or too-old one, checks the
-NLTK corpus, runs the generator's math check (a failure only warns, and
-bulk generation refuses to start until it passes), migrates the database
+NLTK corpus, migrates the database
 and records the version key, re-applies folders, permissions and the
 logs, checks that the site imports, and checks Redis as the installer
 does. It never reinstalls what is already there. Last, it builds

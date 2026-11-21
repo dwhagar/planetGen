@@ -254,6 +254,9 @@ class RunWatches:
 SUPERVISED_SECONDS = 15
 """int: How long a run counts as watched by the supervisor after a turn that saw it (`runrecord.supervised_key`): several turns, so one slow turn is not a death."""
 
+LOST_RUNS_SECONDS = 30.0
+"""float: How often the supervisor looks for runs Redis lost (`LostRuns`), the first time at once."""
+
 REPAIR_GRACE_SECONDS = 30.0
 """float: How long a stage may stand finished without its end having queued the next opening before the supervisor ends it (OPS.186): the unit that ends a stage is normally at it at once, and
 a conclusion can take a while, so a lease (`runrecord.ending_key`) still held is waited for however long it is."""
@@ -328,6 +331,47 @@ class Reconciler:
                 if done:
                     self._act(f"ended stage {stage + 1} of run {run_id}", "it had finished and its end had not queued the next stage")
         return repaired
+
+    def clear(self):
+        """Nothing to drop."""
+
+
+class LostRuns:
+    """
+    OPS.284: the runs Redis lost. A restart of the machine or of Redis takes the runs' records with it; the control database keeps a copy of each run that has rows in the ledger (`runstore`). Each `turn`,
+    at most every `LOST_RUNS_SECONDS`, this puts back into Redis the runs whose record is gone and ends the ones that were live (failed, killed, their ledger rows ended), so a run does not stay `running` in the
+    ledger with nothing to carry it on, and `finish-run` and the pages find it.
+
+    Args:
+        connection (redis.Redis): The server the runs are on.
+        clock (callable, optional): `clock() -> Unix seconds`; the wall clock where left out.
+        settle (callable, optional): `settle(connection) -> [run ids]`; `runstore.settle_lost` where left out. The simulator passes its own.
+    """
+
+    def __init__(self, connection, clock=time.time, settle=None):
+        self.connection, self.clock, self.settle = connection, clock, settle
+        self.supervisor = None
+        self.at = None
+
+    def attach(self, supervisor):
+        """The supervisor that runs this duty, so what it settles goes into the supervisor's acts."""
+        self.supervisor = supervisor
+
+    def turn(self):
+        """Returns the ids of the runs it ended."""
+        now = self.clock()
+        if self.at is not None and now - self.at < LOST_RUNS_SECONDS:
+            return []
+        self.at = now
+        from planetgen.queue import runstore
+        try:
+            ended = (self.settle or runstore.settle_lost)(self.connection)
+        except Exception as exc:  # noqa: BLE001 -- a control database that cannot be read now is read at the next turn
+            log.swallowed("queue/supervisor", "LostRuns.turn", exc)
+            return []
+        if ended and self.supervisor is not None:
+            self.supervisor.act(f"ended {len(ended)} run(s) Redis lost", ", ".join(ended))
+        return ended
 
     def clear(self):
         """Nothing to drop."""
