@@ -41,7 +41,7 @@ def test_every_star_reports_an_outcome_the_exchange_knows(systems):
 
 def test_a_lone_star_with_one_planet_is_left_as_it_was(systems):
     for system in systems:
-        for star, planets in validation.star_lists(system):
+        for star, planets in ((host.star, host.orbiters) for host in system.hosts):
             if len([p for p in planets if p.body_type != 'a']) < 2 and not radiation_field.companions_of(star):
                 assert system.secular_outcomes[star.name] == "unchanged"
 

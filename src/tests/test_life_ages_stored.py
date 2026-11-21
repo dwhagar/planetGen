@@ -21,7 +21,7 @@ def _config():
 
 
 def _bodies(system):
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         if getattr(planet, "body_type", None) == "a":           # a belt is not a body with an air
             continue
         yield planet

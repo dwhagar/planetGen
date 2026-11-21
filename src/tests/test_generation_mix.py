@@ -39,12 +39,12 @@ def systems():
 
 
 def _stars(systems):
-    return sum(1 for system in systems for _star in validation.star_lists(system))
+    return sum(1 for system in systems for _star in ((host.star, host.orbiters) for host in system.hosts))
 
 
 def _planets(systems):
     for system in systems:
-        for _star, planets in validation.star_lists(system):
+        for _star, planets in ((host.star, host.orbiters) for host in system.hosts):
             for body in planets:
                 if body.body_type != 'a':
                     yield body
