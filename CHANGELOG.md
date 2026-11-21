@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4703+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The 3D system view draws a trojan region as an arc about its giant's L4 or L5 that follows the giant and librates, not as a full ring.
+
+### Added
+- MAP.433: the scene's belt row of a trojan region carries `region` (the giant, the point, the libration period, amplitude and phase, the arc's half width, the mean inclination), and `systemview3d.js` draws it as an arc turned each update to the giant's longitude plus 60 (L4) or minus 60 (L5) degrees plus the libration, counted from Unix time zero as the stored phase is.
+
+### Fixed
+- A trojan region is no belt in the count a stored irregular moon or a promoted planet names its belt by (`irregular_moons.belts_of`, the readers in `query`, the sheet and the moon pages, the scene), and it has its own body-number slot under its giant (`trojan:L4`), so a region ahead of a belt no longer shifts that belt's number.
+
 ## [8.0.4702+db272.gen150.api14] - 2026-11-21
 
 **Headline:** The heat a moon's tide puts into a planet no longer holds the steps of a stiff moon history: its error tolerance is a share of the planet's spin energy, so the seed 9101 history of the aquifer tests finishes again on Train 52.
