@@ -69,15 +69,15 @@ def eligible(body):
             and bool(atmosphere.gas_partials_pa(body)))
 
 
-def record_of(body, living=(), found=None, risen=None, rise_gyr=None, life_begin_gyr=None):
+def record_of(body, living=(), found=None, risen=None, rise_gyr=None, life_begin_gyr=None, ages=None):
     """
     The record of `body` (see the module), or `None` when it gets none (`eligible`). `living` are the classes of life on it with the air `found` as the life found it and the air the oxygen's `risen` at
-    `rise_gyr` (as `air_history.gas_trajectory` reads them); `life_begin_gyr` is the age its first producers began, from which the life ages count (none for a world with no life).
+    `rise_gyr` (as `air_history.gas_trajectory` reads them); `life_begin_gyr` is the age its first producers began, from which the life ages count (none for a world with no life); `ages` are those life ages when the caller has them already (`life_ages.ages_of`, which the record would otherwise make again).
     """
     if not eligible(body):
         return None
     cuts = list(air_history.oxygen_cuts(body, living)) if living else []
-    ages_of_life = tuple(life_ages.ages_of(body, life_begin_gyr)) if life_begin_gyr is not None else ()
+    ages_of_life = tuple(ages if ages is not None else life_ages.ages_of(body, life_begin_gyr)) if life_begin_gyr is not None else ()
     kills = {age.end_gyr: (age.cause, age.kill_share) for age in ages_of_life if age.end_gyr is not None}
     cuts.extend(kills)
     steps = air_history.run(body, cuts, getattr(body.build, "air_input", None))

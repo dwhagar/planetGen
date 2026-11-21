@@ -26,6 +26,9 @@ from dataclasses import dataclass
 
 from planetgen.physics import air_events
 
+FIELD = "life_ages"
+"""str: The body attribute holding the life ages of the body as a list of `entries_of` dicts (the child tables `planet_life_ages` and `moon_life_ages`, GEN.1746 slice 3); `None` for a body with none."""
+
 AGE_KILL_THRESHOLD = 0.30
 """float: The share of species an event must kill to end a life age. [Stand-in 6.314 LA1, tier T6 marginal educated guess based on physics, tweak L3.]"""
 
@@ -107,3 +110,13 @@ def ages_of(body, begin_gyr, end_gyr=None, threshold=AGE_KILL_THRESHOLD):
         start = age + air_events.RECOVERY_GYR
     ages.append(LifeAge(len(ages) + 1, min(start, end_gyr), None, None, None))
     return ages
+
+
+def entries_of(ages):
+    """`ages` (`LifeAge`) as the list of dicts the body keeps in `FIELD` and the rows of its life ages table are written from: `number`, `start_gyr`, `end_gyr`, `cause`, `kill_share`; `None` when there are none."""
+    return [{"number": age.number, "start_gyr": age.start_gyr, "end_gyr": age.end_gyr, "cause": age.cause, "kill_share": age.kill_share} for age in ages] or None
+
+
+def from_entries(entries):
+    """The `LifeAge` tuple of the dicts of `FIELD` (what `entries_of` made, or what the rows of the table read back as)."""
+    return tuple(LifeAge(entry["number"], entry["start_gyr"], entry["end_gyr"], entry["cause"], entry["kill_share"]) for entry in entries or ())

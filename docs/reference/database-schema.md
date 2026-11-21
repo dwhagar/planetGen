@@ -1570,6 +1570,20 @@ Added in v203 (GEN.1209). The life classes that live on a planet or moon: one ro
 | `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr` | DOUBLE | nullable | The five ages of the class's schedule, Gyr; `NULL` for a step never reached. |
 | `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | The four kind scores, 0 to 9, that this class gives. |
 
+### `planet_life_ages` / `moon_life_ages`
+
+Added in v270 (GEN.1746 slice 3). The life ages of a planet or moon (`physics/life_ages.py`): the stretches of its life between two mass extinctions, one row each, written with the body and removed with it. A body with no life, a rogue planet and a body stored before v270 have none. The same ages are in the body's `air_history` record, with the steps of its air.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` / `moon_id` | BIGINT UNSIGNED | NOT NULL | FK -> `planets.id` / `moons.id` (`ON DELETE CASCADE`). |
+| `age_number` | SMALLINT UNSIGNED | NOT NULL, CHECK 1 or more | The age's place in the table, from 1. UNIQUE with the owner; indexed with `end_gyr`, so "the worlds in their third life age" is a short read. |
+| `start_gyr` | DOUBLE | NOT NULL, CHECK 0 or more | When it started, Gyr: the age life began, or the extinction that ended the age before plus the 10 Myr recovery lag. |
+| `end_gyr` | DOUBLE | nullable | The age of the extinction that ended it, Gyr; `NULL` for the age the world is in. |
+| `cause` | VARCHAR(16) | nullable | What ended it: `flood basalt` or `impact`; `NULL` for the age the world is in. |
+| `kill_share` | DOUBLE | nullable, CHECK 0 < share <= 1 | The share of species the extinction killed (0.30 or more); `NULL` for the age the world is in. |
+
 ### `irregular_moons`
 
 Added in v219 (GEN.1084). The small bodies a planet caught from the outer disk and its own feeding zone (`generation/irregular_moons.py`), one row each: every body above 1e16 kg, then more of the next heaviest until 90 percent of the population's mass is held (at most 100). Smaller bodies are a total on `irregular_sets`.
@@ -2556,6 +2570,10 @@ Migration 0272 adds `lagrange_point` (VARCHAR(2), `L4` or `L5`) and `lagrange_ho
 ### v271 (GEN.1150): the trojan region of a giant
 
 Migration 0271 adds `lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity` and `mean_inclination_deg` to `asteroid_belts`: a giant's trojan swarm is stored as two belt-like rows (L4 and L5) whose parent is the giant (`parent_type` `planet`). All five are NULL for every other belt and for a row made before v269; nothing is backfilled, a regenerated galaxy holds the swarms. A region has no `belt_members` rows in this slice. Its name is worked out, never stored: `<giant> L4 trojan region`; it takes no number among the star's belts (`db/belt_names.py`).
+
+### v273 (GEN.1746): the life ages of a world
+
+Migration 0273 creates `planet_life_ages` and `moon_life_ages` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come when the galaxy is regenerated.
 
 ### v267 (GEN.1231): the mass a belt's star threw inward
 
