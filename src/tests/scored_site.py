@@ -70,10 +70,15 @@ def _score(conn, table):
         conn.execute(f"UPDATE {table} SET {marks} WHERE id = ?", (*sets.values(), body_id))
 
 
+def _moon_counts(conn):
+    """How many stored moons hold each of `MOON_VALUE_COLUMNS`, as a dict of the real counts."""
+    row = conn.execute("SELECT " + ", ".join(f"COUNT({column}) AS {column}" for column in MOON_VALUE_COLUMNS) + " FROM moons").fetchone()
+    return {column: row[column] for column in MOON_VALUE_COLUMNS}
+
+
 def _moons_are_enough(conn):
     """Whether each of `MOON_VALUE_COLUMNS` is stored on `MOONS_WANTED` moons (and so on that many bodies the searches have to pick between)."""
-    counts = conn.execute("SELECT " + ", ".join(f"COUNT({column}) AS {column}" for column in MOON_VALUE_COLUMNS) + " FROM moons").fetchone()
-    return all(counts[column] >= MOONS_WANTED for column in MOON_VALUE_COLUMNS)
+    return all(count >= MOONS_WANTED for count in _moon_counts(conn).values())
 
 
 @pytest.fixture(scope="module")
@@ -107,10 +112,10 @@ def scored_galaxy(_mysql_server_available):
                 if len(moons) < MIN_MOONS and not any(getattr(moon, "ocean_depth_km", None) for moon in moons):
                     continue
                 system_ids.append(store.insert_star_system(conn, system, cfg, sector_id=sector_id))
-                if len(system_ids) >= MAX_SYSTEMS or (len(system_ids) >= SYSTEMS and _moons_are_enough(conn)):
+                if len(system_ids) >= SYSTEMS and _moons_are_enough(conn):
                     break
             if len(system_ids) < SYSTEMS or not _moons_are_enough(conn):
-                pytest.fail(f"seeds {FIRST_SEED} to {LAST_SEED} gave {len(system_ids)} of {SYSTEMS} systems with {MIN_MOONS} moons, holding {MOONS_WANTED} moons with each of {MOON_VALUE_COLUMNS}")
+                pytest.fail(f"seeds {FIRST_SEED} to {LAST_SEED} gave {len(system_ids)} of {SYSTEMS} systems with {MIN_MOONS} moons, holding {_moon_counts(conn)} moons with each of {MOON_VALUE_COLUMNS} (need {MOONS_WANTED})")
             store.assign_uids(conn, system_ids=system_ids)
             for table in ("planets", "moons"):
                 _score(conn, table)
