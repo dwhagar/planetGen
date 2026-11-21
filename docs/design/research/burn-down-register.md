@@ -275,7 +275,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.223:SD8 | no data | - | no survey says how many source-rock basins a planet with an ocean has; the Earth is the one case |
 | 6.223:SD9 | no data | - | the reference window is a design choice; only the Earth's deposits by era exist |
 | 6.213:DSC5 | no data | - | L3, the split of the nitrogen between N2 (60 percent), ammonium salts (10) and ammonia hydrate was set from the statement that most nitrogen is N2 and unobserved and the salts a minority; no measured split of a disc's nitrogen was read, and the Rosetta salt share is cited second-hand |
-| 6.228:SV7 | replace | GEN.1644 | L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge |
 | 6.228:SV8 | no data | - | L3, no measurement of the SO3 share of the sub-cloud vapor is in hand; the decomposition above 400 K is named and left out |
 | 6.310:CB2 | no data | - | L3, no carbonation rate of dry basalt against temperature at 400 to 600 K is in hand; the floor is set where the reaction pressure is 0.08 bar so a mistake moves little |
 | 6.310:CB3 | no data | - | L3, no measurement of the share of a crust's calcium that carbonates at a hot dry surface is in hand; the Earth's crust holds about 17 percent of its calcium as carbonate and a lower share is the first thing to tune |
@@ -321,7 +320,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.3a:`--class-m` | no data | - | the Class M abundance tier is Boss's choice (card, 11:19 PM EST 2026-11-13) and nobody knows how common an Earth is; the dial values behind each word (6.289:AT1 to AT4) are calibrated by the meter, and the choice itself has no measurement to replace it |
 | 6.3a:`--comet-abundance` | no data | - | the comet abundance tier is Boss's choice (GEN.1775) and nobody knows how many comets a star keeps; the multipliers behind each word (6.303:CMT10) scale the registered comet chance (6.303:CMT8), and the choice itself has no measurement to replace it |
 | 6.6b:IR12 | no data | - | the cloud's longwave share is fitted to the Earth's cloud effect at its surface humidity; no measured cloud longwave effect of another air exists to replace it |
-| 6.6c:IR19 | no data | - | the fit has no samples of a minor gas between absent and about 1e-5, so the thin-gas scaling is hand-chosen against the sweep; a refit on airs with minor gases replaces it |
 | 6.179a:SPR1 | no data | - | a display limit chosen so a sprite narrower than a few pixels is left to the glow band; no measurement stands behind it |
 | 6.179a:SPR2 | no data | - | a display limit chosen so faint dark clouds are not drawn; no measurement stands behind it |
 | 6.179a:SPR3 | no data | - | a search distance chosen for the cost of the sky route; no measurement stands behind it |
