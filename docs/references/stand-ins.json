@@ -18485,6 +18485,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, planet_architecture.giant_impacts) and GIANT_IMPACT_END_AU 3 (the stage ends there, or at the snow line when nearer: farther out the merging does not finish in the disk's age, and for A stars with snow lines at 10 AU and more it moved the outer disk inward and tripled the debris disks)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "orbits.CANDIDATE_ZONE_WIDENING 0.5 (GEN.1807: how far the zone the habitable-world effort goes to reaches past each edge of the star's habitable zone, as a share of the zone's width; 0.5 on each side doubles the span, the Sun's 0.95 to 1.68 AU becoming 0.59 to 2.04 AU; the effort is the tier dials, abundance_tier.candidate, and the request for a habitable world, StarSystem._generate_planets; the habitable zone itself, the zone letter of a body and the pages keep the [R2447] edges, and the class of a body still comes last from its own conditions)"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1 (0 is the habitable zone alone)"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of every star"
+            ],
+            [
+              "What would show it wrong",
+              "test_habitable_zone::test_the_effort_zone_is_the_habitable_zone_widened_by_half_its_width_each_side; test_abundance_tier::test_the_dials_act_on_rocky_planets_in_the_widened_zone"
+            ],
+            [
+              "What replaces it",
+              "a candidate zone from where the generator's own air and water leave a temperate sea (the radiative-convective edge of IR17 with the clouds of CA1)"
+            ],
+            [
+              "Evidence",
+              "needed output (Boss, 5:49 PM EST 11-20, after the outer-edge row of GEN.1791 gained +5 Class M and +6 M-like per 400 systems by narrowing the zone: the thick-CO2 outer worlds drew the effort and none could be M; he chose to widen the effort zone by half its width on each side instead, to put effort into more worlds; no source gives an edge past the maximum greenhouse limit)"
+            ]
+          ],
+          "id": "PA20",
+          "key": "6.36:PA20",
+          "kind": "P",
+          "slug": "6-36-pa20",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "orbits.CANDIDATE_ZONE_WIDENING 0.5 (GEN.1807: how far the zone the habitable-world effort goes to reaches past each edge of the star's habitable zone, as a share of the zone's width; 0.5 on each side doubles the span, the Sun's 0.95 to 1.68 AU becoming 0.59 to 2.04 AU; the effort is the tier dials, abundance_tier.candidate, and the request for a habitable world, StarSystem._generate_planets; the habitable zone itself, the zone letter of a body and the pages keep the [R2447] edges, and the class of a body still comes last from its own conditions)"
         }
       ],
       "slug": "6-36-stand-ins-of-the-planet-architecture",
@@ -64075,7 +64113,7 @@
             ],
             [
               "What replaces it",
-              "none: GEN.1464 closed (Boss 11-19), a belt adds at most 0.46 percent to any tide"
+              "the belts as sources through the ledger of GEN.1464"
             ],
             [
               "Evidence",

@@ -1738,6 +1738,12 @@ def zone_for(habitable_zone, distance_au, star=None):
     return 'e'
 
 
+def in_candidate_zone(habitable_zone, distance_au, star=None):
+    """Whether `distance_au` lies in the zone the habitable-world effort goes to (GEN.1807, `orbits.candidate_zone`: the habitable zone widened by half its width on each side),
+    read like `zone_for` (the other stars' light counts). The zone letter of a body stays the habitable zone's own."""
+    return zone_for(orbits.candidate_zone(habitable_zone), distance_au, star) == 'e'
+
+
 def hosting_population(planet):
     """
     What the hosting gate (`physics.hosting_gate`) calls `planet`: a small body (under `tuning.HOSTING_SMALL_BODY_MAX_RADIUS_KM` in
