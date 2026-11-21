@@ -277920,6 +277920,45 @@
    "volume": "",
    "year": 2019
   },
+  "10.7185/geochemlet.2219": {
+   "authors": [
+    [
+     "Steenstra",
+     "E."
+    ],
+    [
+     "Lord",
+     "O."
+    ],
+    [
+     "Vitale",
+     "S."
+    ],
+    [
+     "Bullock",
+     "E."
+    ],
+    [
+     "Klemme",
+     "S."
+    ],
+    [
+     "Walter",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.7185/geochemlet.2219",
+   "editors": [],
+   "journal": "Geochem. Persp. Let.",
+   "page": "5",
+   "publisher": "European Association of Geochemistry",
+   "src": "crossref",
+   "title": "Sulfur solubility in a deep magma ocean and implications for the deep sulfur cycle",
+   "type": "journal-article",
+   "volume": "22",
+   "year": 2022
+  },
   "10.7185/gold2021.5051": {
    "authors": [
     [
@@ -287158,7 +287197,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5323,
+ "id_next": 5341,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -292135,6 +292174,7 @@
   "10.64628/aa.uqjfwk97m": "R3084",
   "10.64628/ab.3aune6pmw": "R2883",
   "10.7185/geochemlet.1918": "R2329",
+  "10.7185/geochemlet.2219": "R5340",
   "10.7185/gold2021.5051": "R0489",
   "10.7185/gold2023.16623": "R0488",
   "10.7185/gold2023.18983": "R2693",

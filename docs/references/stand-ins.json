@@ -75761,6 +75761,166 @@
       ],
       "slug": "6-317-stand-ins-of-the-deep-branch-of-a-giant-s-profile-gen-1577",
       "title": "Stand-ins of the deep branch of a giant's profile (GEN.1577)"
+    },
+    {
+      "key": "6.319",
+      "number": "6.319",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "melt_sulfur.SCSS_A, SCSS_B_K, SCSS_C_K_PER_GPA: ln S[ppm] = 11.79 - 7073 / T - 92 P[GPa] / T, the fit of [R5340] (Eq. 2, R2 0.86, melts normalised to 8.1 wt percent FeO; no FeO term needed over 2 to 8.1 percent)"
+            ],
+            [
+              "The range it moves in",
+              "11.79 +/- 0.62, -7073 +/- 993, -92 +/- 36"
+            ],
+            [
+              "Where it holds",
+              "a basalt melt in equilibrium with a sulfide, 1,573 to 4,605 K, 0 to 40 GPa (a deeper melt runs the pressure term on past the fit)"
+            ],
+            [
+              "What would show it wrong",
+              "a melt with sulfide at saturation measured outside the fit, or the corrigendum of 25 June 2024 changing the coefficients"
+            ],
+            [
+              "What replaces it",
+              "a law with the oxygen and sulfur fugacity of the gas (the sulfide capacity), when a source gives it"
+            ],
+            [
+              "Evidence",
+              "read from the journal's open page, coefficients from the main-text PDF; the corrigendum was not read (the site refused the request)"
+            ]
+          ],
+          "id": "MS1",
+          "key": "6.319:MS1",
+          "kind": "P",
+          "slug": "6-319-ms1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "melt_sulfur.SCSS_A, SCSS_B_K, SCSS_C_K_PER_GPA: ln S[ppm] = 11.79 - 7073 / T - 92 P[GPa] / T, the fit of [R5340] (Eq. 2, R2 0.86, melts normalised to 8.1 wt percent FeO; no FeO term needed over 2 to 8.1 percent)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "melt_sulfur.FIT_MAX_K 4605: a surface hotter than the fit's hottest run is held at it, so the capacity of a body above it is a floor"
+            ],
+            [
+              "The range it moves in",
+              "4605, fixed"
+            ],
+            [
+              "Where it holds",
+              "any lava world over 4,605 K (one of 12 in the measurement)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured SCSS above 4,605 K"
+            ],
+            [
+              "What replaces it",
+              "the same fit extended"
+            ],
+            [
+              "Evidence",
+              "the supplementary section S.5 of [R5340]"
+            ]
+          ],
+          "id": "MS2",
+          "key": "6.319:MS2",
+          "kind": "B",
+          "slug": "6-319-ms2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "melt_sulfur.FIT_MAX_K 4605: a surface hotter than the fit's hottest run is held at it, so the capacity of a body above it is a floor"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the molten layer reaches the pressure where the solidus of the tidal heating (tidal_heating.solidus_k, TH13) has risen to the surface temperature, at most the base of the body's magma ocean (magma_ocean_redox.base_pressure_gpa, MR1 and MR2); the melt is taken at the surface temperature all the way down"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a surface over 1,400 K; the melt is a lower bound of the capacity (it gets hotter with depth and SCSS rises with temperature)"
+            ],
+            [
+              "What would show it wrong",
+              "an interior model of a star-heated lava world with a molten depth, or a measured depth"
+            ],
+            [
+              "What replaces it",
+              "a molten depth from the body's heat and temperature"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the solidus is the one registered, the ocean base is the one the redox model uses"
+            ]
+          ],
+          "id": "MS3",
+          "key": "6.319:MS3",
+          "kind": "T",
+          "slug": "6-319-ms3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the molten layer reaches the pressure where the solidus of the tidal heating (tidal_heating.solidus_k, TH13) has risen to the surface temperature, at most the base of the body's magma ocean (magma_ocean_redox.base_pressure_gpa, MR1 and MR2); the melt is taken at the surface temperature all the way down"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the melt takes what the crust sinks could not, up to its capacity, as one number for the oxidized and the reduced sulfur (the sulfide saturation for both; sulfate is more soluble at high oxygen fugacity), and keeps it (no burden, no lifetime)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a molten surface"
+            ],
+            [
+              "What would show it wrong",
+              "a lava world whose melt holds less than its SCSS at the gas's fugacities"
+            ],
+            [
+              "What replaces it",
+              "a sulfide capacity with fugacities"
+            ],
+            [
+              "Evidence",
+              "needed output: the capacity of the crust alone left 30,000 and 183,000 kPa of H2S and SO2 over two lava worlds"
+            ]
+          ],
+          "id": "MS4",
+          "key": "6.319:MS4",
+          "kind": "T",
+          "slug": "6-319-ms4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "the melt takes what the crust sinks could not, up to its capacity, as one number for the oxidized and the reduced sulfur (the sulfide saturation for both; sulfate is more soluble at high oxygen fugacity), and keeps it (no burden, no lifetime)"
+        }
+      ],
+      "slug": "6-319-stand-ins-of-the-sulfur-a-lava-world-s-melt-holds-gen-1814",
+      "title": "Stand-ins of the sulfur a lava world's melt holds (GEN.1814)"
     }
   ]
 }

@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1938 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1942 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1911 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1915 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,15 +50,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 227 | 22 | 12 | 1 | 0 | 262 |
-| T2 | 180 | 75 | 4 | 0 | 0 | 259 |
+| T2 | 182 | 75 | 4 | 0 | 0 | 261 |
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 112 | 29 | 8 | 2 | 2 | 153 |
-| T6 | 245 | 133 | 38 | 85 | 5 | 506 |
-| T7 | 74 | 37 | 10 | 31 | 0 | 152 |
+| T6 | 246 | 133 | 38 | 85 | 5 | 507 |
+| T7 | 74 | 38 | 10 | 31 | 0 | 153 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 113 | 42 | 233 |
-| All | 1107 | 397 | 99 | 271 | 64 | 1938 |
+| All | 1110 | 398 | 99 | 271 | 64 | 1942 |
 
 ## How the labels were given
 
@@ -3438,3 +3438,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DA1 | P | T6 | L0 | `hot_cloud_deck.ADIABAT_EXPONENT`: the dry adiabat below a giant's 1 bar level is `T = T(1 bar) P^((gamma - 1) / gamma)` with gamma 1.4 (`constants.ADIABATIC_INDEX_H2_HE`), exponent 2/7, the value `mixture_giant.ADIABAT_EXPONENT` already takes to its quench level | 0.25 to 0.30 | a hydrogen-helium envelope below 1 bar and below about 1,500 K, where the hydrogen is molecular and its vibration is not excited | a measured or modelled deep profile of a giant whose gradient differs from 2/7 by more than 0.03 (helium raises it to about 0.29, excited vibration lowers it) | the exponent of the hydrogen-helium tables along the fitted adiabat (`giant_structure.fit_adiabat`) | educated guess from physics: the textbook diatomic value, the one the quench already uses | predicted only | - | - |
 | DA2 | T | T6 | L1 | the floor is anchored at the giant's 1 bar temperature, `giant_draw.ONE_BAR_OVER_EFFECTIVE` (1.33) times its effective temperature, the one its air is solved at; for a strongly irradiated giant this is hotter than a deep adiabat set by its own heat (the radiative zone is an isotherm down to the radiative-convective boundary), so a giant above about 1,400 K equilibrium gets no chromium or manganese sulfide cloud | none | any giant, best for the ones the 1.33 was read from (Jupiter and Saturn, 166 K and 134 K at 1 bar) | a hot giant whose measured or modelled profile is isothermal at its equilibrium temperature down to 100 bar or more and so holds a chromium or manganese sulfide cloud | an adiabat that leaves the grey profile at its radiative-convective boundary, with the entropy of the giant's interior (`giant_structure.fit_adiabat`) | inferred from the 1 bar convention of every giant's air; not checked against a hot-giant model | predicted only | - | - |
+
+## 6.319 Stand-ins of the sulfur a lava world's melt holds (GEN.1814)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| MS1 | P | T2 | L0 | `melt_sulfur.SCSS_A`, `SCSS_B_K`, `SCSS_C_K_PER_GPA`: `ln S[ppm] = 11.79 - 7073 / T - 92 P[GPa] / T`, the fit of [R5340] (Eq. 2, R2 0.86, melts normalised to 8.1 wt percent FeO; no FeO term needed over 2 to 8.1 percent) | 11.79 +/- 0.62, -7073 +/- 993, -92 +/- 36 | a basalt melt in equilibrium with a sulfide, 1,573 to 4,605 K, 0 to 40 GPa (a deeper melt runs the pressure term on past the fit) | a melt with sulfide at saturation measured outside the fit, or the corrigendum of 25 June 2024 changing the coefficients | a law with the oxygen and sulfur fugacity of the gas (the sulfide capacity), when a source gives it | read from the journal's open page, coefficients from the main-text PDF; the corrigendum was not read (the site refused the request) | predicted only | - | - |
+| MS2 | B | T2 | L0 | `melt_sulfur.FIT_MAX_K` 4605: a surface hotter than the fit's hottest run is held at it, so the capacity of a body above it is a floor | 4605, fixed | any lava world over 4,605 K (one of 12 in the measurement) | a measured SCSS above 4,605 K | the same fit extended | the supplementary section S.5 of [R5340] | predicted only | - | - |
+| MS3 | T | T6 | L0 | the molten layer reaches the pressure where the solidus of the tidal heating (`tidal_heating.solidus_k`, TH13) has risen to the surface temperature, at most the base of the body's magma ocean (`magma_ocean_redox.base_pressure_gpa`, MR1 and MR2); the melt is taken at the surface temperature all the way down | none | a surface over 1,400 K; the melt is a lower bound of the capacity (it gets hotter with depth and SCSS rises with temperature) | an interior model of a star-heated lava world with a molten depth, or a measured depth | a molten depth from the body's heat and temperature | educated guess from physics: the solidus is the one registered, the ocean base is the one the redox model uses | predicted only | - | - |
+| MS4 | T | T7 | L1 | the melt takes what the crust sinks could not, up to its capacity, as one number for the oxidized and the reduced sulfur (the sulfide saturation for both; sulfate is more soluble at high oxygen fugacity), and keeps it (no burden, no lifetime) | none | a molten surface | a lava world whose melt holds less than its SCSS at the gas's fugacities | a sulfide capacity with fugacities | needed output: the capacity of the crust alone left 30,000 and 183,000 kPa of H2S and SO2 over two lava worlds | predicted only | - | - |
