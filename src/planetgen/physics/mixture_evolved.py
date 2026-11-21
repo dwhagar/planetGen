@@ -150,8 +150,12 @@ def evolved_oxidized(subject, recipe, row, supply=None):
         old_carbon = atoms.get("C", 0.0)
         excess = atoms["O"] - atoms.get("H", 0.0) / 2.0 - 2.0 * old_carbon - 2.0 * atoms.get("S", 0.0)
         excess *= carbon / old_carbon if old_carbon > 0.0 else 0.0
+        # GEN.1813: nitrogen and sulfur stay per carbon atom of the delivered inventory times the share the surface holds: `supply` carries the sulfate and
+        # sulfide sinks of `sulfur_balance` (and the nitrogen's melt share), which the delivered ratio skipped (a 600 K ocean world kept 265 kPa of H2S whatever the
+        # sinks did). The carbon is the ocean's, so its own share is not read.
+        shares = {} if supply is None else supply(inventory)
         for symbol in ("N", "S"):
-            atoms[symbol] = carbon * inventory[symbol] / inventory["C"]        # nitrogen and sulfur stayed per carbon atom
+            atoms[symbol] = carbon * inventory[symbol] / inventory["C"] * min(shares.get(symbol, 1.0), 1.0)
         atoms["C"] = carbon
         atoms["H"] = atoms.get("H", 0.0) + ocean
         atoms["O"] = excess + atoms["H"] / 2.0 + 2.0 * (atoms["C"] + atoms["S"])
