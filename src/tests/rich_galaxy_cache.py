@@ -23,10 +23,14 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 ENVIRONMENT_VARIABLE = "PLANETGEN_RICH_GALAXY_CACHE"
-"""str: The folder that holds the dumps; no variable, no cache."""
+"""str: The folder that holds the dumps. Set to a folder every machine can reach, the dumps are shared by them; set but empty, no cache (TEST.807); unset, the folder of this machine (`default_folder`)."""
+
+STALE_DUMP_DAYS = 3
+"""float: A dump nobody has loaded for this long belongs to a code state that is gone (the key follows every file of the package, so each commit has its own) and is removed when a new one is kept (TEST.807)."""
 
 LOCK_STALE_SECONDS = 3 * 3600
 """float: A lock older than this belongs to a build that died; the next process takes the build over."""
@@ -40,10 +44,34 @@ SUPPORT_FILES = ("rich_galaxy_support.py", "bughunt_support.py", "fuzz_support.p
 """tuple: The modules of `tests/` the build runs through, in the key."""
 
 
+def default_folder():
+    """The folder a machine keeps the dumps in when `ENVIRONMENT_VARIABLE` is not set: `planetgen-rich-galaxy` in the machine's temporary folder."""
+    return os.path.join(tempfile.gettempdir(), "planetgen-rich-galaxy")
+
+
 def cache_folder(environ=None):
-    """The folder the dumps are kept in, or `None` when the cache is not asked for."""
-    value = (os.environ if environ is None else environ).get(ENVIRONMENT_VARIABLE, "").strip()
-    return value or None
+    """
+    The folder the dumps are kept in, or `None` when the cache is switched off. TEST.807: unset, a machine keeps its own (`default_folder`), so the test files of a gate that
+    each take the galaxy in a process of their own (a shard to a file, a train gate on one machine) build it once between them instead of once each, which was 38 of the 62 minutes of
+    `test_cellkey_motion` on Train 51; a folder every machine reaches shares it between machines; set but empty switches the cache off.
+    """
+    value = (os.environ if environ is None else environ).get(ENVIRONMENT_VARIABLE)
+    if value is None:
+        return default_folder()
+    return value.strip() or None
+
+
+def prune(folder, now=time.time):
+    """Removes the dumps of `folder` nobody has loaded for `STALE_DUMP_DAYS`, and the lock folders left by a build that died; what it cannot remove it leaves."""
+    for name in os.listdir(folder):
+        path = os.path.join(folder, name)
+        limit = LOCK_STALE_SECONDS if name.endswith(".lock") else STALE_DUMP_DAYS * 86400
+        with contextlib.suppress(OSError):
+            if name.startswith("rich-") and now() - os.path.getmtime(path) > limit:
+                if os.path.isdir(path):
+                    os.rmdir(path)
+                else:
+                    os.remove(path)
 
 
 MACHINE_VARIABLES = ("MYSQL", "REDIS", "CACHE", "DATA_DIR", "TEST_")
@@ -188,6 +216,8 @@ def build_or_load(config, build, folder, key, sleep=time.sleep, now=time.time, w
     while True:
         if os.path.exists(path):
             load(config, path)
+            with contextlib.suppress(OSError):
+                os.utime(path)          # a dump in use is not stale
             return "loaded"
         with _lock(folder, key, sleep, now) as mine:
             if mine:
@@ -196,6 +226,7 @@ def build_or_load(config, build, folder, key, sleep=time.sleep, now=time.time, w
                     return "loaded"
                 build()
                 dump(config, path)
+                prune(folder, now)
                 return "built and kept"
         if now() > deadline:
             build()

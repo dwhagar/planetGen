@@ -144,3 +144,25 @@ def test_the_key_changes_with_a_file_of_the_package_or_the_data_and_not_otherwis
     plain = cache.key_of(config, str(package), str(tests), str(data), environ={"PLANETGEN_MYSQL_HOST": "one", "PLANETGEN_REDIS_URL": "x", "PLANETGEN_TEST_MYSQL_PORT": "1"})
     assert plain == cache.key_of(config, str(package), str(tests), str(data), environ={"PLANETGEN_MYSQL_HOST": "two", "PLANETGEN_REDIS_URL": "y"})      # where the servers are is not what the build makes
     assert plain != cache.key_of(config, str(package), str(tests), str(data), environ={"PLANETGEN_SOME_SETTING": "on"})                                    # a setting the generator reads is
+
+
+def test_the_cache_is_on_by_default_in_the_machines_folder_and_off_only_when_set_empty():
+    """TEST.807: unset keeps the dumps in the machine's folder; a folder shares them; set but empty switches the cache off."""
+    assert cache.cache_folder({}) == cache.default_folder()
+    assert cache.cache_folder({cache.ENVIRONMENT_VARIABLE: "/shared/dumps"}) == "/shared/dumps"
+    assert cache.cache_folder({cache.ENVIRONMENT_VARIABLE: "  "}) is None
+
+
+def test_prune_removes_old_dumps_and_dead_locks_and_keeps_new_ones_and_other_files(tmp_path):
+    day = 86400
+    old, fresh, other = tmp_path / "rich-a.sql.gz", tmp_path / "rich-b.sql.gz", tmp_path / "notes.txt"
+    lock = tmp_path / "rich-c.lock"
+    for path in (old, fresh, other):
+        path.write_text("x")
+    lock.mkdir()
+    now = old.stat().st_mtime + 10 * day
+    os.utime(fresh, (now, now))
+    os.utime(other, (now - 10 * day,) * 2)
+    cache.prune(str(tmp_path), now=lambda: now)
+    assert not old.exists() and not lock.exists()
+    assert fresh.exists() and other.exists()
