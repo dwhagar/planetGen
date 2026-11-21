@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4676+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The test of the update script's References pages step reads the script's eight stages, so `test_references_pages` is green again.
+
+### Fixed
+
+- `test_update_script_builds_the_pages_in_step_3_and_repeats_a_failure_at_the_end` still looked for `log_stage 3 9` after the update dropped the math check as a stage (OPS.286), which made it 8 stages. It reads `log_stage 3 8` and `log_stage 4 8` now (TEST.815). The `Stage 4 of 9` lines in other tests and docs are examples of the log format, not the script, and are left as they are.
+
+generation-output: unchanged
+
 ## [8.0.4675+db270.gen150.api14] - 2026-11-21
 
 **Headline:** Every body whose life lives in a refuge (a melt film, a brine seep, a spring, the sea under an ice lid) now records which adaptations of the table its life needed, for the photosynthetic classes 1a, 1b, 1c and 2
