@@ -499,7 +499,9 @@ export function interestLines(system) {
 
 // The block size (shells) of a node key "m.shell.band.wedge".
 export function blockOfKey(key) {
-  const block = parseInt(String(key).split(".")[0], 10);
+  const text = String(key);
+  const dot = text.indexOf(".");
+  const block = parseInt(dot < 0 ? text : text.slice(0, dot), 10);      // PERF.200 slice 2: no array made for the one number read
   return isFinite(block) ? block : Infinity;
 }
 
