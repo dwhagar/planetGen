@@ -661,6 +661,8 @@ NOT_SHOWN = {
                "cloud_decks": "a giant's cloud decks and trace-gas ceilings as stored text; the rows of each cloud and gas are shown (`describe/deck_rows.py`), not the text",
                "belt_order": "the number of the belt a promoted planet came from, which its designation carries; bookkeeping",
                "belt_rank": "the rank a promoted planet had among its belt's members, which its designation carries; bookkeeping",
+               "lagrange_point": "read by the row that names the giant a planet shares its orbit with (`_trojan_planet_provider`)",
+               "lagrange_host_id": "the giant's row, read by the same row",
                **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km"), _VECTORS)},
     "moon": {**_BODY_NOT_SHOWN, "planet_id": "the planet it circles, a link in the Location chain",
              "rogue_planet_id": "the free planet it circles, a link in the Location chain"},
@@ -1412,7 +1414,7 @@ PRESSURE_KEYS = ("atmospheric_pressure_pa", "surface_pressure_pa")
 
 EXTRA_COLUMNS = {
     # table -> the columns the sheet reads beyond its specs' (the row providers below read them)
-    "planets": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k", "star_system_id", "star_id", "belt_order", "belt_rank"),      # GEN.1108: the table of the bands; the range on the mean temperature row. GEN.1511: the belt a promoted planet came from
+    "planets": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k", "star_system_id", "star_id", "belt_order", "belt_rank", "lagrange_point", "lagrange_host_id"),      # GEN.1108: the table of the bands; the range on the mean temperature row. GEN.1511: the belt a promoted planet came from
     "moons": (*regional_temperature.BAND_COLUMNS, "temp_mean_swing_k"),
     "asteroid_belts": ("star_system_id", "star_id", "ice_mass_fraction", "distance_km", "formation_snow_line_au"),      # GEN.1420, GEN.1487: the isotope lines of the ices
     "comets": ("star_system_id", "star_id", "ice_mass_fraction", "perihelion_distance_km"),
@@ -1496,6 +1498,20 @@ def _belt_origin_provider(conn, kind, object_id, row):
     yield "identity", _sheet_row(BELT_ORIGIN_KEY, "Made from a belt", [f"Belt {object_uid.format_id(belt_id)}, where it was body {object_uid.designation(belt_id, row['belt_rank'])}"])
 
 
+TROJAN_PLANET_KEY = "trojan_planet"
+
+
+def _trojan_planet_provider(conn, kind, object_id, row):
+    """GEN.1151: the giant a planet shares its orbit with and the point it stands at (`planets.lagrange_point`, `lagrange_host_id`), the page text of `trojans.pair_text`."""
+    if row["lagrange_point"] is None or row["lagrange_host_id"] is None:
+        return
+    host = conn.execute("SELECT name FROM planets WHERE id = ?", (row["lagrange_host_id"],)).fetchone()
+    if host is None:
+        return
+    side = "ahead of it" if row["lagrange_point"] == "L4" else "behind it"
+    yield "identity", _sheet_row(TROJAN_PLANET_KEY, "Shares an orbit with", [f"{host['name']}, at its {row['lagrange_point']} point, 60 degrees {side} on the orbit"])
+
+
 def _star_identity_provider(conn, kind, object_id, row):
     variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
                                    None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"]))
@@ -1537,6 +1553,7 @@ ROW_PROVIDERS = (
     (lambda kind: True, _module_rows_provider),
     (lambda kind: kind == "planet", _influx_provider),
     (lambda kind: kind == "planet", _belt_origin_provider),
+    (lambda kind: kind == "planet", _trojan_planet_provider),
     (lambda kind: kind == "star", _star_identity_provider),
     (lambda kind: kind == "star", _star_composition_provider),
 )

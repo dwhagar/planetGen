@@ -3120,6 +3120,8 @@ PLANET_ONLY_FIELDS = tuple(
     object_rows.attr("obliquity_min_deg"),   # GEN.1535: the lowest tilt its axis reaches over the age of its star
     object_rows.attr("obliquity_max_deg"),   # GEN.1535: the highest
     object_rows.attr("belt_order"), object_rows.attr("belt_rank"),     # GEN.1510: the belt a promoted body came from and its rank in it
+    object_rows.attr("lagrange_point"),     # GEN.1151: `L4` or `L5` for a planet that shares its giant's orbit
+    object_rows.Field(("lagrange_host_id",), lambda planet, context: context.get("lagrange_host_id")),     # the giant's row, read back by the loader
 )
 """tuple: The `planets` fields `moons` lacks (a moon hosts no moons; a moon is no belt body)."""
 
@@ -3315,7 +3317,7 @@ MOON_FIELDS = (
 """tuple: The `Field`s of a `moons` row."""
 
 
-def insert_planet(conn, planet, star_system_id, star_id, orbital_index, host_node_id=None) -> int:
+def insert_planet(conn, planet, star_system_id, star_id, orbital_index, host_node_id=None, lagrange_host_id=None) -> int:
     """
     Inserts a `planets` row for one top-level `Planet` (never a moon --
     schema v2 gives moons their own table, see `insert_moon`), then
@@ -3334,12 +3336,13 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index, host_nod
                              `planets` list.
         host_node_id (int, optional): The orbit node a circumbinary planet of an inner pair node goes round (GEN.332,
                              `StarSystem.node_hosts`); its `parent_type` is then `node` and `star_id` is `None`.
+        lagrange_host_id (int, optional): The `planets.id` of the giant a planet at L4 or L5 shares its orbit with (GEN.1151); `None` for every other planet.
 
     Returns:
         int: The new `planets.id`.
     """
     planet_id = object_rows.insert_row(conn, "planets", PLANET_FIELDS, planet, {
-        "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index, "host_node_id": host_node_id})
+        "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index, "host_node_id": host_node_id, "lagrange_host_id": lagrange_host_id})
 
     body_child_rows(conn, planet, planet_id)
 
@@ -5172,7 +5175,7 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
         if obj.body_type == "a":
             insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=primary_star_id, host_planet_id=host_ids.get(id(getattr(obj, "host", None))))
         else:
-            host_ids[id(obj)] = insert_planet(conn, obj, star_system_id, primary_star_id, orbital_index)
+            host_ids[id(obj)] = insert_planet(conn, obj, star_system_id, primary_star_id, orbital_index, lagrange_host_id=host_ids.get(id(obj.lagrange_host)) if obj.lagrange_point else None)
 
     # Only ever non-empty for a 'wide' binary (see StarSystem.__init__) --
     # its own, independent index space, disambiguated from star_system.planets'
@@ -5181,23 +5184,26 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
         if obj.body_type == "a":
             insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=secondary_star_id, host_planet_id=host_ids.get(id(getattr(obj, "host", None))))
         else:
-            host_ids[id(obj)] = insert_planet(conn, obj, star_system_id, secondary_star_id, orbital_index)
+            host_ids[id(obj)] = insert_planet(conn, obj, star_system_id, secondary_star_id, orbital_index, lagrange_host_id=host_ids.get(id(obj.lagrange_host)) if obj.lagrange_point else None)
 
     # A member star's planets (GEN.332): each member has its own orbital-index space, told apart by its star_id.
     for member_id, bodies in zip(member_ids, star_system.member_planets):
+        member_hosts = {}
         for orbital_index, obj in enumerate(bodies):
             if obj.body_type == "a":
                 insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=member_id)
             else:
-                insert_planet(conn, obj, star_system_id, member_id, orbital_index)
+                member_hosts[id(obj)] = insert_planet(conn, obj, star_system_id, member_id, orbital_index, lagrange_host_id=member_hosts.get(id(obj.lagrange_host)) if obj.lagrange_point else None)
 
     # The circumbinary planets of an inner pair node (GEN.332, slice A): no star row, the node in `host_node_id`; each node has its own orbital-index space.
     for host, bodies in star_system.node_planet_hosts():
+        node_hosts = {}
         for orbital_index, obj in enumerate(bodies):
             if obj.body_type == "a":
                 insert_asteroid_belt(conn, obj, star_system_id, orbital_index, host_node_id=host.host_node_no)
             else:
-                insert_planet(conn, obj, star_system_id, None, orbital_index, host_node_id=host.host_node_no)
+                node_hosts[id(obj)] = insert_planet(conn, obj, star_system_id, None, orbital_index, host_node_id=host.host_node_no,
+                                                    lagrange_host_id=node_hosts.get(id(obj.lagrange_host)) if obj.lagrange_point else None)
 
     # Comets have their own list, own table, and no orbital_index -- see
     # insert_comet's own docstring for why they don't share the
@@ -10801,6 +10807,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                 planet_data["moons"] = [_planet_or_moon_row_to_dict(conn, mr, is_moon=True) for mr in moon_rows]
                 planet = Planet.from_dict(planet_data, owning_star, system_config)
                 planet.db_id = r["id"]
+                planet.lagrange_host_db_id = r["lagrange_host_id"]       # GEN.1151: the giant a planet at L4 or L5 shares its orbit with, linked below
                 for moon, moon_row in zip(planet.moons, moon_rows):
                     moon.db_id = moon_row["id"]
                     moon.host_eccentricity = planet.eccentricity    # DB.123: not a column; a moon is told its parent's (`physics.planets`), which the light its air is solved under goes by
@@ -10808,7 +10815,10 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         hosts = {body.db_id: body for body in objects if getattr(body, "body_type", None) != "a"}
         for body in objects:
             if getattr(body, "lagrange_point", None):
-                body.host = hosts.get(body.host_db_id)          # GEN.1150: the giant a trojan region librates about
+                if getattr(body, "body_type", None) == "a":
+                    body.host = hosts.get(body.host_db_id)          # GEN.1150: the giant a trojan region librates about
+                else:
+                    body.lagrange_host = hosts.get(body.lagrange_host_db_id)      # GEN.1151: the giant a planet at L4 or L5 shares its orbit with
         return objects
 
     if binary_configuration == "wide":

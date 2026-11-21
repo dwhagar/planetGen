@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1948 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1951 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1921 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1924 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,13 +52,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 227 | 22 | 12 | 1 | 0 | 262 |
 | T2 | 181 | 75 | 4 | 0 | 0 | 260 |
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
-| T4 | 88 | 16 | 8 | 24 | 14 | 150 |
+| T4 | 89 | 17 | 9 | 25 | 13 | 153 |
 | T5 | 112 | 29 | 8 | 1 | 2 | 152 |
 | T6 | 247 | 133 | 38 | 86 | 7 | 511 |
 | T7 | 75 | 38 | 10 | 31 | 0 | 154 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 116 | 42 | 236 |
-| All | 1111 | 398 | 99 | 274 | 66 | 1948 |
+| All | 1112 | 399 | 100 | 275 | 65 | 1951 |
 
 ## How the labels were given
 
@@ -1488,8 +1488,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| TB3 | P | T4 | L4 | trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan | 0.02 to 0.5 | whole bodies at L4 and L5 | a disc run in which trojans of planet mass grow from a far smaller share | a hydrodynamic or N-body formation map | none read; [R0919] ([R0919], abstract READ) grow trojans in the disc | predicted only | GEN.1151 | no data |
-| TB4 | P | T4 | L4 | trojan_bodies.MIN_DISK_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows | 0.3 to 3 | whole bodies at L4 and L5 | a trojan growing in a disc shorter than that | a formation map | none read | predicted only | GEN.1151 | no data |
+| TB3 | P | T4 | L4 | trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan (kept at 0.1 by GEN.1151: the ramp of TB4 already cuts the median G dwarf's ceiling to about a fifth, `reports/gen1151/`) | 0.02 to 0.5 | whole bodies at L4 and L5 | a disc run in which trojans of planet mass grow from a far smaller share, or a trojan search that finds planet-mass trojans of more than about 1 in 7 giants | a hydrodynamic or N-body formation map | none read; [R0919] ([R0919], abstract READ) grow trojans in the disc; no planet-mass trojan among 2244 Kepler candidates (WR10) | predicted only | - | no data |
+| TB4 | P | T4 | L2 | trojan_bodies.DISK_LIFETIME_RAMP_MYR (0.3, 3.0): under 0.3 Myr of gas no trojan of planet mass grows, at 3 Myr the whole zone's growth time is allowed, a straight ramp between (was a flat minimum of 1 Myr that sat on the median 0.9 Myr dispersal time of a G dwarf's disk) | 0.3 to 3 | whole bodies at L4 and L5 | a trojan growing in a disc shorter than 0.3 Myr | a formation map | none read | predicted only | - | replaced |
+| TB5 | P | T4 | L1 | trojan_bodies.ZONE_HALF_WIDTH_HILL 2.0: the half width of a giant's tadpole zones either side of its orbit in its Hill radii (the horseshoe region of a Jupiter reaches about 2.5) | 1 to 3 | whole bodies at L4 and L5 | a co-orbital zone found much wider or narrower in a disc run | a hydrodynamic map | none read | predicted only | - | - |
+| TB6 | P | T4 | L0 | trojan_bodies.ZONE_AZIMUTH_SHARE 1/3: the share of the circle the two tadpole zones take, 60 degrees about each of L4 and L5 | 0.2 to 0.5 | whole bodies at L4 and L5 | a zone shown to take more of the circle | a hydrodynamic map | none read; the geometry of the points | predicted only | - | - |
+| TB7 | P | T4 | L3 | trojan_bodies.MAX_MIGRATION_SHARE 0.25: the share of its formation distance a giant may have moved before the zone its trojan grew in is lost, so a migrated giant holds no whole trojan | 0.1 to 0.5 | whole bodies at L4 and L5 | a trojan found at a hot Jupiter that migrated | an N-body migration run | none read | predicted only | - | no data |
 
 ## 6.126 Stand-ins of the roundness engine and the binding energy
 

@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, hot_cloud_deck, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_heating, tidal_spin, air_final, venus_spin
-from planetgen.physics import hill_perturbers, planet_moons
+from planetgen.physics import hill_perturbers, planet_moons, trojan_bodies, trojans
 from planetgen.physics import disk_truncation, eclipses, formation_snow_line, ground_albedo, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.util import draw
@@ -918,6 +918,10 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
         planned_objects (int, optional): As above.
         parent_distance_au (float, optional): For a moon, the parent's distance from the star, AU.
     """
+    trojan = planet.build.trojan_of
+    if trojan is not None:
+        planet.eccentricity = trojan[0].eccentricity        # GEN.1151: the giant's own orbit, so the pair keeps its 60 degrees
+        return
     member = getattr(planet, "belt_member", None)
     if member is not None:
         planet.eccentricity = member["eccentricity"]        # GEN.1510: the orbit the belt gave the body, kept; no birth value, so the tides of the star's age do not wear it again
@@ -991,8 +995,16 @@ def generate_orbit_state(planet, primary_mass_kg):
                                  the same name, which this is threaded
                                  straight through from).
     """
+    trojan = planet.build.trojan_of
     member = getattr(planet, "belt_member", None)
-    if member is not None:
+    if trojan is not None:
+        # GEN.1151: a planet at L4 or L5 shares its giant's plane, node and periapsis and stands 60 degrees ahead or behind it in mean anomaly; no draw
+        giant, point = trojan
+        planet.orbital_inclination_deg, planet.orbital_ascending_node_deg = giant.orbital_inclination_deg, giant.orbital_ascending_node_deg
+        giant_orbit = giant.orbit_from_vector()
+        arg_periapsis_deg = math.degrees(giant_orbit["arg_periapsis"])
+        mean_anomaly_rad = trojan_bodies.mean_anomaly_rad(giant_orbit["true_anomaly"], giant.eccentricity) + math.radians(trojans.longitude_offset_deg(point))
+    elif member is not None:
         # GEN.1510: a belt member promoted to a planet keeps the plane, the node, the periapsis and the place on its orbit the belt drew for it; no draw
         planet.orbital_inclination_deg = member["inclination_deg"]
         planet.orbital_ascending_node_deg = member["node_deg"]

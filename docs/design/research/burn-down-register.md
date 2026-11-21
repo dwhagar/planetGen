@@ -162,7 +162,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.43:LB1 | replaced | - | GEN.1000: each belt's largest body now comes from the size law (`belt_ledger.belt_state`: drawn from the belt's own stream and settled with the collisional mass); the range stand-in is gone |
 | 6.45:MF1 | no data | - | no measurement gives the melt share of a mantle outside the Earth (and Io's lavas); a mantle potential temperature and solidus model is the replacement and nothing we hold supplies it |
 | 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
-| 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |
+| 6.125:TB4 | replaced | - | GEN.1151 (2026-11-19): lowered to L2; the flat 1 Myr minimum is a ramp whose two ends are the ends of the row's own range 0.3 to 3 Myr, and the ramp is checked against the median disc life of a G dwarf (0.9 Myr, `reports/gen1151/`); no source read gives the shortest disc life for a trojan to grow |
+| 6.125:TB7 | no data | - | no source read gives how far a giant may move before the zone its trojan grew in is lost; an N-body migration run replaces it |
 | 6.155:LR1 | no data | - | the abundance word edges on the 0 to 9 kind score are a hand-picked reading of a standard ecology scale (DAFOR style); no source ties the words to our score |
 | 6.155:LR2 | no data | - | the trend look-ahead, band and spread are hand-picked; no source gives a rate of change that counts as a trend for a living class |
 | 6.155:LR3 | no data | - | the time-left limits for Dying out, Precarious and Marginal are hand-picked; no source gives them for a living class |

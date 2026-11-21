@@ -53,6 +53,7 @@ class BuildRecord:
         plan_eccentricity (float or None): The eccentricity the planet architecture drew for the body's slot and held to its neighbours (`planet_architecture.Seed.eccentricity`, GEN.1797), the birth value
             `planets.generate_orbit_shape` takes in place of a draw (cut at what the star's Roche limit allows); `None` for a body whose orbit is drawn there (a slot the author named, a moon, a body made on its own).
         moon_history_unfinished (bool): No integrator finished the planet's moon history (`moon_orbits.IntegrationFailed`, GEN.1816): the moons that stay are as born, read by `moon_orbits.inspiral_times_s` alone.
+        trojan_of (tuple or None): `(giant, point)` of a planet made at L4 or L5 of a giant (GEN.1151): `planets.generate_orbit_shape` and `generate_orbit_state` give it the giant's orbit and its place 60 degrees away on it; `None` for any other body.
         air_input (tuple or None): `(setting, start_k, entry_state)` of the final air solve (`air_final.make`): what `air_history.temperatures` solves the air again from at each age (GEN.1745).
         air_living (list or None): The `life_air.Living` classes the life pass gave the air its gases for, in the order of `generation.life._living_of` (GEN.1745 slice 4b).
         air_found (dict or None): The air, mol of each gas, as the life found it, before any gas of its ledger (`biogenic_oxygen.air_moles`, GEN.1745 slice 4b).
@@ -81,6 +82,7 @@ class BuildRecord:
     kozai: object = None
     late_accreted_percent: float = None
     plan_eccentricity: float = None
+    trojan_of: tuple = None
     air_input: tuple = None
     air_living: list = None
     air_found: dict = None

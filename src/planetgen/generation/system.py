@@ -38,7 +38,7 @@ from planetgen import tuning
 from planetgen.util import detmath, draw, request_odds
 from planetgen.util import log
 from planetgen.generation import trojan_region
-from planetgen.generation import belt_birth, belt_planets, comet_abundance, disk_ejection, abundance_tier, habitable_request, cosmic_dust, late_accretion, pulsar_planets, remnant_orbits
+from planetgen.generation import trojan_planet, belt_birth, belt_planets, comet_abundance, disk_ejection, abundance_tier, habitable_request, cosmic_dust, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star
 from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, comet_supply, dark_light, debris_dust, disk_size, disk_truncation, effect_ledger, kozai_bodies, light_ledger, moon_resonances, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
@@ -440,6 +440,8 @@ class StarSystem:
         self._settle_to_final_age()
 
         self._promote_belt_members()
+
+        self._add_trojan_planets()
 
         self._add_irregular_moons()
 
@@ -1505,6 +1507,23 @@ class StarSystem:
         """
         rows = [(planet.distance, planet.eccentricity or 0.0, planet.mass) for planet in planets if planet.body_type != 'a']
         return clearance_ledger.planets_needed_au(rows, seed.mass_kg, seed.eccentricity, star.mass) if rows else 0.0
+
+    def _add_trojan_planets(self):
+        """
+        The whole planets at L4 and L5 of the giants (GEN.1151, `generation/trojan_planet.py`): each made from its giant's orbit, put in its star's list after the giant and settled as a promoted belt planet is. Made once the planets, belts and
+        ages are final, before the irregular moons (they may catch bodies for these too). A system whose bodies the author named (`SLOTS`, `NUM_ORBITS`) is left as written.
+        """
+        config = self.system_config
+        if config.SLOTS or config.NUM_ORBITS is not None or config.PLANETS is False:
+            return
+        with log.timed_phase("trojan planets"):
+            for star, bodies in validation.star_lists(self):
+                if self._too_young_for_planets(star):
+                    continue
+                made = trojan_planet.build(self, star, bodies)
+                if made:
+                    bodies[:] = sorted([*bodies, *made], key=lambda body: body.distance)         # a stable sort: a trojan stands after its giant
+                    self._settle_promoted(star, bodies, made)
 
     def _add_trojan_regions(self):
         """

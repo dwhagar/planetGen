@@ -2591,6 +2591,8 @@ CREATE TABLE IF NOT EXISTS planets (
     obliquity_max_deg                DOUBLE,  -- v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     belt_order                       INT,  -- v248 (GEN.1510): for a planet promoted from an asteroid belt, the belt's number among its star's belts (as `irregular_moons.belt_order`), NULL for every other planet and for a row made before v244
     belt_rank                        INT,  -- v248 (GEN.1510): for a planet promoted from an asteroid belt, the rank it had among the belt's members (the number is not reused), NULL for every other planet
+    lagrange_point                   VARCHAR(2),  -- v272 (GEN.1151): `L4` (60 degrees ahead) or `L5` (60 degrees behind) for a planet that shares its giant's orbit and was grown in its zone, NULL for every other planet
+    lagrange_host_id                 BIGINT UNSIGNED,  -- v272 (GEN.1151): the `planets.id` of the giant a planet at L4 or L5 shares its orbit with, NULL for every other planet
     energy_flux_w_m2                 DOUBLE,
     flux_variation                   DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -6700,6 +6702,9 @@ CREATE TABLE IF NOT EXISTS engine_items (
 
 -- v271 (GEN.1150): `asteroid_belts` gains `lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity` and `mean_inclination_deg`: a trojan region of a giant (its swarm at L4 or L5)
 -- is a belt-like row whose parent is the giant. NULL for every other belt and for a row made before v271, nothing is backfilled.
+
+-- v272 (GEN.1151): `planets` gains `lagrange_point` and `lagrange_host_id`: a planet grown in the 1:1 zone of a giant shares its orbit, 60 degrees ahead (`L4`) or behind (`L5`), and names the giant. NULL for every other planet
+-- and for a row made before v272, nothing is backfilled.
 
 -- engine_piece_results (v263, OPS.219): what each finished piece of a job returned, in the job's own galaxy, written in the transaction that stores the cursor in `engine_items` and the piece's data. A unit that
 -- stopped part way and is run again starts after its stored cursor and hands its `gather` these results beside the new ones (`planetgen/queue/engine.py`). One row for each piece that returned something.

@@ -2673,6 +2673,8 @@ planets = sa.Table(
     sa.Column('obliquity_max_deg', mysql.DOUBLE(), nullable=True),
     sa.Column('belt_order', mysql.INTEGER(), nullable=True),
     sa.Column('belt_rank', mysql.INTEGER(), nullable=True),
+    sa.Column('lagrange_point', sa.String(2), nullable=True),
+    sa.Column('lagrange_host_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('flux_variation', mysql.DOUBLE(), nullable=True),
     sa.Column('reflex_offset_x_km', mysql.DOUBLE(), nullable=True),

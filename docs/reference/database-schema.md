@@ -2549,6 +2549,10 @@ Migration 0269 adds `cloud_decks` (TEXT, nullable) to `planets`: for a giant of 
 
 Migration 0268 adds `initial_mass_sol` and `phase_end_age_gy` (DOUBLE, nullable) to `stars` and `held_eccentricity` and `forced_eccentricity` (DOUBLE, nullable) to `body_history` (see the table sections above). `store.STAR_FIELDS` writes and loads the star's two; `body_history.attach` gives a restored planet or moon its `_resonance_e` and a planet its `oddity_quantities["forced_eccentricity"]`. Nothing is backfilled: the numbers of a body made before v268 are stored nowhere.
 
+### v272 (GEN.1151): a planet at L4 or L5 of a giant
+
+Migration 0272 adds `lagrange_point` (VARCHAR(2), `L4` or `L5`) and `lagrange_host_id` (BIGINT UNSIGNED, the giant's `planets.id`) to `planets`: a planet grown in the 1:1 zone of a giant (`generation/trojan_planet.py`) shares its orbit, 60 degrees ahead or behind it, and names it. Both are NULL for every other planet and for a row made before v272; nothing is backfilled, a regenerated galaxy holds the trojan planets. The planet's own orbit columns hold the giant's plane, node and eccentricity; its state vector is the one the orbit updater moves, so the pair keeps its 60 degrees (there is no libration for a planet, the swarm regions have it).
+
 ### v271 (GEN.1150): the trojan region of a giant
 
 Migration 0271 adds `lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity` and `mean_inclination_deg` to `asteroid_belts`: a giant's trojan swarm is stored as two belt-like rows (L4 and L5) whose parent is the giant (`parent_type` `planet`). All five are NULL for every other belt and for a row made before v269; nothing is backfilled, a regenerated galaxy holds the swarms. A region has no `belt_members` rows in this slice. Its name is worked out, never stored: `<giant> L4 trojan region`; it takes no number among the star's belts (`db/belt_names.py`).
