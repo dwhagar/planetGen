@@ -322,15 +322,16 @@ def glance_view(sheet):
 
 def life_air_view(db, kind, printed_id, row):
     """The Life and air chart of a planet's or moon's page (UX.237): `web.lib.life_air_chart.chart` of the body's air history, or `None` for a
-    body with no living class or whose air the life did not change, or when the API cannot say."""
-    if kind not in ("planet", "moon") or not row or not row.get("life_class_id"):
+    body with no stored history and no living class (or whose air the life did not change), or when the API cannot say. A body with a stored history
+    (API.51, GEN.1745 slice 4b) has the chart whether or not it is alive."""
+    if kind not in ("planet", "moon") or not row:
         return None
     try:
         answer = apiclient.get_life_air(db, kind, printed_id)
     except (apiclient.NotFoundError, apiclient.ApiError):
         return None
     grade = int(row.get("life_animal_grade") or 0)
-    view = life_air_chart.chart(answer.get("life_air"), row["life_class_id"], grade)
+    view = life_air_chart.chart(answer.get("life_air"), row.get("life_class_id"), grade)
     return None if view is None else {**view, "svg": trusted_html(view["svg"]), "legend": trusted_html(view["legend"]),
                                       "note": trusted_html(view["note"])}
 

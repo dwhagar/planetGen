@@ -831,28 +831,34 @@ def system_text(system_id):
 def _life_air(table, body_id):
     """Shared body of `planet_life_air` and `moon_life_air`."""
     from planetgen.generation import evolution
-    from planetgen.physics import life_air, life_classes
+    from planetgen.physics import life_air, life_classes, stored_air
 
     conn = get_db()
-    row = conn.execute(f"SELECT star_system_id, life_class, life_class_variant, life_stage FROM {table} WHERE id = ?", (body_id,)).fetchone()
+    row = conn.execute(f"SELECT star_system_id, life_class, life_class_variant, life_stage, air_history FROM {table} WHERE id = ?", (body_id,)).fetchone()
     if row is None:
         raise ApiError(f"no such {table[:-1]}: {body_id}", status_code=404)
     class_id = life_classes.living_class_id(row["life_class"], row["life_class_variant"], row["life_stage"])
     history = None
-    if class_id in life_classes.BY_ID:
+    if class_id in life_classes.BY_ID or row["air_history"]:
         system = store.load_star_system(conn, row["star_system_id"])
         bodies = [planet for planet in system.planets if hasattr(planet, "moons")]
         bodies += [moon for planet in bodies for moon in planet.moons]
         body = next((b for b in bodies if getattr(b, "db_id", None) == body_id and (b.is_moon == (table == "moons"))), None)
         if body is not None:
             ages = dict(zip(evolution.MILESTONE_KEYS, (getattr(body, field, None) for field in evolution.SCHEDULE_FIELDS)))
-            living = [life_air.Living(life_classes.BY_ID[class_id], 1.0, ages.get("photosynthesis"))]
-            stored = store.body_living(conn, [body_id], table == "moons").get(body_id) or []
-            if len(stored) > 1:
-                living = [life_air.Living(life_classes.BY_ID[entry["life_class"]], entry["share"], entry["ages"][1])
-                          for entry in store.dominant_first(stored, row["life_class"], row["life_class_variant"])
-                          if entry["life_class"] in life_classes.BY_ID and entry["ages"][1] is not None]
-            history = life_air.air_history(body, living, ages)
+            if class_id in life_classes.BY_ID:
+                living = [life_air.Living(life_classes.BY_ID[class_id], 1.0, ages.get("photosynthesis"))]
+                stored = store.body_living(conn, [body_id], table == "moons").get(body_id) or []
+                if len(stored) > 1:
+                    living = [life_air.Living(life_classes.BY_ID[entry["life_class"]], entry["share"], entry["ages"][1])
+                              for entry in store.dominant_first(stored, row["life_class"], row["life_class_variant"])
+                              if entry["life_class"] in life_classes.BY_ID and entry["ages"][1] is not None]
+                history = life_air.air_history(body, living, ages)
+                if history is not None:
+                    history["source"] = stored_air.SOURCE_REBUILT
+            # API.51: a body that keeps the record of its air history (GEN.1745 slice 4b) answers from it, every gas and the shocks; what only the life knows (its classes, the producers' and the oxygen's ages) comes from the rebuilt answer
+            if row["air_history"]:
+                history = stored_air.from_text(row["air_history"], body.star.age, ages if class_id in life_classes.BY_ID else {}, history)       # a world with no life has no stages of it
     return jsonify({"id": ids.printed(conn, table[:-1], body_id), "life_class_id": class_id, "life_air": history})
 
 
@@ -860,14 +866,16 @@ def _life_air(table, body_id):
 def planet_life_air(planet_id):
     """
     `GET /api/planets/<id>/life-air` -- the Life and air chart's data (UX.237, `physics.life_air.air_history`): the planet's air through the
-    age of its star as far as the life class that lives on it changed it, worked out from the stored air on request and stored nowhere. `{"id",
-    "life_class_id", "life_air"}`; `life_air` is `null` for a world with no living class, a giant, or an air the life did not change.
+    age of its star as far as the life class that lives on it changed it, worked out from the stored air on request when the body keeps no record of its air history, else read from that record (API.51, GEN.1745 slice 4b). `{"id",
+    "life_class_id", "life_air"}`; `life_air` is `null` for a world with no living class and no stored history, a giant, or an air the life did not change.
     Otherwise it has `age_gyr` (the star's age, Gyr), `producers_gyr` and `rose_gyr` (the ages the first producers began and the oxygen rose,
     Gyr, the latter `null` when no class makes any), `classes` (`{"life_class", "variant", "share", "producers_gyr"}` for each class whose life
     the air sums, with its share of the food production; every class that lives on the body, GEN.1213), `gases` (`{"formula", "name", "steps":
     [[age_gyr, partial_pressure_kpa], ...], "by_class": [{"life_class", "variant", "share"}, ...]}`, each value holding until the next age and
     `by_class` the share of what life changed in the gas that each class made), `stages` (`{"key", "age_gyr"}` for each milestone the schedule reaches) and `speculative` (the
-    ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else `null`).
+    ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else `null`). It also has `source` (`"stored"` for the record, `"rebuilt"` for the air worked backwards). From the record
+    `gases` holds every gas it keeps (any gas of 0.1 Pa or more at some age, the biggest first, 0 where it is under that), and `temperature_k` and `pressure_kpa` (`[[age_gyr, value], ...]`), `events` (`{"age_gyr", "cause", "kill_share"}`, the shocks that
+    start a step) and `life_ages` (`{"number", "start_gyr", "end_gyr", "cause", "kill_share"}`, `end_gyr` `null` for the age still going) are there too.
     """
     return _life_air("planets", planet_id)
 

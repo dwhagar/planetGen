@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1951 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1952 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1924 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1925 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 89 | 17 | 9 | 25 | 13 | 153 |
 | T5 | 112 | 29 | 8 | 1 | 2 | 152 |
-| T6 | 247 | 133 | 38 | 86 | 7 | 511 |
+| T6 | 247 | 134 | 38 | 85 | 7 | 511 |
 | T7 | 75 | 38 | 10 | 31 | 0 | 154 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 52 | 20 | 6 | 116 | 42 | 236 |
-| All | 1112 | 399 | 100 | 275 | 65 | 1951 |
+| T9 | 53 | 20 | 6 | 116 | 42 | 237 |
+| All | 1113 | 400 | 100 | 274 | 65 | 1952 |
 
 ## How the labels were given
 
@@ -3438,7 +3438,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| LA1 | P | T6 | L3 | `life_ages.AGE_KILL_THRESHOLD` 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve | 0.15 to 0.65 | the Earth's marine record, applied to every world with life | a record of eras whose boundaries are not the extinctions that kill 30 percent or more, or a Boss pick of another share | the Boss's pick of the threshold | educated guess from physics: the design proposed it as the size [R5320] gives once per 10 Myr | predicted only | - | no data |
+| LA1 | P | T6 | L1 | `life_ages.AGE_KILL_THRESHOLD` 0.30: the share of species an event must kill to end a life age; the impact size that reaches it is the one the Earth has once per 10 Myr (4.1 km), read from the kill curve. The Boss picked 0.30 from the measured range (5:50 PM EST 11-19: an extinction that kills 30 percent or more ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages) | 0.15 to 0.65 | the Earth's marine record, applied to every world with life | a record of eras whose boundaries are not the extinctions that kill 30 percent or more, or a Boss pick of another share | none (the Boss's pick inside the measured range; another pick replaces the number) | the Boss's choice of the value inside the range the kill curve gives [R5320], the curve itself from a secondary article | predicted only | - | - |
 | LA2 | T | T7 | L0 | events that fall within `air_events.RECOVERY_GYR` of the extinction before are part of it, keeping the larger kill and its cause (no background process: the kill of an event is read from the curve at its own recurrence, so the impacts that reach the threshold fill the curve and nothing is left over) | none | any world | a fossil record in which a second extinction within 10 Myr of the first starts an age of its own | a diversity model with the regrowth of [R5321] | inferred from the 10 Myr lag after an extinction whatever its size | predicted only | - | - |
 
 ## 6.317 Stand-ins of the deep branch of a giant's profile (GEN.1577)
@@ -3447,6 +3447,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DA1 | P | T6 | L0 | `hot_cloud_deck.ADIABAT_EXPONENT`: the dry adiabat below a giant's 1 bar level is `T = T(1 bar) P^((gamma - 1) / gamma)` with gamma 1.4 (`constants.ADIABATIC_INDEX_H2_HE`), exponent 2/7, the value `mixture_giant.ADIABAT_EXPONENT` already takes to its quench level | 0.25 to 0.30 | a hydrogen-helium envelope below 1 bar and below about 1,500 K, where the hydrogen is molecular and its vibration is not excited | a measured or modelled deep profile of a giant whose gradient differs from 2/7 by more than 0.03 (helium raises it to about 0.29, excited vibration lowers it) | the exponent of the hydrogen-helium tables along the fitted adiabat (`giant_structure.fit_adiabat`) | educated guess from physics: the textbook diatomic value, the one the quench already uses | predicted only | - | - |
 | DA2 | T | T6 | L1 | the floor is anchored at the giant's 1 bar temperature, `giant_draw.ONE_BAR_OVER_EFFECTIVE` (1.33) times its effective temperature, the one its air is solved at; for a strongly irradiated giant this is hotter than a deep adiabat set by its own heat (the radiative zone is an isotherm down to the radiative-convective boundary), so a giant above about 1,400 K equilibrium gets no chromium or manganese sulfide cloud | none | any giant, best for the ones the 1.33 was read from (Jupiter and Saturn, 166 K and 134 K at 1 bar) | a hot giant whose measured or modelled profile is isothermal at its equilibrium temperature down to 100 bar or more and so holds a chromium or manganese sulfide cloud | an adiabat that leaves the grey profile at its radiative-convective boundary, with the entropy of the giant's interior (`giant_structure.fit_adiabat`) | inferred from the 1 bar convention of every giant's air; not checked against a hot-giant model | predicted only | - | - |
+| DA3 | P | T9 | L0 | `hot_cloud_deck.TOLERANCE` 1e-3: the bisection of the giant's profile stops when its bracket is this narrow in log10 of the pressure (the profile is searched on a grid four to the decade, so the bracket is a quarter of a decade wide before it starts) | 1e-4 to 1e-2 | every giant's cloud deck | not applicable (a numerical stopping test) | a guard from the cost of the search | needed output (a pressure good to a part in a thousand of a decade) | predicted only | - | - |
 
 ## 6.319 Stand-ins of the sulfur a lava world's melt holds (GEN.1814)
 

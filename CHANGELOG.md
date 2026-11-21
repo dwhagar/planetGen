@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4672+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The stopping test of the giant cloud-deck bisection is a registered stand-in, so `test_constants_completeness` is green again.
+
+### Fixed
+
+- `hot_cloud_deck.TOLERANCE` (1e-3 of a decade in pressure, the stopping test of the bisection of a giant's profile, GEN.1577) had no registry row, tag or place in the constants module, which turned `test_constants_completeness` red on main from Train 51. It is row DA3 of section 6.317 (a numerical stopping test, tier T9, tweak L0, like belt_ledger's BR21 tolerance) and its docstring carries the tag (TEST.811).
+
+generation-output: unchanged
+
+## [8.0.4671+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A planet's Life and air chart now shows every gas of its stored air history, with the mass extinctions and the life ages between them.
+
+### Added
+- **The life-air route reads the stored air history (API.51).** `GET /api/planets/<id>/life-air` and `/api/moons/<id>/life-air` answer from the body's `air_history` column (GEN.1745 slice 4b) when it has one: every gas the record keeps (any gas of 0.1 Pa or more at some age, the biggest first), the surface temperature and total pressure at each recorded age, the mass extinctions that start a step and the life ages between them. The answer keeps the old shape and adds `source` (`stored` or `rebuilt`), `temperature_k`, `pressure_kpa`, `events` and `life_ages`; the classes, the producers' and the oxygen rise's ages and what each class made of a gas still come from the rebuilt history. A body with no stored history (a giant, thin air, a rogue planet, a row made before v269) keeps the air worked backwards on request, and says `rebuilt`. New `physics/stored_air.py`.
+- **The planet page's Life and air chart draws every gas, for any body that has a stored history, living or not (Boss: the full air history of every body at 500 Pa or more).** Gases beyond oxygen, carbon dioxide and methane get a line and a legend key of their own, mass extinctions are dashed lines with the cause and the share of species killed listed under the chart, and the life ages are listed with how each ended.
+
+generation-output: unchanged
+
+## [8.0.4670+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The share of species an extinction must kill to end a life age is registered as the Boss's pick, 30 percent
+
+### Changed
+
+- GEN.1746: `life_ages.AGE_KILL_THRESHOLD` stays 0.30 and its stand-in row (section 6.314, LA1) now records why: the Boss picked 0.30 from the measured range of the kill curve [R5320] (an extinction that kills 30 percent or more of the species ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages), tweak L1 where it was L3. No number moves.
+
+generation-output: unchanged
+
 ## [8.0.4669+db270.gen150.api14] - 2026-11-21
 
 **Headline:** The cold and heat adaptation traits of a life world now read the temperature of the water the life lives in, so a frozen world with warm crust no longer draws a cold trait.
