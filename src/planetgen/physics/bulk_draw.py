@@ -147,6 +147,12 @@ def _star_composition(fe_h, age_gy, key):
     return stellar_abundances.composition(fe_h, offsets)
 
 
+def composition_of(star):
+    """The element mixture of `star`'s gas (`stellar_abundances.composition`: its own [Fe/H], age and abundance draws), or None for a star with no [Fe/H] (a compact remnant)."""
+    fe_h = getattr(star, "metallicity_fe_h", None)
+    return None if fe_h is None else _star_composition(fe_h, star.age, star_key(star))
+
+
 @functools.lru_cache(maxsize=4096)
 def _ratios(fe_h, age_gy, key):
     star = _star_composition(fe_h, age_gy, key)

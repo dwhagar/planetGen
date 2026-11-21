@@ -5,7 +5,7 @@
 from types import SimpleNamespace
 
 from planetgen.generation import life
-from planetgen.physics import atmosphere, life_air, planet_type
+from planetgen.physics import atmosphere, biogenic_oxygen, life_air, planet_type
 
 
 def _run(monkeypatch, oxygen_answers, methane_changes):
@@ -28,7 +28,8 @@ def _run(monkeypatch, oxygen_answers, methane_changes):
     monkeypatch.setattr(life, "_rebuild", lambda planet, remake_water=False: calls.append(("rebuild", remake_water)))
     monkeypatch.setattr(planet_type, "has_ground", lambda planet: True)
     monkeypatch.setattr(atmosphere, "partial_kpa", lambda planet, gas: 1.0)
-    planet = SimpleNamespace(surface_temperature=255.0, atmospheric_pressure=1.0e5)
+    monkeypatch.setattr(biogenic_oxygen, "air_moles", lambda planet: {})       # GEN.1745 slice 4b: the build record keeps the air the history reads; this body has none to count
+    planet = SimpleNamespace(surface_temperature=255.0, atmospheric_pressure=1.0e5, build=SimpleNamespace())
     life._build_air(planet, [SimpleNamespace(row=SimpleNamespace(id="1a"))])
     return calls
 
