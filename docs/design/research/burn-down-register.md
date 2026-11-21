@@ -299,6 +299,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.270:AUD24 | no data | - | only the Sweeney and others ratios are read; no kinematic sample of remnants is held |
 | 6.270:AUD28 | no data | - | a design choice of the flavor rebuild (GEN.1430); no data exists |
 | 6.254:LS1 | replace | GEN.1493 | L3, the inward share is fitted to the mean of the present law across generated planets; a scattering integration of a primordial belt against the system's planets (slice 3 of GEN.1493) replaces it |
+| 6.254:LS1a | replace | GEN.1493 | L4, the crossing gain is fitted so a Sun-like synthetic system keeps the published veneer; a scattering integration of the crossing population against the system's planets replaces it |
+| 6.254:LS1b | no data | - | L4, no source prints how much more a stirred belt sends inward; the stirring's eccentricity as a continuous share would replace the flag |
 | 6.254:LS2 | no data | - | L4, no source prints the impact-speed distribution of scattered planetesimals on a rocky planet; the order of a few tenths of the orbital speed stands until a dynamical model of the crossing population gives one |
 | 6.254:LS3 | no data | - | L4, no source gives how far beyond a belt a giant still shares what it scatters; the chaotic-zone width of the clearing law would replace the factor of 3 |
 | 6.255:LA1 | replace | GEN.1493 | L3, the floor is a share of the law's mean fitted to the lowest published veneers; a model of the leftover planetesimals of a system with no belt replaces it |

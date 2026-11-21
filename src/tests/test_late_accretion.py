@@ -1,4 +1,4 @@
-"""GEN.1493 slice 1: the air reads the system's late accretion (`generation/late_accretion.py`, `planets.remake_air`)."""
+"""GEN.1493 slices 1 and 2: the air reads the system's late accretion (`generation/late_accretion.py`, `planets.remake_air`), from the belts it has, the stretches it lost and what the giants did to them."""
 
 import types
 
@@ -9,7 +9,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import impact_history, planets as planet_physics
+from planetgen.physics import impact_history, late_supply, planets as planet_physics, scatter
 from planetgen.util import draw
 from planetgen.generation.build_record import BuildRecord
 from tests.fuzz_support import deterministic_entropy
@@ -203,3 +203,59 @@ def test_a_whole_system_makes_few_airs_again_now_the_first_air_reads_the_late_ac
             draw.set_run_seed(seed)
             StarSystem(system_config=cfg)
     assert remade and sum(remade) < 0.5 * len(remade)
+
+
+def _origin(primordial_earth, stirred=False, inner_au=30.0, outer_au=50.0):
+    return types.SimpleNamespace(primordial_mass_earth=primordial_earth, stirred=stirred, inner_au=inner_au, outer_au=outer_au)
+
+
+def _fates(**shares):
+    fates = dict.fromkeys(scatter.POPULATIONS, 0.0)
+    fates.update(shares)
+    fates["cold_classical"] = 1.0 - sum(v for k, v in fates.items() if k != "cold_classical")
+    return fates
+
+
+def test_a_stretch_the_giants_cleared_of_everything_is_a_reservoir_the_planets_inside_it_still_read():
+    planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0)
+    alone = [types.SimpleNamespace(body_type="t", is_moon=False, mass=EARTH_KG, radius=6371.0, distance=1.0)]
+    mean = impact_history.late_accreted_percent_mean(1.0)
+    gone = late_accretion.early_of_origin(_origin(20.0), 30.0, 50.0, _fates(scattered_disk=0.6, centaurs=0.3, ejected=0.1))
+    assert gone.kind == "belt" and gone.mass_kg == pytest.approx(20.0 * EARTH_KG) and gone.inward_share == pytest.approx(late_supply.CROSSING_GAIN * 0.9)
+    assert late_accretion.percent_for(planet, alone, 1.0) == pytest.approx(late_accretion.FLOOR_SHARE * mean)        # no belt left: the floor
+    assert late_accretion.percent_for(planet, alone, 1.0, [gone]) > late_accretion.percent_for(planet, alone, 1.0)     # the lost stretch feeds it
+
+
+def test_a_belt_is_read_with_what_the_giants_did_to_it():
+    quiet = types.SimpleNamespace(body_type="a", is_moon=False, primordial_mass_earth=5.0, lower_limit=2.1, upper_limit=3.3)
+    swept = types.SimpleNamespace(body_type="a", is_moon=False, primordial_mass_earth=5.0, lower_limit=2.1, upper_limit=3.3, scatter_fates=_fates(scattered_disk=0.5, centaurs=0.2), stirred=True)
+    assert late_accretion.early_of_belt(quiet).inward_share == pytest.approx(late_supply.INWARD_SHARE)
+    assert late_accretion.early_of_belt(swept).inward_share == pytest.approx(late_supply.inward_share_of(swept.scatter_fates, True))
+    assert late_accretion.early_of_belt(swept).inward_share > late_accretion.early_of_belt(quiet).inward_share
+
+
+def test_lost_reservoirs_are_kept_by_star_and_read_only_by_the_planets_of_that_star():
+    star, other = types.SimpleNamespace(mass=1.989e30), types.SimpleNamespace(mass=1.989e30)
+    planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0, star=star, body_type="t", is_moon=False)
+    gone = late_accretion.early_of_origin(_origin(20.0), 30.0, 50.0, _fates(scattered_disk=0.6, centaurs=0.3))
+    with_it = late_accretion.percent_in(planet, [planet], {id(star): [gone]})
+    assert with_it > late_accretion.percent_in(planet, [planet], {id(other): [gone]}) == late_accretion.percent_in(planet, [planet], None)
+
+
+def test_build_hands_on_the_stretch_a_giant_cleared_of_everything_and_leaves_out_one_nothing_was_thrown_from(monkeypatch):
+    from planetgen.generation import belt_birth
+    from planetgen.physics import belt_origin
+    from tests.test_systems import make_config
+    with draw.bound(5):
+        system = StarSystem(system_config=make_config("G2V", PLANETS=False))
+    swept = belt_origin.BeltOrigin("outer-disk", (), 30.0, 50.0, 2.7, 20.0, 0.0, 18.0, 2.0, False, (), "")
+    dry = belt_origin.BeltOrigin("outer-disk", (), 60.0, 80.0, 2.7, 20.0, 0.0, 18.0, 2.0, False, (), "")
+    monkeypatch.setattr(belt_origin, "build", lambda *args, **kwargs: [swept, dry])
+    fates = {key: 0.0 for key in scatter.POPULATIONS}
+    fates.update(scattered_disk=0.6, centaurs=0.3, ejected=0.1)
+    monkeypatch.setattr(belt_birth, "_fates", lambda star, mass, planets, origin, edge, instability=0.0: ((fates, "", 30.0, None) if origin is swept else (None, None, None, None)))
+    lost = []
+    belts = belt_birth.build(system.system_config, system.star, [], 0.1, 500.0, 500.0, lost=lost)
+    assert belts == [] and len(lost) == 1
+    assert lost[0].mass_kg == pytest.approx(20.0 * EARTH_KG) and (lost[0].lower_au, lost[0].upper_au) == (30.0, 50.0)
+    assert lost[0].inward_share == pytest.approx(late_supply.CROSSING_GAIN * 0.9)

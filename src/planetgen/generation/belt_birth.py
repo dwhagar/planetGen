@@ -30,7 +30,7 @@ mass is that of warm dust a survey could see, a stand-in. [Stand-in 6.97 BG14, t
 
 from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt, present_state
-from planetgen.generation import remnant_orbits
+from planetgen.generation import late_accretion, remnant_orbits
 from planetgen.physics import belt_origin, bulk_draw, disk_size, disk_truncation, planet_mass, scatter, swept_hand_on, trojans
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
@@ -95,7 +95,7 @@ def _fates(star, star_mass_kg, planets, origin, disk_edge_au, instability=0.0):
     return shares, scatter.history_line(shares, giant.distance, moved_out), giant.distance, giant
 
 
-def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_edge_au, instability=0.0, disk_scatter=1.0):
+def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_edge_au, instability=0.0, disk_scatter=1.0, lost=None):
     """
     The `AsteroidBelt` list of a system: the stretches the planets in `planets` leave unfinished, each as `belt_origin` traced it, cut to the orbits between `orbit_floor_au` and
     `orbit_ceiling_au` and kept when `MIN_PRESENT_MASS_EARTH` is left after the star's age. Nearest the star first. A system asked to hold a belt (`ASTEROID_BELT` True) that has none
@@ -109,6 +109,8 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
         disk_edge_au (float): The disk's outer edge, AU (infinite when the star's light no longer describes its disk: then `disk_size.edge_au(star)`, GEN.1520).
         instability (float): 0 to 1, how much the system's giants scattered each other (`capture_windows.instability_level`), which excites a share of the cold outer disk (`scatter.scatter_shares`).
         disk_scatter (float): The factor the planets' disk was scattered by about the median of its star's mass (`planet_architecture.Architecture.disk_scatter`): the belts are made of the same disk (GEN.1261).
+        lost (list, optional): Filled with the `late_supply.Early` of each stretch the star's orbits hold that is not kept (cleared of everything, or under the least a belt keeps once the star's age has ground it): it sent its mass inward
+            before it went, and the air of the planets inside it reads that (GEN.1493 slice 2, `late_accretion.early_of_origin`). A belt the system keeps is read from the belt.
     """
     chain = chain_of(planets)
     star_mass_kg = remnant_orbits.formation_mass_kg(star)
@@ -128,6 +130,16 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
     kept = [item for item in found if item[0] >= MIN_PRESENT_MASS_EARTH]
     if not kept and found and system_config.ASTEROID_BELT is True:
         kept = [max(found, key=lambda item: item[0])]
+    if lost is not None:
+        kept_origins = [item[1] for item in kept]
+        for origin in origins:
+            lower, upper = max(origin.inner_au, orbit_floor_au), min(origin.outer_au, orbit_ceiling_au)
+            if any(origin is other for other in kept_origins) or not origin.primordial_mass_earth > 0.0 or upper < lower * belt_origin.MIN_BELT_RATIO:
+                continue
+            shares, _, _, _ = _fates(star, star_mass_kg, planets, origin, origin.outer_au, instability)
+            early = late_accretion.early_of_origin(origin, lower, upper, shares)
+            if early.inward_share > 0.0:         # a stretch no giant threw anything of inward left nothing for the planets
+                lost.append(early)
     belts = []
     for _mass, origin, lower, upper in kept:
         shares, sentence, giant_au, giant = _fates(star, star_mass_kg, planets, origin, origin.outer_au, instability)     # the disk's edge as a companion cut it (GEN.1451); the star's own edge when none did

@@ -62737,7 +62737,7 @@
           "fields": [
             [
               "What it is",
-              "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
+              "late_supply.INWARD_SHARE 0.1: the share of the part of a belt's primordial mass that no giant swept (the part that stays in its ring) that is scattered onto planet-crossing orbits and shared among the bodies (slice 2: the part the giants swept sends CROSSING_GAIN and STIRRED_GAIN instead, rows LS1a, LS1b)"
             ],
             [
               "The range it moves in",
@@ -62768,7 +62768,91 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
+          "what": "late_supply.INWARD_SHARE 0.1: the share of the part of a belt's primordial mass that no giant swept (the part that stays in its ring) that is scattered onto planet-crossing orbits and shared among the bodies (slice 2: the part the giants swept sends CROSSING_GAIN and STIRRED_GAIN instead, rows LS1a, LS1b)"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L4, the crossing gain is fitted so a Sun-like synthetic system keeps the published veneer; a scattering integration of the crossing population against the system's planets replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.CROSSING_GAIN 0.3: the share of the part of an outer disk a giant threw onto orbits that cross the giants' and the planets' (the scattered disk and the centaurs of scatter.scatter_shares, bound, not ejected) that reaches the shared sinks inside it; a stretch the giants cleared of everything sends only this (GEN.1493 slice 2)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 1"
+            ],
+            [
+              "Where it holds",
+              "outer disks swept by a giant"
+            ],
+            [
+              "What would show it wrong",
+              "a dynamical model of a swept disk whose share reaching the inner system is outside 0.1 to 1 of its crossing mass"
+            ],
+            [
+              "What replaces it",
+              "a scattering integration of the crossing population against the system's planets"
+            ],
+            [
+              "Evidence",
+              "fitted: a synthetic Sun-like system (an Earth inside the four giants, an outer disk of 10 to 20 Earth masses swept by a Neptune-class giant) keeps 0.2 to 0.7 percent of the Earth's mass (test_late_supply); no source prints the number (Boss 2026-11-20: acceptable, fitted L4)"
+            ]
+          ],
+          "id": "LS1a",
+          "key": "6.254:LS1a",
+          "kind": "P",
+          "slug": "6-254-ls1a",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "late_supply.CROSSING_GAIN 0.3: the share of the part of an outer disk a giant threw onto orbits that cross the giants' and the planets' (the scattered disk and the centaurs of scatter.scatter_shares, bound, not ejected) that reaches the shared sinks inside it; a stretch the giants cleared of everything sends only this (GEN.1493 slice 2)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source prints how much more a stirred belt sends inward; the stirring's eccentricity as a continuous share would replace the flag"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.STIRRED_GAIN 0.1: the share of a stirred ring's mass (a companion or a close giant raises its eccentricity, belt_origin.stirred, BG8) added to its inward share, because a stirred ring grinds faster and sends more inward"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "rings a companion star or a giant stirs"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dust or planetesimal flux of a stirred belt that differs by more than a factor of two from a quiet belt of the same mass"
+            ],
+            [
+              "What replaces it",
+              "the stirring's eccentricity (belt_forcing.combined) over the unstirred width as a continuous share"
+            ],
+            [
+              "Evidence",
+              "fitted to the same Sun-like test; no source prints the number (Boss 2026-11-20: acceptable, fitted L4)"
+            ]
+          ],
+          "id": "LS1b",
+          "key": "6.254:LS1b",
+          "kind": "P",
+          "slug": "6-254-ls1b",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "late_supply.STIRRED_GAIN 0.1: the share of a stirred ring's mass (a companion or a close giant raises its eccentricity, belt_origin.stirred, BG8) added to its inward share, because a stirred ring grinds faster and sends more inward"
         },
         {
           "burn_down": [

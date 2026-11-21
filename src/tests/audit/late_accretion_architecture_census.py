@@ -119,10 +119,10 @@ def format_report(rows, heading):
 
 
 def main():
-    """Environment: `ARCH_STAR_TYPE` (for example G2V, a Sun-like star: giants and comets are rare around the default stars) and `ARCH_FIRST_SEED`."""
+    """Environment: `ARCH_STAR_TYPE` (for example G2V, a Sun-like star: giants and comets are rare around the default stars), `ARCH_FIRST_SEED`, `ARCH_WORKERS` and `ARCH_LABEL` (the heading's label)."""
     star_type = os.environ.get("ARCH_STAR_TYPE") or None
-    text = format_report(run(first_seed=int(os.environ.get("ARCH_FIRST_SEED", "1")), star_type=star_type),
-                         f"The late accretion census by architecture (GEN.1493 slice 3, baseline before slice 2, {star_type or 'default stars'})")
+    text = format_report(run(first_seed=int(os.environ.get("ARCH_FIRST_SEED", "1")), star_type=star_type, workers=int(os.environ.get("ARCH_WORKERS", "0")) or None),
+                         f"The late accretion census by architecture (GEN.1493 slice 3, {os.environ.get('ARCH_LABEL', 'baseline before slice 2')}, {star_type or 'default stars'})")
     directory = os.environ.get("PLANETGEN_REPORT_DIR", ".")
     os.makedirs(directory, exist_ok=True)
     with open(os.path.join(directory, os.environ.get("PLANETGEN_REPORT_NAME", REPORT_NAME)), "w", encoding="utf-8") as handle:
