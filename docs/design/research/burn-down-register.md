@@ -280,6 +280,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.310:CB2 | no data | - | L3, no carbonation rate of dry basalt against temperature at 400 to 600 K is in hand; the floor is set where the reaction pressure is 0.08 bar so a mistake moves little |
 | 6.310:CB3 | no data | - | L3, no measurement of the share of a crust's calcium that carbonates at a hot dry surface is in hand; the Earth's crust holds about 17 percent of its calcium as carbonate and a lower share is the first thing to tune |
 | 6.313:EV8 | no data | - | L3, no record of impacts over 100 km after the formation is in hand; the cap leaves the giant impacts to the formation |
+| 6.320:AH7 | no data | - | L3, no measurement of a cell dividing in 81 percent sulfuric acid, in 10 percent ammonia, in dense CO2 or in a liquid hydrocarbon is in hand; the measured limits stop at 11 percent acid and 0.43 percent ammonia (GEN.1810) |
 | 6.229:CV10 | no data | - | L3, no paper prints the strength of the ultraviolet absorber's band as a number (only the centre and width are read); the peak depth is hand-set until a retrieval gives it |
 | 6.229:CG1 | no data | - | L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base (GEN.1425, closed); no second planet measures it, and a photochemistry model of the acid vapor would replace it |
 | 6.229:CG2 | no data | - | L3, the gate floors have no measurement behind them; one calibration planet cannot set them, and a sweep over the census would |
