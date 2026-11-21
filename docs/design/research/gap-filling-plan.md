@@ -2505,7 +2505,7 @@ The width of the bands `physics/latitude_bands.py` divides a body into. The Eart
 
 ### 6.125 Stand-ins of the whole bodies at Lagrange points (GEN.1151)
 
-`physics/trojan_bodies.py` says how much mass the mass rule admits at L4 and L5 of a host and a secondary (no class letter is read), and the formation gate a draw must pass. It sets no rate. `physics/lagrange_geometry.py` (MAP.354) is geometry and holds no stand-in.
+`physics/trojan_bodies.py` says how much mass the mass rule admits at L4 and L5 of a host and a secondary (no class letter is read), and the formation gate a draw must pass. It sets no rate. The geometry of the five points for the gravity layer is in `systemgravity.js` (MAP.169); the Python copy built ahead of it was removed (GEN.1820).
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
