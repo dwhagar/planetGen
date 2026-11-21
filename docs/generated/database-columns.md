@@ -650,6 +650,8 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `obliquity_max_deg` | DOUBLE | NULL | v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees |
 | `belt_order` | INT | NULL | v248 (GEN.1510): for a planet promoted from an asteroid belt, the belt's number among its star's belts (as `irregular_moons.belt_order`), NULL for every other planet and for a row made before v244 |
 | `belt_rank` | INT | NULL | v248 (GEN.1510): for a planet promoted from an asteroid belt, the rank it had among the belt's members (the number is not reused), NULL for every other planet |
+| `lagrange_point` | VARCHAR(2) | NULL | v272 (GEN.1151): `L4` (60 degrees ahead) or `L5` (60 degrees behind) for a planet that shares its giant's orbit and was grown in its zone, NULL for every other planet |
+| `lagrange_host_id` | BIGINT UNSIGNED | NULL | v272 (GEN.1151): the `planets.id` of the giant a planet at L4 or L5 shares its orbit with, NULL for every other planet |
 | `energy_flux_w_m2` | DOUBLE | NULL |  |
 | `flux_variation` | DOUBLE | NULL |  |
 | `reflex_offset_x_km` | DOUBLE | NULL |  |
@@ -1435,6 +1437,11 @@ asteroid_belts -- belts have no properties-dict data table (asteroidData.py:93-1
 | `history_text` | TEXT | NULL | v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205 |
 | `host_node_id` | SMALLINT | NULL | v258 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets` |
 | `thrown_inward_kg` | DOUBLE | NULL | v267 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v267 |
+| `lagrange_point` | VARCHAR(2) | NULL | v271 (GEN.1150): `L4` (leading) or `L5` (trailing) for a trojan region of a giant, whose parent is the giant (`parent_type` planet), NULL for every other belt |
+| `libration_amplitude_deg` | DOUBLE | NULL | v271 (GEN.1150): the libration amplitude of a trojan region's bodies about its point, degrees (`physics/trojan_swarm.py`), NULL for every other belt |
+| `libration_phase_deg` | DOUBLE | NULL | v271 (GEN.1150): the libration phase at Unix time zero, degrees (`physics/trojan_overlay.py` adds the libration to the giant's longitude at any time from it), NULL for every other belt |
+| `mean_eccentricity` | DOUBLE | NULL | v271 (GEN.1150): the mean eccentricity of a trojan region's bodies, NULL for every other belt |
+| `mean_inclination_deg` | DOUBLE | NULL | v271 (GEN.1150): the mean inclination of a trojan region's bodies to the giant's plane, degrees, NULL for every other belt |
 
 ## `asteroid_belt_composition`
 
