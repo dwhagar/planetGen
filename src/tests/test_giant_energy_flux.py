@@ -17,7 +17,7 @@ def _giants():
     for seed in range(240):
         with draw.bound(seed):
             system = StarSystem(SystemConfig())
-        found += [planet for planet in system.planets if planet.body_type == "g"]
+        found += [planet for planet in system.primary.orbiters if planet.body_type == "g"]
         if len(found) >= 2:
             return found
     if not found:

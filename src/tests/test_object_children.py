@@ -118,7 +118,7 @@ def _sector_with_a_wide_pair(mysql_config):
         cfg.BINARY_SYSTEM = True
         cfg.WIDE_BINARY = True
         system = StarSystem(system_config=cfg)
-        if any(p.body_type != "a" and p.moons for p in system.planets):
+        if any(p.body_type != "a" and p.moons for p in system.primary.orbiters):
             sector = SpaceSector("Children Sector", edge_ly=10.0)
             sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
             sector_id = store.save_sector(sector, config=mysql_config)

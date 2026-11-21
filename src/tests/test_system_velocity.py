@@ -32,7 +32,7 @@ def _runaway_system(speed_kms=400.0, direction=(0.0, 0.0, 1.0)):
         cfg = SystemConfig()
         cfg.PLANETS = True
         system = StarSystem(system_config=cfg)
-        if any(not isinstance(body, AsteroidBelt) for body in system.planets):   # a belt alone has no motion of its own
+        if any(not isinstance(body, AsteroidBelt) for body in system.primary.orbiters):   # a belt alone has no motion of its own
             break
     system.runaway_class = "hypervelocity"
     system.runaway_speed_kms = speed_kms
@@ -88,7 +88,7 @@ def test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodi
     assert velocity == pytest.approx((rotation[0], rotation[1], rotation[2] + 400.0e3), rel=1e-9, abs=1e-6)
     for star in system.stars:
         assert star.spatial.get_velocity_vector("galactic")[2] == pytest.approx(400.0e3, rel=1e-3)
-    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "spatial", None))
     # A planet's galactic velocity is its star's plus its own orbital speed, so the runaway motion is in it.
     assert planet.spatial.get_velocity_vector("galactic")[2] == pytest.approx(400.0e3, abs=planet.orbital_speed_kms * 1e3 * 1.01)
 

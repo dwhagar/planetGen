@@ -123,7 +123,7 @@ def test_a_wolf_rayet_star_builds_a_system_and_rebuilds_from_its_record():
     for seed in range(20):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=SystemConfig(), primary_star_params=params)
-        assert not [p for p in system.planets if p.body_type != "a"]  # too young for planets
+        assert not [p for p in system.primary.orbiters if p.body_type != "a"]  # too young for planets
 
 
 @pytest.mark.parametrize("subtype, age_fraction, low, high", [("WN", 0.2, 0.44, 0.60), ("WC", 0.75, 0.82, 0.96)])

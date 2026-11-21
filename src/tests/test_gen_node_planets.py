@@ -39,7 +39,7 @@ def _with_node_planets(stars=3):
             continue
         system, cfg = _system(seed, stars)
         tried += 1
-        if any(body.body_type != "a" for bodies in system.node_planets for body in bodies):
+        if any(body.body_type != "a" for bodies in [h.orbiters for h in system.hosts_of("node")] for body in bodies):
             return system, cfg
         if tried > 25:
             break
@@ -53,7 +53,7 @@ def _with_node_belt(stars=3):
         if not tree.node_hosts:
             continue
         system, cfg = _system(seed, stars)
-        if any(body.body_type == "a" for bodies in system.node_planets for body in bodies):
+        if any(body.body_type == "a" for bodies in [h.orbiters for h in system.hosts_of("node")] for body in bodies):
             return system, cfg
     pytest.fail(f"no {stars}-star system with a belt round an inner pair node in 300 draws")
 
@@ -68,20 +68,20 @@ def _four_star_system_with_a_pair_of_pairs():
 
 def test_a_pair_node_has_planets_of_its_own():
     system, _cfg = _with_node_planets()
-    assert len(system.node_planets) == len(system.node_hosts) > 0
-    for host, bodies in system.node_planet_hosts():
+    assert len([h.orbiters for h in system.hosts_of("node")]) == len(system.node_hosts) > 0
+    for host, bodies in system.hosts_of("node"):
         assert host.host_node_no is not None and host.host_node_no != system.pair_node_no()
         for body in bodies:
             if body.body_type != "a":
                 assert body.star is host
-    assert {id(body) for bodies in system.node_planets for body in bodies} <= set(map(id, system.all_planets))
+    assert {id(body) for bodies in [h.orbiters for h in system.hosts_of("node")] for body in bodies} <= set(map(id, system.all_planets))
     planets, belts, _moons = system.count_objects()
     assert planets + belts == len(system.all_planets)
 
 
 def test_a_nodes_planets_stay_inside_its_window_of_the_tree():
     system, _cfg = _with_node_planets()
-    for host, bodies in system.node_planet_hosts():
+    for host, bodies in system.hosts_of("node"):
         zone = system.ledger.zone((planet_zones.P_TYPE, host.host_node_no))
         assert zone.exists
         limit = system.ledger.stability_limit_au((planet_zones.P_TYPE, host.host_node_no))
@@ -96,7 +96,7 @@ def test_a_nodes_planets_stay_inside_its_window_of_the_tree():
 
 def test_the_proxy_of_a_node_merges_its_stars():
     system, _cfg = _with_node_planets()
-    for host, _bodies in system.node_planet_hosts():
+    for host, _bodies in system.hosts_of("node"):
         leaves = host.leaf_stars
         assert len(leaves) >= 2
         assert host.mass == pytest.approx(sum(star.mass for star in leaves))
@@ -119,23 +119,23 @@ def test_a_nodes_planets_are_drawn_from_a_stream_of_its_own():
     # The stored planets went through the settle pass, which spaces orbits again once the eccentricities are final (`validation.space_orbits`) and can move a planet out
     # (TEST.787: with GEN.1709's wider inner systems one of this sample's planets goes from 71.8 to 122.3 AU), so the drawn distances are not compared with the stored ones: the
     # draw is shown stream-owned by a second regeneration giving the same distances, and the masses, which settling never changes, agree with the stored planets'.
-    assert [body.mass for body in again if body.body_type != "a"] == [body.mass for body in system.node_planets[0] if body.body_type != "a" and getattr(body, "belt_rank", None) is None]      # a belt's promoted members (GEN.1510) come with the belts, after this draw
+    assert [body.mass for body in again if body.body_type != "a"] == [body.mass for body in [h.orbiters for h in system.hosts_of("node")][0] if body.body_type != "a" and getattr(body, "belt_rank", None) is None]      # a belt's promoted members (GEN.1510) come with the belts, after this draw
     twice = system._generate_node_planets(host)
     assert [body.distance for body in twice] == [body.distance for body in again]
-    assert [body.body_type for body in twice] == [body.body_type for body in system.node_planets[0] if getattr(body, "belt_rank", None) is None]
+    assert [body.body_type for body in twice] == [body.body_type for body in [h.orbiters for h in system.hosts_of("node")][0] if getattr(body, "belt_rank", None) is None]
 
 
 def test_a_system_without_such_a_node_has_no_node_planets():
     for seed in range(8):
         system, _cfg = _system(seed, 2)
-        assert not system.node_hosts and not any(system.node_planets)
+        assert not system.node_hosts and not any([h.orbiters for h in system.hosts_of("node")])
         assert system.to_dict()["node_planets"] == []
 
 
 def test_a_nodes_planets_are_named_after_its_pair():
     system, _cfg = _with_node_planets()
     system.assign_names("Voranthis")
-    for host, bodies in system.node_planet_hosts():
+    for host, bodies in system.hosts_of("node"):
         label = system.node_label(host)
         assert label.startswith("Voranthis ") and label != "Voranthis"
         for number, body in enumerate((body for body in bodies if body.body_type != "a"), start=1):
@@ -146,7 +146,7 @@ def test_a_nodes_planets_are_named_after_its_pair():
 
 def test_a_nodes_planets_see_the_turn_of_the_pair():
     system, _cfg = _with_node_planets()
-    swings = [body.flux_variation for _host, bodies in system.node_planet_hosts() for body in bodies if body.body_type not in ("a", "g")]
+    swings = [body.flux_variation for _host, bodies in system.hosts_of("node") for body in bodies if body.body_type not in ("a", "g")]
     assert swings and all(0.0 <= swing <= 1.0 for swing in swings)
 
 
@@ -156,8 +156,8 @@ def test_the_dict_form_keeps_a_nodes_planets():
     assert data["schema_version"] >= 9 and data["node_planets"]
     loaded = StarSystem.from_dict(data)
     assert [host.host_node_no for host in loaded.node_hosts] == [host.host_node_no for host in system.node_hosts]
-    assert [[body.distance for body in bodies] for bodies in loaded.node_planets] == [[body.distance for body in bodies] for bodies in system.node_planets]
-    assert all(body.star is host for host, bodies in loaded.node_planet_hosts() for body in bodies if body.body_type != "a")
+    assert [[body.distance for body in bodies] for bodies in [h.orbiters for h in loaded.hosts_of("node")]] == [[body.distance for body in bodies] for bodies in [h.orbiters for h in system.hosts_of("node")]]
+    assert all(body.star is host for host, bodies in loaded.hosts_of("node") for body in bodies if body.body_type != "a")
     assert loaded.to_dict() == system.to_dict()
 
 
@@ -167,7 +167,7 @@ def test_a_save_from_before_nodes_had_planets_reads_with_none():
     del data["node_planets"]
     data["schema_version"] = 8
     loaded = StarSystem.from_dict(data)
-    assert all(bodies == [] for bodies in loaded.node_planets)
+    assert all(bodies == [] for bodies in [h.orbiters for h in loaded.hosts_of("node")])
 
 
 def test_a_saved_system_reads_back_with_a_nodes_planets(mysql_config):
@@ -181,7 +181,7 @@ def test_a_saved_system_reads_back_with_a_nodes_planets(mysql_config):
         moons = conn.execute("SELECT m.star_id, m.parent_type FROM moons m JOIN planets p ON p.id = m.planet_id WHERE p.host_node_id IS NOT NULL").fetchall()
     finally:
         conn.close()
-    stored = sum(1 for bodies in system.node_planets for body in bodies if body.body_type != "a")
+    stored = sum(1 for bodies in [h.orbiters for h in system.hosts_of("node")] for body in bodies if body.body_type != "a")
     assert len(rows) == stored > 0
     for row in rows:
         assert row["star_id"] is None and row["parent_type"] == "node" and row["parent_id"] == row["host_node_id"]
@@ -190,10 +190,10 @@ def test_a_saved_system_reads_back_with_a_nodes_planets(mysql_config):
     def names(lists):
         return [[body.name for body in bodies if body.body_type != "a"] for bodies in lists]
 
-    assert names(loaded.node_planets) == names(system.node_planets)
-    assert names([loaded.planets]) == names([system.planets])
-    assert [body.distance for bodies in loaded.node_planets for body in bodies] == pytest.approx(
-        [body.distance for bodies in system.node_planets for body in bodies])
+    assert names([h.orbiters for h in loaded.hosts_of("node")]) == names([h.orbiters for h in system.hosts_of("node")])
+    assert names([loaded.primary.orbiters]) == names([system.primary.orbiters])
+    assert [body.distance for bodies in [h.orbiters for h in loaded.hosts_of("node")] for body in bodies] == pytest.approx(
+        [body.distance for bodies in [h.orbiters for h in system.hosts_of("node")] for body in bodies])
     assert (loaded.planet_count, loaded.belt_count, loaded.moon_count) == system.count_objects()
 
 
@@ -217,7 +217,7 @@ def test_the_description_lists_a_nodes_planets_under_its_pair():
     system.assign_names("Voranthis")
     document = build.describe(system)
     text = json.dumps(document.to_dict() if hasattr(document, "to_dict") else document, default=str)
-    for host, bodies in system.node_planet_hosts():
+    for host, bodies in system.hosts_of("node"):
         assert system.node_label(host) in text
         for body in bodies:
             if body.body_type != "a":
@@ -238,7 +238,7 @@ def test_the_system_page_map_draws_a_nodes_planets_in_a_scene_of_their_own(mysql
     finally:
         conn.close()
     html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"])
-    for host, bodies in system.node_planet_hosts():
+    for host, bodies in system.hosts_of("node"):
         scene = f'data-scene="node-{host.host_node_no}"'
         assert scene in html
         assert system.node_label(host) in html
@@ -249,7 +249,7 @@ def test_the_system_page_map_draws_a_nodes_planets_in_a_scene_of_their_own(mysql
 
 def test_a_pair_node_holds_the_belts_its_chain_leaves():
     system, _cfg = _with_node_belt()
-    for host, bodies in system.node_planet_hosts():
+    for host, bodies in system.hosts_of("node"):
         zone = system.ledger.zone((planet_zones.P_TYPE, host.host_node_no))
         for belt in (body for body in bodies if body.body_type == "a"):
             assert belt.lower_limit >= zone.inner_au * (1 - validation.RELATIVE_TOLERANCE), "a circumbinary belt starts beyond the pair's stability limit"
@@ -270,15 +270,15 @@ def test_a_saved_system_reads_back_with_a_nodes_belts(mysql_config):
         others = conn.execute("SELECT COUNT(*) AS n FROM asteroid_belts WHERE star_system_id = ? AND host_node_id IS NULL", (system_id,)).fetchone()["n"]
     finally:
         conn.close()
-    stored = sum(1 for bodies in system.node_planets for body in bodies if body.body_type == "a")
+    stored = sum(1 for bodies in [h.orbiters for h in system.hosts_of("node")] for body in bodies if body.body_type == "a")
     assert len(rows) == stored > 0
     for row in rows:
         assert row["star_id"] is None and row["parent_type"] == "node" and row["parent_id"] == row["host_node_id"]
-    assert others == sum(1 for body in system.planets if body.body_type == "a") + sum(1 for bodies in system.member_planets for body in bodies if body.body_type == "a")
-    assert [[(body.body_type, round(body.distance, 6)) for body in bodies] for bodies in loaded.node_planets] == \
-        [[(body.body_type, round(body.distance, 6)) for body in bodies] for bodies in system.node_planets]
+    assert others == sum(1 for body in system.primary.orbiters if body.body_type == "a") + sum(1 for bodies in [h.orbiters for h in system.hosts_of("member")] for body in bodies if body.body_type == "a")
+    assert [[(body.body_type, round(body.distance, 6)) for body in bodies] for bodies in [h.orbiters for h in loaded.hosts_of("node")]] == \
+        [[(body.body_type, round(body.distance, 6)) for body in bodies] for bodies in [h.orbiters for h in system.hosts_of("node")]]
     assert (loaded.planet_count, loaded.belt_count, loaded.moon_count) == system.count_objects()
-    assert [body.body_type for body in loaded.planets] == [body.body_type for body in system.planets]
+    assert [body.body_type for body in loaded.primary.orbiters] == [body.body_type for body in system.primary.orbiters]
 
 
 def test_an_edit_save_keeps_a_nodes_belts(mysql_config):
@@ -292,14 +292,14 @@ def test_an_edit_save_keeps_a_nodes_belts(mysql_config):
         after = conn.execute("SELECT COUNT(*) AS n, MIN(parent_type) AS kind FROM asteroid_belts WHERE star_system_id = ? AND host_node_id IS NOT NULL", (system_id,)).fetchone()
     finally:
         conn.close()
-    assert after["n"] == sum(1 for bodies in system.node_planets for body in bodies if body.body_type == "a") and after["kind"] == "node"
+    assert after["n"] == sum(1 for bodies in [h.orbiters for h in system.hosts_of("node")] for body in bodies if body.body_type == "a") and after["kind"] == "node"
 
 
 def test_the_dict_form_keeps_a_nodes_belts():
     system, _cfg = _with_node_belt()
     data = json.loads(json.dumps(system.to_dict()))
     loaded = StarSystem.from_dict(data)
-    assert [[body.body_type for body in bodies] for bodies in loaded.node_planets] == [[body.body_type for body in bodies] for bodies in system.node_planets]
+    assert [[body.body_type for body in bodies] for bodies in [h.orbiters for h in loaded.hosts_of("node")]] == [[body.body_type for body in bodies] for bodies in [h.orbiters for h in system.hosts_of("node")]]
     assert loaded.to_dict() == system.to_dict()
 
 
@@ -309,7 +309,7 @@ def test_the_description_lists_a_nodes_belts_under_its_pair():
     document = build.describe(system)
     pairs = [part for part in model.sections(document) if part["kind"] == "pair"]
     held = {part["title"]: [child["kind"] for child in part["children"]] for part in pairs}
-    for host, bodies in system.node_planet_hosts():
+    for host, bodies in system.hosts_of("node"):
         kinds = held[system.node_label(host)]
         assert len(kinds) == len(bodies)
         assert kinds.count("belt") == sum(1 for body in bodies if body.body_type == "a") > 0 or not any(body.body_type == "a" for body in bodies)

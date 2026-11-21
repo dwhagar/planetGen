@@ -30,7 +30,7 @@ def _system():
 
 
 def _planets(system):
-    return [planet for planet in system.planets if hasattr(planet, "moons")]
+    return [planet for planet in system.primary.orbiters if hasattr(planet, "moons")]
 
 
 def _origins(system):

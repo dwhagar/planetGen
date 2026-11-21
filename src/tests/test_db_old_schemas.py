@@ -91,4 +91,4 @@ def test_a_baseline_database_saves_and_loads_a_sector(mysql_config):
         conn.close()
     assert reloaded.name == sector.name
     assert [entry.star_system.name for entry in reloaded.entries] == [system.name]
-    assert len(reloaded.entries[0].star_system.planets) == len(system.planets)
+    assert len(reloaded.entries[0].star_system.primary.orbiters) == len(system.primary.orbiters)

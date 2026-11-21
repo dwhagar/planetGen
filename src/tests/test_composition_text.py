@@ -61,7 +61,7 @@ def test_every_generated_body_states_what_its_fractions_say():
             break
         with draw.bound(seed):
             system = StarSystem(system_config=SystemConfig())
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "moons"):
                 continue
             for body in [planet, *planet.moons]:
@@ -78,7 +78,7 @@ def test_a_giants_page_lists_its_layers_and_a_rocky_worlds_does_not():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=SystemConfig())
-        giants = [p for p in system.planets if getattr(p, "body_type", "") == "g"]
+        giants = [p for p in system.primary.orbiters if getattr(p, "body_type", "") == "g"]
         if giants:
             break
     else:

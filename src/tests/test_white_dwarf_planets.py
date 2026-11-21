@@ -73,7 +73,7 @@ def test_a_white_dwarfs_survivors_lie_past_its_progenitors_engulfment_radius_wid
         progenitor = mass_loss.progenitor_mass_sol(star.mass / constants.SOLAR_MASS_TO_KG, star.initial_mass_sol)
         factor = mass_loss.expansion_factor(progenitor * constants.SOLAR_MASS_TO_KG, star.mass)
         assert factor > 1.0
-        for body in system.planets:
+        for body in system.primary.orbiters:
             inner_edge = body.lower_limit if body.body_type == "a" else body.distance
             assert inner_edge >= mass_loss.engulfment_radius_au(progenitor) * factor * 0.99
             if body.body_type != "a":
@@ -90,9 +90,9 @@ def test_a_star_that_lost_nothing_keeps_its_orbits():
             cfg.STAR_TYPE = "G2V"
             cfg.NUM_ORBITS = 4
             system = StarSystem(system_config=cfg)
-        before = [(body.distance, getattr(body, "period", None)) for body in system.planets]
-        remnant_orbits.widen_for_mass_loss(system.planets, system.star)
-        assert [(body.distance, getattr(body, "period", None)) for body in system.planets] == before
+        before = [(body.distance, getattr(body, "period", None)) for body in system.primary.orbiters]
+        remnant_orbits.widen_for_mass_loss(system.primary.orbiters, system.star)
+        assert [(body.distance, getattr(body, "period", None)) for body in system.primary.orbiters] == before
 
 
 def test_a_close_pair_with_a_hot_white_dwarf_holds_a_disk_and_no_planets():
@@ -103,7 +103,7 @@ def test_a_close_pair_with_a_hot_white_dwarf_holds_a_disk_and_no_planets():
             continue
         pairs += 1
         assert remnant_orbits.is_post_agb_pair(system.star)
-        assert system.planets == [] and system.secondary_planets == []
+        assert system.primary.orbiters == [] and system.secondary.orbiters == []
         primary = system.primary_star
         low, high = tuning.POST_AGB_DISK_MASS_RANGE_SOLAR
         assert primary.disk_kind == remnant_orbits.POST_AGB_DISK_KIND
@@ -119,7 +119,7 @@ def test_a_single_white_dwarf_has_no_disk_and_planets_may_stay():
         system = _system(seed, binary=False)
         assert not remnant_orbits.is_post_agb_pair(system.star)
         assert system.star.disk_kind is None
-        kept += len(system.planets)
+        kept += len(system.primary.orbiters)
     assert kept > 0
 
 

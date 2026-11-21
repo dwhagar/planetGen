@@ -119,15 +119,15 @@ def test_a_system_with_no_cluster_history_is_the_system_it_always_was_and_a_dens
         # The cluster history draws one number per planet before the architecture is built, so the two systems are not the same beyond the stripping (GEN.1611 slice 1 moved the
         # architecture of seed 1 from 15 planets to 23 under the history): take the first seed where the history also leaves the dense system with fewer planets.
         if (not plain.ejected_losses() and any(kind == "stripped" for _star, kind in [(s, l.kind) for s, l in dense.ejected_losses()])
-                and len(dense.planets) < len(plain.planets)):
+                and len(dense.primary.orbiters) < len(plain.primary.orbiters)):
             found = plain, dense
             break
     assert found, f"no system of {SEEDS} seeds had a planet to strip"
     plain, dense = found
-    assert len(dense.planets) < len(plain.planets)
+    assert len(dense.primary.orbiters) < len(plain.primary.orbiters)
     assert all(loss.kind == "stripped" for _star, loss in dense.ejected_losses())
     again = _system(None, seed)
-    assert [p.distance for p in again.planets] == [p.distance for p in plain.planets]
+    assert [p.distance for p in again.primary.orbiters] == [p.distance for p in plain.planets]
 
 
 def test_a_stripped_loss_makes_a_rogue_that_leaves_with_the_unbinding_speed_and_says_its_birth_cluster_unbound_it():

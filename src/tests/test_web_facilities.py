@@ -522,7 +522,7 @@ def _system_with_terrestrial(mysql_config):
         cfg.MOONS = False
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        if any(p.body_type == "t" for p in system.planets):
+        if any(p.body_type == "t" for p in system.primary.orbiters):
             system_id = store.save_system(system, cfg, config=mysql_config)
             break
     else:

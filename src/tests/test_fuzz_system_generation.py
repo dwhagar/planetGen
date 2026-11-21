@@ -260,11 +260,11 @@ def assert_orbits_sane(planets):
 
 
 def _all_planet_lists(system):
-    return [system.planets, system.secondary_planets]
+    return [system.primary.orbiters, system.secondary.orbiters]
 
 
 def assert_flags_honored(system, cfg):
-    bodies = system.planets + system.secondary_planets
+    bodies = system.primary.orbiters + system.secondary.orbiters
     real = [b for b in bodies if b.body_type != "a"]
     if cfg.PLANETS is False:
         assert not bodies, "PLANETS=False but bodies were generated"
@@ -292,7 +292,7 @@ def assert_flags_honored(system, cfg):
         assert system.binary_type in ({"wide", "close"} if expected is None else {expected})
         assert len(system.stars) == 2
     if cfg.NUM_ORBITS is not None and cfg.PLANETS is not False:
-        assert len(system.planets) <= max(cfg.NUM_ORBITS, 0) + 2
+        assert len(system.primary.orbiters) <= max(cfg.NUM_ORBITS, 0) + 2
     if cfg.NAME:
         # A wide pair's stars add their own word after the system name.
         assert system.name == cfg.NAME
@@ -303,8 +303,8 @@ def assert_binary_geometry(system):
         wb = system.wide_binary
         assert 0 < system.primary_star.a_crit_au < wb.separation_au
         assert 0 < system.secondary_star.a_crit_au < wb.separation_au
-        for star, planets in ((system.primary_star, system.planets),
-                              (system.secondary_star, system.secondary_planets)):
+        for star, planets in ((system.primary_star, system.primary.orbiters),
+                              (system.secondary_star, system.secondary.orbiters)):
             for obj in planets:
                 assert _edge_out(obj) <= star.a_crit_au * (1 + 1e-9), (
                     f"body at {_edge_out(obj)} AU past its star's stability limit {star.a_crit_au} AU")
@@ -315,7 +315,7 @@ def assert_binary_geometry(system):
 
 
 def assert_life_caps(system, cfg):
-    for obj in system.planets + system.secondary_planets:
+    for obj in system.primary.orbiters + system.secondary.orbiters:
         if obj.body_type == "a" or not obj.has_timeline:
             continue
         stage = obj.life_stage
@@ -429,8 +429,8 @@ def test_extreme_orbit_counts(seed, star_type, num_orbits, binary):
     system = _generate(cfg, seed)
     check_system(system, cfg)
     if num_orbits == 0:
-        assert system.planets == []
-    assert len(system.planets) <= min(num_orbits, 10**6)
+        assert system.primary.orbiters == []
+    assert len(system.primary.orbiters) <= min(num_orbits, 10**6)
 
 
 @settings(max_examples=scaled(10))  # TEST.417, PERF.241: 25 examples passed 900 s (every flag forced on costs 15 to 96 s a system); the deep profile still draws thousands
@@ -455,7 +455,7 @@ def test_every_forced_flag_off_together(seed, star_type):
     cfg.STAR_TYPE = star_type
     system = _generate(cfg, seed)
     check_system(system, cfg)
-    assert system.planets == [] and system.comets == [] and system.binary_type is None
+    assert system.primary.orbiters == [] and system.comets == [] and system.binary_type is None
 
 
 @settings(max_examples=scaled(30), suppress_health_check=[HealthCheck.too_slow])
@@ -477,8 +477,8 @@ def test_compact_remnant_anchored_systems(seed, remnant_cls, num_orbits, moons, 
     assert system.star is remnant and system.binary_type is None
     zero_ok = ("$.temperature", "$.luminosity") if remnant_cls is BlackHole else ()
     assert_serialized_numbers_sane(remnant.to_dict(), zero_ok_paths=zero_ok, cold_ok_paths=zero_ok)
-    assert_serialized_numbers_sane({"planets": [p.to_dict() for p in system.planets]})
-    assert_orbits_sane(system.planets)
+    assert_serialized_numbers_sane({"planets": [p.to_dict() for p in system.primary.orbiters]})
+    assert_orbits_sane(system.primary.orbiters)
     # The remnant alone round-trips through its own class.
     assert remnant_cls.from_dict(json.loads(json.dumps(remnant.to_dict())), cfg).to_dict() == remnant.to_dict()
 
@@ -494,7 +494,7 @@ def test_explicit_slot_lists(seed, slots, star_type):
     cfg.NUM_ORBITS = len(slots)
     system = _generate(cfg, seed)
     check_system(system, cfg)
-    for spec, obj in zip(slots, system.planets):
+    for spec, obj in zip(slots, system.primary.orbiters):
         if spec is not None and spec.get("type") == "asteroid_belt":
             assert obj.body_type == "a"
         if spec is not None and spec.get("type") == "planet":
@@ -632,8 +632,8 @@ def test_circumbinary_bodies_orbit_outside_the_binary():
         cfg.BINARY_SYSTEM = True
         cfg.WIDE_BINARY = False
         system = _generate(cfg, seed)
-        if system.planets:
-            inner = system.planets[0]
+        if system.primary.orbiters:
+            inner = system.primary.orbiters[0]
             edge = inner.lower_limit if inner.body_type == "a" else inner.distance
             if edge <= system.star.binary_separation_au:
                 bad.append((seed, edge, system.star.binary_separation_au))
@@ -706,7 +706,7 @@ def test_life_pass_is_stable_on_reload(seed):
     cfg.BINARY_SYSTEM = False
     system = _generate(cfg, seed)
     rebuilt = StarSystem.from_dict(system.to_dict())
-    for a, b in zip(system.planets, rebuilt.planets):
+    for a, b in zip(system.primary.orbiters, rebuilt.primary.orbiters):
         if a.body_type == "a":
             continue
         assert (a.life_class, a.life_class_variant, a.life_stage, a.evolutionary_pace, a.life_milestone_age_gyr,

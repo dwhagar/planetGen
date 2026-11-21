@@ -93,7 +93,7 @@ def test_an_airless_body_is_never_better_than_red_in_air():
 
 
 def _rocky_bodies(system):
-    for planet in system.planets + system.secondary_planets:
+    for planet in system.primary.orbiters + system.secondary.orbiters:
         if planet.body_type == "a":
             continue
         yield from (planet, *planet.moons)

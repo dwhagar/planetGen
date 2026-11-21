@@ -29,7 +29,7 @@ def _moons_of_some_planet():
         cfg.BINARY_SYSTEM = False
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if len(getattr(planet, "moons", ())) >= 2:
                 return planet.moons
     pytest.fail("no planet with two moons in 200 seeds")

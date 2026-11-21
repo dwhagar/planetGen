@@ -149,7 +149,7 @@ def test_more_eccentric_means_more_heat():
 
 
 def _bodies(system):
-    for planet in system.planets + system.secondary_planets:
+    for planet in system.primary.orbiters + system.secondary.orbiters:
         if not hasattr(planet, "moons"):
             continue
         yield planet

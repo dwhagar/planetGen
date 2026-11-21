@@ -30,7 +30,7 @@ def _table_sized_giants(systems, seed):
     draw.set_run_seed(seed)
     found = []
     for _ in range(systems):
-        for planet in StarSystem(system_config=SystemConfig()).planets:
+        for planet in StarSystem(system_config=SystemConfig()).primary.orbiters:
             if getattr(planet, "body_type", None) != "g" or planet.is_moon:
                 continue
             if not giant_radius.in_range(planet.mass / constants.EARTH_MASS_TO_KG):

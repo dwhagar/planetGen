@@ -132,9 +132,9 @@ def test_no_planet_of_a_dense_core_lies_past_the_survival_limit_and_the_sun_s_ne
     for seed in range(12):
         system = _g_dwarf(dense, seed)
         limit = place_terms.planet_limit_au(dense, system.primary_star.age)
-        assert all(reach_au(planet) <= limit * (1.0 + 1e-9) for planet in system.planets), seed
+        assert all(reach_au(planet) <= limit * (1.0 + 1e-9) for planet in system.primary.orbiters), seed
         open_system = _g_dwarf(None, seed)
-        far += sum(1 for planet in open_system.planets if reach_au(planet) > limit)
+        far += sum(1 for planet in open_system.primary.orbiters if reach_au(planet) > limit)
     assert far > 0       # the same stars with the Sun's neighbourhood keep planets past the dense core's limit
 
 

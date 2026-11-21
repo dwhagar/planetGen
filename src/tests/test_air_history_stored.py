@@ -17,7 +17,7 @@ def _bodies():
         config.HABITABLE_WORLD = True
         with deterministic_entropy(7500 + seed):
             system = StarSystem(system_config=config)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             yield planet
             yield from getattr(planet, "moons", ())
 

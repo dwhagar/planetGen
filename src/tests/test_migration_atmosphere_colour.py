@@ -24,13 +24,13 @@ def _system():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(getattr(p, "atmosphere_colour", None) for p in system.planets):
+        if any(getattr(p, "atmosphere_colour", None) for p in system.primary.orbiters):
             return system, cfg
     pytest.fail("no system with a planet with an atmosphere colour in 60 seeds")
 
 
 def _colours_of(system):
-    return [tuple(getattr(body, name, None) for name in body_colour.BODY_FIELDS) for body in system.planets if body.body_type != "a"]
+    return [tuple(getattr(body, name, None) for name in body_colour.BODY_FIELDS) for body in system.primary.orbiters if body.body_type != "a"]
 
 
 def test_a_saved_system_keeps_every_planets_atmosphere_colour(mysql_config):

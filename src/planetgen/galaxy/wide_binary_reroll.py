@@ -101,7 +101,7 @@ def describe(system):
     primary, secondary = _kg_to_msun(system.primary_star.mass), _kg_to_msun(system.secondary_star.mass)
     pair = system.wide_binary
     return (f"stars of {primary:.3g} and {secondary:.3g} solar masses, {pair.separation_au:.4g} AU apart (closest {pair.periapsis_au:.4g} AU), "
-            f"{len(system.planets)} and {len(system.secondary_planets)} planets")
+            f"{len(system.primary.orbiters)} and {len(system.secondary.orbiters)} planets")
 
 
 def _seed_address(conn, system_id):

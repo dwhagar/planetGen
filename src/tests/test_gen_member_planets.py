@@ -30,26 +30,26 @@ def _system(seed, stars=3):
 def _with_member_planets(close=None):
     for seed in range(400):
         system, cfg = _system(seed)
-        if any(body.body_type != 'a' for bodies in system.member_planets for body in bodies) and (close is None or (system.binary_type == "close") == close):
+        if any(body.body_type != 'a' for bodies in [h.orbiters for h in system.hosts_of("member")] for body in bodies) and (close is None or (system.binary_type == "close") == close):
             return system, cfg
     pytest.fail("no three-star system with planets round a member in 400 draws")
 
 
 def test_a_member_star_has_planets_of_its_own():
     system, _cfg = _with_member_planets()
-    assert len(system.member_planets) == len(system.member_stars)
-    for member, bodies in system.member_hosts():
+    assert len([h.orbiters for h in system.hosts_of("member")]) == len(system.member_stars)
+    for member, bodies in system.hosts_of("member"):
         for body in bodies:
             if body.body_type != "a":
                 assert body.star is member
-    assert set(map(id, system.all_planets)) >= {id(body) for bodies in system.member_planets for body in bodies}
+    assert set(map(id, system.all_planets)) >= {id(body) for bodies in [h.orbiters for h in system.hosts_of("member")] for body in bodies}
     planets, belts, moons = system.count_objects()
-    assert planets + belts == len(system.all_planets) and planets + belts > len(system.planets)
+    assert planets + belts == len(system.all_planets) and planets + belts > len(system.primary.orbiters)
 
 
 def test_a_members_bodies_stay_inside_its_window_of_the_tree():
     system, _cfg = _with_member_planets()
-    for number, (member, bodies) in enumerate(system.member_hosts(), start=2):
+    for number, (member, bodies) in enumerate(system.hosts_of("member"), start=2):
         limit = system.ledger.stability_limit_au((planet_zones.S_TYPE, number))
         assert member.a_crit_au == pytest.approx(limit)
         for body in bodies:
@@ -61,13 +61,13 @@ def test_a_close_pair_beside_a_member_keeps_its_circumbinary_planets_inside_the_
     system, _cfg = _with_member_planets(close=True)
     limit = system.ledger.stability_limit_au((planet_zones.P_TYPE, system.star_slots[0][0]))
     assert system.star.a_crit_au == pytest.approx(limit)
-    for body in system.planets:
+    for body in system.primary.orbiters:
         assert validation.reach_au(body) <= limit * (1 + validation.RELATIVE_TOLERANCE)
 
 
 def test_a_members_planets_are_named_after_it():
     system, _cfg = _with_member_planets()
-    for member, bodies in system.member_hosts():
+    for member, bodies in system.hosts_of("member"):
         rocky = [body for body in bodies if body.body_type != "a"]
         for number, body in enumerate(rocky, start=1):
             assert body.name.startswith(f"{member.name} ")
@@ -77,7 +77,7 @@ def test_a_members_planets_are_named_after_it():
 
 def test_a_members_planets_see_the_stars_beside_it():
     system, _cfg = _with_member_planets()
-    swings = [body.flux_variation for _member, bodies in system.member_hosts() for body in bodies
+    swings = [body.flux_variation for _member, bodies in system.hosts_of("member") for body in bodies
               if body.body_type not in ("a", "g")]
     assert swings and all(0.0 <= swing <= 1.0 for swing in swings)
 
@@ -91,7 +91,7 @@ def test_the_dict_form_keeps_the_members_planets():
     system, _cfg = _with_member_planets()
     data = json.loads(json.dumps(system.to_dict()))
     loaded = StarSystem.from_dict(data)
-    assert [len(bodies) for bodies in loaded.member_planets] == [len(bodies) for bodies in system.member_planets]
+    assert [len(bodies) for bodies in [h.orbiters for h in loaded.hosts_of("member")]] == [len(bodies) for bodies in [h.orbiters for h in system.hosts_of("member")]]
     assert loaded.to_dict() == system.to_dict()
     assert [member.a_crit_au for member in loaded.member_stars] == [member.a_crit_au for member in system.member_stars]
 
@@ -113,10 +113,10 @@ def test_a_saved_system_reads_back_with_the_members_planets(mysql_config):
     def names(lists):
         return [[body.name for body in bodies if body.body_type != "a"] for bodies in lists]
 
-    assert names(loaded.member_planets) == names(system.member_planets)
-    assert names([loaded.planets]) == names([system.planets])
-    assert [[body.body_type for body in bodies] for bodies in loaded.member_planets] == [
-        [body.body_type for body in bodies] for bodies in system.member_planets]
+    assert names([h.orbiters for h in loaded.hosts_of("member")]) == names([h.orbiters for h in system.hosts_of("member")])
+    assert names([loaded.primary.orbiters]) == names([system.primary.orbiters])
+    assert [[body.body_type for body in bodies] for bodies in [h.orbiters for h in loaded.hosts_of("member")]] == [
+        [body.body_type for body in bodies] for bodies in [h.orbiters for h in system.hosts_of("member")]]
     assert [member.a_crit_au for member in loaded.member_stars] == pytest.approx(
         [member.a_crit_au for member in system.member_stars])
     assert (loaded.planet_count, loaded.belt_count, loaded.moon_count) == system.count_objects()
@@ -126,7 +126,7 @@ def test_the_description_lists_a_members_planets_under_it():
     system, _cfg = _with_member_planets()
     document = build.describe(system)
     text = json.dumps(document.to_dict() if hasattr(document, "to_dict") else document, default=str)
-    for _member, bodies in system.member_hosts():
+    for _member, bodies in system.hosts_of("member"):
         for body in bodies:
             if body.body_type != "a":
                 assert body.name in text

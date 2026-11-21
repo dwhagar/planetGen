@@ -163,7 +163,7 @@ def test_a_requested_habitable_world_that_does_not_come_out_is_said_to_be_unmet_
         draw.set_run_seed(seed)
         built = StarSystem(system_config=cfg)
         assert "a habitable world" not in built.unmet_requirements           # an odds-only request is never a failed requirement
-        met = hr.count_living(built.planets) > 0
+        met = hr.count_living(built.primary.orbiters) > 0
         answers.add(met)
         assert built.habitable_request == ("aim" if met else "unmet")
     assert answers                                                          # some draws may come out unmet; none is forced

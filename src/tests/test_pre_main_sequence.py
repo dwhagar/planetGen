@@ -240,7 +240,7 @@ def test_a_protostars_system_holds_no_planets():
         draw.set_run_seed(seed)
         params = evolution.star_params(1.0, 0.0003, evolution.evolve_star(1.0, 0.0003))
         system = StarSystem(system_config=SystemConfig(), primary_star_params=params)
-        assert [p for p in system.planets if p.body_type != "a"] == []
+        assert [p for p in system.primary.orbiters if p.body_type != "a"] == []
 
 
 def test_the_disk_is_stored_with_the_star_and_comes_back(mysql_config):

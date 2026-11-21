@@ -33,7 +33,7 @@ def test_a_belt_round_trips_its_origin_and_largest_body_through_a_dict():
         for seed in range(1, 40):
             draw.set_run_seed(seed)
             system = StarSystem(system_config=config)
-            belt = next((b for b in system.planets if b.body_type == 'a' and b.origin is not None), None)
+            belt = next((b for b in system.primary.orbiters if b.body_type == 'a' and b.origin is not None), None)
             if belt is None:
                 continue
             again = AsteroidBelt.from_dict(belt.to_dict(), config)
@@ -50,13 +50,13 @@ def test_a_saved_belt_reads_back_what_it_was_made_with(mysql_config):
     for seed in range(1, 25):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)
-        belts = [b for b in system.planets if b.body_type == 'a' and b.origin is not None]
+        belts = [b for b in system.primary.orbiters if b.body_type == 'a' and b.origin is not None]
         if not belts:
             continue
         saved = store.save_system(system, config, config=mysql_config)
         with store.get_connection(mysql_config) as conn:
             loaded = store.load_star_system(conn, saved)
-        read = [b for b in loaded.planets if b.body_type == 'a' and b.origin is not None]
+        read = [b for b in loaded.primary.orbiters if b.body_type == 'a' and b.origin is not None]
         assert len(read) == len(belts)
         for before, after in zip(belts, read):
             for name in FIELDS:

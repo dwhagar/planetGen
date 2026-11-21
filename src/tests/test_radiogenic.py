@@ -171,7 +171,7 @@ def test_an_enriched_silicate_has_more_thorium_and_uranium():
 
 
 def _bodies(system):
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         if planet.body_type == "a":
             continue
         yield planet

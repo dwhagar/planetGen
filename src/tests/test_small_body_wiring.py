@@ -74,12 +74,12 @@ def test_regenerating_a_belt_rolls_a_new_makeup_around_the_same_star(system):
         belt = AsteroidBelt(system.system_config, system.star, 2.0, 1.8, 2.2)
     belt.db_id = 1
     owner = [belt]
-    original = system.planets
-    system.planets = owner
+    original = system.primary.orbiters
+    system.primary.orbiters = owner
     try:
         edits.regenerate_belt(system, belt, owner)
     finally:
-        system.planets = original
+        system.primary.orbiters = original
     assert owner[0] is not belt and owner[0].makeup.detail["temperature_k"] == pytest.approx(
         condensate_shares.disk_temperature_k(2.0, system.star.luminosity))
 

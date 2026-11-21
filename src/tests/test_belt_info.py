@@ -27,12 +27,12 @@ def _saved_belt(mysql_config):
     for seed in range(1, 40):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)
-        if not any(b.body_type == 'a' and b.members for b in system.planets):
+        if not any(b.body_type == 'a' and b.members for b in system.primary.orbiters):
             continue
         saved = store.save_system(system, config, config=mysql_config)
         with store.get_connection(mysql_config) as conn:
             loaded = store.load_star_system(conn, saved)
-            belt = next(b for b in loaded.planets if b.body_type == 'a' and b.members)
+            belt = next(b for b in loaded.primary.orbiters if b.body_type == 'a' and b.members)
             return conn.execute("SELECT id FROM asteroid_belts WHERE id = ?", (belt.db_id,)).fetchone()["id"], belt, mysql_config
     pytest.fail("no belt with stored members in 39 systems")
 

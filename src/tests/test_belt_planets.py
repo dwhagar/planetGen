@@ -37,7 +37,7 @@ def _system(seed, config=None):
 
 
 def _promoted(system):
-    return [body for body in system.planets if getattr(body, "belt_rank", None) is not None]
+    return [body for body in system.primary.orbiters if getattr(body, "belt_rank", None) is not None]
 
 
 @pytest.fixture(scope="module")
@@ -64,7 +64,7 @@ def test_a_belt_promotes_at_most_the_limit_of_its_heaviest_round_members(promote
 def test_a_promoted_planet_has_the_orbit_and_makeup_of_its_member(promoted_system, monkeypatch):
     seed, system = promoted_system
     monkeypatch.setattr(tuning, "BELT_PLANETS_PER_BELT", 0)
-    drawn = belt_planets.irregular_moons.belts_of(_system(seed).planets)       # the belts as drawn, with every member still in them
+    drawn = belt_planets.irregular_moons.belts_of(_system(seed).primary.orbiters)       # the belts as drawn, with every member still in them
     for body in _promoted(system):
         member = next(m for m in drawn[body.belt_order].members if m["rank"] == body.belt_rank)
         assert body.belt_member is None                                        # the member was only an input
@@ -84,7 +84,7 @@ def test_a_promoted_planet_has_the_orbit_and_makeup_of_its_member(promoted_syste
 def test_a_promoted_planet_stays_inside_the_ring_of_its_belt(promoted_system):
     """The orbit's closest and farthest points are between the belt's limits, so no promoted planet crosses what the generator cleared round the belt; a member on a long ellipse out of the ring stays a member."""
     _seed, system = promoted_system
-    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    belts = belt_planets.irregular_moons.belts_of(system.primary.orbiters)
     for body in _promoted(system):
         belt = belts[body.belt_order]
         assert body.distance * (1.0 - body.eccentricity) >= belt.lower_limit * (1.0 - 1e-9)
@@ -113,10 +113,10 @@ def test_a_member_beside_a_planet_stays_a_member_unless_the_planet_is_of_its_bel
 
 def test_the_planets_stand_in_distance_order_and_are_numbered_in_it(promoted_system):
     _seed, system = promoted_system
-    distances = [body.distance for body in system.planets]
+    distances = [body.distance for body in system.primary.orbiters]
     assert distances == sorted(distances)
-    body_names.name_bodies("Test", system.planets)
-    names = [body.name for body in system.planets if body.body_type != "a"]
+    body_names.name_bodies("Test", system.primary.orbiters)
+    names = [body.name for body in system.primary.orbiters if body.body_type != "a"]
     assert names == [f"Test {body_names.to_roman(number)}" for number in range(1, len(names) + 1)]
 
 
@@ -131,8 +131,8 @@ def test_the_belt_and_its_promoted_bodies_add_up_to_the_belt_that_was_drawn(prom
     monkeypatch.setattr(tuning, "BELT_PLANETS_PER_BELT", 0)
     drawn = _system(seed)
     assert not _promoted(drawn)
-    drawn_belts = {order: belt for order, belt in belt_planets.irregular_moons.belts_of(drawn.planets).items()}
-    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    drawn_belts = {order: belt for order, belt in belt_planets.irregular_moons.belts_of(drawn.primary.orbiters).items()}
+    belts = belt_planets.irregular_moons.belts_of(system.primary.orbiters)
     for order, belt in belts.items():
         taken = sum(b.mass for b in _promoted(system) if b.belt_order == order)
         assert belt.mass_kg + taken == pytest.approx(drawn_belts[order].mass_kg, rel=1e-9)
@@ -143,9 +143,9 @@ def test_the_belt_and_its_promoted_bodies_add_up_to_the_belt_that_was_drawn(prom
 
 def test_a_promoted_planet_is_not_a_slot_of_the_spacing(promoted_system):
     _seed, system = promoted_system
-    slots = validation.slot_planets(system.planets)
+    slots = validation.slot_planets(system.primary.orbiters)
     assert slots and all(getattr(body, "belt_rank", None) is None for body in slots)
-    assert len(slots) < len(system.planets)
+    assert len(slots) < len(system.primary.orbiters)
 
 
 def test_a_limit_of_zero_promotes_nothing(monkeypatch):
@@ -188,16 +188,16 @@ def test_settling_only_some_planets_leaves_the_others_as_they_are(promoted_syste
     """GEN.1668: `only=` names the planets `settle_obliquity` and `settle_moon_tilts` judge; with none named, nothing moves."""
     from planetgen.physics import planets as planet_physics
     _seed, system = promoted_system
-    before = [(body.name, body.axial_tilt_deg, body.obliquity_min_deg, body.obliquity_max_deg) for body in system.planets if body.body_type != 'a']
-    assert planet_physics.settle_obliquity(system.planets, system.star.mass, only=[]) == 0
-    assert planet_physics.settle_moon_tilts(system.planets, system.star.mass, only=[]) == 0
-    assert before == [(body.name, body.axial_tilt_deg, body.obliquity_min_deg, body.obliquity_max_deg) for body in system.planets if body.body_type != 'a']
+    before = [(body.name, body.axial_tilt_deg, body.obliquity_min_deg, body.obliquity_max_deg) for body in system.primary.orbiters if body.body_type != 'a']
+    assert planet_physics.settle_obliquity(system.primary.orbiters, system.star.mass, only=[]) == 0
+    assert planet_physics.settle_moon_tilts(system.primary.orbiters, system.star.mass, only=[]) == 0
+    assert before == [(body.name, body.axial_tilt_deg, body.obliquity_min_deg, body.obliquity_max_deg) for body in system.primary.orbiters if body.body_type != 'a']
 
 
 def test_a_belts_largest_body_is_the_largest_member_it_still_holds(promoted_system):
     """GEN.1561: the figure was the drawn belt's, a planet once a member is promoted."""
     _seed, system = promoted_system
-    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    belts = belt_planets.irregular_moons.belts_of(system.primary.orbiters)
     taken = {body.belt_order for body in _promoted(system)}
     assert taken
     for order in taken:
@@ -209,7 +209,7 @@ def test_a_belts_largest_body_is_the_largest_member_it_still_holds(promoted_syst
 def test_every_belts_largest_body_is_its_largest_member(promoted_system):
     """GEN.1605: a belt nothing was promoted from shows the largest member it lists too, not the size law's figure at another density."""
     _seed, system = promoted_system
-    for belt in belt_planets.irregular_moons.belts_of(system.planets).values():
+    for belt in belt_planets.irregular_moons.belts_of(system.primary.orbiters).values():
         if belt.members:
             assert belt.largest_body_km == pytest.approx(belt_planets.largest_left_km(belt), rel=1e-12)
 
@@ -230,7 +230,7 @@ def test_a_member_over_the_oligarch_mass_is_promoted_whatever_the_limit(promoted
 
 def test_the_oligarch_mass_of_a_belt_is_the_isolation_mass_of_its_stretch(promoted_system):
     _seed, system = promoted_system
-    belts = belt_planets.irregular_moons.belts_of(system.planets)
+    belts = belt_planets.irregular_moons.belts_of(system.primary.orbiters)
     for belt in belts.values():
         cap = belt_planets.oligarch_cap_kg(system.star, belt)
         assert cap > 0.0 and cap == pytest.approx(belt_planets.oligarch_cap_kg(system.star, belt))
@@ -243,7 +243,7 @@ def _belt_with_light_members(promoted_system):
     seed, system = promoted_system
     for other in (seed, *(candidate for candidate in SEEDS if candidate != seed)):
         system = system if other == seed else _system(other)
-        for order, belt in belt_planets.irregular_moons.belts_of(system.planets).items():
+        for order, belt in belt_planets.irregular_moons.belts_of(system.primary.orbiters).items():
             light = [member for member in belt.members if member["mass_kg"] < compaction.TAPER_END_KG and member["radius_km"] > 0.0]
             if light and _promoted(system):
                 return system, order, belt, light

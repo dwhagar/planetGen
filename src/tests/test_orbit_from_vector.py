@@ -30,8 +30,8 @@ def _angle_close(a, b, tol=1e-6):
 
 
 def test_a_planets_orbit_from_its_vector_is_the_ellipse_it_was_generated_on():
-    system = _system(lambda s: any(isinstance(p, Planet) for p in s.planets))
-    planet = next(p for p in system.planets if isinstance(p, Planet))
+    system = _system(lambda s: any(isinstance(p, Planet) for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if isinstance(p, Planet))
     orbit = planet.orbit_from_vector()
     assert orbit["kind"] == "elliptical"
     assert orbit["eccentricity"] == pytest.approx(planet.eccentricity, abs=1e-9)  # GEN.727: the one it was drawn with
@@ -47,8 +47,8 @@ def test_a_planets_orbit_from_its_vector_is_the_ellipse_it_was_generated_on():
 
 
 def test_a_moons_orbit_from_its_vector_is_about_its_planet():
-    system = _system(lambda s: any(getattr(p, "moons", None) for p in s.planets))
-    planet = next(p for p in system.planets if getattr(p, "moons", None))
+    system = _system(lambda s: any(getattr(p, "moons", None) for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "moons", None))
     moon = planet.moons[0]
     orbit = moon.orbit_from_vector()
     assert orbit["semi_major_axis"] == pytest.approx(moon.distance, rel=1e-9)
@@ -56,8 +56,8 @@ def test_a_moons_orbit_from_its_vector_is_about_its_planet():
 
 
 def test_the_projected_course_is_the_closed_ellipse_round_the_primary():
-    system = _system(lambda s: any(isinstance(p, Planet) and p.distance > 0 for p in s.planets))
-    planet = next(p for p in system.planets if isinstance(p, Planet))
+    system = _system(lambda s: any(isinstance(p, Planet) and p.distance > 0 for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if isinstance(p, Planet))
     points = planet.projected_orbit_au(64)
     assert len(points) == 64
     radii = [math.dist(point, (0.0, 0.0, 0.0)) for point in points]
@@ -93,8 +93,8 @@ def test_a_comet_that_does_not_close_has_no_projected_ellipse():
 
 
 def test_the_orbit_follows_the_vector_when_it_changes_not_the_stored_elements():
-    system = _system(lambda s: any(isinstance(p, Planet) for p in s.planets))
-    planet = next(p for p in system.planets if isinstance(p, Planet))
+    system = _system(lambda s: any(isinstance(p, Planet) for p in s.primary.orbiters))
+    planet = next(p for p in system.primary.orbiters if isinstance(p, Planet))
     planet.eccentricity = 0.0
     update_orbital_position(planet)  # a circle, whatever it was generated on
     circle = planet.orbit_from_vector()

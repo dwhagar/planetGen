@@ -26,7 +26,7 @@ def _system():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if system.planets:
+        if system.primary.orbiters:
             return system, cfg
     pytest.fail("no system with a planet in 60 seeds")
 

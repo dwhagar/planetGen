@@ -60,7 +60,7 @@ def test_the_disk_moons_of_generated_giants_sit_inside_the_zone(monkeypatch):
         cfg.BINARY_SYSTEM = False
         cfg.MOONS = True
         system = fuzz._generate(cfg, seed)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type != "g":
                 continue
             for moon in planet.moons:

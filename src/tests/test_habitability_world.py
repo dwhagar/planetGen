@@ -148,7 +148,7 @@ def test_a_gas_giant_scores_nothing():
 
 
 def _bodies(system):
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         if planet.body_type == "a":
             continue
         yield planet
@@ -242,7 +242,7 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
     try:
         saved = {row["name"]: row for row in conn.execute("SELECT * FROM planets WHERE body_type = 't'").fetchall()}
         checked = 0
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "t" and planet.name in saved:
                 checked += 1
                 for name in hw.BODY_FIELDS:
@@ -288,7 +288,7 @@ def test_the_search_finds_bodies_by_the_kit_they_need(db_client, mysql_config): 
     sector = SpaceSector("Kitted", edge_ly=11.5)
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
     store.save_sector(sector, config=mysql_config)
-    planets = [p for p in system.planets if p.body_type != "a" and p.eq_body is not None]
+    planets = [p for p in system.primary.orbiters if p.body_type != "a" and p.eq_body is not None]
     ticks = ("clothing", "thermal_suit", "sealed_suit", "pressure_suit", "armoured_suit", "vehicle_only")
     levels = {p.eq_body for p in planets if p.eq_body}
     assert levels

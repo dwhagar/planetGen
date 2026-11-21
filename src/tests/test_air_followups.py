@@ -26,7 +26,7 @@ def test_the_oxygen_the_ozone_reads_is_the_mixture_accessors():
     for seed in range(12):
         with deterministic_entropy(seed):
             system = StarSystem(system_config=SystemConfig())
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if getattr(planet, "body_type", "t") == "g" or getattr(planet, "ozone_column_du", None) is None:
                 continue
             via_accessor = mixture.partial_pressures_pa(planet).get("O2", 0.0)

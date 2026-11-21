@@ -86,7 +86,7 @@ def _facts(seed):
     system = _system(seed)
     star = system.star
     return (star.snow_line_au, [(p.distance, p.born_beyond_snow_line, [m.born_beyond_snow_line for m in p.moons])
-                                for p in system.planets if p.body_type != 'a'])
+                                for p in system.primary.orbiters if p.body_type != 'a'])
 
 
 def test_a_system_gives_the_same_line_and_flags_from_its_seed_at_one_and_four_workers():
@@ -109,7 +109,7 @@ def test_a_planet_is_born_beyond_the_line_of_its_star_when_it_orbits_at_or_beyon
     seen = set()
     for seed in range(40):
         system = _system(seed, MAX_PLANETS=True)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == 'a':
                 continue
             assert planet.born_beyond_snow_line == (planetPhysics.formation_distance_au(planet) >= formation_snow_line.water_snow_line_au(planet.star))   # GEN.1596: where it formed, not where it has moved to
@@ -126,7 +126,7 @@ def test_a_close_pairs_line_is_the_root_of_the_sum_of_the_squares_of_its_stars()
             continue
         pair = system.star
         assert pair.snow_line_au == pytest.approx(math.hypot(*(s.snow_line_au for s in pair.stars)))
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type != 'a':
                 assert planet.born_beyond_snow_line == (planetPhysics.formation_distance_au(planet) >= formation_snow_line.water_snow_line_au(pair))
         found += 1

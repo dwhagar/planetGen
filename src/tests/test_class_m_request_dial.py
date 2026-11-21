@@ -6,6 +6,7 @@ after its stars and before its planets and kept on the system only (`StarSystem.
 config, the stars and the reported request status are never touched.
 """
 
+from planetgen.generation.hosts import Host
 import pytest
 
 from planetgen import tuning
@@ -70,7 +71,7 @@ def test_a_tier_with_no_request_share_makes_the_same_system_as_science(monkeypat
         signatures = []
         for tier in (None, "science", "sparse"):       # sparse has request_share 0
             system, _ = _build(seed, tier)
-            signatures.append((_star(system), [(p.body_type, getattr(p, "mass", None), p.distance) for p in system.planets]))
+            signatures.append((_star(system), [(p.body_type, getattr(p, "mass", None), p.distance) for p in system.primary.orbiters]))
         assert signatures[0] == signatures[1] == signatures[2]
 
 
@@ -115,7 +116,7 @@ def test_the_planets_are_drawn_under_the_request_a_tier_gave(monkeypatch):
 def test_the_request_stands_check_runs_only_under_a_request():
     """`_habitable_request_stands` redraws planets and never stars; without a request it draws nothing."""
     holder = type("Holder", (), {})()
-    holder.system_config, holder.planets = _config("abundant"), []
+    holder.system_config, holder.primary = _config("abundant"), Host(None, "primary")
     holder._tier_request = False
     holder._habitable_requested = lambda: StarSystem._habitable_requested(holder)
     assert StarSystem._habitable_request_stands(holder) is True

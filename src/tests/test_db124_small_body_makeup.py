@@ -40,8 +40,8 @@ def test_a_saved_system_loads_belts_and_comets_with_their_makeup(mysql_config, s
         loaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
-    belts = [b for b in system.planets if isinstance(b, AsteroidBelt)]
-    loaded_belts = [b for b in loaded.planets if isinstance(b, AsteroidBelt)]
+    belts = [b for b in system.primary.orbiters if isinstance(b, AsteroidBelt)]
+    loaded_belts = [b for b in loaded.primary.orbiters if isinstance(b, AsteroidBelt)]
     assert len(belts) == len(loaded_belts)
     for before, after in zip(belts, loaded_belts):
         assert after.makeup is not None and after.makeup.to_dict() == before.makeup.to_dict()

@@ -22,7 +22,7 @@ def _system():
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        if any(body.body_type != "a" and body.moons for body in system.planets):
+        if any(body.body_type != "a" and body.moons for body in system.primary.orbiters):
             return system, cfg
     pytest.fail("could not generate a system with a moon")
 

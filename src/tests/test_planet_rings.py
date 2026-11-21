@@ -139,7 +139,7 @@ def test_a_ring_is_a_result_of_history_and_belts_have_none():
 
 def test_a_body_regenerated_as_another_class_loses_its_ring():
     for system in _systems():
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if getattr(planet, "ring_kind", None) is not None:
                 rings.clear(planet)
                 assert all(getattr(planet, name) is None for name in rings.BODY_FIELDS)

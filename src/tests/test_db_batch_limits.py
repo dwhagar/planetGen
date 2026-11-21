@@ -41,7 +41,7 @@ def _seeded(config):
         cfg.PLANETS = True
         cfg.MAX_PLANETS = True
         system = StarSystem(system_config=cfg)
-        if any(p.body_type != "a" for p in system.planets):
+        if any(p.body_type != "a" for p in system.primary.orbiters):
             break
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
     sector.add_phenomenon(Nebula(SystemConfig(), name="Template Nebula"), "nebula", position=(1.0, 1.0, 1.0))

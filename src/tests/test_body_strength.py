@@ -143,7 +143,7 @@ def test_a_generated_solid_body_has_a_shape_temperature_at_least_its_surface_tem
     for seed in range(1000, 1004):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "moons"):
                 continue        # a belt or a field
             for body in [planet, *planet.moons]:
@@ -181,7 +181,7 @@ def test_applying_the_class_changes_no_strength_field(mysql_config):
     for seed in range(1000, 1006):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             for body in [planet, *getattr(planet, "moons", [])]:
                 if body.body_type in ("a",):
                     continue

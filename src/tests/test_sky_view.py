@@ -99,7 +99,7 @@ def test_a_generated_white_dwarf_system_names_its_sun_on_every_planet():
         config.BINARY_SYSTEM = False
         config.STAR_TYPE = "M2VII"
         system = StarSystem(system_config=config)
-        if system.planets:
+        if system.primary.orbiters:
             texts = _sky_texts(describe(system))
             assert texts and all("Its sun is a white dwarf" in text for text in texts)
             return

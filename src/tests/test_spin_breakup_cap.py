@@ -15,7 +15,7 @@ def _rocky_planet_without_moons():
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         system = StarSystem(system_config=cfg)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "t" and not planet.moons and not planet.build.born_moons:
                 return planet
     raise AssertionError("no rocky planet without moons in 39 seeds")

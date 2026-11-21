@@ -17,7 +17,7 @@ pytestmark = pytest.mark.fresh_database
 
 
 def _bodies(system):
-    return [body for planet in system.planets if hasattr(planet, "moons") for body in [planet, *planet.moons]]
+    return [body for planet in system.primary.orbiters if hasattr(planet, "moons") for body in [planet, *planet.moons]]
 
 
 def _system():

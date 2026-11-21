@@ -30,11 +30,11 @@ def system_rows(seed):
     if len(system.stars) > 1:
         return []
     star_mass = system.star.mass / 1.98841e30
-    bodies = [(body.radius, body.distance, body.mass) for body in system.planets if body.body_type in ("t", "g") and body.mass and body.radius]
+    bodies = [(body.radius, body.distance, body.mass) for body in system.primary.orbiters if body.body_type in ("t", "g") and body.mass and body.radius]
     reservoirs = [influx.Reservoir("belt", belt.primordial_mass_earth * EARTH_KG, belt.lower_limit, belt.upper_limit)
-                  for belt in system.planets if belt.body_type == "a" and belt.primordial_mass_earth]
+                  for belt in system.primary.orbiters if belt.body_type == "a" and belt.primordial_mass_earth]
     rows = []
-    for body in system.planets:
+    for body in system.primary.orbiters:
         if body.body_type != "t" or not body.radius or not body.mass:
             continue
         mass_earth = body.mass / EARTH_KG
@@ -42,7 +42,7 @@ def system_rows(seed):
             continue
         mean = impact_history.late_accreted_percent_mean(mass_earth) / 100.0
         supply = late_supply.veneer_fraction((body.radius, body.distance, body.mass), bodies, star_mass, reservoirs) / late_supply.INWARD_SHARE
-        giants = any(other.body_type == "g" for other in system.planets)
+        giants = any(other.body_type == "g" for other in system.primary.orbiters)
         rows.append((seed, mass_earth, body.distance, bool(reservoirs), giants, supply / mean))
     return rows
 

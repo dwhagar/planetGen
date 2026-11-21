@@ -401,7 +401,7 @@ def test_generated_bodies_store_their_field_and_exposure():
             system = StarSystem(system_config=SystemConfig())
         star = system.star
         assert star.l_xuv_w is not None and star.xuv_fluence_j is not None
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "moons"):
                 continue
             for body in [planet, *planet.moons]:
@@ -430,7 +430,7 @@ def test_a_generated_moon_has_an_induced_field_figure_and_a_giant_has_none():
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if not hasattr(planet, "moons"):
                 continue
             assert (planet.induced_moment_a_m2 is None) == (planet.body_type == "g")      # GEN.981: a rocky planet has its star's induction, a giant none

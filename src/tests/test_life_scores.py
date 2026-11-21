@@ -88,7 +88,7 @@ def test_generated_bodies_carry_scores_that_agree_with_their_life():
             break
         with draw.bound(seed):
             system = StarSystem(system_config=SystemConfig())
-        for planet in system.planets + system.secondary_planets:
+        for planet in system.primary.orbiters + system.secondary.orbiters:
             for body in (planet, *getattr(planet, "moons", ())):
                 if body.body_type == "g":
                     seen["giant"] += 1

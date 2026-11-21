@@ -254,13 +254,13 @@ def _wide_system_for_clearance_test(separation_au, primary_a_crit_au, secondary_
 
 def test_cross_star_clearance_no_op_when_trivially_satisfied():
     system = _wide_system_for_clearance_test(separation_au=100.0, primary_a_crit_au=40.0, secondary_a_crit_au=40.0)
-    system.planets = [_StubPlanet(distance=5.0)]
-    system.secondary_planets = [_StubPlanet(distance=5.0)]
+    system.primary.orbiters = [_StubPlanet(distance=5.0)]
+    system.secondary.orbiters = [_StubPlanet(distance=5.0)]
 
     system._validate_cross_star_clearance()
 
-    assert len(system.planets) == 1
-    assert len(system.secondary_planets) == 1
+    assert len(system.primary.orbiters) == 1
+    assert len(system.secondary.orbiters) == 1
 
 
 def test_cross_star_clearance_prunes_when_forced_close():
@@ -268,15 +268,15 @@ def test_cross_star_clearance_prunes_when_forced_close():
     # Both planets sit right at their own star's a_crit, with almost no gap
     # left between them (100 - 49.99 - 49.99 = 0.02 AU) -- guaranteed to
     # violate the Gladman threshold for any physically real planet mass.
-    system.planets = [_StubPlanet(distance=49.99)]
-    system.secondary_planets = [_StubPlanet(distance=49.99)]
+    system.primary.orbiters = [_StubPlanet(distance=49.99)]
+    system.secondary.orbiters = [_StubPlanet(distance=49.99)]
 
     system._validate_cross_star_clearance()
 
     # One of the two must have been pruned (equal margins -- either is a
     # valid outcome of the tie-break), and clearance now holds for whatever
     # remains.
-    assert len(system.planets) + len(system.secondary_planets) == 1
+    assert len(system.primary.orbiters) + len(system.secondary.orbiters) == 1
 
 
 def test_cross_star_clearance_prunes_least_margin_star_first():
@@ -288,13 +288,13 @@ def test_cross_star_clearance_prunes_least_margin_star_first():
     # secondary's (60.0 - 59.0 = 1.0) -- the primary should lose its planet
     # first.
     system = _wide_system_for_clearance_test(separation_au=109.5, primary_a_crit_au=50.0, secondary_a_crit_au=60.0)
-    system.planets = [_StubPlanet(distance=49.99)]
-    system.secondary_planets = [_StubPlanet(distance=59.0)]
+    system.primary.orbiters = [_StubPlanet(distance=49.99)]
+    system.secondary.orbiters = [_StubPlanet(distance=59.0)]
 
     system._validate_cross_star_clearance()
 
-    assert len(system.planets) == 0
-    assert len(system.secondary_planets) == 1
+    assert len(system.primary.orbiters) == 0
+    assert len(system.secondary.orbiters) == 1
 
 
 def test_cross_star_clearance_terminates_when_a_list_is_exhausted():
@@ -302,12 +302,12 @@ def test_cross_star_clearance_terminates_when_a_list_is_exhausted():
     # pruning empties one side, and the loop must terminate rather than
     # looping forever once outer_p/outer_s can no longer both resolve.
     system = _wide_system_for_clearance_test(separation_au=10.0, primary_a_crit_au=5.0, secondary_a_crit_au=5.0)
-    system.planets = [_StubPlanet(distance=4.999)]
-    system.secondary_planets = [_StubPlanet(distance=4.999)]
+    system.primary.orbiters = [_StubPlanet(distance=4.999)]
+    system.secondary.orbiters = [_StubPlanet(distance=4.999)]
 
     system._validate_cross_star_clearance()  # must return, not hang
 
-    assert len(system.planets) + len(system.secondary_planets) == 1
+    assert len(system.primary.orbiters) + len(system.secondary.orbiters) == 1
 
 
 def test_cross_star_clearance_prunes_belt_as_outermost_body():
@@ -320,15 +320,15 @@ def test_cross_star_clearance_prunes_belt_as_outermost_body():
     # fixed MIN_ASTEROID_BELT_SEPARATION buffer (a belt has no mass for the
     # Gladman mutual-Hill-radius criterion to apply to).
     system = _wide_system_for_clearance_test(separation_au=10.0, primary_a_crit_au=5.0, secondary_a_crit_au=5.0)
-    system.planets = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=4.999)]
-    system.secondary_planets = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=4.999)]
+    system.primary.orbiters = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=4.999)]
+    system.secondary.orbiters = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=4.999)]
 
     system._validate_cross_star_clearance()
 
     # 10.0 - 4.999 - 4.999 = 0.002 AU, far under MIN_ASTEROID_BELT_SEPARATION
     # -- one belt must have been pruned (equal margins -- either is a valid
     # tie-break outcome).
-    assert len(system.planets) + len(system.secondary_planets) == 1
+    assert len(system.primary.orbiters) + len(system.secondary.orbiters) == 1
 
 
 def test_cross_star_clearance_leaves_well_separated_belts_alone():
@@ -336,13 +336,13 @@ def test_cross_star_clearance_leaves_well_separated_belts_alone():
     # trivially_satisfied -- confirms the fix doesn't make belt clearance
     # over-eager when there's plainly enough room.
     system = _wide_system_for_clearance_test(separation_au=100.0, primary_a_crit_au=40.0, secondary_a_crit_au=40.0)
-    system.planets = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=5.0)]
-    system.secondary_planets = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=5.0)]
+    system.primary.orbiters = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=5.0)]
+    system.secondary.orbiters = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=5.0)]
 
     system._validate_cross_star_clearance()
 
-    assert len(system.planets) == 1
-    assert len(system.secondary_planets) == 1
+    assert len(system.primary.orbiters) == 1
+    assert len(system.secondary.orbiters) == 1
 
 
 def test_cross_star_clearance_is_rare_for_ordinary_wide_low_eccentricity_pairs():
@@ -358,10 +358,10 @@ def test_cross_star_clearance_is_rare_for_ordinary_wide_low_eccentricity_pairs()
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True))
         if system.binary_type != "wide":
             continue
-        primary_before = len(system.planets)
-        secondary_before = len(system.secondary_planets)
+        primary_before = len(system.primary.orbiters)
+        secondary_before = len(system.secondary.orbiters)
         system._validate_cross_star_clearance()
-        if len(system.planets) < primary_before or len(system.secondary_planets) < secondary_before:
+        if len(system.primary.orbiters) < primary_before or len(system.secondary.orbiters) < secondary_before:
             pruned += 1
     # Not asserting zero (eccentric/tight draws can legitimately trigger
     # it), but it should be the rare exception, not the common case.
@@ -394,9 +394,9 @@ def test_wide_binary_system_generates_and_stays_within_bounds(star_type):
         assert system.primary_star.a_crit_au < system.wide_binary.separation_au
         assert system.secondary_star.a_crit_au < system.wide_binary.separation_au
 
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             assert _orbit_edge(planet) <= system._orbit_ceiling_au(system.primary_star) + 1e-6
-        for planet in system.secondary_planets:
+        for planet in system.secondary.orbiters:
             assert _orbit_edge(planet) <= system._orbit_ceiling_au(system.secondary_star) + 1e-6
 
         assert render_support.text(system).strip()
@@ -435,15 +435,15 @@ def test_wide_binary_round_trips_through_to_dict_from_dict():
     assert reloaded.secondary_star.a_crit_au == system.secondary_star.a_crit_au
     assert reloaded.wide_binary.separation_au == system.wide_binary.separation_au
     assert reloaded.wide_binary.eccentricity == system.wide_binary.eccentricity
-    assert len(reloaded.planets) == len(system.planets)
-    assert len(reloaded.secondary_planets) == len(system.secondary_planets)
+    assert len(reloaded.primary.orbiters) == len(system.primary.orbiters)
+    assert len(reloaded.secondary.orbiters) == len(system.secondary.orbiters)
     assert render_support.text(reloaded) == render_support.text(system)
 
 
 def test_close_binary_default_still_reachable_when_wide_binary_forced_false():
     system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=False))
     assert system.binary_type == "close"
-    assert system.secondary_planets == []
+    assert system.secondary.orbiters == []
     assert system.wide_binary is None
 
 
@@ -477,13 +477,13 @@ def test_cross_star_clearance_uses_the_closest_approach():
     # 49.99 AU leave 0.02 AU between them when the stars are closest.
     system = _wide_system_for_clearance_test(separation_au=200.0, primary_a_crit_au=50.0, secondary_a_crit_au=50.0)
     system.wide_binary.periapsis_au = 100.0
-    system.planets = [_StubPlanet(distance=49.99)]
-    system.secondary_planets = [_StubPlanet(distance=49.99)]
+    system.primary.orbiters = [_StubPlanet(distance=49.99)]
+    system.secondary.orbiters = [_StubPlanet(distance=49.99)]
 
     removed = validation.cross_star_clearance(system)
 
     assert len(removed) == 1
-    assert len(system.planets) + len(system.secondary_planets) == 1
+    assert len(system.primary.orbiters) + len(system.secondary.orbiters) == 1
 
 
 def _comet(perihelion_au, eccentricity, orbit_type="elliptical"):
@@ -508,7 +508,7 @@ def test_trim_comets_keeps_only_those_inside_the_ceiling():
 
 def test_check_star_system_flags_a_comet_beyond_the_limit_and_stabilize_removes_it():
     system = _wide_system_for_clearance_test(separation_au=100.0, primary_a_crit_au=20.0, secondary_a_crit_au=20.0)
-    system.planets, system.secondary_planets = [], []
+    system.primary.orbiters, system.secondary.orbiters = [], []
     system.comets = [_comet(1.0, 0.99)]
     system.secondary_comets = [_comet(1.0, 0.5)]
     system.comets[0].name = "Far Comet"
@@ -532,14 +532,14 @@ def test_wide_binaries_never_overlap():
             continue
         wide += 1
         pair = system.wide_binary
-        for star, planets, comets in ((system.primary_star, system.planets, system.comets),
-                                      (system.secondary_star, system.secondary_planets, system.secondary_comets)):
+        for star, planets, comets in ((system.primary_star, system.primary.orbiters, system.comets),
+                                      (system.secondary_star, system.secondary.orbiters, system.secondary_comets)):
             for body in planets:
                 assert validation.reach_au(body) <= star.a_crit_au * (1 + 1e-9)
             for comet in comets:
                 assert validation.comet_apoapsis_au(comet) <= star.a_crit_au * (1 + 1e-9)
-        reach_p = max((validation.reach_au(b) for b in system.planets), default=0.0)
-        reach_s = max((validation.reach_au(b) for b in system.secondary_planets), default=0.0)
+        reach_p = max((validation.reach_au(b) for b in system.primary.orbiters), default=0.0)
+        reach_s = max((validation.reach_au(b) for b in system.secondary.orbiters), default=0.0)
         assert reach_p + reach_s < pair.periapsis_au
         assert not validation.check_star_system(system)
     assert wide
@@ -551,6 +551,6 @@ def test_no_body_sits_past_the_ceiling_of_the_stars_final_age(seed):
     # drew a planet or belt past it when the age was raised after the planets (301 to 593 AU against 275 to 285 AU); the age is now fixed first (GEN.1546).
     with draw.bound(draw.Stream(f"final-age-ceiling:{seed}")):
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, MAX_PLANETS=True))
-    for star, planets in ((system.primary_star, system.planets), (system.secondary_star, system.secondary_planets)):
+    for star, planets in ((system.primary_star, system.primary.orbiters), (system.secondary_star, system.secondary.orbiters)):
         for body in planets:
             assert _orbit_edge(body) <= system._orbit_ceiling_au(star) + 1e-6

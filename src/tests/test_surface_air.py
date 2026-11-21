@@ -296,7 +296,7 @@ def _generated(seeds):
     for seed in seeds:
         with deterministic_entropy(seed):
             system = StarSystem(system_config=SystemConfig())
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if hasattr(planet, "moons"):
                 yield planet
                 yield from planet.moons

@@ -16,6 +16,7 @@ star. Luminosities may be in any one unit and distances in AU.
 
 import math
 
+from planetgen.generation.hosts import MEMBER, NODE
 from planetgen.physics import constants, orbit_elements, radiation_field
 
 
@@ -75,11 +76,12 @@ def refresh_system(system):
     lone star. Runs once the planets' final orbits are set.
     """
     binary = getattr(system, "binary_type", None)
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         _set(planet, _variation(system, binary, planet, system.star, getattr(system, "secondary_star", None)))
-    for planet in getattr(system, "secondary_planets", ()):
-        _set(planet, _variation(system, binary, planet, system.secondary_star, system.primary_star))
-    for number, (member, bodies) in enumerate(system.member_hosts() if hasattr(system, "member_hosts") else (), start=2):
+    if system.secondary:
+        for planet in system.secondary.orbiters:
+            _set(planet, _variation(system, binary, planet, system.secondary_star, system.primary_star))
+    for number, (member, bodies) in enumerate(system.hosts_of(MEMBER), start=2):
         node, beside = system.sibling_stars(number)
         other = sum(system.stars[index].luminosity for index in beside)
         separation_au = node.separation_km / constants.AU_TO_KM
@@ -89,7 +91,7 @@ def refresh_system(system):
                 separation_au * (1.0 - node.eccentricity), separation_au * (1.0 + node.eccentricity), planet.eccentricity))
 
 
-    for host, bodies in system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else ():    # GEN.332, slice A: the pair's turn and the planet's own orbit, as a close pair's
+    for host, bodies in system.hosts_of(NODE):    # GEN.332, slice A: the pair's turn and the planet's own orbit, as a close pair's
         first, second = host.stars
         for planet in bodies:
             _set(planet, None if getattr(planet, "body_type", None) == "a" else min(

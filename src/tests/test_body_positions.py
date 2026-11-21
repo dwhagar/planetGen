@@ -239,7 +239,7 @@ def test_the_scene_positions_at_the_epoch_match_the_stored_ones(mysql_config):
         cfg.MOONS = True
         cfg.COMETS = True  # a comet by construction, not by the draw (TEST.130)
         system = StarSystem(system_config=cfg)
-        if any(getattr(p, "moons", None) for p in system.planets) and system.comets and len(system.stars) > 1:
+        if any(getattr(p, "moons", None) for p in system.primary.orbiters) and system.comets and len(system.stars) > 1:
             break
     else:
         pytest.fail("400 systems built and none had a planet with moons, a comet and a second star")
