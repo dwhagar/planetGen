@@ -37,6 +37,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import detmath, draw, request_odds
 from planetgen.util import log
+from planetgen.generation import trojan_region
 from planetgen.generation import belt_birth, belt_planets, comet_abundance, disk_ejection, abundance_tier, habitable_request, cosmic_dust, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star
@@ -441,6 +442,8 @@ class StarSystem:
         self._promote_belt_members()
 
         self._add_irregular_moons()
+
+        self._add_trojan_regions()
 
         # Comets don't participate in the planet-slot retry loop above --
         # see _generate_comets' own docstring for why -- so they're rolled
@@ -1502,6 +1505,20 @@ class StarSystem:
         """
         rows = [(planet.distance, planet.eccentricity or 0.0, planet.mass) for planet in planets if planet.body_type != 'a']
         return clearance_ledger.planets_needed_au(rows, seed.mass_kg, seed.eccentricity, star.mass) if rows else 0.0
+
+    def _add_trojan_regions(self):
+        """
+        The trojan regions of the giants (GEN.1150, `trojan_region.build`): the L4 and L5 swarm of each giant that swept an outer disk, put at the end of the list of the star that giant orbits. They are made
+        once the planets, belts and moons are final, so the spacing pass never sees a body that shares a giant's orbit. A system whose bodies the author named (`SLOTS`, `NUM_ORBITS`) is left as written.
+        """
+        config = self.system_config
+        if config.SLOTS or config.NUM_ORBITS is not None or config.PLANETS is False:
+            return
+        lists = [(self.star, self.planets)]
+        if self.binary_type == "wide":
+            lists.append((self.secondary_star, self.secondary_planets))
+        for star, bodies in lists:
+            bodies.extend(trojan_region.build(bodies, star, config))
 
     def _add_belts(self, bodies, star, orbit_ceiling_au, apply_guarantees=True):
         """

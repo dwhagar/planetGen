@@ -86,6 +86,7 @@ from planetgen.util import fingerprint_encoding as fingerprintEncoding, generato
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation.trojan_region import TrojanRegion
 from planetgen.generation.phenomena import asteroid_field
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -3523,7 +3524,8 @@ def _json_loads(text, default):
 BELT_FIELDS = (
     object_rows.context("star_system_id"), object_rows.context("star_id"), object_rows.context("orbital_index"),
     object_rows.computed(("parent_type", "parent_id"),
-                         lambda belt, context: planet_parent(context["star_id"], context["star_system_id"], context.get("host_node_id"))),
+                         lambda belt, context: (("planet", context["host_planet_id"]) if context.get("host_planet_id") is not None
+                                                else planet_parent(context["star_id"], context["star_system_id"], context.get("host_node_id")))),     # GEN.1150: a trojan region's parent is its giant
     object_rows.Field(("host_node_id",), lambda belt, context: context.get("host_node_id")),    # GEN.332, slice C: the node of a belt round an inner pair node
     object_rows.scaled("distance_km", "distance", _AU_KM), object_rows.scaled("lower_limit_km", "lower_limit", _AU_KM),
     object_rows.scaled("upper_limit_km", "upper_limit", _AU_KM),
@@ -3551,6 +3553,9 @@ BELT_FIELDS = (
                          load=lambda row: {"history": [row["history_text"]] if row["history_text"] else []}),
     # GEN.1231: the mass the star's mass loss threw inward (the belt's `scattered_mass_kg`, set only on the belts of a white dwarf's system), the source of the rock that falls on the star.
     object_rows.optional("thrown_inward_kg", "scattered_mass_kg"),
+    # GEN.1150: a trojan region of a giant (`generation/trojan_region.py`); NULL for every other belt
+    object_rows.optional("lagrange_point"), object_rows.optional("libration_amplitude_deg"), object_rows.optional("libration_phase_deg"),
+    object_rows.optional("mean_eccentricity"), object_rows.optional("mean_inclination_deg"),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 
@@ -3572,7 +3577,7 @@ def _insert_composition(conn, table, owner_column, owner_id, composition):
         conn.execute(f"INSERT INTO {table} ({owner_column}, {columns}) VALUES ({marks})", row)
 
 
-def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index, star_id=None, host_node_id=None) -> int:
+def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index, star_id=None, host_node_id=None, host_planet_id=None) -> int:
     """
     Inserts an `asteroid_belts` row (plus its `asteroid_belt_composition`
     child rows).
@@ -3594,12 +3599,13 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
             belt, set for a 'wide' binary's.
         host_node_id (int, optional): The orbit node a circumbinary belt of an inner pair node goes round (GEN.332,
             slice C), saved with no `star_id`; `None` for every other belt.
+        host_planet_id (int, optional): The `planets.id` of the giant a trojan region librates about (GEN.1150), the row's parent; `None` for every other belt.
 
     Returns:
         int: The new `asteroid_belts.id`.
     """
     belt_id = object_rows.insert_row(conn, "asteroid_belts", BELT_FIELDS, belt, {
-        "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index, "host_node_id": host_node_id})
+        "star_system_id": star_system_id, "star_id": star_id, "orbital_index": orbital_index, "host_node_id": host_node_id, "host_planet_id": host_planet_id})
 
     _insert_composition(conn, "asteroid_belt_composition", "belt_id", belt_id, belt.composition)
 
@@ -5161,20 +5167,21 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
     member_ids = [insert_star(conn, member, star_system_id, "member", *place)
                   for member, place in zip(star_system.member_stars, places[2:])]
 
+    host_ids = {}       # GEN.1150: the row each giant was saved in, which a trojan region of it names as its parent (a region comes after its giant in the list)
     for orbital_index, obj in enumerate(star_system.planets):
         if obj.body_type == "a":
-            insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=primary_star_id)
+            insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=primary_star_id, host_planet_id=host_ids.get(id(getattr(obj, "host", None))))
         else:
-            insert_planet(conn, obj, star_system_id, primary_star_id, orbital_index)
+            host_ids[id(obj)] = insert_planet(conn, obj, star_system_id, primary_star_id, orbital_index)
 
     # Only ever non-empty for a 'wide' binary (see StarSystem.__init__) --
     # its own, independent index space, disambiguated from star_system.planets'
     # by secondary_star_id (see load_star_system's own per-star_id grouping).
     for orbital_index, obj in enumerate(star_system.secondary_planets):
         if obj.body_type == "a":
-            insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=secondary_star_id)
+            insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=secondary_star_id, host_planet_id=host_ids.get(id(getattr(obj, "host", None))))
         else:
-            insert_planet(conn, obj, star_system_id, secondary_star_id, orbital_index)
+            host_ids[id(obj)] = insert_planet(conn, obj, star_system_id, secondary_star_id, orbital_index)
 
     # A member star's planets (GEN.332): each member has its own orbital-index space, told apart by its star_id.
     for member_id, bodies in zip(member_ids, star_system.member_planets):
@@ -8893,8 +8900,11 @@ def _body_slots(conn, system_id):
         slot = ("planet", roles.get(row["star_id"], "system"), place)
         slots["planets", row["id"]] = planet_slots[row["id"]] = slot
     belt_rank = collections.Counter()
-    for row in conn.execute("SELECT id, star_id FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index, id", (system_id,)).fetchall():
+    for row in conn.execute("SELECT id, star_id, parent_id, lagrange_point FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index, id", (system_id,)).fetchall():
         host = roles.get(row["star_id"], "system")
+        if row["lagrange_point"] is not None and row["parent_id"] in planet_slots:         # GEN.1150: a trojan region is its giant's and takes no number among the belts
+            slots["asteroid_belts", row["id"]] = ("belt", planet_slots[row["parent_id"]], f"trojan:{row['lagrange_point']}")
+            continue
         slots["asteroid_belts", row["id"]] = ("belt", host, f"rank:{belt_rank[host]}")
         belt_rank[host] += 1
     for row in conn.execute("SELECT id, planet_id, orbital_index FROM moons WHERE star_system_id = ?", (system_id,)).fetchall():
@@ -10777,8 +10787,11 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                     (r["id"],),
                 ).fetchall()
                 member_rows = conn.execute("SELECT * FROM belt_members WHERE belt_id = ? ORDER BY member_rank", (r["id"],)).fetchall()
-                belt = AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows, member_rows), system_config)
+                data = _belt_row_to_dict(r, comp_rows, member_rows)
+                belt = (TrojanRegion if data.get("lagrange_point") else AsteroidBelt).from_dict(data, system_config)     # GEN.1150: a trojan region is a belt row with a Lagrange point
                 belt.db_id = r["id"]
+                if belt.lagrange_point:
+                    belt.host_db_id = r["parent_id"]
                 objects.append(belt)
             else:
                 planet_data = _planet_or_moon_row_to_dict(conn, r, is_moon=False)
@@ -10792,6 +10805,10 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                     moon.db_id = moon_row["id"]
                     moon.host_eccentricity = planet.eccentricity    # DB.123: not a column; a moon is told its parent's (`physics.planets`), which the light its air is solved under goes by
                 objects.append(planet)
+        hosts = {body.db_id: body for body in objects if getattr(body, "body_type", None) != "a"}
+        for body in objects:
+            if getattr(body, "lagrange_point", None):
+                body.host = hosts.get(body.host_db_id)          # GEN.1150: the giant a trojan region librates about
         return objects
 
     if binary_configuration == "wide":

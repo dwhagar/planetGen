@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1947 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1948 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1920 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1921 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 88 | 16 | 8 | 24 | 14 | 150 |
 | T5 | 112 | 29 | 8 | 1 | 2 | 152 |
-| T6 | 246 | 133 | 38 | 86 | 7 | 510 |
+| T6 | 247 | 133 | 38 | 86 | 7 | 511 |
 | T7 | 75 | 38 | 10 | 31 | 0 | 154 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 52 | 20 | 6 | 116 | 42 | 236 |
-| All | 1110 | 398 | 99 | 274 | 66 | 1947 |
+| All | 1111 | 398 | 99 | 274 | 66 | 1948 |
 
 ## How the labels were given
 
@@ -1474,6 +1474,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | TJ9 | P | T2 | L2 | trojan_swarm.LIBRATION_SIGMA_DEG 13: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150, GEN.1643) | 11 to 15 | every swarm | a swarm of giants whose median libration amplitude is far from the scale times 1.18 | the Trojan catalogues' proper elements refitted as they grow | GEN.1643 (`scripts/fit_trojan_scales.py`, report `reports/gen1643-trojan-scales-2026-11-12.md`): the Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration integral C ([R5245: Table 3], Eq. 3 and 4, L4 and L5 weighted by their populations) is 13.0 (L4 13.3, L5 12.5; by the median 12.7); the Neptune Trojans give a Rayleigh width of 15 (best fit) and 12 (Table 4) [R5244]. With the cut at the tadpole limit (TJ3) the draw's mean amplitude is 16.3 against the Jupiter 16.2 | predicted only | - | - |
 | TJ10 | P | T2 | L1 | trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150) | 0.04 to 0.08 | every swarm | a swarm whose mean eccentricity is over 0.15 | the Trojan catalogues' proper elements refitted as they grow | GEN.1643 (same fit): the Rayleigh scale with the mean of the debiased Jupiter law of the proper eccentricity B ([R5245: Table 3]) is 0.058 (L4 0.047, L5 0.074; by the median 0.054); the Neptune Trojans give 0.045 for the whole population, 0.02 cold and 0.05 hot [R5244]. 0.06 is nudged inside both. The papers describe bodies; a region's mean is tighter (the fit does not separate them) | predicted only | - | - |
 | TJ11 | P | T2 | L1 | trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150) | 9 to 16 | every swarm | a swarm whose mean inclination is over 25 degrees | the Trojan catalogues' proper elements refitted as they grow | GEN.1643 (same fit): the Rayleigh scale with the mean of the debiased Jupiter law of the proper sine of inclination A (inclination is its arcsine, [R5245: Table 3]) is 11.7 degrees (L4 10.7, L5 13.2; by the median 11.3); the Neptune Trojans give 14 (12 to 16) for the whole population, 6 cold and 18 hot [R5244]. 12 is nudged inside both. The papers describe bodies; a region's mean is tighter | predicted only | - | - |
+| TJ12 | P | T6 | L0 | trojan_region.TrojanRegion limits `a (1 -/+ e)`: the orbit radii a trojan region spans are the giant's distance less and more than the region's mean eccentricity (GEN.1150); how often a giant holds a swarm is not set, it is what the outer disk it swept leaves (about 1 percent of G2V systems in 160) | none (geometry) | every region | a region whose bodies lie outside its limits | the radial width of a tadpole from its libration, when the orbit updater's overlay (slice 2) draws the bodies | the swarm's mass is `swept_hand_on.trojan_part` (GEN.1455 survival, the scatter SX5 split); measured 2 of 160 G2V systems with a swept outer disk, one of 1.1e22 kg and one of 3e7 kg (reports/gen1150) | predicted only | - | - |
 
 ## 6.122 Stand-ins of the albedo colour of the star
 

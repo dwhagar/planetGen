@@ -27,6 +27,7 @@ import pytest
 
 from tests.bughunt_support import FUZZ_SEEDS
 
+from planetgen.generation.trojan_region import TrojanRegion
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.comet import Comet
@@ -139,8 +140,9 @@ _RUNTIME_ONLY = {
              "_formation_fractions", "irregulars", "_motion_done",
              "_air_choice", "_air_context", "belt_member", "_air_haze", "_tidal_radius_km", "_exchange_damped_yr", "oddity_quantities",
              "_air_stale", "_tide_parent", "_tide_siblings", "_envelope_helium_y"},    # GEN.1047 to 1051, GEN.1340: the air branch and its context the oddity rows read, the resonance eccentricity, the retention cap the life stage keeps its oxygen inside, the Venus-type spin and the oddity quantities, the helium share of a hydrogen-first loss (GEN.1527, rebuilt by the settle pass); the stored columns (`oddities`, the eccentricity, the spin, the air) hold their result;    # the core the envelope was captured onto, the envelope it kept and the late-core request, which only the draw reads (GEN.1323); the stored columns hold their result; `irregulars` is written by `to_dict` as its own entry (GEN.1083); the solid fractions drawn before the envelope took its share (GEN.1226); the stored fractions are the ones after; `_deferred_climate` is the climate step held until the moons are known (GEN.1282), None once it ran; `_motion_done` is set once the orbit state was made earlier than the climate (GEN.1548), a flag the draw reads    # kept so the moon history can run again (GEN.959); the ring it builds is stored
-    AsteroidBelt: {"system_config", "composition", "makeup", "_members", "cleared_spans", "scatter_giant_au", "captured_mass_kg", "oddity_quantities", "swept_kg", "implanted_kg", "scatter_giant_kg", "scatter_giant_radius_km", "_secular_planets"},    # where the mass an outer disk lost went and the giant that scattered it (GEN.1308, not stored); the giant's distance the members of an outer disk are drawn with (GEN.1092); the stored members hold what it gave; the mass the planets caught (GEN.1085), already out of `mass_kg`
+    AsteroidBelt: {"system_config", "composition", "makeup", "_members", "cleared_spans", "scatter_giant_au", "captured_mass_kg", "oddity_quantities", "swept_kg", "implanted_kg", "scatter_giant_kg", "scatter_giant_radius_km", "_secular_planets", "swarm_kg", "host", "host_db_id"},    # where the mass an outer disk lost went and the giant that scattered it (GEN.1308, not stored); `host` and `host_db_id` are the giant a trojan region librates about (GEN.1150, the row's parent link stores it); the giant's distance the members of an outer disk are drawn with (GEN.1092); the stored members hold what it gave; the mass the planets caught (GEN.1085), already out of `mass_kg`
 }
+_RUNTIME_ONLY[TrojanRegion] = _RUNTIME_ONLY[AsteroidBelt]      # GEN.1150: a trojan region is a belt with five stored fields more
 
 
 def test_starsystem_children_have_no_unlisted_attributes():
@@ -181,7 +183,7 @@ def test_starsystem_star_and_planet_roundtrip_fuzz():
 
         for obj in system.planets:
             if isinstance(obj, AsteroidBelt):
-                _assert_roundtrip(obj, AsteroidBelt, f"AsteroidBelt seed={seed}", cfg)
+                _assert_roundtrip(obj, type(obj), f"{type(obj).__name__} seed={seed}", cfg)       # GEN.1150: a trojan region is a belt with its own class
             elif isinstance(obj, Planet):
                 _assert_roundtrip(obj, Planet, f"Planet seed={seed}", system.star, cfg)
                 for moon in obj.moons:

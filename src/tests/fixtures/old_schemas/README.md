@@ -41,3 +41,4 @@ Commit each file came from:
 - v267: after GEN.1231's migration 0267 (belt thrown inward), before DB.132 and DB.133's migration 0268 (stars birth mass and phase end, body_history held and forced eccentricity) (main's schema.sql with its comment and blank lines removed)
 - v268: after DB.132 and DB.133's migration 0268 (stars birth mass and phase end, body_history held and forced eccentricity), before GEN.1577's migration 0269 (planets cloud_decks) (main's schema.sql with its comment and blank lines removed)
 - v269: after GEN.1577's migration 0269 (planets cloud_decks), before GEN.1745 slice 4b's migration 0270 (air_history on planets, moons and rogue_planets) (main's schema.sql with its comment and blank lines removed)
+- v270: after GEN.1745 slice 4b's migration 0270 (air_history on planets, moons and rogue_planets), before GEN.1150's migration 0271 (trojan regions) (main's schema.sql with its comment and blank lines removed)

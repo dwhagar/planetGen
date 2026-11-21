@@ -670,6 +670,8 @@ NOT_SHOWN = {
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                    "velocity_z_kms"), _VECTORS),
         "host_node_id": "the orbit tree node; bookkeeping",
+        **{column: "of a trojan region of a giant (GEN.1150): its page prints them under the belt's rows (`describe/build.py` `_belt_section`: the point, the libration, the mean eccentricity and inclination)"
+           for column in ("lagrange_point", "libration_amplitude_deg", "libration_phase_deg", "mean_eccentricity", "mean_inclination_deg")},
         "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
         "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
         "scatter_fates": "the share of an outer disk in each population after the scatter step, a mapping; the belt's information page lists the shares (`belt_page.fates_list`)",
@@ -1487,7 +1489,7 @@ def _belt_origin_provider(conn, kind, object_id, row):
     """GEN.1511: the belt a planet was made from (GEN.1510) and its rank there, the parent a promoted planet keeps. The belt is the `belt_order`-th of its star's belts, as `query` counts them."""
     if row["belt_rank"] is None or row["belt_order"] is None:
         return
-    belts = conn.execute("SELECT uid FROM asteroid_belts WHERE star_system_id = ? AND star_id <=> ? ORDER BY orbital_index, id", (row["star_system_id"], row["star_id"])).fetchall()
+    belts = conn.execute("SELECT uid FROM asteroid_belts WHERE star_system_id = ? AND star_id <=> ? AND lagrange_point IS NULL ORDER BY orbital_index, id", (row["star_system_id"], row["star_id"])).fetchall()
     if row["belt_order"] >= len(belts) or belts[row["belt_order"]]["uid"] is None:
         return
     belt_id = object_uid.from_bytes(belts[row["belt_order"]]["uid"])
