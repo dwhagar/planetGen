@@ -1465,7 +1465,7 @@ class StarSystem:
                 if slot_spec is None and i > 0:
                     estimated_distance = max(estimated_distance, self._distance_clear_of(planets, seed, star))      # GEN.1791: born where the spacing pass would put it, so its zone is the final one
 
-                hz = habitable_zone[0] < estimated_distance < habitable_zone[1]
+                hz = planetPhysics.in_candidate_zone(habitable_zone, estimated_distance)       # GEN.1807: the zone the request and the dials go to, wider than the habitable zone
 
                 # An explicit per-slot specification takes priority over all of the
                 # normal random/forced generation logic below.
@@ -1763,7 +1763,7 @@ class StarSystem:
         """
         if not self._habitable_requested():
             return True
-        in_ecosphere = any(planet.body_type == "t" and getattr(planet, "zone", None) == "e" for planet in self.planets)
+        in_ecosphere = any(planet.body_type == "t" and abundance_tier.candidate(planet) for planet in self.planets)
         return request_odds.keeps(in_ecosphere or habitable_request.count(self.planets) > 0)
 
     def _habitable_found(self):
