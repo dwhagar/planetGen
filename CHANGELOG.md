@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4683+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The trojan region files use American spelling, and the belt number test feeds the rows the query returns.
+
+### Fixed
+- GEN.1150: `centre` in the trojan overlay, the 3D system view, the system map, the style sheet and the schema reference is `center` (`scripts/american_spelling_sweep.py apply`; identifiers and test names follow).
+- GEN.1150: the belt number test built its rows without the `lagrange_point` column that `belt_names.numbers_for_systems` selects; its rows now carry it and a trojan region among them, which takes no number and leaves no gap.
+
+generation-output: unchanged
+
 ## [8.0.4682+db272.gen150.api14] - 2026-11-21
 
 **Headline:** A giant that swept an outer disk now holds a trojan swarm at its L4 and L5, as two regions that are stored, named for the giant and shown on their own page.
