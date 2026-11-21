@@ -54,6 +54,29 @@ def test_the_ten_stored_partials_are_rows_and_agree_with_the_stored_molar_masses
         gases.stored("he")
 
 
+def test_a_gas_with_no_flag_takes_the_class_its_structure_gives():
+    """GEN.1629: 52 rows have no `ir` flag (the atoms, radicals and rock vapors added after the first 72); the table, the thin-air scaling and the line opacity read
+    `infrared_class` instead, the gas table's own rule: an atom `none`, a diatomic of one element `cia`, any other molecule `ir`. A row with a flag keeps it."""
+    unflagged = [gas for gas in gases.GASES if gas.ir is None]
+    assert len(unflagged) >= 40
+    for formula, expected in (("H", "none"), ("Cl", "none"), ("Ti", "none"), ("P2", "cia"), ("F2", "cia"), ("K2", "cia"), ("OH", "ir"), ("VO", "ir"), ("FeH", "ir"),
+                              ("SiO2", "ir"), ("NaOH", "ir"), ("HCOOH", "ir"), ("NH4SH", "ir"), ("Mg(OH)2", "ir")):
+        assert gases.gas(formula).ir is None and gases.gas(formula).infrared_class == expected, formula
+    assert gases.gas("OH").is_infrared_active and not gases.gas("H").is_infrared_active and not gases.gas("P2").is_infrared_active
+    for gas in gases.GASES:
+        assert gas.infrared_class in ("none", "cia", "weak", "ir"), gas.formula
+        if gas.ir is not None:
+            assert gas.infrared_class == gas.ir, gas.formula
+    # the rule is the table's own: every flagged row agrees with it, except the isotopologues (HD, HDO, 3He), which the rule cannot parse or tell from their parent
+    from planetgen.physics import elements
+    for gas in gases.GASES:
+        if gas.ir is None or gas.formula in ("HD", "HDO", "3He"):
+            continue
+        atoms = elements.parse_formula(gas.formula)
+        rule = "none" if sum(atoms.values()) == 1 else "cia" if len(atoms) == 1 and sum(atoms.values()) == 2 else "ir"
+        assert gas.ir == rule, gas.formula
+
+
 def test_an_unknown_gas_is_refused_with_the_way_to_add_it():
     with pytest.raises(gases.UnknownGas, match="gases.json"):
         gases.gas("XeF2")

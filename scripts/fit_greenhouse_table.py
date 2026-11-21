@@ -218,6 +218,45 @@ COLD_GEN_FAMILIES = (
                                                      "Ar": (0.0, 0.01), "CH4": (0.0, 0.01)}, (3.0e5, 3.0e6), (0.3, 30.0), 0.0, (3.0, 16.0)),
 )
 """tuple: GEN.1796: the families of `cold --gen`, cold dense nitrogen airs with the minor gases the generator's own airs of that kind carry (the held-out airs of the generator's seeds, 2.7 and 5.1 MPa of nitrogen at an effective temperature of 69 and 131 K, which the hand-made families left 60 to 70 K off): more gases at a few parts in a thousand, water vapor from nothing to 2e-3."""
+COLD_MORE_FAMILIES = (
+    ("cold-hydrogen-sulfide-rich", {"H2S": (0.05, 0.9), "N2": (0.05, 0.9), "SO2": (0.0, 0.1), "CO2": (0.0, 0.05), "H2": (0.0, 0.01), "H2O": (0.0, 2.0e-3), "Ar": (0.0, 0.01)},
+     (1.0e5, 1.5e6), (1.0, 90.0), 0.0, (3.0, 16.0)),
+    ("cold-dense-nitrogen-carbon-monoxide", {"N2": (0.8, 0.99), "CO": (0.0, 0.03), "CO2": (0.0, 0.01), "H2": (0.0, 0.01), "CH4": (0.0, 0.005), "Ar": (0.0, 0.01), "H2O": (0.0, 1.0e-3)},
+     (1.0e6, 8.0e6), (0.3, 30.0), 0.0, (3.0, 16.0)),
+)
+"""tuple: GEN.1796: the families of `cold --more`, the two kinds of cold airs the generator's own validation airs showed the table 50 to 60 K cold on after `COLD_GEN_FAMILIES`: an air that is mostly hydrogen sulfide
+with sulfur dioxide and nitrogen (0.1 to 1.5 MPa), and dense nitrogen with up to 3 percent carbon monoxide."""
+EARTH_TRACE_GASES = ("HCN", "O3", "NH3", "SO2", "H2S", "N2O", "CO", "C2H6", "HCl", "OCS", "He", "H2", "CH4", "NO2")
+EARTH_FAMILIES = tuple(
+    (f"earth-like-with-{gas}", {"N2": (0.7, 0.8), "O2": (0.0, 0.3), "Ar": (0.0, 0.015), "CO2": (1.0e-6, 0.1), "H2O": (1.0e-4, 0.04), gas: (1.0e-7, 2.0e-2)}, (2.0e4, 5.0e5), (80.0, 450.0), 0.0, (3.0, 20.0))
+    for gas in EARTH_TRACE_GASES) + (
+    ("earth-like-carbon-dioxide-ladder", {"N2": (0.7, 0.8), "O2": (0.0, 0.3), "Ar": (0.0, 0.015), "CO2": (1.0e-7, 0.2), "H2O": (1.0e-4, 0.04)}, (2.0e4, 5.0e5), (80.0, 450.0), 0.0, (3.0, 20.0)),)
+"""tuple: GEN.1796: the families of `cold --earth`, temperate nitrogen and oxygen airs (80 to 450 W/m2 absorbed, 0.02 to 0.5 MPa) with carbon dioxide from nothing (a seventh of the draws) to a fifth and one infrared gas at 1e-7 to 2e-2 of the air: the small steps between absent and present that a refit on cold and hot airs left flat or the wrong way (Earth's 41 Pa of carbon dioxide gave 0.4 K, 10 Pa of hydrogen cyanide cooled it 13 K)."""
+
+
+DENSE_HOT_FAMILIES = (
+    ("dense-hot-carbon-dioxide", {"CO2": (0.85, 0.999), "N2": (0.0, 0.1), "CO": (0.0, 0.01), "SO2": (0.0, 0.003), "H2O": (0.0, 0.01), "Ar": (0.0, 0.01), "O2": (0.0, 0.001)},
+     (3.0e5, 6.0e7), (150.0, 3000.0), 0.0, (3.0, 25.0)),
+    ("dense-hot-carbon-dioxide-ladder", {"CO2": (0.97, 1.0), "N2": (0.0, 0.02), "CO": (1.0e-6, 3.0e-2), "H2O": (1.0e-6, 3.0e-2), "CH4": (1.0e-6, 1.0e-2), "SO2": (1.0e-6, 1.0e-2)},
+     (3.0e5, 6.0e7), (150.0, 3000.0), 0.0, (3.0, 25.0)),
+)
+"""tuple: GEN.1796 round 13: the families of `cold --dense`, the very dense hot carbon dioxide airs (3 to 600 bar, 150 to 3000 W/m2 absorbed, a class N world) with a few percent of carbon monoxide, vapor,
+methane or sulfur dioxide, where the table stood 200 K above the solver on a 270 bar air and fell under twice the infrared-active gases (`test_doubling_the_infrared_active_gases_never_cools_the_ground`)."""
+HALOGEN_FAMILIES = (
+    ("cold-halogen-nitrogen", {"N2": (0.3, 0.95), "HCl": (0.01, 0.45), "HF": (0.0, 0.02), "CO2": (0.0, 0.05), "Ar": (0.0, 0.01), "NH3": (0.0, 1.0e-3), "H2O": (0.0, 1.0e-3)},
+     (3.0e4, 6.0e5), (0.5, 60.0), 0.0, (3.0, 16.0)),
+    ("cold-halogen-carbon-dioxide", {"CO2": (0.3, 0.95), "HCl": (0.005, 0.3), "N2": (0.0, 0.3), "SO2": (0.0, 0.003), "Ar": (0.0, 0.01)},
+     (3.0e4, 6.0e5), (0.5, 60.0), 0.0, (3.0, 16.0)),
+)
+"""tuple: GEN.1796 round 13: the families of `cold --halogen`, cold airs (0.03 to 0.6 MPa, 0.5 to 60 W/m2 absorbed) in which hydrogen chloride is a tenth to a half of the air, where the table put a 22 kPa
+hydrogen chloride and nitrogen air 9 K above the solver and cooled it under twice the infrared-active gases."""
+COLD_CO_FAMILIES = (
+    ("cold-carbon-monoxide-nitrogen", {"CO": (0.05, 0.9), "N2": (0.1, 0.9), "Ar": (0.0, 0.01), "HCl": (0.0, 0.003), "CH4": (0.0, 0.005), "H2": (0.0, 0.002), "CO2": (0.0, 0.005), "N2O": (0.0, 1.0e-5),
+                                      "NH3": (0.0, 1.0e-5), "HF": (0.0, 1.0e-7)}, (3.0e4, 1.0e6), (3.0, 40.0), 0.0, (0.5, 4.0)),
+    ("cold-nitrogen-with-infrared-gases-doubling", {"N2": (0.5, 0.99), "CO": (0.0, 0.2), "CO2": (0.0, 0.2), "CH4": (0.0, 0.02), "HCl": (0.0, 0.003), "H2": (0.0, 0.005), "NH3": (0.0, 0.005), "Ar": (0.0, 0.01)},
+     (3.0e4, 1.0e6), (3.0, 60.0), 0.0, (0.5, 6.0)),
+)
+"""tuple: GEN.1796: the families of `cold --co`, the cold light airs of the far edge (0.5 to 6 m/s2, 3 to 60 W/m2 absorbed, 0.03 to 1 MPa) of carbon monoxide and nitrogen with a few of the infrared gases, where the table cooled the ground 3.5 K for twice the infrared gases (a class E air at 138 K) that the model warms 1.2 K (`test_radiation_sweep`'s doubling rule)."""
 COLD_DEEP_FAMILIES = (
     ("cold-deep-nitrogen", {"N2": (0.6, 0.95), "CO2": (0.03, 0.35), "Ar": (0.0, 0.02), "CH4": (0.0, 0.01)}, (1.5e6, 2.0e7), (0.3, 6.0), 0.0),
     ("cold-deep-carbon-dioxide", {"CO2": (0.85, 1.0), "H2": (0.0, 0.05), "N2": (0.0, 0.1)}, (1.0e6, 2.0e7), (0.3, 6.0), 0.0),
@@ -255,6 +294,29 @@ def wet_airs(count, rng):
             partials["CH4"] = methane * dry
         partials["N2"] = dry - sum(v for k, v in partials.items() if k != "H2O")
         partials = {formula: value for formula, value in partials.items() if value > 0.0}
+        airs.append((partials, gravity, flux, 0.0, None))
+    return airs
+
+
+def twin_airs(count, rng):
+    """GEN.1796 round 14: the airs of the Earth twin's fixed point (`tests/test_climate_sweep.py`), drawn densely where the climate tests read the table's slope: one bar (0.9 to 1.1) at the Earth's
+    gravity, a nitrogen-oxygen air with 100 to 2,000 ppm of carbon dioxide (a third of them the Earth's own dry air, 420 ppm), vapor from a snowball's 0.3 Pa to 1e4 Pa, and an absorbed flux of 150 to 330 W/m2.
+    The table stood a degree off the model there after round 13, which the response to the light (the published lower bound of 0.54 K per W/m2) and the ice catastrophe (a flux 10 percent down) read as 0.8 percent
+    of the slope and a fall to the snowball."""
+    airs = []
+    for _ in range(count):
+        pressure = rng.uniform(0.9e5, 1.1e5)
+        gravity = rng.uniform(9.3, 10.3)
+        flux = rng.uniform(150.0, 330.0)
+        vapor = math.exp(rng.uniform(math.log(0.3), math.log(1.0e4)))
+        if rng.random() < 1.0 / 3.0:
+            shares = {"O2": 0.2095, "Ar": 0.0093, "CO2": 4.2e-4}
+        else:
+            shares = {"O2": rng.uniform(0.15, 0.30), "Ar": rng.uniform(0.0, 0.015), "CO2": math.exp(rng.uniform(math.log(1.0e-4), math.log(2.0e-3)))}
+        dry = pressure - vapor
+        partials = {formula: share * dry for formula, share in shares.items()}
+        partials["N2"] = dry - sum(partials.values())
+        partials["H2O"] = vapor
         airs.append((partials, gravity, flux, 0.0, None))
     return airs
 
@@ -387,6 +449,19 @@ def wet(args):
         pickle.dump(samples, handle)
     print(f"{args.count} temperate wet airs added, {len(samples)} samples in {path}")
 
+def twin(args):
+    """GEN.1796 round 14: add `--count` airs of the Earth twin's fixed point (`twin_airs`) to the samples of `--name` (`--rng-offset` draws another stream)."""
+    path = os.path.join(args.work, args.name + ".pkl")
+    samples = []
+    if os.path.exists(path):
+        with open(path, "rb") as handle:
+            samples = pickle.load(handle)
+    samples.extend(twin_airs(args.count, random.Random(PERTURB_SEED + 11 + len(samples) + 1000 * args.rng_offset)))
+    with open(path, "wb") as handle:
+        pickle.dump(samples, handle)
+    print(f"{args.count} Earth twin airs added, {len(samples)} samples in {path}")
+
+
 ENVELOPE_PERTURB_SEED = PERTURB_SEED + 5
 
 
@@ -502,7 +577,7 @@ def cold(args):
     if os.path.exists(path):
         with open(path, "rb") as handle:
             samples = pickle.load(handle)
-    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), COLD_GEN_FAMILIES if args.gen else COLD_CIA_FAMILIES if args.cia else COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
+    samples.extend(designed_airs(args.count, random.Random(PERTURB_SEED + 7 + len(samples) + 1000 * args.rng_offset), DENSE_HOT_FAMILIES if args.dense else HALOGEN_FAMILIES if args.halogen else COLD_CO_FAMILIES if args.co else EARTH_FAMILIES if args.earth else COLD_MORE_FAMILIES if args.more else COLD_GEN_FAMILIES if args.gen else COLD_CIA_FAMILIES if args.cia else COLD_DEEP_FAMILIES if args.deep else COLD_FAMILIES))
     with open(path, "wb") as handle:
         pickle.dump(samples, handle)
     print(f"{args.count} cold dense airs added, {len(samples)} samples in {path}")
@@ -913,7 +988,7 @@ def fit(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=("sample", "designed", "wet", "anchors", "envelope", "hot", "hazy", "cold", "nullgas", "solve", "fit", "validate"))
+    parser.add_argument("step", choices=("sample", "designed", "wet", "twin", "anchors", "envelope", "hot", "hazy", "cold", "nullgas", "solve", "fit", "validate"))
     parser.add_argument("work", help="the work folder (outside the repository)")
     parser.add_argument("--name", default="train")
     parser.add_argument("--train", nargs="+", default=["train"], help="fit: the sample sets to fit to (each made by sample, designed and solve)")
@@ -928,6 +1003,11 @@ def main():
     parser.add_argument("--out", default=OUT)
     parser.add_argument("--deep", action="store_true", help="cold: the deep families (`COLD_DEEP_FAMILIES`)")
     parser.add_argument("--census", nargs="+", default=[], help="nullgas: the `.jsonl.gz` files of the class census whose airs are taken (GEN.1629)")
+    parser.add_argument("--co", action="store_true", help="cold: the cold carbon monoxide and nitrogen families (`COLD_CO_FAMILIES`, GEN.1796)")
+    parser.add_argument("--dense", action="store_true", help="cold: the very dense hot carbon dioxide families (`DENSE_HOT_FAMILIES`, GEN.1796 round 13)")
+    parser.add_argument("--halogen", action="store_true", help="cold: the cold hydrogen chloride families (`HALOGEN_FAMILIES`, GEN.1796 round 13)")
+    parser.add_argument("--earth", action="store_true", help="cold: the temperate air families with carbon dioxide and one infrared gas from nothing upward (`EARTH_FAMILIES`, GEN.1796)")
+    parser.add_argument("--more", action="store_true", help="cold: the hydrogen sulfide and carbon monoxide families (`COLD_MORE_FAMILIES`, GEN.1796)")
     parser.add_argument("--gen", action="store_true", help="cold: the generator-like cold dense nitrogen families (`COLD_GEN_FAMILIES`, GEN.1796)")
     parser.add_argument("--cia", action="store_true", help="cold: the light-world nitrogen families with infrared gases (`COLD_CIA_FAMILIES`, GEN.1796)")
     parser.add_argument("--rng-offset", type=int, default=0, help="envelope, hot: another stream of bodies than the fit's (GEN.1780: 1 draws bodies the fit never saw, for the validation)")
@@ -940,7 +1020,7 @@ def main():
     parser.add_argument("--distill", action="store_true", help="fit with --start: an air the model was not asked about takes the starting file's answer")
     args = parser.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    {"sample": sample, "designed": designed, "wet": wet, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
+    {"sample": sample, "designed": designed, "wet": wet, "twin": twin, "anchors": anchors, "envelope": envelope, "hot": envelope, "hazy": hazy, "cold": cold, "nullgas": nullgas, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
 
 
 if __name__ == "__main__":
