@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4693+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A planet outside a companion star's orbit is no longer lit thousands of times too brightly by that companion.
+
+### Fixed
+- **GEN.1790: the light, XUV and far-UV of a companion star were wrong for any body outside the companion's orbit.** `mean_inverse_square` averaged `1/(separation^2 - d^2)` and floored it, which is only right for a source outside the body's orbit. It now uses the exact coplanar mean `1/abs(R^2 - d^2)` for a source inside or outside, keeping a floor only very near `d = R` (stand-in RF9, a numerical guard). The Zeta Ophiuchi example, which put bodies past the ionization ceiling, now has none in 40 seeds. A 160-seed default census found no generated body outside a companion's orbit, so the change moves only systems that put planets there.
+- generation-output: changed
+- generation-affects: fill
+
 ## [8.0.4692+db272.gen150.api14] - 2026-11-21
 
 **Headline:** The volcanic gas an abiotic-oxygen world starts from keeps its oxygen in step with the carbon and sulfur that replace its own, so the leftover oxygen it used to carry free is gone and the world's oxygen is what its lost water leaves
