@@ -1,0 +1,672 @@
+{
+ "reference_gas": "SO2",
+ "reference_air_pa": {
+  "N2": 78084.0,
+  "O2": 20946.0,
+  "Ar": 934.0,
+  "CO2": 42.0,
+  "H2O": 1000.0
+ },
+ "gravity_m_s2": 9.81,
+ "absorbed_flux_w_m2": 240.0,
+ "reference_warming_k": {
+  "1e-09": 0.0096,
+  "1e-08": 0.0844,
+  "1e-07": 0.7128,
+  "1e-06": 3.9495,
+  "1e-05": 12.2453,
+  "0.0001": 21.0701,
+  "0.0005": 27.0125,
+  "0.002": 32.9938
+ },
+ "gas_shares": [
+  1e-06,
+  1e-05,
+  0.0001
+ ],
+ "weights": {
+  "O3": {
+   "weight": 0.328,
+   "warming_k": {
+    "1e-06": 3.3029,
+    "1e-05": 7.5745,
+    "0.0001": 12.7683
+   }
+  },
+  "C2H2": {
+   "weight": 0.03,
+   "warming_k": {
+    "1e-06": 0.5673,
+    "1e-05": 1.8706,
+    "0.0001": 3.7819
+   }
+  },
+  "C2H4": {
+   "weight": 0.556,
+   "warming_k": {
+    "1e-06": 3.1557,
+    "1e-05": 9.1188,
+    "0.0001": 17.1967
+   }
+  },
+  "C2H6": {
+   "weight": 0.288,
+   "warming_k": {
+    "1e-06": 2.5127,
+    "1e-05": 6.9146,
+    "0.0001": 13.2756
+   }
+  },
+  "CH2O": {
+   "weight": 0.113,
+   "warming_k": {
+    "1e-06": 1.8112,
+    "1e-05": 4.4868,
+    "0.0001": 6.9373
+   }
+  },
+  "CH3OH": {
+   "weight": 0.14,
+   "warming_k": {
+    "1e-06": 1.8903,
+    "1e-05": 4.8371,
+    "0.0001": 8.6275
+   }
+  },
+  "N2O": {
+   "weight": 0.128,
+   "warming_k": {
+    "1e-06": 1.7657,
+    "1e-05": 4.6148,
+    "0.0001": 8.2404
+   }
+  },
+  "NO2": {
+   "weight": 0.135,
+   "warming_k": {
+    "1e-06": 1.8818,
+    "1e-05": 4.7636,
+    "0.0001": 8.3191
+   }
+  },
+  "PH3": {
+   "weight": 0.261,
+   "warming_k": {
+    "1e-06": 2.6524,
+    "1e-05": 6.8766,
+    "0.0001": 12.1432
+   }
+  },
+  "OCS": {
+   "weight": 0.729,
+   "warming_k": {
+    "1e-06": 3.9063,
+    "1e-05": 10.0854,
+    "0.0001": 18.5594
+   }
+  },
+  "CH3Cl": {
+   "weight": 0.459,
+   "warming_k": {
+    "1e-06": 3.1656,
+    "1e-05": 8.4309,
+    "0.0001": 15.5837
+   }
+  },
+  "SiO": {
+   "weight": 0.034,
+   "warming_k": {
+    "1e-06": 0.893,
+    "1e-05": 1.9723,
+    "0.0001": 3.1514
+   }
+  }
+ },
+ "unmeasured": {
+  "HDO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 31.675,
+    "1e-05": 66.5854,
+    "0.0001": 88.276
+   }
+  },
+  "H2O2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 41.7306,
+    "1e-05": 73.4042,
+    "0.0001": 91.7267
+   }
+  },
+  "C3H8": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 45.8634,
+    "1e-05": 76.1345,
+    "0.0001": 93.1619
+   }
+  },
+  "C4H10": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 50.1078,
+    "1e-05": 78.8543,
+    "0.0001": 94.5182
+   }
+  },
+  "C6H6": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 54.6068,
+    "1e-05": 81.55,
+    "0.0001": 95.8914
+   }
+  },
+  "N2H4": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 40.6403,
+    "1e-05": 72.7565,
+    "0.0001": 91.3838
+   }
+  },
+  "NO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 39.5084,
+    "1e-05": 72.031,
+    "0.0001": 91.0364
+   }
+  },
+  "N2O4": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 56.9593,
+    "1e-05": 82.9094,
+    "0.0001": 96.6164
+   }
+  },
+  "HNO3": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 51.3426,
+    "1e-05": 79.683,
+    "0.0001": 94.9115
+   }
+  },
+  "HNCO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 45.4792,
+    "1e-05": 75.8811,
+    "0.0001": 93.0368
+   }
+  },
+  "C3O2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 52.5156,
+    "1e-05": 80.3561,
+    "0.0001": 95.2661
+   }
+  },
+  "CN": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 36.979,
+    "1e-05": 70.4326,
+    "0.0001": 90.1859
+   }
+  },
+  "C2N2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 48.4227,
+    "1e-05": 77.8051,
+    "0.0001": 93.9779
+   }
+  },
+  "CH3CN": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 44.7487,
+    "1e-05": 75.3992,
+    "0.0001": 92.7589
+   }
+  },
+  "HC3N": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 48.1272,
+    "1e-05": 77.6144,
+    "0.0001": 93.8812
+   }
+  },
+  "C4H2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 47.8255,
+    "1e-05": 77.419,
+    "0.0001": 93.7833
+   }
+  },
+  "SO3": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 54.9739,
+    "1e-05": 81.7563,
+    "0.0001": 95.9957
+   }
+  },
+  "H2SO4": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 57.8742,
+    "1e-05": 83.4264,
+    "0.0001": 96.8959
+   }
+  },
+  "CS2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 54.2174,
+    "1e-05": 81.3338,
+    "0.0001": 95.7922
+   }
+  },
+  "S8": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 70.2714,
+    "1e-05": 90.0944,
+    "0.0001": 100.6845
+   }
+  },
+  "SO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 47.194,
+    "1e-05": 77.0121,
+    "0.0001": 93.6053
+   }
+  },
+  "CH3SH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 47.208,
+    "1e-05": 77.0211,
+    "0.0001": 93.6083
+   }
+  },
+  "(CH3)2S": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 51.1271,
+    "1e-05": 79.4938,
+    "0.0001": 94.842
+   }
+  },
+  "HCl": {
+   "reason": "under 0.02 K of warming on Earth's air at every share measured: Earth's air cannot tell its strength (a cold dense air can)",
+   "warming_k": {
+    "1e-06": 0.004,
+    "1e-05": 0.0074,
+    "0.0001": 0.011
+   }
+  },
+  "HF": {
+   "reason": "under 0.02 K of warming on Earth's air at every share measured: Earth's air cannot tell its strength (a cold dense air can)",
+   "warming_k": {
+    "1e-06": 0.0,
+    "1e-05": 0.0001,
+    "0.0001": 0.0005
+   }
+  },
+  "HBr": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 55.1339,
+    "1e-05": 81.8463,
+    "0.0001": 96.0456
+   }
+  },
+  "HClO4": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 58.2049,
+    "1e-05": 83.6191,
+    "0.0001": 97.0005
+   }
+  },
+  "CF4": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 56.3028,
+    "1e-05": 82.5505,
+    "0.0001": 96.4211
+   }
+  },
+  "SF6": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 63.2319,
+    "1e-05": 86.4433,
+    "0.0001": 98.5395
+   }
+  },
+  "SiH4": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 40.6785,
+    "1e-05": 72.781,
+    "0.0001": 91.397
+   }
+  },
+  "TiO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 51.5481,
+    "1e-05": 79.8045,
+    "0.0001": 94.9775
+   }
+  },
+  "NaCl": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 50.1907,
+    "1e-05": 78.9074,
+    "0.0001": 94.5496
+   }
+  },
+  "KCl": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 53.9001,
+    "1e-05": 81.1534,
+    "0.0001": 95.6958
+   }
+  },
+  "NH4Cl": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 48.8422,
+    "1e-05": 78.0762,
+    "0.0001": 94.1122
+   }
+  },
+  "FeH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 49.7734,
+    "1e-05": 78.6449,
+    "0.0001": 94.4157
+   }
+  },
+  "CrH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 48.7023,
+    "1e-05": 77.9869,
+    "0.0001": 94.0711
+   }
+  },
+  "AlH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 38.3072,
+    "1e-05": 71.2563,
+    "0.0001": 90.6371
+   }
+  },
+  "VO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 52.2683,
+    "1e-05": 80.2231,
+    "0.0001": 95.2012
+   }
+  },
+  "CaOH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 49.8359,
+    "1e-05": 78.6845,
+    "0.0001": 94.435
+   }
+  },
+  "NH4SH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 48.145,
+    "1e-05": 77.6256,
+    "0.0001": 93.8849
+   }
+  },
+  "OH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 29.8007,
+    "1e-05": 65.1637,
+    "0.0001": 87.4895
+   }
+  },
+  "FeO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 53.343,
+    "1e-05": 80.8334,
+    "0.0001": 95.5244
+   }
+  },
+  "MgO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 44.464,
+    "1e-05": 75.2071,
+    "0.0001": 92.6607
+   }
+  },
+  "SiO2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 50.6151,
+    "1e-05": 79.1744,
+    "0.0001": 94.683
+   }
+  },
+  "TiO2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 54.9378,
+    "1e-05": 81.7361,
+    "0.0001": 95.9853
+   }
+  },
+  "NaOH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 44.3493,
+    "1e-05": 75.1266,
+    "0.0001": 92.6179
+   }
+  },
+  "KOH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 49.5743,
+    "1e-05": 78.5152,
+    "0.0001": 94.3502
+   }
+  },
+  "NaO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 43.9612,
+    "1e-05": 74.8578,
+    "0.0001": 92.4798
+   }
+  },
+  "MgOH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 44.846,
+    "1e-05": 75.466,
+    "0.0001": 92.7934
+   }
+  },
+  "Mg(OH)2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 50.1592,
+    "1e-05": 78.8868,
+    "0.0001": 94.5359
+   }
+  },
+  "Fe(OH)2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 56.6138,
+    "1e-05": 82.7225,
+    "0.0001": 96.513
+   }
+  },
+  "CaO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 49.5667,
+    "1e-05": 78.5105,
+    "0.0001": 94.349
+   }
+  },
+  "SiS": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 50.6309,
+    "1e-05": 79.1844,
+    "0.0001": 94.6889
+   }
+  },
+  "HCOOH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 46.5282,
+    "1e-05": 76.5735,
+    "0.0001": 93.3838
+   }
+  },
+  "KO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 49.2958,
+    "1e-05": 78.367,
+    "0.0001": 94.2623
+   }
+  },
+  "K2O": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 57.3064,
+    "1e-05": 83.1009,
+    "0.0001": 96.721
+   }
+  },
+  "Na2O": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 51.09,
+    "1e-05": 79.4709,
+    "0.0001": 94.8319
+   }
+  },
+  "AlO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 45.4634,
+    "1e-05": 75.8707,
+    "0.0001": 93.0326
+   }
+  },
+  "Al2O": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 52.9408,
+    "1e-05": 80.6018,
+    "0.0001": 95.3986
+   }
+  },
+  "AlO2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 50.3316,
+    "1e-05": 78.996,
+    "0.0001": 94.5926
+   }
+  },
+  "Al2O2": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 55.9465,
+    "1e-05": 82.3561,
+    "0.0001": 96.3155
+   }
+  },
+  "LiH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 17.5389,
+    "1e-05": 54.8656,
+    "0.0001": 81.699
+   }
+  },
+  "LiOH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 35.496,
+    "1e-05": 69.4491,
+    "0.0001": 89.6753
+   }
+  },
+  "LiCl": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 45.2457,
+    "1e-05": 75.7348,
+    "0.0001": 92.9334
+   }
+  },
+  "PO": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 46.8422,
+    "1e-05": 76.7803,
+    "0.0001": 93.4894
+   }
+  },
+  "PN": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 46.1695,
+    "1e-05": 76.3392,
+    "0.0001": 93.268
+   }
+  },
+  "PS": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 51.3479,
+    "1e-05": 79.6864,
+    "0.0001": 94.9145
+   }
+  },
+  "PH": {
+   "reason": "GEN.1803: the model reads this gas with the stand-in band of `line_opacity` (a per-kilogram opacity), so what Earth's air shows is the stand-in's and not the gas's",
+   "warming_k": {
+    "1e-06": 40.6058,
+    "1e-05": 72.7364,
+    "0.0001": 91.3742
+   }
+  }
+ },
+ "note": "GEN.1621: moles of SO2 that warm Earth's air as much as one mole of the gas, measured against radiative_convective.warming by scripts/measure_infrared_strength.py"
+}

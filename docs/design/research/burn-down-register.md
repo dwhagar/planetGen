@@ -9,6 +9,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 5.2:BC6 | no data | - | exomoons are not observed; the regular satellites of the four giants are the only moons with a composition and the rule against fixed Solar System content keeps them a check; tier T6 stays |
 | 5.3:AT.a1, a2 | no data | - | GEN.482 read the first-hand ranges at the Moon, Mars and Earth (T1 at those three points); only a larger white-dwarf ensemble improves the zero point |
 | 5.3:AT.b5 | no data | - | Boss decided a log-uniform placeholder for sub-percent water on 2026-10-17; no ensemble of exoplanet water contents exists; any measurement replaces it |
+| 6.7:AM4 | replace | GEN.1769 | L3, the upper end of 1 percent of the body's mass (about 43 oceans) is the Boss's call to widen the range of [R2769] (one to ten oceans); the body water budget of lane J, which gives each world its own water, replaces the range |
 | 6.7:AM64 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
 | 6.7:AM65 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
 | 6.7:AM66 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
@@ -92,6 +93,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.36:PA16 | no data | - | L3, the terrestrial-zone solids boost of 4 and its start at 0.45 AU were tuned to [R0572] 0.37 to 0.60 Earth-sized planets per Sun-like star in the habitable zone (with PA17); no disk-evolution or pebble-flux model of the zone is in hand |
 | 6.36:PA17 | no data | - | L3, the giant-impact spacing of 25 mutual Hill radii and its end at 3 AU were tuned to [R0572] with PA16; no N-body run of the zone's oligarchs is in hand |
 | 6.36:PA14 | no data | - | a requested planet class takes its mass log-uniform over 0.05 to 1000 Earth masses after 8 free draws; no survey measures the mass of a planet picked by class, so the range is a design choice kept wide |
+| 6.36:PA20 | no data | - | L3, the zone the habitable-world effort goes to is the habitable zone widened by half its width on each side (GEN.1807, Boss 5:49 PM EST 11-20: more worlds get the effort); no source gives an edge past the maximum greenhouse limit and no survey measures where a temperate sea can be made, so the 0.5 is Boss's choice kept as a design number; tier T9 stays |
 | 6.40:RD1 | no data | - | no atmosphere of a runaway-greenhouse planet has been measured; TRAPPIST-1 b and c only forbid keeping all of it |
 | 6.40:RD2 | no data | - | no abiotic oxygen air has been detected or ruled out on an M-dwarf habitable-zone planet; Luger and Barnes fix only the possible amount |
 | 6.40:RD3 | no data | - | no measurement of rocky exoplanet pressures by depth below the shoreline exists; GEN.483 derives the caps at these edges from the Solar System |
@@ -161,7 +163,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.43:LB1 | replaced | - | GEN.1000: each belt's largest body now comes from the size law (`belt_ledger.belt_state`: drawn from the belt's own stream and settled with the collisional mass); the range stand-in is gone |
 | 6.45:MF1 | no data | - | no measurement gives the melt share of a mantle outside the Earth (and Io's lavas); a mantle potential temperature and solidus model is the replacement and nothing we hold supplies it |
 | 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
-| 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |
+| 6.125:TB4 | replaced | - | GEN.1151 (2026-11-19): lowered to L2; the flat 1 Myr minimum is a ramp whose two ends are the ends of the row's own range 0.3 to 3 Myr, and the ramp is checked against the median disc life of a G dwarf (0.9 Myr, `reports/gen1151/`); no source read gives the shortest disc life for a trojan to grow |
+| 6.125:TB7 | no data | - | no source read gives how far a giant may move before the zone its trojan grew in is lost; an N-body migration run replaces it |
 | 6.155:LR1 | no data | - | the abundance word edges on the 0 to 9 kind score are a hand-picked reading of a standard ecology scale (DAFOR style); no source ties the words to our score |
 | 6.155:LR2 | no data | - | the trend look-ahead, band and spread are hand-picked; no source gives a rate of change that counts as a trend for a living class |
 | 6.155:LR3 | no data | - | the time-left limits for Dying out, Precarious and Marginal are hand-picked; no source gives them for a living class |
@@ -235,6 +238,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF63 | no data | - | the edges of the Temperature score are chosen (the Blue cut by Boss, the others proposed) and no rated catalogue of worlds exists to fit them |
 | 6.18:LF64 | no data | - | no rated catalogue of worlds exists to fit the least Blue share |
 | 6.18:LF65 | no data | - | no rated catalogue of worlds exists to fit the credit of a Yellow sample |
+| 6.19:LF74 | no data | - | GEN.1677: the temperature edges of the score are chosen from the climates people live in without machines (the Yellow, Green and Blue edges proposed, the Blue and Green cut by Boss); no rated catalogue of worlds exists to fit them |
+| 6.19:LF75 | no data | - | GEN.1677: the UV Green edge at 10 times Earth is Boss's choice; no rated catalogue of worlds exists to fit it |
 | 6.193:AW1 | no data | - | L3, the class F gravity edge 1.4 g was chosen from a sweep of 1,448 bodies; it goes when the gravity edges of classes Z and V are fixed from heavy-world physics (GEN.1136) |
 | 6.18:LF66 | no data | - | no chronic-dose growth curve for a microbe is in hand (the best known is recalled, not opened); one per life class would replace the threshold and the factors |
 | 6.18:LF67 | no data | - | no measured animal limit for the three stresses is in hand; the numbers are chosen under the microbes' |
@@ -299,6 +304,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.270:AUD24 | no data | - | only the Sweeney and others ratios are read; no kinematic sample of remnants is held |
 | 6.270:AUD28 | no data | - | a design choice of the flavor rebuild (GEN.1430); no data exists |
 | 6.254:LS1 | replace | GEN.1493 | L3, the inward share is fitted to the mean of the present law across generated planets; a scattering integration of a primordial belt against the system's planets (slice 3 of GEN.1493) replaces it |
+| 6.254:LS1a | replace | GEN.1493 | L4, the crossing gain is fitted so a Sun-like synthetic system keeps the published veneer; a scattering integration of the crossing population against the system's planets replaces it |
+| 6.254:LS1b | no data | - | L4, no source prints how much more a stirred belt sends inward; the stirring's eccentricity as a continuous share would replace the flag |
 | 6.254:LS2 | no data | - | L4, no source prints the impact-speed distribution of scattered planetesimals on a rocky planet; the order of a few tenths of the orbital speed stands until a dynamical model of the crossing population gives one |
 | 6.254:LS3 | no data | - | L4, no source gives how far beyond a belt a giant still shares what it scatters; the chaotic-zone width of the clearing law would replace the factor of 3 |
 | 6.255:LA1 | replace | GEN.1493 | L3, the floor is a share of the law's mean fitted to the lowest published veneers; a model of the leftover planetesimals of a system with no belt replaces it |
@@ -320,7 +327,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.3a:`--class-m` | no data | - | the Class M abundance tier is Boss's choice (card, 11:19 PM EST 2026-11-13) and nobody knows how common an Earth is; the dial values behind each word (6.289:AT1 to AT4) are calibrated by the meter, and the choice itself has no measurement to replace it |
 | 6.3a:`--comet-abundance` | no data | - | the comet abundance tier is Boss's choice (GEN.1775) and nobody knows how many comets a star keeps; the multipliers behind each word (6.303:CMT10) scale the registered comet chance (6.303:CMT8), and the choice itself has no measurement to replace it |
 | 6.6b:IR12 | no data | - | the cloud's longwave share is fitted to the Earth's cloud effect at its surface humidity; no measured cloud longwave effect of another air exists to replace it |
-| 6.6c:IR19 | no data | - | the fit has no samples of a minor gas between absent and about 1e-5, so the thin-gas scaling is hand-chosen against the sweep; a refit on airs with minor gases replaces it |
 | 6.179a:SPR1 | no data | - | a display limit chosen so a sprite narrower than a few pixels is left to the glow band; no measurement stands behind it |
 | 6.179a:SPR2 | no data | - | a display limit chosen so faint dark clouds are not drawn; no measurement stands behind it |
 | 6.179a:SPR3 | no data | - | a search distance chosen for the cost of the sky route; no measurement stands behind it |

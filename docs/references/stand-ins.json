@@ -3003,11 +3003,15 @@
           "what": "mixture_evolved.WATER_PHOTOLYSED"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "replace",
+            "GEN.1769",
+            "L3, the upper end of 1 percent of the body's mass (about 43 oceans) is the Boss's call to widen the range of [R2769] (one to ten oceans); the body water budget of lane J, which gives each world its own water, replaces the range"
+          ],
           "fields": [
             [
               "Evidence",
-              "READ ([R2769]: up to ten oceans)"
+              "educated guess from physics: [R2769] consider one to ten oceans; the Boss asked for the range widened (5:45 PM EST 11-20, GEN.1769 slice 2) to 1 percent of the body's mass, about 43 oceans, so the water-rich rocky worlds are in it; no source was read for the upper end, and the dry oxygen share does not change above it in the measured draws"
             ],
             [
               "What it is",
@@ -3015,7 +3019,7 @@
             ],
             [
               "The range it moves in",
-              "0.0233 to 0.233 weight percent, log"
+              "0.0233 to 1 weight percent, log"
             ],
             [
               "Where it holds",
@@ -3032,11 +3036,11 @@
           ],
           "id": "AM4",
           "key": "6.7:AM4",
-          "kind": "B",
+          "kind": "P",
           "slug": "6-7-am4",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L0",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
           "unread": null,
           "what": "mixture_evolved.OCEAN_WATER_WT_PERCENT"
         },
@@ -10851,7 +10855,7 @@
           "fields": [
             [
               "What it is",
-              "habitability.YELLOW_CREDIT 0.15: how much of a livable sample a Yellow-band sample (a suit or cooling garments make it livable) counts for in the livable share"
+              "habitability.HUMID_SAMPLE_CREDIT 0.15 (GEN.1677, replacing YELLOW_CREDIT 0.15): the share of a livable sample that a sample the wet bulb rule moved to Yellow counts for, and habitability.sample_credit, which credits every other place and time the livable share at which the world would score that sample's own band score (a Yellow sample 0.10 to 0.50, a Red one 0 to 0.10, a Green or Blue one 1)"
             ],
             [
               "The range it moves in",
@@ -10859,11 +10863,11 @@
             ],
             [
               "Where it holds",
-              "a world that is Yellow everywhere reads Yellow and not Red"
+              "a world that is Yellow everywhere reads exactly its band score; no fixed credit stands for a suit"
             ],
             [
               "What would show it wrong",
-              "a rating that puts an all-Yellow world lower than Yellow"
+              "a rating that puts an all-Yellow world lower than its band score, or one that makes a hot world Green"
             ],
             [
               "What replaces it",
@@ -10871,7 +10875,7 @@
             ],
             [
               "Evidence",
-              "planetGen's choice, set on the sweep of GEN.1265"
+              "Boss, 11-20 (a rating comes from the conditions, never from gear); census of 535 default systems in the report of GEN.1677"
             ]
           ],
           "id": "LF65",
@@ -10882,7 +10886,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "habitability.YELLOW_CREDIT 0.15: how much of a livable sample a Yellow-band sample (a suit or cooling garments make it livable) counts for in the livable share"
+          "what": "habitability.HUMID_SAMPLE_CREDIT 0.15 (GEN.1677, replacing YELLOW_CREDIT 0.15): the share of a livable sample that a sample the wet bulb rule moved to Yellow counts for, and habitability.sample_credit, which credits every other place and time the livable share at which the world would score that sample's own band score (a Yellow sample 0.10 to 0.50, a Red one 0 to 0.10, a Green or Blue one 1)"
         },
         {
           "burn_down": [
@@ -12181,6 +12185,90 @@
           "tweak": "L0",
           "unread": null,
           "what": "life_ledger.json reaction numbers (GEN.1743, research GEN.1742): Earth's natural nitrogen fixation 15.7 Tmol N/yr (about 220 Tg N), the N2O leak 0.044 of the nitrogen fixed and its life 109 yr, the life of methane in an oxygenated air 8.4 yr and the soil eaters' share of its loss 0.052, the share of seafloor methane eaten once the sea holds sulfate 0.9, the deposition velocity of carbon monoxide into a sea with CO eaters 1.2e-4 cm/s and without 1e-8 cm/s; and the 35 balanced reactions of the class variants (reactions, stoichiometry, T1 L0, except the acid classes T8 and the anammox of Class 8 T7)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.1677: the temperature edges of the score are chosen from the climates people live in without machines (the Yellow, Green and Blue edges proposed, the Blue and Green cut by Boss); no rated catalogue of worlds exists to fit them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "protection_limits temp_yellow_low_c -20, temp_green_low_c -10, temp_blue_low_c 5 and temp_green_high_c 38 (GEN.1677), the score's temperature edges, which habitability.TEMPERATURE_BAND reads, with comfort_high_c 31, heat_max_c 122 and the outer edges as before"
+            ],
+            [
+              "The range it moves in",
+              "cold Yellow edge -25 to -15; cold Green edge -15 to -5; Blue edge 0 to 10; hot Green edge 35 to 45"
+            ],
+            [
+              "Where it holds",
+              "the climates people live in without heating or cooling machines (Xu et al. 2020, the human climate niche: peaks near 11 to 15 C and 20 to 25 C annual mean, ending near 29 C), a sustained wet bulb of 35 C [R4057], liquid water in cells down to about -20 C [R3040, R5341]"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which Earth is not Blue, or one that makes a hot or a cold world Green"
+            ],
+            [
+              "What replaces it",
+              "the gear edges (-50, -20, 0, 45), which are clothing and suits and now only the kit list's"
+            ],
+            [
+              "Evidence",
+              "Boss, 11-20 (choice 1: the climate people live in without machines). Census of 535 default systems: habitable 6 before and after, Temperature changes colour on 72 of 8,580 bodies"
+            ]
+          ],
+          "id": "LF74",
+          "key": "6.19:LF74",
+          "kind": "P",
+          "slug": "6-19-lf74",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "protection_limits temp_yellow_low_c -20, temp_green_low_c -10, temp_blue_low_c 5 and temp_green_high_c 38 (GEN.1677), the score's temperature edges, which habitability.TEMPERATURE_BAND reads, with comfort_high_c 31, heat_max_c 122 and the outer edges as before"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.1677: the UV Green edge at 10 times Earth is Boss's choice; no rated catalogue of worlds exists to fit it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "protection_limits uv_blue_index 3 and uv_green_index 10 (GEN.1677), the score's ultraviolet edges, which Bands.uv of habitability.HUMAN reads, with uv_lethal_index 300 and uv_outer_index 3000 as before"
+            ],
+            [
+              "The range it moves in",
+              "Green edge 5 to 30"
+            ],
+            [
+              "Where it holds",
+              "Earth's tropical high-altitude peak is about 3 times the mean dose, and fair skin burns in about 15 to 20 minutes at UV index 10 (WHO UV index guide); the edge is how fast the light injures, not what covers the skin"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which Earth is not Blue for radiation, or a Green edge under which no Earth place can live"
+            ],
+            [
+              "What replaces it",
+              "30 (a full-cover suit)"
+            ],
+            [
+              "Evidence",
+              "Boss, 11-20 (choice 2: Green edge at 10 times Earth). Census: 26 of 8,580 bodies Green to Yellow"
+            ]
+          ],
+          "id": "LF75",
+          "key": "6.19:LF75",
+          "kind": "P",
+          "slug": "6-19-lf75",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "protection_limits uv_blue_index 3 and uv_green_index 10 (GEN.1677), the score's ultraviolet edges, which Bands.uv of habitability.HUMAN reads, with uv_lethal_index 300 and uv_outer_index 3000 as before"
         },
         {
           "burn_down": [
@@ -15529,7 +15617,7 @@
           "fields": [
             [
               "What it is",
-              "moon_orbits.STRATEGIES (LSODA at 1e-5 for 10,000 evaluations, then BDF at 1e-4 for 150,000; a history neither finishes, about one in five hundred stiff planets whose spin is held at a balance of the tides or turns with a moon, leaves the moons as born and the planet's spin as it would be without them)"
+              "moon_orbits.STRATEGIES (LSODA at 1e-5 for 10,000 evaluations, then BDF at 1e-4 for 150,000; a history none finishes (2 of 3,174 histories over 233 generated systems, GEN.1816; the ladder ends with Radau) is read by the inspiral time of each moon at birth: one that falls within the age is lost to its planet and recorded as fallen, the others stay as born, the planet is marked build.moon_history_unfinished, and the planet's spin is the one it would have without them)"
             ],
             [
               "The range it moves in",
@@ -15541,7 +15629,7 @@
             ],
             [
               "What would show it wrong",
-              "test_moon_history::test_a_history_no_integrator_can_finish_leaves_the_moons_as_born"
+              "test_moon_history::test_a_history_no_integrator_can_finish_leaves_the_moons_as_born_unless_the_tide_brings_one_in"
             ],
             [
               "What replaces it",
@@ -15560,7 +15648,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "moon_orbits.STRATEGIES (LSODA at 1e-5 for 10,000 evaluations, then BDF at 1e-4 for 150,000; a history neither finishes, about one in five hundred stiff planets whose spin is held at a balance of the tides or turns with a moon, leaves the moons as born and the planet's spin as it would be without them)"
+          "what": "moon_orbits.STRATEGIES (LSODA at 1e-5 for 10,000 evaluations, then BDF at 1e-4 for 150,000; a history none finishes (2 of 3,174 histories over 233 generated systems, GEN.1816; the ladder ends with Radau) is read by the inspiral time of each moon at birth: one that falls within the age is lost to its planet and recorded as fallen, the others stay as born, the planet is marked build.moon_history_unfinished, and the planet's spin is the one it would have without them)"
         },
         {
           "burn_down": null,
@@ -15599,6 +15687,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "a planet the falling moons spin up is held at spin.BREAKUP_FRACTION of its breakup rate (the rest of the ring's angular momentum is shed with the ring material)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_orbits.MAX_LOG_DISTANCE 700 and moon_orbits.FAR_DISTANCE_M 1e15: the right-hand side holds a distance a trial step carried past a terminal event (inside the Roche limit, beyond the Hill radius, or a log distance whose exp would overflow) at that edge, so the step is rejected and the event found instead of the rung ending in ZeroDivisionError or OverflowError (GEN.1816)"
+            ],
+            [
+              "The range it moves in",
+              "600 to 709 and 1e12 to 1e18"
+            ],
+            [
+              "Where it holds",
+              "any moon history"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable (a numerical guard)"
+            ],
+            [
+              "What replaces it",
+              "a guard from the cost of a failed rung"
+            ],
+            [
+              "Evidence",
+              "needed output (a history finishes)"
+            ]
+          ],
+          "id": "TM10",
+          "key": "6.25:TM10",
+          "kind": "P",
+          "slug": "6-25-tm10",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "moon_orbits.MAX_LOG_DISTANCE 700 and moon_orbits.FAR_DISTANCE_M 1e15: the right-hand side holds a distance a trial step carried past a terminal event (inside the Roche limit, beyond the Hill radius, or a log distance whose exp would overflow) at that edge, so the step is rejected and the event found instead of the rung ending in ZeroDivisionError or OverflowError (GEN.1816)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_orbits.HEAT_ATOL_SHARE 1e-4: the absolute tolerance of the integration's heat state is this share of the planet's rotational kinetic energy at the start of a stretch (GEN.1818); a fixed 1e20 J left the error scale of a 1e27 J heat (RTOL of it) inside the noise of the rheology's power and held the steps of a stiff history (seed 9101 of the aquifer tests on Train 52 failed all five integrators)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2 (1e-6 failed that history)"
+            ],
+            [
+              "Where it holds",
+              "any planet with moons"
+            ],
+            [
+              "What would show it wrong",
+              "a measured heat that is off the tight-reference heat by more than the share of the spin energy"
+            ],
+            [
+              "What replaces it",
+              "the heat taken along the orbits after they are found, or a tolerance from the power's own noise"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the energy a spin can give up is the size of what the tide can take; nudged until the stiff history finished (L1); measured on 300 systems"
+            ]
+          ],
+          "id": "TM11",
+          "key": "6.25:TM11",
+          "kind": "P",
+          "slug": "6-25-tm11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "moon_orbits.HEAT_ATOL_SHARE 1e-4: the absolute tolerance of the integration's heat state is this share of the planet's rotational kinetic energy at the start of a stretch (GEN.1818); a fixed 1e20 J left the error scale of a 1e27 J heat (RTOL of it) inside the noise of the rheology's power and held the steps of a stiff history (seed 9101 of the aquifer tests on Train 52 failed all five integrators)"
         }
       ],
       "slug": "6-25-stand-ins-of-the-moon-orbits",
@@ -18485,6 +18649,48 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, planet_architecture.giant_impacts) and GIANT_IMPACT_END_AU 3 (the stage ends there, or at the snow line when nearer: farther out the merging does not finish in the disk's age, and for A stars with snow lines at 10 AU and more it moved the outer disk inward and tripled the debris disks)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the zone the habitable-world effort goes to is the habitable zone widened by half its width on each side (GEN.1807, Boss 5:49 PM EST 11-20: more worlds get the effort); no source gives an edge past the maximum greenhouse limit and no survey measures where a temperate sea can be made, so the 0.5 is Boss's choice kept as a design number; tier T9 stays"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "orbits.CANDIDATE_ZONE_WIDENING 0.5 (GEN.1807: how far the zone the habitable-world effort goes to reaches past each edge of the star's habitable zone, as a share of the zone's width; 0.5 on each side doubles the span, the Sun's 0.95 to 1.68 AU becoming 0.59 to 2.04 AU; the effort is the tier dials, abundance_tier.candidate, and the request for a habitable world, StarSystem._generate_planets; the habitable zone itself, the zone letter of a body and the pages keep the [R2447] edges, and the class of a body still comes last from its own conditions)"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1 (0 is the habitable zone alone)"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of every star"
+            ],
+            [
+              "What would show it wrong",
+              "test_habitable_zone::test_the_effort_zone_is_the_habitable_zone_widened_by_half_its_width_each_side; test_abundance_tier::test_the_dials_act_on_rocky_planets_in_the_widened_zone"
+            ],
+            [
+              "What replaces it",
+              "a candidate zone from where the generator's own air and water leave a temperate sea (the radiative-convective edge of IR17 with the clouds of CA1)"
+            ],
+            [
+              "Evidence",
+              "needed output (Boss, 5:49 PM EST 11-20, after the outer-edge row of GEN.1791 gained +5 Class M and +6 M-like per 400 systems by narrowing the zone: the thick-CO2 outer worlds drew the effort and none could be M; he chose to widen the effort zone by half its width on each side instead, to put effort into more worlds; no source gives an edge past the maximum greenhouse limit)"
+            ]
+          ],
+          "id": "PA20",
+          "key": "6.36:PA20",
+          "kind": "P",
+          "slug": "6-36-pa20",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "orbits.CANDIDATE_ZONE_WIDENING 0.5 (GEN.1807: how far the zone the habitable-world effort goes to reaches past each edge of the star's habitable zone, as a share of the zone's width; 0.5 on each side doubles the span, the Sun's 0.95 to 1.68 AU becoming 0.59 to 2.04 AU; the effort is the tier dials, abundance_tier.candidate, and the request for a habitable world, StarSystem._generate_planets; the habitable zone itself, the zone letter of a body and the pages keep the [R2447] edges, and the class of a body still comes last from its own conditions)"
         }
       ],
       "slug": "6-36-stand-ins-of-the-planet-architecture",
@@ -29731,11 +29937,11 @@
           "fields": [
             [
               "What it is",
-              "habitability.YELLOW_CREDIT 0.15 (a sample that needs a suit, the Yellow band, counts for this share of a livable one in the score, so a world where a person needs a suit everywhere reads Yellow and one that kills everywhere reads Red)"
+              "habitability.sample_credit (GEN.1677, replacing YELLOW_CREDIT 0.15): each place and time of a world counts for the livable share at which the world would score its own band score, so a world too cold or too hot everywhere reads its own band score (Yellow 0.4 to 0.75, Red below 0.4) and none for a suit"
             ],
             [
               "The range it moves in",
-              "0 to 0.3"
+              "0.1 and 0.5 at the Yellow and Green edges (the livable shares of LF63)"
             ],
             [
               "Where it holds",
@@ -29743,15 +29949,15 @@
             ],
             [
               "What would show it wrong",
-              "a decision of Boss that a world that needs a suit everywhere reads Red, or a sweep where the credit puts a world with a livable share under 0.1 in Green"
+              "a decision of Boss that a too cold or too hot place should count for less than its band score says"
             ],
             [
               "What replaces it",
-              "0"
+              "a fixed credit (0.15)"
             ],
             [
               "Evidence",
-              "the plan scores livable area only; with no credit every suit-only world fell from Yellow to Red, which the Yellow cap on the overall rating (unchanged) did not intend"
+              "Boss, 11-20, choice 3 of the GEN.1677 report"
             ]
           ],
           "id": "SS17",
@@ -29762,7 +29968,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "habitability.YELLOW_CREDIT 0.15 (a sample that needs a suit, the Yellow band, counts for this share of a livable one in the score, so a world where a person needs a suit everywhere reads Yellow and one that kills everywhere reads Red)"
+          "what": "habitability.sample_credit (GEN.1677, replacing YELLOW_CREDIT 0.15): each place and time of a world counts for the livable share at which the world would score its own band score, so a world too cold or too hot everywhere reads its own band score (Yellow 0.4 to 0.75, Red below 0.4) and none for a suit"
         },
         {
           "burn_down": null,
@@ -35239,6 +35445,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_region.TrojanRegion limits a (1 -/+ e): the orbit radii a trojan region spans are the giant's distance less and more than the region's mean eccentricity (GEN.1150); how often a giant holds a swarm is not set, it is what the outer disk it swept leaves (about 1 percent of G2V systems in 160)"
+            ],
+            [
+              "The range it moves in",
+              "none (geometry)"
+            ],
+            [
+              "Where it holds",
+              "every region"
+            ],
+            [
+              "What would show it wrong",
+              "a region whose bodies lie outside its limits"
+            ],
+            [
+              "What replaces it",
+              "the radial width of a tadpole from its libration, when the orbit updater's overlay (slice 2) draws the bodies"
+            ],
+            [
+              "Evidence",
+              "the swarm's mass is swept_hand_on.trojan_part (GEN.1455 survival, the scatter SX5 split); measured 2 of 160 G2V systems with a swept outer disk, one of 1.1e22 kg and one of 3e7 kg (reports/gen1150)"
+            ]
+          ],
+          "id": "TJ12",
+          "key": "6.121:TJ12",
+          "kind": "P",
+          "slug": "6-121-tj12",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "trojan_region.TrojanRegion limits a (1 -/+ e): the orbit radii a trojan region spans are the giant's distance less and more than the region's mean eccentricity (GEN.1150); how often a giant holds a swarm is not set, it is what the outer disk it swept leaves (about 1 percent of G2V systems in 160)"
         }
       ],
       "slug": "6-121-stand-ins-of-the-lagrange-trojans",
@@ -35379,7 +35623,7 @@
           "fields": [
             [
               "What it is",
-              "trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan"
+              "trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan (kept at 0.1 by GEN.1151: the ramp of TB4 already cuts the median G dwarf's ceiling to about a fifth, reports/gen1151/)"
             ],
             [
               "The range it moves in",
@@ -35391,7 +35635,7 @@
             ],
             [
               "What would show it wrong",
-              "a disc run in which trojans of planet mass grow from a far smaller share"
+              "a disc run in which trojans of planet mass grow from a far smaller share, or a trojan search that finds planet-mass trojans of more than about 1 in 7 giants"
             ],
             [
               "What replaces it",
@@ -35399,7 +35643,7 @@
             ],
             [
               "Evidence",
-              "none read; [R0919] ([R0919], abstract READ) grow trojans in the disc"
+              "none read; [R0919] ([R0919], abstract READ) grow trojans in the disc; no planet-mass trojan among 2244 Kepler candidates (WR10)"
             ]
           ],
           "id": "TB3",
@@ -35409,19 +35653,19 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L4",
-          "unread": "GEN.1151",
-          "what": "trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan"
+          "unread": null,
+          "what": "trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan (kept at 0.1 by GEN.1151: the ramp of TB4 already cuts the median G dwarf's ceiling to about a fifth, reports/gen1151/)"
         },
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "no source read gives the shortest disc life for a trojan to grow; a formation map replaces it"
+            "GEN.1151 (2026-11-19): lowered to L2; the flat 1 Myr minimum is a ramp whose two ends are the ends of the row's own range 0.3 to 3 Myr, and the ramp is checked against the median disc life of a G dwarf (0.9 Myr, `reports/gen1151/`); no source read gives the shortest disc life for a trojan to grow"
           ],
           "fields": [
             [
               "What it is",
-              "trojan_bodies.MIN_DISK_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
+              "trojan_bodies.DISK_LIFETIME_RAMP_MYR (0.3, 3.0): under 0.3 Myr of gas no trojan of planet mass grows, at 3 Myr the whole zone's growth time is allowed, a straight ramp between (was a flat minimum of 1 Myr that sat on the median 0.9 Myr dispersal time of a G dwarf's disk)"
             ],
             [
               "The range it moves in",
@@ -35433,7 +35677,7 @@
             ],
             [
               "What would show it wrong",
-              "a trojan growing in a disc shorter than that"
+              "a trojan growing in a disc shorter than 0.3 Myr"
             ],
             [
               "What replaces it",
@@ -35450,9 +35694,127 @@
           "slug": "6-125-tb4",
           "tier": "T4",
           "tier_code": "T4",
-          "tweak": "L4",
-          "unread": "GEN.1151",
-          "what": "trojan_bodies.MIN_DISK_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
+          "tweak": "L2",
+          "unread": null,
+          "what": "trojan_bodies.DISK_LIFETIME_RAMP_MYR (0.3, 3.0): under 0.3 Myr of gas no trojan of planet mass grows, at 3 Myr the whole zone's growth time is allowed, a straight ramp between (was a flat minimum of 1 Myr that sat on the median 0.9 Myr dispersal time of a G dwarf's disk)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_bodies.ZONE_HALF_WIDTH_HILL 2.0: the half width of a giant's tadpole zones either side of its orbit in its Hill radii (the horseshoe region of a Jupiter reaches about 2.5)"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "whole bodies at L4 and L5"
+            ],
+            [
+              "What would show it wrong",
+              "a co-orbital zone found much wider or narrower in a disc run"
+            ],
+            [
+              "What replaces it",
+              "a hydrodynamic map"
+            ],
+            [
+              "Evidence",
+              "none read"
+            ]
+          ],
+          "id": "TB5",
+          "key": "6.125:TB5",
+          "kind": "P",
+          "slug": "6-125-tb5",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "trojan_bodies.ZONE_HALF_WIDTH_HILL 2.0: the half width of a giant's tadpole zones either side of its orbit in its Hill radii (the horseshoe region of a Jupiter reaches about 2.5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_bodies.ZONE_AZIMUTH_SHARE 1/3: the share of the circle the two tadpole zones take, 60 degrees about each of L4 and L5"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "whole bodies at L4 and L5"
+            ],
+            [
+              "What would show it wrong",
+              "a zone shown to take more of the circle"
+            ],
+            [
+              "What replaces it",
+              "a hydrodynamic map"
+            ],
+            [
+              "Evidence",
+              "none read; the geometry of the points"
+            ]
+          ],
+          "id": "TB6",
+          "key": "6.125:TB6",
+          "kind": "P",
+          "slug": "6-125-tb6",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "trojan_bodies.ZONE_AZIMUTH_SHARE 1/3: the share of the circle the two tadpole zones take, 60 degrees about each of L4 and L5"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no source read gives how far a giant may move before the zone its trojan grew in is lost; an N-body migration run replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "trojan_bodies.MAX_MIGRATION_SHARE 0.25: the share of its formation distance a giant may have moved before the zone its trojan grew in is lost, so a migrated giant holds no whole trojan"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "whole bodies at L4 and L5"
+            ],
+            [
+              "What would show it wrong",
+              "a trojan found at a hot Jupiter that migrated"
+            ],
+            [
+              "What replaces it",
+              "an N-body migration run"
+            ],
+            [
+              "Evidence",
+              "none read"
+            ]
+          ],
+          "id": "TB7",
+          "key": "6.125:TB7",
+          "kind": "P",
+          "slug": "6-125-tb7",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "trojan_bodies.MAX_MIGRATION_SHARE 0.25: the share of its formation distance a giant may have moved before the zone its trojan grew in is lost, so a migrated giant holds no whole trojan"
         }
       ],
       "slug": "6-125-stand-ins-of-the-whole-bodies-at-lagrange-points",
@@ -62737,7 +63099,7 @@
           "fields": [
             [
               "What it is",
-              "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
+              "late_supply.INWARD_SHARE 0.1: the share of the part of a belt's primordial mass that no giant swept (the part that stays in its ring) that is scattered onto planet-crossing orbits and shared among the bodies (slice 2: the part the giants swept sends CROSSING_GAIN and STIRRED_GAIN instead, rows LS1a, LS1b)"
             ],
             [
               "The range it moves in",
@@ -62768,7 +63130,91 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
+          "what": "late_supply.INWARD_SHARE 0.1: the share of the part of a belt's primordial mass that no giant swept (the part that stays in its ring) that is scattered onto planet-crossing orbits and shared among the bodies (slice 2: the part the giants swept sends CROSSING_GAIN and STIRRED_GAIN instead, rows LS1a, LS1b)"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L4, the crossing gain is fitted so a Sun-like synthetic system keeps the published veneer; a scattering integration of the crossing population against the system's planets replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.CROSSING_GAIN 0.3: the share of the part of an outer disk a giant threw onto orbits that cross the giants' and the planets' (the scattered disk and the centaurs of scatter.scatter_shares, bound, not ejected) that reaches the shared sinks inside it; a stretch the giants cleared of everything sends only this (GEN.1493 slice 2)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 1"
+            ],
+            [
+              "Where it holds",
+              "outer disks swept by a giant"
+            ],
+            [
+              "What would show it wrong",
+              "a dynamical model of a swept disk whose share reaching the inner system is outside 0.1 to 1 of its crossing mass"
+            ],
+            [
+              "What replaces it",
+              "a scattering integration of the crossing population against the system's planets"
+            ],
+            [
+              "Evidence",
+              "fitted: a synthetic Sun-like system (an Earth inside the four giants, an outer disk of 10 to 20 Earth masses swept by a Neptune-class giant) keeps 0.2 to 0.7 percent of the Earth's mass (test_late_supply); no source prints the number (Boss 2026-11-20: acceptable, fitted L4)"
+            ]
+          ],
+          "id": "LS1a",
+          "key": "6.254:LS1a",
+          "kind": "P",
+          "slug": "6-254-ls1a",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "late_supply.CROSSING_GAIN 0.3: the share of the part of an outer disk a giant threw onto orbits that cross the giants' and the planets' (the scattered disk and the centaurs of scatter.scatter_shares, bound, not ejected) that reaches the shared sinks inside it; a stretch the giants cleared of everything sends only this (GEN.1493 slice 2)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source prints how much more a stirred belt sends inward; the stirring's eccentricity as a continuous share would replace the flag"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.STIRRED_GAIN 0.1: the share of a stirred ring's mass (a companion or a close giant raises its eccentricity, belt_origin.stirred, BG8) added to its inward share, because a stirred ring grinds faster and sends more inward"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "rings a companion star or a giant stirs"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dust or planetesimal flux of a stirred belt that differs by more than a factor of two from a quiet belt of the same mass"
+            ],
+            [
+              "What replaces it",
+              "the stirring's eccentricity (belt_forcing.combined) over the unstirred width as a continuous share"
+            ],
+            [
+              "Evidence",
+              "fitted to the same Sun-like test; no source prints the number (Boss 2026-11-20: acceptable, fitted L4)"
+            ]
+          ],
+          "id": "LS1b",
+          "key": "6.254:LS1b",
+          "kind": "P",
+          "slug": "6-254-ls1b",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "late_supply.STIRRED_GAIN 0.1: the share of a stirred ring's mass (a companion or a close giant raises its eccentricity, belt_origin.stirred, BG8) added to its inward share, because a stirred ring grinds faster and sends more inward"
         },
         {
           "burn_down": [
@@ -70247,48 +70693,6 @@
           "what": "greenhouse_table.FITTED_UP_TO_K 4000 is no longer a clamp (GEN.1580): above the fit's 4,000 K the table gives T_e exp(ratio) of the same log ratio, an extrapolation of the fit; the surface stops at the ionization ceiling (CC7)"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the fit has no samples of a minor gas between absent and about 1e-5, so the thin-gas scaling is hand-chosen against the sweep; a refit on airs with minor gases replaces it"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
-            ],
-            [
-              "The range it moves in",
-              "3e-4 to 1e-2"
-            ],
-            [
-              "Where it holds",
-              "any air with a gas other than those five under a part in a thousand (HCN, NH3, SO2, CO, H2, He, PH3, HCl, NO, N2O, O3 and the noble gases)"
-            ],
-            [
-              "What would show it wrong",
-              "tests/test_greenhouse_table.py::test_a_trace_gas_moves_the_temperature_by_its_share_of_its_full_effect_and_none_at_zero; a radiative-convective run of Earth's air with 10 ppm of HCN or 0.1 Pa of ozone that gives more than a kelvin"
-            ],
-            [
-              "What replaces it",
-              "a refit of the table on airs with minor gases from 1e-9 to 1e-2 (scripts/fit_greenhouse_table.py), after which the network reads the traces itself"
-            ],
-            [
-              "Evidence",
-              "hand-chosen against the sweep of 11-12 (L3): the fit has no samples between absent and about 1e-5, and a gas at 10 ppm moved Earth's air by 76 K (HCN) or 10 K (ozone at 10 ppb), where the physics gives a fraction of a kelvin to a few; the linear scaling is the thin-gas limit and underestimates a strong absorber near the edge"
-            ]
-          ],
-          "id": "IR19",
-          "key": "6.6c:IR19",
-          "kind": "P",
-          "slug": "6-6c-ir19",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L3",
-          "unread": null,
-          "what": "greenhouse_table.TRACE_FULL_SHARE 1e-3 (with TRACE_EXEMPT): a minor gas under this mole share counts by its share over it of what the table says it adds to the air without the minor gases (the optically thin limit: the effect goes with the column); H2O, CO2, CH4, N2 and O2 count at any share (GEN.1588)"
-        },
-        {
           "burn_down": null,
           "fields": [
             [
@@ -70325,6 +70729,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "greenhouse_table.ALOFT_MONOTONE_NODES 10 (GEN.1780): the table's ground temperature under a haze is read as the running minimum of the network over the shares of the haze's light from none up to the share asked, at a node every tenth and interpolated between them, so a larger share is never warmer"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "gases.Gas.infrared_class (GEN.1629): a gas whose row has no ir flag (52 of 124: the atoms, radicals and rock vapours added after the first 72) takes the class its structure gives, the gas table's own rule (composition-model.md section 4a: monatomic none, homonuclear diatomics collision-induced only, the rest infrared): an atom none, a diatomic of one element cia, any other molecule ir (so the generic stand-in band of line_opacity and the ir share of the greenhouse table); the table, the thin-air scaling and the opacity all read it, where they read the null three ways before"
+            ],
+            [
+              "The range it moves in",
+              "none (a class, not a number)"
+            ],
+            [
+              "Where it holds",
+              "the greenhouse table's features and thin-air scaling, the line opacity's stand-in bands, Gas.is_infrared_active for a gas with no flag (OH, FeH, VO, MgO, SiO2, TiO2, NaOH, HCOOH and 44 more, in the hot early states of an air history and in rock-vapour airs)"
+            ],
+            [
+              "What would show it wrong",
+              "tests/test_gas_table.py::test_a_gas_with_no_flag_takes_the_class_its_structure_gives"
+            ],
+            [
+              "What replaces it",
+              "the k-tables or bands of those gases, where a source gives them (none of the 52 is in the k-tables the catalog fetches)"
+            ],
+            [
+              "Evidence",
+              "the rule is the one the gas table was built on; a hot-rock vapour is not measured to be a greenhouse gas by this code, only to be treated as the structure says"
+            ]
+          ],
+          "id": "IR21",
+          "key": "6.6c:IR21",
+          "kind": "P",
+          "slug": "6-6c-ir21",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "gases.Gas.infrared_class (GEN.1629): a gas whose row has no ir flag (52 of 124: the atoms, radicals and rock vapours added after the first 72) takes the class its structure gives, the gas table's own rule (composition-model.md section 4a: monatomic none, homonuclear diatomics collision-induced only, the rest infrared): an atom none, a diatomic of one element cia, any other molecule ir (so the generic stand-in band of line_opacity and the ir share of the greenhouse table); the table, the thin-air scaling and the opacity all read it, where they read the null three ways before"
         }
       ],
       "slug": "6-6c-stand-ins-of-the-greenhouse-table-above-and-below-what-it-was-fitted-on-gen-1238-gen-1580-gen-1588",
@@ -75879,6 +76321,166 @@
       ],
       "slug": "6-318-stand-ins-of-the-adaptation-record-gen-1808",
       "title": "Stand-ins of the adaptation record (GEN.1808)"
+    },
+    {
+      "key": "6.319",
+      "number": "6.319",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "melt_sulfur.SCSS_A, SCSS_B_K, SCSS_C_K_PER_GPA: ln S[ppm] = 11.79 - 7073 / T - 92 P[GPa] / T, the fit of [R5340] (Eq. 2, R2 0.86, melts normalised to 8.1 wt percent FeO; no FeO term needed over 2 to 8.1 percent)"
+            ],
+            [
+              "The range it moves in",
+              "11.79 +/- 0.62, -7073 +/- 993, -92 +/- 36"
+            ],
+            [
+              "Where it holds",
+              "a basalt melt in equilibrium with a sulfide, 1,573 to 4,605 K, 0 to 40 GPa (a deeper melt runs the pressure term on past the fit)"
+            ],
+            [
+              "What would show it wrong",
+              "a melt with sulfide at saturation measured outside the fit, or the corrigendum of 25 June 2024 changing the coefficients"
+            ],
+            [
+              "What replaces it",
+              "a law with the oxygen and sulfur fugacity of the gas (the sulfide capacity), when a source gives it"
+            ],
+            [
+              "Evidence",
+              "read from the journal's open page, coefficients from the main-text PDF; the corrigendum was not read (the site refused the request)"
+            ]
+          ],
+          "id": "MS1",
+          "key": "6.319:MS1",
+          "kind": "P",
+          "slug": "6-319-ms1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "melt_sulfur.SCSS_A, SCSS_B_K, SCSS_C_K_PER_GPA: ln S[ppm] = 11.79 - 7073 / T - 92 P[GPa] / T, the fit of [R5340] (Eq. 2, R2 0.86, melts normalised to 8.1 wt percent FeO; no FeO term needed over 2 to 8.1 percent)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "melt_sulfur.FIT_MAX_K 4605: a surface hotter than the fit's hottest run is held at it, so the capacity of a body above it is a floor"
+            ],
+            [
+              "The range it moves in",
+              "4605, fixed"
+            ],
+            [
+              "Where it holds",
+              "any lava world over 4,605 K (one of 12 in the measurement)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured SCSS above 4,605 K"
+            ],
+            [
+              "What replaces it",
+              "the same fit extended"
+            ],
+            [
+              "Evidence",
+              "the supplementary section S.5 of [R5340]"
+            ]
+          ],
+          "id": "MS2",
+          "key": "6.319:MS2",
+          "kind": "B",
+          "slug": "6-319-ms2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "melt_sulfur.FIT_MAX_K 4605: a surface hotter than the fit's hottest run is held at it, so the capacity of a body above it is a floor"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the molten layer reaches the pressure where the solidus of the tidal heating (tidal_heating.solidus_k, TH13) has risen to the surface temperature, at most the base of the body's magma ocean (magma_ocean_redox.base_pressure_gpa, MR1 and MR2); the melt is taken at the surface temperature all the way down"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a surface over 1,400 K; the melt is a lower bound of the capacity (it gets hotter with depth and SCSS rises with temperature)"
+            ],
+            [
+              "What would show it wrong",
+              "an interior model of a star-heated lava world with a molten depth, or a measured depth"
+            ],
+            [
+              "What replaces it",
+              "a molten depth from the body's heat and temperature"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the solidus is the one registered, the ocean base is the one the redox model uses"
+            ]
+          ],
+          "id": "MS3",
+          "key": "6.319:MS3",
+          "kind": "T",
+          "slug": "6-319-ms3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the molten layer reaches the pressure where the solidus of the tidal heating (tidal_heating.solidus_k, TH13) has risen to the surface temperature, at most the base of the body's magma ocean (magma_ocean_redox.base_pressure_gpa, MR1 and MR2); the melt is taken at the surface temperature all the way down"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the melt takes what the crust sinks could not, up to its capacity, as one number for the oxidized and the reduced sulfur (the sulfide saturation for both; sulfate is more soluble at high oxygen fugacity), and keeps it (no burden, no lifetime)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a molten surface"
+            ],
+            [
+              "What would show it wrong",
+              "a lava world whose melt holds less than its SCSS at the gas's fugacities"
+            ],
+            [
+              "What replaces it",
+              "a sulfide capacity with fugacities"
+            ],
+            [
+              "Evidence",
+              "needed output: the capacity of the crust alone left 30,000 and 183,000 kPa of H2S and SO2 over two lava worlds"
+            ]
+          ],
+          "id": "MS4",
+          "key": "6.319:MS4",
+          "kind": "T",
+          "slug": "6-319-ms4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "the melt takes what the crust sinks could not, up to its capacity, as one number for the oxidized and the reduced sulfur (the sulfide saturation for both; sulfate is more soluble at high oxygen fugacity), and keeps it (no burden, no lifetime)"
+        }
+      ],
+      "slug": "6-319-stand-ins-of-the-sulfur-a-lava-world-s-melt-holds-gen-1814",
+      "title": "Stand-ins of the sulfur a lava world's melt holds (GEN.1814)"
     },
     {
       "key": "6.320",

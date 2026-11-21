@@ -20,7 +20,8 @@ Q_EARTH = surface_pressure.HEAT_FLUX_EARTH_W_M2
 def _body(tier, zone="e", body_type="t", is_moon=False):
     config = SystemConfig()
     config.ABUNDANCE_TIER = tier
-    return SimpleNamespace(system_config=config, zone=zone, body_type=body_type, is_moon=is_moon)
+    distance = {"e": 1.0, "h": 0.3, "c": 3.0, None: 0.3}[zone]       # outside the habitable zone 0.95 to 1.37 AU widened by half its width: 0.74 to 1.58 AU (GEN.1807)
+    return SimpleNamespace(system_config=config, zone=zone, body_type=body_type, is_moon=is_moon, habitable_zone=(0.95, 1.37), distance=distance, star=None)
 
 
 def test_science_makes_no_draw_and_the_constants_are_those_the_law_always_drew():

@@ -61,6 +61,11 @@ module), under which a wet world could hold hundreds of bar of S2. Two solid sin
 and COS with iron as FeS and FeS2). Which one a mole goes to is the redox of the gas it arrived in: `oxidised_share_of` reads the share of
 the sulfur that is bonded to oxygen from the equilibrium gas of the outgassing stage.
 
+* **A molten surface (GEN.1814).** A body whose surface is over `mixture_lava.MELT_MIN_K` has a third sink, the melt (`physics/melt_sulfur.py`). Silicate melt dissolves sulfide up to the sulfur content
+  at sulfide saturation, `ln S[ppm] = 11.79 - 7073 / T - 92 P[GPa] / T` ([R5340], fit to 1 atm to 40 GPa and 1,573 to 4,605 K); the molten layer reaches the pressure where the tidal heating's solidus
+  (`tidal_heating.solidus_k`) meets the surface temperature, at most the base of the body's magma ocean (`magma_ocean_redox.base_pressure_gpa`), and its column mass is that pressure over the gravity.
+  After the crust sinks have taken their capacity the melt takes the rest up to its own and keeps it; `SulfurBalance.melt_mol_m2` carries it. The sulfur gas was the lava world's greenhouse, so the
+  air solve cools it as the melt takes sulfur (the 2,860 K world of seed 137 ends at 2,360 K with three quarters of its degassed sulfur in the melt). Stand-ins MS1 to MS4 (section 6.319).
 * **Capacity.** The crust the volcanism built holds the calcium and the iron: `crust_column_kg_m2(released_j, radius_m)` is the Earth
   twin's crust per processed mantle (`CRUST_PER_PROCESSED_MANTLE`) times the mantle `surface_pressure` says the interior has processed,
   over the area. One calcium binds one sulfur as sulfate, one iron one sulfur as sulfide. Sulfur beyond the capacity stays in the air whole,

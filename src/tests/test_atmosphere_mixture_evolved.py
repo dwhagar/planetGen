@@ -66,7 +66,10 @@ def test_a_warm_venus_like_air_holds_the_crust_buffer_and_keeps_sulfur_dioxide()
 def test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air():
     found = draws("terrestrial", ABIOTIC, "abiotic-oxygen")
     assert found
-    assert max(result.mole_fractions.get("O2", 0.0) for result in found) > 0.1
+    # GEN.1769 slice 2: the draw is the hot gas before its water condenses (a share of a steam air), so the oxygen is read on the dry air the surface keeps
+    dry = [result.mole_fractions.get("O2", 0.0) / (1.0 - result.mole_fractions.get("H2O", 0.0)) for result in found]
+    assert max(dry) > 0.1
+    assert max(result.mole_fractions.get("O2", 0.0) for result in found) < 0.5      # the gas the draw leaves is mostly the water's own: no draw is oxygen over half of the raw gas
 
 
 def test_a_titan_like_air_is_nitrogen_with_methane_at_the_saturation_and_a_hydrogen_trace():

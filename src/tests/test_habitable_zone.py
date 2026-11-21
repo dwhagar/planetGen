@@ -87,3 +87,22 @@ def test_a_binarys_zone_uses_the_pairs_light_weighted_temperature():
         assert proxy.habitable_zone == orbits.calculate_habitable_zone(proxy._effective_luminosity, weighted)
         return
     pytest.fail("no binary system in 40 tries")
+
+
+def test_the_effort_zone_is_the_habitable_zone_widened_by_half_its_width_each_side():
+    # GEN.1807 (PA20): the span doubles, the habitable zone itself keeps the [R2447] edges
+    inner, outer = orbits.calculate_habitable_zone(SUN, 5780.0)
+    wide_inner, wide_outer = orbits.candidate_zone((inner, outer))
+    assert wide_outer - wide_inner == pytest.approx(2.0 * (outer - inner))
+    assert wide_inner == pytest.approx(inner - 0.5 * (outer - inner)) and wide_outer == pytest.approx(outer + 0.5 * (outer - inner))
+    assert (inner, outer) == pytest.approx((0.950, 1.676), abs=0.001)
+    assert (wide_inner, wide_outer) == pytest.approx((0.587, 2.039), abs=0.002)
+    assert orbits.candidate_zone((1.0, 1.0)) == (1.0, 1.0)
+
+
+def test_a_zone_letter_stays_the_habitable_zones_while_the_effort_zone_is_wider():
+    from planetgen.physics import planets
+    zone = (0.95, 1.676)
+    assert planets.zone_for(zone, 0.7) == "h" and planets.in_candidate_zone(zone, 0.7)
+    assert planets.zone_for(zone, 1.9) == "c" and planets.in_candidate_zone(zone, 1.9)
+    assert not planets.in_candidate_zone(zone, 0.5) and not planets.in_candidate_zone(zone, 2.1)

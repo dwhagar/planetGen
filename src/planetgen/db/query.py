@@ -4296,7 +4296,7 @@ def _put_irregular_moons(conn, system_id, planet_rows, planets):
         by_planet.setdefault(row["planet_id"], []).append(row)
     belts_of_star = {}
     if rows:
-        for belt in conn.execute("SELECT star_id, uid FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index, id", (system_id,)).fetchall():
+        for belt in conn.execute("SELECT star_id, uid FROM asteroid_belts WHERE star_system_id = ? AND lagrange_point IS NULL ORDER BY orbital_index, id", (system_id,)).fetchall():
             belts_of_star.setdefault(belt["star_id"], []).append(object_uid.from_bytes(belt["uid"]) if belt["uid"] is not None else None)
     for row, planet in zip(planet_rows, planets):
         uid, found = (object_uid.from_bytes(row["uid"]) if row["uid"] is not None else None), []

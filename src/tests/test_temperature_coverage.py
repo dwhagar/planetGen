@@ -50,7 +50,7 @@ def uniform(celsius, steps=8):
 
 
 def test_the_bands_are_the_phi_temperature_bands_and_the_shares_add_to_one():
-    for celsius, band in ((15.0, "blue"), (-10.0, "green"), (40.0, "green"), (-40.0, "yellow"), (100.0, "yellow"), (-100.0, "red"), (150.0, "red")):
+    for celsius, band in ((15.0, "blue"), (-5.0, "green"), (35.0, "green"), (-15.0, "yellow"), (100.0, "yellow"), (-100.0, "red"), (150.0, "red")):   # GEN.1677: the edges are the climates people live in
         read = tc.coverage(synthetic(uniform(celsius)))
         assert getattr(read, band) == pytest.approx(1.0), (celsius, band)
         assert read.blue + read.green + read.yellow + read.red == pytest.approx(1.0)
@@ -189,7 +189,7 @@ def test_the_ten_worlds_of_the_note_read_as_the_note_says(reads):
     assert reads["nitrikin 1 bar"].area_always > 0.9 and reads["nitrikin 0.3 bar"].area_always < 0.2
     assert livable["earth"] > 0.8 and reads["earth"].blue > 0.4
     assert livable["earth tilt 0"] > 0.8 and reads["earth tilt 0"].cold > 0.1
-    assert 0.5 < livable["spin 12 h thin"] < 0.8 and reads["spin 12 h thin"].hot > 0.1 and reads["spin 12 h thin"].cold > 0.1
+    assert 0.3 < livable["spin 12 h thin"] < 0.6 and reads["spin 12 h thin"].hot > 0.1 and reads["spin 12 h thin"].cold > 0.1
     assert 0.5 < livable["slow 60 d spin"] < 0.8 and reads["slow 60 d spin"].area_always < 0.1
     assert livable["spin 12 h thin"] < livable["earth"] and livable["slow 60 d spin"] < livable["earth"]
     for read in reads.values():
@@ -212,10 +212,13 @@ def test_a_thin_air_locked_world_is_livable_only_near_the_terminator():
 
 def test_the_best_site_of_a_slow_spinner_has_to_go_indoors_for_days_and_that_of_a_mild_world_does_not(reads):
     slow = reads["slow 60 d spin"]
-    assert 0.7 < slow.best_site.livable_time < 1.0
+    assert 0.55 < slow.best_site.livable_time < 1.0
     assert 5.0 < slow.best_site.longest_out_days < 40.0
-    for name in ("earth", "nitrikin 1 bar", "nitrikin 0.3 bar", "locked 1 bar"):
+    for name in ("earth", "nitrikin 1 bar"):
         assert reads[name].best_site.livable_time == 1.0 and reads[name].best_site.longest_out_days == 0.0
+    # GEN.1677: the edges are the climates people live in, so the thin-air and locked worlds' best sites dip below -10 C for a few hours of its year
+    for name in ("nitrikin 0.3 bar", "locked 1 bar"):
+        assert reads[name].best_site.livable_time > 0.85
 
 
 # --- PERF.249: a world that turns many times per sample --------------------------------------------------------------------------------------------------------------

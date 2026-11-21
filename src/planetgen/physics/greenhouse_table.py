@@ -70,13 +70,6 @@ FITTED_UP_TO_K = 4000.0
 """float: The hottest surface the table was fitted on (the radiative-convective model's own limit, `radiative_convective.HIGHEST_SURFACE_K`). The table does not stop there (GEN.1580): the warming
 it gives is the same log ratio of the air and the flux above it, an extrapolation of the fit (stand-in, registry CC7), and the hottest surface of an air is the ionization of its gas
 (`ionization.ceiling_k`), not this."""
-TRACE_FULL_SHARE = 1.0e-3
-"""float: STAND-IN (IR19, tier T5, L3): the mole share at and above which a minor gas counts in full. The fit was made on airs whose minor gases are absent or at least a few parts in a
-hundred thousand (the family draws from 1e-5 up), so between absent and about 1e-3 the network invents a slope: ten parts per million of hydrogen cyanide added 76 K, a trace of helium up to
-100 K, a part in a hundred million of ozone 10 K (GEN.1588). Below this share the effect of each such gas is taken as its share over this share of what the table says it does in full, the
-optically thin limit (the effect goes with the column), and nothing at zero."""
-TRACE_EXEMPT = frozenset(("H2O", "CO2", "CH4", "N2", "O2"))
-"""frozenset: The gases the fit saw at every share (the water, carbon dioxide and methane of the airs it was made on, and the bulk gases): they count in full at any share, as Earth's 400 parts per million of carbon dioxide must."""
 ALOFT_MONOTONE_NODES = 10
 """int: The nodes per unit share (a node every tenth) at which the table is read to hold the ground no warmer at a larger share of the haze's light than at a smaller one (GEN.1780). Sunlight taken aloft is sunlight the ground does not get: the full
 model (`radiative_convective`) cools the ground as the share rises, and a network fitted to it can still rise between its samples (the table gave 171, 199 and 229 K where the model gave 166, 155 and 139 K for shares 0, 0.3 and 0.7 of a
@@ -115,6 +108,24 @@ class Table:
     summary: dict
 
 
+INFRARED_STRENGTH_FILE = os.path.join(elements.DATA_DIRECTORY, "infrared_strength.json")
+"""str: The measured weights of the gases the `infrared` input sums (GEN.1621, `scripts/measure_infrared_strength.py`)."""
+
+
+@functools.cache
+def infrared_weights():
+    """The weight of each infrared gas with no input of its own in the `infrared` input: the moles of SO2 that warm Earth's air as much as one mole of it, measured against `radiative_convective.warming`
+    (the file's `weights`; a gas the file does not list counts 1). GEN.1621: the network cannot tell N2O from SO2 when it is given the sum of their shares."""
+    with open(INFRARED_STRENGTH_FILE, encoding="utf-8") as handle:
+        return {formula: row["weight"] for formula, row in json.load(handle)["weights"].items()}
+
+
+def infrared_digest():
+    """The sha256 of the weights file: the table records the digest it was fitted under, and `table` refuses one fitted to other weights (the inputs it was fitted to would differ)."""
+    with open(INFRARED_STRENGTH_FILE, "rb") as handle:
+        return hashlib.sha256(handle.read()).hexdigest()
+
+
 def data_digest():
     """A digest of the downloads the model reads: the sha256 of every file of the k-table and collision-induced datasets and the version of their
     reduction. The table records the digest it was fitted under, and `table` refuses one fitted to other data."""
@@ -133,6 +144,8 @@ def table():
     if data["data_digest"] != data_digest():
         raise elements.DataError(f"{DATA_FILE}: the table was fitted to other k-tables or collision-induced files than the catalog's; "
                                  "fit it again (scripts/fit_greenhouse_table.py)")
+    if data.get("infrared_digest") != infrared_digest():
+        raise elements.DataError(f"{DATA_FILE}: the table was fitted to other infrared strengths than {INFRARED_STRENGTH_FILE}; fit it again (scripts/fit_greenhouse_table.py)")
     return Table(mean=np.array(data["mean"]), scale=np.array(data["scale"]), low=np.array(data["low"]), high=np.array(data["high"]),
                  weights=tuple(np.array(layer) for layer in data["weights"]), biases=tuple(np.array(layer) for layer in data["biases"]),
                  summary=data["summary"])
@@ -144,8 +157,9 @@ def features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share
     fractions = {formula: pressure / total for formula, pressure in partial_pressures_pa.items()}
     effective = (absorbed_flux_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
     others = [(formula, fraction) for formula, fraction in fractions.items() if formula not in TABLED_GASES and formula not in PAIRING_GASES]
-    infrared = sum(fraction for formula, fraction in others if gases.gas(formula).ir == "ir")
-    weak = sum(fraction for formula, fraction in others if gases.gas(formula).ir == "weak")
+    weights = infrared_weights()
+    infrared = sum(fraction * weights.get(formula, 1.0) for formula, fraction in others if gases.gas(formula).infrared_class == "ir")       # GEN.1621: each by its strength
+    weak = sum(fraction for formula, fraction in others if gases.gas(formula).infrared_class == "weak")
     molar_mass = sum(fraction * gases.gas(formula).molar_mass for formula, fraction in fractions.items())
     if aloft_pressure_pa is None:
         aloft_pressure_pa = total * DEFAULT_ALOFT_SHARE_OF_PRESSURE
@@ -180,34 +194,7 @@ def _deep_air_rise(total_pa, vector):
     return max(1.0 - 1.0 / gamma, 0.0) * math.log(total_pa / top_pa)
 
 
-def strip_traces(partial_pressures_pa):
-    """The air without its minor gases under `TRACE_FULL_SHARE` (the base `_ratio_with_traces` reads, GEN.1588; the air itself if nothing is left). The refit of the table
-    is made on airs stripped like this (`scripts/fit_greenhouse_table.py envelope`, GEN.1717), so the network is asked at runtime about the airs it was fitted on."""
-    total = mixture.total_pressure_pa(partial_pressures_pa)
-    base = {formula: pascal for formula, pascal in partial_pressures_pa.items() if formula in TRACE_EXEMPT or not 0.0 < pascal / total < TRACE_FULL_SHARE}
-    return base if base else dict(partial_pressures_pa)
-
-
-def _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa):
-    """
-    `ln(T_s / T_e)` of the air with each minor gas under `TRACE_FULL_SHARE` counted by its share (GEN.1588): the air without them gives the base, and each one adds its share over
-    `TRACE_FULL_SHARE` of what the table says it adds to that base. An air with no such gas is read as it is. A gas that reaches the share moves into the base with the whole of its
-    effect, so the answer does not jump at it (only the small interaction between two traces does).
-    """
-    traces = {formula: pascal for formula, pascal in partial_pressures_pa.items()
-              if formula not in TRACE_EXEMPT and 0.0 < pascal / total_pa < TRACE_FULL_SHARE}
-    base = strip_traces(partial_pressures_pa)
-    if not traces or len(base) == len(partial_pressures_pa):
-        return log_ratio(vector)
-    base_ratio = log_ratio(features(base, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa))
-    ratio = base_ratio
-    for formula, pascal in traces.items():
-        with_gas = log_ratio(features({**base, formula: pascal}, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa))
-        ratio += pascal / total_pa / TRACE_FULL_SHARE * (with_gas - base_ratio)
-    return ratio
-
-
-def _ratio_not_rising_with_share(partial_pressures_pa, total_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa):
+def _ratio_not_rising_with_share(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa):
     """`ln(T_s / T_e)` at `aloft_share` read as the running minimum, over the nodes of `ALOFT_MONOTONE_NODES` from no haze up to the share, of the network's readings, interpolated between the node below the share and the one above it."""
     position = aloft_share * ALOFT_MONOTONE_NODES
     below = int(position)
@@ -215,7 +202,7 @@ def _ratio_not_rising_with_share(partial_pressures_pa, total_pa, gravity_m_s2, a
     for node in range(below + 2):
         share = node / ALOFT_MONOTONE_NODES
         vector = features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, share, aloft_pressure_pa)
-        smallest = min(smallest, _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, absorbed_flux_w_m2, share, aloft_pressure_pa))
+        smallest = min(smallest, log_ratio(vector))
         minima.append(smallest)
     return minima[below] + (position - below) * (minima[below + 1] - minima[below])
 
@@ -239,11 +226,11 @@ def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=
         aloft_pressure_pa = total * DEFAULT_ALOFT_SHARE_OF_PRESSURE        # fixed by the whole air, so leaving a trace gas out does not move the level the haze takes light at
     vector = features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
     if aloft_share > 0.0:       # GEN.1780: no warmer at a larger share of the same haze than at a smaller one
-        ratio = _ratio_not_rising_with_share(partial_pressures_pa, total, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
+        ratio = _ratio_not_rising_with_share(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
     else:
-        ratio = _ratio_with_traces(partial_pressures_pa, total, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
+        ratio = log_ratio(vector)
     ratio += _deep_air_rise(total, vector)
-    absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).ir != "none") / total
+    absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).infrared_class != "none") / total
     ratio *= min(1.0, total / THIN_AIR_PA, absorbing / ABSORBER_SHARE_MIN)
     surface = effective * math.exp(ratio)
     return Warming(effective_temperature_k=effective, surface_temperature_k=surface,

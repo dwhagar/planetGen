@@ -45,7 +45,7 @@ import numpy
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-SETS = ("natural", "hab", "stars", "young", "youngforced", "capsoff", "sunlike")
+SETS = ("natural", "hab", "stars", "young", "youngforced", "capsoff", "sunlike", "mdwarf")
 """tuple: The sample names `collect` takes (`jobs_for`)."""
 
 SOLAR_LUMINOSITY_W = 3.828e26
@@ -70,6 +70,10 @@ SUN_TYPES = ("F7V", "F9V", "G0V", "G2V", "G4V", "G6V", "G8V", "K0V", "K1V", "K2V
 """tuple: The star types of the `sunlike` sample, in rotation (the set of reports/class-m-blue-levers-2026-11-14.md)."""
 
 SUNLIKE_SEED = 30000
+M_TYPES = ("M0V", "M1V", "M2V", "M3V", "M4V", "M5V")
+"""tuple: The star types of the `mdwarf` sample, in rotation (GEN.1769: the hosts of the abiotic-oxygen family)."""
+MDWARF_SEED = 40000
+MDWARF_COUNT = 300
 SUNLIKE_COUNT = 400
 
 STAR_ATTRS = """type yerkes_class mass luminosity radius temperature age lifespan metallicity_fe_h snow_line_au disk_kind disk_inner_au disk_outer_au disk_mass_solar a_crit_au
@@ -271,6 +275,8 @@ def jobs_for(name, count=None):
         jobs += [("off-hab-G2V", 4000 + i, {"STAR_TYPE": "G2V", "HABITABLE_WORLD": True}) for i in range(40)]
     elif name == "sunlike":
         jobs += [("sunlike", SUNLIKE_SEED + i, {"STAR_TYPE": SUN_TYPES[i % len(SUN_TYPES)]}) for i in range(count or SUNLIKE_COUNT)]
+    elif name == "mdwarf":
+        jobs += [("mdwarf", MDWARF_SEED + i, {"STAR_TYPE": M_TYPES[i % len(M_TYPES)]}) for i in range(count or MDWARF_COUNT)]
     elif name == "young":
         jobs += [("young", 9000 + i, {"AGE": "young"}) for i in range(40)]
     else:

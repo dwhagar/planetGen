@@ -84,8 +84,9 @@ def _phenomenon_sources():
     return sources
 
 
-BELT_NAME_SQL = ("CONCAT('Asteroid belt ', 1 + (SELECT COUNT(*) FROM asteroid_belts b2 WHERE b2.star_system_id = t.star_system_id AND b2.star_id <=> t.star_id "
-                "AND (b2.orbital_index < t.orbital_index OR (b2.orbital_index = t.orbital_index AND b2.id < t.id))))")
+BELT_NAME_SQL = ("IF(t.lagrange_point IS NOT NULL, CONCAT((SELECT hp.name FROM planets hp WHERE hp.id = t.parent_id), ' ', t.lagrange_point, ' trojan region'), "
+                "CONCAT('Asteroid belt ', 1 + (SELECT COUNT(*) FROM asteroid_belts b2 WHERE b2.star_system_id = t.star_system_id AND b2.star_id <=> t.star_id AND b2.lagrange_point IS NULL "
+                "AND (b2.orbital_index < t.orbital_index OR (b2.orbital_index = t.orbital_index AND b2.id < t.id)))))")
 """str: A belt's indexed name (GEN.1508): numbered among the belts of its own star, closest first, from 1 (`names.bodies.belt_number`); `orbital_index` is the slot among all its bodies."""
 
 

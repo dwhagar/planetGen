@@ -28,12 +28,17 @@ _PRESSURE_LOW = ("pressure_low_outer_kpa", "armstrong_kpa", "mask_min_kpa", "pre
 _PRESSURE_HIGH = ("pressure_blue_max_kpa", "pressure_narcosis_kpa", "pressure_hyperbaric_max_kpa", "pressure_outer_kpa")
 _COLD = ("cold_outer_c", "cold_suit_c", "cold_clothing_c", "comfort_low_c")
 _HOT = ("comfort_high_c", "heat_garment_c", "heat_max_c", "heat_shielded_c", "hot_outer_c")
+# The score's own temperature edges (GEN.1677) move with the gear's by the same amount: the cold ones and the one hot one that differ from the gear's rows.
+_SCORE_COLD = ("temp_yellow_low_c", "temp_green_low_c", "temp_blue_low_c")
+_SCORE_HOT = ("temp_green_high_c",)
+_SCORE_TEMPERATURE = ("cold_outer_c", *_SCORE_COLD, "comfort_high_c", *_SCORE_HOT, "heat_max_c", "hot_outer_c")
 _DOSE = ("dose_blue_sv_yr", "dose_green_sv_yr", "dose_yellow_sv_yr", "dose_outer_sv_yr", "dose_single_year_sv")
 
 # Bands in order (each must not fall as it goes inward), for `validate`.
 _ORDERED = (
     ("pressure", _PRESSURE_LOW + _PRESSURE_HIGH),
     ("temperature", _COLD + _HOT),
+    ("score temperature", _SCORE_TEMPERATURE),
     ("dose", _DOSE[:4]),
 )
 
@@ -89,12 +94,12 @@ def generated(world):
             out.update(_shifted(_PRESSURE_HIGH, factor=factor))
     # Temperature (linear): move a side by the number of degrees the homeworld's cycle lies past Blue.
     cold, hot = habitability.temperature_extremes_c(world)
-    offset = (cold - margin["temperature_c"]) - limit("comfort_low_c")
+    offset = (cold - margin["temperature_c"]) - limit("temp_blue_low_c")
     if offset < 0.0:
-        out.update(_shifted(_COLD, offset=offset))
+        out.update(_shifted(_COLD + _SCORE_COLD, offset=offset))
     offset = (hot + margin["temperature_c"]) - limit("comfort_high_c")
     if offset > 0.0:
-        out.update(_shifted(_HOT, offset=offset))
+        out.update(_shifted(_HOT + _SCORE_HOT, offset=offset))
     if -20.0 <= hot <= 50.0:
         wet = habitability.wet_bulb_c(hot, world.relative_humidity)
         if wet >= limit("wet_bulb_c"):

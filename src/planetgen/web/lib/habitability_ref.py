@@ -336,8 +336,8 @@ def radiation_text():
         "The ultraviolet is the DNA-damaging dose at the ground as a multiple of Earth's: the star's own light through the "
         "world's air, its ozone (made from its oxygen), haze, dust, and cloud, and the unfiltered light for a world with no air. "
         f"The dose is Blue under {limit('dose_blue_sv_yr') * 1000:g} mSv a year, Green to {limit('dose_green_sv_yr') * 1000:g}, "
-        f"Yellow to {limit('dose_yellow_sv_yr') * 1000:g} mSv, and the ultraviolet is Blue under {limit('uv_cover_index'):g} times "
-        f"Earth's, Green to {limit('uv_suit_index'):g} times and Yellow to {limit('uv_lethal_index'):g} times. A planet's page lists "
+        f"Yellow to {limit('dose_yellow_sv_yr') * 1000:g} mSv, and the ultraviolet is Blue under {limit('uv_blue_index'):g} times "
+        f"Earth's, Green to {limit('uv_green_index'):g} times and Yellow to {limit('uv_lethal_index'):g} times. A planet's page lists "
         "each term with the air, the field, the ozone, and the rock that set it, and says which of the two sets the rating."
     )
 
