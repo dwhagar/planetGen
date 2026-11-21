@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4688+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A rocky planet's late accretion now reads what the giants and companions did to the belts and disks of its system, including the stretches they cleared away.
+
+### Changed
+- **The late accretion of a rocky planet reads what the giants and companions did to the reservoirs of its system (GEN.1493 slice 2).** The inward share of a belt was one number (0.1) for every belt. It is now `late_supply.inward_share_of`: 0.1 of the part no giant swept, `CROSSING_GAIN` (0.3) of the part a giant threw onto crossing orbits (the scattered disk and the centaurs of the scatter step), and `STIRRED_GAIN` (0.1) more for a ring a companion or a close giant stirs. A stretch the giants cleared of everything is no longer forgotten: `belt_birth.build` hands it on (`lost`) and the planets inside it still take their share of what was thrown inward. Comets count through the outer disk that made them (a star with no outer disk has none, GEN.1765); the few sampled nuclei add nothing beside it. The floor (0.05 of the law's mean) and the ceiling (3 percent) are kept: the census of 240 Sun-like systems is in the design note. New stand-ins LS1a and LS1b (section 6.254, tweak L4, burn-down lines). No draw of the run's stream moves; only the air, water and class of some rocky planets of systems with a swept outer disk or a stirred belt change.
+
 ## [8.0.4687+db272.gen150.api14] - 2026-11-21
 
 **Headline:** The fudge table now says what it was built from, and `update.sh` says when it is out of date, without ever running the matrix.
