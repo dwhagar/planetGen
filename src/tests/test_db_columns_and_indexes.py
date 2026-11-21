@@ -64,6 +64,8 @@ PROSE_TEXT_COLUMNS = {
     ("engine_piece_results", "result"),
     # GEN.1745 slice 4b: the record of a body's air history (the steps with the gases of each and the life ages) as one JSON document the chart reads whole; the row form of 600 rows a system would double the database (design 6.3)
     ("planets", "air_history"), ("moons", "air_history"), ("rogue_planets", "air_history"),
+    # GEN.1577: a giant's cloud decks (the base pressure and temperature of each cloud that forms) and the ceiling of each trace gas as one JSON document read whole; a row form would multiply the rows of a giant
+    ("planets", "cloud_decks"),
     # OPS.284: the copy of a run's Redis record (its hash and its stages' hashes) as one JSON document, read whole to put the run back
     ("engine_run_records", "record"),
 }
