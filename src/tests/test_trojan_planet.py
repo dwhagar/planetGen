@@ -6,6 +6,7 @@ stored with the point and the giant's row.
 """
 
 import math
+import types
 
 import pytest
 
@@ -172,3 +173,18 @@ def test_a_rogue_planet_and_a_moon_of_it_are_saved_and_read_back_with_no_giant_t
     finally:
         conn.rollback()
         conn.close()
+
+
+def test_a_trojan_planets_sheet_row_words_its_point_with_the_giant_and_the_star():
+    """GEN.1820: the row `Shares an orbit with` is worded by `trojans.pair_text`: `L5 of Sun and Jupiter, 60 degrees behind it on the orbit`."""
+    from planetgen.describe import sheet
+
+    class Conn:
+        def execute(self, sql, args):
+            name = "Jupiter" if "FROM planets" in sql else "Sun"
+            return types.SimpleNamespace(fetchone=lambda: {"name": name})
+
+    row = {"lagrange_point": "L5", "lagrange_host_id": 4, "star_id": 1}
+    (group, made_row), = sheet._trojan_planet_provider(Conn(), "planet", 9, row)
+    assert group == "identity" and made_row["text"] == "L5 of Sun and Jupiter, 60 degrees behind it on the orbit"
+    assert list(sheet._trojan_planet_provider(Conn(), "planet", 9, {**row, "lagrange_point": None})) == []

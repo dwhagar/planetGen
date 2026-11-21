@@ -80,7 +80,7 @@ from planetgen.galaxy import resident_mass, component_field as componentField, d
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
 from planetgen.physics import body_history, effect_ledger, moon_history, isotope_record, light_ledger, ore_deposits
-from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, adaptation_record, life_ages, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log, ticker
 from planetgen.util.settings import env_name, get_settings
@@ -642,7 +642,7 @@ still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types", "planet_isotopes", "moon_isotopes", "rogue_planet_isotopes",
-    "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
+    "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "planet_life_ages", "moon_life_ages", "planet_adaptations", "moon_adaptations",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history", "lost_moons",
 ))
@@ -3193,6 +3193,12 @@ def body_child_rows(conn, body, body_id, owner=None):
         conn.execute(f"INSERT INTO {prefix}_life ({id_column}, {', '.join(LIVING_COLUMNS)}) VALUES (?, {', '.join('?' * len(LIVING_COLUMNS))})",
                      (body_id, entry["life_class"], entry["share"], entry.get("stage"), entry.get("milestone_age_gyr"), entry.get("system_age_gyr"),
                       entry.get("animal_grade"), entry.get("complexity"), *ages, *kinds))
+    for entry in getattr(body, life_ages.FIELD, None) or ():
+        conn.execute(f"INSERT INTO {prefix}_life_ages ({id_column}, {', '.join(LIFE_AGE_COLUMNS)}) VALUES (?, {', '.join('?' * len(LIFE_AGE_COLUMNS))})",
+                     (body_id, entry["number"], entry["start_gyr"], entry["end_gyr"], entry["cause"], entry["kill_share"]))
+    for number, entry in enumerate(getattr(body, adaptation_record.FIELD, None) or (), 1):
+        conn.execute(f"INSERT INTO {prefix}_adaptations ({id_column}, {', '.join(ADAPTATION_COLUMNS)}) VALUES (?, {', '.join('?' * len(ADAPTATION_COLUMNS))})",
+                     (body_id, number, entry["life_class"], entry["axis"], entry["habitat"], entry["demand"], entry["grade"], ",".join(entry["rows"])))
 
 
 def body_gases(conn, body_ids, is_moon, owner=None):
@@ -3233,6 +3239,40 @@ def living_entry(row):
             "system_age_gyr": row["life_system_age_gyr"], "animal_grade": row["life_animal_grade"], "complexity": row["life_complexity"],
             "ages": [row[field] for field in tuning.LIFE_SCHEDULE_FIELDS],
             "kinds": [row["life_microbial"], row["life_flora"], row["life_fauna"], row["life_sentient"]]}
+
+
+LIFE_AGE_COLUMNS = ("age_number", "start_gyr", "end_gyr", "cause", "kill_share")
+"""tuple: The columns of `planet_life_ages` and `moon_life_ages` after the body's id, in the order `body_child_rows` writes them (GEN.1746 slice 3)."""
+
+
+def body_life_ages(conn, body_ids, is_moon):
+    """`{body id: [life age entries (`life_ages.entries_of`), the first age first]}` of the planets or moons `body_ids`: the life ages their rows keep in `planet_life_ages` or `moon_life_ages` (a body with none has no key)."""
+    table, id_column = ("moon_life_ages", "moon_id") if is_moon else ("planet_life_ages", "planet_id")
+    found = {}
+    ids = list(body_ids)
+    for start in range(0, len(ids), 1000):
+        chunk = ids[start:start + 1000]
+        marks = ", ".join("?" * len(chunk))
+        for row in conn.execute(f"SELECT {id_column}, {', '.join(LIFE_AGE_COLUMNS)} FROM {table} WHERE {id_column} IN ({marks}) ORDER BY {id_column}, age_number", tuple(chunk)).fetchall():
+            found.setdefault(row[id_column], []).append({"number": row["age_number"], "start_gyr": row["start_gyr"], "end_gyr": row["end_gyr"], "cause": row["cause"], "kill_share": row["kill_share"]})
+    return found
+
+
+ADAPTATION_COLUMNS = ("entry_number", "life_class", "axis", "habitat", "demand", "grade", "row_ids")
+"""tuple: The columns of `planet_adaptations` and `moon_adaptations` after the body's id, in the order `body_child_rows` writes them (GEN.1809)."""
+
+
+def body_adaptations(conn, body_ids, is_moon):
+    """`{body id: [adaptation entries (`adaptation_record.entries_of`), in the order they were made]}` of the planets or moons `body_ids`: the adaptations their rows keep in `planet_adaptations` or `moon_adaptations` (a body with none has no key)."""
+    table, id_column = ("moon_adaptations", "moon_id") if is_moon else ("planet_adaptations", "planet_id")
+    found = {}
+    ids = list(body_ids)
+    for start in range(0, len(ids), 1000):
+        chunk = ids[start:start + 1000]
+        marks = ", ".join("?" * len(chunk))
+        for row in conn.execute(f"SELECT {id_column}, {', '.join(ADAPTATION_COLUMNS)} FROM {table} WHERE {id_column} IN ({marks}) ORDER BY {id_column}, entry_number", tuple(chunk)).fetchall():
+            found.setdefault(row[id_column], []).append({"life_class": row["life_class"], "axis": row["axis"], "habitat": row["habitat"], "demand": row["demand"], "grade": row["grade"], "rows": row["row_ids"].split(",") if row["row_ids"] else []})
+    return found
 
 
 def body_living(conn, body_ids, is_moon):
@@ -10521,6 +10561,8 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
         atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon, owner).get(row["id"], {}),
         life_classes.SCORES_FIELD: body_class_scores(conn, [row["id"]], is_moon, owner).get(row["id"]),
         life_classes.LIVING_FIELD: None if owner == "rogue_planet" else dominant_first(body_living(conn, [row["id"]], is_moon).get(row["id"]), row["life_class"], row["life_class_variant"]),
+        life_ages.FIELD: None if owner == "rogue_planet" else body_life_ages(conn, [row["id"]], is_moon).get(row["id"]),
+        adaptation_record.FIELD: None if owner == "rogue_planet" else body_adaptations(conn, [row["id"]], is_moon).get(row["id"]),
         "is_moon": is_moon,
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,

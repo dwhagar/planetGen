@@ -167,16 +167,35 @@ def _check_step(python, script):
     return subprocess.run(["bash", "-c", code], capture_output=True, text=True, timeout=120)
 
 
-def test_update_sh_step_says_how_old_the_matrix_is_and_does_not_stop(tmp_path):
+def test_update_sh_step_says_how_old_the_matrix_is_and_does_not_stop(tmp_path, monkeypatch):
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))
     result = _check_step(sys.executable, 'check_fudge_table; echo "failed=$FUDGE_TABLE_FAILED"')
     assert result.returncode == 0, result.stderr
     assert "failed=0" in result.stdout                       # an old matrix is a line, not a failure
 
 
-def test_update_sh_step_warns_when_the_script_finds_other_files(tmp_path):
+def test_update_sh_step_warns_when_the_script_finds_other_files(tmp_path, monkeypatch):
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))
     fake = tmp_path / "python"
     fake.write_text("#!/bin/sh\necho 'the fudge table was built from other registry than the files now hold'\nexit 1\n")
     fake.chmod(0o755)
     result = _check_step(str(fake), 'check_fudge_table; echo "failed=$FUDGE_TABLE_FAILED"')
     assert result.returncode == 0, result.stderr
     assert "failed=1" in result.stdout and "built from other registry" in result.stderr
+
+
+def test_the_update_step_records_what_it_found_for_the_admin_page(tmp_path, monkeypatch):
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))
+    result = _check_step(sys.executable, "check_fudge_table")
+    assert result.returncode == 0, result.stderr
+    record = json.loads((tmp_path / "fudge-table.json").read_text(encoding="utf-8"))
+    assert record["ok"] is True and isinstance(record["checked"], int) and isinstance(record["epoch"], int)
+    assert (tmp_path / "fudge-table.json").stat().st_mode & 0o044                 # the web user reads it
+
+
+def test_a_record_that_cannot_be_written_is_said_and_not_raised(tmp_path, monkeypatch, capsys):
+    blocker = tmp_path / "file"
+    blocker.write_text("x")
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(blocker / "below"))
+    assert builder.record_inputs(True, []) is None
+    assert "not recorded" in capsys.readouterr().err

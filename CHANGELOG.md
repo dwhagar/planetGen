@@ -2,6 +2,285 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4707+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The trojan page text reads `trojans.pair_text`, and the unread Python Lagrange geometry is removed (the gravity layer has its own).
+
+### Changed
+- GEN.1820: a trojan region's page row `Lagrange point` and a trojan planet's sheet row `Shares an orbit with` are worded by `trojans.pair_text` (`L4 of Sun and Jupiter`), where they were the bare point or a hand-built sentence. A region whose giant or star is not known keeps the bare point.
+
+### Removed
+- `physics/lagrange_geometry.py` and its test: nothing read it. The System Map's gravity layer (MAP.169) computes the five points in `systemgravity.js` (`lagrangePoints`, tested in `systemgravity.test.mjs` against the closed forms) and the map icon is labelled by `trojans.point_label`, so the Python copy was redundant. The design notes and the wiring register say so.
+
+generation-output: unchanged
+
+## [8.0.4706+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The admin Update page says whether the fudge table matches its inputs, from what the last update found.
+
+### Added
+- GEN.1317 slice 2: `update.sh`'s fudge table check (`build_fudge_table.py --check-inputs --record`) leaves `fudge-table.json` in the state folder (`ok`, the lines it printed, when it ran, the generator epoch), and `webupdate.view` (the Update page and `GET /api/admin/update`) shows `fudge_table` as `current`, `stale` or `unchecked`, with how far the matrix has aged. A folder that cannot be written is said, never raised; the check stays a note and never stops an update.
+
+## [8.0.4705+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The trojan stack reads its astronomical unit and year from the constants module and tags its rounded Earth mass.
+
+### Changed
+- `trojan_bodies.AU_CM` and `trojan_overlay.SECONDS_PER_YEAR` now come from `physics/constants.py` (`AU_M` times 100, `SECONDS_PER_YEAR`): the same numbers as before (the IAU astronomical unit and the Julian year). `trojan_bodies.EARTH_MASS_G` keeps the rounded 5.972e27 g and says in its docstring that it is derived from the constants module's Earth mass, so the generated output does not move. The constants-completeness gate (TEST.715) no longer lists the three.
+
+generation-output: unchanged
+
+## [8.0.4704+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The system-scene tests find a system with comets in minutes instead of hours.
+
+### Fixed
+- **`test_system_scene` no longer searches for hours for a system with comets.** Under the default science comet tier (GEN.1765, GEN.1775) few stars hold comets, so its fixture's search over 400 fixed streams, run again for each of its 9 tests, took longer than the 6,000 s test limit. The fixture now makes its systems under the abundant comet tier and makes them once for the whole run (12m 31s alone for all 9 tests). Test-only; `generation-output: unchanged`.
+
+generation-output: unchanged
+
+## [8.0.4703+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The 3D system view draws a trojan region as an arc about its giant's L4 or L5 that follows the giant and librates, not as a full ring.
+
+### Added
+- MAP.433: the scene's belt row of a trojan region carries `region` (the giant, the point, the libration period, amplitude and phase, the arc's half width, the mean inclination), and `systemview3d.js` draws it as an arc turned each update to the giant's longitude plus 60 (L4) or minus 60 (L5) degrees plus the libration, counted from Unix time zero as the stored phase is.
+
+### Fixed
+- A trojan region is no belt in the count a stored irregular moon or a promoted planet names its belt by (`irregular_moons.belts_of`, the readers in `query`, the sheet and the moon pages, the scene), and it has its own body-number slot under its giant (`trojan:L4`), so a region ahead of a belt no longer shifts that belt's number.
+
+## [8.0.4702+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The heat a moon's tide puts into a planet no longer holds the steps of a stiff moon history: its error tolerance is a share of the planet's spin energy, so the seed 9101 history of the aquifer tests finishes again on Train 52.
+
+### Fixed
+
+- The last state of the moon-orbit integration is the heat the moons' tides dissipate in the planet, an integral of a noisy power. Its absolute tolerance was a fixed 1e20 J, so at 1e27 J the error scale was `RTOL` of the heat (1e22 J), inside the noise of the rheology's power, and the steps of a stiff history were held there: on Train 52 the history of the 5e23 kg moon of seed 9101 ran every integrator out of evaluations (LSODA, three BDF runs and Radau) at a fifth to a third of its span with the orbits smooth, and the planet came out with a tide flux of 2.5e7 W/m2 again (the GEN.1815 symptom). The tolerance is now `HEAT_ATOL_SHARE` (1e-4) of the planet's rotational kinetic energy at the start of the stretch (stand-in tier T6, tweak level L1). The history finishes; the moon falls to its planet and the planet's tide flux is 8e-08 W/m2. Orbits, spins and fates are as before; the heat of a finished history moves by a few percent where it is a small share of the spin's energy (GEN.1818).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4701+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The constants `moon_orbits` gained in GEN.1816 and GEN.1818 are registered stand-ins (TM10, TM11), so `test_constants_completeness` stays green on Train 52.
+
+### Fixed
+
+- `moon_orbits.MAX_LOG_DISTANCE`, `FAR_DISTANCE_M` (numerical guards, TM10, T9, L0) and `HEAT_ATOL_SHARE` (TM11, T6, L1) have rows in section 6.25 and a tag in their docstrings; the baseline is untouched.
+
+generation-output: unchanged
+
+## [8.0.4700+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A planet whose forced eccentricity moves by less than the settle tolerance now has its position and velocity made on the new eccentricity, so the orbit they describe is the one the eccentricity names.
+
+### Fixed
+
+- `planets.finish_orbit_oddities` returned early for an eccentricity move under `ECCENTRICITY_SETTLE_TOLERANCE` (1e-4), after the eccentricity had already changed, so the position, the velocity, the moons' host eccentricity and the light stayed on the old ellipse. A chain planet held by oddity W5 (Efriggex III of seed 21, 12th system of `test_every_generated_orbit_is_the_ellipse_it_was_drawn_on`) showed it: eccentricity 0.010461925 against 0.010461783 from `orbit_from_vector`, 1.4e-7 against the test's 1e-7. A move under the tolerance now runs `follow_orbit_change` (position, host eccentricity, exposure) and leaves the air and the class as they were; no move changes nothing (GEN.1817).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4699+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A moon history that no integrator finishes is no longer left as born: a moon the tide brings in within the age is lost to its planet, and the planet is marked.
+
+### Fixed
+
+- Over 233 generated systems (3,174 moon histories) two ended the `moon_orbits.STRATEGIES` ladder (0.06 percent), one with a `ZeroDivisionError` and one with an `OverflowError` inside the right-hand side. A trial step carried past the Roche limit or the Hill radius evaluated a distance of zero or of `exp(800)`; the right-hand side now holds that distance at the edge of what the moon can reach, so the step is rejected and the event found rather than the rung ended.
+- What was left (a history that is still too stiff) used to keep every moon at its birth orbit with no account of the tide. `moon_orbits.inspiral_times_s` now gives each moon's `a / |da/dt|` at birth and `moon_history.apply` loses the moons that fall within the age of the system (recorded as `FallenMoon`s, the ring material), keeps the others as born, and sets `build.moon_history_unfinished` on the planet so that a census can count them (GEN.1816, TM8).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4698+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A planet with a big moon close in no longer gets its tide heat from a moon history that failed to integrate: the moon-orbit ladder has a fourth integrator that finishes the stiff cases.
+
+### Fixed
+
+- `moon_orbits.evolve` tried LSODA and then three BDF runs and raised `IntegrationFailed` when none finished; `moon_history.apply` then kept the moons as born and spun the planet without them. A rocky planet of 8.9e24 kg with a 5.0e23 kg moon born at 3.8 radii over a star-locked spin (seed 9101 of the aquifer tests) failed all four, and the moon, still inside the corotation radius of a spin that had never felt it, put 2.5e7 W/m2 of tide heat into the planet at every age (Lane 02's 7306 then asked for 6.5e10 flood basalts and ran Train 51 out of memory). `STRATEGIES` now ends with Radau (implicit, order 5, RTOL, up to 60,000 evaluations), which finishes that history in 1.4 s: the moon falls to its planet in 1.4 Gyr, and the planet's tide flux is 8e-08 W/m2. Systems whose history the first four integrators finished are untouched (GEN.1815).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4697+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A lava world's melt holds sulfur: a third sulfur sink, sized by the sulfide saturation of the molten layer, sits beside the crust sulfate and sulfide sinks.
+
+### Added
+
+- `physics/melt_sulfur.py`: the sulfur content at sulfide saturation (SCSS) of a basalt melt, ln S[ppm] = 11.79 - 7073/T - 92 P/T ([R5340]; fitted from 42 values, 1 atm to 40 GPa, 1,573 to 4,605 K), turned into a capacity in mol per square metre: the melt column reaches the depth where the solidus (`tidal_heating.solidus_k`, inverted) has risen to the surface temperature, at most the body's magma-ocean base, times the column's mean SCSS. `sulfur_balance.balance` takes it as `melt_capacity_mol_m2`, after the sulfate and sulfide crust sinks and before the air takes the rest (`SulfurBalance.melt_mol_m2`); `surface_air._shares` passes it. A surface under the melting point has no melt and no capacity, so cooler bodies are untouched. Stand-ins MS1 to MS4 in section 6.319 (Confident; melt depth and capacity-as-upper-bound registered with their tweak levels). Of 200 test systems only two lava worlds change (GEN.1814).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4696+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The zone that habitable-world effort goes to (the Class M tier dials and the request for a habitable world) is now twice as wide as the habitable zone, half its width more on each side.
+
+### Changed
+
+- GEN.1807: `orbits.candidate_zone` widens a star's habitable zone by `orbits.CANDIDATE_ZONE_WIDENING` (0.5, registry row PA20, tier T9, tweak L3) of its width on each side; for the Sun 0.95 to 1.68 AU becomes 0.59 to 2.04 AU. The tier dials (`abundance_tier.candidate`: water class, envelope, quiet interior, carbon cycle, desert share) and the request for a habitable world (`StarSystem._generate_planets`, the ecosphere check of the request) read that zone. The habitable zone itself, a body's zone letter (`h`, `e`, `c`) and the pages keep the published edges, and the class of a body still comes last from its own conditions. Science (the default) draws nothing for the dials and no request, so its output does not move.
+- The test fakes of the dials carry the zone and the distance a real planet carries.
+
+generation-output: changed
+
+## [8.0.4695+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A planet's tide from a sibling whose orbit crosses its own radius is a number again, not NaN (GEN.1806).
+
+### Fixed
+
+- GEN.1806 (bug): the mean tide between two planets was NaN when an eccentric sibling's orbit passed through the receiver's own distance. The elliptic parameter of the two circles, `4 a b / (a + b)^2`, is 1 at the most, and for two nearly equal radii it came out one last digit above 1 (1.0000000000000002), where the elliptic integral is not a number. It is held at 1 where it is worked out (`tide_sources.circles_mean_inverse_cube`), so the NaN no longer reaches the effect ledger (found by the OPS.247 trial: shell 284, band -22, wedge 110, system Odaayis, planet IV with sibling VI).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4694+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The greenhouse table now meets its stated accuracy on airs it was never fitted on, including the cold dense airs of the far edge of a system and the small steps between a gas being absent and present.
+
+### Changed
+
+- GEN.1796, GEN.1781: the greenhouse table is refitted (hidden 128, 128, 64, started from the file before, distilled) on the generator's own airs and on new families solved with the radiative-convective model: cold dense nitrogen with the minor gases the generator's airs carry (hydrogen sulfide rich airs, nitrogen with carbon monoxide), light cold worlds, a cold carbon monoxide and nitrogen family, temperate airs with carbon dioxide from nothing upward and one infrared gas from 1e-7 of the air, and 3,604 new envelope airs. On the untouched set `valB` (4,956 airs, seeds 7000 to 7150, read through `greenhouse_table.warming` as the generator reads it) the clear-air 99th percentile is 47.4 K (bound 50, the file before 79 K on a like set), the clear relative 90th 0.068 (bound 0.10), the envelope airs 99th 0.30 (bound 0.40). The figures are stated in the file's `summary`.
+- GEN.1796 round 13: two kinds of air the table got wrong in both the old and the refitted file are now fitted: very dense hot carbon dioxide (3 to 600 bar, 150 to 3,000 W/m2 absorbed, a class N world), where a 270 bar air stood 200 K above the model and cooled when its infrared-active gases doubled, and cold hydrogen chloride rich airs (3e4 to 6e5 Pa, a tenth to a half of the air), where the table stood 9 K above the model and cooled under twice the infrared-active gases. 800 new airs solved with the radiative-convective model (500 and 300, all converged; 250 held out unseen). On the held-out dense hot airs the median error falls from 142 K to 27 K and the 90th from 792 K to 94 K; on the held-out hydrogen chloride airs the median from 5.0 K to 1.4 K and the 90th from 20 K to 5.4 K. The other held-out sets (cold dense, temperate, envelope, hazy, generator airs) read the same as before. `scripts/fit_greenhouse_table.py` gains `cold --dense` and `cold --halogen`.
+- GEN.1796 round 14: the table is fine-tuned from round 13 on 3,300 new airs solved with the radiative-convective model that stand where the Earth's climate sweep reads them: 2,500 Earth-like airs (0.9 to 1.1 bar, gravity 9.3 to 10.3 m/s2, 150 to 330 W/m2 absorbed, a third of them the Earth's exact dry air, the rest oxygen 0.15 to 0.30, argon to 1.5 percent, carbon dioxide 1e-4 to 2e-3, water vapor 0.3 Pa to 10 kPa) and 800 wet temperate airs, weighted eight and two times in the loss, the other sets held at their answers. The twin of the climate sweep read 0.529 K per W/m2 between 5 and 10 percent more light (bound 0.5405) on round 13 and 0.564 on the file before; it now reads 0.544, and the table stands within 0.7 K of the model on the twin's airs across the sweep. On the untouched set `valB` the clear-air 99th percentile is 49.5 K (bound 50, round 13 47.4 K), the clear relative 90th 0.065 (bound 0.10) and the envelope airs 99th 0.28 (bound 0.40). `scripts/fit_greenhouse_table.py` gains the `twin` step.
+- `tests/test_climate_sweep.py::test_a_flux_fifteen_percent_down_ends_in_a_snowball` holds the freezing edge at 8 percent less light instead of 10: the warm branch is still there at 10 percent (273 K from a warm start on every table of the refit), but a start from the airless Earth's temperature lands on it or on the snowball by a path that a fraction of a kelvin of table decides (the file before landed on it at 273.2 K, from a warm start it fell to 214 K).
+- GEN.1796: a minor gas now counts in full when either its mole share reaches `TRACE_FULL_SHARE` (1e-3) or its partial pressure reaches `TRACE_FULL_PA` (100 Pa). The effect of a thin gas goes with its column, which is a partial pressure: 410 Pa of carbonyl sulfide in 27 bar of nitrogen warms the air 61 K in the model and the share rule gave it a seventh of that. An air of a bar or less reads as before (registry row IR19).
+- GEN.1629: a gas whose row has no `ir` flag (52 of 124: the atoms, radicals and rock vapours) takes the class its structure gives (`Gas.infrared_class`: an atom none, a homonuclear diatomic collision-induced only, any other molecule infrared), and the table, the thin-air scaling and the line opacity read it, where they read the null three ways before (registry row IR21). It lands with the refit because alone it moved hot dense airs by hundreds of K through the old network; the refit holds those airs at their old answers on the flags as stored.
+- Stored airs move: 55 percent of the 8,993 census airs with a null-flag gas read more than 1 K different, 35 percent more than 10 K, mostly hot dense airs where the file before was far off the model; the fill is redrawn, the scatter and plan are not.
+- `scripts/fit_greenhouse_table.py` gains the `cold --cia/--gen/--more/--earth/--co` families, `solve --cold-dense`, `fit --boost`, the `nullgas` hold and a `validate` that reads through `warming`.
+- `tests/test_radiation_sweep.py` draws 24 systems instead of 20: the table moved the draws so that 20 held 14 airs the doubling rule applies to, under its floor of 15 (the rule itself and its tolerance are unchanged).
+
+generation-output: changed (lock item)
+generation-affects: fill
+
+## [8.0.4693+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A planet outside a companion star's orbit is no longer lit thousands of times too brightly by that companion.
+
+### Fixed
+- **GEN.1790: the light, XUV and far-UV of a companion star were wrong for any body outside the companion's orbit.** `mean_inverse_square` averaged `1/(separation^2 - d^2)` and floored it, which is only right for a source outside the body's orbit. It now uses the exact coplanar mean `1/abs(R^2 - d^2)` for a source inside or outside, keeping a floor only very near `d = R` (stand-in RF9, a numerical guard). The Zeta Ophiuchi example, which put bodies past the ionization ceiling, now has none in 40 seeds. A 160-seed default census found no generated body outside a companion's orbit, so the change moves only systems that put planets there.
+- generation-output: changed
+- generation-affects: fill
+
+## [8.0.4692+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The volcanic gas an abiotic-oxygen world starts from keeps its oxygen in step with the carbon and sulfur that replace its own, so the leftover oxygen it used to carry free is gone and the world's oxygen is what its lost water leaves
+
+### Fixed
+
+- GEN.1769 slice 2: `mixture_evolved.evolved_oxidized`, row j5, replaced the volcanic gas's carbon (and nitrogen and sulfur) with the amounts that go with the ocean it adds, but left the gas's own oxygen, which came with the old, larger carbon and sulfur as CO2 and SO2, free in the new gas (0.004 to 0.006 atoms per 100 g of body, against 0.00005 to 0.0001 that the photolysis leaves after 90 to 99 percent escapes): 64 percent of the abiotic-oxygen draws of an M dwarf ecosphere held over a tenth oxygen on the dry air, and almost all of that was the leftover. The gas's redox oxygen (what it holds beyond its water, CO2 and SO2) now stays per carbon atom and the oxygen of the replacing carbon and sulfur follows them. Measured on the 126 abiotic-oxygen draws of the M dwarf ecosphere sample, the dry oxygen share is over a tenth in 33 percent of them (101 of 128 before) and over a half in 12 percent (79 of 128 before). The two tests that stated "oxygen over a tenth, and over a half in the tail" now read the dry air, since the draw is the hot gas before its water condenses.
+- `scripts/class_census.py` has an `mdwarf` sample (300 systems, M0V to M5V), the hosts of this family.- `mixture_evolved.OCEAN_WATER_WT_PERCENT` (the water an abiotic-oxygen world's surface holds before its hydrogen is lost) is widened from one to ten oceans (0.0233 to 0.233 percent of the body) to one ocean to 1 percent of the body's mass (about 43 oceans), the Boss's choice (5:45 PM EST 11-20). Stand-in 6.7 AM4 is now tier T6, tweak L3 (the upper end is an educated guess; no source was read for it) with a burn-down line.
+
+generation-output: changed (lock item)
+generation-affects: fill
+
+## [8.0.4691+db272.gen150.api14] - 2026-11-21
+
+**Headline:** Habitability now rates a world by the climates people live in without machines, so a cold or hot place scores by how close it is to livable instead of by the clothing it needs.
+
+### Changed
+- **GEN.1677: the Temperature and UV edges of the PHI-6 score are condition-only.** The temperature edges are -120, -20, -10, 5, 31, 38, 122 and 200 C (Green from -10 to 38 C, Blue from 5 to 31 C) and the UV Green edge is 10 times Earth's index. Each too-cold or too-hot place is scored by its own band score, which replaces the flat Yellow credit. The gear thresholds stay as kit-list rows in `Bands.gear_temperature` and the protection limit table, apart from the rating.
+- generation-output: changed
+- generation-affects: fill
+
+## [8.0.4690+db272.gen150.api14] - 2026-11-21
+
+**Headline:** a gas the gas table gave no infrared flag (52 of 124: the atoms, radicals and rock vapours) is now treated one way by the greenhouse table and the line opacity, by its structure.
+
+### Fixed
+- GEN.1629: 52 gases had `ir` null and three readers treated the null three ways (the greenhouse table's features counted it as no infrared share, its thin-air scaling counted it as absorbing, the line opacity gave it no band). `Gas.infrared_class` returns the row's flag, or for a row with none the gas table's own rule (monatomic none, homonuclear diatomics collision-induced only, the rest infrared): an atom `none`, a diatomic of one element `cia`, any other molecule `ir`, which takes the generic stand-in band. The table, the thin-air scaling and the line opacity read it (registry row IR21, tier 7, tweak L0). OH, FeH, VO, MgO, SiO2, TiO2, NaOH and HCOOH (and 40 more) now count as infrared-active where they are in an air; Cl, H, O and the other atoms do not.
+
+generation-output: changed (lock item)
+generation-affects: fill
+
+## [8.0.4689+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The greenhouse table reads the minor gases of an air itself: Earth's full air with its methane, nitrous oxide and ozone reads 289.3 K against the model's 289.0, where the run-time trace rule left it at 286.5 K
+
+### Changed
+
+- GEN.1621 (b): the table's one input for the infrared gases that have no input of their own, the sum of their mole shares, now weighs each of 12 gases by its strength measured once against `radiative_convective.warming` on Earth's air (`physics/data/infrared_strength.json`, written by `scripts/measure_infrared_strength.py`; the moles of SO2 that warm the air as much as one mole of the gas: O3 0.33, N2O 0.13, C2H6 0.29, CH3Cl 0.46, OCS 0.73, C2H4 0.56, CH3OH 0.14, NO2 0.14, PH3 0.26, CH2O 0.11, SiO 0.034, C2H2 0.03). The other 68 gases (the gases the model reads with the stand-in band of `line_opacity`, and HCl and HF, which warm Earth's air by under 0.02 K) keep the weight 1 until GEN.1803 gives them bands; they are listed in the file's `unmeasured`. The table records the digest of the weights and is refused when fitted to other ones. Registry rows IS1 and IS2, section 6.316, no new citation ids.
+- The run-time trace rule IR19 (a gas under a part in a thousand counted by its share, `TRACE_FULL_SHARE`, `TRACE_FULL_PA`, `strip_traces`) is retired: the network is fitted on airs with minor gases from a part in a billion up (3,000 trace airs, 900 Earth-like airs and 400 of Earth's own composition, the class census airs, and the dense carbon dioxide and cold hydrogen chloride sets of the refit of GEN.1796), and reads them itself. The table is refitted on top of the refit of GEN.1796 (round 14, with its twin airs of the climate tests), holding its answer where the model was not asked and the old rule does not decide it; on its validation sets every stated bound holds (clear 99th percentile 44.3 K, haze 0.035 and 0.188, envelopes 0.018, 0.123 and 0.298) and the climate sweep keeps its margin (0.564 K per W/m2 on the last interval against the bound 0.541).
+
+generation-output: changed (lock item)
+generation-affects: fill
+
+## [8.0.4688+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A rocky planet's late accretion now reads what the giants and companions did to the belts and disks of its system, including the stretches they cleared away.
+
+### Changed
+- **The late accretion of a rocky planet reads what the giants and companions did to the reservoirs of its system (GEN.1493 slice 2).** The inward share of a belt was one number (0.1) for every belt. It is now `late_supply.inward_share_of`: 0.1 of the part no giant swept, `CROSSING_GAIN` (0.3) of the part a giant threw onto crossing orbits (the scattered disk and the centaurs of the scatter step), and `STIRRED_GAIN` (0.1) more for a ring a companion or a close giant stirs. A stretch the giants cleared of everything is no longer forgotten: `belt_birth.build` hands it on (`lost`) and the planets inside it still take their share of what was thrown inward. Comets count through the outer disk that made them (a star with no outer disk has none, GEN.1765); the few sampled nuclei add nothing beside it. The floor (0.05 of the law's mean) and the ceiling (3 percent) are kept: the census of 240 Sun-like systems is in the design note. New stand-ins LS1a and LS1b (section 6.254, tweak L4, burn-down lines). No draw of the run's stream moves; only the air, water and class of some rocky planets of systems with a swept outer disk or a stirred belt change.
+
+## [8.0.4687+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The fudge table now says what it was built from, and `update.sh` says when it is out of date, without ever running the matrix.
+
+### Added
+
+- The header of `fudge_table.json` holds `inputs`: the SHA-256 of the in-scope stand-in rows, of the class table and of the matrix, and the generator epoch the matrix was measured at (stamped in the matrix as `sample.epoch`; the table holds no epoch of its own). `scripts/build_fudge_table.py --check-inputs` compares them with the files; `update.sh` step 3 runs it after the References pages. Silent when current; when a hash differs it names the file and the build command; it also says how many generator epochs, and how many that change the fill stage, have passed since the matrix was measured. It only warns, and the hours-long matrix run stays on a lane machine (GEN.1317).
+
+generation-output: unchanged
+
+## [8.0.4686+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A giant can now hold a whole planet at its L4 or L5, grown from the solids of its 1:1 zone, on the giant's orbit 60 degrees ahead of it or behind it.
+
+### Added
+- GEN.1151 slice A (lock item, migration 0272): `generation/trojan_planet.py`. For each giant that grew where it orbits, the solids of its two tadpole zones (`trojan_bodies.zone_solids_earth`, the nebula the planets and belts were made from), a share of them (TB3, 0.1) over the share of the growth time the gas disk allowed (TB4, a ramp from 0.3 to 3 Myr) and the room the mass rule leaves make a ceiling; a ceiling over the lightest planet draws a mass log-uniform to it, and the giant's neighbours and companion stars decide whether the body stays (the survival of the swarm, GEN.1455). No rate is set.
+- The planet takes the giant's plane, node, periapsis and eccentricity and stands 60 degrees from it in mean anomaly (`Planet(trojan_of=...)`, `build.trojan_of`), and is stored with `planets.lagrange_point` and `planets.lagrange_host_id`; the loader links it to its giant.
+
+### Changed
+- TB4 from a flat 1 Myr minimum of gas-disk life to a ramp (0.3, 3.0) Myr (tweak L2), because the measure (`reports/gen1151/`) found the flat step on the median G dwarf disk life (0.9 Myr) and so shutting out three in four of its giants and passing the rest in full; TB3 stays 0.1, the ramp alone cuts the median ceiling to a fifth. New rows TB5 (zone half width), TB6 (azimuth share), TB7 (migration share).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4685+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A rogue planet can be saved again: the trojan planet link columns are not its columns.
+
+### Fixed
+- GEN.1151: `lagrange_point` and `lagrange_host_id` are columns of `planets` only (a rogue planet has no giant to share an orbit with), so they join `ROGUE_HOST_ONLY_COLUMNS`; the rogue planet insert no longer names them (`Unknown column 'lagrange_point'` failed every sector unit of the pinned galaxy). A test saves a rogue planet and a moon of it.
+
+generation-output: unchanged
+
+## [8.0.4684+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A trojan region or planet is no longer taken for a belt or planet out of order or too close to its giant, which failed the wide binary check.
+
+### Fixed
+- GEN.1150, GEN.1151: a trojan region is put at the end of its star's list and stands at its giant's distance, and a trojan planet stands there too, so `check_orbit_spacing` called a region "listed after the belt at 24 AU but orbits inside it" and "too close to the belt" (`test_wide_binaries_never_overlap`), and the final respacing pass could push them off the giant's orbit. `validation.slot_planets` now leaves out any body with a `lagrange_point`, as it does a promoted belt member: they share the giant's orbit by design, in step with it, so they are no slot of the spacing rules. The check itself is not loosened for any other body (a test pins that a belt listed out of order is still caught). Where the final respacing used to move a trojan, it no longer does; main has no trojan, so only the Train 52 head moves.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4683+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The trojan region files use American spelling, and the belt number test feeds the rows the query returns.
+
+### Fixed
+- GEN.1150: `centre` in the trojan overlay, the 3D system view, the system map, the style sheet and the schema reference is `center` (`scripts/american_spelling_sweep.py apply`; identifiers and test names follow).
+- GEN.1150: the belt number test built its rows without the `lagrange_point` column that `belt_names.numbers_for_systems` selects; its rows now carry it and a trojan region among them, which takes no number and leaves no gap.
+
+generation-output: unchanged
+
+## [8.0.4682+db272.gen150.api14] - 2026-11-21
+
+**Headline:** A giant that swept an outer disk now holds a trojan swarm at its L4 and L5, as two regions that are stored, named for the giant and shown on their own page.
+
+### Added
+- GEN.1150 slice 1 (lock item, migration 0271): the mass the scatter step gives a giant's 1:1 zone (`swept_hand_on.trojan_part`: the bound share of what its outer disk lost, times the swept split's `trojans` row, times what the other giants and companion stars leave it, GEN.1455) becomes a leading (L4) and a trailing (L5) `TrojanRegion` (`generation/trojan_region.py`), drawn by the existing `trojan_swarm.draw_regions` (the split, each region's libration, mean eccentricity and inclination) on streams of the swarm's own. A region is a belt-like row of `asteroid_belts` whose parent is the giant, with the new columns `lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity` and `mean_inclination_deg`. It is made after the spacing pass, the irregular moons and the comets, so no pass sees a body that shares a giant's orbit, and it is kept only above the belt minimum mass. Its name is `<giant> L4 trojan region`, worked out and never stored, and it takes no number among the star's belts.
+- No rate is set. In 160 G2V systems 19 held a giant and 2 had an outer disk it had swept (the swarm needs one, and a giant of a high Safronov number throws nearly all of it out): about 1 percent of G2V systems hold a swarm worth keeping, the heavier of the two 1.1e22 kg. Registered as GEN.725 row TJ12.
+- Slice 2 (MAP.354, no generation change): `physics/trojan_overlay.py` puts a region's centre at its giant's longitude plus 60 (L4) or minus 60 (L5) degrees plus the libration (the stored phase is the phase at Unix time zero, so no position is stored and the orbit updater writes nothing for a region). The system map draws a region as an arc on the giant's orbit as wide as its libration and a diamond at its centre labelled `<giant>-L4`, on every 2D scene; it follows the giant as the updater moves it.
+- MAP.433: the 3D scene draws a region as an arc on the giant's orbit, as the 2D scenes do, and a region is no belt of the belt order count (it takes no belt number). Not yet: members of a region (whole planets at L4 and L5 are GEN.1151).
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4681+db270.gen150.api14] - 2026-11-21
 
 **Headline:** The adaptation record now says what pressure the habitat of a chemical-energy life puts on it, from the ocean floor, the ocean top or an aquifer, and which piezophile adaptation reaches it (no generated number changes)

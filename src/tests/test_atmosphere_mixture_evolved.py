@@ -198,3 +198,26 @@ def test_a_stored_ammonia_ice_is_used_as_it_is_and_the_ratio_to_the_water_is_not
     assert found
     for result in found:
         assert "ammonia_per_water" not in result.constants and "ammonia_outgassed" in result.constants
+
+
+def test_an_abiotic_oxygen_air_takes_its_sulfur_and_nitrogen_from_the_share_the_surface_holds():
+    """GEN.1813: the sulfur and nitrogen per carbon of the ocean's carbon come from the share of the delivered inventory that the surface holds
+    (`supply`, which carries the sulfate and sulfide sinks), not from the delivered inventory: a body whose sulfur the crust took has none in its air."""
+    sulfur = ("H2S", "SO2", "S2", "OCS", "SO", "S")
+
+    def share(result):
+        return sum(result.mole_fractions.get(gas, 0.0) for gas in sulfur)
+
+    compared = 0
+    for seed in range(40):
+        subject = Subject("terrestrial", {**BASE, **ABIOTIC})
+        with draw.bound(seed):
+            free = md.draw_mixture(subject)
+        if free.family != "abiotic-oxygen" or share(free) <= 1e-6:
+            continue
+        with draw.bound(seed):
+            sunk = md.draw_mixture(subject, supply=lambda inventory: {"S": 1e-4})
+        assert sunk.family == "abiotic-oxygen"
+        assert share(sunk) < 0.01 * share(free)
+        compared += 1
+    assert compared

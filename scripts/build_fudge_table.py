@@ -34,6 +34,7 @@ import os
 import re
 import statistics
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "src"))
@@ -315,10 +316,36 @@ def check_inputs(table=None, matrix=None, rows=None, current_epoch=None):
     return ok, lines
 
 
+def record_inputs(ok, lines, now=None):
+    """
+    Writes what `check_inputs` found to `fudge-table.json` in the state folder (GEN.1317 slice 2), the one file the admin Update page reads
+    (`planetgen.admin.webupdate.fudge_table`): `{"ok", "lines", "checked", "epoch"}`. `update.sh` runs as root and the web user only reads it, so the
+    page shows what the last update found without running the sensitivity code. A folder that cannot be written is said, never raised: the
+    check is a note, not a gate.
+    """
+    from planetgen.admin import maintenance
+    from planetgen.util import generator_epoch
+
+    path = os.path.join(maintenance.state_dir(), "fudge-table.json")
+    body = {"ok": bool(ok), "lines": list(lines), "checked": int(time.time() if now is None else now), "epoch": generator_epoch.generator_epoch()}
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        temporary = path + ".tmp"
+        with open(temporary, "w", encoding="utf-8") as handle:
+            json.dump(body, handle)
+        os.chmod(temporary, 0o644)
+        os.replace(temporary, path)
+    except OSError as error:
+        print(f"the fudge table check was not recorded for the admin page ({error})", file=sys.stderr)
+        return None
+    return path
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     parser.add_argument("--check", action="store_true", help="fail if the committed table differs from the matrix")
     parser.add_argument("--check-inputs", action="store_true", help="what update.sh runs: compare the stamp in the table with the files and say how old the matrix is; exit 1 when they differ")
+    parser.add_argument("--record", action="store_true", help="with --check-inputs: also write the result to fudge-table.json in the state folder, for the admin Update page")
     parser.add_argument("--assemble", nargs="+", metavar="PASS.json", help="write fudge_matrix.json from the frozen screening passes (the first the full pass), then build the table")
     parser.add_argument("--regenerated", help="with --assemble: the matrix JSON of the old regenerate-the-system runs, for the population rows")
     args = parser.parse_args(argv)
@@ -328,6 +355,8 @@ def main(argv=None):
         print(f"wrote {os.path.relpath(MATRIX)}")
     if args.check_inputs:
         ok, lines = check_inputs()
+        if args.record:
+            record_inputs(ok, lines)
         for line in lines:
             print(line, file=sys.stdout if ok else sys.stderr)
         return 0 if ok else 1

@@ -1570,6 +1570,36 @@ Added in v203 (GEN.1209). The life classes that live on a planet or moon: one ro
 | `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr` | DOUBLE | nullable | The five ages of the class's schedule, Gyr; `NULL` for a step never reached. |
 | `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | The four kind scores, 0 to 9, that this class gives. |
 
+### `planet_life_ages` / `moon_life_ages`
+
+Added in v270 (GEN.1746 slice 3). The life ages of a planet or moon (`physics/life_ages.py`): the stretches of its life between two mass extinctions, one row each, written with the body and removed with it. A body with no life, a rogue planet and a body stored before v270 have none. The same ages are in the body's `air_history` record, with the steps of its air.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` / `moon_id` | BIGINT UNSIGNED | NOT NULL | FK -> `planets.id` / `moons.id` (`ON DELETE CASCADE`). |
+| `age_number` | SMALLINT UNSIGNED | NOT NULL, CHECK 1 or more | The age's place in the table, from 1. UNIQUE with the owner; indexed with `end_gyr`, so "the worlds in their third life age" is a short read. |
+| `start_gyr` | DOUBLE | NOT NULL, CHECK 0 or more | When it started, Gyr: the age life began, or the extinction that ended the age before plus the 10 Myr recovery lag. |
+| `end_gyr` | DOUBLE | nullable | The age of the extinction that ended it, Gyr; `NULL` for the age the world is in. |
+| `cause` | VARCHAR(16) | nullable | What ended it: `flood basalt` or `impact`; `NULL` for the age the world is in. |
+| `kill_share` | DOUBLE | nullable, CHECK 0 < share <= 1 | The share of species the extinction killed (0.30 or more); `NULL` for the age the world is in. |
+
+### `planet_adaptations` / `moon_adaptations`
+
+Added in v274 (GEN.1809). What the life of a planet or moon had to become able to do to live where it does (`physics/adaptation_record.py`, GEN.1808): one row for each thing the life of each class on it needed, written with the body and removed with it. Only bodies whose life is of a class with a record (1a, 1b, 1c and 2 for now) and that live in a refuge have rows; a body with none, a rogue planet and a body stored before v274 have none.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` / `moon_id` | BIGINT UNSIGNED | NOT NULL | FK -> `planets.id` / `moons.id` (`ON DELETE CASCADE`). |
+| `entry_number` | SMALLINT UNSIGNED | NOT NULL, CHECK 1 or more | The row's place in the record, from 1. UNIQUE with the owner. |
+| `life_class` | VARCHAR(3) | NOT NULL | The life class whose life the entry is for (`1a`, `1b`, `1c`, `2` for now): a body with life of several classes has the entries of each, one class after the other. |
+| `axis` | VARCHAR(24) | nullable | The axis of the table of adaptations (`life_adaptations.AXES`): `t_cold`, `t_hot`, `light_floor`, `water_hours`, `ground_water_depth` or `water_activity`; `NULL` for a habitat row (a pigment that works in no light, a crust that wakes on water). Indexed with `grade`. |
+| `habitat` | VARCHAR(24) | NOT NULL | The habitat the demand comes from (`life_adaptations.HABITATS`: `open_water`, `water_under_ice`, `melt_film`, `crust_land`, `seep`, `brine`, `hot_pool`). |
+| `demand` | DOUBLE | nullable | What the places demand on the axis, in the unit of the axis: K for the temperatures, micromoles of photons m-2 s-1 for the light, hours of liquid water a year, metres for the water table, a water activity; `NULL` for a habitat row. |
+| `grade` | TINYINT UNSIGNED | nullable, CHECK 2 or 3 | The lowest grade of the table that reaches the demand (2 tolerant, 3 extreme); `NULL` when even the extreme grade falls short (the life there is past the table) and for a habitat row. |
+| `row_ids` | VARCHAR(64) | NOT NULL | The ids of the rows of the table that give it, comma separated (`C8`, `D2,D3`). |
+
 ### `irregular_moons`
 
 Added in v219 (GEN.1084). The small bodies a planet caught from the outer disk and its own feeding zone (`generation/irregular_moons.py`), one row each: every body above 1e16 kg, then more of the next heaviest until 90 percent of the population's mass is held (at most 100). Smaller bodies are a total on `irregular_sets`.
@@ -2556,6 +2586,14 @@ Migration 0272 adds `lagrange_point` (VARCHAR(2), `L4` or `L5`) and `lagrange_ho
 ### v271 (GEN.1150): the trojan region of a giant
 
 Migration 0271 adds `lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity` and `mean_inclination_deg` to `asteroid_belts`: a giant's trojan swarm is stored as two belt-like rows (L4 and L5) whose parent is the giant (`parent_type` `planet`). All five are NULL for every other belt and for a row made before v269; nothing is backfilled, a regenerated galaxy holds the swarms. A region has no `belt_members` rows in this slice. Its name is worked out, never stored: `<giant> L4 trojan region`; it takes no number among the star's belts (`db/belt_names.py`).
+
+### v273 (GEN.1746): the life ages of a world
+
+Migration 0273 creates `planet_life_ages` and `moon_life_ages` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come when the galaxy is regenerated.
+
+### v274 (GEN.1809): the adaptations the life of a world needed
+
+Migration 0274 creates `planet_adaptations` and `moon_adaptations` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come when the galaxy is regenerated.
 
 ### v267 (GEN.1231): the mass a belt's star threw inward
 

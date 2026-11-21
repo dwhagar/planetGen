@@ -1223,6 +1223,27 @@ lost_moons = sa.Table(
 )
 
 
+moon_adaptations = sa.Table(
+    'moon_adaptations',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('entry_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('life_class', sa.String(3), nullable=False),
+    sa.Column('axis', sa.String(24), nullable=True),
+    sa.Column('habitat', sa.String(24), nullable=False),
+    sa.Column('demand', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('row_ids', sa.String(64), nullable=False),
+    sa.Index('idx_moon_adaptations_axis', 'axis', 'grade'),
+    sa.Index('uq_moon_adaptations', 'moon_id', 'entry_number', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_adaptations_moon', ondelete='CASCADE'),
+    sa.CheckConstraint('(`entry_number` >= 1)', name='moon_adaptations_chk_1'),
+    sa.CheckConstraint('((`grade` is null) or (`grade` between 2 and 3))', name='moon_adaptations_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
 moon_deposit_types = sa.Table(
     'moon_deposit_types',
     metadata,
@@ -1328,6 +1349,26 @@ moon_life = sa.Table(
     sa.Index('uq_moon_life', 'moon_id', 'life_class', unique=True),
     sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_life_moon', ondelete='CASCADE'),
     sa.CheckConstraint('((`share` > 0) and (`share` <= 1))', name='moon_life_chk_1'),
+    mysql_engine="InnoDB",
+)
+
+
+moon_life_ages = sa.Table(
+    'moon_life_ages',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('age_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('start_gyr', mysql.DOUBLE(), nullable=False),
+    sa.Column('end_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('cause', sa.String(16), nullable=True),
+    sa.Column('kill_share', mysql.DOUBLE(), nullable=True),
+    sa.Index('idx_moon_life_ages_number', 'age_number', 'end_gyr'),
+    sa.Index('uq_moon_life_ages', 'moon_id', 'age_number', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_life_ages_moon', ondelete='CASCADE'),
+    sa.CheckConstraint('(`age_number` >= 1)', name='moon_life_ages_chk_1'),
+    sa.CheckConstraint('(`start_gyr` >= 0)', name='moon_life_ages_chk_2'),
+    sa.CheckConstraint('((`kill_share` is null) or ((`kill_share` > 0) and (`kill_share` <= 1)))', name='moon_life_ages_chk_3'),
     mysql_engine="InnoDB",
 )
 
@@ -2305,6 +2346,27 @@ phenomenon_scatter_classes = sa.Table(
 )
 
 
+planet_adaptations = sa.Table(
+    'planet_adaptations',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('entry_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('life_class', sa.String(3), nullable=False),
+    sa.Column('axis', sa.String(24), nullable=True),
+    sa.Column('habitat', sa.String(24), nullable=False),
+    sa.Column('demand', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('row_ids', sa.String(64), nullable=False),
+    sa.Index('idx_planet_adaptations_axis', 'axis', 'grade'),
+    sa.Index('uq_planet_adaptations', 'planet_id', 'entry_number', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_adaptations_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('(`entry_number` >= 1)', name='planet_adaptations_chk_1'),
+    sa.CheckConstraint('((`grade` is null) or (`grade` between 2 and 3))', name='planet_adaptations_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
 planet_deposit_types = sa.Table(
     'planet_deposit_types',
     metadata,
@@ -2410,6 +2472,26 @@ planet_life = sa.Table(
     sa.Index('uq_planet_life', 'planet_id', 'life_class', unique=True),
     sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_life_planet', ondelete='CASCADE'),
     sa.CheckConstraint('((`share` > 0) and (`share` <= 1))', name='planet_life_chk_1'),
+    mysql_engine="InnoDB",
+)
+
+
+planet_life_ages = sa.Table(
+    'planet_life_ages',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('age_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('start_gyr', mysql.DOUBLE(), nullable=False),
+    sa.Column('end_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('cause', sa.String(16), nullable=True),
+    sa.Column('kill_share', mysql.DOUBLE(), nullable=True),
+    sa.Index('idx_planet_life_ages_number', 'age_number', 'end_gyr'),
+    sa.Index('uq_planet_life_ages', 'planet_id', 'age_number', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_life_ages_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('(`age_number` >= 1)', name='planet_life_ages_chk_1'),
+    sa.CheckConstraint('(`start_gyr` >= 0)', name='planet_life_ages_chk_2'),
+    sa.CheckConstraint('((`kill_share` is null) or ((`kill_share` > 0) and (`kill_share` <= 1)))', name='planet_life_ages_chk_3'),
     mysql_engine="InnoDB",
 )
 

@@ -6,7 +6,7 @@ import pytest
 
 from planetgen.db import models, object_rows, store
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, isotope_record, life_classes, ore_deposits
+from planetgen.physics import adaptation_record, atmosphere, constants, isotope_record, life_ages, life_classes, ore_deposits
 
 KIND_FIELDS = {
     "stars": store.STAR_FIELDS, "planets": store.PLANET_FIELDS, "moons": store.MOON_FIELDS, "asteroid_belts": store.BELT_FIELDS, "comets": store.COMET_FIELDS,
@@ -189,7 +189,7 @@ class _Writes:
 
 
 class _SpectrumConnection:
-    def __init__(self, layers=None, gases=None, scores=None, living=None, planet=None, deposits=None, isotopes=None):
+    def __init__(self, layers=None, gases=None, scores=None, living=None, planet=None, deposits=None, isotopes=None, ages=None, adaptations=None):
         written = _Writes()
         if planet is not None:
             store.insert_irregular_moons(written, planet, 7)
@@ -200,6 +200,8 @@ class _SpectrumConnection:
         self.scores = scores or {}
         self.deposits = deposits or []
         self.isotopes = isotopes or []
+        self.ages = ages or []
+        self.adaptations = adaptations or []
 
     def execute(self, sql, params=()):
         if "irregular_sets" in sql:     # GEN.1084: the irregular moons of a planet are read from irregular_sets and irregular_moons
@@ -218,6 +220,13 @@ class _SpectrumConnection:
         if "_life_class_scores" in sql:  # GEN.889: the class scores are read from planet_life_class_scores or moon_life_class_scores
             column = "moon_id" if "moon_life_class_scores" in sql else "planet_id"
             return _Rows([{column: params[0], "life_class": name, "score": score} for name, score in self.scores.items()])
+        if "_adaptations" in sql:  # GEN.1809: what the life of the body needed is read from planet_adaptations or moon_adaptations (a body with none has no rows)
+            column = "moon_id" if "moon_adaptations" in sql else "planet_id"
+            return _Rows([{column: params[0], "entry_number": number, "life_class": entry["life_class"], "axis": entry["axis"], "habitat": entry["habitat"], "demand": entry["demand"], "grade": entry["grade"], "row_ids": ",".join(entry["rows"])}
+                          for number, entry in enumerate(self.adaptations, 1)])
+        if "_life_ages" in sql:  # GEN.1746 slice 3: the life ages of the body are read from planet_life_ages or moon_life_ages (a body with none has no rows)
+            column = "moon_id" if "moon_life_ages" in sql else "planet_id"
+            return _Rows([{column: params[0], "age_number": entry["number"], "start_gyr": entry["start_gyr"], "end_gyr": entry["end_gyr"], "cause": entry["cause"], "kill_share": entry["kill_share"]} for entry in self.ages])
         if "_life " in sql:  # GEN.1209: the classes that live on the body are read from planet_life or moon_life
             column = "moon_id" if "moon_life" in sql else "planet_id"
             return _Rows([{column: params[0], "life_class": entry["life_class"], "share": entry["share"], "life_stage": entry["stage"],
@@ -243,7 +252,7 @@ def _check_bodies(system, checked):
         if hasattr(body, "moons"):
             row = _stored(store.PLANET_FIELDS, body, context)
             row["id"] = 7
-            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None), getattr(body, life_classes.SCORES_FIELD, None), getattr(body, life_classes.LIVING_FIELD, None), planet=body, deposits=getattr(body, ore_deposits.ATTRIBUTE, None), isotopes=getattr(body, isotope_record.ATTRIBUTE, None)), row, False)
+            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None), getattr(body, life_classes.SCORES_FIELD, None), getattr(body, life_classes.LIVING_FIELD, None), planet=body, deposits=getattr(body, ore_deposits.ATTRIBUTE, None), isotopes=getattr(body, isotope_record.ATTRIBUTE, None), ages=getattr(body, life_ages.FIELD, None), adaptations=getattr(body, adaptation_record.FIELD, None)), row, False)
             original = body.to_dict()
             if loaded.get("irregulars") is None:        # a planet with no irregular moons stores no row and reads back as the empty set (`irregular_set_dict`)
                 loaded["irregulars"] = irregular_moons.NO_IRREGULARS.to_dict()
@@ -254,7 +263,7 @@ def _check_bodies(system, checked):
             for moon in body.moons:
                 row = _stored(store.MOON_FIELDS, moon, dict(context, planet_id=7))
                 row["id"] = 8
-                loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(moon.interior_layers, getattr(moon, atmosphere.GAS_FIELD, None), getattr(moon, life_classes.SCORES_FIELD, None), getattr(moon, life_classes.LIVING_FIELD, None), deposits=getattr(moon, ore_deposits.ATTRIBUTE, None), isotopes=getattr(moon, isotope_record.ATTRIBUTE, None)), row, True)
+                loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(moon.interior_layers, getattr(moon, atmosphere.GAS_FIELD, None), getattr(moon, life_classes.SCORES_FIELD, None), getattr(moon, life_classes.LIVING_FIELD, None), deposits=getattr(moon, ore_deposits.ATTRIBUTE, None), isotopes=getattr(moon, isotope_record.ATTRIBUTE, None), ages=getattr(moon, life_ages.FIELD, None), adaptations=getattr(moon, adaptation_record.FIELD, None)), row, True)
                 assert "reflex_offset_x" not in loaded and loaded["is_moon"] is True
                 original = moon.to_dict()
                 for key in set(loaded) - {"moons", "reflection_spectrum_visible", "reflection_spectrum_non_visible",

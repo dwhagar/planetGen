@@ -28,7 +28,7 @@ from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import object_uid, scales
 from planetgen.physics import (adaptation_traits, planet_classes, agb_carbon, belt_history, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, hydrosphere, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature, roundness, spin,
-                               life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer, white_dwarf_core)
+                               life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, trojans, unit_registry, units, variability, water_layer, white_dwarf_core)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -601,7 +601,7 @@ _BODY_NOT_SHOWN = {
     "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
     "shape_temperature_k": "the temperature the body took its shape at; the roundness it sets is shown, not the temperature",
     "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
-    "air_history": "the record of the air's history (the steps with the gases of each, and the life ages) as stored text; nothing shows it yet, the chart of GEN.1745 reads it later",
+    "air_history": "the record of the air's history (the steps with the gases of each, and the life ages) as stored text; the body page shows it as a chart, not as text",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
@@ -672,7 +672,7 @@ NOT_SHOWN = {
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                    "velocity_z_kms"), _VECTORS),
         "host_node_id": "the orbit tree node; bookkeeping",
-        **{column: "of a trojan region of a giant (GEN.1150): its page prints them under the belt's rows (`describe/build.py` `_belt_section`: the point, the libration, the mean eccentricity and inclination)"
+        **{column: "of a trojan region of a giant: its page prints them under the belt's rows (`describe/build.py` `_belt_section`: the point, the libration, the mean eccentricity and inclination)"
            for column in ("lagrange_point", "libration_amplitude_deg", "libration_phase_deg", "mean_eccentricity", "mean_inclination_deg")},
         "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
         "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
@@ -1502,14 +1502,15 @@ TROJAN_PLANET_KEY = "trojan_planet"
 
 
 def _trojan_planet_provider(conn, kind, object_id, row):
-    """GEN.1151: the giant a planet shares its orbit with and the point it stands at (`planets.lagrange_point`, `lagrange_host_id`), the page text of `trojans.pair_text`."""
+    """GEN.1151, GEN.1820: the giant a planet shares its orbit with and the point it stands at (`planets.lagrange_point`, `lagrange_host_id`), worded by `trojans.pair_text` (`L4 of Sun and Jupiter`)."""
     if row["lagrange_point"] is None or row["lagrange_host_id"] is None:
         return
     host = conn.execute("SELECT name FROM planets WHERE id = ?", (row["lagrange_host_id"],)).fetchone()
-    if host is None:
+    star = conn.execute("SELECT name FROM stars WHERE id = ?", (row["star_id"],)).fetchone() if row["star_id"] else None
+    if host is None or star is None:
         return
     side = "ahead of it" if row["lagrange_point"] == "L4" else "behind it"
-    yield "identity", _sheet_row(TROJAN_PLANET_KEY, "Shares an orbit with", [f"{host['name']}, at its {row['lagrange_point']} point, 60 degrees {side} on the orbit"])
+    yield "identity", _sheet_row(TROJAN_PLANET_KEY, "Shares an orbit with", [f"{trojans.pair_text(star['name'], host['name'], row['lagrange_point'])}, 60 degrees {side} on the orbit"])
 
 
 def _star_identity_provider(conn, kind, object_id, row):

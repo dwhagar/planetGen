@@ -1198,7 +1198,7 @@ build_reference_pages() {
 FUDGE_TABLE_FAILED=0
 check_fudge_table() {
     local output="" status=0 line
-    output=$("$PYTHON" "$SCRIPT_DIR/scripts/build_fudge_table.py" --check-inputs 2>&1) || status=$?
+    output=$("$PYTHON" "$SCRIPT_DIR/scripts/build_fudge_table.py" --check-inputs --record 2>&1) || status=$?
     FUDGE_TABLE_FAILED=$status
     [[ -z "$output" ]] && return 0
     log_info "Checking the fudge table against its inputs:"
