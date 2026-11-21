@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4669+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The cold and heat adaptation traits of a life world now read the temperature of the water the life lives in, so a frozen world with warm crust no longer draws a cold trait.
+
+### Changed
+
+- TEST.800: the cold and heat stress of `adaptation_draw.stresses` reads `life_supply.habitat_temperature_k` (the surface under an open ocean or on a dry surface, the melting point of ice under an ice lid, the rise with depth in an aquifer) and not the mean surface temperature. In a 40-system sample the old reading gave a cold trait to 95 of 143 life worlds (94 of 137 chemical-class worlds, whose crust is warm under a frozen surface); the new one gives it to 13 of 144. The radiation, sulfide and carbon dioxide traits and their draws are unchanged.
+- The life census test lists all five stresses (cold and heat came with GEN.1725) and the `any_trait` band is set again from a fresh census.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4668+db270.gen150.api14] - 2026-11-21
 
 **Headline:** The giant fixed-point test no longer counts the solves of the air history as the solves of a giant.
