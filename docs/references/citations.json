@@ -26631,6 +26631,26 @@
       "label": "Hazael et al. 2014",
       "title": "Laboratory investigation of high pressure survival in Shewanella oneidensis MR-1 into the gigapascal pressure range"
     },
+    "R5336": {
+      "kind": "paper",
+      "label": "Hesse et al. 2022",
+      "title": "Downward Oxidant Transport Through Europa's Ice Shell by Density‐Driven Brine Percolation"
+    },
+    "R5337": {
+      "kind": "paper",
+      "label": "Ray et al. 2021",
+      "title": "Oxidation processes diversify the metabolic menu on Enceladus"
+    },
+    "R5338": {
+      "kind": "paper",
+      "label": "Kameda and Okamoto 2021",
+      "title": "Generation of oxidising fluids by comminution of fault rocks"
+    },
+    "R5339": {
+      "kind": "paper",
+      "label": "Worman et al. 2016",
+      "title": "Global rate and distribution of H2 gas produced by serpentinization within oceanic lithosphere"
+    },
     "R5340": {
       "kind": "paper",
       "label": "Steenstra et al. 2022",
@@ -26640,6 +26660,16 @@
       "kind": "paper",
       "label": "Clarke 2014",
       "title": "The thermal limits to life on Earth"
+    },
+    "R5346": {
+      "kind": "paper",
+      "label": "Hand et al. 2007",
+      "title": "Energy, Chemical Disequilibrium, and Geological Constraints on Europa"
+    },
+    "R5347": {
+      "kind": "paper",
+      "label": "Greenberg 2010",
+      "title": "Transport Rates of Radiolytic Substances into Europa's Ocean: Implications for the Potential Origin and Maintenance of Life"
     }
   }
 }

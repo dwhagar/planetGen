@@ -31,7 +31,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_record, adaptation_traits, aerosols, air_record, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_type, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_record, adaptation_traits, aerosols, air_record, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, ocean_oxygen, planet_type, radiation, surface_liquid_world, trace_air
 from planetgen.physics import carbide_deposits, constants, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
@@ -186,7 +186,10 @@ def _apply(planet, keep_stored, key, barred):
     _set_best(planet, final)
     result = final[row.id]
     anoxic = _anoxic_animals(planet, row, keep_stored)
-    complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), _clock_k(planet, row), anoxic)
+    ocean_o2 = _ocean_o2_kpa(planet)
+    complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), _clock_k(planet, row), anoxic, ocean_o2)
+    if ocean_o2 is not None:
+        log.choice("Sealed ocean oxygen", f"{ocean_o2:.3g} kPa", "the lid's oxidant, the water's radiolysis and the faults' radicals over the reductants of the floor (GEN.1824)")
     _set_evolutionary_state(planet, evolution.get_evolutionary_state(
         planet.star, tuple(getattr(planet, field) for field in evolution.SCHEDULE_FIELDS), max_stage=complexity.top_stage))
     planet.life_complexity = complexity.index
@@ -367,7 +370,7 @@ def _living_entries(planet, cands, final, key):
         else:
             result = final.get(row.id) or cand.score
             anoxic = _anoxic_animals(planet, row, False, draw.Stream(f"{key}:class:{row.id}:anoxic"))
-            complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), _clock_k(planet, row), anoxic)
+            complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), _clock_k(planet, row), anoxic, _ocean_o2_kpa(planet))
             state = evolution.get_evolutionary_state(planet.star, cand.ages, max_stage=complexity.top_stage)
             stage, milestone, system_age = state["stage"], state["milestone_age_gyr"], state["system_age_gyr"]
             grade = _animal_grade(complexity, stage)
@@ -414,6 +417,11 @@ def _choose(planet, scores, keep_stored):
         if stored in scores and scores[stored].score > 0:
             return scores[stored], True
     return life_classes.dominant(scores, draw), False
+
+
+def _ocean_o2_kpa(planet):
+    """The oxygen, kPa, of the ocean of a body under an ice lid (`ocean_oxygen`, GEN.1824), the one its animals breathe; `None` for any other body."""
+    return ocean_oxygen.ocean_o2_kpa(habitability_world.values_from_body(planet))
 
 
 def _anoxic_animals(planet, row, keep_stored, stream=None):
