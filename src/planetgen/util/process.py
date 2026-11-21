@@ -30,9 +30,26 @@ def pid_alive(pid):
         return True
 
 
+class Stopped(KeyboardInterrupt):
+    """A command was told to stop by SIGTERM; `reason` says by what (the line a canceller left, OPS.95). A `KeyboardInterrupt`, so a
+    run ends as canceled as Ctrl+C ends it."""
+
+    def __init__(self, reason):
+        super().__init__(reason)
+        self.reason = reason
+
+
+NO_REASON = "a SIGTERM that left no reason (a kill, or a cancel that could not write one)"
+"""str: What a command says when its SIGTERM came with no reason left for it."""
+
+
 def interrupt_on_sigterm():
-    """Makes SIGTERM (Cancel on the Generate page, `kill`) raise `KeyboardInterrupt`, so a run ends as canceled in Redis the
-    way Ctrl+C ends it. Returns the handler it replaced, for `signal.signal(signal.SIGTERM, previous)`."""
+    """Makes SIGTERM (Cancel on the Generate page, `kill`, the update guard, stop-all) raise `Stopped`, a `KeyboardInterrupt`, so a
+    run ends as canceled in Redis the way Ctrl+C ends it, and carries who sent the signal when the canceller left a reason
+    (`admin.stop_reason`). Returns the handler it replaced, for `signal.signal(signal.SIGTERM, previous)`."""
+    from planetgen.admin import stop_reason
+    stop_reason.clear(os.getpid())
+
     def on_term(_signum, _frame):
-        raise KeyboardInterrupt
+        raise Stopped(stop_reason.take(os.getpid()) or NO_REASON)
     return signal.signal(signal.SIGTERM, on_term)

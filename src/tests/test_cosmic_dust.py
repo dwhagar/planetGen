@@ -10,15 +10,31 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import dust_supply, influx, sulfur_cloud_set
 from planetgen.util import draw
 
-ACID_CLOUD_SEED = 32    # a hot rocky planet of this default system holds an acid cloud (V1) with the hypotheses on or off
+ACID_CLOUD_SEED = 137    # a hot rocky planet of this default system holds an acid cloud (V1) with the hypotheses on or off; tried first (TEST.809: seed 32 held one until the sulfur sinks left almost no air with sulfur dioxide)
+
+SEEDS_TRIED = 200
+"""int: How many seeds the fixture tries, after `ACID_CLOUD_SEED`, for a default system with a planet that holds an acid cloud. The sulfur dioxide an acid cloud needs is in about 1 system in 20, so the first seed
+that has it ends the search; the test fails, naming this count, when none of them does (it never passes without the cloud)."""
+
+
+def _acid_planets(system):
+    return [planet for planet in system.all_planets if planet.body_type != "a" and getattr(planet, "cloud_chemistry", None) and "V1" in planet.cloud_chemistry]
+
+
+def _default_system(seed):
+    draw.set_run_seed(seed)
+    config = SystemConfig()
+    config.PLANETS = True
+    return StarSystem(system_config=config)
 
 
 @pytest.fixture(scope="module")
 def system():
-    draw.set_run_seed(ACID_CLOUD_SEED)
-    config = SystemConfig()
-    config.PLANETS = True
-    return StarSystem(system_config=config)
+    for seed in (ACID_CLOUD_SEED, *range(SEEDS_TRIED)):
+        found = _default_system(seed)
+        if _acid_planets(found):
+            return found
+    pytest.fail(f"none of the {SEEDS_TRIED + 1} default systems tried (seed {ACID_CLOUD_SEED} first, then 0 to {SEEDS_TRIED - 1}) holds a planet with an acid cloud (V1)")
 
 
 def _comets(system):
@@ -26,7 +42,7 @@ def _comets(system):
 
 
 def _with_cloud(system):
-    return [planet for planet in system.all_planets if planet.body_type != "a" and getattr(planet, "cloud_chemistry", None) and "V1" in planet.cloud_chemistry]
+    return _acid_planets(system)
 
 
 def test_the_pass_does_nothing_while_the_hypotheses_are_off(system, monkeypatch):

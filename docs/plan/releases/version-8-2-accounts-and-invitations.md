@@ -49,7 +49,6 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-| OPS.64 | The version code carries the database schema, generator epoch and API versions as well |  |  |
 
 ## Phase 2: What a signed-in user gets
 

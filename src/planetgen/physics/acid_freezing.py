@@ -18,7 +18,8 @@ Limits. The curve is the equilibrium liquidus: a droplet can supercool well belo
 eutectics 20 K or more lower), so `is_frozen` says where a droplet *can* be solid, not where it *must* be. It holds at 0.1 MPa; the melting curves
 of these solids move by a few hundredths of a kelvin per bar, small against the 1 K of the reading, so the cloud step uses it at any pressure of a cloud.
 
-Pure and unwired: GEN.1644 slice 1 makes the cold acid cloud read it in place of the 185 K floor (row 6.228:SV7).
+The cold acid cloud reads it (GEN.1644, `sulfur_cloud_set.acid_cloud_of_column`): a level whose droplets are at or below their freezing point is not part of the liquid
+acid cloud, in place of the 185 K floor of row 6.228:SV7.
 """
 
 import json

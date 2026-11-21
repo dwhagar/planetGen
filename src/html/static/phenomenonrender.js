@@ -1,8 +1,8 @@
 // html/static/phenomenonrender.js
 //
 // The phenomenon page's "View" panel (planetgen/web/maps/phenomenonrender.py): a
-// three.js picture of a neutron star, black hole, quasar, rogue planet or
-// interstellar comet, built from the numbers in `#phenomrender`'s
+// three.js picture of a neutron star, black hole, quasar, rogue planet,
+// interstellar comet or asteroid field, built from the numbers in `#phenomrender`'s
 // `data-view` JSON. The panel's static SVG still stays when WebGL can't
 // start; with `prefers-reduced-motion` the scene draws one still frame and
 // only redraws while the visitor drags it.
@@ -474,12 +474,46 @@ function interstellarComet(view, random) {
   };
 }
 
+// An asteroid field (GEN.361): the first bodies of its seed, each at the place the server worked out for it at the field's age
+// (`view.points`, x y z for each, scaled so their rms distance is 1). The heaviest `view.heroes` are drawn larger. A ring (a belt
+// a supernova unbound) is a thin pancake, so it is tipped toward the camera a little to read as a ring.
+function asteroidField(view, random) {
+  var RADIUS = 4.5;
+  var root = new THREE.Group();
+  var points = view.points || [];
+  var count = Math.floor(points.length / 3);
+  var heroes = Math.min(view.heroes || 0, count);
+  function layer(from, to, size, color, opacity) {
+    var n = to - from;
+    var positions = new Float32Array(n * 3);
+    for (var i = 0; i < n * 3; i++) {
+      positions[i] = points[from * 3 + i] * RADIUS;
+    }
+    var geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    return new THREE.Points(geometry, new THREE.PointsMaterial({ color: color, size: size, transparent: true, opacity: opacity, depthWrite: false }));
+  }
+  root.add(layer(heroes, count, 0.1, 0xb9a88c, 0.75));
+  root.add(layer(0, heroes, 0.34, 0xf0e2c4, 0.95));
+  root.add(glowSprite([[0, "rgba(185,168,140,0.16)"], [0.5, "rgba(185,168,140,0.06)"], [1, "rgba(185,168,140,0)"]], RADIUS * 3.2));
+  root.rotation.x = view.ring ? 0.9 : 0.35;
+  var turn = random() * 6.28;
+  return {
+    object: root,
+    cameraDistance: RADIUS * 3.4,
+    update: function (t) {
+      root.rotation.y = turn + t * 0.04;
+    },
+  };
+}
+
 var BUILDERS = {
   neutron_star: neutronStar,
   black_hole: blackHole,
   quasar: quasar,
   rogue_planet: roguePlanet,
   interstellar_comet: interstellarComet,
+  asteroid_field: asteroidField,
 };
 
 function start(view) {

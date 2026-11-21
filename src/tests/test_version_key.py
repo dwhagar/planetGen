@@ -259,3 +259,9 @@ def test_a_web_job_without_a_database_still_gets_the_line(tmp_path, monkeypatch)
     monkeypatch.setattr(jobRunner, "_mysql_config", lambda job: store.MySQLConfig(host="127.0.0.1", port=1, database=None))
     job = {"id": "x", "title": "Reset"}
     assert jobRunner._run_line(job) == versionKey.run_line(None, "Reset")
+
+
+def test_a_stamped_version_with_its_local_suffix_reads_as_its_release_numbers():
+    """OPS.64: `8.2.2100+db134.gen62.api5` keys the same galaxy as `8.2.2100`."""
+    from planetgen.galaxy import version_key as _vk
+    assert _vk._release_parts("8.2.2100+db134.gen62.api5") == (8, 2, 2100)

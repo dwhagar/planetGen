@@ -701,7 +701,7 @@ export function stageChainOf(shell, band, wedge) {
 
 // "m.shell.band.wedge", a stage URL's `at`.
 export function formatDrillKey(block) {
-  return [block.m, block.shell, block.band, block.wedge].join(".");
+  return block.m + "." + block.shell + "." + block.band + "." + block.wedge;       // PERF.200: a string made by concatenation, not an array and a join, for every block of every cut
 }
 
 export function sameBlock(a, b) {
