@@ -937,8 +937,8 @@ def _rotated(x_km, y_km, degrees):
 
 def _trojan_region_svg(region, planets, star_of, anchor_of, lo, hi):
     """
-    The marker of a giant's trojan region (GEN.1150 slice 2, MAP.354): an arc on the giant's own orbit, as wide as the libration of the region's bodies, centred where the region is now (the giant's
-    direction turned by `trojan_overlay.offset_deg`: `+-60` degrees plus the libration at this moment), and a small diamond at its centre with the label `<giant>-L4` (`trojans.point_label`).
+    The marker of a giant's trojan region (GEN.1150 slice 2, MAP.354): an arc on the giant's own orbit, as wide as the libration of the region's bodies, centered where the region is now (the giant's
+    direction turned by `trojan_overlay.offset_deg`: `+-60` degrees plus the libration at this moment), and a small diamond at its center with the label `<giant>-L4` (`trojans.point_label`).
     `star_of(star_id)` gives the giant's star row and `anchor_of(star_id)` the scene point that star is drawn at. Empty for a region whose giant is not among `planets` or has no place yet.
     """
     host = next((planet for planet in planets if planet.get("id") == region.get("parent_id")), None)
@@ -950,14 +950,14 @@ def _trojan_region_svg(region, planets, star_of, anchor_of, lo, hi):
     r_px = _radial_px(_orbit_radius_km(host), lo, hi)
     ax_px, ay_px = anchor_of(host.get("star_id"))
     mu = trojan_overlay.mass_parameter(host.get("mass_kg"), star_of(host.get("star_id")).get("mass_kg"))
-    centre = trojan_overlay.offset_deg(region["lagrange_point"], region.get("libration_amplitude_deg"), region.get("libration_phase_deg"), _now_unix_s(), host.get("period_years"), mu)
+    center = trojan_overlay.offset_deg(region["lagrange_point"], region.get("libration_amplitude_deg"), region.get("libration_phase_deg"), _now_unix_s(), host.get("period_years"), mu)
     half = max(region.get("libration_amplitude_deg") or 0.0, _TROJAN_MIN_HALF_ARC_DEG)
     points = []
     for step in range(_TROJAN_ARC_STEPS + 1):
-        rx, ry = _rotated(x_km, y_km, centre - half + 2.0 * half * step / _TROJAN_ARC_STEPS)
+        rx, ry = _rotated(x_km, y_km, center - half + 2.0 * half * step / _TROJAN_ARC_STEPS)
         px, py = _polar_to_px(ax_px, ay_px, r_px, rx, ry)
         points.append(f"{px:.1f},{py:.1f}")
-    cx, cy = _polar_to_px(ax_px, ay_px, r_px, *_rotated(x_km, y_km, centre))
+    cx, cy = _polar_to_px(ax_px, ay_px, r_px, *_rotated(x_km, y_km, center))
     name = trojans.point_label(host.get("name") or "", region["lagrange_point"])
     attrs = {
         "kind": "belt", "id": region["id"], "name": name, "density": (region.get("density") or "").capitalize(),

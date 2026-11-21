@@ -39,7 +39,7 @@ function longitudes(points) {
   return out;
 }
 
-test("a region is an arc: every particle lies within its half width of the arc's centre, none all the way round", () => {
+test("a region is an arc: every particle lies within its half width of the arc's center, none all the way round", () => {
   const scene = sceneWithRegions([{}]);
   const built = View.buildSystemScene(scene, S.createLayout(scene, S.MODE_COMPRESSED), { glow: false });
   const points = built.group.children.find((child) => child.userData.ref === "belt:1");

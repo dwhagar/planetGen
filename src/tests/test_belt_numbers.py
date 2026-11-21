@@ -42,7 +42,10 @@ class _Conn:
 
 
 def test_the_database_numbers_agree_with_the_pure_count():
-    rows = [{"id": 21, "star_system_id": 1, "star_id": None, "orbital_index": 3},
-            {"id": 22, "star_system_id": 1, "star_id": None, "orbital_index": 7},
-            {"id": 30, "star_system_id": 2, "star_id": None, "orbital_index": 5}]
+    rows = [{"id": 21, "star_system_id": 1, "star_id": None, "orbital_index": 3, "lagrange_point": None},
+            {"id": 22, "star_system_id": 1, "star_id": None, "orbital_index": 7, "lagrange_point": None},
+            {"id": 30, "star_system_id": 2, "star_id": None, "orbital_index": 5, "lagrange_point": None},
+            {"id": 23, "star_system_id": 1, "star_id": None, "orbital_index": 4, "lagrange_point": "L4"}]       # a trojan region (GEN.1150): a name of its own, no number, and no gap in the belts' counting
     assert belt_names.numbers_for_systems(_Conn(rows), [1, 2]) == {21: 1, 22: 2, 30: 1}
+    system_one = [row for row in rows if row["star_system_id"] == 1]
+    assert [bodies.belt_number(row, system_one) for row in system_one if not row["lagrange_point"]] == [1, 2]

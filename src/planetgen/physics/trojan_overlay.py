@@ -25,7 +25,7 @@ def mass_parameter(secondary_mass, host_mass):
 
 def offset_deg(point, amplitude_deg, phase_deg, unix_s, orbital_period_years, mu):
     """
-    The mean longitude of a region's centre from its giant's, degrees, at Unix time `unix_s`: `+60` for `L4`, `-60` for `L5`, plus the libration. A giant with no known period or mass
+    The mean longitude of a region's center from its giant's, degrees, at Unix time `unix_s`: `+60` for `L4`, `-60` for `L5`, plus the libration. A giant with no known period or mass
     parameter, or a pair that holds no tadpole (`trojans.libration_period` is `None`), gives the point alone.
     """
     base = trojans.longitude_offset_deg(point)

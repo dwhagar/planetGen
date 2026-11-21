@@ -2,7 +2,7 @@
 
 """
 GEN.1150 slice 2 and MAP.354: where a giant's trojan region lies at a time (`physics/trojan_overlay.py`) and its marker on the system map: an arc on the giant's orbit and a diamond at the
-region's centre labelled `<giant>-L4`, with no stored position of its own.
+region's center labelled `<giant>-L4`, with no stored position of its own.
 """
 
 import math
@@ -25,7 +25,7 @@ def test_a_region_with_no_libration_sits_sixty_degrees_ahead_or_behind():
     assert trojan_overlay.offset_deg("L5", 0.0, 123.0, 1.0e9, 11.86, MU) == pytest.approx(-60.0)
 
 
-def test_the_libration_swings_the_centre_by_its_amplitude_over_the_libration_period():
+def test_the_libration_swings_the_center_by_its_amplitude_over_the_libration_period():
     period = trojans.libration_period(11.86, MU)
     assert period is not None and 100.0 < period < 200.0           # about 150 years for a Jupiter
     phase = 90.0                                                     # sin(90 degrees) = 1: at its widest at Unix time zero
@@ -66,14 +66,14 @@ def test_the_map_draws_a_region_as_an_arc_and_a_labelled_diamond_not_as_a_ring(m
     assert 'data-kind="belt"' in html and 'data-id="7"' in html
 
 
-def test_the_regions_centre_is_the_giants_direction_turned_by_the_overlay(monkeypatch):
+def test_the_regions_center_is_the_giants_direction_turned_by_the_overlay(monkeypatch):
     monkeypatch.setattr(sm, "_now_unix_s", lambda: 0.0)
     system, stars = {"name": "T", "binary_configuration": None}, [_star(10)]
     html = sm.render_system_map_panel(system, stars, [_giant_row()], [_region(7, "L4", amplitude=0.0, phase=0.0)])
     giant_circle = re.search(r'<circle class="sysmap-orbit" cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"', html)
     cx0, cy0, r = (float(giant_circle.group(i)) for i in (1, 2, 3))
     diamond = re.search(r'class="sysmap-trojan-icon" points="([\d.]+),([\d.]+) ', _marker(html, "Planet 1-L4").group(0))
-    x, y = float(diamond.group(1)), float(diamond.group(2)) + 5.0        # the top vertex is the centre less five pixels
+    x, y = float(diamond.group(1)), float(diamond.group(2)) + 5.0        # the top vertex is the center less five pixels
     angle = math.degrees(math.atan2(cy0 - y, x - cx0))
     assert math.hypot(x - cx0, y - cy0) == pytest.approx(r, abs=0.2) and angle == pytest.approx(60.0, abs=0.5)
 
