@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4675+db270.gen150.api14] - 2026-11-21
+
+**Headline:** Every body whose life lives in a refuge (a melt film, a brine seep, a spring, the sea under an ice lid) now records which adaptations of the table its life needed, for the photosynthetic classes 1a, 1b, 1c and 2
+
+### Added
+
+- GEN.1808: `physics/adaptation_record` reads a finished body's refuge and conditions and asks, for each limit the ordinary life does not reach (cold, heat, light under the ice, hours of liquid water, depth of the water table, water activity), what the life must be able to do, which grade of the table of GEN.1725 reaches it (`None` when even the extreme grade falls short: the life there is past the table) and which rows give it, plus the habitat rows (a pigment that works in no light, a crust that wakes on water) of the places the refuge counted. The life age and kinds of life the body has limit which rows apply. The record is `planet.life_adaptations`, a list of plain dicts, `None` for a body with none; nothing stores it yet (GEN.1809) and nothing in the generation reads it.
+- `Refuge` now carries the cold and hot ends of the temperatures of its wet lit steps (the middle 95 percent of the wet lit time, each step weighed by its place's share of the surface, stand-in AE2), the least light under an ice lid and the habitats it counted. Its hours, area and temperature are unchanged.
+- Stand-ins AE1 (one watt a square metre is 5 micromoles of photons, tied by the gate's own light floor) and AE2 (the share of the temperature range) in section 6.318.
+- Classes 3a to 9 get no record yet (GEN.1810 and GEN.1811), and a class 2 need beyond the five rows that apply to all classes comes out "past the table" until that research is in.
+
 ## [8.0.4674+db270.gen150.api14] - 2026-11-21
 
 **Headline:** A log line gives a duration under a second in whole milliseconds, so `test_job_logs` is green again.
