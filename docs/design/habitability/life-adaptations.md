@@ -46,6 +46,12 @@ The habitat temperature is one value for the body, not the local one of each hab
 The traits extend GEN.876 (`adaptation_traits`, `adaptation_draw`) and add no second draw; the table reads the same tier and tweak ladders as the registry (`docs/design/research/stand-in-values.md`); the refuge limits of GEN.1722 (RF1 to RF11)
 are rows, not new constants. Habitats are read by GEN.1723. Light under ice is `ice_light` (GEN.1726).
 
+## 4a. The record of a body (GEN.1808)
+
+`physics/adaptation_record` puts the table and the refuge gate together for one finished body (Boss, 5:54 PM EST 2026-11-20: apply to all life types, with "information to each about the adaptations that were necessary to make it work"). It reads the refuge (`surface_refuge.refuge_of`: the cold and hot ends of the temperatures of its wet lit steps, the hours of liquid water, the least light under the ice, the habitats counted) and the body's water table and water activity, and for each axis whose ordinary limit does not reach the demand finds the lowest grade of the table (`life_adaptations.limit`, for the body's class, life age and kinds of life) that does, and the rows that give it. A demand no grade reaches is kept as `grade` `None`: the life there is past the table. Habitat rows with no axis are listed for each habitat the refuge counted and the class may use. Light is converted at the gate's own floor (stand-in AE1, 5 micromoles per watt) and the temperature range holds the middle 95 percent of the wet lit time (AE2).
+
+The record is `planet.life_adaptations`, a list of dicts (`axis`, `habitat`, `demand`, `grade`, `rows`), `None` for none. It is made once by the life pass after the air history, moves no number of the body and is not stored yet (GEN.1809). Only the photosynthetic classes 1a, 1b, 1c and 2 have one; classes 3a to 9 follow with GEN.1810 and GEN.1811.
+
 ## 5. What it leaves out
 
 Production factors (how much each adaptation costs the life in growth) are empty except where the research gives one (the under-ice shade adaptation and cryoconite, 1.0): the research found no adaptation that raises refuge production
