@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4667+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The column check lists `planets.cloud_decks` as a JSON document read whole, as it does `air_history`.
+
+### Fixed
+- GEN.1577: `planets.cloud_decks` (a giant's cloud decks and trace-gas ceilings, JSON text) is in the prose-column list of `test_db_columns_and_indexes.py` with its reason, so the two tests that failed on the Train 51 head (`test_no_galaxy_table_keeps_a_json_or_serialized_blob`, `test_the_prose_list_has_no_stale_entries`) pass.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4666+db270.gen150.api14] - 2026-11-21
 
 **Headline:** A moon the evection resonance holds no longer keeps an eccentricity its tide could not leave it, so moons with tides of a million watts a square metre are gone.
