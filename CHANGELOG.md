@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4681+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The adaptation record now says what pressure the habitat of a chemical-energy life puts on it, from the ocean floor, the ocean top or an aquifer, and which piezophile adaptation reaches it (no generated number changes)
+
+### Added
+
+- GEN.1819 slice 1: `life_supply.habitat_pressure_pa(values, place)` gives the pressure of the place a chemical class lives in from the fields a body already stores: the top of an ocean (the air plus the ice lid's weight), its floor (the stored base of the water layer; where the liquid lies on high-pressure ice, the pressure at which the lid's melting point freezes into it), and an aquifer (the air plus the rock above it, a new number `crust_density_kg_m3`). The classes 3a and 3b read the floor, the other water classes the top, the acid cloud its own pressure. `life_adaptations` gets the axis `pressure` (MPa; ordinary 50) with the rows P1 (growth above 100 MPa), P2 (growth to 140 MPa, the record) and a dormant P3 (survival to 1.5 GPa) and the habitat `deep_water`; `adaptation_record` puts the habitat's pressure to it, so a floor over 140 MPa is recorded as past the table. `habitability_world.values_from_body` carries `hp_ice_km`, `ocean_depth_km` and `water_base_pressure_pa`. New stand-in section 6.321 and citations R5330 (the description of *Pyrococcus yayanosii*) and R5331 (survival to 1.5 GPa). The record moves no generated number and no class gate reads the pressure; the ceiling is slice 2 and waits for the Boss.
+
 ## [8.0.4680+db270.gen150.api14] - 2026-11-21
 
 **Headline:** The Galaxy Map's node cut parses a node key once and keeps the keys of a block's children, so the cut's own functions take about a fifth less time.
