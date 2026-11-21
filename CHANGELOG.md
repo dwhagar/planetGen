@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4701+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The constants `moon_orbits` gained in GEN.1816 and GEN.1818 are registered stand-ins (TM10, TM11), so `test_constants_completeness` stays green on Train 52.
+
+### Fixed
+
+- `moon_orbits.MAX_LOG_DISTANCE`, `FAR_DISTANCE_M` (numerical guards, TM10, T9, L0) and `HEAT_ATOL_SHARE` (TM11, T6, L1) have rows in section 6.25 and a tag in their docstrings; the baseline is untouched.
+
+generation-output: unchanged
+
 ## [8.0.4700+db272.gen150.api14] - 2026-11-21
 
 **Headline:** A planet whose forced eccentricity moves by less than the settle tolerance now has its position and velocity made on the new eccentricity, so the orbit they describe is the one the eccentricity names.
