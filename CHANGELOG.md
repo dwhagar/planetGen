@@ -2,6 +2,143 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4672+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The stopping test of the giant cloud-deck bisection is a registered stand-in, so `test_constants_completeness` is green again.
+
+### Fixed
+
+- `hot_cloud_deck.TOLERANCE` (1e-3 of a decade in pressure, the stopping test of the bisection of a giant's profile, GEN.1577) had no registry row, tag or place in the constants module, which turned `test_constants_completeness` red on main from Train 51. It is row DA3 of section 6.317 (a numerical stopping test, tier T9, tweak L0, like belt_ledger's BR21 tolerance) and its docstring carries the tag (TEST.811).
+
+generation-output: unchanged
+
+## [8.0.4671+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A planet's Life and air chart now shows every gas of its stored air history, with the mass extinctions and the life ages between them.
+
+### Added
+- **The life-air route reads the stored air history (API.51).** `GET /api/planets/<id>/life-air` and `/api/moons/<id>/life-air` answer from the body's `air_history` column (GEN.1745 slice 4b) when it has one: every gas the record keeps (any gas of 0.1 Pa or more at some age, the biggest first), the surface temperature and total pressure at each recorded age, the mass extinctions that start a step and the life ages between them. The answer keeps the old shape and adds `source` (`stored` or `rebuilt`), `temperature_k`, `pressure_kpa`, `events` and `life_ages`; the classes, the producers' and the oxygen rise's ages and what each class made of a gas still come from the rebuilt history. A body with no stored history (a giant, thin air, a rogue planet, a row made before v269) keeps the air worked backwards on request, and says `rebuilt`. New `physics/stored_air.py`.
+- **The planet page's Life and air chart draws every gas, for any body that has a stored history, living or not (Boss: the full air history of every body at 500 Pa or more).** Gases beyond oxygen, carbon dioxide and methane get a line and a legend key of their own, mass extinctions are dashed lines with the cause and the share of species killed listed under the chart, and the life ages are listed with how each ended.
+
+generation-output: unchanged
+
+## [8.0.4670+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The share of species an extinction must kill to end a life age is registered as the Boss's pick, 30 percent
+
+### Changed
+
+- GEN.1746: `life_ages.AGE_KILL_THRESHOLD` stays 0.30 and its stand-in row (section 6.314, LA1) now records why: the Boss picked 0.30 from the measured range of the kill curve [R5320] (an extinction that kills 30 percent or more of the species ends a life age, about one age per 10 Myr; 0.65 would give fewer, longer ages), tweak L1 where it was L3. No number moves.
+
+generation-output: unchanged
+
+## [8.0.4669+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The cold and heat adaptation traits of a life world now read the temperature of the water the life lives in, so a frozen world with warm crust no longer draws a cold trait.
+
+### Changed
+
+- TEST.800: the cold and heat stress of `adaptation_draw.stresses` reads `life_supply.habitat_temperature_k` (the surface under an open ocean or on a dry surface, the melting point of ice under an ice lid, the rise with depth in an aquifer) and not the mean surface temperature. In a 40-system sample the old reading gave a cold trait to 95 of 143 life worlds (94 of 137 chemical-class worlds, whose crust is warm under a frozen surface); the new one gives it to 13 of 144. The radiation, sulfide and carbon dioxide traits and their draws are unchanged.
+- The life census test lists all five stresses (cold and heat came with GEN.1725) and the `any_trait` band is set again from a fresh census.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4668+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The giant fixed-point test no longer counts the solves of the air history as the solves of a giant.
+
+### Fixed
+- GEN.1745: `test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_solve_began` records every `surface_air.solve` of a giant setting. Since the air record (slice 4b) the history solves the air of a transitional world again at the light and heat of 12 ages (`air_history._solved_temperature`, a giant setting that keeps a surface), and those solves were counted as giants of the run: their 1500 K restart reached another fixed point than the first solve on the Train 51 head (1217.6 K against 1190.5 K). The test now leaves the history's solves out and keeps the final air of each giant, which is what it states. The history's own temperatures are checked by `tests/test_air_history.py`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4667+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The column check lists `planets.cloud_decks` as a JSON document read whole, as it does `air_history`.
+
+### Fixed
+- GEN.1577: `planets.cloud_decks` (a giant's cloud decks and trace-gas ceilings, JSON text) is in the prose-column list of `test_db_columns_and_indexes.py` with its reason, so the two tests that failed on the Train 51 head (`test_no_galaxy_table_keeps_a_json_or_serialized_blob`, `test_the_prose_list_has_no_stale_entries`) pass.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4666+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A moon the evection resonance holds no longer keeps an eccentricity its tide could not leave it, so moons with tides of a million watts a square metre are gone.
+
+### Fixed
+
+- **A caught moon was held at e 0.5 for the whole age, though its tide cut that in years.** The evection resonance (GEN.1750) held a moon at an eccentricity of up to 0.5 and kept it to the star's age; the exit from the resonance (the tide taking back more than the resonance gives) was documented as not modelled. A moon of an Earth-like planet at 3.8 planet radii in that state dissipated 8.7e7 W/m2 (Io is 2) at a closest approach inside its own fluid Roche limit. A caught moon is now held only while the planet's tide takes back less of the resonance's growth than it gives (`evection.damping_share`, `evection.sustained`) and the planet's spin can pay the tide the hold dissipates over the rest of the age (`evection.hold_power_w`, `evection.affordable`); a held moon keeps the ceiling less that share. The damping rate is the one that already wears a captured moon's orbit (`orbit_elements.circularisation_time_yr`).
+- On 200 systems (224 moons): the strongest moon tide falls from 8.7e7 to 0.25 W/m2, moons over 1 W/m2 from 4 to 0, moons whose closest approach is inside their fluid Roche limit from 3 to 0; no moon is lost, 5 moons change their orbit (the released ones drift on out to 11 to 22 planet radii as the tide carries them), 10 stay held.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4665+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A body that tidal heat has melted no longer asks for billions of flood basalts a gigayear, which ran a system's build out of memory.
+
+### Fixed
+- GEN.1745 slice 4b: `air_events.flood_basalt_rate_per_gyr` stops at `FLOOD_BASALT_MAX_PER_GYR` (1,000 a gigayear, a numerical bound on the draw: one flood basalt takes about a million years to erupt; the Earth is at 40). A tidally heated rocky body (25 MW/m2) gave 6.5e10 flood basalts over its history, the draw never ended and `tests/test_aquifers.py` was killed at 12 GB on the train; the same system now builds in the memory it had before the air record.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4664+db270.gen150.api14] - 2026-11-21
+
+**Headline:** Every rocky world with an air of 500 Pa or more now keeps the record of its air history in a new column, `air_history` (the history is not read back yet)
+
+### Added
+
+- GEN.1745 slice 4b: the life pass (`life._history_of`) makes the record of `physics/air_record.py` at its end, from the finished body, the air as the life found it and the air its oxygen's rise left (the build record keeps both, with the age of the rise), and the body keeps it as `air_history` (JSON text, `MEDIUMTEXT`, null for a giant, an airless world or an air under 500 Pa). The column is on `planets`, `moons` and `rogue_planets`, with a migration, and is stored and loaded with the rest of the body; an edit that keeps the stored life keeps the record. Nothing reads it back yet, so every other number of a world is the one it was (checked on three seeds, with and without the record).
+- Cost: the build of a system takes 11.6 s without the record and 38.8 s with it (+234 percent), because the history solves the air in full at 12 ages of the star's light and heat for each of the 20 percent of bodies that get a record (53 of 263 in the sample; median record 5.9 KB, 90th percentile 20 KB, largest 44 KB).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4663+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A cold sulfuric acid cloud is no longer taken liquid down to 185 K: it stands only where its droplets are above their freezing point.
+
+### Changed
+- GEN.1644: the acid cloud step (`sulfur_cloud_set.acid_cloud_of_column`) now reads the freezing curve of the sulfuric acid hydrates (`acid_freezing`, [R4877: Figure 1]): a level whose droplets are at or below the freezing point of their strength is not part of the liquid cloud, so its base is the warmest liquid level and an air whose acid is liquid nowhere has no acid cloud. In the 5,000-system census one rocky body in 13,791 loses its cold acid cloud (a class E world with the ground at 198 K had a 23.5-deep one) and 20 more only have a colder top; the solid cloud and supercooled droplets are not modelled. Stand-in SV7 of section 6.228 is rewritten from a floor to this rule (T5, L0).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4662+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A giant planet now keeps where its hot-condensate clouds sit (chromium, manganese sulfide, sodium sulfide, zinc sulfide, potassium chloride) and the most each trace gas of its star's gas can hold, and its page shows them.
+
+### Added
+
+- GEN.1577: `physics/hot_cloud_deck.py` places each cloud on the giant's temperature-pressure profile (the grey profile of `hot_giant_profile`, 1e-6 to 1e3 bar, floored by a dry adiabat down from the 1 bar temperature its air is solved at) and gives the ceiling of each trace gas of `hot_condensates`, packed as JSON into the new `planets.cloud_decks` column (migration 0269, NULL for a body that is not a giant of a star and for a row made earlier). `hot_cloud_deck.generate` is called after the giant's air (`planets._calculate_atmospheric_conditions`); no draw is made, so no other value moves.
+- The object sheet of a giant gains a row for the base of each cloud and one for each trace gas ceiling (`describe/deck_rows.py`).
+- Stand-ins DA1 (the adiabat exponent, 2/7) and DA2 (the 1 bar anchor of the floor) of section 6.317; the wiring register drops the lines for `hot_giant_profile`, `hot_condensates`, `hot_cloud_deck` and the rows HGP1, HGP2 and HK1 to HK4, which are read now.
+
+### Changed
+
+- `hot_cloud_deck` drops the one-column-per-species plan (`column_names`, `stored_quantities`) it was built with; the packed column replaces it.
+- `bulk_draw.composition_of(star)` names the element mixture of a star's gas that `bulk_draw` already built for its ratios.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4661+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The wiring burn-down starts: a trace-gas function nothing read is retired and two things the guard listed are marked as by design.
+
+### Removed
+- GEN.1559: `mixture_trace.draw_trace_gases`, the mixture-level draw of the trace gases, is gone. It duplicated what `physics.trace_air` does with `draw_trace_amounts`, which the generator reads; only one test called it, and that test now checks `draw_trace_amounts`.
+
+### Changed
+- GEN.1559: the wiring register marks `design_flags` (the check that the life-linked gases m3, m4 and m11 stay off unless a flag allows them, run by its test) and the Class M meter's row AT4 as by design, with the reason.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4660+db268.gen150.api14] - 2026-11-21
 
 **Headline:** The scored search sample keeps adding systems until enough moons hold every searched value, instead of stopping at six systems that may fall short.

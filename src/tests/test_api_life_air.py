@@ -39,6 +39,8 @@ def _living_planet_system(mysql_config, monkeypatch, client):
                 system_id = store.save_system(system, config, config=mysql_config)
                 conn = store.get_connection(mysql_config)
                 try:
+                    conn.execute("UPDATE planets SET air_history = NULL WHERE star_system_id = ?", (system_id,))       # API.51: the draw kept a history (GEN.1745 slice 4b); these tests are of the air worked backwards, the stored one has tests below
+                    conn.commit()
                     rows = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND life_class = 1", (system_id,)).fetchall()
                 finally:
                     conn.close()
@@ -109,3 +111,50 @@ def test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_mad
     assert all("by_class" in gas for gas in history["gases"])
     methane = next((gas for gas in history["gases"] if gas["formula"] == "CH4"), None)
     assert methane is not None and sum(one["share"] for one in methane["by_class"]) == pytest.approx(1.0, abs=1e-5)
+
+
+def _store_history(mysql_config, planet_id):
+    """Puts the record of `test_stored_air` in the `air_history` column of the planet (API.51: the column GEN.1745 slice 4b adds)."""
+    from planetgen.physics import air_record
+    from tests.test_stored_air import _record
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE planets SET air_history = ? WHERE id = ?", (air_record.pack(_record()), planet_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_a_planet_with_a_stored_air_history_answers_from_it_with_every_gas_and_keeps_its_classes(client, mysql_config, monkeypatch):  # noqa: F811
+    _system_id, planet_id = _living_planet_system(mysql_config, monkeypatch, client)
+    rebuilt = client.get(f"/api/planets/{pid('planet', planet_id)}/life-air").get_json()["life_air"]
+    assert rebuilt["source"] == "rebuilt" and {gas["formula"] for gas in rebuilt["gases"]} == {"O2", "CO2", "CH4"}
+    _store_history(mysql_config, planet_id)
+    history = client.get(f"/api/planets/{pid('planet', planet_id)}/life-air").get_json()["life_air"]
+    assert history["source"] == "stored" and history["age_gyr"] == pytest.approx(3.0)
+    assert {gas["formula"] for gas in history["gases"]} == {"H2O", "CO2", "N2", "O2", "CH4", "Ar"}
+    assert history["classes"] == rebuilt["classes"] and history["producers_gyr"] == rebuilt["producers_gyr"] and history["rose_gyr"] == rebuilt["rose_gyr"]
+    assert [event["cause"] for event in history["events"]] == ["flood basalt"] and len(history["life_ages"]) == 2
+    assert len(history["temperature_k"]) == len(history["pressure_kpa"]) == 4
+
+
+def test_a_planet_with_a_stored_history_and_no_living_class_still_answers_from_it(client, mysql_config):  # noqa: F811
+    config = SystemConfig()
+    config.PLANETS = True
+    config.MAX_PLANETS = True
+    for attempt in range(40):
+        with draw.bound(f"life-air-no-class-{attempt}"):
+            system = StarSystem(system_config=config)
+        if any(p.body_type != "a" and p.life_stage is None for p in system.primary.orbiters):
+            break
+    else:
+        pytest.fail("none of 40 fixed streams drew a system with a planet that has no life stage")
+    system_id = store.save_system(system, config, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        planet_id = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND life_stage IS NULL LIMIT 1", (system_id,)).fetchone()["id"]
+    finally:
+        conn.close()
+    _store_history(mysql_config, planet_id)
+    body = client.get(f"/api/planets/{pid('planet', planet_id)}/life-air").get_json()
+    assert body["life_class_id"] is None and body["life_air"]["source"] == "stored" and body["life_air"]["classes"] == []
