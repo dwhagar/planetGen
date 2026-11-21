@@ -79,7 +79,8 @@ def apply_life_data(planet, keep_stored=False):
     planets.apply_class(planet)                  # GEN.1745 (Boss, 11:25 AM EST 2026-11-15): no class until the evolution is finished; the class is read once, here, from the finished body
     if not (keep_stored and (getattr(planet, "air_history", None) or getattr(planet, life_ages.FIELD, None))):       # an edit keeps the history the body has (its air solve's inputs are not stored, so it cannot be worked again)
         _history_of(planet)
-    planet.life_adaptations = _adaptations_of(planet)        # GEN.1808: what the life had to become to live where it does, read from the finished body
+    if not (keep_stored and getattr(planet, adaptation_record.FIELD, None)):       # an edit keeps the record the body has (GEN.1809)
+        setattr(planet, adaptation_record.FIELD, _adaptations_of(planet))        # GEN.1808: what the life had to become to live where it does, read from the finished body
 
 
 def _adaptations_of(planet):
