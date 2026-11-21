@@ -14,6 +14,7 @@ import pytest
 
 from tests.audit import prevalence as census
 from tests.audit import prevalence_life as life
+from planetgen.physics import adaptation_traits
 
 ITEM = re.compile(r"^[A-Z]+\.\d+$")
 
@@ -250,7 +251,7 @@ def test_the_draw_counts_traits_star_letters_and_animal_grades_of_the_life_world
     assert sum(found["by_letter"].values()) == found["life"] == sum(found["grades"].values())
     assert found["trait_worlds"] <= found["life"] and sum(found["traits"].values()) >= found["trait_worlds"]
     assert all(key.split(":")[1].isalpha() or key.endswith(":?") for key in found["by_letter"])
-    assert all(name.split(":")[0] in ("radiation", "sulfide", "carbon_dioxide") and name.endswith((":2", ":3")) for name in found["traits"])
+    assert all(name.split(":")[0] in adaptation_traits.STRESSES and name.endswith((":2", ":3")) for name in found["traits"])
 
 
 def test_the_report_lists_the_traits_the_classes_by_star_letter_and_the_animal_grades():

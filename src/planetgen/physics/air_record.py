@@ -7,8 +7,8 @@ The record of a world's air history: what is kept of it (GEN.1745 slice 4a; desi
 `air_history` follows the clocks of a rocky body (the star's light, the interior's heat, the water lost, the oxygen law) and the temperature of its air at each age, `air_events` draws the shocks
 of its history, `life_ages` cuts it into ages at the mass extinctions and `air_history.gas_trajectory` counts the gases the life made. This module puts them together as the record a body keeps:
 the recorded steps (`MAX_STEPS` at most) with each one's age, surface temperature, total pressure, the partial pressure of every gas of `PARTIAL_FLOOR_PA` or more and the event that starts it,
-and the life ages. `pack` and `unpack` turn it to and from the short text the body's column holds (JSON, as `sky_suns` does). Nothing in the generator stores or reads it yet (slice 4b does), so the
-output of a run is the one it was.
+and the life ages. `pack` and `unpack` turn it to and from the text the body's column `air_history` holds (JSON, MEDIUMTEXT; slice 4b: `generation/life._history_of` makes it at the end of the life pass from the finished body,
+the air as the life found it and the air its oxygen's rise left, which `life._build_air` keeps on the build record). Nothing reads it back yet (the API route and the page are the next slices), so the numbers of a world are the ones they were.
 
 * *Which steps.* The steps of `air_history.schedule` (logarithmic to 1 Gyr, then one every `air_history.MAX_STEP_GYR`), the ages of the oxygen's rise and of the producers of each class, and
   the age of each mass extinction (`life_ages.extinctions_of`); when that is more than `MAX_STEPS`, the steps that are not special (the first, the last, a cut or an extinction) are thinned evenly.

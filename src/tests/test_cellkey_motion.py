@@ -27,6 +27,8 @@ from planetgen.physics import constants as physical_constants
 from planetgen.physics.units import pc_to_ly
 from tests.toy_shape import toy_shape
 
+pytestmark = pytest.mark.timeout(3600)  # the first test that takes `rich_galaxy` builds the galaxy (TEST.417), 25 to 40 minutes on a loaded machine since the air history record (GEN.1745 slice 4b), over the 900 s of `pytest.ini`
+
 EDGE_PC = 4.0
 SHELL = 10
 STEP_PC = 0.04
