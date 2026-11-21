@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1970 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1973 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1943 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1946 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -53,12 +53,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 184 | 75 | 4 | 0 | 0 | 263 |
 | T3 | 129 | 66 | 13 | 10 | 0 | 218 |
 | T4 | 89 | 17 | 9 | 25 | 13 | 153 |
-| T5 | 114 | 29 | 8 | 1 | 2 | 154 |
-| T6 | 251 | 135 | 38 | 85 | 7 | 516 |
+| T5 | 115 | 29 | 8 | 1 | 2 | 155 |
+| T6 | 253 | 135 | 38 | 85 | 7 | 518 |
 | T7 | 75 | 42 | 10 | 31 | 0 | 158 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1124 | 406 | 100 | 275 | 65 | 1970 |
+| All | 1127 | 406 | 100 | 275 | 65 | 1973 |
 
 ## How the labels were given
 
@@ -3495,3 +3495,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AI3 | P | T6 | L0 | `adaptation_record.FLOOR_CLASSES`: the classes 3a and 3b read the pressure at the floor of an ocean (rock contact, the hydrogen of serpentinisation and of radiolysis), every other class the top | 3a and 3b only; or all of the water classes | the water classes | a hydrogen eater of the water column far from the rock | a per-class habitat of the class rules | educated guess from physics (TODO's answer to GEN.1819) | predicted only | - | - |
 | AI4 | B | T2 | L0 | `life_supply.json` number `crust_density_kg_m3` 2700: the pressure of an aquifer is the air's plus the weight of the rock to its depth | 2600 to 2900 | an aquifer in a crust of silicate rock | a measured mean density of the crust of the body | the density of the body's own crust (`crust_thickness_km`) | the mean density of the continental crust, 2.7 g/cm3 | predicted only | - | - |
 | AI5 | P | T5 | L0 | `life_supply.habitat_pressure_pa` takes the floor of the liquid over high-pressure ice to be at the pressure where water at `ice_ocean_base_k` freezes into it (`water_layer.liquidus_pressure_pa`): the ocean is ice-sealed there, no rock | the lid's melting point (a little lower with salt: a few tens of MPa) | an ice-covered ocean with `hp_ice_km` | a stored base of the liquid that differs from the liquidus by more than 10 percent | the pressure the water layer's integration stores at the liquid's base | the melting curves of ice III, V and VI the water layer already holds | predicted only | - | - |
+
+## 6.323 Stand-ins of the life of a sealed ocean (GEN.1822, GEN.1823)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AX1 | P | T5 | L0 | `life_classes.clock_temperature_k` for the classes whose window reads `habitat_temperature_k`: the water's temperature of the habitat (`life_supply.habitat_temperature_k`: the surface's under an open sea, the melting point of ice under a lid, the surface's plus the rise with depth in an aquifer, at most 420 K) | none (the gate's own reading) | the classes 3a, 3b, 4a, 4b, 4c and 8 in an ice-covered ocean | a measured growth rate of a chemolithotroph in a sealed ocean that follows the surface's temperature and not the water's | the temperature of the layer the life lives in, from a thermal model of the shell and the ocean | physics: a cell's rate follows the temperature of the water around it (metabolic theory, `tuning.LIFE_ACTIVATION_ENERGY_EV`) | predicted only | - | - |
+| AX2 | P | T6 | L0 | `life_supply.json` number `nitrate_sealed_share` 0.0: the share of the abiotic nitrate that reaches an ocean under an ice lid | 0 to 0.1 | an ice-covered ocean with an airless or oxygen-free air | a sourced flux of nitrate through an ice lid (surface radiolysis of nitrogen-bearing ice carried down by brine); the oxidant delivery of Hesse and others 2022 is for O2 | the oxidant delivery through the lid, when one is sourced | `nitrate_abiotic` itself (0.3, T9, L4, LF38) is unchanged and still tuned; this row takes it away from the sealed ocean only | predicted only | - | - |
+| AX3 | P | T6 | L0 | `life_supply.json` number `perchlorate_sealed_share` 0.0: the share of the perchlorate base (`perchlorate_base` 0.1) that reaches an ocean under an ice lid | 0 to 0.1 | an ice-covered ocean, Class 4c | a sourced flux of perchlorate through an ice lid; the one sourced flux of the radiolysis of chloride (Wilson and others 2016, Mars) is about 3.4e-5 mol O2-equivalent per m2 per year | the oxidant delivery through the lid, when one is sourced | `perchlorate_base` itself (0.1, T9, L4) is unchanged and still tuned; this row takes it away from the sealed ocean only | predicted only | - | - |

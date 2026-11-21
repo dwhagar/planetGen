@@ -1,0 +1,5 @@
+**Headline:** The life of a sealed ocean now runs at the temperature of its water and no longer gets free nitrate through an ice lid.
+
+### Fixed
+- **A chemical life class of an ice-covered ocean ran its clock at the temperature of the icy surface (GEN.1822).** Classes 3a to 4c and 8, whose temperature window already reads the water's temperature, now run their clock and complexity index at that same temperature in an ice-covered ocean (an aquifer keeps the surface's): an icy moon's sealed ocean at 273 K (rate factor 0.515) and not its surface at 100 K (0.25).
+- **Classes 4b and 4c had free nitrate and perchlorate under an ice lid (GEN.1823).** The abiotic nitrate of lightning, impacts and the radiolysis of the air no longer reaches an ocean under an ice lid (`life_supply.json` `nitrate_sealed_share`, 0); the perchlorate base of Class 4c is cut the same way (`perchlorate_sealed_share`, 0); nitrate made from the air's oxygen still counts. A class that has none of a supply it needs now names it in its failed list (`supply:nitrate_supply`).

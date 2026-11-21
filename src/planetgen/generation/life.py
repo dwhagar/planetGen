@@ -378,8 +378,8 @@ def _living_entries(planet, cands, final, key):
 
 
 def _clock_k(planet, row):
-    """The temperature the clock of class `row` runs at on `planet`: the surface's, or the acid cloud layer's for a class that lives in it (`life_classes.clock_temperature_k`, GEN.1307)."""
-    if getattr(row, "habitat", None) is None:
+    """The temperature the clock of class `row` runs at on `planet`: the surface's, the water's of an ice-covered ocean for a class that lives in it (GEN.1822), or the acid cloud layer's for a class that lives there (`life_classes.clock_temperature_k`, GEN.1307)."""
+    if getattr(row, "habitat", None) is None and not (life_classes.lives_in_habitat_water(row) and getattr(planet, "hydrosphere", None) == "ice-covered ocean"):
         return getattr(planet, "surface_temperature", None)
     return life_classes.clock_temperature_k(row, life_classes.values_from_body(planet))
 

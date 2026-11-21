@@ -77041,6 +77041,128 @@
       ],
       "slug": "6-321-stand-ins-of-the-pressure-of-a-habitat-gen-1819",
       "title": "Stand-ins of the pressure of a habitat (GEN.1819)"
+    },
+    {
+      "key": "6.323",
+      "number": "6.323",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_classes.clock_temperature_k for the classes whose window reads habitat_temperature_k: the water's temperature of the habitat (life_supply.habitat_temperature_k: the surface's under an open sea, the melting point of ice under a lid, the surface's plus the rise with depth in an aquifer, at most 420 K)"
+            ],
+            [
+              "The range it moves in",
+              "none (the gate's own reading)"
+            ],
+            [
+              "Where it holds",
+              "the classes 3a, 3b, 4a, 4b, 4c and 8 in an ice-covered ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a measured growth rate of a chemolithotroph in a sealed ocean that follows the surface's temperature and not the water's"
+            ],
+            [
+              "What replaces it",
+              "the temperature of the layer the life lives in, from a thermal model of the shell and the ocean"
+            ],
+            [
+              "Evidence",
+              "physics: a cell's rate follows the temperature of the water around it (metabolic theory, tuning.LIFE_ACTIVATION_ENERGY_EV)"
+            ]
+          ],
+          "id": "AX1",
+          "key": "6.323:AX1",
+          "kind": "P",
+          "slug": "6-323-ax1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_classes.clock_temperature_k for the classes whose window reads habitat_temperature_k: the water's temperature of the habitat (life_supply.habitat_temperature_k: the surface's under an open sea, the melting point of ice under a lid, the surface's plus the rise with depth in an aquifer, at most 420 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.json number nitrate_sealed_share 0.0: the share of the abiotic nitrate that reaches an ocean under an ice lid"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "an ice-covered ocean with an airless or oxygen-free air"
+            ],
+            [
+              "What would show it wrong",
+              "a sourced flux of nitrate through an ice lid (surface radiolysis of nitrogen-bearing ice carried down by brine); the oxidant delivery of Hesse and others 2022 is for O2"
+            ],
+            [
+              "What replaces it",
+              "the oxidant delivery through the lid, when one is sourced"
+            ],
+            [
+              "Evidence",
+              "nitrate_abiotic itself (0.3, T9, L4, LF38) is unchanged and still tuned; this row takes it away from the sealed ocean only"
+            ]
+          ],
+          "id": "AX2",
+          "key": "6.323:AX2",
+          "kind": "P",
+          "slug": "6-323-ax2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_supply.json number nitrate_sealed_share 0.0: the share of the abiotic nitrate that reaches an ocean under an ice lid"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.json number perchlorate_sealed_share 0.0: the share of the perchlorate base (perchlorate_base 0.1) that reaches an ocean under an ice lid"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "an ice-covered ocean, Class 4c"
+            ],
+            [
+              "What would show it wrong",
+              "a sourced flux of perchlorate through an ice lid; the one sourced flux of the radiolysis of chloride (Wilson and others 2016, Mars) is about 3.4e-5 mol O2-equivalent per m2 per year"
+            ],
+            [
+              "What replaces it",
+              "the oxidant delivery through the lid, when one is sourced"
+            ],
+            [
+              "Evidence",
+              "perchlorate_base itself (0.1, T9, L4) is unchanged and still tuned; this row takes it away from the sealed ocean only"
+            ]
+          ],
+          "id": "AX3",
+          "key": "6.323:AX3",
+          "kind": "P",
+          "slug": "6-323-ax3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_supply.json number perchlorate_sealed_share 0.0: the share of the perchlorate base (perchlorate_base 0.1) that reaches an ocean under an ice lid"
+        }
+      ],
+      "slug": "6-323-stand-ins-of-the-life-of-a-sealed-ocean-gen-1822-gen-1823",
+      "title": "Stand-ins of the life of a sealed ocean (GEN.1822, GEN.1823)"
     }
   ]
 }
