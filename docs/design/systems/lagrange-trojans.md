@@ -37,7 +37,7 @@ Boss, 10-30: trojan swarms in the scatter, whole bodies at Lagrange points where
 - **Stay**: the giant's neighbours and companion stars leave a share of the zone stable (`trojans.surviving_share`, the one the swarm uses, GEN.1455), taken as the chance the body stays. A giant that moved more than a quarter of where it formed (`MAX_MIGRATION_SHARE`, TB7) holds none.
 - **Point**: L4 with the leading share (`trojans.leading_share`, TJ4), else L5.
 - **Orbit**: the planet generator is given `trojan_of=(giant, point)` (reused from the belt promotion: a stream of its own, `Planet(mass=...)`): the giant's plane, node, periapsis and eccentricity, and the mean anomaly of the giant plus or minus 60 degrees (`trojan_bodies.mean_anomaly_rad`). The state vector is the body, so the orbit updater keeps the pair 60 degrees apart. A planet has no libration (the swarm regions do).
-- **Stored**: `planets.lagrange_point` and `planets.lagrange_host_id` (migration 0270 on this branch, 0272 at the train). The giant's row is saved first, the planet names it, and the loader links them.
+- **Stored**: `planets.lagrange_point` and `planets.lagrange_host_id` (migration 0272). The giant's row is saved first, the planet names it, and the loader links them.
 
 The measure that set TB3, TB4 and the gate is in `reports/gen1151/` (G, K and M stars: the zone holds 1 to 3 Earth masses of solids, so a whole trojan is rocky or icy and under about 7 Earth masses; with a flat 1 Myr minimum and no ramp over a third of the giants beyond 0.5 AU could hold a planet-mass trojan, because the median G dwarf's disk sat on the minimum and the giant's core had taken solids of the zone that the measure counted as free; the ramp cuts the median ceiling to a fifth).
 

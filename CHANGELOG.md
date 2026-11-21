@@ -2,6 +2,273 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4669+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The cold and heat adaptation traits of a life world now read the temperature of the water the life lives in, so a frozen world with warm crust no longer draws a cold trait.
+
+### Changed
+
+- TEST.800: the cold and heat stress of `adaptation_draw.stresses` reads `life_supply.habitat_temperature_k` (the surface under an open ocean or on a dry surface, the melting point of ice under an ice lid, the rise with depth in an aquifer) and not the mean surface temperature. In a 40-system sample the old reading gave a cold trait to 95 of 143 life worlds (94 of 137 chemical-class worlds, whose crust is warm under a frozen surface); the new one gives it to 13 of 144. The radiation, sulfide and carbon dioxide traits and their draws are unchanged.
+- The life census test lists all five stresses (cold and heat came with GEN.1725) and the `any_trait` band is set again from a fresh census.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4668+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The giant fixed-point test no longer counts the solves of the air history as the solves of a giant.
+
+### Fixed
+- GEN.1745: `test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_solve_began` records every `surface_air.solve` of a giant setting. Since the air record (slice 4b) the history solves the air of a transitional world again at the light and heat of 12 ages (`air_history._solved_temperature`, a giant setting that keeps a surface), and those solves were counted as giants of the run: their 1500 K restart reached another fixed point than the first solve on the Train 51 head (1217.6 K against 1190.5 K). The test now leaves the history's solves out and keeps the final air of each giant, which is what it states. The history's own temperatures are checked by `tests/test_air_history.py`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4667+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The column check lists `planets.cloud_decks` as a JSON document read whole, as it does `air_history`.
+
+### Fixed
+- GEN.1577: `planets.cloud_decks` (a giant's cloud decks and trace-gas ceilings, JSON text) is in the prose-column list of `test_db_columns_and_indexes.py` with its reason, so the two tests that failed on the Train 51 head (`test_no_galaxy_table_keeps_a_json_or_serialized_blob`, `test_the_prose_list_has_no_stale_entries`) pass.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4666+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A moon the evection resonance holds no longer keeps an eccentricity its tide could not leave it, so moons with tides of a million watts a square metre are gone.
+
+### Fixed
+
+- **A caught moon was held at e 0.5 for the whole age, though its tide cut that in years.** The evection resonance (GEN.1750) held a moon at an eccentricity of up to 0.5 and kept it to the star's age; the exit from the resonance (the tide taking back more than the resonance gives) was documented as not modelled. A moon of an Earth-like planet at 3.8 planet radii in that state dissipated 8.7e7 W/m2 (Io is 2) at a closest approach inside its own fluid Roche limit. A caught moon is now held only while the planet's tide takes back less of the resonance's growth than it gives (`evection.damping_share`, `evection.sustained`) and the planet's spin can pay the tide the hold dissipates over the rest of the age (`evection.hold_power_w`, `evection.affordable`); a held moon keeps the ceiling less that share. The damping rate is the one that already wears a captured moon's orbit (`orbit_elements.circularisation_time_yr`).
+- On 200 systems (224 moons): the strongest moon tide falls from 8.7e7 to 0.25 W/m2, moons over 1 W/m2 from 4 to 0, moons whose closest approach is inside their fluid Roche limit from 3 to 0; no moon is lost, 5 moons change their orbit (the released ones drift on out to 11 to 22 planet radii as the tide carries them), 10 stay held.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4665+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A body that tidal heat has melted no longer asks for billions of flood basalts a gigayear, which ran a system's build out of memory.
+
+### Fixed
+- GEN.1745 slice 4b: `air_events.flood_basalt_rate_per_gyr` stops at `FLOOD_BASALT_MAX_PER_GYR` (1,000 a gigayear, a numerical bound on the draw: one flood basalt takes about a million years to erupt; the Earth is at 40). A tidally heated rocky body (25 MW/m2) gave 6.5e10 flood basalts over its history, the draw never ended and `tests/test_aquifers.py` was killed at 12 GB on the train; the same system now builds in the memory it had before the air record.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4664+db270.gen150.api14] - 2026-11-21
+
+**Headline:** Every rocky world with an air of 500 Pa or more now keeps the record of its air history in a new column, `air_history` (the history is not read back yet)
+
+### Added
+
+- GEN.1745 slice 4b: the life pass (`life._history_of`) makes the record of `physics/air_record.py` at its end, from the finished body, the air as the life found it and the air its oxygen's rise left (the build record keeps both, with the age of the rise), and the body keeps it as `air_history` (JSON text, `MEDIUMTEXT`, null for a giant, an airless world or an air under 500 Pa). The column is on `planets`, `moons` and `rogue_planets`, with a migration, and is stored and loaded with the rest of the body; an edit that keeps the stored life keeps the record. Nothing reads it back yet, so every other number of a world is the one it was (checked on three seeds, with and without the record).
+- Cost: the build of a system takes 11.6 s without the record and 38.8 s with it (+234 percent), because the history solves the air in full at 12 ages of the star's light and heat for each of the 20 percent of bodies that get a record (53 of 263 in the sample; median record 5.9 KB, 90th percentile 20 KB, largest 44 KB).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4663+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A cold sulfuric acid cloud is no longer taken liquid down to 185 K: it stands only where its droplets are above their freezing point.
+
+### Changed
+- GEN.1644: the acid cloud step (`sulfur_cloud_set.acid_cloud_of_column`) now reads the freezing curve of the sulfuric acid hydrates (`acid_freezing`, [R4877: Figure 1]): a level whose droplets are at or below the freezing point of their strength is not part of the liquid cloud, so its base is the warmest liquid level and an air whose acid is liquid nowhere has no acid cloud. In the 5,000-system census one rocky body in 13,791 loses its cold acid cloud (a class E world with the ground at 198 K had a 23.5-deep one) and 20 more only have a colder top; the solid cloud and supercooled droplets are not modelled. Stand-in SV7 of section 6.228 is rewritten from a floor to this rule (T5, L0).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4662+db270.gen150.api14] - 2026-11-21
+
+**Headline:** A giant planet now keeps where its hot-condensate clouds sit (chromium, manganese sulfide, sodium sulfide, zinc sulfide, potassium chloride) and the most each trace gas of its star's gas can hold, and its page shows them.
+
+### Added
+
+- GEN.1577: `physics/hot_cloud_deck.py` places each cloud on the giant's temperature-pressure profile (the grey profile of `hot_giant_profile`, 1e-6 to 1e3 bar, floored by a dry adiabat down from the 1 bar temperature its air is solved at) and gives the ceiling of each trace gas of `hot_condensates`, packed as JSON into the new `planets.cloud_decks` column (migration 0269, NULL for a body that is not a giant of a star and for a row made earlier). `hot_cloud_deck.generate` is called after the giant's air (`planets._calculate_atmospheric_conditions`); no draw is made, so no other value moves.
+- The object sheet of a giant gains a row for the base of each cloud and one for each trace gas ceiling (`describe/deck_rows.py`).
+- Stand-ins DA1 (the adiabat exponent, 2/7) and DA2 (the 1 bar anchor of the floor) of section 6.317; the wiring register drops the lines for `hot_giant_profile`, `hot_condensates`, `hot_cloud_deck` and the rows HGP1, HGP2 and HK1 to HK4, which are read now.
+
+### Changed
+
+- `hot_cloud_deck` drops the one-column-per-species plan (`column_names`, `stored_quantities`) it was built with; the packed column replaces it.
+- `bulk_draw.composition_of(star)` names the element mixture of a star's gas that `bulk_draw` already built for its ratios.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4661+db270.gen150.api14] - 2026-11-21
+
+**Headline:** The wiring burn-down starts: a trace-gas function nothing read is retired and two things the guard listed are marked as by design.
+
+### Removed
+- GEN.1559: `mixture_trace.draw_trace_gases`, the mixture-level draw of the trace gases, is gone. It duplicated what `physics.trace_air` does with `draw_trace_amounts`, which the generator reads; only one test called it, and that test now checks `draw_trace_amounts`.
+
+### Changed
+- GEN.1559: the wiring register marks `design_flags` (the check that the life-linked gases m3, m4 and m11 stay off unless a flag allows them, run by its test) and the Class M meter's row AT4 as by design, with the reason.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4660+db268.gen150.api14] - 2026-11-21
+
+**Headline:** The scored search sample keeps adding systems until enough moons hold every searched value, instead of stopping at six systems that may fall short.
+
+### Fixed
+
+- `tests/scored_site.py` stopped at `MAX_SYSTEMS` (6) systems even when some moon column (for example the period or ocean depth) was held by fewer than four moons, so `test_search_values.py` errored 27 times after the generator moved. The fixture now keeps scanning seeds 11 to 80 until four systems exist and every searched value is on four moons, and its failure message gives the real count per column. The requirement is unchanged (TEST.810).
+
+generation-output: unchanged
+
+## [8.0.4659+db268.gen150.api14] - 2026-11-21
+
+**Headline:** The cosmic dust tests find a default system with an acid cloud by searching seeds, instead of relying on one seed that has stopped holding one.
+
+### Fixed
+
+- `tests/test_cosmic_dust.py` built the default system of seed 32 and expected a hot rocky planet with an acid cloud (V1) in it; that seed no longer has one. The fixture now tries seed 137 (which holds one) and then seeds 0 to 199, stops at the first system with an acid cloud, and fails with the tried count when none has one. The cloud assertions are unchanged (TEST.809).
+
+generation-output: unchanged
+
+## [8.0.4658+db268.gen150.api14] - 2026-11-20
+
+**Headline:** The special phenomena stage no longer takes hours on a big galaxy, and it says how many ring sectors it has done and how long is left (PERF.284, OPS.289).
+
+### Fixed
+
+- The ring remnants piece of "Write the special phenomena" reads the light of the cells each chunk reaches by sector address, and the scatter has taken the address index off the phenomenon table for its inserts, so every chunk of 200 sectors scanned the whole table (2 to 3 s each, mysqld at one full core, on Lane 15's run: 2h 33m and counting). The piece now builds that one index first when it is missing; the index stage after it finds it present. On a stand-in table of 3 million rows a 500-cell read took 1.5 s without the index and 0.02 s with it, and the index took 5 s to build.
+
+### Added
+
+- The ring remnants piece says `Neutron stars and black holes of the backfill rings: 12,000 of 91,500 done (13%), 40 a second, 5m 3s elapsed, about 33m 20s left.` at the log cadence and as the unit's second bar (the real count of sectors, OPS.289), where it showed no count.
+
+## [8.0.4657+db268.gen150.api14] - 2026-11-20
+
+**Headline:** The ledger rows of a run Redis says is over are ended too, so no run stays `running` after `finish-run` carried it on (OPS.284).
+
+### Fixed
+
+- OPS.284 (bug): `planetgen finish-run` carried a run on, but the run it carried on stayed `running` in the ledger with its unfinished jobs `waiting` (found by the OPS.247 trial after a run whose process died on a full disk). The supervisor's `LostRuns` duty now also ends the ledger rows (jobs `canceled`, the run row `canceled`) of every run whose Redis record is `done`, `failed` or `canceled` while its ledger run is `running` or `waiting`. A live or held run is not touched.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4656+db268.gen150.api14] - 2026-11-20
+
+**Headline:** A run that planned a new galaxy in its first stage can be carried on by `finish-run` from a later stage (OPS.284).
+
+### Fixed
+
+- OPS.284 (bug): a run begun on an empty database could not be carried on after it stopped: `planetgen finish-run` said the run "did not record the galaxy and the build it worked on", because the galaxy's seed is read when the run starts and the galaxy did not exist yet (found by the OPS.247 trial, whose run stopped in stage 12 of 19 on a full disk). The run now records the stored galaxy's seed after the stage that planned it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4655+db268.gen150.api14] - 2026-11-20
+
+**Headline:** A generation run's record is kept in the control database, so a restart of the machine or of Redis no longer loses the run (OPS.284).
+
+### Fixed
+
+- OPS.284 (bug): a run's record (its steps, the galaxy seed and build it began on, each stage's clocks and conclusion) lived only in Redis, so a restart of the machine or of Redis left `planetgen finish-run` with "nothing to finish" and the run's ledger rows `running` for ever (found by the OPS.247 trial, which lost two runs of 11 and 3 hours to container restarts). The record is now written to the control database (`engine_run_records`) at each change that matters, and a new supervisor duty (`LostRuns`) and `finish-run` put back the runs Redis lost and end the ones that were live as runs whose process is gone (failed, killed, ledger rows ended); a run the Queue page deleted is not brought back. Redis stays the cache the pages read; there is no fallback.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4654+db268.gen150.api14] - 2026-11-20
+
+**Headline:** The Galaxy Map spends less time on the node cut's bookkeeping, so the map's busy time on a dive, flight and climb falls by about a fifth (PERF.200).
+
+### Changed
+
+- A block's key is built by joining numbers into one string instead of an array and a join, the cut reads each block's key from its kept geometry (kept in one table per sector edge, no `key@edge` string per look-up) instead of building it again, and the cone test no longer makes an array per block.
+- The page's node memory re-inserts a hit only when the node was last used over 500 uses ago, and gives a node used since a second chance at the front before it is evicted, instead of moving every hit; a draw looks each node of the cut up once instead of six times.
+- Measured with the MAP.249 benchmark on this box: the named node-cut and memory functions took 4,229 ms of the profile before and 2,583 ms after (39 percent less), the page's whole busy time 9,720 ms before and 7,569 ms after (22 percent less); node requests (104) and bytes (2.81 MB) are the same.
+
+## [8.0.4653+db268.gen150.api14] - 2026-11-20
+
+**Headline:** A release's version now carries the database schema, generator epoch and API version, like `8.2.2100+db134.gen62.api5` (OPS.64).
+
+### Added
+
+- The release stamp writes a PEP 440 local suffix, `+db<schema>.gen<epoch>.api<api>`, after the release number in `_version.py`, the README badge and the changelog heading. The three numbers are read from the newest migration revision, `epochs.json` and `API_VERSION` at stamp time, so a database, a galaxy or a client can be matched to a release by its version alone. The user agent, the pages and the API show the full code.
+
+### Changed
+
+- BUILD, REVISION, the first-release names in `epochs.json` and `api-versions.json` and the release commit name still use the plain `MAJOR.REVISION.BUILD`. The PR check refuses a hand-set suffix as it refuses a hand-bumped version. The galaxy version key reads the release parts and ignores the suffix.
+
+## [8.0.4652] - 2026-11-20
+
+**Headline:** The site's class catalog no longer rebuilds its two star tables in every process, so the engine's app template starts about 13 s faster on a cold box (PERF.283).
+
+### Changed
+
+- The forced-star tables (one per [Fe/H] bucket) behind the class reference catalog are kept in the sampling-table cache the bright-star tables use, so the app template, the web workers and the warm-up build each once. Measured: the class catalog took 14.3 s the first time and 1.4 s read back, with the same cells.
+
+## [8.0.4651] - 2026-11-20
+
+**Headline:** `update.sh` no longer runs the math check as a step, so an update is about 14 s (warm) to 49 s (cold) shorter (OPS.286).
+
+### Changed
+
+- The update has 8 stages instead of 9: "Checking the generator's math" is gone and the later stages are renumbered. The check took about 1 s but ran as an engine run, costing 14 s on a warm box and about 49 s on a cold one, and its result was only a warning.
+- The population pass offer no longer waits on the check, and the closing message no longer repeats its warning. `planetgen check-math`, the admin page's button, the web app's startup check and the test gate are unchanged.
+- INSTALL.md and the update's header comment say so.
+
+## [8.0.4650] - 2026-11-20
+
+**Headline:** A reset, data check or database check that is ended by SIGTERM now says who sent it, and the reset says that running it again finishes the wipe.
+
+### Changed
+
+- `planetgen reset` and the data and database checks end on a `Stopped` interrupt that carries the reason the canceller left (update guard, stop-all), or says the signal left none, in place of a bare traceback. The reset prints one line and exits 143.
+
+## [8.0.4649] - 2026-11-20
+
+**Headline:** The mixture subject of a body's air setting is a class and not a closure, so a setting can go to a process pool again
+
+### Fixed
+
+- TEST.805: `surface_air.setting_of` built `subject_of` as a local function that a process pool cannot pickle (`Can't get local object setting_of.<locals>.subject_of`), which failed `test_describe` (6 tests) and `test_insolation::test_a_lone_star_swings...` on main. It is now the module-level class `_BodySubject`, called the same way; no generated number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4648] - 2026-11-20
+
+**Headline:** The request-dial test checks the request draw alone, not the sparse tier's other dials.
+
+### Fixed
+- **TEST.806: the test that a tier with no request share makes the same system as science failed on main.** Sparse's water, dry-part, quiet-interior and carbon-cycle dials move the planets by design (GEN.1720, GEN.1721, GEN.1798 to GEN.1801), so seed 103 gave 18 planets on science and 16 on sparse. The test now holds the sparse row at no dial, which is what it means to check: a request share of 0 draws nothing.
+- generation-affects: none
+
+## [8.0.4647] - 2026-11-20
+
+**Headline:** A unit that fails for good now names the sector, or the id range, it was working on (OPS.285).
+
+### Changed
+
+- The text of a unit's failure says where the unit was working: `(on sector 12/3/0)` for a sector unit (shell, band, wedge, as the seed spells an address) and `(on ids 1,200 to 2,400)` for a batch unit. It is in the held unit's error, the run's error, the `error.log` line and the attempt's `error_text` in the ledger, so a failure names its own address after its stage ended and the stage's item file was deleted. The unit row keeps its arguments as before.
+
+## [8.0.4646] - 2026-11-20
+
+**Headline:** The memory controller's learning now sees the job processes the kernel killed for memory (OPS.249).
+
+### Fixed
+
+- A job process that ended on SIGKILL, the kernel's kill for memory, is recorded as a `killed_memory` attempt (kind `killed`, as before). Since the old queue's unit path went (OPS.271), the launcher recorded it as `lost`, so `pressurelearn.read_record` found no kill and the controller's edges could never move down however many kills there were. A job that ends on any other signal stays `lost`. The retry on a grown claim, run alone, is as it was.
+
+## [8.0.4645] - 2026-11-19
+
+**Headline:** An asteroid field's page now shows the field in 3D: its own bodies as a cloud at the places its age and speed put them, with the real body count stated under it.
+
+### Added
+
+- GEN.361: the view of an asteroid field (`web/maps/phenomenonrender.py` `field_view`, drawn by `static/phenomenonrender.js`, and the Sensor registry's entry for the kind). It draws 480 bodies of the field (the heaviest 12 larger), each at `field_dispersal.member_position_m` of the field's Object ID at its age and rms speed (a ball for a collision, a thin ring for a belt a supernova unbound), so the same field is the same cloud after a database rebuild. The line under it states how many bodies larger than 1 km the field really holds (from its mass and the size law of its makeup), that each point is drawn far larger than any of them, its column density end on (`column_density_kg_m2`), how long after it began to spread its 1 km pieces stopped colliding (`freeze_out_time_s`) and how far galactic shear has drawn its far side along its orbit (`shear_displacement_m`). A field older than the 26 Myr the shear is followed for says so.
+- Four functions of `field_dispersal` that nothing read are now read by the page (the wiring register lines are deleted).
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.4644] - 2026-11-19
 
 **Headline:** A test now holds that a system is the same after other systems were made in the process.

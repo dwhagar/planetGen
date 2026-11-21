@@ -9,10 +9,12 @@ asteroid field.
 
 import html as html_lib
 import json
+import math
 import re
 
 import pytest
 
+from planetgen.web.maps import phenomenonrender  # noqa: E402
 from planetgen.web.maps.phenomenonrender import (  # noqa: E402
     render_phenomenon_view_panel, shown_spin_period_s, view_kind,
 )
@@ -26,8 +28,8 @@ def _view_data(panel):
 
 @pytest.mark.parametrize("kind, expected", [
     ("neutron_star", "render"), ("black_hole", "render"), ("quasar", "render"),
-    ("rogue_planet", "render"), ("interstellar_comet", "render"),
-    ("nebula", "nebula"), ("supernova_remnant", "map"), ("asteroid_field", None),
+    ("rogue_planet", "render"), ("interstellar_comet", "render"), ("asteroid_field", "render"),
+    ("nebula", "nebula"), ("supernova_remnant", "map"),
 ])
 def test_view_kind(kind, expected):
     assert view_kind(kind) == expected
@@ -108,13 +110,39 @@ def test_page_shows_the_render_and_its_script(client, fake):
     assert page.index("Sensor view") < page.index("Neutron Star Data") if "Neutron Star Data" in page else True, "and the first panel"
 
 
-def test_asteroid_field_page_has_no_view(client, fake):
-    fake.phenomenon = {"id": 3, "name": "Belt", "field_class": "C", "radius_ly": 0.2,
-                       "sector_id": None}
+FIELD = {"id": "AF-3", "name": "Belt", "field_class": "C3", "radius_ly": 1.0, "birth_age_yr": 3.0e5, "rms_speed_kms": 1.0, "shape": "ball",
+         "mass_kg": 6.0e24, "composition_family": "stony", "sector_id": None}
+
+
+def test_asteroid_field_page_has_a_view(client, fake):
+    """GEN.361: a field page shows its field: the page carries the view's record and the line that states the real body count."""
+    fake.phenomenon = dict(FIELD, id=3)
     page = client.get("/phenomenon/asteroid_field/3").get_data(as_text=True)
-    assert "Asteroid Field Data" in page
-    assert "phenomrender" not in page and "phenomenonmap" not in page
-    assert "mapzoom.js" not in page
+    assert "Asteroid Field Data" in page and 'id="phenomrender"' in page
+    assert re.search(r'<script type="module" src="/static/phenomenonrender.js\?v=[^"]+"></script>', page)
+    assert "bodies larger than 1 km" in page and "phenomenonmap" not in page
+
+
+def test_a_field_view_is_the_fields_own_bodies_at_its_age():
+    """GEN.361: each point is `member_position_m` of the field's Object ID at its age and speed, scaled to unit rms distance; the same record for the same field, another for another."""
+    from planetgen.physics import constants, field_dispersal
+    params, caption = phenomenonrender.field_view(FIELD)
+    points = params["points"]
+    assert len(points) == 3 * phenomenonrender.FIELD_VIEW_POINTS and params["heroes"] == phenomenonrender.FIELD_VIEW_HEROES
+    expected = [field_dispersal.member_position_m("AF-3", rank, 3.0e5, 1000.0, "ball", phenomenonrender.FIELD_RING_RADIUS_M) for rank in range(1, phenomenonrender.FIELD_VIEW_POINTS + 1)]
+    scale = math.sqrt(sum(x * x + y * y + z * z for x, y, z in expected) / len(expected))
+    assert all(abs(points[3 * n + axis] - expected[n][axis] / scale) <= 5.1e-4 for n in range(len(expected)) for axis in range(3))
+    assert constants.LIGHTYEAR_M * 0.9 < scale < constants.LIGHTYEAR_M * 1.1, "the cloud's own rms radius is the field's radius"
+    assert abs(math.sqrt(sum(v * v for v in points) / phenomenonrender.FIELD_VIEW_POINTS) - 1.0) < 1e-2
+    assert phenomenonrender.field_view(dict(FIELD))[0] == params
+    assert phenomenonrender.field_view(dict(FIELD, id="AF-4"))[0]["points"] != points
+    assert "bodies larger than 1 km" in caption and "kg per square meter" in caption and "stopped colliding" in caption and "ly along its orbit" in caption
+    assert params["ring"] is False and phenomenonrender.field_view(dict(FIELD, shape="annulus"))[0]["ring"] is True
+
+
+def test_a_field_stored_without_its_age_is_drawn_as_a_ball_of_its_radius():
+    params, caption = phenomenonrender.field_view({"id": "AF-9", "radius_ly": 0.1})
+    assert len(params["points"]) == 3 * phenomenonrender.FIELD_VIEW_POINTS and "bodies larger" not in caption
 
 
 def test_the_render_script_does_not_use_the_deprecated_three_clock():

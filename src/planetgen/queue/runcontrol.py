@@ -48,9 +48,9 @@ def is_clearable(conn, run, now=None):
         runrecord.is_stale(run, now) or runrecord.holder_is_dead(conn, run["id"]))
 
 
-def clear_run(conn, run_id, who=None, now=None):
+def clear_run(conn, run_id, who=None, now=None, reason=None):
     """
-    Ends a run that has stopped answering as `failed`, with who cleared it, stops what its workers may still be doing
+    Ends a run that has stopped answering as `failed`, with who cleared it (or `reason`, when the clear has a cause of its own), stops what its workers may still be doing
     for it and frees the machine.
 
     Returns:
@@ -59,7 +59,7 @@ def clear_run(conn, run_id, who=None, now=None):
     run = runrecord.read_run(conn, run_id)
     if not is_clearable(conn, run, now):
         return None
-    return _end(conn, run, "failed", f"cleared by {who}: it showed no sign of life" if who else "cleared: it showed no sign of life", now, killed=True, who=who)
+    return _end(conn, run, "failed", reason or (f"cleared by {who}: it showed no sign of life" if who else "cleared: it showed no sign of life"), now, killed=True, who=who)
 
 
 def _end(conn, run, state, error, now, killed=False, who=None):

@@ -1,7 +1,7 @@
 # tests/test_migration_trojan_regions.py
 
 """
-GEN.1150: migration 0269 adds the five columns of a giant's trojan region to `asteroid_belts` (`lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity`,
+GEN.1150: migration 0271 adds the five columns of a giant's trojan region to `asteroid_belts` (`lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity`,
 `mean_inclination_deg`). The rows made before keep their figures and get NULL, and the migration can be run over a table that already has a column (a stopped run is started again).
 """
 
@@ -20,7 +20,7 @@ def _has_column(conn, name):
 
 
 def test_the_columns_are_added_empty_and_the_rows_keep_their_figures(mysql_config):
-    load_old_schema(mysql_config, 268)
+    load_old_schema(mysql_config, 270)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert not any(_has_column(conn, name) for name in COLUMNS)

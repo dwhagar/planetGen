@@ -74,12 +74,15 @@ class Moon:
         distance_m (float): Its semi-major axis round the planet.
         density_kg_m3 (float): Its mean density (for its Roche limit).
         retrograde (bool): Whether it goes round against the planet's spin.
+        damping_rate_s (callable, optional): `damping_rate_s(axis_m)`, the rate (1/s) the planet's tide cuts this moon's eccentricity by e at the semi-major axis `axis_m`
+            (`orbit_elements.circularisation_time_yr`); the evection resonance holds it only while that is under the resonance's coupling (`evection.sustained`, GEN.1804). `None`: not checked.
     """
 
     mass_kg: float
     distance_m: float
     density_kg_m3: float = 3000.0
     retrograde: bool = False
+    damping_rate_s: object = None
 
 
 @dataclass(frozen=True)
@@ -172,6 +175,21 @@ def _solve(rhs, y0, events, atol):
         if solution.success:
             return solution
     raise IntegrationFailed("the moon orbits did not integrate")
+
+
+def _hold_lasts(planet, resonance, moon, axis_m, spin, remaining_s):
+    """
+    Whether a moon the evection resonance has caught stays held to the end of the age (GEN.1804): the planet's tide on it takes back less of the resonance's growth than the resonance gives
+    (`evection.sustained`), and the planet's spin can pay the tide it dissipates at the eccentricity that leaves (`evection.affordable`, `evection.hold_power_w`). A moon with no `damping_rate_s` is held as before.
+    """
+    if moon.damping_rate_s is None:
+        return True
+    damping = moon.damping_rate_s(axis_m)
+    share = evection.damping_share(evection.coupling_rad_s(resonance, planet.mass_kg, axis_m), damping)
+    if not evection.sustained(share):
+        return False
+    held_e = evection.held_eccentricity(axis_m, planet.radius_m, share)
+    return evection.affordable(evection.hold_power_w(planet.mass_kg, moon.mass_kg, axis_m, held_e, damping), remaining_s, 0.5 * planet.inertia * spin ** 2)
 
 
 def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, planet_density_kg_m3=None, hill_radius_m=None,
@@ -289,7 +307,7 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
             spin_now, axis = state[0] * scale, math.exp(state[1 + k])
             nu = evection.resonance_precession(resonance, spin_now, planet.mass_kg, planet.radius_m, axis)
             sweep = evection.nu_rate(spin_now, rates[0] * scale / horizon, axis, rates[1 + k] * axis / horizon, nu)
-            if evection.caught(evection.sweep_ratio(resonance, planet.mass_kg, axis, sweep)):
+            if evection.caught(evection.sweep_ratio(resonance, planet.mass_kg, axis, sweep)) and _hold_lasts(planet, resonance, moons[i], axis, spin_now, age_s - time):
                 held.add(i)
             continue
         k = hit % len(indices)

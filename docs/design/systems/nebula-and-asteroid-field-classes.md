@@ -706,7 +706,7 @@ A 1-Earth-mass field in 63 AU is 4% of the belt's density. The real hazard is du
 
 **10. Tests.** Same seed gives the same bodies (hash of the first 1,000 sizes and positions), a different `uid` different bodies; the size sample matches the truncated Pareto (KS test) and `N(>1 km)` matches `4e-16 * mass`; no rock overlaps, Kirkwood gaps empty, chunk culling leaves the picture unchanged; a browser frame-budget test for 5,000 instances.
 
-**11. PR order**, each independent of the next: (1) `uid`-based render seed and a shared `asteroidfield.js` generating dust, rocks and heroes, replacing `BELT_PARTICLES = 700`; (2) field page 3D view (remove `asteroid_field` from `_NO_VIEW`); (3) instanced rocks with chunk LOD; (4) GPU Kepler motion for belts; (5) `mass_kg` column and the GEN.110 hook; (6) NAV.51's keep-out change.
+**11. PR order**, each independent of the next: (1) `uid`-based render seed and a shared `asteroidfield.js` generating dust, rocks and heroes, replacing `BELT_PARTICLES = 700`; (2) field page 3D view (remove `asteroid_field` from `_NO_VIEW`; built as GEN.361 on the field's own members, `phenomenonrender.field_view`: 480 bodies from the field's seed at `field_dispersal.member_position_m`, the shared generator of step 1 (GEN.360) not yet needed for it); (3) instanced rocks with chunk LOD; (4) GPU Kepler motion for belts; (5) `mass_kg` column and the GEN.110 hook; (6) NAV.51's keep-out change.
 
 ## Evidence notes
 

@@ -38,6 +38,21 @@ def test_a_failed_unit_names_the_stage_the_page_shows(run):
     assert error == "unit 101 of stage Scatter the bright stars failed: ValueError: no stars here"
 
 
+def test_a_failed_sector_unit_names_its_own_sector_in_the_run_error(run):
+    """OPS.285: the sector the unit was working on is in the text of its failure, so it is known after the stage ended and its item file went."""
+    units.fail_unit(run, "r1", 2, 101, "generate-neighborhood", 0, ValueError, ValueError("nan"), None, args={"items": [12, 3, 0], "weights": [4]})
+    error = run.hget(runrecord.run_key("r1"), "error").decode()
+    assert error == "unit 101 of stage Scatter the bright stars (on sector 12/3/0) failed: ValueError: nan"
+
+
+def test_a_unit_says_what_it_works_on_by_its_sectors_or_its_id_range():
+    assert units.unit_label({"items": [12, 3, 0]}) == "sector 12/3/0"
+    assert units.unit_label({"items": [12, 3, 0, 12, 3, 1]}) == "sectors 12/3/0, 12/3/1"
+    assert units.unit_label({"items": list(range(18))}) == "sectors 0/1/2, 3/4/5, 6/7/8, 9/10/11 and 2 more"
+    assert units.unit_label({"low": 1200, "high": 2400}) == "ids 1,200 to 2,400"
+    assert units.unit_label({"items": [1, 2]}) == "" and units.unit_label(None) == "" and units.unit_label({"args": {}}) == ""
+
+
 def test_the_opening_mark_is_cleared_when_the_opening_ends_or_fails(run, monkeypatch):
     assert runrecord.opening(run, "r1") is None
     seen = []

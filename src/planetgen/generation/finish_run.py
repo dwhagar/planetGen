@@ -212,6 +212,8 @@ def find(conn, galaxy_seed, build, database, run_id=None):
     Raises:
         CannotFinish: See `plan`; or there is no run that stopped.
     """
+    from planetgen.queue import runstore
+    runstore.settle_lost(conn)          # OPS.284: a run Redis lost is put back from the control database and, when it was live, ended as a run whose process is gone
     if run_id is None:
         run_id = last_incomplete(conn)
         if run_id is None:

@@ -114,7 +114,7 @@ def test_a_process_killed_before_it_ended_its_unit_has_the_unit_handed_out_once_
     ledger.begin_attempt(control, job)                                  # the unit took its attempt, then the process was killed
     forker.exits = [("plain", jobhost.Exit(1, 1001, signal=signal.SIGKILL))]
     started_again = one.turn()
-    assert ledger.attempt_row(control, job, 1)["outcome"] == "lost" and "SIGKILL" in ledger.attempt_row(control, job, 1)["error_text"]
+    assert ledger.attempt_row(control, job, 1)["outcome"] == "killed_memory" and "SIGKILL" in ledger.attempt_row(control, job, 1)["error_text"]       # OPS.249: the record the memory controller learns from
     assert started_again == [job] and forker.forked[1][2]["retries_left"] == 0, "the second hand-out has no retry left"
     ledger.begin_attempt(control, job)
     forker.exits = [("plain", jobhost.Exit(2, 1002, signal=signal.SIGKILL))]
@@ -386,7 +386,7 @@ def test_a_page_step_whose_process_was_killed_is_failed_with_the_steps_after_it_
     states = [row["state"] for row in control.execute("SELECT state FROM engine_jobs WHERE run_id = ? AND command = 'page-step' ORDER BY item_key", (run,)).fetchall()]
     assert states == ["failed", "canceled"] and len(forker.forked) == 1
     assert control.execute("SELECT state FROM engine_runs WHERE id = ?", (run,)).fetchone()["state"] == "held"
-    assert ledger.attempt_row(control, first, 1)["outcome"] == "lost"
+    assert ledger.attempt_row(control, first, 1)["outcome"] == "killed_memory"
 
 
 def test_a_page_step_left_running_by_a_supervisor_that_ended_is_failed_not_handed_out_again(control):
@@ -397,3 +397,30 @@ def test_a_page_step_left_running_by_a_supervisor_that_ended_is_failed_not_hande
     assert _launcher(control, FakeForker()).recover() == [first]
     states = [row["state"] for row in control.execute("SELECT state FROM engine_jobs WHERE run_id = ? AND command = 'page-step' ORDER BY item_key", (run,)).fetchall()]
     assert states == ["failed", "canceled"]
+
+
+def test_a_process_ended_on_another_signal_than_a_kill_is_lost_not_a_memory_kill(control):
+    """OPS.249: only SIGKILL (the kernel's kill for memory) is a `killed_memory` attempt, the one `pressurelearn.read_record` counts; a job that ended on SIGSEGV is `lost`."""
+    run = _ready(control, count=1)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    (job,) = one.turn()
+    ledger.begin_attempt(control, job)
+    forker.exits = [("plain", jobhost.Exit(1, 1001, signal=signal.SIGSEGV))]
+    one.turn()
+    assert ledger.attempt_row(control, job, 1)["outcome"] == "lost" and ledger.attempt_row(control, job, 1)["error_kind"] == "killed"
+
+
+def test_a_memory_kill_of_the_launcher_is_one_the_memory_controllers_record_counts(control):
+    """OPS.249: the learner reads `killed_memory` attempts (`pressurelearn.read_record`); a job process the kernel killed must be one, or the edges could never move down for a kill the hold did not see coming."""
+    from planetgen.queue import pressurelearn
+    run = _ready(control, count=1)
+    forker = FakeForker()
+    one = _launcher(control, forker)
+    (job,) = one.turn()
+    ledger.begin_attempt(control, job)
+    forker.exits = [("plain", jobhost.Exit(1, 1001, signal=signal.SIGKILL))]
+    one.turn()
+    control.commit()
+    _minutes, kills = pressurelearn.read_record(control)
+    assert len(kills) == 1

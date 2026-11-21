@@ -2584,13 +2584,15 @@ CREATE TABLE IF NOT EXISTS planets (
     oddities                         VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     collision_count                  SMALLINT UNSIGNED NULL,  -- v255 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v255
     sky_suns                         VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
+    cloud_decks                      TEXT,  -- v269 (GEN.1577): a giant's hot-condensate cloud decks (the base pressure in bar and temperature in K of each cloud that forms, deepest first) and the ceiling of each trace gas in molecules per hydrogen atom, JSON text (`physics/hot_cloud_deck.py`), NULL for a body that is not a giant of a star and for a row made before v269
+    air_history                      MEDIUMTEXT,  -- v270 (GEN.1745 slice 4b): the record of the body's air history, JSON `{"s": [[age, temperature, pressure, event, oxygen law, {gas: pressure}], ...], "a": [[start, end, cause, kill], ...]}` (the steps of its history with the partial pressure of every gas of 0.1 Pa or more, and its life ages, `physics/air_record.pack`), NULL for a giant, a body with an air under 500 Pa, a rogue planet and a row made before v269
     light_factor                     DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     obliquity_min_deg                DOUBLE,  -- v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     obliquity_max_deg                DOUBLE,  -- v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     belt_order                       INT,  -- v248 (GEN.1510): for a planet promoted from an asteroid belt, the belt's number among its star's belts (as `irregular_moons.belt_order`), NULL for every other planet and for a row made before v244
     belt_rank                        INT,  -- v248 (GEN.1510): for a planet promoted from an asteroid belt, the rank it had among the belt's members (the number is not reused), NULL for every other planet
-    lagrange_point                   VARCHAR(2),  -- v270 (GEN.1151): `L4` (60 degrees ahead) or `L5` (60 degrees behind) for a planet that shares its giant's orbit and was grown in its zone, NULL for every other planet
-    lagrange_host_id                 BIGINT UNSIGNED,  -- v270 (GEN.1151): the `planets.id` of the giant a planet at L4 or L5 shares its orbit with, NULL for every other planet
+    lagrange_point                   VARCHAR(2),  -- v272 (GEN.1151): `L4` (60 degrees ahead) or `L5` (60 degrees behind) for a planet that shares its giant's orbit and was grown in its zone, NULL for every other planet
+    lagrange_host_id                 BIGINT UNSIGNED,  -- v272 (GEN.1151): the `planets.id` of the giant a planet at L4 or L5 shares its orbit with, NULL for every other planet
     energy_flux_w_m2                 DOUBLE,
     flux_variation                   DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -3132,6 +3134,7 @@ CREATE TABLE IF NOT EXISTS moons (
     oddities                         VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     collision_count                  SMALLINT UNSIGNED NULL,  -- v255 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v255
     sky_suns                         VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
+    air_history                      MEDIUMTEXT,  -- v270 (GEN.1745 slice 4b): the record of the body's air history, JSON `{"s": [[age, temperature, pressure, event, oxygen law, {gas: pressure}], ...], "a": [[start, end, cause, kill], ...]}` (the steps of its history with the partial pressure of every gas of 0.1 Pa or more, and its life ages, `physics/air_record.pack`), NULL for a giant, a body with an air under 500 Pa, a rogue planet and a row made before v269
     light_factor                     DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     obliquity_min_deg                DOUBLE,  -- v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     obliquity_max_deg                DOUBLE,  -- v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
@@ -3486,11 +3489,11 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     history_text                TEXT NULL,  -- v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
     host_node_id                SMALLINT NULL,  -- v258 (GEN.332, slice C): the orbit node a belt round an inner pair node orbits (NULL: its star), with `star_id` NULL, as on `planets`
     thrown_inward_kg            DOUBLE NULL,  -- v267 (GEN.1231): the mass of the belt the star's mass loss threw inward, kg (`physics/belt_history.py`), the rock that falls on a white dwarf, NULL for a belt of no remnant system and for a row made before v267
-    lagrange_point              VARCHAR(2) NULL,  -- v269 (GEN.1150): `L4` (leading) or `L5` (trailing) for a trojan region of a giant, whose parent is the giant (`parent_type` planet), NULL for every other belt
-    libration_amplitude_deg     DOUBLE NULL,  -- v269 (GEN.1150): the libration amplitude of a trojan region's bodies about its point, degrees (`physics/trojan_swarm.py`), NULL for every other belt
-    libration_phase_deg         DOUBLE NULL,  -- v269 (GEN.1150): the libration phase at Unix time zero, degrees (`physics/trojan_overlay.py` adds the libration to the giant's longitude at any time from it), NULL for every other belt
-    mean_eccentricity           DOUBLE NULL,  -- v269 (GEN.1150): the mean eccentricity of a trojan region's bodies, NULL for every other belt
-    mean_inclination_deg        DOUBLE NULL,  -- v269 (GEN.1150): the mean inclination of a trojan region's bodies to the giant's plane, degrees, NULL for every other belt
+    lagrange_point              VARCHAR(2) NULL,  -- v271 (GEN.1150): `L4` (leading) or `L5` (trailing) for a trojan region of a giant, whose parent is the giant (`parent_type` planet), NULL for every other belt
+    libration_amplitude_deg     DOUBLE NULL,  -- v271 (GEN.1150): the libration amplitude of a trojan region's bodies about its point, degrees (`physics/trojan_swarm.py`), NULL for every other belt
+    libration_phase_deg         DOUBLE NULL,  -- v271 (GEN.1150): the libration phase at Unix time zero, degrees (`physics/trojan_overlay.py` adds the libration to the giant's longitude at any time from it), NULL for every other belt
+    mean_eccentricity           DOUBLE NULL,  -- v271 (GEN.1150): the mean eccentricity of a trojan region's bodies, NULL for every other belt
+    mean_inclination_deg        DOUBLE NULL,  -- v271 (GEN.1150): the mean inclination of a trojan region's bodies to the giant's plane, degrees, NULL for every other belt
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -4609,6 +4612,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     oddities                         VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     collision_count                  SMALLINT UNSIGNED NULL,  -- v255 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v255
     sky_suns                         VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
+    air_history                      MEDIUMTEXT,  -- v270 (GEN.1745 slice 4b): the record of the body's air history, JSON `{"s": [[age, temperature, pressure, event, oxygen law, {gas: pressure}], ...], "a": [[start, end, cause, kill], ...]}` (the steps of its history with the partial pressure of every gas of 0.1 Pa or more, and its life ages, `physics/air_record.pack`), NULL for a giant, a body with an air under 500 Pa, a rogue planet and a row made before v269
     light_factor                     DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     obliquity_min_deg                DOUBLE,  -- v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     obliquity_max_deg                DOUBLE,  -- v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
@@ -6696,11 +6700,11 @@ CREATE TABLE IF NOT EXISTS engine_items (
 -- v267 (GEN.1231): `asteroid_belts.thrown_inward_kg` (DOUBLE, NULL), the mass of the belt the star's mass loss threw inward (`physics/belt_history.py`): the source of the rock
 -- that falls on a white dwarf, so the star's page can say the rate at which it accretes. NULL for a belt of no remnant system and for a row made before v267, nothing is backfilled.
 
--- v269 (GEN.1150): `asteroid_belts` gains `lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity` and `mean_inclination_deg`: a trojan region of a giant (its swarm at L4 or L5)
--- is a belt-like row whose parent is the giant. NULL for every other belt and for a row made before v269, nothing is backfilled.
+-- v271 (GEN.1150): `asteroid_belts` gains `lagrange_point`, `libration_amplitude_deg`, `libration_phase_deg`, `mean_eccentricity` and `mean_inclination_deg`: a trojan region of a giant (its swarm at L4 or L5)
+-- is a belt-like row whose parent is the giant. NULL for every other belt and for a row made before v271, nothing is backfilled.
 
--- v270 (GEN.1151): `planets` gains `lagrange_point` and `lagrange_host_id`: a planet grown in the 1:1 zone of a giant shares its orbit, 60 degrees ahead (`L4`) or behind (`L5`), and names the giant. NULL for every other planet
--- and for a row made before v270, nothing is backfilled.
+-- v272 (GEN.1151): `planets` gains `lagrange_point` and `lagrange_host_id`: a planet grown in the 1:1 zone of a giant shares its orbit, 60 degrees ahead (`L4`) or behind (`L5`), and names the giant. NULL for every other planet
+-- and for a row made before v272, nothing is backfilled.
 
 -- engine_piece_results (v263, OPS.219): what each finished piece of a job returned, in the job's own galaxy, written in the transaction that stores the cursor in `engine_items` and the piece's data. A unit that
 -- stopped part way and is run again starts after its stored cursor and hands its `gather` these results beside the new ones (`planetgen/queue/engine.py`). One row for each piece that returned something.

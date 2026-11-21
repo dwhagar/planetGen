@@ -252,7 +252,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 26
+CONTROL_SCHEMA_VERSION = 27
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -263,7 +263,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155), v23 the job engine's ledger `engine_runs`, `engine_jobs` and `engine_attempts` (OPS.215), v24 the same three tables again with the state spelled `canceled`, v25 `pressure_minutes` (OPS.249), v26 its `db_probe_max_ms` and `db_calm_ms` columns (OPS.249 slice 2). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100), v22 `job_profiles` (OPS.155), v23 the job engine's ledger `engine_runs`, `engine_jobs` and `engine_attempts` (OPS.215), v24 the same three tables again with the state spelled `canceled`, v25 `pressure_minutes` (OPS.249), v26 its `db_probe_max_ms` and `db_calm_ms` columns (OPS.249 slice 2), v27 `engine_run_records` (OPS.284). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -3106,6 +3106,7 @@ BODY_FIELDS = (
                          lambda row: {"oddities": oddities.from_column(row["oddities"])}),     # GEN.1047
     object_rows.computed("collision_count", lambda body, context: int(getattr(body, "collision_count", 0) or 0),
                          lambda row: {"collision_count": row["collision_count"] or 0}),     # DB.122: the oddity table reads it, so a loaded planet must not read 0
+    object_rows.attr("air_history"),    # GEN.1745 slice 4b: the record of the air history (`air_record.pack`), kept whole; a re-score or an edit reads it back as it was made
 )
 """tuple: The `Field`s `planets` and `moons` share (`insert_planet`/`insert_moon` write them, `db.edits` updates
 them in place, `_planet_or_moon_row_to_dict` reads them back)."""
@@ -3114,6 +3115,7 @@ PLANET_ONLY_FIELDS = tuple(
     object_rows.scaled(f"reflex_offset_{axis}_km", f"reflex_offset_{axis}", _AU_KM, null=0.0, nullable=True)
     for axis in "xyz") + (
     object_rows.attr("sky_suns"),       # GEN.1458: the other suns of a planet's sky; the re-score reads it back, as generation read it
+    object_rows.attr("cloud_decks"),    # GEN.1577: a giant's cloud decks and trace-gas ceilings (`hot_cloud_deck`), JSON text
     object_rows.attr("light_factor"),   # GEN.1484: the share of its light a circumbinary planet keeps
     object_rows.attr("obliquity_min_deg"),   # GEN.1535: the lowest tilt its axis reaches over the age of its star
     object_rows.attr("obliquity_max_deg"),   # GEN.1535: the highest
@@ -4046,7 +4048,7 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
 ROGUE_HOST_ONLY_COLUMNS = frozenset({
     "distance_km", "period_years", "zone", "hill_radius_km", "min_orbit_distance_km", "habitable_zone_inner_km", "habitable_zone_outer_km",
     "orbital_inclination_deg", "orbital_ascending_node_deg", "eccentricity", "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
-    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "sky_suns", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "belt_order", "belt_rank", *_VELOCITY_COLUMNS})
+    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "sky_suns", "cloud_decks", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "belt_order", "belt_rank", *_VELOCITY_COLUMNS})
 """frozenset: The `planets` columns that are the orbit round a host (GEN.1111): a rogue planet has no host, so its `velocity_*_kms` is the galaxy-frame movement (`_FREE_VECTOR_FIELD`)."""
 
 ROGUE_BODY_FIELDS = tuple(field for field in PLANET_BODY_FIELDS if not set(field.columns) <= ROGUE_HOST_ONLY_COLUMNS)
