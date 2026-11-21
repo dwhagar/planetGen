@@ -218,6 +218,8 @@ class _SpectrumConnection:
         if "_life_class_scores" in sql:  # GEN.889: the class scores are read from planet_life_class_scores or moon_life_class_scores
             column = "moon_id" if "moon_life_class_scores" in sql else "planet_id"
             return _Rows([{column: params[0], "life_class": name, "score": score} for name, score in self.scores.items()])
+        if "_life_ages" in sql:  # GEN.1746 slice 3: the life ages of the body are read from planet_life_ages or moon_life_ages (a body with none has no rows)
+            return _Rows([])
         if "_life " in sql:  # GEN.1209: the classes that live on the body are read from planet_life or moon_life
             column = "moon_id" if "moon_life" in sql else "planet_id"
             return _Rows([{column: params[0], "life_class": entry["life_class"], "share": entry["share"], "life_stage": entry["stage"],
