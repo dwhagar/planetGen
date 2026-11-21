@@ -2536,6 +2536,10 @@ Migration 0208 drops `description` from `planets` and `moons`. It held the sente
 
 Migration 0210 adds `history_text` (TEXT, nullable) to `asteroid_belts`: the sentences `physics/belt_history.py` wrote for the events the star's evolution put a belt through (engulfed in part by the giant branch, thrown inward by the mass loss), as one paragraph for the belt's page. A belt nothing happened to keeps NULL, and so does a row made before v210; nothing is backfilled, and a column already there is skipped, so a stopped run can be started again.
 
+### v269 (GEN.1577): the cloud decks of a giant
+
+Migration 0269 adds `cloud_decks` (TEXT, nullable) to `planets`: for a giant of a star, the hot-condensate clouds along its profile (`physics/hot_cloud_deck.py`) and the ceilings of the trace gases of its star's gas, JSON `{"clouds": [[species, base bar, base K, 1 if the base lies deeper than the 1,000 bar the search stops at], ...], "ceilings": {formula: molecules per hydrogen atom}}`, deepest cloud first. NULL for a body that is not a giant of a star (a moon, a rocky planet, a starless one) and for a row made before v269; nothing is backfilled, a regenerated galaxy fills it. `rogue_planets` and `moons` have no such column.
+
 ### v268 (DB.132, DB.133): the birth mass of a star and the eccentricity a resonance holds
 
 Migration 0268 adds `initial_mass_sol` and `phase_end_age_gy` (DOUBLE, nullable) to `stars` and `held_eccentricity` and `forced_eccentricity` (DOUBLE, nullable) to `body_history` (see the table sections above). `store.STAR_FIELDS` writes and loads the star's two; `body_history.attach` gives a restored planet or moon its `_resonance_e` and a planet its `oddity_quantities["forced_eccentricity"]`. Nothing is backfilled: the numbers of a body made before v268 are stored nowhere.

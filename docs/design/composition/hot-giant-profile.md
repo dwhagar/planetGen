@@ -1,6 +1,6 @@
 # The temperature-pressure profile of a hot giant (GEN.1577)
 
-Status: built (new module, nothing calls it yet). Module `src/planetgen/physics/hot_giant_profile.py`, tests `src/tests/test_hot_giant_profile.py`. Built ahead by Lane 07 for Lane 14, who reviews it and wires it behind the cloud deck (`physics/hot_cloud_deck.py`, GEN.994).
+Status: built and read (GEN.1577: `hot_cloud_deck.giant_profile` calls it, floors it with a dry adiabat, and `hot_cloud_deck.generate` stores each giant's cloud decks in `planets.cloud_decks`). Module `src/planetgen/physics/hot_giant_profile.py`, tests `src/tests/test_hot_giant_profile.py`. Built by Lane 07 and wired behind the cloud deck (`physics/hot_cloud_deck.py`, GEN.994 and GEN.1577).
 
 ## What it is for
 

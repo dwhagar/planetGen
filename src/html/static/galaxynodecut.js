@@ -61,14 +61,20 @@ export function blockBox(block, edgePc) {
 
 const geometries = new Map();
 
-// A block's cut geometry, { lo, hi, size } (size the longest edge of the box), kept per sector edge.
+// A block's cut geometry, { lo, hi, size, key } (size the longest edge of the box, key the block's node key), kept per
+// sector edge: one table per edge, so a block's key is made once and no `key@edge` string is built per look-up (PERF.200).
 export function geometry(block, edgePc) {
-  const key = formatDrillKey(block) + "@" + edgePc;
-  let found = geometries.get(key);
+  let table = geometries.get(edgePc);
+  if (table === undefined) {
+    table = new Map();
+    geometries.set(edgePc, table);
+  }
+  const key = formatDrillKey(block);
+  let found = table.get(key);
   if (found === undefined) {
     const box = blockBox(block, edgePc);
-    found = { lo: box[0], hi: box[1], size: Math.max(box[1][0] - box[0][0], box[1][1] - box[0][1], box[1][2] - box[0][2]) };
-    geometries.set(key, found);
+    found = { lo: box[0], hi: box[1], size: Math.max(box[1][0] - box[0][0], box[1][1] - box[0][1], box[1][2] - box[0][2]), key };
+    table.set(key, found);
   }
   return found;
 }
@@ -228,16 +234,18 @@ export function nodeCut(camera, look, config) {
     }
     const distanceSq = distanceSqTo(geo, camera);
     if (cone && distanceSq > 0) {
-      const offset = [0, 1, 2].map((a) => (geo.lo[a] + geo.hi[a]) / 2 - camera[a]);
-      const reach = Math.sqrt(offset[0] * offset[0] + offset[1] * offset[1] + offset[2] * offset[2]);
+      const offsetX = (geo.lo[0] + geo.hi[0]) / 2 - camera[0];
+      const offsetY = (geo.lo[1] + geo.hi[1]) / 2 - camera[1];
+      const offsetZ = (geo.lo[2] + geo.hi[2]) / 2 - camera[2];
+      const reach = Math.sqrt(offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ);
       const radius = geo.size * SQRT3_HALF;
       if (reach > radius) {
-        const along = (offset[0] * axis[0] + offset[1] * axis[1] + offset[2] * axis[2]) / reach;
+        const along = (offsetX * axis[0] + offsetY * axis[1] + offsetZ * axis[2]) / reach;
         if (Math.acos(Math.max(-1, Math.min(1, along))) > halfAngle + Math.asin(radius / reach)) return null;
       }
     }
     const size = distanceSq <= 0 ? Infinity : (geo.size * focalPx) / Math.sqrt(distanceSq);
-    return { block, key: formatDrillKey(block), distanceSq: quantized(distanceSq), size: quantized(size) };
+    return { block, key: geo.key, distanceSq: quantized(distanceSq), size: quantized(size) };
   };
   const add = (entry) => {
     found.push(entry);

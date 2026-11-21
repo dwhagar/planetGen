@@ -17,8 +17,11 @@ the sweep `|d nu / dt|` carries the moon through it; capture is sure when `rho =
 spin to the power 4/7), the planet's angular momentum leaving by the resonance to the star's orbit, and its eccentricity rises to the ceiling [R5289] reached (0.5), cut short
 where the periapsis would meet the planet. The model's tide history is circular; this is the one place it holds an orbit.
 
-**What it does not do.** The exit from the resonance (dissipation faster than libration; the resonant despinning of [R0958] of the planet) is not modelled: a caught moon stays caught
-for the rest of the age. A retrograde moon, an inward-drifting one that the resonance does not sweep outward, and the variation resonance are left out. Stand-ins are rows EV1 to EV3 of
+**The exit** (GEN.1804). A caught moon is held only while the planet's tide on it takes back less than the resonance gives: the rate the tide cuts its eccentricity by e (`orbit_elements.circularisation_time_yr`)
+against the coupling `eps` (`damping_share`). Over it the resonance cannot hold an eccentricity (dissipation faster than libration, [R0958]): the moon is not caught, and one caught that is held has the ceiling less
+that share. The planet's spin pays for the hold (`affordable`): the moon's tide at the held eccentricity (`hold_power_w`) over the rest of the age may not cost more than the planet's rotational energy, or the moon is let go.
+
+**What it does not do.** The resonant despinning of [R0958] of the planet is not modelled: a moon that stays held stays held for the rest of the age. A retrograde moon, an inward-drifting one that the resonance does not sweep outward, and the variation resonance are left out. Stand-ins are rows EV1 to EV3 of
 section 6.302 of the gap plan, tagged in the code (`[Stand-in 6.302 EV1, tier T7, tweak L0.]` and so on).
 """
 
@@ -76,11 +79,38 @@ def resonance_precession(resonance, spin, mass_kg, radius_m, axis_m):
     return kozai_bodies.bulge_precession_rad_s(resonance.giant, spin, mass_kg, radius_m, axis_m)
 
 
+def coupling_rad_s(resonance, mass_kg, axis_m):
+    """The resonance's coupling `eps = (15/4) n_p^2 / n_m` (rad/s) for a moon at `axis_m`: how fast the resonance can raise its eccentricity."""
+    moon_rate = math.sqrt(constants.G * mass_kg / axis_m ** 3)
+    return 3.75 * resonance.star_rate ** 2 / moon_rate
+
+
 def sweep_ratio(resonance, mass_kg, axis_m, nu_rate):
     """`rho = |d nu / dt| / eps^2` for a moon at `axis_m` that the resonance crosses at the rate `nu_rate` (rad/s per s)."""
-    moon_rate = math.sqrt(constants.G * mass_kg / axis_m ** 3)
-    coupling = 3.75 * resonance.star_rate ** 2 / moon_rate
-    return abs(nu_rate) / coupling ** 2
+    return abs(nu_rate) / coupling_rad_s(resonance, mass_kg, axis_m) ** 2
+
+
+def damping_share(coupling, damping_rate):
+    """The share of the resonance's growth that the planet's tide on the moon takes back: the rate (1/s) the tide cuts the moon's eccentricity by e (`orbit_elements.circularisation_time_yr`) over the
+    `coupling` (rad/s). `inf` for a resonance with no coupling."""
+    return math.inf if coupling <= 0.0 else damping_rate / coupling
+
+
+def hold_power_w(planet_mass_kg, moon_mass_kg, axis_m, eccentricity, damping_rate):
+    """The power (W) the planet's tide dissipates in a moon held at `eccentricity` at `axis_m` while it cuts the eccentricity by e at `damping_rate` (1/s): the orbit's energy at its fixed angular
+    momentum, `E_orb = G M m / (2 a)`, goes as `E_orb d(e^2)/dt = -P` (`orbit_elements.settled_eccentricity`), so `P = 2 E_orb e^2 damping_rate`."""
+    return constants.G * planet_mass_kg * moon_mass_kg / axis_m * eccentricity ** 2 * damping_rate
+
+
+def affordable(power_w, remaining_s, spin_energy_j):
+    """Whether the planet's spin can pay a moon's held tide for `remaining_s`: the energy the resonance draws is the planet's rotation (the angular momentum leaves to the star's orbit), at most all of it,
+    `spin_energy_j` (`1/2 I omega^2`). A hold that would dissipate more than that ends before the age does (GEN.1804)."""
+    return power_w * remaining_s <= spin_energy_j
+
+
+def sustained(share):
+    """Whether a moon whose tide takes back `share` of the resonance's growth stays held: only while the tide is the slower (the exit from the resonance, [R0958]: dissipation faster than libration)."""
+    return share < 1.0
 
 
 def caught(rho):
@@ -93,6 +123,7 @@ def nu_rate(spin, spin_rate, axis_m, axis_rate_m_s, nu):
     return nu * (2.0 * spin_rate / spin - 3.5 * axis_rate_m_s / axis_m)
 
 
-def held_eccentricity(axis_m, radius_m):
-    """[Stand-in 6.302 EV3, tier T6, tweak L1.] The eccentricity of a moon held at the resonance at `axis_m`: the ceiling, or less where its periapsis would come within `PERIAPSIS_MARGIN` radii of the planet's center."""
-    return max(0.0, min(ECCENTRICITY_CEILING, 1.0 - PERIAPSIS_MARGIN * radius_m / axis_m))
+def held_eccentricity(axis_m, radius_m, share=0.0):
+    """[Stand-in 6.302 EV3, tier T6, tweak L1.] The eccentricity of a moon held at the resonance at `axis_m`: the ceiling less the `share` of the growth the tide takes back (`damping_share`; the balance of
+    the tide's damping against the resonance's growth), or less where its periapsis would come within `PERIAPSIS_MARGIN` radii of the planet's center."""
+    return max(0.0, min(ECCENTRICITY_CEILING * (1.0 - min(share, 1.0)), 1.0 - PERIAPSIS_MARGIN * radius_m / axis_m))

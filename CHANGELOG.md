@@ -2,6 +2,101 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4660+db268.gen150.api14] - 2026-11-21
+
+**Headline:** The scored search sample keeps adding systems until enough moons hold every searched value, instead of stopping at six systems that may fall short.
+
+### Fixed
+
+- `tests/scored_site.py` stopped at `MAX_SYSTEMS` (6) systems even when some moon column (for example the period or ocean depth) was held by fewer than four moons, so `test_search_values.py` errored 27 times after the generator moved. The fixture now keeps scanning seeds 11 to 80 until four systems exist and every searched value is on four moons, and its failure message gives the real count per column. The requirement is unchanged (TEST.810).
+
+generation-output: unchanged
+
+## [8.0.4659+db268.gen150.api14] - 2026-11-21
+
+**Headline:** The cosmic dust tests find a default system with an acid cloud by searching seeds, instead of relying on one seed that has stopped holding one.
+
+### Fixed
+
+- `tests/test_cosmic_dust.py` built the default system of seed 32 and expected a hot rocky planet with an acid cloud (V1) in it; that seed no longer has one. The fixture now tries seed 137 (which holds one) and then seeds 0 to 199, stops at the first system with an acid cloud, and fails with the tried count when none has one. The cloud assertions are unchanged (TEST.809).
+
+generation-output: unchanged
+
+## [8.0.4658+db268.gen150.api14] - 2026-11-20
+
+**Headline:** The special phenomena stage no longer takes hours on a big galaxy, and it says how many ring sectors it has done and how long is left (PERF.284, OPS.289).
+
+### Fixed
+
+- The ring remnants piece of "Write the special phenomena" reads the light of the cells each chunk reaches by sector address, and the scatter has taken the address index off the phenomenon table for its inserts, so every chunk of 200 sectors scanned the whole table (2 to 3 s each, mysqld at one full core, on Lane 15's run: 2h 33m and counting). The piece now builds that one index first when it is missing; the index stage after it finds it present. On a stand-in table of 3 million rows a 500-cell read took 1.5 s without the index and 0.02 s with it, and the index took 5 s to build.
+
+### Added
+
+- The ring remnants piece says `Neutron stars and black holes of the backfill rings: 12,000 of 91,500 done (13%), 40 a second, 5m 3s elapsed, about 33m 20s left.` at the log cadence and as the unit's second bar (the real count of sectors, OPS.289), where it showed no count.
+
+## [8.0.4657+db268.gen150.api14] - 2026-11-20
+
+**Headline:** The ledger rows of a run Redis says is over are ended too, so no run stays `running` after `finish-run` carried it on (OPS.284).
+
+### Fixed
+
+- OPS.284 (bug): `planetgen finish-run` carried a run on, but the run it carried on stayed `running` in the ledger with its unfinished jobs `waiting` (found by the OPS.247 trial after a run whose process died on a full disk). The supervisor's `LostRuns` duty now also ends the ledger rows (jobs `canceled`, the run row `canceled`) of every run whose Redis record is `done`, `failed` or `canceled` while its ledger run is `running` or `waiting`. A live or held run is not touched.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4656+db268.gen150.api14] - 2026-11-20
+
+**Headline:** A run that planned a new galaxy in its first stage can be carried on by `finish-run` from a later stage (OPS.284).
+
+### Fixed
+
+- OPS.284 (bug): a run begun on an empty database could not be carried on after it stopped: `planetgen finish-run` said the run "did not record the galaxy and the build it worked on", because the galaxy's seed is read when the run starts and the galaxy did not exist yet (found by the OPS.247 trial, whose run stopped in stage 12 of 19 on a full disk). The run now records the stored galaxy's seed after the stage that planned it.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4655+db268.gen150.api14] - 2026-11-20
+
+**Headline:** A generation run's record is kept in the control database, so a restart of the machine or of Redis no longer loses the run (OPS.284).
+
+### Fixed
+
+- OPS.284 (bug): a run's record (its steps, the galaxy seed and build it began on, each stage's clocks and conclusion) lived only in Redis, so a restart of the machine or of Redis left `planetgen finish-run` with "nothing to finish" and the run's ledger rows `running` for ever (found by the OPS.247 trial, which lost two runs of 11 and 3 hours to container restarts). The record is now written to the control database (`engine_run_records`) at each change that matters, and a new supervisor duty (`LostRuns`) and `finish-run` put back the runs Redis lost and end the ones that were live as runs whose process is gone (failed, killed, ledger rows ended); a run the Queue page deleted is not brought back. Redis stays the cache the pages read; there is no fallback.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.4654+db268.gen150.api14] - 2026-11-20
+
+**Headline:** The Galaxy Map spends less time on the node cut's bookkeeping, so the map's busy time on a dive, flight and climb falls by about a fifth (PERF.200).
+
+### Changed
+
+- A block's key is built by joining numbers into one string instead of an array and a join, the cut reads each block's key from its kept geometry (kept in one table per sector edge, no `key@edge` string per look-up) instead of building it again, and the cone test no longer makes an array per block.
+- The page's node memory re-inserts a hit only when the node was last used over 500 uses ago, and gives a node used since a second chance at the front before it is evicted, instead of moving every hit; a draw looks each node of the cut up once instead of six times.
+- Measured with the MAP.249 benchmark on this box: the named node-cut and memory functions took 4,229 ms of the profile before and 2,583 ms after (39 percent less), the page's whole busy time 9,720 ms before and 7,569 ms after (22 percent less); node requests (104) and bytes (2.81 MB) are the same.
+
+## [8.0.4653+db268.gen150.api14] - 2026-11-20
+
+**Headline:** A release's version now carries the database schema, generator epoch and API version, like `8.2.2100+db134.gen62.api5` (OPS.64).
+
+### Added
+
+- The release stamp writes a PEP 440 local suffix, `+db<schema>.gen<epoch>.api<api>`, after the release number in `_version.py`, the README badge and the changelog heading. The three numbers are read from the newest migration revision, `epochs.json` and `API_VERSION` at stamp time, so a database, a galaxy or a client can be matched to a release by its version alone. The user agent, the pages and the API show the full code.
+
+### Changed
+
+- BUILD, REVISION, the first-release names in `epochs.json` and `api-versions.json` and the release commit name still use the plain `MAJOR.REVISION.BUILD`. The PR check refuses a hand-set suffix as it refuses a hand-bumped version. The galaxy version key reads the release parts and ignores the suffix.
+
+## [8.0.4652] - 2026-11-20
+
+**Headline:** The site's class catalog no longer rebuilds its two star tables in every process, so the engine's app template starts about 13 s faster on a cold box (PERF.283).
+
+### Changed
+
+- The forced-star tables (one per [Fe/H] bucket) behind the class reference catalog are kept in the sampling-table cache the bright-star tables use, so the app template, the web workers and the warm-up build each once. Measured: the class catalog took 14.3 s the first time and 1.4 s read back, with the same cells.
+
 ## [8.0.4651] - 2026-11-20
 
 **Headline:** `update.sh` no longer runs the math check as a step, so an update is about 14 s (warm) to 49 s (cold) shorter (OPS.286).
