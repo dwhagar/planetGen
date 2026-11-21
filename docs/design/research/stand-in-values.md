@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1956 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1963 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1929 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1936 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,15 +50,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 227 | 22 | 12 | 1 | 0 | 262 |
-| T2 | 181 | 75 | 4 | 0 | 0 | 260 |
-| T3 | 128 | 65 | 13 | 10 | 0 | 216 |
+| T2 | 182 | 75 | 4 | 0 | 0 | 261 |
+| T3 | 128 | 66 | 13 | 10 | 0 | 217 |
 | T4 | 89 | 17 | 9 | 25 | 13 | 153 |
-| T5 | 112 | 29 | 8 | 1 | 2 | 152 |
-| T6 | 249 | 135 | 38 | 85 | 7 | 514 |
-| T7 | 75 | 38 | 10 | 31 | 0 | 154 |
-| T8 | 1 | 0 | 0 | 5 | 1 | 7 |
+| T5 | 113 | 29 | 8 | 1 | 2 | 153 |
+| T6 | 250 | 135 | 38 | 85 | 7 | 515 |
+| T7 | 75 | 40 | 10 | 31 | 0 | 156 |
+| T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1116 | 401 | 100 | 274 | 65 | 1956 |
+| All | 1119 | 404 | 100 | 275 | 65 | 1963 |
 
 ## How the labels were given
 
@@ -3466,3 +3466,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | MS2 | B | T2 | L0 | `melt_sulfur.FIT_MAX_K` 4605: a surface hotter than the fit's hottest run is held at it, so the capacity of a body above it is a floor | 4605, fixed | any lava world over 4,605 K (one of 12 in the measurement) | a measured SCSS above 4,605 K | the same fit extended | the supplementary section S.5 of [R5340] | predicted only | - | - |
 | MS3 | T | T6 | L0 | the molten layer reaches the pressure where the solidus of the tidal heating (`tidal_heating.solidus_k`, TH13) has risen to the surface temperature, at most the base of the body's magma ocean (`magma_ocean_redox.base_pressure_gpa`, MR1 and MR2); the melt is taken at the surface temperature all the way down | none | a surface over 1,400 K; the melt is a lower bound of the capacity (it gets hotter with depth and SCSS rises with temperature) | an interior model of a star-heated lava world with a molten depth, or a measured depth | a molten depth from the body's heat and temperature | educated guess from physics: the solidus is the one registered, the ocean base is the one the redox model uses | predicted only | - | - |
 | MS4 | T | T7 | L1 | the melt takes what the crust sinks could not, up to its capacity, as one number for the oxidized and the reduced sulfur (the sulfide saturation for both; sulfate is more soluble at high oxygen fugacity), and keeps it (no burden, no lifetime) | none | a molten surface | a lava world whose melt holds less than its SCSS at the gas's fugacities | a sulfide capacity with fugacities | needed output: the capacity of the crust alone left 30,000 and 183,000 kPa of H2S and SO2 over two lava worlds | predicted only | - | - |
+
+## 6.320 Stand-ins of the adaptations of the chemical-energy classes (GEN.1811)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AH1 | P | T7 | L1 | `life_adaptations.json` axes `acid_strength` 0.005 percent of the liquid's mass (about pH 3) and `ammonia_fraction` 0.001 of the water's mass (0.06 M): the ordinary limit of a cell in an acid or an ammonia-water | pH 2 to 4 (0.0005 to 0.05 percent); 0.0005 to 0.002 | the classes 5a, 5b, 8 (the axes a demand is put to) | a measured acid or ammonia limit of an ordinary (mesophilic) bacterium that differs by a factor of 5 | the measured limits of the ordinary cells of each medium | the pH above which most cells divide; the ammonia an ordinary medium carries as a nutrient and a trace; both stand under the measured limits of the tolerant (A1, N1) | predicted only | - | - |
+| AH2 | B | T2 | L0 | `life_adaptations.json` rows A1 (acid, grade 2 4.7 percent, growth around pH 0, [R5327]; grade 3 11 percent, *Picrophilus torridus* adapted to 1.2 M sulfuric acid, [R5326]) and N1 (ammonia, grade 3 0.0043 of the water, *Halomonas meridiana* growing directly in 0.25 M ammonia, [R5328, R5329] for the ammonium salt) | the spread of the papers (the percent of A1 is arithmetic over a density of 1.07) | a microbe of the classes named (5a and 5b; 8) | a measured growth in a stronger acid or in more ammonia | the measured limits themselves | read in the abstracts of [R5326, R5327, R5328, R5329]; the 0.25 M and pH values are a machine summary of the paper's text (GEN.1810) | predicted only | - | - |
+| AH3 | P | T3 | L1 | `life_adaptations.json` row C17: grade 3 of cold, 248.15 K (metabolism in a permafrost brine to -25 C), for the water classes 3a to 4c | 243 to 253 K | a chemical life in water below freezing | a measured cold limit of a chemolithotroph below 248 K or above 258 K | the cold limit of a chemolithotroph in brine, when one is measured | [R5323]: *Planococcus halocryophilus* Or1, a heterotroph, grows at -15 C and respires to -25 C (second-hand: the paper's page was not opened); stands for the cold edge of a chemical life, so Marginal | predicted only | - | - |
+| AH4 | P | T7 | L1 | `life_adaptations.json` grade 2 of N1: 0.0021, the geometric mean of the ordinary 0.001 and the extreme 0.0043, a straight guess | 0.0015 to 0.003 | class 8 | a measured ammonia limit between 0.001 and 0.0043 that differs by a factor of 1.5 | the measured value | no source for the interpolation (as AD5 of 6.294) | predicted only | - | - |
+| AH5 | P | T6 | L0 | `life_adaptations.json` rows C16 and H3 carried by the water classes 3a, 3b, 4a, 4b and 4c: the cold-active and the hyperthermophilic microbe of the table are taken to be the life of a chemical class in water | the classes that carry them | the classes of water only; the other classes (5a to 9) get no row of heat or cold, and their temperature is past the table | a hyperthermophile of the classes in the table that cannot take the reactions of a class (the life of 3a at 395 K needs hydrogen at that heat) | rows of the classes by their own measurements | physics fixes the cell (a microbe in water at a temperature), the energy source is argued, not shown, to leave the limit alone; the record of H3 is *Methanopyrus kandleri*, which eats hydrogen [R4295] | predicted only | - | - |
+| AH6 | P | T5 | L0 | `adaptation_record.chemical_demands` puts a water activity of 0 to the classes 6 (dense CO2) and 7 (a hydrocarbon sea): no row of the table reaches it | none (physics: a solvent that holds no water has no water activity to speak of) | the classes 6 and 7 | none | none | by definition | predicted only | - | - |
+| AH7 | P | T8 | L3 | The medium gates of the classes (`life_classes.json`: 81 percent sulfuric acid and more for 5a, 5b and 9; 10 percent ammonia of the water for 8; dense CO2 for 6; a hydrocarbon sea for 7) stand as they are: the measured limits stop at 11 percent acid, 0.43 percent ammonia, a water-borne microbe under dense CO2 and no life in a nonpolar solvent, so the record says the life there is past the table | 11 to 100 percent acid; 0.43 to 10 percent ammonia | the classes 5a, 5b, 6, 7, 8, 9 | a growth of a cell in 81 percent acid (the water activity there is 0.004), in 10 percent ammonia, in dense CO2 or in a liquid hydrocarbon | a measured limit, or a lowering of the gate to it (TODO's answer to GEN.1810: keep the gate, record the gap) | [R1449, R5326, R5327, R5328, R5329]: the lowest water activity at which a cell has divided is 0.585 [R4217]; the class gates are the Boss's intended classes | predicted only | - | no data |
