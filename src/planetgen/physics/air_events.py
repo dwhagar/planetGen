@@ -47,7 +47,7 @@ FLOOD_BASALT_VOLUME_KM3 = 2.5e6
 FLOOD_BASALT_YEARS = 1.0e6
 """float: The time the bulk of a flood basalt takes, years [R5319]. [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
 FLOOD_BASALT_MAX_PER_GYR = 1.0e9 / FLOOD_BASALT_YEARS
-"""float: The most flood basalts a gigayear a body can have, 1,000: one takes about a million years to erupt (`FLOOD_BASALT_YEARS`), so a body whose heat asks for more is erupting all the time, not more often than that. A tidally melted body gave 6.5e10 and the draw never ended. [Stand-in 6.313 EV1, tier T1 verified, tweak L0.]"""
+"""float: The most flood basalts a gigayear the draw makes for a body, 1,000: one takes about a million years to erupt (`FLOOD_BASALT_YEARS`), so a body whose heat asks for more is erupting all the time. A numerical bound on the draw (like `EVENT_STEP_GYR`), not a measured rate; no real body is near it (the Earth is at 40). A tidally melted body (25 MW/m2, GEN.1815) asked for 6.5e10 and the draw never ended."""
 FLOOD_BASALT_RECURRENCE_MYR = 1000.0 / FLOOD_BASALT_PER_GYR
 """float: How often the Earth has a flood basalt, Myr: the interval at which the kill curve is read for one. [Stand-in 6.313 EV1.]"""
 
