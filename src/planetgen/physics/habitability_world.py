@@ -196,6 +196,9 @@ def values_from_body(body):
         "ground_ocean_fraction": getattr(body, "ground_ocean_fraction", None),
         "ocean_fraction": getattr(body, "ocean_fraction", None),                 # GEN.1723: the sea under a lid and the lid's thickness give the light that reaches it (`surface_refuge`)
         "ice_shell_km": getattr(body, "ice_shell_km", None),
+        "hp_ice_km": getattr(body, "hp_ice_km", None),                           # GEN.1819: the pressure of a habitat (`life_supply.habitat_pressure_pa`) reads the water layer
+        "ocean_depth_km": getattr(body, "ocean_depth_km", None),
+        "water_base_pressure_pa": getattr(body, "water_base_pressure_pa", None),
         "ground_ice_fraction": getattr(body, "ground_ice_fraction", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
