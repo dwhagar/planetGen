@@ -295,7 +295,7 @@ export function buildSystemScene(scene, layout, options) {
     if (region && region.host) regionArcs.push({ object: points, anchor: anchor, base: anchor.local.slice(), region: region, around: belt.around });
   });
 
-  // Where a region's centre lies from its giant at `years` after the epoch, degrees: the point's 60 plus the libration A sin(2 pi t / P + phase),
+  // Where a region's center lies from its giant at `years` after the epoch, degrees: the point's 60 plus the libration A sin(2 pi t / P + phase),
   // `t` counted from Unix time zero as the stored phase is (physics/trojan_overlay.py).
   const SECONDS_PER_YEAR = 365.25 * 86400;
   function regionOffsetDeg(region, years) {
@@ -307,9 +307,9 @@ export function buildSystemScene(scene, layout, options) {
   function turnRegions(placed, years) {
     regionArcs.forEach((arc) => {
       const host = placed[arc.region.host];
-      const centre = arc.around === "barycenter" ? [0, 0, 0] : placed[arc.around];
-      if (!host || !centre) return;
-      const angle = Math.atan2(host[1] - centre[1], host[0] - centre[0]) + (regionOffsetDeg(arc.region, years || 0) * Math.PI) / 180;
+      const center = arc.around === "barycenter" ? [0, 0, 0] : placed[arc.around];
+      if (!host || !center) return;
+      const angle = Math.atan2(host[1] - center[1], host[0] - center[0]) + (regionOffsetDeg(arc.region, years || 0) * Math.PI) / 180;
       arc.object.rotation.z = angle;
       arc.anchor.local = [arc.base[0] * Math.cos(angle) - arc.base[1] * Math.sin(angle), arc.base[0] * Math.sin(angle) + arc.base[1] * Math.cos(angle), arc.base[2]];
     });
