@@ -15529,7 +15529,7 @@
           "fields": [
             [
               "What it is",
-              "moon_orbits.STRATEGIES (LSODA at 1e-5 for 10,000 evaluations, then BDF at 1e-4 for 150,000; a history neither finishes, about one in five hundred stiff planets whose spin is held at a balance of the tides or turns with a moon, leaves the moons as born and the planet's spin as it would be without them)"
+              "moon_orbits.STRATEGIES (LSODA at 1e-5 for 10,000 evaluations, then BDF at 1e-4 for 150,000; a history none finishes (2 of 3,174 histories over 233 generated systems, GEN.1816; the ladder ends with Radau) is read by the inspiral time of each moon at birth: one that falls within the age is lost to its planet and recorded as fallen, the others stay as born, the planet is marked build.moon_history_unfinished, and the planet's spin is the one it would have without them)"
             ],
             [
               "The range it moves in",
@@ -15541,7 +15541,7 @@
             ],
             [
               "What would show it wrong",
-              "test_moon_history::test_a_history_no_integrator_can_finish_leaves_the_moons_as_born"
+              "test_moon_history::test_a_history_no_integrator_can_finish_leaves_the_moons_as_born_unless_the_tide_brings_one_in"
             ],
             [
               "What replaces it",
@@ -15560,7 +15560,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "moon_orbits.STRATEGIES (LSODA at 1e-5 for 10,000 evaluations, then BDF at 1e-4 for 150,000; a history neither finishes, about one in five hundred stiff planets whose spin is held at a balance of the tides or turns with a moon, leaves the moons as born and the planet's spin as it would be without them)"
+          "what": "moon_orbits.STRATEGIES (LSODA at 1e-5 for 10,000 evaluations, then BDF at 1e-4 for 150,000; a history none finishes (2 of 3,174 histories over 233 generated systems, GEN.1816; the ladder ends with Radau) is read by the inspiral time of each moon at birth: one that falls within the age is lost to its planet and recorded as fallen, the others stay as born, the planet is marked build.moon_history_unfinished, and the planet's spin is the one it would have without them)"
         },
         {
           "burn_down": null,

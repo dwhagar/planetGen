@@ -48,6 +48,10 @@ a retrograde moon's about 0.7; [R1138, R1771]; recalled). Source tier T2, tweak 
 RTOL = 1.0e-5
 """float: The integrator's relative tolerance. A spin held near a balance of the tides (a thermal tide against the rheology's) makes the system stiff, and at 1e-7 LSODA took
 tens of seconds to minutes on such a planet where 1e-5 takes one (the end spin agrees to 1e-6 with Radau at 1e-7); the distances are good to a part in 1e5.  Source tier T6, tweak level L0."""
+MAX_LOG_DISTANCE = 700.0
+"""float: The largest log of a distance (m) the right-hand side evaluates, so that `exp` does not overflow."""
+FAR_DISTANCE_M = 1.0e15
+"""float: The distance a moon is held at in the right-hand side when it has no Hill radius to escape through (a trial step past a terminal event is held at the edge of what it can reach)."""
 MAX_EVENTS = 40
 """int: The most Roche falls and escapes handled in one run."""
 STRATEGIES = (("LSODA", RTOL, 40000), ("BDF", 1.0e-6, 20000), ("BDF", RTOL, 30000), ("BDF", 1.0e-4, 40000), ("Radau", RTOL, 60000))
@@ -150,6 +154,22 @@ def drift_rate_m_s(torques, spin_rate, planet_mass_kg, moon):
     return -2.0 * torque * moon.distance_m / orbital_angular_momentum(planet_mass_kg, moon)
 
 
+def inspiral_times_s(planet, star, dissipation, moons, spin_rate, thermal=None, factor=spin_torques.GRAVITATIONAL_TORQUE_FACTOR):
+    """
+    The time each of `moons` would take to fall to the planet at the rate its tide drives it in right now, s (`a / |da/dt|`, `inf` for a moon the tide moves outward or not at all),
+    at the planet's `spin_rate`, with every moon raising its tide together (GEN.1816). A history no integrator could finish is read by this one number: a moon that falls
+    in less than the age of the system is gone, as the integrator would have found.
+    """
+    raisers = ((star,) if star is not None else ()) + tuple(spin_torques.Raiser(m.mass_kg, m.distance_m, _rate(planet.mass_kg, m, m.distance_m)) for m in moons)
+    torques = spin_torques.Torques(planet, raisers, dissipation, thermal, factor, COROTATION_SOFTNESS)
+    offset = 1 if star is not None else 0
+    times = []
+    for k, moon in enumerate(moons):
+        rate = -2.0 * torques.gravitational(spin_rate, torques.raisers[offset + k]) * moon.distance_m / orbital_angular_momentum(planet.mass_kg, moon)
+        times.append(moon.distance_m / -rate if rate < 0.0 else math.inf)
+    return times
+
+
 class _TooManyEvaluations(Exception):
     pass
 
@@ -218,6 +238,7 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
         horizon = age_s - time     # time runs in units of the span left, so the integrator's steps are of order one
         offset = 1 if star is not None else 0
         limits = [roche_limit_m(planet.radius_m, density, moons[i].density_kg_m3) for i in indices]
+        far_m = hill_radius_m if hill_radius_m else FAR_DISTANCE_M
         inside = next((k for k, i in enumerate(indices) if distance[i] <= limits[k]), None)
         if inside is not None:      # already at or inside its Roche limit: the moon is a ring from this moment
             i = indices[inside]
@@ -228,7 +249,7 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
             continue
 
         def rhs(t, y):
-            distances = [math.exp(v) for v in y[1:1 + len(indices)]]
+            distances = [min(max(math.exp(min(v, MAX_LOG_DISTANCE)), limits[k]), far_m) for k, v in enumerate(y[1:1 + len(indices)])]      # GEN.1816: a trial step past a terminal event (Roche, Hill) is held at its edge
             torques = torques_for(indices, distances)
             spin_now = y[0] * scale
             moon_torques = [torques.gravitational(spin_now, torques.raisers[offset + k]) for k in range(len(indices))]
