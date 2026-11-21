@@ -68,6 +68,15 @@ def test_a_class_that_makes_no_oxygen_borrows_nothing_from_a_row_of_the_oxygen_c
     assert la.limit("t_hot", 3, class_id="3") == la.ordinary("t_hot") or la.limit("t_hot", 3, class_id="3") < la.limit("t_hot", 3, class_id="1a")
 
 
+def test_the_rows_of_the_chemical_classes_reach_the_measured_edges_and_no_further():
+    """GEN.1810 and GEN.1811: the cold edge of a brine microbe, the hot record, the most acid a cell has been adapted to and the ammonia a cell has grown in."""
+    assert la.limit("t_cold", 3, class_id="3a") == pytest.approx(248.15) and la.limit("t_hot", 3, class_id="4b") == pytest.approx(395.15)
+    assert la.limit("acid_strength", 3, class_id="5a") == pytest.approx(11.0) and la.limit("acid_strength", 3, class_id="3a") == la.ordinary("acid_strength")
+    assert la.limit("ammonia_fraction", 3, class_id="8") == pytest.approx(0.0043) and la.limit("ammonia_fraction", 3, class_id="5a") == la.ordinary("ammonia_fraction")
+    assert la.limit("acid_strength", 3, class_id="5a") < 81.0 and la.limit("ammonia_fraction", 3, class_id="8") < 0.1 / 20          # the gates sit past them
+    assert la.limit("water_activity", 3, class_id="5a") == pytest.approx(0.585)          # the lowest a cell has divided at; the acid's is 0.004 or less
+
+
 def test_every_class_a_row_names_exists():
     for row in la.ADAPTATIONS:
         for class_id in row.classes:
@@ -98,6 +107,8 @@ def test_the_loader_refuses_a_bad_file(tmp_path):
         la._load(broken(lambda d: d["adaptations"][0].update(stage_needed="the future")))
     with pytest.raises(la.AdaptationError):
         la._load(broken(lambda d: d["adaptations"][0].update(tier="T0")))
+    with pytest.raises(la.AdaptationError):
+        la._load(broken(lambda d: next(r for r in d["adaptations"] if r["id"] == "C17").update(classes=["10"])))      # not a life class
     cold = next(r for r in DATA["adaptations"] if r["id"] == "C8")
     with pytest.raises(la.AdaptationError):
         la._load(broken(lambda d: next(r for r in d["adaptations"] if r["id"] == "C8").update(grade2=290.0)))      # warmer than the ordinary limit is not wider
