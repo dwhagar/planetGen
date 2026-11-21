@@ -513,6 +513,11 @@ TABLES = {
         "id": ("id", "moon_id"),
         "score9": ("score",),
     },
+    "moon_adaptations": {
+        "id": ("id", "moon_id"),
+        "index": ("entry_number", "grade"),
+        "row-defined": ("demand",),        # in the unit of the row's axis (K, umol m-2 s-1, hours, m, a water activity)
+    },
     "moon_life_ages": {
         "id": ("id", "moon_id"),
         "Gyr": ("start_gyr", "end_gyr"),
@@ -704,6 +709,11 @@ TABLES = {
     "planet_life_class_scores": {
         "id": ("id", "planet_id"),
         "score9": ("score",),
+    },
+    "planet_adaptations": {
+        "id": ("id", "planet_id"),
+        "index": ("entry_number", "grade"),
+        "row-defined": ("demand",),        # in the unit of the row's axis (K, umol m-2 s-1, hours, m, a water activity)
     },
     "planet_life_ages": {
         "id": ("id", "planet_id"),
