@@ -3003,11 +3003,15 @@
           "what": "mixture_evolved.WATER_PHOTOLYSED"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "replace",
+            "GEN.1769",
+            "L3, the upper end of 1 percent of the body's mass (about 43 oceans) is the Boss's call to widen the range of [R2769] (one to ten oceans); the body water budget of lane J, which gives each world its own water, replaces the range"
+          ],
           "fields": [
             [
               "Evidence",
-              "READ ([R2769]: up to ten oceans)"
+              "educated guess from physics: [R2769] consider one to ten oceans; the Boss asked for the range widened (5:45 PM EST 11-20, GEN.1769 slice 2) to 1 percent of the body's mass, about 43 oceans, so the water-rich rocky worlds are in it; no source was read for the upper end, and the dry oxygen share does not change above it in the measured draws"
             ],
             [
               "What it is",
@@ -3015,7 +3019,7 @@
             ],
             [
               "The range it moves in",
-              "0.0233 to 0.233 weight percent, log"
+              "0.0233 to 1 weight percent, log"
             ],
             [
               "Where it holds",
@@ -3032,11 +3036,11 @@
           ],
           "id": "AM4",
           "key": "6.7:AM4",
-          "kind": "B",
+          "kind": "P",
           "slug": "6-7-am4",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L0",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
           "unread": null,
           "what": "mixture_evolved.OCEAN_WATER_WT_PERCENT"
         },
@@ -64075,7 +64079,7 @@
             ],
             [
               "What replaces it",
-              "none: GEN.1464 closed (Boss 11-19), a belt adds at most 0.46 percent to any tide"
+              "the belts as sources through the ledger of GEN.1464"
             ],
             [
               "Evidence",
