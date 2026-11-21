@@ -34,7 +34,7 @@ import math
 
 from planetgen.generation.build_record import HasBuildRecord
 
-from planetgen.physics import body_spin, constants, evection, hill_perturbers, moon_orbits, moon_resonances, ring_origin, spin, spin_torques
+from planetgen.physics import body_spin, constants, evection, hill_perturbers, moon_orbits, moon_resonances, orbit_elements, ring_origin, spin, spin_torques
 from planetgen.physics.orbits import calculate_reflex_offset
 
 RESPIN_FRACTION = 1.0e-4
@@ -139,6 +139,20 @@ def _settle(planet, survivors):
     return kept, dragged
 
 
+def _damping_rate_of(moon, planet_mass_kg):
+    """
+    `damping_rate_s(axis_m)` of `moon_orbits.Moon` for a moon body (GEN.1804): the rate, 1/s, the planet's tide cuts its eccentricity by e at the semi-major axis `axis_m`, from the moon's own
+    `k2/Q` (`orbit_elements.circularisation_time_yr`, the law that wears a captured moon's orbit). `None` for a stand-in of a lost moon (`LostMoon`, no body to read) or a moon with no size.
+    """
+    if isinstance(moon, LostMoon) or not getattr(moon, "radius", None) or not getattr(moon, "mass", None):
+        return None
+
+    def rate(axis_m):
+        seconds = orbit_elements.circularisation_time_yr(moon, planet_mass_kg, axis_m / constants.AU_TO_M) * constants.SECONDS_PER_YEAR
+        return 0.0 if not math.isfinite(seconds) else 1.0 / seconds
+    return rate
+
+
 def apply(planet, primary_mass_kg):
     """
     Runs the history of `planet`'s moons and its spin together and sets them on the bodies (the module docstring). Called by `planets.generate_spin` for a planet with
@@ -153,11 +167,12 @@ def apply(planet, primary_mass_kg):
     semi_major_axis_m = planet.distance * constants.AU_TO_M
     body = body_spin.planet_of(planet)
     star = spin_torques.Raiser(primary_mass_kg, semi_major_axis_m, spin_torques.orbital_rate(primary_mass_kg, semi_major_axis_m))
-    moons = [moon_orbits.Moon(m.mass, m._birth_distance_au * constants.AU_TO_M, density_kg_m3(m), retrograde(m)) for m in born]
+    moons = [moon_orbits.Moon(m.mass, m._birth_distance_au * constants.AU_TO_M, density_kg_m3(m), retrograde(m), _damping_rate_of(m, planet.mass)) for m in born]
+    resonance = evection.Resonance(getattr(planet, "body_type", None) == "g", star.orbital_rate)
     try:
         result = moon_orbits.evolve(body, star, body_spin.dissipation_of(planet, body), moons, birth[0], age_s, body_spin.thermal_tide_of(planet, star),
                                     density_kg_m3(planet), (hill_perturbers.tidal_hill_radius_km(planet) or 0.0) * 1000.0 or None,      # GEN.1449: against every body that pulls on the planet
-                                    resonance=evection.Resonance(getattr(planet, "body_type", None) == "g", star.orbital_rate))
+                                    resonance=resonance)
     except moon_orbits.IntegrationFailed:
         # TM8: no integrator finished (a very stiff planet): the moons stay as they were born and the planet's spin is the one it would have without them
         planet.fallen_moons = ()
@@ -181,7 +196,9 @@ def apply(planet, primary_mass_kg):
                 planets.move_orbit(moon, target_au, planet.mass)
             survivors.append(moon)
             if fate.held:      # GEN.1750: caught in the evection resonance, held there with the eccentricity it raises (`evection.held_eccentricity`)
-                held_e = evection.held_eccentricity(fate.distance_m, planet.radius * 1000.0)
+                share = 0.0 if fate.moon.damping_rate_s is None else evection.damping_share(
+                    evection.coupling_rad_s(resonance, planet.mass, fate.distance_m), fate.moon.damping_rate_s(fate.distance_m))      # GEN.1804: the tide takes back its share of the growth
+                held_e = evection.held_eccentricity(fate.distance_m, planet.radius * 1000.0, share)
                 if held_e - (moon.eccentricity or 0.0) > planets.ECCENTRICITY_SETTLE_TOLERANCE:
                     moon.eccentricity = held_e
                     planets.update_orbital_position(moon)

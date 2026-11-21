@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, starlight_aloft, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, air_history, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, continental_weathering, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, starlight_aloft, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -486,16 +486,25 @@ def test_a_giants_temperature_is_a_fixed_point_and_does_not_depend_on_where_the_
     """GEN.1716: a giant took one step, so the haze its greenhouse was made under was the haze of the start temperature and the stored
     temperature moved with the start (28 K at the median of 59 generated giants, 300 K on hot ones). It iterates to `TOLERANCE_K` like a rocky body,
     keeps the reference pressure, says it settled, and gives the same temperature from a cold, a warm and a hot start."""
-    seen, real_solve = [], sa.solve
+    seen, real_solve, real_history_solve, in_history = [], sa.solve, air_history._solved_temperature, []
 
     def recording_solve(setting, start_temperature_k):
         entry = draw.getstate()
         result = real_solve(setting, start_temperature_k)
-        if setting.giant and result is not None and result.partials_pa:
+        if setting.giant and result is not None and result.partials_pa and not in_history:
             seen.append((setting, entry, result, start_temperature_k))
         return result
 
+    def history_solve(setting, start_k, entry_state):
+        # GEN.1745: the air history solves the body's air again at the light and heat of other ages (a transitional world is a giant setting); those are not the final air this test is about
+        in_history.append(True)
+        try:
+            return real_history_solve(setting, start_k, entry_state)
+        finally:
+            in_history.pop()
+
     monkeypatch.setattr(sa, "solve", recording_solve)
+    monkeypatch.setattr(air_history, "_solved_temperature", history_solve)
     for _ in _generated(range(6)):
         pass
     assert len(seen) >= 3, "the seeds make giants"
