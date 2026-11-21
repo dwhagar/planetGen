@@ -15,8 +15,10 @@ answers the questions the generator asks of it:
 * `habitat(id)`: a refuge kind the gate of GEN.1723 counts, with the rows that open it.
 
 The axes are `t_cold` and `t_hot` (the local temperature of the water the life works in, K), `light_floor` (the least light for net growth, umol photons m-2 s-1),
-`water_hours` (the hours of liquid water a year it needs), `water_activity`, `ground_water_depth` (how deep a water table its roots reach, m) and `insulation` (how much
-warmer the life keeps the ground than the air, K). A row that moves no number (the snow algae's sunscreen) has no axis and only opens a habitat.
+`water_hours` (the hours of liquid water a year it needs), `water_activity`, `ground_water_depth` (how deep a water table its roots reach, m), `insulation` (how much
+warmer the life keeps the ground than the air, K) and, for the classes of a solvent that is not water (GEN.1811), `acid_strength` (percent of sulfuric acid by mass) and
+`ammonia_fraction` (ammonia as a share of the water's mass). The classes 3a to 4c carry the microbe rows of cold and heat; the rows of acid and ammonia reach as far as the
+measured life does, and the class gates sit past them (the record of `adaptation_record` says so). A row that moves no number (the snow algae's sunscreen) has no axis and only opens a habitat.
 
 What reads it: `adaptation_traits.limit` (the traits cold and heat of GEN.876's draw, which store which grade a body's life has reached) and, once GEN.1723 has merged,
 the refuge gate that widens a class's windows. Nothing in the generation reads a limit yet. A dormant row (`activity` is `dormant`: freeze tolerance, desiccation
@@ -39,6 +41,12 @@ TIERS = tuple(f"T{n}" for n in range(1, 10))
 TWEAKS = tuple(f"L{n}" for n in range(0, 5))
 OXYGEN_CLASSES = ("1a", "1b", "1c")
 """tuple: The life classes that make oxygen, the ones the refuge term of GEN.1723 is built on."""
+WATER_CHEMICAL_CLASSES = ("3a", "3b", "4a", "4b", "4c")
+"""tuple: The chemical-energy classes that live in water, the ones the measured limits of microbes (hyperthermophily, cold-active metabolism in brine) are taken to carry (GEN.1810, GEN.1811)."""
+CHEMICAL_CLASSES = (*WATER_CHEMICAL_CLASSES, "5a", "5b", "6", "7", "8", "9")
+"""tuple: The chemical-energy life classes (`life_classes`: no light is eaten): the water ones, acid (5a, 5b, 9), dense CO2 (6), a hydrocarbon sea (7) and ammonia-water (8)."""
+KNOWN_CLASSES = (*OXYGEN_CLASSES, "2", *CHEMICAL_CLASSES)
+"""tuple: Every class a row can name (`life_classes.IDS`)."""
 
 
 class AdaptationError(ValueError):
@@ -107,8 +115,8 @@ def _load(path=_PATH):
             raise AdaptationError(f"{where}: the habitat {raw['opens_habitat']!r} is not one of {sorted(habitats)}")
         if raw["tier"] not in TIERS or raw["tweak"] not in TWEAKS:
             raise AdaptationError(f"{where}: a tier T1 to T9 and a tweak L0 to L4 are needed")
-        if raw["classes"] != ["all"] and any(c not in OXYGEN_CLASSES for c in raw["classes"]):
-            raise AdaptationError(f"{where}: the classes are 'all' or oxygen-making ones {OXYGEN_CLASSES}")
+        if raw["classes"] != ["all"] and any(c not in KNOWN_CLASSES for c in raw["classes"]):
+            raise AdaptationError(f"{where}: the classes are 'all' or life classes {KNOWN_CLASSES}")
         if raw["axis"] is not None:
             ordinary, wider = axes[raw["axis"]]["ordinary"], axes[raw["axis"]]["wider"]
             sign = -1.0 if wider == "lower" else 1.0

@@ -14,20 +14,30 @@ for the kinds of life and the class the body has and the age its life has reache
   refuge gate counts the place; the record says the life there is past the table). `rows` are the ids of the rows whose own limit at that grade reaches the demand.
 * *A habitat row* has no axis (a pigment that works in no light, a sunscreen, a crust that wakes on water): where the refuge counted a place of the habitat it opens, the rows that open it and apply to
   the class are listed, with no demand and no grade.
-* The record reads **only** the finished body; it moves no number of it (nothing in the generation reads it yet; GEN.1809 stores it). Classes without a refuge (`1a`, `1b`, `1c` and `2` are the
-  photosynthetic ones the gate of GEN.1723 serves, the rest follow in GEN.1810 and GEN.1811) get no record.
+* The record reads **only** the finished body; it moves no number of it (GEN.1809 stores it). `1a`, `1b`, `1c` and `2` are the photosynthetic classes the refuge gate of GEN.1723 serves: their needs
+  are read from the refuge. The chemical classes (`3a` to `9`, GEN.1811) eat no light and have no refuge: their needs are read from the one habitat temperature of the class gate
+  (`life_supply.habitat_temperature_k`, the temperature of the cloud layer for `5a`) and from the medium of the class (the strength and the water activity of a sulfuric acid, the ammonia of an
+  ammonia-water, no water at all in dense CO2 or a hydrocarbon sea). Where no row of the table reaches the demand, `grade` is `None`: the life there is **past the table**, which is the answer for
+  the acid classes (the measured limit is 11 percent acid and the classes sit at 81 percent and more), class 8 (the measured limit is 25 times under its 10 percent), dense CO2 and a hydrocarbon sea
+  (no measured life), and for the temperature of every chemical class that is not of water (GEN.1810).
 * The light of the table is in micromoles of photons a square metre a second and the gate's in watts a square metre: they are tied by the gate's own floor, 2e-3 W/m2 being 0.01 umol (RW2), so one watt is
   five micromoles here (`UMOL_PER_W`).
 
-Every number that is not read from the table is a stand-in of section 6.318 of `docs/design/research/gap-filling-plan.md` (GEN.725 rule).
+Every number that is not read from the table is a stand-in of section 6.318 (and, for the chemical classes, 6.320) of `docs/design/research/gap-filling-plan.md` (GEN.725 rule).
 """
 
 from dataclasses import dataclass
 
-from planetgen.physics import life_adaptations, surface_refuge
+import math
 
-CLASSES = ("1a", "1b", "1c", "2")
-"""tuple: The life classes a record is made for: the photosynthetic ones the refuge gate of GEN.1723 serves (GEN.1808, first slice)."""
+from planetgen.physics import acid_medium, life_adaptations, life_classes, surface_refuge, sulfuric_vapor
+
+PHOTOSYNTHETIC_CLASSES = ("1a", "1b", "1c", "2")
+"""tuple: The life classes whose record is read from the refuge of GEN.1723 (GEN.1808, first slice)."""
+CLASSES = (*PHOTOSYNTHETIC_CLASSES, *life_adaptations.CHEMICAL_CLASSES)
+"""tuple: The life classes a record is made for: the photosynthetic ones and the chemical-energy ones (GEN.1811)."""
+CHEMICAL_HABITAT = "chemical_medium"
+"""str: The habitat (`life_adaptations.HABITATS`) of a demand that comes from the medium of a class that is not water."""
 UMOL_PER_W = 5.0
 """float: Micromoles of photons a square metre a second in one watt a square metre of usable light: the gate's floor, 2e-3 W/m2, is 0.01 umol (`surface_refuge.LIGHT_FLOOR_W_M2`, RW2). [Stand-in 6.318 AE1, tier T6, tweak L0.]"""
 FIELD = "life_adaptations"
@@ -88,15 +98,50 @@ def _reaches(axis, limit, demand):
     return limit <= demand if wider == "lower" else limit >= demand
 
 
-def needs(refuge, values, class_id, life_age_gyr=None, animals=False):
+def chemical_demands(values, class_id):
     """
-    The needs of the life of class `class_id` on a body with `refuge` (`surface_refuge.refuge_of`) and `values`, at the life age `life_age_gyr` Gyr (`None` for no limit): one `Need` for each demand
-    that the ordinary limit of its axis does not reach, then one for each habitat row that opens a habitat the refuge counted. `[]` for a class with no record, an open sea and a body with no refuge.
+    `[(axis, habitat, demand)]` the habitat and the medium of the chemical class `class_id` (GEN.1811) make on its life on a body of `values`: the one habitat temperature of the class gate (the cloud layer's
+    for `5a`) against the cold and the hot limit (`brine` and `hot_pool` for a class of water, the medium otherwise); for a sulfuric acid its strength and the water activity of that strength at that
+    temperature; for dense CO2 and a hydrocarbon sea no water at all (a water activity of 0); for an ammonia-water the ammonia as a share of the water's mass. `[]` for a body whose medium the class
+    does not find (no acid, no ammonia-water, no habitat temperature).
     """
-    if class_id not in CLASSES or not refuge.habitats:
-        return []
+    row = life_classes.describe(class_id)
+    values = dict(values)
+    values.update(life_classes.derived_quantities(values))
+    found = life_classes.quantities(values)
+    medium = row.solvent["medium"]
+    temperature, medium_demands = found.get("habitat_temperature_k"), []
+    if medium == "sulfuric":
+        acid = acid_medium.medium(values, cloud_only=getattr(row, "habitat", None) == "acid_cloud")
+        if acid.weight_percent is None:
+            return []
+        temperature = acid.temperature_k or temperature
+        medium_demands.append(("acid_strength", acid.weight_percent))
+        if temperature:
+            ln_activity = sulfuric_vapor.ln_water_activity(sulfuric_vapor.mole_fraction(acid.weight_percent), temperature)
+            medium_demands.append(("water_activity", math.exp(max(ln_activity, -700.0))))
+    elif medium in ("co2", "hydrocarbon"):
+        medium_demands.append(("water_activity", 0.0))        # no water: past every row, the record says the life lives in a solvent with no measured life
+    elif medium == "ammonia_water":
+        fraction = found.get("ammonia_water_mass_fraction")
+        if fraction is None:
+            return []
+        medium_demands.append(("ammonia_fraction", fraction))
+    water = medium == "water"
+    found_demands = []
+    if temperature is not None:
+        if temperature < life_adaptations.ordinary("t_cold"):
+            found_demands.append(("t_cold", "brine" if water else CHEMICAL_HABITAT, temperature))
+        elif temperature > life_adaptations.ordinary("t_hot"):
+            found_demands.append(("t_hot", "hot_pool" if water else CHEMICAL_HABITAT, temperature))
+    found_demands.extend((axis, CHEMICAL_HABITAT, demand) for axis, demand in medium_demands)
+    return found_demands
+
+
+def _graded(found_demands, class_id, life_age_gyr, animals):
+    """One `Need` for each of `found_demands` (`[(axis, habitat, demand)]`) that the ordinary limit of its axis does not reach: the lowest grade of the table that does and the rows that give it."""
     found = []
-    for axis, habitat, demand in demands(refuge, values):
+    for axis, habitat, demand in found_demands:
         if _reaches(axis, life_adaptations.ordinary(axis), demand):
             continue
         grade = next((g for g in (2, 3) if _reaches(axis, life_adaptations.limit(axis, g, class_id=class_id, life_age_gyr=life_age_gyr, animals=animals), demand)), None)
@@ -105,6 +150,20 @@ def needs(refuge, values, class_id, life_age_gyr=None, animals=False):
             rows = tuple(row.id for row in life_adaptations.rows_for(axis, class_id=class_id, life_age_gyr=life_age_gyr, animals=animals)
                          if any(_reaches(axis, value, demand) for value in row.values(grade)))
         found.append(Need(axis, habitat, demand, grade, rows))
+    return found
+
+
+def needs(refuge, values, class_id, life_age_gyr=None, animals=False):
+    """
+    The needs of the life of class `class_id` on a body with `refuge` (`surface_refuge.refuge_of`, not read for a chemical class) and `values`, at the life age `life_age_gyr` Gyr (`None` for no limit): one `Need`
+    for each demand that the ordinary limit of its axis does not reach, then (for the photosynthetic classes) one for each habitat row that opens a habitat the refuge counted. `[]` for a class with no
+    record, an open sea and a body with no refuge.
+    """
+    if class_id in life_adaptations.CHEMICAL_CLASSES:
+        return _graded(chemical_demands(values, class_id), class_id, life_age_gyr, animals)
+    if class_id not in CLASSES or not refuge.habitats:
+        return []
+    found = _graded(demands(refuge, values), class_id, life_age_gyr, animals)
     seen = {id_ for need in found for id_ in need.rows}
     for row in life_adaptations.ADAPTATIONS:
         if row.axis is None and row.opens_habitat in refuge.habitats and row.activity == "active" and row.id not in seen:
@@ -116,17 +175,17 @@ def needs(refuge, values, class_id, life_age_gyr=None, animals=False):
     return found
 
 
-def entries_of(found):
-    """The record of `needs` as a list of plain dicts (`axis`, `habitat`, `demand`, `grade`, `rows`), or `None` for none: the form the body keeps."""
+def entries_of(found, class_id):
+    """The record of `needs` of the class `class_id` as a list of plain dicts (`life_class`, `axis`, `habitat`, `demand`, `grade`, `rows`), or `None` for none: the form the body keeps."""
     if not found:
         return None
-    return [{"axis": need.axis, "habitat": need.habitat, "demand": need.demand, "grade": need.grade, "rows": list(need.rows)} for need in found]
+    return [{"life_class": class_id, "axis": need.axis, "habitat": need.habitat, "demand": need.demand, "grade": need.grade, "rows": list(need.rows)} for need in found]
 
 
 def record_of(body, class_ids, life_age_gyr=None, animals=False):
     """
-    The record of the finished `body`: the needs of the first of `class_ids` (the classes that live on it, the dominant one first) that has a record, as `entries_of` gives them. The refuge and the values are
-    read from the body (`habitability_world.values_from_body`, `surface_refuge.refuge_of`), once. `None` when no class has a record or the body has no refuge.
+    The record of the finished `body`: the needs of each of `class_ids` (the classes that live on it, the dominant one first) that has a record, as `entries_of` gives them, one class after the other (Boss, 5:54 PM EST
+    2026-11-20: all the life form types). The refuge and the values are read from the body (`habitability_world.values_from_body`, `surface_refuge.refuge_of`), once. `None` when no class has a record or the body has no refuge.
     """
     from planetgen.physics import habitability_world
 
@@ -134,9 +193,8 @@ def record_of(body, class_ids, life_age_gyr=None, animals=False):
     if not wanted or not (getattr(body, "surface_temperature", None) or 0.0):
         return None
     values = habitability_world.values_from_body(body)
-    refuge = surface_refuge.refuge_of(values)
+    refuge = surface_refuge.refuge_of(values) if any(class_id in PHOTOSYNTHETIC_CLASSES for class_id in wanted) else None
+    entries = []
     for class_id in wanted:
-        entries = entries_of(needs(refuge, values, class_id, life_age_gyr, animals))
-        if entries:
-            return entries
-    return None
+        entries.extend(entries_of(needs(refuge, values, class_id, life_age_gyr, animals), class_id) or ())
+    return entries or None

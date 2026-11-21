@@ -12,16 +12,16 @@ so that the generator can say how far a body's life goes and the page can say wh
 
 ## 2. The table
 
-`life_adaptations.json` holds 36 rows (the adaptations of the GEN.1724 tables C, H, D, S and L), the six axes, the stages and the habitats.
+`life_adaptations.json` holds 39 rows (the adaptations of the GEN.1724 tables C, H, D, S and L, and the three of the chemical classes, GEN.1811), the eight axes, the stages and the habitats.
 
-* **Axes.** `t_cold` and `t_hot` (K, the local temperature of the water the life works in), `light_floor` (umol photons m-2 s-1), `water_hours` (hours of liquid water a year), `water_activity`, `ground_water_depth` (m)
-  and `insulation` (K). Each axis has **one ordinary limit** (the life with no adaptation) with its own tier and tweak, so no two rows disagree about it, and a direction (wider is lower or higher).
-* **Rows.** An adaptation: the climate it serves (the codes of the research), the kinds of life that carry it, the life classes (`all`, or the oxygen-making `1a`, `1b`, `1c`, or none), the axis, the limit at the tolerant
+* **Axes.** `t_cold` and `t_hot` (K, the local temperature of the water the life works in), `light_floor` (umol photons m-2 s-1), `water_hours` (hours of liquid water a year), `water_activity`, `ground_water_depth` (m),
+  `insulation` (K) and, for the classes of a solvent that is not water, `acid_strength` (percent sulfuric acid by mass) and `ammonia_fraction` (ammonia as a share of the water's mass). Each axis has **one ordinary limit** (the life with no adaptation) with its own tier and tweak, so no two rows disagree about it, and a direction (wider is lower or higher).
+* **Rows.** An adaptation: the climate it serves (the codes of the research), the kinds of life that carry it, the life classes (`all`, or any of the classes of `life_classes`: the oxygen-making `1a`, `1b`, `1c`, `2` and the chemical `3a` to `9`, or none), the axis, the limit at the tolerant
   (grade 2) and extreme (grade 3) grades (each wider than the one before), whether it keeps the life **active** or only **dormant** (freeze tolerance, desiccation tolerance and spores let life survive a limit, not work
   past it), the stage the life must have reached, the habitat it opens, its source rows, tier and tweak. A row that moves no number (the snow algae's sunscreen) has no axis and opens a habitat.
 * **Stages.** The delay after the first life before a life can have an adaptation, from the one example (GEN.1724 LA8): cyanobacteria 0.8 to 1.1 Gyr, land mats 0.6, algae 2.2, mosses 3.3, rooted plants 3.4, C4 3.8. The animal stage has
   no delay of its own (the life timeline decides).
-* **Habitats.** The refuge kinds the gate of GEN.1723 counts (open water, water under ice, melt film, crust land, seep, brine, hot pool) with the gate each one needs and the adaptations that open it.
+* **Habitats.** The refuge kinds the gate of GEN.1723 counts (open water, water under ice, melt film, crust land, seep, brine, hot pool, and `chemical_medium`: the medium of a class that is not water) with the gate each one needs and the adaptations that open it.
 
 `life_adaptations.limit(axis, grade, life_types=..., class_id=..., life_age_gyr=..., animals=...)` gives the widest limit of the rows that apply at a grade, or the ordinary limit. At the extreme grade for class 1a the table
 reaches the measured edges: 253 K (lichen, field, -20 C), 346 K (cyanobacteria, 73 C), 0.04 umol m-2 s-1 (under the Arctic pack), 75 hours of water a year (hypoliths), 68 m of root.
@@ -50,7 +50,18 @@ are rows, not new constants. Habitats are read by GEN.1723. Light under ice is `
 
 `physics/adaptation_record` puts the table and the refuge gate together for one finished body (Boss, 5:54 PM EST 2026-11-20: apply to all life types, with "information to each about the adaptations that were necessary to make it work"). It reads the refuge (`surface_refuge.refuge_of`: the cold and hot ends of the temperatures of its wet lit steps, the hours of liquid water, the least light under the ice, the habitats counted) and the body's water table and water activity, and for each axis whose ordinary limit does not reach the demand finds the lowest grade of the table (`life_adaptations.limit`, for the body's class, life age and kinds of life) that does, and the rows that give it. A demand no grade reaches is kept as `grade` `None`: the life there is past the table. Habitat rows with no axis are listed for each habitat the refuge counted and the class may use. Light is converted at the gate's own floor (stand-in AE1, 5 micromoles per watt) and the temperature range holds the middle 95 percent of the wet lit time (AE2).
 
-The record is `planet.life_adaptations`, a list of dicts (`axis`, `habitat`, `demand`, `grade`, `rows`), `None` for none. It is made once by the life pass after the air history, moves no number of the body and is not stored yet (GEN.1809). Only the photosynthetic classes 1a, 1b, 1c and 2 have one; classes 3a to 9 follow with GEN.1810 and GEN.1811.
+The record is `planet.life_adaptations`, a list of dicts (`life_class`, `axis`, `habitat`, `demand`, `grade`, `rows`), `None` for none, the entries of each class on the body one class after the other. It is made once by the life pass after the air history, moves no number of the body and is stored in `planet_adaptations` and `moon_adaptations` (GEN.1809). Every class of `life_classes` has a record.
+
+### The chemical classes (GEN.1811)
+
+The classes 3a to 9 eat no light and have no refuge, so their needs are not read from the refuge. `adaptation_record.chemical_demands` reads the one habitat temperature of the class gate (the cloud layer's for 5a) and the medium of the class, and puts them to the table the same way. What the research of GEN.1810 (`reports/life-refuges-classes-3a-9-gen1810-2026-11-21.md`) found is in the rows and the record:
+
+* **3a, 3b, 4a, 4b, 4c (water).** They carry the cold-active (C16) and the hyperthermophilic (H3) microbe rows and one new cold row, C17: metabolism in a brine to 248.15 K (-25 C, the cold edge of a permafrost brine microbe, Marginal). The hot end is the record (122 C, 395 K), which the gate already holds. A cold water habitat is recorded in `brine`, a hot one in `hot_pool`.
+* **5a, 5b, 9 (sulfuric acid).** Row A1 reaches 4.7 percent acid (growth around pH 0) and 11 percent (*Picrophilus* adapted to 1.2 M); the classes sit at 81 percent and more and the water activity there is 0.004 or less (the lowest a cell has divided at is 0.585). The record says **past the table** for the acid strength, the water activity and any temperature: no measured life lives in the medium.
+* **6 (dense CO2) and 7 (a hydrocarbon sea).** The solvent holds no water, so the demand is a water activity of 0, past every row; no life has been measured in either.
+* **8 (ammonia-water).** Row N1 reaches 0.43 percent ammonia of the water (growth directly in 0.25 M ammonia); the gate asks 10 percent, 25 times that. The record says past the table. The gate stays (TODO's answer): the gap is recorded, not closed.
+
+No gate moved and no generated number changes: the record reads the finished body. Habitat pressure (the 140 MPa record of a piezophile) is a separate item (GEN.1819).
 
 ## 5. What it leaves out
 
