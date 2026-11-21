@@ -13,7 +13,7 @@ AGE_S = 4.5e9 * sb.YEAR_S
 
 
 def test_the_law_reproduces_the_measured_runs_of_its_own_paper_within_a_factor_of_one_and_a_half():
-    # [R5340] Table 1 (diamond anvil runs, thermal pressures): 4300 K and 43 GPa gave 10,837 ppm, 3927 K and 44 GPa 11,806 ppm, 4605 K and 53 GPa 6,979 ppm.
+    # [R5340: Table 1] (diamond anvil runs, thermal pressures): 4300 K and 43 GPa gave 10,837 ppm, 3927 K and 44 GPa 11,806 ppm, 4605 K and 53 GPa 6,979 ppm.
     for temperature, pressure, measured in ((4300.0, 43.0, 10837.0), (3927.0, 44.0, 11806.0), (4605.0, 53.0, 6979.0)):
         assert ms.scss_ppm(temperature, pressure) == pytest.approx(measured, rel=0.5)         # the fit is to 42 values with R2 0.86: a run is not on the line
 
