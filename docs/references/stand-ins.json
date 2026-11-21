@@ -15687,6 +15687,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "a planet the falling moons spin up is held at spin.BREAKUP_FRACTION of its breakup rate (the rest of the ring's angular momentum is shed with the ring material)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_orbits.MAX_LOG_DISTANCE 700 and moon_orbits.FAR_DISTANCE_M 1e15: the right-hand side holds a distance a trial step carried past a terminal event (inside the Roche limit, beyond the Hill radius, or a log distance whose exp would overflow) at that edge, so the step is rejected and the event found instead of the rung ending in ZeroDivisionError or OverflowError (GEN.1816)"
+            ],
+            [
+              "The range it moves in",
+              "600 to 709 and 1e12 to 1e18"
+            ],
+            [
+              "Where it holds",
+              "any moon history"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable (a numerical guard)"
+            ],
+            [
+              "What replaces it",
+              "a guard from the cost of a failed rung"
+            ],
+            [
+              "Evidence",
+              "needed output (a history finishes)"
+            ]
+          ],
+          "id": "TM10",
+          "key": "6.25:TM10",
+          "kind": "P",
+          "slug": "6-25-tm10",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "moon_orbits.MAX_LOG_DISTANCE 700 and moon_orbits.FAR_DISTANCE_M 1e15: the right-hand side holds a distance a trial step carried past a terminal event (inside the Roche limit, beyond the Hill radius, or a log distance whose exp would overflow) at that edge, so the step is rejected and the event found instead of the rung ending in ZeroDivisionError or OverflowError (GEN.1816)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_orbits.HEAT_ATOL_SHARE 1e-4: the absolute tolerance of the integration's heat state is this share of the planet's rotational kinetic energy at the start of a stretch (GEN.1818); a fixed 1e20 J left the error scale of a 1e27 J heat (RTOL of it) inside the noise of the rheology's power and held the steps of a stiff history (seed 9101 of the aquifer tests on Train 52 failed all five integrators)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2 (1e-6 failed that history)"
+            ],
+            [
+              "Where it holds",
+              "any planet with moons"
+            ],
+            [
+              "What would show it wrong",
+              "a measured heat that is off the tight-reference heat by more than the share of the spin energy"
+            ],
+            [
+              "What replaces it",
+              "the heat taken along the orbits after they are found, or a tolerance from the power's own noise"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the energy a spin can give up is the size of what the tide can take; nudged until the stiff history finished (L1); measured on 300 systems"
+            ]
+          ],
+          "id": "TM11",
+          "key": "6.25:TM11",
+          "kind": "P",
+          "slug": "6-25-tm11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "moon_orbits.HEAT_ATOL_SHARE 1e-4: the absolute tolerance of the integration's heat state is this share of the planet's rotational kinetic energy at the start of a stretch (GEN.1818); a fixed 1e20 J left the error scale of a 1e27 J heat (RTOL of it) inside the noise of the rheology's power and held the steps of a stiff history (seed 9101 of the aquifer tests on Train 52 failed all five integrators)"
         }
       ],
       "slug": "6-25-stand-ins-of-the-moon-orbits",

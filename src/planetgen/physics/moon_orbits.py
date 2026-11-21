@@ -49,9 +49,9 @@ RTOL = 1.0e-5
 """float: The integrator's relative tolerance. A spin held near a balance of the tides (a thermal tide against the rheology's) makes the system stiff, and at 1e-7 LSODA took
 tens of seconds to minutes on such a planet where 1e-5 takes one (the end spin agrees to 1e-6 with Radau at 1e-7); the distances are good to a part in 1e5.  Source tier T6, tweak level L0."""
 MAX_LOG_DISTANCE = 700.0
-"""float: The largest log of a distance (m) the right-hand side evaluates, so that `exp` does not overflow."""
+"""float: The largest log of a distance (m) the right-hand side evaluates, so that `exp` does not overflow. [Stand-in 6.25 TM10, tier T9, tweak L0.]"""
 FAR_DISTANCE_M = 1.0e15
-"""float: The distance a moon is held at in the right-hand side when it has no Hill radius to escape through (a trial step past a terminal event is held at the edge of what it can reach)."""
+"""float: The distance a moon is held at in the right-hand side when it has no Hill radius to escape through (a trial step past a terminal event is held at the edge of what it can reach). [Stand-in 6.25 TM10, tier T9, tweak L0.]"""
 MAX_EVENTS = 40
 """int: The most Roche falls and escapes handled in one run."""
 STRATEGIES = (("LSODA", RTOL, 40000), ("BDF", 1.0e-6, 20000), ("BDF", RTOL, 30000), ("BDF", 1.0e-4, 40000), ("Radau", RTOL, 60000))
@@ -72,7 +72,7 @@ into the planet, an integral of a power that does not feed back into the orbits,
 heat of 1e27 J was `RTOL` of it, 1e22 J, well inside that noise, so the steps of a stiff history were held at the noise: seed 9101 of `tests/test_aquifers` on Train 52 ran every integrator of
 `STRATEGIES` out of evaluations at a fifth to a third of its span with the orbits smooth. The energy a spin can give up is the natural size of what the tide takes from it, so the tolerance is a share of it: 1e-6
 did not finish that history, 1e-4 and 1e-2 do (the heat of the finished histories moves by a few percent where the heat is a small fraction of the spin's energy, and not where it is a
-large one). Source tier T6, tweak level L1 (nudged until the stiff history finishes)."""
+large one). Source tier T6, tweak level L1 (nudged until the stiff history finishes). [Stand-in 6.25 TM11.]"""
 
 
 class IntegrationFailed(RuntimeError):

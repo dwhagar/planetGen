@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1952 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1954 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1925 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1927 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 128 | 65 | 13 | 10 | 0 | 216 |
 | T4 | 89 | 17 | 9 | 25 | 13 | 153 |
 | T5 | 112 | 29 | 8 | 1 | 2 | 152 |
-| T6 | 247 | 134 | 38 | 85 | 7 | 511 |
+| T6 | 247 | 135 | 38 | 85 | 7 | 512 |
 | T7 | 75 | 38 | 10 | 31 | 0 | 154 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 53 | 20 | 6 | 116 | 42 | 237 |
-| All | 1113 | 400 | 100 | 274 | 65 | 1952 |
+| T9 | 54 | 20 | 6 | 116 | 42 | 238 |
+| All | 1114 | 401 | 100 | 274 | 65 | 1954 |
 
 ## How the labels were given
 
@@ -607,6 +607,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | TM7 | P | T6 | L0 | the birth distances of generate_moons are the distances the moons start from at the planet's formation, whatever the moons' origin (a captured moon is caught at its drawn distance with a prograde or retrograde orbit by its inclination over 90 degrees) | none | every moon | test_moon_history::test_every_planet_with_moons_ends_with_moons_it_can_keep | a formation history that gives the distances at capture and at the end of the disc | generate_moons draws the distances log-uniform between the innermost stable orbit and half the Hill radius, as before | predicted only | - | - |
 | TM8 | T | T6 | L0 | moon_orbits.STRATEGIES (LSODA at 1e-5 for 10,000 evaluations, then BDF at 1e-4 for 150,000; a history none finishes (2 of 3,174 histories over 233 generated systems, GEN.1816; the ladder ends with Radau) is read by the inspiral time of each moon at birth: one that falls within the age is lost to its planet and recorded as fallen, the others stay as born, the planet is marked `build.moon_history_unfinished`, and the planet's spin is the one it would have without them) | 5,000 to 50,000 and 1e-6 to 1e-3 | stiff planets | test_moon_history::test_a_history_no_integrator_can_finish_leaves_the_moons_as_born_unless_the_tide_brings_one_in | a quasi-static treatment of a spin held at a balance (the stiff mode), which needs no integrator | 6 of about 3,000 generated planets with moons needed BDF and 2 of those failed in the measurement of 10-30 | predicted only | - | - |
 | TM9 | T | T6 | L0 | a planet the falling moons spin up is held at spin.BREAKUP_FRACTION of its breakup rate (the rest of the ring's angular momentum is shed with the ring material) | none | planets that lose close moons | test_orbital_motion::test_rotation_period_is_a_birth_spin_worn_down_by_the_tide_or_a_locked_or_resonant_state | a ring that sheds the excess angular momentum explicitly | the same cap the birth spin has (spin.accretion_spin) | predicted only | - | - |
+| TM10 | P | T9 | L0 | `moon_orbits.MAX_LOG_DISTANCE` 700 and `moon_orbits.FAR_DISTANCE_M` 1e15: the right-hand side holds a distance a trial step carried past a terminal event (inside the Roche limit, beyond the Hill radius, or a log distance whose `exp` would overflow) at that edge, so the step is rejected and the event found instead of the rung ending in `ZeroDivisionError` or `OverflowError` (GEN.1816) | 600 to 709 and 1e12 to 1e18 | any moon history | not applicable (a numerical guard) | a guard from the cost of a failed rung | needed output (a history finishes) | predicted only | - | - |
+| TM11 | P | T6 | L1 | `moon_orbits.HEAT_ATOL_SHARE` 1e-4: the absolute tolerance of the integration's heat state is this share of the planet's rotational kinetic energy at the start of a stretch (GEN.1818); a fixed 1e20 J left the error scale of a 1e27 J heat (`RTOL` of it) inside the noise of the rheology's power and held the steps of a stiff history (seed 9101 of the aquifer tests on Train 52 failed all five integrators) | 1e-4 to 1e-2 (1e-6 failed that history) | any planet with moons | a measured heat that is off the tight-reference heat by more than the share of the spin energy | the heat taken along the orbits after they are found, or a tolerance from the power's own noise | educated guess from physics: the energy a spin can give up is the size of what the tide can take; nudged until the stiff history finished (L1); measured on 300 systems | predicted only | - | - |
 
 ## 6.26 Stand-ins of the birth spin from the last impacts
 
