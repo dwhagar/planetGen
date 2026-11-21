@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4706+db272.gen150.api14] - 2026-11-21
+
+**Headline:** The admin Update page says whether the fudge table matches its inputs, from what the last update found.
+
+### Added
+- GEN.1317 slice 2: `update.sh`'s fudge table check (`build_fudge_table.py --check-inputs --record`) leaves `fudge-table.json` in the state folder (`ok`, the lines it printed, when it ran, the generator epoch), and `webupdate.view` (the Update page and `GET /api/admin/update`) shows `fudge_table` as `current`, `stale` or `unchecked`, with how far the matrix has aged. A folder that cannot be written is said, never raised; the check stays a note and never stops an update.
+
 ## [8.0.4705+db272.gen150.api14] - 2026-11-21
 
 **Headline:** The trojan stack reads its astronomical unit and year from the constants module and tags its rounded Earth mass.
