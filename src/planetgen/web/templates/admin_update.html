@@ -22,6 +22,14 @@
   {%- else %}
   <p>No update is waiting or running.{% if data.outcome == 'done' %} The last update finished.{% endif %}{% if data.log_modified %} The log was last written {{ utc_time(data.log_modified) }}.{% endif %}</p>
   {%- endif %}
+  {%- set fudge = data.fudge_table %}
+  {%- if fudge.state == 'stale' %}
+  <p class="error" role="alert"><strong>The fudge table is stale.</strong> It was built from other inputs than this checkout holds. {% for line in fudge.lines %}{{ line }}. {% endfor %}Generation keeps using it as it is until it is built again.</p>
+  {%- elif fudge.state == 'current' %}
+  <p>The fudge table matches its inputs{% if fudge.checked %} (checked {{ utc_time(fudge.checked) }}){% endif %}.{% for line in fudge.lines %} {{ line }}.{% endfor %}</p>
+  {%- else %}
+  <p class="hint">The fudge table has not been checked yet; the next update does it.</p>
+  {%- endif %}
 </section>
 <section class="panel" aria-labelledby="update-now-heading">
   <h2 id="update-now-heading">Update now</h2>

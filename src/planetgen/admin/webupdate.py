@@ -15,6 +15,7 @@ maintenance switch, and `update.log` in the log folder, which `update.sh` append
 Flask. `view` is what the page and the API show; `request` is what the button does.
 """
 
+import json
 import os
 import subprocess
 import time
@@ -39,6 +40,9 @@ STALE_REQUEST_SECONDS = 120
 
 SYSTEMCTL_TIMEOUT_SECONDS = 3
 """int: How long `systemctl show` may take; a slow answer is no answer."""
+
+FUDGE_RECORD_NAME = "fudge-table.json"
+"""str: What `scripts/build_fudge_table.py --check-inputs --record` (run by `update.sh`) writes in the state folder: the fudge table's check (GEN.1317)."""
 
 STATES = ("not_installed", "idle", "requested", "running")
 """tuple: What `view` calls the state."""
@@ -157,12 +161,29 @@ def _outcome(text, status):
     return None, ""
 
 
+def fudge_table():
+    """
+    What the last update found about the fudge table (GEN.1317 slice 2), from the record `update.sh` leaves in the state folder:
+    `{"state", "lines", "checked", "epoch"}`, `state` being `current` (its stamp matches the registry, the class table and the matrix),
+    `stale` (it does not: build it again) or `unchecked` (no record yet, or one that cannot be read; `lines` and `checked` are then empty).
+    `lines` say how far the generator has moved since the matrix was measured; an old matrix is a note, not a stale table.
+    """
+    unchecked = {"state": "unchecked", "lines": [], "checked": None, "epoch": None}
+    try:
+        with open(os.path.join(maintenance.state_dir(), FUDGE_RECORD_NAME), encoding="utf-8") as handle:
+            record = json.load(handle)
+        return {"state": "current" if record["ok"] else "stale", "lines": [str(line) for line in record.get("lines") or []],
+                "checked": record.get("checked"), "epoch": record.get("epoch")}
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return unchecked
+
+
 def view():
     """
     What the Update page and `GET /api/admin/update` show: `state` (one of `STATES`), `installed`, `can_request` (whether
     a request would be accepted now) and `reason` (why not), `log` (the end of `update.log`), `log_modified` (Unix
     seconds or `None`), `stale_request` and, when no update is waiting or running, `outcome` (`failed`, `done` or
-    `None`) with `outcome_detail`: how the last one ended, from the service's state and the end of the log. `running` is the update guard's lock held by a live process, or the site
+    `None`) with `outcome_detail`: how the last one ended, from the service's state and the end of the log. `fudge_table` is `fudge_table()`. `running` is the update guard's lock held by a live process, or the site
     still closed by an update.
     """
     on = installed()
@@ -190,7 +211,7 @@ def view():
     if on and state == "idle":
         outcome, outcome_detail = _outcome(text, service_status())
     return {
-        "outcome": outcome, "outcome_detail": outcome_detail,
+        "outcome": outcome, "outcome_detail": outcome_detail, "fudge_table": fudge_table(),
         "state": state, "installed": on, "can_request": not reason, "reason": reason, "log": text,
         "log_modified": modified, "stale_request": age is not None and not updating and age > STALE_REQUEST_SECONDS,
     }

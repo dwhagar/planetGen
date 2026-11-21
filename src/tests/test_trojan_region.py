@@ -181,3 +181,16 @@ def test_a_trojan_region_and_a_trojan_planet_share_their_giants_orbit_and_are_no
     assert validation.slot_planets([outer, region]) == [outer]
     region.lagrange_point = None         # the same body with no point is a belt listed out of order: the check still sees it
     assert [problem.message for problem in validation.check_orbit_spacing([outer, region])] == ["it is listed after asteroid belt at 24.13 AU but orbits inside it"]
+
+
+def test_a_regions_page_names_its_point_with_the_giant_and_the_star_it_stands_for(system):
+    """GEN.1820: `trojans.pair_text` words the region's Lagrange point row (`L4 of Sun and Test III`); a region with no giant or star known keeps the bare point."""
+    from planetgen.describe import build
+
+    giant = _giant()
+    giant.star = system.star
+    region = trojan_region.build([giant, _disk(1.0e22, giant)], system.star, system.system_config)[0]
+    row = next(row for block in build._belt_section(region)["blocks"] if block["type"] == "facts" for row in block["rows"] if row["key"] == "lagrange-point")
+    assert str(row["value"]).count(f"{region.lagrange_point} of {system.star.name} and Test III") == 1 and "leading" in str(row["value"])
+    region.host = None
+    assert build._trojan_point_text(region) == region.lagrange_point

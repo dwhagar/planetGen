@@ -141,8 +141,8 @@ of values on a log scale), the Hill spheres and what a saddle point is (a spot w
 (each softened by its own radius; the galaxy's pull is below what a system can show), in the same three modes, colors and Key. The map is a log radial diagram (or one
 linear scale in a moon system), so the picture is turned back into the kilometres each pixel stands for before the field is worked out (`pixelToKm`), and drawn only
 between the first and last orbit, where the scale stands for a distance. The Hill sphere of each planet (by its star, or both stars of a close pair) or moon (by its planet),
-`d (m / 3M)^(1/3)`, is outlined and mapped forward point by point; the five Lagrange points of each such pair (`physics/lagrange_geometry.py`'s geometry, repeated in
-`systemgravity.js` for the page) are marked, L4 ahead along the stored motion. The markers carry `data-masskg`, `data-vxkms`/`data-vykms` and the scene `data-hostkg`.
+`d (m / 3M)^(1/3)`, is outlined and mapped forward point by point; the five Lagrange points of each such pair (`lagrangePoints` in
+`systemgravity.js`) are marked, L4 ahead along the stored motion. The markers carry `data-masskg`, `data-vxkms`/`data-vykms` and the scene `data-hostkg`.
 
 GEN.198 field evaluator; TEST.131 its tests; PERF.72 cost study; GEN.199
 per-zone grid and cache (phase 2). MAP.167 umbrella; API.24 endpoint;
