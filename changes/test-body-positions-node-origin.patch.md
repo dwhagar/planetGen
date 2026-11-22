@@ -7,3 +7,4 @@
 generation-output: unchanged
 
 - `test_a_planet_made_from_a_belt_names_that_belt_on_its_sheet` read the reloaded system's planets through the removed `.planets`; it reads `primary.orbiters`.
+- `test_gen_kind_factors` and the scatterer census read `planets` of a planet architecture (not a star system); the rename had wrongly turned them into `primary.orbiters`, and they read `planets` again.

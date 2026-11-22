@@ -325,8 +325,8 @@ def _architectures(fe_h, count=60):
 
 @pytest.mark.parametrize("fe_h", [-1.0, -1.6, -2.4])
 def test_a_metal_poor_star_carries_fewer_planets_than_a_solar_one(fe_h):
-    poor = sum(len(a.primary.orbiters) for a in _architectures(fe_h))
-    solar = sum(len(a.primary.orbiters) for a in _architectures(0.0))
+    poor = sum(len(a.planets) for a in _architectures(fe_h))
+    solar = sum(len(a.planets) for a in _architectures(0.0))
     assert poor < 0.6 * solar
 
 
