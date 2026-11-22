@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4723+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The chemical life of an ocean under an ice lid is now held by the moles of its reductants and no longer by its heat flow's share of Earth's chemosynthesis, so most sealed oceans fall from the first animal grade to microbes.
+
+### Changed
+- GEN.1825: `life_classes.sealed_fuel_npp` caps the net primary production of every chemical class (3a to 4c and 8) in an `ice-covered ocean` at the carbon its reductants fix: `ocean_oxygen.sink` (the hydrothermal hydrogen and donors of the floor and the water's radiolysis, mol of O2-equivalent per m2 per year, Earth's 1.4e-3 from 1e12 mol of H2 a year) times `sealed_fuel_efficiency` (0.1 mol of carbon for each mol of O2-equivalent: the methanogens' 3 to 7 g of dry mass for each mol of methane, de Poorter and others 2007, [R5348]) over `ocean_production_mol_c_m2_yr` (11.5, Earth's ocean). The measured fuel of Enceladus (Cassini, 1e9 to 5e9 mol of H2 a year, [R4587]) gave a term 125 to 590 times lower than the heat flow's share the code used. The production of a class is the smaller of the two; open seas, aquifers and dry bodies are unchanged. Two numbers in `life_supply.json`, stand-ins FU1 to FU3 in section 6.325.
+
 ## [8.0.4722+db274.gen150.api14] - 2026-11-22
 
 **Headline:** The Earth analog script runs the generator's steps in the generator's order again, its stored baseline is renewed, and the train gate runs its test whenever generation or physics changes.
