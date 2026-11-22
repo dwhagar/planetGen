@@ -100,12 +100,12 @@ def test_the_script_runs_the_generators_steps_in_the_generators_order(analog):
     from planetgen.physics import planets
 
     tail = ["daylight.generate", "magnetism.generate_field", "radiation.generate_dose", "body_colour.generate", "habitability_world.generate"]
-    finish = ["interior_heat.update_heat", "planets.refresh_at_final_age", "planets.apply_class", "magnetism.generate_stellar_induction", "life.apply_life_data"]
+    finish = ["interior_heat.update_heat", "planets.refresh_at_final_age", "planets.prepare_class", "magnetism.generate_stellar_induction", "life.apply_life_data"]
     air = ["planets.calculate_atmospheric_conditions", "planets.prepare_class"]
     assert _calls_in_order(inspect.getsource(Planet.__init__), set(air)) == air
     assert _calls_in_order(inspect.getsource(planets.generate_spin), set(tail)) == tail
     assert _calls_in_order(inspect.getsource(StarSystem._finish_planet), set(finish)) == finish
-    # the script's `_generate` is the three in turn (the class after the life is `apply_life_data`'s own, GEN.980)
+    # the script's `_generate` is the three in turn (the class is read once, after the life, by `apply_life_data`'s own `apply_class`, GEN.1745)
     script = _calls_in_order(inspect.getsource(analog._generate), set(air + tail + finish))
     assert script == air + tail + finish
 
