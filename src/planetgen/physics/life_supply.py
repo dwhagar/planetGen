@@ -15,7 +15,7 @@ of the body moves them with the rest:
 * `donor_supply`: reduced gas and iron (hydrogen sulfide, ferrous iron, hydrogen) from the volcanism of the heat and the mantle's
   redox state;
 * `nitrate_supply` and `perchlorate_supply`: the oxidants of Classes 4b and 4c, from the nitrogen in the air and the oxygen,
-  and the chloride of the ocean;
+  and the chloride of the ocean (the abiotic nitrate of lightning and impacts and the perchlorate of the radiolysis of surface chloride do not reach an ocean under an ice lid: `nitrate_sealed_share` and `perchlorate_sealed_share`, GEN.1823);
 * `hydrogen_acetylene_supply`: the haze organics and hydrogen of a methane sea's air (Class 7), from the methane share;
 * `sulfur_supply`: the reduced sulfur of the acid eaters (Classes 5 and 9), from the air's sulfur dioxide share (GEN.894); it needs no water
   in contact with rock, since the acid is the medium.
@@ -162,14 +162,16 @@ def supplies(values):
     so2_share = atmosphere.partial_kpa(values, "so2") / pressure_kpa if pressure_kpa > 0.0 else 0.0
     nitrogen = habitability_world.inventories(values)["N"] if values.get("surface_temperature_k") is not None else 0.0
     nitrogen_term = min(1.0, nitrogen / habitability.X_REF_EARTH)
-    nitrate = number("nitrate_abiotic") * (1.0 + 2.0 * min(1.0, o2_kpa / number("nitrate_oxygen_kpa")))
+    sealed = values.get("hydrosphere") == "ice-covered ocean"
+    open_share = number("nitrate_sealed_share") if sealed else 1.0       # GEN.1823: lightning and impacts reach an open sea, not one under a lid
+    nitrate = number("nitrate_abiotic") * (open_share + 2.0 * min(1.0, o2_kpa / number("nitrate_oxygen_kpa")))
     perchlorate_ocean = number("perchlorate_brine") if values.get("ocean_class") == "chloride brine" else number("perchlorate_other")
     return {
         "h2_supply": reach * min(1.0, heat) * redox_factor("h2_redox", redox),
         "radiolytic_h2_supply": reach * min(1.0, (values.get("dose_ground_msv_yr") or 0.0) / number("radiolytic_dose_ref_msv_yr")),
         "donor_supply": reach * heat * redox_factor("donor_redox", redox),
         "nitrate_supply": reach * nitrogen_term * min(1.0, nitrate),
-        "perchlorate_supply": reach * number("perchlorate_base") * perchlorate_ocean,
+        "perchlorate_supply": reach * number("perchlorate_base") * perchlorate_ocean * (number("perchlorate_sealed_share") if sealed else 1.0),
         "hydrogen_acetylene_supply": min(1.0, ch4_share / number("haze_methane_share")),
         "sulfur_supply": min(1.0, so2_share / number("sulfur_so2_ref_share")),
     }
