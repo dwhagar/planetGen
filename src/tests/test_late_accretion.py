@@ -15,6 +15,7 @@ from planetgen.generation.build_record import BuildRecord
 from tests.fuzz_support import deterministic_entropy
 
 EARTH_KG = 5.9722e24
+STAR = types.SimpleNamespace(mass=1.989e30, snow_line_au=2.7)
 
 
 def _earth_like(seed):
@@ -93,8 +94,9 @@ def test_a_moon_or_a_planet_with_no_replay_is_left_alone():
     assert not planet_physics.remake_air(moon, percent)
 
 
-def test_the_floor_and_the_ceiling_hold():
-    planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0)
+def test_the_floor_and_the_ceiling_hold(monkeypatch):
+    monkeypatch.setattr(late_accretion, "LEFTOVER_SHARE", 0.0)       # the leftovers of the zone are tested apart
+    planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0, star=STAR)
     alone = [types.SimpleNamespace(body_type="t", is_moon=False, mass=EARTH_KG, radius=6371.0, distance=1.0)]
     mean = impact_history.late_accreted_percent_mean(1.0)
     assert late_accretion.percent_for(planet, alone, 1.0) == pytest.approx(late_accretion.FLOOR_SHARE * mean)        # no belt: the floor
@@ -102,10 +104,11 @@ def test_the_floor_and_the_ceiling_hold():
     assert late_accretion.percent_for(planet, [*alone, huge], 1.0) == impact_history.LATE_ACCRETED_PERCENT_MAX      # a vast belt: the ceiling
 
 
-def test_a_giant_beside_a_belt_leaves_the_planet_inside_less_than_the_same_system_without_it():
-    planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0)
+def test_a_giant_between_a_belt_and_the_planet_leaves_the_planet_less_than_the_same_system_without_it(monkeypatch):
+    monkeypatch.setattr(late_accretion, "LEFTOVER_SHARE", 0.0)
+    planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0, star=STAR)
     inner = types.SimpleNamespace(body_type="t", is_moon=False, mass=EARTH_KG, radius=6371.0, distance=1.0)
-    belt = types.SimpleNamespace(body_type="a", is_moon=False, primordial_mass_earth=10.0, lower_limit=2.1, upper_limit=3.3)
+    belt = types.SimpleNamespace(body_type="a", is_moon=False, primordial_mass_earth=10.0, lower_limit=20.0, upper_limit=30.0)
     giant = types.SimpleNamespace(body_type="g", is_moon=False, mass=1.9e27, radius=69911.0, distance=5.2)
     assert late_accretion.percent_for(planet, [inner, belt, giant], 1.0) < 0.3 * late_accretion.percent_for(planet, [inner, belt], 1.0)
 
@@ -169,7 +172,7 @@ def _stub(body_type="t", deferred=True, **kwargs):
 def test_the_first_air_reads_the_late_accretion_the_system_gives_and_only_for_a_planet_whose_air_is_still_to_be_made(monkeypatch):
     """PERF.271: `give_first_air` sets the number `apply` would take, on a rocky planet built bare; a planet already made, a giant and a belt are left."""
     monkeypatch.setattr(late_accretion.planet_type, "has_ground", lambda body: body.body_type == "t")
-    star = types.SimpleNamespace(mass=1.989e30, starless=False)
+    star = types.SimpleNamespace(mass=1.989e30, starless=False, snow_line_au=2.7)
     bare = _stub(star=star)
     made = _stub(star=star, deferred=False)
     giant = _stub("g", star=star, mass=1.9e27, radius=69911.0)
@@ -216,8 +219,9 @@ def _fates(**shares):
     return fates
 
 
-def test_a_stretch_the_giants_cleared_of_everything_is_a_reservoir_the_planets_inside_it_still_read():
-    planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0)
+def test_a_stretch_the_giants_cleared_of_everything_is_a_reservoir_the_planets_inside_it_still_read(monkeypatch):
+    monkeypatch.setattr(late_accretion, "LEFTOVER_SHARE", 0.0)
+    planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0, star=STAR)
     alone = [types.SimpleNamespace(body_type="t", is_moon=False, mass=EARTH_KG, radius=6371.0, distance=1.0)]
     mean = impact_history.late_accreted_percent_mean(1.0)
     gone = late_accretion.early_of_origin(_origin(20.0), 30.0, 50.0, _fates(scattered_disk=0.6, centaurs=0.3, ejected=0.1))
@@ -235,7 +239,7 @@ def test_a_belt_is_read_with_what_the_giants_did_to_it():
 
 
 def test_lost_reservoirs_are_kept_by_star_and_read_only_by_the_planets_of_that_star():
-    star, other = types.SimpleNamespace(mass=1.989e30), types.SimpleNamespace(mass=1.989e30)
+    star, other = types.SimpleNamespace(mass=1.989e30, snow_line_au=2.7), types.SimpleNamespace(mass=1.989e30, snow_line_au=2.7)
     planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0, star=star, body_type="t", is_moon=False)
     gone = late_accretion.early_of_origin(_origin(20.0), 30.0, 50.0, _fates(scattered_disk=0.6, centaurs=0.3))
     with_it = late_accretion.percent_in(planet, [planet], {id(star): [gone]})
@@ -259,3 +263,28 @@ def test_build_hands_on_the_stretch_a_giant_cleared_of_everything_and_leaves_out
     assert belts == [] and len(lost) == 1
     assert lost[0].mass_kg == pytest.approx(20.0 * EARTH_KG) and (lost[0].lower_au, lost[0].upper_au) == (30.0, 50.0)
     assert lost[0].inward_share == pytest.approx(late_supply.CROSSING_GAIN * 0.9)
+
+
+def test_the_leftovers_of_a_rocky_zone_are_a_share_of_the_planets_that_grew_there_in_a_ring_about_them():
+    planets = [types.SimpleNamespace(body_type="t", is_moon=False, mass=EARTH_KG, distance=0.7), types.SimpleNamespace(body_type="t", is_moon=False, mass=2.0 * EARTH_KG, distance=1.0),
+               types.SimpleNamespace(body_type="g", is_moon=False, mass=1.9e27, distance=5.2), types.SimpleNamespace(body_type="t", is_moon=True, mass=1.0e23, distance=1.0)]
+    leftover = late_accretion.leftover_of(STAR, planets)
+    assert leftover.kind == "leftover" and leftover.inward_share == 1.0
+    assert leftover.mass_kg == pytest.approx(late_accretion.LEFTOVER_SHARE * 3.0 * EARTH_KG)
+    assert (leftover.lower_au, leftover.upper_au) == pytest.approx((0.8 * 0.7, 1.2 * 1.0))
+    assert late_accretion.leftover_of(STAR, planets[2:]) is None
+
+
+def test_the_zone_of_the_leftovers_stops_at_the_snow_line_and_leaves_out_the_planets_beyond_it():
+    planets = [types.SimpleNamespace(body_type="t", is_moon=False, mass=EARTH_KG, distance=1.0), types.SimpleNamespace(body_type="t", is_moon=False, mass=4.0 * EARTH_KG, distance=40.0)]
+    leftover = late_accretion.leftover_of(STAR, planets)
+    assert leftover.upper_au == pytest.approx(STAR.snow_line_au) and leftover.mass_kg == pytest.approx(late_accretion.LEFTOVER_SHARE * EARTH_KG)
+
+
+def test_a_giant_cannot_take_the_leftovers_of_the_zone_inside_it(monkeypatch):
+    """The Earth's veneer is the same with a Jupiter beyond it as without: the leftovers lie inside the giant's orbit and the planetesimals cross no giant on their way to the planets."""
+    planet = types.SimpleNamespace(mass=EARTH_KG, radius=6371.0, distance=1.0, star=STAR, body_type="t", is_moon=False)
+    giant = types.SimpleNamespace(body_type="g", is_moon=False, mass=1.9e27, radius=69911.0, distance=5.2)
+    alone = late_accretion.percent_for(planet, [planet], 1.0)
+    assert alone > late_accretion.FLOOR_SHARE * impact_history.late_accreted_percent_mean(1.0)
+    assert late_accretion.percent_for(planet, [planet, giant], 1.0) == pytest.approx(alone)
