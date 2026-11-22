@@ -1,20 +1,20 @@
 # planetgen/generation/abundance_tier.py
 
 """
-The Class M abundance tier of a galaxy (GEN.1704; Boss, 11:19 PM EST 2026-11-13; docs/design/habitability/class-m-abundance-tiers.md)
+The Class M abundance tier of a galaxy (GEN.1704; Boss, 11:19 PM EST 2026-11-13; GEN.1832, Boss 3:26 PM EST 2026-11-22: one checkbox, "More Habitable Worlds"; docs/design/habitability/class-m-abundance-tiers.md)
 ========================================================================================================================================
 
 Known science cannot say how common an Earth is: the generator's own laws, with every bug fixed, give under one Class M world in ten
-thousand Sun-like systems (reports/class-m-blue-levers-2026-11-14.md). A galaxy therefore carries a tier, one word, that says how far past
-the science its makers want its rocky planets in the ecosphere pushed toward Earth's conditions:
+thousand Sun-like systems (reports/class-m-blue-levers-2026-11-14.md). A galaxy therefore carries a tier, one word, that says whether its makers
+want its rocky planets in the ecosphere pushed toward Earth's conditions. The Generate page shows it as the checkbox "More Habitable Worlds"
+(ticked is `abundant`, unticked is `science`):
 
 | Tier | Target, Class M worlds per Sun-like system |
 |---|---|
-| `science` (the default) | whatever the laws give: nothing is moved |
-| `sparse` | 1 in 500 |
-| `scattered` | 1 in 135 |
-| `plentiful` | 1 in 37 |
-| `abundant` | 1 in 10 |
+| `science` | whatever the laws give: nothing is moved (1 in 2,800 measured); a box left unticked |
+| `abundant` (the default of a galaxy that was told nothing) | 1 in 10 |
+
+Sparse, Scattered and Plentiful (1 in 500, 1 in 135 and 1 in 37) were taken out by GEN.1832: the Boss chose the two ends.
 
 A tier turns six dials and nothing else (`tuning.ABUNDANCE_TIER_DIALS`, `Dials`):
 
@@ -50,16 +50,18 @@ from collections import namedtuple
 
 from planetgen import tuning
 
-TIERS = ("science", "sparse", "scattered", "plentiful", "abundant")
-"""tuple[str]: Every tier, from no adjustment up: the choices of the `class_m` lever (`galaxy.dials`), in its order."""
+TIERS = ("science", "abundant")
+"""tuple[str]: Every tier, from no adjustment up: the choices of the `class_m` lever (`galaxy.dials`), in its order; the checkbox "More Habitable Worlds" is the last one."""
 
 DEFAULT = TIERS[0]
-"""str: The tier of a galaxy that was told none, and of work outside any galaxy."""
+"""str: The tier of work outside any galaxy (a stand-alone system, a test): nothing is moved."""
 
-TARGET_SYSTEMS_PER_CLASS_M = {"science": None, "sparse": 500, "scattered": 135, "plentiful": 37, "abundant": 10}
+GALAXY_DEFAULT = TIERS[-1]
+"""str: The tier of a galaxy whose plan was told none (GEN.1832, Boss 3:26 PM EST 2026-11-22: "More Habitable Worlds" is on by default)."""
+
+TARGET_SYSTEMS_PER_CLASS_M = {"science": None, "abundant": 10}
 """dict: Tier -> the Sun-like systems per Class M world its dial values are calibrated to (Boss, 9:28 and 9:30 PM EST 2026-11-14, after the laws alone
-measured 1 in 2,800: `sparse` 1 in 500, `abundant` 1 in 10 and the two between split evenly on a log scale, each step about 3.7 times; they replace his
-first set of 1,000, 100, 30 and 10 of 11:19 PM EST 2026-11-13); `None` for `science`, which has no target."""
+measured 1 in 2,800; `abundant` is the 1 in 10 end, the tiers between it and the science, 1 in 500, 135 and 37, were taken out by GEN.1832); `None` for `science`, which has no target."""
 
 Dials = namedtuple("Dials", ["water_share", "bare_share", "request_share", "dry_part", "quiet_share", "cycle_share"])
 """The six dials of a tier, each a share from 0 (off) to 1."""

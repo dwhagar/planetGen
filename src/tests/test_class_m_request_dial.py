@@ -51,24 +51,25 @@ def test_the_request_is_a_system_attribute_and_never_enters_the_config(monkeypat
 
 def test_science_and_a_tier_without_a_request_share_make_the_same_draws(monkeypatch):
     _stars_only(monkeypatch)
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))      # the one row, held at no dial: its request_share is 0 (GEN.1832 took out the tiers between)
     counts = {}
     real = draw.random
-    for tier in (None, "science", "sparse"):         # sparse has request_share 0
+    for tier in (None, "science", "abundant"):
         calls = []
         monkeypatch.setattr(draw, "random", lambda: calls.append(1) or real())
         system, _ = _build(7, tier)
         counts[tier] = len(calls)
         assert system._tier_request is False
-    assert counts[None] == counts["science"] == counts["sparse"]
+    assert counts[None] == counts["science"] == counts["abundant"]
 
 
 def test_a_tier_with_no_request_share_makes_the_same_system_as_science(monkeypatch):
-    # TEST.806: sparse's other dials (water, dry part, quiet interior, carbon cycle) move the planets by design, so the row is held at no dial at all:
+    # TEST.806: the tier's other dials (water, dry part, quiet interior, carbon cycle) move the planets by design, so the row is held at no dial at all:
     # what is checked is that the request draw alone, with a share of 0, changes nothing.
-    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "sparse", (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+    monkeypatch.setitem(tuning.ABUNDANCE_TIER_DIALS, "abundant", (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
     for seed in (101, 102, 103):
         signatures = []
-        for tier in (None, "science", "sparse"):       # sparse has request_share 0
+        for tier in (None, "science", "abundant"):       # abundant is held at request_share 0
             system, _ = _build(seed, tier)
             signatures.append((_star(system), [(p.body_type, getattr(p, "mass", None), p.distance) for p in system.planets]))
         assert signatures[0] == signatures[1] == signatures[2]

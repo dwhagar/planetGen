@@ -37,10 +37,10 @@ def test_a_plan_with_no_choice_reads_back_science_and_a_chosen_tier_reads_back_a
     _save(mysql_config, comet_abundance="abundant")
     info = _load(mysql_config)
     assert info.shape.comet_tier == "abundant" and dials.choice_pinned(info.pins, "comet_abundance") == "abundant"
-    assert info.shape.abundance_tier == "science", "the Class M tier is its own dial"
-    _save(mysql_config, class_m="plentiful")
+    assert info.shape.abundance_tier == "abundant", "the Class M tier is its own dial: its box is ticked when no pin says otherwise (GEN.1832)"
+    _save(mysql_config, class_m="science")
     info = _load(mysql_config)
-    assert info.shape.comet_tier == "science" and info.shape.abundance_tier == "plentiful"
+    assert info.shape.comet_tier == "science" and info.shape.abundance_tier == "science"
 
 
 def test_a_sectors_config_takes_the_tier_only_when_it_is_not_science(mysql_config, monkeypatch):
