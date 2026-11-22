@@ -1,0 +1,5 @@
+**Headline:** A mass extinction can now reset the animals and the civilization of a world, never its microbes
+
+### Changed
+
+- GEN.1746 slice 4: the new `physics/extinction_effects.py` lets the mass extinctions of a body's life ages (those that kill 0.65 of the species or more, the top of the kill curve: the largest impacts) touch the schedule its life drew. The first three steps (abiogenesis, photosynthesis, complex cells) are never changed (the Boss's ruling that an extinction never kills microbial life); the animals are gone at such an extinction and return 30 Myr later (the 10 Myr origination lag plus 20 Myr of regrowth), and a civilization arises again the same hard-step wait after them as it did before. The stored ages of the animals and the civilization are those of the lineage that is there now; a world with animals an extinction took recently shows the complex cells stage until they are back. A world made again has the same extinctions (they are the life ages table's own). New stand-in section 6.326 (EF1 to EF3).

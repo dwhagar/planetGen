@@ -77041,6 +77041,128 @@
       ],
       "slug": "6-321-stand-ins-of-the-pressure-of-a-habitat-gen-1819",
       "title": "Stand-ins of the pressure of a habitat (GEN.1819)"
+    },
+    {
+      "key": "6.326",
+      "number": "6.326",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "extinction_effects.RESET_KILL_SHARE 0.65: the share of species an extinction must kill to reset the animals and the civilization; the top of the kill curve (air_events.KILL_CURVE), the events the Earth has once in 100 Myr or less often (impacts over about 12 km; the flood basalts, every 25 Myr, kill 0.43)"
+            ],
+            [
+              "The range it moves in",
+              "0.45 to 0.65 (0.30, once per 10 Myr, would reset the animals of most worlds that have them)"
+            ],
+            [
+              "Where it holds",
+              "a world with animals"
+            ],
+            [
+              "What would show it wrong",
+              "a measured loss of the animal grades, or of a civilization-scale complexity, after an extinction below 0.65"
+            ],
+            [
+              "What replaces it",
+              "a measured relation between the kill of an extinction and the complexity it removes"
+            ],
+            [
+              "Evidence",
+              "[R5320] for the curve; the share is a pick inside it (the Boss's ruling is \"large\")"
+            ]
+          ],
+          "id": "EF1",
+          "key": "6.326:EF1",
+          "kind": "P",
+          "slug": "6-326-ef1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "extinction_effects.RESET_KILL_SHARE 0.65: the share of species an extinction must kill to reset the animals and the civilization; the top of the kill curve (air_events.KILL_CURVE), the events the Earth has once in 100 Myr or less often (impacts over about 12 km; the flood basalts, every 25 Myr, kill 0.43)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "extinction_effects.REGROWTH_GYR 0.020: the time the animals take to return after the origination lag (air_events.RECOVERY_GYR, 10 Myr, [R5321]); 30 Myr from the extinction"
+            ],
+            [
+              "The range it moves in",
+              "0.010 to 0.050"
+            ],
+            [
+              "Where it holds",
+              "a world whose animals an extinction reset"
+            ],
+            [
+              "What would show it wrong",
+              "a measured regrowth of the marine genera to their old number faster than 15 Myr or slower than 60 Myr after a Big Five extinction"
+            ],
+            [
+              "What replaces it",
+              "the measured regrowth of the animal grades"
+            ],
+            [
+              "Evidence",
+              "educated guess from inferred physics; no source read"
+            ]
+          ],
+          "id": "EF2",
+          "key": "6.326:EF2",
+          "kind": "P",
+          "slug": "6-326-ef2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "extinction_effects.REGROWTH_GYR 0.020: the time the animals take to return after the origination lag (air_events.RECOVERY_GYR, 10 Myr, [R5321]); 30 Myr from the extinction"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "extinction_effects.regrown: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a civilization that an extinction at or after the animals reset"
+            ],
+            [
+              "What would show it wrong",
+              "a measured faster re-emergence of a technology-scale lineage after a collapse"
+            ],
+            [
+              "What replaces it",
+              "a measured recovery of a lineage that had a civilization"
+            ],
+            [
+              "Evidence",
+              "the hard-step model of life_timeline ([R4642]); the choice not to draw again is a design rule"
+            ]
+          ],
+          "id": "EF3",
+          "key": "6.326:EF3",
+          "kind": "P",
+          "slug": "6-326-ef3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "extinction_effects.regrown: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not"
+        }
+      ],
+      "slug": "6-326-stand-ins-of-what-a-mass-extinction-does-to-the-animals-and-the-civilization-gen-1746-slice-4",
+      "title": "Stand-ins of what a mass extinction does to the animals and the civilization (GEN.1746 slice 4)"
     }
   ]
 }

@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1970 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1973 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1943 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1946 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 129 | 66 | 13 | 10 | 0 | 218 |
 | T4 | 89 | 17 | 9 | 25 | 13 | 153 |
 | T5 | 114 | 29 | 8 | 1 | 2 | 154 |
-| T6 | 251 | 135 | 38 | 85 | 7 | 516 |
-| T7 | 75 | 42 | 10 | 31 | 0 | 158 |
+| T6 | 251 | 136 | 38 | 85 | 7 | 517 |
+| T7 | 76 | 43 | 10 | 31 | 0 | 160 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1124 | 406 | 100 | 275 | 65 | 1970 |
+| All | 1125 | 408 | 100 | 275 | 65 | 1973 |
 
 ## How the labels were given
 
@@ -3495,3 +3495,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AI3 | P | T6 | L0 | `adaptation_record.FLOOR_CLASSES`: the classes 3a and 3b read the pressure at the floor of an ocean (rock contact, the hydrogen of serpentinisation and of radiolysis), every other class the top | 3a and 3b only; or all of the water classes | the water classes | a hydrogen eater of the water column far from the rock | a per-class habitat of the class rules | educated guess from physics (TODO's answer to GEN.1819) | predicted only | - | - |
 | AI4 | B | T2 | L0 | `life_supply.json` number `crust_density_kg_m3` 2700: the pressure of an aquifer is the air's plus the weight of the rock to its depth | 2600 to 2900 | an aquifer in a crust of silicate rock | a measured mean density of the crust of the body | the density of the body's own crust (`crust_thickness_km`) | the mean density of the continental crust, 2.7 g/cm3 | predicted only | - | - |
 | AI5 | P | T5 | L0 | `life_supply.habitat_pressure_pa` takes the floor of the liquid over high-pressure ice to be at the pressure where water at `ice_ocean_base_k` freezes into it (`water_layer.liquidus_pressure_pa`): the ocean is ice-sealed there, no rock | the lid's melting point (a little lower with salt: a few tens of MPa) | an ice-covered ocean with `hp_ice_km` | a stored base of the liquid that differs from the liquidus by more than 10 percent | the pressure the water layer's integration stores at the liquid's base | the melting curves of ice III, V and VI the water layer already holds | predicted only | - | - |
+
+## 6.326 Stand-ins of what a mass extinction does to the animals and the civilization (GEN.1746 slice 4)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| EF1 | P | T6 | L1 | `extinction_effects.RESET_KILL_SHARE` 0.65: the share of species an extinction must kill to reset the animals and the civilization; the top of the kill curve (`air_events.KILL_CURVE`), the events the Earth has once in 100 Myr or less often (impacts over about 12 km; the flood basalts, every 25 Myr, kill 0.43) | 0.45 to 0.65 (0.30, once per 10 Myr, would reset the animals of most worlds that have them) | a world with animals | a measured loss of the animal grades, or of a civilization-scale complexity, after an extinction below 0.65 | a measured relation between the kill of an extinction and the complexity it removes | [R5320] for the curve; the share is a pick inside it (the Boss's ruling is "large") | predicted only | - | - |
+| EF2 | P | T7 | L1 | `extinction_effects.REGROWTH_GYR` 0.020: the time the animals take to return after the origination lag (`air_events.RECOVERY_GYR`, 10 Myr, [R5321]); 30 Myr from the extinction | 0.010 to 0.050 | a world whose animals an extinction reset | a measured regrowth of the marine genera to their old number faster than 15 Myr or slower than 60 Myr after a Big Five extinction | the measured regrowth of the animal grades | educated guess from inferred physics; no source read | predicted only | - | - |
+| EF3 | P | T7 | L0 | `extinction_effects.regrown`: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not | none | a civilization that an extinction at or after the animals reset | a measured faster re-emergence of a technology-scale lineage after a collapse | a measured recovery of a lineage that had a civilization | the hard-step model of `life_timeline` ([R4642]); the choice not to draw again is a design rule | predicted only | - | - |
