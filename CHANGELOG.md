@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4713+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The life ages of a world, the stretches of its life between mass extinctions, are now kept as rows in new tables `planet_life_ages` and `moon_life_ages` (nothing reads them back yet)
+
+### Added
+
+- GEN.1746 slice 3: the life pass (`life._history_of`) cuts the history of every world with life into its life ages (`life_ages.ages_of`, an age ends at an extinction that kills 30 percent or more of the species, the Boss's pick) once, and the body keeps them as `life_ages` (a list of `life_ages.entries_of` dicts: number, start, end, cause, kill share; `None` for a world with no life). The air history record takes the same ages instead of cutting them again. A world with life but an air under 500 Pa, which gets no air history record, still gets its ages.
+- Two new tables, `planet_life_ages` and `moon_life_ages` (migration, schema, models, column units, fingerprint and command touches), one row for each age, written with the body, loaded back with it (`store.body_life_ages`) and kept by an edit. Indexed on the age number and its end, so "the worlds in their third life age" is a short read. A rogue planet has no star age and so no ages. Nothing reads the rows back yet; the API comes after.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4712+db274.gen150.api14] - 2026-11-22
 
 **Headline:** Every body whose life lives in a refuge (a melt film, a brine seep, a spring, the sea under an ice lid) now records which adaptations of the table its life needed, for the photosynthetic classes 1a, 1b, 1c and 2
