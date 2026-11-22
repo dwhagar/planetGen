@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4721+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The sealed-ocean oxygen line of the generation log no longer names a TODO item.
+
+### Fixed
+- `generation/life.py`: the log choice "Sealed ocean oxygen" ended its reason with "(GEN.1824)", a TODO code in a string the code shows, so `test_no_todo_codes_shown` was red on main after Train 54. The code is dropped; the reason reads the same otherwise.
+
+generation-output: unchanged
+
 ## [8.0.4720+db274.gen150.api14] - 2026-11-22
 
 **Headline:** A system read back from its JSON keeps its trojan regions as trojan regions, and the fuzz test's orbit checks know a trojan is no slot of its own.
