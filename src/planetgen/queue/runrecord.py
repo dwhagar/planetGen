@@ -520,6 +520,16 @@ class Heartbeat:
         return False
 
 
+GONE_TEXT = "its process was gone (killed or restarted) before the run ended"
+"""str: What a run whose process is gone says."""
+
+
+def gone_text():
+    """Why a run with no process ended: `GONE_TEXT`, or, when a drive is full (`diskgate.full_text`, OPS.288), that, so the record does not blame a process for a full disk."""
+    from planetgen.queue import diskgate
+    return diskgate.full_text() or GONE_TEXT
+
+
 def _free_dead_holder(conn, kind):
     """
     If the run that holds the machine for `kind` is dead (`holder_is_dead`), ends it as failed (its waiting units
@@ -532,7 +542,7 @@ def _free_dead_holder(conn, kind):
     holder = active_run(conn, kind)
     if holder is None or not holder_is_dead(conn, holder):
         return False
-    finish_run(conn, holder, "failed", error="its process was gone (killed or restarted) before the run ended", killed=True)
+    finish_run(conn, holder, "failed", error=gone_text(), killed=True)
     conn.register_script(_RELEASE)(keys=[active_key(kind)], args=[holder])
     return True
 
