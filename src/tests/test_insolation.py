@@ -61,7 +61,7 @@ def test_a_lone_star_swings_only_by_the_orbit_and_a_generated_system_sets_it_on_
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
         seen[system.binary_type] += 1
-        for planet in system.primary.orbiters + system.secondary.orbiters:
+        for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             if not hasattr(planet, "moons"):
                 continue
             assert planet.flux_variation is not None and 0.0 <= planet.flux_variation <= 1.0    # a giant's too (GEN.784)

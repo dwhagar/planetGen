@@ -207,7 +207,7 @@ def test_a_generated_body_stores_the_score_of_its_final_conditions():
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.primary.orbiters + system.secondary.orbiters:
+        for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             for body in [planet] + list(getattr(planet, "moons", [])):
                 if getattr(body, "body_type", None) != "t" or getattr(body, "phi4", None) is None:
                     continue

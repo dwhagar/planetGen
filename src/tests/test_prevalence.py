@@ -136,7 +136,7 @@ def test_moons_and_max_planets_scale_their_draws():
             config = SystemConfig()
             config.PREVALENCE = {"moons": percent}
             system = StarSystem(system_config=config)
-            assert check([p for p in system.primary.orbiters + system.secondary.orbiters if p.body_type != "a"])
+            assert check([p for p in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []) if p.body_type != "a"])
 
 
 def test_scaled_chance_is_capped_and_floored():

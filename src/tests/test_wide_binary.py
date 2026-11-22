@@ -443,7 +443,7 @@ def test_wide_binary_round_trips_through_to_dict_from_dict():
 def test_close_binary_default_still_reachable_when_wide_binary_forced_false():
     system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=False))
     assert system.binary_type == "close"
-    assert system.secondary.orbiters == []
+    assert system.secondary is None
     assert system.wide_binary is None
 
 

@@ -189,7 +189,7 @@ def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it()
             config = SystemConfig()
             config.MOONS = True
             system = StarSystem(system_config=config)
-            for planet in system.primary.orbiters + system.secondary.orbiters:
+            for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
                 if planet.body_type == "a":
                     continue
                 for moon in planet.moons:

@@ -66,7 +66,7 @@ def _assert_numbered(prefix, bodies):
 
 def _all_names(system):
     names = [star.name for star in system.stars]
-    for planet in system.primary.orbiters + system.secondary.orbiters:
+    for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
         if planet.body_type != "a":
             names.append(planet.name)
             names.extend(m.name for m in planet.moons)

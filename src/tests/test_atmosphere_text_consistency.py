@@ -29,7 +29,7 @@ def _bodies(seeds):
     for seed in seeds:
         with deterministic_entropy(9000 + seed):
             system = StarSystem(system_config=SystemConfig())
-        for planet in system.primary.orbiters + system.secondary.orbiters:
+        for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             if planet.body_type == "a":
                 continue
             yield planet
