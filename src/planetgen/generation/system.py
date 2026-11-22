@@ -2128,10 +2128,19 @@ class StarSystem:
             objects = []
             for obj_data in obj_data_list:
                 if obj_data.get("body_type") == "a":
-                    obj = AsteroidBelt.from_dict(obj_data, system_config)
+                    obj = (trojan_region.TrojanRegion if obj_data.get("lagrange_point") else AsteroidBelt).from_dict(obj_data, system_config)     # TEST.818 (GEN.1150): a trojan region keeps its Lagrange point and libration
                 else:
                     obj = Planet.from_dict(obj_data, obj_star, system_config)
                 objects.append(obj)
+            giants = [body for body in objects if body.body_type == 'g' and getattr(body, "lagrange_point", None) is None]
+            for body in objects:         # a trojan stands on its giant's orbit, so the giant is the one at its distance (the JSON holds no row ids to link by)
+                if getattr(body, "lagrange_point", None) is None:
+                    continue
+                host = next((giant for giant in giants if giant.distance == body.distance), None)
+                if body.body_type == 'a':
+                    body.host = host
+                else:
+                    body.lagrange_host = host
             return objects
 
         system.planets = _load_objects(data["planets"], star)
