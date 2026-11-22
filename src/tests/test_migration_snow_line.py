@@ -28,7 +28,7 @@ def _system_with_moons():
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
         flags = {p.born_beyond_snow_line for p in system.primary.orbiters if p.body_type != 'a'}
-        if flags == {True, False} and any(p.moons for p in system.primary.orbiters):
+        if flags == {True, False} and any(getattr(p, "moons", None) for p in system.primary.orbiters):
             return system, cfg
     pytest.fail("no system with planets on both sides of the line and a moon in 60 seeds")
 
