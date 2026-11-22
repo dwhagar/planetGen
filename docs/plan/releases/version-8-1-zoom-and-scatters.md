@@ -493,7 +493,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 |  |
 
 ### Physics rectification: winds and ring darkening
 
@@ -546,10 +545,14 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1781 | Doubling methane cools hydrogen-rich airs | none | Lane 02, 2026-11-17 |
 | GEN.1803 | Heavy trace gases warm by their real band strengths | GEN.1621 | Lane 02, 2026-11-19 |
 | OPS.288 | A full disk holds a run instead of failing it | none | Lane 15, 2026-11-20 |
-| GEN.1820 | Code the trojan and air-history work built is read or removed | none | TODO, 2026-11-21 |
-| GEN.1819 | Life records the pressure it lives under | GEN.1811 | Lane 02, 2026-11-21 |
-| GEN.1813 | Hot ocean worlds hold the sulfur their supply and sinks allow | GEN.1769 | Lane 02, 2026-11-20 |
-| GEN.1812 | Past habitable windows and high-CO2 worlds measured | GEN.1745 | Lane 02, 2026-11-20 |
-| GEN.1809 | The adaptations life needed are stored for every living body | GEN.1808, GEN.1746 | Lane 02, 2026-11-20 |
+| GEN.1821 | Life draws CO2 down as a carbon sink | GEN.1812 (closed) | TODO, 2026-11-22 |
+| GEN.1822 | The sub-ice and aquifer clocks read the habitat temperature | none | TODO, 2026-11-22 |
+| GEN.1823 | Class 4b loses its unsourced abiotic nitrate | none | TODO, 2026-11-22 |
+| GEN.1824 | Sealed oceans keep the oxygen their sources and sinks allow | GEN.1822 | TODO, 2026-11-22 |
+| GEN.1825 | Sealed-ocean life capped by its fuel supply | GEN.1824 | TODO, 2026-11-22 |
+| GEN.1826 | Class 4b life drawn after the final air | none | TODO, 2026-11-22 |
+| OPS.292 | A run spec can name its start sector | none | TODO, 2026-11-22 |
+| PERF.285 | Find why generation is 4.5 times slower than on 11-15 | none | TODO, 2026-11-22 |
+| TEST.818 | Hypergiant systems keep their bodies in orbital order | none | TODO, 2026-11-22 |
 | PERF.282 | Stage 9 workers share the stellar-evolution tables | OPS.247, OPS.279 | Lane 13, 2026-11-19 |
 | OPS.276 | Sky jobs no longer stop on an out-of-range list | none | Lane 16, 2026-11-18 |
