@@ -77901,6 +77901,128 @@
       ],
       "slug": "6-324-stand-ins-of-the-oxygen-of-a-sealed-ocean-gen-1824",
       "title": "Stand-ins of the oxygen of a sealed ocean (GEN.1824)"
+    },
+    {
+      "key": "6.325",
+      "number": "6.325",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.json number sealed_fuel_efficiency 0.1: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon)"
+            ],
+            [
+              "The range it moves in",
+              "0.04 to 0.15 (methanogens); 0.33 for aerobic hydrogen oxidisers"
+            ],
+            [
+              "Where it holds",
+              "the chemical classes of an ice-covered ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a measured growth yield (carbon per electron donor) of the hydrogen eaters of a vent outside 0.04 to 0.33"
+            ],
+            [
+              "What replaces it",
+              "a measured yield for the hydrogen eaters of the classes of the design"
+            ],
+            [
+              "Evidence",
+              "de Poorter and others 2007 ([R5348], read): 3 to 7 g dry mass per mol of methane for Methanothermobacter, 4 H2 per methane, half carbon by dry mass (mine): 0.04 to 0.15; the aerobic knallgas ratio 6 H2 to 1 C (0.33) is recalled"
+            ]
+          ],
+          "id": "FU1",
+          "key": "6.325:FU1",
+          "kind": "P",
+          "slug": "6-325-fu1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_supply.json number sealed_fuel_efficiency 0.1: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.json number ocean_production_mol_c_m2_yr 11.5: the carbon Earth's ocean fixes, mol per m2 per year (50 Pg of carbon a year over 3.61e14 m2)"
+            ],
+            [
+              "The range it moves in",
+              "10 to 13"
+            ],
+            [
+              "Where it holds",
+              "the unit of the production of every class (1 is Earth's ocean)"
+            ],
+            [
+              "What would show it wrong",
+              "a global ocean production outside 40 to 60 Pg of carbon a year"
+            ],
+            [
+              "What replaces it",
+              "the figure of the census of the oceans, when one is read"
+            ],
+            [
+              "Evidence",
+              "the usual global figure, recalled (the same 50 Pg as tuning.LIFE_NPP's vent and seep estimates); [R4587] for the Enceladus anchor of the reductant flux"
+            ]
+          ],
+          "id": "FU2",
+          "key": "6.325:FU2",
+          "kind": "P",
+          "slug": "6-325-fu2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_supply.json number ocean_production_mol_c_m2_yr 11.5: the carbon Earth's ocean fixes, mol per m2 per year (50 Pg of carbon a year over 3.61e14 m2)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_classes.sealed_fuel_npp = FU1 x ocean_oxygen.sink / FU2: the fuel cap of a sealed ocean's chemical production"
+            ],
+            [
+              "The range it moves in",
+              "the sink's own range (Enceladus 1 to 4 times Earth's per area, Europa 0.2 times)"
+            ],
+            [
+              "Where it holds",
+              "the chemical classes of an ice-covered ocean"
+            ],
+            [
+              "What would show it wrong",
+              "an ocean under a lid whose life fixes more carbon than its reductants can supply; a measured H2 flux of Enceladus or Europa outside the range"
+            ],
+            [
+              "What replaces it",
+              "the reductant flux of the floor from a model of the rock and the heat (GEN.1824's sink is already the share of Earth's)"
+            ],
+            [
+              "Evidence",
+              "[R4587] (Waite and others 2017: 1e9 to 5e9 mol of H2 a year, read), [R5339] (Worman and others 2016: Earth 1e12)"
+            ]
+          ],
+          "id": "FU3",
+          "key": "6.325:FU3",
+          "kind": "P",
+          "slug": "6-325-fu3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_classes.sealed_fuel_npp = FU1 x ocean_oxygen.sink / FU2: the fuel cap of a sealed ocean's chemical production"
+        }
+      ],
+      "slug": "6-325-stand-ins-of-the-fuel-of-a-sealed-ocean-s-life-gen-1825",
+      "title": "Stand-ins of the fuel of a sealed ocean's life (GEN.1825)"
     }
   ]
 }

@@ -238617,6 +238617,33 @@
    "volume": "4",
    "year": 1992
   },
+  "10.1128/aem.01885-06": {
+   "authors": [
+    [
+     "de Poorter",
+     "L. M. I."
+    ],
+    [
+     "Geerts",
+     "W. J."
+    ],
+    [
+     "Keltjens",
+     "J. T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1128/aem.01885-06",
+   "editors": [],
+   "journal": "Appl Environ Microbiol",
+   "page": "740",
+   "publisher": "American Society for Microbiology",
+   "src": "crossref",
+   "title": "Coupling ofMethanothermobacter thermautotrophicusMethane Formation and Growth in Fed-Batch and Continuous Cultures under Different H2Gassing Regimens",
+   "type": "journal-article",
+   "volume": "73",
+   "year": 2007
+  },
   "10.1128/aem.03162-14": {
    "authors": [
     [
@@ -287737,7 +287764,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5348,
+ "id_next": 5349,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -291914,6 +291941,7 @@
   "10.1126/science.abl7164": "R2774",
   "10.1126/science.ady0539": "R4261",
   "10.1127/ejm/4/1/0105": "R1989",
+  "10.1128/aem.01885-06": "R5348",
   "10.1128/aem.03162-14": "R3473",
   "10.1128/aem.62.12.4486-4492.1996": "R2223",
   "10.1128/jb.00613-06": "R4864",
