@@ -46,7 +46,7 @@ import os
 from collections.abc import Mapping
 
 from planetgen import tuning
-from planetgen.physics import acid_medium, atmosphere, constants, elements, habitability, habitability_world, life_complexity, life_supply, planet_type, strange_solvents, surface_liquid_world, surface_refuge
+from planetgen.physics import acid_medium, atmosphere, constants, elements, habitability, habitability_world, life_complexity, life_supply, ocean_oxygen, planet_type, strange_solvents, surface_liquid_world, surface_refuge
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_classes.json")
 
@@ -567,16 +567,27 @@ def earth_light_w_m2():
     return habitability_world.LIGHT_SHARE * constants.SOLAR_LUMINOSITY / (4.0 * math.pi * constants.AU_TO_M ** 2)
 
 
+def sealed_fuel_npp(values):
+    """
+    The most the reductants of a sealed ocean can fix, as a share of Earth's primary production (GEN.1825): the flux of its reductants (`ocean_oxygen.sink`, mol of O2-equivalent per m2 per year: the hydrothermal hydrogen and donors of the
+    floor and the hydrogen of the water's radiolysis, Earth's 1.4e-3 from 1e12 mol of H2 a year at its ridges, and Cassini's Enceladus 1 to 4 times that per area) times the mol of carbon fixed for each (`sealed_fuel_efficiency`),
+    over the carbon Earth's ocean fixes (`ocean_production_mol_c_m2_yr`). A sealed ocean has no air and no light, so its chemical life is held by this fuel and not by the heat flow's share of Earth's chemosynthesis (`tuning.LIFE_NPP`), which stands for the
+    whole of Earth's ocean, vents, seeps and the oxygen that photosynthesis gives its nitrifiers. A class's production is the smaller of the two.
+    """
+    return life_supply.number("sealed_fuel_efficiency") * ocean_oxygen.sink(values) / life_supply.number("ocean_production_mol_c_m2_yr")
+
+
 def net_primary_production(row, found, world, values):
     """
     A class's net primary production before its supplies and windows, as a share of Earth's (1 is an oxygenic biosphere under the Sun):
     a light class's is the usable light of the surface times its band's share of the star's photons over the Sun's (`band_ratio`
     without its cap at 1, itself capped at `tuning.LIFE_NPP["light_ratio_max"]`), a chemical class's is the share of Earth's primary
     production that chemosynthesis gives (`tuning.LIFE_NPP["chemosynthesis_share"]`) times its heat flow in Earth's
-    (`life_supply.heat_share`). Which class is the dominant one of a world is the one with the largest (GEN.889).
+    (`life_supply.heat_share`), and in an ocean under an ice lid at most what its reductants fix (`sealed_fuel_npp`, GEN.1825). Which class is the dominant one of a world is the one with the largest (GEN.889).
     """
     if row.energy["source"] == "chemical":
-        return tuning.LIFE_NPP["chemosynthesis_share"] * life_supply.heat_share(values)
+        from_heat = tuning.LIFE_NPP["chemosynthesis_share"] * life_supply.heat_share(values)
+        return min(from_heat, sealed_fuel_npp(values)) if ocean_oxygen.is_sealed(values) else from_heat
     if not (found.get("_refuge_sunlit") or (values.get("hydrosphere") != "ice-covered ocean" and world.life_on_surface)):
         return 0.0
     teff = found.get("_teff_k")

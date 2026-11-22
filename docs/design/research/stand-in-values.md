@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1992 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1995 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1965 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1968 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,14 +51,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 229 | 22 | 12 | 1 | 0 | 264 |
 | T2 | 184 | 75 | 4 | 0 | 0 | 263 |
-| T3 | 132 | 67 | 13 | 10 | 0 | 222 |
+| T3 | 134 | 68 | 13 | 10 | 0 | 225 |
 | T4 | 90 | 17 | 10 | 25 | 13 | 155 |
 | T5 | 117 | 30 | 8 | 1 | 2 | 158 |
 | T6 | 253 | 141 | 39 | 85 | 8 | 526 |
 | T7 | 75 | 42 | 10 | 31 | 0 | 158 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1135 | 414 | 102 | 275 | 66 | 1992 |
+| All | 1137 | 415 | 102 | 275 | 66 | 1995 |
 
 ## How the labels were given
 
@@ -3527,3 +3527,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SO14 | P | T6 | L1 | `ocean_oxygen.BODY_AGE_YR` 4.5e9: the age the inherited stock is drained over (a body's own age is not stored where the grade is read) | 4e9 to 4.6e9 | the inherited stock only | none | the body's own age | educated guess from physics | predicted only | - | - |
 | SO15 | T | T5 | L0 | the bank is held at most at the pressure the air law lets an air hold (`mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA`, the fire limit, 0.35 atmosphere), read as a partial pressure by SO10 | none | a very quiet sealed ocean with a thin ocean column | a sealed ocean measured over that pressure | the solubility and the toxicity limit of the ocean's life | reuse of the air law's cap, not a new number | predicted only | - | - |
 | SO16 | T | T6 | L2 | the animals of every class in a sealed ocean are put to the oxygen floors of their grade (`tuning.LIFE_COMPLEXITY["oxygen_floor_kpa"]`, T2 for A1 and T7 above) with the ocean's oxygen, the larger of it and the air's; before, only an oxygen-breathing class was put to them, with its air's. Route R4 (animals that have lost aerobic respiration, `anoxic_animal_chance`) is the way round it | none | the chemical classes under an ice lid | a sealed ocean's animals that live without oxygen at a rate above the R4 chance | the floors of an animal's respiration, when the classes' animals each have their own | needed output (Boss, 3:51 PM EST 2026-11-21: the sealed ocean's oxygen is read against the animal floors) | predicted only | - | - |
+
+## 6.325 Stand-ins of the fuel of a sealed ocean's life (GEN.1825)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FU1 | P | T3 | L1 | `life_supply.json` number `sealed_fuel_efficiency` 0.1: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon) | 0.04 to 0.15 (methanogens); 0.33 for aerobic hydrogen oxidisers | the chemical classes of an ice-covered ocean | a measured growth yield (carbon per electron donor) of the hydrogen eaters of a vent outside 0.04 to 0.33 | a measured yield for the hydrogen eaters of the classes of the design | de Poorter and others 2007 ([R5348], read): 3 to 7 g dry mass per mol of methane for Methanothermobacter, 4 H2 per methane, half carbon by dry mass (mine): 0.04 to 0.15; the aerobic knallgas ratio 6 H2 to 1 C (0.33) is recalled | predicted only | - | - |
+| FU2 | P | T3 | L0 | `life_supply.json` number `ocean_production_mol_c_m2_yr` 11.5: the carbon Earth's ocean fixes, mol per m2 per year (50 Pg of carbon a year over 3.61e14 m2) | 10 to 13 | the unit of the production of every class (1 is Earth's ocean) | a global ocean production outside 40 to 60 Pg of carbon a year | the figure of the census of the oceans, when one is read | the usual global figure, recalled (the same 50 Pg as `tuning.LIFE_NPP`'s vent and seep estimates); [R4587] for the Enceladus anchor of the reductant flux | predicted only | - | - |
+| FU3 | P | T3 | L0 | `life_classes.sealed_fuel_npp` = FU1 x `ocean_oxygen.sink` / FU2: the fuel cap of a sealed ocean's chemical production | the sink's own range (Enceladus 1 to 4 times Earth's per area, Europa 0.2 times) | the chemical classes of an ice-covered ocean | an ocean under a lid whose life fixes more carbon than its reductants can supply; a measured H2 flux of Enceladus or Europa outside the range | the reductant flux of the floor from a model of the rock and the heat (GEN.1824's sink is already the share of Earth's) | [R4587] (Waite and others 2017: 1e9 to 5e9 mol of H2 a year, read), [R5339] (Worman and others 2016: Earth 1e12) | predicted only | - | - |

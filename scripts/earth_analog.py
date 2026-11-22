@@ -10,7 +10,7 @@ what comes out held against a stored baseline, so a change to the air, water, li
 The analog: a generated G2V system (seed 4001) supplies a rocky planet object; the star is set to the Sun (1 Msun, 3.828e26 W, 5772 K, age `--age`, default 4.6 Gy, snow line 2.7 AU) and
 the planet to Earth (late accretion 0.7 percent, `impact_history.LATE_ACCRETED_PERCENT_EARTH`; 5.972e24 kg, 6371 km, 1 g, 5514 kg/m3, 1 AU, e 0.0167, metal 0.32, tilt 23.4, day 24 h). Each trial draws the bulk water, then calls
 the system's own steps in the generator's order (`_generate`: the air, the prepared class, then the tail of `planets.generate_spin`: day and night, field, dose, colour, score; then `StarSystem._finish_planet`: the thermal
-history, the final-age refresh, the class, the star's induced field, the life, which classes the body again itself) on a fresh copy of the planet, on its own draw seed `BLOCK * 100000 + i` (TEST.739; `test_earth_analog.py` holds the order to the generator's source).
+history, the final-age refresh, the class prepared (GEN.1745: it is read once, after the life), the star's induced field, the life, which classes the body again itself) on a fresh copy of the planet, on its own draw seed `BLOCK * 100000 + i` (TEST.739; `test_earth_analog.py` holds the order to the generator's source).
 `--water` is `sample` (default: `delivered_water.sample_fraction` at 1 AU and a 2.7 AU snow line), a Bern class (`low`, `high`, `dry`, `rich`), or a fixed bulk water mass fraction.
 
 The comparison is paired: trial i draws the same seed in the baseline and now, so with no change to the generator every trial comes out the same and the table shows no movement. It
@@ -98,7 +98,7 @@ def _generate(planet):
     habitability_world.generate(planet, planets.internal_heat_flux_w_m2(planet))
     interior_heat.update_heat(planet)
     planets.refresh_at_final_age(planet)
-    planets.apply_class(planet)
+    planets.prepare_class(planet)
     magnetism.generate_stellar_induction(planet)
     life.apply_life_data(planet)
 
