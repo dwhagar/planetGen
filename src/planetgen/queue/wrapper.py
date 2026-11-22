@@ -673,7 +673,7 @@ def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done
     """
     Follows a run this process did not start, from the run record alone (PERF.235): the steps are read from the record, and for each
     stage it waits for the plan, tells the caller (`on_plan(index, plan)`), and follows the units' results (`on_result(index, unit,
-    result)`, and `on_progress(index, unit, done, estimate)` for the units still working) to the end, the results already stored first. It starts nothing, queues nothing and does not say the run is alive (the process
+    result)`, and `on_progress(index, unit, done, estimate)` for the units still working) to the end, the results already stored first. It starts no run and queues nothing (it asks for a supervisor, as every follower does: `supervisor_pump`, OPS.293) and does not say the run is alive (the process
     that started it does), so it can be started and stopped at any time without changing the run.
 
     Returns:
@@ -689,19 +689,20 @@ def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done
         conn.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
         raise redisqueue.Unavailable(f"no Redis server answers at {secrets_mask.mask_text(url)} (config.json's redis.url): {exc}") from exc
+    ensure = pump if pump is not None else supervisor_pump(conn, url)
     steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
     for index in range(len(steps)):
-        plan = _await_plan(conn, run_id, index, None, touch=False)
+        plan = _await_plan(conn, run_id, index, ensure, touch=False)
         on_plan(index, plan)
         if plan["units"]:
             units.follow_stage(conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
                                None if on_progress is None else
                                (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
-                               None, touch=False,
+                               ensure, touch=False,
                                on_step=None if on_step is None else (lambda step, index=index: on_step(index, step)))
         conclusion = None
         if commands.end_command(steps[index].kind, planrows.CONCLUDE) is not None:
-            conclusion = _await_conclusion(conn, run_id, index, None, touch=False)
+            conclusion = _await_conclusion(conn, run_id, index, ensure, touch=False)
         if on_stage_done is not None:
             on_stage_done(index, conclusion)
     return steps
@@ -756,6 +757,33 @@ pump = None
 def ask_supervisor(conn, url):
     """Makes sure a supervisor is there to start the run that was asked for (OPS.211); the test suite replaces it with one turn of `supervisor.RunStarts`."""
     supervisor.ensure_started(conn, url)
+
+
+SUPERVISOR_WAIT_SECONDS = 60.0
+"""float: How long a follower waits for a supervisor to be alive after it asked for one (OPS.293) before it stops with the reason. A supervisor takes seconds to start; a minute without one means it cannot start."""
+
+
+def supervisor_pump(conn, url, clock=time.monotonic):
+    """
+    What a follower calls every `units.ENSURE_SECONDS` while it waits for a stage (OPS.293): asks for a supervisor (`ask_supervisor`, one Redis read when one is alive), and when none is alive
+    `SUPERVISOR_WAIT_SECONDS` after the first look, raises `units.RunStopped` naming why none could be started. Before this a follower waited on units that no supervisor would hand out, with no word:
+    the supervisor exits when idle, and `check-db` against a finished run stood for 15 minutes.
+    """
+    since = []
+
+    def pump():
+        ask_supervisor(conn, url)
+        if supervisor.is_alive(conn):
+            since.clear()
+            return
+        if not since:
+            since.append(clock())
+            return
+        waited = clock() - since[0]
+        if waited >= SUPERVISOR_WAIT_SECONDS:
+            why = supervisor.last_failure() or "another process holds the claim to start one and none came up"
+            raise units.RunStopped(f"no supervisor has been alive for {format_duration_seconds(waited)} and none could be started ({why}); start one with `python -m planetgen.cli.supervisor`, then run the command again")
+    return pump
 
 
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
@@ -846,7 +874,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         advance(conn, run_id, 0)
         for index in range(len(steps)):
             stage_at = index
-            ensure = pump
+            ensure = pump if pump is not None else supervisor_pump(conn, url)
             plan = _await_plan(conn, run_id, index, ensure, on_debug=on_debug)
             log.trace(f"run {run_id}: stage {index} ({steps[index].label}) queued as {plan['units']} unit(s) of total "
                       f"cost {plan['cost']}", area="queue")
