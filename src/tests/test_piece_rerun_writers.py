@@ -163,6 +163,39 @@ def test_a_nebula_field_slab_run_again_takes_its_rows_back_and_writes_them_once(
     assert conn.execute("SELECT COUNT(*) AS n FROM nebula_field WHERE cell_i = ?", (slab + 1,)).fetchone()["n"] == 1, "another slab's rows stay"
 
 
+def test_two_nebula_field_slabs_drawn_at_once_do_not_deadlock(mysql_config, skeleton, monkeypatch):
+    """OPS.291: a slab's `DELETE ... WHERE cell_i = ?` that matched no row still gap-locked the end of the key, so two slabs in two workers each held that lock when the other came to its first INSERT (MySQL 1213
+    in run A of OPS.247, 29 of 184 units). A barrier between the take-back and the first row has both units past their delete before either writes."""
+    import threading
+    composition = (0.0,) * len(nebula_columns.FIELD_COLUMNS)
+    meet = threading.Barrier(2, timeout=20)
+    monkeypatch.setattr(store, "get_galaxy_seed", lambda conn: b"\x01" * 16)
+
+    def drawn(galaxy_seed, shape, slab, *args, **kwargs):
+        meet.wait()          # both units are here: each has done what it does before its first row
+        return iter([(slab, j, 0, 0, "M", 5.0, 10.0 * j, 20.0, 30.0, *composition) for j in range(6)])
+
+    monkeypatch.setattr(nebulaField, "table_rows", drawn)
+    params = {"edge_pc": 10.0, "radius_pc": 1000.0, "half_height_pc": 100.0, "count": 1, "outer_shell": 50}
+    outcomes = {}
+
+    def unit(slab):
+        connection = store.get_connection(mysql_config)
+        try:
+            outcomes[slab] = run_plan.draw_nebula_field_do(params, slab, Ctx(connection))["written"]
+        except Exception as error:          # the test reports it, a thread cannot raise into pytest
+            outcomes[slab] = error
+        finally:
+            connection.close()
+
+    threads = [threading.Thread(target=unit, args=(slab,)) for slab in (4, 5)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(60)
+    assert outcomes == {4: 6, 5: 6}, outcomes
+
+
 def test_a_population_scan_run_again_adds_no_species(conn):
     from planetgen.population import model
     piece = ["scan", 0, 1000]
