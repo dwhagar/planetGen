@@ -37,6 +37,26 @@ def test_every_content_table_is_in_one_section():
     assert len(tables) == len(set(tables)) and set(tables) == fingerprint.CONTENT_TABLES
 
 
+RAW_ID_NOT_A_ROW = {(table, column) for table in ("asteroid_belts", "black_holes", "comets", "interstellar_comets", "moons", "neutron_stars", "planets", "rogue_planets", "stars") for column in ("parent_id",)} | {
+    ("asteroid_belts", "host_node_id"), ("planets", "host_node_id"), ("stars", "parent_node_id"), ("asteroid_fields", "origin_event_id"), ("sectors", "max_mass_id"), ("sectors", "override_id")}
+"""set: The `*_id` columns of the content tables that are no foreign key and need no key: `parent_id` is keyed by `parent_type`, the node numbers are of the row's own system, the rest are not row ids of a content table."""
+
+
+def test_a_column_that_holds_a_row_id_is_keyed_not_read_raw(make_database):
+    """GEN.1827: a column that names another row of a content table (no declared foreign key) is in `ROW_ID_COLUMNS`, so the fingerprint reads that row's key and not the id it got in this run."""
+    conn = store.get_connection(make_database())
+    try:
+        reader = fingerprint._Reader(conn)
+        raw_ids = {(table, column) for table in fingerprint.CONTENT_TABLES for column in reader.columns(table)
+                   if column.endswith("_id") and column not in reader.foreign_keys(table)}
+        assert fingerprint.ROW_ID_COLUMNS.keys() <= raw_ids
+        assert raw_ids - fingerprint.ROW_ID_COLUMNS.keys() == RAW_ID_NOT_A_ROW, "a new column holds a row id: add it to ROW_ID_COLUMNS, or here if it is no row id"
+        assert ("planets", "lagrange_host_id") in fingerprint.ROW_ID_COLUMNS
+        assert all(parent in fingerprint.CONTENT_TABLES for parent in fingerprint.ROW_ID_COLUMNS.values())
+    finally:
+        conn.close()
+
+
 def _generate(config, monkeypatch, seed=GALAXY_SEED, shift_ids=False, limit=None):
     _plan_wide_galaxy(config, galaxy_seed=seed)
     if shift_ids:
