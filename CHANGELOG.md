@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4722+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The Earth analog script runs the generator's steps in the generator's order again, its stored baseline is renewed, and the train gate runs its test whenever generation or physics changes.
+
+### Fixed
+- TEST.819: `test_earth_analog.py` was red on main. (a) Since GEN.1745 the generator's `_finish_planet` prepares the class (`planets.prepare_class`) and the one `apply_class` is at the end of `life.apply_life_data`; the script's `_generate` and the test's list of the generator's finish still said `apply_class`. Both say `prepare_class` now. (b) The stored baseline no longer matched a redraw of trial 0 (101,361 Pa and 293.9 K against 96,795 Pa and 306.4 K). The cause is not Train 54: bisecting the merges, Train 45 (GEN.1520, the gas disk edge by star mass) moved trial 0 to 97,691 Pa and 294.2 K, Train 47 (GEN.1403 water-limited weathering with the class read once after the life and the oxygen asked at the warmed temperature) moved it to 305.5 K, and small later steps (GEN.1493 slice 3 only 96,850 to 96,795 Pa) to 96,795 Pa and 306.4 K. They were accepted output moves, but the test never ran for them. The baseline is renewed with `scripts/earth_analog.py baseline --write` (800 trials); no tolerance is widened. Over 400 paired trials the median pressure went 72 to 97 kPa and the median temperature 288 to 302 K; Class M 18 to 14, Class L 0 to 16 (table in the PR).
+- `scripts/train_gate.py`: `test_earth_analog` runs the generator through the script and names no planetgen module, so the gate's file list never chose it for Trains 45 to 54. It is now one of the sample tests the gate runs when a change touches `generation/` or `physics/`.
+
+generation-output: unchanged
+
 ## [8.0.4721+db274.gen150.api14] - 2026-11-22
 
 **Headline:** The sealed-ocean oxygen line of the generation log no longer names a TODO item.
