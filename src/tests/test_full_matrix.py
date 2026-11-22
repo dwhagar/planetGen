@@ -41,6 +41,7 @@ from planetgen.util import draw
 from planetgen import tuning as prog_c
 from planetgen.physics.constants import G
 from tests import render_support
+from tests.trojan_support import assert_trojans_on_their_giants
 
 SPECTRAL_CLASSES = ["O", "B", "A", "F", "G", "K", "M"]
 YERKES_CLASSES = ["0", "IA+", "IA", "IAB", "IB", "II", "III", "IV", "V", "VI", "VII"]
@@ -172,7 +173,8 @@ def test_full_system_generates_with_belt_and_habitable_world_across_every_star_t
     assert moon_count == system.moon_count
     assert planet_count + belt_count == len(system.planets)
 
-    objects = [p for p in system.planets if getattr(p, "belt_rank", None) is None]      # GEN.1510: a belt member promoted to a planet stays inside its belt's ring, so the spacing below is of the bodies that were placed
+    trojans = assert_trojans_on_their_giants(system.planets)     # TEST.821: a trojan (GEN.1150, GEN.1151) shares its giant's orbit by design, so it is checked against its giant and is no slot of the spacing below
+    objects = [p for p in system.planets if getattr(p, "belt_rank", None) is None and not any(p is trojan for trojan in trojans)]      # GEN.1510: a belt member promoted to a planet stays inside its belt's ring, so the spacing below is of the bodies that were placed
     for i in range(1, len(objects)):
         prev, cur = objects[i - 1], objects[i]
         gap = cur.distance - prev.upper_limit if prev.body_type == 'a' else cur.distance - prev.distance
