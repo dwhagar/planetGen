@@ -194,7 +194,7 @@ def _apply(planet, keep_stored, key, barred):
     ocean_o2 = _ocean_o2_kpa(planet)
     complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), _clock_k(planet, row), anoxic, ocean_o2)
     if ocean_o2 is not None:
-        log.choice("Sealed ocean oxygen", f"{ocean_o2:.3g} kPa", "the lid's oxidant, the water's radiolysis and the faults' radicals over the reductants of the floor (GEN.1824)")
+        log.choice("Sealed ocean oxygen", f"{ocean_o2:.3g} kPa", "the lid's oxidant, the water's radiolysis and the faults' radicals over the reductants of the floor")
     _set_evolutionary_state(planet, evolution.get_evolutionary_state(
         planet.star, tuple(getattr(planet, field) for field in evolution.SCHEDULE_FIELDS), max_stage=complexity.top_stage))
     planet.life_complexity = complexity.index
