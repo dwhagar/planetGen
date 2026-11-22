@@ -184,8 +184,15 @@ def _apply(planet, keep_stored, key, barred):
             if log.debug_log_active():
                 log.debug(f"Life class: {row.id} dropped, its own air left it too little carbon dioxide.")
             return row.id
-        # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
-        # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
+        if row.id in final and final[row.id].failed:
+            # Its own air took something else it needs: the light or the liquid hours of its place, or a supply (a sealed ocean's nitrate when the air it made cooled the
+            # world under an ice lid, seed 5007). A class is read from the finished body (GEN.1739, GEN.1745): it was drawn against the air before the life, so it
+            # does not live on the air after it (GEN.1826). The world is made again without it.
+            if log.debug_log_active():
+                log.debug(f"Life class: {row.id} dropped, its own air left it without {', '.join(final[row.id].failed)}.")
+            return row.id
+        # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed) and nothing names what failed: the class that lives
+        # here is still one the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
         final = {**final, row.id: chosen}
     _set_best(planet, final)
     result = final[row.id]
