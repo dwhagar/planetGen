@@ -158,3 +158,21 @@ In 240 Sun-like systems 71 percent of rocky planets sit on the floor (51 percent
 Slice 2 moves almost nothing in these groups (the companion group's ceiling share goes from 22 to 23 percent). The census reads: the veneer is set by the sinks and by whether a belt is left outside the planet, not by the share. Planets of a system with a giant sit on the floor because the giant takes the sink (a Jupiter-class sink weighs 70 times an Earth's), and planets of a giant-free system with a belt sit at the ceiling because nothing else takes it. Both ends are far from the published 0.2 to 0.7 percent for the Earth.
 
 **Floor and ceiling (Boss: keep, change only in slice 2 from what it measures).** They are kept: the measurement does not isolate them. A lower ceiling would only move the giant-free planets from 3 percent to the new cap and a higher floor would only lift the giant systems, and neither gives the system the sink geometry it lacks. What the numbers do say is that the next step is the sink weight (rows LS2 and LS3, slice 3 of the scattering integration), not these two caps. That is a call for Boss with the table in hand.
+
+## Slice 3 result (Lane 06, 2026-11-22; Boss answered yes on 2026-11-21 to building the scattering step, census before merge)
+
+**What was built.** The reservoirs of a star are followed past its bodies from the farthest in (`late_supply.fates`): each body takes the share its focused cross-section gives over `RESIDENCE_YR` (`hit_share`, the Opik per-revolution probability `R^2 (1 + v_esc^2 / v_rel^2) / (2 pi a^2 sin i)`, row LS3 `SCATTER_INCLINATION_RAD` 0.1, LS5 `RESIDENCE_YR` 1e8), then throws `1 - exp(-Theta / THETA_EJECT)` of what is left out of the system (`eject_share`, the Safronov rule of `scatter`), and what is left past the innermost body falls to the star. This replaces the `OUTER_REACH` shortcut (row LS3 before). Because a giant is passed first and ejects, planets inside it see what it did not throw out, with no new weight for the giant. The rocky zone's own leftover planetesimals are a reservoir (`late_accretion.leftover_of`: `LEFTOVER_SHARE` 0.007 of the rocky planets' mass, row LA4, in `LEFTOVER_ZONE` (0.8, 1.2) times the innermost and outermost rocky planet's distance, row LA5): they lie inside the giants, so no giant takes them. Floor 0.05 and ceiling 3 percent are kept.
+
+**Census (same 240 G2V seeds, 5000 to 5239; report `reports/gen1493-slice3-census-2026-11-22.md`).** Slice 2 against slice 3:
+
+| Architecture | Planets | Floor before and after | Ceiling before and after | Median percent before and after | Median ratio before and after |
+|---|---|---|---|---|---|
+| no giant | 409 | 16 and 27 percent | 47 and 17 percent | 2.47 and 0.137 | 3.11 and 0.199 |
+| giant inside the belt zone | 28 | 89 and 96 percent | 0 and 0 | 0.035 and 0.034 | 0.05 and 0.05 |
+| giant beyond 10 AU | 34 and 38 | 94 and 82 percent | 0 and 0 | 0.035 and 0.037 | 0.05 and 0.05 |
+| with a companion star | 173 | 53 and 47 percent | 22 and 5 percent | 0.041 and 0.049 | 0.05 and 0.069 |
+
+Planets still touching either bound: about 328 of 648 (51 percent), down from about 445 of 644 (69 percent). The giant-free ceiling cases fall from 47 to 17 percent because the sink geometry now takes what the share alone sent them; the giant-free median (0.137 percent, ratio 0.2) is now at the lower end of the published 0.2 to 0.7 percent instead of far above it. The giant groups stay at the floor: their rocky planets lie far outside the leftover zone's 0.8 to 1.2 reach of the innermost and outermost rocky planet and the giant sits between the belts and them, so almost nothing reaches them. That is a measurement of the geometry, not a number to tune; moving it needs a source for the leftover zone of a planet that has a giant outside it.
+
+**Registry.** New rows LS3 (rewritten), LS4 (rewritten), LS5, LA4 and LA5 in section 6.254 and 6.255; LS5 and LA4 are L4 (fitted, no source) with burn-down lines.
+
