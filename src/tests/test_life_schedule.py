@@ -180,6 +180,50 @@ def test_a_class_whose_own_air_leaves_it_too_little_carbon_dioxide_does_not_live
     assert body.life_class_id is None or _in_order(_ages(body))
 
 
+@pytest.mark.parametrize("failed", [["supply:nitrate_supply"], ["lit_liquid_hours", "band_light_vs_earth", "energy"]])
+def test_a_class_whose_own_air_takes_a_supply_or_its_light_does_not_live_on_the_world(monkeypatch, failed):
+    """GEN.1826: a class is drawn against the air before the life (seed 5007: class 4b at 306 K under an open sea), and the air the life makes can take what it needs (that air cooled the
+    world, froze the sea under an ice lid and took the nitrate; class 1a loses its lit liquid hours the same way). It is not kept (it is for a donor or hydrogen the life used up and
+    nothing names, TEST.486): the world is made again from the body as it was, without that class (GEN.1739: no class is assigned until the evolution is finished)."""
+    body = _a_world_with_life()
+    old = body.life_class_id
+    real = life_classes.score_classes
+    scored = [0]
+    real_apply = planet_life._apply
+
+    def a_pass(*args, **kwargs):
+        scored[0] = 0
+        return real_apply(*args, **kwargs)
+
+    def lacking_after_the_air(*args, **kwargs):
+        scored[0] += 1
+        found = real(*args, **kwargs)
+        if scored[0] > 1 and old in found:      # the first scoring of a pass is the body as it stands; the next ones are of the air the life made
+            found[old] = life_classes.ClassScore(old, 0.0, {name: 0.0 for name in failed}, list(failed), [], [])
+        return found
+
+    monkeypatch.setattr(planet_life, "_apply", a_pass)
+    monkeypatch.setattr(planet_life.life_classes, "score_classes", lacking_after_the_air)
+    planet_life.apply_life_data(body)
+    assert body.life_class_id != old, "the class kept a world whose own air took what it needs"
+    assert body.life_class_id is None or body.evolutionary_pace in tuning.EVOLUTIONARY_TIMELINES
+    assert body.life_class_id is None or _in_order(_ages(body))
+
+
+def test_every_class_that_lives_on_a_body_is_supported_by_its_final_air_on_seed_5007():
+    """GEN.1826: on seed 5007 a body (Ehinaon II) held class 4b, drawn at 306 K under an open sea; the air its life made cooled it to 115 K under an ice lid, with no nitrate, and the class stayed
+    at the score it was chosen at. Every class stored on every body of that system now scores above zero on the body as it ends."""
+    config = SystemConfig()
+    config.MOONS = True
+    with deterministic_entropy(5007):
+        system = StarSystem(system_config=config)
+    for planet in system.planets + system.secondary_planets:
+        for body in (planet, *getattr(planet, "moons", ())):
+            for entry in getattr(body, life_classes.LIVING_FIELD, None) or ():
+                found = life_classes.score_classes(body).get(entry["life_class"])
+                assert found is not None and found.score > 0, (body.name, entry["life_class"], None if found is None else found.failed)
+
+
 def test_a_class_that_breathes_oxygen_but_makes_none_stops_at_photosynthesis_in_an_air_without_it():
     """Built by hand (TEST.737): generation seldom makes this world (class 4a is about 1 in 1,400 life worlds, and the ones made hold plenty of oxygen), so the test does not wait for one.
     A class 4a is dated on a generated world whose air has under the oxygen complex cells need, as `_date` dates the classes of a body: its first two steps come, the rest never do."""
