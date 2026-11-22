@@ -77051,11 +77051,11 @@
           "fields": [
             [
               "What it is",
-              "extinction_effects.RESET_KILL_SHARE 0.65: the share of species an extinction must kill to reset the animals and the civilization; the top of the kill curve (air_events.KILL_CURVE), the events the Earth has once in 100 Myr or less often (impacts over about 12 km; the flood basalts, every 25 Myr, kill 0.43)"
+              "extinction_effects.RESET_RECURRENCE_MYR 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of air_events; the kill curve gives it 0.65 like any event of 100 Myr or more)"
             ],
             [
               "The range it moves in",
-              "0.45 to 0.65 (0.30, once per 10 Myr, would reset the animals of most worlds that have them)"
+              "300 to 3000 Myr (impactors of about 21 to 62 km; the Big Five were 10 km or less)"
             ],
             [
               "Where it holds",
@@ -77063,15 +77063,15 @@
             ],
             [
               "What would show it wrong",
-              "a measured loss of the animal grades, or of a civilization-scale complexity, after an extinction below 0.65"
+              "a measured loss of animals after an extinction of the Phanerozoic size"
             ],
             [
               "What replaces it",
-              "a measured relation between the kill of an extinction and the complexity it removes"
+              "a measured relation between the size of a shock and the complexity it removes"
             ],
             [
               "Evidence",
-              "[R5320] for the curve; the share is a pick inside it (the Boss's ruling is \"large\")"
+              "the Earth's animal record (540 Myr, five mass extinctions, no reset; the Big Five by number of genera, [R5320] for the curve); the cut is inferred"
             ]
           ],
           "id": "EF1",
@@ -77082,7 +77082,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "extinction_effects.RESET_KILL_SHARE 0.65: the share of species an extinction must kill to reset the animals and the civilization; the top of the kill curve (air_events.KILL_CURVE), the events the Earth has once in 100 Myr or less often (impacts over about 12 km; the flood basalts, every 25 Myr, kill 0.43)"
+          "what": "extinction_effects.RESET_RECURRENCE_MYR 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of air_events; the kill curve gives it 0.65 like any event of 100 Myr or more)"
         },
         {
           "burn_down": null,

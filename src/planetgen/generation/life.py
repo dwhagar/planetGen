@@ -209,9 +209,9 @@ def _apply(planet, keep_stored, key, barred):
 
 def _reset_by_extinctions(planet, cands):
     """
-    GEN.1746 slice 4: the schedules just drawn lose their animals and civilization to the mass extinctions of the body's life ages that kill at least `extinction_effects.RESET_KILL_SHARE`
-    (`extinction_effects.regrown`), and the dominant class's schedule is stored again. Only a class drawn now has its schedule worked on: one kept from a stored body already has it. The
-    extinctions are the table's own (`life_ages.ages_of` from the age the first producers began: the same call `_history_of` makes), so nothing is drawn.
+    GEN.1746 slice 4: the schedules just drawn lose their animals and civilization to the impacts of the body's history that the Earth's animals have not met
+    (`extinction_effects.extinctions_of`, `extinction_effects.regrown`), and the dominant class's schedule is stored again. Only a class drawn now has its schedule worked on: one kept from a stored body already has it. The
+    extinctions are events of the same call the life ages table is cut from (`life_ages.ages_of`, from the age the first producers began, as `_history_of` makes it), so nothing is drawn.
     """
     fresh = [c for c in cands if c.waits is not None and c.ages is not None and c.ages[extinction_effects.ANIMALS] is not None and c.ages[extinction_effects.ANIMALS] <= planet.star.age]
     if not fresh:
@@ -219,7 +219,7 @@ def _reset_by_extinctions(planet, cands):
     began = [c.ages[1] for c in cands if c.ages is not None and c.ages[1] is not None]
     if not began:
         return
-    extinctions = extinction_effects.reset_extinctions(life_ages.entries_of(life_ages.ages_of(planet, min(began))))
+    extinctions = extinction_effects.extinctions_of(planet, min(began))
     if not extinctions:
         return
     for cand in fresh:
