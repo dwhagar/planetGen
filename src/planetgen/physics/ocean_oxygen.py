@@ -84,7 +84,7 @@ oxygen-rich ocean alive against 4.5 Gyr of reductants, and it is off here (0) un
 
 RADIOLYSIS_H2_ESCAPE = 0.0
 """float: The share of the hydrogen the radiolysis makes with its oxygen that leaves the ocean (into the rock or the ice). The water splits into both in equal electron equivalents (0.4 H2 and 0.2 O2 for each 100 eV, `RADIOLYSIS_O2_MOL_KG_YR`), so
-the oxygen is a net oxidant only for the part of the hydrogen that goes: in a sealed ocean the rest takes the oxygen back, as a reductant (the research report, section 3.2: "unless it leaves, the water does not become net oxidising"). No source gives the share:
+the oxygen is a net oxidant only for the part of the hydrogen that goes: in a sealed ocean the rest takes the oxygen back, as a reductant (the research report, section 3.2: "unless it leaves, the water does not become net oxidizing"). No source gives the share:
 0 keeps the water's radiolysis net zero (the oxygen counted and its hydrogen counted in the sink, `sink`). [Stand-in 6.324 SO13, tier T6, tweak L1.]"""
 
 BODY_AGE_YR = 4.5e9
