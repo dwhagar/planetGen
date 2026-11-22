@@ -179,7 +179,9 @@ def life_outcome(planet, letter=None):
 
 def _run_life(planet, letter=None):
     """`(life_outcome, waiting)`: `waiting` is True when the body went without life only because its star is too young for any (GEN.997) or the
-    first step of its schedule comes after the star's age (GEN.1001), a world the model supports but on which life has not begun yet."""
+    first step of its schedule comes after the star's age (GEN.1001), a world the model supports but on which life has not begun yet, or because every class the
+    model supports took away the liquid it lives in with its own air once it was settled (GEN.1298: a class is barred and the world made again without it; a world whose
+    every supported class is barred this way has no life, as a snowball its own life made)."""
     import copy
     from unittest import mock
 
@@ -189,23 +191,33 @@ def _run_life(planet, letter=None):
 
     clone = copy.deepcopy(planet)
     assert clone is not planet and getattr(clone, "star", None) is not None
+    supported = _supported(planet)
     if letter is not None:
         clone.planet_class = letter
     begun = []
     real = life._begun
+    barred = set()
+    real_apply = life._apply
 
     def recorded(body, cand):
         begun.append(real(body, cand))
         return begun[-1]
 
+    def apply_recorded(body, keep_stored, key, barred_now):
+        frozen = real_apply(body, keep_stored, key, barred_now)
+        if frozen is not None:
+            barred.add(frozen)
+        return frozen
+
     draw.set_run_seed(LIFE_STREAM_SEED)
     from planetgen.physics import planets
     keep_the_letter = mock.patch.object(planets, "apply_class", lambda body: None)
-    with mock.patch.object(life, "_begun", recorded), keep_the_letter:    # GEN.1745: the life step reads the class once at its end; the letter the audit gives the copy (or the world's own) is the question, not an answer to re-derive
+    with mock.patch.object(life, "_begun", recorded), mock.patch.object(life, "_apply", apply_recorded), keep_the_letter:    # GEN.1745: the life step reads the class once at its end; the letter the audit gives the copy (or the world's own) is the question, not an answer to re-derive
         life.apply_life_data(clone)
     outcome = clone.life_class_id, clone.life_stage, tuple(getattr(clone, field, None) for field in evolution.SCHEDULE_FIELDS)
     age = getattr(clone.star, "age", None)
-    waiting = outcome[0] is None and ((age is not None and age < tuning.LIFE_MIN_STAR_AGE_GY) or (begun and not any(begun)))
+    froze_itself = bool(barred) and barred >= set(supported)
+    waiting = outcome[0] is None and ((age is not None and age < tuning.LIFE_MIN_STAR_AGE_GY) or (begun and not any(begun)) or froze_itself)
     return outcome, waiting
 
 
@@ -235,7 +247,7 @@ def draw_problems(planet, other_letters=None):
 
 
 def draw_rates(planets):
-    """`{class letter: (terrestrial planets, supported by the model, given life by the generator, supported but waiting for the star's age)}`
+    """`{class letter: (terrestrial planets, supported by the model, given life by the generator, supported but waiting for the star's age or with every supported class barred by its own air, GEN.1298)}`
     over `[(label, planet), ...]`."""
     out = {}
     for _, planet in planets:
