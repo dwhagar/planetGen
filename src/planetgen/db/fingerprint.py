@@ -303,6 +303,11 @@ class _Reader:
         self._keys[cache_key] = key
         return key
 
+    def forget_rows(self):
+        """Lets go of the keys of the rows read so far, the sectors' and configs' kept (a config's key is a digest that takes a query to make, and every system of a kind shares one): a row's key is the uid it
+        was primed with, and one the next sector needs again costs one query (PERF.286)."""
+        self._keys = {key: value for key, value in self._keys.items() if key[0] in ("sectors", "system_configs")}
+
     def prime(self, table, rows):
         """Caches the keys of `rows` of `table` (read with their `id`), so a
         sector's own references cost no extra query."""
@@ -334,8 +339,8 @@ def _sector_label(row):
     return f"{row['shell_index']} {row['band_index']} {row['wedge_index']}"
 
 
-def _sector_rows(reader, sector_id, address):
-    """The encoder values of one sector's content, `(table, value)`: `sector_id` its row's
+def _read_sector(reader, sector_id, address):
+    """The rows of one sector's content, `{table: {id: row}}`: `sector_id` its row's
     id (or `None` for a cell with only address-keyed rows), `address`
     `(shell, band, wedge)` (or `None` when unplaced)."""
     owned = {}
@@ -366,12 +371,30 @@ def _sector_rows(reader, sector_id, address):
     if address is not None:
         for table in ADDRESS_TABLES:
             keep(table, reader.select(table, "shell_index = ? AND band_index = ? AND wedge_index = ?", address))
+    return owned
+
+
+def _sector_rows(reader, sector_id, address):
+    """The encoder values of one sector's content, `(table, value)` (`_read_sector`'s rows, canonicalized)."""
+    owned = _read_sector(reader, sector_id, address)
     return [(table, reader.row_value(table, row)) for table, rows in owned.items() for row in rows.values()]
 
 
-def _rows_digest(rows):
-    """The digest of a sector's `(table, value)` rows: the SHA-256 of the values in canonical order."""
-    return fingerprint_encoding.row_set_digests([value for _table, value in rows]).full
+def _sector_digest(reader, sector_id, address):
+    """
+    The digest of one sector: the SHA-256 of its rows' values in canonical order (PERF.286: streamed). Each table's rows are encoded and let go before the next table's, and the reader forgets
+    the keys of the rows it read when the sector is done, so what the fingerprint holds is a sector's rows and the two texts of each, never a galaxy's.
+    """
+    owned = _read_sector(reader, sector_id, address)
+    pairs = []
+    while owned:
+        table, rows = owned.popitem()
+        for row in rows.values():
+            value = reader.row_value(table, row)
+            pairs.append((fingerprint_encoding.encode(value, floats=False), fingerprint_encoding.encode(value)))
+        del rows
+    reader.forget_rows()
+    return fingerprint_encoding.row_set_full_digest(pairs)
 
 
 def _resolve_sector(conn, sector_id, address):
@@ -399,7 +422,7 @@ def sector_digest(conn, sector_id=None, address=None):
         str: The hex SHA-256 of the sector's rows in canonical order.
     """
     sector_id, address = _resolve_sector(conn, sector_id, address)
-    return _rows_digest(_sector_rows(_Reader(conn), sector_id, address))
+    return _sector_digest(_Reader(conn), sector_id, address)
 
 
 def sector_sections(conn, sector_id=None, address=None):
@@ -478,7 +501,7 @@ def region_fingerprint(conn, shells=None, addresses=None, on_progress=None, plai
     cells = _cells(conn, shells, addresses)
     sectors = []
     for done, (label, sector_id, address) in enumerate(cells, start=1):
-        sectors.append((label, _rows_digest(_sector_rows(reader, sector_id, address))))
+        sectors.append((label, _sector_digest(reader, sector_id, address)))
         if on_progress is not None:
             on_progress("sectors", done, len(cells))
     plan = plan_digest(conn) if shells is None and addresses is None else None

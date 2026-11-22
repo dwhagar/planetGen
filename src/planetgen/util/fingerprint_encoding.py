@@ -209,3 +209,18 @@ def sorted_rows(rows):
 def row_set_digests(rows):
     """The `Digests` of an unordered set of rows, taken in the order of `sorted_rows`."""
     return digests(sorted_rows(rows))
+
+
+def row_set_full_digest(pairs):
+    """
+    `row_set_digests(rows).full`, from `pairs`, `[(structural text, full text)]` of the rows (`encode(row, floats=False)`, `encode(row)`), without keeping the rows or the joined text (PERF.286): the pairs sort the way
+    `sorted_rows` orders rows and the digest takes the texts one by one, so the memory is the two texts of each row, where the whole set kept the rows, both texts of each, the text of the list and the text of its two other
+    digests. The digest is the same, to the last bit.
+    """
+    hasher = hashlib.sha256(f"{FORMAT_TAG}:full\n[".encode("ascii"))
+    for number, (_structural, full) in enumerate(sorted(pairs)):
+        if number:
+            hasher.update(b",")
+        hasher.update(full.encode("ascii"))
+    hasher.update(b"]")
+    return hasher.hexdigest()
