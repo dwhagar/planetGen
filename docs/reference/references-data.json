@@ -74030,6 +74030,37 @@
    "volume": "43",
    "year": 2016
   },
+  "10.1002/2016gl069066": {
+   "authors": [
+    [
+     "Worman",
+     "S. L."
+    ],
+    [
+     "Pratson",
+     "L. F."
+    ],
+    [
+     "Karson",
+     "J. A."
+    ],
+    [
+     "Klein",
+     "E. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1002/2016gl069066",
+   "editors": [],
+   "journal": "GeoRL",
+   "page": "6435",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Global rate and distribution of H2 gas produced by serpentinization within oceanic lithosphere",
+   "type": "journal-article",
+   "volume": "43",
+   "year": 2016
+  },
   "10.1002/2016gl070066": {
    "authors": [
     [
@@ -98614,6 +98645,53 @@
    "volume": "357",
    "year": 2021
   },
+  "10.1016/j.icarus.2020.114248": {
+   "authors": [
+    [
+     "Ray",
+     "C."
+    ],
+    [
+     "Glein",
+     "C. R."
+    ],
+    [
+     "Waite",
+     "J. H."
+    ],
+    [
+     "Teolis",
+     "B."
+    ],
+    [
+     "Hoehler",
+     "T."
+    ],
+    [
+     "Huber",
+     "J. A."
+    ],
+    [
+     "Lunine",
+     "J."
+    ],
+    [
+     "Postberg",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2020.114248",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "114248",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Oxidation processes diversify the metabolic menu on Enceladus",
+   "type": "journal-article",
+   "volume": "364",
+   "year": 2021
+  },
   "10.1016/j.icarus.2021.114391": {
    "arxiv": "2006.10674",
    "authors": [
@@ -115031,6 +115109,37 @@
    "type": "journal-article",
    "volume": "48",
    "year": 2021
+  },
+  "10.1029/2021gl095416": {
+   "authors": [
+    [
+     "Hesse",
+     "M. A."
+    ],
+    [
+     "Jordan",
+     "J. S."
+    ],
+    [
+     "Vance",
+     "S. D."
+    ],
+    [
+     "Oza",
+     "A. V."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2021gl095416",
+   "editors": [],
+   "journal": "GeoRL",
+   "page": "e2021GL095416",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Downward Oxidant Transport Through Europa's Ice Shell by Density‐Driven Brine Percolation",
+   "type": "journal-article",
+   "volume": "49",
+   "year": 2022
   },
   "10.1029/2021gl095748": {
    "arxiv": "2205.06785",
@@ -182197,6 +182306,33 @@
    "volume": "7",
    "year": 2007
   },
+  "10.1089/ast.2007.0156": {
+   "authors": [
+    [
+     "Hand",
+     "K. P."
+    ],
+    [
+     "Carlson",
+     "R. W."
+    ],
+    [
+     "Chyba",
+     "C. F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1089/ast.2007.0156",
+   "editors": [],
+   "journal": "AsBio",
+   "page": "1006",
+   "publisher": "SAGE Publications",
+   "src": "crossref",
+   "title": "Energy, Chemical Disequilibrium, and Geological Constraints on Europa",
+   "type": "journal-article",
+   "volume": "7",
+   "year": 2007
+  },
   "10.1089/ast.2007.0205": {
    "authors": [
     [
@@ -182305,6 +182441,25 @@
    "publisher": "SAGE Publications",
    "src": "crossref",
    "title": "The Effect of a Strong Stellar Flare on the Atmospheric Chemistry of an Earth-like Planet Orbiting an M Dwarf",
+   "type": "journal-article",
+   "volume": "10",
+   "year": 2010
+  },
+  "10.1089/ast.2009.0386": {
+   "authors": [
+    [
+     "Greenberg",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1089/ast.2009.0386",
+   "editors": [],
+   "journal": "AsBio",
+   "page": "275",
+   "publisher": "SAGE Publications",
+   "src": "crossref",
+   "title": "Transport Rates of Radiolytic Substances into Europa's Ocean: Implications for the Potential Origin and Maintenance of Life",
    "type": "journal-article",
    "volume": "10",
    "year": 2010
@@ -278282,6 +278437,29 @@
    "volume": "",
    "year": 2019
   },
+  "10.7185/geochemlet.2131": {
+   "authors": [
+    [
+     "Kameda",
+     "J."
+    ],
+    [
+     "Okamoto",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.7185/geochemlet.2131",
+   "editors": [],
+   "journal": "Geochem. Persp. Let.",
+   "page": "32",
+   "publisher": "European Association of Geochemistry",
+   "src": "crossref",
+   "title": "Generation of oxidising fluids by comminution of fault rocks",
+   "type": "journal-article",
+   "volume": "",
+   "year": 2021
+  },
   "10.7185/geochemlet.2219": {
    "authors": [
     [
@@ -287559,7 +287737,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5342,
+ "id_next": 5348,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -287579,6 +287757,7 @@
   "10.1002/2015jd024018": "R1132",
   "10.1002/2015je004792": "R4001",
   "10.1002/2016gl067713": "R4268",
+  "10.1002/2016gl069066": "R5339",
   "10.1002/2016gl070066": "R1058",
   "10.1002/2016gl070749": "R0559",
   "10.1002/2016gl071055": "R3004",
@@ -288382,6 +288561,7 @@
   "10.1016/j.icarus.2020.114070": "R2175",
   "10.1016/j.icarus.2020.114072": "R2711",
   "10.1016/j.icarus.2020.114228": "R0891",
+  "10.1016/j.icarus.2020.114248": "R5337",
   "10.1016/j.icarus.2021.114391": "R5244",
   "10.1016/j.icarus.2021.114764": "R0371",
   "10.1016/j.icarus.2021.114856": "R3411",
@@ -288910,6 +289090,7 @@
   "10.1029/2020je006655": "R1514",
   "10.1029/2020je006711": "R2676",
   "10.1029/2021gl094143": "R3030",
+  "10.1029/2021gl095416": "R5336",
   "10.1029/2021gl095748": "R3357",
   "10.1029/2021je006910": "R2343",
   "10.1029/2021je007060": "R0976",
@@ -290470,9 +290651,11 @@
   "10.1089/ast.2006.06-0126": "R5142",
   "10.1089/ast.2006.6.377": "R3366",
   "10.1089/ast.2007.0128": "R3799",
+  "10.1089/ast.2007.0156": "R5346",
   "10.1089/ast.2007.0205": "R1361",
   "10.1089/ast.2008.0289": "R1097",
   "10.1089/ast.2009.0376": "R4000",
+  "10.1089/ast.2009.0386": "R5347",
   "10.1089/ast.2010.0528": "R0995",
   "10.1089/ast.2010.0555": "R1649",
   "10.1089/ast.2010.0592": "R3979",
@@ -292546,6 +292729,7 @@
   "10.64628/aa.uqjfwk97m": "R3084",
   "10.64628/ab.3aune6pmw": "R2883",
   "10.7185/geochemlet.1918": "R2329",
+  "10.7185/geochemlet.2131": "R5338",
   "10.7185/geochemlet.2219": "R5340",
   "10.7185/gold2021.5051": "R0489",
   "10.7185/gold2023.16623": "R0488",

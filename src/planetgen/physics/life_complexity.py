@@ -54,13 +54,13 @@ def index_of(row, npp, o2_kpa, temperature_k):
     return npp * oxidant_yield(row, o2_kpa) * life_timeline.rate_factor(temperature_k)
 
 
-def grade_by_index(row, index, o2_kpa):
-    """The animal grade (0 to 3) the index allows, less where an oxygen breather's air is under the floor of the grade."""
+def grade_by_index(row, index, o2_kpa, animals_breathe=False):
+    """The animal grade (0 to 3) the index allows, less where an oxygen breather's air is under the floor of the grade. `animals_breathe` (a sealed ocean, GEN.1824) puts every class's animals to the floor, whatever its own oxidant."""
     grade = 0
     for number, key in enumerate(GRADES, start=1):
         if index < tuning.LIFE_COMPLEXITY["thresholds"][key]:
             break
-        if row.oxidant == "o2" and o2_kpa < tuning.LIFE_COMPLEXITY["oxygen_floor_kpa"][key]:
+        if (row.oxidant == "o2" or animals_breathe) and o2_kpa < tuning.LIFE_COMPLEXITY["oxygen_floor_kpa"][key]:
             break
         grade = number
     return grade
@@ -79,11 +79,16 @@ def top_stage(index, grade):
     return "photosynthesis"
 
 
-def assess(row, npp, o2_kpa, temperature_k, anoxic_animals=False):
+def assess(row, npp, o2_kpa, temperature_k, anoxic_animals=False, ocean_o2_kpa=None):
     """The `Complexity` of class `row` on a world: its net primary production `npp`, the oxygen partial pressure `o2_kpa` of its air and
-    the temperature its clock runs at (`life_classes.clock_temperature_k`: the surface's, or the cloud layer's for a class of the cloud). `anoxic_animals` (route R4) gives a world whose index allows multicellular bodies but no animal a grade of 1."""
+    the temperature its clock runs at (`life_classes.clock_temperature_k`: the surface's, or the cloud layer's for a class of the cloud). `anoxic_animals` (route R4) gives a world whose index allows multicellular bodies but no animal a grade of 1.
+    `ocean_o2_kpa` (GEN.1824) is the oxygen of a sealed ocean (`ocean_oxygen.ocean_o2_kpa`; `None` for any other body): the life there breathes the larger of its air's and the ocean's, and the animals of every class, not
+    only of an oxygen-breathing one, are put to the oxygen floors of their grade with it (route R4 is the way round that: animals that have lost aerobic respiration)."""
+    sealed = ocean_o2_kpa is not None
+    if sealed:
+        o2_kpa = max(o2_kpa, ocean_o2_kpa)
     index = index_of(row, npp, o2_kpa, temperature_k)
-    grade = min(grade_by_index(row, index, o2_kpa), row.max_animal_grade)       # GEN.1307: a class of plankton and mats has no animals however high its index
+    grade = min(grade_by_index(row, index, o2_kpa, sealed), row.max_animal_grade)       # GEN.1307: a class of plankton and mats has no animals however high its index
     if anoxic_animals and grade == 0 and index >= tuning.LIFE_COMPLEXITY["thresholds"]["multicellularity"] and row.max_animal_grade >= 1:
         grade = 1
     return Complexity(index, oxidant_yield(row, o2_kpa), life_timeline.rate_factor(temperature_k), grade, top_stage(index, grade))
