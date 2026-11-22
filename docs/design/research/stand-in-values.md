@@ -51,10 +51,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 229 | 22 | 12 | 1 | 0 | 264 |
 | T2 | 184 | 75 | 4 | 0 | 0 | 263 |
-| T3 | 134 | 67 | 13 | 10 | 0 | 224 |
+| T3 | 134 | 68 | 13 | 10 | 0 | 225 |
 | T4 | 90 | 17 | 10 | 25 | 13 | 155 |
 | T5 | 117 | 30 | 8 | 1 | 2 | 158 |
-| T6 | 253 | 142 | 39 | 85 | 8 | 527 |
+| T6 | 253 | 141 | 39 | 85 | 8 | 526 |
 | T7 | 75 | 42 | 10 | 31 | 0 | 158 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
@@ -3532,6 +3532,6 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| FU1 | P | T6 | L1 | `life_supply.json` number `sealed_fuel_efficiency` 0.3: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon) | 0.1 to 0.5 | the chemical classes of an ice-covered ocean | a measured growth yield (carbon per electron donor) of a chemolithoautotroph on hydrogen at a vent, outside 0.1 to 0.5 | a measured yield for the hydrogen eaters of the classes of the design | physics: electrons to carbon is 4 to 1, and a cell keeps a third or less of its reaction's energy as growth; no source gives the share for a sealed ocean | predicted only | - | - |
+| FU1 | P | T3 | L1 | `life_supply.json` number `sealed_fuel_efficiency` 0.1: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon) | 0.04 to 0.15 (methanogens); 0.33 for aerobic hydrogen oxidisers | the chemical classes of an ice-covered ocean | a measured growth yield (carbon per electron donor) of the hydrogen eaters of a vent outside 0.04 to 0.33 | a measured yield for the hydrogen eaters of the classes of the design | de Poorter and others 2007 ([R5348], read): 3 to 7 g dry mass per mol of methane for Methanothermobacter, 4 H2 per methane, half carbon by dry mass (mine): 0.04 to 0.15; the aerobic knallgas ratio 6 H2 to 1 C (0.33) is recalled | predicted only | - | - |
 | FU2 | P | T3 | L0 | `life_supply.json` number `ocean_production_mol_c_m2_yr` 11.5: the carbon Earth's ocean fixes, mol per m2 per year (50 Pg of carbon a year over 3.61e14 m2) | 10 to 13 | the unit of the production of every class (1 is Earth's ocean) | a global ocean production outside 40 to 60 Pg of carbon a year | the figure of the census of the oceans, when one is read | the usual global figure, recalled (the same 50 Pg as `tuning.LIFE_NPP`'s vent and seep estimates); [R4587] for the Enceladus anchor of the reductant flux | predicted only | - | - |
 | FU3 | P | T3 | L0 | `life_classes.sealed_fuel_npp` = FU1 x `ocean_oxygen.sink` / FU2: the fuel cap of a sealed ocean's chemical production | the sink's own range (Enceladus 1 to 4 times Earth's per area, Europa 0.2 times) | the chemical classes of an ice-covered ocean | an ocean under a lid whose life fixes more carbon than its reductants can supply; a measured H2 flux of Enceladus or Europa outside the range | the reductant flux of the floor from a model of the rock and the heat (GEN.1824's sink is already the share of Earth's) | [R4587] (Waite and others 2017: 1e9 to 5e9 mol of H2 a year, read), [R5339] (Worman and others 2016: Earth 1e12) | predicted only | - | - |

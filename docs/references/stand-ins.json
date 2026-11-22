@@ -77911,11 +77911,11 @@
           "fields": [
             [
               "What it is",
-              "life_supply.json number sealed_fuel_efficiency 0.3: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon)"
+              "life_supply.json number sealed_fuel_efficiency 0.1: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon)"
             ],
             [
               "The range it moves in",
-              "0.1 to 0.5"
+              "0.04 to 0.15 (methanogens); 0.33 for aerobic hydrogen oxidisers"
             ],
             [
               "Where it holds",
@@ -77923,7 +77923,7 @@
             ],
             [
               "What would show it wrong",
-              "a measured growth yield (carbon per electron donor) of a chemolithoautotroph on hydrogen at a vent, outside 0.1 to 0.5"
+              "a measured growth yield (carbon per electron donor) of the hydrogen eaters of a vent outside 0.04 to 0.33"
             ],
             [
               "What replaces it",
@@ -77931,18 +77931,18 @@
             ],
             [
               "Evidence",
-              "physics: electrons to carbon is 4 to 1, and a cell keeps a third or less of its reaction's energy as growth; no source gives the share for a sealed ocean"
+              "de Poorter and others 2007 ([R5348], read): 3 to 7 g dry mass per mol of methane for Methanothermobacter, 4 H2 per methane, half carbon by dry mass (mine): 0.04 to 0.15; the aerobic knallgas ratio 6 H2 to 1 C (0.33) is recalled"
             ]
           ],
           "id": "FU1",
           "key": "6.325:FU1",
           "kind": "P",
           "slug": "6-325-fu1",
-          "tier": "T6",
-          "tier_code": "T6",
+          "tier": "T3",
+          "tier_code": "T3",
           "tweak": "L1",
           "unread": null,
-          "what": "life_supply.json number sealed_fuel_efficiency 0.3: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon)"
+          "what": "life_supply.json number sealed_fuel_efficiency 0.1: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon)"
         },
         {
           "burn_down": null,

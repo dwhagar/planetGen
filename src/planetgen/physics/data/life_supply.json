@@ -134,10 +134,10 @@
    "basis": "The hottest habitat a class can sample (the hottest known hyperthermophile grows at 395 to 400 K): the temperature of a deep aquifer is capped here so a deep hot layer does not exclude a cooler one above it"
   },
   "sealed_fuel_efficiency": {
-   "value": 0.3,
-   "tier": "T6",
+   "value": 0.1,
+   "tier": "T3",
    "tweak": "L1",
-   "basis": "Mol of carbon a chemical class fixes for each mol of O2-equivalent of reductant it burns (one mol of O2-equivalent is 4 electrons, and 4 electrons reduce one CO2 to carbohydrate, so 1 is the ceiling): the share of the reductant's electrons that end up in biomass. Chemolithoautotrophs keep a fraction of the energy of their reaction as growth, about a third or less; no source gives the share for a sealed ocean, so this is the first thing a measured growth yield would replace (GEN.1825)"
+   "basis": "Mol of carbon a chemical class fixes for each mol of O2-equivalent of reductant it burns (one mol of O2-equivalent is 4 electrons, and 4 electrons reduce one CO2 to carbohydrate, so 1 is the ceiling): the share of the reductant's electrons that end up in biomass. The hydrogen-eating methanogens of an oxygen-poor sealed ocean grow at 3 to 7 g of dry mass for each mol of methane (de Poorter and others 2007, [R5348], read; 4 H2, which is 2 mol of O2-equivalent, for each mol of methane), which at about half carbon by dry mass is 0.04 to 0.15 mol of carbon for each mol of O2-equivalent; 0.1 is taken inside it. Aerobic hydrogen oxidisers reach about 0.3 (6 H2 for each carbon, recalled) but need the oxygen a sealed ocean lacks (GEN.1825)"
   },
   "ocean_production_mol_c_m2_yr": {
    "value": 11.5,
