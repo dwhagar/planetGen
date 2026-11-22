@@ -67,10 +67,11 @@ GUARD_TESTS = (
 SAMPLE_TESTS = (
     "test_sheet_fill", "test_bring_to_epoch", "test_field_bring_to_epoch", "test_starless_host", "test_web_fresh_after_cli",
     "test_climate_draws", "test_sweep_classes", "test_bughunt_serialization_fuzz", "test_orbit_elements", "test_radius_valley_sweep",
-    "test_surface_air", "test_deferred_sectors", "test_bright_star_scatter")
+    "test_surface_air", "test_deferred_sectors", "test_bright_star_scatter", "test_earth_analog")
 """tuple: Tests that draw a few seeded bodies or sectors and count what they find, so any change to generated output can move
 them even when they name no changed module (trains 13 to 15 each met several of them red); the gate runs them when the branch
-changes a file under `generation/` or `physics/` (TEST.681)."""
+changes a file under `generation/` or `physics/` (TEST.681). `test_earth_analog` runs the generator through `scripts/earth_analog.py`, so it names no
+planetgen module: Trains 45 to 54 moved its baseline without the gate running it (TEST.819)."""
 
 SLOW_CENSUS = ("test_prevalence", "test_fuzz_system_generation", "test_fuzz_planet_inputs", "test_generation_mix",
                "test_gen_kind_factors", "test_web_browser", "test_js_unit", "test_systems.py")
