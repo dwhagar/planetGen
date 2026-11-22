@@ -227,3 +227,41 @@ def test_every_class_is_a_likelihood_between_zero_and_one_for_odd_worlds():
                   dict(surface_dose_msv_yr=1e9, dose_ground_msv_yr=1e9), dict(star_teff_k=None, star_luminosity_w=None)):
         for result in life_classes.score_classes(world(**extra)).values():
             assert 0.0 <= result.likelihood <= 1.0 and math.isfinite(result.likelihood)
+
+
+def test_a_sealed_oceans_and_an_aquifers_life_runs_at_the_temperature_of_its_water_not_of_its_surface():
+    """GEN.1822: an icy moon's 100 K surface is not where its ocean's life lives; the water under the lid is at the melting point of ice."""
+    from planetgen.physics import life_supply, life_timeline
+    moon = world(hydrosphere="ice-covered ocean", surface_temperature_k=100.0, atmospheric_pressure_pa=0.0, **{atmosphere.GAS_FIELD: {}})
+    water_k = life_supply.habitat_temperature_k(moon)
+    assert water_k == pytest.approx(273.15)
+    for class_id in ("3a", "3b", "4a", "4b", "4c", "8"):
+        assert life_classes.clock_temperature_k(life_classes.describe(class_id), moon) == pytest.approx(water_k)
+    for class_id in ("1a", "2", "5b", "6", "7", "9"):
+        assert life_classes.clock_temperature_k(life_classes.describe(class_id), moon) == 100.0       # the classes of the surface keep the surface's
+    assert life_timeline.rate_factor(water_k) > life_timeline.rate_factor(100.0)
+    open_sea = world()
+    assert life_classes.clock_temperature_k(life_classes.describe("4b"), open_sea) == open_sea["surface_temperature_k"]      # an open sea's water is the surface's
+    aquifer = world(hydrosphere="dry", aquifer_thickness_km=2.0, aquifer_depth_km=3.0, surface_temperature_k=283.0, internal_heat_flux_w_m2=0.1)
+    deep = life_supply.habitat_temperature_k(aquifer)
+    assert deep > 283.0                                                                              # groundwater is warmer with depth
+    for class_id in ("3a", "3b", "4a", "4b", "4c", "8"):
+        assert life_classes.clock_temperature_k(life_classes.describe(class_id), aquifer) == pytest.approx(deep)      # an aquifer's life runs at its water's temperature
+    assert life_classes.clock_temperature_k(life_classes.describe("1a"), aquifer) == 283.0            # a class of the surface keeps the surface's
+    dry = world(hydrosphere="dry", aquifer_thickness_km=0.0, surface_temperature_k=283.0)
+    assert life_classes.clock_temperature_k(life_classes.describe("3a"), dry) == 283.0                # no liquid water: the surface's
+
+
+def test_a_sealed_ocean_has_no_abiotic_nitrate_unless_oxygen_makes_it():
+    """GEN.1823: lightning and impacts reach an open sea, not one under a lid; class 4b of a sealed, airless ocean lacks nitrate and says so."""
+    from planetgen.physics import life_supply
+    airless = dict(atmospheric_pressure_pa=0.0, **{atmosphere.GAS_FIELD: {}})
+    sealed = life_supply.supplies(world(hydrosphere="ice-covered ocean", **airless))["nitrate_supply"]
+    open_sea = life_supply.supplies(world(hydrosphere="surface ocean", **airless))["nitrate_supply"]
+    assert sealed == 0.0 and open_sea > 0.0
+    assert life_supply.supplies(world(hydrosphere="ice-covered ocean", **airless))["perchlorate_supply"] == 0.0        # and the perchlorate base of 4c, with no source behind it either
+    assert life_supply.supplies(world(hydrosphere="surface ocean", **airless))["perchlorate_supply"] > 0.0
+    oxygen_under_lid = life_supply.supplies(world(hydrosphere="ice-covered ocean"))["nitrate_supply"]
+    assert oxygen_under_lid > 0.0                     # the oxygen of the air still makes nitrate (the 4a rule reads it the same way)
+    score = life_classes.score_classes(world(hydrosphere="ice-covered ocean", surface_temperature_k=230.0, **airless))["4b"]
+    assert score.score == 0 and "supply:nitrate_supply" in score.failed

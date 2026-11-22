@@ -2,6 +2,45 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4720+db274.gen150.api14] - 2026-11-22
+
+**Headline:** A system read back from its JSON keeps its trojan regions as trojan regions, and the fuzz test's orbit checks know a trojan is no slot of its own.
+
+### Fixed
+- TEST.818: `test_every_star_type_generates_a_sane_system` failed on the hypergiants (IA, IB) with "bodies not in orbital order". Since GEN.1150 a giant's trojan regions stand at the end of its star's list at the giant's own distance, by design (`validation.slot_planets` leaves them out of the spacing), but `assert_orbits_sane` still read the whole list as slots. It now checks each trojan (region or planet) against its giant (an L4 or L5 point, a giant of the list, the same distance) and leaves it out of the order and spacing checks.
+- Behind that check the same test found a real bug: `StarSystem.from_dict` rebuilt a trojan region as a plain belt, so a system read back from its JSON lost the region's Lagrange point, libration, mean eccentricity and inclination (the store's loader was right). It now builds a `TrojanRegion` and links each trojan to the giant at its distance.
+
+generation-output: unchanged
+
+## [8.0.4719+db274.gen150.api14] - 2026-11-22
+
+**Headline:** An ocean under an ice lid holds a bank of oxygen of its own, built from the surface oxidant between two deliveries over the floor's reductants, and the animals of every class there are put to the oxygen floors of their grade with it.
+
+### Added
+- GEN.1824: `physics/ocean_oxygen.py` gives a sealed ocean (hydrosphere `ice-covered ocean`) a dissolved oxygen as a bank [R5346]: the surface oxidant (Europa's production at Europa's dose, to the body's stored surface dose, the share that gets through the lid, to the top of the published range), the water's radiolysis (net zero while its hydrogen stays in the ocean) and the faults' radicals, over the reductants of the floor (`h2_supply` and `donor_supply` in oxygen terms), held over 50 Myr in the water the ocean holds, as micromolar of oxygen and the partial pressure that stands for, at most the air law's cap. The stock the ice accreted with (a comet's oxygen) is in the code and off. The numbers are stand-ins SO1 to SO16 (section 6.324), with [R5336, R5337, R5338, R5339, R5346, R5347] added to the references.
+- `life_complexity.assess` takes it as `ocean_o2_kpa`: the animals of every class that lives under a lid, and not only an oxygen breather's, are put to the oxygen floors of their grade with it; an oxygen breather reads the larger of its air's and the ocean's. Route R4 (animals that lost aerobic respiration) is the way round the floor.
+
+### Changed
+- A life class under an ice lid whose index reached an animal grade (class 4b and the others that breathe something other than oxygen) now needs the ocean's oxygen for it.
+
+## [8.0.4718+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The life of a sealed ocean and of an aquifer now runs at the temperature of its water and no longer gets free nitrate through an ice lid.
+
+### Fixed
+- **A chemical life class of an ice-covered ocean or an aquifer ran its clock at the temperature of the surface (GEN.1822).** Classes 3a to 4c and 8, whose temperature window already reads the water's temperature, now run their clock and complexity index at that same temperature in an ice-covered ocean or an aquifer: an icy moon's sealed ocean at 273 K (rate factor 0.515) and not its surface at 100 K (0.25), and a groundwater world's life at the temperature of its water at depth (the surface's plus the heat flow over the crust's conductivity, at most 420 K) and not at the surface's.
+- **Classes 4b and 4c had free nitrate and perchlorate under an ice lid (GEN.1823).** The abiotic nitrate of lightning, impacts and the radiolysis of the air no longer reaches an ocean under an ice lid (`life_supply.json` `nitrate_sealed_share`, 0); the perchlorate base of Class 4c is cut the same way (`perchlorate_sealed_share`, 0); nitrate made from the air's oxygen still counts. A class that has none of a supply it needs now names it in its failed list (`supply:nitrate_supply`).
+
+## [8.0.4717+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The late accretion of a planet reads the scattering step and the leftovers of its rocky zone, so a planet with no belt outside no longer sits at the ceiling.
+
+### Changed
+- GEN.1493 slice 3: the planetesimals a reservoir sends inward are followed past the star's bodies from the farthest in (`late_supply.fates`). Each body takes its Opik collision share over `RESIDENCE_YR`, throws a Safronov share out of the system, and the rest falls to the star. The rocky zone's leftover planetesimals are a reservoir of their own (`late_accretion.leftover_of`). The floor (0.05 percent) and the ceiling (3 percent) are unchanged. In 240 Sun-like systems the giant-free median late accretion goes from 2.47 to 0.137 percent of the planet's mass and the planets at a bound from 69 to 51 percent. Stand-in rows LS3 to LS5, LA4 and LA5 are registered (LS5 and LA4 are L4).
+
+generation-output: changed
+generation-affects: fill, population
+
 ## [8.0.4716+db274.gen150.api14] - 2026-11-22
 
 **Headline:** Four test files find a system with comets in seconds instead of timing out in their setup.

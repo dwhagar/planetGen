@@ -213,7 +213,14 @@ def _hill_au(planet):
 
 def assert_orbits_sane(planets):
     """Independent physical checks on one star's ordered body list. A belt member promoted to a planet (GEN.1510, `belt_rank`) orbits inside its belt, which the slot spacing exempts
-    (`validation.slot_planets`): it must lie inside a belt of the list, and the spacing checks below are for the slot bodies."""
+    (`validation.slot_planets`): it must lie inside a belt of the list, and the spacing checks below are for the slot bodies. A trojan (GEN.1150, GEN.1151) is checked against its giant and left out of the order and spacing checks (it is no slot)."""
+    trojans = [obj for obj in planets if getattr(obj, "lagrange_point", None) is not None]
+    for trojan in trojans:       # TEST.818: a trojan region or planet (GEN.1150, GEN.1151) shares its giant's orbit by design, so it is no slot of its own: it stands at its giant's distance, 60 degrees ahead of or behind it
+        host = getattr(trojan, "lagrange_host", None) or getattr(trojan, "host", None)
+        assert trojan.lagrange_point in ("L4", "L5"), f"trojan at {trojan.distance} AU stands at {trojan.lagrange_point!r}"
+        assert host is not None and any(host is obj for obj in planets) and host.body_type == "g", f"trojan at {trojan.distance} AU has no giant of its star's list for its host"
+        assert trojan.distance == host.distance, f"trojan at {trojan.distance} AU is not on its giant's orbit at {host.distance} AU"
+    planets = [obj for obj in planets if not any(obj is trojan for trojan in trojans)]
     distances = [obj.distance for obj in planets]
     assert distances == sorted(distances), f"bodies not in orbital order: {distances}"
     assert len(set(distances)) == len(distances), f"two bodies share an orbit: {distances}"
