@@ -154,6 +154,11 @@ _PARENT_TABLES = {"star": "stars", "planet": "planets", "system": "star_systems"
 A `node` parent is the `node_no` of the row's own system and a `free` one has no id; neither is a row id, so both are
 written as they are."""
 
+ROW_ID_COLUMNS = {("planets", "lagrange_host_id"): "planets"}
+"""dict: `(table, column)` to the table it names a row of, for a column that holds another row's id but is no declared foreign key (GEN.1827): `planets.lagrange_host_id`
+(GEN.1151) is the giant a trojan planet shares its orbit with. Left as the raw id it carried the id the row got in that
+run, so two runs that charted the same sectors in another order read as two galaxies."""
+
 LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
 """frozenset: Columns left out of every table: the row id and the clocks."""
 
@@ -269,6 +274,8 @@ class _Reader:
             value = row[column]
             if column in foreign:
                 value = None if value is None else self.key(foreign[column], value)
+            elif (table, column) in ROW_ID_COLUMNS:
+                value = None if value is None else self.key(ROW_ID_COLUMNS[(table, column)], value)
             elif column == "parent_id" and "parent_type" in row.keys():
                 if value is not None and row["parent_type"] in _PARENT_TABLES:
                     value = self.key(_PARENT_TABLES[row["parent_type"]], value)
