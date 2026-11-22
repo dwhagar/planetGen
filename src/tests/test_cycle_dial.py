@@ -75,14 +75,14 @@ def test_a_setting_built_by_hand_is_outside_every_tier():
     assert field.default == 0.0
 
 
-@pytest.mark.parametrize("heat_over_earth", [0.6, 1.0, 1.5, 2.0])
+@pytest.mark.parametrize("heat_over_earth", [0.6, 1.0, 1.5])      # 2.0 was a corner too until GEN.1821: an Earth-sized biosphere is a smaller share of the volcanoes of a world with twice the heat, so its air keeps 1.6 kPa, over the class limit
 def test_a_planet_drawn_from_the_nudged_ranges_holds_its_co2_between_the_photosynthesis_floor_and_the_class_limit(heat_over_earth):
-    """At 290 K and the Earth's absorbed starlight, a world whose heat flow is 0.6 to 2 times the Earth's holds 2 Pa to 1 kPa of CO2 for every corner of the nudged ranges: the band the life classes ask
+    """At 290 K and the Earth's absorbed starlight, a world whose heat flow is 0.6 to 1.5 times the Earth's holds 2 Pa to 1 kPa of CO2 for every corner of the nudged ranges, with the biosphere of an Earth burying beside the weathering (GEN.1821: a world with no life holds more): the band the life classes ask
     for (the floor of photosynthesis and the class limit); over the whole published ranges the same worlds spread from under a pascal to over 100 kPa (reports/gen1720-co2-attribution-2026-11-14.md)."""
     law = waterworld_carbon.SeafloorLaw(75.0e3, 0.27, 0.47)
     low_m, high_m = tuning.ABUNDANCE_CYCLE_OUTGASSING_RANGE[:2]
     low_l, high_l = tuning.ABUNDANCE_CYCLE_LAMBDA_RANGE[:2]
     for scale in (low_l, high_l):
         for exponent in (low_m, high_m):
-            pascal = 1.0e5 * continental_weathering.pco2_bar(200.0, Q_EARTH * heat_over_earth, 0.29, 290.0, 238.0, (scale, exponent), law)
+            pascal = 1.0e5 * continental_weathering.pco2_bar(200.0, Q_EARTH * heat_over_earth, 0.29, 290.0, 238.0, (scale, exponent), law, surface_pressure.EARTH_NET_BURIAL_SHARE)
             assert 2.0 <= pascal <= 1.0e3, (scale, exponent, pascal)
