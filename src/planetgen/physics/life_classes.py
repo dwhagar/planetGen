@@ -311,13 +311,23 @@ REFERENCE_STAR_K = DOCUMENT["reference_star_k"]
 REFERENCE_BAND_NM = tuple(DOCUMENT["reference_band_nm"])
 
 
+def lives_in_habitat_water(row):
+    """Whether the class lives in the water of its habitat and not at the surface: its temperature window reads `habitat_temperature_k` (the chemical classes of water and of ammonia-water, 3a to 4c and 8)."""
+    return any(window["quantity"] == "habitat_temperature_k" for window in row.windows)
+
+
 def clock_temperature_k(row, values):
     """
-    The temperature, K, that the clock of class `row` runs at on a body of `values` (a column-named mapping): where the life lives. A class of the surface or of what is
-    under it reads the surface temperature (`life_supply.habitat_temperature_k` is the gate's own reading for the chemical classes); a class of the acid cloud layer (`habitat`
-    `acid_cloud`, GEN.1307) reads the cloud layer's own temperature (`acid_medium.medium`), which a hot surface does not set, and the surface's where the body holds no layer.
+    The temperature, K, that the clock of class `row` runs at on a body of `values` (a column-named mapping): where the life lives. A class of the surface reads the surface
+    temperature; a class of the water of its habitat (`lives_in_habitat_water`: 3a to 4c and 8) reads `life_supply.habitat_temperature_k`, the water's own
+    temperature that its gate already reads (GEN.1822: an icy moon's 100 K surface held its sealed ocean's life at the slowest clock, though the water is at the melting point of ice), and in an aquifer the water's temperature at the aquifer's depth (the surface's plus the rise with depth, capped at `habitat_max_k`; the same change, extended to groundwater);
+    a class of the acid cloud layer (`habitat` `acid_cloud`, GEN.1307) reads the cloud layer's own temperature (`acid_medium.medium`), which a hot surface does not set, and the surface's where the body holds no layer.
+    Under an open ocean, and on a body with no liquid water, `habitat_temperature_k` returns the surface temperature, so those clocks are unchanged.
     """
     surface = values.get("surface_temperature_k")
+    if lives_in_habitat_water(row):
+        found = life_supply.habitat_temperature_k(values)
+        return found if found is not None else surface
     if getattr(row, "habitat", None) != "acid_cloud":
         return surface
     found = acid_medium.medium(values, cloud_only=True)
@@ -542,6 +552,8 @@ def score_class(row, found, world, values):
             factor = min(1.0, stored / supply["ref"])
             productive = min(1.0, stored * supply["npp_per_unit"]) if "npp_per_unit" in supply else factor
         terms[f"supply:{supply['quantity']}"] = factor
+        if factor <= 0.0:
+            failed = failed + [f"supply:{supply['quantity']}"]        # GEN.1823: a class with none of a supply names it as what it lacked (a sealed ocean's nitrate)
         availability *= factor
         productivity *= productive
     likelihood = likelihood * windows_only * availability if ok else 0.0

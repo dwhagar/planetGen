@@ -25,13 +25,15 @@ def test_the_supply_is_linear_in_the_belt_mass_and_the_inward_share():
     assert late_supply.late_supply_kg(EARTH, SYSTEM, 1.0, [richer]) == pytest.approx(2.0 * base)
 
 
-def test_a_giant_next_to_the_belt_takes_most_of_what_would_reach_the_planets_inside_it():
-    with_giant = late_supply.late_supply_kg(EARTH, SYSTEM, 1.0, [BELT])
-    without = late_supply.late_supply_kg(EARTH, [b for b in SYSTEM if b[2] < 1.0e26], 1.0, [BELT])
-    assert with_giant < 0.05 * without
+def test_a_giant_between_the_ring_and_the_planets_takes_what_would_reach_them():
+    """Jupiter at 5.2 AU sits between a ring at 20 to 30 AU and the inner planets: it takes the planetesimals that cross its orbit within the residence time, and throws a share of the rest out."""
+    ring = late_supply.Early("belt", 10.0 * EARTH_KG, 20.0, 30.0)
+    with_giant = late_supply.late_supply_kg(EARTH, SYSTEM, 1.0, [ring])
+    without = late_supply.late_supply_kg(EARTH, [b for b in SYSTEM if b[2] < 1.0e26], 1.0, [ring])
+    assert without > 0.0 and with_giant < 1.0e-3 * without
 
 
-def test_a_giant_far_beyond_the_belt_does_not_share_it():
+def test_a_giant_beyond_the_ring_does_not_take_part_in_it():
     far = [*SYSTEM[:4], (69911, 40.0, 1.898e27)]
     near_free = late_supply.late_supply_kg(EARTH, SYSTEM[:4], 1.0, [BELT])
     assert late_supply.late_supply_kg(EARTH, far, 1.0, [BELT]) == pytest.approx(near_free)
@@ -42,21 +44,49 @@ def test_a_planet_beyond_the_belt_is_not_reached():
     assert late_supply.late_supply_kg(outside, [*SYSTEM, outside], 1.0, [BELT]) == 0.0
 
 
-def test_a_lone_planet_takes_the_whole_inward_share_wherever_it_lies_in_or_below_the_ring():
+def test_a_lone_planet_takes_the_share_its_cross_section_gives_of_the_part_of_the_ring_beyond_it():
     for au in (1.0, 2.0, 2.7):
         lone = (6371, au, 5.97e24)
-        assert late_supply.late_supply_kg(lone, [lone], 1.0, [BELT]) == pytest.approx(late_supply.INWARD_SHARE * BELT.mass_kg)
+        reached = late_supply.influx.reach(BELT, au)
+        expected = late_supply.INWARD_SHARE * BELT.mass_kg * reached * late_supply.hit_share(*lone, 1.0)
+        assert late_supply.late_supply_kg(lone, [lone], 1.0, [BELT]) == pytest.approx(expected)
 
 
-def test_the_shares_of_all_bodies_never_exceed_what_was_scattered():
-    total = sum(late_supply.late_supply_kg(body, SYSTEM, 1.0, [BELT]) for body in SYSTEM)
-    assert total <= late_supply.INWARD_SHARE * BELT.mass_kg * (1.0 + 1e-9)
+def test_everything_scattered_is_taken_ejected_or_left_to_the_star():
+    taken, ejected, star = late_supply.fates(BELT, SYSTEM, 1.0)
+    assert sum(taken) + ejected + star == pytest.approx(late_supply.INWARD_SHARE * BELT.mass_kg)
+    assert all(share >= 0.0 for share in taken) and ejected >= 0.0 and star >= 0.0
 
 
-def test_a_heavier_belt_can_give_an_earth_the_published_veneer():
-    """The law can reach 0.2 to 0.7 percent of an Earth's mass with an inward share and a belt mass in the ranges a belt can have (not a calibration to the Sun)."""
-    fractions = [late_supply.veneer_fraction(EARTH, SYSTEM, 1.0, [late_supply.Early("belt", mass * EARTH_KG, 2.1, 3.3)]) for mass in (3.0, 10.0, 30.0)]
-    assert any(0.002 <= f <= 0.007 for f in fractions)
+def test_a_planetesimal_that_is_not_taken_goes_on_to_the_planets_inside():
+    """Two planets in a row: the inner one takes from what the outer one let past, so a heavier outer planet leaves it less."""
+    inner = (6371, 1.0, 5.97e24)
+    light, heavy = (3390, 1.5, 6.42e23), (25362, 1.5, 8.68e25)
+    ring = late_supply.Early("belt", 3.0 * EARTH_KG, 2.1, 3.3)
+    assert late_supply.late_supply_kg(inner, [inner, light], 1.0, [ring]) > late_supply.late_supply_kg(inner, [inner, heavy], 1.0, [ring])
+
+
+def test_the_share_a_body_takes_grows_with_the_years_and_the_share_a_giant_throws_out_with_its_safronov_number():
+    earth, jupiter = (6371, 1.0, 5.97e24), (69911, 5.2, 1.898e27)
+    short = late_supply.hit_share(*earth, 1.0)
+    original = late_supply.RESIDENCE_YR
+    try:
+        late_supply.RESIDENCE_YR = original / 10.0
+        assert late_supply.hit_share(*earth, 1.0) < short
+    finally:
+        late_supply.RESIDENCE_YR = original
+    assert late_supply.eject_share(*jupiter, 1.0) > 0.5 > 0.05 > late_supply.eject_share(*earth, 1.0)
+    assert late_supply.hit_share(*jupiter, 1.0) > 0.99
+    assert late_supply.hit_share(0.0, 1.0, 1.0, 1.0) == 0.0 and late_supply.eject_share(0.0, 1.0, 1.0, 1.0) == 0.0
+
+
+def test_the_leftovers_of_the_zone_give_an_earth_the_published_veneer_with_the_giants_beyond_it():
+    """The Sun's terrestrial planets grew 1.8 Earth masses between 0.58 and 1.83 AU; the leftover share of that (row LA3) puts 0.2 to 0.7 percent of an Earth's mass on the Earth, giants or not."""
+    from planetgen.generation import late_accretion
+
+    zone = late_supply.Early("leftover", late_accretion.LEFTOVER_SHARE * 1.8 * EARTH_KG, 0.58, 1.83, inward_share=1.0)
+    assert 0.002 <= late_supply.veneer_fraction(EARTH, SYSTEM, 1.0, [zone]) <= 0.007
+    assert 0.002 <= late_supply.veneer_fraction(EARTH, SYSTEM[:4], 1.0, [zone]) <= 0.007
 
 
 def _fates(**shares):
@@ -104,12 +134,11 @@ def test_a_lost_stretch_sends_only_what_the_giants_threw_onto_crossing_orbits():
     assert late_supply.inward_share_of(_fates(scattered_disk=0.4, centaurs=0.1, ejected=0.2), True, gone=True) == pytest.approx(late_supply.CROSSING_GAIN * 0.5)
 
 
-def test_a_solar_system_like_architecture_with_a_swept_outer_disk_stays_inside_the_published_veneer():
-    """The two gains are fitted (rows LS1a, LS1b) so a synthetic Sun-like system, an Earth inside the four giants with an outer disk of 10 to 20 Earth masses the outermost giant swept, keeps 0.2 to 0.7 percent of its mass."""
+def test_a_solar_system_like_architecture_with_a_swept_outer_disk_gives_the_planets_inside_the_giants_almost_nothing():
+    """An outer disk the outermost giant swept sends planetesimals on crossing orbits, but the four giants between it and the Earth take or throw out nearly all of them: the Earth's veneer comes from the leftovers of its own zone (row LA3)."""
     giants = [(69911, 5.2, 1.898e27), (58232, 9.5, 5.683e26), (25362, 19.2, 8.68e25), (24622, 30.1, 1.02e26)]
     system = [*SYSTEM[:4], *giants]
     fates = scatter.scatter_shares(1.0, 17.1, 30.1, 3.88, 0.0, 30.0, 50.0, 0.0)
     share = late_supply.inward_share_of(fates, False)
-    for mass in (10.0, 20.0):
-        disk = late_supply.Early("belt", mass * EARTH_KG, 30.0, 50.0, inward_share=share)
-        assert 0.002 <= late_supply.veneer_fraction(EARTH, system, 1.0, [disk]) <= 0.007
+    disk = late_supply.Early("belt", 20.0 * EARTH_KG, 30.0, 50.0, inward_share=share)
+    assert late_supply.veneer_fraction(EARTH, system, 1.0, [disk]) < 1.0e-4

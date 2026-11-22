@@ -8,7 +8,8 @@ A rocky planet's air is made when the planet is, with one late-accretion number 
 Once the system is whole, `apply` takes that number from the system instead: the mass of the early belts that lands on the planet, past the other planets that share it
 (`physics/late_supply.py`), and makes the planet's air, water and ground again on the draws they began with (`planets.remake_air`), so only what the late accretion changes is different.
 
-* **The supply.** `late_supply.veneer_fraction` over the planets and belts of the planet's own star.
+* **The supply.** `late_supply.veneer_fraction` over the reservoirs of the planet's own star: its belts, the stretches no belt is left of, and the leftover planetesimals of its rocky zone (`leftover_of`, GEN.1493 slice 3). The planetesimals are followed past
+  the system's bodies (`late_supply.fates`), so a giant between a belt and the planets takes what would reach them, and the leftovers of the planets' own zone, which lies inside the giants, carry the veneer.
 * **The floor.** A planet no belt reaches (31 percent of 581 sampled planets) still took the planetesimals that never formed a belt: it gets at least `FLOOR_SHARE` of the mean the law gives its mass
   (`impact_history.late_accreted_percent_mean`). [Stand-in 6.255 LA1, tier T6, tweak L3.]
 * **The ceiling.** The old cap `impact_history.LATE_ACCRETED_PERCENT_MAX` stands.
@@ -26,6 +27,14 @@ _kg_to_msun = units.converter("kg", "Msun")
 FLOOR_SHARE = 0.05
 """float: The least a planet takes, as a share of the mean the present law gives its mass: the planetesimals that never formed a belt. The lowest published veneers (a few hundredths of a percent for the Moon against
 about half a percent for the Earth) are about 0.05 of the mean of a body of their mass, recalled, not registered. [Stand-in 6.255 LA1, tier T6, tweak L3.]"""
+
+LEFTOVER_SHARE = 0.007
+"""float: The leftover planetesimals of a star's rocky zone (the ones that rain on its planets for the first hundred million years, and whose fall is the veneer of the Earth), as a share of the mass of the rocky planets that grew from the zone: the planets
+took the planetesimals at an efficiency that does not change much from one disk to the next, so what was left goes with what was taken. Set so the Sun's own terrestrial planets (1.8 Earth masses), with the giants beyond them, put 0.2 to 0.7 percent of the Earth's
+mass on the Earth (test). [Stand-in 6.255 LA4, tier T6, tweak L4.]"""
+
+LEFTOVER_ZONE = (0.8, 1.2)
+"""tuple: The ring of the leftovers, as a multiple of the distance of the innermost and of the outermost rocky planet of the star (the planets' own feeding zones reach a fifth either side). [Stand-in 6.255 LA5, tier T6, tweak L1.]"""
 
 EARTH_KG = 5.9722e24
 
@@ -54,12 +63,34 @@ def early_of_origin(origin, lower_au, upper_au, fates):
                              inward_share=late_supply.inward_share_of(fates, origin.stirred, gone=True))
 
 
+def leftover_of(star, siblings):
+    """
+    The leftover planetesimals of the zone a star's rocky planets stand in (`late_supply.Early`, all of it sent inward), or `None` for a star with no rocky planet: `LEFTOVER_SHARE` of the mass of the rocky planets between `LEFTOVER_ZONE` times the innermost and
+    the outermost of them, the zone cut at the star's snow line (past which a rocky planet's zone is not the one the planets grew in).
+
+    Args:
+        star: The star the planets orbit.
+        siblings: The bodies of the star (a rocky planet is a planet of type `t` that is not a moon).
+    """
+    rocky = [body for body in siblings if body.body_type == "t" and not body.is_moon and body.mass and body.distance > 0.0]
+    if not rocky:
+        return None
+    nearest, farthest = min(body.distance for body in rocky), max(body.distance for body in rocky)
+    lower = LEFTOVER_ZONE[0] * nearest
+    upper = min(LEFTOVER_ZONE[1] * farthest, max(star.snow_line_au, lower * LEFTOVER_ZONE[1] / LEFTOVER_ZONE[0]))
+    grown = sum(body.mass for body in rocky if body.distance <= upper)
+    return late_supply.Early("leftover", LEFTOVER_SHARE * grown, lower, upper, inward_share=1.0)
+
+
 def percent_for(planet, siblings, star_mass_solar, lost=()):
     """The late accretion of `planet`, percent of its mass, from the planets and belts `siblings` of its star (the planet among them) and the `lost` reservoirs of the star (`late_supply.Early`: stretches no belt is left of)."""
     mass_earth = planet.mass / EARTH_KG
     bodies = [(body.radius, body.distance, body.mass) for body in siblings
               if body.body_type in ("t", "g") and not body.is_moon and body.mass and body.radius]
     reservoirs = [early_of_belt(belt) for belt in siblings if belt.body_type == "a" and _primordial_kg(belt) > 0.0] + list(lost)
+    leftover = leftover_of(planet.star, siblings)
+    if leftover is not None:
+        reservoirs.append(leftover)
     supply = 100.0 * late_supply.veneer_fraction((planet.radius, planet.distance, planet.mass), bodies, star_mass_solar, reservoirs)
     floor = FLOOR_SHARE * impact_history.late_accreted_percent_mean(mass_earth)
     return min(max(supply, floor), impact_history.LATE_ACCRETED_PERCENT_MAX)
