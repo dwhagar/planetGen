@@ -38,6 +38,10 @@ WRITE_ENVIRONMENT = "PLANETGEN_WRITE_GOLDEN"
 GALAXY_SEED = bytes.fromhex("5EED00000000A1B2C3D4E5F607182930")
 """bytes: The 128-bit seed of the golden galaxy."""
 
+GALAXY_PINS = {"class_m": 0.0}
+"""dict: The levers the golden galaxy's plan is told: the Class M box unticked (the science, choice 0 of `dials.lever("class_m").choices`), so its digest stays what it was until the
+goldens are renewed once at 8.1 (GEN.1832 made the box ticked by default)."""
+
 GALAXY_ARGUMENTS = ("--shells", "1", "--num-systems", "4")
 """tuple: The `planetgen galaxy` arguments (before `--workers`) that build the golden galaxy: shell 1 with four
 systems a sector, then the run's own scatter of the bright stars and the phenomena, its backfill and its settle."""
