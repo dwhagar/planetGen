@@ -65,7 +65,7 @@ def _sink():
         solved_temperature_k = 300.0
 
         @staticmethod
-        def kept_at(temperature_k):
+        def kept_at(temperature_k, burial=0.0):
             return 0.001 * 2.0 ** ((300.0 - temperature_k) / 10.0)
     return Sink()
 

@@ -183024,6 +183024,49 @@
    "volume": "15",
    "year": 2015
   },
+  "10.1089/ast.2015.1384": {
+   "authors": [
+    [
+     "Gebauer",
+     "S."
+    ],
+    [
+     "Grenfell",
+     "J.L."
+    ],
+    [
+     "Stock",
+     "J.W."
+    ],
+    [
+     "Lehmann",
+     "R."
+    ],
+    [
+     "Godolt",
+     "M."
+    ],
+    [
+     "von Paris",
+     "P."
+    ],
+    [
+     "Rauer",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1089/ast.2015.1384",
+   "editors": [],
+   "journal": "Astrobiology",
+   "page": "27",
+   "publisher": "SAGE Publications",
+   "src": "crossref",
+   "title": "Evolution of Earth-like Extrasolar Planetary Atmospheres: Assessing the Atmospheres and Biospheres of Early Earth Analog Planets with a Coupled Atmosphere Biogeochemical Model",
+   "type": "journal-article",
+   "volume": "17",
+   "year": 2017
+  },
   "10.1089/ast.2015.1422": {
    "arxiv": "1610.04515",
    "authors": [
@@ -290701,6 +290744,7 @@
   "10.1089/ast.2015.0904": "R1698",
   "10.1089/ast.2015.1302": "R1699",
   "10.1089/ast.2015.1325": "R1159",
+  "10.1089/ast.2015.1384": "R5332",
   "10.1089/ast.2015.1422": "R0156",
   "10.1089/ast.2015.1432": "R1432",
   "10.1089/ast.2016.1519": "R3661",

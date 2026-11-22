@@ -77165,6 +77165,204 @@
       "title": "Stand-ins of the pressure of a habitat (GEN.1819)"
     },
     {
+      "key": "6.322",
+      "number": "6.322",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.EARTH_NET_BURIAL_SHARE = 3.0 / 6.6: the share of Earth's volcanic CO2 that its biosphere buries for good; the weathering is levelled to 1 - 0.455 of the modern law so the Earth balances with it (the Earth identity, AM110)"
+            ],
+            [
+              "The range it moves in",
+              "3 Tmol (R5300 Table 1) over 6.6 Tmol (R2489); 0.3 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "the carbon sink of a body with land or a seafloor"
+            ],
+            [
+              "What would show it wrong",
+              "a measured net organic burial of the modern Earth outside 2 to 4.5 Tmol of carbon a year"
+            ],
+            [
+              "What replaces it",
+              "the same ratio from a newer budget of the modern carbon cycle"
+            ],
+            [
+              "Evidence",
+              "[R5300] (the reductant sink of the oxygen law, read), [R2489] (the 6.6 Tmol outgassing, AM60); the ratio is my arithmetic"
+            ]
+          ],
+          "id": "CB1",
+          "key": "6.322:CB1",
+          "kind": "P",
+          "slug": "6-322-cb1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_pressure.EARTH_NET_BURIAL_SHARE = 3.0 / 6.6: the share of Earth's volcanic CO2 that its biosphere buries for good; the weathering is levelled to 1 - 0.455 of the modern law so the Earth balances with it (the Earth identity, AM110)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.BURIAL_FULL_FACTOR 10: the burial is whole at 10 times the producers' floor (5 Pa) and falls in a line to nothing at the floor BURIAL_FLOOR_BAR 0.5 Pa (the class 1a gate co2_partial_pa, [R5240], [R5241])"
+            ],
+            [
+              "The range it moves in",
+              "3 to 30 times the floor"
+            ],
+            [
+              "Where it holds",
+              "a biosphere that buries more than the volcanoes give"
+            ],
+            [
+              "What would show it wrong",
+              "a world whose producers bury at full rate in an air of 1 to 5 Pa of CO2"
+            ],
+            [
+              "What replaces it",
+              "a carbon-limited production law of the producers"
+            ],
+            [
+              "Evidence",
+              "educated guess from inferred physics (carbon limits production near the compensation point); the floor is the registered gate"
+            ]
+          ],
+          "id": "CB2",
+          "key": "6.322:CB2",
+          "kind": "P",
+          "slug": "6-322-cb2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_pressure.BURIAL_FULL_FACTOR 10: the burial is whole at 10 times the producers' floor (5 Pa) and falls in a line to nothing at the floor BURIAL_FLOOR_BAR 0.5 Pa (the class 1a gate co2_partial_pa, [R5240], [R5241])"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "carbon_burial.oxygenic_net_mol_yr = S - min(W(p), S): the net organic sink of the oxygenic classes (all of S while no oxygen stands, R at the oxygen balance); no new number"
+            ],
+            [
+              "The range it moves in",
+              "the oxygen law's own ranges"
+            ],
+            [
+              "Where it holds",
+              "the classes that split water"
+            ],
+            [
+              "What would show it wrong",
+              "an oxygen balance whose burial is not the source less the oxidative weathering"
+            ],
+            [
+              "What replaces it",
+              "a model of the kerogen's return"
+            ],
+            [
+              "Evidence",
+              "the oxygen law (GEN.1733) and [R5300]; the burial is the O2-consistent net, mine"
+            ]
+          ],
+          "id": "CB3",
+          "key": "6.322:CB3",
+          "kind": "P",
+          "slug": "6-322-cb3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "carbon_burial.oxygenic_net_mol_yr = S - min(W(p), S): the net organic sink of the oxygenic classes (all of S while no oxygen stands, R at the oxygen balance); no new number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_ledger.json number anoxic_burial_share 0.02: the share of the carbon a class with no oxygen to respire it fixes that ends buried"
+            ],
+            [
+              "The range it moves in",
+              "0.002 (the modern ocean's, [R5332]) to 0.1"
+            ],
+            [
+              "Where it holds",
+              "classes 2 to 4 (the burial rows)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured preservation of carbon in anoxic sediments of the early Earth outside 0.5 to 10 percent of production"
+            ],
+            [
+              "What replaces it",
+              "the preservation from a measured Archean record"
+            ],
+            [
+              "Evidence",
+              "[R5332] (Gebauer and others 2017: beta = 0.002 for the modern ocean, read; about 2 percent for the Archean's euxinic water from the Black Sea analogue, section 6.2.2, second-hand: the page's summary was read, not the paragraph)"
+            ]
+          ],
+          "id": "CB4",
+          "key": "6.322:CB4",
+          "kind": "P",
+          "slug": "6-322-cb4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_ledger.json number anoxic_burial_share 0.02: the share of the carbon a class with no oxygen to respire it fixes that ends buried"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_ledger.json number earth_donor_electron_tmol_yr 80: the electrons Earth's donors give its anoxygenic and chemical classes, with four to a carbon and the growth yield FU1 of 6.325 for the chemical classes"
+            ],
+            [
+              "The range it moves in",
+              "40 to 160 Tmol"
+            ],
+            [
+              "Where it holds",
+              "classes 2 and 4 on donor_supply, class 3 on h2_supply (2 electrons a molecule, earth_h2_tmol_yr)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured donor flux or photoferrotroph production outside 2 times this"
+            ],
+            [
+              "What replaces it",
+              "a measured donor budget of the Archean ocean"
+            ],
+            [
+              "Evidence",
+              "[R3393] (80 Tmol of Fe2+ a year fix 20 Tmol of carbon, read); [R5348] through FU1"
+            ]
+          ],
+          "id": "CB5",
+          "key": "6.322:CB5",
+          "kind": "P",
+          "slug": "6-322-cb5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_ledger.json number earth_donor_electron_tmol_yr 80: the electrons Earth's donors give its anoxygenic and chemical classes, with four to a carbon and the growth yield FU1 of 6.325 for the chemical classes"
+        }
+      ],
+      "slug": "6-322-stand-ins-of-the-carbon-a-biosphere-buries-gen-1821",
+      "title": "Stand-ins of the carbon a biosphere buries (GEN.1821)"
+    },
+    {
       "key": "6.323",
       "number": "6.323",
       "rows": [

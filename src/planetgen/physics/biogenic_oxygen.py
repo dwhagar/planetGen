@@ -492,7 +492,7 @@ def apply(body, target_mol):
     return True
 
 
-def rebalance_co2(body):
+def rebalance_co2(body, burial=0.0):
     """
     Solves the carbon sink of the air again at the temperature the oxygen rise left (GEN.1309 A). The air was solved with the methane and hydrogen that warmed it; `apply` burned
     them (the methane's carbon is CO2 now, one for one) and the air found another surface temperature (7 to 67 K lower in the worlds this was measured on), but the sink that holds
@@ -502,6 +502,9 @@ def rebalance_co2(body):
     root of a rising difference, found by bracketing and halving (GEN.1589; the damped passes it replaced stopped after 8 with the answer still falling, 562 K to 432 K in one air, and were
     left where they stood). The root is held to `REBALANCE_TOLERANCE`, and a run that does not settle in `REBALANCE_BISECTIONS` is logged. A body with no sink (no carbon to weather, or an air the oddity
     rows replaced) is left as it is.
+
+    `burial` is the organic carbon the life of the body buries beside the weathering, over Earth's outgassing per area (`carbon_burial.rate_of`, GEN.1821): the sink is asked with it, so a world with life keeps the CO2 its
+    own biosphere leaves (0: the lifeless baseline, as the first solve).
 
     Returns:
         bool: Whether the air changed.
@@ -525,7 +528,7 @@ def rebalance_co2(body):
     def difference(carbon_dioxide):
         """The CO2 asked of the air less the CO2 the sink holds at the temperature that CO2 gives: below zero while the sink wants more."""
         store(carbon_dioxide)
-        return carbon_dioxide - max(base + (sink.kept_at(body.surface_temperature) - sink.solved_bar) * 1.0e5, 0.0)
+        return carbon_dioxide - max(base + (sink.kept_at(body.surface_temperature, burial) - sink.solved_bar) * 1.0e5, 0.0)
 
     low, high = 0.0, min(max(current, MINIMUM_PA), room)
     for _ in range(REBALANCE_BRACKETS):

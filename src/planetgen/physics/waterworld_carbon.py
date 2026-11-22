@@ -51,7 +51,7 @@ from dataclasses import dataclass
 from planetgen.physics import constants, elements
 from planetgen.physics.mixture_base import bracket
 from planetgen.physics.sulfur_balance import CRUST_CALCIUM_WT
-from planetgen.physics.surface_pressure import (CO2_MODERN_BAR, HEAT_FLUX_EARTH_W_M2, MIN_PCO2_BAR, TS_MODERN_K, balance_root_bar)
+from planetgen.physics.surface_pressure import (CO2_MODERN_BAR, HEAT_FLUX_EARTH_W_M2, LIFELESS_WEATHERING_SHARE, MIN_PCO2_BAR, TS_MODERN_K, balance_root_bar, burial_rate)
 
 # --- the seal ---------------------------------------------------------------------------------------------------------------
 
@@ -358,14 +358,15 @@ def seafloor_rate_over_modern(pco2_bar, surface_temperature_k, heat_flux_w_m2, l
             * (max(heat_flux_w_m2, 0.0) / HEAT_FLUX_EARTH_W_M2) ** law.spreading_exponent)
 
 
-def seafloor_pco2_bar(supply_bar, heat_flux_w_m2, temperature_of, law, outgassing_exponent):
+def seafloor_pco2_bar(supply_bar, heat_flux_w_m2, temperature_of, law, outgassing_exponent, burial=0.0):
     """
     The CO2 pressure at which seafloor weathering takes as much as the volcanoes give (the stable root), for a world with no land and a
     seafloor under the seal pressure.
 
     The modern seafloor precipitation is `SEAFLOOR_SHARE_OF_OUTGASSING` of the modern outgassing, and the outgassing scales as
     `(q / q_modern)^m` (`surface_pressure.OUTGASSING_EXPONENT`), so the balance is
-    `SEAFLOOR_SHARE_OF_OUTGASSING * seafloor_rate_over_modern = (q / q_modern)^m`.
+    `(1 - b_E) SEAFLOOR_SHARE_OF_OUTGASSING * seafloor_rate_over_modern + b(p) = (q / q_modern)^m`, with the weathering levelled so the Earth balances with its biosphere (`surface_pressure.EARTH_NET_BURIAL_SHARE`)
+    and `b(p)` the organic carbon a biosphere buries (`surface_pressure.burial_rate`, GEN.1821).
 
     Args:
         supply_bar (float): The CO2 the volcanoes have delivered, as a pressure: all of it if the seafloor cannot keep up.
@@ -373,6 +374,7 @@ def seafloor_pco2_bar(supply_bar, heat_flux_w_m2, temperature_of, law, outgassin
         temperature_of (callable): `Ts(p_bar)`, the surface temperature with that much CO2 in the air.
         law (SeafloorLaw): `draw_seafloor_law`.
         outgassing_exponent (float): `m` of the outgassing law.
+        burial (float): The biosphere's net organic sink over Earth's outgassing per area (`b`); 0 for a world with no life.
 
     Returns:
         float: The CO2 pressure, bar, at most `supply_bar`.
@@ -384,6 +386,7 @@ def seafloor_pco2_bar(supply_bar, heat_flux_w_m2, temperature_of, law, outgassin
         return MIN_PCO2_BAR
 
     def excess(p_bar):
-        return SEAFLOOR_SHARE_OF_OUTGASSING * seafloor_rate_over_modern(p_bar, temperature_of(p_bar), heat_flux_w_m2, law) - outgassing
+        return (LIFELESS_WEATHERING_SHARE * SEAFLOOR_SHARE_OF_OUTGASSING * seafloor_rate_over_modern(p_bar, temperature_of(p_bar), heat_flux_w_m2, law)
+                + burial_rate(burial, p_bar) - outgassing)
 
     return balance_root_bar(supply_bar, excess)

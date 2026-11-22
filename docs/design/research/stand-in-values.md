@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1995 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2000 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,23 +42,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1968 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1973 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 229 | 22 | 12 | 1 | 0 | 264 |
+| T1 | 231 | 22 | 12 | 1 | 0 | 266 |
 | T2 | 184 | 75 | 4 | 0 | 0 | 263 |
-| T3 | 134 | 68 | 13 | 10 | 0 | 225 |
+| T3 | 134 | 69 | 13 | 10 | 0 | 226 |
 | T4 | 90 | 17 | 10 | 25 | 13 | 155 |
-| T5 | 117 | 30 | 8 | 1 | 2 | 158 |
+| T5 | 117 | 31 | 8 | 1 | 2 | 159 |
 | T6 | 253 | 141 | 39 | 85 | 8 | 526 |
-| T7 | 75 | 42 | 10 | 31 | 0 | 158 |
+| T7 | 75 | 43 | 10 | 31 | 0 | 159 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1137 | 415 | 102 | 275 | 66 | 1995 |
+| All | 1139 | 418 | 102 | 275 | 66 | 2000 |
 
 ## How the labels were given
 
@@ -3498,6 +3498,16 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AI3 | P | T6 | L0 | `adaptation_record.FLOOR_CLASSES`: the classes 3a and 3b read the pressure at the floor of an ocean (rock contact, the hydrogen of serpentinisation and of radiolysis), every other class the top | 3a and 3b only; or all of the water classes | the water classes | a hydrogen eater of the water column far from the rock | a per-class habitat of the class rules | educated guess from physics (TODO's answer to GEN.1819) | predicted only | - | - |
 | AI4 | B | T2 | L0 | `life_supply.json` number `crust_density_kg_m3` 2700: the pressure of an aquifer is the air's plus the weight of the rock to its depth | 2600 to 2900 | an aquifer in a crust of silicate rock | a measured mean density of the crust of the body | the density of the body's own crust (`crust_thickness_km`) | the mean density of the continental crust, 2.7 g/cm3 | predicted only | - | - |
 | AI5 | P | T5 | L0 | `life_supply.habitat_pressure_pa` takes the floor of the liquid over high-pressure ice to be at the pressure where water at `ice_ocean_base_k` freezes into it (`water_layer.liquidus_pressure_pa`): the ocean is ice-sealed there, no rock | the lid's melting point (a little lower with salt: a few tens of MPa) | an ice-covered ocean with `hp_ice_km` | a stored base of the liquid that differs from the liquidus by more than 10 percent | the pressure the water layer's integration stores at the liquid's base | the melting curves of ice III, V and VI the water layer already holds | predicted only | - | - |
+
+## 6.322 Stand-ins of the carbon a biosphere buries (GEN.1821)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CB1 | P | T1 | L0 | `surface_pressure.EARTH_NET_BURIAL_SHARE` = 3.0 / 6.6: the share of Earth's volcanic CO2 that its biosphere buries for good; the weathering is levelled to `1 - 0.455` of the modern law so the Earth balances with it (the Earth identity, AM110) | 3 Tmol (R5300 Table 1) over 6.6 Tmol (R2489); 0.3 to 0.6 | the carbon sink of a body with land or a seafloor | a measured net organic burial of the modern Earth outside 2 to 4.5 Tmol of carbon a year | the same ratio from a newer budget of the modern carbon cycle | [R5300] (the reductant sink of the oxygen law, read), [R2489] (the 6.6 Tmol outgassing, AM60); the ratio is my arithmetic | predicted only | - | - |
+| CB2 | P | T7 | L1 | `surface_pressure.BURIAL_FULL_FACTOR` 10: the burial is whole at 10 times the producers' floor (5 Pa) and falls in a line to nothing at the floor `BURIAL_FLOOR_BAR` 0.5 Pa (the class 1a gate `co2_partial_pa`, [R5240], [R5241]) | 3 to 30 times the floor | a biosphere that buries more than the volcanoes give | a world whose producers bury at full rate in an air of 1 to 5 Pa of CO2 | a carbon-limited production law of the producers | educated guess from inferred physics (carbon limits production near the compensation point); the floor is the registered gate | predicted only | - | - |
+| CB3 | P | T1 | L0 | `carbon_burial.oxygenic_net_mol_yr` = `S - min(W(p), S)`: the net organic sink of the oxygenic classes (all of `S` while no oxygen stands, `R` at the oxygen balance); no new number | the oxygen law's own ranges | the classes that split water | an oxygen balance whose burial is not the source less the oxidative weathering | a model of the kerogen's return | the oxygen law (GEN.1733) and [R5300]; the burial is the O2-consistent net, mine | predicted only | - | - |
+| CB4 | P | T5 | L1 | `life_ledger.json` number `anoxic_burial_share` 0.02: the share of the carbon a class with no oxygen to respire it fixes that ends buried | 0.002 (the modern ocean's, [R5332]) to 0.1 | classes 2 to 4 (the burial rows) | a measured preservation of carbon in anoxic sediments of the early Earth outside 0.5 to 10 percent of production | the preservation from a measured Archean record | [R5332] (Gebauer and others 2017: beta = 0.002 for the modern ocean, read; about 2 percent for the Archean's euxinic water from the Black Sea analogue, section 6.2.2, second-hand: the page's summary was read, not the paragraph) | predicted only | - | - |
+| CB5 | P | T3 | L1 | `life_ledger.json` number `earth_donor_electron_tmol_yr` 80: the electrons Earth's donors give its anoxygenic and chemical classes, with four to a carbon and the growth yield FU1 of 6.325 for the chemical classes | 40 to 160 Tmol | classes 2 and 4 on `donor_supply`, class 3 on `h2_supply` (2 electrons a molecule, `earth_h2_tmol_yr`) | a measured donor flux or photoferrotroph production outside 2 times this | a measured donor budget of the Archean ocean | [R3393] (80 Tmol of Fe2+ a year fix 20 Tmol of carbon, read); [R5348] through FU1 | predicted only | - | - |
 
 ## 6.323 Stand-ins of the life of a sealed ocean (GEN.1822, GEN.1823)
 
