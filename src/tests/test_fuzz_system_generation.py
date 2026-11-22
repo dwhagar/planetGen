@@ -260,11 +260,11 @@ def assert_orbits_sane(planets):
 
 
 def _all_planet_lists(system):
-    return [system.primary.orbiters, system.secondary.orbiters]
+    return [host.orbiters for host in system.hosts if host.role in ("primary", "secondary")]
 
 
 def assert_flags_honored(system, cfg):
-    bodies = system.primary.orbiters + system.secondary.orbiters
+    bodies = system.primary.orbiters + (system.secondary.orbiters if system.secondary else [])
     real = [b for b in bodies if b.body_type != "a"]
     if cfg.PLANETS is False:
         assert not bodies, "PLANETS=False but bodies were generated"
@@ -315,7 +315,7 @@ def assert_binary_geometry(system):
 
 
 def assert_life_caps(system, cfg):
-    for obj in system.primary.orbiters + system.secondary.orbiters:
+    for obj in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
         if obj.body_type == "a" or not obj.has_timeline:
             continue
         stage = obj.life_stage

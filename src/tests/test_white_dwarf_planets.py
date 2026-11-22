@@ -103,7 +103,7 @@ def test_a_close_pair_with_a_hot_white_dwarf_holds_a_disk_and_no_planets():
             continue
         pairs += 1
         assert remnant_orbits.is_post_agb_pair(system.star)
-        assert system.primary.orbiters == [] and system.secondary.orbiters == []
+        assert system.primary.orbiters == [] and system.secondary is None
         primary = system.primary_star
         low, high = tuning.POST_AGB_DISK_MASS_RANGE_SOLAR
         assert primary.disk_kind == remnant_orbits.POST_AGB_DISK_KIND

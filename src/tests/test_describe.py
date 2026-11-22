@@ -225,7 +225,7 @@ def test_every_table_row_has_a_fact():
         if system.binary_type == "wide":
             pair = next(s for s in _all_sections(document) if s["kind"] == "pair")
             assert _TABLE_KEYS["wide-pair"] <= _fact_keys(pair)
-        bodies = list(system.primary.orbiters) + list(system.secondary.orbiters)
+        bodies = list(system.primary.orbiters) + list((system.secondary.orbiters if system.secondary else []))
         for body in bodies:
             if body.body_type == "a":
                 continue
@@ -238,13 +238,13 @@ def test_every_body_has_a_section_in_page_order():
     for _overrides, system in _systems():
         document = describe(system)
         titles = [(s["kind"], s["title"]) for s in model.sections(document)]
-        expected = [body.name for body in system.primary.orbiters + system.secondary.orbiters if body.body_type != "a"]
+        expected = [body.name for body in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []) if body.body_type != "a"]
         planets = [title for kind, title in titles if kind == "planet"]
         assert sorted(planets) == sorted(expected)
-        moons = sorted(moon.name for body in system.primary.orbiters + system.secondary.orbiters if body.body_type != "a"
+        moons = sorted(moon.name for body in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []) if body.body_type != "a"
                        for moon in body.moons)
         assert sorted(title for kind, title in titles if kind == "moon") == moons
-        belts = [body for body in system.primary.orbiters + system.secondary.orbiters if body.body_type == "a"]
+        belts = [body for body in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []) if body.body_type == "a"]
         assert sum(kind == "belt" for kind, _ in titles) == len(belts)
         assert sum(kind == "comet" for kind, _ in titles) == len(system.comets) + len(system.secondary_comets)
 
@@ -265,7 +265,7 @@ def test_the_overview_keeps_the_old_summary_but_counts_worlds_by_their_rating():
 
 def test_a_world_counts_as_habitable_by_its_overall_tier(monkeypatch):
     for _overrides, system in _systems():
-        bodies = [body for planet in system.primary.orbiters + system.secondary.orbiters if planet.body_type != "a"
+        bodies = [body for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []) if planet.body_type != "a"
                   for body in (planet, *planet.moons)]
         expected = sum(1 for body in bodies if body.habitability_world() is not None
                        and habitability.tier(protection.rating(*body.habitability_world())["overall"])
@@ -280,7 +280,7 @@ def test_the_life_sentences_are_short_and_plain():
     seen = 0
     for _overrides, system in _systems(4):
         document = describe(system)
-        for body in system.primary.orbiters + system.secondary.orbiters:
+        for body in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             if body.body_type == "a" or not body.life_class:
                 continue
             section = next(s for s in model.sections(document) if s["title"] == body.name)
@@ -351,7 +351,7 @@ def test_a_scored_rocky_body_carries_its_six_ratings_as_the_paragraph_says_them(
     seen = 0
     for _overrides, system in _systems(4):
         document = describe(system)
-        for body in system.primary.orbiters + system.secondary.orbiters:
+        for body in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             if body.body_type == "a":
                 continue
             for part in [body, *body.moons]:
@@ -396,7 +396,7 @@ def test_the_timeline_is_written_from_the_stored_state_with_the_ladders():
     seen = 0
     for _overrides, system in _systems(8):
         document = describe(system)
-        for body in system.primary.orbiters + system.secondary.orbiters:
+        for body in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             if body.body_type == "a" or not body.has_timeline:
                 continue
             section = next(s for s in model.sections(document) if s["title"] == body.name)

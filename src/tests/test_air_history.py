@@ -23,7 +23,7 @@ def _worlds(count, **overrides):
             setattr(config, key, value)
         with deterministic_entropy(7100 + seed):
             system = StarSystem(system_config=config)
-        for planet in system.primary.orbiters + system.secondary.orbiters:
+        for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             if planet.body_type != "a":
                 yield planet
 

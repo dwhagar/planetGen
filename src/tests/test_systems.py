@@ -155,7 +155,7 @@ def assert_no_orbital_overlap(system):
     concern, see `StarSystem._validate_cross_star_clearance`).
     """
     _assert_no_overlap_within(system.primary.orbiters)
-    _assert_no_overlap_within(system.secondary.orbiters)
+    _assert_no_overlap_within(system.secondary.orbiters if system.secondary else [])
 
 
 def assert_no_belt_overlap_all_pairs(system):
@@ -192,7 +192,7 @@ def assert_no_belt_overlap_all_pairs(system):
     (`StarSystem._validate_cross_star_clearance`'s worst-case-gap-vs-
     binary-separation reasoning), which is exercised separately below.
     """
-    for planet_list in (system.primary.orbiters, system.secondary.orbiters):
+    for planet_list in (system.primary.orbiters, (system.secondary.orbiters if system.secondary else [])):
         belts = [obj for obj in planet_list if obj.body_type == 'a']
 
         for i, belt in enumerate(belts):
@@ -291,7 +291,7 @@ def test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt():
 
 def _all_planets_and_moons(system):
     bodies = []
-    for obj in system.primary.orbiters + system.secondary.orbiters:
+    for obj in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
         if obj.body_type == "a":
             continue
         bodies.append(obj)
@@ -344,9 +344,9 @@ def assert_counts_are_consistent(system):
     assert moon_count == system.moon_count
     # count_objects() defaults to both stars' combined lists (see its own
     # docstring) -- for a single star or P-type binary,
-    # system.secondary.orbiters is always [], so this is unchanged from
+    # a single star or P-type binary has no secondary host (its orbiters count as []), so this is unchanged from
     # `len(system.primary.orbiters)` alone in those cases.
-    assert planet_count + belt_count == len(system.primary.orbiters) + len(system.secondary.orbiters)
+    assert planet_count + belt_count == len(system.primary.orbiters) + len((system.secondary.orbiters if system.secondary else []))
     hab_count, m_count = system.count_habitable()
     assert hab_count == system.hab_count
     assert m_count == system.m_count
@@ -415,7 +415,7 @@ def test_each_tristate_flag_forced(star_type, value, attr):
             assert system.comet_count == 0, f"{star_type}: COMETS=False still produced a comet"
         if attr == "PLANETS" and value is False:
             assert len(system.primary.orbiters) == 0
-            assert len(system.secondary.orbiters) == 0
+            assert len((system.secondary.orbiters if system.secondary else [])) == 0
         if attr == "MOONS" and value is False:
             assert system.moon_count == 0
         if attr == "BINARY_SYSTEM" and value is True:
