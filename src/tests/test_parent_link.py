@@ -25,6 +25,7 @@ def _system_with_everything():
         cfg.PLANETS = True
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = False
+        cfg.COMETS = True        # GEN.1775: comets are asked for, not left to the draw
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
         if system.comets and any(getattr(p, "moons", None) for p in system.planets) and any(p.body_type == "a" for p in system.planets):
