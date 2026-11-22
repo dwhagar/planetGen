@@ -2451,7 +2451,8 @@ def draw_nebula_field_do(params, slab, ctx):
         pace.total = total
         pace.tick(done)
 
-    ctx.db.execute("DELETE FROM nebula_field WHERE cell_i = ?", (slab,))       # OPS.264: a slab drawn again after a try that wrote it takes the rows back, as the key refuses a second copy
+    if ctx.db.execute("SELECT 1 FROM nebula_field WHERE cell_i = ? LIMIT 1", (slab,)).fetchone() is not None:     # OPS.264: a slab drawn again after a try that wrote it takes the rows back, as the key refuses a second copy
+        ctx.db.execute("DELETE FROM nebula_field WHERE cell_i = ?", (slab,))      # OPS.291: only when there are rows to take: a DELETE that matches none still gap-locks the index end and two slabs drawn at once then deadlocked at their first INSERT (MySQL 1213); one slab owns each `cell_i`, so the check cannot race
     written = store.insert_nebula_field(ctx.db, watched(nebulaField.table_rows(
         galaxy_seed, skeleton.shape, slab, params["radius_pc"], params["half_height_pc"], on_column=column_done)))
     ctx.commit()
