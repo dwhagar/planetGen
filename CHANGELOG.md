@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4719+db274.gen150.api14] - 2026-11-22
+
+**Headline:** An ocean under an ice lid holds a bank of oxygen of its own, built from the surface oxidant between two deliveries over the floor's reductants, and the animals of every class there are put to the oxygen floors of their grade with it.
+
+### Added
+- GEN.1824: `physics/ocean_oxygen.py` gives a sealed ocean (hydrosphere `ice-covered ocean`) a dissolved oxygen as a bank [R5346]: the surface oxidant (Europa's production at Europa's dose, to the body's stored surface dose, the share that gets through the lid, to the top of the published range), the water's radiolysis (net zero while its hydrogen stays in the ocean) and the faults' radicals, over the reductants of the floor (`h2_supply` and `donor_supply` in oxygen terms), held over 50 Myr in the water the ocean holds, as micromolar of oxygen and the partial pressure that stands for, at most the air law's cap. The stock the ice accreted with (a comet's oxygen) is in the code and off. The numbers are stand-ins SO1 to SO16 (section 6.324), with [R5336, R5337, R5338, R5339, R5346, R5347] added to the references.
+- `life_complexity.assess` takes it as `ocean_o2_kpa`: the animals of every class that lives under a lid, and not only an oxygen breather's, are put to the oxygen floors of their grade with it; an oxygen breather reads the larger of its air's and the ocean's. Route R4 (animals that lost aerobic respiration) is the way round the floor.
+
+### Changed
+- A life class under an ice lid whose index reached an animal grade (class 4b and the others that breathe something other than oxygen) now needs the ocean's oxygen for it.
+
 ## [8.0.4718+db274.gen150.api14] - 2026-11-22
 
 **Headline:** The life of a sealed ocean and of an aquifer now runs at the temperature of its water and no longer gets free nitrate through an ice lid.
