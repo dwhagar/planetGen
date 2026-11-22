@@ -75637,7 +75637,7 @@
           "fields": [
             [
               "What it is",
-              "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+              "surface_pressure.OCEAN_COVER_EARTH 0.55 (0.71 until GEN.1830): the cover above which a larger sea adds no rain to the land, the cover the generator makes for the Earth's own ocean mass"
             ],
             [
               "The range it moves in",
@@ -75657,7 +75657,7 @@
             ],
             [
               "Evidence",
-              "the Earth's value (0.71); using it as a saturation is a stand-in"
+              "the generator's own cover of the Earth's ocean mass (0.55; 0.38 to 0.65 over 24 trials of the Earth analog); the Earth's measured 0.71 is not what its basins give, so with 0.71 an exact Earth copy had 77 percent of its land wet and ran 5 K warm (GEN.1829); Boss's yes 3:24 PM EST 11-22; using a cover as a saturation is a stand-in"
             ]
           ],
           "id": "WW2",
@@ -75668,7 +75668,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+          "what": "surface_pressure.OCEAN_COVER_EARTH 0.55 (0.71 until GEN.1830): the cover above which a larger sea adds no rain to the land, the cover the generator makes for the Earth's own ocean mass"
         }
       ],
       "slug": "6-309-stand-ins-of-the-water-limited-silicate-weathering-gen-1403",
