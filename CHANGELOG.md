@@ -2,6 +2,60 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4716+db274.gen150.api14] - 2026-11-22
+
+**Headline:** Four test files find a system with comets in seconds instead of timing out in their setup.
+
+### Fixed
+- **`test_api_object_ids`, `test_parent_link`, `test_orbit_velocity` and `test_orbit_from_vector` ask for comets.** Since GEN.1775 a star holds comets only where its outer disk was scattered, so their fixtures' searches over 300 to 400 fixed streams for a system with comets ran past the 1,500 s test limit (`test_api_object_ids` failed with four setup errors in the Train 53 gate). Each fixture now sets `COMETS = True`, as `test_api_link_ids`, `test_body_positions` and `test_serialization` already do. Alone: 9 passed in 1m 51s, 6 in 9m 49s, 8 in 3m 56s and 7 in 3m 24s. Test-only.
+
+generation-output: unchanged
+
+## [8.0.4715+db274.gen150.api14] - 2026-11-22
+
+**Headline:** An abiotic-oxygen world's sulfur and nitrogen now come from the share its surface holds, so the sulfate and sulfide sinks act on it (a 600 K ocean world no longer keeps H2S whatever the sinks do)
+
+### Changed
+
+- GEN.1813: row `j5` of `mixture_evolved` set its sulfur and nitrogen per carbon atom of the delivered inventory, which skipped `supply` (the share of each element the surface holds, with the sulfate and sulfide sinks of `sulfur_balance` and the nitrogen's melt share). They are now per carbon atom of the delivered inventory times the share the surface holds, as the other outgassing rows read it. The carbon is the ocean's, so its own share is not read. Measured on the two 600 K ocean worlds of Lane 07's trace (seeds 109 and 155 on the GEN.1769 slice 2 base): Pidoe II's H2S goes from 473 Pa to none and its N2 from 642 Pa to 22 Pa; Azehelha I holds no H2S.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4714+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The adaptations the life of a world needed are now kept as rows in new tables `planet_adaptations` and `moon_adaptations` (nothing reads them back yet)
+
+### Added
+
+- GEN.1809: the record of GEN.1808 (`planet.life_adaptations`, a list of dicts: life_class, axis, habitat, demand, grade, rows; a body with life of several classes has the entries of each, one class after the other) is kept with the body in two new tables, one row for each need (`entry_number`, `life_class`, `axis`, `habitat`, `demand`, `grade`, `row_ids`), written with the body, loaded back with it (`store.body_adaptations`) and kept by an edit. A need no grade of the table reaches is a row with no grade and no row ids (the life there is past the table); a habitat row has no axis and no demand. Indexed on the axis and grade, so "the worlds whose life needed the extreme grade of cold tolerance" is a short read. A rogue planet has none. Migration (a placeholder number), schema, models, column units, fingerprint tables and sections, command touches and docs. Nothing reads the rows back yet.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4713+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The life ages of a world, the stretches of its life between mass extinctions, are now kept as rows in new tables `planet_life_ages` and `moon_life_ages` (nothing reads them back yet)
+
+### Added
+
+- GEN.1746 slice 3: the life pass (`life._history_of`) cuts the history of every world with life into its life ages (`life_ages.ages_of`, an age ends at an extinction that kills 30 percent or more of the species, the Boss's pick) once, and the body keeps them as `life_ages` (a list of `life_ages.entries_of` dicts: number, start, end, cause, kill share; `None` for a world with no life). The air history record takes the same ages instead of cutting them again. A world with life but an air under 500 Pa, which gets no air history record, still gets its ages.
+- Two new tables, `planet_life_ages` and `moon_life_ages` (migration, schema, models, column units, fingerprint and command touches), one row for each age, written with the body, loaded back with it (`store.body_life_ages`) and kept by an edit. Indexed on the age number and its end, so "the worlds in their third life age" is a short read. A rogue planet has no star age and so no ages. Nothing reads the rows back yet; the API comes after.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4712+db274.gen150.api14] - 2026-11-22
+
+**Headline:** Every body whose life lives in a refuge (a melt film, a brine seep, a spring, the sea under an ice lid) now records which adaptations of the table its life needed, for the photosynthetic classes 1a, 1b, 1c and 2
+
+### Added
+
+- GEN.1808: `physics/adaptation_record` reads a finished body's refuge and conditions and asks, for each limit the ordinary life does not reach (cold, heat, light under the ice, hours of liquid water, depth of the water table, water activity), what the life must be able to do, which grade of the table of GEN.1725 reaches it (`None` when even the extreme grade falls short: the life there is past the table) and which rows give it, plus the habitat rows (a pigment that works in no light, a crust that wakes on water) of the places the refuge counted. The life age and kinds of life the body has limit which rows apply. The record is `planet.life_adaptations`, a list of plain dicts, `None` for a body with none; nothing stores it yet (GEN.1809) and nothing in the generation reads it.
+- `Refuge` now carries the cold and hot ends of the temperatures of its wet lit steps (the middle 95 percent of the wet lit time, each step weighed by its place's share of the surface, stand-in AE2), the least light under an ice lid and the habitats it counted. Its hours, area and temperature are unchanged.
+- Stand-ins AE1 (one watt a square metre is 5 micromoles of photons, tied by the gate's own light floor) and AE2 (the share of the temperature range) in section 6.318.
+- Classes 3a to 9 get no record yet (GEN.1810 and GEN.1811), and a class 2 need beyond the five rows that apply to all classes comes out "past the table" until that research is in.
+
 ## [8.0.4711+db272.gen150.api14] - 2026-11-22
 
 **Headline:** Two nebula field slabs drawn at once no longer deadlock: a slab takes its rows back only when it has rows to take (OPS.291).

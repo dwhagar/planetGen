@@ -221,7 +221,7 @@ def test_the_sampler_holds_every_class_letter_and_enough_supported_planets(plane
 def test_the_generator_gives_life_to_every_supported_planet_and_the_same_life_under_every_class_letter(planets):
     problems = [(label, problem) for label, planet in planets for problem in rules.draw_problems(planet)]
     rates = rules.draw_rates(planets)
-    lines = [f"draw-rates: {len(problems)} problems over {len(planets)} planets and moons of the sweep", "class letter: planets, supported by the model, given life by the generator, supported but waiting for the star's age:"]
+    lines = [f"draw-rates: {len(problems)} problems over {len(planets)} planets and moons of the sweep", "class letter: planets, supported by the model, given life by the generator, supported but waiting for the star's age or with every class barred by its own air:"]
     lines += [f"  {letter}: {total}, {supported}, {drawn}, {waiting}" for letter, (total, supported, drawn, waiting) in sorted(rates.items())]
     census.write_report("\n".join(lines) + "\n", name="class-blind-life-draws-latest.md")
     assert not problems, f"{len(problems)} problems, first {problems[:5]}"
@@ -255,6 +255,23 @@ def test_a_supported_world_whose_life_has_not_begun_yet_is_not_reported(monkeypa
     assert not any("drew no life" in problem for problem in rules.draw_problems(supported_planet, other_letters=[]))
     total, supported, drawn, waiting = rules.draw_rates([("planet", supported_planet)])[supported_planet.planet_class]
     assert (supported, drawn, waiting) == (1, 0, 1)
+
+
+@pytest.mark.slow
+def test_a_supported_world_whose_every_class_takes_its_own_solvent_is_not_reported(monkeypatch, supported_planet):
+    """GEN.1298: a class whose own air takes away the liquid it lives in is barred and the world made again without it; a world whose every supported class is barred this way has no life, which is the life's own doing (an ocean its air froze) and not a gap in the generator."""
+    from planetgen.generation import life
+
+    supported = set(rules._supported(supported_planet))
+
+    def freezes(planet, keep_stored, key, barred):
+        left = sorted(supported - barred)
+        return left[0] if left else None
+
+    monkeypatch.setattr(life, "_apply", freezes)
+    assert not any("drew no life" in problem for problem in rules.draw_problems(supported_planet, other_letters=[]))
+    total, supported_count, drawn, waiting = rules.draw_rates([("planet", supported_planet)])[supported_planet.planet_class]
+    assert (supported_count, drawn, waiting) == (1, 0, 1)
 
 
 @pytest.mark.slow

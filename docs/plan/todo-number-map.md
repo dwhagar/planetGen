@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.434 |
 | NAV | NAV.78 |
-| GEN | GEN.1821 |
-| PERF | PERF.285 |
+| GEN | GEN.1829 |
+| PERF | PERF.286 |
 | DB | DB.136 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.816 |
+| TEST | TEST.819 |
 | USR | USR.33 |
-| OPS | OPS.290 |
+| OPS | OPS.293 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2116,7 +2116,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1314 | Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored | GEN.1313 | done, Train 24 PR #6033 (b8a0163b7) |
 | GEN.1315 | Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters) | GEN.1314 | done, PR #6416 in Train 27, PR #6485 (11:13 AM EST 11-14) |
 | GEN.1316 | Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge | GEN.1313 | done, PR #6068 (Lane 14, 2:48 AM EST 11-14) |
-| GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 | open |
+| GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 | done (Lane 07, slice 2 PR 7369, 2026-11-21) |
 | GEN.1318 | Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers | GEN.1309, GEN.1312, GEN.1313, GEN.1320, GEN.1321 | done (Train 23, 2026-11-11) |
 | GEN.1319 | Sealed-ocean chemistry: leached sodium and calcium with no chloride or sulfate to balance them give oceans of pH 11 to 14 that lock all carbon into calcite (bug) | none | done, PR #5572 |
 | GEN.1320 | Fire limit by oxygen pressure: the 35 percent oxygen cap becomes a limit on oxygen pressure, so thin-air worlds no longer pile up at exactly 35 percent (bug) | none | done, PR #5540 |
@@ -3109,6 +3109,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.287 | A reset or data check ended by SIGTERM says who sent it | none | done (PR 7313, Lane 13, merged 9:13 PM EST 11-19, from Boss's 9:00 PM EST reset kill) |
 | OPS.288 | A full disk holds a run instead of failing it | OPS.247 | open (Lane 15) |
 | OPS.289 | Stage 13 counts its sectors on a real-count bar | PERF.284 | done (PR 7323, Lane 13, merged 11-20) |
+| OPS.290 | (bug) A stopped-and-carried-on run gave a different digest from an uninterrupted one | OPS.247 | done (fixed by PR 7377, GEN.1827; Lane 13 rerun passed 2026-11-21) |
+| OPS.291 | (bug) Nebula field slabs deadlocked when two ran at once | OPS.247 | done (Lane 15, PR 7382, 2026-11-21) |
+| OPS.292 | A run spec can name its start sector | OPS.247 | open (Lane 15, after run B) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4169,18 +4172,26 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) | none | done, PR #5831 |
 | GEN.1807 | Widen the habitable-world testing zone by 50 percent of its width on each side | GEN.1791 | done (PR 7329, Class M levers thread, Train 52, PR 7368, merged 11:05 AM EST 11-21; Boss 5:49 PM EST 11-20; Class M 7 to 11, M-like 12 to 14 per 400 Abundant systems; stand-in PA20) |
 | GEN.1808 | Adaptation record for life classes 1a, 1b, 1c and 2, with the refuge temperature range | GEN.1725 | done (PR 7351, Lane 02, merged 6:01 AM EST 11-21; section 6.318 AE1, AE2; golden byte-identical) |
-| GEN.1809 | The adaptations life needed are stored for every living body | GEN.1808 | open (Lane 02, PR 7362, Train 53) |
+| GEN.1809 | The adaptations life needed are stored for every living body | GEN.1808 | done (Lane 02, PR 7362, Train 53, migration 0274, 2026-11-22) |
 | GEN.1810 | Research refuge limits for life classes 3a to 9 | GEN.1808 | done (report reports/life-refuges-classes-3a-9-gen1810-2026-11-21.md, Lane 02, 7:23 AM EST 11-21) |
 | GEN.1811 | The adaptation record covers every life class, naming what life needed past measured limits | GEN.1810 | done (PR 7363, Lane 02, merged 9:08 AM EST 11-21; section 6.320 AH1 to AH7) |
-| GEN.1812 | Past habitable windows and high-CO2 worlds measured | GEN.1745 | open (Lane 02, report done, waits on Boss) |
-| GEN.1813 | Hot ocean worlds hold the sulfur their supply and sinks allow | GEN.1698 | open (Lane 02, PR 7352, Train 53) |
+| GEN.1812 | Past habitable windows and high-CO2 worlds measured | GEN.1745 | closed (report done; Boss 2:29 PM EST 2026-11-21: no window gate; carbon sink filed as GEN.1821) |
+| GEN.1813 | Hot ocean worlds hold the sulfur their supply and sinks allow | GEN.1698 | done (Lane 02, PR 7352, Train 53, 2026-11-22) |
 | GEN.1814 | Lava worlds hold the sulfur their melt can dissolve | GEN.1698 | done (PR 7335, Lane 07, Train 52, PR 7368, merged 11:05 AM EST 11-21; section 6.319) |
 | GEN.1815 | Moon ladder adds a Radau step for stiff moon histories | none | done (PR 7333, Lane 07, Train 52, PR 7368, merged 11:05 AM EST 11-21) |
 | GEN.1816 | The silent "moons stay as born" fallback becomes physics: moons that fall within the age are lost and the planet is flagged | GEN.1815 | done (PR 7336, Lane 07, Train 52, PR 7368, merged 11:05 AM EST 11-21; 2 of 3,947 histories fell through) |
 | GEN.1817 | A W5 chain planet's forced eccentricity always rebuilds its position | none | done (PR 7344, Lane 07, Train 52, PR 7368, merged 11:05 AM EST 11-21) |
 | GEN.1818 | The moon integrator's error control holds the heat state to its own tolerance | GEN.1815 | done (PR 7357, Lane 07, Train 52, PR 7368, merged 11:05 AM EST 11-21; 300-system measure in reports/gen1818-heat-tolerance-2026-11-21/; stand-ins TM10, TM11) |
-| GEN.1819 | Life records the pressure it lives under | GEN.1811 | open (Lane 02, slice 1 PR 7367 merged; slice 2 waits on Boss) |
-| GEN.1820 | Code the trojan and air-history work built is read or removed | GEN.754 | open (Lane 06, Lane 02) |
+| GEN.1819 | Life records the pressure it lives under | GEN.1811 | done (Lane 02, PR 7367 records life past the table; Boss 2:31 PM EST 2026-11-21: no pressure ceiling) |
+| GEN.1820 | Code the trojan and air-history work built is read or removed | GEN.754 | done (Lane 06 PR 7371, Lane 02 PR 7372, 2026-11-21) |
+| GEN.1821 | Life draws CO2 down as a carbon sink | GEN.1812 | open (Lane 02, census first) |
+| GEN.1822 | The sub-ice and aquifer clocks read the habitat temperature | GEN.1810 | open (underwater thread, PR 7375, Train 54) |
+| GEN.1823 | Class 4b loses its unsourced abiotic nitrate | GEN.1810 | open (underwater thread, PR 7375, Train 54) |
+| GEN.1824 | Sealed oceans keep the oxygen their sources and sinks allow | GEN.1822 | open (Lane 07, PR 7376, Train 54) |
+| GEN.1825 | Sealed-ocean life capped by its fuel supply | GEN.1822 | open (underwater thread, waits on PR 7376) |
+| GEN.1826 | Class 4b life drawn after the final air | GEN.1745 | open (Lane 02) |
+| GEN.1827 | The fingerprint keys planets.lagrange_host_id by the giant, so chart order does not change it | GEN.1151 | done (Lane 06, PR 7377, 2026-11-21) |
+| GEN.1828 | Research: why the late-accretion giant groups sit at the floor | GEN.1493 | done (Lane 06, answered: inner rocky planets fine, far-out rocky bodies have no source; Boss closed 10:29 PM EST 2026-11-21; reports/gen1828-giant-groups-at-the-floor-2026-11-22.md) |
 | MAP.2.1 | MAP.16 |
 | MAP.2.1.1 | MAP.17 |
 | MAP.2.1.2 | MAP.18 |
@@ -4229,6 +4240,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.259 | The air is made again for the same body: skip or share whole-body re-runs that start from equal state (bit-identical) | none | done, closed as a finding (Lane 14, 2026-11-09: the air re-runs draw from the random stream, so skipping an equal one moves later draws; not buildable bit-identical) |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | done (Train 22 or earlier, 2026-11-11) |
 | PERF.284 | Stage 13 builds the phenomenon scatter address index first | none | done (PR 7323, Lane 13, merged 11-20) |
+| PERF.285 | Find why generation is 4.5 times slower than on 11-15 | none | open (Lane 13) |
 | SEC.2.1 | SEC.3 |
 | SEC.2.2 | SEC.4 |
 | SEC.2.3 | SEC.5 |
@@ -5073,6 +5085,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.813 | (bug) The promoted belt planet test compared ranks across belts | GEN.1510 | done (PR 7356, Lane 06, merged 5:12 AM EST 11-21) |
 | TEST.814 | (bug) Job log durations under a second printed decimals | none | done (PR 7355, Lane 13, merged 5:12 AM EST 11-21) |
 | TEST.815 | (bug) The update-pages step test read nine update.sh stages | OPS.286 | done (PR 7358, Lane 13, merged 6:03 AM EST 11-21) |
+| TEST.816 | Stand-in section 6.316 joins the stand-in tag sections | none | done (Lane 02, PR 7373, 2026-11-21) |
+| TEST.817 | Old-schema fixtures for v272 and v273 | none | done (Lane 13, Train 53, PR 7383, 2026-11-22) |
+| TEST.818 | Hypergiant systems keep their bodies in orbital order | GEN.1151 | open (Lane 06) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

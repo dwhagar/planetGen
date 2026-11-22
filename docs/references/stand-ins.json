@@ -63260,34 +63260,34 @@
         },
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "L4, no source gives how far beyond a belt a giant still shares what it scatters; the chaotic-zone width of the clearing law would replace the factor of 3"
+            "GEN.1493 slice 3 (2026-11-21): lowered to L1 and reused for the scattered orbits' inclination; the inclination of scattered planetesimals is inside its range; the old reach factor of 3 is gone with the sharing rule"
           ],
           "fields": [
             [
               "What it is",
-              "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
+              "late_supply.SCATTER_INCLINATION_RAD 0.1 (6 degrees): the inclination of a scattered planetesimal's orbit against the planets' plane; the chance it hits a body each revolution goes as one over its sine (Opik form for a circular target, hit_share)"
             ],
             [
               "The range it moves in",
-              "2 to 6"
+              "0.05 to 0.3"
             ],
             [
               "Where it holds",
-              "giants outside a belt"
+              "planetesimals scattered by the planets and giants"
             ],
             [
               "What would show it wrong",
-              "a giant at 4 times a belt's edge whose measured scattering of that belt is negligible"
+              "a measured inclination distribution of a scattered population (the Solar System's scattered disk and Jupiter-family comets reach 10 to 20 degrees) that differs by more than a factor of two"
             ],
             [
               "What replaces it",
-              "the giant's chaotic zone width (the Hill-radius law of the clearing)"
+              "an N-body run of the crossing population"
             ],
             [
               "Evidence",
-              "no source: scattering goes both ways and a giant a few times out takes most of what a belt scatters"
+              "recalled: the inclinations of the scattered and Jupiter-family populations are a few to some tens of degrees (GEN.1493 slice 3; replaces the old reach factor of 3, which the sequential scattering step no longer needs)"
             ]
           ],
           "id": "LS3",
@@ -63296,16 +63296,16 @@
           "slug": "6-254-ls3",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L4",
+          "tweak": "L1",
           "unread": null,
-          "what": "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
+          "what": "late_supply.SCATTER_INCLINATION_RAD 0.1 (6 degrees): the inclination of a scattered planetesimal's orbit against the planets' plane; the chance it hits a body each revolution goes as one over its sine (Opik form for a circular target, hit_share)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
+              "the planetesimals a reservoir sends inward are followed past the bodies from the farthest in (late_supply.fates, GEN.1493 slice 3): each body first takes the share its focused cross-section gives over RESIDENCE_YR (hit_share, Opik per revolution), then throws out of the system 1 - exp(-Theta / THETA_EJECT) of what is left (eject_share, the Safronov rule of scatter), and what gets past the innermost body falls to the star; the part of a ring beyond a body never crosses it (influx.reach); moons' weights left out"
             ],
             [
               "The range it moves in",
@@ -63317,15 +63317,15 @@
             ],
             [
               "What would show it wrong",
-              "a system whose measured veneer is set by the star's capture or by planetesimals outside any belt"
+              "a system whose measured veneer is set by something other than the sequence of captures and ejections"
             ],
             [
               "What replaces it",
-              "an Opik collision probability per orbit with the lifetimes of the crossing population"
+              "an Opik collision probability per orbit with the lifetimes of the crossing population, from an N-body run"
             ],
             [
               "Evidence",
-              "design; the form is the Safronov focusing factor"
+              "design; the form is the Safronov focusing factor and the Opik probability"
             ]
           ],
           "id": "LS4",
@@ -63336,7 +63336,49 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
+          "what": "the planetesimals a reservoir sends inward are followed past the bodies from the farthest in (late_supply.fates, GEN.1493 slice 3): each body first takes the share its focused cross-section gives over RESIDENCE_YR (hit_share, Opik per revolution), then throws out of the system 1 - exp(-Theta / THETA_EJECT) of what is left (eject_share, the Safronov rule of scatter), and what gets past the innermost body falls to the star; the part of a ring beyond a body never crosses it (influx.reach); moons' weights left out"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source gives how long scattered planetesimals stay on crossing orbits; an N-body run of the crossing population in a generated system would replace the hundred million years"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.RESIDENCE_YR 1e8: the years a scattered planetesimal stays on an orbit that crosses a body's before it is removed (the tail of accretion; the Moon-forming leftovers fell in over the first hundred million years)"
+            ],
+            [
+              "The range it moves in",
+              "3e7 to 3e8"
+            ],
+            [
+              "Where it holds",
+              "planetesimals scattered by the planets and giants of a young system"
+            ],
+            [
+              "What would show it wrong",
+              "a measured decay of the late bombardment of a planet that differs from an exponential of a hundred million years by more than a factor of three"
+            ],
+            [
+              "What replaces it",
+              "the lifetimes of an N-body run of the crossing population"
+            ],
+            [
+              "Evidence",
+              "fitted: with the leftover share (LA4) a synthetic Sun-like system (the Sun's terrestrial planets and four giants) puts 0.2 to 0.7 percent of the Earth's mass on the Earth (test_late_supply); no source prints the number"
+            ]
+          ],
+          "id": "LS5",
+          "key": "6.254:LS5",
+          "kind": "P",
+          "slug": "6-254-ls5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "late_supply.RESIDENCE_YR 1e8: the years a scattered planetesimal stays on an orbit that crosses a body's before it is removed (the tail of accretion; the Moon-forming leftovers fell in over the first hundred million years)"
         }
       ],
       "slug": "6-254-stand-ins-of-the-late-supply-a-planet-takes-from-the-reservoirs-of-its-system",
@@ -63471,6 +63513,86 @@
           "tweak": "L3",
           "unread": null,
           "what": "planets.LATE_ACCRETION_GATE 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source gives the mass of the leftover planetesimals of a terrestrial zone after the planets' growth; an N-body run of the zone replaces the share of the planets' mass"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_accretion.LEFTOVER_SHARE 0.007: the leftover planetesimals of a star's rocky zone, as a share of the mass of the rocky planets that grew from it (GEN.1493 slice 3): the planets took the zone's planetesimals at an efficiency that does not change much between disks, so what was left goes with what was taken; the first source of the veneer of a planet with no belt and the one a giant cannot take, since it lies inside the giants' orbits"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.02"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of a star with its giants beyond them"
+            ],
+            [
+              "What would show it wrong",
+              "a dynamical model of a terrestrial zone whose leftover mass after the planets' growth is outside 0.003 to 0.02 of the planets' mass"
+            ],
+            [
+              "What replaces it",
+              "an N-body run of the zone's planetesimals through the end of accretion"
+            ],
+            [
+              "Evidence",
+              "fitted: the Sun's terrestrial planets (1.8 Earth masses) put 0.2 to 0.7 percent of the Earth's mass on the Earth with RESIDENCE_YR 1e8 (test_late_supply); no source prints the number"
+            ]
+          ],
+          "id": "LA4",
+          "key": "6.255:LA4",
+          "kind": "P",
+          "slug": "6-255-la4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": null,
+          "what": "late_accretion.LEFTOVER_SHARE 0.007: the leftover planetesimals of a star's rocky zone, as a share of the mass of the rocky planets that grew from it (GEN.1493 slice 3): the planets took the zone's planetesimals at an efficiency that does not change much between disks, so what was left goes with what was taken; the first source of the veneer of a planet with no belt and the one a giant cannot take, since it lies inside the giants' orbits"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "late_accretion.LEFTOVER_ZONE (0.8, 1.2): the ring of the leftovers, as a multiple of the distance of the innermost and of the outermost rocky planet, cut at the star's snow line"
+            ],
+            [
+              "The range it moves in",
+              "0.6 to 0.9 and 1.1 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of a star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured feeding-zone width of a terrestrial planet of more than 0.5 either side"
+            ],
+            [
+              "What replaces it",
+              "the planets' own feeding zones (Hill radii)"
+            ],
+            [
+              "Evidence",
+              "no source: the zones of neighbouring planets reach a fifth of their distance either side"
+            ]
+          ],
+          "id": "LA5",
+          "key": "6.255:LA5",
+          "kind": "P",
+          "slug": "6-255-la5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "late_accretion.LEFTOVER_ZONE (0.8, 1.2): the ring of the leftovers, as a multiple of the distance of the innermost and of the outermost rocky planet, cut at the star's snow line"
         }
       ],
       "slug": "6-255-stand-ins-of-the-late-accretion-the-air-reads-from-the-system",
@@ -77041,6 +77163,744 @@
       ],
       "slug": "6-321-stand-ins-of-the-pressure-of-a-habitat-gen-1819",
       "title": "Stand-ins of the pressure of a habitat (GEN.1819)"
+    },
+    {
+      "key": "6.323",
+      "number": "6.323",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_classes.clock_temperature_k for the classes whose window reads habitat_temperature_k: the water's temperature of the habitat (life_supply.habitat_temperature_k: the surface's under an open sea, the melting point of ice under a lid, the surface's plus the rise with depth in an aquifer, at most 420 K)"
+            ],
+            [
+              "The range it moves in",
+              "none (the gate's own reading)"
+            ],
+            [
+              "Where it holds",
+              "the classes 3a, 3b, 4a, 4b, 4c and 8 in an ice-covered ocean and in an aquifer"
+            ],
+            [
+              "What would show it wrong",
+              "a measured growth rate of a chemolithotroph in a sealed ocean or an aquifer that follows the surface's temperature and not the water's"
+            ],
+            [
+              "What replaces it",
+              "the temperature of the layer the life lives in, from a thermal model of the shell and the ocean"
+            ],
+            [
+              "Evidence",
+              "physics: a cell's rate follows the temperature of the water around it (metabolic theory, tuning.LIFE_ACTIVATION_ENERGY_EV)"
+            ]
+          ],
+          "id": "AX1",
+          "key": "6.323:AX1",
+          "kind": "P",
+          "slug": "6-323-ax1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_classes.clock_temperature_k for the classes whose window reads habitat_temperature_k: the water's temperature of the habitat (life_supply.habitat_temperature_k: the surface's under an open sea, the melting point of ice under a lid, the surface's plus the rise with depth in an aquifer, at most 420 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.json number nitrate_sealed_share 0.0: the share of the abiotic nitrate that reaches an ocean under an ice lid"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "an ice-covered ocean with an airless or oxygen-free air"
+            ],
+            [
+              "What would show it wrong",
+              "a sourced flux of nitrate through an ice lid (surface radiolysis of nitrogen-bearing ice carried down by brine); the oxidant delivery of Hesse and others 2022 is for O2"
+            ],
+            [
+              "What replaces it",
+              "the oxidant delivery through the lid, when one is sourced"
+            ],
+            [
+              "Evidence",
+              "nitrate_abiotic itself (0.3, T9, L4, LF38) is unchanged and still tuned; this row takes it away from the sealed ocean only"
+            ]
+          ],
+          "id": "AX2",
+          "key": "6.323:AX2",
+          "kind": "P",
+          "slug": "6-323-ax2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_supply.json number nitrate_sealed_share 0.0: the share of the abiotic nitrate that reaches an ocean under an ice lid"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_supply.json number perchlorate_sealed_share 0.0: the share of the perchlorate base (perchlorate_base 0.1) that reaches an ocean under an ice lid"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "an ice-covered ocean, Class 4c"
+            ],
+            [
+              "What would show it wrong",
+              "a sourced flux of perchlorate through an ice lid; the one sourced flux of the radiolysis of chloride (Wilson and others 2016, Mars) is about 3.4e-5 mol O2-equivalent per m2 per year"
+            ],
+            [
+              "What replaces it",
+              "the oxidant delivery through the lid, when one is sourced"
+            ],
+            [
+              "Evidence",
+              "perchlorate_base itself (0.1, T9, L4) is unchanged and still tuned; this row takes it away from the sealed ocean only"
+            ]
+          ],
+          "id": "AX3",
+          "key": "6.323:AX3",
+          "kind": "P",
+          "slug": "6-323-ax3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "life_supply.json number perchlorate_sealed_share 0.0: the share of the perchlorate base (perchlorate_base 0.1) that reaches an ocean under an ice lid"
+        }
+      ],
+      "slug": "6-323-stand-ins-of-the-life-of-a-sealed-ocean-gen-1822-gen-1823",
+      "title": "Stand-ins of the life of a sealed ocean (GEN.1822, GEN.1823)"
+    },
+    {
+      "key": "6.324",
+      "number": "6.324",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.SURFACE_O2_MOL_M2_YR 3.9e-4: the oxygen the particles make in the surface ice of Europa, 12 kg a second (1.2e10 mol a year over 3.1e13 m2)"
+            ],
+            [
+              "The range it moves in",
+              "1.7e-4 to 7e-4 (a factor of 2)"
+            ],
+            [
+              "Where it holds",
+              "the ice of a body in a giant's belts"
+            ],
+            [
+              "What would show it wrong",
+              "a measured surface production of oxygen on an icy moon differing by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the production from the particle flux of each body"
+            ],
+            [
+              "Evidence",
+              "the Juno measurement of Szalay and others 2024, second-hand through reports/dark-oxygen-production-2026-11-21.md section 3.3 (not opened)"
+            ]
+          ],
+          "id": "SO1",
+          "key": "6.324:SO1",
+          "kind": "P",
+          "slug": "6-324-so1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ocean_oxygen.SURFACE_O2_MOL_M2_YR 3.9e-4: the oxygen the particles make in the surface ice of Europa, 12 kg a second (1.2e10 mol a year over 3.1e13 m2)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.REFERENCE_DOSE_MSV_YR 1.97e6: the dose of Europa's surface (5.4 Sv a day, recalled), at which SO1 is made; the production goes with the stored surface dose (a constant yield of oxidant for each eV the ice takes in)"
+            ],
+            [
+              "The range it moves in",
+              "1e6 to 4e6 mSv a year"
+            ],
+            [
+              "Where it holds",
+              "a lid whose surface dose is the belts' or the cosmic rays'"
+            ],
+            [
+              "What would show it wrong",
+              "an icy body whose oxidant production in the surface ice does not go with its particle dose"
+            ],
+            [
+              "What replaces it",
+              "the production of the surface ice from its particle flux"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the radiolytic yield for each eV is constant); the dose of Europa recalled, not read"
+            ]
+          ],
+          "id": "SO2",
+          "key": "6.324:SO2",
+          "kind": "P",
+          "slug": "6-324-so2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ocean_oxygen.REFERENCE_DOSE_MSV_YR 1.97e6: the dose of Europa's surface (5.4 Sv a day, recalled), at which SO1 is made; the production goes with the stored surface dose (a constant yield of oxidant for each eV the ice takes in)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.LID_DELIVERY_SHARE 0.85: the share of the surface oxidant that reaches the ocean"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1"
+            ],
+            [
+              "Where it holds",
+              "any lid"
+            ],
+            [
+              "What would show it wrong",
+              "a modelled or measured delivery share under 0.3"
+            ],
+            [
+              "What replaces it",
+              "a share from the lid's own turnover"
+            ],
+            [
+              "Evidence",
+              "[R5336] (the model's share, abstract and press page read; its chaos-terrain limit on the rate is the lower end of what a pulsed bank stands for)"
+            ]
+          ],
+          "id": "SO3",
+          "key": "6.324:SO3",
+          "kind": "P",
+          "slug": "6-324-so3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ocean_oxygen.LID_DELIVERY_SHARE 0.85: the share of the surface oxidant that reaches the ocean"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.LID_DELIVERY_MAX_MOL_M2_YR 9.7e-3: the top of the published range (3e11 mol a year over Europa's area), the most the lid delivers whatever the dose"
+            ],
+            [
+              "The range it moves in",
+              "3e-3 to 3e-2 (1e11 to 1e12 mol a year)"
+            ],
+            [
+              "Where it holds",
+              "any lid"
+            ],
+            [
+              "What would show it wrong",
+              "a delivery above 3e11 mol a year"
+            ],
+            [
+              "What replaces it",
+              "the published range when it is settled"
+            ],
+            [
+              "Evidence",
+              "[R5347] (abstract read in reports/dark-ocean-untested-theories-2026-11-21.md section 3: 3e11; the first report quoted 1e11); [R2704] second-hand"
+            ]
+          ],
+          "id": "SO4",
+          "key": "6.324:SO4",
+          "kind": "P",
+          "slug": "6-324-so4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ocean_oxygen.LID_DELIVERY_MAX_MOL_M2_YR 9.7e-3: the top of the published range (3e11 mol a year over Europa's area), the most the lid delivers whatever the dose"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.RADIOLYSIS_O2_MOL_KG_YR 8e-13: mol of O2 for each kg of water a year from the decay in Earth's seawater (12 Bq a kg of 40K, 0.66 MeV a decay, 0.2 O2 for each 100 eV, half the hydrogen yield of 0.4 for each 100 eV)"
+            ],
+            [
+              "The range it moves in",
+              "4e-13 to 1.6e-12"
+            ],
+            [
+              "Where it holds",
+              "the water of an icy moon with Earth's seawater potassium"
+            ],
+            [
+              "What would show it wrong",
+              "a measured potassium of an icy moon's ocean differing from Earth's seawater by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the ocean's own dissolved potassium, uranium and thorium"
+            ],
+            [
+              "Evidence",
+              "[R2691] (the hydrogen yield, read); [R5337] (the decay oxidant of an icy moon's ocean, read); arithmetic in reports/dark-oxygen-production-2026-11-21.md section 3.2"
+            ]
+          ],
+          "id": "SO5",
+          "key": "6.324:SO5",
+          "kind": "P",
+          "slug": "6-324-so5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ocean_oxygen.RADIOLYSIS_O2_MOL_KG_YR 8e-13: mol of O2 for each kg of water a year from the decay in Earth's seawater (12 Bq a kg of 40K, 0.66 MeV a decay, 0.2 O2 for each 100 eV, half the hydrogen yield of 0.4 for each 100 eV)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.RADIOLYSIS_DEPTH_MAX_KM 100: the depth of ocean the radiolysis counts, so the most it gives is 8e-5 mol per m2 per year"
+            ],
+            [
+              "The range it moves in",
+              "50 to 150 km"
+            ],
+            [
+              "Where it holds",
+              "an ocean deeper than 100 km"
+            ],
+            [
+              "What would show it wrong",
+              "a deeper ocean whose upper 100 km does not circulate with the rest"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "inferred physics: a deeper ocean lies on high-pressure ice (hp_ice_km) with no rock below it"
+            ]
+          ],
+          "id": "SO6",
+          "key": "6.324:SO6",
+          "kind": "P",
+          "slug": "6-324-so6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ocean_oxygen.RADIOLYSIS_DEPTH_MAX_KM 100: the depth of ocean the radiolysis counts, so the most it gives is 8e-5 mol per m2 per year"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.FRACTURE_MAX_MOL_M2_YR 1e-5 at Earth's heat flow (life_supply.heat_share 1), less in proportion below, none above 1"
+            ],
+            [
+              "The range it moves in",
+              "1e-6 to 1e-5"
+            ],
+            [
+              "Where it holds",
+              "a sealed seafloor with faults"
+            ],
+            [
+              "What would show it wrong",
+              "a measured oxidant of a fault or a quake of a sealed ocean's floor"
+            ],
+            [
+              "What replaces it",
+              "the tidal work of the moonquakes"
+            ],
+            [
+              "Evidence",
+              "[R5338] (read: 1.3 to 10.4 nmol of H2O2 per m2 of fresh silicate surface); the scaling is mine from the glacial abrasion in reports/dark-oxygen-production-2026-11-21.md section 3.4"
+            ]
+          ],
+          "id": "SO7",
+          "key": "6.324:SO7",
+          "kind": "P",
+          "slug": "6-324-so7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ocean_oxygen.FRACTURE_MAX_MOL_M2_YR 1e-5 at Earth's heat flow (life_supply.heat_share 1), less in proportion below, none above 1"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.H2_O2_EQUIVALENT_MOL_M2_YR 1.4e-3: the oxygen Earth's hydrothermal reductants take (1e12 mol of H2 a year at the ridges, half an O2 for each, over 3.61e14 m2); the sink of a body is this times the mean of its h2_supply and donor_supply (two channels of one pool; Earth's are 1)"
+            ],
+            [
+              "The range it moves in",
+              "3e-4 (Europa's estimate, 1.6e10 mol of H2 a year) to 6e-3 (Enceladus, 5e9)"
+            ],
+            [
+              "Where it holds",
+              "a sealed ocean over rock"
+            ],
+            [
+              "What would show it wrong",
+              "a ridge flux of H2 measured below 1e11 or above 1e12 mol a year"
+            ],
+            [
+              "What replaces it",
+              "the body's own water-rock reaction"
+            ],
+            [
+              "Evidence",
+              "[R5339] (the abstract read; the ranges in the full text were not); Cassini's Enceladus and the estimate of Europa from the untested-theories report section 2"
+            ]
+          ],
+          "id": "SO8",
+          "key": "6.324:SO8",
+          "kind": "P",
+          "slug": "6-324-so8",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ocean_oxygen.H2_O2_EQUIVALENT_MOL_M2_YR 1.4e-3: the oxygen Earth's hydrothermal reductants take (1e12 mol of H2 a year at the ridges, half an O2 for each, over 3.61e14 m2); the sink of a body is this times the mean of its h2_supply and donor_supply (two channels of one pool; Earth's are 1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.PULSE_INTERVAL_YR 5e7: the years between two deliveries of the surface oxidant to the ocean, the resurfacing of the lid"
+            ],
+            [
+              "The range it moves in",
+              "3e7 to 7e7 (Europa)"
+            ],
+            [
+              "Where it holds",
+              "any lid"
+            ],
+            [
+              "What would show it wrong",
+              "a lid whose resurfacing age differs from Europa's by more than a factor of 5"
+            ],
+            [
+              "What replaces it",
+              "the lid's own turnover (heat flow and thickness)"
+            ],
+            [
+              "Evidence",
+              "[R5346] (abstract read: at 30 to 70 Myr the ocean holds the oxygen of terrestrial surface waters even with the hydrothermal reductants taking most of it)"
+            ]
+          ],
+          "id": "SO9",
+          "key": "6.324:SO9",
+          "kind": "P",
+          "slug": "6-324-so9",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ocean_oxygen.PULSE_INTERVAL_YR 5e7: the years between two deliveries of the surface oxidant to the ocean, the resurfacing of the lid"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.HENRY_UM_PER_KPA 22: dissolved oxygen in water at 0 C over 1 kPa of oxygen (2.2 millimolar over 1 bar)"
+            ],
+            [
+              "The range it moves in",
+              "20 to 25"
+            ],
+            [
+              "Where it holds",
+              "water at 0 to 5 C"
+            ],
+            [
+              "What would show it wrong",
+              "none (physics)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "Henry's law for oxygen in water, the textbook solubility"
+            ]
+          ],
+          "id": "SO10",
+          "key": "6.324:SO10",
+          "kind": "P",
+          "slug": "6-324-so10",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ocean_oxygen.HENRY_UM_PER_KPA 22: dissolved oxygen in water at 0 C over 1 kPa of oxygen (2.2 millimolar over 1 bar)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.COMET_O2_PER_WATER 0.038: the oxygen in the ice of comet 67P, 3.80 plus or minus 0.85 percent of the water"
+            ],
+            [
+              "The range it moves in",
+              "0.030 to 0.047"
+            ],
+            [
+              "Where it holds",
+              "icy bodies that accreted from comet-like ice"
+            ],
+            [
+              "What would show it wrong",
+              "a measured comet O2 share outside the range"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the Rosetta measurement (ESA text read); two papers argue it is primordial (abstracts read)"
+            ]
+          ],
+          "id": "SO11",
+          "key": "6.324:SO11",
+          "kind": "B",
+          "slug": "6-324-so11",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ocean_oxygen.COMET_O2_PER_WATER 0.038: the oxygen in the ice of comet 67P, 3.80 plus or minus 0.85 percent of the water"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.INHERITED_O2_RETAINED 0 (off): the share of the accreted oxygen that an ocean keeps through the heating, hydration and oxidation of the rock; the research report suggests 0.01 (range 0.0001 to 0.1), which would put every sealed ocean over the oxygen floors"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "any sealed ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a measured oxygen of an icy ocean at the start of its life"
+            ],
+            [
+              "What replaces it",
+              "a retention from the accretion and the early heating of the body"
+            ],
+            [
+              "Evidence",
+              "no source; suggested by reports/dark-ocean-untested-theories-2026-11-21.md section 1 to give a bank that survives 4.5 Gyr of reductants; off until Boss turns it on"
+            ]
+          ],
+          "id": "SO12",
+          "key": "6.324:SO12",
+          "kind": "P",
+          "slug": "6-324-so12",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ocean_oxygen.INHERITED_O2_RETAINED 0 (off): the share of the accreted oxygen that an ocean keeps through the heating, hydration and oxidation of the rock; the research report suggests 0.01 (range 0.0001 to 0.1), which would put every sealed ocean over the oxygen floors"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.RADIOLYSIS_H2_ESCAPE 0: the share of the radiolytic hydrogen that leaves the ocean; the water splits into 0.4 H2 and 0.2 O2 for each 100 eV, so the oxygen is a net oxidant only for the hydrogen that goes (the rest is in the sink)"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1 (1 counts the water's oxygen gross: 249 of 377 sealed oceans clear the first floor instead of 33)"
+            ],
+            [
+              "Where it holds",
+              "a sealed ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a measured loss of radiolytic H2 from a sealed ocean"
+            ],
+            [
+              "What replaces it",
+              "the measured loss"
+            ],
+            [
+              "Evidence",
+              "inferred physics: the electron balance of the radiolysis (reports/dark-oxygen-production-2026-11-21.md section 3.2: \"unless it leaves, the water does not become net oxidising\")"
+            ]
+          ],
+          "id": "SO13",
+          "key": "6.324:SO13",
+          "kind": "P",
+          "slug": "6-324-so13",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ocean_oxygen.RADIOLYSIS_H2_ESCAPE 0: the share of the radiolytic hydrogen that leaves the ocean; the water splits into 0.4 H2 and 0.2 O2 for each 100 eV, so the oxygen is a net oxidant only for the hydrogen that goes (the rest is in the sink)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ocean_oxygen.BODY_AGE_YR 4.5e9: the age the inherited stock is drained over (a body's own age is not stored where the grade is read)"
+            ],
+            [
+              "The range it moves in",
+              "4e9 to 4.6e9"
+            ],
+            [
+              "Where it holds",
+              "the inherited stock only"
+            ],
+            [
+              "What would show it wrong",
+              "none"
+            ],
+            [
+              "What replaces it",
+              "the body's own age"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics"
+            ]
+          ],
+          "id": "SO14",
+          "key": "6.324:SO14",
+          "kind": "P",
+          "slug": "6-324-so14",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ocean_oxygen.BODY_AGE_YR 4.5e9: the age the inherited stock is drained over (a body's own age is not stored where the grade is read)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the bank is held at most at the pressure the air law lets an air hold (mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA, the fire limit, 0.35 atmosphere), read as a partial pressure by SO10"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a very quiet sealed ocean with a thin ocean column"
+            ],
+            [
+              "What would show it wrong",
+              "a sealed ocean measured over that pressure"
+            ],
+            [
+              "What replaces it",
+              "the solubility and the toxicity limit of the ocean's life"
+            ],
+            [
+              "Evidence",
+              "reuse of the air law's cap, not a new number"
+            ]
+          ],
+          "id": "SO15",
+          "key": "6.324:SO15",
+          "kind": "T",
+          "slug": "6-324-so15",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the bank is held at most at the pressure the air law lets an air hold (mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA, the fire limit, 0.35 atmosphere), read as a partial pressure by SO10"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the animals of every class in a sealed ocean are put to the oxygen floors of their grade (tuning.LIFE_COMPLEXITY[\"oxygen_floor_kpa\"], T2 for A1 and T7 above) with the ocean's oxygen, the larger of it and the air's; before, only an oxygen-breathing class was put to them, with its air's. Route R4 (animals that have lost aerobic respiration, anoxic_animal_chance) is the way round it"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the chemical classes under an ice lid"
+            ],
+            [
+              "What would show it wrong",
+              "a sealed ocean's animals that live without oxygen at a rate above the R4 chance"
+            ],
+            [
+              "What replaces it",
+              "the floors of an animal's respiration, when the classes' animals each have their own"
+            ],
+            [
+              "Evidence",
+              "needed output (Boss, 3:51 PM EST 2026-11-21: the sealed ocean's oxygen is read against the animal floors)"
+            ]
+          ],
+          "id": "SO16",
+          "key": "6.324:SO16",
+          "kind": "T",
+          "slug": "6-324-so16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "the animals of every class in a sealed ocean are put to the oxygen floors of their grade (tuning.LIFE_COMPLEXITY[\"oxygen_floor_kpa\"], T2 for A1 and T7 above) with the ocean's oxygen, the larger of it and the air's; before, only an oxygen-breathing class was put to them, with its air's. Route R4 (animals that have lost aerobic respiration, anoxic_animal_chance) is the way round it"
+        }
+      ],
+      "slug": "6-324-stand-ins-of-the-oxygen-of-a-sealed-ocean-gen-1824",
+      "title": "Stand-ins of the oxygen of a sealed ocean (GEN.1824)"
     }
   ]
 }

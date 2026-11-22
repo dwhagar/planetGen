@@ -67,6 +67,18 @@
    "tweak": "L4",
    "basis": "The nitrate an anoxic ocean gets from lightning, radiolysis and impacts, as a share of Earth's (an oxygen world makes far more by nitrification)"
   },
+  "nitrate_sealed_share": {
+   "value": 0.0,
+   "tier": "T6",
+   "tweak": "L0",
+   "basis": "The share of the abiotic nitrate (lightning, impacts, the radiolysis of the air) that reaches an ocean under an ice lid: none. The nitrate of an open sea falls into it from the air and the impact; a lid keeps both out, and the one sourced delivery through a lid, the brine percolation that carries surface oxidants down on Europa (Hesse and others 2022), is limited by the resurfacing of the lid (about 1e8 mol of O2 per year) and no source gives a flux of nitrate. Nitrate that nitrification makes from oxygen still counts (the 4a rule reads the air's oxygen the same way). To be replaced by an oxidant delivery through the lid when one is sourced"
+  },
+  "perchlorate_sealed_share": {
+   "value": 0.0,
+   "tier": "T6",
+   "tweak": "L0",
+   "basis": "The share of the perchlorate base that reaches an ocean under an ice lid: none. Perchlorate forms in dry air and from the radiolysis of chloride at a surface; the one sourced flux, cosmic-ray radiolysis of surface chloride on Mars (Wilson and others 2016, about 3.4e-5 mol O2-equivalent per m2 per year), is thousands of times under `perchlorate_base`, and no source carries perchlorate down through a lid. To be replaced by the oxidant delivery through the lid when one is sourced (reports/dark-oxygen-production-2026-11-21.md, section 7)"
+  },
   "nitrate_oxygen_kpa": {
    "value": 10.0,
    "tier": "T9",

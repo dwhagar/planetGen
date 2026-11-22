@@ -463,8 +463,9 @@ def compute(values, compact_host=None):
 def _class_rater(values, world):
     """`rated(class id, stage, milestone age, system age, animal grade)`: the `(microbial, flora, fauna, sentient)` of one life class on the body of `values`
     at the stage its timeline reached (no class, or no stage, is no life)."""
-    from planetgen.physics import life_classes, life_complexity      # life_classes reads this module
+    from planetgen.physics import life_classes, life_complexity, ocean_oxygen      # life_classes reads this module
     results = life_classes.score_classes(values)
+    ocean_o2 = ocean_oxygen.ocean_o2_kpa(values)
     toxin = habitability.toxin_factor(world)
     dose_share = habitability.animal_dose_share(world)
 
@@ -473,7 +474,7 @@ def _class_rater(values, world):
         if result is None or kind_stage is None:
             return 0, 0, 0, 0
         row = life_classes.BY_ID[class_id]
-        complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(values, "o2"), life_classes.clock_temperature_k(row, values))
+        complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(values, "o2"), life_classes.clock_temperature_k(row, values), ocean_o2_kpa=ocean_o2)
         complex_likelihood = result.likelihood * life_complexity.complex_factor(complexity.index) * toxin * dose_share
         return life_scores.scores(round(result.likelihood, 3), round(complex_likelihood, 3), kind_stage, milestone_age, system_age,
                                   light_producer=row.light, grade=complexity.grade if grade is None else grade)
