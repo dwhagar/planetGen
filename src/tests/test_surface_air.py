@@ -136,13 +136,18 @@ def test_a_cold_icy_body_holds_its_guest_gases_in_the_ice_and_a_warm_or_dry_one_
     assert thin["CH4"] > held["CH4"]  # a thin skin holds less
 
 
-def test_an_ocean_dissolves_sulfur_dioxide_and_leaves_the_nitrogen():
+def test_an_ocean_dissolves_sulfur_dioxide_and_a_little_nitrogen_and_leaves_the_other_gases():
+    """GEN.757 and GEN.1834: the sulfur gases and the nitrogen go into the ocean by their Henry law; argon, which is in the gas table with a law of its own, stays."""
     setting = _setting()
-    moles = {"N2": 1.0e18, "SO2": 1.0e15}
-    left, dissolved = sa._dissolve_sulfur(moles, 290.0, setting)
-    assert left["N2"] == moles["N2"]
+    moles = {"N2": 1.0e18, "SO2": 1.0e15, "Ar": 1.0e16}
+    left, dissolved = sa._dissolve(moles, 290.0, setting)
+    assert left["Ar"] == moles["Ar"] and "Ar" not in dissolved
     assert 0.0 < left["SO2"] < moles["SO2"]
     assert left["SO2"] + dissolved["SO2"] == pytest.approx(moles["SO2"])
+    assert 0.0 < dissolved["N2"] < 0.01 * moles["N2"]          # a small ocean over a heavy air: well under a percent
+    assert left["N2"] + dissolved["N2"] == pytest.approx(moles["N2"])
+    dry, lost = sa._dissolve(moles, 290.0, dataclasses.replace(setting, water_kg=0.0))
+    assert dry == moles and not any(lost.values())      # no water, no ocean: nothing dissolves
 
 
 def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():

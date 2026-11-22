@@ -510,14 +510,14 @@ def _weathering_land(setting, temperature_k):
     return land * (1.0 - setting.albedo_law.ice_fraction(temperature_k))
 
 
-def _dissolve_sulfur(moles, temperature_k, setting):
-    """`moles` (formula -> moles in the column) less the sulfur gases an ocean of all the surface water dissolves (Henry's law,
-    `mixture_sinks.sulfur_remaining_fraction`), and the moles each lost."""
+def _dissolve(moles, temperature_k, setting):
+    """`moles` (formula -> moles in the column) less the gases an ocean of all the surface water dissolves (Henry's law,
+    `mixture_sinks.remaining_fraction`: the sulfur gases, GEN.757, and the nitrogen, GEN.1834), and the moles each lost."""
     column_kg_m2 = setting.water_kg / setting.area_m2
     left, dissolved = dict(moles), {}
-    for formula in mixture_sinks.SULFUR_GASES:
+    for formula in mixture_sinks.DISSOLVED_GASES:
         if left.get(formula, 0.0) > 0.0:
-            kept = mixture_sinks.sulfur_remaining_fraction(formula, temperature_k, setting.gravity_m_s2, column_kg_m2)
+            kept = mixture_sinks.remaining_fraction(formula, temperature_k, setting.gravity_m_s2, column_kg_m2)
             dissolved[formula] = left[formula] * (1.0 - kept)
             left[formula] *= kept
     return left, dissolved
@@ -927,7 +927,7 @@ def solve(setting, start_temperature_k):
             left, condensed, remaining = freeze_out(moles, setting.gravity_m_s2, setting.area_m2, temperature, reservoirs or None)
             st['reservoir_left'] = remaining.get("H2O", 0.0)
             if ocean:
-                left, dissolved = _dissolve_sulfur(left, temperature, setting)
+                left, dissolved = _dissolve(left, temperature, setting)
                 for formula, moles_ in dissolved.items():
                     condensed[formula] = condensed.get(formula, 0.0) + moles_
             condensed_kg = {f: n * gases.gas(f).molar_mass for f, n in condensed.items() if n > 0.0}
