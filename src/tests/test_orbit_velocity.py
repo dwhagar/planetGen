@@ -25,7 +25,9 @@ def _speed(body):
 
 def _system(predicate):
     for _ in range(300):
-        system = StarSystem(system_config=SystemConfig())
+        cfg = SystemConfig()
+        cfg.COMETS = True        # GEN.1775: comets are asked for, not left to the draw
+        system = StarSystem(system_config=cfg)
         if predicate(system):
             return system
     pytest.fail("no system matching")

@@ -105,9 +105,11 @@ def test_sector_rows_are_written_in_a_few_multi_row_inserts(mysql_config, monkey
         assert conn.execute("SELECT COUNT(*) AS n FROM rogue_planets").fetchone()["n"] == 1
         # One INSERT per table/statement shape, not one per row.
         # The tables with thousands of rows (a belt's members, the isotope records) take one statement for each `_BATCH_ROWS` of them.
+        # The life ages (GEN.1746 slice 3) are wide too: a body keeps one row for each stretch between two mass extinctions, and the young, bombarded worlds of a sector have dozens of them (4,500 rows in one sector of eight systems).
         wide = sum(-(-conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"] // store._BATCH_ROWS)
-                   for table in ("belt_members", "planet_isotopes", "moon_isotopes"))
-        assert counter.statements.count("INSERT") < 40 + wide < planets + moons + 16 + wide
+                   for table in ("belt_members", "planet_isotopes", "moon_isotopes", "planet_life_ages", "moon_life_ages"))
+        # 40 before Train 53; 46 now: the two adaptation tables (GEN.1809) each add their one statement (+2), and the count of one run has wavered by up to 3 statements above 40 even without them (main alone reached 42 against 40 on a second box in one run), so +4 keeps one statement of margin.
+        assert counter.statements.count("INSERT") < 46 + wide < planets + moons + 16 + wide
         # Every child points at a parent written in the same save.
         orphans = conn.execute(
             "SELECT COUNT(*) AS n FROM moons m LEFT JOIN planets p ON p.id = m.planet_id WHERE p.id IS NULL"
