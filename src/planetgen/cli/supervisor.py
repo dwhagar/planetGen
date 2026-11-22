@@ -17,7 +17,7 @@ import signal
 from planetgen import _version
 from planetgen.admin import updateguard
 from planetgen.db import store
-from planetgen.queue import controls, dbsignal, jobhost, lightjobs, pressure, pressurelearn, redisqueue, supervisor
+from planetgen.queue import controls, dbsignal, diskgate, jobhost, lightjobs, pressure, pressurelearn, redisqueue, supervisor
 from planetgen.util import log
 
 
@@ -50,12 +50,13 @@ def main(argv=None):
     controller = pressure.Controller(launcher=lambda: launches.launcher, recorder=recorder)      # OPS.231: the one memory controller; it looks first each turn, so both hand-outs ask it before they admit
     prober = dbsignal.Prober(store.get_control_connection).start()
     database = dbsignal.controller(prober, record=recorder.note_database)      # OPS.248: the same hold with the database's latency for its signal
-    hold = lambda: controller.holding() or database.holding()      # noqa: E731 -- either says why nothing of the bulk or upkeep lanes is admitted
+    disk = diskgate.controller(connection, store.get_control_connection)      # OPS.288: the same hold with the free space of the database's, the run record's and the state folder's drives for its signal; it also holds the run
+    hold = lambda: controller.holding() or database.holding() or disk.holding()      # noqa: E731 -- any says why nothing of the bulk or upkeep lanes is admitted
     launches = supervisor.Launches(connection, forker=templates, also_held=lights.holders, hold=hold)
     lights.also_held = launches.holders      # each hand-out is judged against the claims of the other (OPS.230)
     lights.hold = hold
     requests = controls.Controls(connection, launches=launches)     # before the launcher: a request to stop is seen before the next hand-out (OPS.234)
-    duties = (supervisor.LostRuns(connection), supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), controller, database, requests, lights, launches)
+    duties = (supervisor.LostRuns(connection), supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), controller, database, disk, requests, lights, launches)
     reason = supervisor.Supervisor(supervisor.SystemClock(), supervisor.RedisStore(connection), supervisor.ProcessTable(), duties=duties,
                                    stop=lambda: bool(stopping) or updateguard.is_updating(), idle_seconds=args.idle_seconds).run()
     prober.close()
