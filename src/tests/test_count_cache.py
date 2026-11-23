@@ -116,6 +116,14 @@ def test_the_cache_can_be_turned_off(mysql_config, monkeypatch):
         conn.close()
 
 
+def _seconds_of_duration(text):
+    """The seconds of a duration as `format_duration_seconds` writes it (TEST.827: the activity log gives the clock text, no longer a number): "201 ms", "45s", "12m 34s", "1h 23m 45s", "2d 3h 4m"."""
+    if text.endswith(" ms"):
+        return float(text[:-3]) / 1000.0
+    unit_seconds = {"d": 86400.0, "h": 3600.0, "m": 60.0, "s": 1.0}
+    return sum(float(part[:-1]) * unit_seconds[part[-1]] for part in text.split())
+
+
 def test_a_statement_that_hits_the_time_limit_is_named_in_the_activity_log(mysql_config, monkeypatch):
     import pymysql
     events = []
@@ -127,7 +135,7 @@ def test_a_statement_that_hits_the_time_limit_is_named_in_the_activity_log(mysql
     finally:
         conn.close()
     assert events and events[0][0][:2] == ("DB", "statement_timeout")
-    assert "SLEEP(5)" in events[0][1]["sql"] and float(events[0][1]["seconds"]) < 4
+    assert "SLEEP(5)" in events[0][1]["sql"] and _seconds_of_duration(events[0][1]["seconds"]) < 4
 
 
 def test_a_scatter_or_a_fill_of_scattered_phenomena_moves_the_stored_phenomena_count(counting, mysql_config):

@@ -4293,7 +4293,8 @@ def _put_irregular_moons(conn, system_id, planet_rows, planets, belt_rows):
     """
     Gives each planet dict of `planets` its `irregular_moons` (GEN.1086): the bodies the planet caught, heaviest first, each `{rank (the designation's rank), designation, window, mass_kg, radius_km, density_g_cm3,
     taxon, rock_fraction, metal_fraction, water_fraction, ice_fraction, distance_km, eccentricity, inclination_deg, ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, retrograde}` with the orbit about the
-    planet as saved; an empty list for a planet that keeps none. The designation is `object_uid.irregular_designation`, a body caught from an inner belt carrying that belt's.    `belt_rows` are the system's `asteroid_belts` rows, which `system_detail` has read already; the belts a caught body's designation counts are found among them (PERF.288).
+    planet as saved; an empty list for a planet that keeps none. The designation is `object_uid.irregular_designation`, a body caught from an inner belt carrying that belt's.
+    `belt_rows` are the system's `asteroid_belts` rows, which `system_detail` has read already; the belts a caught body's designation counts are found among them (PERF.288).
     """
     rows = conn.execute("SELECT i.* FROM irregular_moons i JOIN planets p ON p.id = i.planet_id WHERE p.star_system_id = ? ORDER BY i.planet_id, i.moon_rank", (system_id,)).fetchall()
     by_planet = {}
