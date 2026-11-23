@@ -5,18 +5,21 @@ What an ocean takes out of a drawn mixture (GEN.757; docs/design/composition/mix
 ================================================================================
 
 The mixture draw (`physics/mixture_draw.py`) says what the air is made of before the surface touches it. A surface ocean then
-takes the sulfur gases: sulfur dioxide and hydrogen sulfide dissolve in the ocean in proportion to their partial pressure (Henry's
-law, `physics/gases.py`, mol/(kg bar)). An ocean of `m` kg per square metre over an air whose column holds `p / (g M)` moles of the
-gas per square metre keeps `1 / (1 + kH m g M / P0)` of it in the air, with `P0` one bar in pascal (`sulfur_remaining_fraction`,
-read by `surface_air` once the sulfur sinks of the crust have taken theirs).
+takes the sulfur gases (GEN.757) and the nitrogen (GEN.1834): sulfur dioxide, hydrogen sulfide and nitrogen dissolve in the ocean in proportion
+to their partial pressure (Henry's law, `physics/gases.py`, mol/(kg bar)). An ocean of `m` kg per square metre over an air whose column holds `p / (g M)` moles of the
+gas per square metre keeps `1 / (1 + kH m g M / P0)` of it in the air, with `P0` one bar in pascal (`remaining_fraction`,
+read by `surface_air`; for sulfur once the sulfur sinks of the crust have taken theirs). The share does not depend on the pressure of the gas, so one
+law serves a thin air and a thick one. An Earth ocean keeps 0.6 percent of its air's nitrogen dissolved; an ocean 10 times as deep, 6 percent.
 
 What stays out of here: the water vapor cap over an ocean (the saturation of `physics/saturation.py`, applied by the air solve), the
-outgassed inventory and the carbonate and ocean sinks of the carbon, water and nitrogen the mantle gave (GEN.726,
+outgassed inventory and the carbonate and ocean sinks of the carbon and water, and the nitrogen the crust, the sediment, the life and the subduction
+hold (they are inside the nitrogen's degassing efficiency NB3, GEN.1833), (GEN.726,
 `physics/surface_pressure.py`; in the rocky draw the inventory's weathering sink, `mixture_rocky.INVENTORY`), the freezing out of what
 the cold surface condenses (the pressure sum of GEN.411), and the clouds.
 
 Limits (stated): the Henry law is the physical solubility only (`Henry.dissociates` is True for both sulfur gases: the dissolved sulfur
-dioxide goes on to bisulfite and sulfite, so real oceans take more); it is given for 273.15 to 323.15 K and the nearest end stands in
+dioxide goes on to bisulfite and sulfite, so real oceans take more; nitrogen does not dissociate, but the salt of the sea takes about 7 percent of
+what fresh water holds, which is left out); it is given for 273.15 to 323.15 K and the nearest end stands in
 outside (a warmer ocean takes less, so the uptake of a hot ocean is an upper bound); the ocean is taken as well mixed and at the
 surface temperature.
 """
@@ -26,20 +29,23 @@ from planetgen.physics import constants, gases
 SULFUR_GASES = ("SO2", "H2S")
 """tuple: The gas-table species the ocean's solubility takes sulfur out as."""
 
+DISSOLVED_GASES = (*SULFUR_GASES, "N2")
+"""tuple: The gas-table species an ocean takes out of the air by their Henry law (the sulfur gases, GEN.757, and nitrogen, GEN.1834)."""
+
 BAR_PA = constants.BAR_PA
 """float: One bar, Pa (the unit of the Henry constant's pressure)."""
 
 
-def sulfur_remaining_fraction(formula, ts_k, gravity_m_s2, ocean_column_kg_m2):
+def remaining_fraction(formula, ts_k, gravity_m_s2, ocean_column_kg_m2):
     """
-    The share of a sulfur gas that stays in the air over an ocean of `ocean_column_kg_m2` (kg of water per square metre of the whole
+    The share of a gas of `DISSOLVED_GASES` that stays in the air over an ocean of `ocean_column_kg_m2` (kg of water per square metre of the whole
     surface) at `ts_k`: `1 / (1 + kH m g M / P0)`. 1 for no ocean.
 
     Raises:
-        ValueError: `formula` is not a sulfur gas of `SULFUR_GASES`, or the gravity is not positive.
+        ValueError: `formula` is not one of `DISSOLVED_GASES`, or the gravity is not positive.
     """
-    if formula not in SULFUR_GASES:
-        raise ValueError(f"{formula!r} is not one of the sulfur gases {SULFUR_GASES}")
+    if formula not in DISSOLVED_GASES:
+        raise ValueError(f"{formula!r} is not one of the dissolved gases {DISSOLVED_GASES}")
     if not gravity_m_s2 > 0.0:
         raise ValueError(f"the gravity must be positive, not {gravity_m_s2!r}")
     if not ocean_column_kg_m2 or ocean_column_kg_m2 <= 0.0:
