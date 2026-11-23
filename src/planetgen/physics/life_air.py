@@ -46,6 +46,10 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_ledger.json")
 TMOL = 1.0e12
 FUELS = ("burial", "donor_supply", "h2_supply")
 """tuple: What a methane row's fuel may be: the carbon buried (`burial`) or a supply of `physics/life_supply.py`."""
+BURIAL_FUELS = ("donor_supply", "h2_supply")
+"""tuple: What a burial row's carbon is fixed on (GEN.1821): a supply of `physics/life_supply.py`."""
+BURIAL_YIELDS = ("ceiling", "growth")
+"""tuple: What share of a burial row's electrons end in carbon (GEN.1821): `ceiling` (one carbon to four electrons, the light-fed class) or `growth` (`life_supply.json` number `sealed_fuel_efficiency`, the chemical classes)."""
 STATUSES = ("built", "pending")
 DRAW_DOWN_CAPS = {"H2": "hydrogen_max_share", "H2S": "h2s_max_share"}
 """dict: Each gas a class may draw down and the ledger number that caps its share of the air's molecules where that life lives."""
@@ -123,6 +127,10 @@ def _load():
         methane = row.get("methane")
         if row["status"] == "built" and methane and methane.get("fuel") not in FUELS:
             raise LifeLedgerError(f"class {number}: the methane fuel is one of {FUELS}")
+        burial = row.get("burial")
+        if burial and (burial.get("fuel") not in BURIAL_FUELS or burial.get("yield") not in BURIAL_YIELDS or burial.get("electrons_tmol_yr") not in document["numbers"]
+                       or not burial.get("electrons_per_unit", 0) > 0):
+            raise LifeLedgerError(f"class {number}: a burial row has a fuel of {BURIAL_FUELS}, a yield of {BURIAL_YIELDS}, a ledger number of Earth's electrons and the electrons each unit of the supply gives")
         for gas in row.get("draws_down", ()):
             if gas not in DRAW_DOWN_CAPS:
                 raise LifeLedgerError(f"class {number}: a gas drawn down is one of {tuple(DRAW_DOWN_CAPS)}, got {gas!r}")

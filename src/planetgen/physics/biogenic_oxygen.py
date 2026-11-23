@@ -47,7 +47,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import abundance_tier
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, habitability_world, mixture, mixture_oxygen, stellar_spectrum, surface_air, surface_pressure, surface_refuge
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, habitability_world, mixture, mixture_oxygen, saturation, stellar_spectrum, surface_air, surface_pressure, surface_refuge
 from planetgen.util import log
 
 EARTH_O2_PA = 21.2e3
@@ -492,7 +492,15 @@ def apply(body, target_mol):
     return True
 
 
-def rebalance_co2(body):
+def _steaming(body):
+    """Whether the water of `body` is above its boiling point at the pressure of its air, or past its critical point: no liquid surface for the rain that weathers rock (GEN.1821: a hot Earth copy of 442 K under 615 kPa)."""
+    temperature, pressure = getattr(body, "surface_temperature", None), getattr(body, "atmospheric_pressure", None)
+    if not temperature or not pressure or temperature <= surface_pressure.LIQUID_WATER_K[0]:
+        return False
+    return temperature >= surface_pressure.LIQUID_WATER_K[1] or saturation.pressure_pa("H2O", temperature) > pressure
+
+
+def rebalance_co2(body, burial=0.0):
     """
     Solves the carbon sink of the air again at the temperature the oxygen rise left (GEN.1309 A). The air was solved with the methane and hydrogen that warmed it; `apply` burned
     them (the methane's carbon is CO2 now, one for one) and the air found another surface temperature (7 to 67 K lower in the worlds this was measured on), but the sink that holds
@@ -503,12 +511,17 @@ def rebalance_co2(body):
     left where they stood). The root is held to `REBALANCE_TOLERANCE`, and a run that does not settle in `REBALANCE_BISECTIONS` is logged. A body with no sink (no carbon to weather, or an air the oddity
     rows replaced) is left as it is.
 
+    `burial` is the organic carbon the life of the body buries beside the weathering, over Earth's outgassing per area (`carbon_burial.rate_of`, GEN.1821): the sink is asked with it, so a world with life keeps the CO2 its
+    own biosphere leaves (0: the lifeless baseline, as the first solve).
+
     Returns:
         bool: Whether the air changed.
     """
     sink = record_of(body).co2_sink
     if sink is None or not sink.solved_bar > 0.0:
         return False
+    if _steaming(body):
+        return False        # above the boiling point at its pressure (or past water's critical point) a world has no liquid ocean: the weathering law of the sink needs rain on rock, so there is nothing to ask it
     air = dict(atmosphere.gas_partials_pa(body))
     base = air.get("CO2", 0.0)
     current = base
@@ -525,7 +538,9 @@ def rebalance_co2(body):
     def difference(carbon_dioxide):
         """The CO2 asked of the air less the CO2 the sink holds at the temperature that CO2 gives: below zero while the sink wants more."""
         store(carbon_dioxide)
-        return carbon_dioxide - max(base + (sink.kept_at(body.surface_temperature) - sink.solved_bar) * 1.0e5, 0.0)
+        if body.surface_temperature >= surface_pressure.LIQUID_WATER_K[1]:
+            return 1.0 if carbon_dioxide >= current else -1.0       # past the critical point of water there is no ocean for the sink to be asked about: more CO2 than the world began with is too much for its cycle (the root is below), less is a greenhouse that ran away (the root is above)
+        return carbon_dioxide - max(base + (sink.kept_at(body.surface_temperature, burial) - sink.solved_bar) * 1.0e5, 0.0)
 
     low, high = 0.0, min(max(current, MINIMUM_PA), room)
     for _ in range(REBALANCE_BRACKETS):

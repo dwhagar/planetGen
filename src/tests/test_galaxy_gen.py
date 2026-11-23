@@ -131,16 +131,17 @@ WIDE_GALAXY_HIGH_BAND = 50
 WIDE_GALAXY_OUTER_SHELL = 999
 
 
-def _plan_wide_galaxy(mysql_config, galaxy_seed=None):
+def _plan_wide_galaxy(mysql_config, galaxy_seed=None, pins=None):
     """Seeds a skeleton whose outline (bands +/-50, out to shell 999) holds
     every address these tests generate with an explicit --num-systems --
-    generation now refuses any address outside the stored outline."""
+    generation now refuses any address outside the stored outline. `pins` are the plan's pinned levers as `shape_draw.pins_of` keeps them
+    (the golden galaxy pins `{"class_m": 0.0}`, the science, GEN.1832)."""
     _seed_skeleton(mysql_config, shells=_shells(WIDE_GALAXY_OUTER_SHELL, WIDE_GALAXY_HIGH_BAND),
-                   galaxy_seed=galaxy_seed)
+                   galaxy_seed=galaxy_seed, pins=pins)
 
 
 def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_shell_index=999, e_value=1.0, shells=(),
-                   galaxy_seed=None, reach_shell_index=65535):
+                   galaxy_seed=None, reach_shell_index=65535, pins=None):
     """
     Directly writes a `galaxy_shape`/`galaxy_shell` skeleton, without
     running `planetgen plan`'s own scan -- these tests exercise
@@ -159,6 +160,7 @@ def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_shell_index=999, e
             is one, else the fixed `_SKELETON_SEED`, so the loaded shape matches
             `_SKELETON_SHAPE`.
         reach_shell_index (int): The outermost shell the grid has addresses for.
+        pins (dict, optional): The levers the plan was told, `{name: value}`; none leaves every lever on Auto (the Class M box ticked, GEN.1832).
     """
     if galaxy_seed is None:
         conn = _db.get_connection(mysql_config)
@@ -168,7 +170,7 @@ def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_shell_index=999, e
             conn.close()
     _db.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=outer_shell_index,
                            expected_system_count_at_density_1=e_value, config=mysql_config,
-                           galaxy_seed=galaxy_seed, reach_shell_index=reach_shell_index)
+                           galaxy_seed=galaxy_seed, reach_shell_index=reach_shell_index, pins=pins)
     _db.replace_galaxy_shells(list(shells), config=mysql_config)
 
 

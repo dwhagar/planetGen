@@ -31,23 +31,18 @@ def test_science_is_the_default_and_every_dial_is_off():
         assert abundance_tier.cycle_share(planet) == 0.0
 
 
-def test_every_other_tier_has_a_row_of_six_shares_that_never_fall_from_one_tier_to_the_next():
+def test_there_are_two_tiers_the_box_unticked_and_ticked_and_the_ticked_one_has_a_row_of_six_shares():
+    assert abundance_tier.TIERS == ("science", "abundant")      # GEN.1832: Sparse, Scattered and Plentiful are gone
     assert set(tuning.ABUNDANCE_TIER_DIALS) == set(abundance_tier.TIERS) - {"science"}
     assert set(abundance_tier.TARGET_SYSTEMS_PER_CLASS_M) == set(abundance_tier.TIERS)
-    rows = [abundance_tier.dials_of(_planet(tier)) for tier in abundance_tier.TIERS]
-    for lower, higher in zip(rows, rows[1:]):
-        assert all(0.0 <= a <= b <= 1.0 for a, b in zip(lower, higher))
-    assert all(len(row) == 6 and 0.0 < row.dry_part < 0.5 and row.cycle_share > 0.0 for row in rows[1:])        # desert worlds beside the temperate one, which stays the larger part (GEN.1721)
-    targets = [abundance_tier.TARGET_SYSTEMS_PER_CLASS_M[tier] for tier in abundance_tier.TIERS[1:]]
-    assert targets == sorted(targets, reverse=True)
+    row = abundance_tier.dials_of(_planet("abundant"))
+    assert len(row) == 6 and all(0.0 <= share <= 1.0 for share in row) and 0.0 < row.dry_part < 0.5 and row.cycle_share > 0.0        # desert worlds beside the temperate one, which stays the larger part (GEN.1721)
+    assert abundance_tier.dials_of(_planet("science")) == abundance_tier.OFF
 
 
-def test_the_targets_run_from_one_in_500_to_one_in_10_in_even_log_steps():
-    targets = [abundance_tier.TARGET_SYSTEMS_PER_CLASS_M[tier] for tier in abundance_tier.TIERS[1:]]
-    assert targets[0] == 500 and targets[-1] == 10          # Boss, 9:28 and 9:30 PM EST 2026-11-14
-    step = (targets[0] / targets[-1]) ** (1.0 / (len(targets) - 1))
-    for lower, higher in zip(targets, targets[1:]):
-        assert abs(lower / higher / step - 1.0) < 0.02       # whole numbers, so even to within 2 percent
+def test_a_galaxy_told_nothing_is_ticked_and_work_outside_a_galaxy_is_not():
+    assert abundance_tier.GALAXY_DEFAULT == "abundant" and abundance_tier.DEFAULT == "science"      # GEN.1832: "More Habitable Worlds" is on by default
+    assert abundance_tier.TARGET_SYSTEMS_PER_CLASS_M["abundant"] == 10 and abundance_tier.TARGET_SYSTEMS_PER_CLASS_M["science"] is None      # Boss, 9:30 PM EST 2026-11-14
 
 
 def test_the_tier_is_not_saved_with_a_system_config():

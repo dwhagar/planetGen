@@ -54,7 +54,11 @@
     an enum row is a dropdown. The advanced rows are folded away. -#}
 {%- macro lever_input(row) -%}
 {%- set shown = form.get(row.name, "") if form else "" -%}
-{%- if row.kind == "enum" -%}
+{%- if row.checkbox -%}
+{#- GEN.1832: a tick box for an enum row of two choices ("More Habitable Worlds"): ticked is the last choice, unticked the first, and it starts ticked, which is the row's Auto. An unticked box posts nothing, so the hidden marker says the box was on the form. -#}
+<input type="hidden" name="{{ row.name }}_box" value="1">
+{{ ui_checkbox(row.name, row.label, value=row.choices[-1], checked=(shown == row.choices[-1] if form else True), hint=row.help ~ " Auto: " ~ row.auto_text ~ ".", **{"data-lever-box": row.name}) }}
+{%- elif row.kind == "enum" -%}
 {#- Blank is Auto. With one entry (spiral) the blank option is that entry; with more, Auto comes first. -#}
 {%- set choices = [{"value": "", "label": row.choices[0]|capitalize if row.choices|length == 1 else "Auto"}] -%}
 {%- if row.choices|length > 1 %}{% for choice in row.choices %}{% set _ = choices.append({"value": choice, "label": choice|capitalize}) %}{% endfor %}{% endif -%}
@@ -104,7 +108,7 @@
 {%- macro plan_inputs() -%}
 {%- set groups = [("shape", "Galaxy family", true), ("scale", "Size: mass, compactness, density, disk length", true),
                   ("structure", "Structure: flatness, bulge, nuclear", false), ("edge", "Edge of the galaxy", false),
-                  ("halo", "Dark and stellar halo", false), ("census", "Census: star richness, rogue planets and Class M abundance", false),
+                  ("halo", "Dark and stellar halo", false), ("census", "Census: star richness, rogue planets and More Habitable Worlds", false),
                   ("pattern", "Spiral arms", false)] -%}
 {%- for key, title, opened in groups %}
 {%- set rows = plan_fields|selectattr("dial", "equalto", key)|list %}

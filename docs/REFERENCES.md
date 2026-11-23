@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5215 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5216 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -1651,6 +1651,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r1527"></a>**R1527** Gautam, A., et al. 2022, Millisecond pulsars from accretion-induced collapse as the origin of the Galactic Centre gamma-ray excess signal, NatAs, 6, 703, doi:10.1038/s41550-022-01658-3, arXiv:2106.00222. [paper](https://doi.org/10.1038/s41550-022-01658-3) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/s41550-022-01658-3/abstract)
 - <a id="paper-r1528"></a>**R1528** Gauthier, J. R. & Chen, H. W. 2012, Empirical constraints of supergalactic winds atz≳ 0.5, MNRAS, 424, 1952, doi:10.1111/j.1365-2966.2012.21327.x. [paper](https://doi.org/10.1111/j.1365-2966.2012.21327.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2012.21327.x/abstract)
 - <a id="paper-r5130"></a>**R5130** GÃ¼ver, T. & ÃZel, F. 2009, The relation between optical extinction and hydrogen column density in the Galaxy, MNRAS, 400, 2050, doi:10.1111/j.1365-2966.2009.15598.x, arXiv:0903.2057. [paper](https://doi.org/10.1111/j.1365-2966.2009.15598.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2009.15598.x/abstract)
+- <a id="paper-r5332"></a>**R5332** Gebauer, S., et al. 2017, Evolution of Earth-like Extrasolar Planetary Atmospheres: Assessing the Atmospheres and Biospheres of Early Earth Analog Planets with a Coupled Atmosphere Biogeochemical Model, Astrobiology, 17, 27, doi:10.1089/ast.2015.1384. [paper](https://doi.org/10.1089/ast.2015.1384) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1089/ast.2015.1384/abstract)
 - <a id="paper-r1529"></a>**R1529** Gebrehiwot, Y. M., et al. 2017, On utmost multiplicity of hierarchical stellar systems, arXiv:1701.01135. [paper](https://arxiv.org/abs/1701.01135) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:1701.01135/abstract)
 - <a id="paper-r1530"></a>**R1530** Gehrels, N., et al. 2003, Ozone Depletion from Nearby Supernovae, ApJ, 585, 1169, doi:10.1086/346127, arXiv:astro-ph/0211361. [paper](https://doi.org/10.1086/346127) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/346127/abstract)
 - <a id="paper-r1531"></a>**R1531** Genda, H. & Abe, Y. 2003, Survival of a proto-atmosphere through the stage of giant impacts: the mechanical aspects, Icarus, 164, 149, doi:10.1016/s0019-1035(03)00101-5. [paper](https://doi.org/10.1016/s0019-1035(03)00101-5) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/s0019-1035(03)00101-5/abstract)

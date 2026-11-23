@@ -169,6 +169,7 @@ def test_the_ocean_must_be_there_and_the_air_must_have_mass():
 # --- seafloor weathering ----------------------------------------------------------------------------------------------------
 
 LAW = wc.SeafloorLaw(activation_j_mol=75.0e3, ph_exponent=0.27, spreading_exponent=0.47)
+EARTH_BURIAL = 3.0 / 6.6       # `surface_pressure.EARTH_NET_BURIAL_SHARE`
 """The posterior medians of [R2489: Table 1]."""
 
 
@@ -198,7 +199,7 @@ def test_the_modern_seafloor_sink_is_the_small_share_of_the_outgassing_of_the_so
 def test_the_seafloor_balance_is_set_by_the_temperature_more_than_by_the_pressure_and_takes_the_supply_when_that_is_less():
     """The pCO2 enters to the power 0.2 and the temperature through an Arrhenius law: a 300 K world balances at about half a bar, a 288 K one needs
     hundreds of bar, a 310 K one a few millibar; and a supply under the balance stays in the air whole."""
-    at = lambda t: wc.seafloor_pco2_bar(1.0e5, 0.0614, lambda p: t, LAW, 1.5)
+    at = lambda t: wc.seafloor_pco2_bar(1.0e5, 0.0614, lambda p: t, LAW, 1.5, EARTH_BURIAL)       # a world with an Earth's biosphere (GEN.1821): the weathering law is levelled for it
     assert 0.1 < at(300.0) < 2.0
     assert at(288.0) > 100.0 and 1.0e-3 < at(310.0) < 1.0e-2
     assert at(270.0) > at(288.0) > at(300.0) > at(310.0)
@@ -209,8 +210,10 @@ def test_the_seafloor_balance_is_set_by_the_temperature_more_than_by_the_pressur
 
 def test_the_seafloor_balance_sits_where_the_two_rates_are_equal():
     pco2 = wc.seafloor_pco2_bar(100.0, 0.0614, _surface, LAW, 1.5)
-    sink = wc.SEAFLOOR_SHARE_OF_OUTGASSING * wc.seafloor_rate_over_modern(pco2, _surface(pco2), 0.0614, LAW)
+    sink = wc.LIFELESS_WEATHERING_SHARE * wc.SEAFLOOR_SHARE_OF_OUTGASSING * wc.seafloor_rate_over_modern(pco2, _surface(pco2), 0.0614, LAW)       # a lifeless world: the levelled law alone takes the outgassing
     assert sink == pytest.approx(1.0, rel=1e-6)
+    with_life = wc.seafloor_pco2_bar(100.0, 0.0614, _surface, LAW, 1.5, EARTH_BURIAL)
+    assert with_life < pco2                                                              # a biosphere that buries what the Earth's does leaves less carbon dioxide
 
 
 def test_a_higher_activation_energy_lowers_the_balance_of_a_warm_world_and_a_smaller_outgassing_lowers_it_too():

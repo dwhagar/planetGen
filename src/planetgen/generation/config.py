@@ -70,8 +70,8 @@ class SystemConfig:
 
     ABUNDANCE_TIER = None
     """
-    str or None: The Class M abundance tier the system is made under (GEN.1704, `generation.abundance_tier.TIERS`: "sparse", "scattered",
-    "plentiful" or "abundant"), which moves the water and envelope draws of rocky planets in the ecosphere and the share of systems given the
+    str or None: The Class M abundance tier the system is made under (GEN.1704, `generation.abundance_tier.TIERS`: "abundant", the box "More Habitable Worlds"
+    ticked), which moves the water and envelope draws of rocky planets in the ecosphere and the share of systems given the
     habitable request. None is "science": nothing is moved. A class attribute like `FORCE_CLASS`, so a config holds it only when it is set: a
     galaxy sector sets it from the galaxy's stored choice when that is not science (`FillContext.apply_population`), a config made on science
     carries no field of it, and a seeded system and its golden digest are what they were before the tier existed. Not saved with the system.

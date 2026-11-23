@@ -302,17 +302,14 @@ planet, a timeline that does not reach a civilization within the star's age and 
 in this many when a request asks against them. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC10)."""
 
 ABUNDANCE_TIER_DIALS = {
-    "sparse": (0.5, 0.0, 0.0, 0.2, 0.0, 0.5),
-    "scattered": (1.0, 1.0, 0.0, 0.2, 0.5, 1.0),
-    "plentiful": (1.0, 1.0, 0.5, 0.2, 1.0, 1.0),
     "abundant": (1.0, 1.0, 1.0, 0.2, 1.0, 1.0),
 }
 """dict: Class M abundance tier -> `(water_share, bare_share, request_share, dry_part, quiet_share, cycle_share)`, the six dials of `generation.abundance_tier` (GEN.1704: the share of
 rocky planets in the ecosphere whose water class the tier gives, the share of them whose starting hydrogen envelope is taken as lost, and the share of
 systems given the request for a habitable world; GEN.1721: the part of the planets the water dial reaches that take the dry class, the water of a desert
 world, the rest taking Earth's, so the temperate world stays in front, and the share of the candidates whose interior is quiet, `ABUNDANCE_QUIET_SINK_FACTOR`; GEN.1720: the share of the candidates whose carbon-cycle constants are drawn from the part of their published ranges that holds the balance nearest the Earth's, `ABUNDANCE_CYCLE_OUTGASSING_RANGE` and `ABUNDANCE_CYCLE_LAMBDA_RANGE`). `science`, the default, is not a row: it moves nothing. FIRST-PASS values from the estimates of
-reports/class-m-blue-levers-2026-11-14.md section 8, not yet calibrated by census (GEN.1706): the targets are 1 Class M world per 500, 135, 37 and 10
-Sun-like systems (Boss, 9:30 PM EST 2026-11-14). A planetGen stand-in past known science (tier T9 "from needed output", tweak L4; registry rows 6.289:AT1 to AT3 and AT5 to AT8)."""
+reports/class-m-blue-levers-2026-11-14.md section 8, not yet calibrated by census (GEN.1706): the target is 1 Class M world per 10
+Sun-like systems (Boss, 9:30 PM EST 2026-11-14). GEN.1832 (Boss, 3:26 PM EST 2026-11-22) took out the Sparse, Scattered and Plentiful rows: the Generate page's box "More Habitable Worlds" is `abundant` ticked and science unticked. A planetGen stand-in past known science (tier T9 "from needed output", tweak L4; registry rows 6.289:AT1 to AT3 and AT5 to AT8)."""
 
 ABUNDANCE_DESERT_WATER_RANGE = (4.0e-6, 3.0e-5)
 """tuple: The water mass fraction a desert world of a Class M abundance tier is given (the dry part of the water dial, `delivered_water.sample_fraction`), drawn log-uniform: the
