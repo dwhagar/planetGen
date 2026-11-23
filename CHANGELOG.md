@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4738+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A new galaxy now makes Earth-like worlds as common as the generator aims at, behind one box on the Generate page, "More Habitable Worlds", ticked by default.
+
+### Changed
+- GEN.1832 (Boss, 3:26 PM EST 11-22: "change the Class M planet box in generation with a checkbox for More Habitable Worlds that is on by default and will be the highest abundance we discussed, when unchecked it's scientific"): the Census dial `class_m` (`--class-m`) is a box. Ticked is the Abundant tier (aim 1 Class M world per 10 Sun-like systems, the six dials of `tuning.ABUNDANCE_TIER_DIALS["abundant"]` unchanged), unticked is Science (nothing moved, about 1 in 2,800). A plan that is told nothing is ticked (`abundance_tier.GALAXY_DEFAULT`); one system made outside any galaxy (`planetgen system`, a test) stays on Science (`abundance_tier.DEFAULT`). The box is a `Lever` with `checkbox=True` (an enum of two choices, ticked is the last); the Generate page posts a hidden marker with it so an unticked box reads as Science and not as Auto.
+- GEN.1832: the Sparse, Scattered and Plentiful tiers and their three rows of `tuning.ABUNDANCE_TIER_DIALS` are removed (`abundance_tier.TIERS` is `("science", "abundant")`), with their targets (1 in 500, 135 and 37). The comet abundance dial is its own and keeps its five tiers. Nothing else read the three rows. A galaxy planned under a removed tier is refused in words ("plan it again": testing mode, a new database is fine): its stored choice number no longer names a choice. A galaxy planned with nothing pinned used to read as Science and now reads as Abundant.
+- Registry rows 6.289:AT1 to AT6 say only the Abundant values; `docs/reference/cli.md` and the design note `class-m-abundance-tiers.md` are updated.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4737+db274.gen150.api14] - 2026-11-23
 
 **Headline:** Life now draws the carbon dioxide of its world down: a biosphere buries organic carbon, and a world with no life holds more CO2
