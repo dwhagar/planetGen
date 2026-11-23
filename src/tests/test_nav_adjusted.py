@@ -8,12 +8,16 @@ import pytest
 from planetgen.db import obstacles, query, store
 from planetgen.galaxy import unresolved_crossings
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.phenomena.asteroid_field import RETIREMENT_RADIUS_LY, AsteroidField
 from planetgen.physics.units import ly_to_pc
 from tests.publicids import pid
 from tests.test_api import client  # noqa: F401  (the fixture)
 from tests.test_corridor import _centers
 from tests.test_route_edge_cases import _save_grid_sector
+
+
+LIVE_FIELD_RADIUS_LY = 0.9 * RETIREMENT_RADIUS_LY
+"""float: The rms radius of the test fields: a field wider than a light year is retired (GEN.1107) and is no obstacle, and these fields stand in the way (NAV.78: they were 20 ly and so retired)."""
 
 
 def _field_between(config, radius_ly):
@@ -51,7 +55,7 @@ def _nav(config, west, east, **kwargs):
 
 def test_a_field_on_the_line_bends_the_direct_course_and_the_hop(mysql_config):
     west, east = _systems(mysql_config)
-    field_id = _field_between(mysql_config, 20.0)
+    field_id = _field_between(mysql_config, LIVE_FIELD_RADIUS_LY)
     result = _nav(mysql_config, west, east, adjusted=True)
     adjusted = result["adjusted"]
     assert adjusted["frame"] == "galactic" and adjusted["unit"] == "pc"
@@ -79,7 +83,7 @@ def test_without_a_sphere_in_the_way_the_adjusted_course_is_the_straight_line(my
 
 def test_nothing_is_planned_unless_asked_for(mysql_config):
     west, east = _systems(mysql_config)
-    _field_between(mysql_config, 20.0)
+    _field_between(mysql_config, LIVE_FIELD_RADIUS_LY)
     result = _nav(mysql_config, west, east)
     assert "adjusted" not in result
     assert all("adjusted" not in hop for hop in result["route"]["hops"])
@@ -88,7 +92,7 @@ def test_nothing_is_planned_unless_asked_for(mysql_config):
 
 def test_the_api_carries_the_adjusted_course_only_when_asked(mysql_config, client):  # noqa: F811
     west, east = _systems(mysql_config)
-    field_id = _field_between(mysql_config, 20.0)
+    field_id = _field_between(mysql_config, LIVE_FIELD_RADIUS_LY)
     base = f"/api/nav?from={pid('system', west)}&to={pid('system', east)}"
     plain = client.get(base).get_json()
     assert "adjusted" not in plain and "adjusted_distance_ly" not in plain["route"]
@@ -133,7 +137,7 @@ def test_a_cloud_on_the_line_is_passed_through_with_its_length_and_column(mysql_
 
 def test_a_cloud_off_the_line_is_not_listed_and_the_names_of_bent_objects_come_with_the_course(mysql_config):
     west, east = _systems(mysql_config)
-    field_id = _field_between(mysql_config, 20.0)
+    field_id = _field_between(mysql_config, LIVE_FIELD_RADIUS_LY)
     adjusted = _nav(mysql_config, west, east, adjusted=True)["adjusted"]
     assert adjusted["passed_through"] == []
     assert list(adjusted["names"]) == [f"asteroid_field:{field_id}"] and adjusted["names"][f"asteroid_field:{field_id}"]
