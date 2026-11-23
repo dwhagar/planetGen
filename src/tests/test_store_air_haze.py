@@ -96,22 +96,35 @@ def test_an_air_that_is_already_settled_is_left_as_it_was_stored(monkeypatch):
     assert body.air["CO2"] == 100.0 and body.surface_temperature == 300.0 and body.greenhouse_factor == 0.7
 
 
-def test_a_hot_world_whose_air_solver_runs_away_on_almost_no_co2_settles_above_the_runaway(monkeypatch):
-    """GEN.1821: a living steam world at 440 K whose sink holds nothing at that heat sends the search toward no CO2, where the air solver's greenhouse factor diverges (an Earth copy of the analog went from 540 K
-    at 3 Pa to 5,200 K at 1.6 Pa and the weathering law overflowed): the search treats that air as one the sink cannot be asked about and settles above it."""
+def test_a_world_above_the_boiling_point_at_its_pressure_has_no_ocean_for_the_sink_and_is_left_as_it_is(monkeypatch):
+    """GEN.1821: an Earth copy of 442 K under 615 kPa (its water boils above 431 K at that pressure) has no liquid surface, so the weathering of its sink is not asked and no trial air is stored."""
     class Cold:
         solved_bar = 0.001
 
         @staticmethod
         def kept_at(temperature_k, burial=0.0):
             return 1.0e-12
-    body = SimpleNamespace(air={"N2": 600000.0, "CO2": 25.0}, surface_temperature=440.0, build=BuildRecord(co2_sink=Cold()))
+    body = SimpleNamespace(air={"N2": 180000.0, "H2O": 435000.0, "CO2": 25.0}, surface_temperature=442.0, atmospheric_pressure=615000.0, build=BuildRecord(co2_sink=Cold()))
+    monkeypatch.setattr(atmosphere, "gas_partials_pa", lambda b: dict(b.air))
+    monkeypatch.setattr(bo, "store_air", lambda *a, **k: pytest.fail("a steaming world is not asked about its sink"))
+    assert bo.rebalance_co2(body, 0.02) is False and body.surface_temperature == 442.0
+
+
+def test_a_trial_air_past_the_critical_point_of_water_is_not_a_root_either_way(monkeypatch):
+    """GEN.1821: where a trial air with less CO2 than the world began with runs away past water's critical point (647 K) the root is above it; more CO2 than it began with that does is too much for the cycle (the root is below)."""
+    class Cold:
+        solved_bar = 0.001
+
+        @staticmethod
+        def kept_at(temperature_k, burial=0.0):
+            return 1.0e-12
+    body = SimpleNamespace(air={"N2": 100000.0, "CO2": 25.0}, surface_temperature=300.0, atmospheric_pressure=100000.0, build=BuildRecord(co2_sink=Cold()))
     monkeypatch.setattr(atmosphere, "gas_partials_pa", lambda b: dict(b.air))
 
     def store(b, air):
         b.air = dict(air)
         co2 = air.get("CO2", 0.0)
-        b.surface_temperature = 440.0 + 3.0 * (25.0 - co2) if co2 >= 3.0 else 5000.0
+        b.surface_temperature = 5000.0 if co2 < 3.0 or co2 > 200.0 else 300.0 + 2.0 * (co2 - 25.0) if co2 > 25.0 else 300.0
     monkeypatch.setattr(bo, "store_air", store)
     bo.rebalance_co2(body, 0.02)
-    assert body.surface_temperature < 880.0 and 2.9 <= body.air["CO2"] < 25.0
+    assert body.surface_temperature < 647.0 and 3.0 <= body.air["CO2"] <= 200.0

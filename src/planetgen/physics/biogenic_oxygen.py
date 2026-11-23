@@ -47,7 +47,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import abundance_tier
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, habitability_world, mixture, mixture_oxygen, stellar_spectrum, surface_air, surface_pressure, surface_refuge
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, constants, envelope_share, gases, habitability_world, mixture, mixture_oxygen, saturation, stellar_spectrum, surface_air, surface_pressure, surface_refuge
 from planetgen.util import log
 
 EARTH_O2_PA = 21.2e3
@@ -150,11 +150,6 @@ REBALANCE_BRACKETS = 40
 REBALANCE_BISECTIONS = 60
 """int: The most halvings of that bracket (GEN.1589). Sixty halvings narrow any bracket of an air to a part in 10^15, so a run that uses them all found no root: the sink and the temperature did not
 settle (a switch in the air that makes the answer jump), and it is logged."""
-
-REBALANCE_HEAT_LIMIT = 2.0
-"""float: How many times the temperature the body began with a trial air of `rebalance_co2` may reach, with less CO2 than the body began with, before it counts as the air solver's water-vapor feedback running away (a numerical
-bound, GEN.1821): taking CO2 out of an air does not warm it by thousands of K, but a hot world whose sink holds nothing sends the search to almost no CO2 and the solver's greenhouse factor diverges (an Earth copy at 442 K
-gave 540 K at 3.2 Pa and 5,200 K at 1.6 Pa)."""
 
 REBALANCE_TOLERANCE = 0.01
 """float: The relative width of the bracket (and the relative change of the CO2) under which `rebalance_co2` stops."""
@@ -497,6 +492,14 @@ def apply(body, target_mol):
     return True
 
 
+def _steaming(body):
+    """Whether the water of `body` is above its boiling point at the pressure of its air, or past its critical point: no liquid surface for the rain that weathers rock (GEN.1821: a hot Earth copy of 442 K under 615 kPa)."""
+    temperature, pressure = getattr(body, "surface_temperature", None), getattr(body, "atmospheric_pressure", None)
+    if not temperature or not pressure or temperature <= surface_pressure.LIQUID_WATER_K[0]:
+        return False
+    return temperature >= surface_pressure.LIQUID_WATER_K[1] or saturation.pressure_pa("H2O", temperature) > pressure
+
+
 def rebalance_co2(body, burial=0.0):
     """
     Solves the carbon sink of the air again at the temperature the oxygen rise left (GEN.1309 A). The air was solved with the methane and hydrogen that warmed it; `apply` burned
@@ -517,6 +520,8 @@ def rebalance_co2(body, burial=0.0):
     sink = record_of(body).co2_sink
     if sink is None or not sink.solved_bar > 0.0:
         return False
+    if _steaming(body):
+        return False        # above the boiling point at its pressure (or past water's critical point) a world has no liquid ocean: the weathering law of the sink needs rain on rock, so there is nothing to ask it
     air = dict(atmosphere.gas_partials_pa(body))
     base = air.get("CO2", 0.0)
     current = base
@@ -533,8 +538,8 @@ def rebalance_co2(body, burial=0.0):
     def difference(carbon_dioxide):
         """The CO2 asked of the air less the CO2 the sink holds at the temperature that CO2 gives: below zero while the sink wants more."""
         store(carbon_dioxide)
-        if carbon_dioxide < current and not body.surface_temperature < REBALANCE_HEAT_LIMIT * started[0]:
-            return -1.0         # the air solver's water feedback ran away on less CO2 than the world began with (a steam world asked for almost none): not an air the sink can be asked about, so the root lies above it
+        if body.surface_temperature >= surface_pressure.LIQUID_WATER_K[1]:
+            return 1.0 if carbon_dioxide >= current else -1.0       # past the critical point of water there is no ocean for the sink to be asked about: more CO2 than the world began with is too much for its cycle (the root is below), less is a greenhouse that ran away (the root is above)
         return carbon_dioxide - max(base + (sink.kept_at(body.surface_temperature, burial) - sink.solved_bar) * 1.0e5, 0.0)
 
     low, high = 0.0, min(max(current, MINIMUM_PA), room)
