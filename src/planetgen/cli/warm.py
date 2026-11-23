@@ -80,6 +80,25 @@ def galaxy_is_empty(database):
         conn.close()
 
 
+def process_age_seconds():
+    """How long this process has existed (`psutil`'s creation time), or `None` when it cannot be told."""
+    try:
+        import psutil
+        return max(0.0, time.time() - psutil.Process().create_time())
+    except Exception as exc:  # noqa: BLE001 -- a timing line is never a reason to stop a warm-up
+        log.swallowed("cli/warm", "process_age_seconds", exc)
+        return None
+
+
+def say_start_times(began, opened, checked):
+    """OPS.300: where the minute before a warm-up says anything goes (an update's two warm-ups each took 64 s to find the galaxy empty): the process's age when
+    the command reached this point (python's start and its imports), the time to open the warm-up's record, and the time to ask the database whether it holds a galaxy."""
+    age = process_age_seconds()
+    before = "" if age is None else f"The process had run {format_duration_seconds(age)} when the warm-up began (python and its imports), "
+    tail = f"the warm-up's record opened in {format_duration_seconds(opened - began)} and the question whether the galaxy is empty took {format_duration_seconds(checked - opened)}."
+    log.normal(before + tail if before else tail[0].upper() + tail[1:])
+
+
 def say_galaxy_is_empty():
     """Says `EMPTY_GALAXY_LINE` as information (not an error) and tells update.sh, when it asked."""
     log.normal(EMPTY_GALAXY_LINE)
@@ -357,8 +376,12 @@ def _warm_once(args, reason=None):
         SystemExit: The arguments name no such family or phase.
     """
     superseded = None
+    began = time.monotonic()
     with warm_log.RunLog(reason) as record:
-        if galaxy_is_empty(args.database):       # OPS.114: nothing to warm, and not a failure
+        opened = time.monotonic()
+        empty = galaxy_is_empty(args.database)
+        say_start_times(began, opened, time.monotonic())
+        if empty:       # OPS.114: nothing to warm, and not a failure
             say_galaxy_is_empty()
             return
         try:
