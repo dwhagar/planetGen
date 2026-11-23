@@ -21,6 +21,11 @@ from planetgen.queue import controls, dbsignal, diskgate, jobhost, lightjobs, pr
 from planetgen.util import log
 
 
+def should_stop(stopping):
+    """Whether the supervisor ends at its next turn (OPS.298): a signal asked it to, or an update runs that it is not part of. A supervisor the update's own command started (`check-math`, `warm`) belongs to the update and stays: it stopped after its first turn before, so the command that asked for it waited a minute and failed."""
+    return bool(stopping) or (updateguard.is_updating() and not updateguard.inside_update())
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="planetgen.cli.supervisor", description=__doc__.strip().splitlines()[0])
     parser.add_argument("--url", help="the Redis server (default: PLANETGEN_REDIS_URL, else config.json's redis.url)")
@@ -58,7 +63,7 @@ def main(argv=None):
     requests = controls.Controls(connection, launches=launches)     # before the launcher: a request to stop is seen before the next hand-out (OPS.234)
     duties = (supervisor.LostRuns(connection), supervisor.Reconciler(connection), supervisor.RunStarts(connection), supervisor.RunWatches(connection), controller, database, disk, requests, lights, launches)
     reason = supervisor.Supervisor(supervisor.SystemClock(), supervisor.RedisStore(connection), supervisor.ProcessTable(), duties=duties,
-                                   stop=lambda: bool(stopping) or updateguard.is_updating(), idle_seconds=args.idle_seconds).run()
+                                   stop=lambda: should_stop(stopping), idle_seconds=args.idle_seconds).run()
     prober.close()
     log.debug("The supervisor exits: %s.", reason, area="queue")
     lock.close()
