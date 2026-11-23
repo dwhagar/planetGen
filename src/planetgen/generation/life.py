@@ -31,7 +31,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_record, adaptation_traits, aerosols, air_record, life_ages, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, ocean_oxygen, planet_type, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_record, adaptation_traits, aerosols, air_record, extinction_effects, life_ages, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, ocean_oxygen, planet_type, radiation, surface_liquid_world, trace_air
 from planetgen.physics import carbide_deposits, constants, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
@@ -171,6 +171,7 @@ def _apply(planet, keep_stored, key, barred):
         _set_class(planet, row)
         log.choice("Life class", row.id, "the first class that has begun by the star's age; the one with the most production has not")
     cands = _settle(planet, cands, key)
+    _reset_by_extinctions(planet, cands)       # GEN.1746 slice 4: the animals and the civilization the mass extinctions of the body's history took
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
     if not (final.get(row.id) and final[row.id].score > 0):
         if row.id in final and "solvent" in final[row.id].failed:
@@ -214,6 +215,26 @@ def _apply(planet, keep_stored, key, barred):
     kinds = habitability_world.living_kinds(habitability_world.values_from_body(planet))
     for entry in getattr(planet, life_classes.LIVING_FIELD) or ():
         entry["kinds"] = list(kinds.get(entry["life_class"], (0, 0, 0, 0)))
+
+
+def _reset_by_extinctions(planet, cands):
+    """
+    GEN.1746 slice 4: the schedules just drawn lose their animals and civilization to the impacts of the body's history that the Earth's animals have not met
+    (`extinction_effects.extinctions_of`, `extinction_effects.regrown`), and the dominant class's schedule is stored again. Only a class drawn now has its schedule worked on: one kept from a stored body already has it. The
+    extinctions are events of the same call the life ages table is cut from (`life_ages.ages_of`, from the age the first producers began, as `_history_of` makes it), so nothing is drawn.
+    """
+    fresh = [c for c in cands if c.waits is not None and c.ages is not None and c.ages[extinction_effects.ANIMALS] is not None and c.ages[extinction_effects.ANIMALS] <= planet.star.age]
+    if not fresh:
+        return
+    began = [c.ages[1] for c in cands if c.ages is not None and c.ages[1] is not None]
+    if not began:
+        return
+    extinctions = extinction_effects.extinctions_of(planet, min(began))
+    if not extinctions:
+        return
+    for cand in fresh:
+        cand.ages = extinction_effects.regrown(cand.ages, extinctions)
+    _store_schedule(planet, cands)
 
 
 def _minor_candidates(planet, scores, chosen, keep_stored, key):
