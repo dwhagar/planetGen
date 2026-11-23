@@ -2,6 +2,37 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4739+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A reset that is stopped says what stays wiped, and a job whose row a reset wiped ends cleanly.
+
+### Fixed
+
+- OPS.295: the handler of a reset stopped by a signal called a log level that does not exist (`log.info`), so it died with an `AttributeError` before it could say that the tables wiped so far stay wiped; it uses `log.normal` and the reset exits 143 as meant.
+- OPS.296: the job runner read the job's state from its `engine_jobs` row without checking the row was there, and failed with `'NoneType' object is not subscriptable` (stopping the step it followed, a reset among them) on a run of `test_web_generate` on a slow machine. A row that is not there is now no Cancel: the job runs on. What removed the row there is not found (the control schema is a database of its own that a reset does not touch, and the same test passed alone in 6m 37s with the row always there). The first time a job step finds its row gone the log now says so, with the job, run and step, to find the cause.
+
+generation-output: unchanged
+
+## [8.0.4738+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A new galaxy now makes Earth-like worlds as common as the generator aims at, behind one box on the Generate page, "More Habitable Worlds", ticked by default.
+
+### Changed
+- GEN.1832 (Boss, 3:26 PM EST 11-22: "change the Class M planet box in generation with a checkbox for More Habitable Worlds that is on by default and will be the highest abundance we discussed, when unchecked it's scientific"): the Census dial `class_m` (`--class-m`) is a box. Ticked is the Abundant tier (aim 1 Class M world per 10 Sun-like systems, the six dials of `tuning.ABUNDANCE_TIER_DIALS["abundant"]` unchanged), unticked is Science (nothing moved, about 1 in 2,800). A plan that is told nothing is ticked (`abundance_tier.GALAXY_DEFAULT`); one system made outside any galaxy (`planetgen system`, a test) stays on Science (`abundance_tier.DEFAULT`). The box is a `Lever` with `checkbox=True` (an enum of two choices, ticked is the last); the Generate page posts a hidden marker with it so an unticked box reads as Science and not as Auto.
+- GEN.1832: the Sparse, Scattered and Plentiful tiers and their three rows of `tuning.ABUNDANCE_TIER_DIALS` are removed (`abundance_tier.TIERS` is `("science", "abundant")`), with their targets (1 in 500, 135 and 37). The comet abundance dial is its own and keeps its five tiers. Nothing else read the three rows. A galaxy planned under a removed tier is refused in words ("plan it again": testing mode, a new database is fine): its stored choice number no longer names a choice. A galaxy planned with nothing pinned used to read as Science and now reads as Abundant.
+- Registry rows 6.289:AT1 to AT6 say only the Abundant values; `docs/reference/cli.md` and the design note `class-m-abundance-tiers.md` are updated.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4737+db274.gen150.api14] - 2026-11-23
+
+**Headline:** Life now draws the carbon dioxide of its world down: a biosphere buries organic carbon, and a world with no life holds more CO2
+
+### Changed
+
+- GEN.1821 (the Boss's option 2): the carbonate-silicate weathering law is levelled so that the modern Earth balances **with** its biosphere (3 Tmol of carbon a year net over 6.6 of outgassing, `surface_pressure.EARTH_NET_BURIAL_SHARE`). A world with no life now needs 1.83 times the modern weathering to balance its volcanoes, so its CO2 and temperature are higher; a world with life keeps the CO2 its own burial leaves. The oxygenic classes bury `S - W(p)` (the source of the oxygen law less the oxidative weathering of the kerogen: all of `S` before the rise, `R` at the oxygen balance); classes 2 to 4, which make no oxygen, get burial rows in `life_ledger.json` (the carbon their donors' or hydrogen's electrons fix, four electrons to a carbon, at the ceiling for Class 2 and at the growth yield of GEN.1825 for Classes 3 and 4, 2 percent of it buried: `anoxic_burial_share`). The burial falls in a line to nothing as the CO2 falls from 5 Pa to the producers' 0.5 Pa floor, so a biosphere never drains the air under the floor. The sink is solved again with the burial after the life's air is built (`carbon_burial`, `life._build_air`, `biogenic_oxygen.rebalance_co2(body, burial)`). New stand-in section 6.322 (CB1 to CB5) and citation R5332 (Gebauer and others 2017). The sink search (`biogenic_oxygen.rebalance_co2`) is not asked of a world above the boiling point of water at its pressure, or past its critical point, which has no liquid ocean for the weathering law (an Earth copy of 442 K under 615 kPa had made the air solver run away to thousands of K and the weathering law overflow); a trial air past the critical point is no root.
+
 ## [8.0.4736+db274.gen150.api14] - 2026-11-23
 
 **Headline:** The air solver's start-independence test counts 24 generated systems, not 12, and the train gate now runs it when generation or physics code changes.
