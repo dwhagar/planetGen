@@ -158,7 +158,8 @@ def test_nothing_is_saved_without_a_run_or_with_the_stats_off(mysql_config, monk
 
 
 @pytest.mark.db
-def test_a_galaxy_run_saves_each_sectors_timings_under_its_run(mysql_config, monkeypatch):
+def test_a_galaxy_run_saves_each_sectors_timings_under_its_run(control_config, monkeypatch):
+    mysql_config = control_config       # a run records its plan as ledger rows in the control schema (OPS.278)
     from planetgen.galaxy import seed as galaxySeed
     from tests.test_version_key import SEED, _generate
     monkeypatch.setenv("PLANETGEN_GENERATION_STATS", "1")
