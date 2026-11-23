@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4730+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A very large impact can now reset the animals and the civilization of a world, never its microbes
+
+### Changed
+
+- GEN.1746 slice 4: the new `physics/extinction_effects.py` lets the largest impacts of a body's history touch the schedule its life drew. The kill curve stops at 0.65 of the species for the events the Earth has once in 100 Myr and the Earth's animals stood through every extinction of the last 540 Myr (the largest impact among the Big Five is about 10 km), so only an impact the Earth has less often than once in a gigayear (about 37 km on the size law) resets them. The first three steps of a schedule (abiogenesis, photosynthesis, complex cells) are never changed (the Boss's ruling that an extinction never kills microbial life); when such an impact falls once the animals are there they are gone and return 30 Myr later (the 10 Myr origination lag plus 20 Myr of regrowth), and a civilization arises again the same hard-step wait after them as it did before. The stored ages of the animals and the civilization are those of the lineage that is there now; a world with animals that one took recently shows the complex cells stage until they are back. A world made again has the same impacts (they are the events of the life ages table's own call). New stand-in section 6.326 (EF1 to EF3).
+
 ## [8.0.4729+db274.gen150.api14] - 2026-11-23
 
 **Headline:** A command that follows a run (check-db and every other command on the work queue) now asks for a supervisor while it waits and stops with the reason after a minute when none comes up, instead of waiting for ever with no word.
