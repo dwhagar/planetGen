@@ -173,9 +173,14 @@ def _generate(mysql_config, *argv):
         sys.argv = old_argv
 
 
+GALAXY_SEED = bytes(range(16))
+"""bytes: The plan's galaxy seed (TEST.825). A plan told no seed draws a new one every run, so the sectors the CLI builds, and the time they take
+(6 s to 223 s on one box for the one-sector run), changed from run to run; with a seed every run builds the same galaxy."""
+
+
 def _plan_galaxy(mysql_config):
     store.save_galaxy_shape(_SHAPE, edge_pc=EDGE_PC, outer_shell_index=999,
-                          expected_system_count_at_density_1=1.0, config=mysql_config)
+                          expected_system_count_at_density_1=1.0, config=mysql_config, galaxy_seed=GALAXY_SEED)
     store.replace_galaxy_shells([(shell, min(5, spherical.band_range(shell)[1])) for shell in range(1000)],
                                 config=mysql_config)
 
