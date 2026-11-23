@@ -13889,7 +13889,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
+              "tuning.ALBEDO_WET_RANGE (0.225, 0.375) (0.25, 0.40 until GEN.1836), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
             ],
             [
               "The range it moves in",
@@ -13909,7 +13909,7 @@
             ],
             [
               "Evidence",
-              "RECALLED (Earth 0.30, Mars 0.25, Europa 0.68, Enceladus 0.8; the dry range is the old class ranges)"
+              "RECALLED (Earth 0.30, Mars 0.25, Europa 0.68, Enceladus 0.8; the dry range is the old class ranges); GEN.1836: the wet range is centred on the Earth's 0.30, because an Earth copy drawn from 0.25 to 0.40 ran 5.6 K cold (GEN.1835 report, Boss's yes 11:24 PM EST 11-22)"
             ]
           ],
           "id": "CC4",
@@ -13920,7 +13920,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
+          "what": "tuning.ALBEDO_WET_RANGE (0.225, 0.375) (0.25, 0.40 until GEN.1836), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
         },
         {
           "burn_down": null,

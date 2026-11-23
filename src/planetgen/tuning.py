@@ -374,7 +374,9 @@ ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 # temperature raises the albedo along the ice law of `physics/climate_branches` (GEN.972; rows CC15 and CC16). A Venus-like
 # cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).
 # Stand-ins, tier "educated guess from physics", level L3 (hand-tuned against the old class albedo ranges).
-ALBEDO_WET_RANGE = (0.25, 0.40)
+# GEN.1836 (Boss's yes of 11:24 PM EST 11-22 on the GEN.1835 report): the range was (0.25, 0.40), centre 0.325, over the Earth's 0.30; an Earth copy drew a
+# median 5.6 K too cold and a third of the draws were too cold to oxygenate. Each edge moved 0.025, inside the 0.05 the row allows, so the centre is the Earth's.
+ALBEDO_WET_RANGE = (0.225, 0.375)
 ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
 
 # --- Star System Generation Parameters ---
