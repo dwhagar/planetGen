@@ -211,6 +211,7 @@ if [[ "$branch" == "HEAD" ]]; then
 fi
 
 before="$(git rev-parse HEAD)"
+script_before="$(script_sum "$SCRIPT_DIR/update.sh")"
 git fetch --quiet origin "$branch"
 # `reset --hard` rather than `pull`: forces every tracked file to match
 # origin's branch tip regardless of local commits or uncommitted edits,
@@ -226,6 +227,7 @@ else
     log_info "Updated $before..$after:"
     git log --oneline "$before..$after" | log_lines info
 fi
+reexec_when_script_changed "$SCRIPT_DIR/update.sh" "$script_before" "$@"      # OPS.301: right after the commits are listed
 ensure_update_guard
 # The scripts below are run directly, so this comes before any of them.
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
