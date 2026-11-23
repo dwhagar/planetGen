@@ -83,7 +83,7 @@ EARTH_LAND_FRACTION = 1.0 - EARTH_OCEAN_FRACTION
 SOURCE_REFERENCE_COVER = surface_pressure.OCEAN_COVER_EARTH
 """float: The sea cover at which the source `S` is Earth's burial `EARTH_BURIAL_MOL_YR`: 0.55, the cover the generator's Earth has (the Earth's own water makes 0.55 of sea in the generator, `surface_pressure.OCEAN_COVER_EARTH`, GEN.1830),
 not the real Earth's 0.71 (GEN.1837, GEN.1835). With 0.71 an Earth copy made 0.79 of Earth's source, a fifth short, and sat on the edge of the second rise; with 0.55 it makes Earth's, as it does of the weathering and the burial
-of GEN.1821 (`carbon_burial`). [Stand-in BO16, tier T6, tweak L2.]"""
+of GEN.1821 (`carbon_burial`). [Stand-in 6.21 BO16, tier T6, tweak L2.]"""
 EARTH_HEAT_W = surface_pressure.HEAT_FLUX_EARTH_W_M2 * EARTH_AREA_M2
 """float: The heat flow of the model's Earth twin, W: the one Earth heat-flow reference (`surface_pressure.HEAT_FLUX_EARTH_W_M2`, 0.0614 W/m2, registry row AM33; GEN.1636, GEN.1762) over Earth's area, 31 TW. The measured Earth gives off 44 TW
 (0.087 W/m2); the interior model's Earth twin gives 0.0614 because its stagnant lid loses heat less freely than a mobile lid, so a body is read against the model's own Earth (an Earth twin makes Earth's reductant flux, not 0.7 of it)."""
