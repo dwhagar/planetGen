@@ -138,6 +138,12 @@ passing a `random.Random` down, which is GEN.56's change. `secrets` and
 deadlock replays the same draws. The `phenomenon` and `system` subcommands and the run's own
 choices (a random start's address) still draw from the run's stream.
 
+As built (OPS.292): a random start says, after the line that names it, the arguments that name it again
+(`--shell S --band B --wedge W --radius-pc R`, `run_galaxy.pinned_start_arguments`). A job spec that gives them in place of
+an empty `sectors` entry starts at that sector and charts the sectors within the radius, with the same stage list as the random
+start, so two full runs of one seed (one of them stopped and carried on by `finish-run`) can be compared digest to digest
+(`planetgen fingerprint`). No second `sectors` entry and no new option: the single-address mode already was this.
+
 As built (GEN.56): every generation draw goes through
 `planetgen/util/draw.py`. A `draw.Stream` keeps a `random.Random` for its
 `random()` alone and builds `uniform`, `randint`, `randrange`, `choice`,
