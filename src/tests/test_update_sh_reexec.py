@@ -41,3 +41,15 @@ def test_a_pull_that_changed_the_script_runs_the_new_one_with_the_same_pid_and_g
 def test_a_pull_that_left_the_script_alone_does_not_run_it_again(tmp_path):
     lines = _run(tmp_path, False)
     assert len(lines) == 2 and lines[1].startswith("end")
+
+
+def test_a_run_started_again_sets_its_exit_trap_before_anything_else_can_stop_it():
+    """The second run holds the guard from its first line, so a stop before the usual trap would leave the site closed (the trap is what ends the guard)."""
+    text = open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8").read()
+    early = text.index("(( UPDATE_GUARD_HELD )) && trap finish_update_guard EXIT")
+    assert early < text.index('PYTHON="${PYTHON:-$(default_python)}"')
+    assert early < text.index("trap finish_update_guard EXIT\nensure_update_guard")
+
+
+def test_the_script_checksum_needs_only_git():
+    assert "sha256sum" not in open(os.path.join(REPO_DIR, "scripts", "deploy-common.sh"), encoding="utf-8").read().split("script_sum() {")[1].split("}")[0].replace("sha256sum is not on every system", "")

@@ -844,8 +844,8 @@ UPDATE_STEP="starting"
 # id (`exec`), so the update's lock, which names that id, stays valid, and the guard the first run took is told to the second
 # (UPDATE_GUARD_HELD, RESET_JOBS_DONE and KILL_ALL_DONE go along, so nothing is asked or done twice). Once only: the second run never
 # runs again. It cannot help the update that first brings this function: that one still runs the old script.
-script_sum() {
-    sha256sum "$1" | cut -d' ' -f1
+script_sum() {      # git is required here and is the tool the pull uses; sha256sum is not on every system (macOS)
+    git hash-object "$1"
 }
 
 reexec_when_script_changed() {
