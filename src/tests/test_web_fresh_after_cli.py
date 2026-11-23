@@ -231,6 +231,9 @@ def test_galaxy_map_and_nodes_show_sectors_the_cli_placed(site, mysql_config, mo
     assert _placed_ids(site, mysql_config) == [pid("sector", first["id"], mysql_config)]
 
     _generate(mysql_config, "sectors", "--shell", "1", "--limit", "2", "--num-systems", "1")
+    # TEST.824: the run may have taken longer than the stamp window on a slow box, and the first page or node request after it would then check the stamp and
+    # take the new one; the test is about what the cache does inside the window, so the last check is marked as made just now, before any request.
+    site.mark_the_stamp_check_as_just_made()
     sectors = _sectors(mysql_config)
     assert len(sectors) == 3
     all_ids = sorted(pid("sector", row["id"], mysql_config) for row in sectors)
@@ -239,8 +242,7 @@ def test_galaxy_map_and_nodes_show_sectors_the_cli_placed(site, mysql_config, mo
     assert _placed_ids(site, mysql_config) == all_ids
     # The run recorded what it changed (PERF.104), so the page cache shows the new sectors at once...
     assert _placed_count(site.html("/galaxy")) == 3
-    # ...but the node cache still trusts its last stamp check (TEST.824: the CLI run above may have taken longer than the TTL on a slow box, so the check is marked as just made)...
-    site.mark_the_stamp_check_as_just_made()
+    # ...but the node cache still trusts its last stamp check...
     stale = node_payload(site.get(nodes_url))
     assert stale["cached"] == 3 and stale["stamp"] == warm["stamp"]
 
