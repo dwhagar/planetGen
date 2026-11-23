@@ -835,8 +835,29 @@ check_mod_wsgi_python() {
 # else from starting; `finish_update_guard` (update.sh's EXIT trap) opens the
 # site again after a good update and leaves it closed, saying why, after a
 # failed one. UPDATE_STEP names the step under way for that message.
-UPDATE_GUARD_HELD=0
+UPDATE_GUARD_HELD="${PLANETGEN_UPDATE_GUARD_HELD:-0}"      # OPS.301: a script run again after its own pull inherits the guard it took
 UPDATE_STEP="starting"
+
+# OPS.301: bash reads update.sh from the copy it opened, so a pull that changes update.sh left the update running the OLD script to the end
+# (Boss's update at 6:05 PM EST 11-23 ran the math check that OPS.286 had taken out). Called right after the pull with the script's path, its
+# checksum from before the pull and the arguments: when the pull changed the script, it is run again from its start under the same process
+# id (`exec`), so the update's lock, which names that id, stays valid, and the guard the first run took is told to the second
+# (UPDATE_GUARD_HELD, RESET_JOBS_DONE and KILL_ALL_DONE go along, so nothing is asked or done twice). Once only: the second run never
+# runs again. It cannot help the update that first brings this function: that one still runs the old script.
+script_sum() {      # git is required here and is the tool the pull uses; sha256sum is not on every system (macOS)
+    git hash-object "$1"
+}
+
+reexec_when_script_changed() {
+    local script="$1" before="$2"
+    shift 2
+    if [[ "${PLANETGEN_UPDATE_REEXEC:-0}" == 1 || "$(script_sum "$script")" == "$before" ]]; then
+        return 0
+    fi
+    log_info "update.sh was changed by the pull: running the new one from its start (same update, same lock)."
+    export PLANETGEN_UPDATE_REEXEC=1 PLANETGEN_UPDATE_GUARD_HELD="$UPDATE_GUARD_HELD" RESET_JOBS_DONE KILL_ALL_DONE
+    exec bash "$script" "$@"
+}
 
 update_guard() {
     (cd / && PYTHONPATH="$SCRIPT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" \

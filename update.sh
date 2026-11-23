@@ -178,6 +178,9 @@ fi
 # shellcheck source=scripts/deploy-common.sh
 source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
+# OPS.301: a run started again by the pull (`reexec_when_script_changed`) already holds the guard, so its exit trap is set before anything else can stop it.
+(( UPDATE_GUARD_HELD )) && trap finish_update_guard EXIT
+
 PYTHON="${PYTHON:-$(default_python)}"
 if [[ -z "$PYTHON" ]]; then
     log_error "no python3/python found on PATH."
@@ -211,6 +214,7 @@ if [[ "$branch" == "HEAD" ]]; then
 fi
 
 before="$(git rev-parse HEAD)"
+script_before="$(script_sum "$SCRIPT_DIR/update.sh")"
 git fetch --quiet origin "$branch"
 # `reset --hard` rather than `pull`: forces every tracked file to match
 # origin's branch tip regardless of local commits or uncommitted edits,
@@ -226,6 +230,7 @@ else
     log_info "Updated $before..$after:"
     git log --oneline "$before..$after" | log_lines info
 fi
+reexec_when_script_changed "$SCRIPT_DIR/update.sh" "$script_before" "$@"      # OPS.301: right after the commits are listed
 ensure_update_guard
 # The scripts below are run directly, so this comes before any of them.
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
