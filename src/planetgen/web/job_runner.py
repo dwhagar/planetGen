@@ -124,7 +124,7 @@ def _row_is_canceled(control, row_id, said, where):
     if row is None:
         if row_id not in said:
             said.add(row_id)
-            planetgen_log.error("The engine_jobs row %s of %s is gone while its step runs; the step runs on (OPS.296: what removed the row is not known).", row_id, where)
+            planetgen_log.error("The engine_jobs row %s of %s is gone while its step runs; the step runs on (what removed the row is not known).", row_id, where)
         return False
     return row["state"] == "canceled"
 
