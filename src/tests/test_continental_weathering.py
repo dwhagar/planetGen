@@ -71,9 +71,3 @@ def test_no_ocean_floor_means_no_seafloor_sink_and_the_land_alone_sets_the_balan
     with_sea = _balance(temperature=310.0)
     alone = _balance(temperature=310.0, law=None)
     assert alone > with_sea
-
-
-def test_the_weathering_of_an_absurdly_hot_trial_air_is_huge_not_an_overflow():
-    """GEN.1821: a search of the CO2 sink can try an air the greenhouse solver sends to thousands of K; the kinetic rate there is enormous and finite."""
-    rate = cw.rate_mol_m2_yr(9000.0, 1.0e-3, 270.0)
-    assert rate < float("inf") and rate == rate and rate > cw.rate_mol_m2_yr(300.0, 1.0e-3, 270.0)

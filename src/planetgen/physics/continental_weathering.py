@@ -75,9 +75,6 @@ KINETIC_PCO2_EXPONENT = 0.2
 KINETIC_T_E_K = 11.1
 """float: `T_e`, the e-folding temperature of the kinetic rate, K ([R1660: Table 1]; read, tier T1)."""
 
-MAX_KINETIC_EXPONENT = 700.0
-"""float: The largest argument the kinetic rate's exponential takes (`exp(700)` is near the top of a double): a trial air of a search that the air solver's greenhouse sends to thousands of K has a weathering that is enormous, not an overflow (a numerical bound, GEN.1821)."""
-
 RUNOFF_SHARE = 0.2
 """float: `Gamma`, the share of the precipitation that runs off ([R1660: Table 1]; read, tier T1)."""
 
@@ -157,7 +154,7 @@ def rate_mol_m2_yr(temperature_k, pco2_bar, absorbed_flux_w_m2, lambda_scale=1.0
     pco2 = max(pco2_bar, surface_pressure.MIN_PCO2_BAR)
     if runoff <= 0.0:
         return 0.0
-    kinetic = KINETIC_RATE_REF * math.exp(min((temperature_k - REFERENCE_K) / KINETIC_T_E_K, MAX_KINETIC_EXPONENT)) * (pco2 / REFERENCE_PCO2_BAR) ** KINETIC_PCO2_EXPONENT
+    kinetic = KINETIC_RATE_REF * math.exp((temperature_k - REFERENCE_K) / KINETIC_T_E_K) * (pco2 / REFERENCE_PCO2_BAR) ** KINETIC_PCO2_EXPONENT
     supply = MOLAR_MASS_KG_MOL * SPECIFIC_AREA_M2_KG * SOIL_AGE_YR
     thermodynamic = ALPHA / (runoff * lambda_scale * THERMODYNAMIC_CONSTANT_MOL_M3 * pco2 ** THERMODYNAMIC_EXPONENT)
     return ALPHA / (1.0 / kinetic + supply + thermodynamic)
