@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4746+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The sub-ice fauna test states the fuel its animals need, after the sealed-fuel cap.
+
+### Fixed
+- `test_suitability_follows_the_native_life_and_microbes_in_the_ocean_under_ice_are_no_food_to_reach` gave a class 4b ocean under ice a stored animal grade of 3 on Earth's vents and expected fauna; since the sealed-fuel cap (Train 55) a sealed ocean's production is held by its reductant fuel, so that world's complexity index (3.7e-6) is under the multicellular threshold (3e-5) and it has no fauna, as the cap's report says (2 of 1,049 sealed bodies reached it). The fixture now states a fuel of 20 times Earth's vents, the best sealed ocean of that census, and a starved case (Earth's vents, the same stored grade) asserts no fauna and Suitability 0.2. No assertion was loosened and no generator code changed.
+
+generation-output: unchanged
+
 ## [8.0.4745+db274.gen150.api14] - 2026-11-23
 
 **Headline:** The test that checks the pages show what the command line wrote now plans the same galaxy every run, so how long its command-line step takes no longer changes from run to run.
