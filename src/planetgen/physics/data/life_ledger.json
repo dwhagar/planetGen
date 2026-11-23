@@ -75,6 +75,18 @@
    "tweak": "L0",
    "basis": "The acid eaters of Classes 5 and 9 oxidise the hydrogen sulfide they take to sulfur dioxide: sulfur is conserved, one mole of SO2 for each mole of H2S (the oxygen comes from the acid; stoichiometry)"
   },
+  "anoxic_burial_share": {
+   "value": 0.02,
+   "tier": "T5",
+   "tweak": "L1",
+   "basis": "The share of the carbon a class with no oxygen to respire it fixes that ends buried for good, GEN.1821: the modern ocean buries 0.2 percent of its production (beta = 0.002, Prentice and others 2001 via Gebauer and others 2018, read) and the Archean ocean's anoxic bottom water preserved about ten times more, 2 percent by the Black Sea analogue (Gebauer and others 2018 section 6.2.2, second-hand: the page's summary was read, not the paragraph). The rest is respired or fermented back to carbon dioxide and methane"
+  },
+  "earth_donor_electron_tmol_yr": {
+   "value": 80.0,
+   "tier": "T3",
+   "tweak": "L1",
+   "basis": "The electrons, Tmol a year, an Earth-sized world's donors (reduced iron, sulfide and gas) give its chemical and anoxygenic classes when its donor supply is Earth's: 80 Tmol of Fe2+ a year, one electron each ([R3393], read, the figure of `earth_donor_methane_tmol_yr`); four electrons reduce one carbon dioxide to carbohydrate, so 20 Tmol of carbon at the ceiling"
+  },
   "methane_per_h2_hydrogenated": {
    "value": 0.6667,
    "tier": "T1",
@@ -145,6 +157,7 @@
    "name": "Anoxygenic light-eaters",
    "status": "built",
    "methane": {"fuel": "donor_supply", "stage": "photosynthesis", "until": null},
+   "burial": {"fuel": "donor_supply", "electrons_tmol_yr": "earth_donor_electron_tmol_yr", "electrons_per_unit": 1.0, "yield": "ceiling"},
    "draws_down": ["H2"],
    "note": "Carbon is fixed with H2, Fe2+ or H2S for electrons; the food web makes the methane, donor-limited at 1e-4 to 1e-2 of today's biosphere. Never any oxygen.",
    "tier": "T3",
@@ -155,6 +168,7 @@
    "name": "Hydrogen eaters",
    "status": "built",
    "methane": {"fuel": "h2_supply", "stage": "photosynthesis", "until": null},
+   "burial": {"fuel": "h2_supply", "electrons_tmol_yr": "earth_h2_tmol_yr", "electrons_per_unit": 2.0, "yield": "growth"},
    "draws_down": ["H2"],
    "note": "A methane source on a world with open hydrogen (small); sealed sub-ice and aquifer worlds show nothing in the air because the supply is the water's contact with the rock. 3b (sulfate) makes sulfide, not methane, and is not modelled: its row gives none.",
    "tier": "T5",
@@ -165,6 +179,7 @@
    "name": "Chemolithotrophs",
    "status": "built",
    "methane": null,
+   "burial": {"fuel": "donor_supply", "electrons_tmol_yr": "earth_donor_electron_tmol_yr", "electrons_per_unit": 1.0, "yield": "growth"},
    "draws_down": ["H2S"],
    "note": "Draws hydrogen sulfide down to a part in a hundred million and makes sulfate in the water (not an air gas); the air effect is the missing H2S. The size is capped by how fast the oxidant arrives, which the class's supply terms already do.",
    "tier": "T8",

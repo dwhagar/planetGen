@@ -168,11 +168,12 @@ def rate_over_modern(temperature_k, pco2_bar, absorbed_flux_w_m2, lambda_scale=1
 
 # --- the balance ------------------------------------------------------------------------------------------------------------------
 
-def pco2_bar(supply_bar, heat_flux_w_m2, land_fraction, temperature_k, absorbed_flux_w_m2, cycle, seafloor_law=None):
+def pco2_bar(supply_bar, heat_flux_w_m2, land_fraction, temperature_k, absorbed_flux_w_m2, cycle, seafloor_law=None, burial=0.0):
     """
     The CO2 pressure at which the land and the seafloor together take as much as the volcanoes give (the stable root).
 
-    `(1 - s) (land / land_E) w_rel + s r_sea = (q / q_E)^m`; both sinks rise with the pressure, so the root is unique. The land share is the caller's (the
+    `(1 - b_E) [(1 - s) (land / land_E) w_rel + s r_sea] + b(p) = (q / q_E)^m`; every sink rises with the pressure, so the root is unique. The weathering is levelled so the Earth balances with its biosphere
+    (`surface_pressure.EARTH_NET_BURIAL_SHARE`, GEN.1821), and `b(p)` is the organic carbon a biosphere buries (`surface_pressure.burial_rate`; none for a world with no life). The land share is the caller's (the
     ice-free land, `surface_air._weathering_land`).
 
     Args:
@@ -183,6 +184,7 @@ def pco2_bar(supply_bar, heat_flux_w_m2, land_fraction, temperature_k, absorbed_
         absorbed_flux_w_m2 (float): The starlight the surface absorbs at that temperature (`Setting.absorbed_flux_at`), the energy limit's supply.
         cycle (tuple): `draw_cycle`.
         seafloor_law (SeafloorLaw): `waterworld_carbon.draw_seafloor_law`, or `None` for a body with no ocean floor (no seafloor sink).
+        burial (float): The biosphere's net organic sink over Earth's outgassing per area (`b`, `carbon_burial.rate_of`); 0 for a world with no life.
 
     Returns:
         float: The CO2 pressure, bar: at most `supply_bar`.
@@ -198,6 +200,6 @@ def pco2_bar(supply_bar, heat_flux_w_m2, land_fraction, temperature_k, absorbed_
         taken = (1.0 - seafloor_share) * land * rate_over_modern(temperature_k, p_bar, absorbed_flux_w_m2, lambda_scale)
         if seafloor_law is not None:
             taken += seafloor_share * waterworld_carbon.seafloor_rate_over_modern(p_bar, temperature_k, heat_flux_w_m2, seafloor_law)
-        return taken - outgassing
+        return surface_pressure.LIFELESS_WEATHERING_SHARE * taken + surface_pressure.burial_rate(burial, p_bar) - outgassing
 
     return surface_pressure.balance_root_bar(supply_bar, excess)

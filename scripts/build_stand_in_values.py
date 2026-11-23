@@ -637,6 +637,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.321", "6.321 Stand-ins of the pressure of a habitat (GEN.1819)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.322", "6.322 Stand-ins of the carbon a biosphere buries (GEN.1821)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.323", "6.323 Stand-ins of the life of a sealed ocean (GEN.1822, GEN.1823)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.324", "6.324 Stand-ins of the oxygen of a sealed ocean (GEN.1824)",
