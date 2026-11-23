@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4743+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The Galaxy Map freshness test no longer fails on a slow box where a CLI sector run takes longer than the node cache's 60-second stamp window.
+
+### Fixed
+- `test_galaxy_map_and_nodes_show_sectors_the_cli_placed` expects the node cache to still trust its last stamp check right after a second CLI sector run, but the cache's check (`STAMP_TTL_SECONDS`, 60 s of real time) was already due when that run took about a minute (Lanes 06, 07 and 16 on Train 59). The test now marks the stamp check as just made before that assertion and keeps every assertion; the product's window and code are unchanged.
+
+## [8.0.4742+db274.gen150.api14] - 2026-11-23
+
+**Headline:** Three shown strings and one constant brought back inside the guards after Trains 58 and 59.
+
+### Fixed
+- `galaxy/dials.py`: the More Habitable Worlds lever's source named its TODO item, which `planetgen plan --help` and the shown-strings guard caught (`test_no_todo_codes_shown`). The code is dropped; the source reads the same otherwise.
+- `web/job_runner.py`: the missing-job-row error line named its TODO item; dropped, the line reads the same otherwise.
+- `physics/carbon_burial.py`: `ELECTRONS_PER_CARBON` (4) had no tag, so `test_constants_completeness` was red; its docstring now marks it derived and gives the half-reaction it comes from.
+
+generation-output: unchanged
+
 ## [8.0.4741+db274.gen150.api14] - 2026-11-23
 
 **Headline:** A world's oxygen source is Earth's burial scaled by its own sea cover over the cover the generator's Earth has
