@@ -14,7 +14,7 @@ from planetgen.util import log
 
 def _entry(star_type, yerkes):
     star = SimpleNamespace(type=star_type, yerkes_class=yerkes)
-    return SimpleNamespace(star_system=SimpleNamespace(star=star))
+    return SimpleNamespace(star_system=SimpleNamespace(star=star, all_planets=[], primary=SimpleNamespace(orbiters=[])))
 
 
 def _sector(*entries):
@@ -46,7 +46,7 @@ def test_the_summary_totals_systems_stars_planets_and_phenomena():
     def entry(stars, planets, secondary_planets=()):
         return SimpleNamespace(star_system=SimpleNamespace(
             star=SimpleNamespace(type="G2V Main Sequence Star", yerkes_class="V"), stars=list(range(stars)),
-            planets=list(range(planets)), secondary_planets=list(secondary_planets)))
+            all_planets=list(range(planets)) + list(secondary_planets), primary=SimpleNamespace(orbiters=list(range(planets)))))
 
     sector = SimpleNamespace(entries=[entry(1, 3), entry(2, 1, [0, 0])], phenomena=[SimpleNamespace(phenomenon_type="nebula")],
                              expected_system_count=lambda: 10.0)
