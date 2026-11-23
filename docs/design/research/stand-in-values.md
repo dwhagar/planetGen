@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 1995 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1998 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1968 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1971 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 134 | 68 | 13 | 10 | 0 | 225 |
 | T4 | 90 | 17 | 10 | 25 | 13 | 155 |
 | T5 | 117 | 30 | 8 | 1 | 2 | 158 |
-| T6 | 253 | 141 | 39 | 85 | 8 | 526 |
-| T7 | 75 | 42 | 10 | 31 | 0 | 158 |
+| T6 | 253 | 142 | 39 | 85 | 8 | 527 |
+| T7 | 76 | 43 | 10 | 31 | 0 | 160 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1137 | 415 | 102 | 275 | 66 | 1995 |
+| All | 1138 | 417 | 102 | 275 | 66 | 1998 |
 
 ## How the labels were given
 
@@ -3415,7 +3415,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | WW1 | T | T6 | L1 | `surface_pressure.wet_land_fraction`: the weathering land is `land x min(1, ocean_cover / OCEAN_COVER_EARTH)`; rain on land comes from the sea, so a world with less ocean than the Earth's waters less of its land and one with the Earth's or more waters all of it | the cover that saturates it (0.5 to 0.8) | worlds with a liquid ocean and some land | a measured planet whose weathering does not fall with its sea (the insensitivity to land fraction of [R0009] is at a given sea) | a runoff model with the hydrological cycle over the land | educated guess from physics; the form is not in a source read | predicted only | - | - |
-| WW2 | P | T6 | L1 | `surface_pressure.OCEAN_COVER_EARTH` 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land | 0.5 to 0.8 | as WW1 | as WW1 | as WW1 | the Earth's value (0.71); using it as a saturation is a stand-in | predicted only | - | - |
+| WW2 | P | T6 | L1 | `surface_pressure.OCEAN_COVER_EARTH` 0.55 (0.71 until GEN.1830): the cover above which a larger sea adds no rain to the land, the cover the generator makes for the Earth's own ocean mass | 0.5 to 0.8 | as WW1 | as WW1 | as WW1 | the generator's own cover of the Earth's ocean mass (0.55; 0.38 to 0.65 over 24 trials of the Earth analog); the Earth's measured 0.71 is not what its basins give, so with 0.71 an exact Earth copy had 77 percent of its land wet and ran 5 K warm (GEN.1829); Boss's yes 3:24 PM EST 11-22; using a cover as a saturation is a stand-in | predicted only | - | - |
 
 ## 6.310 Stand-ins of the dry-surface carbonate buffer (GEN.1767)
 
@@ -3535,3 +3535,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | FU1 | P | T3 | L1 | `life_supply.json` number `sealed_fuel_efficiency` 0.1: mol of carbon fixed for each mol of O2-equivalent of reductant burned (1 is the ceiling of 4 electrons to 1 carbon) | 0.04 to 0.15 (methanogens); 0.33 for aerobic hydrogen oxidisers | the chemical classes of an ice-covered ocean | a measured growth yield (carbon per electron donor) of the hydrogen eaters of a vent outside 0.04 to 0.33 | a measured yield for the hydrogen eaters of the classes of the design | de Poorter and others 2007 ([R5348], read): 3 to 7 g dry mass per mol of methane for Methanothermobacter, 4 H2 per methane, half carbon by dry mass (mine): 0.04 to 0.15; the aerobic knallgas ratio 6 H2 to 1 C (0.33) is recalled | predicted only | - | - |
 | FU2 | P | T3 | L0 | `life_supply.json` number `ocean_production_mol_c_m2_yr` 11.5: the carbon Earth's ocean fixes, mol per m2 per year (50 Pg of carbon a year over 3.61e14 m2) | 10 to 13 | the unit of the production of every class (1 is Earth's ocean) | a global ocean production outside 40 to 60 Pg of carbon a year | the figure of the census of the oceans, when one is read | the usual global figure, recalled (the same 50 Pg as `tuning.LIFE_NPP`'s vent and seep estimates); [R4587] for the Enceladus anchor of the reductant flux | predicted only | - | - |
 | FU3 | P | T3 | L0 | `life_classes.sealed_fuel_npp` = FU1 x `ocean_oxygen.sink` / FU2: the fuel cap of a sealed ocean's chemical production | the sink's own range (Enceladus 1 to 4 times Earth's per area, Europa 0.2 times) | the chemical classes of an ice-covered ocean | an ocean under a lid whose life fixes more carbon than its reductants can supply; a measured H2 flux of Enceladus or Europa outside the range | the reductant flux of the floor from a model of the rock and the heat (GEN.1824's sink is already the share of Earth's) | [R4587] (Waite and others 2017: 1e9 to 5e9 mol of H2 a year, read), [R5339] (Worman and others 2016: Earth 1e12) | predicted only | - | - |
+
+## 6.326 Stand-ins of what a mass extinction does to the animals and the civilization (GEN.1746 slice 4)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| EF1 | P | T6 | L1 | `extinction_effects.RESET_RECURRENCE_MYR` 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of `air_events`; the kill curve gives it 0.65 like any event of 100 Myr or more) | 300 to 3000 Myr (impactors of about 21 to 62 km; the Big Five were 10 km or less) | a world with animals | a measured loss of animals after an extinction of the Phanerozoic size | a measured relation between the size of a shock and the complexity it removes | the Earth's animal record (540 Myr, five mass extinctions, no reset; the Big Five by number of genera, [R5320] for the curve); the cut is inferred | predicted only | - | - |
+| EF2 | P | T7 | L1 | `extinction_effects.REGROWTH_GYR` 0.020: the time the animals take to return after the origination lag (`air_events.RECOVERY_GYR`, 10 Myr, [R5321]); 30 Myr from the extinction | 0.010 to 0.050 | a world whose animals an extinction reset | a measured regrowth of the marine genera to their old number faster than 15 Myr or slower than 60 Myr after a Big Five extinction | the measured regrowth of the animal grades | educated guess from inferred physics; no source read | predicted only | - | - |
+| EF3 | P | T7 | L0 | `extinction_effects.regrown`: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not | none | a civilization that an extinction at or after the animals reset | a measured faster re-emergence of a technology-scale lineage after a collapse | a measured recovery of a lineage that had a civilization | the hard-step model of `life_timeline` [R4642]; the choice not to draw again is a design rule | predicted only | - | - |

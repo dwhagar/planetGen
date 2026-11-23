@@ -2,6 +2,7 @@
 The templates are stood in for by a fake forker; the rows are real."""
 
 import os
+import itertools
 import signal
 
 import pytest
@@ -66,8 +67,16 @@ def _state(control, run):
     return [(row["item_key"], row["state"], row["attempt"]) for row in control.execute("SELECT item_key, state, attempt FROM engine_jobs WHERE run_id = ? AND item_key <> '' ORDER BY id", (run,)).fetchall()]
 
 
-def _launcher(control, forker, host=HOST):
-    return launcher.Launcher(control, forker, read_host=lambda: host)
+_KILLS = itertools.count()
+
+
+def _rising():
+    """The kernel's memory-kill count as a test reads it: up by one at every reading, so any SIGKILL met a rise since the job began (OPS.294)."""
+    return next(_KILLS)
+
+
+def _launcher(control, forker, host=HOST, memory_kills=_rising):
+    return launcher.Launcher(control, forker, read_host=lambda: host, memory_kills=memory_kills)
 
 
 def test_every_ready_job_that_fits_is_handed_out_as_the_unit_job_forkedjob_takes(control):
@@ -254,7 +263,7 @@ def test_a_launcher_with_redis_claims_what_the_gate_has_learned_not_the_minimum(
     monkeypatch.setattr(claims, "unit_table_mb", lambda kind: 3000.0)
     monkeypatch.setattr(claims, "unit_tokens", lambda kind: ("mysql-write",))
     run = _ready(control, count=1, mb=None)
-    one = launcher.Launcher(control, FakeForker(), read_host=lambda: HOST, redis=conn)
+    one = launcher.Launcher(control, FakeForker(), read_host=lambda: HOST, redis=conn, memory_kills=_rising)
     row = control.execute("SELECT id, run_id, stage, command, item_key, arguments, claim_mb, job_class, attempt FROM engine_jobs WHERE run_id = ? AND item_key <> ''", (run,)).fetchone()
     claim = one.claim(row)
     assert (claim.kind, claim.mb, claim.cpu, claim.tokens) == ("unit:fill-unit", 3000.0, claims.UNIT_CPU, ("mysql-write",))
@@ -349,7 +358,7 @@ def test_the_maintenance_lane_runs_no_more_than_its_share_while_a_generation_run
     monkeypatch.setattr(launcher, "get_settings", lambda: types.SimpleNamespace(queue=types.SimpleNamespace(maintenance_workers=2)))
     _upkeep(control, count=5)
     forker = FakeForker()
-    one = launcher.Launcher(control, forker, read_host=lambda: HOST, redis=conn)
+    one = launcher.Launcher(control, forker, read_host=lambda: HOST, redis=conn, memory_kills=_rising)
     live.append(True)
     assert len(one.turn()) == 2, "a generation run is live: the upkeep takes its two and no more"
     assert len(one.turn()) == 0
@@ -424,3 +433,17 @@ def test_a_memory_kill_of_the_launcher_is_one_the_memory_controllers_record_coun
     control.commit()
     _minutes, kills = pressurelearn.read_record(control)
     assert len(kills) == 1
+
+
+@pytest.mark.parametrize("reading", [lambda: 7, lambda: None], ids=["the count did not rise", "the count cannot be read"])
+def test_a_sigkill_that_the_kernel_memory_kill_count_did_not_meet_is_lost_not_a_memory_kill(control, reading):
+    """OPS.294: a plain SIGKILL of a worker (a person's, a test's) was recorded as `killed_memory` and counted toward the memory gate's kill edges; only a rise of the kernel's memory-kill count while the job ran makes it one."""
+    _ready(control, count=1)
+    forker = FakeForker()
+    one = _launcher(control, forker, memory_kills=reading)
+    (job,) = one.turn()
+    ledger.begin_attempt(control, job)
+    forker.exits = [("plain", jobhost.Exit(1, 1001, signal=signal.SIGKILL))]
+    one.turn()
+    row = ledger.attempt_row(control, job, 1)
+    assert row["outcome"] == "lost" and "SIGKILL" in row["error_text"] and "not killed for memory" in row["error_text"]

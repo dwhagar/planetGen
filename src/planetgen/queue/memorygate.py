@@ -203,6 +203,24 @@ def _cgroup_available_mb():
     return None
 
 
+def oom_kill_count():
+    """How many processes the kernel has killed for want of memory (OPS.294): the `oom_kill` counter of this cgroup's `memory.events` plus the host's of `/proc/vmstat`, or `None` when neither can be read.
+    A job's end on SIGKILL is a memory kill only when this count rose while the job ran. A test patches this."""
+    total, found = 0, False
+    for path, key in (("/sys/fs/cgroup/memory.events", "oom_kill"), ("/proc/vmstat", "oom_kill")):
+        try:
+            with open(path, encoding="ascii") as handle:
+                for line in handle:
+                    name, _, value = line.partition(" ")
+                    if name == key:
+                        total += int(value)
+                        found = True
+                        break
+        except (OSError, ValueError):
+            continue
+    return total if found else None
+
+
 def read_host():
     """The `Host` now: memory from the kernel's MemAvailable (less than a cgroup's limit leaves, when there is one), cores and the load
     per core. A test patches this."""

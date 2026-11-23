@@ -246,10 +246,10 @@ def _carbon_share(setting, water_world, temperature_k=288.0, carbon=1.0e-2):
 def test_the_land_weathering_works_on_shrinks_with_the_ice_cover_of_the_bodys_own_law():
     """GEN.1697: no rain on bare rock under a global ice sheet; a body with no ice law keeps its whole wet land (GEN.1403: the land the sea waters)."""
     law = climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
-    held = _ocean_setting(0.7, 1.4e21)
+    held = _ocean_setting(0.4, 1.4e21)
     iced = dataclasses.replace(held, albedo_law=law)
-    wet = surface_pressure.wet_land_fraction(0.3, 0.7)
-    assert wet == pytest.approx(0.3 * 0.7 / surface_pressure.OCEAN_COVER_EARTH) and wet < 0.3
+    wet = surface_pressure.wet_land_fraction(0.6, 0.4)
+    assert wet == pytest.approx(0.6 * 0.4 / surface_pressure.OCEAN_COVER_EARTH) and wet < 0.6
     assert sa._weathering_land(held, 200.0) == pytest.approx(wet)
     assert sa._weathering_land(iced, 310.0) == pytest.approx(wet)
     assert sa._weathering_land(iced, 200.0) == 0.0

@@ -10880,6 +10880,7 @@ clears each one.
   Slice 3 census (Lane 06, PR 7159, 10:35 PM EST 2026-11-17, reports/gen1493-veneer-by-architecture-2026-11-18.md): in 240 Sun-like systems 71 percent of rocky planets sit on the veneer floor (51 percent for default stars), every planet of giant systems is at the floor, median veneer 0.04 percent of mass against 0.2 to 0.7 published. Slice 2 must read the reservoir the system had (primordial disk, giant-scattered material, outer-disk comets), possibly a stored primordial disk mass. Slice 2 waits on Boss's three answers.
   Boss, 5:44 and 5:45 PM EST 2026-11-20: (a) yes, giant-dependent inward share with two fitted L4 numbers; (b) yes, comets count only for stars with an outer disk; (c) floor and ceiling kept until slice 2. Slice 2 PR 7324 merged in Train 52, PR 7368, merged 11:05 AM EST 11-21. Next slice (scattering integration) waits on Boss.
   TODO, 2026-11-22: Boss, 2:31 PM EST 2026-11-21: build slice 3 (the scattering step). PR 7379, census reports/gen1493-slice3-census-2026-11-22.md (median late material 2.47 to 0.137 percent of planet mass); Boss, 8:52 PM EST 2026-11-21: merge in the next train (Train 54). GEN.1828 answered why the giant groups stay at the floor; Boss closed it with no further research.
+  TODO, 2026-11-22: slice 3 merged in Train 54, PR 7386.
 
 - [ ] **GEN.1500 Mutual inclination of the orbits of the stars in a binary or triple: draw it from the physics (close pairs align, wide ones are random) and compose it with the parent plane**
   Split from GEN.1492 by TODO (2026-11-09) at Lane 22's request; premise corrected by Lane 21's read (reports/gen1500-star-orbit-mutual-inclination-read-2026-11-09.md): star orbits already store an inclination and node per tree node (multistar.place, isotropic), the triple stability and Kozai screens already use the mutual inclination to the parent, and 58 percent of triple draws are Kozai-rejected and redrawn today. No new column: the mutual inclination is derived from the stored inclination and node (add a column only if the map or API asks). Do, in slices: (a) the law, built on its own and changing stars only: mutual inclination drawn as an aligned Rayleigh with a probability falling from 1 at 30 AU to 0 at 1,000 AU, else isotropic, composed with the parent plane and stored in the existing columns (secondary sources named in the report; stand-ins in GEN.725); (b to d) the readers: GEN.1447's Kozai screen, GEN.1467, GEN.1492 forced inclination and GEN.1499. Leave the planets' plane against the star's spin axis (stellar obliquity) out of this item. Done: close pairs are near-coplanar, wide ones isotropic, the Kozai-rejection share falls, the report shows how many systems change verdict. Slice (a) is a lock item (epoch, --affects scatter and fill).
@@ -10938,14 +10939,6 @@ clears each one.
   Deferred (TODO, 2026-11-12): after the generation fixes, with the other deferred code items (Boss, 10:01 PM EST on 2026-11-11).
   Filed by the TODO thread.
 
-- [ ] **GEN.1653 apply_class runs only as the last step of the finish chain (class before bands is the H3 cause)**
-  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section H, with file:line, shape, risk and output impact). Same PR and epoch as GEN.1652.
-  Version 8.1. Owner (TODO, 2026-11-15): Lane 02, folded into GEN.1745 slice 3 (Boss 11:25 AM EST: no class until the evolution is finished); moved from Lane 14, not started there. Prerequisites: none. Related: GEN.1652, GEN.1745.
-  Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
-  Boss, 4:09 PM EST on 2026-11-12: "Some of these fixes are getting really close to our unified mass object to-do items ... have the Fable thread check out the design notes for the unified mass item train and tree ... Start reshaping the code into that even if it doesn't finish it". Hold lifted: the reshaped list is filed (below).
-  Reshaped toward the unified mass object design (/mnt/project-files/reports/layered-fixes-reshape-to-mass-object-2026-11-12.md, scan thread as it reported 4:14 PM EST on 2026-11-12): apply_class is the last entry of PlanetaryObject's FINISH_STEPS (GEN.1652).
-  Filed by the TODO thread.
-
 - [ ] **GEN.1654 One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor**
   Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section B, with file:line, shape, risk and output impact). Fixes bug-sweep H2.1. Output changes; can share GEN.1652's epoch.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 02 (moved from Lane 14 to run in parallel). Prerequisites: none (built in parallel with GEN.1651/1652). Related: GEN.1655, GEN.1652.
@@ -10972,6 +10965,7 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-18): Lane 15 (moved from Lane 07, not started there), after Train 45 merges. Prerequisites: stage 4. Related: OPS.191, OPS.207, OPS.212.
   Filed by the TODO thread.
   TODO, 2026-11-22: run A on main a0b1ae5 finished all 19 stages at 11:11 PM EST 2026-11-21 (493 systems, 7,374 planets, 2,752,077 bright stars, 9,999,647 scatter phenomena, 1,904 nebula clouds); four box restarts carried on by finish-run; lowest free memory 7,898 MB of 16 GB, 0 kills (PERF.254: 16 GB fits). OPS.291 found and fixed. Run B (disturbed) started 11:40 PM EST; report /mnt/project-files/reports/ops247/trial-report.md.
+  TODO, 2026-11-22: run B (disturbed) finished 1:36 PM EST 2026-11-22, no failed unit, check-db passes; OPS.293, OPS.294 and PERF.286 filed from it. Closing step: the pinned disturbed rerun of run A (OPS.292).
 
 - [ ] **GEN.1781 In hydrogen-rich airs (over 10 percent H2) doubling methane cools the ground (cold gas dwarfs 4 K, one 2,300 K class I body 42 K): is hydrogen pair absorption missing from the infrared-active gases, or is this a real anti-greenhouse? (measure first)**
   Lane 02, 2:40 AM EST 2026-11-17, found while building TEST.790 (PR 7019): the controlled greenhouse test had to scope out airs with over 10 percent H2 because they cool when methane is doubled; the code does not flag hydrogen collision-induced (pair) absorption as infrared-active. Do: check whether the radiative path counts H2-H2 and H2-He pair absorption (a major greenhouse source in hydrogen airs) and how methane's stratospheric absorption enters (a Titan-like anti-greenhouse is real physics); report which part is physics and which is a gap, then fix the gap so the TEST.790 scope can widen to hydrogen airs. Report before any change that moves output.
@@ -10990,54 +10984,30 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-19): Lane 02, after GEN.1621, lock item. Prerequisites: GEN.1621. Related: GEN.1621, GEN.1629, GEN.1796, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **OPS.288 A full disk holds a run instead of failing it, so finish-run can carry on once space is freed**
-  Lane 15, 2026-11-20 (OPS.247 bounded rerun): the lane box's disk filled at stage 12 and the run failed; finish-run carried it on after space was freed. Do: detect a full disk and hold the run with a plain message naming the free space needed.
-  Version 8.1. Owner (TODO, 2026-11-21): Lane 15, after the OPS.247 run. Prerequisites: none. Related: OPS.247, OPS.284.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1821 Photosynthesis draws CO2 down: life is a carbon sink in the air history**
   Boss, 2:29 PM EST 2026-11-21 (closing GEN.1812): file the photosynthesis carbon sink. Design /mnt/project-files/reports/co2-carbon-sink-gen1821-2026-11-21.md (Lane 02). Boss, 2:38 PM EST 2026-11-21: a census of both baselines first (harness scripts/co2_sink_census.py), no output change until he picks. Do: census, Boss card, then build; the build re-solves CO2 for every living world. Stand-in section 6.322 and citations R5332 to R5335 reserved.
   Version 8.1. Owner (TODO, 2026-11-22): Lane 02, lock, census before merge. Prerequisites: GEN.1812 (closed). Related: GEN.1745, GEN.1767, GEN.1774.
   Filed by the TODO thread.
+  TODO, 2026-11-22: Boss, 3:25 PM EST 2026-11-22: option 2, all life buries carbon; classes 2 to 4 get burial rows first. PR 7400 (Lane 02), Train 58; census reports/co2-burial-build-gen1821-2026-11-22/README.md.
 
-- [ ] **GEN.1822 The sub-ice clock reads the habitat temperature**
-  Underwater-energy research (/mnt/project-files/reports/, 2026-11-21) found the sealed-ocean energy clock read the surface temperature, not the habitat under the ice. Boss, 3:35 PM EST 2026-11-21: "Do the two fixes with no new science, the clock fix, the nitrate fix." Boss, 4:42 PM EST 2026-11-21: the aquifer clock folds in. PR 7375 (with GEN.1823), stand-in section 6.323 AX1 to AX3.
-  Version 8.1. Owner (TODO, 2026-11-22): underwater-energy research thread, lock, census. Prerequisites: none. Related: GEN.1823, GEN.1824, GEN.1810.
+- [ ] **GEN.1832 The New galaxy Class M box becomes one "More Habitable Worlds" checkbox, on by default**
+  Boss, 3:26 PM EST 2026-11-22: "change the Class M planet box in generation with a checkbox for "More Habitable Worlds" that is on by default and will be the highest abundance we discussed, when unchecked it's scientific." Ticked = the Abundant tier (aim 1 in 10), unticked = Science (1 in 2,800); Sparse, Scattered and Plentiful and their dial rows removed. PR 7396 (Lane 16); the golden galaxy's own plan pins Science until the 8.1 renewal, when its tier is decided again.
+  Version 8.1. Owner (TODO, 2026-11-22): Lane 16, lock. Prerequisites: none. Related: GEN.1765, GEN.1775, GEN.1791.
   Filed by the TODO thread.
 
-- [ ] **GEN.1823 Class 4b loses its unsourced abiotic nitrate supply**
-  Underwater-energy research, 2026-11-21: class 4b drew on nitrate_abiotic 0.3, a T9 L4 stand-in with no source (perchlorate_base folded in). Boss, 3:35 PM EST 2026-11-21: build it (the nitrate fix). Census: class 4b 985 to 0. PR 7375. Boss, 9:03 PM EST 2026-11-21: a world whose every supported class would freeze its own ocean stays lifeless (keep as built; the sweep_life audit counts it as waiting).
-  Version 8.1. Owner (TODO, 2026-11-22): underwater-energy research thread, lock, census. Prerequisites: none. Related: GEN.1822, GEN.1810.
+- [ ] **GEN.1834 Oceans dissolve nitrogen out of the air (Henry law)**
+  GEN.1833 (Lane 07, reports/gen1833-nitrogen-sinks-2026-11-22.md): crust, sediment, life and subduction are already inside the calibrated degassed share; the one missing sink is nitrogen dissolved in a surface ocean (0.2 percent of the air on an Earth copy, up to 15 percent on some ocean worlds). Boss, 4:32 PM EST 2026-11-22: add the dissolved ocean nitrogen sink only. Do: the air solve takes the ocean's dissolved N2 out by Henry law from the verified gases.json entry; census.
+  Version 8.1. Owner (TODO, 2026-11-22): Lane 07, lock, census. Prerequisites: none. Related: GEN.1831, GEN.1833.
   Filed by the TODO thread.
 
-- [ ] **GEN.1824 Sealed oceans hold the oxygen their real sources and sinks allow, with an oxygen bank**
-  Boss, 3:51 PM EST 2026-11-21: option 1, real sources against sinks, reusing the biogenic_oxygen source and removal rule; nodule dark oxygen declined (stays out). Boss, 4:14 PM EST 2026-11-21: the oxygen bank folds in. Thermosynthesis declined (no dark-ocean A2/A3 lever). Report reports/dark-oxygen-production-2026-11-21.md and reports/gen1824-sealed-ocean-oxygen-2026-11-21/. PR 7376 (stacked on 7375), section 6.324 SO1 to SO16, citations R5336 to R5339 and R5346 to R5347. Census, 377 sealed oceans: 33 clear A1, 16 A2, 10 A3; one body changes grade. Boss card on the three cautious settings (comet oxygen off, radiolysis net zero, Earth ridge reductant anchor) sent 5:47 PM EST 2026-11-21.
-  Version 8.1. Owner (TODO, 2026-11-22): Lane 07, lock, census. Prerequisites: GEN.1822. Related: GEN.1825, GEN.1746.
+- [ ] **TEST.822 (bug) Job-engine tests red on plain main: interrupted galaxy run, window spawn history, work units galaxy run**
+  Lane 13, 7:56 PM EST 2026-11-22, identical on plain main: test_interrupted_galaxy_run (3 cases, "no sector was saved" after 8 minutes), test_window_spawn folds_the_history (passes alone, fails in its file), test_work_units::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units (hangs to the timeout). Do: check whether OPS.293 changes any, then find each cause; no timeout raised, no test skipped.
+  Version 8.1. Owner (TODO, 2026-11-22): Lane 13, lock-free. Prerequisites: none. Related: OPS.293, OPS.247.
   Filed by the TODO thread.
 
-- [ ] **GEN.1825 Sealed-ocean life is capped by the fuel its reductant flux supplies**
-  Boss, 4:14 PM EST 2026-11-21: yes, with a census (report reports/dark-ocean-untested-theories-2026-11-21.md). Boss, 7:50 PM EST 2026-11-21: carbon yield 0.1. Reuses ocean_oxygen.sink (GEN.1824) as the one reductant flux; life_classes.sealed_fuel_npp is the lesser of the heat term and 0.3 x sink / 11.5. Section 6.325 FU1 to FU3; its two citations are added with the PR. Census (300 systems, 1,049 sealed bodies, reports/sealed-fuel-cap-gen1825-2026-11-21.md): supported classes unchanged; complex cells 193 to 7, multicellular 96 to 2, A1 32 to 0. Open seas, aquifers and dry bodies unchanged.
-  Version 8.1. Owner (TODO, 2026-11-22): underwater-energy research thread, lock, census. Prerequisites: GEN.1824. Related: GEN.1822, GEN.1823.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1826 (bug) Class 4b life is drawn before the final air is known (seed 5007)**
-  Lane 02, 2026-11-21: on seed 5007 a 4b class was drawn against the air before the air history finished, so the class read air the body did not end with. Boss rule (GEN.1739): no class is assigned until evolution has finished. Do: name the call order, draw life after the final air, test on seed 5007.
-  Version 8.1. Owner (TODO, 2026-11-22): Lane 02, lock if output moves. Prerequisites: none. Related: GEN.1745, GEN.1739, GEN.1823.
-  Filed by the TODO thread.
-
-- [ ] **OPS.292 A run spec can name its start sector so two full runs can be digest-compared**
-  Lane 15, 11:42 PM EST 2026-11-21: OPS.247 run B could not hold run A's sectors, since the start sector is drawn at random and a second sectors entry is refused, so the A-to-B digest compare is impossible; run B is judged by no failed unit, fingerprint against the stored digests, and checkdb. Do: the existing sectors stage takes an optional start sector (no second entry, no new stage); a test that two runs with the same start give the same digest. Then a pinned disturbed rerun of A's start closes OPS.247's strongest check.
-  Version 8.1. Owner (TODO, 2026-11-22): Lane 15, lock-free, after OPS.247 run B. Prerequisites: none. Related: OPS.247, OPS.284, OPS.290.
-  Filed by the TODO thread.
-
-- [ ] **PERF.285 Generation is about 4.5 times slower than on 2026-11-15: find and fix the cause**
-  Lane 05, census 2026-11-21 (reports/census-1500-2026-11-22/): the same census ran about 4.5 times slower than the 5,000-system census of 2026-11-15. Do: profile the same seeds on main against the 2026-11-15 main commit, name the merge(s) and functions that take the extra time, send the table to TODO before any fix; a fix that changes output goes through a train with a census.
-  Version 8.1. Owner (TODO, 2026-11-22): Lane 13, lock-free unless output changes. Prerequisites: none. Related: OPS.247, PERF.282.
-  Filed by the TODO thread.
-
-- [ ] **TEST.818 (bug) Hypergiant systems fail "bodies not in orbital order" in the star-type fuzz test**
-  Train Manager and Lane 14, 10:28 PM EST 2026-11-21: tests/test_fuzz_system_generation.py::test_every_star_type_generates_a_sane_system[IA-*] (IA-B, IA-G, IA-K and more) fails on main 4256d3dc8e and on the Train 53 head; it passed on main 76e3694080. Suspects from Train 52: trojan regions and planets in the orbit order (GEN.1150/1151), GEN.1817, GEN.1790, GEN.1493 slice 2. Do: bisect, name the merge and line, fix the cause (the order check stays as it is).
-  Version 8.1. Owner (TODO, 2026-11-22): Lane 06, lock-free unless output changes. Prerequisites: none. Related: GEN.1150, GEN.1151, GEN.1817, GEN.1790, GEN.1493.
+- [ ] **PERF.286 The whole-galaxy fingerprint streams its rows so memory stays flat**
+  Lane 15, OPS.247 run B (2026-11-22): a whole-galaxy fingerprint took 6 GB and hours, and the memory gate held run B 81 minutes beside it. Lane 13 PR 7403: hash each row as it goes and let a sector go before the next (rich galaxy dump, 333 sectors: 58.6 s and 680 MB to 29.5 s and 305 MB, same digest).
+  Version 8.1. Owner (TODO, 2026-11-22): Lane 13, lock-free. Prerequisites: none. Related: OPS.247, GEN.1827.
   Filed by the TODO thread.
 
 - [ ] **OPS.276 (bug) A unit is held with "IndexError: list index out of range" (test_sky_charting galaxy on main; test_bright_star_scatter once under load)**
@@ -11080,6 +11050,7 @@ clears each one.
   Filed by the TODO thread.
   LA1 registered as Boss's choice in PR 7321 (merged 2:22 AM EST 2026-11-21). Boss, 5:52 PM EST 2026-11-20 (slice 4): extinctions never kill microbial life; they can reset animal grades and civilization. Slice 3 (migration 0273) is PR 7348, Train 53.
   TODO, 2026-11-22: slice 3 (life ages table, migration 0273) merged in Train 53, PR 7383. Slice 4 remains (Lane 02).
+  TODO, 2026-11-22: slice 4 (extinction effects, section 6.326) merged in Train 57, PR 7404; Boss 3:25 PM EST 2026-11-22: keep as built.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
