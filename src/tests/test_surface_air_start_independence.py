@@ -31,8 +31,8 @@ from planetgen.util import draw
 STARTS_K = (100.0, 150.0, 200.0, 250.0, 300.0, 375.0, 450.0, 600.0, 900.0)
 """tuple: Start temperatures of the probe, from well below the cold answer to well above the hot one."""
 
-SEEDS = tuple(range(3000, 3012))
-"""tuple: The first twelve G2V seeds of the census (no seed was picked for its answer), which hold giants and rocky bodies with 10 kPa or more of air."""
+SEEDS = tuple(range(3000, 3024))
+"""tuple: The first 24 G2V seeds of the census (no seed was picked for its answer), which hold giants and rocky bodies with 10 kPa or more of air. The first twelve held 19 to 22 air bodies, too few for a 40 percent bound (a body or two swing the share by 5 to 10 points): TEST.823 widened it to 24 seeds, about 40 air bodies, and left the bound alone (see `MAX_BISTABLE_SHARE`)."""
 PROBE_STARTS_K = (120.0, 300.0, 600.0)
 """tuple: The starts of the share count: cold, mid and hot, so a cold and a warm branch both show (the starts of `scripts/gen1555_moist_limit_census.py`)."""
 
@@ -45,7 +45,9 @@ MAX_BISTABLE_SHARE = 0.40
 """float: The most air bodies whose answer depends on the start, as a share of the bodies with 10 kPa or more of air in the sample. Measured on the 40 G2V systems of seeds 3000 to 3039 with the
 three probe starts: 6 of 55 (11 percent) while the moist limit was the one 375 K that cut every hot branch at that temperature; 17 of 54 (31 percent) with the moist limit of the air (GEN.1579), which
 lets a thick-air body keep a hot branch (a surface of 400 to 600 K with tens of bar of carbon dioxide out of its carbonates) beside its cold one, as TODO decided a world may (GEN.1403). The sample here
-is small and the bound is above that measure: a solver that chatters again (42 of 286, 15 percent, before GEN.1716 with the hot branches cut) is far over it."""
+is small and the bound is above that measure: a solver that chatters again (42 of 286, 15 percent, before GEN.1716 with the hot branches cut) is far over it. TEST.823 (11-23): on the first twelve seeds it was 7 of 22 (32 percent) up to Release 4716 and 8 of 19 (42 percent) from Release 4717 (GEN.1493 slice 3 cut the veneer, so cold outer bodies of 17 to 550 kPa
+at about 100 K, all single-answer, fell under 10 kPa and left the count while the start-dependent bodies stayed 7 to 8); on the 40 seeds 3000 to 3039 it is 18 of 74 (24 percent) at 4716 and 19 of 69 (28 percent) on main 55789b5; on the 24 seeds now used it is
+13 of 40 (32 percent) on main."""
 
 
 def _spread(setting, starts=STARTS_K):
