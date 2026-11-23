@@ -150,6 +150,27 @@ def test_an_ocean_dissolves_sulfur_dioxide_and_a_little_nitrogen_and_leaves_the_
     assert dry == moles and not any(lost.values())      # no water, no ocean: nothing dissolves
 
 
+def test_the_ice_cuts_the_nitrogen_off_from_the_sea_by_the_ice_law_with_no_step_and_leaves_the_sulfur_its_whole_column():
+    """GEN.1834: the open share of the sea (one less the ice fraction of the albedo law) takes the nitrogen; a covered sea takes none, a free one the whole column, and between them
+    the uptake falls smoothly; the sulfur gases do not follow the ice."""
+    law = climate_branches.IceAlbedoLaw()
+    setting = dataclasses.replace(_setting(), albedo_law=law)
+    moles = {"N2": 1.0e18, "SO2": 1.0e15}
+
+    def taken(temperature_k, setting=setting):
+        _, lost = sa._dissolve(moles, temperature_k, setting)
+        return lost["N2"], lost["SO2"]
+
+    cold_n2, cold_so2 = taken(law.covered_below_k - 5.0)
+    warm_n2, _ = taken(law.free_above_k + 5.0)
+    assert cold_n2 == 0.0 and cold_so2 > 0.0
+    assert warm_n2 > 0.0
+    steps = [taken(t)[0] for t in range(int(law.covered_below_k), int(law.free_above_k) + 1, 5)]
+    assert max(abs(b - a) for a, b in zip(steps, steps[1:])) < 0.5 * max(steps)   # the uptake changes by no step as the ice melts (the colder water holds more, the open share less)
+    bare = dataclasses.replace(setting, albedo_law=None)
+    assert taken(200.0, bare)[0] > 0.0                        # a body with no ice law has an open sea
+
+
 def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=1.0e30, heat_flux_w_m2=0.0614, ocean_cover=0.7,
                          water_kg=1.4e21, absorbed_flux_w_m2=240.0, released_at_seal_j=2.0e29, subject_of=None)
@@ -471,9 +492,9 @@ def test_an_air_with_no_steady_state_is_stored_by_a_stated_rule_and_says_so(monk
         assert 250.0 < air.temperature_k < 335.0, (key, air.temperature_k)
 
 
-CREEP_KEYS = (156, 63)
+CREEP_KEYS = (86, 270)
 """tuple: Seeded keys of `_first_air_of` whose first air creeps at the end of its 60 steps on the star table of the day and settles in the steps `CREEP_EXTENSION` gives (GEN.1718 part 2). The star draws and the greenhouse table move which keys
-these are (key 175 before GEN.1623's star table, key 274 before Train 36's nebular water of rocky bodies, GEN.1754, key 387 before the photochemical loss of the air, GEN.1732); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
+these are (key 175 before GEN.1623's star table, key 274 before Train 36's nebular water of rocky bodies, GEN.1754, key 387 before the photochemical loss of the air, GEN.1732, keys 156 and 63 before the dissolved nitrogen of the ocean, GEN.1834; a scan of keys 0 to 299 lists keys 86 and 270 and no other); a scan of keys 0 to 500 lists the airs that settle after `MAX_STEPS` steps."""
 
 
 def test_an_air_still_creeping_when_its_steps_run_out_is_given_more_and_settles(monkeypatch):

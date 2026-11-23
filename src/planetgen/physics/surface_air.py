@@ -510,14 +510,24 @@ def _weathering_land(setting, temperature_k):
     return land * (1.0 - setting.albedo_law.ice_fraction(temperature_k))
 
 
+ICE_CUT_GASES = ("N2",)
+"""tuple: The dissolved gases the sea's ice cover cuts off from the air (GEN.1834): nitrogen, which is in every air, is taken only by the open water, the share of the ocean the ice has not
+covered at that temperature (`climate_branches.IceAlbedoLaw.ice_fraction`, the law that sets the albedo and the weathering land). A frozen sea holds none of the air's nitrogen and a warm
+one the whole of its column, with no step between them for the temperature solve to rest on (a step at 273.15 K left the first air of a seeded body with no steady state). The sulfur
+gases (GEN.757) keep the whole column at every temperature."""
+
+
 def _dissolve(moles, temperature_k, setting):
     """`moles` (formula -> moles in the column) less the gases an ocean of all the surface water dissolves (Henry's law,
-    `mixture_sinks.remaining_fraction`: the sulfur gases, GEN.757, and the nitrogen, GEN.1834), and the moles each lost."""
+    `mixture_sinks.remaining_fraction`: the sulfur gases, GEN.757, and the nitrogen, GEN.1834), and the moles each lost. The nitrogen is taken by the open water only
+    (`ICE_CUT_GASES`); a body with no ice law (`setting.albedo_law` None) has an open sea."""
     column_kg_m2 = setting.water_kg / setting.area_m2
+    open_share = 1.0 if setting.albedo_law is None else 1.0 - setting.albedo_law.ice_fraction(temperature_k)
     left, dissolved = dict(moles), {}
     for formula in mixture_sinks.DISSOLVED_GASES:
         if left.get(formula, 0.0) > 0.0:
-            kept = mixture_sinks.remaining_fraction(formula, temperature_k, setting.gravity_m_s2, column_kg_m2)
+            column = column_kg_m2 * open_share if formula in ICE_CUT_GASES else column_kg_m2
+            kept = mixture_sinks.remaining_fraction(formula, temperature_k, setting.gravity_m_s2, column)
             dissolved[formula] = left[formula] * (1.0 - kept)
             left[formula] *= kept
     return left, dissolved

@@ -54,17 +54,6 @@ def test_the_henry_law_range_clamps_instead_of_failing():
         sinks.remaining_fraction("SO2", gases.HENRY_RANGE_K[0], G_EARTH, EARTH_OCEAN_KG_M2))
 
 
-def test_nitrogen_stays_whole_outside_the_henry_range_where_the_sulfur_gases_take_the_nearest_end():
-    """GEN.1834: a frozen sea is cut off from the air and a hot one is past the data; the sulfur gases keep the clamp of GEN.757."""
-    low, high = gases.HENRY_RANGE_K
-    deep = 1000.0 * EARTH_OCEAN_KG_M2
-    assert sinks.remaining_fraction("N2", low - 1.0, G_EARTH, deep) == 1.0
-    assert sinks.remaining_fraction("N2", high + 1.0, G_EARTH, deep) == 1.0
-    assert sinks.remaining_fraction("N2", low, G_EARTH, deep) < 0.5
-    assert sinks.remaining_fraction("N2", high, G_EARTH, deep) < 0.5
-    assert sinks.remaining_fraction("SO2", low - 1.0, G_EARTH, deep) < 1.0
-
-
 def test_bad_input_is_refused():
     with pytest.raises(ValueError):
         sinks.remaining_fraction("CO2", 288.0, G_EARTH, 1.0e6)

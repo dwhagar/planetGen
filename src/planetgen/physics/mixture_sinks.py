@@ -20,8 +20,7 @@ the cold surface condenses (the pressure sum of GEN.411), and the clouds.
 Limits (stated): the Henry law is the physical solubility only (`Henry.dissociates` is True for both sulfur gases: the dissolved sulfur
 dioxide goes on to bisulfite and sulfite, so real oceans take more; nitrogen does not dissociate, but the salt of the sea takes about 7 percent of
 what fresh water holds, which is left out); it is given for 273.15 to 323.15 K and the nearest end stands in
-outside for the sulfur gases (a warmer ocean takes less, so the uptake of a hot ocean is an upper bound), while nitrogen takes nothing outside it
-(`RANGE_BOUND_GASES`); the ocean is taken as well mixed and at the
+outside (a warmer ocean takes less, so the uptake of a hot ocean is an upper bound); the ocean is taken as well mixed and at the
 surface temperature.
 """
 
@@ -32,11 +31,6 @@ SULFUR_GASES = ("SO2", "H2S")
 
 DISSOLVED_GASES = (*SULFUR_GASES, "N2")
 """tuple: The gas-table species an ocean takes out of the air by their Henry law (the sulfur gases, GEN.757, and nitrogen, GEN.1834)."""
-
-RANGE_BOUND_GASES = ("N2",)
-"""tuple: The dissolved gases whose uptake stops outside the Henry law's range (`gases.HENRY_RANGE_K`) instead of taking the nearest end (GEN.1834). Nitrogen is the
-gas of every air: a sea under 273.15 K is ice-covered and cut off from the air, a sea over 323.15 K is past the data, and a law carried there over a column of a
-hundred kilometers of water would take the whole air of a frozen water world (on a sample of 101 systems the 1 to 5 MPa airs of frozen water worlds fell to almost nothing)."""
 
 BAR_PA = constants.BAR_PA
 """float: One bar, Pa (the unit of the Henry constant's pressure)."""
@@ -49,8 +43,6 @@ def remaining_fraction(formula, ts_k, gravity_m_s2, ocean_column_kg_m2):
 
     Raises:
         ValueError: `formula` is not one of `DISSOLVED_GASES`, or the gravity is not positive.
-
-    A gas of `RANGE_BOUND_GASES` (nitrogen) stays whole in the air outside the Henry law's temperature range (the other gases take the nearest end).
     """
     if formula not in DISSOLVED_GASES:
         raise ValueError(f"{formula!r} is not one of the dissolved gases {DISSOLVED_GASES}")
@@ -60,7 +52,5 @@ def remaining_fraction(formula, ts_k, gravity_m_s2, ocean_column_kg_m2):
         return 1.0
     gas = gases.gas(formula)
     low, high = gases.HENRY_RANGE_K
-    if formula in RANGE_BOUND_GASES and not low <= ts_k <= high:
-        return 1.0
     kh = gas.henry.kh(min(max(ts_k, low), high))
     return 1.0 / (1.0 + kh * ocean_column_kg_m2 * gravity_m_s2 * gas.molar_mass / BAR_PA)
