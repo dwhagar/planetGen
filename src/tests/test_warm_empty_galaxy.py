@@ -83,8 +83,8 @@ def test_the_warm_up_says_where_its_first_seconds_went(monkeypatch, tmp_path, ca
     monkeypatch.setattr(warm_cli, "galaxy_is_empty", lambda database: True)
     warm_cli._warm_once(_args())
     seen = capsys.readouterr()
-    line = [row for row in (seen.out + seen.err).splitlines() if "warm-up start:" in row][0]
-    assert "the process had run" in line and "its record opened in" in line and "whether the galaxy is empty took" in line
+    line = [row for row in (seen.out + seen.err).splitlines() if "record opened in" in row][0]
+    assert "The process had run" in line and "whether the galaxy is empty took" in line and "warm-up start:" not in line
 
 
 def test_a_galaxy_that_exists_is_warmed_as_before(monkeypatch, tmp_path):
