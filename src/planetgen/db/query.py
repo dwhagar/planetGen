@@ -4263,18 +4263,23 @@ def phenomena_near_sector(conn, sector_id):
     return matches
 
 
-def _heliopause_au(conn, system, cloud):
+def _heliopause_au(conn, system, cloud, stars=None):
     """
     `(open-space heliopause, heliopause inside `cloud`)` in AU for a
     `star_systems` row: a close pair's shared bubble, otherwise the
     primary (or single) star's. `(None, None)` when nothing stores one.
+    `stars` is the system's `stars` rows when the caller has read them (`system_detail` has, with their `role` and `heliosphere_radius_km`, in the order of
+    primary or single first, then by id); the star is then found among them, not read again (PERF.288).
     """
     if system["binary_configuration"] == "close" and system["binary_heliosphere_radius_km"] is not None:
         radius_km = system["binary_heliosphere_radius_km"]
     else:
-        star = conn.execute(
-            "SELECT heliosphere_radius_km FROM stars WHERE star_system_id = ? AND role IN ('primary', 'single')"
-            " ORDER BY id LIMIT 1", (system["id"],)).fetchone()
+        if stars is None:
+            star = conn.execute(
+                "SELECT heliosphere_radius_km FROM stars WHERE star_system_id = ? AND role IN ('primary', 'single')"
+                " ORDER BY id LIMIT 1", (system["id"],)).fetchone()
+        else:
+            star = next((row for row in stars if row["role"] in ("primary", "single")), None)
         radius_km = star["heliosphere_radius_km"] if star else None
     if radius_km is None:
         return None, None
@@ -4284,11 +4289,11 @@ def _heliopause_au(conn, system, cloud):
     return open_space_au, compressed_heliosphere_radius(open_space_au, cloud["density_cm3"], cloud["temperature_k"])
 
 
-def _put_irregular_moons(conn, system_id, planet_rows, planets):
+def _put_irregular_moons(conn, system_id, planet_rows, planets, belt_rows):
     """
     Gives each planet dict of `planets` its `irregular_moons` (GEN.1086): the bodies the planet caught, heaviest first, each `{rank (the designation's rank), designation, window, mass_kg, radius_km, density_g_cm3,
     taxon, rock_fraction, metal_fraction, water_fraction, ice_fraction, distance_km, eccentricity, inclination_deg, ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, retrograde}` with the orbit about the
-    planet as saved; an empty list for a planet that keeps none. The designation is `object_uid.irregular_designation`, a body caught from an inner belt carrying that belt's.
+    planet as saved; an empty list for a planet that keeps none. The designation is `object_uid.irregular_designation`, a body caught from an inner belt carrying that belt's.    `belt_rows` are the system's `asteroid_belts` rows, which `system_detail` has read already; the belts a caught body's designation counts are found among them (PERF.288).
     """
     rows = conn.execute("SELECT i.* FROM irregular_moons i JOIN planets p ON p.id = i.planet_id WHERE p.star_system_id = ? ORDER BY i.planet_id, i.moon_rank", (system_id,)).fetchall()
     by_planet = {}
@@ -4296,7 +4301,7 @@ def _put_irregular_moons(conn, system_id, planet_rows, planets):
         by_planet.setdefault(row["planet_id"], []).append(row)
     belts_of_star = {}
     if rows:
-        for belt in conn.execute("SELECT star_id, uid FROM asteroid_belts WHERE star_system_id = ? AND lagrange_point IS NULL ORDER BY orbital_index, id", (system_id,)).fetchall():
+        for belt in sorted((belt for belt in belt_rows if belt["lagrange_point"] is None), key=lambda belt: (belt["orbital_index"], belt["id"])):
             belts_of_star.setdefault(belt["star_id"], []).append(object_uid.from_bytes(belt["uid"]) if belt["uid"] is not None else None)
     for row, planet in zip(planet_rows, planets):
         uid, found = (object_uid.from_bytes(row["uid"]) if row["uid"] is not None else None), []
@@ -4407,11 +4412,10 @@ def system_detail(conn, system_id):
         planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), colonized["moons"], host, moon_scores.get(m["id"]), moon_living.get(m["id"]))
                                 for m in moons_by_planet.get(planet["id"], [])]
         planets.append(planet_dict)
-    _put_irregular_moons(conn, system_id, planet_rows, planets)
+    belt_rows = conn.execute("SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)).fetchall()
+    _put_irregular_moons(conn, system_id, planet_rows, planets, belt_rows)
 
-    belts = [_with_printed_uid(b) for b in conn.execute(
-        "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
-    ).fetchall()]
+    belts = [_with_printed_uid(b) for b in belt_rows]
     belt_composition = {}
     for row in conn.execute(
         "SELECT c.belt_id, c.component, c.concentration FROM asteroid_belt_composition c"
@@ -4444,7 +4448,7 @@ def system_detail(conn, system_id):
                              or _nearest_sector_siblings(system, sibling_rows))
 
     cloud = containing_cloud(conn, system)
-    open_space_au, heliopause_au = _heliopause_au(conn, system, cloud)
+    open_space_au, heliopause_au = _heliopause_au(conn, system, cloud, stars)
 
     return {
         "id": system["id"], "name": system["name"], "sector_id": system["sector_id"],
