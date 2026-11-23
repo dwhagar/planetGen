@@ -2,6 +2,34 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4735+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The stage-line test expects whole milliseconds, as stage lines have read since TEST.814.
+
+### Fixed
+- `test_stages.py`: `test_a_stage_line_gives_the_time_the_stage_took_on_the_units_ladder` still expected "2.86 ms"; since TEST.814 (PR 7355) a duration under a second reads in whole milliseconds (`logrecord.duration_text(0.00286)` is "3 ms"), so the test was red on main. It now expects "3 ms".
+
+generation-output: unchanged
+
+## [8.0.4734+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The whole-galaxy fingerprint streams a sector's rows into its digest, so it takes half the time and under half the memory, and gives the same digest.
+
+### Changed
+- PERF.286: `db/fingerprint.py` held, for each sector, the rows, their canonical values, three encoded copies of the set and a list of every key it had read, so a galaxy's fingerprint took 6 GB and hours next to a run (OPS.247 run B). A sector's digest now takes each row's two texts as the row is read (`fingerprint_encoding.row_set_full_digest`: the same sort, the same bytes hashed, so the same digest) and lets the sector's rows and keys go before the next. On the rich test galaxy (333 sectors, 2,746 planets) the region digest is the same (`d1dae05e28c3...`) and the run took 58.6 s and 680 MB peak before, 29.5 s and 305 MB after. Tests: `test_fingerprint_encoding.py`, `test_fingerprint_stream.py`; the stored digests of the fingerprint tests are unchanged.
+
+generation-output: unchanged
+
+## [8.0.4733+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The window test that carries a run on picks the run it started, and the fold of a finished stage keeps the same slowest units each time.
+
+### Fixed
+- TEST.822 (a): `test_window_spawn.py::test_a_run_carried_on_from_one_that_stopped_in_a_later_window...` took the newest run id of the list as "its" run. A run of an earlier test that the run store restores from the control database (OPS.284) after the test's snapshot joins the list in the same second, and its id sorts by its random end, so in about half the runs the test finished the wrong run ("did not record the galaxy and the build"). It takes the new run that recorded its galaxy seed now.
+- `planrows.fold_finished` kept "the `FOLD_KEEP` slowest" units in an order the database chose among equal times; folding a stage twice could keep different rows. It breaks ties by the lower job id, so a second fold finds nothing left to fold (the `folds_the_history` case failed on main in about half the runs).
+
+generation-output: unchanged
+
 ## [8.0.4732+db274.gen150.api14] - 2026-11-23
 
 **Headline:** The Earth analog is an Earth again: its veneer, mantle and radiogenic content are fixed, and a second row holds the Earth's own sea against 288 K and 101 kPa.
