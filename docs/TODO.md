@@ -10966,6 +10966,7 @@ clears each one.
   Filed by the TODO thread.
   TODO, 2026-11-22: run A on main a0b1ae5 finished all 19 stages at 11:11 PM EST 2026-11-21 (493 systems, 7,374 planets, 2,752,077 bright stars, 9,999,647 scatter phenomena, 1,904 nebula clouds); four box restarts carried on by finish-run; lowest free memory 7,898 MB of 16 GB, 0 kills (PERF.254: 16 GB fits). OPS.291 found and fixed. Run B (disturbed) started 11:40 PM EST; report /mnt/project-files/reports/ops247/trial-report.md.
   TODO, 2026-11-22: run B (disturbed) finished 1:36 PM EST 2026-11-22, no failed unit, check-db passes; OPS.293, OPS.294 and PERF.286 filed from it. Closing step: the pinned disturbed rerun of run A (OPS.292).
+  TODO, 2026-11-23: fingerprints recomputed (A on main 07eefda, 9,040,227 sector rows; B on the old code, 8,873,811 rows); the check that counts is recomputed A against the recomputed pinned disturbed rerun of A, started 1:46 AM EST 2026-11-23 on a0b1ae5 (Lane 15).
 
 - [ ] **GEN.1781 In hydrogen-rich airs (over 10 percent H2) doubling methane cools the ground (cold gas dwarfs 4 K, one 2,300 K class I body 42 K): is hydrogen pair absorption missing from the infrared-active gases, or is this a real anti-greenhouse? (measure first)**
   Lane 02, 2:40 AM EST 2026-11-17, found while building TEST.790 (PR 7019): the controlled greenhouse test had to scope out airs with over 10 percent H2 because they cool when methane is doubled; the code does not flag hydrogen collision-induced (pair) absorption as infrared-active. Do: check whether the radiative path counts H2-H2 and H2-He pair absorption (a major greenhouse source in hydrogen airs) and how methane's stratospheric absorption enters (a Titan-like anti-greenhouse is real physics); report which part is physics and which is a gap, then fix the gap so the TEST.790 scope can widen to hydrogen airs. Report before any change that moves output.
@@ -10984,30 +10985,25 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-19): Lane 02, after GEN.1621, lock item. Prerequisites: GEN.1621. Related: GEN.1621, GEN.1629, GEN.1796, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **GEN.1821 Photosynthesis draws CO2 down: life is a carbon sink in the air history**
-  Boss, 2:29 PM EST 2026-11-21 (closing GEN.1812): file the photosynthesis carbon sink. Design /mnt/project-files/reports/co2-carbon-sink-gen1821-2026-11-21.md (Lane 02). Boss, 2:38 PM EST 2026-11-21: a census of both baselines first (harness scripts/co2_sink_census.py), no output change until he picks. Do: census, Boss card, then build; the build re-solves CO2 for every living world. Stand-in section 6.322 and citations R5332 to R5335 reserved.
-  Version 8.1. Owner (TODO, 2026-11-22): Lane 02, lock, census before merge. Prerequisites: GEN.1812 (closed). Related: GEN.1745, GEN.1767, GEN.1774.
-  Filed by the TODO thread.
-  TODO, 2026-11-22: Boss, 3:25 PM EST 2026-11-22: option 2, all life buries carbon; classes 2 to 4 get burial rows first. PR 7400 (Lane 02), Train 58; census reports/co2-burial-build-gen1821-2026-11-22/README.md.
-
-- [ ] **GEN.1832 The New galaxy Class M box becomes one "More Habitable Worlds" checkbox, on by default**
-  Boss, 3:26 PM EST 2026-11-22: "change the Class M planet box in generation with a checkbox for "More Habitable Worlds" that is on by default and will be the highest abundance we discussed, when unchecked it's scientific." Ticked = the Abundant tier (aim 1 in 10), unticked = Science (1 in 2,800); Sparse, Scattered and Plentiful and their dial rows removed. PR 7396 (Lane 16); the golden galaxy's own plan pins Science until the 8.1 renewal, when its tier is decided again.
-  Version 8.1. Owner (TODO, 2026-11-22): Lane 16, lock. Prerequisites: none. Related: GEN.1765, GEN.1775, GEN.1791.
-  Filed by the TODO thread.
-
-- [ ] **GEN.1834 Oceans dissolve nitrogen out of the air (Henry law)**
-  GEN.1833 (Lane 07, reports/gen1833-nitrogen-sinks-2026-11-22.md): crust, sediment, life and subduction are already inside the calibrated degassed share; the one missing sink is nitrogen dissolved in a surface ocean (0.2 percent of the air on an Earth copy, up to 15 percent on some ocean worlds). Boss, 4:32 PM EST 2026-11-22: add the dissolved ocean nitrogen sink only. Do: the air solve takes the ocean's dissolved N2 out by Henry law from the verified gases.json entry; census.
-  Version 8.1. Owner (TODO, 2026-11-22): Lane 07, lock, census. Prerequisites: none. Related: GEN.1831, GEN.1833.
-  Filed by the TODO thread.
-
 - [ ] **TEST.822 (bug) Job-engine tests red on plain main: interrupted galaxy run, window spawn history, work units galaxy run**
   Lane 13, 7:56 PM EST 2026-11-22, identical on plain main: test_interrupted_galaxy_run (3 cases, "no sector was saved" after 8 minutes), test_window_spawn folds_the_history (passes alone, fails in its file), test_work_units::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units (hangs to the timeout). Do: check whether OPS.293 changes any, then find each cause; no timeout raised, no test skipped.
   Version 8.1. Owner (TODO, 2026-11-22): Lane 13, lock-free. Prerequisites: none. Related: OPS.293, OPS.247.
   Filed by the TODO thread.
+  TODO, 2026-11-23: (a) merged in PR 7406; (b) approved at 4 systems with the 480 s limit kept; (c) still to be timed (Lane 13).
 
-- [ ] **PERF.286 The whole-galaxy fingerprint streams its rows so memory stays flat**
-  Lane 15, OPS.247 run B (2026-11-22): a whole-galaxy fingerprint took 6 GB and hours, and the memory gate held run B 81 minutes beside it. Lane 13 PR 7403: hash each row as it goes and let a sector go before the next (rich galaxy dump, 333 sectors: 58.6 s and 680 MB to 29.5 s and 305 MB, same digest).
-  Version 8.1. Owner (TODO, 2026-11-22): Lane 13, lock-free. Prerequisites: none. Related: OPS.247, GEN.1827.
+- [ ] **GEN.1836 The ice-free albedo of a wet world centres on the Earth's 0.30**
+  GEN.1835 (Lane 05, reports/gen1835-earth-copy-2026-11-23/): the wet-body Bond albedo draw (tuning.ALBEDO_WET_RANGE, row CC4, T6 L3) is centred on 0.325, which leaves an Earth copy about 5.6 K cold. Boss, 11:24 PM EST 2026-11-22: move the range to 0.225 to 0.375 (same width, each edge inside the CC4 nudge). Census on main, main plus GEN.1836 and main plus GEN.1836 plus GEN.1837, with the 140-trial Earth copy and the Science and Abundant tier rates.
+  Version 8.1. Owner (TODO, 2026-11-23): Lane 05, lock, census. Prerequisites: none. Related: GEN.1835, GEN.1837, GEN.1832.
+  Filed by the TODO thread.
+
+- [ ] **OPS.296 (bug) Find what removes a running job's engine_jobs row**
+  Lane 14, 2026-11-23: job_runner read the state of its engine_jobs row with no row check and failed with a TypeError when the row was gone (seen on a slow box in test_reset_job_empties_a_real_database). The control schema is its own database that a reset does not touch, so the cause is unknown. PR 7412 makes the runner log an error once per step and run on. Do: find what removes the row from that log line; then close.
+  Version 8.1. Owner (TODO, 2026-11-23): Lane 14, lock-free. Prerequisites: none. Related: OPS.295.
+  Filed by the TODO thread.
+
+- [ ] **PERF.287 The whole-galaxy fingerprint keeps its output out of memory**
+  Lane 15, 1:40 AM EST 2026-11-23 (OPS.247): after PERF.286 the whole-galaxy fingerprint (9,040,227 sector rows) still grew to 4.2 GB, and a second whole-galaxy run was killed by the kernel at 6.2 GB; the command keeps every (label, digest) line for its output. Do: stream or spill the output so memory stays flat with galaxy size; no raised limit; report peak memory on a large galaxy.
+  Version 8.1. Owner (TODO, 2026-11-23): Lane 13, lock-free. Prerequisites: none. Related: PERF.286, OPS.247.
   Filed by the TODO thread.
 
 - [ ] **OPS.276 (bug) A unit is held with "IndexError: list index out of range" (test_sky_charting galaxy on main; test_bright_star_scatter once under load)**

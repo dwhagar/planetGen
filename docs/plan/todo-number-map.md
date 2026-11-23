@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.434 |
 | NAV | NAV.78 |
-| GEN | GEN.1836 |
-| PERF | PERF.287 |
+| GEN | GEN.1838 |
+| PERF | PERF.288 |
 | DB | DB.136 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.823 |
+| TEST | TEST.827 |
 | USR | USR.33 |
-| OPS | OPS.295 |
+| OPS | OPS.297 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3114,6 +3114,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.292 | A run spec can name its start sector | OPS.247 | done (Lane 15, PR 7398, 2026-11-22) |
 | OPS.293 | (bug) A follower with no supervisor waits and then stops loudly | OPS.247 | done (Lane 13, PR 7402, 2026-11-22) |
 | OPS.294 | (bug) A plain SIGKILL is recorded as lost, not as a memory kill | OPS.247 | done (Lane 13, PR 7401, 2026-11-22) |
+| OPS.295 | (bug) A stopped reset logs its last line at a real level | OPS.247 | done (Lane 14, PR 7412, 2026-11-23) |
+| OPS.296 | Find what removes a running job's row | OPS.247 | open (Lane 14) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4186,7 +4188,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1818 | The moon integrator's error control holds the heat state to its own tolerance | GEN.1815 | done (PR 7357, Lane 07, Train 52, PR 7368, merged 11:05 AM EST 11-21; 300-system measure in reports/gen1818-heat-tolerance-2026-11-21/; stand-ins TM10, TM11) |
 | GEN.1819 | Life records the pressure it lives under | GEN.1811 | done (Lane 02, PR 7367 records life past the table; Boss 2:31 PM EST 2026-11-21: no pressure ceiling) |
 | GEN.1820 | Code the trojan and air-history work built is read or removed | GEN.754 | done (Lane 06 PR 7371, Lane 02 PR 7372, 2026-11-21) |
-| GEN.1821 | Life draws CO2 down as a carbon sink | GEN.1812 | open (Lane 02, census first) |
+| GEN.1821 | Life draws CO2 down as a carbon sink | GEN.1812 | done (Lane 02, PR 7400, Train 58, 2026-11-23; Boss option 2) |
 | GEN.1822 | The sub-ice and aquifer clocks read the habitat temperature | GEN.1810 | done (underwater thread, PR 7375, Train 54, 2026-11-22) |
 | GEN.1823 | Class 4b loses its unsourced abiotic nitrate | GEN.1810 | done (underwater thread, PR 7375, Train 54, 2026-11-22) |
 | GEN.1824 | Sealed oceans keep the oxygen their sources and sinks allow | GEN.1822 | done (Lane 07, PR 7376, Train 54, 2026-11-22; comet oxygen stays off pending Boss card) |
@@ -4197,10 +4199,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1829 | Research: why the Earth analog drifted warm | GEN.1745 | done (Lane 06, answered 2026-11-22, reports/gen1829-earth-analog-drift-2026-11-22.md; WW2 became GEN.1830, the analog fix TEST.820) |
 | GEN.1830 | The wet-land setting WW2 moves from 0.71 to 0.55 so Earth's own water waters Earth's land | GEN.1829 | done (Lane 06, PR 7393, Train 57, Boss yes 3:24 PM EST 2026-11-22) |
 | GEN.1831 | Research: does an Earth copy hold too much nitrogen | GEN.1829 | done (Lane 07, answered: sampling, about Earth's; reports/gen1831-earth-nitrogen-2026-11-22.md) |
-| GEN.1832 | A More Habitable Worlds checkbox replaces the Class M tier choice | GEN.1791 | open (Lane 16, PR 7396, Train 58) |
+| GEN.1832 | A More Habitable Worlds checkbox replaces the Class M tier choice | GEN.1791 | done (Lane 16, PR 7396, Train 58, 2026-11-23; the golden plan pins Science until the 8.1 renewal decides its tier) |
 | GEN.1833 | Research: the nitrogen sinks of a rocky world's air | GEN.1831 | done (Lane 07, answered; reports/gen1833-nitrogen-sinks-2026-11-22.md; ocean sink built as GEN.1834) |
-| GEN.1834 | Oceans dissolve nitrogen out of the air | GEN.1833 | open (Lane 07) |
+| GEN.1834 | Oceans dissolve nitrogen out of the air | GEN.1833 | done (Lane 07, PR 7407, Train 59, 2026-11-23) |
 | GEN.1835 | Research: why a true Earth copy is cold and oxygen-poor | GEN.1829 | done (Lane 05, answered 2026-11-22: wet albedo centre, oxygen source per Earth's ocean area, weathering land reference; reports/gen1835-earth-copy-2026-11-23/; Boss cards open) |
+| GEN.1836 | A wet world's albedo centres on the Earth's 0.30 | GEN.1835 | open (Lane 05) |
+| GEN.1837 | The oxygen source scales by the world's own ocean area | GEN.1835 | done (Lane 02, PR 7410, Train 59, 2026-11-23; Boss yes 11:25 PM EST 2026-11-22; stand-in row BO16) |
 | MAP.2.1 | MAP.16 |
 | MAP.2.1.1 | MAP.17 |
 | MAP.2.1.2 | MAP.18 |
@@ -4250,7 +4254,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | done (Train 22 or earlier, 2026-11-11) |
 | PERF.284 | Stage 13 builds the phenomenon scatter address index first | none | done (PR 7323, Lane 13, merged 11-20) |
 | PERF.285 | Find why generation is 4.5 times slower than on 11-15 | none | closed (explained: about 85 percent is the GEN.1745 air history Boss approved, build time irrelevant per Boss 2026-11-16; Lane 13 2026-11-22) |
-| PERF.286 | The galaxy fingerprint streams its rows | OPS.247 | open (Lane 13, PR 7403) |
+| PERF.286 | The galaxy fingerprint streams its rows | OPS.247 | done (Lane 13, PR 7403, 2026-11-22; the output side is PERF.287) |
+| PERF.287 | The galaxy fingerprint keeps its output out of memory | OPS.247 | open (Lane 13) |
 | SEC.2.1 | SEC.3 |
 | SEC.2.2 | SEC.4 |
 | SEC.2.3 | SEC.5 |
@@ -5102,6 +5107,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.820 | The Earth analog pins Earth's veneer, mantle and radiogenic heat | GEN.1829 | done (Lane 06, PR 7397, Train 57, 2026-11-22) |
 | TEST.821 | test_full_matrix checks trojans against their giant | GEN.1151 | done (Lane 06, PR 7394, 2026-11-22) |
 | TEST.822 | Job-engine tests red on main pass again | OPS.247 | open (Lane 13) |
+| TEST.823 | The surface-air start-independence sample grows from 12 to 24 seeds | GEN.1493 | done (Lane 06, PR 7409, 2026-11-23; limit unchanged, test joins the gate sample tests) |
+| TEST.824 | The fresh-after-CLI galaxy test marks its stamp check as just made after the slow run | none | done (Lane 06, PR 7413, 2026-11-23) |
+| TEST.825 | The fresh-after-CLI tests plan a seeded galaxy | TEST.824 | done (Lane 16, PR 7417, 2026-11-23) |
+| TEST.826 | The train gate runs both pre-gate set files; the no-TODO-codes guard joins the pre-gate set | none | done (Lane 01, PR 7416, 2026-11-23) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
