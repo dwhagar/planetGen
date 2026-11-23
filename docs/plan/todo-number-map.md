@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.321 |
 | MAP | MAP.434 |
 | NAV | NAV.78 |
-| GEN | GEN.1829 |
-| PERF | PERF.286 |
+| GEN | GEN.1836 |
+| PERF | PERF.287 |
 | DB | DB.136 |
 | API | API.52 |
 | ADM | ADM.156 |
 | SEC | SEC.51 |
-| TEST | TEST.819 |
+| TEST | TEST.823 |
 | USR | USR.33 |
-| OPS | OPS.293 |
+| OPS | OPS.295 |
 | DOC | DOC.121 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -3107,11 +3107,13 @@ Parents marked "new parent" had no old number of their own.
 | OPS.285 | A failed unit's error text names its own sector or id range | none | done (PR 7309, Lane 13, merged 7:33 PM EST 11-19) |
 | OPS.286 | update.sh no longer runs the math check (about 49 s cold as an engine run); check-math, the admin button, web startup and the test gate keep it | none | done (PR 7312, Lane 13, merged 9:13 PM EST 11-19, Boss's complaint) |
 | OPS.287 | A reset or data check ended by SIGTERM says who sent it | none | done (PR 7313, Lane 13, merged 9:13 PM EST 11-19, from Boss's 9:00 PM EST reset kill) |
-| OPS.288 | A full disk holds a run instead of failing it | OPS.247 | open (Lane 15) |
+| OPS.288 | A full disk holds a run instead of failing it | OPS.247 | done (Lane 15, PR 7399, 2026-11-22) |
 | OPS.289 | Stage 13 counts its sectors on a real-count bar | PERF.284 | done (PR 7323, Lane 13, merged 11-20) |
 | OPS.290 | (bug) A stopped-and-carried-on run gave a different digest from an uninterrupted one | OPS.247 | done (fixed by PR 7377, GEN.1827; Lane 13 rerun passed 2026-11-21) |
 | OPS.291 | (bug) Nebula field slabs deadlocked when two ran at once | OPS.247 | done (Lane 15, PR 7382, 2026-11-21) |
-| OPS.292 | A run spec can name its start sector | OPS.247 | open (Lane 15, after run B) |
+| OPS.292 | A run spec can name its start sector | OPS.247 | done (Lane 15, PR 7398, 2026-11-22) |
+| OPS.293 | (bug) A follower with no supervisor waits and then stops loudly | OPS.247 | done (Lane 13, PR 7402, 2026-11-22) |
+| OPS.294 | (bug) A plain SIGKILL is recorded as lost, not as a memory kill | OPS.247 | done (Lane 13, PR 7401, 2026-11-22) |
 | DOC.120 | Self-tuning jobs design note (docs/design/operations/self-tuning-jobs.md) | none | done, PR #6271 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -4012,7 +4014,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1650 | Planet.__init__: drop the dead moves, the dead distance_override and the relic comment; one build path | none | done, Train 26 PR #6402 (10:56 PM EST 11-13, epoch 148) |
 | GEN.1651 | BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build | GEN.1649 | done (PR 6871, Lane 14, merged 10:47 AM EST 11-16: the twenty private attributes a build stashed on bodies are the fields of one BuildRecord, body.build; body values on seeds 0 to 13 identical to main) |
 | GEN.1652 | One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py) | GEN.1651 | done (slice 1 PR 7018; Lane 14, 3:06 AM EST 11-17: the tide disagreement is overwritten by the final tide pass (4 of 40 seeds moved only at 1e-10), daylight is made by generate_spin in each copy, the life copy changed 0 of 62 classes over seeds 0 to 174; slice 3 already true through _finish_motion_and_moons) |
-| GEN.1653 | apply_class runs only as the last step of the finish chain (class before bands is the H3 cause) | GEN.1652 | open |
+| GEN.1653 | apply_class runs only as the last step of the finish chain (class before bands is the H3 cause) | GEN.1652 | done (folded into GEN.1745: the one apply_class runs at the end of life.apply_life_data; confirmed by TEST.819, 2026-11-22) |
 | GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | none | open |
 | GEN.1655 | rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration | GEN.1654 | open |
 | GEN.1656 | StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles | GEN.1652 | done (PR 7156 merged 10:19 PM EST 11-17: one _build_host for every host kind, output unchanged on 42 systems; the single trim is GEN.1657) |
@@ -4185,13 +4187,20 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1819 | Life records the pressure it lives under | GEN.1811 | done (Lane 02, PR 7367 records life past the table; Boss 2:31 PM EST 2026-11-21: no pressure ceiling) |
 | GEN.1820 | Code the trojan and air-history work built is read or removed | GEN.754 | done (Lane 06 PR 7371, Lane 02 PR 7372, 2026-11-21) |
 | GEN.1821 | Life draws CO2 down as a carbon sink | GEN.1812 | open (Lane 02, census first) |
-| GEN.1822 | The sub-ice and aquifer clocks read the habitat temperature | GEN.1810 | open (underwater thread, PR 7375, Train 54) |
-| GEN.1823 | Class 4b loses its unsourced abiotic nitrate | GEN.1810 | open (underwater thread, PR 7375, Train 54) |
-| GEN.1824 | Sealed oceans keep the oxygen their sources and sinks allow | GEN.1822 | open (Lane 07, PR 7376, Train 54) |
-| GEN.1825 | Sealed-ocean life capped by its fuel supply | GEN.1822 | open (underwater thread, waits on PR 7376) |
-| GEN.1826 | Class 4b life drawn after the final air | GEN.1745 | open (Lane 02) |
+| GEN.1822 | The sub-ice and aquifer clocks read the habitat temperature | GEN.1810 | done (underwater thread, PR 7375, Train 54, 2026-11-22) |
+| GEN.1823 | Class 4b loses its unsourced abiotic nitrate | GEN.1810 | done (underwater thread, PR 7375, Train 54, 2026-11-22) |
+| GEN.1824 | Sealed oceans keep the oxygen their sources and sinks allow | GEN.1822 | done (Lane 07, PR 7376, Train 54, 2026-11-22; comet oxygen stays off pending Boss card) |
+| GEN.1825 | Sealed-ocean life capped by its fuel supply | GEN.1822 | done (underwater thread, PR 7387, Train 55, 2026-11-22) |
+| GEN.1826 | Class 4b life drawn after the final air | GEN.1745 | done (Lane 07, PR 7388, Train 56, 2026-11-22) |
 | GEN.1827 | The fingerprint keys planets.lagrange_host_id by the giant, so chart order does not change it | GEN.1151 | done (Lane 06, PR 7377, 2026-11-21) |
 | GEN.1828 | Research: why the late-accretion giant groups sit at the floor | GEN.1493 | done (Lane 06, answered: inner rocky planets fine, far-out rocky bodies have no source; Boss closed 10:29 PM EST 2026-11-21; reports/gen1828-giant-groups-at-the-floor-2026-11-22.md) |
+| GEN.1829 | Research: why the Earth analog drifted warm | GEN.1745 | done (Lane 06, answered 2026-11-22, reports/gen1829-earth-analog-drift-2026-11-22.md; WW2 became GEN.1830, the analog fix TEST.820) |
+| GEN.1830 | The wet-land setting WW2 moves from 0.71 to 0.55 so Earth's own water waters Earth's land | GEN.1829 | done (Lane 06, PR 7393, Train 57, Boss yes 3:24 PM EST 2026-11-22) |
+| GEN.1831 | Research: does an Earth copy hold too much nitrogen | GEN.1829 | done (Lane 07, answered: sampling, about Earth's; reports/gen1831-earth-nitrogen-2026-11-22.md) |
+| GEN.1832 | A More Habitable Worlds checkbox replaces the Class M tier choice | GEN.1791 | open (Lane 16, PR 7396, Train 58) |
+| GEN.1833 | Research: the nitrogen sinks of a rocky world's air | GEN.1831 | done (Lane 07, answered; reports/gen1833-nitrogen-sinks-2026-11-22.md; ocean sink built as GEN.1834) |
+| GEN.1834 | Oceans dissolve nitrogen out of the air | GEN.1833 | open (Lane 07) |
+| GEN.1835 | Research: why a true Earth copy is cold and oxygen-poor | GEN.1829 | done (Lane 05, answered 2026-11-22: wet albedo centre, oxygen source per Earth's ocean area, weathering land reference; reports/gen1835-earth-copy-2026-11-23/; Boss cards open) |
 | MAP.2.1 | MAP.16 |
 | MAP.2.1.1 | MAP.17 |
 | MAP.2.1.2 | MAP.18 |
@@ -4240,7 +4249,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.259 | The air is made again for the same body: skip or share whole-body re-runs that start from equal state (bit-identical) | none | done, closed as a finding (Lane 14, 2026-11-09: the air re-runs draw from the random stream, so skipping an equal one moves later draws; not buildable bit-identical) |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | done (Train 22 or earlier, 2026-11-11) |
 | PERF.284 | Stage 13 builds the phenomenon scatter address index first | none | done (PR 7323, Lane 13, merged 11-20) |
-| PERF.285 | Find why generation is 4.5 times slower than on 11-15 | none | open (Lane 13) |
+| PERF.285 | Find why generation is 4.5 times slower than on 11-15 | none | closed (explained: about 85 percent is the GEN.1745 air history Boss approved, build time irrelevant per Boss 2026-11-16; Lane 13 2026-11-22) |
+| PERF.286 | The galaxy fingerprint streams its rows | OPS.247 | open (Lane 13, PR 7403) |
 | SEC.2.1 | SEC.3 |
 | SEC.2.2 | SEC.4 |
 | SEC.2.3 | SEC.5 |
@@ -5087,7 +5097,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.815 | (bug) The update-pages step test read nine update.sh stages | OPS.286 | done (PR 7358, Lane 13, merged 6:03 AM EST 11-21) |
 | TEST.816 | Stand-in section 6.316 joins the stand-in tag sections | none | done (Lane 02, PR 7373, 2026-11-21) |
 | TEST.817 | Old-schema fixtures for v272 and v273 | none | done (Lane 13, Train 53, PR 7383, 2026-11-22) |
-| TEST.818 | Hypergiant systems keep their bodies in orbital order | GEN.1151 | open (Lane 06) |
+| TEST.818 | Hypergiant systems keep their bodies in orbital order | GEN.1151 | done (Lane 06, PR 7385, 2026-11-22) |
+| TEST.819 | The Earth analog script runs the generator's order and its baseline is renewed | none | done (Lane 06, PR 7389, 2026-11-22) |
+| TEST.820 | The Earth analog pins Earth's veneer, mantle and radiogenic heat | GEN.1829 | done (Lane 06, PR 7397, Train 57, 2026-11-22) |
+| TEST.821 | test_full_matrix checks trojans against their giant | GEN.1151 | done (Lane 06, PR 7394, 2026-11-22) |
+| TEST.822 | Job-engine tests red on main pass again | OPS.247 | open (Lane 13) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
