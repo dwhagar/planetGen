@@ -92,7 +92,7 @@ MIN_PCO2_BAR = 1e-12
 """float: The floor of the balance's CO2 pressure (a world whose weathering takes all it is given)."""
 
 EARTH_NET_BURIAL_SHARE = 3.0 / 6.6
-"""float: The share of Earth's volcanic CO2 that its living biosphere buries for good: the net organic sink at the oxygen balance, `R`, 3 Tmol of carbon a year ([R5300] Table 1), over the modern outgassing, 6.6 Tmol a year
+"""float: The share of Earth's volcanic CO2 that its living biosphere buries for good: the net organic sink at the oxygen balance, `R`, 3 Tmol of carbon a year ([R5300: Table 1]), over the modern outgassing, 6.6 Tmol a year
 ([R2489], registry AM60). The weathering law is levelled so that the modern Earth balances at its own pressure **with** this sink (registry AM110), so a world with no life needs the weathering of `1 / (1 - EARTH_NET_BURIAL_SHARE)`
 (1.83 times) the modern value to balance its volcanoes (GEN.1821 option 2, the Boss's choice of 3:25 PM EST 11-22). [Stand-in 6.322 CB1, tier T1 arithmetic of two registered numbers, tweak L0.]"""
 

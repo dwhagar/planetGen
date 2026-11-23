@@ -77211,7 +77211,7 @@
           "fields": [
             [
               "What it is",
-              "surface_pressure.BURIAL_FULL_FACTOR 10: the burial is whole at 10 times the producers' floor (5 Pa) and falls in a line to nothing at the floor BURIAL_FLOOR_BAR 0.5 Pa (the class 1a gate co2_partial_pa, [R5240], [R5241])"
+              "surface_pressure.BURIAL_FULL_FACTOR 10: the burial is whole at 10 times the producers' floor (5 Pa) and falls in a line to nothing at the floor BURIAL_FLOOR_BAR 0.5 Pa (the class 1a gate co2_partial_pa, [R5240, R5241])"
             ],
             [
               "The range it moves in",
@@ -77242,7 +77242,7 @@
           "tier_code": "T7",
           "tweak": "L1",
           "unread": null,
-          "what": "surface_pressure.BURIAL_FULL_FACTOR 10: the burial is whole at 10 times the producers' floor (5 Pa) and falls in a line to nothing at the floor BURIAL_FLOOR_BAR 0.5 Pa (the class 1a gate co2_partial_pa, [R5240], [R5241])"
+          "what": "surface_pressure.BURIAL_FULL_FACTOR 10: the burial is whole at 10 times the producers' floor (5 Pa) and falls in a line to nothing at the floor BURIAL_FLOOR_BAR 0.5 Pa (the class 1a gate co2_partial_pa, [R5240, R5241])"
         },
         {
           "burn_down": null,
