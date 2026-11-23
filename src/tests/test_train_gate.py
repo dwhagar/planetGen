@@ -51,6 +51,17 @@ def test_the_sampling_tests_are_real_files_and_join_when_generation_changes(monk
     assert "tests/test_sheet_fill.py" not in gate.gate_files()
 
 
+def test_the_gate_holds_every_file_of_the_pregate_set_and_the_train_fast_set(monkeypatch):
+    """TEST.826: Trains 58 and 59 merged with two guards red because no gate ran them; every file of both pre-gate set files is in the gate list."""
+    monkeypatch.setattr(gate, "_git", lambda *args: "docs/TODO.md\n")
+    listed = set(gate.gate_files())
+    heavy_or_census = [part for part in gate.SLOW_CENSUS]
+    wanted = {path[len("src/"):] for path in gate.pregate._lines(gate.pregate.SET_FILE) + gate.pregate._lines(gate.pregate.TRAIN_SET_FILE)}
+    wanted = {path for path in wanted if not any(part in path for part in heavy_or_census)}
+    assert wanted and wanted <= listed
+    assert "tests/test_no_todo_codes_shown.py" in listed and "tests/test_constants_completeness.py" in listed
+
+
 def test_lanes_share_the_files_by_claiming_them_and_a_restarted_lane_takes_back_its_own(tmp_path):
     claims = str(tmp_path / "claims")
     assert gate.claim(claims, "tests/test_a.py", "lane-05")

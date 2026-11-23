@@ -10,3 +10,4 @@ tests/test_docs_index.py
 tests/test_wiring_guard.py
 tests/test_architecture_map.py
 tests/test_bump_version.py
+tests/test_no_todo_codes_shown.py

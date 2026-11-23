@@ -13,8 +13,9 @@ The merge train's gate: the test files a train must pass, run one file at a time
     python scripts/train_gate.py known --add tests/test_x.py "red on main since 6.2, TEST.123"
 
 * `files` lists the test files a train's changes reach: the tests the branch changed, those that name a module the branch changed
-  (modules that nearly every test reaches are left to the fixed list below), and a fixed list of guard tests (golden, migrations,
-  registry, references, wiring). It replaces the per-train script that used to live in a scratchpad.
+  (modules that nearly every test reaches are left to the fixed list below), a fixed list of guard tests (golden, migrations,
+  registry, references, wiring) and the two pre-gate set files (`scripts/data/pregate_set.txt`, `train_fast_set.txt`), so a guard the
+  lanes' pre-gate runs is in every train's gate too (TEST.826: Trains 58 and 59 merged with two guards red that no gate ran). It replaces the per-train script that used to live in a scratchpad.
 * `shard` splits a file list over `--of N` machines so that each has about the same total time (longest first onto the lightest
   shard), from `scripts/data/gate_durations.json`; a file it has no time for counts as the median.
 * `run` is resumable: a file already named in the results file is skipped, so a restart (the container is reclaimed about every
@@ -47,6 +48,8 @@ import time
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "src")
+sys.path.insert(0, os.path.join(ROOT, "scripts"))
+import pregate  # noqa: E402  (the pre-gate's set-file reader and the two set files, reused so the gate holds the same guards)
 DURATIONS = os.path.join(ROOT, "scripts", "data", "gate_durations.json")
 KNOWN = os.path.join(ROOT, "scripts", "data", "known_reds.json")
 
@@ -122,6 +125,7 @@ def gate_files(base="origin/main"):
         if any(pattern.search(text) for pattern in patterns):
             chosen.add("tests/" + name)
     chosen.update(f"tests/{name}.py" for name in GUARD_TESTS)
+    chosen.update(path[len("src/"):] for path in pregate._lines(pregate.SET_FILE) + pregate._lines(pregate.TRAIN_SET_FILE))
     if any(n.startswith(("src/planetgen/generation/", "src/planetgen/physics/")) and n.endswith(".py") for n in names):
         chosen.update(f"tests/{name}.py" for name in SAMPLE_TESTS)
     chosen = {path for path in chosen if os.path.exists(os.path.join(SRC, path))}
