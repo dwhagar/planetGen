@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4735+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The stage-line test expects whole milliseconds, as stage lines have read since TEST.814.
+
+### Fixed
+- `test_stages.py`: `test_a_stage_line_gives_the_time_the_stage_took_on_the_units_ladder` still expected "2.86 ms"; since TEST.814 (PR 7355) a duration under a second reads in whole milliseconds (`logrecord.duration_text(0.00286)` is "3 ms"), so the test was red on main. It now expects "3 ms".
+
+generation-output: unchanged
+
 ## [8.0.4734+db274.gen150.api14] - 2026-11-23
 
 **Headline:** The whole-galaxy fingerprint streams a sector's rows into its digest, so it takes half the time and under half the memory, and gives the same digest.
