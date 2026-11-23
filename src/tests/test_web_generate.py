@@ -265,7 +265,7 @@ def test_page_renders_summary_and_forms(site, client):
 def test_the_richness_field_is_folded_away_under_its_own_fold(site, client):
     """UX.316: richness sits in the Census fold of the galaxy shape (folded, not open to start with); flatness sits in the Structure fold."""
     html = _task_html(client, "new-galaxy")
-    census = html.index("Census: star richness, rogue planets and Class M abundance")
+    census = html.index("Census: star richness, rogue planets and More Habitable Worlds")
     structure = html.index("Structure: flatness, bulge, nuclear")
     assert 'name="richness"' in html and census < html.index('name="richness"') < html.index("</details>", census)
     assert structure < html.index('name="flatness"') < html.index("</details>", structure)
@@ -1930,6 +1930,10 @@ def test_the_page_shows_a_control_for_every_lever_with_the_range_of_its_row(site
     html = _forms_html(client)
     for row in dials.LEVERS:
         assert f'name="{row.name}"' in html, row.name
+        if row.checkbox:        # GEN.1832: a tick box, not a lever input: it starts ticked (Auto) and an unticked one is told by the hidden marker
+            assert f'data-lever-box="{row.name}"' in html and f'name="{row.name}_box"' in html and row.label in html, row.name
+            assert re.search(rf'<sl-checkbox name="{row.name}" value="{row.choices[-1]}" checked', html), row.name
+            continue
         assert f'data-lever="{row.name}"' in html, row.name
         if row.kind == "length":
             # ADM.127: one text box for the number and its unit, the units explained under it.
@@ -1962,6 +1966,16 @@ def test_the_edge_is_typed_with_its_unit(site, client):
     with pytest.raises(generate_page.FormError, match="needs its unit"):
         with generate_page.collecting_problems():
             generate_page.lever_argv({"edge": "2600"})
+
+
+def test_the_more_habitable_worlds_box_ticked_unticked_and_not_on_the_form(site, client):
+    """GEN.1832: ticked posts `abundant`; an unticked box posts nothing but its hidden marker, which reads as `science`; a form without the box (a command line, a recipe) leaves Auto."""
+    with generate_page.collecting_problems():
+        assert generate_page.lever_argv({"class_m": "abundant", "class_m_box": "1"}) == ["--class-m", "abundant"]
+        assert generate_page.lever_argv({"class_m_box": "1"}) == ["--class-m", "science"]
+        assert generate_page.lever_argv({}) == []
+    html = _task_html(client, "new-galaxy")
+    assert "More Habitable Worlds" in html and 'name="class_m_box"' in html
 
 
 def test_the_scatter_limits_the_neutron_star_options_and_the_skip_box_share_one_row(site, client):
@@ -2251,5 +2265,5 @@ def test_the_galaxy_shape_is_split_into_a_fold_for_each_dial_with_the_scale_open
     assert [t.split(":")[0] for t in titles] == ["Galaxy family", "Size", "Structure", "Edge of the galaxy", "Dark and stellar halo", "Census", "Spiral arms"]
     assert [bool(opened) for opened, _title in folds] == [True, True, False, False, False, False, False]
     for row in dials.LEVERS:
-        assert html.count(f'data-lever="{row.name}"') >= 1, row.name
+        assert html.count(f'data-lever-box="{row.name}"' if row.checkbox else f'data-lever="{row.name}"') >= 1, row.name
     assert "Advanced shape options" not in html

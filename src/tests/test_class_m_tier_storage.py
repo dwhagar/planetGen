@@ -4,25 +4,36 @@
 
 import types
 
+import pytest
+
 from planetgen.galaxy import dials, shape_draw
 from planetgen.galaxy.density import GalaxyShape
 from planetgen.generation import abundance_tier, bright_stars
 from planetgen.generation.config import SystemConfig
 
 
-def test_the_lever_choices_are_the_tiers_in_order_and_auto_is_science():
-    lever = dials.lever("class_m")
-    assert lever.choices == abundance_tier.TIERS and lever.flag == "--class-m" and lever.dial == "census"
-    assert lever.auto_text.startswith(abundance_tier.DEFAULT)
+def test_the_lever_is_the_box_more_habitable_worlds_and_auto_is_ticked():
+    lever = dials.lever("class_m")      # GEN.1832: two choices, a tick box on the Generate page, ticked (abundant) by default
+    assert lever.choices == abundance_tier.TIERS == ("science", "abundant") and lever.flag == "--class-m" and lever.dial == "census"
+    assert lever.checkbox and lever.label == "More Habitable Worlds" and lever.auto_text.startswith("ticked, " + abundance_tier.GALAXY_DEFAULT)
 
 
 def test_the_tier_is_kept_as_its_place_in_the_choices_and_read_back():
     args = types.SimpleNamespace(**{row.dest: None for row in dials.LEVERS})
     assert dials.choice_pinned(shape_draw.pins_of(args), "class_m") is None
-    args.class_m = "plentiful"
+    args.class_m = "science"
     pins = shape_draw.pins_of(args)
-    assert pins["class_m"] == 3.0 and dials.choice_pinned(pins, "class_m") == "plentiful"
-    assert "Class M abundance plentiful" in dials.describe_pins(pins)
+    assert pins["class_m"] == 0.0 and dials.choice_pinned(pins, "class_m") == "science"
+    assert "More Habitable Worlds off" in dials.describe_pins(pins)
+    args.class_m = "abundant"
+    pins = shape_draw.pins_of(args)
+    assert pins["class_m"] == 1.0 and dials.choice_pinned(pins, "class_m") == "abundant"
+    assert "More Habitable Worlds on" in dials.describe_pins(pins)
+
+
+def test_a_galaxy_planned_under_a_tier_that_is_gone_is_refused_in_words():
+    with pytest.raises(ValueError, match="plan it again"):
+        dials.choice_pinned({"class_m": 3.0}, "class_m")      # an old galaxy's "plentiful" (GEN.1832, testing mode: plan it again)
 
 
 def test_a_shape_defaults_to_science_and_keeps_it_out_of_the_prism_fields():
@@ -64,4 +75,4 @@ def test_the_system_command_takes_class_m():
 def test_the_plan_command_takes_class_m():
     from planetgen.cli import generate
 
-    assert generate.build_parser()[0].parse_args(["plan", "--class-m", "sparse"]).class_m == "sparse"
+    assert generate.build_parser()[0].parse_args(["plan", "--class-m", "science"]).class_m == "science"

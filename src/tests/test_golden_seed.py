@@ -80,7 +80,7 @@ _ONE_WORKER = {}
 
 def _galaxy_record(make_database, monkeypatch, workers):
     config = make_database()
-    _plan_wide_galaxy(config, galaxy_seed=golden_seed.GALAXY_SEED)
+    _plan_wide_galaxy(config, galaxy_seed=golden_seed.GALAXY_SEED, pins=golden_seed.GALAXY_PINS)
     _run("galaxy", [*golden_seed.GALAXY_ARGUMENTS, "--workers", str(workers)], config, monkeypatch)
     conn = store.get_connection(config)
     try:

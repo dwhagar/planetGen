@@ -84,7 +84,7 @@ from planetgen.physics import aerosols, body_colour, belt_history, body_strength
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log, ticker
 from planetgen.util.settings import env_name, get_settings
-from planetgen.generation import cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
+from planetgen.generation import abundance_tier, cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.trojan_region import TrojanRegion
 from planetgen.generation.phenomena import asteroid_field
@@ -9692,9 +9692,8 @@ def get_galaxy_shape(conn, light=False):
         shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))
     if pins.get("richness") is not None:     # the Census dial (GEN.607): the mean system mass follows the pinned richness
         shape = with_system_richness(shape, pins["richness"])
-    tier = dials.choice_pinned(pins, "class_m")     # the Census dial's Class M abundance tier: what each system made here takes as its tier
-    if tier is not None:
-        shape = shape._replace(abundance_tier=tier)
+    # the Census dial's Class M abundance tier ("More Habitable Worlds", GEN.1832): what each system made here takes as its tier; left on Auto it is ticked
+    shape = shape._replace(abundance_tier=dials.choice_pinned(pins, "class_m") or abundance_tier.GALAXY_DEFAULT)
     comet_tier = dials.choice_pinned(pins, "comet_abundance")     # the Census dial's comet abundance tier (GEN.1775)
     if comet_tier is not None:
         shape = shape._replace(comet_tier=comet_tier)

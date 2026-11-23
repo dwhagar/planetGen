@@ -75,8 +75,8 @@ drawn again from the galaxy's seed; a shape built with no seed has the Milky Way
 `system_mass_scale` is how many times the mean system mass the generator derives (GEN.545) is divided by in this galaxy:
 1 for the derived richness, more when the Census dial (GEN.607) made the galaxy hold more, lighter systems; it is not
 part of the stored row (the plan's pins hold the richness, `with_system_richness` sets it again).
-`abundance_tier` is the galaxy's Class M abundance tier (`generation.abundance_tier.TIERS`; the Census dial `class_m`), `"science"` unless the plan
-pinned another; like the richness it is not part of the stored row (the pins hold it) and each system made in the galaxy takes it as its
+`abundance_tier` is the galaxy's Class M abundance tier (`generation.abundance_tier.TIERS`; the Census dial `class_m`), `"science"` on a shape built outside a stored galaxy
+(a stand-alone system, a test), and the stored galaxy's own choice when it is read back: `"abundant"` unless the plan unticked "More Habitable Worlds" (GEN.1832, `abundance_tier.GALAXY_DEFAULT`); like the richness it is not part of the stored row (the pins hold it) and each system made in the galaxy takes it as its
 `SystemConfig.ABUNDANCE_TIER`. `comet_tier` is the galaxy's comet abundance tier (`generation.comet_abundance.TIERS`; the Census dial `comet_abundance`, GEN.1775), `"science"` unless the plan pinned another,
 kept and read in the same way (`SystemConfig.COMET_TIER`).
 

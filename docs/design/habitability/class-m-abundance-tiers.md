@@ -18,11 +18,10 @@ Nobody knows how common an Earth is. Earth may be one in a galaxy. So the rate i
 
 | Tier | Target, Class M worlds per Sun-like system | What it means |
 |---|---|---|
-| Science (the default) | none | Only the laws. Nothing is moved. |
-| Sparse | 1 in 500 | The bottom rung (Boss, 9:28 PM EST 2026-11-14): the laws alone measured 1 in 2,800 on 2,800 Sun-like systems (`reports/train28-census-2026-11-14/meter2800.md`). |
-| Scattered | 1 in 135 | |
-| Plentiful | 1 in 37 | |
-| Abundant | 1 in 10 | The top rung. The two between are split evenly on a log scale from Sparse to Abundant, each step about 3.7 times (Boss, 9:30 PM EST 2026-11-14). The first set was 1 in 1,000, 100, 30 and 10 (cards of 11:19 PM EST 2026-11-13). |
+| Science (the box "More Habitable Worlds" unticked) | none | Only the laws. Nothing is moved: about 1 in 2,800 on 2,800 Sun-like systems (`reports/train28-census-2026-11-14/meter2800.md`). |
+| Abundant (the box ticked, the default of a galaxy that was told nothing) | 1 in 10 | The top rung (Boss, 9:30 PM EST 2026-11-14). |
+
+GEN.1832 (Boss, 3:26 PM EST 2026-11-22: "change the Class M planet box in generation with a checkbox for More Habitable Worlds that is on by default and will be the highest abundance we discussed, when unchecked it's scientific") took out Sparse (1 in 500), Scattered (1 in 135) and Plentiful (1 in 37), and their rows of dial values. The first set had been 1 in 1,000, 100, 30 and 10 (cards of 11:19 PM EST 2026-11-13), then 500, 135, 37 and 10 (9:28 and 9:30 PM EST 2026-11-14). A galaxy that was told nothing is ticked; one outside any galaxy (a stand-alone system, a test) stays on Science. A galaxy planned before GEN.1832 under a removed tier is refused in words ("plan it again": testing mode).
 
 A Sun-like system is one whose primary is a main-sequence star of type F7 to K2 (the sample of the report and of the meter).
 
@@ -79,9 +78,6 @@ Two makers of systems inside a galaxy build their config without the galaxy's sh
 
 | Tier | `water_share` | `bare_share` | `request_share` | `dry_part` | `quiet_share` | `cycle_share` |
 |---|---|---|---|---|---|---|
-| Sparse | 0.5 | 0 | 0 | 0.2 | 0 | 0.5 |
-| Scattered | 1 | 1 | 0 | 0.2 | 0.5 | 1 |
-| Plentiful | 1 | 1 | 0.5 | 0.2 | 1 | 1 |
 | Abundant | 1 | 1 | 1 | 0.2 | 1 | 1 |
 
 These are first-pass values from the estimates of the report (every candidate given Earth's water gives about 1 Class M world per 500 Sun-like systems; 1 per 100 needs the envelopes gone as well; the two top tiers need the request). They are registered as stand-ins of tier T9, tweak level L4 (`docs/design/research/gap-filling-plan.md` section 6.289).

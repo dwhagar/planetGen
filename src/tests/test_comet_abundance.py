@@ -89,9 +89,9 @@ def test_a_forced_request_still_gives_comets_on_science(monkeypatch):
         assert system._generate_comets(system.star, None, [])
 
 
-def test_the_lever_is_a_census_dial_with_the_same_choices_as_the_class_m_abundance():
+def test_the_lever_is_a_census_dial_with_the_five_comet_tiers():
     row = dials.lever("comet_abundance")
-    assert row.kind == "enum" and row.dial == "census" and row.choices == dials.lever("class_m").choices == comet_abundance.TIERS
+    assert row.kind == "enum" and row.dial == "census" and row.choices == comet_abundance.TIERS      # GEN.1832: the Class M lever is a two-choice box now; this one is unchanged
     assert row.flag == "--comet-abundance" and row.parse("abundant") == "abundant"
 
 
