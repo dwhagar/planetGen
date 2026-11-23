@@ -543,10 +543,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | Lane 03, 2026-11-15 |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs | none | Lane 02, 2026-11-17 |
 | GEN.1803 | Heavy trace gases warm by their real band strengths | GEN.1621 | Lane 02, 2026-11-19 |
-| GEN.1832 | A More Habitable Worlds checkbox replaces the Class M tier choice | none | TODO, 2026-11-22 |
-| GEN.1834 | Oceans dissolve nitrogen out of the air | none | TODO, 2026-11-22 |
 | TEST.822 | Job-engine tests red on main pass again | none | TODO, 2026-11-22 |
-| PERF.286 | The galaxy fingerprint streams its rows | none | TODO, 2026-11-22 |
-| GEN.1821 | Life draws CO2 down as a carbon sink | GEN.1812 (closed) | TODO, 2026-11-22 |
 | PERF.282 | Stage 9 workers share the stellar-evolution tables | OPS.247, OPS.279 | Lane 13, 2026-11-19 |
+| GEN.1836 | A wet world's albedo centres on the Earth's 0.30 | none | TODO, 2026-11-23 |
+| OPS.296 | Find what removes a running job's row | none | TODO, 2026-11-23 |
+| PERF.287 | The galaxy fingerprint keeps its output out of memory | none | TODO, 2026-11-23 |
 | OPS.276 | Sky jobs no longer stop on an out-of-range list | none | Lane 16, 2026-11-18 |
