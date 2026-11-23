@@ -23,7 +23,7 @@ def system():
 
 
 def _bodies(system):
-    for planet in system.planets + system.secondary_planets:
+    for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
         if planet.body_type == "a":
             continue
         yield planet
@@ -40,7 +40,7 @@ def test_no_body_of_the_system_is_heated_by_a_tide_more_than_io_is(system):
 
 
 def test_the_planet_with_the_stiff_history_lost_its_close_moon_to_the_tide(system):
-    planet = next(p for p in system.planets if getattr(p, "name", "").endswith("Miorutor III"))
+    planet = next(p for p in system.primary.orbiters if getattr(p, "name", "").endswith("Miorutor III"))
     assert not planet.moons and planet.fallen_moons, "the 5e23 kg moon born at 3.8 radii falls to its planet under the tide (1.4 Gyr)"
     assert abs(planet.fallen_moons[0].mass_kg - 5.0e23) < 1.0e22
 
@@ -55,7 +55,7 @@ def _forced_failure(monkeypatch, times_yr):
     config.MOONS = True
     with deterministic_entropy(9101):
         forced = StarSystem(system_config=config)
-    return next(p for p in forced.planets if getattr(p, "name", "").endswith("Miorutor III"))
+    return next(p for p in forced.primary.orbiters if getattr(p, "name", "").endswith("Miorutor III"))
 
 
 def test_a_history_no_integrator_finishes_loses_the_moon_the_tide_brings_in_within_the_age(monkeypatch):

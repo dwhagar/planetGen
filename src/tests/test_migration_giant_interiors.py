@@ -24,13 +24,13 @@ def _system():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(p.body_type == "g" and p.moons for p in system.planets):
+        if any(p.body_type == "g" and p.moons for p in system.primary.orbiters):
             return system, cfg
     pytest.fail("no system with a giant that has a moon in 60 seeds")
 
 
 def _bodies(system):
-    return [body for planet in system.planets if hasattr(planet, "moons") for body in [planet, *planet.moons]]
+    return [body for planet in system.primary.orbiters if hasattr(planet, "moons") for body in [planet, *planet.moons]]
 
 
 def _interior_of(body):
@@ -63,7 +63,7 @@ def test_a_saved_system_keeps_every_giants_interior(mysql_config):
         assert after == before
         rows = conn.execute("SELECT COUNT(*) AS n FROM planet_interior_layers pl JOIN planets p ON p.id = pl.planet_id"
                             " WHERE p.star_system_id = ?", (system_id,)).fetchone()["n"]
-        assert rows == sum(len(layers) for planet in system.planets if hasattr(planet, "moons")
+        assert rows == sum(len(layers) for planet in system.primary.orbiters if hasattr(planet, "moons")
                            for layers in [planet.interior_layers] if layers)
     finally:
         conn.rollback()

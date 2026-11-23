@@ -259,7 +259,7 @@ def test_the_planets_of_a_giant_read_its_new_luminosity_and_radius(mass, age_sha
     for seed in range(5):
         system = StarSystem(system_config=SystemConfig(), primary_star_params=params)
         engulfed_au = system._engulfment_radius_au(system.primary_star)
-        for body in system.planets:
+        for body in system.primary.orbiters:
             assert (body.lower_limit if body.body_type == "a" else body.distance) >= engulfed_au
 
 

@@ -55,7 +55,7 @@ def _bodies(count):
         config.MOONS = True
         with deterministic_entropy(9100 + seed):
             system = StarSystem(system_config=config)
-        for planet in system.planets + system.secondary_planets:
+        for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
             if planet.body_type == "a":
                 continue
             yield planet

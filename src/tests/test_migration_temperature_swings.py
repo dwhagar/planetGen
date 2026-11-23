@@ -19,7 +19,7 @@ SWINGS = (*(regional_temperature.column(number, "swing_k") for number in range(1
 
 
 def _bodies(system):
-    return [body for planet in system.planets if hasattr(planet, "moons") for body in [planet, *planet.moons]]
+    return [body for planet in system.primary.orbiters if hasattr(planet, "moons") for body in [planet, *planet.moons]]
 
 
 def _system():

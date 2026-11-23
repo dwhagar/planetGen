@@ -27,7 +27,7 @@ def test_a_forced_rare_class_is_in_the_system(letter):
     for seed in range(1, 25):
         system = forced_system(letter, seed)
         if not system.unmet_requirements:
-            assert any(getattr(planet, "planet_class", None) == letter for planet in system.planets)
+            assert any(getattr(planet, "planet_class", None) == letter for planet in system.primary.orbiters)
             return
     pytest.fail(f"no system with a class {letter} planet in 24 tries")
 
@@ -38,7 +38,7 @@ def test_a_class_the_conditions_hardly_give_is_met_or_reported_unmet(letter):
     # a body that keeps under 3 kPa at 273 to 320 K is rare; P and G are derived the same way and 24 seeds do not always draw them) is not reachable by a request at most places; the system says so and never claims a class it does not hold.
     for seed in range(1, 4):
         system = forced_system(letter, seed)
-        held = any(getattr(planet, "planet_class", None) == letter for planet in system.planets)
+        held = any(getattr(planet, "planet_class", None) == letter for planet in system.primary.orbiters)
         assert held != bool(system.unmet_requirements)
 
 

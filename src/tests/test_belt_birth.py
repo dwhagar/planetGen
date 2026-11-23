@@ -30,7 +30,7 @@ def _config(**overrides):
 
 
 def _belts(system):
-    return [body for body in system.planets if body.body_type == 'a']
+    return [body for body in system.primary.orbiters if body.body_type == 'a']
 
 
 def _planet(distance, mass, body_type="t", formed=None, eccentricity=0.0):
@@ -123,14 +123,14 @@ def test_no_belts_when_the_request_says_none_or_no_planets():
         for seed in range(1, 6):
             draw.set_run_seed(seed)
             assert not _belts(StarSystem(system_config=_config(ASTEROID_BELT=False)))
-            assert not StarSystem(system_config=_config(PLANETS=False)).planets
+            assert not StarSystem(system_config=_config(PLANETS=False)).primary.orbiters
 
 
 def test_a_slots_list_names_its_belts_and_nothing_else_is_added():
     with deterministic_entropy(1068):
         draw.set_run_seed(3)
         system = StarSystem(system_config=_config(NUM_ORBITS=3, SLOTS=[{"type": "planet"}, {"type": "asteroid_belt"}, {"type": "planet"}]))
-        assert [body.body_type == 'a' for body in system.planets][:3] == [False, True, False]
+        assert [body.body_type == 'a' for body in system.primary.orbiters][:3] == [False, True, False]
         assert len(_belts(system)) == 1
         assert _belts(system)[0].origin is None
 
@@ -165,7 +165,7 @@ def test_a_belt_past_the_final_ceiling_is_cut_back_not_lost():
                 continue
             before = (belt.primordial_mass_earth, belt.mass_kg, belt.upper_limit)
             ceiling = (belt.lower_limit * belt.upper_limit) ** 0.5
-            bodies = [body for body in system.planets if body.distance <= belt.distance] + [belt]
+            bodies = [body for body in system.primary.orbiters if body.distance <= belt.distance] + [belt]
             assert validation.trim_to_orbit_ceiling(bodies, ceiling) == []
             assert bodies[-1] is belt and belt.upper_limit == pytest.approx(ceiling)
             assert belt.primordial_mass_earth < before[0] and belt.mass_kg <= before[1]

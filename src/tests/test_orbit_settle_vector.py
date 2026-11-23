@@ -20,7 +20,7 @@ def planet():
     draw.set_run_seed(2117)
     for _ in range(30):
         system = StarSystem(system_config=SystemConfig())
-        for body in system.planets:
+        for body in system.primary.orbiters:
             if isinstance(body, Planet) and body.body_type in ("t", "g") and body.eccentricity > 0.0:
                 return body
     pytest.fail("no planet on an eccentric orbit in 30 systems")

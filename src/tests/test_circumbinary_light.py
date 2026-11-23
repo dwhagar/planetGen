@@ -16,7 +16,7 @@ PAIR_SEEDS = range(100000, 100200)
 
 
 def _is_a_close_pair_with_planets(system):
-    return any(hasattr(p, "planet_class") and p.light_factor is not None for p in system.planets)
+    return any(hasattr(p, "planet_class") and p.light_factor is not None for p in system.primary.orbiters)
 
 
 @pytest.fixture(scope="module")
@@ -27,14 +27,14 @@ def pair_system():
 
 
 def test_the_planets_of_a_close_pair_store_a_factor_below_one(pair_system):
-    planets = [p for p in pair_system.planets if hasattr(p, "planet_class")]
+    planets = [p for p in pair_system.primary.orbiters if hasattr(p, "planet_class")]
     assert planets and all(p.light_factor is not None and 0.99 < p.light_factor < 1.0 for p in planets)
     assert all(moon.light_factor is None for p in planets for moon in p.moons)
 
 
 def test_the_temperature_of_a_circumbinary_planet_follows_the_light_it_keeps(pair_system):
     checked = 0
-    for planet in pair_system.planets:
+    for planet in pair_system.primary.orbiters:
         if getattr(planet, "body_type", None) != "t" or planet.bond_albedo is None:
             continue
         flux = radiation_field.starlight_w_m2(planet.star, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity)) * planet.light_factor
@@ -48,6 +48,6 @@ def test_a_lone_star_stores_no_factor():
     config = SystemConfig()
     config.STAR_TYPE = "G2V"
     system = StarSystem(system_config=config)
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         if hasattr(planet, "planet_class"):
             assert planet.light_factor is None

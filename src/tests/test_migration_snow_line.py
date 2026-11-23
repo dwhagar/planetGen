@@ -27,8 +27,8 @@ def _system_with_moons():
         cfg.BINARY_SYSTEM = False
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        flags = {p.born_beyond_snow_line for p in system.planets if p.body_type != 'a'}
-        if flags == {True, False} and any(p.moons for p in system.planets):
+        flags = {p.born_beyond_snow_line for p in system.primary.orbiters if p.body_type != 'a'}
+        if flags == {True, False} and any(getattr(p, "moons", None) for p in system.primary.orbiters):
             return system, cfg
     pytest.fail("no system with planets on both sides of the line and a moon in 60 seeds")
 
@@ -43,8 +43,8 @@ def test_a_saved_system_keeps_its_line_and_its_flags(mysql_config):
         assert star["snow_line_km"] == pytest.approx(system.star.snow_line_au * constants.AU_TO_KM)
         loaded = store.load_star_system(conn, system_id)
         assert loaded.star.snow_line_au == pytest.approx(system.star.snow_line_au)
-        before = [(p.born_beyond_snow_line, [m.born_beyond_snow_line for m in p.moons]) for p in system.planets if p.body_type != 'a']
-        after = [(p.born_beyond_snow_line, [m.born_beyond_snow_line for m in p.moons]) for p in loaded.planets if p.body_type != 'a']
+        before = [(p.born_beyond_snow_line, [m.born_beyond_snow_line for m in p.moons]) for p in system.primary.orbiters if p.body_type != 'a']
+        after = [(p.born_beyond_snow_line, [m.born_beyond_snow_line for m in p.moons]) for p in loaded.primary.orbiters if p.body_type != 'a']
         assert after == before
         moons = conn.execute("SELECT born_beyond_snow_line FROM moons WHERE star_system_id = ?", (system_id,)).fetchall()
         assert moons and all(row["born_beyond_snow_line"] in (0, 1) for row in moons)

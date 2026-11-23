@@ -5,6 +5,7 @@ GEN.1083: the irregular moons of a planet (`generation/irregular_moons.py`): the
 and the captured-origin weight of the regular moons (`moon_composition.draw_origin`).
 """
 
+from planetgen.generation.hosts import Host
 import dataclasses
 import types
 
@@ -124,7 +125,7 @@ def test_the_system_takes_what_its_planets_caught_out_of_its_outer_disk(monkeypa
                                   irregulars=irregular_moons.NO_IRREGULARS)
     disk = types.SimpleNamespace(body_type='a', origin="outer-disk", primordial_mass_earth=30.0, lower_limit=30.0, upper_limit=50.0, mass_kg=3.0e23, members=[], captured_mass_kg=0.0)
     inner = types.SimpleNamespace(body_type='a', origin="inner", primordial_mass_earth=1.0, lower_limit=2.0, upper_limit=3.0, mass_kg=1.0e21, members=[], captured_mass_kg=0.0)
-    fake = types.SimpleNamespace(planets=[giant, disk, inner], star=star, binary_type=None, system_config=None, member_hosts=lambda: [],
+    fake = types.SimpleNamespace(hosts=[Host(star, "primary", [giant, disk, inner])], star=star, binary_type=None, system_config=None, _belt_hosts=lambda: system_module.StarSystem._belt_hosts(fake),
                                  capture_windows=lambda host: capture_windows.Windows(1, 130.0))
     monkeypatch.setattr(system_module, "star_al26_ratio", lambda config, host: 5.0e-5)
     system_module.StarSystem._add_irregular_moons(fake)
@@ -243,7 +244,7 @@ def test_the_system_marks_the_members_its_planets_caught_as_moons_and_catches_ea
                                      irregulars=irregular_moons.NO_IRREGULARS)
     first, second = giant(5.2), giant(5.4)
     belt = _inner_belt(members=(3.0e20, 1.0e19, 4.0e17), mass_kg=1.0e23)
-    fake = types.SimpleNamespace(planets=[belt, first, second], star=star, binary_type=None, system_config=None, member_hosts=lambda: [],
+    fake = types.SimpleNamespace(hosts=[Host(star, "primary", [belt, first, second])], star=star, binary_type=None, system_config=None, _belt_hosts=lambda: system_module.StarSystem._belt_hosts(fake),
                                  capture_windows=lambda host: capture_windows.Windows(1, 130.0))
     monkeypatch.setattr(system_module, "star_al26_ratio", lambda config, host: 5.0e-5)
     system_module.StarSystem._add_irregular_moons(fake)

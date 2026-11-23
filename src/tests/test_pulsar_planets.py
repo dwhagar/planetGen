@@ -126,8 +126,8 @@ def test_a_system_around_a_millisecond_pulsar_takes_the_disks_planets(recycled):
     config = _config(PLANETS=True)
     with draw.bound(draw.Stream("pulsar-system")):
         system = StarSystem(system_config=config, compact_remnant=pulsar)
-    assert system.planets
-    assert all(p.planet_class in ("C", "S", "D") and p.carbon_rock for p in system.planets)
+    assert system.primary.orbiters
+    assert all(p.planet_class in ("C", "S", "D") and p.carbon_rock for p in system.primary.orbiters)
 
 
 def test_a_young_pulsar_keeps_the_generic_planets(monkeypatch):

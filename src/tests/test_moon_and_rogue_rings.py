@@ -51,7 +51,7 @@ def test_a_moon_s_ring_obeys_the_same_law_and_a_moon_has_no_moon_to_stop_it():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             for moon in getattr(planet, "moons", ()):
                 moons += 1
                 if moon.ring_kind is None:

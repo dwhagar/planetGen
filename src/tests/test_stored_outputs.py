@@ -88,7 +88,7 @@ def test_every_public_number_of_a_generated_body_is_loaded_from_a_column_or_has_
     loaded = _loaded()
     found = collections.defaultdict(set)
     for system in _systems():
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "a":
                 continue
             for body in (planet, *planet.moons):
@@ -103,7 +103,7 @@ def test_a_home_that_the_body_tables_load_anyway_or_that_no_body_has_is_taken_ou
     loaded = _loaded()
     found = set()
     for system in _systems():
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "a":
                 continue
             for body in (planet, *planet.moons):
@@ -265,7 +265,7 @@ def _kinds():
         config.PLANETS = config.MAX_PLANETS = config.MOONS = config.COMETS = True
         with draw.bound(seed):
             system = StarSystem(system_config=config)
-        found["asteroid belts"] += [p for p in system.planets if p.body_type == "a"]
+        found["asteroid belts"] += [p for p in system.primary.orbiters if p.body_type == "a"]
         found["comets"] += list(system.comets)
         if seed >= 4:
             break
@@ -298,7 +298,7 @@ def test_every_public_number_of_a_generated_object_of_each_other_kind_is_loaded_
 def test_every_private_attribute_of_a_generated_body_star_or_other_object_says_why_it_is_not_kept():
     found = collections.defaultdict(set)
     for system in _systems():
-        for obj in (*system.planets, *(m for p in system.planets if p.body_type != "a" for m in p.moons), *system.stars, *system.comets):
+        for obj in (*system.primary.orbiters, *(m for p in system.primary.orbiters if p.body_type != "a" for m in p.moons), *system.stars, *system.comets):
             for name in vars(obj):
                 if name.startswith("_"):
                     found[name].add(getattr(obj, "name", type(obj).__name__))

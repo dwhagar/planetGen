@@ -793,7 +793,7 @@ def test_system_map_diagram_draws_each_star_beyond_the_pair_with_its_planets(pag
         cfg.STARS = 3
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(body.body_type != "a" for bodies in system.member_planets for body in bodies) and (system.binary_type == "wide") == wide:
+        if any(body.body_type != "a" for bodies in [h.orbiters for h in system.hosts_of("member")] for body in bodies) and (system.binary_type == "wide") == wide:
             break
     else:
         pytest.fail("no three-star system with planets round a further star in 400 draws")

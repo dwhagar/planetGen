@@ -20,7 +20,7 @@ def _a_rocky_world():
         config.HABITABLE_WORLD = True
         with deterministic_entropy(7300 + seed):
             system = StarSystem(system_config=config)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if planet.body_type == "t" and planet.star.age and planet.star.age > 2.0:
                 return planet
     pytest.fail("no generated rocky world")

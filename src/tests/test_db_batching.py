@@ -31,7 +31,7 @@ def _sector(name, system_names, rogue_names=()):
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
         system.name = system_name
-        for planet in system.planets:      # the carbon sink a planet keeps for the life stage (GEN.1309 A) holds a closure, which is not stored and does not pickle
+        for planet in system.primary.orbiters:      # the carbon sink a planet keeps for the life stage (GEN.1309 A) holds a closure, which is not stored and does not pickle
             for body in (planet, *getattr(planet, "moons", ())):
                 if body.body_type != "a":
                     body.build.co2_sink = None
@@ -82,7 +82,7 @@ def test_a_planet_that_carries_its_co2_sink_is_pickled_without_it_and_copied_wit
     def local_sink():
         return 1.0     # a closure: it cannot be pickled
     sector = _sector("Pickled Sector", [f"Pickle {n}" for n in range(8)])      # eight systems: a bounded search for a planet that is not a belt
-    planet = next((obj for entry in sector.entries for obj in entry.star_system.planets if obj.body_type != "a"), None)
+    planet = next((obj for entry in sector.entries for obj in entry.star_system.primary.orbiters if obj.body_type != "a"), None)
     assert planet is not None, "none of the eight generated systems has a planet that is not a belt"
     planet.build.co2_sink = local_sink
     assert pickle.loads(pickle.dumps(planet)).build.co2_sink is None

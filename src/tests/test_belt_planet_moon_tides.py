@@ -29,13 +29,13 @@ def _config():
 
 def _siblings(system):
     """The planets `tide_sources.register` hands each body: every body of the system's list that is not a belt (a belt is not a source there, GEN.1464)."""
-    return [p for p in system.planets if getattr(p, "body_type", None) != "a"]
+    return [p for p in system.primary.orbiters if getattr(p, "body_type", None) != "a"]
 
 
 def _with_moons(seed):
     draw.set_run_seed(seed)
     system = StarSystem(system_config=_config())
-    return system, [p for p in system.planets if getattr(p, "belt_rank", None) is not None and getattr(p, "moons", None)]
+    return system, [p for p in system.primary.orbiters if getattr(p, "belt_rank", None) is not None and getattr(p, "moons", None)]
 
 
 @pytest.fixture(scope="module")
@@ -76,5 +76,5 @@ def test_the_promoted_planet_is_not_counted_again_in_its_belt(cases):
     for system, planet in cases:
         listed = [source.body for source in tide_sources.sources_of(planet, None, _siblings(system))]
         assert planet not in listed
-        own = irregular_moons.belts_of(system.planets)[planet.belt_order]        # the planet's own belt: a rank is the member's place in ITS belt, so another belt may hold a member of the same rank
+        own = irregular_moons.belts_of(system.primary.orbiters)[planet.belt_order]        # the planet's own belt: a rank is the member's place in ITS belt, so another belt may hold a member of the same rank
         assert planet.belt_rank not in [member["rank"] for member in own.members]

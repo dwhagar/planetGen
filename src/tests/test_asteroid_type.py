@@ -18,7 +18,7 @@ from tests.test_admin_edits import client  # noqa: F401
 
 
 def _has_asteroid_moon(system):
-    return any(m.planet_class is None for p in system.planets if getattr(p, "moons", None) for m in p.moons)
+    return any(m.planet_class is None for p in system.primary.orbiters if getattr(p, "moons", None) for m in p.moons)
 
 
 def _saved_with_asteroid(mysql_config):

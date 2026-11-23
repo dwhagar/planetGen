@@ -233,7 +233,7 @@ def _tide_states_of(seed):
         config.PLANETS = True
         config.MAX_PLANETS = True
         system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
-    for planet in system.planets + system.secondary_planets:
+    for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
         if not hasattr(planet, "moons") or planet.body_type == "a":
             continue
         state, turns = spin.spin_state(planet.rotation_period_hours, planet.period)
@@ -273,7 +273,7 @@ def _locked_tilts_of(seed):
     with deterministic_entropy(seed):
         draw.set_run_seed(seed)
         system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-    return [planet.axial_tilt_deg for planet in system.planets + system.secondary_planets
+    return [planet.axial_tilt_deg for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else [])
             if hasattr(planet, "moons") and planet.body_type != "a" and planet.belt_order is None
             and spin.spin_state(planet.rotation_period_hours, planet.period)[0] in ("locked", "resonant")]
 
@@ -298,7 +298,7 @@ def _giant_tilts_of(seed):
         config.PLANETS = True
         config.MAX_PLANETS = True
         system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         if getattr(planet, "body_type", None) != "g":
             continue
         low, high = giant_tilt.MASS_RANGE_EARTH

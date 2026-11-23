@@ -64,13 +64,13 @@ def _make_system_with_moons_and_belt():
         cfg.ASTEROID_BELT = True
         # Pinned False: left at its own default, `BINARY_SYSTEM` now rolls
         # real chance (StarSystem._companion), and this
-        # helper's only caller counts expected rows from `system.planets`
+        # helper's only caller counts expected rows from `system.primary.orbiters`
         # alone -- an S-type (wide) pair's own `secondary_planets` would
         # add real DB rows that count wouldn't account for.
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        planets = [obj for obj in system.planets if obj.body_type != "a"]
-        belts = [obj for obj in system.planets if obj.body_type == "a"]
+        planets = [obj for obj in system.primary.orbiters if obj.body_type != "a"]
+        belts = [obj for obj in system.primary.orbiters if obj.body_type == "a"]
         if belts and any(p.moons for p in planets):
             return system, cfg
     pytest.fail("could not generate a system with both a moon and an asteroid belt")
@@ -237,7 +237,7 @@ def test_a_wide_pairs_star_words_come_back_from_the_names_its_stars_carry(mysql_
         conn.close()
     assert system.star_words and reloaded.star_words == tuple(system.star_words)
     names = lambda planets: [planet.name for planet in planets if planet.body_type != 'a']      # a belt is a body of the list and has no name
-    assert names(reloaded.secondary_planets) == names(system.secondary_planets)
+    assert names(reloaded.secondary.orbiters if reloaded.secondary else []) == names((system.secondary.orbiters if system.secondary else []))
     assert reloaded.comet_count == system.comet_count
 
 
@@ -291,8 +291,8 @@ def test_a_loaded_moon_keeps_the_eccentricity_of_its_host_planet(mysql_config):
         reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
-    before = {moon.name: moon.host_eccentricity for obj in system.planets if obj.body_type != "a" for moon in obj.moons}
-    after = {moon.name: moon.host_eccentricity for obj in reloaded.planets if obj.body_type != "a" for moon in obj.moons}
+    before = {moon.name: moon.host_eccentricity for obj in system.primary.orbiters if obj.body_type != "a" for moon in obj.moons}
+    after = {moon.name: moon.host_eccentricity for obj in reloaded.primary.orbiters if obj.body_type != "a" for moon in obj.moons}
     assert before and after == before and any(value > 0.0 for value in before.values())
 
 
@@ -306,8 +306,8 @@ def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql
     finally:
         conn.close()
 
-    expected_planets = [obj for obj in system.planets if obj.body_type != "a"]
-    expected_belts = [obj for obj in system.planets if obj.body_type == "a"]
+    expected_planets = [obj for obj in system.primary.orbiters if obj.body_type != "a"]
+    expected_belts = [obj for obj in system.primary.orbiters if obj.body_type == "a"]
     expected_moon_names = sorted(moon.name for planet in expected_planets for moon in planet.moons)
     assert expected_moon_names, "test fixture must actually contain moons"
 
@@ -360,7 +360,7 @@ def test_load_star_system_round_trips_single_star_system_exactly(mysql_config):
     assert reloaded.hab_count == system.hab_count
     assert reloaded.m_count == system.m_count
     # Shared back-references: the SAME star/system_config instance everywhere.
-    for obj in reloaded.planets:
+    for obj in reloaded.primary.orbiters:
         assert obj.system_config is reloaded.system_config
         if obj.body_type != "a":
             assert obj.star is reloaded.star
@@ -603,7 +603,7 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
     planets and moons.
     """
     system, cfg = _make_system_with_moons_and_belt()
-    planets = [obj for obj in system.planets if obj.body_type != "a"]
+    planets = [obj for obj in system.primary.orbiters if obj.body_type != "a"]
     assert any(p.moons for p in planets), "test fixture must actually contain moons"
 
     conn = store.get_connection(mysql_config)
@@ -622,7 +622,7 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
     # which picks names independently per body with no check against its own
     # siblings, so two moons on the same planet can occasionally collide on
     # the same generated name and silently overwrite each other in a dict.
-    reloaded_planets = [p for p in reloaded.planets if p.body_type != "a"]
+    reloaded_planets = [p for p in reloaded.primary.orbiters if p.body_type != "a"]
     assert len(reloaded_planets) == len(planets)
     for planet, reloaded_planet in zip(planets, reloaded_planets):
         assert reloaded_planet.orbital_inclination_deg == pytest.approx(planet.orbital_inclination_deg)
@@ -854,7 +854,7 @@ def test_advance_orbital_phases_recomputes_star_and_planet_reflex_offsets(mysql_
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = False
         candidate = StarSystem(system_config=cfg)
-        real_planets = [p for p in candidate.planets if p.body_type != "a"]
+        real_planets = [p for p in candidate.primary.orbiters if p.body_type != "a"]
         if real_planets and any(p.moons for p in real_planets):
             system = candidate
             break

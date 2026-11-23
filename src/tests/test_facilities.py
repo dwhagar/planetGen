@@ -98,7 +98,7 @@ def _system_with_worlds(mysql_config):
         cfg.MAX_PLANETS = True
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        types = {p.body_type for p in system.planets}
+        types = {p.body_type for p in system.primary.orbiters}
         if {"t", "g", "a"} <= types:
             return store.save_system(system, cfg, config=mysql_config)
     pytest.fail("could not generate a system with a terrestrial planet, a gas giant and a belt")

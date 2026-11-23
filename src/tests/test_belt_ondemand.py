@@ -23,7 +23,7 @@ def _system(seed):
 
 
 def _rich_belt(system):
-    for order, belt in irregular_moons.belts_of(system.planets).items():
+    for order, belt in irregular_moons.belts_of(system.primary.orbiters).items():
         settled = od.settled_of(belt, system.star)
         if settled is not None and od.individual_count(settled) > od.stored_count(settled) + 50:
             return order, belt, settled
@@ -69,7 +69,7 @@ def test_a_stored_rank_is_the_stored_member_and_a_rank_the_belt_does_not_hold_is
     stored = belt.members[0]
     assert od.member_of_rank(belt, system.star, system.system_config, stored["rank"]) is stored
     assert od.member_of_rank(belt, system.star, system.system_config, od.individual_count(settled) * 4 + 10) is None
-    promoted = {body.belt_rank for body in system.planets if getattr(body, "belt_rank", None) is not None and getattr(body, "belt_order", None) == order}      # this belt's own promoted bodies: another belt of the system has its own ranks
+    promoted = {body.belt_rank for body in system.primary.orbiters if getattr(body, "belt_rank", None) is not None and getattr(body, "belt_order", None) == order}      # this belt's own promoted bodies: another belt of the system has its own ranks
     assert all(od.member_of_rank(belt, system.star, system.system_config, rank) is None for rank in promoted)
 
 

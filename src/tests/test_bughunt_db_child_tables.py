@@ -142,7 +142,7 @@ def _generate_habitable_system_with_moons():
 
 
 def _first_planet_with_life_data(system):
-    for obj in system.planets:
+    for obj in system.primary.orbiters:
         if getattr(obj, "life_class", None) and getattr(obj, "evolutionary_pace", None):
             return obj
     return None
@@ -209,7 +209,7 @@ def test_moon_life_structure_round_trips(mysql_config):
             with deterministic_entropy(seed):
                 system = _generate_habitable_system_with_moons()
             planet = _first_planet_with_life_data(system)
-            moons = [moon for obj in system.planets for moon in getattr(obj, "moons", []) or []]
+            moons = [moon for obj in system.primary.orbiters for moon in getattr(obj, "moons", []) or []]
             if planet is not None and moons:
                 found_moon = moons[0]
                 break
@@ -250,7 +250,7 @@ def test_asteroid_belt_composition_round_trips_every_component(mysql_config):
             cfg.LARGE_STAR = True
             cfg.STAR_TYPE = "G2V"
             system = StarSystem(system_config=cfg)
-            belt = next((o for o in system.planets if isinstance(o, AsteroidBelt)), None)
+            belt = next((o for o in system.primary.orbiters if isinstance(o, AsteroidBelt)), None)
             if belt is not None and belt.composition:
                 found = True
                 break

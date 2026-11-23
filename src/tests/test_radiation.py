@@ -285,7 +285,7 @@ def test_a_galactic_rate_is_the_chance_of_an_event_inside_the_recovery_time_not_
 
 
 def _bodies(system):
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         if planet.body_type == "a":
             continue
         yield planet
@@ -441,7 +441,7 @@ def test_an_edited_world_in_a_cloud_keeps_the_cosmic_ray_multiplier(mysql_config
         assert before and all(row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01) for row in before)
         loaded = store.load_star_system(conn, system_id)
         grounded = []
-        for planet in loaded.planets:
+        for planet in loaded.primary.orbiters:
             if planet.body_type == "t" and planet_type.has_ground(planet):
                 validation.reapply_life(planet)
                 rad.generate_dose(planet)                      # what a changed air does in `life._rebuild`

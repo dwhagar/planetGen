@@ -55,5 +55,5 @@ def test_a_result_without_planets_or_memory_still_says_its_line():
 
 def test_the_planets_of_a_sector_do_not_count_its_belts():
     belt, planet = argparse.Namespace(body_type="a"), argparse.Namespace(body_type="p")
-    entry = argparse.Namespace(star_system=argparse.Namespace(planets=[planet, belt, planet]))
+    entry = argparse.Namespace(star_system=argparse.Namespace(primary=argparse.Namespace(orbiters=[planet, belt, planet])))
     assert run_sector.sector_planet_count(argparse.Namespace(entries=[entry, entry])) == 4

@@ -196,7 +196,7 @@ def test_every_generated_rocky_body_stores_its_draws_and_an_urey_ratio_that_is_a
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             for body in [planet, *getattr(planet, "moons", [])]:
                 if body.body_type == "a":
                     continue
@@ -317,7 +317,7 @@ def test_the_stored_heat_is_the_heat_at_the_stars_final_age_not_the_provisional_
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             for body in [planet, *getattr(planet, "moons", [])]:
                 if body.body_type in ("a", "g"):
                     continue
@@ -364,7 +364,7 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             for body in [planet, *getattr(planet, "moons", [])]:
                 if body.body_type in ("a", "g") or not body.internal_heat_flux_w_m2 or body.star.age < 2.0:
                     continue
@@ -499,7 +499,7 @@ def test_equal_heat_flow_calls_give_the_one_stored_result_and_the_bits_of_the_un
     for seed in range(40):
         with draw.bound(f"equal-heat-calls-{seed}"):      # TEST.737: fixed streams, the same system in every run
             system = StarSystem(system_config=SystemConfig())          # PERF.198: a body the tide loops ask about twice
-        rocky = [p for p in system.planets if radiogenic.content_of(p) is not None and ih.interior_of(p) is not None]
+        rocky = [p for p in system.primary.orbiters if radiogenic.content_of(p) is not None and ih.interior_of(p) is not None]
         if rocky:
             break
     else:

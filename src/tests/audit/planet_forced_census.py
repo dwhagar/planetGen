@@ -16,10 +16,9 @@ REPORT_NAME = "planet-forced-census-latest.md"
 
 
 def _planets(system):
-    from planetgen.generation import validation
     from planetgen.physics import radiation_field
     out = {}
-    for star, planets in validation.star_lists(system):
+    for star, planets in ((host.star, host.orbiters) for host in system.hosts):
         if not radiation_field.companions_of(star):
             continue
         out[star.name] = (system.secular_outcomes.get(star.name),

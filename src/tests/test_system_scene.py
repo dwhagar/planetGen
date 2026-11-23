@@ -36,7 +36,7 @@ def _system(want_binary):
             system = StarSystem(system_config=cfg)
         if want_binary and len(system.stars) < 2:
             continue
-        if any(getattr(p, "moons", None) for p in system.planets) and system.comets:
+        if any(getattr(p, "moons", None) for p in system.primary.orbiters) and system.comets:
             return system, cfg
     pytest.fail("none of 400 fixed streams drew a system with moons and comets")
 
@@ -172,7 +172,7 @@ def test_a_belt_carries_its_heaviest_bodies_with_their_looks_and_places(mysql_co
         cfg.ASTEROID_BELT = True
         return StarSystem(system_config=cfg), cfg
 
-    _seed, (system, cfg) = first_seed_with(build, lambda built: any(getattr(b, "members", None) for b in built[0].planets if b.body_type == "a"), what="a belt that stores bodies")
+    _seed, (system, cfg) = first_seed_with(build, lambda built: any(getattr(b, "members", None) for b in built[0].primary.orbiters if b.body_type == "a"), what="a belt that stores bodies")
     sector = SpaceSector("Belt Scene Sector", edge_ly=11.5)
     sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
     store.save_sector(sector, config=mysql_config)

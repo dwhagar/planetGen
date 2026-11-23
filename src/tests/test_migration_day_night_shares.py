@@ -22,16 +22,16 @@ def test_a_saved_system_keeps_the_shares_of_every_body(mysql_config):
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(getattr(planet, "moons", None) for planet in system.planets):
+        if any(getattr(planet, "moons", None) for planet in system.primary.orbiters):
             break
     conn = store.get_connection(mysql_config)
     try:
         with conn:
             system_id = store.insert_star_system(conn, system, cfg)
         loaded = store.load_star_system(conn, system_id)
-        made = {planet.name: planet for planet in system.planets if planet.body_type != "a"}
+        made = {planet.name: planet for planet in system.primary.orbiters if planet.body_type != "a"}
         checked = 0
-        for planet in loaded.planets:
+        for planet in loaded.primary.orbiters:
             if planet.body_type == "a":
                 continue
             for name in daylight.FIELDS:

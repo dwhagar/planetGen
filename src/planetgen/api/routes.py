@@ -841,7 +841,7 @@ def _life_air(table, body_id):
     history = None
     if class_id in life_classes.BY_ID or row["air_history"]:
         system = store.load_star_system(conn, row["star_system_id"])
-        bodies = [planet for planet in system.planets if hasattr(planet, "moons")]
+        bodies = [planet for planet in system.primary.orbiters if hasattr(planet, "moons")]
         bodies += [moon for planet in bodies for moon in planet.moons]
         body = next((b for b in bodies if getattr(b, "db_id", None) == body_id and (b.is_moon == (table == "moons"))), None)
         if body is not None:

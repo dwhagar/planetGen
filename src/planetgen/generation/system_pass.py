@@ -101,7 +101,7 @@ def run(sector, args, entries, galactic_center_dist_ly=None):
         with draw.bound(rng):
             system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly,
                                 compact_remnant=entry.phenomenon)
-        if not system.planets:
+        if not system.primary.orbiters:
             fill_stages.count(sector, fill_stages.SYSTEM_PASS, f"{key}:empty")
             continue
         new_entry = sector.replace_phenomenon_with_system(entry, system, system_config=config)

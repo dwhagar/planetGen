@@ -41,7 +41,7 @@ def system_counts(seed):
     counts = collections.Counter()
     before = _generate(seed, True)
     after = _generate(seed, False)
-    giant = comet_control.controlling_giant_au(after.planets)
+    giant = comet_control.controlling_giant_au(after.primary.orbiters)
     counts["systems"] += 1
     counts["systems with a giant"] += giant is not None
     if len(before.comets) != len(after.comets):

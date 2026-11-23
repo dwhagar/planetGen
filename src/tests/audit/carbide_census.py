@@ -66,7 +66,7 @@ def system_counts(seed):
     rich = bulk_draw.host_ratios(system.primary_star).c_over_o >= bulk_draw.CARBON_OVER_OXYGEN
     group = "carbon" if rich else "oxygen"
     counts = collections.Counter()
-    for planet in system.planets:
+    for planet in system.primary.orbiters:
         for body in [planet, *(getattr(planet, "moons", None) or [])]:
             rows = getattr(body, ore_deposits.ATTRIBUTE, None)
             if rows is None:

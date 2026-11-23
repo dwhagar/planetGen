@@ -31,7 +31,7 @@ def _system():
         cfg.BINARY_SYSTEM = False
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if sum(1 for p in system.planets if p.body_type == "t") >= 2:
+        if sum(1 for p in system.primary.orbiters if p.body_type == "t") >= 2:
             return system, cfg
     pytest.fail("no system with two rocky planets in 60 seeds")
 
@@ -49,8 +49,8 @@ def test_a_saved_system_keeps_its_life_scores(mysql_config):
             scores = [row[name] for name in life_scores.FIELDS]
             assert all(value is None for value in scores) == (row["phi4"] is None)
         loaded = store.load_star_system(conn, system_id)
-        for planet, original in zip((p for p in loaded.planets if p.body_type != "a"),
-                                    (p for p in system.planets if p.body_type != "a")):
+        for planet, original in zip((p for p in loaded.primary.orbiters if p.body_type != "a"),
+                                    (p for p in system.primary.orbiters if p.body_type != "a")):
             for name in life_scores.FIELDS:
                 assert getattr(planet, name) == getattr(original, name)
     finally:

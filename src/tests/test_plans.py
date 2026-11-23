@@ -31,13 +31,13 @@ def make_system(label):
             config.STAR_TYPE, config.PLANETS, config.MOONS = "G2V", True, True
             config.ASTEROID_BELT, config.BINARY_SYSTEM = True, False
             system = StarSystem(config)
-        worlds = [p for p in system.planets if p.body_type != 'a']
-        if len(worlds) >= 3 and any(p.body_type == 'a' for p in system.planets) and any(p.moons for p in worlds):
+        worlds = [p for p in system.primary.orbiters if p.body_type != 'a']
+        if len(worlds) >= 3 and any(p.body_type == 'a' for p in system.primary.orbiters) and any(p.moons for p in worlds):
             break
     else:
         pytest.fail("no suitable system generated")
     system.star.db_id = 1
-    for index, body in enumerate(system.planets):
+    for index, body in enumerate(system.primary.orbiters):
         body.db_id = (200 if body.body_type == 'a' else 10) + index
         for moon_index, moon in enumerate(getattr(body, "moons", ())):
             moon.db_id = 100 + index * 10 + moon_index
@@ -63,11 +63,11 @@ def world():
 
 
 def planets_of(world, system_id="s1"):
-    return [p for p in world.systems[system_id].planets if p.body_type != 'a']
+    return [p for p in world.systems[system_id].primary.orbiters if p.body_type != 'a']
 
 
 def belt_of(world, system_id="s1"):
-    return next(p for p in world.systems[system_id].planets if p.body_type == 'a')
+    return next(p for p in world.systems[system_id].primary.orbiters if p.body_type == 'a')
 
 
 def ref(world, body, system_id="s1"):
@@ -323,7 +323,7 @@ def test_the_same_plan_on_the_same_stored_state_is_the_same_plan(world):
 def free_orbit(world):
     """An AU distance beyond the outermost body and under the farthest stable orbit."""
     system = world.systems["s1"]
-    last = max(system.planets, key=plans.validation.edge_au)
+    last = max(system.primary.orbiters, key=plans.validation.edge_au)
     ceiling = plans.validation.orbit_ceiling_au(system.star)
     return min((plans.validation.edge_au(last) + ceiling) / 2, plans.validation.edge_au(last) * 3)
 
@@ -576,7 +576,7 @@ def test_a_plan_survives_a_trip_through_json_with_its_effect_and_outcomes(world)
     assert again.state == plans.APPROVED and again.operations == plan.operations
     assert [c.ref.key for c in again.effect.changes] == [c.ref.key for c in plan.effect.changes]
     shown = StarSystem.from_dict(again.outcomes["s1"])
-    names = {getattr(p, "name", None) for p in shown.planets}
+    names = {getattr(p, "name", None) for p in shown.primary.orbiters}
     assert {"Newcomer", "Vesper"} <= names
 
 

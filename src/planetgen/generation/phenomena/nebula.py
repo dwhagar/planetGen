@@ -7,7 +7,7 @@ Nebula Generation
 This module contains the `Nebula` class, a standalone descriptive phenomenon
 representing an interstellar gas/dust cloud encountered independently of any
 particular star system. Unlike `Planet`/`AsteroidBelt`, a `Nebula` never
-orbits a star and is never placed into `StarSystem.planets` -- it is
+orbits a star and is never placed into the orbiters of `StarSystem.hosts` -- it is
 generated on demand by `phenomenonGen.py`'s separate, rarer exotic-
 phenomenon mode (see that module's docstring), not by
 `StarSystem._generate_planets`'s normal per-slot rolls.

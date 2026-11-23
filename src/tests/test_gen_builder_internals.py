@@ -330,7 +330,7 @@ def test_a_habitable_world_with_no_viable_chemistry_gets_no_timeline(monkeypatch
     planet = None
     for _ in range(50):
         system = StarSystem(system_config=cfg)
-        planet = next((p for p in system.planets if getattr(p, "zone", None) == "e" and not p.is_moon
+        planet = next((p for p in system.primary.orbiters if getattr(p, "zone", None) == "e" and not p.is_moon
                        and p.has_timeline), None)
         if planet is not None:
             break

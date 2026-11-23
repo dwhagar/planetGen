@@ -31,8 +31,7 @@ def host_star(system, star_id):
 
 
 def belt_of(system, belt_id):
-    bodies = [*system.planets, *getattr(system, "secondary_planets", []), *(body for group in (getattr(system, "member_planets", None) or []) for body in group)]
-    for body in bodies:
+    for body in system.all_planets:
         if getattr(body, "body_type", None) == "a" and getattr(body, "db_id", None) == belt_id:
             return body
     raise BeltPageNotFound(f"no belt has the id {belt_id}")
@@ -40,8 +39,7 @@ def belt_of(system, belt_id):
 
 def belt_order_of(system, belt):
     """The place of `belt` among the belts of its star (`irregular_moons.belts_of`, the number a planet promoted from it keeps as `belt_order`), or `None` for a belt in no list of the system."""
-    lists = [system.planets, getattr(system, "secondary_planets", []), *(getattr(system, "member_planets", None) or [])]
-    for bodies in lists:
+    for _star, bodies in system.hosts:
         for order, candidate in irregular_moons.belts_of(bodies).items():
             if candidate is belt:
                 return order

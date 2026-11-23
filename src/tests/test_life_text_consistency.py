@@ -30,7 +30,7 @@ _STAGE_NAMES = {evolution.stage_name(stage, class_id, grade).lower()
 
 
 def _bodies(system):
-    for planet in system.planets + system.secondary_planets:
+    for planet in system.primary.orbiters + (system.secondary.orbiters if system.secondary else []):
         if planet.body_type == "a":
             continue
         yield planet

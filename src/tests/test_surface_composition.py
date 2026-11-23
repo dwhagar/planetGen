@@ -292,7 +292,7 @@ def _bodies(count=25):
     for seed in range(count):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if hasattr(planet, "moons"):
                 bodies += [planet, *planet.moons]
     return bodies

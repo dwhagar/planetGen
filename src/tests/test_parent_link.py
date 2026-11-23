@@ -28,7 +28,7 @@ def _system_with_everything():
         cfg.COMETS = True        # GEN.1775: comets are asked for, not left to the draw
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if system.comets and any(getattr(p, "moons", None) for p in system.planets) and any(p.body_type == "a" for p in system.planets):
+        if system.comets and any(getattr(p, "moons", None) for p in system.primary.orbiters) and any(p.body_type == "a" for p in system.primary.orbiters):
             return system, cfg
     pytest.fail("no system with a belt, a comet and a moon in 200 seeds")
 
@@ -43,7 +43,7 @@ def _moon():
         cfg.BINARY_SYSTEM = False
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if len(getattr(planet, "moons", ())) >= 2:
                 return planet.moons
     pytest.fail("no planet with two moons in 200 seeds")

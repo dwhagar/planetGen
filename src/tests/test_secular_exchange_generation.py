@@ -41,7 +41,7 @@ def test_every_star_reports_an_outcome_the_exchange_knows(systems):
 
 def test_a_lone_star_with_one_planet_is_left_as_it_was(systems):
     for system in systems:
-        for star, planets in validation.star_lists(system):
+        for star, planets in ((host.star, host.orbiters) for host in system.hosts):
             if len([p for p in planets if p.body_type != 'a']) < 2 and not radiation_field.companions_of(star):
                 assert system.secular_outcomes[star.name] == "unchanged"
 
@@ -65,8 +65,8 @@ def test_eccentricities_and_inclinations_stay_physical(systems):
 
 def test_the_same_seed_gives_the_same_orbits():
     first, second = _system(4), _system(4)
-    assert [(p.distance, p.eccentricity, p.orbital_inclination_deg) for p in first.planets if p.body_type != 'a'] == \
-           [(p.distance, p.eccentricity, p.orbital_inclination_deg) for p in second.planets if p.body_type != 'a']
+    assert [(p.distance, p.eccentricity, p.orbital_inclination_deg) for p in first.primary.orbiters if p.body_type != 'a'] == \
+           [(p.distance, p.eccentricity, p.orbital_inclination_deg) for p in second.primary.orbiters if p.body_type != 'a']
 
 
 def test_a_belt_just_short_of_its_keep_out_is_pushed_and_one_on_the_limit_is_not():
@@ -90,7 +90,7 @@ def test_a_rocky_planet_the_exchange_moved_has_its_air_made_on_its_final_orbit(s
     checked = 0
     moved = 0
     for system in systems:
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             if getattr(planet, "body_type", None) != "t" or planet.is_moon or (planet.water_mass_fraction or 0) <= 1.0e-4:
                 continue
             flux = radiation_field.starlight_w_m2(planet.star, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity)) * (planet.light_factor or 1.0)
@@ -102,7 +102,7 @@ def test_a_rocky_planet_the_exchange_moved_has_its_air_made_on_its_final_orbit(s
 
 def test_the_stale_air_mark_is_cleared_by_the_final_age_refresh(systems):
     for system in systems:
-        for planet in system.planets:
+        for planet in system.primary.orbiters:
             for body in (*([planet] if planet.body_type == "t" else []), *getattr(planet, "moons", ())):      # (a giant is not made again by the refresh)
                 if body.build.age_drawn is not None:
                     assert not planetPhysics.age_moved(body), (body.name, body.build.age_drawn)
@@ -112,7 +112,7 @@ def _belted_system(accept, limit=60):
     """The first system among seeds `1..limit` that has a belt with a mass and that `accept`s (found by search, not by a seed number a change of the draw order would move: TEST.714)."""
     for seed in range(1, limit + 1):
         system = _system(seed)
-        if any(p.body_type == 'a' and p.mass_kg > 0.0 for p in system.planets) and accept(system):
+        if any(p.body_type == 'a' and p.mass_kg > 0.0 for p in system.primary.orbiters) and accept(system):
             return system
     pytest.fail(f"no seed in 1..{limit} makes a system with a massive belt that the check can use")
 
@@ -123,33 +123,33 @@ def test_a_belt_pulls_on_the_planets_of_its_star_and_a_system_without_belt_pull_
         with monkeypatch.context() as patch:
             patch.setattr(planetPhysics, "belt_rings_of", lambda planets, axes: ([], []))
             without = _system(seed)
-        planets_with = [p for p in with_belt.planets if p.body_type != 'a']
-        planets_without = [p for p in without.planets if p.body_type != 'a']
+        planets_with = [p for p in with_belt.primary.orbiters if p.body_type != 'a']
+        planets_without = [p for p in without.primary.orbiters if p.body_type != 'a']
         return (len(planets_with) == len(planets_without) > 1
                 and any(abs(a.eccentricity - b.eccentricity) > 1e-6 for a, b in zip(planets_with, planets_without)))
 
     for seed in range(1, 61):
         with_belt = _system(seed)
-        if any(p.body_type == 'a' and p.mass_kg > 0.0 for p in with_belt.planets) and pulled(seed, with_belt):
+        if any(p.body_type == 'a' and p.mass_kg > 0.0 for p in with_belt.primary.orbiters) and pulled(seed, with_belt):
             return
     pytest.fail("among sixty seeds, no massive belt's pull moves a planet's orbit")
 
 
 def test_the_rings_of_a_belt_keep_clear_of_the_planets_and_carry_the_belts_mass():
     def rings(system):
-        return planetPhysics.belt_rings_of(system.planets, [p.distance for p in system.planets if p.body_type != 'a'])
+        return planetPhysics.belt_rings_of(system.primary.orbiters, [p.distance for p in system.primary.orbiters if p.body_type != 'a'])
 
     system = _belted_system(lambda candidate: bool(rings(candidate)[0]))
-    belts = [p for p in system.planets if p.body_type == 'a' and p.mass_kg > 0.0]
-    bodies = [p for p in system.planets if p.body_type != 'a']
+    belts = [p for p in system.primary.orbiters if p.body_type == 'a' and p.mass_kg > 0.0]
+    bodies = [p for p in system.primary.orbiters if p.body_type != 'a']
     axes, masses = rings(system)
     assert axes and sum(masses) <= sum(b.mass_kg for b in belts) * (1.0 + 1e-9)
     assert all(min(a, p.distance) / max(a, p.distance) <= 0.9 for a in axes for p in bodies)
-    assert planetPhysics.belt_rings_of([p for p in system.planets if p.body_type != 'a'], [1.0]) == ([], [])
+    assert planetPhysics.belt_rings_of([p for p in system.primary.orbiters if p.body_type != 'a'], [1.0]) == ([], [])
 
 
 def _planets_with_axes(systems):
-    return [p for s in systems for p in s.planets if hasattr(p, "moons") and getattr(p, "spin_axis_x", None) is not None]
+    return [p for s in systems for p in s.primary.orbiters if hasattr(p, "moons") and getattr(p, "spin_axis_x", None) is not None]
 
 
 def _obliquity(planet):

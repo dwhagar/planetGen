@@ -60,17 +60,17 @@ def _system(binary=False):
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(getattr(p, "moons", None) for p in system.planets):
+        if any(getattr(p, "moons", None) for p in system.primary.orbiters):
             return system, cfg
     pytest.fail("no system with a moon in 60 seeds")
 
 
 def test_a_generated_planet_keeps_the_draws_the_history_read_and_the_generator_draws_nothing_more():
     system, _ = _system()
-    drawn = [p for p in system.planets if p.body_type != "a" and p.build.birth_spin is not None]
+    drawn = [p for p in system.primary.orbiters if p.body_type != "a" and p.build.birth_spin is not None]
     assert drawn and all(body_history.numbers_of(p)["birth_obliquity_deg"] == p.build.birth_spin[1] for p in drawn)
     again, _ = _system()      # the same seeds: reading the numbers is not a draw
-    assert [getattr(p, "build", None) and p.build.birth_spin for p in again.planets] == [getattr(p, "build", None) and p.build.birth_spin for p in system.planets]
+    assert [getattr(p, "build", None) and p.build.birth_spin for p in again.primary.orbiters] == [getattr(p, "build", None) and p.build.birth_spin for p in system.primary.orbiters]
 
 
 @pytest.mark.fresh_database
@@ -81,9 +81,9 @@ def test_a_saved_system_keeps_a_row_for_each_body_with_draws_and_deleting_the_sy
         with conn:
             system_id = store.insert_star_system(conn, system, cfg)
         rows = conn.execute("SELECT * FROM body_history WHERE star_system_id = ?", (system_id,)).fetchall()
-        bodies = [b for p in system.planets for b in (p, *getattr(p, "moons", ())) if body_history.numbers_of(b)]
+        bodies = [b for p in system.primary.orbiters for b in (p, *getattr(p, "moons", ())) if body_history.numbers_of(b)]
         assert rows and len(rows) == len(bodies)
-        planet = next(p for p in system.planets if p.build.birth_spin is not None)
+        planet = next(p for p in system.primary.orbiters if p.build.birth_spin is not None)
         saved = next(row for row in rows if row["body_type"] == effect_ledger.BODY_CODES["planets"] and row["birth_spin_rate"] == planet.build.birth_spin[0])
         assert saved["birth_obliquity_deg"] == planet.build.birth_spin[1]
         assert saved["formula_version"] == body_history.FORMULA_VERSION
@@ -106,7 +106,7 @@ def test_an_edit_keeps_the_history_of_the_bodies_it_keeps_and_drops_that_of_a_de
             edits.save_system_edits(conn, system_id, store.load_star_system(conn, system_id))
             assert conn.execute("SELECT COUNT(*) AS n FROM body_history WHERE star_system_id = ?", (system_id,)).fetchone()["n"] == before > 0
             edited = store.load_star_system(conn, system_id)
-            gone = edited.planets.pop(0)
+            gone = edited.primary.orbiters.pop(0)
             edits.save_system_edits(conn, system_id, edited)
         left = conn.execute("SELECT COUNT(*) AS n FROM body_history WHERE star_system_id = ?", (system_id,)).fetchone()["n"]
         assert 0 < left < before
@@ -205,8 +205,8 @@ def test_a_loaded_system_carries_the_numbers_the_generated_one_kept(mysql_config
         loaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
-    made = [b for p in system.planets for b in (p, *getattr(p, "moons", ()))]
-    restored = [b for p in loaded.planets for b in (p, *getattr(p, "moons", ()))]
+    made = [b for p in system.primary.orbiters for b in (p, *getattr(p, "moons", ()))]
+    restored = [b for p in loaded.primary.orbiters for b in (p, *getattr(p, "moons", ()))]
     assert len(made) == len(restored)
     checked = 0
     for original, again in zip(made, restored):

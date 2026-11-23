@@ -422,12 +422,12 @@ def cross_star_violation(system):
     one star is held against every body of the other, not only the two outermost: the gap of a pair is the stars' closest approach less both bodies' outer edges (`edge_au`),
     and what it needs is `_cross_star_threshold_au` of that pair, which grows with the pair's masses, so a heavy inner planet can need more room than a light outer one.
     """
-    if system.binary_type != "wide" or not system.planets or not system.secondary_planets:
+    if system.binary_type != "wide" or not system.primary.orbiters or not system.secondary.orbiters:
         return None
     closest_au = system.wide_binary.periapsis_au
     worst = None
-    for body_p in system.planets:
-        for body_s in system.secondary_planets:
+    for body_p in system.primary.orbiters:
+        for body_s in system.secondary.orbiters:
             gap = closest_au - edge_au(body_p) - edge_au(body_s)
             needed = _cross_star_threshold_au(system, body_p, body_s)
             if _below(gap, needed) and (worst is None or needed - gap > worst[2]):
@@ -458,10 +458,10 @@ def cross_star_clearance(system):
         primary_room = system.primary_star.a_crit_au - edge_au(body_p)
         secondary_room = system.secondary_star.a_crit_au - edge_au(body_s)
         if primary_room <= secondary_room:
-            system.planets.remove(body_p)
+            system.primary.orbiters.remove(body_p)
             removed.append(body_p)
         else:
-            system.secondary_planets.remove(body_s)
+            system.secondary.orbiters.remove(body_s)
             removed.append(body_s)
     return removed
 
@@ -564,23 +564,6 @@ def check_orbit_spacing(planets):
     return problems
 
 
-def _member_hosts(system):
-    """`[(star, planets)]` of the further stars of the tree, none for a system that has no such stars."""
-    return system.member_hosts() if hasattr(system, "member_hosts") else []
-
-
-def star_lists(system):
-    """`(star, planets)` for each star that holds its own planet list:
-    the system's star (a single star, or a close pair's merged proxy),
-    then a wide pair's secondary, then each further star of the tree (GEN.332), then the proxy of each inner pair node of the tree with its planets."""
-    lists = [(system.star, system.planets)]
-    if getattr(system, "binary_type", None) == "wide":
-        lists.append((system.secondary_star, system.secondary_planets))
-    lists.extend(_member_hosts(system))
-    lists.extend(system.node_planet_hosts() if hasattr(system, "node_planet_hosts") else [])
-    return lists
-
-
 def check_star_system(system):
     """
     Checks a whole star system: for each star, the spacing of its planets
@@ -594,7 +577,7 @@ def check_star_system(system):
         list: `Problem`s, empty when it validates.
     """
     problems = []
-    for star, planets in star_lists(system):
+    for star, planets in system.hosts:
         problems.extend(check_orbit_spacing(planets))
         ceiling = orbit_ceiling_au(star)
         for body in planets:
@@ -672,9 +655,9 @@ def refresh_star_reflex(system):
     shared by the pair), as `StarSystem.__init__` sets it."""
     if system.binary_type == "close":
         system.binary_planetary_wobble_x, system.binary_planetary_wobble_y, system.binary_planetary_wobble_z = \
-            calculate_reflex_offset(system.star.mass, reflex_children(system.planets))
+            calculate_reflex_offset(system.star.mass, reflex_children(system.primary.orbiters))
         return
-    for star, planets in star_lists(system):     # the system's star is its primary when the pair is not close
+    for star, planets in system.hosts:     # the system's star is its primary when the pair is not close
         star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z = calculate_reflex_offset(star.mass, reflex_children(planets))
 
 
@@ -702,14 +685,14 @@ def stabilize_star_system(system, allow_removal=False):
         problems still left (`check_star_system`).
     """
     before = {}
-    for _star, planets in star_lists(system):
+    for _star, planets in system.hosts:
         for body in planets:
             before[id(body)] = (body.distance, getattr(body, "planet_class", None))
             for moon in getattr(body, "moons", ()):
                 before[id(moon)] = (moon.distance, moon.planet_class)
 
     removed = []
-    for star, planets in star_lists(system):
+    for star, planets in system.hosts:
         for body in planets:
             if body.body_type != 'a':
                 stabilize_lunar_system(body)
@@ -723,7 +706,7 @@ def stabilize_star_system(system, allow_removal=False):
     refresh_star_reflex(system)
 
     moved, reclassified = [], []
-    for _star, planets in star_lists(system):
+    for _star, planets in system.hosts:
         for body in planets:
             bodies = [body] + list(getattr(body, "moons", ()))
             for item in bodies:
