@@ -566,7 +566,7 @@ def test_the_command_line_bar_never_shows_the_running_stages_time_as_the_whole_j
 
 
 def test_a_stage_line_gives_the_time_the_stage_took_on_the_units_ladder(monkeypatch, stage_clock):
-    """TEST.759: a stage of a few milliseconds says so (`2.86 ms`), not `0 s`: the one ladder of the units code (UX.318) is the only way a duration is written."""
+    """TEST.759: a stage of a few milliseconds says so (`3 ms`, whole milliseconds since TEST.814), not `0 s`: the one ladder of the units code (UX.318) is the only way a duration is written."""
     lines = []
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
@@ -575,7 +575,7 @@ def test_a_stage_line_gives_the_time_the_stage_took_on_the_units_ladder(monkeypa
     stages.enter("band")
     stage_clock(0.00286)
     stages.finish()
-    assert lines[-1] == "Stage 1 of 1 finished after 2.86 ms"
+    assert lines[-1] == "Stage 1 of 1 finished after 3 ms"
 
 
 def test_every_stage_marker_comes_from_one_formatter():
