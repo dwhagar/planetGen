@@ -14,7 +14,7 @@ from planetgen.generation import abundance_tier
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.physics import biogenic_oxygen as bo
-from planetgen.physics import hydrosphere
+from planetgen.physics import hydrosphere, surface_pressure
 from planetgen.util import draw
 from tests.class_support import draw_planet
 
@@ -40,7 +40,9 @@ def test_a_quiet_interior_takes_a_third_of_the_oxygen_and_any_other_body_takes_w
 
 def test_a_small_sea_makes_its_areas_share_of_an_oceans_oxygen_and_a_seep_makes_a_refuges_small_share():
     sea = bo.productivity(_world(hydrosphere="surface ocean"), AREA_M2)
-    assert sea == pytest.approx(bo.EARTH_BURIAL_MOL_YR * 0.15 / bo.EARTH_OCEAN_FRACTION, rel=0.02)
+    assert sea == pytest.approx(bo.EARTH_BURIAL_MOL_YR * 0.15 / bo.SOURCE_REFERENCE_COVER, rel=0.02)
+    earth_sea = bo.productivity(_world(hydrosphere="surface ocean", ocean_fraction=surface_pressure.OCEAN_COVER_EARTH), AREA_M2)
+    assert earth_sea == pytest.approx(bo.EARTH_BURIAL_MOL_YR, rel=0.02)         # GEN.1837: the generator's Earth, with its own 0.55 of sea, makes Earth's source (a 0.71 reference left it a fifth short)
     seep = bo.productivity(_world(), AREA_M2)
     assert seep == bo.refuge_productivity(_world(), AREA_M2) < 0.1 * sea                # a brine seep is no living sea: only the refuge of GEN.1723, a few percent of the sea's
     assert bo.productivity(_world(_water_dialed="dry"), AREA_M2) == seep                # and the oxygen law does not look at the dial: the hydrosphere law makes the desert sea
