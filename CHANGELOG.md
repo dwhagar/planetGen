@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4751+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A command the update runs (the cache warm-up, the math check) keeps the supervisor it asked for, so it no longer waits a minute and fails.
+
+### Fixed
+- OPS.298: the supervisor ended itself after one turn whenever an update was running, even when the update's own command had started it. `check-math` and `warm` inside `update.sh` then found no supervisor for a minute and the math check stopped with "no supervisor has been alive for 1m". The supervisor now stops only for an update it is not part of.
+
+generation-output: unchanged
+
 ## [8.0.4750+db274.gen150.api14] - 2026-11-23
 
 **Headline:** The tests of the adjusted course place a field that is still a field, so the course bends around it again.
