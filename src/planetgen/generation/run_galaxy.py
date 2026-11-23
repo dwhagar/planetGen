@@ -2727,14 +2727,26 @@ def _random_start_radius(args):
     return args.radius_pc if args.radius_pc is not None else program_constants.DEFAULT_GENERATE_RADIUS_PC
 
 
-def _log_start(saved, address, _suffix):
-    """Says a random starting sector as it is saved."""
-    designation = provisional_sector_designation(*address)
-    log.normal(
-        f"Saved random starting sector '{saved['name']}' [{designation}] at {_format_address(address)} "
-        f"(sector_id={saved['sector_id']})."
-    )
-    run_sector._log_summary(saved["summary"])
+def pinned_start_arguments(address, radius_pc):
+    """The `sectors` arguments that start a run at `address` and chart the sectors within `radius_pc` of it: what a random start
+    would be if it were named (OPS.292). A spec that gives these in place of an empty `sectors` entry has the same stages, the
+    same starting sector and the same neighbors, so two runs of one seed can be compared digest to digest."""
+    shell, band, wedge = address
+    return f"--shell {shell} --band {band} --wedge {wedge} --radius-pc {radius_pc:g}"
+
+
+def _start_announcer(radius_pc):
+    """`announce` for the stage of a random start: says the sector as it is saved and, in a line of its own, the arguments that
+    name the same start again (`pinned_start_arguments`, OPS.292)."""
+    def log_start(saved, address, _suffix):
+        designation = provisional_sector_designation(*address)
+        log.normal(
+            f"Saved random starting sector '{saved['name']}' [{designation}] at {_format_address(address)} "
+            f"(sector_id={saved['sector_id']})."
+        )
+        log.normal(f"To start another run at this same sector, give its sectors entry: {pinned_start_arguments(address, radius_pc)}")
+        run_sector._log_summary(saved["summary"])
+    return log_start
 
 
 def _plan_random_start(args, edge_pc, progress):
@@ -2797,7 +2809,7 @@ def _plan_random_start(args, edge_pc, progress):
     addresses = [address for address, _position, _args in starts]
     return [SectorsFollower(args, "start", "Starting sector", edge_pc,
                             [(address, position, sector_args, "") for address, position, sector_args in starts],
-                            announce=_log_start,
+                            announce=_start_announcer(radius_pc),
                             bar_description="Starting sector" if len(starts) == 1 else "Starting sectors"),
             _neighborhood_follower(args, edge_pc, addresses, count, existed, skipped)]
 
@@ -3256,7 +3268,7 @@ def _deferred_sectors(args, edge_pc):
     args.radius_pc = radius_pc
     run_seed = _run_seed()        # the one draw the starter's plan makes, so the draws after it are the same
     return [SectorsFollower(args, "start", "Starting sector", edge_pc, count=0, planned="random-start", extra={"run_seed": run_seed},
-                            announce=_log_start),
+                            announce=_start_announcer(radius_pc)),
             _deferred_neighborhood(args, edge_pc, wrapper.plan_detail("start", "centers"))]
 
 

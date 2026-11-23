@@ -2,6 +2,61 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4729+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A command that follows a run (check-db and every other command on the work queue) now asks for a supervisor while it waits and stops with the reason after a minute when none comes up, instead of waiting for ever with no word.
+
+### Fixed
+- OPS.293: the supervisor exits when idle and the follower never started one, so `check-db` against a finished run (and a run after its supervisor was killed, drill D1 of the OPS.247 trial) waited with no message, 15 minutes in the trial, until someone started a supervisor by hand. Every follower (`wrapper.run`, `wrapper.follow`) now calls `wrapper.supervisor_pump` every `units.ENSURE_SECONDS`: it asks for a supervisor (one Redis read while one is alive), and when none has been alive for `wrapper.SUPERVISOR_WAIT_SECONDS` (60 s) it stops with `units.RunStopped` saying so, why the start failed (`supervisor.last_failure`, the error `ensure_started` swallowed before) and how to start one by hand. Tests: `test_supervisor_pump.py`.
+
+generation-output: unchanged
+
+## [8.0.4728+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A job process that ends on a plain SIGKILL is no longer recorded as a memory kill; only a rise of the kernel's memory-kill count while the job ran makes it one.
+
+### Fixed
+- OPS.294: the launcher recorded every SIGKILL of a job process as `killed_memory`, so a person's `kill -9` of a worker (or a test's) counted in the pressure report as a memory kill and fed the memory gate's self-tuning (the gate's edges move down after 3 kills) and a bigger retry claim. A SIGKILL is now `killed_memory` only when the kernel's own count of memory kills (`oom_kill` in the cgroup's `memory.events` and in `/proc/vmstat`, `memorygate.oom_kill_count`) rose between the job's start and its end. Any other SIGKILL, or one with no readable count, is recorded as `lost` with the text "ended on SIGKILL; the kernel's memory kill count did not rise while it ran, so it was not killed for memory". The job still goes again; only the memory record stops learning from it. Tests: `test_launcher.py` (a kill the count did not meet is `lost`, with and without a readable count).
+
+generation-output: unchanged
+
+## [8.0.4727+db274.gen150.api14] - 2026-11-22
+
+**Headline:** A full disk now holds the run with a plain reason, "the disk is full: free space, then Retry held or finish-run", instead of ending it as a process that was gone.
+
+### Changed
+
+- OPS.288: the supervisor watches the free space of the three places a long run writes to (the database's data directory, the run record's Redis folder and the engine's state folder, one drive counted once) against a small reserve (512 MB, or half a percent of a bigger drive). Under two reserves nothing new of the bulk and upkeep lanes is admitted (the memory controller's own hold, reused); under one reserve the live generation run is held, its units stop at their next piece and keep what they committed, and the run says why. Nothing carries it on by itself: free space, then Retry held or `finish-run`. A run that ends with its process gone while a drive is full says the disk is full, not that its process was gone.
+
+generation-output: unchanged
+
+## [8.0.4726+db274.gen150.api14] - 2026-11-22
+
+**Headline:** A random start now says the arguments that start a run at the same sector again, so two full runs of one seed can be compared.
+
+### Changed
+
+- OPS.292: the line that says a random starting sector as it is saved is followed by "To start another run at this same sector, give its sectors entry: --shell S --band B --wedge W --radius-pc R". A run spec that gives those arguments in place of an empty `sectors` entry starts at the same sector, charts the same neighbors and has the same 19 stages (the existing single-address mode; nothing new in the engine). A new test runs a pinned run whole and a pinned run stopped partway and carried on by `finish-run`, and checks they end with the same galaxy.
+
+generation-output: unchanged
+
+## [8.0.4725+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The full-matrix test no longer mistakes a trojan on its giant's orbit for an overlap.
+
+### Fixed
+- **`test_full_matrix` checks a trojan (GEN.1150, GEN.1151) against its giant and leaves it out of the spacing of the bodies (TEST.821).** The fuzz order test has done so since TEST.818; the check is now one helper (`tests/trojan_support.assert_trojans_on_their_giants`) both call. Every other spacing check stays as strict as it was. No generator change.
+
+## [8.0.4724+db274.gen150.api14] - 2026-11-22
+
+**Headline:** A life class is read from the finished body: a class whose own air takes its light, its liquid hours or a supply it needs no longer stays on the world at the score it was chosen at.
+
+### Fixed
+- GEN.1826 (bug): the dominant class was drawn against the air before the life, and `life._apply` dropped it afterwards only when its own air took its solvent (GEN.1298) or its carbon dioxide (GEN.1736); for any other failure it kept the class at its chosen score. Seed 5007, Ehinaon II: class 4b was drawn at 306 K under an open sea, its life's air cooled the body to 115 K and froze the sea under an ice lid, and the nitrate it needs (none under a lid, GEN.1823) went to zero, yet the body kept 4b. Any failure the final air names (a supply, the lit liquid hours, the light, the energy) now drops the class and the world is drawn again without it, as for the solvent and the carbon dioxide (GEN.1739: no class is assigned until the evolution is finished). A score of zero that names nothing (the life used up its fuel, TEST.486) is kept as before. Measured on 100 default systems: 5 bodies change class, all ice-covered oceans their own life's air froze (two 1a, two 1c, one 4b to another class).
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.4723+db274.gen150.api14] - 2026-11-22
 
 **Headline:** The chemical life of an ocean under an ice lid is now held by the moles of its reductants and no longer by its heat flow's share of Earth's chemosynthesis, so most sealed oceans fall from the first animal grade to microbes.
