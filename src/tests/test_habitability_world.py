@@ -360,8 +360,14 @@ def test_suitability_follows_the_native_life_and_microbes_in_the_ocean_under_ice
     # (the animals of a sub-ice world are a chemical class's, Class 4b here, with Fauna and no Flora: GEN.889)
     farmed = hw.compute(_earth(hydrosphere="ice-covered ocean", native_life="biosphere", life_stage="technological_civilization",
                                evolutionary_pace="Earth Norm", life_class=4, life_class_variant="b", life_complexity=1.0,
-                               life_animal_grade=3, internal_heat_flux_w_m2=0.09, surface_temperature_k=268.0))
+                               life_animal_grade=3, internal_heat_flux_w_m2=0.09, surface_temperature_k=268.0,
+                               h2_supply=20.0, donor_supply=20.0))
+    # GEN.1838: a sealed ocean's animals are held by its reductant fuel (GEN.1825, reports/sealed-fuel-cap-gen1825-2026-11-21.md): with Earth's vents (shares 1) or Enceladus's (up to 4) the multicellular
+    # threshold is never reached, and only 2 of the 1,049 sealed bodies of its census got there (the best at an index of 7.3e-5). A fuel of 20 times Earth's vents is that best sealed ocean, so the fixture states it.
     assert farmed["life_flora"] == 0 and farmed["life_fauna"] > 0 and farmed["phi4_suitability"] > 0.2
+    starved = hw.compute(_earth(hydrosphere="ice-covered ocean", native_life="biosphere", life_stage="technological_civilization", evolutionary_pace="Earth Norm", life_class=4, life_class_variant="b",
+                                life_complexity=1.0, life_animal_grade=3, internal_heat_flux_w_m2=0.09, surface_temperature_k=268.0))
+    assert starved["life_fauna"] == 0 and starved["phi4_suitability"] == pytest.approx(0.2)  # a stored grade does not feed animals the fuel cannot: the same ocean on Earth's vents has none
 
 
 def test_flora_is_always_good_food_and_flora_with_fauna_is_better():
