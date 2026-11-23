@@ -406,7 +406,7 @@ LEVERS = (
         help="More Habitable Worlds: ticked, Earth-like (Class M) worlds are made as common as the generator aims at (1 per 10 Sun-like systems, not yet calibrated); "
              "unticked, it is what the generator's laws give (about 1 per 2,800). The box moves the odds of an Earth's conditions and never forces a world or a count. "
              "Auto is ticked.",
-        source="Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers) and 3:26 PM EST 2026-11-22 (GEN.1832: one box, on by default; the Sparse, Scattered and Plentiful words are gone); the dial values behind the box are first-pass stand-ins "
+        source="Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers) and 3:26 PM EST 2026-11-22 (one box, on by default; the Sparse, Scattered and Plentiful words are gone); the dial values behind the box are first-pass stand-ins "
                "(tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census", status="placeholder", tweak="L4"),
     Lever(
         name="comet_abundance", flag="--comet-abundance", dial="census", label="Comet abundance", kind="enum", unit="", minimum=None, maximum=None, step=None,

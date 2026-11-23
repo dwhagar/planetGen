@@ -28,7 +28,7 @@ OUTGASSING_EARTH_MOL_YR = 6.6e12
 """float: Earth's modern volcanic outgassing of CO2, mol of carbon a year (6.6 Tmol, [R2489], registry AM60; `waterworld_carbon.SEAFLOOR_SHARE_OF_OUTGASSING`'s reference)."""
 
 ELECTRONS_PER_CARBON = 4.0
-"""float: The electrons that reduce one carbon dioxide to carbohydrate (stoichiometry), so a share `yield` of a mole of oxygen-equivalent of electrons (4) is a mole of carbon at the ceiling."""
+"""float: The electrons that reduce one carbon dioxide to carbohydrate (derived: the stoichiometry of CO2 + 4 H+ + 4 e- to CH2O + H2O), so a share `yield` of a mole of oxygen-equivalent of electrons (4) is a mole of carbon at the ceiling."""
 
 TMOL = life_air.TMOL
 
