@@ -671,11 +671,11 @@ wait_for_health() {
 # log names where a slow start spends its minute without anybody pulling logs. Never fails the update.
 health_slow_note() {
     local log_file line
-    log_info "  the site's processes: $(ps -eo pid,etimes,time,rss,args 2>/dev/null | grep -E 'wsgi|planetgen-api|gunicorn' | grep -v grep | head -n 4 | sed 's/  */ /g' | tr '\n' ';')"
-    for log_file in /var/log/apache2/error.log /var/log/httpd/error_log; do
+    log_info "  the site's processes: $(log_mask "$(ps -eo pid,etimes,time,rss,args 2>/dev/null | grep -E 'wsgi|planetgen-api|gunicorn' | grep -v grep | head -n 4 | sed 's/  */ /g' | tr '\n' ';')")"
+    for log_file in ${HEALTH_ERROR_LOGS:-/var/log/apache2/error.log /var/log/httpd/error_log}; do
         [[ -r "$log_file" ]] || continue
         while IFS= read -r line; do
-            log_info "  Apache's error log: ${line:0:300}"
+            log_info "  Apache's error log: $(log_mask "${line:0:300}")"
         done < <(tail -n 6 "$log_file" 2>/dev/null)
         break
     done
