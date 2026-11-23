@@ -34,6 +34,7 @@ import math
 import os
 import re
 import sys
+import time
 
 import pytest
 from markupsafe import escape
@@ -108,6 +109,13 @@ class Site:
         assert self.page_cache._stamp_seconds + 1 < self.page_cache._max_age
         past = os.path.getmtime(self._stamp_file()) - tilecache.STAMP_TTL_SECONDS - 1
         os.utime(self._stamp_file(), (past, past))
+
+    def mark_the_stamp_check_as_just_made(self):
+        """The node cache's last stamp check happened just now (TEST.824). The node cache trusts a check for `tilecache.STAMP_TTL_SECONDS` of real time, read
+        from the stamp file's mtime, and a CLI run can take about a minute on a slow box, so the check the test made before the run may already be due when the test
+        expects the cache to still trust it. The test is about what the cache does within the TTL, not about how long the run took; the product's TTL stays as it is."""
+        now = time.time()
+        os.utime(self._stamp_file(), (now, now))
 
     def _stamp_file(self):
         root = tilecache.cache_dir()
@@ -223,6 +231,9 @@ def test_galaxy_map_and_nodes_show_sectors_the_cli_placed(site, mysql_config, mo
     assert _placed_ids(site, mysql_config) == [pid("sector", first["id"], mysql_config)]
 
     _generate(mysql_config, "sectors", "--shell", "1", "--limit", "2", "--num-systems", "1")
+    # TEST.824: the run may have taken longer than the stamp window on a slow box, and the first page or node request after it would then check the stamp and
+    # take the new one; the test is about what the cache does inside the window, so the last check is marked as made just now, before any request.
+    site.mark_the_stamp_check_as_just_made()
     sectors = _sectors(mysql_config)
     assert len(sectors) == 3
     all_ids = sorted(pid("sector", row["id"], mysql_config) for row in sectors)
