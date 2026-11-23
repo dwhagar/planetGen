@@ -151,6 +151,11 @@ REBALANCE_BISECTIONS = 60
 """int: The most halvings of that bracket (GEN.1589). Sixty halvings narrow any bracket of an air to a part in 10^15, so a run that uses them all found no root: the sink and the temperature did not
 settle (a switch in the air that makes the answer jump), and it is logged."""
 
+REBALANCE_HEAT_LIMIT = 2.0
+"""float: How many times the temperature the body began with a trial air of `rebalance_co2` may reach, with less CO2 than the body began with, before it counts as the air solver's water-vapor feedback running away (a numerical
+bound, GEN.1821): taking CO2 out of an air does not warm it by thousands of K, but a hot world whose sink holds nothing sends the search to almost no CO2 and the solver's greenhouse factor diverges (an Earth copy at 442 K
+gave 540 K at 3.2 Pa and 5,200 K at 1.6 Pa)."""
+
 REBALANCE_TOLERANCE = 0.01
 """float: The relative width of the bracket (and the relative change of the CO2) under which `rebalance_co2` stops."""
 
@@ -528,6 +533,8 @@ def rebalance_co2(body, burial=0.0):
     def difference(carbon_dioxide):
         """The CO2 asked of the air less the CO2 the sink holds at the temperature that CO2 gives: below zero while the sink wants more."""
         store(carbon_dioxide)
+        if carbon_dioxide < current and not body.surface_temperature < REBALANCE_HEAT_LIMIT * started[0]:
+            return -1.0         # the air solver's water feedback ran away on less CO2 than the world began with (a steam world asked for almost none): not an air the sink can be asked about, so the root lies above it
         return carbon_dioxide - max(base + (sink.kept_at(body.surface_temperature, burial) - sink.solved_bar) * 1.0e5, 0.0)
 
     low, high = 0.0, min(max(current, MINIMUM_PA), room)
