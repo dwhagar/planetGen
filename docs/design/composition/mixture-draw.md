@@ -13,7 +13,7 @@ of `physics/surface_air.py` replays it at every step). Lane I stores the result 
 | The equilibrium gas of an element budget at T and P, optionally over a mantle of a given fO2 | this | `physics/gas_equilibrium.py` |
 | Regimes to mole fractions of the gases of the table | this | `physics/mixture_draw.py`, `draw_mixture` |
 | The subject of a generated body: the quantities the tables and the chemistry read, built from its stored fields and its star | GEN.756 | `physics/mixture_subject.py`, `subject_of_body` |
-| What an ocean takes out of the drawn air: the sulfur uptake (the water vapour cap is the air solve's saturation) | GEN.757 | `physics/mixture_sinks.py`, `sulfur_remaining_fraction` |
+| What an ocean takes out of the drawn air: the sulfur and nitrogen uptake (the water vapour cap is the air solve's saturation) | GEN.757, GEN.1834 | `physics/mixture_sinks.py`, `remaining_fraction` |
 | Total pressure, freeze-out of what the surface condenses, sum of partials = pressure, storage, accessor | lane I | GEN.411, GEN.422: `physics/surface_air.py`, `physics/atmosphere.py` (built 2026-10-24) |
 | Clouds, hazes, ozone | lanes G and F | GEN.414, GEN.413 |
 
@@ -51,7 +51,7 @@ bound (`DAYSIDE_OVER_EQUILIBRIUM`, `(8/3)^(1/4)`: the generator has no redistrib
 (`PHOTOSPHERE_BAR`), a hot A, B or O star takes the F rows and a brown dwarf the M rows, and the snow ratio uses the body's present
 distance because no formation distance is stored.
 
-`mixture_sinks.sulfur_remaining_fraction(formula, ts_k, gravity, ocean_column_kg_m2)` keeps `1 / (1 + kH m g M / P0)` of each sulfur gas (SO2, H2S: Henry's law over `m` kg of ocean per square metre). The water vapour cap over an ocean is the saturation of the air solve, and the outgassed inventory and the ocean and carbonate sinks of the carbon, water and nitrogen are GEN.726's. A function that capped the whole drawn mixture in one call (`apply_ocean_sinks`) was removed by TEST.524: nothing called it. Limits: the physical solubility only (both gases dissociate in water, so a real ocean takes more) and the Henry law's 273.15 to 323.15 K with the nearest end standing in outside.
+`mixture_sinks.remaining_fraction(formula, ts_k, gravity, ocean_column_kg_m2)` keeps `1 / (1 + kH m g M / P0)` of each dissolved gas (SO2, H2S, and since GEN.1834 N2: Henry's law over `m` kg of ocean per square metre; the share is the same at every pressure). An Earth ocean holds 0.6 percent of the air's nitrogen. The nitrogen the crust, sediment, life and subduction keep is not in this function: it is inside the degassing efficiency of the nitrogen (NB3, GEN.1833), so a second subtraction would count it twice. The water vapour cap over an ocean is the saturation of the air solve, and the outgassed inventory and the ocean and carbonate sinks of the carbon and water are GEN.726's. A function that capped the whole drawn mixture in one call (`apply_ocean_sinks`) was removed by TEST.524: nothing called it. Limits: the physical solubility only (both gases dissociate in water, so a real ocean takes more) and the Henry law's 273.15 to 323.15 K with the nearest end standing in outside. The nitrogen is taken by the open water only (`surface_air._dissolve`, `ICE_CUT_GASES`): the share of the sea the ice has not covered by the albedo's ice law (`climate_branches.IceAlbedoLaw.ice_fraction`), so a frozen water world keeps its air and no step at 273.15 K stands in the temperature solve; the sulfur gases keep the whole column.
 
 ## Where the degassed sulfur goes (GEN.815)
 

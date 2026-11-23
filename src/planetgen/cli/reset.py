@@ -368,7 +368,7 @@ def main():
         sys.exit(1)
     except process.Stopped as stop:
         log.error(f"The reset was stopped by {stop.reason}.")
-        log.info("Tables wiped so far stay wiped, and running the reset again finishes the rest.")
+        log.normal("Tables wiped so far stay wiped, and running the reset again finishes the rest.")
         sys.exit(143)
 
     if not did_reset and not args.dry_run:

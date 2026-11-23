@@ -147,7 +147,7 @@ def test_the_refuge_source_is_a_hundredth_of_earths_at_the_most_and_under_the_re
     body = _body(_dry(0.0))
     monkeypatch.setattr(habitability_world, "values_from_body", lambda b: _dry(0.0))
     source = bo.productivity(body, bo.area_m2(body))
-    assert 0.0 < source <= 0.02 * bo.EARTH_BURIAL_MOL_YR
+    assert 0.0 < source <= 0.02 * bo.EARTH_BURIAL_MOL_YR * bo.EARTH_OCEAN_FRACTION / bo.SOURCE_REFERENCE_COVER      # the same share of an ocean's source as when it was 0.02 of the real Earth's: the reference cover moved from 0.71 to 0.55 (GEN.1837)
     assert source < bo.reductant_flux(body, bo.area_m2(body))          # the dry world with Earth's volcanism stays at zero oxygen
     assert bo.profile_of(body).steady_pa == 0.0
     # a world whose interior has gone quiet (its reductant flux under the refuge source) holds some: the lever is R, not the refuge number
@@ -156,9 +156,11 @@ def test_the_refuge_source_is_a_hundredth_of_earths_at_the_most_and_under_the_re
 
 
 def test_an_open_sea_source_is_what_it_was():
-    body = _body(world(), ocean_fraction=0.71)
+    body = _body(world(), ocean_fraction=bo.SOURCE_REFERENCE_COVER)          # GEN.1837: a sea of the cover the generator's Earth has makes Earth's source (it was 0.71 of the real Earth's)
     assert bo.productivity(body, bo.area_m2(body)) == pytest.approx(bo.EARTH_BURIAL_MOL_YR, rel=0.2)
-    assert bo.refuge_productivity(_body(world(), ocean_fraction=0.71), bo.area_m2(body)) >= 0.0
+    assert bo.refuge_productivity(_body(world(), ocean_fraction=bo.SOURCE_REFERENCE_COVER), bo.area_m2(body)) >= 0.0
+    real_earth = _body(world(), ocean_fraction=bo.EARTH_OCEAN_FRACTION)
+    assert bo.productivity(real_earth, bo.area_m2(real_earth)) == pytest.approx(bo.EARTH_BURIAL_MOL_YR * bo.EARTH_OCEAN_FRACTION / bo.SOURCE_REFERENCE_COVER, rel=0.2)          # the real Earth's 0.71 of sea is 1.29 of the reference (under the 1.3 cap)
 
 
 def test_rooted_plants_stand_on_the_wet_land_in_proportion_to_the_time_it_is_wet_and_microbes_do_not():
