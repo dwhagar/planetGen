@@ -1,5 +1,4 @@
-"""OPS.295 and OPS.296: a stopped reset says what stays wiped (its handler named a log level that does not exist), and the job runner ends a job whose `engine_jobs` row is gone (a reset wipes
-the control tables, its own job's row included) instead of reading a field of no row."""
+"""OPS.295 and OPS.296: a stopped reset says what stays wiped (its handler named a log level that does not exist), and the job runner reads a job's `engine_jobs` row without assuming it is there (a missing row is no Cancel)."""
 
 import sys
 import types
@@ -38,6 +37,6 @@ class _Control:
         return types.SimpleNamespace(fetchone=lambda: row)
 
 
-@pytest.mark.parametrize("state,ended", [("running", False), ("canceled", True), (None, True)])
-def test_the_runner_ends_a_job_that_was_canceled_or_whose_row_is_gone(state, ended):
-    assert job_runner._row_is_canceled_or_gone(_Control(state), 7) is ended
+@pytest.mark.parametrize("state,canceled", [("running", False), ("canceled", True), (None, False)])
+def test_the_runner_stops_a_job_only_for_a_cancel_and_a_missing_row_is_no_cancel(state, canceled):
+    assert job_runner._row_is_canceled(_Control(state), 7) is canceled

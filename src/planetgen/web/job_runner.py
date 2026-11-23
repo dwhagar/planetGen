@@ -105,13 +105,14 @@ def _signal_tree(proc, sig):
         pass
 
 
-def _row_is_canceled_or_gone(control, row_id):
+def _row_is_canceled(control, row_id):
     """
-    Whether the job's `engine_jobs` row says Cancel, or is no longer there (OPS.296). A reset wipes the control tables, its own job's row with them: the job is gone, nothing is left to
-    finish or report to, so the runner ends it as a cancel does and does not read a field of a row that is not there.
+    Whether the job's `engine_jobs` row says Cancel. A row that is not there is no Cancel: nobody asked to stop the job, so it runs on and the runner does not stop a step that may still be
+    working. (OPS.296: the runner read a field of no row, failed with a `TypeError` and stopped the step it was following; why a row went missing there is not known: the control schema is
+    a database of its own that a reset does not touch.)
     """
     row = control.execute("SELECT state FROM engine_jobs WHERE id = ?", (row_id,)).fetchone()
-    return row is None or row["state"] == "canceled"
+    return row is not None and row["state"] == "canceled"
 
 
 def _stop_tree(proc):
@@ -493,7 +494,7 @@ def _run_step(control, run, row_id, link):
                     elif time.monotonic() - looked >= ROW_CHECK_SECONDS:         # a Cancel ends the rows, and reaches this process by the supervisor's request when one is alive
                         looked = time.monotonic()
                         control.commit()
-                        if _row_is_canceled_or_gone(control, row_id):
+                        if _row_is_canceled(control, row_id):
                             outcome["canceled"] = True
                     if outcome["canceled"]:
                         _stop_tree(proc)
