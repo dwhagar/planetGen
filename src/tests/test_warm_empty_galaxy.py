@@ -77,6 +77,16 @@ def test_an_empty_galaxy_is_not_warmed_and_the_run_succeeds(monkeypatch, tmp_pat
     assert outcome.read_text().strip() == "empty"
 
 
+def test_the_warm_up_says_where_its_first_seconds_went(monkeypatch, tmp_path, capsys):
+    """OPS.300: the process's age, the time to open its record and the time to ask whether the galaxy is empty, in the clock's words."""
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))
+    monkeypatch.setattr(warm_cli, "galaxy_is_empty", lambda database: True)
+    warm_cli._warm_once(_args())
+    seen = capsys.readouterr()
+    line = [row for row in (seen.out + seen.err).splitlines() if "warm-up start:" in row][0]
+    assert "the process had run" in line and "its record opened in" in line and "whether the galaxy is empty took" in line
+
+
 def test_a_galaxy_that_exists_is_warmed_as_before(monkeypatch, tmp_path):
     monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path))
     monkeypatch.delenv(warm_cli.OUTCOME_FILE_ENV, raising=False)
