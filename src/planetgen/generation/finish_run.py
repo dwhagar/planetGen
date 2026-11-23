@@ -114,7 +114,7 @@ def last_incomplete(conn):
             if not runrecord.holder_is_dead(conn, run_id):
                 raise CannotFinish(f"run {run_id} is still running.")
             runrecord.finish_run(conn, run_id, "failed",
-                                 error="its process was gone (killed or restarted) before the run ended")
+                                 error=runrecord.gone_text())
             conn.register_script(runrecord._RELEASE)(keys=[runrecord.active_key(runrecord.GENERATION)], args=[run_id])
         return run_id
     return None
@@ -142,7 +142,7 @@ def plan(conn, run_id, galaxy_seed, build, database):
     if run["state"] in runrecord.LIVE_STATES:
         if not runrecord.holder_is_dead(conn, run_id):
             raise CannotFinish(f"Run {run_id} ({run['title']}) is still running.")
-        runrecord.finish_run(conn, run_id, "failed", error="its process was gone (killed or restarted) before the run ended",
+        runrecord.finish_run(conn, run_id, "failed", error=runrecord.gone_text(),
                              killed=True)
         run = runrecord.read_run(conn, run_id)
     if run["state"] == "done":

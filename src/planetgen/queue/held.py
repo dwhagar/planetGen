@@ -113,9 +113,9 @@ DRAIN_REASON = "stopped for update"
 """str: Why a run is held when an update drains it (OPS.222, part A)."""
 
 
-def drain_run(conn, run_id, reason=DRAIN_REASON, now=None):
+def drain_run(conn, run_id, reason=DRAIN_REASON, now=None, held_for="update"):
     """
-    Drains the live run for an update (OPS.222, part A of L8): the run is held with `reason`, which frees the machine and takes it off every worker; each running unit stops at its next piece (the
+    Drains the live run for an update (OPS.222, part A of L8; for a full disk, OPS.288, with `held_for="disk"`: only a person carries that one on, with Retry held or `finish-run`, once there is room): the run is held with `reason`, which frees the machine and takes it off every worker; each running unit stops at its next piece (the
     engine finds the run no longer live, `engine.UnitStopped`), is not failed, and goes back to `waiting` in the ledger with what it committed kept. The retry of an unfinished unit is `retry_held`, which
     the end of the update runs.
 
@@ -124,7 +124,7 @@ def drain_run(conn, run_id, reason=DRAIN_REASON, now=None):
     """
     if not runrecord.hold_run(conn, run_id, reason, now):
         return False
-    conn.hset(runrecord.run_key(run_id), mapping={HELD_FOR: "update", HELD_EPOCH: _epoch()})
+    conn.hset(runrecord.run_key(run_id), mapping={HELD_FOR: held_for, HELD_EPOCH: _epoch()})
     mark_run(conn, run_id, "held", reason)
     return True
 

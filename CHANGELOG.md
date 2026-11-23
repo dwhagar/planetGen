@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4727+db274.gen150.api14] - 2026-11-22
+
+**Headline:** A full disk now holds the run with a plain reason, "the disk is full: free space, then Retry held or finish-run", instead of ending it as a process that was gone.
+
+### Changed
+
+- OPS.288: the supervisor watches the free space of the three places a long run writes to (the database's data directory, the run record's Redis folder and the engine's state folder, one drive counted once) against a small reserve (512 MB, or half a percent of a bigger drive). Under two reserves nothing new of the bulk and upkeep lanes is admitted (the memory controller's own hold, reused); under one reserve the live generation run is held, its units stop at their next piece and keep what they committed, and the run says why. Nothing carries it on by itself: free space, then Retry held or `finish-run`. A run that ends with its process gone while a drive is full says the disk is full, not that its process was gone.
+
+generation-output: unchanged
+
+## [8.0.4726+db274.gen150.api14] - 2026-11-22
+
+**Headline:** A random start now says the arguments that start a run at the same sector again, so two full runs of one seed can be compared.
+
+### Changed
+
+- OPS.292: the line that says a random starting sector as it is saved is followed by "To start another run at this same sector, give its sectors entry: --shell S --band B --wedge W --radius-pc R". A run spec that gives those arguments in place of an empty `sectors` entry starts at the same sector, charts the same neighbors and has the same 19 stages (the existing single-address mode; nothing new in the engine). A new test runs a pinned run whole and a pinned run stopped partway and carried on by `finish-run`, and checks they end with the same galaxy.
+
+generation-output: unchanged
+
+## [8.0.4725+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The full-matrix test no longer mistakes a trojan on its giant's orbit for an overlap.
+
+### Fixed
+- **`test_full_matrix` checks a trojan (GEN.1150, GEN.1151) against its giant and leaves it out of the spacing of the bodies (TEST.821).** The fuzz order test has done so since TEST.818; the check is now one helper (`tests/trojan_support.assert_trojans_on_their_giants`) both call. Every other spacing check stays as strict as it was. No generator change.
+
 ## [8.0.4724+db274.gen150.api14] - 2026-11-22
 
 **Headline:** A life class is read from the finished body: a class whose own air takes its light, its liquid hours or a supply it needs no longer stays on the world at the score it was chosen at.
