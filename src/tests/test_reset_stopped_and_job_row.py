@@ -39,4 +39,16 @@ class _Control:
 
 @pytest.mark.parametrize("state,canceled", [("running", False), ("canceled", True), (None, False)])
 def test_the_runner_stops_a_job_only_for_a_cancel_and_a_missing_row_is_no_cancel(state, canceled):
-    assert job_runner._row_is_canceled(_Control(state), 7) is canceled
+    assert job_runner._row_is_canceled(_Control(state), 7, set(), "job j") is canceled
+
+
+def test_a_missing_job_row_is_logged_once_per_step_with_where_and_that_the_cause_is_unknown(monkeypatch):
+    said = []
+    monkeypatch.setattr(job_runner.planetgen_log, "error", lambda message, *args, **kwargs: said.append(message % args))
+    seen = set()
+    for _ in range(3):
+        assert job_runner._row_is_canceled(_Control(None), 7, seen, "job j (run r, step 1)") is False
+    assert len(said) == 1
+    assert "7" in said[0] and "job j (run r, step 1)" in said[0] and "not known" in said[0] and "OPS.296" in said[0]
+    job_runner._row_is_canceled(_Control(None), 8, seen, "job j (run r, step 2)")
+    assert len(said) == 2

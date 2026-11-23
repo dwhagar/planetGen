@@ -105,14 +105,28 @@ def _signal_tree(proc, sig):
         pass
 
 
-def _row_is_canceled(control, row_id):
+def _row_is_canceled(control, row_id, said, where):
     """
     Whether the job's `engine_jobs` row says Cancel. A row that is not there is no Cancel: nobody asked to stop the job, so it runs on and the runner does not stop a step that may still be
-    working. (OPS.296: the runner read a field of no row, failed with a `TypeError` and stopped the step it was following; why a row went missing there is not known: the control schema is
-    a database of its own that a reset does not touch.)
+    working. What removed the row is not known (OPS.296: the runner once read a field of no row, failed with a `TypeError` and stopped the step it was following; the control schema is a
+    database of its own that a reset does not touch), so the first time a job finds its row gone the log says so, with where, to find the cause.
+
+    Args:
+        control: The control database connection.
+        row_id (int): The step's `engine_jobs` id.
+        said (set): The ids of the rows already reported; the report is once per job step.
+        where (str): What to name in the report (the job, its run, its step).
+
+    Returns:
+        bool: Whether the row says Cancel.
     """
     row = control.execute("SELECT state FROM engine_jobs WHERE id = ?", (row_id,)).fetchone()
-    return row is not None and row["state"] == "canceled"
+    if row is None:
+        if row_id not in said:
+            said.add(row_id)
+            planetgen_log.error("The engine_jobs row %s of %s is gone while its step runs; the step runs on (OPS.296: what removed the row is not known).", row_id, where)
+        return False
+    return row["state"] == "canceled"
 
 
 def _stop_tree(proc):
@@ -494,7 +508,7 @@ def _run_step(control, run, row_id, link):
                     elif time.monotonic() - looked >= ROW_CHECK_SECONDS:         # a Cancel ends the rows, and reaches this process by the supervisor's request when one is alive
                         looked = time.monotonic()
                         control.commit()
-                        if _row_is_canceled(control, row_id):
+                        if _row_is_canceled(control, row_id, outcome.setdefault("rows_gone", set()), f"job {job['id']} (run {run}, step {number}: {step['label']!r})"):
                             outcome["canceled"] = True
                     if outcome["canceled"]:
                         _stop_tree(proc)
