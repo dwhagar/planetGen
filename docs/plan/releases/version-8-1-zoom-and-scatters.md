@@ -535,7 +535,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261 |  |
 | GEN.1639 | (bug) The shape-setting temperature has no latent heat or convective loss, so with canonical 26Al every rocky body over about 100 km and every ice-rock body over 200 km comes out round (Proteus, Hyperion, Phoebe and Pallas analogues would be round) | GEN.1201 | Lane 04, 2026-11-12, deferred. |
 | GEN.1642 | Real-gas fugacity coefficients in gas_equilibrium.solve (Peng-Robinson for the species with critical constants, stand-ins for the rest), replacing the GEN.1613 fO2 clamp | GEN.1613 | Lane 02, 2026-11-12, deferred. |
-| GEN.1653 | apply_class runs only as the last step of the finish chain (class before bands is the H3 cause) | GEN.1652 | Lane 14, 2026-11-12. |
 | GEN.1654 | One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor | none | Lane 02, 2026-11-12. |
 | GEN.1655 | rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration | GEN.1654 | Lane 02, 2026-11-12. |
 | GEN.1664 | StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once | GEN.1656 | Lane 14, 2026-11-12. |
@@ -544,15 +543,10 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1746 | Air history events (flood basalts, impacts, snowballs) on a body-keyed random stream, mass extinctions, a life ages table, API and page | GEN.1745, GEN.1740 | Lane 03, 2026-11-15 |
 | GEN.1781 | Doubling methane cools hydrogen-rich airs | none | Lane 02, 2026-11-17 |
 | GEN.1803 | Heavy trace gases warm by their real band strengths | GEN.1621 | Lane 02, 2026-11-19 |
-| OPS.288 | A full disk holds a run instead of failing it | none | Lane 15, 2026-11-20 |
+| GEN.1832 | A More Habitable Worlds checkbox replaces the Class M tier choice | none | TODO, 2026-11-22 |
+| GEN.1834 | Oceans dissolve nitrogen out of the air | none | TODO, 2026-11-22 |
+| TEST.822 | Job-engine tests red on main pass again | none | TODO, 2026-11-22 |
+| PERF.286 | The galaxy fingerprint streams its rows | none | TODO, 2026-11-22 |
 | GEN.1821 | Life draws CO2 down as a carbon sink | GEN.1812 (closed) | TODO, 2026-11-22 |
-| GEN.1822 | The sub-ice and aquifer clocks read the habitat temperature | none | TODO, 2026-11-22 |
-| GEN.1823 | Class 4b loses its unsourced abiotic nitrate | none | TODO, 2026-11-22 |
-| GEN.1824 | Sealed oceans keep the oxygen their sources and sinks allow | GEN.1822 | TODO, 2026-11-22 |
-| GEN.1825 | Sealed-ocean life capped by its fuel supply | GEN.1824 | TODO, 2026-11-22 |
-| GEN.1826 | Class 4b life drawn after the final air | none | TODO, 2026-11-22 |
-| OPS.292 | A run spec can name its start sector | none | TODO, 2026-11-22 |
-| PERF.285 | Find why generation is 4.5 times slower than on 11-15 | none | TODO, 2026-11-22 |
-| TEST.818 | Hypergiant systems keep their bodies in orbital order | none | TODO, 2026-11-22 |
 | PERF.282 | Stage 9 workers share the stellar-evolution tables | OPS.247, OPS.279 | Lane 13, 2026-11-19 |
 | OPS.276 | Sky jobs no longer stop on an out-of-range list | none | Lane 16, 2026-11-18 |

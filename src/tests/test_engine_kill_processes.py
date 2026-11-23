@@ -6,6 +6,7 @@ The units are `tests/engine_kill_runners.unit`: pieces written to a file, so wha
 kill a job at a commit of a real command with the inline launcher; these kill the processes around it."""
 
 import json
+import itertools
 import os
 import signal
 import subprocess
@@ -65,7 +66,12 @@ def _units(engine, count=1, pieces=6, piece_seconds=0.3, **faults):
     return run, ids, marks
 
 
+_KILLS = itertools.count()
+
+
 def _launcher(engine, **options):
+    """A launcher that reads the kernel's memory-kill count as rising at every reading, so a SIGKILL here is a memory kill (OPS.294); a test of the other kind passes `memory_kills`."""
+    options.setdefault("memory_kills", lambda: next(_KILLS))
     return launcher.Launcher(engine.control, engine.forker, runner=f"{R}.unit", read_host=lambda: HOST, **options)
 
 

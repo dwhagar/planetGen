@@ -663,6 +663,15 @@ def _release_claim(connection, token):
         connection.delete(starting_key())
 
 
+_last_failure = None
+"""str | None: Why the last `ensure_started` could not start a supervisor (OPS.293), `None` after one that did or found one alive."""
+
+
+def last_failure():
+    """Why the last attempt to start a supervisor failed in this process, or `None`."""
+    return _last_failure
+
+
 def ensure_started(connection=None, url=None, start=None):
     """
     Starts a supervisor, detached, unless one is alive or another caller is starting one now. Cheap for the caller that finds one alive (one Redis
@@ -677,9 +686,11 @@ def ensure_started(connection=None, url=None, start=None):
     Returns:
         bool: Whether this call started one.
     """
+    global _last_failure
     try:
         connection = connection or redisqueue.connect(url)
         if is_alive(connection):
+            _last_failure = None
             return False
         token = _claim_token()
         if not connection.set(starting_key(), token, nx=True):
@@ -697,7 +708,9 @@ def ensure_started(connection=None, url=None, start=None):
         except Exception:
             _release_claim(connection, token)       # nothing started: the claim is not the next caller's to wait out
             raise
+        _last_failure = None
         return True
     except Exception as exc:  # noqa: BLE001 -- the engine's own bookkeeping never fails the submit or the page that asked
+        _last_failure = f"{type(exc).__name__}: {exc}"
         log.swallowed("queue/supervisor", "ensure_started", exc)
         return False

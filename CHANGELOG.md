@@ -2,6 +2,49 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4732+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The Earth analog is an Earth again: its veneer, mantle and radiogenic content are fixed, and a second row holds the Earth's own sea against 288 K and 101 kPa.
+
+### Fixed
+- **The analog's "late accretion 0.7 percent" line set an attribute nothing had read since PR 6943 (TEST.820).** The planet kept the veneer of the system it was generated in (3.0 percent, 0.28 since GEN.1493 slice 3); it now sets the build record the air reads. The mantle's viscosity law and the radiogenic content (potassium, thorium, uranium, aluminium-26) are pinned (the middle of the draw ranges; the bulk silicate Earth), because the generated planet's own values moved the median pressure by 35 kPa and carried the neighbours of the generated system into the analog (GEN.1520 moved it only that way).
+
+### Added
+- **An Earth-water row** (water fraction 2.3e-4, 140 paired trials, stored in the baseline file) is held against the Earth's 288 K and 101 kPa and printed under `compare`. The baseline is renewed. No generator change (GEN.1829).
+
+## [8.0.4731+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A world with the Earth's own sea now waters all its land, so an Earth copy no longer runs 5 K warm.
+
+### Changed
+- **The sea cover that waters all the weathering land is 0.55, not 0.71 (GEN.1830, stand-in 6.309 WW2).** 0.55 is the cover the generator itself makes for the Earth's own ocean mass (0.38 to 0.65 over 24 trials of the Earth analog); with 0.71 an exact Earth copy had 77 percent of its land wet (GEN.1829). Still a tier T6 educated guess, tweak L1, inside its range of 0.5 to 0.8 (Boss's yes, 3:24 PM EST 11-22). Every world with a sea cover under 0.71 waters a larger share of its land than before (all of it from 0.55 up); a world with 0.71 or more is unchanged. Earth's own ocean: 290.4 K to 286.5 K, Class M 8 to 14 of 48. No epoch, no migration.
+
+## [8.0.4730+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A very large impact can now reset the animals and the civilization of a world, never its microbes
+
+### Changed
+
+- GEN.1746 slice 4: the new `physics/extinction_effects.py` lets the largest impacts of a body's history touch the schedule its life drew. The kill curve stops at 0.65 of the species for the events the Earth has once in 100 Myr and the Earth's animals stood through every extinction of the last 540 Myr (the largest impact among the Big Five is about 10 km), so only an impact the Earth has less often than once in a gigayear (about 37 km on the size law) resets them. The first three steps of a schedule (abiogenesis, photosynthesis, complex cells) are never changed (the Boss's ruling that an extinction never kills microbial life); when such an impact falls once the animals are there they are gone and return 30 Myr later (the 10 Myr origination lag plus 20 Myr of regrowth), and a civilization arises again the same hard-step wait after them as it did before. The stored ages of the animals and the civilization are those of the lineage that is there now; a world with animals that one took recently shows the complex cells stage until they are back. A world made again has the same impacts (they are the events of the life ages table's own call). New stand-in section 6.326 (EF1 to EF3).
+
+## [8.0.4729+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A command that follows a run (check-db and every other command on the work queue) now asks for a supervisor while it waits and stops with the reason after a minute when none comes up, instead of waiting for ever with no word.
+
+### Fixed
+- OPS.293: the supervisor exits when idle and the follower never started one, so `check-db` against a finished run (and a run after its supervisor was killed, drill D1 of the OPS.247 trial) waited with no message, 15 minutes in the trial, until someone started a supervisor by hand. Every follower (`wrapper.run`, `wrapper.follow`) now calls `wrapper.supervisor_pump` every `units.ENSURE_SECONDS`: it asks for a supervisor (one Redis read while one is alive), and when none has been alive for `wrapper.SUPERVISOR_WAIT_SECONDS` (60 s) it stops with `units.RunStopped` saying so, why the start failed (`supervisor.last_failure`, the error `ensure_started` swallowed before) and how to start one by hand. Tests: `test_supervisor_pump.py`.
+
+generation-output: unchanged
+
+## [8.0.4728+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A job process that ends on a plain SIGKILL is no longer recorded as a memory kill; only a rise of the kernel's memory-kill count while the job ran makes it one.
+
+### Fixed
+- OPS.294: the launcher recorded every SIGKILL of a job process as `killed_memory`, so a person's `kill -9` of a worker (or a test's) counted in the pressure report as a memory kill and fed the memory gate's self-tuning (the gate's edges move down after 3 kills) and a bigger retry claim. A SIGKILL is now `killed_memory` only when the kernel's own count of memory kills (`oom_kill` in the cgroup's `memory.events` and in `/proc/vmstat`, `memorygate.oom_kill_count`) rose between the job's start and its end. Any other SIGKILL, or one with no readable count, is recorded as `lost` with the text "ended on SIGKILL; the kernel's memory kill count did not rise while it ran, so it was not killed for memory". The job still goes again; only the memory record stops learning from it. Tests: `test_launcher.py` (a kill the count did not meet is `lost`, with and without a readable count).
+
+generation-output: unchanged
+
 ## [8.0.4727+db274.gen150.api14] - 2026-11-22
 
 **Headline:** A full disk now holds the run with a plain reason, "the disk is full: free space, then Retry held or finish-run", instead of ending it as a process that was gone.

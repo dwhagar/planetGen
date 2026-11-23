@@ -72,9 +72,10 @@ OUTGASSING_EXPONENT = (1.0, 2.0, "uniform")
 LAND_FRACTION_EARTH = 0.29
 """float: The land share of the Earth's surface, the reference of the weathering law."""
 
-OCEAN_COVER_EARTH = 0.71
-"""float: The ocean share of the Earth's surface (1 - `LAND_FRACTION_EARTH`, rounded): the sea that waters the Earth's land, and the cover above which a larger sea adds no rain to the land
-(GEN.1403, `wet_land_fraction`). [Stand-in 6.309 WW2, tier T6 educated guess from physics, tweak L1.]"""
+OCEAN_COVER_EARTH = 0.55
+"""float: The ocean cover above which a larger sea adds no rain to the land (GEN.1403, `wet_land_fraction`): the cover the generator itself makes for the Earth's own ocean mass (0.55 of the surface, 0.38 to 0.65 over 24
+trials of the Earth analog; the Earth's measured 0.71 is not what the generator's basins give that much water), so an Earth-sized sea waters all the land of a body that has it (GEN.1830, Boss's yes of 3:24 PM EST 11-22 on the
+GEN.1829 report: with 0.71 an exact Earth copy had 0.55 / 0.71 of its land wet and ran 5 K warm). [Stand-in 6.309 WW2, tier T6 educated guess from physics, tweak L1: inside its range of 0.5 to 0.8.]"""
 
 CO2_MODERN_BAR = 288e-6
 """float: The preindustrial CO2 pressure of the Earth [R2628]."""

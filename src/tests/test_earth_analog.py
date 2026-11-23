@@ -74,6 +74,56 @@ def test_the_stored_baseline_is_well_formed_and_its_first_trials_redraw_the_same
     assert [json.dumps(r, sort_keys=True) for r in again] == [json.dumps(r, sort_keys=True) for r in baseline["rows"][:2]]
 
 
+def test_the_stored_earth_water_rows_are_the_baselines_and_redraw_the_same(analog):
+    """TEST.820: the Earth-water row (the Earth's own sea, not the drawn water) is stored beside the sampled rows and its first trials redraw the same."""
+    baseline = analog.load_baseline()
+    assert baseline["earth_water"] == analog.EARTH_WATER and len(baseline["earth_rows"]) == analog.EARTH_WATER_TRIALS
+    assert all(abs(row["w"] - analog.EARTH_WATER) < 1e-12 for row in baseline["earth_rows"])
+    again = analog.trials(baseline["block"], 0, 2, baseline["age_gy"], analog.EARTH_WATER)
+    assert [json.dumps(r, sort_keys=True) for r in again] == [json.dumps(r, sort_keys=True) for r in baseline["earth_rows"][:2]]
+
+
+def test_the_earth_water_row_is_held_at_what_main_gives_and_the_gap_to_the_earth_is_an_open_finding(analog):
+    """TEST.820: the row is held at today's 140-trial medians, not at the Earth's 288 K and 101 kPa. The gap (11 K cold, 20 kPa low, oxygen 0.6 kPa against 21, CO2 20 Pa against 28) is an open finding, GEN.1835 (Lane 05): when it is closed
+    the baseline is renewed on purpose, the numbers below move with it and the targets stay the Earth's. The mantle's law is the middle of the generator's draw range (no sourced Earth viscosity law is in the registry)."""
+    summary = analog.summarize_earth(analog.load_baseline()["earth_rows"])
+    assert summary["trials"] == analog.EARTH_WATER_TRIALS and summary["errors"] == 0
+    assert (summary["median_temperature_k"], summary["median_pressure_kpa"], summary["class_m"]) == (277.0, 81.5, 27)
+    assert summary["temperature_gap_k"] == -11.0 and summary["pressure_gap_kpa"] == -19.8
+    assert analog.EARTH_TARGET == {"temperature_k": 288.0, "pressure_kpa": 101.3}
+
+
+def test_the_earth_water_text_sets_the_rows_against_the_earths_numbers(analog):
+    rows = [_row(0, "M", T=290.0, P=118000.0, oc=0.55), _row(1, "F", T=292.0, P=116000.0, oc=0.55), {"i": 2, "w": analog.EARTH_WATER, "error": "ValueError: x"}]
+    summary = analog.summarize_earth(rows)
+    assert summary["trials"] == 3 and summary["errors"] == 1 and summary["class_m"] == 1
+    assert summary["median_temperature_k"] == 291.0 and summary["median_pressure_kpa"] == 117.0 and summary["median_ocean_cover"] == 0.55
+    assert summary["temperature_gap_k"] == 3.0 and summary["pressure_gap_kpa"] == 15.7
+    text = analog.earth_water_text({"earth_rows": [_row(0, "M", T=288.0, P=101000.0)]}, rows)
+    assert "288 K and 101 kPa" in text and "| median temperature K | 288.0 | 291.0 | 288 |" in text
+    assert "| median pressure kPa | 101.0 | 117.0 | 101 |" in text
+    assert "Paired change over the 1 trials both have: temperature +2.0 K, pressure +17.0 kPa" in text
+    assert "none" in analog.earth_water_text({}, rows)                    # a baseline from before the row: the stored column says none, nothing raises
+
+
+def test_the_analog_sets_the_veneer_the_air_reads_and_pins_what_the_generated_planet_would_bring(analog, monkeypatch):
+    """TEST.820: the line that set `planet._late_accreted_percent` was read by nothing (GEN.1829), so the planet kept its system's own veneer (3.0 percent, then 0.28) and its mantle law and radiogenic content. The veneer is on the build record the air reads,
+    the interior fields are fixed, and the veneer moves the air (so the pin is the one the generator reads)."""
+    from planetgen import tuning
+    from planetgen.generation.build_record import record_of
+    from planetgen.physics import impact_history, radiogenic
+
+    planet, _class_m = analog._setup(analog.AGE_GY)
+    assert record_of(planet).late_accreted_percent == impact_history.LATE_ACCRETED_PERCENT_EARTH
+    assert not hasattr(planet, "_late_accreted_percent")
+    assert planet.mantle_eta0_pa_s == sum(tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S) / 2.0
+    assert planet.mantle_activation_kj_mol == sum(tuning.INTERIOR_ACTIVATION_RANGE_KJ_MOL) / 2.0
+    assert planet.c_k0_ppm == radiogenic.BULK_SILICATE_EARTH[0] * radiogenic.formation_mix("K")[1] and planet.al26_ratio == radiogenic.SOLAR_AL26_RATIO
+    earth = analog.trials(1, 0, 1, analog.AGE_GY, analog.EARTH_WATER)[0]
+    monkeypatch.setattr(impact_history, "LATE_ACCRETED_PERCENT_EARTH", 10.0 * impact_history.LATE_ACCRETED_PERCENT_EARTH)
+    assert analog.trials(1, 0, 1, analog.AGE_GY, analog.EARTH_WATER)[0]["P"] != earth["P"]
+
+
 def _calls_in_order(source, names):
     """The `module.function` calls of `source` (a function's text) whose last two parts are in `names`, in the order they appear."""
     import ast
