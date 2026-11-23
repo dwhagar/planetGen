@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4729+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A command that follows a run (check-db and every other command on the work queue) now asks for a supervisor while it waits and stops with the reason after a minute when none comes up, instead of waiting for ever with no word.
+
+### Fixed
+- OPS.293: the supervisor exits when idle and the follower never started one, so `check-db` against a finished run (and a run after its supervisor was killed, drill D1 of the OPS.247 trial) waited with no message, 15 minutes in the trial, until someone started a supervisor by hand. Every follower (`wrapper.run`, `wrapper.follow`) now calls `wrapper.supervisor_pump` every `units.ENSURE_SECONDS`: it asks for a supervisor (one Redis read while one is alive), and when none has been alive for `wrapper.SUPERVISOR_WAIT_SECONDS` (60 s) it stops with `units.RunStopped` saying so, why the start failed (`supervisor.last_failure`, the error `ensure_started` swallowed before) and how to start one by hand. Tests: `test_supervisor_pump.py`.
+
+generation-output: unchanged
+
+## [8.0.4728+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A job process that ends on a plain SIGKILL is no longer recorded as a memory kill; only a rise of the kernel's memory-kill count while the job ran makes it one.
+
+### Fixed
+- OPS.294: the launcher recorded every SIGKILL of a job process as `killed_memory`, so a person's `kill -9` of a worker (or a test's) counted in the pressure report as a memory kill and fed the memory gate's self-tuning (the gate's edges move down after 3 kills) and a bigger retry claim. A SIGKILL is now `killed_memory` only when the kernel's own count of memory kills (`oom_kill` in the cgroup's `memory.events` and in `/proc/vmstat`, `memorygate.oom_kill_count`) rose between the job's start and its end. Any other SIGKILL, or one with no readable count, is recorded as `lost` with the text "ended on SIGKILL; the kernel's memory kill count did not rise while it ran, so it was not killed for memory". The job still goes again; only the memory record stops learning from it. Tests: `test_launcher.py` (a kill the count did not meet is `lost`, with and without a readable count).
+
+generation-output: unchanged
+
 ## [8.0.4727+db274.gen150.api14] - 2026-11-22
 
 **Headline:** A full disk now holds the run with a plain reason, "the disk is full: free space, then Retry held or finish-run", instead of ending it as a process that was gone.

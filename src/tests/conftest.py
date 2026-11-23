@@ -643,6 +643,7 @@ def _no_test_starts_a_supervisor(monkeypatch):
     monkeypatch.setattr(supervisor, "_spawn", lambda argv, on_exit=None: None)
     # OPS.211: a run asks the supervisor to start it; with none running, the ask is answered by one turn of the supervisor's duty, here, at once
     monkeypatch.setattr(wrapper, "ask_supervisor", lambda conn, url: supervisor.RunStarts(conn).turn())
+    monkeypatch.setattr(wrapper, "SUPERVISOR_WAIT_SECONDS", float("inf"))        # OPS.293: no supervisor is alive in a test, and a follower does not stop for that
     yield
 
 
@@ -654,6 +655,7 @@ def _no_module_fixture_starts_a_supervisor():
     with pytest.MonkeyPatch.context() as patch:
         patch.setattr(supervisor, "_spawn", lambda argv, on_exit=None: None)
         patch.setattr(wrapper, "ask_supervisor", lambda conn, url: supervisor.RunStarts(conn).turn())
+        patch.setattr(wrapper, "SUPERVISOR_WAIT_SECONDS", float("inf"))
         yield
 
 
