@@ -654,7 +654,7 @@ def long_lived_geology(heat_flux_w_m2):
 class CarbonSink:
     """
     The carbon sink of the air's last step (GEN.1309 A): the CO2 the volcanoes delivered as a pressure (`supply_bar`), the pressure the sink held at the temperature the step
-    solved at (`solved_bar`, `solved_temperature_k`) and `kept_at(temperature_k)`, the pressure it holds at another surface temperature (the branch the body took:
+    solved at (`solved_bar`, `solved_temperature_k`) and `kept_at(temperature_k, burial)`, the pressure it holds at another surface temperature (and the biosphere's burial, GEN.1821) (the branch the body took:
     continental weathering, seafloor weathering or the sealed ocean's chemistry). The life stage asks it again after the oxygen has burned the reduced gases and
     the air has found another temperature (`biogenic_oxygen.rebalance_co2`).
     """
@@ -730,13 +730,14 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             kind = waterworld_carbon.sink_kind(water_world.sealed, 1.0 - setting.ocean_cover)
             anion_charge = chloride_mol_m2 + 2.0 * sulfate_mol_m2
 
-            def kept_at(ts_k):
-                """The CO2 pressure, bar, the sink of this step's carbon holds at the surface temperature `ts_k` (GEN.1309 A: the life stage asks it again at the temperature the air ends at)."""
+            def kept_at(ts_k, burial=0.0):
+                """The CO2 pressure, bar, the sink of this step's carbon holds at the surface temperature `ts_k` (GEN.1309 A: the life stage asks it again at the temperature the air ends at), with the
+                organic carbon a biosphere of `burial` (`carbon_burial.rate_of`, GEN.1821) buries beside the weathering; the sealed ocean's chemistry has no weathering to share it with and takes none."""
                 if kind == waterworld_carbon.CONTINENTAL_WEATHERING:
                     return continental_weathering.pco2_bar(supply_bar, setting.heat_flux_w_m2, _weathering_land(setting, ts_k), ts_k, setting.absorbed_flux_at(ts_k, ocean),
-                                                           cycle, water_world.law)
+                                                           cycle, water_world.law, burial)
                 if kind == waterworld_carbon.SEAFLOOR_WEATHERING:
-                    return waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: ts_k, water_world.law, cycle[1])
+                    return waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: ts_k, water_world.law, cycle[1], burial)
                 sodium, calcium = waterworld_carbon.leached_cations_mol_m2(water_world.draws.altered_km)
                 return waterworld_carbon.ocean_pco2(carbon / setting.area_m2, ts_k, setting.water_kg / setting.area_m2, setting.gravity_m_s2,
                                                     sodium_mol_m2=sodium, calcium_mol_m2=calcium, anion_charge_mol_m2=anion_charge).pco2_bar
@@ -751,8 +752,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             supply_bar = carbon * gases.gas("CO2").molar_mass * setting.gravity_m_s2 / setting.area_m2 / 1.0e5
             capacity_bar = carbonate_buffer.capacity_bar(crust_kg_m2, sulfate_mol_m2, setting.gravity_m_s2)
 
-            def kept_at(ts_k):
-                """The CO2 pressure, bar, the dry carbonate buffer of this step's carbon holds at the surface temperature `ts_k`."""
+            def kept_at(ts_k, burial=0.0):
+                """The CO2 pressure, bar, the dry carbonate buffer of this step's carbon holds at the surface temperature `ts_k` (it takes no burial: a surface that does not weather has no sea for life to bury carbon in)."""
                 return carbonate_buffer.kept_bar(supply_bar, ts_k, capacity_bar)
 
             kept_bar = kept_at(temperature_k)

@@ -377,6 +377,8 @@ def _lever_text(form, row):
     """The text of a lever's flag value from the form (blank is Auto, so `None`), checked against the row's range;
     a length is typed with its unit (`2600pc`)."""
     raw = (form.get(row.name) or "").strip()
+    if not raw and row.checkbox and form.get(row.name + "_box"):
+        return row.choices[0]       # GEN.1832: the box was on the form and left unticked
     if not raw:
         return None
     try:

@@ -100,6 +100,8 @@ class Lever:
     min_abs: float = None
     """float: The closest to 0 a value may be (pitch angle: a quarter turn each way, but not a flat line), or `None`."""
     advanced: bool = False
+    checkbox: bool = False
+    """bool: Whether an enum row of two choices is a tick box on the Generate page (GEN.1832): ticked is its last choice, unticked its first; blank (Auto) is the row's own default."""
     log: bool = False
     """bool: Whether a slider for the row runs on a logarithmic scale (a mass, a density)."""
     typical: float = None
@@ -395,16 +397,16 @@ LEVERS = (
         source="Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to "
                "10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS)", status="placeholder", tweak="L3"),
     Lever(
-        name="class_m", flag="--class-m", dial="census", label="Class M abundance", kind="enum", unit="", minimum=None, maximum=None, step=None,
-        choices=("science", "sparse", "scattered", "plentiful", "abundant"),
-        law="how far past the science the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions: the share given Earth-like water (a part of them a desert world's), "
-            "the share whose hydrogen envelope is lost and the share of systems given the request for a habitable world; the class of every body still "
+        name="class_m", flag="--class-m", dial="census", label="More Habitable Worlds", kind="enum", unit="", minimum=None, maximum=None, step=None,
+        choices=("science", "abundant"), checkbox=True,
+        law="whether the galaxy's rocky planets in the ecosphere are pushed toward Earth's conditions past the science: ticked (abundant), the share given Earth-like water (a part of them a desert world's), "
+            "the share whose hydrogen envelope is lost and the share of systems given the request for a habitable world; unticked (science), nothing is moved; the class of every body still "
             "comes from its finished conditions and no class or count is forced (generation/abundance_tier)",
-        auto_text="science (nothing is moved; what the generator's own laws give)",
-        help="How common Earth-like (Class M) worlds are. Science is what the generator's laws give; Sparse aims at 1 per 500 Sun-like systems, "
-             "Scattered at 1 per 135, Plentiful at 1 per 37 and Abundant at 1 per 10 (aims, not yet calibrated). A tier moves the odds of an "
-             "Earth's conditions and never forces a world or a count. Auto is the same as Science.",
-        source="Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins "
+        auto_text="ticked, abundant (aim 1 Class M world per 10 Sun-like systems); a stand-alone system with no galaxy takes science",
+        help="More Habitable Worlds: ticked, Earth-like (Class M) worlds are made as common as the generator aims at (1 per 10 Sun-like systems, not yet calibrated); "
+             "unticked, it is what the generator's laws give (about 1 per 2,800). The box moves the odds of an Earth's conditions and never forces a world or a count. "
+             "Auto is ticked.",
+        source="Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers) and 3:26 PM EST 2026-11-22 (GEN.1832: one box, on by default; the Sparse, Scattered and Plentiful words are gone); the dial values behind the box are first-pass stand-ins "
                "(tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census", status="placeholder", tweak="L4"),
     Lever(
         name="comet_abundance", flag="--comet-abundance", dial="census", label="Comet abundance", kind="enum", unit="", minimum=None, maximum=None, step=None,
@@ -534,7 +536,8 @@ def resolved(args, name):
 def describe_pins(pins):
     """The sentence the galaxy page shows for the levers a plan was told (DB.81), `pins` being `{lever name: value}` as
     `shape_draw.pins_of` stores it: what was pinned, in the table's order and units, and that the rest was drawn."""
-    shown = [f"{row.label} {row.choices[int(pins[row.name])]}" if row.kind == "enum"
+    shown = [f"{row.label} {'on' if int(pins[row.name]) == len(row.choices) - 1 else 'off'}" if row.checkbox
+             else f"{row.label} {row.choices[int(pins[row.name])]}" if row.kind == "enum"
              else f"{row.label} {pins[row.name]:.4g}{' ' + row.unit if row.unit else ''}"
              for row in LEVERS if row.name in (pins or {})]
     if not shown:
@@ -546,7 +549,10 @@ def choice_pinned(pins, name):
     """The choice of an enum lever a plan was told (`shape_draw.pins_of` keeps it as its place in the row's `choices`), or `None` when it was left on Auto."""
     if name not in (pins or {}):
         return None
-    return lever(name).choices[int(pins[name])]
+    choices = lever(name).choices
+    if not 0 <= int(pins[name]) < len(choices):
+        raise ValueError(f"the galaxy was planned with {name} choice number {int(pins[name])}, which is no longer one of {', '.join(choices)}: plan it again")
+    return choices[int(pins[name])]
 
 
 def docs_table():

@@ -12,8 +12,8 @@ LAND = sp.LAND_FRACTION_EARTH
 Q = sp.HEAT_FLUX_EARTH_W_M2
 
 
-def _balance(supply_bar=10.0, flux=Q, land=LAND, temperature=sp.TS_MODERN_K, absorbed=cw.EARTH_ABSORBED_FLUX_W_M2, cycle=(1.0, 1.5), law=EARTH_LAW):
-    return cw.pco2_bar(supply_bar, flux, land, temperature, absorbed, cycle, law)
+def _balance(supply_bar=10.0, flux=Q, land=LAND, temperature=sp.TS_MODERN_K, absorbed=cw.EARTH_ABSORBED_FLUX_W_M2, cycle=(1.0, 1.5), law=EARTH_LAW, burial=0.0):
+    return cw.pco2_bar(supply_bar, flux, land, temperature, absorbed, cycle, law, burial)
 
 
 def test_the_cycle_draws_stay_in_their_brackets_and_are_recorded():
@@ -33,7 +33,7 @@ def test_the_law_at_the_modern_reference_is_the_paper_s_form_and_its_level_is_th
 @pytest.mark.parametrize("lambda_scale, m, law", [(0.1, 1.0, None), (1.0, 1.5, EARTH_LAW), (10.0, 2.0, EARTH_LAW)])
 def test_the_earth_is_the_balance_at_its_modern_flux_land_and_temperature(lambda_scale, m, law):
     assert cw.rate_over_modern(sp.TS_MODERN_K, sp.CO2_MODERN_BAR, cw.EARTH_ABSORBED_FLUX_W_M2, lambda_scale) == pytest.approx(1.0)
-    assert _balance(cycle=(lambda_scale, m), law=law) == pytest.approx(sp.CO2_MODERN_BAR, rel=1e-6)
+    assert _balance(cycle=(lambda_scale, m), law=law, burial=sp.EARTH_NET_BURIAL_SHARE) == pytest.approx(sp.CO2_MODERN_BAR, rel=1e-6)       # with its own biosphere (GEN.1821): a lifeless Earth is another balance
 
 
 def test_the_runoff_is_held_under_the_energy_limit_and_the_rate_under_the_supply_limit():

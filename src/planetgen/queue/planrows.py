@@ -417,7 +417,7 @@ def spawn_window(conn, run_id, index):
 def fold_finished(conn, run_id, index):
     """
     Folds the history of a stage that ended with more than `FOLD_ABOVE` unit rows (OPS.240): a unit row that finished at its first attempt loses its `arguments` (about a kilobyte of what it was told to do) and its
-    attempt row, except the `FOLD_KEEP` slowest. Every row stays, so the stage's count, the status lines and the Queue page's totals are as real as before; a unit that was retried or failed is whole, and so is
+    attempt row, except the `FOLD_KEEP` slowest (the lower job id first among equal times, so folding a stage again keeps the same rows: TEST.822). Every row stays, so the stage's count, the status lines and the Queue page's totals are as real as before; a unit that was retried or failed is whole, and so is
     every row of a stage that did not end. What was folded (`folded`, `attempts`, the seconds the folded attempts took, and the ids kept) is written to the stage's `release` row. Returns the number of rows folded, 0
     for a stage that is too small. The stage must have ended: a row without arguments cannot be run again or compared with a new cut (`resumed._same` takes it as different).
     """
@@ -430,7 +430,7 @@ def fold_finished(conn, run_id, index):
             return 0
         slow = [row["job_id"] for row in control.execute(
             "SELECT a.job_id FROM engine_attempts a JOIN engine_jobs j ON j.id = a.job_id WHERE j.run_id = ? AND j.stage = ? AND j.item_key <> '' AND a.ended_at IS NOT NULL"
-            " ORDER BY TIMESTAMPDIFF(MICROSECOND, a.started_at, a.ended_at) DESC LIMIT ?", (run, stage, FOLD_KEEP)).fetchall()]
+            " ORDER BY TIMESTAMPDIFF(MICROSECOND, a.started_at, a.ended_at) DESC, a.job_id LIMIT ?", (run, stage, FOLD_KEEP)).fetchall()]
         keep = ", ".join(["?"] * len(slow)) or "NULL"
         folded = attempts = 0
         seconds = 0.0

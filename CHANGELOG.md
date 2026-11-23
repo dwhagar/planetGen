@@ -2,6 +2,132 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4738+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A new galaxy now makes Earth-like worlds as common as the generator aims at, behind one box on the Generate page, "More Habitable Worlds", ticked by default.
+
+### Changed
+- GEN.1832 (Boss, 3:26 PM EST 11-22: "change the Class M planet box in generation with a checkbox for More Habitable Worlds that is on by default and will be the highest abundance we discussed, when unchecked it's scientific"): the Census dial `class_m` (`--class-m`) is a box. Ticked is the Abundant tier (aim 1 Class M world per 10 Sun-like systems, the six dials of `tuning.ABUNDANCE_TIER_DIALS["abundant"]` unchanged), unticked is Science (nothing moved, about 1 in 2,800). A plan that is told nothing is ticked (`abundance_tier.GALAXY_DEFAULT`); one system made outside any galaxy (`planetgen system`, a test) stays on Science (`abundance_tier.DEFAULT`). The box is a `Lever` with `checkbox=True` (an enum of two choices, ticked is the last); the Generate page posts a hidden marker with it so an unticked box reads as Science and not as Auto.
+- GEN.1832: the Sparse, Scattered and Plentiful tiers and their three rows of `tuning.ABUNDANCE_TIER_DIALS` are removed (`abundance_tier.TIERS` is `("science", "abundant")`), with their targets (1 in 500, 135 and 37). The comet abundance dial is its own and keeps its five tiers. Nothing else read the three rows. A galaxy planned under a removed tier is refused in words ("plan it again": testing mode, a new database is fine): its stored choice number no longer names a choice. A galaxy planned with nothing pinned used to read as Science and now reads as Abundant.
+- Registry rows 6.289:AT1 to AT6 say only the Abundant values; `docs/reference/cli.md` and the design note `class-m-abundance-tiers.md` are updated.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.4737+db274.gen150.api14] - 2026-11-23
+
+**Headline:** Life now draws the carbon dioxide of its world down: a biosphere buries organic carbon, and a world with no life holds more CO2
+
+### Changed
+
+- GEN.1821 (the Boss's option 2): the carbonate-silicate weathering law is levelled so that the modern Earth balances **with** its biosphere (3 Tmol of carbon a year net over 6.6 of outgassing, `surface_pressure.EARTH_NET_BURIAL_SHARE`). A world with no life now needs 1.83 times the modern weathering to balance its volcanoes, so its CO2 and temperature are higher; a world with life keeps the CO2 its own burial leaves. The oxygenic classes bury `S - W(p)` (the source of the oxygen law less the oxidative weathering of the kerogen: all of `S` before the rise, `R` at the oxygen balance); classes 2 to 4, which make no oxygen, get burial rows in `life_ledger.json` (the carbon their donors' or hydrogen's electrons fix, four electrons to a carbon, at the ceiling for Class 2 and at the growth yield of GEN.1825 for Classes 3 and 4, 2 percent of it buried: `anoxic_burial_share`). The burial falls in a line to nothing as the CO2 falls from 5 Pa to the producers' 0.5 Pa floor, so a biosphere never drains the air under the floor. The sink is solved again with the burial after the life's air is built (`carbon_burial`, `life._build_air`, `biogenic_oxygen.rebalance_co2(body, burial)`). New stand-in section 6.322 (CB1 to CB5) and citation R5332 (Gebauer and others 2017). The sink search (`biogenic_oxygen.rebalance_co2`) is not asked of a world above the boiling point of water at its pressure, or past its critical point, which has no liquid ocean for the weathering law (an Earth copy of 442 K under 615 kPa had made the air solver run away to thousands of K and the weathering law overflow); a trial air past the critical point is no root.
+
+## [8.0.4736+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The air solver's start-independence test counts 24 generated systems, not 12, and the train gate now runs it when generation or physics code changes.
+
+### Fixed
+- The test of how many air bodies have a start-dependent answer (limit 40 percent) sampled only 19 to 22 air bodies, so one or two bodies swung the share by 5 to 10 points. It went 7 of 22 (32 percent) to 8 of 19 (42 percent) at Release 4717 (GEN.1493 slice 3 cut the veneer: cold outer bodies of about 100 K, all single-answer, now hold under 10 kPa and leave the count). On 40 seeds it is 24 percent before and 28 percent on main. The sample is now 24 seeds (13 of 40, 32 percent on main) and the limit is unchanged.
+- The train gate runs `tests/test_surface_air_start_independence.py` whenever a file under `generation/` or `physics/` changes (it was left out of the sample tests, so the Train 56 and 57 lists did not hold it).
+
+## [8.0.4735+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The stage-line test expects whole milliseconds, as stage lines have read since TEST.814.
+
+### Fixed
+- `test_stages.py`: `test_a_stage_line_gives_the_time_the_stage_took_on_the_units_ladder` still expected "2.86 ms"; since TEST.814 (PR 7355) a duration under a second reads in whole milliseconds (`logrecord.duration_text(0.00286)` is "3 ms"), so the test was red on main. It now expects "3 ms".
+
+generation-output: unchanged
+
+## [8.0.4734+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The whole-galaxy fingerprint streams a sector's rows into its digest, so it takes half the time and under half the memory, and gives the same digest.
+
+### Changed
+- PERF.286: `db/fingerprint.py` held, for each sector, the rows, their canonical values, three encoded copies of the set and a list of every key it had read, so a galaxy's fingerprint took 6 GB and hours next to a run (OPS.247 run B). A sector's digest now takes each row's two texts as the row is read (`fingerprint_encoding.row_set_full_digest`: the same sort, the same bytes hashed, so the same digest) and lets the sector's rows and keys go before the next. On the rich test galaxy (333 sectors, 2,746 planets) the region digest is the same (`d1dae05e28c3...`) and the run took 58.6 s and 680 MB peak before, 29.5 s and 305 MB after. Tests: `test_fingerprint_encoding.py`, `test_fingerprint_stream.py`; the stored digests of the fingerprint tests are unchanged.
+
+generation-output: unchanged
+
+## [8.0.4733+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The window test that carries a run on picks the run it started, and the fold of a finished stage keeps the same slowest units each time.
+
+### Fixed
+- TEST.822 (a): `test_window_spawn.py::test_a_run_carried_on_from_one_that_stopped_in_a_later_window...` took the newest run id of the list as "its" run. A run of an earlier test that the run store restores from the control database (OPS.284) after the test's snapshot joins the list in the same second, and its id sorts by its random end, so in about half the runs the test finished the wrong run ("did not record the galaxy and the build"). It takes the new run that recorded its galaxy seed now.
+- `planrows.fold_finished` kept "the `FOLD_KEEP` slowest" units in an order the database chose among equal times; folding a stage twice could keep different rows. It breaks ties by the lower job id, so a second fold finds nothing left to fold (the `folds_the_history` case failed on main in about half the runs).
+
+generation-output: unchanged
+
+## [8.0.4732+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The Earth analog is an Earth again: its veneer, mantle and radiogenic content are fixed, and a second row holds the Earth's own sea against 288 K and 101 kPa.
+
+### Fixed
+- **The analog's "late accretion 0.7 percent" line set an attribute nothing had read since PR 6943 (TEST.820).** The planet kept the veneer of the system it was generated in (3.0 percent, 0.28 since GEN.1493 slice 3); it now sets the build record the air reads. The mantle's viscosity law and the radiogenic content (potassium, thorium, uranium, aluminium-26) are pinned (the middle of the draw ranges; the bulk silicate Earth), because the generated planet's own values moved the median pressure by 35 kPa and carried the neighbours of the generated system into the analog (GEN.1520 moved it only that way).
+
+### Added
+- **An Earth-water row** (water fraction 2.3e-4, 140 paired trials, stored in the baseline file) is held against the Earth's 288 K and 101 kPa and printed under `compare`. The baseline is renewed. No generator change (GEN.1829).
+
+## [8.0.4731+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A world with the Earth's own sea now waters all its land, so an Earth copy no longer runs 5 K warm.
+
+### Changed
+- **The sea cover that waters all the weathering land is 0.55, not 0.71 (GEN.1830, stand-in 6.309 WW2).** 0.55 is the cover the generator itself makes for the Earth's own ocean mass (0.38 to 0.65 over 24 trials of the Earth analog); with 0.71 an exact Earth copy had 77 percent of its land wet (GEN.1829). Still a tier T6 educated guess, tweak L1, inside its range of 0.5 to 0.8 (Boss's yes, 3:24 PM EST 11-22). Every world with a sea cover under 0.71 waters a larger share of its land than before (all of it from 0.55 up); a world with 0.71 or more is unchanged. Earth's own ocean: 290.4 K to 286.5 K, Class M 8 to 14 of 48. No epoch, no migration.
+
+## [8.0.4730+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A very large impact can now reset the animals and the civilization of a world, never its microbes
+
+### Changed
+
+- GEN.1746 slice 4: the new `physics/extinction_effects.py` lets the largest impacts of a body's history touch the schedule its life drew. The kill curve stops at 0.65 of the species for the events the Earth has once in 100 Myr and the Earth's animals stood through every extinction of the last 540 Myr (the largest impact among the Big Five is about 10 km), so only an impact the Earth has less often than once in a gigayear (about 37 km on the size law) resets them. The first three steps of a schedule (abiogenesis, photosynthesis, complex cells) are never changed (the Boss's ruling that an extinction never kills microbial life); when such an impact falls once the animals are there they are gone and return 30 Myr later (the 10 Myr origination lag plus 20 Myr of regrowth), and a civilization arises again the same hard-step wait after them as it did before. The stored ages of the animals and the civilization are those of the lineage that is there now; a world with animals that one took recently shows the complex cells stage until they are back. A world made again has the same impacts (they are the events of the life ages table's own call). New stand-in section 6.326 (EF1 to EF3).
+
+## [8.0.4729+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A command that follows a run (check-db and every other command on the work queue) now asks for a supervisor while it waits and stops with the reason after a minute when none comes up, instead of waiting for ever with no word.
+
+### Fixed
+- OPS.293: the supervisor exits when idle and the follower never started one, so `check-db` against a finished run (and a run after its supervisor was killed, drill D1 of the OPS.247 trial) waited with no message, 15 minutes in the trial, until someone started a supervisor by hand. Every follower (`wrapper.run`, `wrapper.follow`) now calls `wrapper.supervisor_pump` every `units.ENSURE_SECONDS`: it asks for a supervisor (one Redis read while one is alive), and when none has been alive for `wrapper.SUPERVISOR_WAIT_SECONDS` (60 s) it stops with `units.RunStopped` saying so, why the start failed (`supervisor.last_failure`, the error `ensure_started` swallowed before) and how to start one by hand. Tests: `test_supervisor_pump.py`.
+
+generation-output: unchanged
+
+## [8.0.4728+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A job process that ends on a plain SIGKILL is no longer recorded as a memory kill; only a rise of the kernel's memory-kill count while the job ran makes it one.
+
+### Fixed
+- OPS.294: the launcher recorded every SIGKILL of a job process as `killed_memory`, so a person's `kill -9` of a worker (or a test's) counted in the pressure report as a memory kill and fed the memory gate's self-tuning (the gate's edges move down after 3 kills) and a bigger retry claim. A SIGKILL is now `killed_memory` only when the kernel's own count of memory kills (`oom_kill` in the cgroup's `memory.events` and in `/proc/vmstat`, `memorygate.oom_kill_count`) rose between the job's start and its end. Any other SIGKILL, or one with no readable count, is recorded as `lost` with the text "ended on SIGKILL; the kernel's memory kill count did not rise while it ran, so it was not killed for memory". The job still goes again; only the memory record stops learning from it. Tests: `test_launcher.py` (a kill the count did not meet is `lost`, with and without a readable count).
+
+generation-output: unchanged
+
+## [8.0.4727+db274.gen150.api14] - 2026-11-22
+
+**Headline:** A full disk now holds the run with a plain reason, "the disk is full: free space, then Retry held or finish-run", instead of ending it as a process that was gone.
+
+### Changed
+
+- OPS.288: the supervisor watches the free space of the three places a long run writes to (the database's data directory, the run record's Redis folder and the engine's state folder, one drive counted once) against a small reserve (512 MB, or half a percent of a bigger drive). Under two reserves nothing new of the bulk and upkeep lanes is admitted (the memory controller's own hold, reused); under one reserve the live generation run is held, its units stop at their next piece and keep what they committed, and the run says why. Nothing carries it on by itself: free space, then Retry held or `finish-run`. A run that ends with its process gone while a drive is full says the disk is full, not that its process was gone.
+
+generation-output: unchanged
+
+## [8.0.4726+db274.gen150.api14] - 2026-11-22
+
+**Headline:** A random start now says the arguments that start a run at the same sector again, so two full runs of one seed can be compared.
+
+### Changed
+
+- OPS.292: the line that says a random starting sector as it is saved is followed by "To start another run at this same sector, give its sectors entry: --shell S --band B --wedge W --radius-pc R". A run spec that gives those arguments in place of an empty `sectors` entry starts at the same sector, charts the same neighbors and has the same 19 stages (the existing single-address mode; nothing new in the engine). A new test runs a pinned run whole and a pinned run stopped partway and carried on by `finish-run`, and checks they end with the same galaxy.
+
+generation-output: unchanged
+
+## [8.0.4725+db274.gen150.api14] - 2026-11-22
+
+**Headline:** The full-matrix test no longer mistakes a trojan on its giant's orbit for an overlap.
+
+### Fixed
+- **`test_full_matrix` checks a trojan (GEN.1150, GEN.1151) against its giant and leaves it out of the spacing of the bodies (TEST.821).** The fuzz order test has done so since TEST.818; the check is now one helper (`tests/trojan_support.assert_trojans_on_their_giants`) both call. Every other spacing check stays as strict as it was. No generator change.
+
 ## [8.0.4724+db274.gen150.api14] - 2026-11-22
 
 **Headline:** A life class is read from the finished body: a class whose own air takes its light, its liquid hours or a supply it needs no longer stays on the world at the score it was chosen at.

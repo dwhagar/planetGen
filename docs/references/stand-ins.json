@@ -2325,11 +2325,11 @@
           "fields": [
             [
               "The range",
-              "science, sparse, scattered, plentiful, abundant"
+              "science, abundant"
             ],
             [
               "Source",
-              "Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers); the dial values behind each word are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census"
+              "Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers) and 3:26 PM EST 2026-11-22 (GEN.1832: one box, on by default; the Sparse, Scattered and Plentiful words are gone); the dial values behind the box are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census"
             ]
           ],
           "id": "--class-m",
@@ -2340,7 +2340,7 @@
           "tier_code": "T4",
           "tweak": "L4",
           "unread": null,
-          "what": "--class-m: science, sparse, scattered, plentiful, abundant"
+          "what": "--class-m: science, abundant"
         },
         {
           "burn_down": null,
@@ -68667,7 +68667,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ABUNDANCE_TIER_DIALS water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is given by the tier (Earth's, low of delivered_water, or the dry one for the part of AT5) and not drawn from the Bern law at their formation distance"
+              "tuning.ABUNDANCE_TIER_DIALS water share (Abundant 1; GEN.1832 took out Sparse 0.5 and Scattered and Plentiful 1): the share of rocky planets in the ecosphere whose water class is given by the tier (Earth's, low of delivered_water, or the dry one for the part of AT5) and not drawn from the Bern law at their formation distance"
             ],
             [
               "The range it moves in",
@@ -68698,7 +68698,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "tuning.ABUNDANCE_TIER_DIALS water share (Sparse 0.5; Scattered, Plentiful and Abundant 1): the share of rocky planets in the ecosphere whose water class is given by the tier (Earth's, low of delivered_water, or the dry one for the part of AT5) and not drawn from the Bern law at their formation distance"
+          "what": "tuning.ABUNDANCE_TIER_DIALS water share (Abundant 1; GEN.1832 took out Sparse 0.5 and Scattered and Plentiful 1): the share of rocky planets in the ecosphere whose water class is given by the tier (Earth's, low of delivered_water, or the dry one for the part of AT5) and not drawn from the Bern law at their formation distance"
         },
         {
           "burn_down": [
@@ -68709,7 +68709,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ABUNDANCE_TIER_DIALS bare share (Sparse 0; the other tiers 1): the share of rocky planets in the ecosphere that are late cores with no hydrogen envelope (Planet(late_core=True), GEN.1323)"
+              "tuning.ABUNDANCE_TIER_DIALS bare share (Abundant 1; GEN.1832 took out the Sparse, Scattered and Plentiful rows): the share of rocky planets in the ecosphere that are late cores with no hydrogen envelope (Planet(late_core=True), GEN.1323)"
             ],
             [
               "The range it moves in",
@@ -68740,7 +68740,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "tuning.ABUNDANCE_TIER_DIALS bare share (Sparse 0; the other tiers 1): the share of rocky planets in the ecosphere that are late cores with no hydrogen envelope (Planet(late_core=True), GEN.1323)"
+          "what": "tuning.ABUNDANCE_TIER_DIALS bare share (Abundant 1; GEN.1832 took out the Sparse, Scattered and Plentiful rows): the share of rocky planets in the ecosphere that are late cores with no hydrogen envelope (Planet(late_core=True), GEN.1323)"
         },
         {
           "burn_down": [
@@ -68751,7 +68751,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ABUNDANCE_TIER_DIALS request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by tuning.REQUEST_ODDS (row CC10) and forces nothing"
+              "tuning.ABUNDANCE_TIER_DIALS request share (Abundant 1; GEN.1832 took out Sparse and Scattered 0 and Plentiful 0.5): the share of systems given the request for a habitable world, which multiplies the odds by tuning.REQUEST_ODDS (row CC10) and forces nothing"
             ],
             [
               "The range it moves in",
@@ -68759,7 +68759,7 @@
             ],
             [
               "Where it holds",
-              "galaxies made under Plentiful or Abundant"
+              "galaxies made with More Habitable Worlds ticked (Abundant)"
             ],
             [
               "What would show it wrong",
@@ -68771,7 +68771,7 @@
             ],
             [
               "Evidence",
-              "needed output: the two top targets (1 in 37, 1 in 10) are past what the water and envelope dials reach by the report's estimate"
+              "needed output: the top target (1 in 10) is past what the water and envelope dials reach by the report's estimate"
             ]
           ],
           "id": "AT3",
@@ -68782,7 +68782,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "tuning.ABUNDANCE_TIER_DIALS request share (Sparse and Scattered 0; Plentiful 0.5; Abundant 1): the share of systems given the request for a habitable world, which multiplies the odds by tuning.REQUEST_ODDS (row CC10) and forces nothing"
+          "what": "tuning.ABUNDANCE_TIER_DIALS request share (Abundant 1; GEN.1832 took out Sparse and Scattered 0 and Plentiful 0.5): the share of systems given the request for a habitable world, which multiplies the odds by tuning.REQUEST_ODDS (row CC10) and forces nothing"
         },
         {
           "burn_down": [
@@ -68793,7 +68793,7 @@
           "fields": [
             [
               "What it is",
-              "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy"
+              "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Abundant 10 Sun-like systems per Class M world, Boss's; GEN.1832 took out Sparse 500, Scattered 135 and Plentiful 37): what the dial values are calibrated to; never enforced on a galaxy"
             ],
             [
               "The range it moves in",
@@ -68824,7 +68824,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": "by design",
-          "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Sparse 500; Scattered 135; Plentiful 37; Abundant 10 Sun-like systems per Class M world: the ends are Boss's, the two between split evenly on a log scale): what the dial values are calibrated to; never enforced on a galaxy"
+          "what": "abundance_tier.TARGET_SYSTEMS_PER_CLASS_M (Abundant 10 Sun-like systems per Class M world, Boss's; GEN.1832 took out Sparse 500, Scattered 135 and Plentiful 37): what the dial values are calibrated to; never enforced on a galaxy"
         },
         {
           "burn_down": [
@@ -68835,7 +68835,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ABUNDANCE_TIER_DIALS dry part (0.2 on every tier but Science): the part of the planets the water dial reaches that take the dry water class (dry of delivered_water, under 0.025 percent of the mass: a desert world) and not Earth's"
+              "tuning.ABUNDANCE_TIER_DIALS dry part (0.2 on Abundant): the part of the planets the water dial reaches that take the dry water class (dry of delivered_water, under 0.025 percent of the mass: a desert world) and not Earth's"
             ],
             [
               "The range it moves in",
@@ -68866,7 +68866,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "tuning.ABUNDANCE_TIER_DIALS dry part (0.2 on every tier but Science): the part of the planets the water dial reaches that take the dry water class (dry of delivered_water, under 0.025 percent of the mass: a desert world) and not Earth's"
+          "what": "tuning.ABUNDANCE_TIER_DIALS dry part (0.2 on Abundant): the part of the planets the water dial reaches that take the dry water class (dry of delivered_water, under 0.025 percent of the mass: a desert world) and not Earth's"
         },
         {
           "burn_down": [
@@ -68877,7 +68877,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ABUNDANCE_TIER_DIALS quiet share (Sparse 0, Scattered 0.5, Plentiful and Abundant 1; GEN.1800 took the last two from 0.5) and tuning.ABUNDANCE_QUIET_SINK_FACTOR 1/3: the share of rocky planets in the ecosphere drawn with a quiet interior, whose volcanic and metamorphic gases take a third of the oxygen a body of the same heat loses (biogenic_oxygen.reductant_flux)"
+              "tuning.ABUNDANCE_TIER_DIALS quiet share (Abundant 1; GEN.1800 took it from 0.5, GEN.1832 took out the lower tiers) and tuning.ABUNDANCE_QUIET_SINK_FACTOR 1/3: the share of rocky planets in the ecosphere drawn with a quiet interior, whose volcanic and metamorphic gases take a third of the oxygen a body of the same heat loses (biogenic_oxygen.reductant_flux)"
             ],
             [
               "The range it moves in",
@@ -68908,7 +68908,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "tuning.ABUNDANCE_TIER_DIALS quiet share (Sparse 0, Scattered 0.5, Plentiful and Abundant 1; GEN.1800 took the last two from 0.5) and tuning.ABUNDANCE_QUIET_SINK_FACTOR 1/3: the share of rocky planets in the ecosphere drawn with a quiet interior, whose volcanic and metamorphic gases take a third of the oxygen a body of the same heat loses (biogenic_oxygen.reductant_flux)"
+          "what": "tuning.ABUNDANCE_TIER_DIALS quiet share (Abundant 1; GEN.1800 took it from 0.5, GEN.1832 took out the lower tiers) and tuning.ABUNDANCE_QUIET_SINK_FACTOR 1/3: the share of rocky planets in the ecosphere drawn with a quiet interior, whose volcanic and metamorphic gases take a third of the oxygen a body of the same heat loses (biogenic_oxygen.reductant_flux)"
         },
         {
           "burn_down": [
@@ -75637,7 +75637,7 @@
           "fields": [
             [
               "What it is",
-              "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+              "surface_pressure.OCEAN_COVER_EARTH 0.55 (0.71 until GEN.1830): the cover above which a larger sea adds no rain to the land, the cover the generator makes for the Earth's own ocean mass"
             ],
             [
               "The range it moves in",
@@ -75657,7 +75657,7 @@
             ],
             [
               "Evidence",
-              "the Earth's value (0.71); using it as a saturation is a stand-in"
+              "the generator's own cover of the Earth's ocean mass (0.55; 0.38 to 0.65 over 24 trials of the Earth analog); the Earth's measured 0.71 is not what its basins give, so with 0.71 an exact Earth copy had 77 percent of its land wet and ran 5 K warm (GEN.1829); Boss's yes 3:24 PM EST 11-22; using a cover as a saturation is a stand-in"
             ]
           ],
           "id": "WW2",
@@ -75668,7 +75668,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "surface_pressure.OCEAN_COVER_EARTH 0.71: the Earth's ocean share, the cover above which a larger sea adds no rain to the land"
+          "what": "surface_pressure.OCEAN_COVER_EARTH 0.55 (0.71 until GEN.1830): the cover above which a larger sea adds no rain to the land, the cover the generator makes for the Earth's own ocean mass"
         }
       ],
       "slug": "6-309-stand-ins-of-the-water-limited-silicate-weathering-gen-1403",
@@ -77165,6 +77165,204 @@
       "title": "Stand-ins of the pressure of a habitat (GEN.1819)"
     },
     {
+      "key": "6.322",
+      "number": "6.322",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.EARTH_NET_BURIAL_SHARE = 3.0 / 6.6: the share of Earth's volcanic CO2 that its biosphere buries for good; the weathering is levelled to 1 - 0.455 of the modern law so the Earth balances with it (the Earth identity, AM110)"
+            ],
+            [
+              "The range it moves in",
+              "3 Tmol (R5300 Table 1) over 6.6 Tmol (R2489); 0.3 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "the carbon sink of a body with land or a seafloor"
+            ],
+            [
+              "What would show it wrong",
+              "a measured net organic burial of the modern Earth outside 2 to 4.5 Tmol of carbon a year"
+            ],
+            [
+              "What replaces it",
+              "the same ratio from a newer budget of the modern carbon cycle"
+            ],
+            [
+              "Evidence",
+              "[R5300] (the reductant sink of the oxygen law, read), [R2489] (the 6.6 Tmol outgassing, AM60); the ratio is my arithmetic"
+            ]
+          ],
+          "id": "CB1",
+          "key": "6.322:CB1",
+          "kind": "P",
+          "slug": "6-322-cb1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_pressure.EARTH_NET_BURIAL_SHARE = 3.0 / 6.6: the share of Earth's volcanic CO2 that its biosphere buries for good; the weathering is levelled to 1 - 0.455 of the modern law so the Earth balances with it (the Earth identity, AM110)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_pressure.BURIAL_FULL_FACTOR 10: the burial is whole at 10 times the producers' floor (5 Pa) and falls in a line to nothing at the floor BURIAL_FLOOR_BAR 0.5 Pa (the class 1a gate co2_partial_pa, [R5240, R5241])"
+            ],
+            [
+              "The range it moves in",
+              "3 to 30 times the floor"
+            ],
+            [
+              "Where it holds",
+              "a biosphere that buries more than the volcanoes give"
+            ],
+            [
+              "What would show it wrong",
+              "a world whose producers bury at full rate in an air of 1 to 5 Pa of CO2"
+            ],
+            [
+              "What replaces it",
+              "a carbon-limited production law of the producers"
+            ],
+            [
+              "Evidence",
+              "educated guess from inferred physics (carbon limits production near the compensation point); the floor is the registered gate"
+            ]
+          ],
+          "id": "CB2",
+          "key": "6.322:CB2",
+          "kind": "P",
+          "slug": "6-322-cb2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "surface_pressure.BURIAL_FULL_FACTOR 10: the burial is whole at 10 times the producers' floor (5 Pa) and falls in a line to nothing at the floor BURIAL_FLOOR_BAR 0.5 Pa (the class 1a gate co2_partial_pa, [R5240, R5241])"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "carbon_burial.oxygenic_net_mol_yr = S - min(W(p), S): the net organic sink of the oxygenic classes (all of S while no oxygen stands, R at the oxygen balance); no new number"
+            ],
+            [
+              "The range it moves in",
+              "the oxygen law's own ranges"
+            ],
+            [
+              "Where it holds",
+              "the classes that split water"
+            ],
+            [
+              "What would show it wrong",
+              "an oxygen balance whose burial is not the source less the oxidative weathering"
+            ],
+            [
+              "What replaces it",
+              "a model of the kerogen's return"
+            ],
+            [
+              "Evidence",
+              "the oxygen law (GEN.1733) and [R5300]; the burial is the O2-consistent net, mine"
+            ]
+          ],
+          "id": "CB3",
+          "key": "6.322:CB3",
+          "kind": "P",
+          "slug": "6-322-cb3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "carbon_burial.oxygenic_net_mol_yr = S - min(W(p), S): the net organic sink of the oxygenic classes (all of S while no oxygen stands, R at the oxygen balance); no new number"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_ledger.json number anoxic_burial_share 0.02: the share of the carbon a class with no oxygen to respire it fixes that ends buried"
+            ],
+            [
+              "The range it moves in",
+              "0.002 (the modern ocean's, [R5332]) to 0.1"
+            ],
+            [
+              "Where it holds",
+              "classes 2 to 4 (the burial rows)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured preservation of carbon in anoxic sediments of the early Earth outside 0.5 to 10 percent of production"
+            ],
+            [
+              "What replaces it",
+              "the preservation from a measured Archean record"
+            ],
+            [
+              "Evidence",
+              "[R5332] (Gebauer and others 2017: beta = 0.002 for the modern ocean, read; about 2 percent for the Archean's euxinic water from the Black Sea analogue, section 6.2.2, second-hand: the page's summary was read, not the paragraph)"
+            ]
+          ],
+          "id": "CB4",
+          "key": "6.322:CB4",
+          "kind": "P",
+          "slug": "6-322-cb4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_ledger.json number anoxic_burial_share 0.02: the share of the carbon a class with no oxygen to respire it fixes that ends buried"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "life_ledger.json number earth_donor_electron_tmol_yr 80: the electrons Earth's donors give its anoxygenic and chemical classes, with four to a carbon and the growth yield FU1 of 6.325 for the chemical classes"
+            ],
+            [
+              "The range it moves in",
+              "40 to 160 Tmol"
+            ],
+            [
+              "Where it holds",
+              "classes 2 and 4 on donor_supply, class 3 on h2_supply (2 electrons a molecule, earth_h2_tmol_yr)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured donor flux or photoferrotroph production outside 2 times this"
+            ],
+            [
+              "What replaces it",
+              "a measured donor budget of the Archean ocean"
+            ],
+            [
+              "Evidence",
+              "[R3393] (80 Tmol of Fe2+ a year fix 20 Tmol of carbon, read); [R5348] through FU1"
+            ]
+          ],
+          "id": "CB5",
+          "key": "6.322:CB5",
+          "kind": "P",
+          "slug": "6-322-cb5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "life_ledger.json number earth_donor_electron_tmol_yr 80: the electrons Earth's donors give its anoxygenic and chemical classes, with four to a carbon and the growth yield FU1 of 6.325 for the chemical classes"
+        }
+      ],
+      "slug": "6-322-stand-ins-of-the-carbon-a-biosphere-buries-gen-1821",
+      "title": "Stand-ins of the carbon a biosphere buries (GEN.1821)"
+    },
+    {
       "key": "6.323",
       "number": "6.323",
       "rows": [
@@ -78023,6 +78221,128 @@
       ],
       "slug": "6-325-stand-ins-of-the-fuel-of-a-sealed-ocean-s-life-gen-1825",
       "title": "Stand-ins of the fuel of a sealed ocean's life (GEN.1825)"
+    },
+    {
+      "key": "6.326",
+      "number": "6.326",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "extinction_effects.RESET_RECURRENCE_MYR 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of air_events; the kill curve gives it 0.65 like any event of 100 Myr or more)"
+            ],
+            [
+              "The range it moves in",
+              "300 to 3000 Myr (impactors of about 21 to 62 km; the Big Five were 10 km or less)"
+            ],
+            [
+              "Where it holds",
+              "a world with animals"
+            ],
+            [
+              "What would show it wrong",
+              "a measured loss of animals after an extinction of the Phanerozoic size"
+            ],
+            [
+              "What replaces it",
+              "a measured relation between the size of a shock and the complexity it removes"
+            ],
+            [
+              "Evidence",
+              "the Earth's animal record (540 Myr, five mass extinctions, no reset; the Big Five by number of genera, [R5320] for the curve); the cut is inferred"
+            ]
+          ],
+          "id": "EF1",
+          "key": "6.326:EF1",
+          "kind": "P",
+          "slug": "6-326-ef1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "extinction_effects.RESET_RECURRENCE_MYR 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of air_events; the kill curve gives it 0.65 like any event of 100 Myr or more)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "extinction_effects.REGROWTH_GYR 0.020: the time the animals take to return after the origination lag (air_events.RECOVERY_GYR, 10 Myr, [R5321]); 30 Myr from the extinction"
+            ],
+            [
+              "The range it moves in",
+              "0.010 to 0.050"
+            ],
+            [
+              "Where it holds",
+              "a world whose animals an extinction reset"
+            ],
+            [
+              "What would show it wrong",
+              "a measured regrowth of the marine genera to their old number faster than 15 Myr or slower than 60 Myr after a Big Five extinction"
+            ],
+            [
+              "What replaces it",
+              "the measured regrowth of the animal grades"
+            ],
+            [
+              "Evidence",
+              "educated guess from inferred physics; no source read"
+            ]
+          ],
+          "id": "EF2",
+          "key": "6.326:EF2",
+          "kind": "P",
+          "slug": "6-326-ef2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "extinction_effects.REGROWTH_GYR 0.020: the time the animals take to return after the origination lag (air_events.RECOVERY_GYR, 10 Myr, [R5321]); 30 Myr from the extinction"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "extinction_effects.regrown: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a civilization that an extinction at or after the animals reset"
+            ],
+            [
+              "What would show it wrong",
+              "a measured faster re-emergence of a technology-scale lineage after a collapse"
+            ],
+            [
+              "What replaces it",
+              "a measured recovery of a lineage that had a civilization"
+            ],
+            [
+              "Evidence",
+              "the hard-step model of life_timeline [R4642]; the choice not to draw again is a design rule"
+            ]
+          ],
+          "id": "EF3",
+          "key": "6.326:EF3",
+          "kind": "P",
+          "slug": "6-326-ef3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "extinction_effects.regrown: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not"
+        }
+      ],
+      "slug": "6-326-stand-ins-of-what-a-mass-extinction-does-to-the-animals-and-the-civilization-gen-1746-slice-4",
+      "title": "Stand-ins of what a mass extinction does to the animals and the civilization (GEN.1746 slice 4)"
     }
   ]
 }

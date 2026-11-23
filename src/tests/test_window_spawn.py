@@ -212,7 +212,9 @@ def test_a_run_carried_on_from_one_that_stopped_in_a_later_window_does_only_the_
     before = set(runrecord.recent_runs(conn, limit=1000))
     with pytest.raises(units.RunStopped):
         wrapper.run("Windows", [step], lambda index, plan: None, lambda index, unit, result: None, database=database, galaxy_seed=seed, build=build)
-    stopped = max(set(runrecord.recent_runs(conn, limit=1000)) - before)       # the ids begin with the second the run started in
+    # TEST.822: the run is the new one that recorded this galaxy: a run of an earlier test that the run store restored from the control database after `before` was taken (OPS.284) is new to the list too, and in the same
+    # second its id sorts by its random end, so the newest id was the wrong run in half the cases ("did not record the galaxy and the build")
+    stopped = max(run for run in set(runrecord.recent_runs(conn, limit=1000)) - before if runrecord.read_run(conn, run)["galaxy_seed"] == seed)
     FAULTS.clear()
     assert sorted(RAN) == [n for n in range(TOTAL) if n != TOTAL - 3], "the others went on to the end of the stage, every window of it: the held unit is the only one left"
     RAN.clear()

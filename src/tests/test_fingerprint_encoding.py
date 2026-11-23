@@ -123,3 +123,13 @@ def test_rows_with_no_order_digest_alike():
     noisy = [{"t": "a", "v": math.nextafter(1.0, 2.0)}, {"t": "b", "v": 2.0}, {"t": "a", "v": 0.5}]
     assert encoding.row_set_digests(noisy) == encoding.row_set_digests(rows)
     assert encoding.row_set_digests(rows[:2]) != encoding.row_set_digests(rows)
+
+
+def test_the_streamed_digest_of_a_row_set_is_the_full_digest_of_the_set():
+    """PERF.286: `row_set_full_digest` takes the texts of the rows, not the rows, and gives `row_set_digests(rows).full` to the last bit, for any order, equal rows and no rows."""
+    rows = [{"table": "stars", "row": {"name": "Ñandú", "mass": 1.0000000049, "n": 2 ** 60}}, {"table": "stars", "row": {"name": "a", "mass": 1.0000000041, "n": -3}},
+            {"table": "planets", "row": {"name": "b", "radius": 6.4e6, "flag": True, "none": None}}, {"table": "planets", "row": {"name": "b", "radius": 6.4e6, "flag": True, "none": None}},
+            {"table": "moons", "row": {"name": "c", "bytes": b"\x00\xff", "list": [1, 2.5, "x"]}}]
+    for subset in (rows, list(reversed(rows)), rows[:1], rows[2:4], []):
+        pairs = [(encoding.encode(row, floats=False), encoding.encode(row)) for row in subset]
+        assert encoding.row_set_full_digest(pairs) == encoding.row_set_digests(subset).full

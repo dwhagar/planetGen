@@ -65,7 +65,7 @@ def _sink():
         solved_temperature_k = 300.0
 
         @staticmethod
-        def kept_at(temperature_k):
+        def kept_at(temperature_k, burial=0.0):
             return 0.001 * 2.0 ** ((300.0 - temperature_k) / 10.0)
     return Sink()
 
@@ -94,3 +94,37 @@ def test_an_air_that_is_already_settled_is_left_as_it_was_stored(monkeypatch):
     _fake_air(monkeypatch, body, 0.0, base_k=300.0)
     assert bo.rebalance_co2(body) is False
     assert body.air["CO2"] == 100.0 and body.surface_temperature == 300.0 and body.greenhouse_factor == 0.7
+
+
+def test_a_world_above_the_boiling_point_at_its_pressure_has_no_ocean_for_the_sink_and_is_left_as_it_is(monkeypatch):
+    """GEN.1821: an Earth copy of 442 K under 615 kPa (its water boils above 431 K at that pressure) has no liquid surface, so the weathering of its sink is not asked and no trial air is stored."""
+    class Cold:
+        solved_bar = 0.001
+
+        @staticmethod
+        def kept_at(temperature_k, burial=0.0):
+            return 1.0e-12
+    body = SimpleNamespace(air={"N2": 180000.0, "H2O": 435000.0, "CO2": 25.0}, surface_temperature=442.0, atmospheric_pressure=615000.0, build=BuildRecord(co2_sink=Cold()))
+    monkeypatch.setattr(atmosphere, "gas_partials_pa", lambda b: dict(b.air))
+    monkeypatch.setattr(bo, "store_air", lambda *a, **k: pytest.fail("a steaming world is not asked about its sink"))
+    assert bo.rebalance_co2(body, 0.02) is False and body.surface_temperature == 442.0
+
+
+def test_a_trial_air_past_the_critical_point_of_water_is_not_a_root_either_way(monkeypatch):
+    """GEN.1821: where a trial air with less CO2 than the world began with runs away past water's critical point (647 K) the root is above it; more CO2 than it began with that does is too much for the cycle (the root is below)."""
+    class Cold:
+        solved_bar = 0.001
+
+        @staticmethod
+        def kept_at(temperature_k, burial=0.0):
+            return 1.0e-12
+    body = SimpleNamespace(air={"N2": 100000.0, "CO2": 25.0}, surface_temperature=300.0, atmospheric_pressure=100000.0, build=BuildRecord(co2_sink=Cold()))
+    monkeypatch.setattr(atmosphere, "gas_partials_pa", lambda b: dict(b.air))
+
+    def store(b, air):
+        b.air = dict(air)
+        co2 = air.get("CO2", 0.0)
+        b.surface_temperature = 5000.0 if co2 < 3.0 or co2 > 200.0 else 300.0 + 2.0 * (co2 - 25.0) if co2 > 25.0 else 300.0
+    monkeypatch.setattr(bo, "store_air", store)
+    bo.rebalance_co2(body, 0.02)
+    assert body.surface_temperature < 647.0 and 3.0 <= body.air["CO2"] <= 200.0

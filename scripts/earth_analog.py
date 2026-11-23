@@ -8,9 +8,10 @@ what comes out held against a stored baseline, so a change to the air, water, li
     python scripts/earth_analog.py compare [--n 400] [--workers K]                   the numbers now against the baseline, for the train PR's body
 
 The analog: a generated G2V system (seed 4001) supplies a rocky planet object; the star is set to the Sun (1 Msun, 3.828e26 W, 5772 K, age `--age`, default 4.6 Gy, snow line 2.7 AU) and
-the planet to Earth (late accretion 0.7 percent, `impact_history.LATE_ACCRETED_PERCENT_EARTH`; 5.972e24 kg, 6371 km, 1 g, 5514 kg/m3, 1 AU, e 0.0167, metal 0.32, tilt 23.4, day 24 h). Each trial draws the bulk water, then calls
+the planet to Earth (late accretion 0.7 percent, `impact_history.LATE_ACCRETED_PERCENT_EARTH`, set on the build record the air reads; the mantle's viscosity law and the radiogenic content pinned (`_pin_interior`) so the generated planet leaves nothing of its own in them; 5.972e24 kg, 6371 km, 1 g, 5514 kg/m3, 1 AU, e 0.0167, metal 0.32, tilt 23.4, day 24 h). Each trial draws the bulk water, then calls
 the system's own steps in the generator's order (`_generate`: the air, the prepared class, then the tail of `planets.generate_spin`: day and night, field, dose, colour, score; then `StarSystem._finish_planet`: the thermal
 history, the final-age refresh, the class prepared (GEN.1745: it is read once, after the life), the star's induced field, the life, which classes the body again itself) on a fresh copy of the planet, on its own draw seed `BLOCK * 100000 + i` (TEST.739; `test_earth_analog.py` holds the order to the generator's source).
+The Earth-water row (TEST.820) is the same planet with the Earth's own sea (`EARTH_WATER`), `EARTH_WATER_TRIALS` trials, stored in the baseline file as `earth_rows` and printed under `compare` with the Earth's 288 K and 101 kPa beside it: the sampled rows draw each trial's water, so their median is not the Earth's.
 `--water` is `sample` (default: `delivered_water.sample_fraction` at 1 AU and a 2.7 AU snow line), a Bern class (`low`, `high`, `dry`, `rich`), or a fixed bulk water mass fraction.
 
 The comparison is paired: trial i draws the same seed in the baseline and now, so with no change to the generator every trial comes out the same and the table shows no movement. It
@@ -37,6 +38,12 @@ DISTANCE_STEP_AU = 1e-9
 """float: How far each trial moves the planet's orbit (AU), so its oddity streams differ from trial to trial (GEN.1646); about 1e-9 of the orbit, far under anything the air or the climate reads."""
 CHUNK = 25
 """int: Trials per work unit when the run is spread over workers."""
+EARTH_WATER = 2.3e-4
+"""float: The bulk water mass fraction of the Earth's own sea (TEST.820): 1.4e21 kg of ocean over 5.972e24 kg. The default analog draws each trial's water (`sample`), and the median draw holds less sea than the Earth's, so its median is not the Earth's; the Earth-water row holds it fixed."""
+EARTH_WATER_TRIALS = 140
+"""int: The trials of the Earth-water row (stored in the baseline file beside the sampled rows, and measured again by `compare`). The Earth copy's nitrogen varies 30-fold between trials (GEN.1831), so the median of 48 reaches 96 kPa about 19 percent of the time: about 140 trials make its median steady, and the comparison is paired (the same trial seeds then and now)."""
+EARTH_TARGET = {"temperature_k": 288.0, "pressure_kpa": 101.3}
+"""dict: What the Earth-water row is held against: the Earth's mean surface temperature and sea-level pressure. The row is not yet at them (GEN.1829: the nitrogen is about 17 kPa high; GEN.1830 moved the temperature to 286.5 K); the stored rows hold what main gives, so a change moves them and nothing else does."""
 
 GROUPS = {"gravity": ["gravity_g"], "pressure": ["pressure_pa"], "O2": ["o2_partial_pa"], "CO2": ["co2_partial_pa"], "gases": ["reducing_share", "share_h2", "share_so2"],
           "T_mean": ["temperature_k"], "T_extremes": ["hottest_region_k", "coldest_region_k", "night_temperature_k", "wet_bulb_c"], "cover": ["ocean_fraction"],
@@ -47,6 +54,7 @@ GROUPS = {"gravity": ["gravity_g"], "pressure": ["pressure_pa"], "O2": ["o2_part
 def _setup(age_gy):
     """The Earth analog planet and Class M, built once per process."""
     from planetgen.generation.config import SystemConfig
+    from planetgen.generation.build_record import record_of
     from planetgen.generation.system import StarSystem
     from planetgen.physics import class_fit, impact_history
     from planetgen.util import draw
@@ -66,7 +74,8 @@ def _setup(age_gy):
     planet.ice_mass_fraction = planet.envelope_mass_fraction = 0.0
     planet.primary_mass_kg, planet._star_distance_au, planet.formation_distance_au = star.mass, 1.0, 1.0
     planet.rotation_period_hours, planet.axial_tilt_deg = 24.0, 23.4
-    planet._late_accreted_percent = impact_history.LATE_ACCRETED_PERCENT_EARTH     # the generated system's own belts set 3.0, six times the Earth's veneer (0.7, see LATE_ACCRETED_PERCENT_EARTH; [R4598] gives 0.5 to 0.8)
+    record_of(planet).late_accreted_percent = impact_history.LATE_ACCRETED_PERCENT_EARTH     # what the air reads (TEST.820; the line that stood here set an attribute nothing read, so the planet kept its system's own 3.0, six times the Earth's veneer; [R4598] gives 0.5 to 0.8)
+    _pin_interior(planet)
     return planet, [c for c in class_fit.CLASSES if c.letter == "M"][0]
 
 
@@ -81,6 +90,22 @@ def _water(water):
         low, high = delivered_water.bracket(water)
         return log_uniform(low, high, rng=draw)
     return float(water)
+
+
+def _pin_interior(planet):
+    """TEST.820: the fields the generated planet carries into the Earth analog that move the air and mean nothing for the Earth (a swap of the mantle's viscosity law alone moved the median pressure from 102 to 137 kPa), set to fixed values.
+    The mantle's `eta0` and `Ea` are the middle of the ranges the generator draws them from (`tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S`, `INTERIOR_ACTIVATION_RANGE_KJ_MOL`, [R1716]: the draw is uniform, so the middle is its median, and no Earth value is
+    in the generator); the potassium, thorium and uranium at formation are the bulk silicate Earth's (`radiogenic.BULK_SILICATE_EARTH`) at the formation mix, and the aluminium-26 ratio is the Solar System's (`radiogenic.SOLAR_AL26_RATIO`)."""
+    from planetgen import tuning
+    from planetgen.physics import radiogenic
+
+    planet.mantle_eta0_pa_s = sum(tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S) / 2.0
+    planet.mantle_activation_kj_mol = sum(tuning.INTERIOR_ACTIVATION_RANGE_KJ_MOL) / 2.0
+    k_now, th_now, u_now = radiogenic.BULK_SILICATE_EARTH
+    planet.c_k0_ppm = k_now * radiogenic.formation_mix("K")[1]
+    planet.c_th0_ppm = th_now * radiogenic.formation_mix("Th")[1]
+    planet.c_u0_ppm = u_now * radiogenic.formation_mix("U")[1]
+    planet.al26_ratio = radiogenic.SOLAR_AL26_RATIO
 
 
 def _generate(planet):
@@ -169,6 +194,33 @@ def summarize(rows):
             "m_fails": {group: sum(1 for r in good if group in r["fails"]) for group in GROUPS}}
 
 
+def summarize_earth(rows):
+    """The Earth-water row's numbers: the trials, the median temperature (K), pressure (kPa) and ocean cover, how many are Class M, and the median's distance from the Earth's (`EARTH_TARGET`)."""
+    good = [r for r in rows if "error" not in r]
+    if not good:
+        return {"trials": len(rows), "errors": len(rows)}
+    temperature, pressure = statistics.median(r["T"] for r in good), statistics.median(r["P"] for r in good) / 1000.0
+    return {"trials": len(rows), "errors": len(rows) - len(good), "median_temperature_k": round(temperature, 1), "median_pressure_kpa": round(pressure, 1),
+            "median_ocean_cover": round(statistics.median(r["oc"] for r in good), 3), "class_m": sum(1 for r in good if r["cls"] == "M"),
+            "temperature_gap_k": round(temperature - EARTH_TARGET["temperature_k"], 1), "pressure_gap_kpa": round(pressure - EARTH_TARGET["pressure_kpa"], 1)}
+
+
+def earth_water_text(baseline, rows):
+    """The Markdown of the Earth-water row: the stored rows (when the baseline has them) against `rows` measured now, the Earth's own numbers, and the paired change over the trials both have."""
+    now = summarize_earth(rows)
+    then = summarize_earth(baseline.get("earth_rows") or [])
+    lines = [f"Earth's own water (bulk water fraction {EARTH_WATER}, {now['trials']} trials), held against the Earth's {EARTH_TARGET['temperature_k']:.0f} K and {EARTH_TARGET['pressure_kpa']:.0f} kPa:", "",
+             "| measure | baseline | now | Earth |", "|---|---|---|---|"]
+    for key, title, earth in (("median_temperature_k", "median temperature K", f"{EARTH_TARGET['temperature_k']:.0f}"), ("median_pressure_kpa", "median pressure kPa", f"{EARTH_TARGET['pressure_kpa']:.0f}"),
+                              ("median_ocean_cover", "median ocean cover", "0.71"), ("class_m", "trials in Class M", "")):
+        lines.append(f"| {title} | {then.get(key, 'none')} | {now.get(key, 'none')} | {earth} |")
+    before = {r["i"]: r for r in baseline.get("earth_rows") or [] if "error" not in r}
+    paired = [(r["T"] - before[r["i"]]["T"], (r["P"] - before[r["i"]]["P"]) / 1000.0) for r in rows if "error" not in r and r["i"] in before]
+    if paired:
+        lines += ["", f"Paired change over the {len(paired)} trials both have: temperature {statistics.mean(t for t, _p in paired):+.1f} K, pressure {statistics.mean(p for _t, p in paired):+.1f} kPa (mean of now minus then)."]
+    return "\n".join(lines)
+
+
 def git_head():
     done = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=False)
     return done.stdout.strip() or "unknown"
@@ -214,7 +266,8 @@ def report(n=400, workers=None):
     """`compare_text` for the stored baseline, measured now; a missing baseline or any failure is a sentence, never an exception (this never blocks a train)."""
     try:
         baseline = load_baseline()
-        return compare_text(baseline, measure(min(n, len(baseline["rows"])), workers, baseline["block"], baseline["age_gy"], baseline["water"]))
+        text = compare_text(baseline, measure(min(n, len(baseline["rows"])), workers, baseline["block"], baseline["age_gy"], baseline["water"]))
+        return text + "\n\n" + earth_water_text(baseline, measure(EARTH_WATER_TRIALS, workers, baseline["block"], baseline["age_gy"], EARTH_WATER))
     except Exception as error:
         return f"Earth analog: not run ({type(error).__name__}: {error})"
 
@@ -226,8 +279,10 @@ def command_run(args):
 
 def command_baseline(args):
     rows = measure(args.n, args.workers)
-    document = {"made_on": git_head(), "block": BLOCK, "age_gy": AGE_GY, "water": "sample", "rows": rows}
+    earth_rows = measure(EARTH_WATER_TRIALS, args.workers, BLOCK, AGE_GY, EARTH_WATER)
+    document = {"made_on": git_head(), "block": BLOCK, "age_gy": AGE_GY, "water": "sample", "rows": rows, "earth_water": EARTH_WATER, "earth_rows": earth_rows}
     print(json.dumps(summarize(rows), indent=1))
+    print(json.dumps(summarize_earth(earth_rows), indent=1))
     if args.write:
         os.makedirs(os.path.dirname(BASELINE_PATH), exist_ok=True)
         with open(BASELINE_PATH, "w", encoding="utf-8") as handle:

@@ -396,8 +396,8 @@ def add_system_arguments(parser):
 
     # Class M abundance tier (the galaxy's Census dial, for one system)
     parser.add_argument('--class-m', type=dials.lever("class_m").parse, metavar="{" + ",".join(dials.lever("class_m").choices) + "}",
-                        help="Make the system under this Class M abundance tier (a galaxy carries its own, set when it is planned). "
-                             "Default: science, which moves nothing.")
+                        help="Make the system under this Class M abundance tier, the Generate page's box \"More Habitable Worlds\" (abundant is ticked, science unticked; a galaxy carries its own, set when it is planned, ticked unless the plan said otherwise). "
+                             "Default for one system outside a galaxy: science, which moves nothing.")
 
     parser.add_argument('--comet-abundance', type=dials.lever("comet_abundance").parse, metavar="{" + ",".join(dials.lever("comet_abundance").choices) + "}",
                         help="Make the system under this comet abundance tier (a galaxy carries its own, set when it is planned). Default: science, comets only where the star's own outer disk puts them.")

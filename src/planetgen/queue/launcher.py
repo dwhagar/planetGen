@@ -75,8 +75,9 @@ def _arguments(row):
 class Started:
     """A job this launcher handed out and has not seen end."""
 
-    def __init__(self, row, job, key, claim, began=0.0):
+    def __init__(self, row, job, key, claim, began=0.0, memory_kills=None):
         self.row, self.job, self.key, self.claim, self.began = row, job, key, claim, began
+        self.memory_kills = memory_kills        # `memorygate.oom_kill_count()` when the job began (OPS.294): a SIGKILL is a memory kill only if the count has risen since
         self.said = []
         self.asked = False          # the controller asked it to stop at its next piece (`Launcher.yield_youngest`)
 
@@ -103,12 +104,13 @@ class Launcher:
     """One supervisor's hand-outs. `control` is the control connection; `forker` is a `jobhost.TemplateSet` (`fork(kind, runner, job)`, `poll()`); `galaxy` is `run_id -> connection` for the
     galaxy the run writes to (or `None`); `also_held` returns the claims of the jobs another duty of the supervisor holds (OPS.230: the site's light jobs)."""
 
-    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None, also_held=None, hold=None, spawner=None):
+    def __init__(self, control, forker, galaxy=None, clock=time.time, read_host=memorygate.read_host, used=None, runner=RUNNER, redis=None, also_held=None, hold=None, spawner=None, memory_kills=None):
         self.control, self.forker, self.galaxy, self.redis = control, forker, galaxy, redis
         self.spawner = spawner if spawner is not None else redis       # the connection whose runs' windows `spawn` writes (a test of the engine in one process gives only this one)
         self.hold = hold or (lambda: None)      # the memory controller's `holding` (OPS.231): why nothing is admitted now, or `None`
         self.also_held = also_held or (lambda: [])      # the claims the site's light jobs hold (`lightjobs.LightJobs.holders`): the bulk lane is judged against them
         self.clock, self.read_host, self.runner = clock, read_host, runner
+        self.memory_kills = memory_kills if memory_kills is not None else (lambda: memorygate.oom_kill_count())      # the kernel's count of memory kills (OPS.294); a test gives its own
         self.used = used if used is not None else (lambda: {})
         self.running = {}           # job id -> Started
         self.recovered_at = None
@@ -117,12 +119,21 @@ class Launcher:
 
     # -- ends ------------------------------------------------------------------------------------------------------------------
 
+    def _killed_for_memory(self, started):
+        """Whether the kernel killed a process for want of memory while `started` ran (OPS.294): its count rose since the job began. No reading, before or now, is no evidence."""
+        before, now = started.memory_kills, self.memory_kills()
+        return before is not None and now is not None and now > before
+
     def _outcome(self, started, exit_):
         """`(outcome, error kind, error text)` of an end the unit did not write itself."""
         error = started.error()
         if exit_.signal is not None:
-            outcome = "killed_memory" if exit_.signal == signal.SIGKILL else "lost"         # OPS.249: the kernel's kill for memory is a SIGKILL; it is the kill the memory controller's record learns from (`pressurelearn.read_record`)
-            return outcome, KILLED, error or f"the job process ended on {signal.Signals(exit_.signal).name}"
+            name = signal.Signals(exit_.signal).name
+            if exit_.signal == signal.SIGKILL and self._killed_for_memory(started):         # OPS.249: the kernel's kill for memory is a SIGKILL; it is the kill the memory controller's record learns from (`pressurelearn.read_record`)
+                return "killed_memory", KILLED, error or f"the job process ended on {name}: the kernel killed a process for want of memory while it ran"
+            if exit_.signal == signal.SIGKILL:         # OPS.294: any other SIGKILL (a person's, a supervisor's) is not a memory kill and teaches the memory record nothing
+                return "lost", KILLED, error or f"the job process ended on {name}; the kernel's memory kill count did not rise while it ran, so it was not killed for memory"
+            return "lost", KILLED, error or f"the job process ended on {name}"
         if exit_.code is None:
             return "lost", "lost", error or "the job process ended and nothing said how"
         return "failed", "failed", error or f"the job process exited with code {exit_.code}"
@@ -361,7 +372,7 @@ class Launcher:
             raise
         if row["command"] in (planrows.OPENING, pagerun.STEP):          # an opening and a page step have no unit to begin their attempt: the launcher does, with the process that runs it
             ledger.begin_attempt(self.control, row["id"], pid=forked.pid)
-        started = Started(row, forked, key, self.claim(row), self.clock())
+        started = Started(row, forked, key, self.claim(row), self.clock(), memory_kills=self.memory_kills())
         self.running[row["id"]] = started
         return started
 

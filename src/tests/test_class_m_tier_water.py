@@ -122,10 +122,10 @@ def test_with_a_dry_part_every_candidate_holds_a_dialed_class_the_dry_one_the_sm
 
 
 def test_at_half_share_about_half_of_the_candidates_are_dialed(monkeypatch):
-    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "sparse", (0.5, 0.0, 0.0, 0.0, 0.0, 0.0))
+    monkeypatch.setitem(abundance_tier.tuning.ABUNDANCE_TIER_DIALS, "abundant", (0.5, 0.0, 0.0, 0.0, 0.0, 0.0))
     natural = delivered_water.class_shares(bulk_draw._kg_to_mearth(5.97e24), 0.5)[delivered_water.EARTH_CLASS]
     count = 600
-    low = sum(1 for water in _waters(_Body("sparse"), count) if LOW[0] <= water <= LOW[1])
+    low = sum(1 for water in _waters(_Body("abundant"), count) if LOW[0] <= water <= LOW[1])
     expected = 0.5 + 0.5 * natural          # the dialed half, and the law's own `low` among the rest
     assert abs(low / count - expected) < 0.06
 

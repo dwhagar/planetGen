@@ -72,9 +72,10 @@ OUTGASSING_EXPONENT = (1.0, 2.0, "uniform")
 LAND_FRACTION_EARTH = 0.29
 """float: The land share of the Earth's surface, the reference of the weathering law."""
 
-OCEAN_COVER_EARTH = 0.71
-"""float: The ocean share of the Earth's surface (1 - `LAND_FRACTION_EARTH`, rounded): the sea that waters the Earth's land, and the cover above which a larger sea adds no rain to the land
-(GEN.1403, `wet_land_fraction`). [Stand-in 6.309 WW2, tier T6 educated guess from physics, tweak L1.]"""
+OCEAN_COVER_EARTH = 0.55
+"""float: The ocean cover above which a larger sea adds no rain to the land (GEN.1403, `wet_land_fraction`): the cover the generator itself makes for the Earth's own ocean mass (0.55 of the surface, 0.38 to 0.65 over 24
+trials of the Earth analog; the Earth's measured 0.71 is not what the generator's basins give that much water), so an Earth-sized sea waters all the land of a body that has it (GEN.1830, Boss's yes of 3:24 PM EST 11-22 on the
+GEN.1829 report: with 0.71 an exact Earth copy had 0.55 / 0.71 of its land wet and ran 5 K warm). [Stand-in 6.309 WW2, tier T6 educated guess from physics, tweak L1: inside its range of 0.5 to 0.8.]"""
 
 CO2_MODERN_BAR = 288e-6
 """float: The preindustrial CO2 pressure of the Earth [R2628]."""
@@ -89,6 +90,34 @@ measured 0.087 to 0.09 W/m2 because the stagnant lid loses heat less freely than
 
 MIN_PCO2_BAR = 1e-12
 """float: The floor of the balance's CO2 pressure (a world whose weathering takes all it is given)."""
+
+EARTH_NET_BURIAL_SHARE = 3.0 / 6.6
+"""float: The share of Earth's volcanic CO2 that its living biosphere buries for good: the net organic sink at the oxygen balance, `R`, 3 Tmol of carbon a year ([R5300: Table 1]), over the modern outgassing, 6.6 Tmol a year
+([R2489], registry AM60). The weathering law is levelled so that the modern Earth balances at its own pressure **with** this sink (registry AM110), so a world with no life needs the weathering of `1 / (1 - EARTH_NET_BURIAL_SHARE)`
+(1.83 times) the modern value to balance its volcanoes (GEN.1821 option 2, the Boss's choice of 3:25 PM EST 11-22). [Stand-in 6.322 CB1, tier T1 arithmetic of two registered numbers, tweak L0.]"""
+
+LIFELESS_WEATHERING_SHARE = 1.0 - EARTH_NET_BURIAL_SHARE
+"""float: What of the weathering law's modern rate a carbon sink keeps in the balance, the rest being the biosphere's burial (`burial_rate`): 1 minus `EARTH_NET_BURIAL_SHARE`."""
+
+BURIAL_FLOOR_BAR = 5.0e-6
+"""float: The CO2 pressure, bar, under which life buries no more carbon: 0.5 Pa, the floor of the producers (`life_classes.json` class 1a `co2_partial_pa`, freshwater algae fix carbon above compensation points of 0.2 to
+41.5 ppm [R5241], cyanobacteria with a carbon-concentrating mechanism from 20 ppm [R5240])."""
+
+BURIAL_FULL_FACTOR = 10.0
+"""float: The CO2 pressure at which the burial is whole is this many times `BURIAL_FLOOR_BAR` (5 Pa): between the two the burial rises in a line, so the air is never drained under the floor by the life that needs it.
+[Stand-in 6.322 CB2, tier T7 educated guess from inferred physics, tweak L1.]"""
+
+
+def burial_rate(burial, p_bar):
+    """
+    The organic carbon a biosphere buries, in units of the modern outgassing, in an air of `p_bar` of CO2: `burial` (`b`, the biosphere's net sink over Earth's outgassing per area) at 5 Pa or more of CO2, falling in a line to nothing at the
+    0.5 Pa floor of the producers (`BURIAL_FLOOR_BAR`). Rises with the pressure like every sink of the balance. 0 for a world with no burial.
+    """
+    if burial <= 0.0:
+        return 0.0
+    full = BURIAL_FLOOR_BAR * BURIAL_FULL_FACTOR
+    return burial * min(max((p_bar - BURIAL_FLOOR_BAR) / (full - BURIAL_FLOOR_BAR), 0.0), 1.0)
+
 
 LIQUID_WATER_K = (273.15, 647.0)
 """tuple: The surface temperatures between which an ocean can exist (freezing point and critical point of water)."""
