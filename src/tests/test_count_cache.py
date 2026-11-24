@@ -158,7 +158,7 @@ def test_a_scatter_or_a_fill_of_scattered_phenomena_moves_the_stored_phenomena_c
     conn = store.get_connection(mysql_config)
     try:
         store.insert_phenomenon_scatter(conn, [(0, 0, slot, "neutron-star", None, slot, 0, 0, None, None, None,
-                                                slot + 1, None, None) for slot in range(5)])
+                                                slot + 1, None, None, None) for slot in range(5)])
         store.record_phenomenon_scatter_classes(conn, {("neutron-star", ""): 5})
         conn.commit()
         assert _until(lambda: phenomena() == 6)
