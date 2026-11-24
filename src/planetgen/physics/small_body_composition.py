@@ -517,7 +517,7 @@ ROCK_FRACTION_LAWS = {
 }
 """dict: The rock fraction of an icy body by row. The center of the first is Bierson and Nimmo's 70 percent ([R0390], read in full, GEN.522: a constant 70
 percent with the porosity of the compaction law matches 10 of 17 Kuiper belt objects within 1 sigma and 14 within 2); its width and limits are the
-repository's (stand-in CP5). The second is the collisional tail of [R0269] (the two densest dwarf planets), centred where a body that lost ice would sit
+repository's (stand-in CP5). The second is the collisional tail of [R0269] (the two densest dwarf planets), centered where a body that lost ice would sit
 (stand-in CP6). The draw of a dwarf planet (both rows at a half) has mean 0.787 and spread 0.111 against 0.78 and 0.12 of the seven dwarf planets (a test
 point: the value is Solar System only, NO FIXED CONTENT, so it is reported and never tuned to; `docs/design/composition/kbo-rock-fraction-tuning.md`)."""
 
