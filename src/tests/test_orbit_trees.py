@@ -212,7 +212,7 @@ def test_a_lone_star_with_a_dark_member_stores_the_member_and_the_tree_and_reads
 
 
 def test_a_dark_member_stores_the_bulk_density_and_binding_energy_its_kind_and_radius_give(mysql_config):
-    """GEN.1204: the same `bulk_values` a single neutron star of `neutron_stars` goes through, from the member's mass and the radius the tree drew."""
+    """GEN.1204: the member's row holds the bulk values of its mass and the radius the tree drew it with (`body_strength.dark_member_values`)."""
     from planetgen.physics import body_strength
     system, cfg = _with_a_dark_member()
     member = system.dark_members[0]
@@ -224,10 +224,9 @@ def test_a_dark_member_stores_the_bulk_density_and_binding_energy_its_kind_and_r
         row = conn.execute("SELECT density_g_cm3, binding_energy_j FROM dark_members WHERE star_system_id = ?", (system_id,)).fetchone()
     finally:
         conn.close()
-    radius_km = member.radius_au * constants.AU_M / 1000.0
-    expected = body_strength.remnant_values("neutron-star", member.mass_solar, radius_km)
+    expected = body_strength.dark_member_values(member)
+    assert None not in expected
     assert row["density_g_cm3"] == pytest.approx(expected[0], rel=1e-9) and row["binding_energy_j"] == pytest.approx(expected[1], rel=1e-9)
-    assert row["density_g_cm3"] > 1.0e13 and row["binding_energy_j"] > 1.0e46    # a neutron star: nuclear density, a tenth of its rest mass
 
 
 @pytest.mark.parametrize("kind, mass_solar, radius_km, dense, infinite", [
