@@ -1,0 +1,7 @@
+**Headline:** The Galaxy's disc keeps the gas the Milky Way is measured to have at the Sun's radius, so the heaviest cluster it can form is a little higher.
+
+### Changed
+- GEN.1202: the item's 4.3 solar masses of gas per pc2 at 8 kpc was out of date (GEN.999 and GEN.1230 had taken it to 10.3), but 10.3 still sat under the measured 11.9 +- 1.6 ([R3002: Table 2]). The thin disk's rings now use `tuning.DISK_LAW_COEFFICIENT_SHARE` 0.95 of the Schmidt-Kennicutt coefficient of [R2321] ((2.5 +- 0.7)e-4, so 28% either way; the Milky Way sits below the plain law at the Sun's radius), a registered tweak (row GI4 of 6.124a, tier T2, tweak L1). Milky Way shape, measured on this change: gas at 8 kpc 10.26 to 10.7, depletion time 3.36 to 3.43 Gy (measured 1.0 to 4.2), present rate over the mean 0.453 to 0.461 (the test bound is 0.49), and the cluster cap of `_disk_maximum_masses` at 8 kpc 3.5e3 to 3.7e3 (7.3e3 to 7.8e3 over the whole disc). The central ring's inflow is the same gas, so its heaviest cluster rises from 8.2e4 to 9.7e4, under the 1e5 ceiling; a lower share (0.9) would reach the ceiling, so 0.95 is as far as the nudge goes. The cap is still under the observed 1e4 to 4e4 of the heaviest disc clusters: row CMX8 now says so with the new numbers. The satellites keep the plain coefficient.
+
+generation-output: changed
+generation-affects: fill
