@@ -2649,6 +2649,9 @@ class StarSystem:
                     if planetPhysics.settle_orbit(moon):
                         if log.debug_log_active():
                             log.debug(f"{moon.name}: eccentricity settled to {moon.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr.")
+                lost_moons = planetPhysics.drop_unstable_moons(obj)      # the pumps and resonances above moved eccentricities nothing checked against the stable range; the tide has worn them as far as it will
+                if lost_moons and log.debug_log_active():
+                    log.debug(f"{obj.name}: {lost_moons} moon{'s' if lost_moons != 1 else ''} lost, the orbit left outside the stable range of the eccentricities the pumps gave.")
                 obj.finish_moons()      # GEN.1548: the moons built bare take their air, class and spin on the orbit the tide left
                 for body in (obj, *obj.moons):      # GEN.1760: a water-rich body now known to be too warm for ice is worn by the tide of a rocky mantle, not a shell's, then its air is made again
                     if planetPhysics.settle_warm_icy_orbit(body) and log.debug_log_active():

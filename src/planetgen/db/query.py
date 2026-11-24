@@ -3902,7 +3902,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
             asteroid field also gets `composition` (`[{"component",
             "concentration"}]`, from `asteroid_field_composition`) and an
             interstellar comet `composition` (its components, from
-            `interstellar_comet_composition`), in their saved order.
+            `interstellar_comet_composition`) and `coma_species` (the gases of its coma, from `interstellar_comet_coma`), in their saved order.
 
     Raises:
         ValueError: If `phenomenon_type` isn't a recognized type, or no
@@ -3963,6 +3963,12 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
         detail["composition"] = [
             comp["component"] for comp in conn.execute(
                 "SELECT component FROM interstellar_comet_composition"
+                " WHERE comet_id = ? ORDER BY position", (phenomenon_id,)).fetchall()
+        ]
+        detail["coma_species"] = [      # GEN.455: the gases of an active comet's coma, water first, as the rows `interstellar_comet_coma` keeps them (none for an inactive comet)
+            {"species": row_["species"], "production_1au_per_s": row_["production_1au_per_s"], "scale_length_1au_km": row_["scale_length_1au_km"]}
+            for row_ in conn.execute(
+                "SELECT species, production_1au_per_s, scale_length_1au_km FROM interstellar_comet_coma"
                 " WHERE comet_id = ? ORDER BY position", (phenomenon_id,)).fetchall()
         ]
     return detail

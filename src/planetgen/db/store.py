@@ -80,7 +80,7 @@ from planetgen.galaxy import resident_mass, component_field as componentField, d
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
 from planetgen.physics import body_history, effect_ledger, moon_history, isotope_record, light_ledger, ore_deposits
-from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, adaptation_record, life_ages, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, comet_coma, class_code, core_composition, daylight, giant_interior, adaptation_record, life_ages, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log, ticker
 from planetgen.util.settings import env_name, get_settings
@@ -645,7 +645,7 @@ BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types", "planet_isotopes", "moon_isotopes", "rogue_planet_isotopes",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "planet_life_ages", "moon_life_ages", "planet_adaptations", "moon_adaptations",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
-    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history", "lost_moons",
+    "comet_composition", "comet_coma", "interstellar_comet_composition", "interstellar_comet_coma", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history", "lost_moons",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -3688,8 +3688,15 @@ COMET_FIELDS = (
     object_rows.attr("mass_kg"),
     object_rows.computed("makeup", lambda comet, context: _makeup_json(comet), lambda row: {"makeup": _json_loads(row["makeup"], None)}),   # DB.124
     object_rows.each(body_strength.COMET_FIELDS),
+    object_rows.each(comet_coma.FIELDS),    # GEN.455
 )
 """tuple: The `Field`s of a `comets` row."""
+
+
+def _insert_coma(conn, table, comet_id, comet):
+    """Writes the species rows of a comet's coma (GEN.455): `(species, production_1au_per_s, scale_length_1au_km)` in the order the comet holds them, water first; an inactive comet has none."""
+    for position, (species, production, scale_length) in enumerate(comet.coma_species):
+        conn.execute(f"INSERT INTO {table} (comet_id, position, species, production_1au_per_s, scale_length_1au_km) VALUES (?, ?, ?, ?, ?)", (comet_id, position, species, production, scale_length))
 
 
 def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
@@ -3720,6 +3727,7 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
         "star_system_id": star_system_id, "star_id": star_id})
 
     _insert_composition(conn, "comet_composition", "comet_id", comet_id, comet.composition)
+    _insert_coma(conn, "comet_coma", comet_id, comet)
 
     return comet_id
 
@@ -4406,6 +4414,7 @@ INTERSTELLAR_COMET_FIELDS = (
     object_rows.attr("mass_kg"),
     _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD, object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
     object_rows.each(body_strength.COMET_FIELDS),    # GEN.1162
+    object_rows.each(comet_coma.FIELDS),    # GEN.455
 )
 """tuple: The `Field`s of an `interstellar_comets` row."""
 
@@ -4434,6 +4443,7 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
         "sector_id": sector_id, "placement": placement})
 
     _insert_composition(conn, "interstellar_comet_composition", "comet_id", comet_id, comet.composition)
+    _insert_coma(conn, "interstellar_comet_coma", comet_id, comet)
 
     return comet_id
 
@@ -10586,11 +10596,12 @@ def _belt_row_to_dict(row, composition_pairs, member_rows=()):
     return data
 
 
-def _comet_row_to_dict(row, composition_rows):
-    """Maps a `comets` row (plus its `comet_composition` child rows) to
+def _comet_row_to_dict(row, composition_rows, coma_rows=()):
+    """Maps a `comets` row (plus its `comet_composition` and `comet_coma` child rows) to
     `Comet.from_dict`'s expected dict shape."""
     data = object_rows.load_dict(COMET_FIELDS, row)
     data["composition"] = [r["component"] for r in composition_rows]
+    data["coma_species"] = [[r["species"], r["production_1au_per_s"], r["scale_length_1au_km"]] for r in coma_rows]    # GEN.455
     return data
 
 
@@ -10792,7 +10803,11 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                 "SELECT component FROM comet_composition WHERE comet_id = ? ORDER BY position",
                 (r["id"],),
             ).fetchall()
-            comet = Comet.from_dict(_comet_row_to_dict(r, comp_rows), system_config)
+            coma_rows = conn.execute(
+                "SELECT species, production_1au_per_s, scale_length_1au_km FROM comet_coma WHERE comet_id = ? ORDER BY position",
+                (r["id"],),
+            ).fetchall()
+            comet = Comet.from_dict(_comet_row_to_dict(r, comp_rows, coma_rows), system_config)
             comet.db_id = r["id"]
             comets.append(comet)
         return comets

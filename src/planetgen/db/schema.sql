@@ -3779,6 +3779,10 @@ CREATE TABLE IF NOT EXISTS comets (
     yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the strength of the material mix of the nucleus, Pa, drawn from the range of each material (GEN.1178)
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the nucleus releases, J
     makeup                      TEXT NULL,  -- v256 (DB.124): what the nucleus is made of as the draw gave it, a JSON object (the shares of the materials, porosity, density, albedo)
+    water_production_1au_per_s  DOUBLE,  -- v275 (GEN.455): the water the coma of a comet loses at 1 AU lit distance, molecules a second, NULL for an inactive comet and for a row made before v275
+    coma_active_area_fraction   DOUBLE,  -- v275 (GEN.455): the share of the nucleus surface that sublimates (CZ1)
+    coma_outflow_1au_kms        DOUBLE,  -- v275 (GEN.455): the speed the gas of the coma leaves at, km/s at 1 AU lit distance (CZ2)
+    nucleus_albedo              DOUBLE,  -- v275 (GEN.455): the Bond albedo of the nucleus (CZ3)
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
@@ -3809,6 +3813,23 @@ CREATE TABLE IF NOT EXISTS comet_composition (
     CONSTRAINT fk_comet_composition_comet
         FOREIGN KEY (comet_id) REFERENCES comets(id) ON DELETE CASCADE,
     KEY idx_comet_composition_comet_id (comet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The gases of the coma of an active comet (v275, GEN.455): one row for water and each volatile its nucleus holds, water first (`position` 0), in the order of the ice: the molecules a second at 1 AU lit
+-- distance and the parent scale length, km, at 1 AU lit (none for a gas the photolysis table lacks, never guessed). Rate and length at another distance follow `physics/comet_coma.py`
+-- (`production_at`, `scale_length_at`). An inactive comet, and a comet made before v275, has none.
+CREATE TABLE IF NOT EXISTS comet_coma (
+    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    comet_id              BIGINT UNSIGNED NOT NULL,
+    position              INT NOT NULL,
+    species               VARCHAR(16) NOT NULL,
+    production_1au_per_s  DOUBLE NOT NULL,
+    scale_length_1au_km   DOUBLE NULL,
+
+    CONSTRAINT fk_comet_coma_comet
+        FOREIGN KEY (comet_id) REFERENCES comets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_comet_coma (comet_id, position),
+    KEY idx_comet_coma_species (species)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -4933,6 +4954,10 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     roundness_ratio             DOUBLE,  -- v200 (GEN.1162): the mean radius over the round radius, 1 or more is round
     yield_strength_pa           DOUBLE,  -- v200 (GEN.1162): the strength of the material mix of the nucleus, Pa
     binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling the nucleus releases, J
+    water_production_1au_per_s  DOUBLE,  -- v275 (GEN.455): the water the coma of a comet loses at 1 AU lit distance, molecules a second, NULL for an inactive comet and for a row made before v275
+    coma_active_area_fraction   DOUBLE,  -- v275 (GEN.455): the share of the nucleus surface that sublimates (CZ1)
+    coma_outflow_1au_kms        DOUBLE,  -- v275 (GEN.455): the speed the gas of the coma leaves at, km/s at 1 AU lit distance (CZ2)
+    nucleus_albedo              DOUBLE,  -- v275 (GEN.455): the Bond albedo of the nucleus (CZ3)
 
     UNIQUE KEY uq_interstellar_comets_uid (uid),
     KEY idx_interstellar_comets_name (name),  -- v178 (PERF.205): the Phenomena table pages by name in index order
@@ -4971,6 +4996,23 @@ CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
     CONSTRAINT fk_interstellar_comet_composition_comet
         FOREIGN KEY (comet_id) REFERENCES interstellar_comets(id) ON DELETE CASCADE,
     KEY idx_interstellar_comet_composition_comet_id (comet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The gases of the coma of an active comet (v275, GEN.455): one row for water and each volatile its nucleus holds, water first (`position` 0), in the order of the ice: the molecules a second at 1 AU lit
+-- distance and the parent scale length, km, at 1 AU lit (none for a gas the photolysis table lacks, never guessed). Rate and length at another distance follow `physics/comet_coma.py`
+-- (`production_at`, `scale_length_at`). An inactive comet, and a comet made before v275, has none.
+CREATE TABLE IF NOT EXISTS interstellar_comet_coma (
+    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    comet_id              BIGINT UNSIGNED NOT NULL,
+    position              INT NOT NULL,
+    species               VARCHAR(16) NOT NULL,
+    production_1au_per_s  DOUBLE NOT NULL,
+    scale_length_1au_km   DOUBLE NULL,
+
+    CONSTRAINT fk_interstellar_comet_coma_comet
+        FOREIGN KEY (comet_id) REFERENCES interstellar_comets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_interstellar_comet_coma (comet_id, position),
+    KEY idx_interstellar_comet_coma_species (species)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

@@ -38,7 +38,7 @@ why that's out of scope for this pass).
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import body_strength, bulk_draw, comet_activity, comet_control, comet_ice_budget, disk_size, kepler, radiation_field, small_body_composition, spin
+from planetgen.physics import body_strength, bulk_draw, comet_activity, comet_coma, comet_control, comet_ice_budget, disk_size, kepler, radiation_field, small_body_composition, spin
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -218,6 +218,7 @@ class Comet(SmallBody):
         "orbital_speed_kms": "km_s", "velocity_x_kms": "km_s", "velocity_y_kms": "km_s", "velocity_z_kms": "km_s",
         "rotation_period_hours": "h", **spin.SPIN_UNITS,
         "density_g_cm3": "g_cm3", "ice_mass_fraction": "ratio", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
+        **comet_coma.UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
@@ -344,6 +345,7 @@ class Comet(SmallBody):
         log.choice("Comet activity", self.is_active,
                    f"roll against activity chance {activity_chance:.4g} at perihelion "
                    f"{self.perihelion_distance_au:.4g} AU (lit like {solar_perihelion_au:.4g} AU round the Sun)")
+        comet_coma.generate(self, star)    # GEN.455: the coma of an active comet, from its ices and the host's light, on a stream of its own
         # GEN.104: a small body's spin, YORP-tilted from its orbit normal.
         self.rotation_period_hours = spin.small_body_period_hours()
         spin.set_spin(self, spin.orbit_normal(self.inclination_deg, self.ascending_node_deg),

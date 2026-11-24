@@ -81,6 +81,8 @@ Populations' shares move with the rate: for stellar masses 1e10, 3e10, 5e10 and 
 
 (Since GEN.1230 the same disc depletes in 3.4 Gy and keeps 10.3 solar masses per pc2 at 8 kpc; the table above is the halo-growth inflow's.)
 
+**The disk takes 0.95 of the law's coefficient (GEN.1202).** The gas at 8 kpc was still 10.26 against the measured 11.9 +- 1.6 [R3002: Table 2] (13.7 with the ionised gas), and the heaviest cluster the disc's gas can form (`physics/cluster_maximum_mass`, `open_clusters._disk_maximum_masses`) followed it down. The disk's rings now use `tuning.DISK_LAW_COEFFICIENT_SHARE` 0.95 of the coefficient of [R2321] ((2.5 +- 0.7)e-4, so 28% either way; the Milky Way sits below the plain law at the Sun's radius): the gas at 8 kpc is 10.7, the depletion time 3.43 Gy (3.36), the present rate over the mean 0.461 (0.453; the test allows 0.49) and the cluster cap at 8 kpc 3.7e3 (3.5e3). It goes no lower because the central ring takes the gap's gas as its inflow and its heaviest cluster goes as the gas cubed: 9.7e4 at 0.95, 8.2e4 at 1.0, the 1e5 ceiling at 0.9. The share is a tweak inside the coefficient's own range (row GI4, tier T2, tweak L1); the satellites keep the plain coefficient. The cluster cap stays under the observed 1e4 to 4e4 (it is the relation's result for this gas, row CMX8).
+
 ## Ages inside a window (GEN.546)
 
 A window used to draw its stars' ages evenly, though the rate varies across it (by a factor of 1.0, 2.5 and a rise from
@@ -144,5 +146,5 @@ moved the growth of those stars later, so the Milky Way shape's disc formed 4.0 
 measured, and 1.5 against the main sequence at that mass (Speagle's fit: 2.7 times above it). Weakening the law's coefficient made it worse (the stars are fixed, so more form
 late), a cold-accretion cut at the shock-heating mass needed an exponent no source gives, and the halo's own baryon accretion gave 6.3. The one-zone Milky Way models
 use an exponential infall: the line of [R5095] for its time scale, limited by [R5094]'s 2 and 8 Gy. It gives 2.8 solar masses a year for the Milky Way shape, a gas surface density
-of 10.3 solar masses per pc2 at 8 kpc (measured 7 to 16) and a depletion time of 3.4 Gy at the Sun. Registry rows GI1 (the scale length mapping) and GI2 (the 2 and 8 Gy stops); the core gas
+of 10.3 solar masses per pc2 at 8 kpc (measured 7 to 16; 10.7 after GEN.1202, below) and a depletion time of 3.4 Gy at the Sun. Registry rows GI1 (the scale length mapping) and GI2 (the 2 and 8 Gy stops); the core gas
 inflow time went from 1.0 to 0.6 Gy (CG1) because the inner rings keep less gas.
