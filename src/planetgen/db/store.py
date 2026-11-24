@@ -4405,6 +4405,8 @@ INTERSTELLAR_COMET_FIELDS = (
     object_rows.attr("mass_kg"),
     _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD, object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
     object_rows.each(body_strength.COMET_FIELDS),    # GEN.1162
+    object_rows.optional("coma_class"), object_rows.optional("coma_volatiles"),    # GEN.1227
+    object_rows.computed("carbon_chain_depleted", lambda comet, context: None if comet.carbon_chain_depleted is None else int(comet.carbon_chain_depleted)),
 )
 """tuple: The `Field`s of an `interstellar_comets` row."""
 

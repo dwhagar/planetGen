@@ -505,7 +505,9 @@ _INTERSTELLAR_COMET = (
            ("velocity_kms", "Speed"), ("density_g_cm3", "Density"),
            ("roundness_ratio", "Roundness ratio (radius over the radius at which its own weight beats its strength; 1 or more is round)"),
            ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
-    *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Ice share of its mass")),
+    *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Ice share of its mass"),
+           ("coma_class", "Coma class", TEXT), ("coma_volatiles", "Main volatiles of its coma, after water", TEXT),
+           ("carbon_chain_depleted", "Depleted in carbon chains (CN and C2)", FLAG)),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )

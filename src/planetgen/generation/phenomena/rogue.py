@@ -21,7 +21,7 @@ much smaller icy planetesimal passing through on a hyperbolic trajectory
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import body_strength, brown_dwarf as brownDwarf, constants, rings, rogue_habitability, small_body_composition, spin
+from planetgen.physics import body_strength, brown_dwarf as brownDwarf, comet_coma, constants, rings, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -221,11 +221,15 @@ class InterstellarComet(SmallBody):
         velocity_kms (float): Hyperbolic excess speed, in km/s.
         is_active (bool): Whether it currently shows a coma/tail from
             sublimating ices.
+        coma_class (str or None): `CO2-dominated` or `CO-dominated`: which carbon oxide of its ices is the more abundant (`physics/comet_coma.py`, GEN.1227); None for a row stored before it was kept.
+        coma_volatiles (str or None): Its dominant volatiles after water, the most abundant first, as a comma-separated list of formulas ("CO2, CO, CH3OH").
+        carbon_chain_depleted (bool or None): Whether it was drawn with little CN and C2 (so no green coma).
     """
 
     FIELD_UNITS = {
         "name": "text", "flavor_key": "text", "nucleus_diameter_km": "km", "mass_kg": "kg", "velocity_kms": "km_s", "is_active": "flag",
         "density_g_cm3": "g_cm3", "ice_mass_fraction": "frac", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
+        "coma_class": "text", "coma_volatiles": "text", "carbon_chain_depleted": "flag",
         **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
@@ -242,6 +246,9 @@ class InterstellarComet(SmallBody):
 
     flavor_key = None
     """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
+
+    coma_class = coma_volatiles = carbon_chain_depleted = None
+    """The coma a comet read back without them (a record made before GEN.1227) has: none."""
 
     def __init__(self, system_config: SystemConfig, name=None):
         """
@@ -266,6 +273,8 @@ class InterstellarComet(SmallBody):
         self.composition = small_body_composition.component_names(self.makeup)
         self.mass_kg = self.makeup.mass_kg(self.nucleus_diameter_km)
         body_strength.generate_comet(self)    # GEN.1162: its density, ice share, roundness ratio, strength and binding energy
+        coma = comet_coma.coma_of(self.makeup)    # GEN.1227: its coma class, dominant volatiles and carbon-chain flag, read off the volatiles just drawn (no draw)
+        self.coma_class, self.coma_volatiles, self.carbon_chain_depleted = coma.coma_class, coma.text(), coma.carbon_chain_depleted
 
         self.set_galactic_motion()
         # GEN.104: a small body's spin, YORP-tilted from the galactic pole.

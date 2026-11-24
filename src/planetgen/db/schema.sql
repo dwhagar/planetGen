@@ -4933,6 +4933,9 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     roundness_ratio             DOUBLE,  -- v200 (GEN.1162): the mean radius over the round radius, 1 or more is round
     yield_strength_pa           DOUBLE,  -- v200 (GEN.1162): the strength of the material mix of the nucleus, Pa
     binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling the nucleus releases, J
+    coma_class                  VARCHAR(16) NULL,  -- v275 (GEN.1227): which carbon oxide of its ices is the more abundant, `CO2-dominated` or `CO-dominated`
+    coma_volatiles              VARCHAR(48) NULL,  -- v275 (GEN.1227): its dominant volatiles after water, the most abundant first, formulas joined with a comma
+    carbon_chain_depleted       TINYINT(1) NULL CHECK (carbon_chain_depleted IS NULL OR carbon_chain_depleted IN (0, 1)),  -- v275 (GEN.1227): drawn with little CN and C2, so no green coma
 
     UNIQUE KEY uq_interstellar_comets_uid (uid),
     KEY idx_interstellar_comets_name (name),  -- v178 (PERF.205): the Phenomena table pages by name in index order
@@ -6781,6 +6784,10 @@ CREATE TABLE IF NOT EXISTS engine_items (
 
 -- v272 (GEN.1151): `planets` gains `lagrange_point` and `lagrange_host_id`: a planet grown in the 1:1 zone of a giant shares its orbit, 60 degrees ahead (`L4`) or behind (`L5`), and names the giant. NULL for every other planet
 -- and for a row made before v272, nothing is backfilled.
+
+-- v275 (GEN.1227): `interstellar_comets` gains `coma_class` (VARCHAR(16): `CO2-dominated` or `CO-dominated`, which carbon oxide of its ices is the more abundant), `coma_volatiles` (VARCHAR(48): the dominant volatiles
+-- after water, the most abundant first, formulas joined with a comma) and `carbon_chain_depleted` (TINYINT(1): drawn with little CN and C2, so no green coma), read off the volatiles the nucleus was drawn with
+-- (`physics/comet_coma.py`; the map's comet colours read them, MAP.283). NULL for a row made before v275, nothing is backfilled (a migration does not draw).
 
 -- engine_piece_results (v263, OPS.219): what each finished piece of a job returned, in the job's own galaxy, written in the transaction that stores the cursor in `engine_items` and the piece's data. A unit that
 -- stopped part way and is run again starts after its stored cursor and hands its `gather` these results beside the new ones (`planetgen/queue/engine.py`). One row for each piece that returned something.
