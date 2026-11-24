@@ -32,7 +32,7 @@ ENGINE_TABLES = frozenset({"engine_runs", "engine_jobs", "engine_attempts", "eng
 
 SECTOR_READS = (
     "asteroid_belts", "asteroid_fields", "black_holes", "bright_stars", "chart_ledger", "comets", "facilities", "galaxy_block_light_parts", "galaxy_components",
-    "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters", "interstellar_comets", "moon_adaptations", "moon_deposit_types", "moon_gases",
+    "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "id_counters", "interstellar_comets", "moon_adaptations", "moon_deposit_types", "moon_exosphere", "moon_gases",
     "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_ages", "moon_life_class_scores", "moon_reflection_spectrum", "moons", "nebulae", "neutron_stars",
     "orbit_simulation_state", "phenomenon_scatter", "planet_adaptations", "planet_life", "planet_life_ages", "planets", "quasars", "rogue_planet_deposit_types",
     "rogue_planet_gases", "rogue_planet_interior_layers", "rogue_planet_isotopes", "rogue_planet_life_class_scores", "rogue_planet_reflection_spectrum", "rogue_planets",
@@ -42,7 +42,7 @@ SECTOR_READS = (
 SECTOR_WRITES = (
     "asteroid_belt_composition", "asteroid_belts", "belt_members", "black_holes", "body_history", "bright_stars", "chart_ledger", "comet_coma", "comet_composition", "comets", "dark_members",
     "effect_ledger", "galaxy_block_light_parts", "galaxy_shape", "galaxy_totals", "id_blocks", "id_counters", "interstellar_comet_coma", "interstellar_comet_composition", "interstellar_comets", "irregular_moons", "irregular_sets", "lost_moons", "moon_adaptations", "moon_deposit_types",
-    "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_ages", "moon_life_class_scores", "moon_reflection_spectrum", "moons", "neutron_stars", "orbit_nodes", "planet_adaptations", "planet_deposit_types", "planet_gases", "planet_interior_layers",
+    "moon_exosphere", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_ages", "moon_life_class_scores", "moon_reflection_spectrum", "moons", "neutron_stars", "orbit_nodes", "planet_adaptations", "planet_deposit_types", "planet_exosphere", "planet_gases", "planet_interior_layers",
     "planet_isotopes", "planet_life", "planet_life_ages", "planet_life_class_scores", "planet_reflection_spectrum", "planets", "rogue_planet_deposit_types", "rogue_planet_gases", "rogue_planet_interior_layers", "rogue_planet_isotopes",
     "rogue_planets", "scatter_members", "scatter_nodes", "sector_facets", "sector_name_registry", "sector_stats", "sector_tree_nodes",
     "sectors", "star_systems", "stars", "system_configs", "system_interests", "system_name_registry", "system_summary",
@@ -50,9 +50,9 @@ SECTOR_WRITES = (
 
 SYSTEM_RELOAD_READS = (
     "asteroid_belt_composition", "asteroid_belts", "belt_members", "black_holes", "body_history", "comet_coma", "comet_composition", "comets", "dark_members", "facilities",
-    "irregular_moons", "irregular_sets", "lost_moons", "moon_adaptations", "moon_deposit_types", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life",
+    "irregular_moons", "irregular_sets", "lost_moons", "moon_adaptations", "moon_deposit_types", "moon_exosphere", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life",
     "moon_life_ages", "moon_life_class_scores", "moon_reflection_spectrum", "moons", "neutron_stars", "orbit_nodes", "planet_adaptations", "planet_deposit_types",
-    "planet_gases", "planet_interior_layers", "planet_isotopes", "planet_life", "planet_life_ages", "planet_life_class_scores", "planet_reflection_spectrum", "planets",
+    "planet_exosphere", "planet_gases", "planet_interior_layers", "planet_isotopes", "planet_life", "planet_life_ages", "planet_life_class_scores", "planet_reflection_spectrum", "planets",
     "sector_stats", "sectors", "species", "star_systems", "stars", "system_config_slots", "system_configs", "system_interests", "system_summary",
 )
 """tuple: What a command that loads one whole system reads (`store.refresh_habitability`, `store.refresh_effect_ledger`): the system, its bodies and their parts."""
@@ -86,8 +86,8 @@ READS = {
     "check-storage": ("sectors",),
     "check-systems": (
         "asteroid_belt_composition", "asteroid_belts", "belt_members", "black_holes", "body_history", "comet_coma", "comet_composition", "comets", "dark_members", "irregular_moons",
-        "irregular_sets", "lost_moons", "moon_adaptations", "moon_deposit_types", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_ages",
-        "moon_life_class_scores", "moon_reflection_spectrum", "moons", "neutron_stars", "orbit_nodes", "planet_adaptations", "planet_deposit_types", "planet_gases",
+        "irregular_sets", "lost_moons", "moon_adaptations", "moon_deposit_types", "moon_exosphere", "moon_gases", "moon_interior_layers", "moon_isotopes", "moon_life", "moon_life_ages",
+        "moon_life_class_scores", "moon_reflection_spectrum", "moons", "neutron_stars", "orbit_nodes", "planet_adaptations", "planet_deposit_types", "planet_exosphere", "planet_gases",
         "planet_interior_layers", "planet_isotopes", "planet_life", "planet_life_ages", "planet_life_class_scores", "planet_reflection_spectrum", "planets",
         "star_systems", "stars", "system_config_slots", "system_configs",
     ),
