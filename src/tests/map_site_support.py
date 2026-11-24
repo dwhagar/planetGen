@@ -882,6 +882,7 @@ class FixtureApi:
 
     def __init__(self, halo=False, dense=False, large=False, far=False, holes=False, sector_cluster=False):
         self.far = far
+        self.dense = dense
         self.sector_cluster = sector_cluster
         self.shape = galaxy_shape()
         self.stars = STAR_FIELD + (HALO_STARS if halo else []) + (DENSE_STARS if dense else [])
@@ -1128,7 +1129,8 @@ class FixtureApi:
         cell = {"shell_index": shell_index, "band_index": band_index, "wedge_index": wedge_index,
                 "designation": provisional_sector_designation(*address), "center_pc": [cx, cy, cz],
                 "edge_pc": EDGE_PC, "sector_id": generated, "stars": [], "scattered": []}
-        if address == UNCHARTED_CELL:
+        if address == UNCHARTED_CELL and not self.dense:
+            # (The dense site's stars crowd this cell: they are its field, which the wheel is run in on without an Uncharted sector opening.)
             cell["stars"] = [{"id": 1, "x": cx + 0.5, "y": cy + 0.4, "z": cz, "luminosity_sol": 9000.0,
                               "temperature_k": 22000.0, "radius_sol": 6.0, "star_type": "B2V"}]
             cell["scattered"] = [

@@ -2,6 +2,41 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4767+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Zooming in on a cell nothing was generated in, when the scatters left objects in it, now opens it as Uncharted, as it opens a charted sector.
+
+### Fixed
+
+- The wheel opened only sectors that had been generated: the sector the camera came up to was chosen among the charted ones near the eye, so a cell holding a bright star, a black hole or a nebula but no generated sector never opened by zooming to it, and the charted neighbour opened instead (MAP.257). At the end of the zoom range the cell under the camera's middle now opens as "Uncharted" by the same path a click uses (MAP.162: the scene of `GET /galaxy/uncharted/<shell>/<band>/<wedge>/scene`, `enterSector` with no record); a cell the server says is empty stays unopened and the nearest charted sector opens as before.
+
+generation-output: unchanged
+
+## [8.0.4766+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Zooming out of an opened sector with the wheel now carries on at the same steady step instead of snapping the camera out to the whole galaxy.
+
+### Fixed
+
+- Leaving an opened sector by the wheel took the camera from a few parsecs to the whole-galaxy distance in one tick (MAP.257): the sector branch of the stage view's `up()` kept the camera but not its fit, so the next frame re-fitted it to the whole stage. It now keeps the fit as the system branch does, and the zoom floor no longer pushes a camera that left a system nearer than the sector's floor back up to it in one tick. A scroll from the whole galaxy to a sector, to a star's system and out again, or to an uncharted cell and out again, moves the camera the wheel's own step per tick all the way.
+
+generation-output: unchanged
+
+## [8.0.4765+db274.gen150.api14] - 2026-11-24
+
+**Headline:** A system of several stars is no longer drawn twice to check that its stars clear their orbits, because the tree and the build now read the same stars.
+
+### Changed
+- **The check that redrew a whole set of companions when a built star was wider than its orbit (GEN.1015).** `multistar.built_tree_clears`, the clearance branch of `StarSystem._companions_fit`, `StarSystem._built_stars_clear` and the redraw kind `companions.overlap` are gone, with no shim. Each companion is built from the record the tree drew it with (GEN.1009), so a built star is the star its orbit was drawn around and the check never failed; the independent verifier (`physics/clearance.py`) is what the tests now ask. Generated systems are unchanged.
+
+## [8.0.4764+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The seven stand-ins of the white dwarf binaries now each have a registry row with a source, a tier and a test.
+
+### Changed
+
+- GEN.707: the cataclysmic variable and AM CVn donor ranges, the lobe fill factor, the hot subdwarf share, the barium and symbiotic giant mass limit and the two orbital period ranges are rows WK1 to WK7 of section 6.329 of the stand-in registry, with the tier, tweak level, validity, falsifier test and what would replace each. A test fails when one of the constants has no row. The donor range of a cataclysmic variable matches the donor sequence (0.069 solar masses at the period minimum to 0.7 at 5.9 h); the barium period range cuts the longest orbits (4e4 d); the hot subdwarf share and the symbiotic periods have no source read. No generated value changes.
+
 ## [8.0.4763+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The mantle assemblages of simulated rocky bodies are checked against the polluted white dwarfs; they sit in the Earth-like region and do not reach the exotic tail.

@@ -222,6 +222,12 @@ Each part is one lane-sized item. "Lock" means it changes generated output (ride
 | P9 | Delete `built_tree_clears`, `_companions_fit`'s clearance branch and `_built_stars_clear` (GEN.1004's fix), no shim; TEST.476 invariant set to zero | lock | P5 (and P8 for the planet part) |
 | P10 | Stability margin per level; 2+2 quadruple fit if the verifier shows it is needed | lock | P2, P5 |
 
+**Built (GEN.1017, P0).** The tree is drawn with the primary's [Fe/H] (`multistar.Placed.fe_h`, read by `system._drawn_plan`) and each companion is built from the record the tree drew it with, at the same age and [Fe/H] (`StarSystem._add_companions`, GEN.1009), so the two cannot disagree: `stored_trees.matches` holds the built mass and radius to the member's, and `tests/test_member_record_build.py` runs it over drawn trees of two to four stars. The tree is drawn at the end of the placed star's lifetime only when the star has collapsed by its own age (a `tree.drawn_at_earlier_age` redraw), and each member then keeps the age the tree gave it.
+
+**Built (GEN.1014, P8).** `StarSystem.ledger` (`physics/clearance_ledger.py`) is the one place a planet, moon or belt takes its room from; `_orbit_floor_au`, each star's `a_crit_au`, the planet spacing and the moon limit (Domingos, Winter and Yokoyama 2006, [R1138]) read it. The independent verifier holds every stored body to the same rule from the rows alone.
+
+**Built (GEN.1015, P9).** `multistar.built_tree_clears`, the clearance branch of `StarSystem._companions_fit` and `StarSystem._built_stars_clear`, with the redraw kind `companions.overlap`, are deleted with no shim: the build makes its stars from the tree's own records, so no companion set is drawn again for an overlap. The overlap redraw count (`pair.overlap`, `tree.restart_overlap`) is held at exactly zero by `tests/test_redraw_rates.py`, and `tests/test_gen_built_stars_clear.py` asks the verifier about built systems.
+
 P1 and P2 can start now on any free lane and give the evidence base; P3 is the pivot. P4 to P7 are small and can run in parallel after P3. Parts P3 to P9 each need an epoch, golden refresh and census re-tag on a merge train (Boss's TEST GATE rule: each merge tests only what changed; `scripts/test.py changed --resume`), and each should carry `--affects` for the star and planet suites. Testing mode applies: new epochs and migrations are fine, no backward-compat shim.
 
 ## 11. Open points, answered

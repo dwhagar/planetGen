@@ -12,8 +12,8 @@ Two gates read the figures (`tests/test_redraw_rates.py`):
 * a **ceiling** per kind and group, from `tests/data/redraw_rate_expectations.json`: twice the baseline rate measured on the code
   before the change (plus one event of the reference's size), failing only when the run's rate is above it by more than its own
   sampling error, so a change that suddenly redraws more is caught and a repeat of the reference is not;
-* an **invariant** for the overlap kinds (`redraw_kinds.OVERLAP_KINDS`): their count is exactly zero once the overlap-free build
-  (GEN.1009 to GEN.1015) has deleted the GEN.1004 quick fix. It is held as an expected failure until then.
+* an **invariant** for the overlap kinds (`redraw_kinds.OVERLAP_KINDS`): their count is exactly zero: the overlap-free build
+  (GEN.1009 to GEN.1015) made the tree and the build one source of truth and deleted the GEN.1004 quick fix.
 
 `python -m tests.audit.redraw_rates measure --count 2500 --out records.json` draws the big sample (the research thread's baseline
 was 2,500 forced systems per star count); `build` turns records into the expectations file; `report` prints the table.
