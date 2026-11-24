@@ -808,7 +808,7 @@ def test_the_nucleus_row_does_not_depend_on_any_limit():
 def test_every_scattered_black_hole_and_neutron_star_stores_a_mass_inside_its_class_range():
     rows = [_as_dict(row) for row in _shell() + _shell(OTHER_SHELL)] + [_as_dict(scatter.nucleus_row(5, SHAPE))]
     ranges = {("neutron-star", None): tuning.NEUTRON_STAR_MASS_RANGE_SOLAR,
-              ("black-hole", "stellar"): tuning.BLACK_HOLE_MASS_RANGE_SOLAR,
+              ("black-hole", "stellar"): (tuning.BLACK_HOLE_MASS_RANGE_SOLAR[0], tuning.BLACK_HOLE_MASS_TOP_SOLAR),  # GEN.554: a metal-poor place stretches the span
               ("black-hole", "intermediate"): tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR,
               ("black-hole", "supermassive"): (tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR, float("inf"))}
     seen = set()

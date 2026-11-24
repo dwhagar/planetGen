@@ -801,7 +801,7 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None, fe_h=0.0):
                                                      rng)
     if progenitor is None:
         return None
-    mass = remnant_mass.draw_mass_sol(kind, rng=rng)
+    mass = remnant_mass.draw_mass_sol(kind, rng=rng, stretch=remnant_mass.black_hole_stretch(fe_h) if kind == "black-hole" else None)
     if limit_mass is not None:
         mass = min(mass, limit_mass)
     return _remnant_leaf(kind, progenitor, mass, direct=kind == "black-hole")

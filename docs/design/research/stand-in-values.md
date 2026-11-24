@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2039 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2040 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2012 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2013 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 137 | 71 | 12 | 10 | 0 | 230 |
 | T4 | 96 | 17 | 11 | 25 | 13 | 162 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 255 | 144 | 41 | 85 | 8 | 533 |
+| T6 | 255 | 144 | 42 | 85 | 8 | 534 |
 | T7 | 77 | 44 | 11 | 31 | 0 | 163 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 120 | 42 | 242 |
-| All | 1160 | 428 | 106 | 279 | 66 | 2039 |
+| All | 1160 | 428 | 107 | 279 | 66 | 2040 |
 
 ## How the labels were given
 
@@ -3624,3 +3624,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DG1 | D | T1 | L1 | `shape_draw.DWARF_SIZE_INTERCEPT` 0.667 and `DWARF_SIZE_SLOPE` 0.296 ([R0655], isolated dwarfs, scatter 0.215 dex, fitted over log M* 5.5 to 8.5) below `DWARF_SIZE_EDGE_SOLAR` 10^8.5, scaled by `DWARF_SIZE_ANCHOR` 1.018 so the median meets [R4048]'s there | the satellites' fit (1.071 + 0.247 log M*, 0.181 dex) is 0.2 dex larger | spirals and dwarfs of 5.5 < log M* < 8.5 | a measured median half-light radius of isolated dwarfs of 1e6 to 3e8 solar masses more than 0.2 dex from this law | a size law of the family a galaxy of that mass belongs to (GEN.385) | [R0655] (READ: the table of fits); test_shape_draw::test_the_dwarf_size_law_meets_the_late_type_law_at_its_edge | predicted only | - | - |
 | DG2 | B | T3 | L1 | the same law continued under log M* 5.5 to the floor of the Scale dial (281 solar masses): 25 pc half-light radius there (31 pc at Segue 1's 562 solar masses against its 23.9 pc) | 0.2 to 0.5 dex about it (Segue 1 is 0.37 dex under the satellites' law and 0.11 dex under this one) | 281 < M* < 3e5 | a measured ultra-faint half-light radius more than 0.5 dex from the continuation at its mass | a size law of the ultra-faint dwarfs fitted to their survey (gap GR13) | Segue 1 in the Local Volume Database and [R4098] (half-light radius 23.9 pc at 562 solar masses; the floor is half of it, Boss, 7:31 PM EDT on 2026-10-21) | predicted only | - | - |
 | DG3 | P | T9 | L3 | a dwarf's scale height is its scale length over the flatness of the thin disk (7.3, `KREGEL_Q`), as for every spiral, until a dwarf-spheroid height is drawn from its observed flattening | the flatness lever's own range, 3 to 20 | dwarfs under 3e8 solar masses, which are one disk plus a bulge (`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`) | a measured axis ratio of the dwarfs of these masses far from 1/7.3 | the observed flattening of the family's galaxies (GEN.385) | none: a placeholder so the Scale dial's floor has a height | predicted only | - | no data |
+
+## 6.337 Stand-ins of the black hole mass trend (GEN.554)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| BHM1 | P | T6 | L2 | `fryer_remnants.mass_trend` over the stars of `remnant_progenitors.kind_windows("black-hole")` at the place's failed share, normalized to the mean of the disk at the reference radius (1 there, 0.73 at and above the sun's metals, 3 and over at a third of them), and `tuning.BLACK_HOLE_MASS_TOP_SOLAR` 50: the span of the law above 5 solar masses is multiplied by the trend and held to 50 | the top 40 to 56 (the lower edge of the pair-instability gap 45, the carbon-oxygen reaction rate's one-sigma range, [R5365]); the windows' shape (the failed share) | stellar-mass black holes of any place with a metallicity (members, composition, scattered and filled holes); not the intermediate-mass or supermassive holes | a measured mass distribution of the holes of a metal-poor population (a dwarf galaxy, the halo) with no hole heavier than 20 solar masses, or the disk's holes as heavy as the halo's | a mass from the progenitor itself once the progenitor is drawn before the mass (the standalone remnants draw the mass first, `docs/design/systems/black-hole-mass-by-metals.md`) | [R1466]'s fits are of the delayed engine's baryonic masses at the paper's grid of metallicities, and at the sun they leave the wind-stripped stars of the top of the failure windows at 2 to 3 solar masses, below any observed hole, so only their trend is used; the anchor holds the observed holes of the disk (the X-ray binaries of [R3397], 7.8 +- 1.2 chosen by flux, and the 5 to 28 of [R1328]) and the simulated 14.2 and 11.7 of [R3348]; observed in the Galaxy's X-ray binaries and in gravitational waves (the heavy holes of the metal-poor places, tens of solar masses) | predicted only | - | - |

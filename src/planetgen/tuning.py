@@ -2630,6 +2630,12 @@ MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
 # stellar-mass black holes now follow the stars' metallicity, but these are not remnants of failed supernovae, so
 # they keep the rate they had, 3e-6 of 7e-5 per pc^3 over `REFERENCE_STELLAR_DENSITY_PC3`.
 BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
+BLACK_HOLE_MASS_TOP_SOLAR = 50.0
+"""float: The heaviest stellar-mass hole a metal-poor place makes, solar masses (GEN.554, stand-in BHM1, L2): the law of
+`BLACK_HOLE_MASS_RANGE_SOLAR` is the solar anchor, and its span above 5 solar masses grows with the metals falling
+(`physics.fryer_remnants.mass_trend`, the mean hole mass of [R1466]'s delayed engine over the stars that fail, relative to the sun's) up to this top.
+50 is inside [R5365]'s lower edge of the pair-instability mass gap, 45 solar masses (40 to 56 for the carbon-oxygen
+reaction rate's one-sigma range): the pulsations that gap comes from strip the heavier stars before they collapse."""
 BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
 BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 3.0e-6
 BLACK_HOLE_INTERMEDIATE_RATE_PER_STAR = BLACK_HOLE_INTERMEDIATE_MASS_CHANCE * 7.0e-5 / 0.14

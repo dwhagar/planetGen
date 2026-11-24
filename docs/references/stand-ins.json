@@ -79775,6 +79775,52 @@
       ],
       "slug": "6-332-stand-ins-of-the-size-of-a-dwarf-galaxy-gen-612",
       "title": "Stand-ins of the size of a dwarf galaxy (GEN.612)"
+    },
+    {
+      "key": "6.337",
+      "number": "6.337",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "fryer_remnants.mass_trend over the stars of remnant_progenitors.kind_windows(\"black-hole\") at the place's failed share, normalized to the mean of the disk at the reference radius (1 there, 0.73 at and above the sun's metals, 3 and over at a third of them), and tuning.BLACK_HOLE_MASS_TOP_SOLAR 50: the span of the law above 5 solar masses is multiplied by the trend and held to 50"
+            ],
+            [
+              "The range it moves in",
+              "the top 40 to 56 (the lower edge of the pair-instability gap 45, the carbon-oxygen reaction rate's one-sigma range, [R5365]); the windows' shape (the failed share)"
+            ],
+            [
+              "Where it holds",
+              "stellar-mass black holes of any place with a metallicity (members, composition, scattered and filled holes); not the intermediate-mass or supermassive holes"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mass distribution of the holes of a metal-poor population (a dwarf galaxy, the halo) with no hole heavier than 20 solar masses, or the disk's holes as heavy as the halo's"
+            ],
+            [
+              "What replaces it",
+              "a mass from the progenitor itself once the progenitor is drawn before the mass (the standalone remnants draw the mass first, docs/design/systems/black-hole-mass-by-metals.md)"
+            ],
+            [
+              "Evidence",
+              "[R1466]'s fits are of the delayed engine's baryonic masses at the paper's grid of metallicities, and at the sun they leave the wind-stripped stars of the top of the failure windows at 2 to 3 solar masses, below any observed hole, so only their trend is used; the anchor holds the observed holes of the disk (the X-ray binaries of [R3397], 7.8 +- 1.2 chosen by flux, and the 5 to 28 of [R1328]) and the simulated 14.2 and 11.7 of [R3348]; observed in the Galaxy's X-ray binaries and in gravitational waves (the heavy holes of the metal-poor places, tens of solar masses)"
+            ]
+          ],
+          "id": "BHM1",
+          "key": "6.337:BHM1",
+          "kind": "P",
+          "slug": "6-337-bhm1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "fryer_remnants.mass_trend over the stars of remnant_progenitors.kind_windows(\"black-hole\") at the place's failed share, normalized to the mean of the disk at the reference radius (1 there, 0.73 at and above the sun's metals, 3 and over at a third of them), and tuning.BLACK_HOLE_MASS_TOP_SOLAR 50: the span of the law above 5 solar masses is multiplied by the trend and held to 50"
+        }
+      ],
+      "slug": "6-337-stand-ins-of-the-black-hole-mass-trend-gen-554",
+      "title": "Stand-ins of the black hole mass trend (GEN.554)"
     }
   ]
 }

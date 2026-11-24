@@ -257882,6 +257882,42 @@
    "volume": "886",
    "year": 2019
   },
+  "10.3847/1538-4357/ab518b": {
+   "arxiv": "1910.12874",
+   "authors": [
+    [
+     "Farmer",
+     "R."
+    ],
+    [
+     "Renzo",
+     "M."
+    ],
+    [
+     "de Mink",
+     "S. E."
+    ],
+    [
+     "Marchant",
+     "P."
+    ],
+    [
+     "Justham",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/ab518b",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "53",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Mind the Gap: The Location of the Lower Edge of the Pair-instability Supernova Black Hole Mass Gap",
+   "type": "journal-article",
+   "volume": "887",
+   "year": 2019
+  },
   "10.3847/1538-4357/ab5710": {
    "arxiv": "1909.02007",
    "authors": [
@@ -293014,6 +293050,7 @@
   "10.3847/1538-4357/ab4cf0": "R4578",
   "10.3847/1538-4357/ab4e96": "R4482",
   "10.3847/1538-4357/ab4f6f": "R3460",
+  "10.3847/1538-4357/ab518b": "R5365",
   "10.3847/1538-4357/ab5710": "R0872",
   "10.3847/1538-4357/ab58cc": "R2735",
   "10.3847/1538-4357/ab5dcb": "R1208",

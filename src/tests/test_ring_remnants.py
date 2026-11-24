@@ -9,6 +9,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
+from planetgen.galaxy import remnant_density
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import ring_remnants, run_galaxy, run_plan
@@ -45,10 +46,15 @@ def test_the_ring_rows_are_the_fills_own_draw_in_the_sectors_own_cell():
     # a point the cell's redraws could not find is left out, so a count is at most the draw's and nearly always equal to it
     assert all(got.get(key, 0) <= count for key, count in wanted.items())
     assert sum(got.values()) >= 0.95 * sum(wanted.values())
+    stretch = remnant_density.place_stretch(_cell_center(address), SHAPE)
     for row in rows:
         low, high = next(bounds for kind, subtype, bounds, _count in draws if (kind, subtype) == (row["kind"], row["subtype"]))
-        assert low <= row["mass_solar"] <= high
-        assert row["mass_solar"] < CUT
+        # The cut is in the anchor law's masses (GEN.554): a stellar-mass hole's mass is its rank in the law stretched to the place's span.
+        mass = row["mass_solar"]
+        if (row["kind"], row["subtype"]) == ("black-hole", "stellar"):
+            mass = tuning.BLACK_HOLE_MASS_RANGE_SOLAR[0] + (mass - tuning.BLACK_HOLE_MASS_RANGE_SOLAR[0]) / stretch
+        assert low <= mass <= high
+        assert mass < CUT
 
 
 def test_the_ring_rows_repeat_with_the_seed_and_the_sector_and_none_come_from_a_cut_under_every_mass_law():
