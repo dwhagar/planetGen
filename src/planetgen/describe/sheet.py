@@ -335,6 +335,10 @@ _BELT = (
     *_rows("identity", ("origin_cause", "Formed as", TEXT), ("origin_sentence", "Where it came from", TEXT), ("formation_snow_line_au", "Snow line when it formed")),
 )
 
+_COMA = _rows("activity", ("water_production_1au_per_s", "Water its coma loses a second at 1 AU lit distance"),
+              ("coma_active_area_fraction", "Share of its surface that is active"), ("coma_outflow_1au_kms", "Speed of the gas leaving it at 1 AU lit distance"),
+              ("nucleus_albedo", "Bond albedo of its nucleus"))
+
 _COMET = (
     *_rows("identity", ("orbit_type", "Orbit", TEXT), ("period_class", "Period class", TEXT),
            ("is_active", "Active", FLAG)),
@@ -348,6 +352,7 @@ _COMET = (
            ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Ice share of its mass")),
+    *_COMA,
 )
 
 _GALACTIC_ORBIT = _rows("galactic", ("galactic_orbital_period_gy", "Galactic orbital period"),
@@ -507,6 +512,7 @@ _INTERSTELLAR_COMET = (
            ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
     *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Ice share of its mass")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
+    *_COMA,
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
