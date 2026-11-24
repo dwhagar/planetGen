@@ -158,7 +158,7 @@ def _group_rows(shape, groups, high_band, edge_pc, expected_at_density_1, stream
                     continue
                 mass = None if masses is None else float(masses[position])
                 yield (shell_index, band_index, wedge, kind, subtype, int(point[0]), int(point[1]), int(point[2]),
-                       None, None, None, seeds[position], mass, phenomenon_scatter.map_luminosity(mass))
+                       None, None, None, seeds[position], mass, phenomenon_scatter.map_luminosity(mass), None)
 
 
 def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1, seed, skip_addresses=None,

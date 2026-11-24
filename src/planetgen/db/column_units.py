@@ -669,7 +669,7 @@ TABLES = {
         "flag": ("window_capped", "focusing_radius_used", "borderline", "already_overlapping", "numeric_warning"),
     },
     "phenomenon_scatter": {
-        "id": ("id",),
+        "id": ("id", "cluster_id"),
         "index": ("shell_index", "band_index", "wedge_index"),
         "mpc": ("position_x_mpc", "position_y_mpc", "position_z_mpc"),
         "key": ("cell_key",),
