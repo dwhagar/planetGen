@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4773+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The young-star system types now name the young stars of the satellite galaxies as hosts, so a Magellanic cell has them at the Cloud's own young share and a dwarf without young stars has none.
+
+### Changed
+- GEN.534: the system-type registry (`generation/phenomena/system_types.py`) named only the disk's young, intermediate and old populations as hosts of the types the age gates, so `satellite_young` (and its intermediate and old twins) appeared in no row. Each type that names a disk population now names its satellite twin too (the satellite's stars of the same ages: GEN.526); the generator already draws a type by the star's age, so the types a Cloud or dwarf draws are unchanged. The weight is the profile's own mix, which carries the satellite's young share from its star formation history (the Large Cloud's 1.4%, the Fornax dwarf's none), and nothing is typed in. A test pins the twin rule, the Cloud's host share against its young share, a dwarf's none, and that the young stars the Cloud draws fall inside the young gate.
+
 ## [8.0.4772+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The resume tests of the galaxy run build planet-less systems, so each case takes seconds, not a quarter of an hour.
