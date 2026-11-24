@@ -54595,7 +54595,7 @@
             ],
             [
               "Evidence",
-              "[R3181] section 2, READ"
+              "[R3181] section 2, READ; GEN.1167 kept it over [R0319, R1578, R2598]: against the halos of 110 measured spirals [R5352] its median halo is 0.09 dex off below 1e11 solar masses of stars (0.09 for [R2598], 0.11 for [R0319] and 0.17 for [R1578]), tier T1 stays"
             ]
           ],
           "id": "HF3",
@@ -56479,7 +56479,7 @@
           "fields": [
             [
               "What it is",
-              "open_clusters._disk_maximum_masses: each disc ring reads its gas from the last Gy of the one-zone history (disk_history.gas_now, 4.3 solar masses per pc2 at 8 kpc for the Milky Way shape against the measured 13), the galaxy's own rotation curve and its slope (galaxy.potential, GEN.339) for kappa, the cell's cluster formation efficiency as the bound share and the gas dispersion of CMX7; the cap holds each cell's initial masses and sets its count"
+              "open_clusters._disk_maximum_masses: each disc ring reads its gas from the last Gy of the one-zone history (disk_history.gas_now, 9.9 solar masses per pc2 at 8 kpc for the Milky Way shape after GEN.1202 (9.5 before) against the measured 11.9 +/- 1.6, with the disc's own coefficient share, row GI4), the galaxy's own rotation curve and its slope (galaxy.potential, GEN.339) for kappa, the cell's cluster formation efficiency as the bound share and the gas dispersion of CMX7; the cap holds each cell's initial masses and sets its count"
             ],
             [
               "The range it moves in",
@@ -56491,7 +56491,7 @@
             ],
             [
               "What would show it wrong",
-              "the heaviest generated cluster at 4 to 10 kpc far from the observed 1e4 to 4e4 (it is 1e3 to 4e3 for the Milky Way shape, a third of a dex to a dex under)"
+              "the heaviest generated cluster at 4 to 10 kpc far from the observed 1e4 to 4e4 (the cap is 1.7e3 at 10 kpc, 3.7e3 at 8 kpc, 6.5e3 at 6 kpc and 7.6e3 at 4 kpc for the Milky Way shape, a third of a dex to a dex under; the gas at the measured profile was the thing the row waited for, and it is now read, so what is left is the relation's own result)"
             ],
             [
               "What replaces it",
@@ -56510,7 +56510,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "open_clusters._disk_maximum_masses: each disc ring reads its gas from the last Gy of the one-zone history (disk_history.gas_now, 4.3 solar masses per pc2 at 8 kpc for the Milky Way shape against the measured 13), the galaxy's own rotation curve and its slope (galaxy.potential, GEN.339) for kappa, the cell's cluster formation efficiency as the bound share and the gas dispersion of CMX7; the cap holds each cell's initial masses and sets its count"
+          "what": "open_clusters._disk_maximum_masses: each disc ring reads its gas from the last Gy of the one-zone history (disk_history.gas_now, 9.9 solar masses per pc2 at 8 kpc for the Milky Way shape after GEN.1202 (9.5 before) against the measured 11.9 +/- 1.6, with the disc's own coefficient share, row GI4), the galaxy's own rotation curve and its slope (galaxy.potential, GEN.339) for kappa, the cell's cluster formation efficiency as the bound share and the gas dispersion of CMX7; the cap holds each cell's initial masses and sets its count"
         }
       ],
       "slug": "6-145-stand-ins-of-the-cluster-maximum-mass-and-cloud-shock-disruption-of-the-central-ring",
@@ -73695,6 +73695,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "tuning.DISK_INFALL_MASS_TERM_PER_GY 0.4 with DISK_INFALL_REFERENCE_SPEED_KMS 220 and DISK_INFALL_REFERENCE_MASS_SOLAR 5e10: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per gigayear, V = 220 (M / 5e10)^(1/3) km/s ([R5121]: equation 21 as read from the text, [R5122]: the rising, flat and falling shapes)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.DISK_LAW_COEFFICIENT_SHARE 0.95: the thin disk's rings use 0.95 of the Schmidt-Kennicutt coefficient of [R2321] ((2.5 +/- 0.7)e-4, so 28% either way), because the Milky Way sits below the plain law at the Sun's radius; the gas at 8 kpc goes from 10.26 to 10.7 solar masses per pc2 (the depletion time 3.36 to 3.43 Gy, the present rate over the mean 0.453 to 0.461)"
+            ],
+            [
+              "The range it moves in",
+              "0.72 to 1.0 (the coefficient's own range); under 0.9 the central ring's heaviest cluster reaches the 1e5 ceiling (9.7e4 at 0.95, 8.2e4 at 1.0), and past 0.78 the present rate leaves its measured range"
+            ],
+            [
+              "Where it holds",
+              "spiral discs of the generator; the satellites keep the plain coefficient"
+            ],
+            [
+              "What would show it wrong",
+              "a measured gas profile of the Milky Way's disc that is well under 10 or well over 13 solar masses per pc2 at 8 kpc, or a present rate or depletion time of the disc that the share pushes outside 1.65 +/- 0.19 a year or 1.0 to 4.2 Gy"
+            ],
+            [
+              "What replaces it",
+              "the gas profile read from the disc of [R3002: Table 2] and the law's own scatter by radius"
+            ],
+            [
+              "Evidence",
+              "test_disk_history::test_the_disk_law_coefficient_share_puts_the_local_gas_inside_the_measured_range"
+            ]
+          ],
+          "id": "GI4",
+          "key": "6.124a:GI4",
+          "kind": "P",
+          "slug": "6-124a-gi4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.DISK_LAW_COEFFICIENT_SHARE 0.95: the thin disk's rings use 0.95 of the Schmidt-Kennicutt coefficient of [R2321] ((2.5 +/- 0.7)e-4, so 28% either way), because the Milky Way sits below the plain law at the Sun's radius; the gas at 8 kpc goes from 10.26 to 10.7 solar masses per pc2 (the depletion time 3.36 to 3.43 Gy, the present rate over the mean 0.453 to 0.461)"
         }
       ],
       "slug": "6-124a-stand-ins-of-the-disk-infall-of-the-thin-disk-gen-1230-gen-1242",
@@ -78567,6 +78605,128 @@
       ],
       "slug": "6-326-stand-ins-of-what-a-mass-extinction-does-to-the-animals-and-the-civilization-gen-1746-slice-4",
       "title": "Stand-ins of what a mass extinction does to the animals and the civilization (GEN.1746 slice 4)"
+    },
+    {
+      "key": "6.327",
+      "number": "6.327",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_coma.ACTIVE_AREA_FRACTION_RANGE (0.003, 1.0): the share of a nucleus surface that sublimates, drawn log-uniform per comet"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 1"
+            ],
+            [
+              "Where it holds",
+              "an active comet"
+            ],
+            [
+              "What would show it wrong",
+              "a measured active fraction outside 0.3 percent to the whole surface for a nucleus whose production and size are both known"
+            ],
+            [
+              "What replaces it",
+              "a measured active-area census of nuclei of comets of other stars"
+            ],
+            [
+              "Evidence",
+              "the observed active fractions of the Solar System comets, from a few tenths of a percent (the smallest, large nuclei) to a body that is nearly all active (small, hyperactive nuclei); the range is the widest of the observed ones, tuned so the water production of a sample sits inside the measured 5.1e26 to 1.41e31 molecules per second"
+            ]
+          ],
+          "id": "CZ1",
+          "key": "6.327:CZ1",
+          "kind": "P",
+          "slug": "6-327-cz1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L2",
+          "unread": null,
+          "what": "comet_coma.ACTIVE_AREA_FRACTION_RANGE (0.003, 1.0): the share of a nucleus surface that sublimates, drawn log-uniform per comet"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_coma.OUTFLOW_KMS_1AU_RANGE (0.4, 1.0) km/s: the speed of the gas at 1 AU lit distance, drawn log-uniform, falling as the inverse square root of the lit distance"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 1.2 km/s"
+            ],
+            [
+              "Where it holds",
+              "an active comet"
+            ],
+            [
+              "What would show it wrong",
+              "a measured expansion speed of a coma at 1 AU outside 0.3 to 1.2 km/s"
+            ],
+            [
+              "What replaces it",
+              "a measured expansion speed against lit distance for comets of other stars"
+            ],
+            [
+              "Evidence",
+              "the radio and ultraviolet line widths of Solar System comae (about 0.5 to 1 km/s at 1 AU, falling with distance); the form is the energy-limited expansion of a gas that the light heats"
+            ]
+          ],
+          "id": "CZ2",
+          "key": "6.327:CZ2",
+          "kind": "P",
+          "slug": "6-327-cz2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "comet_coma.OUTFLOW_KMS_1AU_RANGE (0.4, 1.0) km/s: the speed of the gas at 1 AU lit distance, drawn log-uniform, falling as the inverse square root of the lit distance"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "comet_coma.NUCLEUS_ALBEDO_RANGE (0.02, 0.10): the Bond albedo of a nucleus, drawn uniform per comet"
+            ],
+            [
+              "The range it moves in",
+              "0.02 to 0.10"
+            ],
+            [
+              "Where it holds",
+              "an active comet"
+            ],
+            [
+              "What would show it wrong",
+              "a measured nucleus albedo outside 0.02 to 0.10"
+            ],
+            [
+              "What replaces it",
+              "a measured albedo census of nuclei"
+            ],
+            [
+              "Evidence",
+              "the measured geometric albedos of comet nuclei (0.02 to 0.06, the darkest bodies imaged) with the Bond albedo some range wider; nudged inside the uncertainty"
+            ]
+          ],
+          "id": "CZ3",
+          "key": "6.327:CZ3",
+          "kind": "P",
+          "slug": "6-327-cz3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "comet_coma.NUCLEUS_ALBEDO_RANGE (0.02, 0.10): the Bond albedo of a nucleus, drawn uniform per comet"
+        }
+      ],
+      "slug": "6-327-stand-ins-of-a-comet-s-coma-gen-455",
+      "title": "Stand-ins of a comet's coma (GEN.455)"
     },
     {
       "key": "6.329",

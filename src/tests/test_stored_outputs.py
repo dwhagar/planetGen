@@ -163,11 +163,13 @@ KIND_HOMES = {
     },
     "comets": {
         "composition": "`comet_composition`, the child rows of the comet",
+        "coma_species": "`comet_coma`, the child rows of the comet (GEN.455)",
         "name_given": NAME_GIVEN,
     },
     "rogue planets": {"galactic_orbital_speed_kms": DERIVED_SPEED, "name_given": NAME_GIVEN},
     "interstellar comets": {
         "composition": "`interstellar_comet_composition`, the child rows of the comet",
+        "coma_species": "`interstellar_comet_coma`, the child rows of the comet (GEN.455)",
         "galactic_orbital_speed_kms": DERIVED_SPEED,
         "name_given": NAME_GIVEN,
     },
