@@ -3016,6 +3016,12 @@ export function createStageView(host) {
       return true;
     }
     if (enteredSystem || !display || !resolved) return false;
+    // MAP.257: a cell nothing was generated in, under the camera, that holds objects opens by the wheel as a charted sector does, by MAP.162's open path.
+    const bare = unchartedUnderCamera();
+    if (bare) {
+      enterSector(bare, null, { push: true, fly: false });
+      return true;
+    }
     if (!entered && ambientShown() && ambientShare >= 0.999) {
       // Right up to a sector whose scene is whole: it opens where the camera is, and the next
       // tick can go on in to a star (MAP.152).
@@ -3023,6 +3029,19 @@ export function createStageView(host) {
       return true;
     }
     return false;
+  }
+
+  // MAP.257: the cell under the camera's middle when nothing was generated in it and the server has not said it holds nothing: the block
+  // `enterSector` opens as "Uncharted" (the scene of `host.fetchUnchartedScene`, MAP.162). Null for a charted cell (a record, or one of the
+  // near read), for a view whose near read has not come yet (the charted sectors round the eye are not known), and with nothing to open.
+  function unchartedUnderCamera() {
+    if (pinned || entered || enteredSystem || !view || !host.fetchUnchartedScene) return null;
+    const at = S.sectorAtPoint(view.target, edgePc);
+    if (!at) return null;
+    const key = cellKey(at);
+    if (unchartedNone.has(key) || nearRecords.has(key) || sectorRecord(at)) return null;
+    if (!(display && resolved && isSectorView(resolved)) && !nearRead) return null;
+    return { m: 1, shell: at.shell, band: at.band, wedge: at.wedge, bounds: P.sectorBounds(at.shell, at.band, at.wedge, edgePc) };
   }
 
   // The star of the open sector nearest `point` (parsecs): {entry, distance}, or null.
