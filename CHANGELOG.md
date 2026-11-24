@@ -2,6 +2,42 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4754+db274.gen150.api14] - 2026-11-23
+
+**Headline:** The cache warm-up says where its first seconds go: python's start, opening its record, and the question whether the galaxy is empty.
+
+### Fixed
+- OPS.300: both warm-up parts of Boss's update at 6:05 PM EST 11-23 took about 64 s to say "galaxy is empty, nothing to warm up". Each now prints a line first with the process's age when the warm-up began, the time to open its record and the time the empty check took, in clock words, so the next update shows which of them is the minute.
+
+generation-output: unchanged
+
+## [8.0.4753+db274.gen150.api14] - 2026-11-23
+
+**Headline:** When the site is slow to answer after the update's reload, the update log now shows what the site's processes and Apache's error log say.
+
+### Fixed
+- OPS.299: after the reload the health check got no answer for about 60 s (Boss's update at 6:05 PM EST 11-23) and the log could not say why. About 25 s in, and when it gives up, the update now prints the site's processes (age, processor time, memory) and the last lines of Apache's error log, and an answer that came late says how late. The cause is not yet known; the next slow start names it.
+
+generation-output: unchanged
+
+## [8.0.4752+db274.gen150.api14] - 2026-11-23
+
+**Headline:** An update whose pull changed update.sh now runs the new script, not the old one it had already opened.
+
+### Fixed
+- OPS.301: bash keeps running the copy of `update.sh` it opened, so a pull that changed the script left the whole update on the old one (Boss's update at 6:05 PM EST 11-23 ran the math check that OPS.286 had taken out, and printed "of 9" stages for an 8-stage script). Right after the pull, `update.sh` now (checksum by `git hash-object`, which macOS has too) runs itself again from its start when it changed, under the same process id so the update lock stays his, and tells the second run the guard the first took (nothing is asked or reset twice). The update that first brings this still runs the old script; the one after it is the first to use it.
+
+generation-output: unchanged
+
+## [8.0.4751+db274.gen150.api14] - 2026-11-23
+
+**Headline:** A command the update runs (the cache warm-up, the math check) keeps the supervisor it asked for, so it no longer waits a minute and fails.
+
+### Fixed
+- OPS.298: the supervisor ended itself after one turn whenever an update was running, even when the update's own command had started it. `check-math` and `warm` inside `update.sh` then found no supervisor for a minute and the math check stopped with "no supervisor has been alive for 1m". The supervisor now stops only for an update it is not part of.
+
+generation-output: unchanged
+
 ## [8.0.4750+db274.gen150.api14] - 2026-11-23
 
 **Headline:** The tests of the adjusted course place a field that is still a field, so the course bends around it again.

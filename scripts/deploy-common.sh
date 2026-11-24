@@ -629,19 +629,27 @@ wait_for_health() {
     # The reload has just restarted the workers: they get HEALTH_SETTLE_SECONDS (default 10) to start before the first probe.
     log_info "Giving the workers ${HEALTH_SETTLE_SECONDS:-10} seconds to start, then asking $1 (${3:-its setting}) for /api/health (up to ${HEALTH_WAIT_SECONDS:-90} seconds):"
     sleep "${HEALTH_SETTLE_SECONDS:-10}"
-    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-90} )) reply code body rc why last_said=-100 last_why=""
+    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-90} )) reply code body rc why last_said=-100 last_why="" started=$SECONDS noted=0
     while :; do
         rc=0
         reply="$(curl -s --max-time 5 -w '\n%{http_code}' "$1" 2>/dev/null)" || rc=$?
         code="${reply##*$'\n'}"
         body="${reply%$'\n'*}"
         if [[ "$code" =~ ^[23] ]]; then
+            if (( SECONDS - started >= ${HEALTH_SLOW_NOTE_SECONDS:-25} )); then
+                log_info "  the site answered $(( SECONDS - started )) s after the first probe (the reload and the settling time came before it); a start that slow is looked at in the lines above."
+            fi
             health_maintenance_note "$body"
             return 0
         fi
         why="HTTP ${code:-000}"
         [[ "${code:-000}" == 000 ]] && why+=": $(curl_failure_words "$rc")"
+        if (( SECONDS - started >= ${HEALTH_SLOW_NOTE_SECONDS:-25} && ! noted )); then
+            noted=1
+            health_slow_note
+        fi
         if (( SECONDS >= end )); then
+            (( noted )) || health_slow_note
             local bare_note=""
             [[ "${code:-000}" == 000 ]] && bare_note=" (no HTTP answer at all: $(curl_failure_words "$rc"))"
             log_warning "the health check of $2 failed: $1 (${3:-its setting}) answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-90} seconds after the reload.$(health_maintenance_note "$body" brief)"
@@ -655,6 +663,23 @@ wait_for_health() {
         fi
         sleep 1
     done
+}
+
+# OPS.299: what the update can see about a site that does not answer yet: the processes Apache runs the site in (age, processor time
+# used, memory: a worker still importing shows its processor time growing) and the last lines of Apache's error log (an import that
+# failed or a worker that was killed says so there). Printed once about 25 s after the first probe and again when the check gives up, so the
+# log names where a slow start spends its minute without anybody pulling logs. Never fails the update.
+health_slow_note() {
+    local log_file line
+    log_info "  the site's processes: $(log_mask "$(ps -eo pid,etimes,time,rss,args 2>/dev/null | grep -E 'wsgi|planetgen-api|gunicorn' | grep -v grep | head -n 4 | sed 's/  */ /g' | tr '\n' ';')")"
+    for log_file in ${HEALTH_ERROR_LOGS:-/var/log/apache2/error.log /var/log/httpd/error_log}; do
+        [[ -r "$log_file" ]] || continue
+        while IFS= read -r line; do
+            log_info "  Apache's error log: $(log_mask "${line:0:300}")"
+        done < <(tail -n 6 "$log_file" 2>/dev/null)
+        break
+    done
+    return 0
 }
 
 # Says whether a /api/health reply reports maintenance mode, and why; the reply is $1. With a second argument it only
@@ -835,8 +860,29 @@ check_mod_wsgi_python() {
 # else from starting; `finish_update_guard` (update.sh's EXIT trap) opens the
 # site again after a good update and leaves it closed, saying why, after a
 # failed one. UPDATE_STEP names the step under way for that message.
-UPDATE_GUARD_HELD=0
+UPDATE_GUARD_HELD="${PLANETGEN_UPDATE_GUARD_HELD:-0}"      # OPS.301: a script run again after its own pull inherits the guard it took
 UPDATE_STEP="starting"
+
+# OPS.301: bash reads update.sh from the copy it opened, so a pull that changes update.sh left the update running the OLD script to the end
+# (Boss's update at 6:05 PM EST 11-23 ran the math check that OPS.286 had taken out). Called right after the pull with the script's path, its
+# checksum from before the pull and the arguments: when the pull changed the script, it is run again from its start under the same process
+# id (`exec`), so the update's lock, which names that id, stays valid, and the guard the first run took is told to the second
+# (UPDATE_GUARD_HELD, RESET_JOBS_DONE and KILL_ALL_DONE go along, so nothing is asked or done twice). Once only: the second run never
+# runs again. It cannot help the update that first brings this function: that one still runs the old script.
+script_sum() {      # git is required here and is the tool the pull uses; sha256sum is not on every system (macOS)
+    git hash-object "$1"
+}
+
+reexec_when_script_changed() {
+    local script="$1" before="$2"
+    shift 2
+    if [[ "${PLANETGEN_UPDATE_REEXEC:-0}" == 1 || "$(script_sum "$script")" == "$before" ]]; then
+        return 0
+    fi
+    log_info "update.sh was changed by the pull: running the new one from its start (same update, same lock)."
+    export PLANETGEN_UPDATE_REEXEC=1 PLANETGEN_UPDATE_GUARD_HELD="$UPDATE_GUARD_HELD" RESET_JOBS_DONE KILL_ALL_DONE
+    exec bash "$script" "$@"
+}
 
 update_guard() {
     (cd / && PYTHONPATH="$SCRIPT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" \
