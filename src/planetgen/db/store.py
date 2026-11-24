@@ -101,7 +101,8 @@ from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
     CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at, sector_position_pc,
 )
-from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word, wide_pair_star_words
+from planetgen.names import tree_names
+from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.uniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
@@ -10754,7 +10755,6 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         star.db_id = primary_row["id"]
         secondary_star.db_id = secondary_row["id"]
         system.stars = [star, secondary_star]
-        system.star_words = wide_pair_star_words(row["name"], star.name, secondary_star.name)    # DB.125: not a column, the two star names hold them
     else:
         system.primary_star = star
         system.stars = [star]
@@ -10772,6 +10772,9 @@ def load_star_system(conn, star_system_id) -> StarSystem:
             conn.execute("SELECT parent_node_id, slot FROM stars WHERE star_system_id = ? AND role = 'single'",
                          (star_system_id,)).fetchone(),)
         system.star_slots = tuple((place["parent_node_id"], place["slot"]) for place in places)
+    name_nodes, name_members = system._name_inputs()
+    # DB.125, GEN.312: the branch words are not a column; the names of the stars under the wide splits hold them
+    system.star_words = tree_names.words_from_names(row["name"], name_nodes, name_members, [star.name for star in system.stars] + [None] * len(system.dark_members)) or None
     system.hosts = [Host(star, PRIMARY)]
     system.build_ledger()    # the tree is known: the hosts are made from it (GEN.1664) before the bodies are put in them
 
