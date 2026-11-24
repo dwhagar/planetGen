@@ -205,3 +205,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | column | binary_apoapsis_km | GEN.640 | the pair is read from its node since slice a, so no reader is left; slice d drops the `star_systems.binary_*` columns |
 | column | binary_eccentricity | GEN.640 | as `binary_apoapsis_km`: dropped by slice d |
 | column | binary_periapsis_km | GEN.640 | as `binary_apoapsis_km`: dropped by slice d |
+| function | planetgen.physics.comet_coma.coma_class | MAP.283 | which carbon oxide leaves the nucleus faster, CO2-dominated or CO-dominated, read off the coma rows (GEN.1227); the comet painter of MAP.283 colours the coma and its ion tail from it (a CO-dominated coma shows the blue CO+ tail), the tests read it until then |
+| function | planetgen.physics.comet_coma.dominant_volatiles | MAP.283 | the gases after water that leave the nucleus fastest, read off the coma rows (GEN.1227); the comet painter of MAP.283 names the species behind a comet's colours from it, the tests read it until then |
