@@ -180,6 +180,35 @@ def test_binary_companions_share_the_primarys_age_and_are_dimmer():
         assert math.isclose(primary.age, secondary.age, rel_tol=1e-9)
 
 
+def _a_system_with_bodies():
+    for _ in range(60):
+        system = StarSystem(system_config=SystemConfig())
+        if system.binary_type is None and system.primary.orbiters and any(b.body_type == "a" for b in system.primary.orbiters) \
+                and any(b.body_type != "a" for b in system.primary.orbiters):
+            return system
+    pytest.skip("no system with both a planet and a belt in 60 draws")
+
+
+def test_a_star_that_holds_its_disk_holds_no_planet_and_no_belt_until_the_disk_is_gone_unless_a_class_is_asked_for():
+    """GEN.1552: the fixed 10 Myr cut is the star's own disk: while `disk_kind` is class 0, I or II there is nothing else in the system, and once it is gone the bodies stand."""
+    system = _a_system_with_bodies()
+    star, standing = system.star, list(system.primary.orbiters)
+    for kind in ("class-0", "class-i", "class-ii"):
+        star.disk_kind = kind
+        bodies = list(standing)
+        system._apply_star_history(bodies, star)
+        assert bodies == [], kind
+    star.disk_kind = None
+    bodies = list(standing)
+    system._apply_star_history(bodies, star)
+    assert bodies == standing                                    # `standing` already passed the engulfment rule
+    star.disk_kind = "class-ii"
+    system.system_config.FORCE_CLASS = "M"                       # asked for: the request overrides the disk
+    bodies = list(standing)
+    system._apply_star_history(bodies, star)
+    assert bodies == standing
+
+
 def test_planets_respect_their_stars_age_and_history():
     for _ in range(150):      # a whole system with moons, the air and the heat costs about 4 s, so 400 of them passed 900 s
         system = StarSystem(system_config=SystemConfig())
@@ -191,8 +220,7 @@ def test_planets_respect_their_stars_age_and_history():
             for body in bodies:
                 inner_edge = body.lower_limit if body.body_type == "a" else body.distance
                 assert inner_edge >= engulfed_au
-                if star.age < prog_c.PLANET_MIN_STAR_AGE_GY:
-                    assert body.body_type == "a"
+                assert not system._holds_its_disk(star)      # GEN.1552: a star that still holds its own disk holds no body, planet or belt
                 if star.age < prog_c.LIFE_MIN_STAR_AGE_GY and body.body_type != "a":
                     # the class letter is derived from the conditions and says nothing of life (GEN.915); a star this young has none
                     assert body.life_class is None

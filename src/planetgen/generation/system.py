@@ -1521,7 +1521,7 @@ class StarSystem:
             return
         with log.timed_phase("trojan planets"):
             for star, bodies in ((host.star, host.orbiters) for host in self.hosts):
-                if self._too_young_for_planets(star):
+                if self._holds_its_disk(star):
                     continue
                 made = trojan_planet.build(self, star, bodies)
                 if made:
@@ -1608,7 +1608,7 @@ class StarSystem:
             return
         with log.timed_phase("belt planets"):
             for star, bodies in self.hosts:
-                if self._too_young_for_planets(star):      # a star under 10 Myr keeps its belts and holds no planets (`_apply_star_history`); a round member of its debris is not one either
+                if self._holds_its_disk(star):      # a star that still holds its disk holds no bodies (`_apply_star_history`); a round member of its debris is not one either
                     continue
                 promoted = belt_planets.promote(self, star, bodies)
                 if promoted:
@@ -1853,15 +1853,19 @@ class StarSystem:
         letter = self.system_config.FORCE_CLASS
         return not letter or any(class_outcome.has_class(planet, letter) for planet in self.primary.orbiters)
 
-    def _too_young_for_planets(self, star):
-        """Whether `star` is younger than `tuning.PLANET_MIN_STAR_AGE_GY`, so it holds a debris disk (belts) and no planets, unless the config asks for a class or lists its slots."""
-        return star.age is not None and star.age < tuning.PLANET_MIN_STAR_AGE_GY and not self._explicit_request()
+    def _holds_its_disk(self, star):
+        """
+        Whether `star` still holds its own protoplanetary disk (GEN.1552: `disk_kind` of class 0, I or II, which the star was given by its age and its own dispersal time, `pre_main_sequence.dispersal_yr`), so it holds no
+        bodies yet, planets or belts: they stand once the disk is gone, and the belts are the debris that follows. A config that asks for a class or lists its slots overrides it. A close pair's disk is its primary's.
+        """
+        holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star
+        return getattr(holder, "disk_kind", None) in pre_main_sequence.DISK_KINDS and not self._explicit_request()
 
     def _apply_star_history(self, planets, star):
         """
         Removes, in place, the bodies `star`'s age and history rule out: a
-        star younger than `PLANET_MIN_STAR_AGE_GY` keeps its belts (a debris
-        disk) but no planets yet, and every body whose inner edge lies
+        star that still holds its own disk (`_holds_its_disk`, GEN.1552) has no
+        planets and no belts yet, and every body whose inner edge lies
         inside `_engulfment_radius_au` is gone (a belt that reaches past it keeps the part outside, `remnant_orbits.engulf_belt`). An explicitly required
         habitable world or `SLOTS` list overrides the age rule: a random
         star is never that young when a habitable world is required
@@ -1870,13 +1874,13 @@ class StarSystem:
         """
         explicit_request = self._explicit_request()
         engulfed_au = self._engulfment_radius_au(star, explicit_request)
-        too_young = self._too_young_for_planets(star)
+        holds_disk = self._holds_its_disk(star)
         kept = []
         for body in planets:
             if body.body_type == 'a':
                 remnant_orbits.engulf_belt(body, engulfed_au)    # GEN.1072: the part of a belt outside the envelope's reach survives
             inner_edge = body.lower_limit if body.body_type == 'a' else body.distance
-            if inner_edge < engulfed_au or (too_young and body.body_type != 'a'):
+            if inner_edge < engulfed_au or holds_disk:
                 continue
             kept.append(body)
         if len(kept) != len(planets):
