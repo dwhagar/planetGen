@@ -1808,7 +1808,7 @@ CORE_RING_TOOMRE_Q = 1.0
 """float: The Toomre parameter the gas of the ring settles at (GEN.1846): a ring that holds more gas than `Q = 1` forms stars and loses it faster than the bar supplies it, so
 the ring holds the gas at marginal stability, `Sigma = kappa sigma / (pi G Q)`, or what the bar has brought in over the ring's age, whichever is less. [R3720] find the Milky Way's
 central molecular zone at Q = 0.94 (their Sec. 4.1, Sigma 1e3, kappa 2.61, sigma 5 km/s); the rings of [R5358] hold a few 1e8 solar masses of gas whatever their stars, which `Q = 1`
-gives (1.3e8 in a 540 pc ring at 5 km/s) (row NR5, tier T2, tweak L1)."""
+gives (1.3e8 in a 540 pc ring at 5 km/s). The dispersion is the ring's own, drawn with the galaxy's seed (GEN.1847, row RG1; row NR5, tier T2, tweak L1)."""
 
 # The most massive cluster a ring can form and the clouds that disrupt it (GEN.1195, `physics/cluster_maximum_mass.py`,
 # `physics/open_cluster_evolution.cloud_shock_mass_lost_sol`). The maximum is [R3720] (MNRAS 469,
@@ -1817,10 +1817,8 @@ gives (1.3e8 in a 540 pc ring at 5 km/s) (row NR5, tier T2, tweak L1)."""
 CLUSTER_MAX_MASS_EFFICIENCY = 0.1
 """float: The star formation efficiency of a collapsing cloud (`eps`, Eq 10; [R2530] give 0.1 to 0.3 for embedded
 clusters, 0.03 to 0.06 for nearby clouds; the paper takes 0.1 and a factor of three either way)."""
-CORE_RING_GAS_DISPERSION_KMS = 5.0
 DISK_GAS_DISPERSION_KMS = 10.0
-"""float: The one-dimensional velocity dispersion of the gas of the central ring (5 km/s, [R1911]) and of a disk
-(10 km/s), the values [R3720] take for the Milky Way (Section 4.1); it sets
+"""float: The one-dimensional velocity dispersion of the gas of a disk (10 km/s), the value [R3720] take for the Milky Way (Section 4.1; the central ring's is drawn by the galaxy's seed, `structure_draw.draw_nuclear_ring`, GEN.1847); it sets
 the Toomre parameter `Q = kappa sigma / (pi G Sigma_g)` (Eq 5) [stand-in: one galaxy's values for every galaxy]."""
 CLUSTER_FEEDBACK_FIRST_SUPERNOVA_MYR = 3.0
 CLUSTER_FEEDBACK_ENERGY_RATE_CM2_S3 = 0.16
