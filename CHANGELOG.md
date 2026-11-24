@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4760+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The angles the region and window walks take for a small ball far from the core keep their digits, so a ball of a few parsecs at 262 kpc no longer loses cells to rounding.
+
+### Fixed
+
+- The walks that list the cells a ball reaches (`galaxy/region.py` through `spherical.sphere_shells` and `band_window`, and `window.cells_in_ball`) took each angle as the arccos of a cosine; below 1e-3 rad that cosine is within a few ulps of 1 and keeps hardly any digits (the angle of a 3 pc ball at 262 kpc was off by 4e-7 of itself). Below 1e-3 rad they now use the haversine form (GEN.376); larger angles are unchanged, and the cells a walk lists are still tested by distance, so no stored or generated value changes.
+
+generation-output: unchanged
+
+## [8.0.4759+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The composition design note names the Bern population synthesis, not a refractory paper, as the source of water against formation distance.
+
+### Changed
+
+- In `docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md` the research group R2 (volatile delivery versus formation distance) listed [R4335] as its data; that paper is about refractory condensation and gives no water against distance. It now names the Bern population of [R0600] and [R0601, R1268], which is the data of GEN.802, and says what [R4335] is for. Documentation only, no generated value changes (GEN.515, row R2).
+
+## [8.0.4758+db274.gen150.api14] - 2026-11-24
+
+**Headline:** A test now pins the pigment band times the star's spectrum on the life classes' energy term (GEN.878).
+
+### Added
+- **The closing evidence for GEN.878.** `tests/test_life_classes.py::test_the_visible_pigment_is_penalised_under_a_red_dwarf_and_the_near_infrared_one_is_not_beaten_by_it` checks that under a 3,000 K star Chlorophyll's (class 1a) energy term falls against the Sun's, that the near-infrared class (2) overtakes it, and that under the Sun the visible pigment is the better. generation-output: unchanged (a test only; the code already did this).
+
 ## [8.0.4757+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The scene-position test no longer fails when a drawn system has planets round the inner pair of a triple star.

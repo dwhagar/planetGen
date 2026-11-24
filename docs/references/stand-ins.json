@@ -927,7 +927,7 @@
           "fields": [
             [
               "How it is filled",
-              "1 Core population: planet minus star log10(Fe/Mg) is N(0, 0.05 dex) (bulk_draw.IRON_SCATTER_DEX, GEN.512): an upper limit, because the samples' scatter is measurement-dominated. Re-read by Sources 1 (2026-10-30, GEN.775) on the 20 planets of [R0541] ([R0541: Tables 1 and 2]; READ): the planet minus star equivalent core mass fraction has a maximum-likelihood intrinsic scatter of 0.12 in CMF, about 0.2 dex in Fe/Mg, but the planet CMFs are minimum values (a volatile layer lowers them), so the low side is heavier than the high: 4 planets under -1 sigma, 2 over +1 sigma, none over +2 sigma, 14 of 20 within 1 sigma by this reading (15 of 20 in the paper). 2 Iron-enriched branch with weight 0.01 (IRON_ENRICHED_WEIGHT) and CMF uniform 0.5 to 0.8, tuned to 1 of 21 planets 2 sigma iron-rich [R3546]: [R0541] finds 0 of 20 distinct super-Mercuries, the newest and a homogeneous sample, and it wins over the 5 of 22 of [R0032] (Science 374, 330, heterogeneous), whose 0.12 tail the first fill used. 3 Planet iron fraction against star iron fraction: the slope stays 1; Plotnykov's 0.94 (+1.02/-1.07) is in core mass fraction, Brinkman's 1.3 +/- 1.0 (OLS) and 5.6 +/- 1.6 (ODR) in the same variable and Adibekyan's 4.3 +/- 0.8 and 6.3 +/- 1.2 in iron fraction: all consistent with 1 within their errors or with each other's method difference."
+              "1 Core population: planet minus star log10(Fe/Mg) is N(0, 0.05 dex) (bulk_draw.IRON_SCATTER_DEX, GEN.512): an upper limit, because the samples' scatter is measurement-dominated. Re-read by Sources 1 (2026-10-30, GEN.775) on the 20 planets of [R0541] ([R0541: Tables 1 and 2]; READ): the planet minus star equivalent core mass fraction has a maximum-likelihood intrinsic scatter of 0.12 in CMF, about 0.2 dex in Fe/Mg, but the planet CMFs are minimum values (a volatile layer lowers them), so the low side is heavier than the high: 4 planets under -1 sigma, 2 over +1 sigma, none over +2 sigma, 14 of 20 within 1 sigma by this reading (15 of 20 in the paper). 2 Iron-enriched branch with weight 0.01 (IRON_ENRICHED_WEIGHT) and CMF uniform 0.5 to 0.8, tuned to 1 of 21 planets 2 sigma iron-rich [R3546]: [R0541] finds 0 of 20 distinct super-Mercuries, the newest and a homogeneous sample, and it wins over the 5 of 22 of [R0032] (Science 374, 330, heterogeneous), whose 0.12 tail the first fill used. 3 Planet iron fraction against star iron fraction: the slope stays 1; Plotnykov's 0.94 (+1.02/-1.07) is in core mass fraction, Brinkman's 1.3 +/- 1.0 (OLS) and 5.6 +/- 1.6 (ODR) in the same variable and Adibekyan's 4.3 +/- 0.8 and 6.3 +/- 1.2 in iron fraction: all consistent with 1 within their errors or with each other's method difference. 4 At 60,000 simulated planets per case (GEN.820, docs/design/composition/iron-branch-tuning.md section 5) a core spread of 0 to 0.1 dex passes both targets and 0.2 dex fails the within-1-sigma share (z -2.04), and an enriched weight of 0.23 fails it too (z -2.25): the 0.05 dex and the 0.01 weight stay."
             ],
             [
               "How it is drawn",
@@ -1447,6 +1447,36 @@
           "tweak": "L0",
           "unread": null,
           "what": "A WO star's surface is carbon 30 to 55 percent and oxygen 10 to 40 percent by mass, the rest helium: helium burning makes carbon and alpha capture turns it to oxygen, so the stage that shows oxygen lines still holds more carbon than oxygen, with oxygen well above WC's trace and carbon at or above WC's range (WC carbon 20 to 55 percent, tuning.STELLAR_WOLF_RAYET). Both ranges are taken at the one draw position, so carbon plus oxygen never passes 95 percent."
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "How it is filled",
+              "1 The coreless branch (a rocky planet with no iron core, a core mass fraction of 0) is not drawn: its share is 0, and the star-matched and iron-enriched branches of BC8 carry the whole sample. No published count exists: the samples [R0541, R3546] report outliers on the iron-rich side, and their iron-poor side sits inside the measurement scatter. The simulated sample reproduces the published within-1-sigma share to z of about -1.4 with no coreless branch at all (60,000 planets per case, GEN.820), so the data ask for none. A coreless branch would be derived from the water fraction and the oxidation state, not tuned to a count."
+            ],
+            [
+              "How it is drawn",
+              "share 0 (fixed, nothing is drawn)"
+            ],
+            [
+              "It is wrong if",
+              "a precise sample reports iron-poor rocky planets at a share above what measurement error alone gives"
+            ],
+            [
+              "The result lands as",
+              "bulk_draw.IRON_BRANCH_TABLE has no coreless row (nothing to draw)"
+            ]
+          ],
+          "id": "BC25",
+          "key": "5.2:BC25",
+          "kind": "B",
+          "slug": "5-2-bc25",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "The coreless branch (a rocky planet with no iron core, a core mass fraction of 0) is not drawn: its share is 0, and the star-matched and iron-enriched branches of BC8 carry the whole sample. No published count exists: the samples [R0541, R3546] report outliers on the iron-rich side, and their iron-poor side sits inside the measurement scatter. The simulated sample reproduces the published within-1-sigma share to z of about -1.4 with no coreless branch at all (60,000 planets per case, GEN.820), so the data ask for none. A coreless branch would be derived from the water fraction and the oxidation state, not tuned to a count."
         }
       ],
       "slug": "5-2-body-composition",

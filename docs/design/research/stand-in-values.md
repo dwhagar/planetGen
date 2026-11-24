@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2005 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2006 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1978 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1979 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,13 +52,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 231 | 22 | 12 | 1 | 0 | 266 |
 | T2 | 184 | 76 | 4 | 0 | 0 | 264 |
 | T3 | 134 | 69 | 13 | 10 | 0 | 226 |
-| T4 | 90 | 17 | 10 | 25 | 13 | 155 |
+| T4 | 91 | 17 | 10 | 25 | 13 | 156 |
 | T5 | 117 | 31 | 8 | 1 | 2 | 159 |
 | T6 | 253 | 142 | 40 | 85 | 8 | 528 |
 | T7 | 76 | 44 | 10 | 31 | 0 | 161 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1140 | 421 | 103 | 275 | 66 | 2005 |
+| All | 1141 | 421 | 103 | 275 | 66 | 2006 |
 
 ## How the labels were given
 
@@ -122,6 +122,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | BC22 | T | T4 | L3 | The kind of a ring is `dusty` below 1e12 kg, `narrow` below 3e17 kg and `broad` above (`rings.KIND_MASS_LIMITS_KG`, the middles in log mass of the gaps between Jupiter's dust at 1e7 to 1e9, Uranus's rings at about 1e16 and Saturn's 1.5e19, [R2077], recalled); the mass is the history's (`ring_origin`), capped at 1e-4 of the planet's. The mean optical depth is an output, 3 M / (4 rho r A f), for particles of radius 1 m (10 micrometres for dust) covering a share f of the annulus (1e-3 to 1e-2 for narrow rings). | a measured ring whose kind by mass differs from its observed kind | any measured exoring replaces | predicted only | - | no data |
 | BC23 | T | T4 | L3 | A broad ring beyond the snow line is 90 to 99 percent water ice ([R0970], recalled), a narrow ring 0 to 30 percent (Uranus's and Neptune's are dark, no ice seen); dust and any ring inside the snow line are rock (0). | an icy ring is seen inside the snow line, or a dark ring around a cold giant is ice-rich | spectra of exorings replace | predicted only | - | no data |
 | BC24 | T | T6 | L0 | A WO star's surface is carbon 30 to 55 percent and oxygen 10 to 40 percent by mass, the rest helium: helium burning makes carbon and alpha capture turns it to oxygen, so the stage that shows oxygen lines still holds more carbon than oxygen, with oxygen well above WC's trace and carbon at or above WC's range (WC carbon 20 to 55 percent, `tuning.STELLAR_WOLF_RAYET`). Both ranges are taken at the one draw position, so carbon plus oxygen never passes 95 percent. | a measured WO star has more oxygen than carbon, or a surface helium share under 5 percent | surface mass fractions of the star's composition record (`stellar_composition.wolf_rayet_surface`) | predicted only | - | - |
+| BC25 | B | T4 | L0 | The coreless branch (a rocky planet with no iron core, a core mass fraction of 0) is not drawn: its share is 0, and the star-matched and iron-enriched branches of BC8 carry the whole sample. No published count exists: the samples [R0541, R3546] report outliers on the iron-rich side, and their iron-poor side sits inside the measurement scatter. The simulated sample reproduces the published within-1-sigma share to z of about -1.4 with no coreless branch at all (60,000 planets per case, GEN.820), so the data ask for none. A coreless branch would be derived from the water fraction and the oxidation state, not tuned to a count. | a precise sample reports iron-poor rocky planets at a share above what measurement error alone gives | `bulk_draw.IRON_BRANCH_TABLE` has no coreless row (nothing to draw) | predicted only | - | - |
 
 ## 5.3 Atmosphere
 
