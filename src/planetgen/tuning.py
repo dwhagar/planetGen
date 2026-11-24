@@ -2737,7 +2737,7 @@ PULSAR_RATE_SCALE = 1.0
 # gives the pulsar no planets until its kind exists (the sub-stellar companion with the pair builder, GEN.555).
 PULSAR_PLANET_ORIGIN_WEIGHTS = {"disk": 25.0, "captured-giant": 25.0, "ablated-companion": 50.0}
 PULSAR_PLANET_BUILT_ORIGINS = ("disk", "captured-giant")
-PULSAR_PLANET_PREREQUISITES = {"ablated-companion": "GEN.555, the pair builder (8.4)"}
+PULSAR_PLANET_PREREQUISITES = {"ablated-companion": "the pair builder, due in version 8.4"}
 
 # The captured giant (GEN.163; the design note section 2.1, "mass 1 to 4 Jupiter masses at 20 to 50 AU", published for PSR B1620-26 b: about 2.5 +- 1 Jupiter masses at about 23 AU): one planet, mass and
 # distance log-uniform in these ranges, built only for a pulsar of a globular cluster (`phenomenon_scatter.cluster_id`).
