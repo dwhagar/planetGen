@@ -26685,6 +26685,16 @@
       "kind": "paper",
       "label": "Knigge et al. 2011",
       "title": "THE EVOLUTION OF CATACLYSMIC VARIABLES AS REVEALED BY THEIR DONOR STARS"
+    },
+    "R5357": {
+      "kind": "paper",
+      "label": "Sormani et al. 2020",
+      "title": "Jeans modelling of the Milky Way’s nuclear stellar disc"
+    },
+    "R5358": {
+      "kind": "paper",
+      "label": "Ma et al. 2018",
+      "title": "Connections between Star Cluster Populations and Their Host Galaxy Nuclear Rings"
     }
   }
 }

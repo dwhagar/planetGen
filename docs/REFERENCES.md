@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5217 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5219 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -3000,6 +3000,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 
 ### M
 
+- <a id="paper-r5358"></a>**R5358** Ma, C., de Grijs, R., & Ho, L. C. 2018, Connections between Star Cluster Populations and Their Host Galaxy Nuclear Rings, ApJ, 857, 116, doi:10.3847/1538-4357/aab6b4, arXiv:1803.01501. [paper](https://doi.org/10.3847/1538-4357/aab6b4) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-4357/aab6b4/abstract)
 - <a id="paper-r2783"></a>**R2783** Ma, S., Mao, S., Ida, S., Zhu, W., & Lin, D. N. C. 2016, Free-floating planets from core accretion theory: microlensing predictions, MNRAS, 461, L107, doi:10.1093/mnrasl/slw110, arXiv:1605.08556. [paper](https://doi.org/10.1093/mnrasl/slw110) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnrasl/slw110/abstract)
 - <a id="paper-r2784"></a>**R2784** Maas, C. & Hansen, U. 2019, Dynamics of a terrestrial magma ocean under planetary rotation: A study in spherical geometry, E&PSL, 513, 81, doi:10.1016/j.epsl.2019.02.016. [paper](https://doi.org/10.1016/j.epsl.2019.02.016) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.epsl.2019.02.016/abstract)
 - <a id="paper-r2785"></a>**R2785** Maas, Z. G., Cescutti, G., & Pilachowski, C. A. 2019, Phosphorus Abundances in the Hyades and Galactic Disk, AJ, 158, 219, doi:10.3847/1538-3881/ab4a1a. [paper](https://doi.org/10.3847/1538-3881/ab4a1a) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-3881/ab4a1a/abstract)
@@ -4462,6 +4463,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r4149"></a>**R4149** Somerville, R. S. & Bryan, G. L. 2019, Large-scale structure with cold dark matter, NatAs, 3, 1058, doi:10.1038/s41550-019-0939-0. [paper](https://doi.org/10.1038/s41550-019-0939-0) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/s41550-019-0939-0/abstract)
 - <a id="paper-r4150"></a>**R4150** Soni, V. & Rosina, M. 2018, Magnetar Crusts: Matter at $10^{15}$ Gauss, arXiv:1804.05343. [paper](https://arxiv.org/abs/1804.05343) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:1804.05343/abstract)
 - <a id="paper-r4151"></a>**R4151** Sormani, M. C., Gerhard, O., Portail, M., Vasiliev, E., & Clarke, J. 2022a, The stellar mass distribution of the Milky Way’s bar: an analytical model, MNRAS, 514, L1, doi:10.1093/mnrasl/slac046. [paper](https://doi.org/10.1093/mnrasl/slac046) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnrasl/slac046/abstract)
+- <a id="paper-r5357"></a>**R5357** Sormani, M. C., et al. 2020, Jeans modelling of the Milky Way’s nuclear stellar disc, MNRAS, 499, 7, doi:10.1093/mnras/staa2785, arXiv:2007.06577. [paper](https://doi.org/10.1093/mnras/staa2785) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/staa2785/abstract)
 - <a id="paper-r4152"></a>**R4152** Sormani, M. C., et al. 2022b, Self-consistent modelling of the Milky Way’s nuclear stellar disc, MNRAS, 512, 1857, doi:10.1093/mnras/stac639. [paper](https://doi.org/10.1093/mnras/stac639) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stac639/abstract)
 - <a id="paper-r4153"></a>**R4153** Sossi, P., Tollan, P., Badro, J., & Bower, D. 2022a, Solubility of water in peridotite liquids and the formation of steam atmospheres on rocky planets, Copernicus GmbH, doi:10.5194/egusphere-egu22-11313. [paper](https://doi.org/10.5194/egusphere-egu22-11313) · [ADS](https://ui.adsabs.harvard.edu/abs/10.5194/egusphere-egu22-11313/abstract)
 - <a id="paper-r4154"></a>**R4154** Sossi, P. A., et al. 2020, Redox state of Earth’s magma ocean and its Venus-like early atmosphere, SciA, 6, eabd1387, doi:10.1126/sciadv.abd1387. [paper](https://doi.org/10.1126/sciadv.abd1387) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1126/sciadv.abd1387/abstract)

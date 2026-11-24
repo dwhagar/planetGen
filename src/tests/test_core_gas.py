@@ -153,7 +153,11 @@ def test_the_rings_gas_is_the_inflow_over_its_residence_and_its_cluster_maximum_
     area = 2.0 * math.pi * ring.radius_pc * 2.0 * math.sqrt(2.0 * math.log(2.0)) * ring.sigma_pc
     assert ring.gas_surface_density_msun_pc2 * area == pytest.approx(ring.inflow_msun_yr * tuning.CORE_RING_GAS_RESIDENCE_MYR * 1.0e6)
     assert 2.0e7 < ring.gas_surface_density_msun_pc2 * area < 6.0e7 and 300.0 < ring.gas_surface_density_msun_pc2 < 2000.0
-    assert 5.0e3 < open_clusters._ring_maximum_mass_sol(potential.for_galaxy(shape, None), ring) < tuning.CLUSTER_MAX_MASS_CEILING_SOL
+    # GEN.1842: [R3720] footnote 9, a few 1e4 and certainly under 1e5 for the Milky Way's sample; the model's nucleus is the observed one (M(<100 pc) 3.5e8
+    # against 3.9 +- 1e8 of [R5357]), so the relation gives 9.7e4 on it where the paper's own 180 km/s at 100 pc gave 3.2e4; no ceiling cuts it.
+    assert 5.0e3 < open_clusters._ring_maximum_mass_sol(potential.for_galaxy(shape, None), ring) < 1.0e5
+    mass_100pc = potential.circular_speed_kms(potential.for_galaxy(shape, None), 100.0) ** 2 * 100.0 / 4.30091e-3
+    assert 2.9e8 < mass_100pc < 4.9e8
     assert open_clusters._ring_maximum_mass_sol(potential.for_galaxy(shape, None), core_gas.NO_RING) == tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
 
 
@@ -162,15 +166,19 @@ def test_the_rings_young_clusters_are_a_few_not_dozens_and_none_of_the_old_ones_
     Arches and the Quintuplet and no old one); with the maximum from its gas and the clouds' disruption it holds a few young
     ones and no heavy old one. The observed count is the plausibility target, not a preset."""
     shape = _shape()
-    young, old = [], []
+    young, old, heaviest = [], [], []
     for seed in range(8):
         found = open_clusters.generate_open_clusters(f"ring-count-{seed}".encode(), shape, EDGE, E1)
         ring = core_gas.core_gas(shape)
         near = [c for c in found if math.hypot(c.center_pc[0], c.center_pc[1]) < ring.radius_pc + 4.0 * ring.sigma_pc]
         young.append(sum(c.age_gy < 0.01 and c.mass_solar > 5.0e3 for c in near))
         old.append(sum(c.age_gy > 0.1 and c.mass_solar > 5.0e4 for c in near))
+        heaviest.append(max((c.mass_solar for c in near if c.age_gy < 0.01), default=0.0))
     assert np.mean(young) <= 3.0 and max(young) <= 6
     assert max(old) == 0
+    # GEN.1842: the heaviest young cluster of a ring is a sample of its mass function, not the cap: 1.1e3 to 3.0e4 over 12 seeds (median 6e3) against the Arches
+    # and the Quintuplet's 2e4 ([R3720]; the masses are [R3580]'s), so the heaviest of the seeds is inside 1e4 to 1e5.
+    assert 1.0e4 <= max(heaviest) <= 1.0e5, heaviest
 
 
 def test_the_milky_way_shapes_disk_rings_change_from_shear_to_feedback_limited_at_about_four_kiloparsecs():

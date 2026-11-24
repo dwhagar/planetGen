@@ -13,8 +13,9 @@ dispersion `sigma` of the gas (the Toomre parameter is `Q = kappa sigma / (pi G 
 
 For the Milky Way's central ring (`Sigma_g` 1e3 solar masses per pc2, a circular speed of 180 km/s at 100 pc) it gives
 3e4, against the 2e4 of the Arches and the Quintuplet. The mass goes as `Sigma_g ** 3` (a factor of two in the gas is a factor
-of eight in the mass), and the paper's uncertainty is about 0.4 dex. The ceiling of `tuning.CLUSTER_MAX_MASS_CEILING_SOL`
-is the paper's own footnote 9.
+of eight in the mass), and the paper's uncertainty is about 0.4 dex. The paper's footnote 9 (the Milky Way's sample implies a maximum of a few 1e4 and
+certainly under 1e5) is that galaxy's, not a bound on other rings (GEN.1842): nuclear rings of other galaxies hold clusters of mean log mass up to 7.1
+(17 rings in Table 3 of [R5358]), so the maximum is the relation alone and the clusters drawn are held under the mass function's own upper limit (`tuning.OPEN_CLUSTER_MASS_RANGE_SOL`).
 """
 
 import math
@@ -90,8 +91,7 @@ def maximum_cloud_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr, dispersi
 def maximum_cluster_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr, bound_share, dispersion_kms):
     """
     The most massive cluster the ring forms (Eq 10), solar masses: `eps Gamma M_GMC,max` for `bound_share` the share of
-    the new stars that are bound (`Gamma`), held under `tuning.CLUSTER_MAX_MASS_CEILING_SOL`.
+    the new stars that are bound (`Gamma`). No ceiling (GEN.1842): what is drawn is held under the mass function's upper limit.
     """
-    mass = (tuning.CLUSTER_MAX_MASS_EFFICIENCY * bound_share
+    return (tuning.CLUSTER_MAX_MASS_EFFICIENCY * bound_share
             * maximum_cloud_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms))
-    return min(mass, tuning.CLUSTER_MAX_MASS_CEILING_SOL)
