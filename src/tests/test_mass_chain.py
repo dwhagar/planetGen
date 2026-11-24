@@ -65,7 +65,7 @@ def test_the_function_is_the_papers_per_dex_density():
     (5e10, 1.57e12, 0.0319, 8.0, 247), (1e11, 5.69e12, 0.0176, 7.0, 379),
 ])
 def test_the_worked_table_of_the_design_note_is_reproduced(stellar, halo, ratio, c200, r200):
-    median = mass_chain.median_halo_mass(stellar)
+    median = mass_chain.all_galaxy_halo_mass(stellar, 0.5)
     assert median == pytest.approx(halo, rel=0.01)
     assert stellar / median == pytest.approx(ratio, rel=0.02)
     assert mass_chain.median_concentration(median) == pytest.approx(c200, abs=0.05)
@@ -77,8 +77,8 @@ def test_the_conditional_halo_is_the_median_relation_inverted_where_the_scatter_
     (GEN.399); above it the conditional is lighter by the Eddington bias of the steep halo mass function."""
     for stellar in (3e9, 1e10, 2e10):
         inverse = _inverse_of_the_median_relation(stellar)
-        assert abs(math.log10(mass_chain.median_halo_mass(stellar) / inverse)) < 0.03
-    gaps = [math.log10(_inverse_of_the_median_relation(s) / mass_chain.median_halo_mass(s)) for s in (6e10, 1e11, 2e11)]
+        assert abs(math.log10(mass_chain.all_galaxy_halo_mass(stellar, 0.5) / inverse)) < 0.03
+    gaps = [math.log10(_inverse_of_the_median_relation(s) / mass_chain.all_galaxy_halo_mass(s, 0.5)) for s in (6e10, 1e11, 2e11)]
     assert gaps[0] > 0.15 and gaps == sorted(gaps) and 0.3 < gaps[2] < 0.4
 
 
@@ -120,7 +120,26 @@ def test_the_conditional_is_the_halo_function_times_the_relations_log_normal():
             if share not in expected and running / total >= share:
                 expected[share] = g
     for share, log_halo in expected.items():
-        assert math.log10(mass_chain.conditional_halo_mass(stellar, share)) == pytest.approx(log_halo, abs=0.015)
+        assert math.log10(mass_chain.all_galaxy_halo_mass(stellar, share)) == pytest.approx(log_halo, abs=0.015)
+
+
+def test_a_spirals_halo_of_the_largest_masses_is_the_largest_spirals_not_a_groups():
+    """GEN.618: the all-galaxy median halo of 1.5e11 to 2e11 solar masses of stars is a group's (1.4e13 to 2.8e13); a spiral's is inside the 2 to 5e12 the largest spirals' rotation curves
+    (the range is [R5349]'s), Andromeda's 1e11 inside its 0.6 to 2.8e12, and no drawn halo passes the 5e12 "virtually none" bound (from [R5350])."""
+    assert mass_chain.all_galaxy_halo_mass(1.5e11, 0.5) > 1.0e13
+    for stellar in (1.5e11, 1.55e11, 2e11):
+        assert 2.0e12 <= mass_chain.median_halo_mass(stellar) <= 5.0e12
+    assert 0.6e12 <= mass_chain.median_halo_mass(1e11) <= 2.8e12
+    for stellar in (3e9, 1e10, 5e10, 1e11, 2e11):
+        halos = [mass_chain.conditional_halo_mass(stellar, share) for share in (0.001, 0.02, 0.16, 0.5, 0.84, 0.98, 0.999)]
+        assert halos == sorted(halos) and halos[-1] <= mass_chain.SPIRAL_HALO_UPPER_SOLAR
+
+
+def test_a_spirals_halo_leaves_the_lighter_galaxies_as_the_relation_gave_them():
+    """The bend starts under 1.5e12: a halo under 1e12 (3e9 to 3e10 solar masses of stars) is within 4 percent of [R3181]'s, the Milky Way's (5e10) within 5."""
+    for stellar, tolerance in ((3e9, 0.001), (1e10, 0.005), (3e10, 0.04), (5e10, 0.05)):
+        assert mass_chain.median_halo_mass(stellar) == pytest.approx(mass_chain.all_galaxy_halo_mass(stellar, 0.5), rel=tolerance)
+    assert mass_chain.median_halo_mass(5e10) < mass_chain.all_galaxy_halo_mass(5e10, 0.5)
 
 
 def test_the_halo_function_is_tinkers_and_the_variance_is_normalised_to_sigma_8():
