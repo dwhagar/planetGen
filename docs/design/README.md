@@ -200,6 +200,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [atmospheric-escape-model.md](composition/atmospheric-escape-model.md) | The thermosphere model, Jeans and diffusion-limited escape, the XUV history and the hydrodynamic mass loss of a hydrogen envelope, checked against the Earth, Venus, Mars, Titan and nine sub-Neptunes (GEN.738) | research note |
 | [clathrate-brine-wiring.md](composition/clathrate-brine-wiring.md) | Hydrate cages in the ice skin and brine lids read by the generator (GEN.762) | built |
 | [iron-branch-tuning.md](composition/iron-branch-tuning.md) | The iron branch of a rocky planet: star-matched or iron-enriched, tuned to the homogeneous samples (GEN.512) | built |
+| [kbo-rock-fraction-tuning.md](composition/kbo-rock-fraction-tuning.md) | The rock fraction of a Kuiper belt object or dwarf planet: test points of one system's bodies, the rows' states (GEN.522) | built |
 | [giant-planet-tuning.md](composition/giant-planet-tuning.md) | The retune of the giant enrichment and C/O rows f5 and f7 (GEN.516) | built |
 | [brown-dwarf-types.md](composition/brown-dwarf-types.md) | The brown-dwarf type map from the [R2374] temperature polynomials, rows g1 to g5 (GEN.517) | built |
 | [aerosol-tuning.md](composition/aerosol-tuning.md) | The titanium cold-trap step, row h4, and what waits for the chemistry module (GEN.519) | built |
