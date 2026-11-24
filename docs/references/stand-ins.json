@@ -78811,6 +78811,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "exosphere.COLUMN_FLOOR_CM2 1e4: a column under this, atoms per cm2, is not recorded"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.COLLISIONAL_COLUMN_CM2 1e15: the most a thermally released gas holds above the ground and stays an exosphere, atoms per cm2 (a gas-kinetic cross section of 1e-15 cm2)"
+            ],
+            [
+              "The range it moves in",
+              "3e14 to 3e15 cm-2"
+            ],
+            [
+              "Where it holds",
+              "a body with ice at the surface and no air"
+            ],
+            [
+              "What would show it wrong",
+              "a measured exosphere that holds a thermal column of 1e16 cm-2 or more with no collisions"
+            ],
+            [
+              "What replaces it",
+              "the air's own condition for the body: a stored pressure over zero"
+            ],
+            [
+              "Evidence",
+              "the gas-kinetic cross section of a molecule (a few 1e-15 cm2) over the scale height; Callisto's CO2 of 8e14 cm-2 sits at the edge"
+            ]
+          ],
+          "id": "EX9",
+          "key": "6.328:EX9",
+          "kind": "P",
+          "slug": "6-328-ex9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "exosphere.COLLISIONAL_COLUMN_CM2 1e15: the most a thermally released gas holds above the ground and stays an exosphere, atoms per cm2 (a gas-kinetic cross section of 1e-15 cm2)"
         }
       ],
       "slug": "6-328-stand-ins-of-an-airless-body-s-exosphere-gen-455",
