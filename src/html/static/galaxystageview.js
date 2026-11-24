@@ -1422,7 +1422,8 @@ export function createStageView(host) {
       closeSector();
       pushEntry(withKept(sectorQuery(selectedSector, false)));
       const back = cameraFor(resolve(stage));
-      if (!keep) {
+      if (keep) keepFit(back, fitPointsOf(resolve(stage)));      // MAP.257: the wheel carries on from where the camera is
+      else {
         const kept = view;
         flyCamera(viewNow(), back, null, function () { landCamera(kept, back); });
       }
@@ -2788,8 +2789,9 @@ export function createStageView(host) {
     // The nearest is the floor, except that outside a system it is never short of the stage's own hand-over (a floor above where a star's
     // system opens would be a wall); a system has nothing nearer to hand over to.
     const nearest = enteredSystem ? GLOBAL_FLOOR_PC / fit : Math.min(handover.nearest, FIELD_FLOOR_PC / fit);
-    if (pinned) return MC.zoomPolicy(MC.ZOOM_RANGE, nearest, PINNED_MAX_ZOOM);
-    return MC.zoomPolicy(MC.ZOOM_RANGE, nearest, Math.max(handover.farthest, globalFarPc() / fit));
+    // MAP.257: a camera that left a system nearer than the sector's floor is not pushed up to it in one tick: it carries on out by the wheel's own step.
+    if (pinned) return relaxed(MC.zoomPolicy(MC.ZOOM_RANGE, nearest, PINNED_MAX_ZOOM));
+    return relaxed(MC.zoomPolicy(MC.ZOOM_RANGE, nearest, Math.max(handover.farthest, globalFarPc() / fit)));
   }
 
   function zoomBy(factor) {
