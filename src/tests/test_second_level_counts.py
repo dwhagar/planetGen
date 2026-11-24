@@ -131,9 +131,9 @@ def test_the_stages_count_is_the_first_working_units_step_summed_over_the_units_
     _write(conn, run_id, 1, step="Rows", step_done=10, step_total=100)
     _write(conn, run_id, 0, step="Rows", step_done=5, step_total=50)
     _write(conn, run_id, 2, step="Indexes", step_done=1, step_total=4)
-    assert units._step_now(conn, run_id, 0, set()) == {"name": "Rows", "done": 15.0, "total": 150.0}
-    assert units._step_now(conn, run_id, 0, {0}) == {"name": "Rows", "done": 10.0, "total": 100.0}
-    assert units._step_now(conn, run_id, 0, {0, 1}) == {"name": "Indexes", "done": 1.0, "total": 4.0}
+    assert units._step_now(conn, run_id, 0, set()) == {"name": "Rows", "done": 15.0, "total": 150.0, "units": 2}
+    assert units._step_now(conn, run_id, 0, {0}) == {"name": "Rows", "done": 10.0, "total": 100.0, "units": 1}
+    assert units._step_now(conn, run_id, 0, {0, 1}) == {"name": "Indexes", "done": 1.0, "total": 4.0, "units": 1}
     assert units._step_now(conn, run_id, 0, {0, 1, 2}) is None
 
 
@@ -160,7 +160,7 @@ def test_the_follower_hands_the_step_to_its_caller_each_poll_and_none_when_the_s
 
     runrecord.begin_stage(conn, run_id, 0)
     units.follow_stage(conn, run_id, 0, 1, on_result, sleep=sleep, on_step=seen.append)
-    assert seen[0] == {"name": "Rows", "done": 5.0, "total": 50.0} and seen[-1] is None
+    assert seen[0] == {"name": "Rows", "done": 5.0, "total": 50.0, "units": 1} and seen[-1] is None
 
 
 def test_the_runs_second_bar_follows_the_step_and_goes_when_none_is_left():

@@ -819,6 +819,7 @@ class BackfillFollower(followed.Follower):
         self.sky_costs = []
         self.chunks = 0
         self.credited = {}
+        self.finished = set()
         self.sky_cells, self.sky_floors = 0, []
         self.clock = time.monotonic
         self.opened = self.said = None
@@ -877,6 +878,9 @@ class BackfillFollower(followed.Follower):
 
     STATUS_SECONDS = 300.0
     """float: How often the log gets a line with the stage's real counts while it runs (OPS.282; the stage takes hours and its bars are not in a log)."""
+    ETA_MIN_SHARE = 0.05
+    """float: The share of the stage's work that must be finished in whole units before the log says a time left (OPS.302): the counts inside a working part move in bursts (a sky part that does
+    6 percent in 25 minutes and 20 percent in the next 25), so the first lines said 2.08 years and then 10 hours. Not a physical value: a limit on a log line."""
 
     def status_line(self, now):
         """
@@ -893,11 +897,18 @@ class BackfillFollower(followed.Follower):
             text += f", {sky_done:,} of {parts:,} sky parts done"
         text += f", {self.summary['stars']:,} stars placed by finished parts"
         if self.step:
-            text += f"; working parts: {self.step['name']} {self.step['done']:,.0f} of {self.step['total']:,.0f}"
+            working = self.step.get("units")
+            text += (f"; working parts: {self.step['name']} {self.step['done']:,.0f} of {self.step['total']:,.0f}"
+                     + ("" if working is None else f" (the counts of {working:,} working part{'' if working == 1 else 's'} added)"))
         share = sum(self.credited.values()) / self.total
         elapsed = now - self.opened
         if 0.0 < share < 1.0 and elapsed > 0.0:
-            text += f"; about {format_duration_seconds(elapsed * (1.0 - share) / share)} left ({share * 100:.1f} percent of the work, {format_duration_seconds(elapsed)} in)"
+            finished = sum(self.credited.get(unit, 0.0) for unit in self.finished) / self.total
+            if finished >= self.ETA_MIN_SHARE:
+                text += f"; about {format_duration_seconds(elapsed * (1.0 - finished) / finished)} left, by the parts finished ({share * 100:.1f} percent of the work counted, {format_duration_seconds(elapsed)} in)"
+            else:
+                text += (f"; the time left is said once {self.ETA_MIN_SHARE * 100:g} percent of the work has finished in whole parts, "
+                         f"{finished * 100:.1f} percent so far ({share * 100:.1f} percent of the work counted, {format_duration_seconds(elapsed)} in)")
         return text + "."
 
     def say(self):
@@ -911,6 +922,7 @@ class BackfillFollower(followed.Follower):
             log.normal(line)
 
     def on_result(self, unit, result):
+        self.finished.add(unit)
         self.summary["sectors"] += result["sectors"]
         self.summary["stars"] += result["stars"]
         if result.get("sky"):

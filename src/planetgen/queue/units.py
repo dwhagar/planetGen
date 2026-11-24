@@ -574,7 +574,7 @@ def _progress(conn, run_id, stage):
 
 def _step_now(conn, run_id, stage, seen):
     """
-    The second-level count of the stage as one (OPS.192): `{"name", "done", "total"}` for the units still working, from the beat records. The count is the first working unit's
+    The second-level count of the stage as one (OPS.192): `{"name", "done", "total", "units"}` (`units` the working units behind the count) for the units still working, from the beat records. The count is the first working unit's
     step; the units that are in a step of the same name add their counts to it (four units each removing their share of a table are one count of the table). `None` where no working
     unit is in a step.
     """
@@ -593,7 +593,7 @@ def _step_now(conn, run_id, stage, seen):
         return None
     name = found[min(found)][0]
     same = [counts for counts in found.values() if counts[0] == name]
-    return {"name": name, "done": sum(counts[1] for counts in same), "total": sum(counts[2] for counts in same)}
+    return {"name": name, "done": sum(counts[1] for counts in same), "total": sum(counts[2] for counts in same), "units": len(same)}
 
 
 def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure=None, clock=time.monotonic,

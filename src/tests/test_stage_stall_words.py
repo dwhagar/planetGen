@@ -108,14 +108,13 @@ def test_the_backfill_says_its_real_counts_in_the_log_every_few_minutes_with_an_
         follower.on_step({"name": "Sky tiers", "done": 25.0, "total": 100.0})
         assert said == [], "no line before the interval has passed"
         now[0] += 200.0                                            # 320 s since the opening: over the 300 s interval
-        follower.on_step({"name": "Sky tiers", "done": 25.0, "total": 100.0})
+        follower.on_step({"name": "Sky tiers", "done": 25.0, "total": 100.0, "units": 1})
         assert len(said) == 1
         line = said[0]
         assert "90 of 200 sectors visited" in line and "0 of 2 sky parts done" in line and "7 stars placed by finished parts" in line
-        assert "working parts: Sky tiers 25 of 100" in line
-        credit = 50.0 + 40.0 + 250.0                                # sectors visited, plus a quarter of 1000
-        share = credit / 4200.0
-        assert f"about {format_duration_seconds(320.0 * (1 - share) / share)} left (8.1 percent of the work, 5m 20s in)" in line
+        assert "working parts: Sky tiers 25 of 100 (the counts of 1 working part added)" in line
+        # OPS.302: one sector chunk of 40 is finished (0.95 percent of 4200), under the 5 percent a time left needs: no time is said, whatever the counts inside the working parts
+        assert "about" not in line and "the time left is said once 5 percent of the work has finished in whole parts, 1.0 percent so far (8.1 percent of the work counted, 5m 20s in)" in line
         follower.on_step(None)
         assert len(said) == 1, "one line each interval"
     finally:
@@ -171,3 +170,24 @@ def test_the_quiet_line_of_a_stage_with_units_still_to_start_says_what_the_gate_
     assert "3.00 GB of 16.0 GB available" in line.replace("2.93 GB", "3.00 GB").replace("15.6 GB", "16.0 GB") or "available" in line
     assert "units are done" in line and "the load is 0.50 a core" in line
     assert "the memory gate" not in units._quiet_line(conn, run_id, 0, 3, 3, 1800)
+
+
+def test_the_backfill_says_a_time_left_only_from_the_parts_that_have_finished(monkeypatch):
+    """OPS.302: the first line of a run said 2.08 years and the next ones 4 to 10 hours, made from the counts inside working parts that move in bursts; the time left is said once 5 percent of the work is in finished units and is the line over those."""
+    saved = run_galaxy.steps.Step
+    try:
+        now = [0.0]
+        follower = _follower([1000.0, 3000.0], chunks=2)
+        follower.clock = lambda: now[0]
+        follower.opened = follower.said = now[0]
+        now[0] = 300.0
+        follower.on_progress(2, 1.0, 100.0)               # a hundredth of the first sky part: the old line made 2 days of it
+        line = follower.status_line(now[0])
+        assert "about" not in line and "the time left is said once 5 percent" in line
+        now[0] = 4200.0
+        follower.on_result(2, {"sectors": 0, "stars": 3, "visited": 0, "shells": {}})          # the first sky part (1000 of 4200) is in
+        line = follower.status_line(now[0])
+        finished = 1000.0 / 4200.0
+        assert f"about {format_duration_seconds(4200.0 * (1 - finished) / finished)} left, by the parts finished" in line
+    finally:
+        run_galaxy.steps.Step = saved
