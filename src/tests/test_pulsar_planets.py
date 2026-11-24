@@ -89,17 +89,32 @@ def test_the_disks_planets_are_airless_carbon_rich_and_lowest_tier(recycled):
 def test_the_disks_planets_keep_to_its_count_distance_and_mass(recycled):
     pulsar = recycled(3)
     near, far = tuning.PULSAR_DISK_DISTANCE_AU_RANGE
-    low, high = pulsar_planets.disk_mass_range_earth()
-    assert low == tuning.PULSAR_DISK_MASS_EARTH_RANGE[0]
-    assert low < high <= tuning.PULSAR_DISK_MASS_EARTH_RANGE[1]
+    low, high = tuning.PULSAR_DISK_MASS_EARTH_RANGE
     for seed in range(40):
         planets = _planets(pulsar, seed, PLANETS=True)
         assert tuning.PULSAR_DISK_PLANET_COUNT[0] <= len(planets) <= tuning.PULSAR_DISK_PLANET_COUNT[1]
         distances = [p.distance for p in planets]
         assert distances == sorted(distances)
         assert all(near * 0.999 <= d <= far * 1.001 for d in distances)
-        # The mass follows the radius at a density in the class's range, so it lands a little either side of the draw.
-        assert all(0.5 * low <= p.mass / constants.EARTH_MASS_TO_KG <= 1.3 * high for p in planets)
+        assert all(low * 0.999 <= p.mass / constants.EARTH_MASS_TO_KG <= high * 1.001 for p in planets)
+
+
+def test_the_disks_mass_range_is_drawn_whole_so_a_planet_as_heavy_as_psr_b1257_12s_is_possible(recycled):
+    """GEN.593: the old radius ceiling cut the draw at 3.3 Earth masses; the heaviest known disk planet is 4.3 and the range tops at 10."""
+    pulsar = recycled(7)
+    low, high = tuning.PULSAR_DISK_MASS_EARTH_RANGE
+    masses = [p.mass / constants.EARTH_MASS_TO_KG for seed in range(120) for p in _planets(pulsar, seed, PLANETS=True)]
+    assert max(masses) > 4.3 and max(masses) <= high * 1.001 and min(masses) >= low * 0.999
+    assert sum(mass > 3.3 for mass in masses) / len(masses) == pytest.approx(math.log(high / 3.3) / math.log(high / low), abs=0.06)
+    heavy = [p for seed in range(120) for p in _planets(pulsar, seed, PLANETS=True) if p.mass / constants.EARTH_MASS_TO_KG > 4.3]
+    assert heavy and all(p.carbon_rock and p.planet_class in ("C", "S", "D") and p.radius > 9000.0 for p in heavy)
+
+
+def test_an_origin_that_is_not_built_names_what_it_waits_for_and_leaves_a_bare_pulsar(recycled):
+    assert set(tuning.PULSAR_PLANET_PREREQUISITES) == set(tuning.PULSAR_PLANET_ORIGIN_WEIGHTS) - set(tuning.PULSAR_PLANET_BUILT_ORIGINS)
+    pulsar = recycled(8)
+    empty = sum(1 for seed in range(240) if not _planets(pulsar, seed))
+    assert empty / 240 == pytest.approx(0.75, abs=0.07)
 
 
 def test_the_disks_planets_sit_near_a_low_order_period_ratio(recycled):

@@ -1285,7 +1285,6 @@ planetgen.tuning:PROTOSTAR_MAX_AGE_YR
 planetgen.tuning:PULSAR_ACTIVE_LIFETIME_YR
 planetgen.tuning:PULSAR_DISK_DISTANCE_AU_RANGE
 planetgen.tuning:PULSAR_DISK_MASS_EARTH_RANGE
-planetgen.tuning:PULSAR_DISK_MAX_RADIUS_KM
 planetgen.tuning:PULSAR_DISK_PERIOD_RATIOS
 planetgen.tuning:PULSAR_DISK_PERIOD_RATIO_SCATTER
 planetgen.tuning:PULSAR_DISK_PLANET_COUNT

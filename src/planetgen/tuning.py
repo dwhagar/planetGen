@@ -2737,17 +2737,17 @@ PULSAR_RATE_SCALE = 1.0
 # the pulsar no planets until their kinds exist (the giant GEN.163, the sub-stellar companion with the pair builder).
 PULSAR_PLANET_ORIGIN_WEIGHTS = {"disk": 25.0, "captured-giant": 25.0, "ablated-companion": 50.0}
 PULSAR_PLANET_BUILT_ORIGINS = ("disk",)
+PULSAR_PLANET_PREREQUISITES = {"captured-giant": "GEN.163, the cluster giant switch", "ablated-companion": "GEN.555, the pair builder (8.4)"}
 
 # The disk origin: 1 to 3 planets in 0.1 to 0.6 AU, masses log-uniform from 0.01 to 10 Earth masses (the least
 # massive known pulsar planet is 0.02, the most 4.3), each period near a low-order ratio to the one inside it (PSR
 # B1257+12's outer pair sits near 3:2). A planet's period is its ratio times the inner one's, scattered by a normal
-# deviation of this fraction; a mass over what the carbon-rich airless class holds is not drawn.
+# deviation of this fraction. The whole mass range is drawn (GEN.593); the radius follows from the mass by the terrestrial law.
 PULSAR_DISK_PLANET_COUNT = (1, 3)
 PULSAR_DISK_DISTANCE_AU_RANGE = (0.1, 0.6)
 PULSAR_DISK_MASS_EARTH_RANGE = (0.01, 10.0)
 PULSAR_DISK_PERIOD_RATIOS = (4.0 / 3.0, 3.0 / 2.0, 5.0 / 3.0, 2.0)
 PULSAR_DISK_PERIOD_RATIO_SCATTER = 0.01
-PULSAR_DISK_MAX_RADIUS_KM = 10000.0  # the largest disk planet, at the mean density of a terrestrial body (the old airless class ceiling)
 
 # The pulsar wind's momentum flux on a body is XI * Edot / (4 pi r^2 c) for a spin-down power Edot and a distance r
 # (the same order of unity the design note takes).
