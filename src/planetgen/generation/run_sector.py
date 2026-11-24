@@ -703,6 +703,7 @@ def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, 
         neutron_star = NeutronStar(config, galactic_center_dist_ly=dist_ly, mass_solar=row["mass_solar"],
                                    mass_range=phenomenon_scatter.mass_range(kind, row["subtype"], min_mass_solar, True),
                                    magnetar=row["subtype"] == phenomenon_scatter.MAGNETAR_SUBTYPE)
+        neutron_star.cluster_id = row.get("cluster_id")
         return sector.add_phenomenon(neutron_star, "neutron-star", position=position)
     if kind == "supernova-remnant":
         return sector.add_phenomenon(SupernovaRemnant(config), "supernova-remnant", position=position)
