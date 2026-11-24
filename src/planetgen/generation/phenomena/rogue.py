@@ -21,7 +21,7 @@ much smaller icy planetesimal passing through on a hyperbolic trajectory
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import body_strength, brown_dwarf as brownDwarf, constants, rings, rogue_habitability, small_body_composition, spin
+from planetgen.physics import body_strength, brown_dwarf as brownDwarf, comet_coma, constants, rings, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -226,7 +226,7 @@ class InterstellarComet(SmallBody):
     FIELD_UNITS = {
         "name": "text", "flavor_key": "text", "nucleus_diameter_km": "km", "mass_kg": "kg", "velocity_kms": "km_s", "is_active": "flag",
         "density_g_cm3": "g_cm3", "ice_mass_fraction": "frac", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
-        **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
+        **comet_coma.UNITS, **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
@@ -266,6 +266,7 @@ class InterstellarComet(SmallBody):
         self.composition = small_body_composition.component_names(self.makeup)
         self.mass_kg = self.makeup.mass_kg(self.nucleus_diameter_km)
         body_strength.generate_comet(self)    # GEN.1162: its density, ice share, roundness ratio, strength and binding energy
+        comet_coma.generate(self)    # GEN.455: the coma of an active comet, on a stream of its own (an interstellar comet has no host: the Sun's far ultraviolet)
 
         self.set_galactic_motion()
         # GEN.104: a small body's spin, YORP-tilted from the galactic pole.

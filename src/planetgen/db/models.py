@@ -430,6 +430,22 @@ chart_ledger = sa.Table(
 )
 
 
+comet_coma = sa.Table(
+    'comet_coma',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('comet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('position', mysql.INTEGER(), nullable=False),
+    sa.Column('species', sa.String(16), nullable=False),
+    sa.Column('production_1au_per_s', mysql.DOUBLE(), nullable=False),
+    sa.Column('scale_length_1au_km', mysql.DOUBLE(), nullable=True),
+    sa.Index('idx_comet_coma_species', 'species'),
+    sa.Index('uq_comet_coma', 'comet_id', 'position', unique=True),
+    sa.ForeignKeyConstraint(['comet_id'], ['comets.id'], name='fk_comet_coma_comet', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 comet_composition = sa.Table(
     'comet_composition',
     metadata,
@@ -489,6 +505,10 @@ comets = sa.Table(
     sa.Column('yield_strength_pa', mysql.DOUBLE(), nullable=True),
     sa.Column('binding_energy_j', mysql.DOUBLE(), nullable=True),
     sa.Column('makeup', sa.Text(), nullable=True),
+    sa.Column('water_production_1au_per_s', mysql.DOUBLE(), nullable=True),
+    sa.Column('coma_active_area_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('coma_outflow_1au_kms', mysql.DOUBLE(), nullable=True),
+    sa.Column('nucleus_albedo', mysql.DOUBLE(), nullable=True),
     sa.Column('parent_type', sa.String(16), server_default=sa.text("'system'"), nullable=False),
     sa.Column('parent_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Index('idx_comets_next_update_due', 'next_update_due'),
@@ -1078,6 +1098,22 @@ id_counters = sa.Table(
 )
 
 
+interstellar_comet_coma = sa.Table(
+    'interstellar_comet_coma',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('comet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('position', mysql.INTEGER(), nullable=False),
+    sa.Column('species', sa.String(16), nullable=False),
+    sa.Column('production_1au_per_s', mysql.DOUBLE(), nullable=False),
+    sa.Column('scale_length_1au_km', mysql.DOUBLE(), nullable=True),
+    sa.Index('idx_interstellar_comet_coma_species', 'species'),
+    sa.Index('uq_interstellar_comet_coma', 'comet_id', 'position', unique=True),
+    sa.ForeignKeyConstraint(['comet_id'], ['interstellar_comets.id'], name='fk_interstellar_comet_coma_comet', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 interstellar_comet_composition = sa.Table(
     'interstellar_comet_composition',
     metadata,
@@ -1134,6 +1170,10 @@ interstellar_comets = sa.Table(
     sa.Column('roundness_ratio', mysql.DOUBLE(), nullable=True),
     sa.Column('yield_strength_pa', mysql.DOUBLE(), nullable=True),
     sa.Column('binding_energy_j', mysql.DOUBLE(), nullable=True),
+    sa.Column('water_production_1au_per_s', mysql.DOUBLE(), nullable=True),
+    sa.Column('coma_active_area_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('coma_outflow_1au_kms', mysql.DOUBLE(), nullable=True),
+    sa.Column('nucleus_albedo', mysql.DOUBLE(), nullable=True),
     sa.Index('fk_interstellar_comets_inside_nebula', 'inside_nebula_id'),
     sa.Index('fk_interstellar_comets_inside_remnant', 'inside_remnant_id'),
     sa.Index('idx_interstellar_comets_cell', 'cell_key', 'center_x_pc', 'center_y_pc', 'center_z_pc'),
