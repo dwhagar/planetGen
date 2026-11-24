@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5224 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5229 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -4046,6 +4046,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r3743"></a>**R3743** Rest, A., et al. 2012, Light echoes reveal an unexpectedly cool η Carinae during its nineteenth-century Great Eruption, Nature, 482, 375, doi:10.1038/nature10775. [paper](https://doi.org/10.1038/nature10775) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/nature10775/abstract)
 - <a id="paper-r3744"></a>**R3744** Rettberg, P. 2023, Photobiology, in Encyclopedia of Astrobiology, Springer Berlin Heidelberg, doi:10.1007/978-3-662-65093-6\_1192. [paper](https://doi.org/10.1007/978-3-662-65093-6_1192) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1007/978-3-662-65093-6_1192/abstract)
 - <a id="paper-r3745"></a>**R3745** Rettig, W., et al. 1993, Molecular conformation and excited-state dipole moments of di- and tetramethylaminobenzonitrile (DMABN and TMABN), JPhCh, 97, 13500, doi:10.1021/j100153a014. [paper](https://doi.org/10.1021/j100153a014) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1021/j100153a014/abstract)
+- <a id="paper-r5364"></a>**R5364** Reylé, C., et al. 2021, The 10 parsec sample in the Gaia era, A&A, 650, A201, doi:10.1051/0004-6361/202140985, arXiv:2104.14972. [paper](https://doi.org/10.1051/0004-6361/202140985) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/202140985/abstract)
 - <a id="paper-r3746"></a>**R3746** Rezzolla, L., Most, E. R., & Weih, L. R. 2018, Using Gravitational-wave Observations and Quasi-universal Relations to Constrain the Maximum Mass of Neutron Stars, ApJL, 852, L25, doi:10.3847/2041-8213/aaa401. [paper](https://doi.org/10.3847/2041-8213/aaa401) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/2041-8213/aaa401/abstract)
 - <a id="paper-r3747"></a>**R3747** Rho, J. 2026a, Civil Liability for Defects in AI Physical Robots - Focusing on a Comparative Study of the U.S. and European Law -, kwlr, 84, 1, doi:10.18215/kwlr.2026.84..1. [paper](https://doi.org/10.18215/kwlr.2026.84..1) · [ADS](https://ui.adsabs.harvard.edu/abs/10.18215/kwlr.2026.84..1/abstract)
 - <a id="paper-r3748"></a>**R3748** Rho, S. J. 2026b, Structural Relationships among Perceived Usefulness of Food Technology, Digital Self-Efficacy, and Job Performance of Korean Cuisine Chefs, APJCRI, 12, 1061, doi:10.47116/apjcri.2026.10.72. [paper](https://doi.org/10.47116/apjcri.2026.10.72) · [ADS](https://ui.adsabs.harvard.edu/abs/10.47116/apjcri.2026.10.72/abstract)

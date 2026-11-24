@@ -893,9 +893,9 @@ def _invariant_checks():
 # TEST.66: distributions
 # ---------------------------------------------------------------------------
 
-CHABRIER_CENTER_SOL = 0.079
-"""float: [R0705: Table 2], Galactic disk, individual stars: the solar mass at which the log-normal peaks -- written out
-here, not read from `tuning`, so a changed constant fails the check."""
+CHABRIER_CENTER_SOL = 0.092
+"""float: [R0705: Table 2], Galactic disk, individual stars: the solar mass at which the log-normal peaks, 0.079 (+0.021, -0.016), as GEN.922 nudged it to 0.092
+(stand-in MF1) -- written out here, not read from `tuning`, so a changed constant fails the check."""
 
 CHABRIER_WIDTH_DEX = 0.69
 """float: [R0705]: the width of the log-normal in dex of mass."""

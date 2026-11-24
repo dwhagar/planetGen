@@ -13889,7 +13889,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
+              "tuning.ALBEDO_WET_RANGE (0.225, 0.375) (0.25, 0.40 until GEN.1836), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
             ],
             [
               "The range it moves in",
@@ -13909,7 +13909,7 @@
             ],
             [
               "Evidence",
-              "RECALLED (Earth 0.30, Mars 0.25, Europa 0.68, Enceladus 0.8; the dry range is the old class ranges)"
+              "RECALLED (Earth 0.30, Mars 0.25, Europa 0.68, Enceladus 0.8; the dry range is the old class ranges); GEN.1836: the wet range is centred on the Earth's 0.30, because an Earth copy drawn from 0.25 to 0.40 ran 5.6 K cold (GEN.1835 report, Boss's yes 11:24 PM EST 11-22)"
             ]
           ],
           "id": "CC4",
@@ -13920,7 +13920,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
+          "what": "tuning.ALBEDO_WET_RANGE (0.225, 0.375) (0.25, 0.40 until GEN.1836), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
         },
         {
           "burn_down": null,
@@ -21533,11 +21533,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.IMF_BELL_CENTER_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
+              "tuning.IMF_BELL_CENTER_SOL 0.092 (GEN.922: the published 0.079 nudged up inside the paper's own +0.021), IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
             ],
             [
               "The range it moves in",
-              "centre 0.079 to 0.08, width 0.69"
+              "centre 0.063 to 0.100 (0.079 -0.016 +0.021, Eq. 17), width 0.68 to 0.74"
             ],
             [
               "Where it holds",
@@ -21553,7 +21553,7 @@
             ],
             [
               "Evidence",
-              "RECALLED ([R0705]:763, Table 2, disk, individual stars; the four numbers are not opened in the paper)"
+              "RECALLED ([R0705]:763, Table 2, disk, individual stars: the four numbers are not opened in the table; the centre's errors, 0.079 +0.021 -0.016, and the width's, 0.69 +0.05 -0.01, were read in the paper's Eq. 17 on 2026-11-24). GEN.922: the centre is 0.092, not 0.079: with 0.079 the primaries of 0.6 to 0.8 solar masses were 7.1 percent of those of 0.08 to 0.8 in the census (60,000 systems), under the floor 7.3 percent of the system function's band, and no companion count (x0.5 to x3 moves that bin 6.8 to 7.3 percent) or mass-ratio law (GEN.951) moves it, so the cause is the single-star curve against the system curve; at 0.092 the bin and the 17 others are in band"
             ]
           ],
           "id": "MF1",
@@ -21562,9 +21562,9 @@
           "slug": "6-50-mf1",
           "tier": "T2",
           "tier_code": "T2",
-          "tweak": "L0",
+          "tweak": "L1",
           "unread": null,
-          "what": "tuning.IMF_BELL_CENTER_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
+          "what": "tuning.IMF_BELL_CENTER_SOL 0.092 (GEN.922: the published 0.079 nudged up inside the paper's own +0.021), IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
         },
         {
           "burn_down": null,

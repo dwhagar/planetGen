@@ -374,7 +374,9 @@ ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 # temperature raises the albedo along the ice law of `physics/climate_branches` (GEN.972; rows CC15 and CC16). A Venus-like
 # cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).
 # Stand-ins, tier "educated guess from physics", level L3 (hand-tuned against the old class albedo ranges).
-ALBEDO_WET_RANGE = (0.25, 0.40)
+# GEN.1836 (Boss's yes of 11:24 PM EST 11-22 on the GEN.1835 report): the range was (0.25, 0.40), centre 0.325, over the Earth's 0.30; an Earth copy drew a
+# median 5.6 K too cold and a third of the draws were too cold to oxygenate. Each edge moved 0.025, inside the 0.05 the row allows, so the centre is the Earth's.
+ALBEDO_WET_RANGE = (0.225, 0.375)
 ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
 
 # --- Star System Generation Parameters ---
@@ -825,10 +827,13 @@ and two or more (triples and quadruples). The chance of a companion is 1 - `sing
 
 # The single-star initial mass function (GEN.927): [R0705], PASP 115:763, Table 2, the Galactic disk, individual stars:
 # a log-normal in log mass below 1 Msun and a power law above it, joined continuously. All four are recalled, not read in the
-# paper (tier Confident Unverified, level L0; docs/design/galaxy/stellar-mass-function.md).
-IMF_BELL_CENTER_SOL = 0.079
+# paper (tier Confident Unverified; docs/design/galaxy/stellar-mass-function.md). The centre is the published 0.079 nudged to 0.092 (GEN.922, level L1).
+IMF_BELL_CENTER_SOL = 0.092
 """float: The solar mass at which the log-normal part of the single-star mass function peaks per logarithm of mass (Chabrier
-2003, Table 2, disk, individual stars: `m_c` = 0.079; the systems' own function, 0.22, is derived here, not set)."""
+2003, disk, individual stars: `m_c` = 0.079, +0.021 and -0.016 as the paper's Eq. 17 states it, so 0.063 to 0.100). GEN.922 sets it to 0.092
+(registered stand-in MF1, tweak level L1, inside the paper's own uncertainty): at 0.079 the primaries of 0.6 to 0.8 solar masses were 7.1 percent of
+those of 0.08 to 0.8, under the 7.3 percent floor of the system function's band, and no companion count (x0.5 to x3) or mass-ratio law moves that bin by more than 0.5 point;
+the systems' own function, 0.22, is derived here, not set."""
 IMF_BELL_WIDTH_DEX = 0.69
 """float: The width of that log-normal in dex of mass ([R0705]: `sigma` = 0.69)."""
 IMF_BELL_TOP_SOL = 1.0
@@ -3471,7 +3476,7 @@ PREVALENCE_DRAW_SHARES = {
     "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
-    "multi_star": 0.0046,       # systems with five or more stars (see below)
+    "multi_star": 0.0049,       # systems with five or more stars (see below)
 }
 # `multi_star` is not measured from generated systems: `StarSystem` builds only a
 # single star, a close pair or a wide pair until the member-tree host lands
