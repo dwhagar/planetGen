@@ -57,6 +57,12 @@ def toomre_q(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms):
     return kappa_per_myr * sigma_pc_myr / (math.pi * _G_PC3_MSUN_MYR2 * gas_surface_density_msun_pc2)
 
 
+def stable_surface_density(kappa_per_myr, dispersion_kms, q):
+    """The gas surface density, solar masses per pc2, at which a ring has Toomre parameter `q` (Eq 5 inverted): `kappa sigma / (pi G Q)`."""
+    sigma_pc_myr = dispersion_kms * 1.0e3 * _MYR_S / _PC_M
+    return kappa_per_myr * sigma_pc_myr / (math.pi * _G_PC3_MSUN_MYR2 * q)
+
+
 def feedback_time_myr(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms):
     """
     The time after which feedback stops a cloud's collapse (Eqs 4 to 7), Myr: `t_sn / 2 (1 + sqrt(1 + 4 pi^2 G^2 t_ff,g Q^2

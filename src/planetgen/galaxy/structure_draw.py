@@ -203,6 +203,32 @@ def _log_uniform_scattered(galaxy_seed, center_link, low, high, scatter_link, si
     return 10.0 ** (center + _scatter(_stream(galaxy_seed, scatter_link), sigma_dex))
 
 
+NUCLEAR_RING_BAR_RATIO = (math.log10(0.114), 0.31)
+"""tuple: `(log10 median, sd in dex)` of a nuclear ring's radius over its bar's length: the 73 rings of [R5359] (Table A2) with a measured bar give a median 0.114 and 0.31 dex.
+[Stand-in 6.333 NR1, tier T1, tweak L0; the bar strength trend of the same table (r = -0.36, residual 0.29 dex) is not used: it narrows the scatter by 0.02 dex.]"""
+NUCLEAR_RING_BAR_RATIO_RANGE = (math.log10(0.007), math.log10(0.25))
+"""tuple: The range of `log10` of the ratio: the smallest ring of the atlas over its bar (0.007) and a quarter, the largest a ring reaches by the paper's own finding ([R5359]
+abstract; 0.40 is its single outlier)."""
+NUCLEAR_RING_AGE = (8.59, 0.70)
+"""tuple: `(median log10 yr, sd in dex)` of a nuclear ring's age: the 17 rings of [R5358] (Table 4, ages of the ring's stars from broad-band fits) give a median 8.59 (0.39 Gy),
+mean 8.62 and 0.68 to 0.70 dex. [Stand-in 6.333 NR2, tier T2, tweak L0.]"""
+NUCLEAR_RING_AGE_RANGE = (7.0, 10.1)
+"""tuple: The range of `log10` of the age, yr: 10 Myr (a ring younger has not formed its first generation of clusters; the youngest of the 17 rings is 38 Myr) to 12.6 Gy (the Hubble time; the oldest
+is 5.1 Gy). Wider than the sample's own extremes so the clamp does not take the scatter of 17 rings down."""
+
+
+def draw_nuclear_ring(galaxy_seed, bar_present):
+    """
+    The central ring's radius over the bar's length and its age, Gy (GEN.1846): log-normal about the medians of the observed rings (`NUCLEAR_RING_BAR_RATIO`, `NUCLEAR_RING_AGE`),
+    held to their ranges; `(0.0, 0.0)` for a galaxy without a bar (no bar, no ring: `galaxy.core_gas`). The same seed gives the same ring.
+    """
+    if not bar_present:
+        return 0.0, 0.0
+    ratio = 10.0 ** _clamped_normal(_stream(galaxy_seed, "nuclear-ring-radius"), *NUCLEAR_RING_BAR_RATIO, NUCLEAR_RING_BAR_RATIO_RANGE)
+    age = 10.0 ** _clamped_normal(_stream(galaxy_seed, "nuclear-ring-age"), *NUCLEAR_RING_AGE, NUCLEAR_RING_AGE_RANGE) / 1.0e9
+    return ratio, age
+
+
 def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None):
     """
     The structure the galaxy of `galaxy_seed` has: the same seed gives the same structure.
@@ -263,6 +289,7 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
     # Nuclear disks are the bar's (every TIMER galaxy, the sample the law is fitted to, is barred; GEN.282's ring needs
     # one too): a galaxy with no bar has none.
     disk = draw_nuclear_disk_mass_solar(galaxy_seed, mass) if bar[0] else 0.0
+    ring = draw_nuclear_ring(galaxy_seed, bar[0])
     black_holes = draw_black_hole_shares(galaxy_seed)
     kick = _kick_inputs(galaxy_seed, stellar_mass_solar)
     return Structure(
@@ -273,6 +300,7 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
         bulge_dispersion_scatter_dex=bulge_scatter,
         stellar_mass_solar=mass, classical_bulge=classical, black_hole_deviation=black_hole,
         nuclear_cluster_mass_solar=cluster, nuclear_disk_mass_solar=disk,
+        nuclear_ring_bar_ratio=ring[0], nuclear_ring_age_gy=ring[1],
         black_hole_solar_share=black_holes[0], black_hole_metal_free_share=black_holes[1],
         neutron_star_unbound_share=natal_kick.neutron_star_unbound_share(*kick),
         neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(*kick))

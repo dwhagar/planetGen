@@ -208,3 +208,23 @@ def test_the_stored_shape_row_gains_nothing():
             assert not re.search(rf"\b{name}\b", table.group(1)), name
     for name in overrides:
         assert re.search(rf"\b{name}\s+(TINYINT|DOUBLE),", table.group(1)), f"{name} must stay nullable with no default (DB.66)"
+
+
+def test_a_barred_galaxys_nuclear_ring_follows_the_observed_rings_and_an_unbarred_one_has_none():
+    """GEN.1846: the ring's radius over the bar's length is log-normal about 0.114 with 0.31 dex ([R5359], 73 rings with a measured bar) held to 0.007 and a quarter of the bar,
+    its age about 0.39 Gy with 0.7 dex held to 10 Myr and 12.6 Gy ([R5358], 17 rings, 38 Myr to 5.1 Gy); no bar, no ring."""
+    import statistics
+    barred = [structure for _mass, structure in STRUCTURES if structure.bar_present]
+    assert len(barred) > 300
+    ratios = [structure.nuclear_ring_bar_ratio for structure in barred]
+    ages = [structure.nuclear_ring_age_gy for structure in barred]
+    assert min(ratios) >= 0.007 - 1.0e-12 and max(ratios) <= 0.25 + 1.0e-12
+    assert min(ages) >= 10.0 ** 7.0 / 1.0e9 - 1.0e-12 and max(ages) <= 10.0 ** 10.1 / 1.0e9 + 1.0e-12
+    assert statistics.median(ratios) == pytest.approx(0.114, rel=0.12)
+    assert statistics.pstdev([math.log10(r) for r in ratios]) == pytest.approx(0.31, abs=0.04)      # the clamp at a quarter of the bar takes a little off the top
+    assert statistics.median(ages) == pytest.approx(10.0 ** 8.59 / 1.0e9, rel=0.2)
+    assert statistics.pstdev([math.log10(a) for a in ages]) == pytest.approx(0.70, abs=0.07)
+    for _mass, structure in STRUCTURES:
+        if not structure.bar_present:
+            assert (structure.nuclear_ring_bar_ratio, structure.nuclear_ring_age_gy) == (0.0, 0.0)
+    assert sd.draw_nuclear_ring(_seed(5), False) == (0.0, 0.0)

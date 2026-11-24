@@ -1,7 +1,0 @@
-**Headline:** A galaxy's central ring no longer has its heaviest possible cluster cut back to 1e5 solar masses, which was the Milky Way's own limit, not every ring's.
-
-### Changed
-- GEN.1842: the most massive cluster a ring can form came from [R3720]'s relation on the ring's own gas, shear and bound share, then was cut at a hard 1e5 solar masses (`CLUSTER_MAX_MASS_CEILING_SOL`, row CMX3). That 1e5 is the paper's footnote 9 for the Milky Way's sample (Arches and Quintuplet 2e4, a maximum of a few 1e4 and certainly under 1e5), but the nuclear rings of other galaxies hold clusters of mean log mass 6.1 to 7.1 (NGC 1097, NGC 1672, NGC 7469 in [R5358: Table 3], 17 rings), and 3 of 16 barred galaxies of a test sample sat at the cut. The ceiling is gone (row CMX3 now says so); a ring's maximum is the relation alone and the clusters drawn stay under the mass function's own upper limit of 1e6 (`OPEN_CLUSTER_MASS_RANGE_SOL`). The Milky Way's ring is unchanged at 9.7e4: its nucleus (123 km/s at 100 pc, M(<100 pc) 3.5e8) is the measured one (3.9 +- 1e8, [R5357]), which is why the relation gives more there than the paper's 3.2e4 on 180 km/s. The heaviest young cluster the Milky Way ring makes is 1.1e3 to 3.0e4 over 12 seeds (median 6e3), against the observed 2e4, and a test pins the heaviest to 1e4 to 1e5. Rings whose cap was cut at 1e5 now cap higher (up to 5.5e5 in the sample); every other ring draws as before.
-
-generation-output: changed
-generation-affects: plan

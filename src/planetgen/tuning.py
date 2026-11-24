@@ -1799,19 +1799,17 @@ for the Milky Way shape (it was 1.0 Gy for 0.8). A stand-in tuned to a published
 CORE_STAR_FORMATION_PER_INFLOW = 0.07 / 0.8
 """float: The ring's star formation rate over the gas inflow to it (the Milky Way's measured 0.07 over 0.8 solar masses a
 year; one galaxy measured, so a stand-in for the ratio in others) [R, stand-in for other galaxies]."""
-CORE_RING_RADIUS_BULGE_RATIO = 100.0 / 1580.0
-CORE_RING_WIDTH_BULGE_RATIO = 50.0 / 1580.0
-CORE_RING_HEIGHT_BULGE_RATIO = 30.0 / 1580.0
-"""float: The ring's radius, full width at half maximum and vertical scale height over the bulge's scale radius, as the
-nuclear disk's are (`NUCLEAR_DISK_LENGTH_RATIO`): 100 pc, 50 pc and 30 pc for the Milky Way's 1.58 kpc [recalled: the
-review gives the ring at 100 to 200 pc, so these are placeholders tied to the nuclear disk, to verify]."""
-CORE_STAR_FORMATION_SPAN_GY = 1.0
-"""float: How long the ring is taken to have formed stars at its present rate (open clusters of the ring are drawn over
-this span; the review has the rate constant for at least 5 Myr and 0.09 over 100 Myr) [placeholder]."""
-CORE_RING_GAS_RESIDENCE_MYR = 50.0
-"""float: How long the gas the bar brings stays in the central ring, Myr: the ring's gas is the inflow times this, over the ring's
-area its gas surface density (`galaxy.core_gas`, GEN.1195). The Milky Way's ring holds about 4e7 solar masses of gas (recalled,
-2e7 to 6e7) against the inflow of 0.8 a year [stand-in, one galaxy; the mass of gas of the ring is the sourced quantity]."""
+CORE_RING_WIDTH_OVER_RADIUS = 0.5
+"""float: The ring's full width at half maximum over its radius: the atlas of nuclear rings counts a ring only when its width is at most half its radius
+([R5359], section 2), and the Milky Way's 50 pc over 100 pc is that limit. The edge of the definition, not a measured mean (GEN.1846, row NR3 of the registry, tier T6, tweak L1)."""
+CORE_RING_HEIGHT_OVER_RADIUS = 0.3
+"""float: The ring's vertical scale height over its radius: the Milky Way's 30 pc over 100 pc; no measurement of the shape of other rings was found, so the ratio is
+a stand-in (GEN.1846, row NR4, tier T9, tweak L3: the ring is thin against its width either way and the young stars it holds are 4 scale heights deep at most)."""
+CORE_RING_TOOMRE_Q = 1.0
+"""float: The Toomre parameter the gas of the ring settles at (GEN.1846): a ring that holds more gas than `Q = 1` forms stars and loses it faster than the bar supplies it, so
+the ring holds the gas at marginal stability, `Sigma = kappa sigma / (pi G Q)`, or what the bar has brought in over the ring's age, whichever is less. [R3720] find the Milky Way's
+central molecular zone at Q = 0.94 (their Sec. 4.1, Sigma 1e3, kappa 2.61, sigma 5 km/s); the rings of [R5358] hold a few 1e8 solar masses of gas whatever their stars, which `Q = 1`
+gives (1.3e8 in a 540 pc ring at 5 km/s) (row NR5, tier T2, tweak L1)."""
 
 # The most massive cluster a ring can form and the clouds that disrupt it (GEN.1195, `physics/cluster_maximum_mass.py`,
 # `physics/open_cluster_evolution.cloud_shock_mass_lost_sol`). The maximum is [R3720] (MNRAS 469,
@@ -1917,8 +1915,7 @@ DISK_LAW_COEFFICIENT_SHARE = 0.95
 """float: The share of `STAR_FORMATION_LAW_COEFFICIENT` the thin disk's rings use (GEN.1202). The coefficient is a mean over spirals ([R2321], (2.5 +/- 0.7)e-4,
 so 28% either way) and the Milky Way is known to sit below it at the Sun's radius; 0.95 is a nudge inside that range [I] that takes the disk's gas at 8 kpc from
 10.26 to about 10.7 solar masses per pc2, inside the measured 11.9 +/- 1.6 ([R3002: Table 2]), with the depletion time (1.0 to 4.2 Gy) and the present rate
-(1.65 +/- 0.19 a year) still inside their measured ranges. It goes no lower because the central ring's inflow is this gas: at 0.9 the ring's heaviest cluster (the relation goes as the gas cubed)
-is 1.2e5, past the 1e5 that [R3720] (footnote 9) finds certain for the Milky Way's, at 0.95 it is 9.7e4 (8.2e4 at 1.0). Row GI4 of 6.124a (tier T2, tweak L1). The satellites' history keeps the plain coefficient."""
+(1.65 +/- 0.19 a year) still inside their measured ranges. The central ring's gas no longer follows this gas (GEN.1846: it is the marginally stable gas of the ring's own rotation unless the bar's delivery is less), so the nudge is held by the disk's own measured ranges alone. Row GI4 of 6.124a (tier T2, tweak L1). The satellites' history keeps the plain coefficient."""
 SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO = 1.8
 """float: A satellite's gas disk scale length over its stars' (GEN.1192). The HI of a late-type dwarf reaches 1.8 +/- 0.8 times
 the optical diameter, the extent defined as 6.4 disk scale lengths ([R4277],

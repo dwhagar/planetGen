@@ -12,10 +12,13 @@ stars at a small share of what comes in. Nothing here is typed in for a galaxy:
    A galaxy without a bar has no inflow, so no ring.
 2. **The rate.** The ring forms stars at `tuning.CORE_STAR_FORMATION_PER_INFLOW` of the inflow (0.07 over 0.8 in the Milky
    Way: the review's continuity equation, inflow = star formation + outflow + growth).
-3. **The ring.** Radius, width and height are the bulge's scale radius times ratios (`tuning.CORE_RING_*`), as the
-   nuclear disk's are. The rate over its area is a star formation rate density; the cluster formation efficiency of that
+3. **The ring.** Its radius is the bar's length (`shape_draw.BAR_LENGTH_PER_SCALE_RADIUS` bulge scale radii) times the ratio the galaxy's
+   seed drew from the observed rings (`structure_draw.draw_nuclear_ring`, GEN.1846: median 0.114, 0.31 dex), its width half the radius and its
+   height a third of it (`tuning.CORE_RING_WIDTH_OVER_RADIUS`, `CORE_RING_HEIGHT_OVER_RADIUS`). The rate over its area is a star formation rate density; the cluster formation efficiency of that
    (`physics.open_cluster_evolution.cluster_formation_efficiency`, [R2502]) is the share of the new stars that
-   form in bound clusters, which `generation/open_clusters.py` draws as components; the rest are the field's.
+   form in bound clusters, which `generation/open_clusters.py` draws as components; the rest are the field's. The ring has formed stars for
+   its age (`age_gy`, drawn with the radius); the bar has brought it `inflow` times that age in gas, and the gas it holds is the smaller of that and the marginally stable
+   gas, which `generation/open_clusters.py` works out from the galaxy's rotation at the ring (`physics.cluster_maximum_mass.stable_surface_density`).
 4. **The field's young stars.** The rate times the age of the `young` population (0.1 Gy) times the unbound share is
    the mass of field stars the ring holds younger than that. They are part of the nuclear disk, not on top of it: the
    density model takes them out of the `nuclear_disk` population and puts them in `young`, so the total density, the
@@ -51,9 +54,10 @@ class CoreGas:
         bound_share (float): The share of the new stars that form in bound clusters.
         young_density (float): The amplitude of the field's young stars at the ring, in the model's unnormalized
             units (like `nuclear_disk_density`).
-        gas_surface_density_msun_pc2 (float): The ring's gas over its area: the inflow times
-            `tuning.CORE_RING_GAS_RESIDENCE_MYR`, over `2 pi R FWHM` (GEN.1195; the most massive cluster the ring forms
-            reads it, `physics.cluster_maximum_mass`).
+        age_gy (float): How long the ring has formed stars (`structure.nuclear_ring_age_gy`, GEN.1846).
+        area_pc2 (float): The ring's area, `2 pi R FWHM`.
+        gas_supplied_msun (float): The gas the bar has brought the ring over its age: the inflow times `age_gy`. The ring holds no more than this, and no more than the
+            marginally stable gas (GEN.1846; the most massive cluster the ring forms reads both, `generation.open_clusters._ring_gas_surface_density`).
     """
     inflow_msun_yr: float
     rate_msun_yr: float
@@ -63,7 +67,9 @@ class CoreGas:
     rate_density: float
     bound_share: float
     young_density: float
-    gas_surface_density_msun_pc2: float = 0.0
+    age_gy: float = 0.0
+    area_pc2: float = 1.0
+    gas_supplied_msun: float = 0.0
 
 
 NO_RING = CoreGas(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0)
@@ -100,10 +106,13 @@ def core_gas(shape):
     rate = tuning.CORE_STAR_FORMATION_PER_INFLOW * inflow
     if rate <= 0.0:
         return NO_RING
-    bulge = shape.bulge_scale_radius_pc
-    radius = tuning.CORE_RING_RADIUS_BULGE_RATIO * bulge
-    fwhm = tuning.CORE_RING_WIDTH_BULGE_RATIO * bulge
-    height = tuning.CORE_RING_HEIGHT_BULGE_RATIO * bulge
+    from planetgen.galaxy import shape_draw
+    structure = shape.structure
+    radius = structure.nuclear_ring_bar_ratio * shape_draw.BAR_LENGTH_PER_SCALE_RADIUS * shape.bulge_scale_radius_pc
+    if radius <= 0.0:
+        return NO_RING
+    fwhm = tuning.CORE_RING_WIDTH_OVER_RADIUS * radius
+    height = tuning.CORE_RING_HEIGHT_OVER_RADIUS * radius
     sigma = fwhm / (2.0 * math.sqrt(2.0 * math.log(2.0)))
     ring_area_kpc2 = 2.0 * math.pi * radius * fwhm / _PC2_PER_KPC2
     rate_density = rate / ring_area_kpc2
@@ -115,9 +124,8 @@ def core_gas(shape):
     amplitude = (field_young_mass * model_units_per_solar
                  / (2.0 * math.pi * _radial_integral(radius, sigma) * 4.0 * height))
     return CoreGas(inflow_msun_yr=inflow, rate_msun_yr=rate, radius_pc=radius, sigma_pc=sigma, height_pc=height,
-                   rate_density=rate_density, bound_share=bound, young_density=amplitude,
-                   gas_surface_density_msun_pc2=(inflow * tuning.CORE_RING_GAS_RESIDENCE_MYR * 1.0e6
-                                                 / (ring_area_kpc2 * _PC2_PER_KPC2)))
+                   rate_density=rate_density, bound_share=bound, young_density=amplitude, age_gy=structure.nuclear_ring_age_gy,
+                   area_pc2=ring_area_kpc2 * _PC2_PER_KPC2, gas_supplied_msun=inflow * structure.nuclear_ring_age_gy * _GY_YR)
 
 
 def _sech_squared(value):
