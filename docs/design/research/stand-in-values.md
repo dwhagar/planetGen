@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2020 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2029 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1993 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2002 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 136 | 70 | 13 | 10 | 0 | 229 |
 | T4 | 94 | 17 | 10 | 25 | 13 | 159 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 254 | 143 | 41 | 85 | 8 | 531 |
-| T7 | 76 | 44 | 11 | 31 | 0 | 162 |
+| T6 | 256 | 145 | 41 | 85 | 8 | 535 |
+| T7 | 77 | 48 | 11 | 31 | 0 | 167 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 117 | 42 | 239 |
-| All | 1150 | 423 | 105 | 276 | 66 | 2020 |
+| All | 1153 | 429 | 105 | 276 | 66 | 2029 |
 
 ## How the labels were given
 
@@ -3568,6 +3568,20 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CZ1 | P | T7 | L2 | `comet_coma.ACTIVE_AREA_FRACTION_RANGE` (0.003, 1.0): the share of a nucleus surface that sublimates, drawn log-uniform per comet | 0.003 to 1 | an active comet | a measured active fraction outside 0.3 percent to the whole surface for a nucleus whose production and size are both known | a measured active-area census of nuclei of comets of other stars | the observed active fractions of the Solar System comets, from a few tenths of a percent (the smallest, large nuclei) to a body that is nearly all active (small, hyperactive nuclei); the range is the widest of the observed ones, tuned so the water production of a sample sits inside the measured 5.1e26 to 1.41e31 molecules per second | predicted only | - | - |
 | CZ2 | P | T6 | L2 | `comet_coma.OUTFLOW_KMS_1AU_RANGE` (0.4, 1.0) km/s: the speed of the gas at 1 AU lit distance, drawn log-uniform, falling as the inverse square root of the lit distance | 0.3 to 1.2 km/s | an active comet | a measured expansion speed of a coma at 1 AU outside 0.3 to 1.2 km/s | a measured expansion speed against lit distance for comets of other stars | the radio and ultraviolet line widths of Solar System comae (about 0.5 to 1 km/s at 1 AU, falling with distance); the form is the energy-limited expansion of a gas that the light heats | predicted only | - | - |
 | CZ3 | P | T6 | L1 | `comet_coma.NUCLEUS_ALBEDO_RANGE` (0.02, 0.10): the Bond albedo of a nucleus, drawn uniform per comet | 0.02 to 0.10 | an active comet | a measured nucleus albedo outside 0.02 to 0.10 | a measured albedo census of nuclei | the measured geometric albedos of comet nuclei (0.02 to 0.06, the darkest bodies imaged) with the Bond albedo some range wider; nudged inside the uncertainty | predicted only | - | - |
+
+## 6.328 Stand-ins of an airless body's exosphere (GEN.455)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| EX1 | P | T6 | L1 | `exosphere.PSD_PHOTON_FLUX_REFERENCE_CM2_S` 2e15: the 250 to 400 nm photon flux at 1 AU from the Sun, scaled to another star by its light at the body and its blackbody share in that band | 1e15 to 4e15 cm-2 s-1 | a body of any star | a measured Na source of the Moon or Mercury outside a factor 3 of the one the flux and the 3e-20 cm2 cross section give | a measured near-ultraviolet flux for the stars of other types and the band the desorption uses | the Moon's 5e10 and Mercury's 8e11 cm-2 of sodium; the flux is the paper's, the scaling to another star is a blackbody share | predicted only | - | - |
+| EX2 | P | T7 | L1 | `exosphere.MIV_DISTANCE_EXPONENT` 1.5: the micrometeoroid flux falls as the distance from the star to this power | 1 to 2 | a body of any star, in a system with dust | a measured dust flux at Mercury and the Moon whose ratio is not 2 to 8 | a dust flux from the system's own belts and comets | the ratio of Mercury's (1.66 to 3.56)e-16 g cm-2 s-1 to the Moon's (5.1 to 8.4)e-17, a factor of 2 to 7 over a distance ratio of 2.6 | predicted only | - | - |
+| EX3 | P | T6 | L1 | `exosphere.VAPOUR_PER_IMPACTOR_RANGE` (1, 4): the grams of rock vapourised per gram of dust at 14 to 20 km/s, drawn log-uniform per body | 1 to 4 | an airless rocky body | a measured vapour yield of the dust outside a factor of 4 | an impact-speed law of the vapour yield | the vapour of impacts at the speeds of the inner Solar System, a few times the impactor's mass | predicted only | - | - |
+| EX4 | P | T7 | L1 | `exosphere.SHIELDED_SPUTTER_SHARE` 0.05: the share of the wind that reaches the surface of a body whose own field stands the wind off (the cusps) | 0.02 to 0.2 | a body with a magnetopause above its surface | a measured sputter source at a magnetised airless body outside 0.5 to 10 percent of the unshielded one | a cusp area from the field's geometry | the polar cusps of a dipole cover a few percent of the surface | predicted only | - | - |
+| EX5 | P | T7 | L1 | `exosphere.RETAINED_SPEED_SHARE` 0.5: a sputtered or vapourised atom that stays flies its arc at this share of the escape speed (or the thermal speed if lower) | 0.3 to 0.7 | an airless body | a measured scale height of a refractory exosphere inconsistent with a launch at a third to seven tenths of the escape speed | a launch speed integrated over the Thompson law and the Maxwell tail | between the thermal speed and the escape speed, which the two tails of the speed laws bracket | predicted only | - | - |
+| EX6 | P | T7 | L1 | `exosphere.WIND_FLUX_1AU_CM2_S` 3.2e8: the ions of the wind on a square centimetre a second at 1 AU from the Sun, scaled to another star by its wind pressure at the body | 1e8 to 1e9 cm-2 s-1 | a body of any star with a wind | a measured wind particle flux that does not follow the pressure | the star's own mass loss over its wind speed | the Moon's solar wind flux of 3.2e8 cm-2 s-1; the pressure scales a flux only when the speed is the Sun's | predicted only | - | - |
+| EX7 | P | T6 | L0 | `exosphere.NA_IONISATION_RATE_1AU` ((4500, 9.5e-7), (5772, 5.92e-6), (6800, 1.3e-5)): the rate of the photoionisation of Na at 1 AU for a K, a G and an F star, read in the logarithm of the temperature | the rows' own range | a body of a star of 3,500 to 8,000 K | a measured Na rate of a star of another type off the line | a spectrum-integrated rate | the three rates of Oza et al. (part 04 section 5.2); the interpolation between them is the stand-in | predicted only | - | - |
+| EX8 | P | T7 | L0 | `exosphere.COLUMN_FLOOR_CM2` 1e4: a column under this, atoms per cm2, is not recorded | none | any exosphere | a measured exospheric column under 1e4 cm-2 that matters to a count | a detection limit | a presentation floor: nothing above a body's ground is measured under it | predicted only | - | - |
+| EX9 | P | T6 | L0 | `exosphere.COLLISIONAL_COLUMN_CM2` 1e15: the most a thermally released gas holds above the ground and stays an exosphere, atoms per cm2 (a gas-kinetic cross section of 1e-15 cm2) | 3e14 to 3e15 cm-2 | a body with ice at the surface and no air | a measured exosphere that holds a thermal column of 1e16 cm-2 or more with no collisions | the air's own condition for the body: a stored pressure over zero | the gas-kinetic cross section of a molecule (a few 1e-15 cm2) over the scale height; Callisto's CO2 of 8e14 cm-2 sits at the edge | predicted only | - | - |
 
 ## 6.329 Stand-ins of the white dwarf binaries (GEN.707)
 
