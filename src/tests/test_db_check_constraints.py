@@ -45,6 +45,10 @@ _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 _EMPTY_TABLE_ROWS = {
     # GEN.764: the seeded galaxy runs no scatter, so no kind has recorded its epoch.
     "scatter_epochs": "INSERT INTO scatter_epochs (kind, generator_epoch) VALUES ('mass', 1)",
+    # GEN.179: a sector keeps a directive record only when it was drawn under a --directive; the seeded galaxy is drawn with none.
+    "sector_directives": (
+        "INSERT INTO sector_directives (sector_id, directive_digest, status, attempts)"
+        " VALUES ((SELECT MIN(id) FROM sectors), '0123456789abcdef', 'met_naturally', 1)"),
     # Only a planet with life gets these, and whether the seeded galaxy has one depends on its draws (TEST.263).
     "planet_reflection_spectrum": (
         "INSERT INTO planet_reflection_spectrum (planet_id, spectrum_type, position, value)"
