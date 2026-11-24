@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4774+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The moon tests build their systems without the record of the air history, which was most of a system's cost.
+
+### Fixed
+- `tests/test_moon_composition.py`: the 60-system origin and orbit test and the seeded-moons fixture build their systems with `air_record.record_of` giving no record (`tests/air_history_off.py`). The record is made at the end of a body's build, from the finished body, on streams of its own: the moons of the seeded systems (60 systems and 978 moons for the origin test; 40 systems and 1,199 moons for the fixture) and the next draw are identical with and without it. The origin test fell from over 900 s (the limit) to 485 s alone.
+
 ## [8.0.4773+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The young-star system types now name the young stars of the satellite galaxies as hosts, so a Magellanic cell has them at the Cloud's own young share and a dwarf without young stars has none.
