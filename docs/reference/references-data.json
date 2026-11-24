@@ -205536,6 +205536,38 @@
    "volume": "486",
    "year": 2019
   },
+  "10.1093/mnras/stz968": {
+   "arxiv": "1904.04261",
+   "authors": [
+    [
+     "Kruijssen",
+     "J. M. D."
+    ],
+    [
+     "Pfeffer",
+     "J. L."
+    ],
+    [
+     "Crain",
+     "R. A."
+    ],
+    [
+     "Bastian",
+     "N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stz968",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "3134",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "The E-MOSAICS project: tracing galaxy formation and assembly with the age–metallicity distribution of globular clusters",
+   "type": "journal-article",
+   "volume": "486",
+   "year": 2019
+  },
   "10.1093/mnras/stz991": {
    "authors": [
     [
@@ -287887,7 +287919,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5354,
+ "id_next": 5367,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -291387,6 +291419,7 @@
   "10.1093/mnras/stz717": "R2407",
   "10.1093/mnras/stz788": "R1218",
   "10.1093/mnras/stz960": "R2326",
+  "10.1093/mnras/stz968": "R5366",
   "10.1093/mnras/stz991": "R4101",
   "10.1093/mnrasl/slaa048": "R0495",
   "10.1093/mnrasl/slac046": "R4151",
@@ -293778,6 +293811,7 @@
   "arxiv:1904.00142": "R3318",
   "arxiv:1904.01260": "R3531",
   "arxiv:1904.02715": "R2944",
+  "arxiv:1904.04261": "R5366",
   "arxiv:1904.05896": "R1210",
   "arxiv:1904.06759": "R0931",
   "arxiv:1904.06875": "R2347",
