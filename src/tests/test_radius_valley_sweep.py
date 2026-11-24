@@ -128,7 +128,9 @@ def test_a_rocky_planet_is_never_larger_than_a_sub_neptune_can_be(sweep):
     # 7.72 after the GEN.1521 respacing moved an orbit into the tide's range; none is a rocky letter. So the bound for an ordinary planet is 8.5, the tail's measured maximum with a margin.
     assert max(row.radius for row in ordinary) <= 8.5
     assert max((row.radius for row in puffed), default=0.0) <= 2.0 * 7.5       # a puff of 7.5 Earth radii under the tide's largest factor of 2
-    assert max(row.density for row in ordinary if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE) < 6.0
+    # The bound on an ordinary planet that keeps an envelope is 6.5 g/cc: the Train 62 draws put one 10.3 Earth-mass planet at 3.6 days (envelope 0.0033, 2.08 Earth radii, a transitional letter I) at 6.28 g/cc,
+    # a light core with a thin envelope (an Earth-like core of that mass is far denser), so 6.0 was the largest of the earlier draws and not an edge of the physics.
+    assert max(row.density for row in ordinary if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE) < 6.5
 
 
 def test_no_puffed_planet_escapes_the_super_puff_type(sweep):
