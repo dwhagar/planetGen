@@ -68,6 +68,10 @@ _EMPTY_TABLE_ROWS = {
     "lost_moons": (
         "INSERT INTO lost_moons (star_system_id, planet_id, born_index, mass_kg, birth_distance_au, density_kg_m3, retrograde)"
         " VALUES ((SELECT MIN(id) FROM star_systems), 1, 0, 1, 1, 1, 0)"),
+    # GEN.179: a sector keeps its directive only when the run was given one, which the seeded galaxy's run was not.
+    "sector_directives": (
+        "INSERT INTO sector_directives (sector_id, directive_digest, status, attempts)"
+        " VALUES ((SELECT MIN(id) FROM sectors), '0000000000000000', 'met_naturally', 1)"),
     # DB.75: a system keeps its body numbers only once its content has been drawn again.
     "body_numbers": (
         "INSERT INTO body_numbers (star_system_id, slot_key, body_number)"
@@ -158,20 +162,24 @@ _ALWAYS_ADDED_ROWS = {
 }
 
 
+def _outside_the_list(conn, table, column):
+    """A value of the column's own type that no IN list names: 7 for an integer column (a flag's list is 0, 1), "zz" for text. GEN.1227: the carbon-chain flag is a nullable TINYINT with such a list, which text cannot test (MySQL refuses the type first)."""
+    kind = conn.execute(
+        "SELECT DATA_TYPE AS k FROM information_schema.COLUMNS"
+        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?", (table, column),
+    ).fetchone()["k"]
+    return 7 if "int" in kind else "zz"
+
+
 def _breaking_value(conn, table, clause, row):
     """`(column, value)` that the clause refuses for `row`."""
     clause = " ".join(clause.strip().strip("()").split())
     match = _NULL_OR_IN.match(clause)
     if match:
-        return match[1], "zz"
+        return match[1], _outside_the_list(conn, table, match[1])
     match = _IN_LIST.match(clause)
     if match:
-        column = match[1]
-        kind = conn.execute(
-            "SELECT DATA_TYPE AS k FROM information_schema.COLUMNS"
-            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?", (table, column),
-        ).fetchone()["k"]
-        return column, (7 if "int" in kind else "zz")
+        return match[1], _outside_the_list(conn, table, match[1])
     match = _BETWEEN.match(clause)
     if match:
         return match[1], int(match[3]) + 1
