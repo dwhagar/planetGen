@@ -40,10 +40,15 @@ class SmallBody(LazySaladName, MassObject):
     """SmallBodyMakeup or None: What it is made of as the draw made it (GEN.442): the grain mixture, the porosity, the bulk
     density. `composition` holds the words taken from it. None for a body read back from a store that has not got it."""
 
+    coma_species = ()
+    """tuple: The gases of its coma, `(species, production_1au_per_s, scale_length_1au_km or None)`, water first (GEN.455, `physics/comet_coma.py`); empty for a body with no coma (an inactive comet, or a field)."""
+
     def _encode(self, data):
         data["composition"] = list(self.composition)
         data["makeup"] = self.makeup.to_dict() if self.makeup is not None else None
+        data["coma_species"] = [list(row) for row in self.coma_species]
 
     def _decode(self, data):
         self.composition = list(data["composition"])
         self.makeup = SmallBodyMakeup.from_dict(data["makeup"]) if data.get("makeup") else None
+        self.coma_species = tuple(tuple(row) for row in data.get("coma_species") or ())
