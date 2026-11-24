@@ -716,7 +716,7 @@ def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(mo
         return real(subject, result, column_bar)
 
     monkeypatch.setattr(sa.mixture_escape, "apply", recording)
-    for seed in (2, 3, 5):                                           # (a seed whose air needs no escape step, or that leaves no air at all, is no sample of the order; 6 was one until GEN.1323)
+    for seed in (3, 4, 5):                                           # (a seed whose air needs no escape step, or that leaves no air at all, is no sample of the order; 6 was one until GEN.1323, 2 until GEN.1836)
         columns.clear()
         planet = _earth_like_planet(seed)
         assert planet.atmospheric_pressure > 0.0, seed
