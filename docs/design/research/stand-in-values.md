@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2007 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2010 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,23 +42,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1980 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1983 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 231 | 22 | 12 | 1 | 0 | 266 |
+| T1 | 231 | 23 | 12 | 1 | 0 | 267 |
 | T2 | 184 | 75 | 4 | 0 | 0 | 263 |
-| T3 | 134 | 70 | 13 | 10 | 0 | 227 |
+| T3 | 134 | 71 | 13 | 10 | 0 | 228 |
 | T4 | 91 | 17 | 10 | 25 | 13 | 156 |
 | T5 | 117 | 31 | 8 | 1 | 2 | 159 |
 | T6 | 253 | 142 | 40 | 85 | 8 | 528 |
 | T7 | 76 | 44 | 10 | 31 | 0 | 161 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
-| T9 | 54 | 20 | 6 | 117 | 42 | 239 |
-| All | 1141 | 421 | 103 | 276 | 66 | 2007 |
+| T9 | 54 | 20 | 6 | 118 | 42 | 240 |
+| All | 1141 | 423 | 103 | 277 | 66 | 2010 |
 
 ## How the labels were given
 
@@ -3557,3 +3557,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | EF1 | P | T6 | L1 | `extinction_effects.RESET_RECURRENCE_MYR` 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of `air_events`; the kill curve gives it 0.65 like any event of 100 Myr or more) | 300 to 3000 Myr (impactors of about 21 to 62 km; the Big Five were 10 km or less) | a world with animals | a measured loss of animals after an extinction of the Phanerozoic size | a measured relation between the size of a shock and the complexity it removes | the Earth's animal record (540 Myr, five mass extinctions, no reset; the Big Five by number of genera, [R5320] for the curve); the cut is inferred | predicted only | - | - |
 | EF2 | P | T7 | L1 | `extinction_effects.REGROWTH_GYR` 0.020: the time the animals take to return after the origination lag (`air_events.RECOVERY_GYR`, 10 Myr, [R5321]); 30 Myr from the extinction | 0.010 to 0.050 | a world whose animals an extinction reset | a measured regrowth of the marine genera to their old number faster than 15 Myr or slower than 60 Myr after a Big Five extinction | the measured regrowth of the animal grades | educated guess from inferred physics; no source read | predicted only | - | - |
 | EF3 | P | T7 | L0 | `extinction_effects.regrown`: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not | none | a civilization that an extinction at or after the animals reset | a measured faster re-emergence of a technology-scale lineage after a collapse | a measured recovery of a lineage that had a civilization | the hard-step model of `life_timeline` [R4642]; the choice not to draw again is a design rule | predicted only | - | - |
+
+## 6.327 Stand-ins of the size of a dwarf galaxy (GEN.612)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| DW1 | D | T1 | L1 | `shape_draw.DWARF_SIZE_INTERCEPT` 0.667 and `DWARF_SIZE_SLOPE` 0.296 ([R0655], isolated dwarfs, scatter 0.215 dex, fitted over log M* 5.5 to 8.5) below `DWARF_SIZE_EDGE_SOLAR` 10^8.5, scaled by `DWARF_SIZE_ANCHOR` 1.018 so the median meets [R4048]'s there | the satellites' fit (1.071 + 0.247 log M*, 0.181 dex) is 0.2 dex larger | spirals and dwarfs of 5.5 < log M* < 8.5 | a measured median half-light radius of isolated dwarfs of 1e6 to 3e8 solar masses more than 0.2 dex from this law | a size law of the family a galaxy of that mass belongs to (GEN.385) | [R0655] (READ: the table of fits); test_shape_draw::test_the_dwarf_size_law_meets_the_late_type_law_at_its_edge | predicted only | - | - |
+| DW2 | B | T3 | L1 | the same law continued under log M* 5.5 to the floor of the Scale dial (281 solar masses): 25 pc half-light radius there (31 pc at Segue 1's 562 solar masses against its 23.9 pc) | 0.2 to 0.5 dex about it (Segue 1 is 0.37 dex under the satellites' law and 0.11 dex under this one) | 281 < M* < 3e5 | a measured ultra-faint half-light radius more than 0.5 dex from the continuation at its mass | a size law of the ultra-faint dwarfs fitted to their survey (gap GR13) | Segue 1 in the Local Volume Database and [R4098] (half-light radius 23.9 pc at 562 solar masses; the floor is half of it, Boss, 7:31 PM EDT on 2026-10-21) | predicted only | - | - |
+| DW3 | P | T9 | L3 | a dwarf's scale height is its scale length over the flatness of the thin disk (7.3, `KREGEL_Q`), as for every spiral, until a dwarf-spheroid height is drawn from its observed flattening | the flatness lever's own range, 3 to 20 | dwarfs under 3e8 solar masses, which are one disk plus a bulge (`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`) | a measured axis ratio of the dwarfs of these masses far from 1/7.3 | the observed flattening of the family's galaxies (GEN.385) | none: a placeholder so the Scale dial's floor has a height | predicted only | - | no data |

@@ -65,6 +65,14 @@ SHEN_SIGMA_LN_SMALL = 0.47
 """float: The scatter in ln R at low mass (0.20 dex)."""
 SHEN_SIGMA_LN_LARGE = 0.34
 """float: The scatter in ln R at high mass (0.15 dex)."""
+DWARF_SIZE_INTERCEPT = 0.667
+DWARF_SIZE_SLOPE = 0.296
+"""float: The field dwarfs' size-mass law, `log10(r_e / pc) = 0.667 + 0.296 log10(M* / Msun)` ([R0655], the fit of isolated dwarfs; scatter 0.215 dex; fitted over
+log M* 5.5 to 8.5), which stands below `DWARF_SIZE_EDGE_SOLAR` (GEN.612). The Auto size law of a galaxy lighter than the edge reads it, anchored to
+[R4048]'s at the edge (`DWARF_SIZE_ANCHOR`); below log M* 5.5 it is continued as a labelled placeholder bracket (the one ultra-faint measured, Segue 1 of 562
+solar masses, sits 0.37 dex under the satellites' law of the same paper and 0.11 dex under this one). Rows GR13 and DW1 of 6.327."""
+DWARF_SIZE_EDGE_SOLAR = 10.0 ** 8.5
+"""float: The mass at which the dwarf law hands over to [R4048]'s (the top of [R0655]'s fitted range); the two medians differ by 2 percent there."""
 EXPONENTIAL_HALF_LIGHT_OVER_SCALE = 1.678
 """float: R50 / Rd for a pure exponential disk."""
 
@@ -129,10 +137,26 @@ def _stream(galaxy_seed, link):
     return draw.Stream(galaxySeed.unit_seed(galaxy_seed or mass_chain.FALLBACK_SEED, "shape", link))
 
 
-def size_median_kpc(stellar_mass_solar):
-    """[R4048]'s median half-light radius, kpc, of a late-type galaxy of `stellar_mass_solar`."""
+def _shen_median_kpc(stellar_mass_solar):
     return (SHEN_GAMMA_KPC * stellar_mass_solar ** SHEN_ALPHA
             * (1.0 + stellar_mass_solar / SHEN_M0_SOLAR) ** (SHEN_BETA - SHEN_ALPHA))
+
+
+def _dwarf_median_kpc(stellar_mass_solar):
+    return 10.0 ** (DWARF_SIZE_INTERCEPT + DWARF_SIZE_SLOPE * math.log10(stellar_mass_solar)) / 1000.0
+
+
+DWARF_SIZE_ANCHOR = _shen_median_kpc(DWARF_SIZE_EDGE_SOLAR) / _dwarf_median_kpc(DWARF_SIZE_EDGE_SOLAR)
+"""float: [R4048]'s median over the dwarf law's at the edge (1.018): the dwarf law is scaled by it so the two meet there."""
+
+
+def size_median_kpc(stellar_mass_solar):
+    """The median half-light radius, kpc, of a galaxy of `stellar_mass_solar`: [R4048]'s late-type fit from `DWARF_SIZE_EDGE_SOLAR` up, and under
+    it the field dwarfs' law of [R0655] anchored to it (GEN.612; a spiral of 281 solar masses, the Scale dial's floor, is 25 pc, not the 220 pc of
+    [R4048]'s power law, which was fitted from 1e8.8 up)."""
+    if stellar_mass_solar < DWARF_SIZE_EDGE_SOLAR:
+        return DWARF_SIZE_ANCHOR * _dwarf_median_kpc(stellar_mass_solar)
+    return _shen_median_kpc(stellar_mass_solar)
 
 
 def size_sigma_ln(stellar_mass_solar):

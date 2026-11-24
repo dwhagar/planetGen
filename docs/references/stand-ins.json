@@ -54612,7 +54612,7 @@
           "burn_down": [
             "no data",
             "-",
-            "GEN.618: how sharply a spiral's halo bends onto its ceiling is a shape no measurement fixes (the late-type relation of [R5349] and [R5350] gives the plateau, not the bend); 4 keeps the Milky Way's halo within 5 percent of the all-galaxy relation"
+            "GEN.618: how sharply a spiral's halo bends onto its ceiling is a shape no measurement fixes (the late-type measurements, [R5349] and the later [R5350], give the plateau, not the bend); 4 keeps the Milky Way's halo within 5 percent of the all-galaxy relation"
           ],
           "fields": [
             [
@@ -78491,6 +78491,132 @@
       ],
       "slug": "6-326-stand-ins-of-what-a-mass-extinction-does-to-the-animals-and-the-civilization-gen-1746-slice-4",
       "title": "Stand-ins of what a mass extinction does to the animals and the civilization (GEN.1746 slice 4)"
+    },
+    {
+      "key": "6.327",
+      "number": "6.327",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "shape_draw.DWARF_SIZE_INTERCEPT 0.667 and DWARF_SIZE_SLOPE 0.296 ([R0655], isolated dwarfs, scatter 0.215 dex, fitted over log M* 5.5 to 8.5) below DWARF_SIZE_EDGE_SOLAR 10^8.5, scaled by DWARF_SIZE_ANCHOR 1.018 so the median meets [R4048]'s there"
+            ],
+            [
+              "The range it moves in",
+              "the satellites' fit (1.071 + 0.247 log M*, 0.181 dex) is 0.2 dex larger"
+            ],
+            [
+              "Where it holds",
+              "spirals and dwarfs of 5.5 < log M* < 8.5"
+            ],
+            [
+              "What would show it wrong",
+              "a measured median half-light radius of isolated dwarfs of 1e6 to 3e8 solar masses more than 0.2 dex from this law"
+            ],
+            [
+              "What replaces it",
+              "a size law of the family a galaxy of that mass belongs to (GEN.385)"
+            ],
+            [
+              "Evidence",
+              "[R0655] (READ: the table of fits); test_shape_draw::test_the_dwarf_size_law_meets_the_late_type_law_at_its_edge"
+            ]
+          ],
+          "id": "DW1",
+          "key": "6.327:DW1",
+          "kind": "D",
+          "slug": "6-327-dw1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "shape_draw.DWARF_SIZE_INTERCEPT 0.667 and DWARF_SIZE_SLOPE 0.296 ([R0655], isolated dwarfs, scatter 0.215 dex, fitted over log M* 5.5 to 8.5) below DWARF_SIZE_EDGE_SOLAR 10^8.5, scaled by DWARF_SIZE_ANCHOR 1.018 so the median meets [R4048]'s there"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the same law continued under log M* 5.5 to the floor of the Scale dial (281 solar masses): 25 pc half-light radius there (31 pc at Segue 1's 562 solar masses against its 23.9 pc)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5 dex about it (Segue 1 is 0.37 dex under the satellites' law and 0.11 dex under this one)"
+            ],
+            [
+              "Where it holds",
+              "281 < M* < 3e5"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ultra-faint half-light radius more than 0.5 dex from the continuation at its mass"
+            ],
+            [
+              "What replaces it",
+              "a size law of the ultra-faint dwarfs fitted to their survey (gap GR13)"
+            ],
+            [
+              "Evidence",
+              "Segue 1 in the Local Volume Database and [R4098] (half-light radius 23.9 pc at 562 solar masses; the floor is half of it, Boss, 7:31 PM EDT on 2026-10-21)"
+            ]
+          ],
+          "id": "DW2",
+          "key": "6.327:DW2",
+          "kind": "B",
+          "slug": "6-327-dw2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "the same law continued under log M* 5.5 to the floor of the Scale dial (281 solar masses): 25 pc half-light radius there (31 pc at Segue 1's 562 solar masses against its 23.9 pc)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.612: no measurement gives the height of a dwarf of 281 to 3e8 solar masses as a disk (they are spheroids; the observed flattening is the only height), so the Scale dial's floor takes the spiral's flatness until the dwarf families are built"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "a dwarf's scale height is its scale length over the flatness of the thin disk (7.3, KREGEL_Q), as for every spiral, until a dwarf-spheroid height is drawn from its observed flattening"
+            ],
+            [
+              "The range it moves in",
+              "the flatness lever's own range, 3 to 20"
+            ],
+            [
+              "Where it holds",
+              "dwarfs under 3e8 solar masses, which are one disk plus a bulge (dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured axis ratio of the dwarfs of these masses far from 1/7.3"
+            ],
+            [
+              "What replaces it",
+              "the observed flattening of the family's galaxies (GEN.385)"
+            ],
+            [
+              "Evidence",
+              "none: a placeholder so the Scale dial's floor has a height"
+            ]
+          ],
+          "id": "DW3",
+          "key": "6.327:DW3",
+          "kind": "P",
+          "slug": "6-327-dw3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "a dwarf's scale height is its scale length over the flatness of the thin disk (7.3, KREGEL_Q), as for every spiral, until a dwarf-spheroid height is drawn from its observed flattening"
+        }
+      ],
+      "slug": "6-327-stand-ins-of-the-size-of-a-dwarf-galaxy-gen-612",
+      "title": "Stand-ins of the size of a dwarf galaxy (GEN.612)"
     }
   ]
 }
