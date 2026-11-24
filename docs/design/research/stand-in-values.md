@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2014 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2015 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1987 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1988 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,7 +50,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 231 | 22 | 12 | 1 | 0 | 266 |
-| T2 | 185 | 75 | 4 | 0 | 0 | 264 |
+| T2 | 185 | 76 | 4 | 0 | 0 | 265 |
 | T3 | 136 | 69 | 13 | 10 | 0 | 228 |
 | T4 | 94 | 17 | 10 | 25 | 13 | 159 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
@@ -58,7 +58,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 76 | 44 | 10 | 31 | 0 | 161 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1150 | 420 | 103 | 275 | 66 | 2014 |
+| All | 1150 | 421 | 103 | 275 | 66 | 2015 |
 
 ## How the labels were given
 
@@ -2486,7 +2486,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CMX5 | D | T1 | L0 | tuning.CLUSTER_SHOCK_GIELES_COEFFICIENT_GYR 2.0, CLUSTER_SHOCK_GIELES_NUMERATOR 5.1, CLUSTER_SHOCK_REFERENCE_MASS_SOL 1e4, CLUSTER_SHOCK_REFERENCE_RADIUS_PC 3.75: disruption by cloud encounters t_dis = 2.0 S (M / 1e4) (3.75 pc / r_h)^3 Gyr with S = 5.1 / (Sigma_n rho_n); the loss rate M / t_dis is the same for every mass | the coefficient from the paper's simulations | clusters among clouds, mass loss integrated along the cluster's growing half-mass radius | an N-body cluster among a cloud field whose disruption time is outside a factor of 2 | the encounter rate and energy gain of the ring's own cloud field | [R1555] Eq 24 (READ) | predicted only | - | - |
 | CMX6 | P | T2 | L1 | tuning.CORE_RING_CLOUD_SURFACE_DENSITY_MSUN_PC2 5e3 and CORE_RING_CLOUD_DENSITY_MSUN_PC3 150: the clouds of the central ring, the Brick as the template cloud and the ring's mean molecular density (5.7 Myr for a cluster of 1e4 solar masses and r_h 0.5 pc), the same for every galaxy | density 17 (the ring's own, a factor of nine lower: 1 to 3 young clusters over 5e3 either way); strength 0.03 to 1 | central rings | a measured disruption time of ring clusters outside 3 to 20 Myr for 1e4 solar masses | the ring's cloud surface density and density from the generated gas | [R2505] (READ); they call it an upper limit of the disruptive potential | predicted only | - | - |
 | CMX7 | P | T2 | L1 | tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISK_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time | ring 3 to 10 km/s; disc 7 to 15 km/s | rings and discs of every galaxy (one galaxy's values) | a measured gas dispersion of a ring or disc far from them | the dispersion from the gas's own turbulence and feedback balance | [R1911] for the [R5068] for the disc, as [R3720] take them (section 4.1, READ) | predicted only | - | - |
-| CMX8 | D | T6 | L1 | open_clusters._disk_maximum_masses: each disc ring reads its gas from the last Gy of the one-zone history (disk_history.gas_now, 4.3 solar masses per pc2 at 8 kpc for the Milky Way shape against the measured 13), the galaxy's own rotation curve and its slope (galaxy.potential, GEN.339) for kappa, the cell's cluster formation efficiency as the bound share and the gas dispersion of CMX7; the cap holds each cell's initial masses and sets its count | gas a factor of 3 (the cloud maximum a factor 5 to 30, the cluster maximum a factor of 3 to 30) | spiral discs with a Kennicutt-Schmidt history | the heaviest generated cluster at 4 to 10 kpc far from the observed 1e4 to 4e4 (it is 1e3 to 4e3 for the Milky Way shape, a third of a dex to a dex under) | the disc's gas from a measured radial profile or a better history | [R3720] section 4.1 (READ): the Milky Way shear-limited inside 4.3 (3.5 to 6.3) kpc, feedback-limited beyond with a cloud maximum near 1e6 | predicted only | - | - |
+| CMX8 | D | T6 | L1 | open_clusters._disk_maximum_masses: each disc ring reads its gas from the last Gy of the one-zone history (disk_history.gas_now, 9.9 solar masses per pc2 at 8 kpc for the Milky Way shape after GEN.1202 (9.5 before) against the measured 11.9 +/- 1.6, with the disc's own coefficient share, row GI4), the galaxy's own rotation curve and its slope (galaxy.potential, GEN.339) for kappa, the cell's cluster formation efficiency as the bound share and the gas dispersion of CMX7; the cap holds each cell's initial masses and sets its count | gas a factor of 3 (the cloud maximum a factor 5 to 30, the cluster maximum a factor of 3 to 30) | spiral discs with a Kennicutt-Schmidt history | the heaviest generated cluster at 4 to 10 kpc far from the observed 1e4 to 4e4 (the cap is 1.7e3 at 10 kpc, 3.7e3 at 8 kpc, 6.5e3 at 6 kpc and 7.6e3 at 4 kpc for the Milky Way shape, a third of a dex to a dex under; the gas at the measured profile was the thing the row waited for, and it is now read, so what is left is the relation's own result) | the disc's gas from a measured radial profile or a better history | [R3720] section 4.1 (READ): the Milky Way shear-limited inside 4.3 (3.5 to 6.3) kpc, feedback-limited beyond with a cloud maximum near 1e6 | predicted only | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 
@@ -3307,6 +3307,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | GI2 | P | T2 | L1 | tuning.DISK_INFALL_MIN_GY 2.0 and DISK_INFALL_MAX_GY 8.0: the stops of the infall line, the shortest and longest time scale of [R5094] | 1 to 3 Gy inside, 8 to 13 Gy outside ([R5095] has 13 Gy at 14 kpc) | rings inside 1.2 kpc and beyond 9 kpc | a model of the Milky Way's outer disc that needs a time scale over 8 Gy to keep its measured gas and star formation | the radial profile of [R5094] (its figure gives the shape, the text only the ends) | test_disk_history::test_the_infall_time_scale_is_the_milky_ways_line_between_its_two_models_limits | predicted only | - | - |
 | CG1 | P | T2 | L2 | tuning.CORE_GAS_INFLOW_TIME_GY 0.6: the time the bar takes to carry its gap's gas to the centre, tuned so the Milky Way shape's central molecular zone inflow is the measured 0.8 solar masses a year | 0.5 to 1.0 Gy (the simulations behind it remove the gas on 1 Gyr timescales) | barred spirals | a measured inflow to the central molecular zone more than a factor of 2 from 0.8 for a galaxy of the Milky Way's gap gas | a bar inflow rate from the bar's torque and the gas in the gap | mathcheck galaxy_core_gas_inflow and galaxy_core_star_formation_rate | predicted only | - | - |
 | GI3 | P | T2 | L1 | tuning.DISK_INFALL_MASS_TERM_PER_GY 0.4 with DISK_INFALL_REFERENCE_SPEED_KMS 220 and DISK_INFALL_REFERENCE_MASS_SOLAR 5e10: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per gigayear, V = 220 (M / 5e10)^(1/3) km/s ([R5121]: equation 21 as read from the text, [R5122]: the rising, flat and falling shapes) | 0.3 to 0.5 per gigayear (the exponent is quoted as 0.4) | spiral discs of the generator | a measured star formation history of a disc of 1e10 or 2e11 solar masses that is not rising or falling the way [R5122] has | the figure of equation 21 and a measured speed to mass relation of the generator's own galaxies | test_disk_history::test_a_disc_slower_than_the_milky_ways_is_fed_ever_more_slowly_and_a_faster_one_the_other_way | predicted only | - | - |
+| GI4 | P | T2 | L1 | tuning.DISK_LAW_COEFFICIENT_SHARE 0.95: the thin disk's rings use 0.95 of the Schmidt-Kennicutt coefficient of [R2321] ((2.5 +/- 0.7)e-4, so 28% either way), because the Milky Way sits below the plain law at the Sun's radius; the gas at 8 kpc goes from 10.26 to 10.7 solar masses per pc2 (the depletion time 3.36 to 3.43 Gy, the present rate over the mean 0.453 to 0.461) | 0.72 to 1.0 (the coefficient's own range); under 0.9 the central ring's heaviest cluster reaches the 1e5 ceiling (9.7e4 at 0.95, 8.2e4 at 1.0), and past 0.78 the present rate leaves its measured range | spiral discs of the generator; the satellites keep the plain coefficient | a measured gas profile of the Milky Way's disc that is well under 10 or well over 13 solar masses per pc2 at 8 kpc, or a present rate or depletion time of the disc that the share pushes outside 1.65 +/- 0.19 a year or 1.0 to 4.2 Gy | the gas profile read from the disc of [R3002: Table 2] and the law's own scatter by radius | test_disk_history::test_the_disk_law_coefficient_share_puts_the_local_gas_inside_the_measured_range | predicted only | - | - |
 
 ## 6.179a Stand-ins of the sky route of a system (VIEW.31)
 

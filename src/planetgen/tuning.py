@@ -1917,6 +1917,12 @@ STAR_FORMATION_LAW_COEFFICIENT = 2.5e-4
 """float: The Schmidt-Kennicutt law's coefficient: the star formation rate per area is this times the gas per area (solar
 masses per pc2) to `STAR_FORMATION_LAW_EXPONENT`, in solar masses per year per kpc2 ([R2321], eq. 4:
 (2.5 +/- 0.7) e-4, read in [R2321])."""
+DISK_LAW_COEFFICIENT_SHARE = 0.95
+"""float: The share of `STAR_FORMATION_LAW_COEFFICIENT` the thin disk's rings use (GEN.1202). The coefficient is a mean over spirals ([R2321], (2.5 +/- 0.7)e-4,
+so 28% either way) and the Milky Way is known to sit below it at the Sun's radius; 0.95 is a nudge inside that range [I] that takes the disk's gas at 8 kpc from
+10.26 to about 10.7 solar masses per pc2, inside the measured 11.9 +/- 1.6 ([R3002: Table 2]), with the depletion time (1.0 to 4.2 Gy) and the present rate
+(1.65 +/- 0.19 a year) still inside their measured ranges. It goes no lower because the central ring's inflow is this gas: at 0.9 the ring's heaviest cluster (the relation goes as the gas cubed)
+reaches the 1e5 ceiling of `CLUSTER_MAX_MASS_CEILING_SOL`, at 0.95 it is 9.7e4 (8.2e4 at 1.0). Row GI4 of 6.124a (tier T2, tweak L1). The satellites' history keeps the plain coefficient."""
 SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO = 1.8
 """float: A satellite's gas disk scale length over its stars' (GEN.1192). The HI of a late-type dwarf reaches 1.8 +/- 0.8 times
 the optical diameter, the extent defined as 6.4 disk scale lengths ([R4277],
