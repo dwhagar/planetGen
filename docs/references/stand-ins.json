@@ -78421,7 +78421,7 @@
           "fields": [
             [
               "Evidence",
-              "the donor sequence of [R5349] puts a lobe-filling donor at 0.069 solar masses at the 82.4 min period minimum, 0.200 at 3.18 h and 0.700 at 5.914 h, so 0.08 to 0.7 spans the 1.3 to 10 h window the draw keeps; the shape (uniform in mass) is the stand-in: the drawn periods have a median of 3.0 h, no gap at 2 to 3 h and no pile-up at the minimum, while [R3412] finds a gap and 7 percent period bouncers"
+              "the donor sequence of [R5351] puts a lobe-filling donor at 0.069 solar masses at the 82.4 min period minimum, 0.200 at 3.18 h and 0.700 at 5.914 h, so 0.08 to 0.7 spans the 1.3 to 10 h window the draw keeps; the shape (uniform in mass) is the stand-in: the drawn periods have a median of 3.0 h, no gap at 2 to 3 h and no pile-up at the minimum, while [R3412] finds a gap and 7 percent period bouncers"
             ],
             [
               "What it is",
@@ -78441,7 +78441,7 @@
             ],
             [
               "What replaces it",
-              "a period distribution of a volume-limited sample [R3412] mapped through the donor sequence of [R5349], with the gap"
+              "a period distribution of a volume-limited sample [R3412] mapped through the donor sequence of [R5351], with the gap"
             ]
           ],
           "id": "WK1",
