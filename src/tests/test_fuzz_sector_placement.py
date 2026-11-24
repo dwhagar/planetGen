@@ -49,6 +49,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import SectorCell, band_range, wedge_count
 from planetgen.galaxy.sector import SpaceSector, distance_between, required_separation_ly
+from planetgen.generation.hosts import PRIMARY, Host
 from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import any_float, deterministic_entropy as _seeded_generation, hostile_text, scaled
@@ -107,7 +108,23 @@ class _StubSystem:
     def __init__(self, hill_ly, name="stub"):
         self.star = _StubStar(hill_ly, name)
         self.primary_star = self.star
+        self.hosts = [Host(self.star, PRIMARY)]    # the one host a lone star has since GEN.1664, with no bodies round it
         self.system_config = SystemConfig()
+
+    @property
+    def all_planets(self):
+        return [body for host in self.hosts for body in host.orbiters]
+
+    @property
+    def primary(self):
+        return self.hosts[0]
+
+    @property
+    def secondary(self):
+        return None
+
+    def hosts_of(self, role):
+        return [host for host in self.hosts if host.role == role]
 
 
 class _StubRemnant(_StubStar):
