@@ -83,6 +83,11 @@ the solar failed share goes from 13.6% to 17.5% (`black_hole_formation.share_cap
 masses of stars holds 1.0e8 black holes, in line with the published estimate, and a metal-rich busy shell holds 1.6 neutron
 stars to a black hole (it was 2.1).
 
+GEN.922 then moved the centre of the single-star function from 0.079 to 0.092 solar masses (stand-in MF1), which keeps the
+power law above 1 solar mass and so lifts the massive share (8 to 150 solar masses) from 0.713% to 0.772% of the stars born.
+The cap on the failed share (`black_hole_formation.share_cap`) rises with it, from 21 to 33% to 27 to 38% for 40% to 20% of
+the neutron stars ejected, and the black holes of a galaxy are about 8% more numerous at the same failed share.
+
 ## Source tiers
 
 The four numbers of the log-normal are Confident Unverified, level L0 (recalled, not read in the paper, and used as
