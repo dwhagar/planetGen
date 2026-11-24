@@ -154,7 +154,7 @@ Numbers are placeholders; the TODO thread assigns IDs.
 2. **Nebula cell aggregates.** Per-level count, volume, centroid, bounding radius, family shares, dominant class and cover for MAP.151's cells, from item 1 and from stored nebulae; incremental update when a nebula is stored; a test that cover agrees with a Monte Carlo estimate within 5%.
 3. **Nebula layer in the tile format.** `regions` and `singles` per tile, nested like MAP.154, in JSON first and the packed form with MAP.159; the budget (600 regions) and rank (volume); cache stamp bumped with MAP.147 and MAP.151.
 4. **Nebula cover in the stage-view cell stats**, next to density and luminosity, for filled and unfilled cells.
-5. **Scatter nebulae into the same index.** Planetary nebulae and remnants from `phenomenon_scatter` listed with their stored counterparts, deduplicated by object id; an index for the query (see slow-reads item 4).
+5. **Scatter nebulae into the same index.** Planetary nebulae and remnants from `phenomenon_scatter` listed with their stored counterparts, deduplicated by object id; an index for the query (see slow-reads item 4). Built (GEN.202): `db.nebula_index.nebulae_in_box` reads the stored nebulae and remnants, the field clouds no sector has stored and the scattered marks of one box together and lists each Object ID once, the stored one first; each entry names its `source`. The scatter's own address index (`idx_phenomenon_scatter_address`) serves the read, as for the scattered marks of a node.
 6. **Dark nebula contrast (bug).** The dark family's fill is near-black on a dark page; add per-theme tokens and a contrast test (3:1), the part of MAP.142 that does not need the shape work.
 7. **Big-galaxy query test for the nebula reads** (rides slow-reads item 11).
 
