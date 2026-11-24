@@ -7654,7 +7654,11 @@ def phenomena_for_sector(conn, shell_index, band_index, wedge_index):
 
 BELOW_CUT_REMNANT_KINDS = ("neutron-star", "black-hole")
 """tuple: The kinds of scatter row that can hold a mass under the phenomenon scatter's cut (GEN.1682): the neutron stars and the black holes the scatter's draws below the cut make. A magnetar is scattered whatever the
-cut (its mass is a neutron star's), so a row of that subtype is not one of them."""
+cut (its mass is a neutron star's), and a promoted compact pair (GEN.263) is scattered below it, so a row of those subtypes is not one of them (`NOT_REMNANT_SUBTYPES`)."""
+
+NOT_REMNANT_SUBTYPES = ("magnetar", "pair", "stellar-pair")
+"""tuple: The subtypes of a below-cut row that is not a ring sector's remnant: the magnetars (scattered at every cut) and the promoted compact pairs (GEN.263: scattered below the cut, anywhere, with their companion). A sector that
+holds only these has had no below-cut draw of its own."""
 
 
 def sector_holds_below_cut_remnants(conn, address, min_mass_solar):
@@ -7667,7 +7671,7 @@ def sector_holds_below_cut_remnants(conn, address, min_mass_solar):
     marks = ", ".join("?" * len(BELOW_CUT_REMNANT_KINDS))
     return conn.execute(
         f"SELECT 1 FROM phenomenon_scatter WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND kind IN ({marks})"
-        " AND COALESCE(subtype, '') <> 'magnetar' AND mass_solar < ? LIMIT 1",
+        " AND COALESCE(subtype, '') NOT IN ('magnetar', 'pair', 'stellar-pair') AND mass_solar < ? LIMIT 1",
         (*[int(value) for value in address], *BELOW_CUT_REMNANT_KINDS, float(min_mass_solar))).fetchone() is not None
 
 
@@ -7680,7 +7684,7 @@ def addresses_holding_below_cut_remnants(conn, min_mass_solar):
         return set()
     marks = ", ".join("?" * len(BELOW_CUT_REMNANT_KINDS))
     rows = conn.execute(
-        f"SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE kind IN ({marks}) AND COALESCE(subtype, '') <> 'magnetar' AND mass_solar < ?",
+        f"SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE kind IN ({marks}) AND COALESCE(subtype, '') NOT IN ('magnetar', 'pair', 'stellar-pair') AND mass_solar < ?",
         (*BELOW_CUT_REMNANT_KINDS, float(min_mass_solar))).fetchall()
     return {(int(row["shell_index"]), int(row["band_index"]), int(row["wedge_index"])) for row in rows}
 

@@ -80,7 +80,7 @@ def _backfill(mysql_config, addresses, mass=2.0):
 
 def _remnants_in(mysql_config, address):
     return [row for row in _rows(mysql_config, "shell_index = %d AND band_index = %d AND wedge_index = %d AND mass_solar < %r" % (*address, CUT))
-            if row["kind"] in store.BELOW_CUT_REMNANT_KINDS]
+            if row["kind"] in store.BELOW_CUT_REMNANT_KINDS and row["subtype"] not in store.NOT_REMNANT_SUBTYPES]
 
 
 def test_the_phenomena_unit_draws_the_ring_sectors_remnants_and_counts_their_classes(mysql_config):
@@ -91,8 +91,8 @@ def test_the_phenomena_unit_draws_the_ring_sectors_remnants_and_counts_their_cla
     try:
         held = store.addresses_holding_below_cut_remnants(conn, CUT)
         classes = {(row["kind"], row["subtype"]): row["unbuilt"] for row in store.phenomenon_scatter_classes(conn)}
-        total = conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar < ? AND kind IN ('neutron-star', 'black-hole') AND COALESCE(subtype, '') <> 'magnetar'", (CUT,)).fetchone()["n"]
-        stored = {kind: count for kind, count in ((row["kind"], row["n"]) for row in conn.execute("SELECT kind, COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar < ? GROUP BY kind", (CUT,)).fetchall())}
+        total = conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar < ? AND kind IN ('neutron-star', 'black-hole') AND COALESCE(subtype, '') NOT IN ('magnetar', 'pair', 'stellar-pair')", (CUT,)).fetchone()["n"]
+        stored = {kind: count for kind, count in ((row["kind"], row["n"]) for row in conn.execute("SELECT kind, COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar < ? AND COALESCE(subtype, '') NOT IN ('pair', 'stellar-pair') GROUP BY kind", (CUT,)).fetchall())}
     finally:
         conn.close()
     assert held == set(RING), "each ring sector holds some, and a sector no backfill touched holds none"
