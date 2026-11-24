@@ -2,7 +2,7 @@
 
 """
 GEN.1010: one keep-out rule at every depth of a star tree (`multistar.pair_floor_au`, `pair_clears`, `node_extent_au`), the same
-rule for the tree as drawn, the build (`built_tree_clears`) and the independent verifier (`physics/clearance.py`).
+rule for the tree as drawn and the independent verifier (`physics/clearance.py`); the build makes its stars from the drawn members' own records (GEN.1009), so it needs no check of its own (GEN.1015).
 """
 
 import dataclasses
@@ -13,6 +13,7 @@ from planetgen.generation import multistar
 from planetgen.generation.multistar import Side, node_extent_au, pair_clears, pair_floor_au, single_side
 from planetgen.physics import clearance, constants, stability
 from planetgen.util import draw
+from tests.clearance_rows import rows_of_tree, hard_violations
 
 AU_KM = constants.AU_TO_KM
 SOLAR_KG = constants.SOLAR_MASS_TO_KG
@@ -21,12 +22,6 @@ SOLAR_KG = constants.SOLAR_MASS_TO_KG
 def _tree(count, seed):
     placed = multistar.Placed("star", 1.0 + 0.03 * (seed % 20), fe_h=0.0)
     return multistar.draw_member_tree(placed, (1.0 + 0.4 * (seed % 15)) * 1.0e9, draw.Stream(seed), n_stars=count)
-
-
-def _rows(tree):
-    stars = [{"id": m.member_no, "mass_kg": m.mass_solar * SOLAR_KG, "radius_km": m.radius_au * AU_KM,
-              "parent_node_no": m.parent_node_no, "slot": m.slot} for m in tree.members]
-    return {"stars": stars, "nodes": [dataclasses.asdict(node) for node in tree.nodes]}
 
 
 def test_two_singles_are_held_by_the_roche_lobe_and_other_pairs_by_the_extent_rule():
@@ -52,15 +47,13 @@ def test_the_extent_of_a_node_is_the_barycentric_one_the_verifier_uses():
 
 
 @pytest.mark.parametrize("count", [2, 3, 4, 5])
-def test_a_drawn_tree_clears_by_the_build_rule_and_the_verifier(count):
+def test_a_drawn_tree_clears_by_the_verifier(count):
     checked = 0
     for seed in range(40):
         tree = _tree(count, seed)
         if tree.member_count < 2:
             continue
-        stars = [(m.parent_node_no, m.radius_au, m.mass_solar) for m in tree.members]
-        assert multistar.built_tree_clears(tree.nodes, stars), (count, seed)
-        bad = [item for item in clearance.audit(_rows(tree)) if item.hard and item.kind in ("overlap", "roche", "stability")]
+        bad = hard_violations(rows_of_tree(tree))
         assert not bad, (count, seed, bad[:2])
         checked += 1
     assert checked >= 20

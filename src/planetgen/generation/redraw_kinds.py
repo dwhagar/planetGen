@@ -10,7 +10,7 @@ place calls `draw.redrawn(kind)` (which reads no stream, so what is generated is
 ceilings in `tests/data/redraw_rate_expectations.json`.
 
 A kind has a `scope` (what is redrawn), an `overlap` flag (the kinds the overlap-free design of GEN.1006 closes: their count is held at
-exactly zero once GEN.1015 deletes the GEN.1004 quick fix, so the test holds it as an invariant and not under a ceiling) and a one-line
+exactly zero (GEN.1015 deleted the GEN.1004 quick fix, which was the third), so the test holds it as an invariant and not under a ceiling) and a one-line
 `summary`. Not counted: the rejection samplers of a sector's star population (`star_population`, `bright_stars`), which accept or reject
 a draw by its weight and are not a fit to a neighbour, and the bisections and fixed-point loops that draw nothing.
 """
@@ -41,7 +41,6 @@ KINDS = {
     # --- the companion set of a system (system.StarSystem.__init__ and _companions_fit) ------------------------------------------------
     "companions.star_count": Kind("system", False, "the companions drawn again because the star count is not the one the directives force"),
     "companions.pair_kind": Kind("system", False, "the companions drawn again because the pair is not the close or wide kind the directives ask for"),
-    "companions.overlap": Kind("system", True, "the companions drawn again because a star as built is wider than its orbit (the quick fix that redraws the whole set)"),
     "companions.circumbinary_floor": Kind("system", False, "the companions drawn again because a close pair leaves no habitable zone outside its stability limit and a habitable world was asked for (kept one time in the request odds otherwise)"),
     # --- the planets of a system -------------------------------------------------------------------------------------------------------
     "system.planets_regenerated": Kind("system", False, "every planet drawn again because the requested habitable world (kept one time in the request odds without one), the forced belt or the forced class is not there"),
