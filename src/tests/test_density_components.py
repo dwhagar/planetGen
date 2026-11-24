@@ -200,7 +200,10 @@ def test_the_spiral_written_as_components_gives_the_density_it_gave_before(name)
     population): every total density and the halo are the old ones times one number per shape (1.0010 to 1.0014 for the five shapes
     that share the reference disk, 1.0444 for the large four-armed disk, checked point by point before the fixture was rewritten, the total
     mass unchanged), and the per-population units follow the new star formation history (the large disk's young units fall from 19 to
-    1.3 times the reference disk's, which the halo-growth history had made too young). The fixture's key for the nuclear disk follows
+    1.3 times the reference disk's, which the halo-growth history had made too young). It was made again for GEN.1202 (the thin disk's rings use 0.95 of the star formation law's coefficient, which moves the gas, the star
+    formation history and so the mean system mass of each population): every total density and the halo are the old ones times one number per shape
+    (0.99963 to 0.99975, checked point by point before the fixture was rewritten, the total mass unchanged), and the per-population units follow
+    (young 1.01 to 1.05 times, old 0.994 to 1.0). The fixture's key for the nuclear disk follows
     DOC.103's American spelling of stored names."""
     with open(IDENTITY, encoding="utf-8") as handle:
         data = json.load(handle)
