@@ -78843,8 +78843,8 @@
       "title": "Stand-ins of the white dwarf binaries (GEN.707)"
     },
     {
-      "key": "6.330",
-      "number": "6.330",
+      "key": "6.332",
+      "number": "6.332",
       "rows": [
         {
           "burn_down": null,
@@ -78874,10 +78874,10 @@
               "[R0655] (READ: the table of fits); test_shape_draw::test_the_dwarf_size_law_meets_the_late_type_law_at_its_edge"
             ]
           ],
-          "id": "DW1",
-          "key": "6.330:DW1",
+          "id": "DG1",
+          "key": "6.332:DG1",
           "kind": "D",
-          "slug": "6-330-dw1",
+          "slug": "6-332-dg1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
@@ -78912,10 +78912,10 @@
               "Segue 1 in the Local Volume Database and [R4098] (half-light radius 23.9 pc at 562 solar masses; the floor is half of it, Boss, 7:31 PM EDT on 2026-10-21)"
             ]
           ],
-          "id": "DW2",
-          "key": "6.330:DW2",
+          "id": "DG2",
+          "key": "6.332:DG2",
           "kind": "B",
-          "slug": "6-330-dw2",
+          "slug": "6-332-dg2",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
@@ -78954,10 +78954,10 @@
               "none: a placeholder so the Scale dial's floor has a height"
             ]
           ],
-          "id": "DW3",
-          "key": "6.330:DW3",
+          "id": "DG3",
+          "key": "6.332:DG3",
           "kind": "P",
-          "slug": "6-330-dw3",
+          "slug": "6-332-dg3",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
@@ -78965,7 +78965,7 @@
           "what": "a dwarf's scale height is its scale length over the flatness of the thin disk (7.3, KREGEL_Q), as for every spiral, until a dwarf-spheroid height is drawn from its observed flattening"
         }
       ],
-      "slug": "6-330-stand-ins-of-the-size-of-a-dwarf-galaxy-gen-612",
+      "slug": "6-332-stand-ins-of-the-size-of-a-dwarf-galaxy-gen-612",
       "title": "Stand-ins of the size of a dwarf galaxy (GEN.612)"
     }
   ]
