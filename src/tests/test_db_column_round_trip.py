@@ -285,6 +285,11 @@ NULL_IN_THIS_GALAXY = {
     **{("sky_tier_draws", column): "no sky charting in this galaxy (VIEW.25)" for column in
        ("id", "kind", "band_low", "band_high", "center_x_pc", "center_y_pc", "center_z_pc", "radius_pc", "limit_mag", "stars", "seconds", "generator_epoch", "batches_done", "complete", "drawn_at", "part_index", "part_count")},
     ("planets", "parent_shadow_share"): "only a moon is in its planet's shadow (GEN.767)",
+    # GEN.179: a sector keeps a record only when it was drawn under a `--directive`; the seeded galaxy is drawn with none, so both tables are empty
+    # here (tests/test_sector_directive_record.py writes a record and reads it back through the sector API).
+    **{(table, column): "no sector of this galaxy was drawn under a --directive (GEN.179)" for table, columns in (
+        ("sector_directives", ("sector_id", "directive_digest", "status", "attempts")),
+        ("sector_directive_minimums", ("sector_id", "minimum_key", "wanted", "got"))) for column in columns},
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
@@ -323,6 +328,10 @@ NEVER_READ = {
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"), ("planet_isotopes", "planet_id"), ("moon_isotopes", "moon_id"),
         ("system_owners", "star_system_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
+    # GEN.179: the sector API reads a sector's directive record (`query.sector_directive`), but the seeded galaxy holds none (no --directive), so no row is read.
+    **{(table, column): "no sector of this galaxy was drawn under a --directive (GEN.179); tests/test_sector_directive_record.py reads the record back" for table, columns in (
+        ("sector_directives", ("sector_id", "directive_digest", "status", "attempts")),
+        ("sector_directive_minimums", ("sector_id", "minimum_key", "wanted", "got"))) for column in columns},
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.
     **{("irregular_moons", column): CHANCE for column in (
         "planet_id", "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
