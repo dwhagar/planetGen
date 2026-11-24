@@ -1162,7 +1162,7 @@ def add_plan_arguments(parser):
                                    f"{program_constants.CORE_TIER_FACTOR:g}, until set.")
     limits_group.add_argument('--core-mass-limit', type=finite_float, default=None, metavar='M_SUN',
                               help="The mass limit (solar masses) of the scatter in the galactic core, for its stars and "
-                                   "for the neutron stars and black holes of the phenomenon scatter (GEN.377). Stored with "
+                                   "for the neutron stars and black holes of the phenomenon scatter. Stored with "
                                    "the galaxy by a full plan. Default: the baseline limit times "
                                    f"{program_constants.CORE_TIER_FACTOR:g}, until set.")
     limits_group.add_argument('--halo-min-luminosity', type=finite_float, default=None, metavar='L_SUN',
