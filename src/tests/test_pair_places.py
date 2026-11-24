@@ -60,6 +60,41 @@ def test_a_close_pairs_places_are_what_the_columns_held(mysql_config, stars):
         conn.close()
 
 
+def test_the_pairs_of_bigger_trees_are_where_their_columns_hold_them(mysql_config):
+    """Every close pair of a tree of 3 to 5 stars (with a member beyond it, a dark member or a sub-pair) is placed where its columns hold it."""
+    conn = store.get_connection(mysql_config)
+    try:
+        checked = 0
+        for seed in range(120):
+            system, config = _system(seed, 3 + seed % 3, wide=False)
+            if system.binary_type != "close" or system.star_slots is None:
+                continue
+            system_id = _store(conn, system, config)
+            nodes = orbit_trees.read_nodes(conn, system_id)
+            primary = conn.execute("SELECT parent_node_id, slot FROM stars WHERE star_system_id = ? AND role = 'primary'", (system_id,)).fetchone()
+            flipped = orbit_trees._slot_under(nodes, primary, orbit_trees.pair_node_no(conn, system_id)) == 1
+            held, read = _columns(conn, system_id), orbit_trees.pair_places_km(conn, system_id)
+            for key, name in (("mutual", "mutual_km"), ("primary", "primary_km"), ("secondary", "secondary_km")):
+                assert read[name] == pytest.approx(held[key], rel=1e-6, abs=1.0), (seed, key, flipped)
+            checked += 1
+        assert checked >= 5
+    finally:
+        conn.close()
+
+
+def test_a_primary_under_the_second_slot_turns_the_nodes_orbit_half_way_round():
+    """The node is the orbit of its slot-1 child about its slot-0 child; the pair is the second star about the first, so a primary that hangs under slot 1 swaps them
+    (the generator keeps the primary under slot 0 of a plain pair, so this arises only for a stored tree whose pair has a dark member or a sub-pair between its stars)."""
+    from planetgen.physics.system_tree import OrbitNode
+    nodes = [OrbitNode(node_no=0, parent_node_no=None, slot=0, mass_solar=1.0, separation_km=1.0, eccentricity=0.0, inclination_deg=0.0, ascending_node_deg=0.0,
+                       arg_periapsis_deg=0.0, mean_anomaly_deg=0.0, epoch_unix=0.0, period_years=1.0),
+             OrbitNode(node_no=1, parent_node_no=0, slot=1, mass_solar=1.0, separation_km=1.0, eccentricity=0.0, inclination_deg=0.0, ascending_node_deg=0.0,
+                       arg_periapsis_deg=0.0, mean_anomaly_deg=0.0, epoch_unix=0.0, period_years=1.0)]
+    assert orbit_trees._slot_under(nodes, {"parent_node_id": 1, "slot": 0}, 0) == 1      # hangs below the slot-1 node
+    assert orbit_trees._slot_under(nodes, {"parent_node_id": 0, "slot": 0}, 0) == 0
+    assert orbit_trees._slot_under(nodes, {"parent_node_id": 1, "slot": 1}, 1) == 1
+
+
 def test_a_wide_pair_is_placed_on_its_ellipse_with_the_columns_circle_as_its_mean_distance(mysql_config):
     conn = store.get_connection(mysql_config)
     try:

@@ -191,6 +191,15 @@ def pair_node_no(conn, star_system_id):
         places["primary"], places["secondary"])
 
 
+def _slot_under(nodes, star, node_no):
+    """The slot of node `node_no` the star row `star` (`parent_node_id`, `slot`) hangs under, directly or through the nodes below it."""
+    parent = {node.node_no: (node.parent_node_no, node.slot) for node in nodes}
+    at, slot = star["parent_node_id"], star["slot"]
+    while at != node_no:
+        at, slot = parent[at]
+    return slot
+
+
 def pair_places_km(conn, star_system_id):
     """
     The system's own pair as the orbit tree places it (GEN.640 slice a), the reader the `star_systems.binary_mutual_*`,
@@ -203,11 +212,15 @@ def pair_places_km(conn, star_system_id):
     node_no = pair_node_no(conn, star_system_id)
     if node_no is None:
         return None
-    node = next(node for node in read_nodes(conn, star_system_id) if node.node_no == node_no)
-    masses = {row["role"]: row["mass_kg"] for row in conn.execute(
-        "SELECT role, mass_kg FROM stars WHERE star_system_id = ? AND role IN ('primary', 'secondary')", (star_system_id,)).fetchall()}
-    fraction = masses["secondary"] / (masses["primary"] + masses["secondary"])
+    nodes = read_nodes(conn, star_system_id)
+    node = next(node for node in nodes if node.node_no == node_no)
+    stars = {row["role"]: row for row in conn.execute(
+        "SELECT role, mass_kg, parent_node_id, slot FROM stars WHERE star_system_id = ? AND role IN ('primary', 'secondary')",
+        (star_system_id,)).fetchall()}
+    fraction = stars["secondary"]["mass_kg"] / (stars["primary"]["mass_kg"] + stars["secondary"]["mass_kg"])
     mutual = [_au_to_km(value) for value in system_tree.node_relative_au(node, node.epoch_unix)]
+    if _slot_under(nodes, stars["primary"], node_no) == 1:
+        mutual = [-value for value in mutual]    # the node is the orbit of its slot-1 child about its slot-0 child; the pair is the second star about the first
     return {
         "node": node, "mutual_km": mutual, "secondary_mass_fraction": fraction,
         "primary_km": [-fraction * value for value in mutual], "secondary_km": [(1.0 - fraction) * value for value in mutual],
