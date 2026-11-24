@@ -258,7 +258,7 @@ def cut_summary(min_mass_solar):
     text = _cut_summary(cuts.baseline)
     others = [f"the {name}'s is {cuts.tiers[tier]:g} solar masses" for tier, name in ((0, "core"), (2, "halo"))
               if cuts.tiers[tier] != cuts.baseline]
-    return text if not others else f"{text}; {' and '.join(others)} (the cut by place, GEN.377)"
+    return text if not others else f"{text}; {' and '.join(others)} (each band takes the cut of its place)"
 
 
 def _cut_summary(min_mass_solar):

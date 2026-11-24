@@ -213,7 +213,7 @@ SYSTEM_TYPE_RATES = {
         "13.3", "Double white dwarf merger product", "white dwarfs", 0.10, "S", ("old",), "draw_white_dwarf_merger",
         271, "F", (10, 11), by_class={"wide DWD heavier star": 0.26},
         note="The high-mass bump, 0.8 to 1.1 solar masses; 26% to 54% of wide double white dwarfs have a "
-             "merger-product heavier star. The share of a white dwarf follows its mass (GEN.708): 25% to 78% above "
+             "merger-product heavier star. The share of a white dwarf follows its mass: 25% to 78% above "
              "0.9 solar masses, 8% to 12% of an old population."),
     "white-dwarf-post-ce": _t(
         "13.3", "White dwarf plus main-sequence star, post-common-envelope pair", "white-dwarf companions", 0.10,
