@@ -2329,7 +2329,7 @@
             ],
             [
               "Source",
-              "Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers) and 3:26 PM EST 2026-11-22 (GEN.1832: one box, on by default; the Sparse, Scattered and Plentiful words are gone); the dial values behind the box are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census"
+              "Boss, 11:19 PM EST 2026-11-13 (Class M abundance tiers) and 3:26 PM EST 2026-11-22 (one box, on by default; the Sparse, Scattered and Plentiful words are gone); the dial values behind the box are first-pass stand-ins (tuning.ABUNDANCE_TIER_DIALS) to be calibrated by census"
             ]
           ],
           "id": "--class-m",
