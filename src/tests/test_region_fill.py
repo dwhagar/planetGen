@@ -166,7 +166,15 @@ def test_a_finished_fill_of_one_anchor_sphere_is_charted_and_named(mysql_config,
         _fake_args_for_direct_generation(mysql_config), address, spherical.sector_position_pc(*address, EDGE_PC), EDGE_PC)
     sector_id = _all_sectors(mysql_config)[0]["id"]
     _run_cli(["--center-sector", str(sector_id), "--region", "--num-systems", "1"] + _mysql_argv(mysql_config), planets=False)
-    made = {_address(row) for row in _all_sectors(mysql_config)}
+    # The fill's sectors are the ones that hold a system. An ejected planet of a donor system is a rogue planet in a sector of its own,
+    # as far along its path as its speed took it (GEN.1111), so that sector holds no star and is no part of the fill: how many systems
+    # throw a planet out is a draw of the stars, and it moved with the star mass function's centre (GEN.922).
+    conn = store.get_connection(mysql_config)
+    try:
+        with_systems = {row["id"] for row in conn.execute("SELECT DISTINCT sector_id AS id FROM star_systems").fetchall()}
+    finally:
+        conn.close()
+    made = {_address(row) for row in _all_sectors(mysql_config) if row["id"] in with_systems}
     assert anchor in made and address in made and len(made) > 10
     assert all(named_regions.region_of(found) == region for found in made)
     conn = store.get_connection(mysql_config)
