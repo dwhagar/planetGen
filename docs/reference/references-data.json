@@ -150596,6 +150596,38 @@
    "volume": "449",
    "year": 2006
   },
+  "10.1051/0004-6361:20054351": {
+   "arxiv": "astro-ph/0511788",
+   "authors": [
+    [
+     "Bica",
+     "E."
+    ],
+    [
+     "Bonatto",
+     "C."
+    ],
+    [
+     "Barbuy",
+     "B."
+    ],
+    [
+     "Ortolani",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361:20054351",
+   "editors": [],
+   "journal": "A&A",
+   "page": "105",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Globular cluster system and Milky Way properties revisited",
+   "type": "journal-article",
+   "volume": "450",
+   "year": 2006
+  },
   "10.1051/0004-6361:20054551": {
    "authors": [
     [
@@ -160610,6 +160642,34 @@
    "title": "Stellar Disk Truncations at High z : Probing Inside-Out Galaxy Formation",
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
+   "volume": "630",
+   "year": 2005
+  },
+  "10.1086/491580": {
+   "arxiv": "astro-ph/0507551",
+   "authors": [
+    [
+     "Rhode",
+     "K. L."
+    ],
+    [
+     "Zepf",
+     "S. E."
+    ],
+    [
+     "Santos",
+     "M. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/491580",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "L21",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Metal-poor Globular Clusters and the Formation of Their Host Galaxies",
+   "type": "journal-article",
    "volume": "630",
    "year": 2005
   },
@@ -220076,6 +220136,30 @@
    "title": "Structure and kinematics of edge-on galaxy discs - V. The dynamics of stellar discs",
    "type": "journal-article",
    "volume": "358",
+   "year": 2005
+  },
+  "10.1111/j.1365-2966.2005.08925.x": {
+   "arxiv": "astro-ph/0502447",
+   "authors": [
+    [
+     "Parmentier",
+     "G."
+    ],
+    [
+     "Grebel",
+     "E. K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1365-2966.2005.08925.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "615",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "On the origin of the radial mass density profile of the Galactic halo globular cluster system",
+   "type": "journal-article",
+   "volume": "359",
    "year": 2005
   },
   "10.1111/j.1365-2966.2005.09087.x": {
@@ -287973,7 +288057,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5361,
+ "id_next": 5364,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -290064,6 +290148,7 @@
   "10.1051/0004-6361:20053842": "R5135",
   "10.1051/0004-6361:20054081": "R3126",
   "10.1051/0004-6361:20054301": "R1109",
+  "10.1051/0004-6361:20054351": "R5361",
   "10.1051/0004-6361:20054551": "R0918",
   "10.1051/0004-6361:20054596": "R2408",
   "10.1051/0004-6361:20054745": "R3884",
@@ -290396,6 +290481,7 @@
   "10.1086/444620": "R4031",
   "10.1086/468179": "R3185",
   "10.1086/491472": "R4435",
+  "10.1086/491580": "R5362",
   "10.1086/496914": "R4997",
   "10.1086/497030": "R3061",
   "10.1086/497092": "R2193",
@@ -291765,6 +291851,7 @@
   "10.1111/j.1365-2966.2004.08424.x": "R3687",
   "10.1111/j.1365-2966.2004.08614.x": "R2617",
   "10.1111/j.1365-2966.2005.08855.x": "R2483",
+  "10.1111/j.1365-2966.2005.08925.x": "R5363",
   "10.1111/j.1365-2966.2005.09087.x": "R1966",
   "10.1111/j.1365-2966.2005.09096.x": "R3761",
   "10.1111/j.1365-2966.2005.09161.x": "R0077",
@@ -294489,6 +294576,7 @@
   "arxiv:astro-ph/0412253": "R3753",
   "arxiv:astro-ph/0412641": "R2850",
   "arxiv:astro-ph/0502420": "R4996",
+  "arxiv:astro-ph/0502447": "R5363",
   "arxiv:astro-ph/0503176": "R1654",
   "arxiv:astro-ph/0503346": "R2915",
   "arxiv:astro-ph/0503488": "R0423",
@@ -294504,12 +294592,14 @@
   "arxiv:astro-ph/0506539": "R1499",
   "arxiv:astro-ph/0506659": "R0007",
   "arxiv:astro-ph/0507464": "R0686",
+  "arxiv:astro-ph/0507551": "R5362",
   "arxiv:astro-ph/0508460": "R4824",
   "arxiv:astro-ph/0510224": "R3999",
   "arxiv:astro-ph/0510255": "R3185",
   "arxiv:astro-ph/0510285": "R5142",
   "arxiv:astro-ph/0510784": "R4491",
   "arxiv:astro-ph/0511082": "R0921",
+  "arxiv:astro-ph/0511788": "R5361",
   "arxiv:astro-ph/0512334": "R1109",
   "arxiv:astro-ph/0512585": "R1333",
   "arxiv:astro-ph/0603091": "R2242",

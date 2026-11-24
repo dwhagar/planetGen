@@ -26705,6 +26705,21 @@
       "kind": "paper",
       "label": "Laing and Wilson 2025",
       "title": "Increased molecular gas velocity dispersion and star formation efficiency in barred galaxy centres"
+    },
+    "R5361": {
+      "kind": "paper",
+      "label": "Bica et al. 2006",
+      "title": "Globular cluster system and Milky Way properties revisited"
+    },
+    "R5362": {
+      "kind": "paper",
+      "label": "Rhode et al. 2005",
+      "title": "Metal-poor Globular Clusters and the Formation of Their Host Galaxies"
+    },
+    "R5363": {
+      "kind": "paper",
+      "label": "Parmentier and Grebel 2005",
+      "title": "On the origin of the radial mass density profile of the Galactic halo globular cluster system"
     }
   }
 }

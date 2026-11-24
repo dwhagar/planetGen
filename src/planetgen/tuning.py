@@ -1679,6 +1679,11 @@ CLUSTER_FE_H_GROUPS = ((0.65, -1.55, 0.3), (0.35, -0.55, 0.25))
 CLUSTER_BULGE_MEDIAN_PC = 3000.0
 CLUSTER_BULGE_FLATTENING = 0.5
 CLUSTER_HALO_RADIUS_RANGE_PC = (1000.0, 120000.0)
+CLUSTER_HALO_SLOPE = 4.0
+"""float: The outer slope of the metal-poor halo clusters' density, `rho ~ (1 + D / Dc)**-gamma` (GEN.297: [R5363] fit the Milky Way's old halo clusters with
+the slope fixed at 4.0 and `Dc` 1.7 to 1.9 kpc; [R5361] find `R**-3.9` at large distance; the older fits give 3.5 to 4.0 with `Dc` 0.5 to 2 kpc; [Stand-in 6.335 GC1, tier T2, tweak L0])."""
+CLUSTER_HALO_CORE_PC = 1800.0
+"""float: The break distance `Dc` of the same law, 1.8 kpc, where the density flattens inward to `D**-2` and below ([R5363]'s fit at slope 4.0: 1.7 to 1.9 kpc; row GC1 of 6.335)."""
 CLUSTER_HALO_DISPERSION_KMS = 110.0
 CLUSTER_BULGE_DISPERSION_KMS = 60.0
 
