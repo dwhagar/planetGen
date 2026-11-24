@@ -35,7 +35,7 @@ for a body with any). The species are not a list by class: a species is in the e
    `None` for a body with air, without a ground or without a star's light. `scale_height_km` is `k T / (m g)` at the source's launch temperature, and a species whose
    scale height is over the body's radius is not recorded (its atoms leave, no exosphere is held), nor is a thermal column over `COLLISIONAL_COLUMN_CM2` (that gas is an atmosphere).
 
-The constants of the sources are read from part 04 section 5 ([R4783], [R3392], [R2546]); the ones that are not are registered stand-ins (section 6.328). Draws come from
+The constants of the sources are read from part 04 section 5 [R2546, R3392, R4783]; the ones that are not are registered stand-ins (section 6.328). Draws come from
 a keyed stream of the body, so no other number of a run moves.
 """
 
