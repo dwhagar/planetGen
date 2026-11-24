@@ -2644,7 +2644,7 @@ def sector_detail(conn, sector_id):
 def sector_directive(conn, sector_id):
     """
     The directive a stored sector was drawn under and how the draw came out (GEN.179), or `None` for a sector drawn with
-    no directive or made before v275: `{"digest", "status", "attempts", "minimums": [{"key", "wanted", "got"}, ...]}`, the
+    no directive or made before v277: `{"digest", "status", "attempts", "minimums": [{"key", "wanted", "got"}, ...]}`, the
     minimums in key order.
     """
     row = conn.execute("SELECT directive_digest, status, attempts FROM sector_directives WHERE sector_id = ?",

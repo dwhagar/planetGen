@@ -1734,10 +1734,10 @@ CREATE TABLE IF NOT EXISTS sectors (
     CONSTRAINT fk_sectors_run FOREIGN KEY (run_id) REFERENCES generation_runs(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- The directive a sector was drawn under (v275, GEN.179): a run given `--directive` minimums (`generation/directives.py`, GEN.96) draws a sector again until it meets them, and keeps what the draw
+-- The directive a sector was drawn under (v277, GEN.179): a run given `--directive` minimums (`generation/directives.py`, GEN.96) draws a sector again until it meets them, and keeps what the draw
 -- came out as: `directive_digest` (the sixteen hexadecimal digits the attempt seeds are made from), `status` (`met_naturally`, `met_after_k_attempts`, `met_forced` or `unmet`) and the `attempts` made
 -- (a forced fill counts as one more). `sector_directive_minimums` has one row for each minimum asked: the key (`systems`, `habitable`, `type:G` ...), what was `wanted` and what the kept sector `got`.
--- A sector drawn with no directive has no rows, and nothing is backfilled for a sector made before v275. The rows are written with the sector (a regenerated sector's are replaced) and go with it.
+-- A sector drawn with no directive has no rows, and nothing is backfilled for a sector made before v277. The rows are written with the sector (a regenerated sector's are replaced) and go with it.
 CREATE TABLE IF NOT EXISTS sector_directives (
     sector_id         BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     directive_digest  CHAR(16) NOT NULL,

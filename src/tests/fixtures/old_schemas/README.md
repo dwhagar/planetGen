@@ -46,3 +46,5 @@ Commit each file came from:
 - v272: after GEN.1151's migration 0272 (trojan planets), before GEN.1746 slice 3's migration 0273 (life ages) (main's schema.sql with its comment and blank lines removed)
 - v273: after GEN.1746 slice 3's migration 0273 (planet_life_ages, moon_life_ages), before GEN.1809's migration 0274 (planet_adaptations, moon_adaptations) (the schema.sql of that step with its comment and blank lines removed)
 - v274: after GEN.1809's migration 0274 (planet_adaptations, moon_adaptations), before GEN.455 part A's migration 0275 (comet coma columns, comet_coma, interstellar_comet_coma) (main's schema.sql with its comment and blank lines removed)
+- v275: after GEN.455 part A's migration 0275 (comet coma columns, comet_coma, interstellar_comet_coma), before GEN.1204's migration 0276 (dark_members density_g_cm3, binding_energy_j) (the train's schema.sql with its comment and blank lines removed)
+- v276: after GEN.1204's migration 0276 (dark_members density_g_cm3, binding_energy_j), before GEN.179's migration 0277 (sector_directives, sector_directive_minimums) (the train's schema.sql with its comment and blank lines removed)
