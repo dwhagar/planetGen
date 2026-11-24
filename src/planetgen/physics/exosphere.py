@@ -24,6 +24,8 @@ for a body with any). The species are not a list by class: a species is in the e
    * *Ion sputtering*: the wind's ions at the body's distance, `F_wind Y x_i / 4`, the yield `Y` being the H+ and He+ yields in the wind's 4 percent helium, cut to
      the share of a field's cusps for a body whose own field holds the wind off.
 
+   The three sources of the rock work on the ground the ice does not cover (a body wholly under ice shows none of them).
+
 2. **The loss.** Only the atoms that stay count: a share `f_esc` of each source leaves at once (the Weibull tail of the desorbed, the effusing tail of a Maxwell
    gas, the Thompson tail of the sputtered). The rest fly a ballistic arc of `2 v / g`; during it an atom is ionised by the star's light after `tau` (the Na
    photoionisation rate by host temperature, the photolysis table's lifetime for a molecule; none read for the others, which are then lost to the ground only), so its mean time
@@ -287,6 +289,7 @@ def columns(inputs, rng):
             stay = 1.0 - maxwell_escape_share(mass, temperature, v_esc)
             parts.append(_entry(formula, SOURCES[0], flux_m2 / 1.0e4, stay, flight_s(speed, g), _ionisation_lifetime_s(formula, inputs), temperature, g))
 
+    bare = 1.0 - min(max(inputs.ice_cover, 0.0), 1.0)          # the rock sources work on the ground the ice does not cover
     # photon-stimulated desorption of the alkali
     sun_share = life_classes.band_fraction(photolysis.TEMPLATE_TEMPERATURES_K[1], PSD_BAND_NM)
     band_share = life_classes.band_fraction(inputs.teff_k, PSD_BAND_NM)
@@ -298,7 +301,7 @@ def columns(inputs, rng):
         if species not in shares:
             continue
         cross_cm2 = cross * (1.0 + cross_scale * PSD_CROSS_SECTION_SPREAD / PSD_CROSS_SECTION_CM2["Na"])
-        flux = cross_cm2 * PSD_SITE_DENSITY_CM2 * shares[species] * photons / 4.0
+        flux = bare * cross_cm2 * PSD_SITE_DENSITY_CM2 * shares[species] * photons / 4.0
         parts.append(_entry(species, SOURCES[1], flux, stay_psd, flight_s(speed_psd, g), _ionisation_lifetime_s(species, inputs), PSD_LAUNCH_K, g))
 
     # micrometeoroid impact vaporisation of the refractories
@@ -312,7 +315,7 @@ def columns(inputs, rng):
         mass = mass_per_atom_kg(species)
         speed = min(math.sqrt(8.0 * BOLTZMANN * IMPACT_PLUME_K / (math.pi * mass)), RETAINED_SPEED_SHARE * v_esc)
         stay = 1.0 - maxwell_escape_share(mass, IMPACT_PLUME_K, v_esc)
-        parts.append(_entry(species, SOURCES[2], mass_flux * atoms_per_g, stay, flight_s(speed, g), _ionisation_lifetime_s(species, inputs), IMPACT_PLUME_K, g))
+        parts.append(_entry(species, SOURCES[2], bare * mass_flux * atoms_per_g, stay, flight_s(speed, g), _ionisation_lifetime_s(species, inputs), IMPACT_PLUME_K, g))
 
     # ion sputtering of the refractories
     if inputs.wind_ratio > 0.0:
@@ -322,7 +325,7 @@ def columns(inputs, rng):
             mass = mass_per_atom_kg(species)
             stay = 1.0 - sputter_escape_share(mass, binding, v_esc)
             speed = RETAINED_SPEED_SHARE * v_esc
-            parts.append(_entry(species, SOURCES[3], wind * yield_ion * share / 4.0, stay, flight_s(speed, g), _ionisation_lifetime_s(species, inputs), IMPACT_PLUME_K, g))
+            parts.append(_entry(species, SOURCES[3], bare * wind * yield_ion * share / 4.0, stay, flight_s(speed, g), _ionisation_lifetime_s(species, inputs), IMPACT_PLUME_K, g))
 
     found = {}
     for entry in parts:
@@ -369,7 +372,7 @@ def inputs_of(body):
     if oxides is None:
         return None
     lit = radiation_field.lit_distance_au(star, distance)
-    flux_ratio = star.luminosity / (lit * lit)
+    flux_ratio = star.luminosity / constants.SOLAR_LUMINOSITY / (lit * lit)       # the star's luminosity is in watts
     shares, cover = _ice_shares(body)
     shielded = (getattr(body, "magnetopause_rp", None) or 0.0) > 1.0
     wind_ratio = magnetism.wind_pressure_at(star, distance) / magnetism.EARTH_WIND_PA
