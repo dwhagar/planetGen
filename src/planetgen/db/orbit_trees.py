@@ -20,7 +20,7 @@ from collections import namedtuple
 
 from planetgen.db import storage_checksum
 from planetgen.generation import member_record, multistar, stored_trees
-from planetgen.physics import constants, system_tree
+from planetgen.physics import body_strength, constants, system_tree
 from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics import unit_registry as units
 
@@ -134,7 +134,10 @@ def write_dark_members(conn, star_system_id, members, replace=True):
     if replace:
         storage_checksum.mark_system(conn, star_system_id)
         conn.execute("DELETE FROM dark_members WHERE star_system_id = ?", (star_system_id,))
-    _insert_rows(conn, "dark_members", DARK_COLUMNS, star_system_id, members)
+    sql = (f"INSERT INTO dark_members (star_system_id, {', '.join(DARK_COLUMNS)}, {', '.join(body_strength.STELLAR_FIELDS)})"
+           f" VALUES (?, {', '.join('?' * (len(DARK_COLUMNS) + len(body_strength.STELLAR_FIELDS)))})")
+    for member in members:
+        conn.execute(sql, (star_system_id, *(getattr(member, column) for column in DARK_COLUMNS), *body_strength.dark_member_values(member)))    # GEN.1204
 
 
 def read_dark_members(conn, star_system_id):

@@ -5781,7 +5781,8 @@ CREATE TABLE IF NOT EXISTS orbit_nodes (
 -- dark_members (v194, GEN.1013): the members of a built system's tree that are not stars of it, one row each: a brown dwarf, a
 -- neutron star, a black hole or a stripped helium star. `parent_node_no` and `slot` name the node it hangs in and its place among
 -- that node's children (the numbering of `orbit_nodes`); the node masses above it count its `mass_solar`. It has no light and no
--- planets. A row goes with its system.
+-- planets. A row goes with its system. v275 (GEN.1204): `density_g_cm3` (g/cm3) and `binding_energy_j` (J; -1 for the infinite binding energy of a black hole)
+-- from the mass and the radius, as a single remnant's (`physics/body_strength.py`); NULL on a row made before.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS dark_members (
     star_system_id       BIGINT UNSIGNED NOT NULL,
@@ -5791,6 +5792,8 @@ CREATE TABLE IF NOT EXISTS dark_members (
     kind                 VARCHAR(16) NOT NULL,
     mass_solar           DOUBLE NOT NULL,
     radius_au            DOUBLE NULL,
+    density_g_cm3        DOUBLE NULL,
+    binding_energy_j     DOUBLE NULL,
     PRIMARY KEY (star_system_id, member_no),
     CONSTRAINT fk_dark_members_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,

@@ -326,6 +326,8 @@ TABLES = {
         "index": ("member_no", "parent_node_no", "slot"),
         "Msun": ("mass_solar",),
         "au": ("radius_au",),
+        "g_cm3": ("density_g_cm3",),
+        "J": ("binding_energy_j",),
     },
     "designations": {
         "id": ("id", "object_row_id"),
