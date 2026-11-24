@@ -101,7 +101,8 @@ from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
     CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at, sector_position_pc,
 )
-from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word, wide_pair_star_words
+from planetgen.names import tree_names
+from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.uniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
@@ -10487,38 +10488,32 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
     }
 
 
-def _wide_binary_row_to_dict(star_system_row):
+def _wide_binary_row_to_dict(star_system_row, pair):
     """
-    Maps a `star_systems` row's reused `binary_separation_km`/
-    `binary_mutual_*` columns plus the new `binary_eccentricity`/
-    `binary_periapsis_km`/`binary_apoapsis_km` columns to
-    `WideBinaryPair.from_dict`'s expected dict shape (its
-    `SERIALIZABLE_FIELDS`), inverting every unit conversion
-    `_mutual_orbit_fields_from_wide_binary` applies. Only ever called for a
-    `binary_configuration == 'wide'` row -- see `load_star_system`.
+    Maps a `star_systems` row's `binary_*` columns that do not change (`binary_separation_km`, `binary_eccentricity`, `binary_periapsis_km`,
+    `binary_apoapsis_km`, `binary_mutual_orbital_speed_kms`, `binary_mutual_min_update_interval_years`) and the pair's orbit tree place
+    (`pair`, `orbit_trees.pair_places_km`: its phase and positions as the last orbit update left the pair's node, GEN.640 slice a) to
+    `WideBinaryPair.from_dict`'s expected dict shape (its `SERIALIZABLE_FIELDS`). Only ever called for a `binary_configuration == 'wide'` row
+    -- see `load_star_system`.
     """
     row = star_system_row
+    node = pair["node"]
+    mutual, primary, secondary = (tuple(_km_to_au(value) for value in pair[key]) for key in ("mutual_km", "primary_km", "secondary_km"))
     return {
         "separation_au": _km_to_au(row["binary_separation_km"]),
         "eccentricity": row["binary_eccentricity"],
-        "period_years": row["binary_mutual_orbital_period_years"],
+        "period_years": node.period_years,
         "speed_kms": row["binary_mutual_orbital_speed_kms"],
         "periapsis_au": _km_to_au(row["binary_periapsis_km"]),
         "apoapsis_au": _km_to_au(row["binary_apoapsis_km"]),
-        "inclination_deg": row["binary_mutual_orbital_inclination_deg"],
-        "ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
-        "phase_deg": row["binary_mutual_orbital_phase_deg"],
+        "inclination_deg": node.inclination_deg,
+        "ascending_node_deg": node.ascending_node_deg,
+        "phase_deg": node.mean_anomaly_deg,
         "min_update_interval_years": row["binary_mutual_min_update_interval_years"],
-        "position_x_au": _km_to_au(row["binary_mutual_position_x_km"]),
-        "position_y_au": _km_to_au(row["binary_mutual_position_y_km"]),
-        "position_z_au": _km_to_au(row["binary_mutual_position_z_km"]),
-        "primary_position_x_au": _km_to_au(row["binary_primary_position_x_km"]),
-        "primary_position_y_au": _km_to_au(row["binary_primary_position_y_km"]),
-        "primary_position_z_au": _km_to_au(row["binary_primary_position_z_km"]),
-        "secondary_position_x_au": _km_to_au(row["binary_secondary_position_x_km"]),
-        "secondary_position_y_au": _km_to_au(row["binary_secondary_position_y_km"]),
-        "secondary_position_z_au": _km_to_au(row["binary_secondary_position_z_km"]),
-        "secondary_mass_fraction": row["binary_secondary_mass_fraction"],
+        "position_x_au": mutual[0], "position_y_au": mutual[1], "position_z_au": mutual[2],
+        "primary_position_x_au": primary[0], "primary_position_y_au": primary[1], "primary_position_z_au": primary[2],
+        "secondary_position_x_au": secondary[0], "secondary_position_y_au": secondary[1], "secondary_position_z_au": secondary[2],
+        "secondary_mass_fraction": pair["secondary_mass_fraction"],
     }
 
 
@@ -10708,7 +10703,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         star = Star.from_dict(_star_row_to_dict(primary_row, speed_kms), system_config)
         secondary_star = Star.from_dict(_star_row_to_dict(secondary_row, speed_kms), system_config)
         wide_binary = WideBinaryPair.from_dict(
-            _wide_binary_row_to_dict(row), system_config, star, secondary_star
+            _wide_binary_row_to_dict(row, orbit_trees.pair_places_km(conn, star_system_id)), system_config, star, secondary_star
         )
     else:
         star = _load_single_star(conn, star_system_id, system_config, speed_kms)
@@ -10765,7 +10760,6 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         star.db_id = primary_row["id"]
         secondary_star.db_id = secondary_row["id"]
         system.stars = [star, secondary_star]
-        system.star_words = wide_pair_star_words(row["name"], star.name, secondary_star.name)    # DB.125: not a column, the two star names hold them
     else:
         system.primary_star = star
         system.stars = [star]
@@ -10783,6 +10777,9 @@ def load_star_system(conn, star_system_id) -> StarSystem:
             conn.execute("SELECT parent_node_id, slot FROM stars WHERE star_system_id = ? AND role = 'single'",
                          (star_system_id,)).fetchone(),)
         system.star_slots = tuple((place["parent_node_id"], place["slot"]) for place in places)
+    name_nodes, name_members = system._name_inputs()
+    # DB.125, GEN.312: the branch words are not a column; the names of the stars under the wide splits hold them
+    system.star_words = tree_names.words_from_names(row["name"], name_nodes, name_members, [star.name for star in system.stars] + [None] * len(system.dark_members)) or None
     system.hosts = [Host(star, PRIMARY)]
     system.build_ledger()    # the tree is known: the hosts are made from it (GEN.1664) before the bodies are put in them
 
@@ -11210,8 +11207,6 @@ def _budget_tables():
     tables = {
         "planets": ("planets", "next_update_due", "period_years > 0"),
         "moons": ("moons", "next_update_due", "period_years > 0"),
-        "binary_mutual_orbits": ("star_systems", "binary_next_update_due",
-                                 "is_binary = 1 AND binary_mutual_orbital_period_years > 0"),
         "comets": ("comets", "next_update_due", "1 = 1"),
         "facilities": ("facilities", "next_update_due", "placement IN ('orbital', 'asteroid') AND orbit_period_years > 0"),
         "star_systems": ("star_systems", "next_update_due", "1 = 1"),
@@ -11416,7 +11411,7 @@ def _due_interval_s(row, clock, speed_kms, scale, prefix=""):
     return epoch, interval, (epoch + interval if due is None else due)
 
 
-ORBITAL_PHASE_UPDATES = 7
+ORBITAL_PHASE_UPDATES = 6
 """int: How many table updates `advance_orbital_phases` runs (the `total` it
 reports progress against)."""
 
@@ -11504,16 +11499,15 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     Advances the orbits inside star systems that are due (GEN.106): every
     planet's and moon's state vector (GEN.289, `_advance_body_states`: its
     stored position and velocity stepped on its orbit by
-    `kepler.universal_step`), and a binary pair's
-    `binary_mutual_orbital_phase_deg`, each by the time from its own epoch
-    to `clock.end_unix`, given its own stored period -- the bodies in
-    batches through a compiled step, the pairs by one set-based `UPDATE`
-    (see `planetgen.cli.orbits`). Galactic orbits are
+    `kepler.universal_step`), and the nodes of a system's orbit tree,
+    each by the time from its own epoch to `clock.end_unix`, given its own
+    stored period -- the bodies in batches through a compiled step, the
+    nodes by one set-based `UPDATE` (see `planetgen.cli.orbits`). Galactic orbits are
     `advance_galactic_positions`'.
 
     Due: a row's `next_update_due` (indexed) is at or before the update's
     end, so it has moved at least its threshold since its epoch (0.01 AU
-    for a planet or a pair's mutual orbit, 100,000 km for a moon; see
+    for a planet or a node's orbit, 100,000 km for a moon; see
     `physics.position.THRESHOLDS_M`). Rows without one (new or edited since
     the last update) get one first, from their epoch and orbital speed.
     A row that isn't due is neither moved nor counted. A moved row's epoch
@@ -11529,11 +11523,11 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     due when its epoch plus the time its circular orbit takes to move the system threshold is at or before the end. A scatter
     row's nodes (`scatter_nodes`) are never written.
 
-    `binary_mutual_position_x/y/z_km` (the secondary's position relative to
-    the primary) and each star's offset from the pair's barycenter
-    (`binary_primary/secondary_position_*_km`, from the constant
-    `binary_secondary_mass_fraction`) move with the mutual phase the same
-    way, for both binary configurations.
+    A pair's orbit and the place of its two stars (the secondary relative
+    to the primary, and each star about the pair's center of mass) are the
+    pair node's, read by `orbit_trees.pair_places_km` (GEN.640 slice a): the
+    update writes no `star_systems.binary_mutual_*`,
+    `binary_primary_position_*` or `binary_secondary_position_*` column.
 
     v20 "reflex offset"/"wobble" values (`stars.reflex_offset_*_km` from
     each star's planets, `planets.reflex_offset_*_km` from each planet's
@@ -11562,7 +11556,7 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     Returns:
         dict: `{name: rows_updated}` -- `"planets"`, `"moons"`,
             `"star_reflex_offsets"`, `"planet_reflex_offsets"`,
-            `"orbit_nodes"`, `"binary_mutual_orbits"`, `"binary_planetary_wobbles"`.
+            `"orbit_nodes"`, `"binary_planetary_wobbles"`.
     """
     counts = {}
     for table, scale in (("planets", "system"), ("moons", "planetary")):
@@ -11626,64 +11620,12 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     counts["planet_reflex_offsets"] = cur.rowcount
     _report(on_progress, "planet_reflex_offsets", len(counts), ORBITAL_PHASE_UPDATES)
 
-    # Mutual orbit: shared by both binary configurations, with its own
-    # clock (binary_epoch_unix/binary_next_update_due). v20: also
-    # recomputes each star's own offset from the pair's barycenter
-    # (binary_primary/secondary_position_*_km) from the freshly-advanced
-    # binary_mutual_position_*_km above and the constant
-    # binary_secondary_mass_fraction, using the same left-to-right
-    # single-table SET evaluation trick binary_mutual_position_*_km's own
-    # computation already relies on (each position expression here reads
-    # binary_mutual_position_*_km's *new* value, assigned earlier in this
-    # same SET list).
-    binary_interval = _update_interval_sql(
-        f"(binary_separation_km * 2 * PI() / (binary_mutual_orbital_period_years"
-        f" * {_SECONDS_PER_YEAR!r}))", "system")
-    _schedule_updates(conn, clock, "star_systems", binary_interval,
-                      "is_binary = 1 AND binary_mutual_orbital_period_years > 0", prefix="binary_", keep_modified=True)
-    limited, tail = _ordered_limit(budget, "binary_mutual_orbits")
-    cur = conn.execute(
-        f"""
-        UPDATE star_systems
-        SET binary_mutual_orbital_phase_deg = MOD(binary_mutual_orbital_phase_deg
-                + {_phase_turn_sql("binary_mutual_orbital_period_years", "binary_")}, 360),
-            binary_mutual_position_x_km = binary_separation_km * (
-                COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
-                - SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
-                  * COS(RADIANS(binary_mutual_orbital_inclination_deg))
-            ),
-            binary_mutual_position_y_km = binary_separation_km * (
-                SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
-                + COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
-                  * COS(RADIANS(binary_mutual_orbital_inclination_deg))
-            ),
-            binary_mutual_position_z_km = binary_separation_km
-                * SIN(RADIANS(binary_mutual_orbital_phase_deg)) * SIN(RADIANS(binary_mutual_orbital_inclination_deg)),
-            binary_primary_position_x_km = -binary_secondary_mass_fraction * binary_mutual_position_x_km,
-            binary_primary_position_y_km = -binary_secondary_mass_fraction * binary_mutual_position_y_km,
-            binary_primary_position_z_km = -binary_secondary_mass_fraction * binary_mutual_position_z_km,
-            binary_secondary_position_x_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_x_km,
-            binary_secondary_position_y_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_y_km,
-            binary_secondary_position_z_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_z_km,
-            binary_epoch_unix = ?,
-            binary_next_update_due = ? + {binary_interval},
-            modified_at = modified_at
-        WHERE is_binary = 1
-          AND binary_mutual_orbital_period_years > 0
-          AND binary_next_update_due <= ?{tail}
-        """,
-        (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
-    )
-    if limited is not None:
-        budget.defer_remaining(conn, clock, "binary_mutual_orbits")
-    counts["binary_mutual_orbits"] = cur.rowcount
-    _report(on_progress, "binary_mutual_orbits", len(counts), ORBITAL_PHASE_UPDATES)
-
     # The nodes of a built system's orbit tree (GEN.313): every node's mean anomaly is turned by the time from its epoch to the
     # update's end over its period, whole orbits dropped first, and its epoch becomes the update's end, so the stored phase is
-    # the node's as of the last update. A node is due once its epoch plus the time it takes to move the system threshold at its
-    # circular speed is at or before the end (the clock the pair's own columns above keep in `binary_next_update_due`, worked out
-    # from the epoch and so needing no column of its own). A scatter row's nodes live in `scatter_nodes`, which no update writes.
+    # the node's as of the last update; a pair's orbit and the place of its stars are read from its node (GEN.640 slice a,
+    # `orbit_trees.pair_places_km`), so no pair column is written. A node is due once its epoch plus the time it takes to move the system
+    # threshold at its circular speed is at or before the end (worked out from the epoch, so it needs no column of its own). A scatter row's
+    # nodes live in `scatter_nodes`, which no update writes.
     node_interval = _update_interval_sql(
         f"(separation_km * 2 * PI() / (period_years * {_SECONDS_PER_YEAR!r}))", "system")
     cur = conn.execute(

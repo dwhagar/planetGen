@@ -24,7 +24,8 @@ import re
 
 from planetgen.generation import bodybeat, irregular_moons
 from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
-from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, node_pair_label, wide_pair_first_word
+from planetgen.names import tree_names
+from planetgen.names.bodies import generate_star_word, name_bodies, wide_pair_first_word
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.hosts import MEMBER, NODE, PRIMARY, SECONDARY, Host
@@ -536,8 +537,6 @@ class StarSystem:
         # see names/bodies.py.
         self._name = self.star.name
         self.star_words = None
-        if self.binary_type == "wide":
-            self.star_words = self._draw_star_words(wide_pair_first_word(self._name))
         self.assign_names()
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
@@ -645,9 +644,9 @@ class StarSystem:
         return self.cloud_effects
 
     def node_label(self, host):
-        """The name of the pair of an inner pair node `host` (GEN.332, slice A) as the Washington Double Star catalogue writes a pair: the system's name and the letters of the
-        node's stars together (`Voranthis CD`; the three stars of a pair and a star about it are `Voranthis ABC`), `Voranthis node N` for stars named some other way."""
-        return node_pair_label(self.name, [star.name for star in host.leaf_stars], host.host_node_no)
+        """The name of the pair of an inner pair node `host` (GEN.332, slice A): the name its place in the tree gives it (`names.tree_names`, GEN.312): the system's
+        name and the node's path code (`Voranthis B`, the pair of the stars `Voranthis Ba` and `Voranthis Bb`), the branch word and the code under a wide split."""
+        return self._tree_names().nodes[host.host_node_no]
 
     def _tree_members(self):
         """The `TreeMember`s of the system's tree: each star of `stars` (the member number is its index there), then each of
@@ -878,17 +877,41 @@ class StarSystem:
         return node_no
 
     @staticmethod
-    def _draw_star_words(first_word):
-        """A wide pair's two star words: the primary's from the star name
-        lists, the secondary's from the small/little/child ones (GEN.62),
-        each distinct from the other and from the shared first word."""
-        primary_word = generate_star_word(exclude=(first_word,))
-        return primary_word, generate_star_word(exclude=(first_word, primary_word), companion=True)
+    def _draw_star_words(first_word, slots):
+        """The branch words of a tree with wide splits (GEN.312): one for each child of each wide node, `slots` in order (`tree_names.word_slots`). The slot-0 child, the
+        heavier, takes its word from the star name lists and the slot-1 child from the small/little/child ones (GEN.62), each distinct from the others and from the
+        shared first word. A wide pair's two words are drawn the same way, the primary's first."""
+        words = []
+        for _node_no, slot in slots:
+            words.append(generate_star_word(exclude=(first_word, *words), companion=slot == 1))
+        return tuple(words)
+
+    def _name_inputs(self):
+        """`(nodes, members)` as `tree_names` takes them: the orbit nodes, and `(parent_node_no, slot)` of each star in `stars` order and then of each dark member."""
+        nodes = self.orbit_nodes
+        if not nodes:
+            return (), []
+        slots = self.star_slots or tuple((nodes[0].node_no, index) for index in range(len(self.stars)))
+        return nodes, [*slots, *((dark.parent_node_no, dark.slot) for dark in self.dark_members)]
+
+    def _tree_names(self):
+        """The `tree_names.TreeNames` of this system's tree, drawing its branch words (`star_words`) if it has wide splits and none yet."""
+        nodes, members = self._name_inputs()
+        slots = tree_names.word_slots(nodes, members)
+        if not slots:
+            self.star_words = None
+        elif getattr(self, "star_words", None) is None or len(self.star_words) != len(slots):
+            self.star_words = self._draw_star_words(wide_pair_first_word(self.name), slots)
+        return tree_names.name_tree(self.name, nodes, members, self.star_words or ())
+
+    def dark_member_names(self):
+        """The names of the dark members of the tree (`dark_members`, GEN.1013) in their order, from their place in it (GEN.312): `Voranthis B`."""
+        return self._tree_names().members[len(self.stars):]
 
     def assign_names(self, name=None):
         """
         Names every star, planet and moon in this system from the system
-        name (see `names/bodies.py`'s module docstring for the scheme).
+        name (see `names/tree_names.py` and `names/bodies.py` for the scheme).
 
         Args:
             name (str, optional): A new system name to adopt first --
@@ -899,33 +922,26 @@ class StarSystem:
         if name is not None:
             self.name = name
         system_name = self.name
-        if self.binary_type is None:
+        tree = self._tree_names()
+        if len(self.stars) == 1:
+            # A star alone (with or without a dark member in its tree) is the system: it has the system's name.
             self.star.name = system_name
             hosts = [(system_name, self.primary.orbiters)]
         else:
+            for star, star_name in zip(self.stars, tree.members):
+                star.name = star_name
             if self.binary_type == "close":
-                # One system, so its stars are its A and B (GEN.62).
-                primary_letter, secondary_letter = CLOSE_PAIR_LETTERS
-                self.primary_star.name = f"{system_name} {primary_letter}"
-                self.secondary_star.name = f"{system_name} {secondary_letter}"
+                # The pair's one host is the proxy of its node, and it stands for the whole system (GEN.62).
                 self.star.name = system_name
-                hosts = [(system_name, self.primary.orbiters)]
+                hosts = [(tree.node_stems[self.pair_node_no()], self.primary.orbiters)]
             else:
-                first_word = wide_pair_first_word(system_name)
-                if getattr(self, "star_words", None) is None:
-                    # A system reloaded from an export written before star words existed.
-                    self.star_words = self._draw_star_words(first_word)
-                primary_word, secondary_word = self.star_words
-                # Two words each, the first shared; the primary's planets
-                # take that first word, the secondary's its own (GEN.62).
-                self.primary_star.name = f"{first_word} {primary_word}"
-                self.secondary_star.name = f"{first_word} {secondary_word}"
-                hosts = [(first_word, self.primary.orbiters), (secondary_word, self.secondary.orbiters)]
-        for index, host in enumerate(self.hosts_of(MEMBER)):    # C, D, ... after the pair's A and B (GEN.631)
-            host.star.name = f"{system_name} {chr(ord(CLOSE_PAIR_LETTERS[1]) + 1 + index)}"
-            hosts.append((host.star.name, host.orbiters))    # GEN.332
-        for host in self.hosts_of(NODE):    # GEN.332, slice A: a pair node's planets take the pair's name (`Voranthis CD I`)
-            hosts.append((self.node_label(host.star), host.orbiters))
+                hosts = [(tree.member_stems[0], self.primary.orbiters)]
+                if self.binary_type == "wide":
+                    hosts.append((tree.member_stems[1], self.secondary.orbiters))
+        for host in self.hosts_of(MEMBER):    # the stars beyond the pair (GEN.631)
+            hosts.append((tree.member_stems[self.stars.index(host.star)], host.orbiters))    # GEN.332
+        for host in self.hosts_of(NODE):    # GEN.332, slice A: a pair node's planets take the node's stem (`Voranthis B I`)
+            hosts.append((tree.node_stems[host.star.host_node_no], host.orbiters))
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 

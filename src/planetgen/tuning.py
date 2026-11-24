@@ -2082,12 +2082,46 @@ MASS_RATIO_SMALL_Q_SLOPE = (
 )
 """tuple: Per primary mass and period, the power-law slope of the mass-ratio density over q = 0.1 to 0.3 (gamma_smallq)."""
 
-BROWN_DWARF_COMPANION_CHANCE = 0.03
-"""float: The chance a star heavier than the hydrogen-burning limit has a brown dwarf companion besides its stars (GEN.899).
-The `star-count` table counts stars, so a companion drawn under the limit used up one of its places (an M2V primary lost
-nearly half of them); the brown dwarfs are an extra member in this share of the systems instead. Stand-in tier
-"Unverified" (second-hand: [R3048] find 3.2% (+3.1, -2.7) of solar-type stars with a companion of
-0.013 to 0.075 solar masses at 28 to 1590 AU, the "brown dwarf desert"), tweak scale L0."""
+BROWN_DWARF_COMPANION_CHANCE = 0.057
+"""float: The chance a star heavier than the hydrogen-burning limit has a brown dwarf companion besides its stars (GEN.899,
+GEN.331). The `star-count` table counts stars, so a companion drawn under the limit used up one of its places (an M2V primary lost
+nearly half of them); the brown dwarfs are an extra member in this share of the systems instead. Its axis is the law below, so
+the share of these that lie at 28 to 1,590 AU (about 0.56 after the room other members leave) is the 3.2% ([R3048] find 3.2% (+3.1, -2.7) of solar-type
+stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU). Stand-in tier "Unverified" (second-hand), tweak scale L2
+(the total is the 3.2% over the window's share of the law)."""
+
+BROWN_DWARF_AXIS_RANGE_AU = (10.0, 5000.0)
+"""tuple: `(inner edge of the desert, widest axis)` of the law a brown dwarf's orbit about the rest of its tree follows (GEN.331):
+the density per decade of axis is flat from the inner edge outward ([R3048]'s companions at 28 to 1590 AU are flat in log axis, and the
+wide companions known to a few thousand AU keep the run to 5,000 AU), and `BROWN_DWARF_DESERT_KEEP` of it inside the edge. Stand-in
+tier "Educated guess based on needed output" for the outer end, tweak scale L3."""
+
+BROWN_DWARF_DESERT_KEEP = 0.01
+"""float: The density of the brown-dwarf law inside the desert's inner edge (`BROWN_DWARF_AXIS_RANGE_AU[0]`) as a share of its density
+outside it: [R3048] find under 0.6% of solar-type stars with a brown dwarf at 3 to 10 AU, and the law keeps 1% of its draws there,
+which is 0.2% of the brown dwarfs. Stand-in tier "Unverified", tweak scale L2."""
+
+BROWN_DWARF_PAIR_SHARE = 0.15
+"""float: The share of brown-dwarf companions that are a pair of two brown dwarfs (GEN.331; the resolved binary fraction of the field's
+brown dwarfs is 15%, Burgasser et al., Protostars and Planets V, recalled). Stand-in tier "Confident unverified", tweak scale L0."""
+
+BROWN_DWARF_PAIR_AXIS_LOG10_AU = (0.6, 0.4)
+"""tuple: `(mean, sigma)` of the log10 axis, AU, of the pair of a brown-dwarf pair (GEN.331): the pairs of the field peak near 4 AU
+and almost all lie inside 20 AU (Burgasser et al., recalled). Stand-in tier "Confident unverified", tweak scale L0."""
+
+BROWN_DWARF_PAIR_MASS_RATIO_RANGE = (0.8, 1.0)
+"""tuple: The second brown dwarf of a pair is this share of the first's mass, drawn uniformly (GEN.331): the pairs of brown dwarfs are
+nearly equal in mass (q over 0.8 for most; Burgasser et al., recalled). Stand-in tier "Confident unverified", tweak scale L0."""
+
+PLANETARY_MASS_COMPANION_CHANCE = 0.005
+"""float: The chance a star heavier than the hydrogen-burning limit has a planetary-mass companion (GEN.331): a member of its tree under
+the deuterium-burning limit, 5 Jupiter masses up, on the brown-dwarf axis law. Directly imaged companions of 5 to 13 Jupiter masses
+at tens to hundreds of AU are found round under 1% of the stars surveyed (recalled; the surveys give 0.5 to 1%). Stand-in tier
+"Unverified", tweak scale L0."""
+
+PLANETARY_MASS_COMPANION_RANGE_JUPITER = (5.0, 13.0)
+"""tuple: The masses a planetary-mass companion is drawn over, Jupiter masses, from the brown-dwarf mass function continued below
+the deuterium limit (`BROWN_DWARF_MASS_FUNCTION_SLOPE`). Stand-in tier "Educated guess based on inferred physics", tweak scale L0."""
 
 # --- Close-binary types (GEN.270, `generation/multistar.py`, docs/design/multi-star-systems.md 13.2) ---
 SPECTROSCOPIC_MAX_AXIS_AU = 0.26

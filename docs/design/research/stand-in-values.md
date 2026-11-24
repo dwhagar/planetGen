@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2026 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2033 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1999 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 2006 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,15 +50,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 231 | 23 | 12 | 1 | 0 | 267 |
-| T2 | 186 | 76 | 4 | 0 | 0 | 266 |
+| T2 | 187 | 76 | 5 | 0 | 0 | 268 |
 | T3 | 137 | 71 | 13 | 10 | 0 | 231 |
-| T4 | 95 | 17 | 10 | 25 | 13 | 160 |
+| T4 | 96 | 17 | 11 | 25 | 13 | 162 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 254 | 143 | 41 | 85 | 8 | 531 |
-| T7 | 76 | 44 | 11 | 31 | 0 | 162 |
+| T6 | 255 | 143 | 41 | 85 | 8 | 532 |
+| T7 | 77 | 44 | 11 | 31 | 0 | 163 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
-| T9 | 54 | 20 | 6 | 118 | 42 | 240 |
-| All | 1153 | 425 | 105 | 277 | 66 | 2026 |
+| T9 | 54 | 20 | 6 | 119 | 42 | 241 |
+| All | 1157 | 425 | 107 | 278 | 66 | 2033 |
 
 ## How the labels were given
 
@@ -867,7 +867,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | SC1 | P | T2 | L1 | constants.TEMP_RANGES: the A/F edge 7200 K and the K/M edge 3900 K (before, 7500 K and 3700 K); the F/G and G/K edges 6000 K and 5200 K are as they were | 100 K each | main-sequence stars of the solar neighbourhood | the star census mix of K, M and A against RECONS (`tests/audit/prevalence_stars.py`) | the spectral-type temperature table of Pecaut and Mamajek read in full | RECALLED ([R3469]: F0V 7220 K, M0V 3850 K, rounded to 100 K; the luminosity ranges already put the K/M edge at 0.08 solar luminosities, about 3900 K) | predicted only | - | - |
-| SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED ([R3048]: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) | predicted only | - | - |
+| SC2 | P | T2 | L2 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.057: the share of drawn trees that hold a brown dwarf companion (13 to 80 Jupiter masses; a pair of two is one) more than the table's stars; with the room the other members leave it puts 3.2 percent of solar-type stars at 28 to 1590 AU (GEN.331) | 0.03 to 0.08 | stars heavier than 0.08 solar masses, trees a directive does not count | test_brown_dwarf_companions.test_brown_dwarf_companions_at_28_to_1590_au_are_3_2_percent_of_stars | a brown dwarf companion survey of M dwarfs | RECALLED ([R3048]: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) | predicted only | - | - |
+| SC3 | P | T9 | L3 | tuning.BROWN_DWARF_AXIS_RANGE_AU (10, 5000): a brown dwarf's axis about the rest of its tree is flat per decade from the desert's inner edge, 10 AU, to 5000 AU, its widest (GEN.331); the inner edge is the top of [R3048]'s 3 to 10 AU desert, the widest is chosen so the 28 to 1590 AU window is 0.56 of the law | 3 to 20 AU, 2000 to 20000 AU | a brown dwarf companion of a star with room | a survey of wide companions that is not flat in log axis between 10 and 1000 AU | a published companion axis law by mass | RECALLED ([R3048]: companions flat in log axis at 28 to 1590 AU; wide companions to a few thousand AU) | predicted only | - | - |
+| SC4 | P | T4 | L2 | tuning.BROWN_DWARF_DESERT_KEEP 0.01: the law's density inside the desert's edge is 1 percent of its density outside, and a brown dwarf whose whole room is inside the desert is kept in 1 percent of the trees (GEN.331) | 0.002 to 0.03 | a brown dwarf companion of a star | a survey with more than 0.6 percent of solar-type stars holding a brown dwarf at 3 to 10 AU | a desert from the formation physics | RECALLED ([R3048]: under 0.6 percent at 3 to 10 AU) | predicted only | - | - |
+| SC5 | P | T2 | L0 | tuning.BROWN_DWARF_PAIR_SHARE 0.15: the share of brown dwarf companions that are a pair of two brown dwarfs (GEN.331) | 0.10 to 0.25 | brown dwarf companions | a brown dwarf binary fraction survey away from 15 percent | a pair fraction by mass and environment | RECALLED (Burgasser et al., Protostars and Planets V: the resolved binary fraction of field brown dwarfs, 15 percent) | predicted only | - | - |
+| SC6 | P | T2 | L0 | tuning.BROWN_DWARF_PAIR_AXIS_LOG10_AU (0.6, 0.4) and BROWN_DWARF_PAIR_MASS_RATIO_RANGE (0.8, 1.0): a brown dwarf pair's axis is log-normal about 4 AU, and its second member is 0.8 to 1 times the first's mass (GEN.331) | mean 0.3 to 1.0, sigma 0.3 to 0.6, ratio 0.6 to 1.0 | the two brown dwarfs of a pair | a survey of brown dwarf pairs whose axes peak far from 4 AU or are not nearly equal in mass | the axis and mass-ratio laws of the surveys | RECALLED (Burgasser et al., Protostars and Planets V: separations peak near 4 AU, almost all inside 20 AU, mass ratios over 0.8) | predicted only | - | - |
+| SC7 | P | T4 | L0 | tuning.PLANETARY_MASS_COMPANION_CHANCE 0.005: the chance a star over the hydrogen-burning limit has a planetary-mass companion (5 to 13 Jupiter masses), a member of its tree on the brown dwarf axis law (GEN.331) | 0.002 to 0.01 | stars heavier than 0.08 solar masses, trees a directive does not count | a direct-imaging survey whose planetary-mass companion rate is far from 0.5 percent | the occurrence law of imaged planetary-mass companions by separation and host mass | RECALLED (direct-imaging surveys: 0.5 to 1 percent of stars host a companion of 5 to 13 Jupiter masses) | predicted only | - | - |
+| SC8 | P | T7 | L0 | tuning.PLANETARY_MASS_COMPANION_RANGE_JUPITER (5, 13): the planetary-mass companions' masses follow the brown dwarf mass function (`BROWN_DWARF_MASS_FUNCTION_SLOPE`) continued from the deuterium-burning limit down to 5 Jupiter masses (GEN.331) | 1 to 13 Jupiter masses | a planetary-mass companion | an imaged companion population whose mass function falls differently | the mass function of the imaged companions | the slope is the brown dwarfs', continued below the limit | predicted only | - | - |
+| SC9 | P | T6 | L0 | brown_dwarf.TEMPERATURE_MASS_EXPONENT 0.66 and RADIUS_MASS_EXPONENT -0.04: under 0.01 solar masses, the lightest the BHAC15 table holds, a body's temperature goes as its mass to 0.66 (luminosity as M^2.64 at one radius) and its radius as its mass to -0.04 (GEN.331) | temperature 0.5 to 0.8, radius -0.1 to 0.0 | planetary-mass companions of 5 to 10 Jupiter masses | an evolutionary table that holds these masses and differs by more than 10 percent | the table itself | RECALLED (Burrows and Liebert's cooling law; the mass-radius plateau of 1 to 10 Jupiter masses) | predicted only | - | - |
 
 ## 6.50 Stand-ins of the stellar mass function
 
