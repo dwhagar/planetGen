@@ -202,8 +202,8 @@ def test_a_cluster_phenomenon_row_names_its_cluster_and_a_satellites_does_not():
     cluster = dataclasses.replace(_cluster(mass=4.0e6), id=41)
     rows = list(component_pass.scatter_phenomena([cluster], EDGE, 3, min_mass_solar=1.0))
     assert rows and {row[-1] for row in rows} == {41}
-    satellite = dataclasses.replace(_satellite(), id=42)
-    rows = list(component_pass.scatter_phenomena([satellite], EDGE, 3, min_mass_solar=1.0)) 
+    from tests.test_gen_magellanic_classes import SMC, WITH_SATELLITES
+    rows = list(component_pass.scatter_phenomena([dataclasses.replace(SMC, id=42)], EDGE, 3, min_mass_solar=1.0, shape=WITH_SATELLITES))
     assert rows and {row[-1] for row in rows} == {None}
 
 
