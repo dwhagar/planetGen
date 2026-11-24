@@ -69,7 +69,7 @@ only their own scatter table, the light parts of the blocks, the members of what
 READS = {
     "check-counts": (
         "asteroid_belts", "galaxy_totals", "moon_adaptations", "moon_life", "moon_life_ages", "moons", "planet_adaptations", "planet_life", "planet_life_ages",
-        "planets", "sector_facets", "sector_stats", "sectors", "star_systems", "stars",
+        "planets", "sector_directive_minimums", "sector_directives", "sector_facets", "sector_stats", "sectors", "star_systems", "stars",
     ),
     "check-datasets": (),
     "check-ids": (

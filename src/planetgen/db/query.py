@@ -269,7 +269,7 @@ def virtual_sector_detail(conn, address):
     return {**{key: item[key] for key in ("id", "name", "edge_mpc", "edge_ly", "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "shell_index",
                                           "band_index", "wedge_index", "placed", "uncharted", "virtual")},
             "system_count": 0, "star_count": 0, "interstellar_debris_count": 0, "systems": [], "phenomena": [], "neighbors": [],
-            "stats": sector_stats(conn, *address)}
+            "stats": sector_stats(conn, *address), "directive": None}
 
 
 def uncharted_cell_has_no_row(conn, address):
@@ -2637,7 +2637,24 @@ def sector_detail(conn, sector_id):
         "phenomena": phenomena_near_sector(conn, sector_id),
         "neighbors": sector_neighbors(conn, sector),
         "stats": sector_stats(conn, sector["shell_index"], sector["band_index"], sector["wedge_index"]),
+        "directive": sector_directive(conn, sector_id),
     }
+
+
+def sector_directive(conn, sector_id):
+    """
+    The directive a stored sector was drawn under and how the draw came out (GEN.179), or `None` for a sector drawn with
+    no directive or made before v275: `{"digest", "status", "attempts", "minimums": [{"key", "wanted", "got"}, ...]}`, the
+    minimums in key order.
+    """
+    row = conn.execute("SELECT directive_digest, status, attempts FROM sector_directives WHERE sector_id = ?",
+                       (sector_id,)).fetchone()
+    if row is None:
+        return None
+    minimums = conn.execute("SELECT minimum_key, wanted, got FROM sector_directive_minimums WHERE sector_id = ?"
+                            " ORDER BY minimum_key", (sector_id,)).fetchall()
+    return {"digest": row["directive_digest"], "status": row["status"], "attempts": row["attempts"],
+            "minimums": [{"key": m["minimum_key"], "wanted": m["wanted"], "got": m["got"]} for m in minimums]}
 
 
 SECTOR_STATS_FIELDS = (

@@ -3671,6 +3671,33 @@ schema_migrations = sa.Table(
 )
 
 
+sector_directive_minimums = sa.Table(
+    'sector_directive_minimums',
+    metadata,
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('minimum_key', sa.String(24), primary_key=True, nullable=False),
+    sa.Column('wanted', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('got', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.ForeignKeyConstraint(['sector_id'], ['sector_directives.sector_id'], name='fk_sector_directive_minimums_sector', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+sector_directives = sa.Table(
+    'sector_directives',
+    metadata,
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('directive_digest', mysql.CHAR(16), nullable=False),
+    sa.Column('status', sa.String(24), nullable=False),
+    sa.Column('attempts', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Index('idx_sector_directives_status', 'status'),
+    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_sector_directives_sector', ondelete='CASCADE'),
+    sa.CheckConstraint("(`status` in (_utf8mb4'met_naturally',_utf8mb4'met_after_k_attempts',_utf8mb4'met_forced',_utf8mb4'unmet'))", name='sector_directives_chk_1'),
+    sa.CheckConstraint('(`attempts` >= 1)', name='sector_directives_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
 sector_facets = sa.Table(
     'sector_facets',
     metadata,

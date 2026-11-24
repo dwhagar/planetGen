@@ -8454,6 +8454,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
             sector_id = _insert_sector_rows(conn, sector, galaxy_position, link_neighbors, run_id)
     finally:
         issuer, conn.uid_issuer = conn.uid_issuer, None
+    save_directive_record(conn, sector_id, getattr(sector, "directive_record", None))
     if issuer is None or not issuer.complete:
         assign_uids(conn, sector_id=sector_id)
     else:
@@ -8469,6 +8470,22 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
         chart_ledger.record(conn, address, sector_run_id(conn, run_id), generatorEpoch.generator_epoch())    # GEN.1127: the cell is charted
     conn.parity_touch("id = ?", (sector_id,))
     return sector_id
+
+
+def save_directive_record(conn, sector_id, record):
+    """
+    Writes the directive a sector was drawn under and how the draw came out (GEN.179: `sector_directives`, one row,
+    and `sector_directive_minimums`, one row for each minimum asked). `record` is the sector's
+    `generation.directives.Record`, or `None` for a sector drawn with no directive, which has no rows (a regenerated
+    sector's old rows are removed first by `_insert_sector_rows`).
+    """
+    if record is None:
+        return
+    conn.execute("INSERT INTO sector_directives (sector_id, directive_digest, status, attempts) VALUES (?, ?, ?, ?)",
+                 (sector_id, record.digest, record.status, record.attempts))
+    if record.minimums:
+        conn.executemany("INSERT INTO sector_directive_minimums (sector_id, minimum_key, wanted, got) VALUES (?, ?, ?, ?)",
+                         [(sector_id, key, want, got) for key, want, got in record.minimums])
 
 
 def _set_reserved_name(obj, final, rename_bodies=False):
@@ -8528,6 +8545,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         kept_id = kept_sector_id_at(conn, galaxy_position["shell_index"], galaxy_position["band_index"], galaxy_position["wedge_index"])
     if kept_id is not None:
         # GEN.1127: the row of a regenerated sector kept for its residents is filled again, so they keep pointing at it.
+        conn.execute("DELETE FROM sector_directives WHERE sector_id = ?", (kept_id,))    # GEN.179: the new draw has its own record, or none
         conn.execute(
             "UPDATE sectors SET name = ?, edge_mpc = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?, galactic_radius_pc = ?,"
             " generator_epoch = ?, run_id = ?, max_mass_kg = NULL, max_mass_id = NULL, storage_checksum = NULL, leaf_digest = NULL, content_leaf = NULL,"

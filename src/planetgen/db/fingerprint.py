@@ -137,6 +137,7 @@ LEFT_OUT_TABLES = frozenset({
     "body_numbers",    # the number each slot of a system has had (DB.75): the ID of a body, kept so it is stable, decides no result
     "body_history",    # the numbers a body's history left, kept for the stored galaxy (GEN.1497); the fingerprint reads the results they produced
     "lost_moons",    # the moons a planet's history took away, kept so that history can run again for a restored planet (GEN.1753); the fingerprint reads the results it produced
+    "sector_directives", "sector_directive_minimums",    # what a run asked of a sector and how the draw came out (GEN.179): a record of the run's directive, which changes no result, so a fingerprint reads the sector it made
     "effect_ledger",    # the effect ledger records what the effect code computed and changes no result (GEN.1465), so a fingerprint reads the results and not the record
     "system_summary", "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",

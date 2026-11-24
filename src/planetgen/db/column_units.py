@@ -710,6 +710,14 @@ TABLES = {
         "id": ("id", "planet_id"),
         "score9": ("score",),
     },
+    "sector_directives": {
+        "id": ("sector_id",),
+        "count": ("attempts",),
+    },
+    "sector_directive_minimums": {
+        "id": ("sector_id",),
+        "count": ("wanted", "got"),
+    },
     "planet_adaptations": {
         "id": ("id", "planet_id"),
         "index": ("entry_number", "grade"),
