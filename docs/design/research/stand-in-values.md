@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2008 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2011 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1981 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1984 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -54,11 +54,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 134 | 70 | 13 | 10 | 0 | 227 |
 | T4 | 91 | 17 | 10 | 25 | 13 | 156 |
 | T5 | 117 | 31 | 8 | 1 | 2 | 159 |
-| T6 | 253 | 142 | 40 | 85 | 8 | 528 |
-| T7 | 76 | 44 | 10 | 31 | 0 | 161 |
+| T6 | 253 | 143 | 41 | 85 | 8 | 530 |
+| T7 | 76 | 44 | 11 | 31 | 0 | 162 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 117 | 42 | 239 |
-| All | 1141 | 422 | 103 | 276 | 66 | 2008 |
+| All | 1141 | 423 | 105 | 276 | 66 | 2011 |
 
 ## How the labels were given
 
@@ -3558,3 +3558,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | EF1 | P | T6 | L1 | `extinction_effects.RESET_RECURRENCE_MYR` 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of `air_events`; the kill curve gives it 0.65 like any event of 100 Myr or more) | 300 to 3000 Myr (impactors of about 21 to 62 km; the Big Five were 10 km or less) | a world with animals | a measured loss of animals after an extinction of the Phanerozoic size | a measured relation between the size of a shock and the complexity it removes | the Earth's animal record (540 Myr, five mass extinctions, no reset; the Big Five by number of genera, [R5320] for the curve); the cut is inferred | predicted only | - | - |
 | EF2 | P | T7 | L1 | `extinction_effects.REGROWTH_GYR` 0.020: the time the animals take to return after the origination lag (`air_events.RECOVERY_GYR`, 10 Myr, [R5321]); 30 Myr from the extinction | 0.010 to 0.050 | a world whose animals an extinction reset | a measured regrowth of the marine genera to their old number faster than 15 Myr or slower than 60 Myr after a Big Five extinction | the measured regrowth of the animal grades | educated guess from inferred physics; no source read | predicted only | - | - |
 | EF3 | P | T7 | L0 | `extinction_effects.regrown`: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not | none | a civilization that an extinction at or after the animals reset | a measured faster re-emergence of a technology-scale lineage after a collapse | a measured recovery of a lineage that had a civilization | the hard-step model of `life_timeline` [R4642]; the choice not to draw again is a design rule | predicted only | - | - |
+
+## 6.327 Stand-ins of a comet's coma (GEN.455)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CZ1 | P | T7 | L2 | `comet_coma.ACTIVE_AREA_FRACTION_RANGE` (0.003, 1.0): the share of a nucleus surface that sublimates, drawn log-uniform per comet | 0.003 to 1 | an active comet | a measured active fraction outside 0.3 percent to the whole surface for a nucleus whose production and size are both known | a measured active-area census of nuclei of comets of other stars | the observed active fractions of the Solar System comets, from a few tenths of a percent (the smallest, large nuclei) to a body that is nearly all active (small, hyperactive nuclei); the range is the widest of the observed ones, tuned so the water production of a sample sits inside the measured 5.1e26 to 1.41e31 molecules per second | predicted only | - | - |
+| CZ2 | P | T6 | L2 | `comet_coma.OUTFLOW_KMS_1AU_RANGE` (0.4, 1.0) km/s: the speed of the gas at 1 AU lit distance, drawn log-uniform, falling as the inverse square root of the lit distance | 0.3 to 1.2 km/s | an active comet | a measured expansion speed of a coma at 1 AU outside 0.3 to 1.2 km/s | a measured expansion speed against lit distance for comets of other stars | the radio and ultraviolet line widths of Solar System comae (about 0.5 to 1 km/s at 1 AU, falling with distance); the form is the energy-limited expansion of a gas that the light heats | predicted only | - | - |
+| CZ3 | P | T6 | L1 | `comet_coma.NUCLEUS_ALBEDO_RANGE` (0.02, 0.10): the Bond albedo of a nucleus, drawn uniform per comet | 0.02 to 0.10 | an active comet | a measured nucleus albedo outside 0.02 to 0.10 | a measured albedo census of nuclei | the measured geometric albedos of comet nuclei (0.02 to 0.06, the darkest bodies imaged) with the Bond albedo some range wider; nudged inside the uncertainty | predicted only | - | - |
