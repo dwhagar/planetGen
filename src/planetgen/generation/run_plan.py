@@ -918,6 +918,7 @@ def _clear_piece(ctx, piece, make_plan, holds_nothing=None, nothing=None):
         ctx.state["nothing"] = holds_nothing(ctx.db)
         if ctx.state["nothing"]:
             ctx.phase(nothing)
+            log.normal(f"{nothing}.")       # OPS.305: the stage is said in the run's log, not only on the unit's step
         return
     if ctx.state.get("nothing"):
         return
@@ -985,6 +986,7 @@ def store_scatter_limits_do(params, piece, ctx):
     ctx.step("Storing the star scatter's floor, mass limit and seed", 1)
     store.record_bright_star_scatter(ctx.db, prepared["min_luminosity_sol"], prepared["seed"], prepared["mass_limit_sol"])
     ctx.commit()
+    log.normal(f"Stored the star scatter's limits: floor {prepared['min_luminosity_sol']:,.6g} solar luminosities, mass limit {prepared['mass_limit_sol']:,.6g} solar masses, seed {prepared['seed']}.")    # OPS.305
 
 
 class StoreScatterLimitsFollower(UnitBarFollower):

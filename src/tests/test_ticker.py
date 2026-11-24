@@ -83,3 +83,16 @@ def test_no_place_keeps_its_own_progress_clock():
     assert not hasattr(block_lights, "PROGRESS_SAY_SECONDS") and not hasattr(uncharted_index, "SAY_SECONDS")
     assert fetch.PROGRESS_SECONDS == tuning.PROGRESS_LOG_SECONDS == warm_progress.PROGRESS_SECONDS
 
+
+
+def test_the_closing_line_is_not_said_again_when_the_last_tick_said_the_same_line():
+    """OPS.305: a stage log said `Neighborhood: 106 of 106 done (100%), 1m 40s each, 2h 56m 31s elapsed.` twice, the tick on the last sector and the closing line a moment later."""
+    clock, lines = _Clock(), []
+    count = ticker.Ticker("Things", total=100, say=lines.append, clock=clock)
+    clock.now += tuning.PROGRESS_LOG_SECONDS
+    assert count.tick(100) is True
+    count.finish(100)
+    assert len(lines) == 1
+    clock.now += 5
+    count.finish(100)                      # a second later the line differs (the time): it is said
+    assert len(lines) == 2

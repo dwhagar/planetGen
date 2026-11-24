@@ -58,6 +58,7 @@ class Ticker:
         self.label, self.total, self.every, self.clock, self.percent = label, total, _seconds(every), clock, percent
         self._say = say if say is not None else log.normal
         self.began = self._last = self.clock()
+        self._said = None       # the text of the last line said, so that the closing line is not the same line again (OPS.305)
 
     def _note(self, done):
         if sink is not None:
@@ -82,14 +83,19 @@ class Ticker:
         if now - self._last < self.every:
             return False
         self._last = now
-        self._say(self.text(done, detail))
+        self._said = self.text(done, detail)
+        self._say(self._said)
         return True
 
     def finish(self, done, detail=None):
-        """Says the closing line, whatever the clock."""
+        """Says the closing line, whatever the clock, unless it is the very line the last tick said (a tick that came on the last count within the second the closing line is made in; OPS.305)."""
         self._note(done)
         self._last = self.clock()
-        self._say(self.text(done, detail))
+        text = self.text(done, detail)
+        if text == self._said:
+            return
+        self._said = text
+        self._say(text)
 
 
 class Pulse:
