@@ -31,7 +31,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_record, adaptation_traits, aerosols, air_record, extinction_effects, life_ages, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, ocean_oxygen, planet_type, radiation, surface_liquid_world, trace_air
+from planetgen.physics import trial_copy, adaptation_draw, adaptation_record, adaptation_traits, aerosols, air_record, extinction_effects, life_ages, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, ocean_oxygen, planet_type, radiation, surface_liquid_world, trace_air
 from planetgen.physics import carbide_deposits, carbon_burial, constants, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
@@ -64,13 +64,13 @@ def apply_life_data(planet, keep_stored=False):
     else:
         key = f"life:{draw.random()!r}"
     with draw.bound(draw.Stream(key)):
-        before = _trial_copy(planet)
+        before = trial_copy.trial_copy(planet)
         barred = set()
         while (frozen := _apply(planet, keep_stored, key, barred)) is not None:
             # The life of the dominant class took the liquid it lives in (GEN.1298): the world is made again without that class, from the body as it was
             barred.add(frozen)
             vars(planet).clear()
-            vars(planet).update(vars(_trial_copy(before)))
+            vars(planet).update(vars(trial_copy.trial_copy(before)))
     _remake_ground_if_thawed(planet, before)
     carbide_deposits.generate(planet)            # GEN.1423: moissanite and cohenite on a carbon-rich body, on streams of their own
     hydrothermal_deposits.generate(planet)       # GEN.1381: the hydrothermal and uranium deposits, which read the air the life pass left, on streams of their own
@@ -321,7 +321,7 @@ def _settle(planet, cands, key):
     the body directly, as before. Returns the classes that live, with their ages and shares as they stand.
     """
     while len(cands) > 1:
-        trial = _trial_copy(planet)
+        trial = trial_copy.trial_copy(planet)
         _air_on(trial, cands, key)
         final = life_classes.score_classes(trial)
         poisoned = [c for c in cands[1:] if not (final.get(c.row.id) and final[c.row.id].score > 0)]
@@ -364,30 +364,6 @@ def _redate(planet, cands):
         if len(kept) == len(cands):
             return cands
         cands = kept
-
-def _trial_copy(planet):
-    """A copy of `planet` to try an air on: its attributes copied, with the containers (the air, the spectra, the layers) copied too, so building the air on
-    it leaves the body as it was. The star and the moons are shared (nothing in the air pass changes them). Its build record is copied the same way."""
-    clone = copy.copy(planet)       # the clone has a record of its own (`Planet.__copy__`)
-    _copy_containers(planet, clone, skip=("star", "moons"))
-    _copy_containers(planet.build, clone.build)
-    return clone
-
-
-def _copy_containers(source, clone, skip=()):
-    """Gives `clone` its own copy of every dict, list and set `source` holds, so a pass on the clone leaves the source's as they were."""
-    for name, value in vars(source).items():
-        if name not in skip and isinstance(value, (dict, list, set)):
-            # GEN.1734: a list of bodies (the moons the planet was born with, `build.born_moons`) is shared like `moons`: each body holds the siblings of its host, so a deep copy of
-            # one walks every body of the system in one chain (a recursion of 160 deep systems) and copies bodies the air pass never changes
-            setattr(clone, name, copy.copy(value) if _holds_bodies(value) else copy.deepcopy(value))
-
-
-def _holds_bodies(container):
-    """Whether a list, set or dict has a planet, moon or other body in it (an object with a `body_type`)."""
-    items = container.values() if isinstance(container, dict) else container
-    return any(getattr(item, "body_type", None) is not None for item in items)
-
 
 def _living_entries(planet, cands, final, key):
     """The stored list of the classes that live on the body (`life_living`, the rows of `planet_life`): the dominant class first, then the rest by share.
