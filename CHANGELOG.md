@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4770+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Three citations written outside the registry's form (one author-year name and two bracketed forms) now use the registry form, so the citation guard is green again.
+
+### Fixed
+
+- `docs/design/systems/overlap-free-systems.md`, `physics/data/tuning_targets.json` and `physics/small_body_composition.py` cite [R1138], [R0390] and [R0269] in the form `scripts/rewrite_citations.py` writes (left by the GEN.1014 note and GEN.522).
+
+generation-output: unchanged
+
 ## [8.0.4769+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The rock fraction of an icy body (Kuiper belt object, class D body, dwarf planet and the captured or binary moons that use it) now carries its source state and is checked against the published statistics, and no draw moves.
