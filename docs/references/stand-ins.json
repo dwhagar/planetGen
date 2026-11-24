@@ -56993,6 +56993,52 @@
       "title": "Stand-ins of the gas dispersion of the nuclear ring (GEN.1847)"
     },
     {
+      "key": "6.335",
+      "number": "6.335",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_HALO_SLOPE 4.0 and CLUSTER_HALO_CORE_PC 1800: the number density of the metal-poor halo clusters is (1 + D / Dc)^-gamma between the halo's limits, drawn by generation/clusters._halo_distance"
+            ],
+            [
+              "The range it moves in",
+              "gamma 3.5 to 4.0; Dc 0.5 to 2 kpc (gamma 3.5 with Dc 0.9 to 1.0; gamma 4.0 with Dc 1.7 to 1.9)"
+            ],
+            [
+              "Where it holds",
+              "the halo group of a generated galaxy, any size (distances scale with the galaxy)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured halo cluster system of a Milky Way mass galaxy whose median distance is far from 6.5 kpc, or a profile steeper than 4.9"
+            ],
+            [
+              "What replaces it",
+              "a fit to the halo clusters of other galaxies with their own slope and break"
+            ],
+            [
+              "Evidence",
+              "[R5363: Eq. 1, Table 2] (read: rho = rho0 (1 + D / Dc)^-gamma, fixed gamma 4.0 gives Dc 1.7 to 1.9 kpc, fixed 3.5 gives 0.9 to 1.0 kpc, free fit 3.7 to 4.9); [R5361] (the outer fall-off is R^-3.9 and the inner distribution flattens inside 2 kpc, abstract read); gives a median 6.5 kpc and 16th to 84th percentiles 2.1 to 24 kpc against the file's metal-poor 7.1 and 2.1 to 21.4; the halo group alone is fitted, as the sources fit it ([Fe/H] under -0.8)"
+            ]
+          ],
+          "id": "GC1",
+          "key": "6.335:GC1",
+          "kind": "D",
+          "slug": "6-335-gc1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_HALO_SLOPE 4.0 and CLUSTER_HALO_CORE_PC 1800: the number density of the metal-poor halo clusters is (1 + D / Dc)^-gamma between the halo's limits, drawn by generation/clusters._halo_distance"
+        }
+      ],
+      "slug": "6-335-stand-ins-of-the-halo-globular-clusters-radial-law-gen-297",
+      "title": "Stand-ins of the halo globular clusters' radial law (GEN.297)"
+    },
+    {
       "key": "6.95",
       "number": "6.95",
       "rows": [

@@ -447,6 +447,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.334", "6.334 Stand-ins of the gas dispersion of the nuclear ring (GEN.1847)",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.335", "6.335 Stand-ins of the halo globular clusters' radial law (GEN.297)",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.95", "6.95 Stand-ins of the belt sources",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.96", "6.96 Stand-ins of the irregular orbits",
