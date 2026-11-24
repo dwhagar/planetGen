@@ -60,7 +60,7 @@ from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
     accretion, alpha_tracks, brown_dwarf, constants, degenerate_radius, helium_core_white_dwarf, hierarchy_stability, imf, mass_boundaries, ms_lifetime, neutron_star,
-    pair_history, remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
+    pair_history, relations, remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import white_dwarf_merger
@@ -772,8 +772,7 @@ def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0, substellar=Fal
 
 
 def _schwarzschild_au(mass_solar):
-    return (2.0 * constants.G * mass_solar * constants.SOLAR_MASS_TO_KG / constants.SPEED_OF_LIGHT_M_S ** 2
-            / constants.AU_M)
+    return relations.schwarzschild_radius(mass_solar * constants.SOLAR_MASS_TO_KG) / constants.AU_M
 
 
 def _remnant_leaf(kind, progenitor, mass, direct=False):
