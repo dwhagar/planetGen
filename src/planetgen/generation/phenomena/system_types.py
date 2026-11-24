@@ -56,6 +56,19 @@ UNITS = ("fraction", "count")
 
 ANY = POPULATIONS
 
+SATELLITE_OF = {"young": "satellite_young", "intermediate": "satellite_intermediate", "old": "satellite"}
+"""dict: The population of a satellite galaxy that holds the stars of each disk population's ages (GEN.526: `satellite_young` is the disk's young
+window, `satellite_intermediate` its intermediate one and `satellite` the old stars; `tuning.STELLAR_POPULATION_AGE_RANGES_GY`). A type the age
+gates (every young-star type, `multistar._young`) is hosted by a satellite's stars of the same ages, so a type that names a disk population names
+its satellite twin too (GEN.534), and a satellite's share of that population is the profile's own (`satellite_history`'s young share), not a
+weight set here."""
+
+
+def _with_satellites(populations):
+    """`populations` with the satellite twin of each of the disk's young, intermediate and old populations added (GEN.534)."""
+    twins = [SATELLITE_OF[name] for name in populations if name in SATELLITE_OF and SATELLITE_OF[name] not in populations]
+    return tuple(populations) + tuple(twins)
+
 
 @dataclass(frozen=True, eq=False)
 class SystemType:
@@ -81,7 +94,7 @@ class SystemType:
 
 def _t(section, row, reference, default, tag, populations, generator, owner, mode, audit=(10,), *,
        low=None, high=None, unit="fraction", theoretical=False, by_class=None, derived=None, note=""):
-    return SystemType(section, row, unit, reference, default, low, high, tag, tuple(populations), generator,
+    return SystemType(section, row, unit, reference, default, low, high, tag, _with_satellites(populations), generator,
                       owner, mode, theoretical, tuple(audit), by_class, derived, note)
 
 
