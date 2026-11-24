@@ -108,7 +108,7 @@ def test_the_bound_share_of_the_rings_stars_forms_clusters_where_the_ring_is():
     nearby = [c for c in found if math.hypot(c.center_pc[0], c.center_pc[1]) < ring.radius_pc + 4.0 * ring.sigma_pc]
     assert 5 < len(nearby) < 3000         # the clouds that pass the ring disrupt most of what it forms (GEN.1195)
     for cluster in nearby:
-        assert components.is_open_cluster(cluster) and cluster.age_gy <= tuning.CORE_STAR_FORMATION_SPAN_GY
+        assert components.is_open_cluster(cluster) and cluster.age_gy <= ring.age_gy
         assert cluster.half_mass_radius_pc < 3.0          # a tide of the center holds a cluster to a pc or so
     radius = np.array([math.hypot(c.center_pc[0], c.center_pc[1]) for c in nearby])
     assert abs(np.median(radius) - ring.radius_pc) < 2.0 * ring.sigma_pc
@@ -145,20 +145,60 @@ def test_the_young_stars_bound_covers_the_rings_young_stars():
         assert young <= bound[0]
 
 
-def test_the_rings_gas_is_the_inflow_over_its_residence_and_its_cluster_maximum_is_a_few_ten_thousand_solar_masses():
-    """GEN.1195: the central molecular zone's gas is about 3e7 to 5e7 solar masses at about 1e3 per pc2, and its most massive
-    cluster is a few 1e4 (the Arches and the Quintuplet 2e4), certainly under 1e5 [R3720]."""
+def test_the_rings_gas_is_the_marginally_stable_gas_and_its_cluster_maximum_is_a_few_ten_thousand_solar_masses():
+    """GEN.1846 and GEN.1195: the Milky Way's central molecular zone holds about 3e7 to 5e7 solar masses of gas at about 1e3 per pc2 ([R3720]; the review [R1910] 3e7 to 5e7), which is the
+    ring's marginally stable gas (Q = 1 at 5 km/s on the nucleus's rotation) and not what the bar has brought (inflow times the ring's age is 7e8), and its most massive cluster
+    is a few 1e4 (the Arches and the Quintuplet 2e4), certainly under 1e5 ([R3720] and its footnote 9)."""
     shape = _shape()
     ring = core_gas.core_gas(shape)
-    area = 2.0 * math.pi * ring.radius_pc * 2.0 * math.sqrt(2.0 * math.log(2.0)) * ring.sigma_pc
-    assert ring.gas_surface_density_msun_pc2 * area == pytest.approx(ring.inflow_msun_yr * tuning.CORE_RING_GAS_RESIDENCE_MYR * 1.0e6)
-    assert 2.0e7 < ring.gas_surface_density_msun_pc2 * area < 6.0e7 and 300.0 < ring.gas_surface_density_msun_pc2 < 2000.0
-    # GEN.1842: [R3720] footnote 9, a few 1e4 and certainly under 1e5 for the Milky Way's sample; the model's nucleus is the observed one (M(<100 pc) 3.5e8
-    # against 3.9 +- 1e8 of [R5357]), so the relation gives 9.7e4 on it where the paper's own 180 km/s at 100 pc gave 3.2e4; no ceiling cuts it.
-    assert 5.0e3 < open_clusters._ring_maximum_mass_sol(potential.for_galaxy(shape, None), ring) < 1.0e5
-    mass_100pc = potential.circular_speed_kms(potential.for_galaxy(shape, None), 100.0) ** 2 * 100.0 / 4.30091e-3
+    pot = potential.for_galaxy(shape, None)
+    surface = open_clusters._ring_gas_surface_density(pot, ring)
+    assert ring.gas_supplied_msun == pytest.approx(ring.inflow_msun_yr * ring.age_gy * 1.0e9)
+    assert ring.area_pc2 == pytest.approx(2.0 * math.pi * ring.radius_pc * 2.0 * math.sqrt(2.0 * math.log(2.0)) * ring.sigma_pc)
+    assert surface < ring.gas_supplied_msun / ring.area_pc2
+    assert 1.5e7 < surface * ring.area_pc2 < 6.0e7 and 300.0 < surface < 2000.0
+    maximum = open_clusters._ring_maximum_mass_sol(pot, ring)
+    assert 1.0e4 < maximum < 1.0e5          # the paper's 3.2e4, Arches and Quintuplet 2e4
+    # the model's nucleus is the observed one: M(<100 pc) 3.5e8 against the 3.9 +- 1e8 of [R5357]
+    mass_100pc = potential.circular_speed_kms(pot, 100.0) ** 2 * 100.0 / 4.30091e-3
     assert 2.9e8 < mass_100pc < 4.9e8
-    assert open_clusters._ring_maximum_mass_sol(potential.for_galaxy(shape, None), core_gas.NO_RING) == tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
+    assert open_clusters._ring_maximum_mass_sol(pot, core_gas.NO_RING) == tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
+
+
+def test_the_gas_of_a_ring_of_the_observed_sizes_is_a_few_1e8_solar_masses_and_the_milky_ways_smaller():
+    """GEN.1846: the rings of [R5358] (17 galaxies, ring stars 1e7 to 1e9 solar masses) hold "a few 1e8" solar masses of gas, almost whatever their stars; a ring of the median
+    size of [R5359] (0.114 of the bar) and of a quarter of it (the largest) hold 1.5e8 and 4.6e8 at Q = 1 and 5 km/s on this nucleus, and the Milky Way's small ring (0.021) 2.4e7."""
+    shape = _shape()
+    pot = potential.for_galaxy(shape, None)
+    gas = {}
+    for ratio in (shape.structure.nuclear_ring_bar_ratio, 0.114, 0.25):
+        sized = shape._replace(structure=shape.structure._replace(nuclear_ring_bar_ratio=ratio))
+        ring = core_gas.core_gas(sized)
+        gas[ratio] = open_clusters._ring_gas_surface_density(pot, ring) * ring.area_pc2
+    assert 1.5e7 < gas[shape.structure.nuclear_ring_bar_ratio] < 6.0e7
+    assert 1.0e8 < gas[0.114] < 1.0e9 and 1.0e8 < gas[0.25] < 1.0e9
+
+
+def test_a_ring_the_bar_has_fed_for_a_short_while_holds_only_what_it_was_given():
+    """GEN.1846: a young ring has not filled to marginal stability: its gas is the inflow times its age."""
+    shape = _shape()
+    young = shape._replace(structure=shape.structure._replace(nuclear_ring_age_gy=0.01))
+    ring = core_gas.core_gas(young)
+    surface = open_clusters._ring_gas_surface_density(potential.for_galaxy(young, None), ring)
+    assert surface == pytest.approx(ring.inflow_msun_yr * 1.0e7 / ring.area_pc2)
+    assert surface < open_clusters._ring_gas_surface_density(potential.for_galaxy(shape, None), core_gas.core_gas(shape))
+
+
+def test_a_ring_is_a_share_of_the_bars_length_and_a_galaxy_without_a_ring_ratio_has_none():
+    """GEN.1846: the ring's radius is the bar's length (3 bulge scale radii) times the drawn ratio; a width of half the radius is the atlas's own limit [R5359]."""
+    from planetgen.galaxy import shape_draw
+    shape = _shape()
+    ring = core_gas.core_gas(shape)
+    assert ring.radius_pc == pytest.approx(shape.structure.nuclear_ring_bar_ratio * shape_draw.BAR_LENGTH_PER_SCALE_RADIUS * shape.bulge_scale_radius_pc)
+    assert 2.0 * math.sqrt(2.0 * math.log(2.0)) * ring.sigma_pc == pytest.approx(tuning.CORE_RING_WIDTH_OVER_RADIUS * ring.radius_pc)
+    wide = shape._replace(structure=shape.structure._replace(nuclear_ring_bar_ratio=0.114))
+    assert core_gas.core_gas(wide).radius_pc == pytest.approx(0.114 * 4740.0)
+    assert core_gas.core_gas(shape._replace(structure=shape.structure._replace(nuclear_ring_bar_ratio=0.0))) is core_gas.NO_RING
 
 
 def test_the_rings_young_clusters_are_a_few_not_dozens_and_none_of_the_old_ones_is_heavy():

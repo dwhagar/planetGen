@@ -192,28 +192,38 @@ def ambient_density_msun_pc3(x, y, z, shape, expected_at_density_1, edge_pc):
     return relative * expected_at_density_1 / edge_pc ** 3 * galaxy_density.mean_system_mass_solar(shape)
 
 
+def _ring_gas_surface_density(pot, core):
+    """
+    The central ring's gas surface density, solar masses per pc2 (GEN.1846): the marginally stable gas of its rotation, `kappa sigma / (pi G Q)` with `tuning.CORE_RING_TOOMRE_Q` and
+    `tuning.CORE_RING_GAS_DISPERSION_KMS`, or what the bar has brought in over the ring's age over its area (`CoreGas.gas_supplied_msun`), whichever is less.
+    """
+    stable = cluster_maximum_mass.stable_surface_density(_kappa_per_myr(pot, core.radius_pc), tuning.CORE_RING_GAS_DISPERSION_KMS,
+                                                         tuning.CORE_RING_TOOMRE_Q)
+    return min(stable, core.gas_supplied_msun / core.area_pc2)
+
+
 def _ring_maximum_mass_sol(pot, core):
     """
     The most massive cluster the central ring forms, solar masses (`physics.cluster_maximum_mass`, GEN.1195): from the
-    ring's gas surface density and the epicyclic frequency of the nucleus's circular speed at the ring's radius, and the
+    ring's gas surface density (`_ring_gas_surface_density`) and the epicyclic frequency of the nucleus's circular speed at the ring's radius, and the
     share of the new stars that are bound. No ring forms none (0); a ring of no gas data is held to the mass function's top.
     """
-    if core.rate_msun_yr <= 0.0 or core.gas_surface_density_msun_pc2 <= 0.0:
+    if core.rate_msun_yr <= 0.0 or core.gas_supplied_msun <= 0.0:
         return tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
     kappa = _kappa_per_myr(pot, core.radius_pc)
-    return cluster_maximum_mass.maximum_cluster_mass_sol(core.gas_surface_density_msun_pc2, kappa, core.bound_share,
+    return cluster_maximum_mass.maximum_cluster_mass_sol(_ring_gas_surface_density(pot, core), kappa, core.bound_share,
                                                          tuning.CORE_RING_GAS_DISPERSION_KMS)
 
 
 def _core_ring(stream, shape, core, pot, max_mass_sol=None):
     """
     The clusters the central ring forms (`galaxy.core_gas`): `(age_gy, x, y, z, fe_h, speed_kms, dispersion_kms)` arrays
-    of those formed over `tuning.CORE_STAR_FORMATION_SPAN_GY` at the ring's rate (the share of it that goes into bound
+    of those formed over the ring's age (`core.age_gy`, GEN.1846) at the ring's rate (the share of it that goes into bound
     clusters, the mass function's mean mass for the count), at the ring's radius, width and height, with the nuclear
     disk's [Fe/H] and dispersion, on the circular orbit of the nucleus (the galaxy's potential `pot`, GEN.338, bulge and black hole included). Their initial masses are drawn with the others,
     under `max_mass_sol`, the most massive cluster the ring can form (the count is of the mass function held to it).
     """
-    span_gy = min(tuning.CORE_STAR_FORMATION_SPAN_GY, _MAX_AGE_GY)
+    span_gy = min(core.age_gy, _MAX_AGE_GY)
     mean_count = core.rate_msun_yr * core.bound_share * span_gy * 1.0e9 / evolution.mean_initial_mass_sol(max_mass_sol)
     count = poisson_count(mean_count, stream) if mean_count > 0.0 else 0
     age = np.maximum(stream.random_array(count) * span_gy, 1.0e-9)

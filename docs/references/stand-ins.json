@@ -56593,44 +56593,6 @@
           "fields": [
             [
               "What it is",
-              "tuning.CORE_RING_GAS_RESIDENCE_MYR 50: the ring's gas is the inflow times this, over the ring's area (its gas surface density, 8e2 for the generator's Milky Way shape)"
-            ],
-            [
-              "The range it moves in",
-              "30 to 80 Myr, so Sigma_g 5e2 to 1.3e3 and the maximum a factor 18 in mass"
-            ],
-            [
-              "Where it holds",
-              "barred galaxies with a ring"
-            ],
-            [
-              "What would show it wrong",
-              "a measured gas mass of a generated-sized ring far from the product"
-            ],
-            [
-              "What replaces it",
-              "the ring's gas from a continuity equation with the outflow and the star formation depletion time, read"
-            ],
-            [
-              "Evidence",
-              "the Milky Way's central molecular zone gas of 2e7 to 6e7 solar masses over the inflow of 0.8 a year (recalled; [R1910] for the inflow)"
-            ]
-          ],
-          "id": "CMX4",
-          "key": "6.145:CMX4",
-          "kind": "P",
-          "slug": "6-145-cmx4",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L2",
-          "unread": null,
-          "what": "tuning.CORE_RING_GAS_RESIDENCE_MYR 50: the ring's gas is the inflow times this, over the ring's area (its gas surface density, 8e2 for the generator's Milky Way shape)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "tuning.CLUSTER_SHOCK_GIELES_COEFFICIENT_GYR 2.0, CLUSTER_SHOCK_GIELES_NUMERATOR 5.1, CLUSTER_SHOCK_REFERENCE_MASS_SOL 1e4, CLUSTER_SHOCK_REFERENCE_RADIUS_PC 3.75: disruption by cloud encounters t_dis = 2.0 S (M / 1e4) (3.75 pc / r_h)^3 Gyr with S = 5.1 / (Sigma_n rho_n); the loss rate M / t_dis is the same for every mass"
             ],
             [
@@ -56781,6 +56743,208 @@
       ],
       "slug": "6-145-stand-ins-of-the-cluster-maximum-mass-and-cloud-shock-disruption-of-the-central-ring",
       "title": "Stand-ins of the cluster maximum mass and cloud-shock disruption of the central ring"
+    },
+    {
+      "key": "6.333",
+      "number": "6.333",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "structure_draw.NUCLEAR_RING_BAR_RATIO (median 0.114, 0.31 dex) and NUCLEAR_RING_BAR_RATIO_RANGE (0.007 to 0.25): the ring's radius over the bar's length, log-normal, drawn with the seed; the bar is 3 bulge scale radii (shape_draw.BAR_LENGTH_PER_SCALE_RADIUS)"
+            ],
+            [
+              "The range it moves in",
+              "median 0.09 to 0.14; scatter 0.25 to 0.4 dex; the upper edge 0.25 to 0.40"
+            ],
+            [
+              "Where it holds",
+              "barred galaxies"
+            ],
+            [
+              "What would show it wrong",
+              "a larger sample of rings whose ratio median is outside 0.09 to 0.14 or whose 84th percentile is far above 0.26"
+            ],
+            [
+              "What replaces it",
+              "the same law with the bar strength trend (r = -0.36, residual 0.29 dex) or a ring radius from the resonances of the galaxy's own bar"
+            ],
+            [
+              "Evidence",
+              "[R5359: Table A2] (READ in the pdf: 102 rings, 73 with a measured bar: median 0.114, geometric mean 0.113, 0.31 dex, 84th percentile 0.26, largest 0.40; the abstract: the largest a ring reaches is a quarter of the bar); the Milky Way's ring is 0.021, 2.4 sigma into the compact tail"
+            ]
+          ],
+          "id": "NR1",
+          "key": "6.333:NR1",
+          "kind": "D",
+          "slug": "6-333-nr1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "structure_draw.NUCLEAR_RING_BAR_RATIO (median 0.114, 0.31 dex) and NUCLEAR_RING_BAR_RATIO_RANGE (0.007 to 0.25): the ring's radius over the bar's length, log-normal, drawn with the seed; the bar is 3 bulge scale radii (shape_draw.BAR_LENGTH_PER_SCALE_RADIUS)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "structure_draw.NUCLEAR_RING_AGE (median log 8.59, 0.70 dex) and NUCLEAR_RING_AGE_RANGE (7.0 to 10.1): how long the ring has formed stars, log-normal, drawn with the seed; the open clusters of the ring are drawn over it and the bar's delivery is the inflow times it"
+            ],
+            [
+              "The range it moves in",
+              "median 0.2 to 0.8 Gy; scatter 0.5 to 0.9 dex"
+            ],
+            [
+              "Where it holds",
+              "barred galaxies"
+            ],
+            [
+              "What would show it wrong",
+              "a ring sample whose median age is far from 0.39 Gy"
+            ],
+            [
+              "What replaces it",
+              "a ring age from the bar's age (a bar's age is itself unmeasured per galaxy)"
+            ],
+            [
+              "Evidence",
+              "[R5358: Table 4] (READ: 17 rings, log age 7.58 to 9.71, median 8.59, mean 8.62, sd 0.68; ages of the rings' stars from broad-band SED fits, so a lower limit on how long the ring has run, with errors of 0.1 to 1.5 dex)"
+            ]
+          ],
+          "id": "NR2",
+          "key": "6.333:NR2",
+          "kind": "D",
+          "slug": "6-333-nr2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "structure_draw.NUCLEAR_RING_AGE (median log 8.59, 0.70 dex) and NUCLEAR_RING_AGE_RANGE (7.0 to 10.1): how long the ring has formed stars, log-normal, drawn with the seed; the open clusters of the ring are drawn over it and the bar's delivery is the inflow times it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORE_RING_WIDTH_OVER_RADIUS 0.5: the ring's full width at half maximum over its radius"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "nuclear rings"
+            ],
+            [
+              "What would show it wrong",
+              "a ring population whose median width over radius is far under 0.5"
+            ],
+            [
+              "What replaces it",
+              "the width of the ring's resonance zone in the bar's orbits"
+            ],
+            [
+              "Evidence",
+              "[R5359] section 2 (READ: a ring is counted only if its width is at most half its radius), the Milky Way's 50 over 100 pc; the edge of the definition, not a measured mean"
+            ]
+          ],
+          "id": "NR3",
+          "key": "6.333:NR3",
+          "kind": "B",
+          "slug": "6-333-nr3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.CORE_RING_WIDTH_OVER_RADIUS 0.5: the ring's full width at half maximum over its radius"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "GEN.1846: no measurement gives the vertical thickness of a nuclear ring other than the Milky Way's (30 pc at 100 pc); a thickness over radius of 0.3 is the one galaxy's ratio until edge-on rings are measured"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORE_RING_HEIGHT_OVER_RADIUS 0.3: the ring's vertical scale height over its radius"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "nuclear rings"
+            ],
+            [
+              "What would show it wrong",
+              "an edge-on ring whose thickness over radius is outside 0.1 to 0.5"
+            ],
+            [
+              "What replaces it",
+              "measured thicknesses of nuclear rings"
+            ],
+            [
+              "Evidence",
+              "the Milky Way's central molecular zone, 30 pc at 100 pc (recalled); no other ring's thickness was found"
+            ]
+          ],
+          "id": "NR4",
+          "key": "6.333:NR4",
+          "kind": "P",
+          "slug": "6-333-nr4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.CORE_RING_HEIGHT_OVER_RADIUS 0.3: the ring's vertical scale height over its radius"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORE_RING_TOOMRE_Q 1.0: the ring holds the gas at Toomre parameter Q, kappa sigma / (pi G Q) on the nucleus's rotation at the ring (sigma CORE_RING_GAS_DISPERSION_KMS, row CMX7), or the inflow times the ring's age, whichever is less"
+            ],
+            [
+              "The range it moves in",
+              "Q 0.7 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "barred galaxies with a ring"
+            ],
+            [
+              "What would show it wrong",
+              "a ring whose gas over its area is far from the marginally stable value"
+            ],
+            [
+              "What replaces it",
+              "the ring's gas from a continuity equation with the outflow and the depletion time, read"
+            ],
+            [
+              "Evidence",
+              "[R3720: Sec. 4.1] (the Milky Way's central molecular zone Q 0.94 at 1e3 solar masses per pc2, kappa 2.61, sigma 5 km/s); gives 2.4e7 for the Milky Way shape (observed 3e7 to 5e7, [R1910]) and 1.5e8 for a ring of the median radius, against the \"few 1e8\" solar masses of gas in the 17 rings of [R5358] (section 3, READ); the cap goes from 6e3 at a quarter of the bar to 7e4 at 0.08, 3.4e4 (the paper's 3.2e4) for the Milky Way, and a ring of external size is under the clusters seen in detected samples at the dispersion of the Milky Way's gas"
+            ]
+          ],
+          "id": "NR5",
+          "key": "6.333:NR5",
+          "kind": "P",
+          "slug": "6-333-nr5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.CORE_RING_TOOMRE_Q 1.0: the ring holds the gas at Toomre parameter Q, kappa sigma / (pi G Q) on the nucleus's rotation at the ring (sigma CORE_RING_GAS_DISPERSION_KMS, row CMX7), or the inflow times the ring's age, whichever is less"
+        }
+      ],
+      "slug": "6-333-stand-ins-of-the-nuclear-ring-gen-1846",
+      "title": "Stand-ins of the nuclear ring (GEN.1846)"
     },
     {
       "key": "6.95",
@@ -73971,7 +74135,7 @@
             ],
             [
               "The range it moves in",
-              "0.72 to 1.0 (the coefficient's own range); under 0.9 the central ring's heaviest cluster passes the 1e5 that [R3720] finds certain for the Milky Way (1.2e5 at 0.9, 9.7e4 at 0.95, 8.2e4 at 1.0), and past 0.78 the present rate leaves its measured range"
+              "0.72 to 1.0 (the coefficient's own range); past 0.78 the present rate leaves its measured range"
             ],
             [
               "Where it holds",

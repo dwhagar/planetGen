@@ -139,7 +139,6 @@ planetgen.galaxy.shape_draw:AUTO_SIZE_ATTEMPTS
 planetgen.galaxy.shape_draw:BAR_LENGTH_OVER_H_EARLY
 planetgen.galaxy.shape_draw:BAR_LENGTH_OVER_H_LATE
 planetgen.galaxy.shape_draw:BAR_LENGTH_OVER_H_RANGE
-planetgen.galaxy.shape_draw:BAR_LENGTH_PER_SCALE_RADIUS
 planetgen.galaxy.shape_draw:DISK_HALF_LIGHT_OVER_R200_DEX
 planetgen.galaxy.shape_draw:EXPONENTIAL_HALF_LIGHT_OVER_SCALE
 planetgen.galaxy.shape_draw:KELVIN_S0_SA
@@ -1151,10 +1150,6 @@ planetgen.tuning:COMET_PERIHELION_DISTANCE_RANGE_AU
 planetgen.tuning:COMPANION_DRAW_ATTEMPTS
 planetgen.tuning:COMPANION_LOG_PERIODS_DAYS
 planetgen.tuning:CONVECTIVE_BINDING_COEFFICIENT
-planetgen.tuning:CORE_RING_HEIGHT_BULGE_RATIO
-planetgen.tuning:CORE_RING_RADIUS_BULGE_RATIO
-planetgen.tuning:CORE_RING_WIDTH_BULGE_RATIO
-planetgen.tuning:CORE_STAR_FORMATION_SPAN_GY
 planetgen.tuning:COSMIC_MEAN_DENSITY_CM3
 planetgen.tuning:COURSE_ARC_SAMPLE_RAD
 planetgen.tuning:COURSE_BELOW_RESOLUTION
