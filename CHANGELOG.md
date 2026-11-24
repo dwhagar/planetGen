@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4758+db274.gen150.api14] - 2026-11-24
+
+**Headline:** A test now pins the pigment band times the star's spectrum on the life classes' energy term (GEN.878).
+
+### Added
+- **The closing evidence for GEN.878.** `tests/test_life_classes.py::test_the_visible_pigment_is_penalised_under_a_red_dwarf_and_the_near_infrared_one_is_not_beaten_by_it` checks that under a 3,000 K star Chlorophyll's (class 1a) energy term falls against the Sun's, that the near-infrared class (2) overtakes it, and that under the Sun the visible pigment is the better. generation-output: unchanged (a test only; the code already did this).
+
 ## [8.0.4757+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The scene-position test no longer fails when a drawn system has planets round the inner pair of a triple star.
