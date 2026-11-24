@@ -35177,6 +35177,82 @@
           "tweak": "L1",
           "unread": null,
           "what": "a captured body's composition is belt_member.member (the GEN.473 taxon kernel) at its source distance and mass, then its water ice is reduced by moon_composition.CAPTURE_ICE_LOSS (uniform 0 to 0.5), one loss for a whole parent"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "small_body_composition.ROCK_FRACTION_LAWS icy-intact (0.70, 0.08, 0.45, 0.95): the rock mass fraction of a Kuiper belt object, class D body or dwarf planet is a truncated normal; the center is [R0390] read in full (a constant 70 percent matches 14 of 17 objects within 2 sigma, one system's objects), the width and limits are the repository's"
+            ],
+            [
+              "The range it moves in",
+              "width 0.05 to 0.12; lower limit 0.45 (the one object under pure ice is reached only there)"
+            ],
+            [
+              "Where it holds",
+              "icy bodies of 60 to 480 km radius with a density from the compaction law, flagged beyond it"
+            ],
+            [
+              "What would show it wrong",
+              "the share of the covered Kuiper belt objects within 2 sigma of the drawn density falls more than 2 sigma from 14 of 17 (test_kbo_rock_fraction)"
+            ],
+            [
+              "What replaces it",
+              "a count of rock fractions of icy bodies of another system"
+            ],
+            [
+              "Evidence",
+              "[R0390] Table A.2 (17 densities and diameters) and the dwarf-planet statistics of [R0269] (mean 0.78, SD 0.12, seven bodies): test points, Solar System only"
+            ]
+          ],
+          "id": "CP5",
+          "key": "6.119:CP5",
+          "kind": "P",
+          "slug": "6-119-cp5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "small_body_composition.ROCK_FRACTION_LAWS icy-intact (0.70, 0.08, 0.45, 0.95): the rock mass fraction of a Kuiper belt object, class D body or dwarf planet is a truncated normal; the center is [R0390] read in full (a constant 70 percent matches 14 of 17 objects within 2 sigma, one system's objects), the width and limits are the repository's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "small_body_composition.ROCK_FRACTION_LAWS icy-stripped (0.88, 0.05, 0.75, 0.98) and the weight 0.5 of icy-intact and icy-stripped for a dwarf planet: a body whose ice a collision removed, at half the dwarf planets; the draw's mean 0.79 and spread 0.11 match the seven measured dwarf planets (0.78, 0.12)"
+            ],
+            [
+              "The range it moves in",
+              "weight 0.3 to 0.6 (two of the seven densest are collisional)"
+            ],
+            [
+              "Where it holds",
+              "dwarf planets and the binary partners of one"
+            ],
+            [
+              "What would show it wrong",
+              "the draw's mean or spread of the dwarf-planet rock fraction falls more than 2 sigma from 0.78 or 0.12 (test_kbo_rock_fraction)"
+            ],
+            [
+              "What replaces it",
+              "a count of dwarf planets that lost their ice in another system (none exists; NO FIXED CONTENT)"
+            ],
+            [
+              "Evidence",
+              "[R0269] qualitative (Haumea and Eris); the weight is no source's"
+            ]
+          ],
+          "id": "CP6",
+          "key": "6.119:CP6",
+          "kind": "B",
+          "slug": "6-119-cp6",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "small_body_composition.ROCK_FRACTION_LAWS icy-stripped (0.88, 0.05, 0.75, 0.98) and the weight 0.5 of icy-intact and icy-stripped for a dwarf planet: a body whose ice a collision removed, at half the dwarf planets; the draw's mean 0.79 and spread 0.11 match the seven measured dwarf planets (0.78, 0.12)"
         }
       ],
       "slug": "6-119-stand-ins-of-the-composition-of-captured-bodies",
