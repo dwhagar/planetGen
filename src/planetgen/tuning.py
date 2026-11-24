@@ -374,8 +374,8 @@ ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 # temperature raises the albedo along the ice law of `physics/climate_branches` (GEN.972; rows CC15 and CC16). A Venus-like
 # cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).
 # Stand-ins, tier "educated guess from physics", level L3 (hand-tuned against the old class albedo ranges).
-# GEN.1836 (Boss's yes of 11:24 PM EST 11-22 on the GEN.1835 report): the range was (0.25, 0.40), centre 0.325, over the Earth's 0.30; an Earth copy drew a
-# median 5.6 K too cold and a third of the draws were too cold to oxygenate. Each edge moved 0.025, inside the 0.05 the row allows, so the centre is the Earth's.
+# GEN.1836 (Boss's yes of 11:24 PM EST 11-22 on the GEN.1835 report): the range was (0.25, 0.40), center 0.325, over the Earth's 0.30; an Earth copy drew a
+# median 5.6 K too cold and a third of the draws were too cold to oxygenate. Each edge moved 0.025, inside the 0.05 the row allows, so the center is the Earth's.
 ALBEDO_WET_RANGE = (0.225, 0.375)
 ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
 
@@ -827,7 +827,7 @@ and two or more (triples and quadruples). The chance of a companion is 1 - `sing
 
 # The single-star initial mass function (GEN.927): [R0705], PASP 115:763, Table 2, the Galactic disk, individual stars:
 # a log-normal in log mass below 1 Msun and a power law above it, joined continuously. All four are recalled, not read in the
-# paper (tier Confident Unverified; docs/design/galaxy/stellar-mass-function.md). The centre is the published 0.079 nudged to 0.092 (GEN.922, level L1).
+# paper (tier Confident Unverified; docs/design/galaxy/stellar-mass-function.md). The center is the published 0.079 nudged to 0.092 (GEN.922, level L1).
 IMF_BELL_CENTER_SOL = 0.092
 """float: The solar mass at which the log-normal part of the single-star mass function peaks per logarithm of mass (Chabrier
 2003, disk, individual stars: `m_c` = 0.079, +0.021 and -0.016 as the paper's Eq. 17 states it, so 0.063 to 0.100). GEN.922 sets it to 0.092
@@ -3949,7 +3949,7 @@ BLACK_HOLE_UNBOUND_FRACTION = 0.02
 
 CORE_COLLAPSE_MASS_RANGE_SOL = (SUPERGIANT_MIN_MASS_SOL, IMF_BREAKS_SOL[-1])
 """tuple: The initial masses that end as a neutron star or a black hole, solar masses: 8 (the supergiants' edge) to the
-top of the IMF, 150 (GEN.560). 0.772% of the stars born (0.713% before GEN.922 moved the centre of the mass function, 0.637% on the Kroupa function before GEN.927)."""
+top of the IMF, 150 (GEN.560). 0.772% of the stars born (0.713% before GEN.922 moved the center of the mass function, 0.637% on the Kroupa function before GEN.927)."""
 
 BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE = (0.0, 0.45)
 """tuple: The share of the massive stars of solar metallicity that fail to explode and leave a black hole: the widest

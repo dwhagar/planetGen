@@ -69,7 +69,7 @@ EXPECTED_SHARES = [
     ("A dwarf", 0.1, 0.4),
     ("B dwarf", 0.03, 0.15),
     # GEN.922: the band is the local census's own. [R5364] (the 10 parsec sample): 20 confirmed white dwarfs among 375 stars, 5.3 percent;
-    # the 95 percent Poisson range of 20 objects is 12.2 to 30.9, so 3.3 to 8.2 percent. The generator's share is 7.1 percent with the single-star centre at 0.092.
+    # the 95 percent Poisson range of 20 objects is 12.2 to 30.9, so 3.3 to 8.2 percent. The generator's share is 7.1 percent with the single-star center at 0.092.
     ("white dwarf", 3.3, 8.2),
     ("subgiant", 0.08, 0.3),  # GEN.502: a light star's subgiant phase is 5% of its main sequence, not 10%
     ("giant", 0.12, 0.5),

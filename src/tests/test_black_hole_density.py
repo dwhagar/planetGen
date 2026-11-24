@@ -42,7 +42,7 @@ def _shape(solar, free):
 
 
 def test_the_massive_stars_are_seven_tenths_of_a_percent_of_the_stars_born():
-    # The Chabrier function (GEN.927) gave 0.713% of the stars born, the Kroupa function it replaced 0.637%; its centre
+    # The Chabrier function (GEN.927) gave 0.713% of the stars born, the Kroupa function it replaced 0.637%; its center
     # at 0.092 solar masses (GEN.922, [R0705: Eq. 17]) makes it 0.772%.
     assert formation.imf_massive_share() == pytest.approx(0.00772, rel=0.01)
 
@@ -155,7 +155,7 @@ def test_bound_plus_ejected_black_holes_are_what_the_galaxy_formed():
 
 def test_neutron_stars_and_black_holes_formed_fit_among_the_massive_stars_in_every_galaxy():
     """T9: over a seed sweep, and the black holes stay within 1.1 to 5.5 times the old count (the cap on the failed share
-    rose with the massive share of the Chabrier function, GEN.927, and again with its centre, GEN.922: 0.5 to 3.1 times on
+    rose with the massive share of the Chabrier function, GEN.927, and again with its center, GEN.922: 0.5 to 3.1 times on
     the Kroupa function)."""
     old = OLD_DENSITY_PC3 / tuning.REFERENCE_STELLAR_DENSITY_PC3
     budget = formation.imf_massive_share()

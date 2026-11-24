@@ -3,7 +3,7 @@
 """
 GEN.640 slice b: `generation.pair_orbit.PairOrbit`, the pair of a system read from its orbit node (it replaced the `WideBinaryPair` class, which kept a copy).
 The numbers are the node's: the axis, the eccentricity, the period, the angles; the position is the Kepler ellipse of `system_tree.node_relative_au` and
-the two stars' places about the centre of mass follow from the mass fraction.
+the two stars' places about the center of mass follow from the mass fraction.
 """
 
 import dataclasses
@@ -42,7 +42,7 @@ def test_a_wide_pair_is_its_node(seed):
 
 
 @pytest.mark.parametrize("seed", range(6))
-def test_the_two_stars_sit_either_side_of_the_centre_of_mass(seed):
+def test_the_two_stars_sit_either_side_of_the_center_of_mass(seed):
     pair = _wide(seed).pair_orbit
     for axis in "xyz":
         mutual = getattr(pair, f"position_{axis}_au")

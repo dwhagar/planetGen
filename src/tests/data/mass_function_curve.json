@@ -16,7 +16,7 @@
    "sigma": 0.69,
    "break_sol": 1.0,
    "power_law_x": 1.3,
-   "source": "[R0705: Table 2], Galactic disk, individual stars: log-normal in log mass, center 0.079 solar masses, width 0.69 dex, power law x = 1.3 above 1 solar mass (recalled, T2); the paper's Eq. 17 gives the centre as 0.079 (+0.021, -0.016) and the width as 0.69 (+0.05, -0.01), so 0.063 to 0.100 and 0.68 to 0.74 (arXiv astro-ph/0304382, Sec. 2.1.2; read 2026-11-24, the sign placement of the errors as typeset)",
+   "source": "[R0705: Table 2], Galactic disk, individual stars: log-normal in log mass, center 0.079 solar masses, width 0.69 dex, power law x = 1.3 above 1 solar mass (recalled, T2); the paper's Eq. 17 gives the center as 0.079 (+0.021, -0.016) and the width as 0.69 (+0.05, -0.01), so 0.063 to 0.100 and 0.68 to 0.74 (arXiv astro-ph/0304382, Sec. 2.1.2; read 2026-11-24, the sign placement of the errors as typeset)",
    "m_c_range": [
     0.063,
     0.1

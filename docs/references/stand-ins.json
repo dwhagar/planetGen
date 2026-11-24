@@ -21255,7 +21255,11 @@
           "what": "tuning.BROWN_DWARF_COMPANION_CHANCE 0.057: the share of drawn trees that hold a brown dwarf companion (13 to 80 Jupiter masses; a pair of two is one) more than the table's stars; with the room the other members leave it puts 3.2 percent of solar-type stars at 28 to 1590 AU (GEN.331)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the widest axis of a brown dwarf companion, 5,000 AU, is the one that leaves 3.2 percent of Sun-like stars with a companion between 28 and 1,590 AU ([R3048]); no survey measures the companions beyond about 1,600 AU, so the number is chosen to meet the measured window and the first wide-companion census replaces it; the inner edge, 10 AU, is the top of the measured 3 to 10 AU desert"
+          ],
           "fields": [
             [
               "What it is",

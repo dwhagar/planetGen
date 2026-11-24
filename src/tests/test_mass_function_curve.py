@@ -60,9 +60,9 @@ def test_the_system_function_peaks_higher_in_mass_than_the_single_star_function(
 
 
 def test_the_chabrier_individual_curve_is_the_shape_the_generator_rows_carry_today(spec):
-    """The curve file's copy of [R0705] (individual stars) is the published function, and the generator holds it at the centre GEN.922 nudged it to inside the
+    """The curve file's copy of [R0705] (individual stars) is the published function, and the generator holds it at the center GEN.922 nudged it to inside the
     paper's own uncertainty (0.079, +0.021 and -0.016: 0.063 to 0.100; stand-in MF1, level L1), so a change of the rows is seen against the published
-    curve and not against itself: the generator's bins are the curve's at the registered centre, to the chord error of the segments, and the centre is
+    curve and not against itself: the generator's bins are the curve's at the registered center, to the chord error of the segments, and the center is
     inside the published range."""
     shape = spec["curves"]["chabrier2003_individual"]
     assert shape["m_c"] == 0.079 and (shape["sigma"], shape["break_sol"]) == (tuning.IMF_BELL_WIDTH_DEX, tuning.IMF_BELL_TOP_SOL)
