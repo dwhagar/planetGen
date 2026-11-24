@@ -177,7 +177,7 @@
             ],
             [
               "The result lands as",
-              "external-galaxy histories replace the delay; Gemini's 12 to 13 Gyr start (LEAD, section 7 claim 19) cannot set the epoch because its redshifts do not match its lookback times"
+              "external-galaxy histories replace the delay; Gemini's 12 to 13 Gyr start (LEAD, section 7 claim 19) cannot set the epoch because its redshifts do not match its lookback times; read 2026-11-24 for [R3531]: two S0 galaxies of 7.6e9 and 8.5e9 Msun print thick discs of about 12 to 13 Gyr and youngest thin-disc regions of 4 to 5 Gyr; two galaxies show no mass trend, so the fill stays and the 12 to 13 Gyr is its test point near 8e9 Msun."
             ]
           ],
           "id": "GR6",
@@ -297,7 +297,7 @@
             ],
             [
               "The result lands as",
-              "simulation table replaces the rule"
+              "simulation table replaces the rule; read 2026-11-24 for [R3508] and the E-MOSAICS age-metallicity paper: no cluster age against host mass is printed in the text, so the rule stays."
             ]
           ],
           "id": "GR9b",
@@ -357,7 +357,7 @@
             ],
             [
               "The result lands as",
-              "their ages replace the integral; Gemini's z50 formula (LEAD, claim 20) is compared"
+              "their ages replace the integral; Gemini's z50 formula (LEAD, claim 20) is compared; read 2026-11-24 for [R0876]: six haloes only; infall (not stellar age) more than 8 Gyr ago for every halo but Aq-F; no stellar age or mass trend is printed, so the integral stays."
             ]
           ],
           "id": "GR10",
@@ -387,7 +387,7 @@
             ],
             [
               "The result lands as",
-              "a dwarf fit replaces rank 1; Gemini's slope 1.90 and zero point (LEAD, claim 18) are not used as a median"
+              "a dwarf fit replaces rank 1; Gemini's slope 1.90 and zero point (LEAD, claim 18) are not used as a median; checked 2026-11-24 for [R0545] (Eq 2, slope 3.1, fitted for M* 1e7 to 1e8 only, no scatter printed): at Mh 1e10 it sits 0.15 dex below to 0.17 above rank 1, at 3e10 0.14 to 0.46 dex above, inside the 0.19 to 0.5 dex draw; the fill stays."
             ]
           ],
           "id": "GR11",
