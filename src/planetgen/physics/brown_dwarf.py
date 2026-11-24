@@ -94,11 +94,13 @@ def _track(mass_sol, age_gy):
     """`(temperature, radius)` of the cooling track at `mass_sol` and `age_gy`: the Baraffe table, continued past the age it loses the
     mass (`baraffe_isochrones.cooling_track`). Under the lightest mass the table holds (0.01 solar masses; GEN.331, a planetary-mass
     companion) it is that mass's track with the temperature scaled by `(mass / lightest) ** TEMPERATURE_MASS_EXPONENT` and the radius by
-    `(mass / lightest) ** RADIUS_MASS_EXPONENT`."""
+    `(mass / lightest) ** RADIUS_MASS_EXPONENT`, down to the lightest planetary-mass companion (5 Jupiter masses); under that there is no track (`ValueError`)."""
     lightest = baraffe_isochrones.isochrones()[0].mass_solar[0]
     if mass_sol >= lightest:
         return baraffe_isochrones.cooling_track(mass_sol, age_gy)
     temperature, radius = baraffe_isochrones.cooling_track(lightest, age_gy)
+    if mass_sol < planetary_mass_range_solar()[0] * (1.0 - 1.0e-9):
+        raise ValueError(f"no cooling track under the lightest planetary-mass companion ({mass_sol} solar masses)")
     ratio = mass_sol / lightest
     return temperature * ratio ** TEMPERATURE_MASS_EXPONENT, radius * ratio ** RADIUS_MASS_EXPONENT
 
