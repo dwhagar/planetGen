@@ -827,10 +827,13 @@ and two or more (triples and quadruples). The chance of a companion is 1 - `sing
 
 # The single-star initial mass function (GEN.927): [R0705], PASP 115:763, Table 2, the Galactic disk, individual stars:
 # a log-normal in log mass below 1 Msun and a power law above it, joined continuously. All four are recalled, not read in the
-# paper (tier Confident Unverified, level L0; docs/design/galaxy/stellar-mass-function.md).
-IMF_BELL_CENTER_SOL = 0.079
+# paper (tier Confident Unverified; docs/design/galaxy/stellar-mass-function.md). The centre is the published 0.079 nudged to 0.092 (GEN.922, level L1).
+IMF_BELL_CENTER_SOL = 0.092
 """float: The solar mass at which the log-normal part of the single-star mass function peaks per logarithm of mass (Chabrier
-2003, Table 2, disk, individual stars: `m_c` = 0.079; the systems' own function, 0.22, is derived here, not set)."""
+2003, disk, individual stars: `m_c` = 0.079, +0.021 and -0.016 as the paper's Eq. 17 states it, so 0.063 to 0.100). GEN.922 sets it to 0.092
+(registered stand-in MF1, tweak level L1, inside the paper's own uncertainty): at 0.079 the primaries of 0.6 to 0.8 solar masses were 7.1 percent of
+those of 0.08 to 0.8, under the 7.3 percent floor of the system function's band, and no companion count (x0.5 to x3) or mass-ratio law moves that bin by more than 0.5 point;
+the systems' own function, 0.22, is derived here, not set."""
 IMF_BELL_WIDTH_DEX = 0.69
 """float: The width of that log-normal in dex of mass ([R0705]: `sigma` = 0.69)."""
 IMF_BELL_TOP_SOL = 1.0
@@ -3418,7 +3421,7 @@ PREVALENCE_DRAW_SHARES = {
     "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
-    "multi_star": 0.0046,       # systems with five or more stars (see below)
+    "multi_star": 0.0049,       # systems with five or more stars (see below)
 }
 # `multi_star` is not measured from generated systems: `StarSystem` builds only a
 # single star, a close pair or a wide pair until the member-tree host lands

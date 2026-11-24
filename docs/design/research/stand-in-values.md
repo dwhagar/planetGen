@@ -50,7 +50,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 231 | 22 | 12 | 1 | 0 | 266 |
-| T2 | 185 | 75 | 4 | 0 | 0 | 264 |
+| T2 | 184 | 76 | 4 | 0 | 0 | 264 |
 | T3 | 136 | 69 | 13 | 10 | 0 | 228 |
 | T4 | 94 | 17 | 10 | 25 | 13 | 159 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
@@ -58,7 +58,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 76 | 44 | 10 | 31 | 0 | 161 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1150 | 420 | 103 | 275 | 66 | 2014 |
+| All | 1149 | 421 | 103 | 275 | 66 | 2014 |
 
 ## How the labels were given
 
@@ -873,7 +873,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| MF1 | P | T2 | L0 | tuning.IMF_BELL_CENTER_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass | centre 0.079 to 0.08, width 0.69 | stars of the Galactic disk, individual stars (not systems) | the counts of M dwarfs in the solar neighbourhood (RECONS) against the census of the generated stars | the table read in the paper | RECALLED ([R0705]:763, Table 2, disk, individual stars; the four numbers are not opened in the paper) | predicted only | - | - |
+| MF1 | P | T2 | L1 | tuning.IMF_BELL_CENTER_SOL 0.092 (GEN.922: the published 0.079 nudged up inside the paper's own +0.021), IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass | centre 0.063 to 0.100 (0.079 -0.016 +0.021, Eq. 17), width 0.68 to 0.74 | stars of the Galactic disk, individual stars (not systems) | the counts of M dwarfs in the solar neighbourhood (RECONS) against the census of the generated stars | the table read in the paper | RECALLED ([R0705]:763, Table 2, disk, individual stars: the four numbers are not opened in the table; the centre's errors, 0.079 +0.021 -0.016, and the width's, 0.69 +0.05 -0.01, were read in the paper's Eq. 17 on 2026-11-24). GEN.922: the centre is 0.092, not 0.079: with 0.079 the primaries of 0.6 to 0.8 solar masses were 7.1 percent of those of 0.08 to 0.8 in the census (60,000 systems), under the floor 7.3 percent of the system function's band, and no companion count (x0.5 to x3 moves that bin 6.8 to 7.3 percent) or mass-ratio law (GEN.951) moves it, so the cause is the single-star curve against the system curve; at 0.092 the bin and the 17 others are in band | predicted only | - | - |
 | MF2 | P | T2 | L0 | tuning.IMF_HIGH_SLOPE 2.3: the power law of the single-star function above one solar mass, a birth function | 2.3 to 2.35 | birth masses, 1 to 150 solar masses | the generated count of stars still alive at 1 to 2 solar masses against the field's 2.7 [R2499] | a slope read from the paper | RECALLED ([R0705] x = 1.3 per logarithm; [R2498] 2.3 above 0.5; the field's steeper slope comes from the ages) | predicted only | - | - |
 | MF3 | D | T5 | L0 | generation.primary_mass_function: companions as `multistar` draws them (the mass ratio of the law of `mass_ratio.py`, GEN.951, from the larger of 0.1 and 0.08 over the primary's mass to 1, counts from the star-count table), no brown dwarf companion, no mergers | none | systems of up to seven stars | the generated systems' own mass function against the systems' function of Chabrier (centre 0.22) | the companions the derivation leaves out (brown dwarfs, mergers) | COMPUTED (the equation of the primary function, solved from the top mass; test_mass_function_curve) | predicted only | - | - |
 

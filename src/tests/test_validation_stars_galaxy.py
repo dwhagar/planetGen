@@ -21,8 +21,8 @@ def _per_solar_mass_formed(low_sol):
 
 
 def _chabrier(mass_sol):
-    """[R0705], individual stars of the disk, per unit of ln mass (any scale; parameters recalled)."""
-    inside = math.exp(-(math.log10(min(mass_sol, 1.0)) - math.log10(0.079)) ** 2 / (2 * 0.69 ** 2))
+    """[R0705], individual stars of the disk, per unit of ln mass (any scale; parameters recalled), at the centre GEN.922 nudged the published 0.079 to (0.092, stand-in MF1), written out here so a changed constant fails."""
+    inside = math.exp(-(math.log10(min(mass_sol, 1.0)) - math.log10(0.092)) ** 2 / (2 * 0.69 ** 2))
     return inside * (mass_sol ** -1.3 if mass_sol > 1.0 else 1.0)
 
 
