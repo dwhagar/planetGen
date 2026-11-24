@@ -68,10 +68,6 @@ _EMPTY_TABLE_ROWS = {
     "lost_moons": (
         "INSERT INTO lost_moons (star_system_id, planet_id, born_index, mass_kg, birth_distance_au, density_kg_m3, retrograde)"
         " VALUES ((SELECT MIN(id) FROM star_systems), 1, 0, 1, 1, 1, 0)"),
-    # GEN.179: a sector keeps its directive only when the run was given one, which the seeded galaxy's run was not.
-    "sector_directives": (
-        "INSERT INTO sector_directives (sector_id, directive_digest, status, attempts)"
-        " VALUES ((SELECT MIN(id) FROM sectors), '0000000000000000', 'met_naturally', 1)"),
     # DB.75: a system keeps its body numbers only once its content has been drawn again.
     "body_numbers": (
         "INSERT INTO body_numbers (star_system_id, slot_key, body_number)"
