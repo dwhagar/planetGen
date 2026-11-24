@@ -149,6 +149,9 @@ def test_systems_of_every_kind_with_a_giant_save_and_load_with_the_trojan_step_i
         conn.close()
 
 
+MOON_SEED_TRIES = 12
+"""int: How many seeds the rogue-moon save test tries for a G2V system with a moon (a count of tries, not a physical quantity)."""
+
 @pytest.mark.fresh_database
 def test_a_rogue_planet_and_a_moon_of_it_are_saved_and_read_back_with_no_giant_to_share_an_orbit_with(mysql_config):
     """GEN.1151: a rogue planet has no giant, so the link columns of a trojan planet are not its columns (`rogue_planets` has none): the insert must not name them."""
@@ -158,9 +161,13 @@ def test_a_rogue_planet_and_a_moon_of_it_are_saved_and_read_back_with_no_giant_t
     sector_id = store.save_sector(SpaceSector("Free Sector", edge_ly=10.0), config=mysql_config)
     cfg = SystemConfig()
     cfg.STAR_TYPE, cfg.PLANETS, cfg.MAX_PLANETS, cfg.BINARY_SYSTEM = "G2V", True, True, False
-    with draw.bound(3):
-        made = StarSystem(system_config=cfg)
-    moon = next((moon for planet in made.primary.orbiters for moon in getattr(planet, "moons", ())), None)
+    moon = None
+    for seed in range(3, 3 + MOON_SEED_TRIES):     # a seed's system has a moon or not as the generator's draws move (GEN.1202 moved seed 3's off), so the first seed whose G2V system has one is used
+        with draw.bound(seed):
+            made = StarSystem(system_config=cfg)
+        moon = next((moon for planet in made.primary.orbiters for moon in getattr(planet, "moons", ())), None)
+        if moon is not None:
+            break
     assert moon is not None
     conn = store.get_connection(mysql_config)
     try:
