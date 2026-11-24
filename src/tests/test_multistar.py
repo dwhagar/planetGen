@@ -185,28 +185,30 @@ def test_brown_dwarfs_keep_clear_of_the_stars_they_orbit():
         for member in tree.members[1:]:
             if member.kind == "brown-dwarf" and tree.member_count == 2:     # a pair of the star and the dwarf
                 total += 1
-                inside += tree.nodes[0].separation_au < multistar.BROWN_DWARF_DESERT_AU
+                inside += tree.nodes[0].separation_au < tuning.BROWN_DWARF_AXIS_RANGE_AU[0]
     assert total > 20 and inside / total < 0.1
 
 
 @pytest.mark.parametrize("birth", [0.12, 0.25, 0.5, 1.0])
 def test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member(birth):
     """GEN.899: a companion under the hydrogen-burning limit used to use up one of the table's places (an M2V primary kept
-    13% of its 27%). Every star of a tree is a star; the brown dwarfs come at `tuning.BROWN_DWARF_COMPANION_CHANCE`."""
+    13% of its 27%). Every star of a tree is a star; the brown dwarfs come at `tuning.BROWN_DWARF_COMPANION_CHANCE` (a pair of two
+    is one companion, GEN.331; a planetary-mass companion is its own)."""
     draws = 3000
     table = multistar.star_count_weights(birth)
-    stars, dwarfs = Counter(), 0
+    stars, hosts = Counter(), 0
+    deuterium = brown_dwarf.mass_range_solar()[0]
     for seed in range(draws):
         tree = _tree(multistar.Placed("star", birth), 3.0e9, seed)
         kinds = Counter(member.kind == "brown-dwarf" for member in tree.members[1:])
-        dwarfs += kinds[True]
+        hosts += any(member.kind == "brown-dwarf" and member.mass_solar >= deuterium for member in tree.members[1:])
         stars[1 + kinds[False]] += 1
         assert all(member.initial_mass_solar >= mass_boundaries.sol("hydrogen_burning_limit")
                    for member in tree.members[1:] if member.kind != "brown-dwarf")
     share = 1.0 - table[0] / sum(table)
     assert abs((1.0 - stars[1] / draws) - share) < 4.0 * math.sqrt(share * (1.0 - share) / draws) + 0.005
     chance = tuning.BROWN_DWARF_COMPANION_CHANCE
-    assert abs(dwarfs / draws - chance) < 4.0 * math.sqrt(chance * (1.0 - chance) / draws) + 0.005
+    assert abs(hosts / draws - chance) < 4.0 * math.sqrt(chance * (1.0 - chance) / draws) + 0.005
 
 
 def test_a_forced_count_is_of_stars_and_adds_no_brown_dwarf():

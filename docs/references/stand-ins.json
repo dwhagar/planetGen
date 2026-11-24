@@ -21221,11 +21221,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars"
+              "tuning.BROWN_DWARF_COMPANION_CHANCE 0.057: the share of drawn trees that hold a brown dwarf companion (13 to 80 Jupiter masses; a pair of two is one) more than the table's stars; with the room the other members leave it puts 3.2 percent of solar-type stars at 28 to 1590 AU (GEN.331)"
             ],
             [
               "The range it moves in",
-              "0.01 to 0.06"
+              "0.03 to 0.08"
             ],
             [
               "Where it holds",
@@ -21233,7 +21233,7 @@
             ],
             [
               "What would show it wrong",
-              "test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member"
+              "test_brown_dwarf_companions.test_brown_dwarf_companions_at_28_to_1590_au_are_3_2_percent_of_stars"
             ],
             [
               "What replaces it",
@@ -21250,9 +21250,275 @@
           "slug": "6-49-sc2",
           "tier": "T2",
           "tier_code": "T2",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.BROWN_DWARF_COMPANION_CHANCE 0.057: the share of drawn trees that hold a brown dwarf companion (13 to 80 Jupiter masses; a pair of two is one) more than the table's stars; with the room the other members leave it puts 3.2 percent of solar-type stars at 28 to 1590 AU (GEN.331)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.BROWN_DWARF_AXIS_RANGE_AU (10, 5000): a brown dwarf's axis about the rest of its tree is flat per decade from the desert's inner edge, 10 AU, to 5000 AU, its widest (GEN.331); the inner edge is the top of [R3048]'s 3 to 10 AU desert, the widest is chosen so the 28 to 1590 AU window is 0.56 of the law"
+            ],
+            [
+              "The range it moves in",
+              "3 to 20 AU, 2000 to 20000 AU"
+            ],
+            [
+              "Where it holds",
+              "a brown dwarf companion of a star with room"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of wide companions that is not flat in log axis between 10 and 1000 AU"
+            ],
+            [
+              "What replaces it",
+              "a published companion axis law by mass"
+            ],
+            [
+              "Evidence",
+              "RECALLED ([R3048]: companions flat in log axis at 28 to 1590 AU; wide companions to a few thousand AU)"
+            ]
+          ],
+          "id": "SC3",
+          "key": "6.49:SC3",
+          "kind": "P",
+          "slug": "6-49-sc3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.BROWN_DWARF_AXIS_RANGE_AU (10, 5000): a brown dwarf's axis about the rest of its tree is flat per decade from the desert's inner edge, 10 AU, to 5000 AU, its widest (GEN.331); the inner edge is the top of [R3048]'s 3 to 10 AU desert, the widest is chosen so the 28 to 1590 AU window is 0.56 of the law"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.BROWN_DWARF_DESERT_KEEP 0.01: the law's density inside the desert's edge is 1 percent of its density outside, and a brown dwarf whose whole room is inside the desert is kept in 1 percent of the trees (GEN.331)"
+            ],
+            [
+              "The range it moves in",
+              "0.002 to 0.03"
+            ],
+            [
+              "Where it holds",
+              "a brown dwarf companion of a star"
+            ],
+            [
+              "What would show it wrong",
+              "a survey with more than 0.6 percent of solar-type stars holding a brown dwarf at 3 to 10 AU"
+            ],
+            [
+              "What replaces it",
+              "a desert from the formation physics"
+            ],
+            [
+              "Evidence",
+              "RECALLED ([R3048]: under 0.6 percent at 3 to 10 AU)"
+            ]
+          ],
+          "id": "SC4",
+          "key": "6.49:SC4",
+          "kind": "P",
+          "slug": "6-49-sc4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.BROWN_DWARF_DESERT_KEEP 0.01: the law's density inside the desert's edge is 1 percent of its density outside, and a brown dwarf whose whole room is inside the desert is kept in 1 percent of the trees (GEN.331)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.BROWN_DWARF_PAIR_SHARE 0.15: the share of brown dwarf companions that are a pair of two brown dwarfs (GEN.331)"
+            ],
+            [
+              "The range it moves in",
+              "0.10 to 0.25"
+            ],
+            [
+              "Where it holds",
+              "brown dwarf companions"
+            ],
+            [
+              "What would show it wrong",
+              "a brown dwarf binary fraction survey away from 15 percent"
+            ],
+            [
+              "What replaces it",
+              "a pair fraction by mass and environment"
+            ],
+            [
+              "Evidence",
+              "RECALLED (Burgasser et al., Protostars and Planets V: the resolved binary fraction of field brown dwarfs, 15 percent)"
+            ]
+          ],
+          "id": "SC5",
+          "key": "6.49:SC5",
+          "kind": "P",
+          "slug": "6-49-sc5",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars"
+          "what": "tuning.BROWN_DWARF_PAIR_SHARE 0.15: the share of brown dwarf companions that are a pair of two brown dwarfs (GEN.331)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.BROWN_DWARF_PAIR_AXIS_LOG10_AU (0.6, 0.4) and BROWN_DWARF_PAIR_MASS_RATIO_RANGE (0.8, 1.0): a brown dwarf pair's axis is log-normal about 4 AU, and its second member is 0.8 to 1 times the first's mass (GEN.331)"
+            ],
+            [
+              "The range it moves in",
+              "mean 0.3 to 1.0, sigma 0.3 to 0.6, ratio 0.6 to 1.0"
+            ],
+            [
+              "Where it holds",
+              "the two brown dwarfs of a pair"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of brown dwarf pairs whose axes peak far from 4 AU or are not nearly equal in mass"
+            ],
+            [
+              "What replaces it",
+              "the axis and mass-ratio laws of the surveys"
+            ],
+            [
+              "Evidence",
+              "RECALLED (Burgasser et al., Protostars and Planets V: separations peak near 4 AU, almost all inside 20 AU, mass ratios over 0.8)"
+            ]
+          ],
+          "id": "SC6",
+          "key": "6.49:SC6",
+          "kind": "P",
+          "slug": "6-49-sc6",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.BROWN_DWARF_PAIR_AXIS_LOG10_AU (0.6, 0.4) and BROWN_DWARF_PAIR_MASS_RATIO_RANGE (0.8, 1.0): a brown dwarf pair's axis is log-normal about 4 AU, and its second member is 0.8 to 1 times the first's mass (GEN.331)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.PLANETARY_MASS_COMPANION_CHANCE 0.005: the chance a star over the hydrogen-burning limit has a planetary-mass companion (5 to 13 Jupiter masses), a member of its tree on the brown dwarf axis law (GEN.331)"
+            ],
+            [
+              "The range it moves in",
+              "0.002 to 0.01"
+            ],
+            [
+              "Where it holds",
+              "stars heavier than 0.08 solar masses, trees a directive does not count"
+            ],
+            [
+              "What would show it wrong",
+              "a direct-imaging survey whose planetary-mass companion rate is far from 0.5 percent"
+            ],
+            [
+              "What replaces it",
+              "the occurrence law of imaged planetary-mass companions by separation and host mass"
+            ],
+            [
+              "Evidence",
+              "RECALLED (direct-imaging surveys: 0.5 to 1 percent of stars host a companion of 5 to 13 Jupiter masses)"
+            ]
+          ],
+          "id": "SC7",
+          "key": "6.49:SC7",
+          "kind": "P",
+          "slug": "6-49-sc7",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.PLANETARY_MASS_COMPANION_CHANCE 0.005: the chance a star over the hydrogen-burning limit has a planetary-mass companion (5 to 13 Jupiter masses), a member of its tree on the brown dwarf axis law (GEN.331)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.PLANETARY_MASS_COMPANION_RANGE_JUPITER (5, 13): the planetary-mass companions' masses follow the brown dwarf mass function (BROWN_DWARF_MASS_FUNCTION_SLOPE) continued from the deuterium-burning limit down to 5 Jupiter masses (GEN.331)"
+            ],
+            [
+              "The range it moves in",
+              "1 to 13 Jupiter masses"
+            ],
+            [
+              "Where it holds",
+              "a planetary-mass companion"
+            ],
+            [
+              "What would show it wrong",
+              "an imaged companion population whose mass function falls differently"
+            ],
+            [
+              "What replaces it",
+              "the mass function of the imaged companions"
+            ],
+            [
+              "Evidence",
+              "the slope is the brown dwarfs', continued below the limit"
+            ]
+          ],
+          "id": "SC8",
+          "key": "6.49:SC8",
+          "kind": "P",
+          "slug": "6-49-sc8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.PLANETARY_MASS_COMPANION_RANGE_JUPITER (5, 13): the planetary-mass companions' masses follow the brown dwarf mass function (BROWN_DWARF_MASS_FUNCTION_SLOPE) continued from the deuterium-burning limit down to 5 Jupiter masses (GEN.331)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "brown_dwarf.TEMPERATURE_MASS_EXPONENT 0.66 and RADIUS_MASS_EXPONENT -0.04: under 0.01 solar masses, the lightest the BHAC15 table holds, a body's temperature goes as its mass to 0.66 (luminosity as M^2.64 at one radius) and its radius as its mass to -0.04 (GEN.331)"
+            ],
+            [
+              "The range it moves in",
+              "temperature 0.5 to 0.8, radius -0.1 to 0.0"
+            ],
+            [
+              "Where it holds",
+              "planetary-mass companions of 5 to 10 Jupiter masses"
+            ],
+            [
+              "What would show it wrong",
+              "an evolutionary table that holds these masses and differs by more than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "the table itself"
+            ],
+            [
+              "Evidence",
+              "RECALLED (Burrows and Liebert's cooling law; the mass-radius plateau of 1 to 10 Jupiter masses)"
+            ]
+          ],
+          "id": "SC9",
+          "key": "6.49:SC9",
+          "kind": "P",
+          "slug": "6-49-sc9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "brown_dwarf.TEMPERATURE_MASS_EXPONENT 0.66 and RADIUS_MASS_EXPONENT -0.04: under 0.01 solar masses, the lightest the BHAC15 table holds, a body's temperature goes as its mass to 0.66 (luminosity as M^2.64 at one radius) and its radius as its mass to -0.04 (GEN.331)"
         }
       ],
       "slug": "6-49-stand-ins-of-the-star-class-edges-and-the-brown-dwarf-companion",

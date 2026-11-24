@@ -289,8 +289,6 @@ planetgen.generation.generator_battery:SECTOR_SYSTEMS
 planetgen.generation.late_accretion:EARTH_KG
 planetgen.generation.mass_ratio:QUANTILE_BISECTIONS
 planetgen.generation.mass_ratio:_NO_COMPANIONS
-planetgen.generation.multistar:BROWN_DWARF_DESERT_AU
-planetgen.generation.multistar:BROWN_DWARF_DESERT_KEEP
 planetgen.generation.multistar:CIRCULAR_BELOW_DAYS
 planetgen.generation.multistar:COMPACT_PAIR_AXIS_AU
 planetgen.generation.multistar:COMPACT_PAIR_CIRCULAR_BELOW_AU

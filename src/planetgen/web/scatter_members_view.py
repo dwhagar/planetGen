@@ -7,6 +7,7 @@ the fill places them when it builds the row's system, and the page says so.
 """
 
 from planetgen.db.compact_pairs import KINDS as PAIR_KINDS
+from planetgen.physics import brown_dwarf
 from planetgen.web.lib.fmt import format_distance_au, format_mass_solar, format_number, format_period_years, format_power_w
 
 _KIND_LABELS = {
@@ -22,8 +23,11 @@ ORBIT_LABELS = {"close": "Close pair", "wide": "Wide pair", "compact": "Compact 
 
 
 def _member_label(row):
-    """The kind's label, with a brown dwarf's L, T or Y type after it (GEN.252): "Brown dwarf (T5)"."""
+    """The kind's label, with a brown dwarf's L, T or Y type after it (GEN.252): "Brown dwarf (T5)", and "Planetary-mass companion (Y1)" for one under the
+    deuterium limit (GEN.331)."""
     label = _KIND_LABELS.get(row["kind"], row["kind"].replace("-", " ").capitalize())
+    if row["kind"] == "brown-dwarf" and row.get("mass_solar") is not None and brown_dwarf.is_planetary_mass(row["mass_solar"]):
+        label = "Planetary-mass companion"       # GEN.331: under the deuterium-burning limit
     if row["kind"] == "brown-dwarf" and row.get("state"):
         label += f" ({row['state']})"
     return label
