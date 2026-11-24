@@ -778,6 +778,47 @@ def test_advance_orbital_phases_advances_binary_mutual_orbit_position_in_lockste
     assert after["binary_mutual_position_z_km"] == pytest.approx(expected_z_au * pc.AU_TO_KM, abs=1e-3)
 
 
+def test_advance_orbital_phases_advances_the_nodes_of_a_stored_tree(mysql_config):
+    """
+    GEN.313: every due node of a built system's orbit tree turns its `mean_anomaly_deg` by 360 times the elapsed time over its
+    `period_years` and takes the update's end as its epoch; a node that is not due is left as it was. The shortest-period node is
+    always due here, because the elapsed time is 137.25 of its periods.
+    """
+    config = SystemConfig()
+    config.STARS = 3
+    config.PLANETS = False
+    system = StarSystem(system_config=config)
+    assert len(system.orbit_nodes) >= 2
+
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = store.insert_star_system(conn, system, config)
+        columns = "node_no, mean_anomaly_deg, epoch_unix, period_years"
+        before = {row["node_no"]: row for row in conn.execute(
+            f"SELECT {columns} FROM orbit_nodes WHERE star_system_id = ? ORDER BY node_no", (system_id,)).fetchall()}
+        elapsed_years = min(row["period_years"] for row in before.values()) * 137.25
+        clock = store.orbit_clock(conn, elapsed_years)
+        counts = store.advance_orbital_phases(conn, clock)
+        after = {row["node_no"]: row for row in conn.execute(
+            f"SELECT {columns} FROM orbit_nodes WHERE star_system_id = ? ORDER BY node_no", (system_id,)).fetchall()}
+    finally:
+        conn.close()
+
+    assert counts["orbit_nodes"] >= 1
+    moved = [number for number in before if after[number]["epoch_unix"] == pytest.approx(clock.end_unix)]
+    assert moved
+    for number in before:
+        if number in moved:
+            turned = (elapsed_years / before[number]["period_years"]) * 360
+            assert after[number]["mean_anomaly_deg"] == pytest.approx((before[number]["mean_anomaly_deg"] + turned) % 360, abs=1e-4)
+        else:
+            assert after[number]["mean_anomaly_deg"] == before[number]["mean_anomaly_deg"]
+            assert after[number]["epoch_unix"] == before[number]["epoch_unix"]
+    shortest = min(before, key=lambda number: before[number]["period_years"])
+    assert shortest in moved
+
+
 def test_advance_orbital_phases_advances_both_binary_members_barycenter_offsets(mysql_config):
     """
     Regression test for the v18 addition: both `binary_primary_position_*`
