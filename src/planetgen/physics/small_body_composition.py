@@ -532,7 +532,7 @@ ICY_TABLE = pt.REGISTRY.register(pt.Table(
                      "stand-in CP5"),
         pt.Row("icy-stripped", (DWARF_PLANET,), 0.5, "stand-in CP6: no count of collisionally stripped dwarf planets outside one system exists",
                state=pt.STAND_IN, replacement="CP6: an extrasolar count of dwarf planets that lost their ice (none exists; NO FIXED CONTENT)",
-               notes="a dwarf planet whose ice a collision removed ([R0269]): rock fraction N(0.88, 0.05) on [0.75, 0.98]; the weight is a half, the "
+               notes="a dwarf planet whose ice a collision removed, [R0269]: rock fraction N(0.88, 0.05) on [0.75, 0.98]; the weight is a half, the "
                      "draw's spread then matches the 0.12 of seven dwarf planets"),
     ], description="The rock mass fraction of a Kuiper belt object, dwarf planet or class D body, gated by kind."))
 """Table: The icy-body rock fraction rows."""
