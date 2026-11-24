@@ -81,3 +81,16 @@ def test_the_stretch_of_a_place_is_the_densities_weighed_mean_of_its_populations
     assert array.tolist() == pytest.approx([inner, outer])
     stretches = remnant_density.population_stretches(30000.0)
     assert stretches["old"] > stretches["young"]                   # the old disk is the poorer in metals
+
+
+def test_a_black_hole_of_a_star_system_takes_the_stretch_of_its_own_metals():
+    from planetgen.generation import multistar
+
+    def holes(fe_h):
+        found = [multistar._remnant("black-hole", 8.0e9, 0.0, draw.Stream(f"member{fe_h}:{i}"), fe_h=fe_h) for i in range(300)]
+        return np.array([leaf.mass for leaf in found if leaf is not None])
+    rich, poor = holes(0.0), holes(-1.0)
+    assert len(rich) > 100 and len(poor) > 100
+    assert 5.0 <= rich.min() and rich.max() <= 5.0 + 15.0 * remnant_mass.black_hole_stretch(0.0) + 1e-9
+    assert poor.max() > 30.0 and poor.mean() > 1.8 * rich.mean()       # three times the span, a quarter of it above the edge
+    assert poor.max() <= tuning.BLACK_HOLE_MASS_TOP_SOLAR
