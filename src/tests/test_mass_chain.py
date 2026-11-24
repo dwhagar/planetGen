@@ -125,7 +125,7 @@ def test_the_conditional_is_the_halo_function_times_the_relations_log_normal():
 
 def test_a_spirals_halo_of_the_largest_masses_is_the_largest_spirals_not_a_groups():
     """GEN.618: the all-galaxy median halo of 1.5e11 to 2e11 solar masses of stars is a group's (1.4e13 to 2.8e13); a spiral's is inside the 2 to 5e12 the largest spirals' rotation curves
-    (the range is [R5349]'s), Andromeda's 1e11 inside its 0.6 to 2.8e12, and no drawn halo passes the 5e12 "virtually none" bound (from [R5350])."""
+    (the range is [R5352]'s), Andromeda's 1e11 inside its 0.6 to 2.8e12, and no drawn halo passes the 5e12 "virtually none" bound (from [R5353])."""
     assert mass_chain.all_galaxy_halo_mass(1.5e11, 0.5) > 1.0e13
     for stellar in (1.5e11, 1.55e11, 2e11):
         assert 2.0e12 <= mass_chain.median_halo_mass(stellar) <= 5.0e12
