@@ -68,7 +68,7 @@ EXPECTED_SHARES = [
     # cools out of it before its main sequence ends, narrower than the piecewise law's 1.4 to 2.4, so A and B are rarer.
     ("A dwarf", 0.1, 0.4),
     ("B dwarf", 0.03, 0.15),
-    ("white dwarf", 4.0, 7.0),
+    ("white dwarf", 4.0, 7.5),   # GEN.922: 7.1% with the single-star centre at 0.092 (the heavier share rises as fewer stars fall under 0.08), was under 7.0 at 0.079
     ("subgiant", 0.08, 0.3),  # GEN.502: a light star's subgiant phase is 5% of its main sequence, not 10%
     ("giant", 0.12, 0.5),
     # GEN.1174: a star is pre-main-sequence until its radius has settled (BHAC15, [R0254]): 0.19 Gy at 0.2 solar masses, 0.40 at 0.1, 0.05 at 0.8, no longer
