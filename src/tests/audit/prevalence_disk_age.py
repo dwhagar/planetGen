@@ -32,7 +32,7 @@ AGE_BINS_MYR = ((0.0, 1.0), (1.0, 3.0), (3.0, 6.0), (6.0, 10.0), (10.0, 30.0))
 """tuple: The age bins, Myr, a star's age is drawn uniform inside."""
 
 SURVEY_DISK_FRACTION = {(0.0, 1.0): 0.85, (1.0, 3.0): 0.65, (3.0, 6.0): 0.30, (6.0, 10.0): 0.05, (10.0, 30.0): 0.0}
-"""dict: The share of stars of that age that still hold a dusty disk (Haisch, Lada and Lada 2001 style curve: about 0.8 at 1 Myr, 0.5 at 3, 0.1 at 5 to 6, none past 10), taken at each bin's middle. Stand-in,
+"""dict: The share of stars of that age that still hold a dusty disk ([R1750] style curve: about 0.8 at 1 Myr, 0.5 at 3, 0.1 at 5 to 6, none past 10), taken at each bin's middle. Stand-in,
 Confident Unverified, L0 (GEN.1551 registers the curve when it is built); it is the line to compare against, not a target."""
 
 
