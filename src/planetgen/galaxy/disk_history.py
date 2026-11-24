@@ -174,7 +174,7 @@ def _solve_rings(stars_now, inflow, span_gy):
     steps = inflow.shape[0] - 1
     step_gy = span_gy / steps
     keep = 1.0 - return_fraction()
-    coefficient = tuning.STAR_FORMATION_LAW_COEFFICIENT * 1.0e3         # per Gy per pc2, gas in solar masses per pc2
+    coefficient = tuning.STAR_FORMATION_LAW_COEFFICIENT * tuning.DISK_LAW_COEFFICIENT_SHARE * 1.0e3         # per Gy per pc2, gas in solar masses per pc2 (GEN.1202)
     exponent = tuning.STAR_FORMATION_LAW_EXPONENT
     supply = np.trapezoid(inflow, dx=step_gy, axis=0)
     saturation = tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2

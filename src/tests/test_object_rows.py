@@ -280,7 +280,7 @@ def _check_bodies(system, checked):
             checked.add("belt")
     for comet in system.comets:
         row = _stored(store.COMET_FIELDS, comet, {"star_system_id": 1, "star_id": 2})
-        loaded = store._comet_row_to_dict(row, [{"component": "ice"}])
+        loaded = store._comet_row_to_dict(row, [{"component": "ice"}], [{"species": s, "production_1au_per_s": q, "scale_length_1au_km": length} for s, q, length in comet.coma_species])    # GEN.455
         original = comet.to_dict()
         for key in set(loaded) - {"composition"}:
             _same(original[key], loaded[key])
