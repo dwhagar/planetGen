@@ -2,6 +2,38 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4774+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The moon tests build their systems without the record of the air history, which was most of a system's cost.
+
+### Fixed
+- `tests/test_moon_composition.py`: the 60-system origin and orbit test and the seeded-moons fixture build their systems with `air_record.record_of` giving no record (`tests/air_history_off.py`). The record is made at the end of a body's build, from the finished body, on streams of its own: the moons of the seeded systems (60 systems and 978 moons for the origin test; 40 systems and 1,199 moons for the fixture) and the next draw are identical with and without it. The origin test fell from over 900 s (the limit) to 485 s alone.
+
+## [8.0.4773+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The young-star system types now name the young stars of the satellite galaxies as hosts, so a Magellanic cell has them at the Cloud's own young share and a dwarf without young stars has none.
+
+### Changed
+- GEN.534: the system-type registry (`generation/phenomena/system_types.py`) named only the disk's young, intermediate and old populations as hosts of the types the age gates, so `satellite_young` (and its intermediate and old twins) appeared in no row. Each type that names a disk population now names its satellite twin too (the satellite's stars of the same ages: GEN.526); the generator already draws a type by the star's age, so the types a Cloud or dwarf draws are unchanged. The weight is the profile's own mix, which carries the satellite's young share from its star formation history (the Large Cloud's 1.4%, the Fornax dwarf's none), and nothing is typed in. A test pins the twin rule, the Cloud's host share against its young share, a dwarf's none, and that the young stars the Cloud draws fall inside the young gate.
+
+## [8.0.4772+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The resume tests of the galaxy run build planet-less systems, so each case takes seconds, not a quarter of an hour.
+
+### Fixed
+- `tests/test_gen_resume.py` (TEST.23 and TEST.26): the cases that stop a run before a save, fail a save in its transaction, step with `--limit` and force a scatter built every star's planets, and with the air history (GEN.1745) a sector cost about 30 s, so a case of three runs of 12 to 14 sectors took over 17 minutes alone and the watchdog ended it (`[band]` on main). The runs now use planet-less systems (`forced_system_config(PLANETS=False)`, as the big-run tests do); the sectors, the systems, the bright-star links, the stop before the save and the resumed result are all still checked and the sizes are unchanged. Each case now takes 9 to 33 s.
+- One case keeps the planets: `test_a_run_stopped_before_a_save_resumes_with_the_planets_of_the_uninterrupted_run` (two sectors of one system each, the first save stopped, the second held and the run again), and checks that the planets with their orbits, masses, temperatures, pressures and recorded air history are the uninterrupted run's. About 53 s.
+
+## [8.0.4771+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The generated reference pages (`docs/references/fitted.json`, `overview.json`, `stand-ins.json`) are rebuilt after the citation-form fix of PR 7451 and the icy-body rock fraction row of GEN.522, so the generated-files check is green again.
+
+### Fixed
+
+- `scripts/regenerate_generated.py --only reference-pages` was out of date on main after PRs 7450 and 7451 (a citation form in `tuning_targets.json` feeds `fitted.json`; the GEN.522 rock fraction row feeds `stand-ins.json`). The three files are the builder's own output, nothing else changes.
+
+generation-output: unchanged
+
 ## [8.0.4770+db274.gen150.api14] - 2026-11-24
 
 **Headline:** Three citations written outside the registry's form (one author-year name and two bracketed forms) now use the registry form, so the citation guard is green again.

@@ -8,6 +8,7 @@ import pytest
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import compaction, envelope_share, moon_composition as mc
 from planetgen.util import draw
+from tests import air_history_off
 
 
 def _names(kind, **kwargs):
@@ -177,11 +178,12 @@ def test_the_inclination_draw_is_one_number_and_repeats_with_the_seed():
         assert [mc.draw_inclination_deg("captured") for _ in range(5)] == first
 
 
-def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it():
+def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it(monkeypatch):
     """GEN.714: through `generate_moons`, every moon holds an origin, regular moons lie near the equator and captured ones, which exist, can be retrograde."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.physics import constants
+    air_history_off.without_the_air_history(monkeypatch)    # TEST.831: the moons are the same without the record of the air (the 60 systems took over 15 minutes with it)
     low, high = mc.KOZAI_FORBIDDEN_DEG
     origins = {}
     with draw.bound(21):
@@ -221,7 +223,7 @@ def generated_moons():
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     moons = []
-    with draw.bound(8):
+    with draw.bound(8), air_history_off.air_history_off():      # TEST.831: the moons are the same without the record of the air, and it was most of the cost of a system
         for count in range(120):
             if count >= 40 and all(len(side) >= 2 for side in _disk_ice_sides(moons)):
                 break
