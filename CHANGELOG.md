@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4761+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The iron branch of a rocky planet is checked against the published samples at 20 times the simulated planets, and its coreless end is registered.
+
+### Changed
+
+- GEN.820 (the residuals of the bulk iron branch table, GEN.512): at 60,000 simulated planets per case the shipped knobs (enriched weight 0.01, scatter 0.05 dex) still reproduce both published shares (z -0.01 and -1.38); a test now holds it at 20,000 planets. A core spread of 0.2 dex and an enriched weight of 0.23 fail the within-1-sigma share, which bounds the registered ranges of row BC8.
+- New registry row BC25: the coreless branch is not drawn (share 0, no published count, tier T4, tweak L0). The slope stays 1 (row BC8, fill 3). The design note `docs/design/composition/iron-branch-tuning.md` has the table of runs. No generated value changes.
+
 ## [8.0.4760+db274.gen150.api14] - 2026-11-24
 
 **Headline:** The angles the region and window walks take for a small ball far from the core keep their digits, so a ball of a few parsecs at 262 kpc no longer loses cells to rounding.
