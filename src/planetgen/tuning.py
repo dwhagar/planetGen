@@ -1819,10 +1819,6 @@ area its gas surface density (`galaxy.core_gas`, GEN.1195). The Milky Way's ring
 CLUSTER_MAX_MASS_EFFICIENCY = 0.1
 """float: The star formation efficiency of a collapsing cloud (`eps`, Eq 10; [R2530] give 0.1 to 0.3 for embedded
 clusters, 0.03 to 0.06 for nearby clouds; the paper takes 0.1 and a factor of three either way)."""
-CLUSTER_MAX_MASS_CEILING_SOL = 1.0e5
-"""float: A hard ceiling on the maximum cluster mass of a ring: the most massive cluster seen in the Milky Way's central ring
-implies a maximum of a few 1e4 and "certainly under 1e5" ([R3720], footnote 9, by the size-of-sample
-argument) [guard: the relation goes as Sigma_g cubed, so a factor of two in the gas is a factor of eight]."""
 CORE_RING_GAS_DISPERSION_KMS = 5.0
 DISK_GAS_DISPERSION_KMS = 10.0
 """float: The one-dimensional velocity dispersion of the gas of the central ring (5 km/s, [R1911]) and of a disk
@@ -1921,7 +1917,7 @@ DISK_LAW_COEFFICIENT_SHARE = 0.95
 so 28% either way) and the Milky Way is known to sit below it at the Sun's radius; 0.95 is a nudge inside that range [I] that takes the disk's gas at 8 kpc from
 10.26 to about 10.7 solar masses per pc2, inside the measured 11.9 +/- 1.6 ([R3002: Table 2]), with the depletion time (1.0 to 4.2 Gy) and the present rate
 (1.65 +/- 0.19 a year) still inside their measured ranges. It goes no lower because the central ring's inflow is this gas: at 0.9 the ring's heaviest cluster (the relation goes as the gas cubed)
-reaches the 1e5 ceiling of `CLUSTER_MAX_MASS_CEILING_SOL`, at 0.95 it is 9.7e4 (8.2e4 at 1.0). Row GI4 of 6.124a (tier T2, tweak L1). The satellites' history keeps the plain coefficient."""
+is 1.2e5, past the 1e5 that [R3720] (footnote 9) finds certain for the Milky Way's, at 0.95 it is 9.7e4 (8.2e4 at 1.0). Row GI4 of 6.124a (tier T2, tweak L1). The satellites' history keeps the plain coefficient."""
 SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO = 1.8
 """float: A satellite's gas disk scale length over its stars' (GEN.1192). The HI of a late-type dwarf reaches 1.8 +/- 0.8 times
 the optical diameter, the extent defined as 6.4 disk scale lengths ([R4277],

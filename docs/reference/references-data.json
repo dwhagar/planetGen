@@ -186671,6 +186671,50 @@
    "volume": "498",
    "year": 2020
   },
+  "10.1093/mnras/staa2785": {
+   "arxiv": "2007.06577",
+   "authors": [
+    [
+     "Sormani",
+     "M. C."
+    ],
+    [
+     "Magorrian",
+     "J."
+    ],
+    [
+     "Nogueras-Lara",
+     "F."
+    ],
+    [
+     "Neumayer",
+     "N."
+    ],
+    [
+     "Schönrich",
+     "R."
+    ],
+    [
+     "Klessen",
+     "R. S."
+    ],
+    [
+     "Mastrobuono-Battisti",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/staa2785",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "7",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Jeans modelling of the Milky Way’s nuclear stellar disc",
+   "type": "journal-article",
+   "volume": "499",
+   "year": 2020
+  },
   "10.1093/mnras/staa2859": {
    "arxiv": "2007.09059",
    "authors": [
@@ -255377,6 +255421,34 @@
    "volume": "856",
    "year": 2018
   },
+  "10.3847/1538-4357/aab6b4": {
+   "arxiv": "1803.01501",
+   "authors": [
+    [
+     "Ma",
+     "C."
+    ],
+    [
+     "de Grijs",
+     "R."
+    ],
+    [
+     "Ho",
+     "L. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/aab6b4",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "116",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Connections between Star Cluster Populations and Their Host Galaxy Nuclear Rings",
+   "type": "journal-article",
+   "volume": "857",
+   "year": 2018
+  },
   "10.3847/1538-4357/aab784": {
    "arxiv": "1707.06701",
    "authors": [
@@ -287971,7 +288043,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5356,
+ "id_next": 5359,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -291036,6 +291108,7 @@
   "10.1093/mnras/staa2487": "R3282",
   "10.1093/mnras/staa2615": "R3545",
   "10.1093/mnras/staa2698": "R0338",
+  "10.1093/mnras/staa2785": "R5357",
   "10.1093/mnras/staa2859": "R2965",
   "10.1093/mnras/staa2917": "R0478",
   "10.1093/mnras/staa3029": "R3453",
@@ -292651,6 +292724,7 @@
   "10.3847/1538-4357/aaab53": "R5173",
   "10.3847/1538-4357/aab0a1": "R1512",
   "10.3847/1538-4357/aab264": "R3633",
+  "10.3847/1538-4357/aab6b4": "R5358",
   "10.3847/1538-4357/aab784": "R3732",
   "10.3847/1538-4357/aabc10": "R0886",
   "10.3847/1538-4357/aac104": "R2629",
@@ -293753,6 +293827,7 @@
   "arxiv:1802.09526": "R4898",
   "arxiv:1802.10223": "R2724",
   "arxiv:1803.00072": "R4081",
+  "arxiv:1803.01501": "R5358",
   "arxiv:1803.01511": "R2358",
   "arxiv:1803.01706": "R1865",
   "arxiv:1803.03303": "R4720",
@@ -293982,6 +294057,7 @@
   "arxiv:2007.05561": "R1268",
   "arxiv:2007.05562": "R1269",
   "arxiv:2007.05563": "R3955",
+  "arxiv:2007.06577": "R5357",
   "arxiv:2007.07715": "R5181",
   "arxiv:2007.09059": "R2965",
   "arxiv:2007.10783": "R1892",

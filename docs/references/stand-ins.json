@@ -56555,11 +56555,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.CLUSTER_MAX_MASS_CEILING_SOL 1e5: a hard ceiling on a ring's maximum cluster mass, a guard against the cube of the gas"
+              "no separate ceiling on a ring's maximum cluster mass (GEN.1842 removed CLUSTER_MAX_MASS_CEILING_SOL 1e5): the maximum is the relation of CMX1 on the ring's own gas, and the clusters drawn are held under the mass function's upper limit OPEN_CLUSTER_MASS_RANGE_SOL 1e6"
             ],
             [
               "The range it moves in",
-              "5e4 to 2e5"
+              "the Milky Way ring's cap 9.7e4 on its observed nucleus (M(<100 pc) 3.5e8 against the measured 3.9 +- 1e8); other rings by their own gas, shear and bound share"
             ],
             [
               "Where it holds",
@@ -56567,26 +56567,26 @@
             ],
             [
               "What would show it wrong",
-              "a ring cluster observed above 1e5"
+              "a ring whose clusters pass the mass function's limit: the nuclear rings of NGC 7469, NGC 1672 and NGC 1097 hold clusters of mean log mass 6.1 to 7.1"
             ],
             [
               "What replaces it",
-              "none (the relation itself, once the gas is sourced)"
+              "the mass function's own upper limit, once it is sourced per galaxy"
             ],
             [
               "Evidence",
-              "[R3720] footnote 9 (READ): the most massive clusters seen imply a maximum of a few 1e4 and certainly under 1e5"
+              "[R3720] footnote 9 (READ): the Milky Way's sample implies a maximum of a few 1e4 and certainly under 1e5, which is the Milky Way's, not a bound for other rings; [R5358: Table 3] 17 nuclear rings, mean cluster log mass 4.4 to 7.1; [R5357] the Milky Way's M(<100 pc) is 3.9 +- 1e8, so the model's 123 km/s at 100 pc is the observed rotation"
             ]
           ],
           "id": "CMX3",
           "key": "6.145:CMX3",
-          "kind": "P",
+          "kind": "D",
           "slug": "6-145-cmx3",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.CLUSTER_MAX_MASS_CEILING_SOL 1e5: a hard ceiling on a ring's maximum cluster mass, a guard against the cube of the gas"
+          "what": "no separate ceiling on a ring's maximum cluster mass (GEN.1842 removed CLUSTER_MAX_MASS_CEILING_SOL 1e5): the maximum is the relation of CMX1 on the ring's own gas, and the clusters drawn are held under the mass function's upper limit OPEN_CLUSTER_MASS_RANGE_SOL 1e6"
         },
         {
           "burn_down": null,
@@ -73971,7 +73971,7 @@
             ],
             [
               "The range it moves in",
-              "0.72 to 1.0 (the coefficient's own range); under 0.9 the central ring's heaviest cluster reaches the 1e5 ceiling (9.7e4 at 0.95, 8.2e4 at 1.0), and past 0.78 the present rate leaves its measured range"
+              "0.72 to 1.0 (the coefficient's own range); under 0.9 the central ring's heaviest cluster passes the 1e5 that [R3720] finds certain for the Milky Way (1.2e5 at 0.9, 9.7e4 at 0.95, 8.2e4 at 1.0), and past 0.78 the present rate leaves its measured range"
             ],
             [
               "Where it holds",
