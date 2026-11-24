@@ -882,6 +882,42 @@ def _check_sphere(radius_pc, edge_pc):
         raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
 
 
+SMALL_ANGLE = 1e-3
+"""float: Below this angle (radians) the sphere walks take an angle by the haversine form: the arccos of a cosine within a few ulps of 1 keeps no digits of it (GEN.376)."""
+
+
+def _angle_from_haversine(hav):
+    """The angle whose haversine (`sin(angle / 2) ** 2`) is `hav`, `hav` clamped to [0, 1]."""
+    return 2.0 * math.asin(math.sqrt(min(1.0, max(0.0, hav))))
+
+
+def ball_angle(radius, reach, ball, cosine):
+    """
+    The angle at the core between the direction to a point of the shell of `radius` and the direction to the center of the ball
+    (`reach` from the core, radius `ball`) at which the ball cuts the shell: `acos(cosine)` for `cosine` the law of cosines gives,
+    and below `SMALL_ANGLE` the haversine form `sin(angle / 2) ** 2 = (ball - gap)(ball + gap) / (4 radius reach)` for `gap` the
+    difference of the two distances, which keeps its digits where the arccos of a cosine near 1 does not (GEN.376). `radius` and
+    `reach` are above 0.
+    """
+    if cosine >= math.cos(SMALL_ANGLE):
+        gap = abs(radius - reach)
+        return _angle_from_haversine((ball - gap) * (ball + gap) / (4.0 * radius * reach))
+    return math.pi if cosine <= -1.0 else math.acos(cosine)
+
+
+def longitude_half_width(delta, colat_b, colat_c, cosine):
+    """
+    The longitude difference at which the circle of angular radius `delta` around the direction of colatitude `colat_c` crosses
+    the parallel of colatitude `colat_b`: `acos(cosine)` for `cosine` the spherical law of cosines gives, and below `SMALL_ANGLE`
+    the haversine form `hav(width) = (hav(delta) - hav(colat_b - colat_c)) / (sin colat_b * sin colat_c)`, which keeps its digits
+    where the arccos of a cosine near 1 does not (GEN.376). The caller has the colatitudes off the poles.
+    """
+    if cosine >= math.cos(SMALL_ANGLE):
+        hav = (math.sin(delta / 2.0) ** 2 - math.sin((colat_b - colat_c) / 2.0) ** 2) / (math.sin(colat_b) * math.sin(colat_c))
+        return _angle_from_haversine(hav)
+    return math.pi if cosine <= -1.0 else math.acos(cosine)
+
+
 def sphere_direction(center):
     """`(reach, colatitude, longitude)` of `center` from the core: its distance, parsecs, and the direction the sphere walks
     (`sphere_shells`, `band_window`) measure their angles from."""
@@ -913,7 +949,7 @@ def sphere_shells(center, radius_pc, edge_pc):
             cos_delta = (radius * radius + reach * reach - radius_pc * radius_pc) / (2 * radius * reach)
         if cos_delta > 1.0 + 1e-9:
             continue
-        delta = math.pi if cos_delta <= -1.0 else math.acos(min(1.0, cos_delta))
+        delta = math.pi if cos_delta <= -1.0 else ball_angle(radius, reach, radius_pc, cos_delta)
         low, high = band_range(shell)
         layout = shell_layout(shell)
         # Bands whose center colatitude can lie within `delta` of the center's, padded by one band.
@@ -943,7 +979,7 @@ def band_window(n, shell, band, edge_pc, cos_delta, delta, colat_c, lon_c):
     cos_width = (cos_delta - math.cos(colat_b) * math.cos(colat_c)) / denominator
     if cos_width > 1.0 + 1e-6:
         return None
-    width = math.pi if cos_width <= -1.0 else math.acos(min(1.0, cos_width))
+    width = longitude_half_width(delta, colat_b, colat_c, cos_width)
     return _wedge_window(n, lon_c, width + 1e-6)
 
 
