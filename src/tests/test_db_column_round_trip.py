@@ -360,6 +360,9 @@ NEVER_READ = {
     ("facilities", "cell_key"): "an index column MySQL fills; the region query reads it (NAV.43)",
     **{("star_systems", column): "the point a system sits at in the galaxy frame; the region query and the orbit update read it"
        for column in ("cell_key", "galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc")},
+    # GEN.640 slice a: the pair is read from its orbit node (`orbit_trees.pair_places_km`), so nothing reads its old columns; slice d drops them.
+    **{("star_systems", column): "no reader since the pair is read from its node (GEN.640 slice a); dropped by slice d"
+       for column in ("binary_apoapsis_km", "binary_eccentricity", "binary_periapsis_km")},
     # GEN.106: the orbit update's own clock, read only by planetgen.cli.orbits.
     **{(table, column): "the orbit update's clock" for table, column in (
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),
