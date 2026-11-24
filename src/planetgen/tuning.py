@@ -1049,9 +1049,9 @@ LARGE_STAR_MIN_MASS_SOL = 1.4
 # rates stay in one place. Caps the redraws.
 STAR_MODEL_MAX_REDRAWS = 1000
 
-# Planets by the star's age and history. A star younger than
-# PLANET_MIN_STAR_AGE_GY still has only a debris disk (planet formation
-# takes ~10 Myr), so it keeps belts at most; no habitable-class world is
+# Planets by the star's age and history. A star that still holds its own disk
+# (its age under its own dispersal time, GEN.1551) holds no planets and no belts
+# yet (GEN.1552); no habitable-class world is
 # drawn around a star younger than LIFE_MIN_STAR_AGE_GY (a crust and
 # oceans take ~0.1 Gy). A giant engulfs planets inside
 # GIANT_ENGULFMENT_RADIUS_FACTOR times its present radius (tidal capture
@@ -1067,7 +1067,6 @@ STAR_MODEL_MAX_REDRAWS = 1000
 # (WHITE_DWARF_REMNANT_MASS_SOL inverted), kept inside
 # WD_PROGENITOR_MASS_RANGE_SOL: nothing under a solar mass has had time to
 # become one, and above 8 the relation hands over to neutron stars.
-PLANET_MIN_STAR_AGE_GY = 0.01
 LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
 WD_ENGULFMENT_POINTS_AU = ((1.0, 2.7), (2.5, 3.8), (5.0, 10.0))
