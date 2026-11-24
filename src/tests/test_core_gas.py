@@ -242,3 +242,18 @@ def test_the_milky_way_shapes_disk_rings_change_from_shear_to_feedback_limited_a
     assert 1.0e5 < cloud[(radii > 4000.0) & (radii < 10000.0)].max() < 1.0e7
     assert maximum[(radii > 3000.0) & (radii < 12000.0)].max() < 1.0e5
     assert maximum[(radii > 3000.0) & (radii < 12000.0)].max() > 5.0e2
+
+
+def test_a_hotter_ring_holds_more_gas_and_forms_heavier_clusters():
+    """GEN.1847: the ring's gas dispersion is the galaxy's own (the drawn `nuclear_ring_dispersion_kms`, not the Milky Way's 5 km/s for every ring): the marginally stable gas
+    goes as the dispersion, and the cluster maximum follows it."""
+    shape = _shape()
+    pot = potential.for_galaxy(shape, None)
+    rings = {}
+    for sigma in (5.0, 10.0, 20.0):
+        sized = shape._replace(structure=shape.structure._replace(nuclear_ring_bar_ratio=0.114, nuclear_ring_dispersion_kms=sigma, nuclear_ring_age_gy=5.0))
+        ring = core_gas.core_gas(sized)
+        assert ring.dispersion_kms == sigma
+        rings[sigma] = (open_clusters._ring_gas_surface_density(pot, ring), open_clusters._ring_maximum_mass_sol(pot, ring))
+    assert rings[10.0][0] == pytest.approx(2.0 * rings[5.0][0], rel=1e-6) and rings[20.0][0] == pytest.approx(2.0 * rings[10.0][0], rel=1e-6)
+    assert rings[5.0][1] < rings[10.0][1] < rings[20.0][1]

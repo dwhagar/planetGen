@@ -285680,6 +285680,28 @@
    "volume": "",
    "year": 2025
   },
+  "arXiv:2510.17768": {
+   "arxiv": "2510.17768",
+   "authors": [
+    [
+     "Laing",
+     "J. M."
+    ],
+    [
+     "Wilson",
+     "C. D."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Increased molecular gas velocity dispersion and star formation efficiency in barred galaxy centres",
+   "type": "preprint",
+   "volume": "",
+   "year": 2025
+  },
   "arXiv:2510.26785": {
    "arxiv": "2510.26785",
    "authors": [
@@ -287951,7 +287973,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5360,
+ "id_next": 5361,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -294360,6 +294382,7 @@
   "arxiv:2510.15453": "R3596",
   "arxiv:2510.16164": "R4316",
   "arxiv:2510.16618": "R4454",
+  "arxiv:2510.17768": "R5360",
   "arxiv:2510.26308": "R2811",
   "arxiv:2510.26785": "R2751",
   "arxiv:2511.13716": "R0646",

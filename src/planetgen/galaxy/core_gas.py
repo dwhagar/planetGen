@@ -56,6 +56,8 @@ class CoreGas:
             units (like `nuclear_disk_density`).
         age_gy (float): How long the ring has formed stars (`structure.nuclear_ring_age_gy`, GEN.1846).
         area_pc2 (float): The ring's area, `2 pi R FWHM`.
+        dispersion_kms (float): The one-dimensional velocity dispersion of the ring's gas (`structure.nuclear_ring_dispersion_kms`, GEN.1847): the Toomre parameter, the marginally stable gas and the
+            cluster maximum read it.
         gas_supplied_msun (float): The gas the bar has brought the ring over its age: the inflow times `age_gy`. The ring holds no more than this, and no more than the
             marginally stable gas (GEN.1846; the most massive cluster the ring forms reads both, `generation.open_clusters._ring_gas_surface_density`).
     """
@@ -70,6 +72,7 @@ class CoreGas:
     age_gy: float = 0.0
     area_pc2: float = 1.0
     gas_supplied_msun: float = 0.0
+    dispersion_kms: float = 5.0
 
 
 NO_RING = CoreGas(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0)
@@ -125,7 +128,8 @@ def core_gas(shape):
                  / (2.0 * math.pi * _radial_integral(radius, sigma) * 4.0 * height))
     return CoreGas(inflow_msun_yr=inflow, rate_msun_yr=rate, radius_pc=radius, sigma_pc=sigma, height_pc=height,
                    rate_density=rate_density, bound_share=bound, young_density=amplitude, age_gy=structure.nuclear_ring_age_gy,
-                   area_pc2=ring_area_kpc2 * _PC2_PER_KPC2, gas_supplied_msun=inflow * structure.nuclear_ring_age_gy * _GY_YR)
+                   area_pc2=ring_area_kpc2 * _PC2_PER_KPC2, gas_supplied_msun=inflow * structure.nuclear_ring_age_gy * _GY_YR,
+                   dispersion_kms=structure.nuclear_ring_dispersion_kms)
 
 
 def _sech_squared(value):

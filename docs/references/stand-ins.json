@@ -56323,19 +56323,19 @@
           "fields": [
             [
               "What it is",
-              "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISK_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
+              "tuning.DISK_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of a disc's gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time (the central ring's is drawn, GEN.1847: row RG1 of 6.334)"
             ],
             [
               "The range it moves in",
-              "ring 3 to 10 km/s; disc 7 to 15 km/s"
+              "disc 7 to 15 km/s"
             ],
             [
               "Where it holds",
-              "rings and discs of every galaxy (one galaxy's values)"
+              "discs of every galaxy (one galaxy's value)"
             ],
             [
               "What would show it wrong",
-              "a measured gas dispersion of a ring or disc far from them"
+              "a measured gas dispersion of a disc far from it"
             ],
             [
               "What replaces it",
@@ -56343,7 +56343,7 @@
             ],
             [
               "Evidence",
-              "[R1911] for the [R5068] for the disc, as [R3720] take them (section 4.1, READ)"
+              "[R5068] for the disc, as [R3720] take it (section 4.1, READ)"
             ]
           ],
           "id": "CMX7",
@@ -56354,7 +56354,7 @@
           "tier_code": "T2",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISK_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
+          "what": "tuning.DISK_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of a disc's gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time (the central ring's is drawn, GEN.1847: row RG1 of 6.334)"
         },
         {
           "burn_down": null,
@@ -56563,7 +56563,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.CORE_RING_TOOMRE_Q 1.0: the ring holds the gas at Toomre parameter Q, kappa sigma / (pi G Q) on the nucleus's rotation at the ring (sigma CORE_RING_GAS_DISPERSION_KMS, row CMX7), or the inflow times the ring's age, whichever is less"
+              "tuning.CORE_RING_TOOMRE_Q 1.0: the ring holds the gas at Toomre parameter Q, kappa sigma / (pi G Q) on the nucleus's rotation at the ring (sigma the ring's own, drawn: row RG1 of 6.334), or the inflow times the ring's age, whichever is less"
             ],
             [
               "The range it moves in",
@@ -56583,7 +56583,7 @@
             ],
             [
               "Evidence",
-              "[R3720: Sec. 4.1] (the Milky Way's central molecular zone Q 0.94 at 1e3 solar masses per pc2, kappa 2.61, sigma 5 km/s); gives 2.4e7 for the Milky Way shape (observed 3e7 to 5e7, [R1910]) and 1.5e8 for a ring of the median radius, against the \"few 1e8\" solar masses of gas in the 17 rings of [R5358] (section 3, READ); the cap goes from 6e3 at a quarter of the bar to 7e4 at 0.08, 3.4e4 (the paper's 3.2e4) for the Milky Way, and a ring of external size is under the clusters seen in detected samples at the dispersion of the Milky Way's gas"
+              "[R3720: Sec. 4.1] (the Milky Way's central molecular zone Q 0.94 at 1e3 solar masses per pc2, kappa 2.61, sigma 5 km/s); gives 2.4e7 for the Milky Way shape (5 km/s, the reference structure's) (observed 3e7 to 5e7, [R1910]) and 1.5e8 for a ring of the median radius at the 5 km/s it had before GEN.1847 (the drawn dispersion, median 11.5 km/s, holds about 2.3 times that: the cap of the inflow times the age then takes more of the rings), against the \"few 1e8\" solar masses of gas in the 17 rings of [R5358] (section 3, READ); the cap goes from 6e3 at a quarter of the bar to 7e4 at 0.08, 3.4e4 (the paper's 3.2e4) for the Milky Way, and a ring of external size is under the clusters seen in detected samples"
             ]
           ],
           "id": "NR5",
@@ -56594,11 +56594,57 @@
           "tier_code": "T2",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.CORE_RING_TOOMRE_Q 1.0: the ring holds the gas at Toomre parameter Q, kappa sigma / (pi G Q) on the nucleus's rotation at the ring (sigma CORE_RING_GAS_DISPERSION_KMS, row CMX7), or the inflow times the ring's age, whichever is less"
+          "what": "tuning.CORE_RING_TOOMRE_Q 1.0: the ring holds the gas at Toomre parameter Q, kappa sigma / (pi G Q) on the nucleus's rotation at the ring (sigma the ring's own, drawn: row RG1 of 6.334), or the inflow times the ring's age, whichever is less"
         }
       ],
       "slug": "6-333-stand-ins-of-the-nuclear-ring-gen-1846",
       "title": "Stand-ins of the nuclear ring (GEN.1846)"
+    },
+    {
+      "key": "6.334",
+      "number": "6.334",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "structure_draw.NUCLEAR_RING_DISPERSION (median log10 1.06, 0.30 dex) and NUCLEAR_RING_DISPERSION_RANGE (two standard deviations, 2.9 to 46 km/s): the one-dimensional velocity dispersion of a barred galaxy's ring gas, log-normal, drawn with the seed; no ring-size dependence (the sample is of the central 1.5 kpc, which has one size)"
+            ],
+            [
+              "The range it moves in",
+              "median 8 to 15 km/s (the 42 barred centres with an AGN give 15); scatter 0.25 to 0.35 dex"
+            ],
+            [
+              "Where it holds",
+              "barred galaxies"
+            ],
+            [
+              "What would show it wrong",
+              "a sample of resolved nuclear rings whose gas dispersion is far from 11.5 km/s or that runs with ring radius"
+            ],
+            [
+              "What replaces it",
+              "a dispersion from the ring's own star formation (the relation of [R5360] between the dispersion and the star formation rate density, 0.43 +- 0.07 in the log, fitted over the 1.5 kpc pixel, not over rings) or from resolved rings"
+            ],
+            [
+              "Evidence",
+              "[R5360: Table 2] (READ in the pdf: PHANGS-ALMA CO(2-1) at 150 pc, 30 barred galaxies without an AGN, log sigma 1.06 +- 0.05 (0.30), 42 with 1.17 +- 0.05 (0.30)); the intensity-weighted dispersion of the central pixel includes the bar's non-circular motions and beam smearing, so it is an upper bound on a ring's own turbulence; the Milky Way's 5 km/s [R1911] sits at -1.2 sigma"
+            ]
+          ],
+          "id": "RG1",
+          "key": "6.334:RG1",
+          "kind": "D",
+          "slug": "6-334-rg1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "structure_draw.NUCLEAR_RING_DISPERSION (median log10 1.06, 0.30 dex) and NUCLEAR_RING_DISPERSION_RANGE (two standard deviations, 2.9 to 46 km/s): the one-dimensional velocity dispersion of a barred galaxy's ring gas, log-normal, drawn with the seed; no ring-size dependence (the sample is of the central 1.5 kpc, which has one size)"
+        }
+      ],
+      "slug": "6-334-stand-ins-of-the-gas-dispersion-of-the-nuclear-ring-gen-1847",
+      "title": "Stand-ins of the gas dispersion of the nuclear ring (GEN.1847)"
     },
     {
       "key": "6.95",

@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5220 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5221 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -2731,6 +2731,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r2533"></a>**R2533** Laine, J., et al. 2014, Morphology and environment of galaxies with disc breaks in the S4G and NIRS0S, MNRAS, 441, 1992, doi:10.1093/mnras/stu628, arXiv:1404.0559. [paper](https://doi.org/10.1093/mnras/stu628) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stu628/abstract)
 - <a id="paper-r2534"></a>**R2534** Lainey, V. 2016, Quantification of tidal parameters from Solar System data, CeMDA, 126, 145, doi:10.1007/s10569-016-9695-y. [paper](https://doi.org/10.1007/s10569-016-9695-y) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1007/s10569-016-9695-y/abstract)
 - <a id="paper-r2535"></a>**R2535** Lainey, V., Arlot, J. E., Karatekin, Ö., & Van Hoolst, T. 2009, Strong tidal dissipation in Io and Jupiter from astrometric observations, Nature, 459, 957, doi:10.1038/nature08108. [paper](https://doi.org/10.1038/nature08108) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/nature08108/abstract)
+- <a id="paper-r5360"></a>**R5360** Laing, J. M. & Wilson, C. D. 2025, Increased molecular gas velocity dispersion and star formation efficiency in barred galaxy centres, arXiv:2510.17768. [paper](https://arxiv.org/abs/2510.17768) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2510.17768/abstract)
 - <a id="paper-r2536"></a>**R2536** Lallement, R., Welsh, B. Y., Vergely, J. L., Crifo, F., & Sfeir, D. 2003, 3D mapping of the dense interstellar gas around the Local Bubble, A&A, 411, 447, doi:10.1051/0004-6361:20031214. [paper](https://doi.org/10.1051/0004-6361%3A20031214) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361%3A20031214/abstract)
 - <a id="paper-r2537"></a>**R2537** Lam, C. S. & Yao, Y. P. 2016, Role of Möbius constants and scattering functions in Cachazo-He-Yuan scalar amplitudes, PhRvD, 93, 105004, doi:10.1103/physrevd.93.105004. [paper](https://doi.org/10.1103/physrevd.93.105004) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1103/physrevd.93.105004/abstract)
 - <a id="paper-r2538"></a>**R2538** Lam, C. Y., et al. 2022, Supplement: “An Isolated Mass-gap Black Hole or Neutron Star Detected with Astrometric Microlensing” (2022, ApJL, 933, L23), ApJS, 260, 55, doi:10.3847/1538-4365/ac7441. [paper](https://doi.org/10.3847/1538-4365/ac7441) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-4365/ac7441/abstract)

@@ -227,4 +227,23 @@ def test_a_barred_galaxys_nuclear_ring_follows_the_observed_rings_and_an_unbarre
     for _mass, structure in STRUCTURES:
         if not structure.bar_present:
             assert (structure.nuclear_ring_bar_ratio, structure.nuclear_ring_age_gy) == (0.0, 0.0)
-    assert sd.draw_nuclear_ring(_seed(5), False) == (0.0, 0.0)
+    assert sd.draw_nuclear_ring(_seed(5), False) == (0.0, 0.0, 0.0)
+
+
+def test_a_barred_galaxys_ring_gas_dispersion_follows_the_central_gas_of_barred_galaxies_and_is_held_to_the_sourced_range():
+    """GEN.1847: the ring's gas dispersion is log-normal about 11.5 km/s (log10 1.06, 0.30 dex: [R5360: Table 2], 30 barred galaxies without an AGN) held to two standard
+    deviations, 2.9 to 46 km/s; the Milky Way's 5 km/s stays the reference structure's; no bar, no ring, no dispersion."""
+    import statistics
+    barred = [structure for _mass, structure in STRUCTURES if structure.bar_present]
+    values = [structure.nuclear_ring_dispersion_kms for structure in barred]
+    assert len(values) > 300
+    assert min(values) >= 10.0 ** 0.46 - 1.0e-9 and max(values) <= 10.0 ** 1.66 + 1.0e-9
+    assert 2.8 < min(values) < 4.5 and 30.0 < max(values) < 46.1
+    assert statistics.median(values) == pytest.approx(10.0 ** 1.06, rel=0.1)
+    assert statistics.pstdev([math.log10(v) for v in values]) == pytest.approx(0.30, abs=0.04)     # the clamp at two sigma takes a little off the top
+    assert 10.0 ** sd.NUCLEAR_RING_DISPERSION_RANGE[0] == pytest.approx(2.88, abs=0.02) and 10.0 ** sd.NUCLEAR_RING_DISPERSION_RANGE[1] == pytest.approx(45.7, abs=0.2)
+    for _mass, structure in STRUCTURES:
+        if not structure.bar_present:
+            assert structure.nuclear_ring_dispersion_kms == 0.0
+    assert galaxyStructure.REFERENCE_STRUCTURE.nuclear_ring_dispersion_kms == 5.0
+    assert sd.draw_nuclear_ring(_seed(5), True) == sd.draw_nuclear_ring(_seed(5), True)

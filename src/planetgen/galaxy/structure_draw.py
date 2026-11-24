@@ -217,16 +217,25 @@ NUCLEAR_RING_AGE_RANGE = (7.0, 10.1)
 is 5.1 Gy). Wider than the sample's own extremes so the clamp does not take the scatter of 17 rings down."""
 
 
+NUCLEAR_RING_DISPERSION = (1.06, 0.30)
+"""tuple: `(median log10 km/s, sd in dex)` of the one-dimensional velocity dispersion of the gas in the centre of a barred galaxy: the 30 barred galaxies without an AGN of [R5360: Table 2]
+(PHANGS-ALMA CO(2-1), intensity-weighted over the central 1.5 kpc pixel at 150 pc resolution) give log sigma 1.06 +- 0.05 with a standard deviation of 0.30 dex, a median of 11.5 km/s (the
+42 with an AGN: 1.17). It includes the bar's non-circular motions and beam smearing, so it is an upper bound on the ring's own turbulence. [Stand-in 6.334 RG1, tier T2, tweak L0.]"""
+NUCLEAR_RING_DISPERSION_RANGE = (NUCLEAR_RING_DISPERSION[0] - 2.0 * NUCLEAR_RING_DISPERSION[1], NUCLEAR_RING_DISPERSION[0] + 2.0 * NUCLEAR_RING_DISPERSION[1])
+"""tuple: The range of `log10` of the dispersion: two standard deviations either side of the median, 2.9 to 46 km/s (the Milky Way's central molecular zone, 5 km/s [R1911], is inside it)."""
+
+
 def draw_nuclear_ring(galaxy_seed, bar_present):
     """
-    The central ring's radius over the bar's length and its age, Gy (GEN.1846): log-normal about the medians of the observed rings (`NUCLEAR_RING_BAR_RATIO`, `NUCLEAR_RING_AGE`),
-    held to their ranges; `(0.0, 0.0)` for a galaxy without a bar (no bar, no ring: `galaxy.core_gas`). The same seed gives the same ring.
+    The central ring's radius over the bar's length, its age, Gy (GEN.1846), and the velocity dispersion of its gas, km/s (GEN.1847): log-normal about the medians of the observed rings
+    and barred centres (`NUCLEAR_RING_BAR_RATIO`, `NUCLEAR_RING_AGE`, `NUCLEAR_RING_DISPERSION`), held to their ranges; `(0.0, 0.0, 0.0)` for a galaxy without a bar (no bar, no ring: `galaxy.core_gas`). The same seed gives the same ring.
     """
     if not bar_present:
-        return 0.0, 0.0
+        return 0.0, 0.0, 0.0
     ratio = 10.0 ** _clamped_normal(_stream(galaxy_seed, "nuclear-ring-radius"), *NUCLEAR_RING_BAR_RATIO, NUCLEAR_RING_BAR_RATIO_RANGE)
     age = 10.0 ** _clamped_normal(_stream(galaxy_seed, "nuclear-ring-age"), *NUCLEAR_RING_AGE, NUCLEAR_RING_AGE_RANGE) / 1.0e9
-    return ratio, age
+    dispersion = 10.0 ** _clamped_normal(_stream(galaxy_seed, "nuclear-ring-dispersion"), *NUCLEAR_RING_DISPERSION, NUCLEAR_RING_DISPERSION_RANGE)
+    return ratio, age, dispersion
 
 
 def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None):
@@ -300,7 +309,7 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
         bulge_dispersion_scatter_dex=bulge_scatter,
         stellar_mass_solar=mass, classical_bulge=classical, black_hole_deviation=black_hole,
         nuclear_cluster_mass_solar=cluster, nuclear_disk_mass_solar=disk,
-        nuclear_ring_bar_ratio=ring[0], nuclear_ring_age_gy=ring[1],
+        nuclear_ring_bar_ratio=ring[0], nuclear_ring_age_gy=ring[1], nuclear_ring_dispersion_kms=ring[2],
         black_hole_solar_share=black_holes[0], black_hole_metal_free_share=black_holes[1],
         neutron_star_unbound_share=natal_kick.neutron_star_unbound_share(*kick),
         neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(*kick))
