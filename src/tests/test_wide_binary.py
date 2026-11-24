@@ -433,7 +433,7 @@ def test_wide_binary_round_trips_through_to_dict_from_dict():
     assert data["binary_type"] == "wide"
     assert data["is_binary"] is True
     assert data["secondary_star"] is not None
-    assert data["wide_binary"] is not None
+    assert data["orbit_nodes"] and "wide_binary" not in data     # GEN.640 slice b: the pair is its node
 
     reloaded = StarSystem.from_dict(data)
 
@@ -442,8 +442,7 @@ def test_wide_binary_round_trips_through_to_dict_from_dict():
     assert reloaded.secondary_star.mass == system.secondary_star.mass
     assert reloaded.primary_star.a_crit_au == system.primary_star.a_crit_au
     assert reloaded.secondary_star.a_crit_au == system.secondary_star.a_crit_au
-    assert reloaded.pair_orbit.separation_au == system.pair_orbit.separation_au
-    assert reloaded.pair_orbit.eccentricity == system.pair_orbit.eccentricity
+    assert reloaded.pair_orbit == system.pair_orbit
     assert len(reloaded.primary.orbiters) == len(system.primary.orbiters)
     assert len(reloaded.secondary.orbiters) == len(system.secondary.orbiters)
     assert render_support.text(reloaded) == render_support.text(system)
@@ -474,8 +473,9 @@ def test_each_star_limit_is_inside_its_hill_sphere_and_the_fit():
     for _ in range(10):
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True))
         pair = system.pair_orbit
-        total = pair.primary.mass + pair.secondary.mass
-        for star, other in ((pair.primary, pair.secondary), (pair.secondary, pair.primary)):
+        heavy, light = sorted((system.primary_star, system.secondary_star), key=lambda star: -star.mass)
+        total = heavy.mass + light.mass
+        for star, other in ((heavy, light), (light, heavy)):
             hill = hill_radius_in_pair_au(pair.separation_au, star.mass / total, pair.eccentricity)
             fit = holman_wiegert_critical_semimajor_axis(pair.separation_au, other.mass / total, pair.eccentricity)
             assert star.a_crit_au == pytest.approx(min(hill, fit))

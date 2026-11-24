@@ -688,7 +688,8 @@ def test_wide_binary_primary_and_secondary_positions_sum_to_mutual_position():
             pair.primary_position_z_au + pair.position_z_au
         )
 
-        mu = pair.secondary.mass / (pair.primary.mass + pair.secondary.mass)
+        masses = sorted((system.primary_star.mass, system.secondary_star.mass))
+        mu = masses[0] / (masses[0] + masses[1])
         assert 0.0 < mu < 1.0
         assert pair.secondary_mass_fraction == pytest.approx(mu)
         assert pair.primary_position_x_au == pytest.approx(-mu * pair.position_x_au)
