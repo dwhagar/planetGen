@@ -695,7 +695,7 @@ def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, 
         return sector.add_phenomenon(Quasar(config, black_hole_mass_solar=row["mass_solar"]), "quasar",
                                      position=position)
     if kind == "black-hole":
-        black_hole = BlackHole(config, galactic_center_dist_ly=dist_ly, mass_class=row["subtype"],
+        black_hole = BlackHole(config, galactic_center_dist_ly=dist_ly, mass_class=phenomenon_scatter.base_subtype(kind, row["subtype"]),
                                mass_solar=row["mass_solar"],
                                mass_range=phenomenon_scatter.mass_range(kind, row["subtype"], min_mass_solar, True))
         return sector.add_phenomenon(black_hole, "black-hole", position=position)

@@ -6004,7 +6004,9 @@ SCATTERED_POINT_CLASSES = (
     ("black-hole", "supermassive", "black_hole", 1.0),
     ("black-hole", "intermediate", "black_hole", 0.8),
     ("black-hole", "stellar", "black_hole", 0.55),
+    ("black-hole", "stellar-pair", "black_hole", 0.55),      # GEN.263: a bound compact pair below the scatter's mass cut, sized as the class it is made of
     ("neutron-star", None, "neutron_star", 0.35),
+    ("neutron-star", "pair", "neutron_star", 0.35),
     ("neutron-star", "magnetar", "neutron_star", 0.35),
 )
 """tuple: `(scatter kind, subtype, map type, size share)` for the scattered

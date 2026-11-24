@@ -62,9 +62,15 @@ SCATTERED_KINDS = registry.kinds(scatter_pass="band-density")
 MAGNETAR_SUBTYPE = "magnetar"
 """str: The `subtype` of a scattered magnetar (GEN.278), a class of `neutron-star`."""
 
+PAIR_SUBTYPES = {("neutron-star", "pair"): None, ("black-hole", "stellar-pair"): "stellar"}
+"""dict: The promoted compact pairs (GEN.263, multi-star-systems.md 4.5): `(kind, subtype)` of a pair class -> the subtype of the
+class whose objects it is made of. A row of one is a bound pair of compact objects keyed by its placed object, drawn BELOW the mass
+cut (above it the class's own rows already carry their companions): the sector's fill leaves those objects out (`fill_share`)."""
+
 SCATTER_CLASSES = (
     ("black-hole", "stellar"), ("neutron-star", None), ("planetary-nebula", None),
-    ("supernova-remnant", None), ("black-hole", "intermediate"), ("neutron-star", MAGNETAR_SUBTYPE),
+    ("supernova-remnant", None), ("black-hole", "intermediate"),
+    ("neutron-star", "pair"), ("black-hole", "stellar-pair"), ("neutron-star", MAGNETAR_SUBTYPE),
 )
 """tuple: `(kind, subtype)` in the order the classes are listed (each draws from a stream of its own, so the order moves
 no class's draws). A black hole's
@@ -136,10 +142,22 @@ EXPECTED_LABELS = tuple(class_label(kind, subtype) for kind, subtype in SCATTER_
 """tuple: Every class a phenomena scatter can place, so a summary lists the ones that drew none too."""
 
 
+def is_pair(kind, subtype):
+    """Whether `(kind, subtype)` is a promoted compact pair class (`PAIR_SUBTYPES`)."""
+    return (kind, subtype) in PAIR_SUBTYPES
+
+
+def base_subtype(kind, subtype):
+    """The subtype of the class a row's object is of: a pair class's is that of the class it is made of (`PAIR_SUBTYPES`), any other's its own.
+    A pair row builds the body of the base class (`BlackHole(mass_class=...)`)."""
+    return PAIR_SUBTYPES.get((kind, subtype), subtype)
+
+
 def mass_law(kind, subtype):
     """`((low, high), logarithmic)`: the solar-mass range a class draws
     from and whether the draw is log-uniform; `None` for a kind not drawn
     by mass (planetary nebulae, supernova remnants)."""
+    subtype = base_subtype(kind, subtype)
     if kind == "neutron-star":
         return remnant_mass.mass_range_sol(kind), False
     if kind == "black-hole" and subtype == "intermediate":
@@ -154,7 +172,8 @@ def class_rate_per_star(kind, subtype):
     `remnant_density.base_rate_per_star` (the place's metallicity then scales it, GEN.563 and GEN.554), the intermediate-mass black holes' a rate of their own
     (`tuning.BLACK_HOLE_INTERMEDIATE_RATE_PER_STAR`: they are not remnants of failed supernovae). The magnetars' (GEN.278)
     is `MAGNETAR_PER_NEUTRON_STAR` of the neutron stars', per star of the young population they follow
-    (`MAGNETAR_YOUNG_STAR_SHARE`)."""
+    (`MAGNETAR_YOUNG_STAR_SHARE`). A pair class (GEN.263) has the rate of the class it is made of; `_scattered_rates` takes the share of it that is a pair."""
+    subtype = base_subtype(kind, subtype)
     if kind == "black-hole":
         return (tuning.BLACK_HOLE_INTERMEDIATE_RATE_PER_STAR if subtype == "intermediate"
                 else remnant_density.base_rate_per_star())
@@ -171,7 +190,9 @@ def share_above(kind, subtype, min_mass_solar):
     (1 for a kind not drawn by mass). Neutron stars the Gaussian's
     (`remnant_mass.share_above`), stellar-mass black holes `(20 - c) / 15`, intermediate-mass
     `ln(1e5 / c) / ln(1e3)`, clamped to 0 to 1. The magnetars are all
-    scattered whatever the cut (1): the fill never draws one (GEN.278)."""
+    scattered whatever the cut (1): the fill never draws one (GEN.278). A pair class is the share BELOW the cut of the class it is made of (GEN.263)."""
+    if is_pair(kind, subtype):
+        return 1.0 - share_above(kind, base_subtype(kind, subtype), min_mass_solar)
     law = mass_law(kind, subtype)
     if law is None or subtype == MAGNETAR_SUBTYPE:
         return 1.0
@@ -188,7 +209,10 @@ def share_above(kind, subtype, min_mass_solar):
 def mass_range(kind, subtype, min_mass_solar, above):
     """The `(low, high)` a class's mass is drawn from on one side of the
     cut: `above` for a scattered object, below for a sector's own. `None`
-    for a kind not drawn by mass, or with no cut."""
+    for a kind not drawn by mass, or with no cut. A pair class (GEN.263) is drawn below the cut, so the side its callers ask for ("above", the scatter's
+    own) is the class's below-cut range."""
+    if is_pair(kind, subtype):
+        subtype, above = base_subtype(kind, subtype), not above
     law = mass_law(kind, subtype)
     if law is None or min_mass_solar is None:
         return None
@@ -223,6 +247,55 @@ def row_density_divisor(kind, subtype):
     return 1.0 + multistar.same_class_companions(placed, NEUTRON_STAR_RECYCLED_SHARE if placed == "neutron-star" else 0.0)
 
 
+PAIR_COMPANIONS = {"neutron-star": ("neutron-star",), "black-hole": ("black-hole", "neutron-star")}
+"""dict: The companion states that make a compact pair keyed by a placed object of this `multistar.Placed` kind (GEN.263): a neutron star's neutron star; a black hole's
+black hole or neutron star. A black hole with a neutron star is keyed by the black hole (the heavier), so a neutron star's `black-hole` state of the table
+(`MEMBER_STATE_BY_PLACED`) is not a pair row of its own."""
+
+
+def _pair_table(placed_kind, recycled):
+    """`{state: odds}` of the compact companions a placed object of `placed_kind` has (`PAIR_COMPANIONS`); a millisecond pulsar's table when `recycled`."""
+    table = multistar.MEMBER_STATE_BY_PLACED["recycled-pulsar" if recycled else placed_kind]
+    return {state: table[state][0] for state in PAIR_COMPANIONS[placed_kind]}
+
+
+def pair_odds(kind, subtype):
+    """The expected number of compact pairs per object of the class a pair class is made of, below the cut: the odds of each compact companion of the placed object,
+    young and recycled neutron stars weighted by `NEUTRON_STAR_RECYCLED_SHARE` (the rows of the class are systems keyed by their placed object, so this is the rows
+    per object, multi-star-systems.md 6.4)."""
+    placed = PLACED_KINDS[(kind, base_subtype(kind, subtype))]
+    if placed != "neutron-star":
+        return sum(_pair_table(placed, False).values())
+    share = NEUTRON_STAR_RECYCLED_SHARE
+    return (1.0 - share) * sum(_pair_table(placed, False).values()) + share * sum(_pair_table(placed, True).values())
+
+
+def pair_recycled_share(kind, subtype):
+    """The share of the pair rows of a neutron-star class that are millisecond pulsars: the recycled share times the recycled pulsar's odds of a compact companion, over the
+    pair rows' odds (a pair row has a companion, so the recycled share of the rows is not the share of the neutron stars). 0 for a class that is not neutron stars."""
+    placed = PLACED_KINDS[(kind, base_subtype(kind, subtype))]
+    if placed != "neutron-star":
+        return 0.0
+    return NEUTRON_STAR_RECYCLED_SHARE * sum(_pair_table(placed, True).values()) / pair_odds(kind, subtype)
+
+
+def fill_share(kind, subtype):
+    """
+    The share of a class's below-cut objects that a sector's fill still draws (GEN.263): the objects that are members of a promoted pair row are the scatter's, so the fill
+    leaves them out (multi-star-systems.md 6.4). A black hole is in a pair of black holes (two of them to a row) or with a neutron star (one); a neutron star is in a pair of neutron
+    stars (two to a row) or with a black hole (the black holes' rows over the neutron stars', by the classes' own rates per star, the places' own factors left out). 1 for every other class.
+    """
+    if kind == "black-hole" and subtype == "stellar":
+        table = _pair_table("black-hole", False)
+        return 1.0 - (2.0 * table["black-hole"] + table["neutron-star"])
+    if kind == "neutron-star" and subtype is None:
+        in_neutron_pairs = 2.0 * (1.0 - NEUTRON_STAR_RECYCLED_SHARE) * _pair_table("neutron-star", False)["neutron-star"]
+        in_neutron_pairs += 2.0 * NEUTRON_STAR_RECYCLED_SHARE * _pair_table("neutron-star", True)["neutron-star"]
+        with_holes = _pair_table("black-hole", False)["neutron-star"] * class_rate_per_star("black-hole", "stellar") / class_rate_per_star("neutron-star", None)
+        return 1.0 - in_neutron_pairs - with_holes
+    return 1.0
+
+
 def _scattered_rates(min_mass_solar):
     """`(kind, subtype, rate per star above the cut)` for each class with
     anything above it, in `SCATTER_CLASSES` order. The rate is of rows, that is of systems keyed by their
@@ -231,6 +304,8 @@ def _scattered_rates(min_mass_solar):
     for kind, subtype in SCATTER_CLASSES:
         rate = (class_rate_per_star(kind, subtype) * share_above(kind, subtype, min_mass_solar)
                 / row_density_divisor(kind, subtype))
+        if is_pair(kind, subtype):
+            rate *= pair_odds(kind, subtype)      # GEN.263: the below-cut objects that are the placed object of a compact pair, one row to a pair
         if rate > 0.0:
             rates.append((kind, subtype, rate))
     return rates
@@ -464,10 +539,12 @@ def below_cut_draws(address, center_pc, shape, expected_stars, min_mass_solar, s
     rng = draw.Stream(f"{seed}:{FILL_STREAM}:{address[0]}:{address[1]}:{address[2]}")
     draws = []
     for kind, subtype in SCATTER_CLASSES:
+        if is_pair(kind, subtype):
+            continue      # a promoted pair is the scatter's row (GEN.263), the sector draws none
         below = 1.0 - share_above(kind, subtype, min_mass_solar)
         if below <= 0.0:
             continue
-        mean = class_rate_per_star(kind, subtype) * expected_stars * below
+        mean = class_rate_per_star(kind, subtype) * expected_stars * below * fill_share(kind, subtype)
         if remnant_density.follows_metals(kind, subtype):
             mean *= remnant_density.place_factor(center_pc, shape, kind)      # the place's metallicity (GEN.563, GEN.554)
         if kind in tuning.REMNANT_SCALE_HEIGHT_RATIO:
