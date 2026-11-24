@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4771+db274.gen150.api14] - 2026-11-24
+
+**Headline:** The generated reference pages (`docs/references/fitted.json`, `overview.json`, `stand-ins.json`) are rebuilt after the citation-form fix of PR 7451 and the icy-body rock fraction row of GEN.522, so the generated-files check is green again.
+
+### Fixed
+
+- `scripts/regenerate_generated.py --only reference-pages` was out of date on main after PRs 7450 and 7451 (a citation form in `tuning_targets.json` feeds `fitted.json`; the GEN.522 rock fraction row feeds `stand-ins.json`). The three files are the builder's own output, nothing else changes.
+
+generation-output: unchanged
+
 ## [8.0.4770+db274.gen150.api14] - 2026-11-24
 
 **Headline:** Three citations written outside the registry's form (one author-year name and two bracketed forms) now use the registry form, so the citation guard is green again.
