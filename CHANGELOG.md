@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.4755+db274.gen150.api14] - 2026-11-24
+
+**Headline:** Tests that read the second star's bodies no longer fail on single stars and close binaries, where there is no second star list.
+
+### Fixed
+
+- After the hosts rename (GEN.1664), `StarSystem.secondary` is `None` unless a wide pair has one; the tests that read `system.secondary.orbiters` now add those bodies only when there is a secondary host. No assertion is loosened and no generated value changes.
+
+generation-output: unchanged
+
 ## [8.0.4754+db274.gen150.api14] - 2026-11-23
 
 **Headline:** The cache warm-up says where its first seconds go: python's start, opening its record, and the question whether the galaxy is empty.
