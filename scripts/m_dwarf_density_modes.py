@@ -11,12 +11,14 @@ a scaled Earth-like planet (32.5 percent iron, 67.5 percent silicates, with its 
 (2.85 +/- 0.63), with a gap at 0.65 between the rocky and the water mode.
 
 This script draws M-dwarf systems with the real generator (the same draw as `scripts/class_census.py`), keeps the bodies under 4 Earth radii and
-over 0.3 Earth masses, puts each body's own density on that scale, applies the `m-dwarf` precision cut of `mass_radius_sample` (the planet is measured
-with the errors that sample's planets have, and kept when both pass) and prints the three groups, split at 0.35 and 0.65, with the composition
-inside each group. The cut is the weak one of GEN.665 (it tilts the distribution, it does not carve it).
+over 0.3 Earth masses, puts each body's own density on that scale, weights each by its chance to transit (host radius over orbital distance, so a
+planet of the cold zone, which the sample of transiting planets never holds, counts for almost nothing), applies the `m-dwarf` precision cut of
+`mass_radius_sample` (the planet is measured with the errors that sample's planets have, and kept when both pass) and prints the three groups, split
+at 0.35 and 0.65, with the composition inside each group. The precision cut is the weak one of GEN.665 (it tilts the distribution, it does not carve
+it); the transit weight is what makes the sample the sample of a transit survey. `--unweighted` prints the same tables without the weight.
 
     python3 scripts/m_dwarf_density_modes.py draw OUT.jsonl [--systems 500] [--workers 4]    draw systems (resumable)
-    python3 scripts/m_dwarf_density_modes.py analyse OUT.jsonl [--seed 777]                  print the groups
+    python3 scripts/m_dwarf_density_modes.py analyse OUT.jsonl [--seed 777] [--unweighted]   print the groups
 
 The numbers are in docs/design/composition/water-delivery-tuning.md section 3.
 """
@@ -24,9 +26,9 @@ The numbers are in docs/design/composition/water-delivery-tuning.md section 3.
 import argparse
 import collections
 import json
+import math
 import multiprocessing
 import os
-import statistics
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -38,6 +40,7 @@ from planetgen.util import draw  # noqa: E402
 STAR_TYPES = ("M0V", "M1V", "M2V", "M3V", "M4V")
 SEED_BASE = 50000
 EARTH_KG, EARTH_KM, SUN_KG, SUN_KM = 5.972e24, 6371.0, 1.989e30, 6.957e5
+SUN_RADII_PER_AU = 215.032
 RADIUS_LIMIT_EARTH = 4.0
 MASS_FLOOR_EARTH = 0.3
 EARTH_LIKE_IRON = 0.325
@@ -54,8 +57,14 @@ def scaled_density(mass_earth, radius_earth):
     return (reference / radius_earth) ** 3
 
 
-def planets(records):
-    """The small bodies of the drawn systems, each with what the precision cut needs."""
+def transit_weight(row):
+    """The chance that the planet's orbit, seen from a random direction, crosses its star: the star's radius over the orbit's size (a circular orbit)."""
+    distance_au = (row["host_mass_solar"] * (row["period_d"] / 365.25) ** 2) ** (1.0 / 3.0)
+    return min(1.0, row["host_radius_solar"] / (distance_au * SUN_RADII_PER_AU))
+
+
+def planets(records, weighted=True):
+    """The small bodies of the drawn systems, each with what the precision cut needs and its `weight` (the transit chance, or 1)."""
     rows = []
     for record in records:
         if record.get("error"):
@@ -70,16 +79,17 @@ def planets(records):
             host_mass = star["mass"] / SUN_KG
             host_radius = star["radius"]
             host_radius = host_radius / SUN_KM if host_radius and host_radius > 100 else host_radius
-            rows.append({"seed": record["seed"], "mass_earth": mass, "radius_earth": radius, "period_d": body["period"] * 365.25,
-                         "host_mass_solar": host_mass, "host_radius_solar": host_radius or host_mass ** 0.9,
-                         "host_teff_k": star["temperature"], "density": scaled_density(mass, radius),
-                         "planet_type": body["planet_type"], "water": body.get("water_mass_fraction") or 0.0,
-                         "envelope": body.get("envelope_mass_fraction") or 0.0})
+            row = {"seed": record["seed"], "mass_earth": mass, "radius_earth": radius, "period_d": body["period"] * 365.25,
+                   "host_mass_solar": host_mass, "host_radius_solar": host_radius or host_mass ** 0.9, "host_teff_k": star["temperature"],
+                   "density": scaled_density(mass, radius), "planet_type": body["planet_type"],
+                   "water": body.get("water_mass_fraction") or 0.0, "envelope": body.get("envelope_mass_fraction") or 0.0}
+            row["weight"] = transit_weight(row) if weighted else 1.0
+            rows.append(row)
     return rows
 
 
 def measured(rows, seed=777):
-    """The rows that pass the `m-dwarf` cut, with the density and radius as measured."""
+    """The rows that pass the `m-dwarf` cut, with the density and radius as measured (the weight is kept)."""
     kept = []
     with draw.bound(seed):
         for row in rows:
@@ -96,42 +106,81 @@ def groups(rows):
             "rocky": [r for r in rows if r["density"] >= high]}
 
 
+def total(rows):
+    return sum(r["weight"] for r in rows)
+
+
+def share(rows, test):
+    """The weighted share of `rows` for which `test(row)` holds."""
+    return sum(r["weight"] for r in rows if test(r)) / total(rows) if rows else 0.0
+
+
+def effective_count(rows):
+    """Kish's effective number of planets behind a weighted sample: (sum of weights)^2 over the sum of squared weights."""
+    return total(rows) ** 2 / sum(r["weight"] ** 2 for r in rows) if rows else 0.0
+
+
+def weighted_median(rows, key):
+    half, running = total(rows) / 2.0, 0.0
+    for row in sorted(rows, key=lambda r: r[key]):
+        running += row["weight"]
+        if running >= half:
+            return row[key]
+    return None
+
+
 def summary(rows):
-    """The mean and spread of the density and the radius, the median mass of `rows` (None for no rows)."""
+    """The weighted mean and spread of the density and the radius, the weighted median mass, the share under 2 Earth masses of `rows` (None for no rows)."""
     if not rows:
         return None
-    rho, radius = [r["density"] for r in rows], [r["radius_earth"] for r in rows]
-    return {"n": len(rows), "rho": statistics.mean(rho), "rho_sd": statistics.pstdev(rho), "radius": statistics.mean(radius),
-            "radius_sd": statistics.pstdev(radius), "mass_median": statistics.median(r["mass_earth"] for r in rows)}
+    weight = total(rows)
+    mean = {key: sum(r["weight"] * r[key] for r in rows) / weight for key in ("density", "radius_earth")}
+    spread = {key: (sum(r["weight"] * (r[key] - mean[key]) ** 2 for r in rows) / weight) ** 0.5 for key in mean}
+    return {"n": len(rows), "effective": effective_count(rows), "rho": mean["density"], "rho_sd": spread["density"], "radius": mean["radius_earth"],
+            "radius_sd": spread["radius_earth"], "mass_median": weighted_median(rows, "mass_earth"), "under_two": share(rows, lambda r: r["mass_earth"] < 2.0)}
 
 
 def report(rows, title):
-    print(f"{title}: n={len(rows)}")
+    print(f"{title}: n={len(rows)}, effective n={effective_count(rows):.0f}")
     for name, group in groups(rows).items():
         found = summary(group)
         if found is None:
             continue
         rho, rho_err, radius, radius_err = PUBLISHED[name]
-        print(f"  {name:6s} n={found['n']:4d} ({100 * found['n'] / len(rows):4.1f} %)  density {found['rho']:.2f} +/- {found['rho_sd']:.2f}"
+        print(f"  {name:6s} share {100 * total(group) / total(rows):4.1f} % (n={found['n']:4d})  density {found['rho']:.2f} +/- {found['rho_sd']:.2f}"
               f"  [published {rho:.2f} +/- {rho_err:.2f}]  radius {found['radius']:.2f} +/- {found['radius_sd']:.2f}"
-              f"  [published {radius:.2f} +/- {radius_err:.2f}]  median mass {found['mass_median']:.1f}")
+              f"  [published {radius:.2f} +/- {radius_err:.2f}]  median mass {found['mass_median']:.1f}  under 2 Earth masses {100 * found['under_two']:.0f} %")
 
 
 def histogram(rows, width=0.1):
-    return sorted((round(centre, 2), count) for centre, count in collections.Counter(round(r["density"] / width) * width for r in rows).items())
+    """The share of the weight in each density bin, in percent, as `(bin center, percent)`."""
+    count = collections.Counter()
+    for row in rows:
+        count[round(round(row["density"] / width) * width, 2)] += row["weight"]
+    whole = total(rows)
+    return [(center, round(100.0 * value / whole, 1)) for center, value in sorted(count.items())]
 
 
 def composition(rows):
     for name, group in groups(rows).items():
         if group:
-            print(f"  {name:6s} n={len(group):4d}  water >= 10 wt%: {sum(r['water'] >= 0.1 for r in group):4d}  water >= 30 wt%: "
-                  f"{sum(r['water'] >= 0.3 for r in group):4d}  envelope > 1 wt%: {sum(r['envelope'] > 0.01 for r in group):4d}  "
-                  f"median water {statistics.median(r['water'] for r in group):.3f}  median envelope {statistics.median(r['envelope'] for r in group):.4f}")
+            print(f"  {name:6s} water >= 10 wt%: {100 * share(group, lambda r: r['water'] >= 0.1):3.0f} %  water >= 30 wt%: "
+                  f"{100 * share(group, lambda r: r['water'] >= 0.3):3.0f} %  envelope > 1 wt%: {100 * share(group, lambda r: r['envelope'] > 0.01):3.0f} %")
 
 
-def gap_chance(rows, count=34, half_width=0.05, centre=0.65):
-    """The chance that a sample of `count` measured planets has none within `half_width` of `centre` (the gap [R2774] reports)."""
-    inside = sum(abs(r["density"] - centre) < half_width for r in rows) / len(rows)
+def rich_share_by_mass(rows, edges=(1.0, 2.0, 3.0, 6.0)):
+    """The weighted share of planets with 10 wt% water or more, by mass bin: `[(label, share)]`."""
+    bounds = (0.0,) + tuple(edges) + (math.inf,)
+    out = []
+    for low, high in zip(bounds, bounds[1:]):
+        group = [r for r in rows if low <= r["mass_earth"] < high]
+        out.append((f"{low:g} to {high:g}", share(group, lambda r: r["water"] >= 0.1)))
+    return out
+
+
+def gap_chance(rows, count=34, half_width=0.05, center=0.65):
+    """The chance that a sample of `count` measured planets has none within `half_width` of `center` (the gap [R2774] reports)."""
+    inside = share(rows, lambda r: abs(r["density"] - center) < half_width)
     return (1.0 - inside) ** count
 
 
@@ -154,16 +203,18 @@ def draw_systems(out, systems, workers):
                 print(f"{number} drawn", flush=True)
 
 
-def analyse(path, seed):
-    rows = planets(json.loads(line) for line in open(path, encoding="utf-8"))
-    report(rows, "every drawn small body (0.3 Earth masses up, under 4 Earth radii)")
+def analyse(path, seed, weighted=True):
+    rows = planets((json.loads(line) for line in open(path, encoding="utf-8")), weighted)
+    way = "weighted by the transit chance" if weighted else "unweighted"
+    report(rows, f"every drawn small body (0.3 Earth masses up, under 4 Earth radii), {way}")
     kept = measured(rows, seed)
     print(f"\npass the m-dwarf precision cut: {len(kept)} of {len(rows)}")
     report(kept, "as measured")
-    print("\ndensity histogram of the measured bodies (0.1 bins):", histogram(kept))
+    print("\ndensity histogram of the measured bodies (percent per 0.1 bin):", histogram(kept))
     print(f"chance that 34 measured bodies leave 0.60 to 0.70 empty: {gap_chance(kept):.3f}")
     print("\ncomposition of the groups (every drawn small body):")
     composition(rows)
+    print("share with 10 wt% water or more, by mass (Earth masses):", [(label, round(value, 3)) for label, value in rich_share_by_mass(rows)])
     print("planet types:", dict(collections.Counter(r["planet_type"] for r in rows)))
 
 
@@ -177,11 +228,12 @@ def main():
     two = sub.add_parser("analyse")
     two.add_argument("path")
     two.add_argument("--seed", type=int, default=777)
+    two.add_argument("--unweighted", action="store_true")
     args = parser.parse_args()
     if args.command == "draw":
         draw_systems(args.out, args.systems, args.workers)
     else:
-        analyse(args.path, args.seed)
+        analyse(args.path, args.seed, not args.unweighted)
 
 
 if __name__ == "__main__":

@@ -57,15 +57,38 @@ def test_a_failed_system_is_skipped(modes):
 
 
 def test_the_groups_split_at_the_published_gap(modes):
-    rows = [{"density": value, "radius_earth": 1.0, "mass_earth": 1.0} for value in (0.1, 0.34, 0.35, 0.64, 0.65, 1.2)]
+    rows = [{"density": value, "radius_earth": 1.0, "mass_earth": 1.0, "weight": 1.0} for value in (0.1, 0.34, 0.35, 0.64, 0.65, 1.2)]
     found = modes.groups(rows)
     assert [len(found[name]) for name in ("puffy", "water", "rocky")] == [2, 2, 2]
     assert modes.summary([]) is None
 
 
 def test_the_chance_of_an_empty_gap_falls_with_the_sample(modes):
-    rows = [{"density": 0.65 + 0.2 * (i - 50) / 50.0} for i in range(101)]
+    rows = [{"density": 0.65 + 0.2 * (i - 50) / 50.0, "weight": 1.0} for i in range(101)]
     assert 0.0 < modes.gap_chance(rows, 34) < modes.gap_chance(rows, 10) < 1.0
+
+
+def test_a_far_planet_counts_for_less_than_a_near_one(modes):
+    near = {"host_mass_solar": 0.4, "host_radius_solar": 0.4, "period_d": 5.0}
+    far = dict(near, period_d=500.0)
+    assert 0.0 < modes.transit_weight(far) < modes.transit_weight(near) <= 1.0
+    assert modes.transit_weight(far) == pytest.approx(modes.transit_weight(near) * (5.0 / 500.0) ** (2.0 / 3.0), rel=1e-9)
+    assert modes.transit_weight(dict(near, period_d=0.01)) == 1.0
+
+
+def test_the_weight_decides_the_group_shares_and_the_median(modes):
+    rows = [{"density": 1.0, "radius_earth": 1.0, "mass_earth": 1.0, "weight": 3.0}, {"density": 1.0, "radius_earth": 2.0, "mass_earth": 5.0, "weight": 1.0}]
+    found = modes.summary(rows)
+    assert found["radius"] == pytest.approx(1.25)
+    assert found["mass_median"] == 1.0 and found["under_two"] == pytest.approx(0.75)
+    assert modes.effective_count(rows) == pytest.approx(16.0 / 10.0)
+    assert modes.share(rows, lambda row: row["mass_earth"] > 2.0) == pytest.approx(0.25)
+
+
+def test_the_unweighted_run_gives_every_body_one(modes):
+    records = [_record(_body(1.0, 1.0), _body(1.0, 1.0))]
+    assert {row["weight"] for row in modes.planets(records, weighted=False)} == {1.0}
+    assert all(0.0 < row["weight"] <= 1.0 for row in modes.planets(records))
 
 
 def test_the_published_modes_are_the_three_of_the_paper(modes):
