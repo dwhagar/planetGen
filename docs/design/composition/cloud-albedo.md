@@ -11,7 +11,7 @@ Status: built (GEN.974, Core 5, 2026-11-06). `physics/cloud_albedo.py` is the pu
 
 ## What is missing
 
-The albedo of a wet body is drawn once (`ALBEDO_WET_RANGE`, 0.25 to 0.40) and held while the air is solved. GEN.972 lets the ice move it. The clouds do not move it: a world that warms keeps the cloud it was drawn with. Real clouds change with the climate, and that is the largest single spread in the sensitivity of the Earth (IPCC AR6, 2021, table 7.10, from memory, not opened: cloud feedback +0.42 W/m2 per K, very likely range -0.10 to +0.94).
+The albedo of a wet body is drawn once (`ALBEDO_WET_RANGE`, 0.225 to 0.375) and held while the air is solved. GEN.972 lets the ice move it. The clouds do not move it: a world that warms keeps the cloud it was drawn with. Real clouds change with the climate, and that is the largest single spread in the sensitivity of the Earth (IPCC AR6, 2021, table 7.10, from memory, not opened: cloud feedback +0.42 W/m2 per K, very likely range -0.10 to +0.94).
 
 The published range matters for the test the sweep holds (`test_climate_sweep.py`). At 288 K the fixed point responds with 0.40 K per W/m2 (TEST.509), its outgoing flux rising 2.5 W/m2 per K. With the ice-albedo gain (+0.35, GEN.972) and the cloud gain (+0.42) the response is 1 / (2.5 - 0.77) = 0.58, over the lower bound of 0.54. With the low ends of both published ranges (+0.10 and -0.10) it is 0.40: the test passes only if the cloud gain is near its central value, so the size of the gain, not just its sign, is the point of this item.
 

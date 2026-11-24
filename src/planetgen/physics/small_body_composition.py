@@ -515,18 +515,25 @@ ROCK_FRACTION_LAWS = {
     "icy-intact": (0.70, 0.08, 0.45, 0.95),
     "icy-stripped": (0.88, 0.05, 0.75, 0.98),
 }
-"""dict: The rock fraction of an icy body by row. The center of the first is Bierson and Nimmo's 70 percent (verified); its width
-and limits are the repository's. The second is the collisional tail of [R0269] (Haumea, Eris), whose weight is open."""
+"""dict: The rock fraction of an icy body by row. The center of the first is Bierson and Nimmo's 70 percent ([R0390], read in full, GEN.522: a constant 70
+percent with the porosity of the compaction law matches 10 of 17 Kuiper belt objects within 1 sigma and 14 within 2); its width and limits are the
+repository's (stand-in CP5). The second is the collisional tail of [R0269] (the two densest dwarf planets), centered where a body that lost ice would sit
+(stand-in CP6). The draw of a dwarf planet (both rows at a half) has mean 0.787 and spread 0.111 against 0.78 and 0.12 of the seven dwarf planets (a test
+point: the value is Solar System only, NO FIXED CONTENT, so it is reported and never tuned to; `docs/design/composition/kbo-rock-fraction-tuning.md`)."""
 
 ICY_TABLE = pt.REGISTRY.register(pt.Table(
     "icy-body-rock-fraction", 1, [
-        pt.Row("icy-intact", ICY_KINDS, pt.OPEN, "open", state=pt.OPEN_STATE,
-               notes="rock mass fraction N(0.70, 0.08) on [0.45, 0.95]: the center is [R0390] (Icarus 326, 10: a "
-                     "constant 70 percent matches 14 of 17 Kuiper belt objects within 2 sigma), the width and limits are the "
-                     "repository's; the weight against the second row is open"),
-        pt.Row("icy-stripped", (DWARF_PLANET,), pt.OPEN, "open", state=pt.OPEN_STATE,
-               notes="a dwarf planet whose ice a collision removed ([R0269]: Haumea, Eris): rock fraction toward 0.9; "
-                     "the weight is open"),
+        pt.Row("icy-intact", ICY_KINDS, 0.5, "[R0390] (read in full): a constant 70 percent rock mass fraction matches 14 of 17 Kuiper belt objects within 2 sigma; "
+               "the weight against the stripped row is stand-in CP6 (a dwarf planet takes either at a half; the other kinds have only this row)",
+               state=pt.PARTLY_VERIFIED,
+               limit="the center is a fit to the 17 Kuiper belt objects of one system (flagged Solar System only); the width 0.08 and the limits 0.45 to 0.95 are "
+                     "the repository's; the three objects it misses (the two densest and the one under pure ice) are outside it",
+               notes="rock mass fraction N(0.70, 0.08) on [0.45, 0.95]: the center is [R0390] (Icarus 326, 10), the width and limits are the repository's "
+                     "stand-in CP5"),
+        pt.Row("icy-stripped", (DWARF_PLANET,), 0.5, "stand-in CP6: no count of collisionally stripped dwarf planets outside one system exists",
+               state=pt.STAND_IN, replacement="CP6: an extrasolar count of dwarf planets that lost their ice (none exists; NO FIXED CONTENT)",
+               notes="a dwarf planet whose ice a collision removed, [R0269]: rock fraction N(0.88, 0.05) on [0.75, 0.98]; the weight is a half, the "
+                     "draw's spread then matches the 0.12 of seven dwarf planets"),
     ], description="The rock mass fraction of a Kuiper belt object, dwarf planet or class D body, gated by kind."))
 """Table: The icy-body rock fraction rows."""
 

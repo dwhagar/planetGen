@@ -1077,6 +1077,28 @@ This is what turns a generation race (two runs reaching one address)
 into a clear `IntegrityError` its caller recovers from, instead of a silent
 duplicate row at the same address.
 
+### `sector_directives` / `sector_directive_minimums`
+
+Added in v277 (GEN.179). The directive a sector was drawn under and how the draw came out: a run given `--directive` minimums (`generation/directives.py`, GEN.96) draws a sector again until it meets them, and the sector keeps the record (`store.save_directive_record`, written in the sector's own transaction; a regenerated sector's rows are replaced). A sector drawn with no directive has no rows, and nothing is backfilled for a sector made before v277. The sector's API detail gives it as `directive`, its page shows it in the "Drawn under" row, `check-db counts` finds a record that contradicts itself, and the fingerprint leaves it out (it records what was asked, not what was made).
+
+`sector_directives` (one row for each directed sector):
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `sector_id` | BIGINT UNSIGNED | PK | FK -> `sectors.id` (`ON DELETE CASCADE`). |
+| `directive_digest` | CHAR(16) | NOT NULL | `Directive.digest()`: the sixteen hexadecimal digits the attempt seeds are made from. |
+| `status` | VARCHAR(24) | NOT NULL, CHECK | `met_naturally`, `met_after_k_attempts`, `met_forced` or `unmet`. Indexed. |
+| `attempts` | SMALLINT UNSIGNED | NOT NULL, CHECK 1 or more | The draws made (a forced fill counts as one more). |
+
+`sector_directive_minimums` (one row for each minimum asked):
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `sector_id` | BIGINT UNSIGNED | PK | FK -> `sector_directives.sector_id` (`ON DELETE CASCADE`). |
+| `minimum_key` | VARCHAR(24) | PK | `systems`, `habitable` or `type:X` (`G`, `K`, `wd`, `bh`, `ns` ...). |
+| `wanted` | INT UNSIGNED | NOT NULL | The least count asked. |
+| `got` | INT UNSIGNED | NOT NULL | What the kept sector held when the draw ended. |
+
 ### `galaxy_shape`
 
 The galaxy-wide density "skeleton" (v8) — a singleton row (`id` pinned to
@@ -1692,6 +1714,7 @@ fixed slot in the `planets`/`asteroid_belts` orbital-spacing sequence.
 | `nucleus_diameter_km` | DOUBLE | NOT NULL | |
 | `composition_summary` | TEXT | NOT NULL | Searchable summary; structured breakdown lives in `comet_composition`. |
 | `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v199 (GEN.1159, GEN.1178). The bulk density of the nucleus in g/cm3, the share of its mass that is ice of any kind, and the same three values a planet keeps (`physics/body_strength.py`). NULL for a row made before v195. |
+| `water_production_1au_per_s`, `coma_active_area_fraction`, `coma_outflow_1au_kms`, `nucleus_albedo` | DOUBLE | nullable | Added in v275 (GEN.455). The coma: the water the light sublimates at 1 AU lit distance (molecules a second), the share of the surface that is active (6.327 CZ1), the outflow speed of the gas at 1 AU (km/s, CZ2) and the Bond albedo of the nucleus (CZ3). NULL for an inactive comet and for a row made before v275; the gases are in `comet_coma`. |
 | `makeup` | TEXT | nullable | Added in v256 (DB.124). What the nucleus is made of as the draw gave it, one JSON object (`SmallBodyMakeup.to_dict`). NULL for a row made before v256. |
 | `perihelion_distance_km` | DOUBLE | NOT NULL | |
 | `eccentricity`, `inclination_deg`, `arg_periapsis_deg`, `ascending_node_deg` | DOUBLE | NOT NULL | Full 3D orbit orientation. |
@@ -1718,6 +1741,19 @@ plain component list (no concentration gradient), mirroring
 | `comet_id` | INTEGER | FK -> `comets.id`, `ON DELETE CASCADE`, NOT NULL | |
 | `position` | INTEGER | NOT NULL | List order. |
 | `component` | TEXT | NOT NULL | e.g. `"water ice"`. |
+
+### `comet_coma`
+
+Added in v275 (GEN.455). The gases of an active comet's coma, one row for water (`position` 0) and each volatile the nucleus holds, in the order of the ice. A species is never listed that the nucleus lacks.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `comet_id` | INTEGER | FK -> `comets.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `position` | INTEGER | NOT NULL | List order. |
+| `species` | TEXT | NOT NULL | e.g. `"H2O"`, `"CO2"`. |
+| `production_1au_per_s` | DOUBLE | NOT NULL | Molecules a second at 1 AU lit distance: the water production times the nucleus ratio. At another distance it is `physics/comet_coma.py` `production_at`. |
+| `scale_length_1au_km` | DOUBLE | nullable | The parent scale length, km, at 1 AU lit distance (outflow speed times the photolysis lifetime). NULL for a gas the photolysis table lacks; never guessed. |
 
 ### `black_holes` / `neutron_stars`
 
@@ -1909,6 +1945,7 @@ unbound from any star.
 | `rotation_period_hours` | DOUBLE | nullable | Added in v68 (GEN.104). A log-normal small-body period, never under the 2.2-hour spin barrier. The spin vector is the axis times 2 pi over this period. |
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole (YORP: near 10 or 170 degrees); see `planetgen/physics/spin.py` and docs/design/orbits/orbital-updates.md section 6. NULL on a row generated before v68. |
 | `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The same five values a `comets` row keeps (v195). NULL for a row made before v196. |
+| `water_production_1au_per_s`, `coma_active_area_fraction`, `coma_outflow_1au_kms`, `nucleus_albedo` | DOUBLE | nullable | Added in v275 (GEN.455). The coma: the water the light sublimates at 1 AU lit distance (molecules a second), the share of the surface that is active (6.327 CZ1), the outflow speed of the gas at 1 AU (km/s, CZ2) and the Bond albedo of the nucleus (CZ3). NULL for an inactive comet and for a row made before v275; the gases are in `interstellar_comet_coma`. |
 
 ### `interstellar_comet_composition`
 
@@ -1922,6 +1959,19 @@ above, mirroring `asteroid_belt_composition` minus a concentration level
 | `comet_id` | INTEGER | FK -> `interstellar_comets.id`, `ON DELETE CASCADE`, NOT NULL | |
 | `position` | INTEGER | NOT NULL | List order. |
 | `component` | TEXT | NOT NULL | e.g. `"water ice"`. |
+
+### `interstellar_comet_coma`
+
+Added in v275 (GEN.455). The gases of an active comet's coma, one row for water (`position` 0) and each volatile the nucleus holds, in the order of the ice. A species is never listed that the nucleus lacks.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `comet_id` | INTEGER | FK -> `interstellar_comets.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `position` | INTEGER | NOT NULL | List order. |
+| `species` | TEXT | NOT NULL | e.g. `"H2O"`, `"CO2"`. |
+| `production_1au_per_s` | DOUBLE | NOT NULL | Molecules a second at 1 AU lit distance: the water production times the nucleus ratio. At another distance it is `physics/comet_coma.py` `production_at`. |
+| `scale_length_1au_km` | DOUBLE | nullable | The parent scale length, km, at 1 AU lit distance (outflow speed times the photolysis lifetime). NULL for a gas the photolysis table lacks; never guessed. |
 
 ### `asteroid_fields`
 
@@ -2594,6 +2644,10 @@ Migration 0273 creates `planet_life_ages` and `moon_life_ages` (a table already 
 ### v274 (GEN.1809): the adaptations the life of a world needed
 
 Migration 0274 creates `planet_adaptations` and `moon_adaptations` (a table already there is kept). A body stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come when the galaxy is regenerated.
+
+### v277 (GEN.179): the directive a sector was drawn under
+
+Migration 0277 (a placeholder revision: the train that merges it renumbers it) creates `sector_directives` and `sector_directive_minimums` (a table already there is kept). A sector stored before has no rows, and nothing is backfilled (a migration does not draw); the rows come when a sector is drawn under a directive.
 
 ### v267 (GEN.1231): the mass a belt's star threw inward
 

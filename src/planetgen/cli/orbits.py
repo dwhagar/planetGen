@@ -40,14 +40,9 @@ untouched; see `planetgen.physics.planets.generate_orbital_motion_properties`.
 Every star's `galactic_orbital_phase_deg` (its position around the galactic
 center) and a close pair's `star_systems.binary_galactic_orbital_phase_deg`
 advance with their system's galactic move (`advance_galactic_positions`,
-below), on the system's clock; a pair's `binary_mutual_orbital_phase_deg`
-(its own mutual orbit, entirely separate from the shared galactic orbit)
-has a clock of its own (`binary_epoch_unix`/`binary_next_update_due`).
-`binary_mutual_position_x/y/z_km` (the secondary's position relative to
-the primary) are recomputed in lockstep with
-`binary_mutual_orbital_phase_deg`, the same "position has no independent
-update of its own" treatment `position_x/y/z_km` gets above -- see
-`schema.sql`'s "v14" note.
+below), on the system's clock. The orbit of a pair of stars (and of every other node of a system's tree) is a row of `orbit_nodes` with a clock of its
+own (its `epoch_unix`, GEN.313), and the pair's mutual position and each star's place about its center of mass are worked out from it when read
+(GEN.640 slice a, `orbit_trees.pair_places_km`): the update writes no `star_systems.binary_mutual_*` or `binary_*_position_*` column.
 
 Every standalone exotic phenomenon (`phenomenonGen.py`, schema v16/v17) --
 a black hole/neutron star with no owning `StarSystem`, a nebula, a
@@ -75,7 +70,6 @@ each star's own offset from the pair's shared barycenter rather than one
 star sitting fixed while the other orbits it. None of the position
 columns above change meaning -- these are new, additive columns
 (`reflex_offset_x/y/z_km` on `stars`/`planets`,
-`binary_primary/secondary_position_*_km` and
 `binary_planetary_wobble_*_km` on `star_systems`), recomputed fresh on
 every run from whatever the already-advanced children currently look
 like, with no due time of their own. See
@@ -160,7 +154,7 @@ from planetgen._version import VersionAction, version_banner
 TABLE_LABELS = {
     "planets": "planet(s)",
     "moons": "moon(s)",
-    "binary_mutual_orbits": "binary mutual orbit(s)",
+    "orbit_nodes": "orbit node(s) of a star tree",
     "comets": "star-bound comet(s)",
     "facilities": "orbital facilit(ies)",
     "star_systems": "star system(s) on their galactic orbits",

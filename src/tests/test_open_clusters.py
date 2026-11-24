@@ -247,7 +247,7 @@ def test_no_disk_cluster_is_heavier_than_the_most_massive_its_rings_can_form(dra
     table = open_clusters._formation_table(shape, potential.for_galaxy(shape, b"gen244-test-seed"))
     maximum, efficiency = table[6], table[5]
     assert maximum.shape == efficiency.shape and np.all(maximum >= 0.0)
-    assert np.all(maximum <= tuning.CLUSTER_MAX_MASS_CEILING_SOL)
+    assert np.all(maximum <= tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1])
     disk = [c for c in found if np.hypot(c.center_pc[0], c.center_pc[1]) > 1000.0]
     assert disk and max(c.mass_solar for c in disk) <= float(maximum.max()) * (1.0 + 1.0e-9)
     assert max(c.mass_solar for c in disk) < 1.0e5      # not the mass function's 1e6: the Milky Way's heaviest are near 1e4

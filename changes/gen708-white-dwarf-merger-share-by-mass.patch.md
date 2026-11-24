@@ -1,0 +1,5 @@
+**Headline:** The share of white dwarfs that are double white dwarf merger products now follows the white dwarf's mass, from the 100 pc sample, instead of one flat 10 percent.
+
+### Changed
+
+- GEN.708: a white dwarf of the old population is a merger product at the share its mass has in the newest sample: 25, 36, 78, 49 and 38 percent in the bins from 0.9 to 1.35 solar masses ([R5355], 204 white dwarfs of the 100 pc sample), and 25 percent between 0.7 and 0.9 (the second peak of [R5354], a stand-in). An old population comes to 8 to 12 percent flagged, inside the sample's 14 percent with a factor of 2, and about half of the white dwarfs of 0.9 solar masses and up, as in the sample. A white dwarf that a system's own star made takes the same draw (it had the blue stragglers' 0.5 percent before). The white dwarf's mass is not redrawn: the initial-final relation already gives more heavy white dwarfs than the sample, so a mass bump on top would count them twice. The flat `white-dwarf` entry of the `merger_product_fraction` knob is gone. Registry rows WM1 to WM3 (section 6.330). Generated values change (which white dwarfs are flagged and rejuvenated); no epoch bump.

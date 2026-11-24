@@ -24,7 +24,8 @@ import re
 
 from planetgen.generation import bodybeat, irregular_moons
 from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
-from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, node_pair_label, wide_pair_first_word
+from planetgen.names import tree_names
+from planetgen.names.bodies import generate_star_word, name_bodies, wide_pair_first_word
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.hosts import MEMBER, NODE, PRIMARY, SECONDARY, Host
@@ -46,7 +47,7 @@ from planetgen.physics import activity, bulk_draw, capture_windows, clearance_le
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
-from planetgen.generation.wide_binary import WideBinaryPair
+from planetgen.generation import pair_orbit
 from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 from planetgen.util.format import format_duration_seconds, format_period_years
@@ -103,7 +104,10 @@ it leaves the heliosphere below this share of its open-space size."""
 #
 # Bumped 8 -> 9 to add `node_planets` (GEN.332, slice A): the circumbinary planets of the inner pair nodes of a tree, a list of
 # `{"node_no", "planets"}` dicts. A pre-v9 save has no key and reads as none.
-SERIALIZATION_SCHEMA_VERSION = 9
+#
+# Bumped 9 -> 10 to drop `wide_binary` (GEN.640, slice b): a wide pair's orbit is its node's (`pair_orbit`), already in `orbit_nodes`, so the key is no longer
+# written or read.
+SERIALIZATION_SCHEMA_VERSION = 10
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -354,7 +358,6 @@ class StarSystem:
         self.effect_ledger = effect_ledger.EffectLedger()  # GEN.1465: what each effect's code computed per body and source; written by `store.insert_star_system`, not read back
         self.architectures = []  # GEN.1111: `[(star, Architecture)]` of the plan each star's planets were built from, one per star in the order they were first planned; not stored (see `ejected_losses`). A list and not a dict keyed by `id(star)`: an address in a key made the sector differ from run to run (TEST.569)
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
-        self.wide_binary = None # A WideBinaryPair, only when binary_type == "wide"
         # The nebula or supernova remnant around the system (the dict of `generation.cloud`): set by
         # `store.load_star_system`, and by `apply_cloud` when generation placed the system inside one (GEN.357).
         self.surrounding_cloud = None
@@ -536,8 +539,6 @@ class StarSystem:
         # see names/bodies.py.
         self._name = self.star.name
         self.star_words = None
-        if self.binary_type == "wide":
-            self.star_words = self._draw_star_words(wide_pair_first_word(self._name))
         self.assign_names()
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
@@ -645,9 +646,9 @@ class StarSystem:
         return self.cloud_effects
 
     def node_label(self, host):
-        """The name of the pair of an inner pair node `host` (GEN.332, slice A) as the Washington Double Star catalogue writes a pair: the system's name and the letters of the
-        node's stars together (`Voranthis CD`; the three stars of a pair and a star about it are `Voranthis ABC`), `Voranthis node N` for stars named some other way."""
-        return node_pair_label(self.name, [star.name for star in host.leaf_stars], host.host_node_no)
+        """The name of the pair of an inner pair node `host` (GEN.332, slice A): the name its place in the tree gives it (`names.tree_names`, GEN.312): the system's
+        name and the node's path code (`Voranthis B`, the pair of the stars `Voranthis Ba` and `Voranthis Bb`), the branch word and the code under a wide split."""
+        return self._tree_names().nodes[host.host_node_no]
 
     def _tree_members(self):
         """The `TreeMember`s of the system's tree: each star of `stars` (the member number is its index there), then each of
@@ -877,18 +878,58 @@ class StarSystem:
             node_no = parent[node_no]
         return node_no
 
+    @property
+    def pair_orbit(self):
+        """The orbit of the system's own pair (`pair_orbit.PairOrbit`), read from its node (GEN.640 slice b), `None` for a single star."""
+        node_no = self.pair_node_no()
+        if node_no is None:
+            return None
+        node = next(node for node in self.orbit_nodes if node.node_no == node_no)
+        turned = False
+        if self.star_slots is not None:
+            parent = {n.node_no: (n.parent_node_no, n.slot) for n in self.orbit_nodes}
+            at, slot = self.star_slots[0]
+            while at != node_no:
+                at, slot = parent[at]
+            turned = slot == 1
+        return pair_orbit.pair_orbit(node, self.primary_star.mass, self.secondary_star.mass, turned)
+
     @staticmethod
-    def _draw_star_words(first_word):
-        """A wide pair's two star words: the primary's from the star name
-        lists, the secondary's from the small/little/child ones (GEN.62),
-        each distinct from the other and from the shared first word."""
-        primary_word = generate_star_word(exclude=(first_word,))
-        return primary_word, generate_star_word(exclude=(first_word, primary_word), companion=True)
+    def _draw_star_words(first_word, slots):
+        """The branch words of a tree with wide splits (GEN.312): one for each child of each wide node, `slots` in order (`tree_names.word_slots`). The slot-0 child, the
+        heavier, takes its word from the star name lists and the slot-1 child from the small/little/child ones (GEN.62), each distinct from the others and from the
+        shared first word. A wide pair's two words are drawn the same way, the primary's first."""
+        words = []
+        for _node_no, slot in slots:
+            words.append(generate_star_word(exclude=(first_word, *words), companion=slot == 1))
+        return tuple(words)
+
+    def _name_inputs(self):
+        """`(nodes, members)` as `tree_names` takes them: the orbit nodes, and `(parent_node_no, slot)` of each star in `stars` order and then of each dark member."""
+        nodes = self.orbit_nodes
+        if not nodes:
+            return (), []
+        slots = self.star_slots or tuple((nodes[0].node_no, index) for index in range(len(self.stars)))
+        return nodes, [*slots, *((dark.parent_node_no, dark.slot) for dark in self.dark_members)]
+
+    def _tree_names(self):
+        """The `tree_names.TreeNames` of this system's tree, drawing its branch words (`star_words`) if it has wide splits and none yet."""
+        nodes, members = self._name_inputs()
+        slots = tree_names.word_slots(nodes, members)
+        if not slots:
+            self.star_words = None
+        elif getattr(self, "star_words", None) is None or len(self.star_words) != len(slots):
+            self.star_words = self._draw_star_words(wide_pair_first_word(self.name), slots)
+        return tree_names.name_tree(self.name, nodes, members, self.star_words or ())
+
+    def dark_member_names(self):
+        """The names of the dark members of the tree (`dark_members`, GEN.1013) in their order, from their place in it (GEN.312): `Voranthis B`."""
+        return self._tree_names().members[len(self.stars):]
 
     def assign_names(self, name=None):
         """
         Names every star, planet and moon in this system from the system
-        name (see `names/bodies.py`'s module docstring for the scheme).
+        name (see `names/tree_names.py` and `names/bodies.py` for the scheme).
 
         Args:
             name (str, optional): A new system name to adopt first --
@@ -899,33 +940,26 @@ class StarSystem:
         if name is not None:
             self.name = name
         system_name = self.name
-        if self.binary_type is None:
+        tree = self._tree_names()
+        if len(self.stars) == 1:
+            # A star alone (with or without a dark member in its tree) is the system: it has the system's name.
             self.star.name = system_name
             hosts = [(system_name, self.primary.orbiters)]
         else:
+            for star, star_name in zip(self.stars, tree.members):
+                star.name = star_name
             if self.binary_type == "close":
-                # One system, so its stars are its A and B (GEN.62).
-                primary_letter, secondary_letter = CLOSE_PAIR_LETTERS
-                self.primary_star.name = f"{system_name} {primary_letter}"
-                self.secondary_star.name = f"{system_name} {secondary_letter}"
+                # The pair's one host is the proxy of its node, and it stands for the whole system (GEN.62).
                 self.star.name = system_name
-                hosts = [(system_name, self.primary.orbiters)]
+                hosts = [(tree.node_stems[self.pair_node_no()], self.primary.orbiters)]
             else:
-                first_word = wide_pair_first_word(system_name)
-                if getattr(self, "star_words", None) is None:
-                    # A system reloaded from an export written before star words existed.
-                    self.star_words = self._draw_star_words(first_word)
-                primary_word, secondary_word = self.star_words
-                # Two words each, the first shared; the primary's planets
-                # take that first word, the secondary's its own (GEN.62).
-                self.primary_star.name = f"{first_word} {primary_word}"
-                self.secondary_star.name = f"{first_word} {secondary_word}"
-                hosts = [(first_word, self.primary.orbiters), (secondary_word, self.secondary.orbiters)]
-        for index, host in enumerate(self.hosts_of(MEMBER)):    # C, D, ... after the pair's A and B (GEN.631)
-            host.star.name = f"{system_name} {chr(ord(CLOSE_PAIR_LETTERS[1]) + 1 + index)}"
-            hosts.append((host.star.name, host.orbiters))    # GEN.332
-        for host in self.hosts_of(NODE):    # GEN.332, slice A: a pair node's planets take the pair's name (`Voranthis CD I`)
-            hosts.append((self.node_label(host.star), host.orbiters))
+                hosts = [(tree.member_stems[0], self.primary.orbiters)]
+                if self.binary_type == "wide":
+                    hosts.append((tree.member_stems[1], self.secondary.orbiters))
+        for host in self.hosts_of(MEMBER):    # the stars beyond the pair (GEN.631)
+            hosts.append((tree.member_stems[self.stars.index(host.star)], host.orbiters))    # GEN.332
+        for host in self.hosts_of(NODE):    # GEN.332, slice A: a pair node's planets take the node's stem (`Voranthis B I`)
+            hosts.append((tree.node_stems[host.star.host_node_no], host.orbiters))
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 
@@ -1146,7 +1180,6 @@ class StarSystem:
         self.stars = [placed_star]
         self.__dict__.pop("secondary_star", None)
         self.binary_type = None
-        self.wide_binary = None
         self._ledger = None
         self.member_stars = ()
         self.dark_members = ()
@@ -1251,11 +1284,7 @@ class StarSystem:
         if self.binary_type == "close":
             self.star = BinaryStarProxy(config, primary, secondary, galactic_center_dist_ly=galactic_center_dist_ly,
                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg, orbit=pair_node)
-        else:
-            # An S-type pair never merges into one effective star -- self.star stays the primary Star itself, and
-            # WideBinaryPair.__init__ sets primary_star.a_crit_au / secondary_star.a_crit_au directly on the two Star
-            # instances (see Star.a_crit_au's own docstring).
-            self.wide_binary = WideBinaryPair(config, primary, secondary, orbit=pair_node)
+        # (An S-type pair never merges into one effective star: self.star stays the primary Star itself, and the pair's orbit is `pair_orbit`, read from its node.)
 
     def _tidal_spin_of_stars(self, nodes, slots, stars):
         """
@@ -1521,7 +1550,7 @@ class StarSystem:
             return
         with log.timed_phase("trojan planets"):
             for star, bodies in ((host.star, host.orbiters) for host in self.hosts):
-                if self._too_young_for_planets(star):
+                if self._holds_its_disk(star):
                     continue
                 made = trojan_planet.build(self, star, bodies)
                 if made:
@@ -1608,7 +1637,7 @@ class StarSystem:
             return
         with log.timed_phase("belt planets"):
             for star, bodies in self.hosts:
-                if self._too_young_for_planets(star):      # a star under 10 Myr keeps its belts and holds no planets (`_apply_star_history`); a round member of its debris is not one either
+                if self._holds_its_disk(star):      # a star that still holds its disk holds no bodies (`_apply_star_history`); a round member of its debris is not one either
                     continue
                 promoted = belt_planets.promote(self, star, bodies)
                 if promoted:
@@ -1853,15 +1882,19 @@ class StarSystem:
         letter = self.system_config.FORCE_CLASS
         return not letter or any(class_outcome.has_class(planet, letter) for planet in self.primary.orbiters)
 
-    def _too_young_for_planets(self, star):
-        """Whether `star` is younger than `tuning.PLANET_MIN_STAR_AGE_GY`, so it holds a debris disk (belts) and no planets, unless the config asks for a class or lists its slots."""
-        return star.age is not None and star.age < tuning.PLANET_MIN_STAR_AGE_GY and not self._explicit_request()
+    def _holds_its_disk(self, star):
+        """
+        Whether `star` still holds its own protoplanetary disk (GEN.1552: `disk_kind` of class 0, I or II, which the star was given by its age and its own dispersal time, `pre_main_sequence.dispersal_yr`), so it holds no
+        bodies yet, planets or belts: they stand once the disk is gone, and the belts are the debris that follows. A config that asks for a class or lists its slots overrides it. A close pair's disk is its primary's.
+        """
+        holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star
+        return getattr(holder, "disk_kind", None) in pre_main_sequence.DISK_KINDS and not self._explicit_request()
 
     def _apply_star_history(self, planets, star):
         """
         Removes, in place, the bodies `star`'s age and history rule out: a
-        star younger than `PLANET_MIN_STAR_AGE_GY` keeps its belts (a debris
-        disk) but no planets yet, and every body whose inner edge lies
+        star that still holds its own disk (`_holds_its_disk`, GEN.1552) has no
+        planets and no belts yet, and every body whose inner edge lies
         inside `_engulfment_radius_au` is gone (a belt that reaches past it keeps the part outside, `remnant_orbits.engulf_belt`). An explicitly required
         habitable world or `SLOTS` list overrides the age rule: a random
         star is never that young when a habitable world is required
@@ -1870,13 +1903,13 @@ class StarSystem:
         """
         explicit_request = self._explicit_request()
         engulfed_au = self._engulfment_radius_au(star, explicit_request)
-        too_young = self._too_young_for_planets(star)
+        holds_disk = self._holds_its_disk(star)
         kept = []
         for body in planets:
             if body.body_type == 'a':
                 remnant_orbits.engulf_belt(body, engulfed_au)    # GEN.1072: the part of a belt outside the envelope's reach survives
             inner_edge = body.lower_limit if body.body_type == 'a' else body.distance
-            if inner_edge < engulfed_au or (too_young and body.body_type != 'a'):
+            if inner_edge < engulfed_au or holds_disk:
                 continue
             kept.append(body)
         if len(kept) != len(planets):
@@ -1905,7 +1938,7 @@ class StarSystem:
         "central mass") is taken as the pair's COMBINED mass
         (`primary_star.mass + secondary_star.mass`) -- the same
         "combined mass governs the pair's local dynamics" reasoning
-        `WideBinaryPair` already applies via `mu` in the Holman & Wiegert
+        the wide pair's stability limit already applies via `mu` in the Holman & Wiegert
         formula, and a reasonable proxy specifically near the gap between
         the two disks, where both stars' gravity is comparably significant
         (that's the entire reason `a_crit_au` exists in the first place).
@@ -1979,7 +2012,7 @@ class StarSystem:
         `binary_type` (`None`/`"close"`/`"wide"`) is the authoritative
         discriminator; `is_binary` is stored alongside it and means "this
         system has two stars", true for either configuration. `secondary_star` and
-        `wide_binary` are only non-null when `binary_type == "wide"` (a
+        `secondary_planets` are only non-empty when `binary_type == "wide"` (a
         P-type binary's secondary is already nested inside `star`, the
         `BinaryStarProxy` dict). `secondary_planets` is the wide binary
         secondary's own independently-generated planet list -- empty for
@@ -2004,7 +2037,7 @@ class StarSystem:
 
         Returns:
             dict: `schema_version`, `name`, `star_words`, `system_config`, `star`, `is_binary`,
-                 `binary_type`, `secondary_star`, `wide_binary`, `planets`,
+                 `binary_type`, `secondary_star`, `planets`,
                  `secondary_planets`, `comets`, `secondary_comets`,
                  `system_flavor_text`.
         """
@@ -2018,7 +2051,6 @@ class StarSystem:
             "is_binary": self.binary_type is not None,
             "binary_type": self.binary_type,
             "secondary_star": self.secondary_star.to_dict() if is_wide else None,
-            "wide_binary": self.wide_binary.to_dict() if is_wide else None,
             "planets": [obj.to_dict() for obj in self.primary.orbiters],
             "secondary_planets": [obj.to_dict() for obj in self.secondary.orbiters] if is_wide else [],
             "comets": [comet.to_dict() for comet in self.comets],
@@ -2107,18 +2139,13 @@ class StarSystem:
             system.primary_star = star._primary
             system.secondary_star = star._secondary
             system.stars = [star._primary, star._secondary]
-            system.wide_binary = None
         elif binary_type == "wide":
             system.primary_star = star
             system.secondary_star = Star.from_dict(data["secondary_star"], system_config)
             system.stars = [system.primary_star, system.secondary_star]
-            system.wide_binary = WideBinaryPair.from_dict(
-                data["wide_binary"], system_config, system.primary_star, system.secondary_star
-            )
         else:
             system.primary_star = star
             system.stars = [star]
-            system.wide_binary = None
 
         def _load_objects(obj_data_list, obj_star):
             objects = []
@@ -2633,6 +2660,9 @@ class StarSystem:
                     if planetPhysics.settle_orbit(moon):
                         if log.debug_log_active():
                             log.debug(f"{moon.name}: eccentricity settled to {moon.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr.")
+                lost_moons = planetPhysics.drop_unstable_moons(obj)      # the pumps and resonances above moved eccentricities nothing checked against the stable range; the tide has worn them as far as it will
+                if lost_moons and log.debug_log_active():
+                    log.debug(f"{obj.name}: {lost_moons} moon{'s' if lost_moons != 1 else ''} lost, the orbit left outside the stable range of the eccentricities the pumps gave.")
                 obj.finish_moons()      # GEN.1548: the moons built bare take their air, class and spin on the orbit the tide left
                 for body in (obj, *obj.moons):      # GEN.1760: a water-rich body now known to be too warm for ice is worn by the tide of a rocky mantle, not a shell's, then its air is made again
                     if planetPhysics.settle_warm_icy_orbit(body) and log.debug_log_active():

@@ -47,7 +47,8 @@ def test_the_shipped_table_holds_the_redox_targets_and_each_names_its_fill_and_f
     targets = th.TARGETS
     assert {"a3-mean", "a3-sd", "a4-mean", "a4-sd"} <= {t.id for t in targets}
     for t in targets:
-        assert t.tunes and t.label in th.USABLE_LABELS and t.fill_id.startswith("GEN.") and t.falsifier
+        assert (t.tunes and t.label in th.USABLE_LABELS) if t.role == "target" else (t.role == "test-point" and t.solar_system and not t.tunes)
+        assert t.fill_id.startswith("GEN.") and t.falsifier
     for t in targets:
         if t.row_id in ("a3", "a4"):
             assert t.outside({"host_type": "WD"}) == []

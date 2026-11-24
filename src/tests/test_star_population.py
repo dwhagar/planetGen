@@ -68,7 +68,9 @@ EXPECTED_SHARES = [
     # cools out of it before its main sequence ends, narrower than the piecewise law's 1.4 to 2.4, so A and B are rarer.
     ("A dwarf", 0.1, 0.4),
     ("B dwarf", 0.03, 0.15),
-    ("white dwarf", 4.0, 7.0),
+    # GEN.922: the band is the local census's own. [R5364] (the 10 parsec sample): 20 confirmed white dwarfs among 375 stars, 5.3 percent;
+    # the 95 percent Poisson range of 20 objects is 12.2 to 30.9, so 3.3 to 8.2 percent. The generator's share is 7.1 percent with the single-star centre at 0.092.
+    ("white dwarf", 3.3, 8.2),
     ("subgiant", 0.08, 0.3),  # GEN.502: a light star's subgiant phase is 5% of its main sequence, not 10%
     ("giant", 0.12, 0.5),
     # GEN.1174: a star is pre-main-sequence until its radius has settled (BHAC15, [R0254]): 0.19 Gy at 0.2 solar masses, 0.40 at 0.1, 0.05 at 0.8, no longer
@@ -180,6 +182,35 @@ def test_binary_companions_share_the_primarys_age_and_are_dimmer():
         assert math.isclose(primary.age, secondary.age, rel_tol=1e-9)
 
 
+def _a_system_with_bodies():
+    for _ in range(60):
+        system = StarSystem(system_config=SystemConfig())
+        if system.binary_type is None and system.primary.orbiters and any(b.body_type == "a" for b in system.primary.orbiters) \
+                and any(b.body_type != "a" for b in system.primary.orbiters):
+            return system
+    pytest.skip("no system with both a planet and a belt in 60 draws")
+
+
+def test_a_star_that_holds_its_disk_holds_no_planet_and_no_belt_until_the_disk_is_gone_unless_a_class_is_asked_for():
+    """GEN.1552: the fixed 10 Myr cut is the star's own disk: while `disk_kind` is class 0, I or II there is nothing else in the system, and once it is gone the bodies stand."""
+    system = _a_system_with_bodies()
+    star, standing = system.star, list(system.primary.orbiters)
+    for kind in ("class-0", "class-i", "class-ii"):
+        star.disk_kind = kind
+        bodies = list(standing)
+        system._apply_star_history(bodies, star)
+        assert bodies == [], kind
+    star.disk_kind = None
+    bodies = list(standing)
+    system._apply_star_history(bodies, star)
+    assert bodies == standing                                    # `standing` already passed the engulfment rule
+    star.disk_kind = "class-ii"
+    system.system_config.FORCE_CLASS = "M"                       # asked for: the request overrides the disk
+    bodies = list(standing)
+    system._apply_star_history(bodies, star)
+    assert bodies == standing
+
+
 def test_planets_respect_their_stars_age_and_history():
     for _ in range(150):      # a whole system with moons, the air and the heat costs about 4 s, so 400 of them passed 900 s
         system = StarSystem(system_config=SystemConfig())
@@ -191,8 +222,7 @@ def test_planets_respect_their_stars_age_and_history():
             for body in bodies:
                 inner_edge = body.lower_limit if body.body_type == "a" else body.distance
                 assert inner_edge >= engulfed_au
-                if star.age < prog_c.PLANET_MIN_STAR_AGE_GY:
-                    assert body.body_type == "a"
+                assert not system._holds_its_disk(star)      # GEN.1552: a star that still holds its own disk holds no body, planet or belt
                 if star.age < prog_c.LIFE_MIN_STAR_AGE_GY and body.body_type != "a":
                     # the class letter is derived from the conditions and says nothing of life (GEN.915); a star this young has none
                     assert body.life_class is None
