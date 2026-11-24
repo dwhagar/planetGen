@@ -1567,6 +1567,11 @@ def add_repair_db_arguments(parser):
                         help="Look only at the sector at this address (repeatable).")
     parser.add_argument('--dry-run', action='store_true',
                         help="Say which damaged sectors the parity file could rebuild and write nothing.")
+    parser.add_argument('--regenerate', action='store_true',
+                        help="Draw again from the galaxy's seed each sector the parity file could not rebuild (DB.17), under the directive its "
+                             "stored record names. A sector made under another generator epoch is refused, and says why. Admin edits of a sector "
+                             "are not restored (a --dry-run lists them); the sector's cell is emptied and generated again like the Regenerate "
+                             "button of the sector page.")
     parser.add_argument('--salvage', metavar='TABLE', default=None,
                         help="Step 1 of rebuilding a table whose clustered index has an unreadable page (run with the server "
                              "started with innodb_force_recovery = 1 and the website and generation stopped): dump its readable "
@@ -1603,7 +1608,18 @@ def run_repair_db(args):
                 table_rebuild.reload(conn, args.reload, directory)
                 if args.restore_sectors and args.reload == "sectors":
                     table_rebuild.restore_sectors(conn)
-            report = dbRepair.repair(conn, scope, dry_run=args.dry_run)
+            control_conn = None
+            if args.regenerate:
+                try:
+                    control_conn = store.get_control_connection(store.control_mysql_config(config), ensure_schema=False)
+                except Exception as exc:  # noqa: BLE001 -- the audit log is a second source of edits; the journal still counts
+                    log.warning(f"The control database could not be opened ({exc}); admin edits are looked for in the journal only.")
+            try:
+                report = dbRepair.repair(conn, scope, dry_run=args.dry_run, regenerate=args.regenerate, config=config,
+                                         control_conn=control_conn)
+            finally:
+                if control_conn is not None:
+                    control_conn.close()
             if any(result.outcome == dbRepair.UNREADABLE for result in report.results):
                 tables = table_rebuild.probe_unreadable(conn)
                 log.normal("Unreadable table(s): " + (", ".join(tables) or "none found now") + ".")
@@ -1620,6 +1636,9 @@ def run_repair_db(args):
     verb = "would be repaired" if args.dry_run else "repaired"
     log.normal(f"Repair: {report.count(dbRepair.REPAIRED) + report.count(dbRepair.RESEALED) + report.count(dbRepair.WOULD_REPAIR):,}"
                f" sector(s) {verb}, {report.count(dbRepair.UNREPAIRABLE) + report.count(dbRepair.UNREADABLE):,} left damaged.")
+    if args.regenerate:
+        log.normal(f"Repair: {report.count(dbRepair.REDRAWN) + report.count(dbRepair.WOULD_REDRAW):,} sector(s) "
+                   f"{'would be drawn again' if args.dry_run else 'drawn again'} from the seed; admin edits of them are not restored.")
     if not report.clean:
         sys.exit(1)
 

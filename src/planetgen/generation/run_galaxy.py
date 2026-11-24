@@ -1574,7 +1574,7 @@ def settle_named_sectors(sector_ids, config, expand=True):
     return _settle_on_queue(args, _database_now(config), extra={"sector_ids": sector_ids, "expand": expand})
 
 
-def _cell_to_generate(address, config, link=True):
+def _cell_to_generate(address, config, link=True, directive=None):
     """
     What generating the sector of grid cell `address` takes (`regenerate_sector_cell`): the
     answer already when there is nothing to generate, else the arguments, the center and the sector edge to generate with.
@@ -1619,6 +1619,8 @@ def _cell_to_generate(address, config, link=True):
     args.density = sector_profile(address, skeleton).density
     args.num_systems = None
     args.link_later = not link
+    if directive:
+        args.directive = list(directive)
     return None, args, position_pc, qualifies, skeleton.edge_pc
 
 
@@ -1640,16 +1642,17 @@ def _refresh_block_totals(config, address):
         log.warning(f"Adding the sector at {_format_address(address)} to the block totals failed: {exc}")
 
 
-def regenerate_sector_cell(address, config):
+def regenerate_sector_cell(address, config, directive=None):
     """
     Generates the sector of grid cell `address` again as the runs of an API job (PERF.119; the new sector of
     `api_jobs.regenerate_sector`, whose old one is deleted): the sector as a run of `generate-sectors` and the bright-star
-    backfill around it as a run of `scatter-backfill`. The caller settles the paths.
+    backfill around it as a run of `scatter-backfill`. The caller settles the paths. `directive` (`--directive` texts) draws the sector
+    under the directive a stored record names (DB.17: a sector that was drawn under one is drawn again under it).
 
     Returns:
         dict: `sector_id` and `sector_name` of the new sector (`None` when the cell is beyond the grid's reach).
     """
-    early, args, position_pc, _qualifies, edge_pc = _cell_to_generate(address, config)
+    early, args, position_pc, _qualifies, edge_pc = _cell_to_generate(address, config, directive=directive)
     if early is not None:
         return {"sector_id": early["sector_id"], "sector_name": early["sector_name"]}
     args.workers = 1

@@ -182,6 +182,19 @@ def record_of(directive, outcome, sector):
     return Record(directive.digest(), outcome.status, outcome.attempts, minimums)
 
 
+def directive_texts_of(digest, minimums):
+    """
+    The `--directive` texts that make the directive a stored record (`Record`, GEN.179) was drawn under again, or `None` when they do not
+    hash to `digest` (the record names a directive this code does not read the same way). `minimums` is `[(key, wanted), ...]`.
+    """
+    texts = [f"{key}>={wanted}" for key, wanted in minimums]
+    try:
+        again = parse(texts)
+    except DirectiveError:
+        return None
+    return texts if again.digest() == digest else None
+
+
 def _score(missed):
     """Total shortfall; the least wins when no draw meets everything."""
     return sum(want - got for want, got in missed.values())
