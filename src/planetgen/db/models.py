@@ -534,6 +534,8 @@ dark_members = sa.Table(
     sa.Column('kind', sa.String(16), nullable=False),
     sa.Column('mass_solar', mysql.DOUBLE(), nullable=False),
     sa.Column('radius_au', mysql.DOUBLE(), nullable=True),
+    sa.Column('density_g_cm3', mysql.DOUBLE(), nullable=True),
+    sa.Column('binding_energy_j', mysql.DOUBLE(), nullable=True),
     sa.CheckConstraint("(`kind` in (_utf8mb4'brown-dwarf',_utf8mb4'neutron-star',_utf8mb4'black-hole',_utf8mb4'stripped-helium'))", name='chk_dark_members_kind'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_dark_members_star_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",

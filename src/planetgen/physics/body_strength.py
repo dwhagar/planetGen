@@ -46,6 +46,8 @@ BODY_FIELDS = (*FIELDS, SHAPE_FIELD)
 """tuple: What `values` returns for a planet or a moon: `FIELDS` and the shape-setting temperature."""
 
 _km_to_m = units.converter("km", "m")
+_m_to_km = units.converter("m", "km")
+_au_to_m = units.converter("au", "m")
 _g_cm3_to_kg_m3 = units.converter("g_cm3", "kg_m3")
 _msun_to_kg = units.converter("Msun", "kg")
 _kg_to_msun = units.converter("kg", "Msun")
@@ -286,6 +288,17 @@ def star_values(star):
     """`STELLAR_FIELDS` of a `Star` or a compact remnant standing in for one (its `mass`, `radius`, `yerkes_class`)."""
     mass_kg = getattr(star, "mass", None)
     return bulk_values(stellar_kind(getattr(star, "yerkes_class", None), mass_kg or 0.0), mass_kg, getattr(star, "radius", None))
+
+
+DARK_MEMBER_KINDS = {"brown-dwarf": "brown-dwarf", "neutron-star": "neutron-star", "black-hole": "black-hole", "stripped-helium": "star"}
+"""dict: The `binding_energy.KINDS` entry of each kind of a dark member of an orbit tree (GEN.1204): a stripped helium star is a fluid star of the kind `star`."""
+
+
+def dark_member_values(member):
+    """`STELLAR_FIELDS` of a dark member of an orbit tree (`stored_trees.DarkMember`) from its mass and the radius the tree drew it with by the mass-radius law of its kind (GEN.1204), the same
+    `bulk_values` a single brown dwarf, neutron star or black hole of `stars`, `neutron_stars` and `black_holes` goes through. `(None, None)` for a member without a radius."""
+    radius_km = _m_to_km(_au_to_m(member.radius_au)) if member.radius_au else None
+    return bulk_values(DARK_MEMBER_KINDS[member.kind], _msun_to_kg(member.mass_solar), radius_km)
 
 
 def remnant_values(kind, mass_solar, radius_km):
