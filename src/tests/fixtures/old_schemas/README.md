@@ -49,3 +49,4 @@ Commit each file came from:
 - v275: after GEN.455 part A's migration 0275 (comet coma columns, comet_coma, interstellar_comet_coma), before GEN.1204's migration 0276 (dark_members density_g_cm3, binding_energy_j) (the train's schema.sql with its comment and blank lines removed)
 - v276: after GEN.1204's migration 0276 (dark_members density_g_cm3, binding_energy_j), before GEN.179's migration 0277 (sector_directives, sector_directive_minimums) (the train's schema.sql with its comment and blank lines removed)
 - v277: after GEN.179's migration 0277 (sector_directives, sector_directive_minimums), before GEN.1227's migration 0278 (interstellar_comets.carbon_chain_depleted) (the train's schema.sql with its comment and blank lines removed)
+- v278: after GEN.1227's migration 0278 (interstellar_comets carbon_chain_depleted), before GEN.163's migration 0279 (phenomenon_scatter cluster_id) (the train's schema.sql with its comment and blank lines removed)
