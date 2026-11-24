@@ -1176,6 +1176,7 @@ interstellar_comets = sa.Table(
     sa.Column('coma_active_area_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('coma_outflow_1au_kms', mysql.DOUBLE(), nullable=True),
     sa.Column('nucleus_albedo', mysql.DOUBLE(), nullable=True),
+    sa.Column('carbon_chain_depleted', mysql.TINYINT(), nullable=True),
     sa.Index('fk_interstellar_comets_inside_nebula', 'inside_nebula_id'),
     sa.Index('fk_interstellar_comets_inside_remnant', 'inside_remnant_id'),
     sa.Index('idx_interstellar_comets_cell', 'cell_key', 'center_x_pc', 'center_y_pc', 'center_z_pc'),
@@ -1196,6 +1197,7 @@ interstellar_comets = sa.Table(
     sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_interstellar_comets_sector', ondelete='RESTRICT'),
     sa.CheckConstraint('(`is_active` in (0,1))', name='interstellar_comets_chk_1'),
     sa.CheckConstraint("(`quadrant` in (_utf8mb4'I',_utf8mb4'II',_utf8mb4'III',_utf8mb4'IV',_utf8mb4'V',_utf8mb4'VI',_utf8mb4'VII',_utf8mb4'VIII'))", name='interstellar_comets_chk_2'),
+    sa.CheckConstraint('((`carbon_chain_depleted` is null) or (`carbon_chain_depleted` in (0,1)))', name='interstellar_comets_chk_3'),
     mysql_engine="InnoDB",
 )
 

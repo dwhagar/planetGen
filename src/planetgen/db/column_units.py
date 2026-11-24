@@ -486,7 +486,7 @@ TABLES = {
         "1/s": ("water_production_1au_per_s",),
         "km": ("nucleus_diameter_km",),
         "km_s": ("velocity_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "coma_outflow_1au_kms"),
-        "flag": ("is_active",),
+        "flag": ("is_active", "carbon_chain_depleted"),
         "Gyr": ("galactic_orbital_period_gy",),
         "deg": ("galactic_orbital_phase_deg", "axial_tilt_deg"),
         "yr": ("galactic_min_update_interval_years",),
