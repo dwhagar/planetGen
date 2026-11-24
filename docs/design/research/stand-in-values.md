@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2020 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2025 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1993 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1998 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,14 +51,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 232 | 22 | 12 | 1 | 0 | 267 |
 | T2 | 187 | 77 | 4 | 0 | 0 | 268 |
-| T3 | 136 | 69 | 12 | 10 | 0 | 227 |
+| T3 | 136 | 70 | 12 | 10 | 0 | 228 |
 | T4 | 94 | 17 | 10 | 25 | 13 | 159 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
-| T6 | 254 | 143 | 40 | 85 | 8 | 530 |
-| T7 | 76 | 44 | 10 | 31 | 0 | 161 |
+| T6 | 254 | 144 | 41 | 85 | 8 | 532 |
+| T7 | 76 | 44 | 11 | 31 | 0 | 162 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
-| T9 | 54 | 20 | 6 | 117 | 42 | 239 |
-| All | 1153 | 423 | 102 | 276 | 66 | 2020 |
+| T9 | 54 | 20 | 6 | 118 | 42 | 240 |
+| All | 1153 | 425 | 104 | 277 | 66 | 2025 |
 
 ## How the labels were given
 
@@ -2395,8 +2395,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | HF1 | D | T1 | L0 | halo_function.OMEGA_BARYON_H2 0.022068, SPECTRAL_INDEX 0.9624, SIGMA_8 0.8344: the [R3542] best fit beside the h 0.671 and Omega_m 0.3175 the chain already held | the Planck+WP best fit (0.022032, 0.9619, 0.8347) or a WMAP-era set | z = 0 galaxies | a later release of the cosmology that moves sigma_8 by more than 3 percent | none (the cosmology the chain states) | Planck Collaboration [R3542: Table 2], Planck column, READ | predicted only | - | - |
 | HF2 | P | T1 | L1 | halo_function._transfer_function: the no-wiggle fit of Eisenstein and Hu 1998 Eqs. 26, 28 to 31 stands for a Boltzmann-code transfer function | a Boltzmann code (CAMB, CLASS) | halo masses of 1e8 to 1e17 solar masses | a Boltzmann transfer function that moves sigma(M) by more than a few percent over the range | a tabulated transfer function | Eisenstein and Hu 1998 [R1233], READ; the paper quotes the fit as good to a few percent without the wiggles | predicted only | - | - |
-| HF3 | P | T1 | L1 | mass_chain.median_stellar_mass: [R3181]'s relation, fitted to the Millennium haloes in a WMAP7 cosmology (h 0.704), is read against the Planck halo mass function, halo masses as printed | none | the conditional at every stellar mass | an abundance matching of the relation in the Planck cosmology that moves the median halo by more than 0.05 dex | a relation fitted in the chain's own cosmology | [R3181] section 2, READ | predicted only | - | - |
+| HF3 | P | T1 | L1 | mass_chain.median_stellar_mass: [R3181]'s relation, fitted to the Millennium haloes in a WMAP7 cosmology (h 0.704), is read against the Planck halo mass function, halo masses as printed | none | the conditional at every stellar mass | an abundance matching of the relation in the Planck cosmology that moves the median halo by more than 0.05 dex | a relation fitted in the chain's own cosmology | [R3181] section 2, READ; GEN.1167 kept it over [R0319, R1578, R2598]: against the halos of 110 measured spirals [R5352] its median halo is 0.09 dex off below 1e11 solar masses of stars (0.09 for [R2598], 0.11 for [R0319] and 0.17 for [R1578]), tier T1 stays | predicted only | - | - |
 | HF4 | P | T9 | L0 | halo_function._COARSE_STEP 0.05 dex, GRID_STEP 0.01 dex, _LN_K_STEP 0.02, k from 1e-4 to 2e3 per Mpc: the numerical grids of sigma(M) and of the conditional | halving each step | every conditional | a median that moves by more than 0.003 dex when a step is halved | none (numerical) | the GEN.399 script (numpy, 6000 wave numbers, the slope of sigma by a 0.01 dex difference) gives the same medians to 0.001 dex | predicted only | - | - |
+| HF5 | P | T3 | L1 | mass_chain.SPIRAL_HALO_CEILING_SOLAR 2.5e12 and SPIRAL_HALO_UPPER_SOLAR 5e12 (GEN.618): the median halo of a spiral saturates toward the first and no drawn halo passes the second, because [R3181] is an all-galaxy relation whose median halo at 1e11 to 2e11 solar masses of stars (5.7e12 to 2.8e13) is a group's, not a spiral's | 1e12 to 5e12 (Andromeda's 0.6 to 2.8e12 up to the late types' "virtually none above 5e12") | spirals, the only family built; a later family reads its own relation | a measured halo of a spiral of 1.5 to 2e11 solar masses of stars outside 1e12 to 5e12, or a spiral relation read from the rotation curves whose median at 1e11 is outside 1 to 4e12 | a late-type relation fitted to the rotation curves (the Posti relation, its parameters read) | [R5352] (READ: the most massive spirals, 1 to 3e11 solar masses of stars, in halos of 2 to 5e12, M200, NFW fits of 110 rotation curves) and [R5353] (READ: late types of similar stellar mass sit in halos near 1e12, virtually none above 5e12); Andromeda 0.6 to 2.8e12 (GEN.609); 2.5e12 is where those ranges overlap | predicted only | - | - |
+| HF6 | P | T9 | L3 | mass_chain.SPIRAL_HALO_KNEE_SHARPNESS 4: how sharply the spiral's halo bends onto the ceiling, `M / (1 + (M / ceiling)^4)^(1/4)` | 2 to 8 | spirals | a measured spiral relation that bends earlier or later than the sharp knee by more than 0.1 dex at 5e10 solar masses of stars | the fitted late-type relation of HF5 | the shape leaves the Milky Way's halo (1.6e12 at 5e10 solar masses of stars) within 5 percent of [R3181]'s and puts 1e11 at 2.5e12 | predicted only | - | no data |
 
 ## 6.132 Stand-ins of the reference black hole draw
 
@@ -3573,6 +3575,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | EF1 | P | T6 | L1 | `extinction_effects.RESET_RECURRENCE_MYR` 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of `air_events`; the kill curve gives it 0.65 like any event of 100 Myr or more) | 300 to 3000 Myr (impactors of about 21 to 62 km; the Big Five were 10 km or less) | a world with animals | a measured loss of animals after an extinction of the Phanerozoic size | a measured relation between the size of a shock and the complexity it removes | the Earth's animal record (540 Myr, five mass extinctions, no reset; the Big Five by number of genera, [R5320] for the curve); the cut is inferred | predicted only | - | - |
 | EF2 | P | T7 | L1 | `extinction_effects.REGROWTH_GYR` 0.020: the time the animals take to return after the origination lag (`air_events.RECOVERY_GYR`, 10 Myr, [R5321]); 30 Myr from the extinction | 0.010 to 0.050 | a world whose animals an extinction reset | a measured regrowth of the marine genera to their old number faster than 15 Myr or slower than 60 Myr after a Big Five extinction | the measured regrowth of the animal grades | educated guess from inferred physics; no source read | predicted only | - | - |
 | EF3 | P | T7 | L0 | `extinction_effects.regrown`: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not | none | a civilization that an extinction at or after the animals reset | a measured faster re-emergence of a technology-scale lineage after a collapse | a measured recovery of a lineage that had a civilization | the hard-step model of `life_timeline` [R4642]; the choice not to draw again is a design rule | predicted only | - | - |
+
+## 6.327 Stand-ins of a comet's coma (GEN.455)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CZ1 | P | T7 | L2 | `comet_coma.ACTIVE_AREA_FRACTION_RANGE` (0.003, 1.0): the share of a nucleus surface that sublimates, drawn log-uniform per comet | 0.003 to 1 | an active comet | a measured active fraction outside 0.3 percent to the whole surface for a nucleus whose production and size are both known | a measured active-area census of nuclei of comets of other stars | the observed active fractions of the Solar System comets, from a few tenths of a percent (the smallest, large nuclei) to a body that is nearly all active (small, hyperactive nuclei); the range is the widest of the observed ones, tuned so the water production of a sample sits inside the measured 5.1e26 to 1.41e31 molecules per second | predicted only | - | - |
+| CZ2 | P | T6 | L2 | `comet_coma.OUTFLOW_KMS_1AU_RANGE` (0.4, 1.0) km/s: the speed of the gas at 1 AU lit distance, drawn log-uniform, falling as the inverse square root of the lit distance | 0.3 to 1.2 km/s | an active comet | a measured expansion speed of a coma at 1 AU outside 0.3 to 1.2 km/s | a measured expansion speed against lit distance for comets of other stars | the radio and ultraviolet line widths of Solar System comae (about 0.5 to 1 km/s at 1 AU, falling with distance); the form is the energy-limited expansion of a gas that the light heats | predicted only | - | - |
+| CZ3 | P | T6 | L1 | `comet_coma.NUCLEUS_ALBEDO_RANGE` (0.02, 0.10): the Bond albedo of a nucleus, drawn uniform per comet | 0.02 to 0.10 | an active comet | a measured nucleus albedo outside 0.02 to 0.10 | a measured albedo census of nuclei | the measured geometric albedos of comet nuclei (0.02 to 0.06, the darkest bodies imaged) with the Bond albedo some range wider; nudged inside the uncertainty | predicted only | - | - |
 
 ## 6.329 Stand-ins of the white dwarf binaries (GEN.707)
 

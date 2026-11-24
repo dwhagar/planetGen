@@ -135,6 +135,8 @@ def _settle(planet, survivors):
             planets.move_orbit(moon, clearance, planet.mass)
         if moon.distance * (1.0 + (moon.eccentricity or 0.0)) * constants.AU_TO_M / 1000.0 > high_km * (1.0 + 1.0e-9):
             continue
+        if moon.distance * constants.AU_TO_M / 1000.0 > planets.moon_stable_limit_km(planet, moon.eccentricity) * (1.0 + 1.0e-9):
+            continue      # the semi-major axis the fit of [R1138] allows for the eccentricity this moon has (a pump or a resonance raised it): the same bound `validation.check_lunar_system` holds a moon to
         kept.append(moon)
     return kept, dragged
 

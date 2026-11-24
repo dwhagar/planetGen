@@ -10,6 +10,7 @@ planets beyond 100 days, the largest a rocky planet comes out, and the rogue pla
 
 import collections
 import concurrent.futures
+import math
 import multiprocessing
 import os
 
@@ -23,12 +24,12 @@ from planetgen.physics import constants, envelope_capture, planet_classes, plane
 from planetgen.util import draw
 
 EARTH = constants.EARTH_MASS_TO_KG
-SYSTEMS = 120
+SYSTEMS = 180
 SEED = 20261107
-BLOCKS = 8
-"""int: TEST.783: the sweep is made in this many blocks of `SYSTEMS // BLOCKS` systems, one worker at a time, every block on a run seed of its own (blocks 0 to 7: the first eight, none left out).
+BLOCKS = 12
+"""int: TEST.783: the sweep is made in this many blocks of `SYSTEMS // BLOCKS` systems, one worker at a time, every block on a run seed of its own (blocks 0 to 11, twelve of 15 systems since the Train 61 valley change: the first eight alone gave a valley of 4 planets, a count the survey's own valley makes a coin flip to pass a floor of 5).
 The share of the inner planets above 2.0 Earth radii that the first test reads is 57 of 156 (0.365) over these blocks; the blocks alone give 0.23 to 0.62 (standard deviation 0.13), and
-twelve blocks (blocks 8 to 11 added) give 72 of 197 (0.365). The binomial noise of 156 planets is 0.039, so the 0.3 edge of the band is 1.7 of those under the share: a sample drawn again
+twelve blocks (blocks 8 to 11 added) give 72 of 197 (0.365) by the count of the note's first author; the Train 61 head's twelve give 75 of 143 inner planets of 1 to 4 Earth radii above 2.0 (0.52). The binomial noise of 156 planets is 0.039, so the 0.3 edge of the band is 1.7 of those under the share: a sample drawn again
 (a change to the generator moves every draw) falls under 0.3 about one time in twenty, and the band, not the sample, is what is tight."""
 INNER_DAYS = 100.0
 """float: [R1478] count the planets inside 100 days."""
@@ -67,12 +68,43 @@ def test_about_half_of_the_inner_planets_of_one_to_four_earth_radii_are_above_tw
     assert 0.3 <= share <= 0.7, (len(inner), share)
 
 
+VALLEY_OVER_PEAK_OCCURRENCE = 0.030 / 0.116
+"""float: The depth of the valley the CKS survey measures, [R1478: Table 4] (the spline fit of the occurrence of planets inside 100 days, deconvolved for the survey's completeness and
+the radius errors): 0.030 planets per star at 1.9 Earth radii in the valley over 0.116 at 2.4, the peak of the sub-Neptunes. The paper's headline is a deficit of 2 or more
+at 1.5 to 2.0 Earth radii in the observed counts, and says the deconvolved valley "is likely deeper than observed" (0.26 of the peak here, 0.5 observed)."""
+VALLEY, PEAK = (1.5, 2.0), (2.19, 2.70)
+"""tuple: The valley's radii (the gap of [R1478]) and the radii of the sub-Neptune peak the valley is read against (bins 2.19 to 2.43 and 2.43 to 2.70 of [R1478: Table 3], the peak at 2.4)."""
+SIGNIFICANCE = 0.01
+
+
+def _least_valley_count(sample_size, valley_share):
+    """The largest count `k` of the valley's planets, out of `sample_size` planets in the valley and the peak together, for which a generator that has the valley the survey
+    measures (a binomial of `valley_share`) has fewer than `k` of them less than `SIGNIFICANCE` of the time: a sample with fewer is a valley too empty to be the survey's."""
+    below, k = 0.0, 0
+    while True:
+        below += math.comb(sample_size, k) * valley_share ** k * (1.0 - valley_share) ** (sample_size - k)
+        if below > SIGNIFICANCE:
+            return k
+        k += 1
+
+
 def test_the_valley_is_populated_from_both_sides_and_the_peaks_are_not_empty(sweep):
-    """The three bins of the valley (below 1.5, the gap 1.5 to 2.0, and above 2.0) each hold planets of the inner sample; a sample with an empty side has lost
-    one of the two populations the valley divides."""
+    """The planets of the inner sample fall on both sides of the valley (at least 5 of 1 to 1.5 and of 2.0 to 4.0 Earth radii: a sample with an empty side has lost one of the
+    two populations the valley divides) and the valley itself is not emptier than the survey's measured valley allows.
+
+    The valley is a gap, so its count is small by nature: 6 of the 143 inner planets (4 percent) over the twelve blocks, 4 of 104 over the first eight, and a floor of 5 failed a re-drawn
+    sample about half the time (the sample is drawn again by any change to the generator, GEN.1202 moved every draw). The floor now comes from the survey. Taking the valley (1.5 to 2.0 Earth
+    radii, width 0.5) and the sub-Neptune peak (2.19 to 2.70, width 0.51) of the inner sample together, a generator with the valley of [R1478: Table 4], 0.030 over 0.116 of the peak's
+    occurrence, puts 0.26 x 0.5 / (0.26 x 0.5 + 0.51) = 20 percent of those planets in the valley; with `n` of them the valley count is a binomial and the test asks for the count a correct
+    generator misses less than 1 time in 100 (for `n` of 28 the count is 1: Bin(28, 0.20) has 0 with probability 0.0017 and 1 or fewer with 0.014). This sweep has 6 of 28 (21 percent)."""
     inner = [row.radius for row in sweep if row.days < INNER_DAYS and 1.0 <= row.radius <= 4.0]
-    bins = (sum(r < 1.5 for r in inner), sum(1.5 <= r <= 2.0 for r in inner), sum(r > 2.0 for r in inner))
-    assert min(bins) >= 5, bins
+    low, high = sum(r < VALLEY[0] for r in inner), sum(r > VALLEY[1] for r in inner)
+    valley = sum(VALLEY[0] <= r <= VALLEY[1] for r in inner)
+    peak = sum(PEAK[0] <= r <= PEAK[1] for r in inner)
+    assert min(low, high) >= 5, (low, valley, high)
+    width_valley, width_peak = VALLEY[1] - VALLEY[0], PEAK[1] - PEAK[0]
+    share = VALLEY_OVER_PEAK_OCCURRENCE * width_valley / (VALLEY_OVER_PEAK_OCCURRENCE * width_valley + width_peak)
+    assert valley >= _least_valley_count(valley + peak, share), (low, valley, high, peak)
 
 
 def test_a_planet_beyond_a_hundred_days_of_four_earth_masses_or_more_is_mostly_a_sub_neptune(sweep):
