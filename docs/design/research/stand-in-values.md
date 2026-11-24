@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2020 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2023 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1993 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1996 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,15 +50,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 231 | 22 | 12 | 1 | 0 | 266 |
-| T2 | 185 | 76 | 4 | 0 | 0 | 265 |
-| T3 | 136 | 70 | 13 | 10 | 0 | 229 |
-| T4 | 94 | 17 | 10 | 25 | 13 | 159 |
+| T2 | 186 | 76 | 4 | 0 | 0 | 266 |
+| T3 | 137 | 70 | 13 | 10 | 0 | 230 |
+| T4 | 95 | 17 | 10 | 25 | 13 | 160 |
 | T5 | 119 | 31 | 8 | 1 | 2 | 161 |
 | T6 | 254 | 143 | 41 | 85 | 8 | 531 |
 | T7 | 76 | 44 | 11 | 31 | 0 | 162 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 117 | 42 | 239 |
-| All | 1150 | 423 | 105 | 276 | 66 | 2020 |
+| All | 1153 | 423 | 105 | 276 | 66 | 2023 |
 
 ## How the labels were given
 
@@ -3580,3 +3580,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | WK5 | B | T3 | L0 | tuning.BARIUM_GIANT_MAX_INITIAL_MASS_SOL | 3.0 solar masses (barium 3 to 5; symbiotic up to 8) | giants of the intermediate and old populations | test_white_dwarf_binaries::test_a_g_or_k_giant_is_symbiotic_or_barium_at_the_rows_shares | the spectral type of the giant from its effective temperature and the mass of each class of companion in the catalogues | [R2198] reads the barium stars at 1 to 3 solar masses with a tail to 5, so 3.0 holds the stars it reads and cuts the tail; [R4993] gives symbiotic giants initial masses of 0.5 to 8, which the same limit cuts; the limit stands in for the G and K class the member does not carry, so the two sources do not agree on one edge | predicted only | - | - |
 | WK6 | B | T2 | L0 | tuning.BARIUM_PERIOD_DAYS | 80 to 1e4 d, log-uniform (the longest of the extrinsic S stars 4e4 d) | barium and CH giants with a white dwarf companion | test_white_dwarf_binaries::test_a_barium_or_symbiotic_giant_has_a_white_dwarf_companion_on_the_types_orbit | the period histogram of the 105 orbits of [R2198] as a distribution | [R2198]: the orbits of the barium and extrinsic S stars run from tens of days to tens of years, the longest of the extrinsic S stars 4e4 d (110 yr) and 56 UMa 45 yr; 80 to 1e4 d keeps the bulk and cuts the longest orbits; only part of the paper was read and no median or short edge was read | predicted only | - | - |
 | WK7 | B | T4 | L0 | tuning.SYMBIOTIC_PERIOD_DAYS | 200 to 2000 d, log-uniform | symbiotic giants with a white dwarf companion | test_white_dwarf_binaries::test_a_barium_or_symbiotic_giant_has_a_white_dwarf_companion_on_the_types_orbit | the orbital period distribution of the confirmed symbiotic stars (283 in the Galaxy, [R4993]) | the code's comment says 200 to 1,500 days; [R4993] gives no range (about 30 percent of symbiotic stars with periods under 1,000 d show tidal distortion), so the 200 to 2,000 d is not read from a source here | predicted only | - | - |
+
+## 6.330 Stand-ins of the white dwarf merger products (GEN.708)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| WM1 | B | T2 | L0 | tuning.WHITE_DWARF_MERGER_FRACTION_BY_MASS | five bins from 0.9 to 1.35 solar masses, 25, 36, 78, 49 and 38 percent | white dwarfs of 0.9 solar masses and up, old population | test_white_dwarf_merger::test_the_heavy_white_dwarfs_of_a_population_are_mostly_mergers_as_the_100_pc_sample_has_them | the Table 7 bins read from the paper's own text, and a sample with no temperature cut | [R5355]: the merger products are 25 percent of the white dwarfs of 0.9 to 1 solar masses, 78 (+4, -7) percent of 1.1 to 1.2 and 49 percent of 1.2 to 1.3 (abstract); Table 7 as summarized second hand gives 12 of 48, 13 of 36 (36 percent), 45 of 58, 24 of 49 and 5 of 13 above 1.3 (38 percent), 99 of 204 in all (49 percent); the merger evidence is magnetism, velocity, rapid rotation or a peculiar atmosphere, from a sample cut at 11,000 K | predicted only | - | - |
+| WM2 | B | T3 | L0 | tuning.WHITE_DWARF_MERGER_BELOW_SHARE | 0.25 (0.15 to 0.35) | white dwarfs of 0.7 to 0.9 solar masses, old population | test_white_dwarf_merger::test_an_old_population_is_a_merger_product_share_inside_the_factor_of_two_of_the_100_pc_sample | the merger fraction by mass bin below 0.9 solar masses from magnetism and kinematics of a volume-limited sample | [R5354]: the mass distribution of the 13,928 white dwarfs within 100 pc has a second peak at 0.80 solar masses holding 25 percent of the stars of 0.7 to 1; [R5355] has the same 25 percent at 0.9 to 1; the peak is not all mergers (the paper puts the mergers at about 14 percent of single white dwarfs with a factor of 2), so the 25 percent below 0.9 is a stand-in; an old population comes to 8 to 12 percent flagged | predicted only | - | - |
+| WM3 | B | T4 | L0 | tuning.WHITE_DWARF_MERGER_FLOOR_SOL | 0.7 solar masses (0.6 to 0.8) | double white dwarf merger products | test_white_dwarf_merger::test_the_share_of_a_mass_is_the_bin_it_is_in | the mass distribution of the merger products of a volume-limited sample, or the mass of merged pairs from a binary population synthesis | [R5354] reads the secondary peak from stars of 0.7 to 1 solar masses; no source gives the lowest mass of a merger product, so 0.7 is the lower edge of that range, not a measurement | predicted only | - | - |

@@ -61,6 +61,7 @@ from planetgen.physics import (
     pair_history, remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics import stellar_evolution as evolution
+from planetgen.physics import white_dwarf_merger
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -1496,11 +1497,11 @@ def draw_stripped_helium(unit):
     return unit < tuning.HOT_SUBDWARF_POST_CE_SHARE
 
 
-def draw_white_dwarf_merger(age_yr, unit):
-    """Whether a placed white dwarf of the old population is the product of a double white dwarf merger (GEN.271,
-    `double-white-dwarf-merger`; the `white-dwarf` share of the `merger_product_fraction` knob, 10%). One uniform."""
-    shares = system_types.TUNING_KNOBS["merger_product_fraction"]
-    return age_yr / 1.0e9 >= tuning.OLD_POPULATION_MIN_AGE_GY and unit < shares["white-dwarf"]
+def draw_white_dwarf_merger(mass_solar, age_yr, unit):
+    """Whether a white dwarf of this mass in the old population is the product of a double white dwarf merger (GEN.271,
+    `double-white-dwarf-merger`; GEN.708): at the share of its mass (`white_dwarf_merger.merger_fraction`, [R5355] by mass bin and [R5354]
+    below 0.9 solar masses). One uniform."""
+    return age_yr / 1.0e9 >= tuning.OLD_POPULATION_MIN_AGE_GY and unit < white_dwarf_merger.merger_fraction(mass_solar)
 
 
 def draw_giant_companion(leaf_kind, birth_mass_sol, unit):
@@ -1745,6 +1746,12 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         leaf = (_star_leaf(birth, effective_age or age_yr, rng, lighten=False, fe_h=placed.tree_fe_h) if placed.record is None
                 else _leaf_of(placed.record))
         leaf.mass = placed.mass_solar if leaf.kind != "white-dwarf" else leaf.mass
+        if leaf.kind == "white-dwarf":
+            # A white dwarf that a star's own history made is a double white dwarf merger product at the share of its mass, not at
+            # the blue stragglers' (GEN.708); the same uniform and the same rejuvenation draw.
+            merger = draw_white_dwarf_merger(leaf.mass, age_yr, types[0])
+            effective_age = age_yr * (REJUVENATION_FRACTION_RANGE[0] + types[5] * (
+                REJUVENATION_FRACTION_RANGE[1] - REJUVENATION_FRACTION_RANGE[0])) if merger else None
         if placed.record is not None:
             leaf.seed = None                 # the built primary needs no seed of its own: the member draws one
         leaf.effective_age_yr = effective_age
@@ -1811,7 +1818,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
             "neutron-star": lambda: _remnant_leaf("neutron-star", birth, placed.mass_solar),
             "white-dwarf": lambda: _remnant_leaf("white-dwarf", birth, placed.mass_solar)}[placed.kind]()
     leaves = [base]
-    if placed.kind == "white-dwarf" and draw_white_dwarf_merger(age_yr, rng.random()):
+    if placed.kind == "white-dwarf" and draw_white_dwarf_merger(placed.mass_solar, age_yr, rng.random()):
         base.flags |= MEMBER_MERGER_PRODUCT
         base.effective_age_yr = rejuvenated_age_yr(age_yr, rng)
     if n_stars is not None and n_stars <= 1:     # a directive for a single object (no binaries, GEN.719)

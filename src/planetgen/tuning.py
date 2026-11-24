@@ -2209,6 +2209,26 @@ days to tens of years)."""
 SYMBIOTIC_PERIOD_DAYS = (200.0, 2000.0)
 """tuple: The period of a symbiotic star's white dwarf, log-uniform, days (200 to 1,500 days)."""
 
+# The white dwarfs that are double white dwarf merger products (GEN.708, docs/design/research/gap-filling-plan.md 6.330, rows WM1 to WM3).
+WHITE_DWARF_MERGER_FRACTION_BY_MASS = (
+    (0.9, 1.0, 0.25),
+    (1.0, 1.1, 0.36),
+    (1.1, 1.2, 0.78),
+    (1.2, 1.3, 0.49),
+    (1.3, 1.35, 0.38),
+)
+"""tuple: The share of the white dwarfs of a mass that are merger products, `(low, high, share)` per bin, solar masses ([R5355: Table 7],
+the 100 pc sample of 204 white dwarfs of 0.9 solar masses and up: 12 of 48, 13 of 36, 45 of 58, 24 of 49 and 5 of 13; the
+abstract gives 25, 78 and 49 percent for 0.9 to 1, 1.1 to 1.2 and 1.2 to 1.3, the other two bins were read from a second-hand
+summary of the table). The last bin is held to the top of `WD_MASS_RANGE_SOL`. Tier T2, tweak level L0 (registry row WM1)."""
+WHITE_DWARF_MERGER_BELOW_SHARE = 0.25
+"""float: The share of the white dwarfs between `WHITE_DWARF_MERGER_FLOOR_SOL` and 0.9 solar masses that are merger products. [R5354]
+puts 25 percent of the stars of 0.7 to 1 solar mass in the secondary peak at 0.80 solar masses, which is also [R5355]'s share at 0.9 to 1;
+the peak is not all mergers, so this is a stand-in. Tier T3, tweak level L0 (registry row WM2)."""
+WHITE_DWARF_MERGER_FLOOR_SOL = 0.7
+"""float: The lightest white dwarf that can be a merger product, solar masses: the lower edge of the secondary peak of [R5354] (stars of
+0.7 to 1 solar mass); no source gives the edge itself. Tier T4, tweak level L0 (registry row WM3)."""
+
 # Accreting compact binaries (GEN.272, docs/design/systems/multi-star-systems.md 13.4). Every figure below is a stand-in
 # unless it names a source; the shares of the registry rows (`high-mass-xray-binary`, `low-mass-xray-binary`,
 # `microquasar`, `millisecond-pulsar-companion`) are in `generation/phenomena/system_types.py`.
