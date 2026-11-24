@@ -32,3 +32,28 @@ The published statistic is about inferred CMF, not true CMF, so the simulated si
 ## 4. Stand-ins
 
 The scatter (0.05 dex) and the enriched CMF range (0.5 to 0.8 from the exoplanet cap) are partly verified by the limits above; the weight is tuned. Each is in the rows' `limit` text.
+
+## 5. The larger sample and the residuals of GEN.512 (GEN.820)
+
+GEN.512 tuned on 3,000 simulated planets per case. At 60,000 per case (the same sampler, `iron_branch_tuning.sampler`; z is the simulated share against the published one, in the units of the target's own uncertainty, `tuning_harness.simulate_and_compare`; the published shares are 0.048 outliers and 0.75 within 1 sigma):
+
+| Case (enriched weight / scatter in dex) | Outliers 2 sigma iron-rich | z | Within 1 sigma | z | Both pass |
+|---|---|---|---|---|---|
+| shipped: 0.01 / 0.05 | 0.047 | -0.01 | 0.602 | -1.38 | yes |
+| no scatter: 0.01 / 0 | 0.044 | -0.12 | 0.608 | -1.33 | yes |
+| 0.01 / 0.1 | 0.056 | 0.12 | 0.585 | -1.54 | yes |
+| 0.01 / 0.2 (the core spread of the [R0541] re-read in BC8) | 0.087 | 0.56 | 0.532 | -2.04 | no: within-1-sigma share too low |
+| no enriched branch: 0 / 0.05 | 0.042 | -0.20 | 0.606 | -1.34 | yes |
+| 0.05 / 0.05 | 0.072 | 0.34 | 0.586 | -1.53 | yes |
+| 0.23 / 0.05 (the 5 of 22 of [R0032]) | 0.176 | 1.82 | 0.509 | -2.25 | no: within-1-sigma share too low |
+
+What it closes:
+
+- **The larger sample (residual 4).** The shipped knobs reproduce both targets at 60,000 planets (z -0.01 and -1.38), so the 3,000-planet tuning was not a lucky draw; a test now holds this at 20,000 planets. The sample cannot get larger than the published N (21 and 20), so the width of the target, not the simulation, limits the tuning from here.
+- **The scatter (residual 3).** 0 to 0.1 dex passes both targets and 0.2 dex fails the within-1-sigma share (z -2.04), so the data do not support the 0.2 dex of the [R0541] re-read as an intrinsic spread: the registered range of BC8 stands as an upper bound and 0.05 dex stays a stand-in at tier T6 and tweak L2, with the 0.1 dex edge now measured. The within-1-sigma share sits near z -1.4 at every scatter and with no enriched branch: the simulated sample holds fewer planets within 1 sigma (0.60) than the published 0.75, which the knobs cannot move; it is measurement error, not the branch.
+- **The slope (residual 2).** It stays 1: the published slopes are consistent with 1 within their errors and with each other's method (row BC8, fill 3), so no pivot is needed.
+- **The coreless branch (residual 1).** No count of coreless planets exists, and the simulated sample reproduces the published shares with none, so nothing is drawn: registry row BC25 (share 0, tier T4, tweak L0) holds it with what would change the answer.
+- **The enriched weight** at 0.23, the share of [R0032]'s 5 of 22, is refused by the within-1-sigma target (z -2.25), which agrees with BC8 putting that sample second to the newer homogeneous one.
+
+No generated value changes.
+
