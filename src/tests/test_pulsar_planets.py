@@ -39,7 +39,7 @@ def _planets(pulsar, seed, **config):
 
 def test_the_origin_weights_are_the_designs_quarter_quarter_half():
     assert tuning.PULSAR_PLANET_ORIGIN_WEIGHTS == {"disk": 25.0, "captured-giant": 25.0, "ablated-companion": 50.0}
-    assert tuning.PULSAR_PLANET_BUILT_ORIGINS == ("disk",)
+    assert tuning.PULSAR_PLANET_BUILT_ORIGINS == ("disk", "captured-giant")
 
 
 def test_a_pulsars_origin_follows_the_weights():
@@ -64,7 +64,7 @@ def _config(**values):
     return config
 
 
-def test_only_the_disk_origin_gives_planets(recycled):
+def test_a_pulsar_of_the_field_holds_planets_only_from_the_disk_origin(recycled):
     pulsar = recycled(1)
     counts = [len(_planets(pulsar, seed)) for seed in range(240)]
     with_planets = sum(1 for count in counts if count)
@@ -115,6 +115,31 @@ def test_an_origin_that_is_not_built_names_what_it_waits_for_and_leaves_a_bare_p
     pulsar = recycled(8)
     empty = sum(1 for seed in range(240) if not _planets(pulsar, seed))
     assert empty / 240 == pytest.approx(0.75, abs=0.07)
+    assert set(tuning.PULSAR_PLANET_PREREQUISITES) == {"ablated-companion"}
+
+
+def test_a_pulsar_of_a_cluster_also_holds_the_captured_giant_of_psr_b1620_26_b(recycled):
+    """GEN.163: the captured-giant origin is built for a pulsar whose scatter row names a cluster; a field pulsar draws it and stays bare."""
+    pulsar = recycled(21)
+    pulsar.cluster_id = 5
+    results = [_planets(pulsar, seed) for seed in range(240)]
+    assert sum(1 for planets in results if planets) / len(results) == pytest.approx(0.50, abs=0.07)
+    with_giant = [planets for planets in results if any(planet.planet_class == "J" for planet in planets)]
+    assert with_giant and all(len(planets) == 1 for planets in with_giant)
+    giants = [planets[0] for planets in with_giant]
+    low, high = tuning.PULSAR_GIANT_MASS_JUPITER_RANGE
+    near, far = tuning.PULSAR_GIANT_DISTANCE_AU_RANGE
+    for giant in giants:
+        assert low <= giant.mass / constants.JUPITER_MASS_TO_KG <= high * 1.0000001
+        assert near <= giant.distance <= far * 1.0000001
+
+
+def test_a_captured_giant_past_the_orbit_ceiling_is_not_placed(recycled):
+    pulsar = recycled(22)
+    pulsar.cluster_id = 5
+    cfg = SystemConfig()
+    with draw.bound(draw.Stream("pulsar-ceiling")):
+        assert pulsar_planets._captured_giant(cfg, pulsar, pulsar.habitable_zone, 10.0) == []
 
 
 def test_the_disks_planets_sit_near_a_low_order_period_ratio(recycled):

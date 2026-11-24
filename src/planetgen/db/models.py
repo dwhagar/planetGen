@@ -2369,6 +2369,7 @@ phenomenon_scatter = sa.Table(
     sa.Column('member_count', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('system_mass_solar', mysql.DOUBLE(), nullable=True),
     sa.Column('uid', mysql.BINARY(12), nullable=True),
+    sa.Column('cluster_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Index('idx_phenomenon_scatter_address', 'shell_index', 'band_index', 'wedge_index'),
     sa.Index('idx_phenomenon_scatter_cell', 'cell_key', 'position_x_mpc', 'position_y_mpc', 'position_z_mpc'),
     sa.Index('idx_phenomenon_scatter_class', 'kind', 'subtype', 'mass_solar'),

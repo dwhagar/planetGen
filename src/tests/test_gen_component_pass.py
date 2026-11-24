@@ -8,6 +8,7 @@ share the sector fill already takes off the component's cells, so no pre-placed 
 """
 
 import collections
+import dataclasses
 import datetime
 import math
 
@@ -193,6 +194,17 @@ def test_the_stars_placed_in_a_cell_are_the_share_the_fill_takes_off_it():
     assert wanted > 20
     found = heavy[address] / 12
     assert found == pytest.approx(wanted, rel=0.35)
+
+
+def test_a_cluster_phenomenon_row_names_its_cluster_and_a_satellites_does_not():
+    """GEN.163: the last column of a scatter row is the id of the globular cluster it was drawn in."""
+    assert store.PHENOMENON_SCATTER_COLUMNS[-1] == "cluster_id" == phenomenon_scatter.PHENOMENON_SCATTER_COLUMNS[-1]
+    cluster = dataclasses.replace(_cluster(mass=4.0e6), id=41)
+    rows = list(component_pass.scatter_phenomena([cluster], EDGE, 3, min_mass_solar=1.0))
+    assert rows and {row[-1] for row in rows} == {41}
+    from tests.test_gen_magellanic_classes import SMC, WITH_SATELLITES
+    rows = list(component_pass.scatter_phenomena([dataclasses.replace(SMC, id=42)], EDGE, 3, min_mass_solar=1.0, shape=WITH_SATELLITES))
+    assert rows and {row[-1] for row in rows} == {None}
 
 
 def test_the_phenomena_of_a_component_are_its_systems_times_each_classs_rate():

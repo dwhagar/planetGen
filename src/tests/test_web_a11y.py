@@ -204,7 +204,7 @@ def _add_scattered_phenomenon(config):
     conn = store.get_connection(config)
     try:
         store.insert_phenomenon_scatter(conn, [(7, 2, 3, "black-hole", "stellar", 30000, 40000, 0,
-                                                None, None, None, SCATTER_SEED, None, None)])
+                                                None, None, None, SCATTER_SEED, None, None, None)])
         store.record_phenomenon_scatter_classes(conn, {("black-hole", "stellar"): 1})
         conn.commit()
     finally:

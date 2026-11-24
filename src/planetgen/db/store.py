@@ -7455,7 +7455,7 @@ def phenomenon_scatter_seed(conn):
 PHENOMENON_SCATTER_COLUMNS = (
     "shell_index", "band_index", "wedge_index", "kind", "subtype",
     *point_columns.LAYOUTS["phenomenon_scatter"].named("position", "velocity"), "seed", "mass_solar",
-    "map_luminosity_sol",
+    "map_luminosity_sol", "cluster_id",
 )
 """tuple: The `phenomenon_scatter` columns a scatter writes, in the order
 `insert_phenomenon_scatter` expects each row's values."""

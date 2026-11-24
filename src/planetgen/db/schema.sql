@@ -5697,6 +5697,7 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
     system_mass_solar    DOUBLE,
     uid                  BINARY(12) NULL,  -- v213 (GEN.1254): the phenomenon's Object ID, given when the scatter writes it, see the header comment
+    cluster_id           BIGINT UNSIGNED NULL,  -- v275 (GEN.163): the `galaxy_components.id` of the cluster the object belongs to, see the v275 comment at the end
 
     UNIQUE KEY uq_phenomenon_scatter_uid (uid),
     KEY idx_phenomenon_scatter_address (shell_index, band_index, wedge_index),
@@ -6865,3 +6866,7 @@ CREATE TABLE IF NOT EXISTS engine_piece_results (
     result        MEDIUMTEXT NOT NULL,
     PRIMARY KEY (job_id, piece_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v275 (GEN.163): `phenomenon_scatter` gains `cluster_id`: the `galaxy_components.id` of the globular cluster a scattered object was drawn in (`component_pass.scatter_phenomena`), NULL for an object of the field,
+-- of a satellite, and for a row made before v275, nothing is backfilled. The built system reads it (`run_sector._build_scattered`): a pulsar of a cluster may hold a captured giant (`generation/pulsar_planets.py`).
+-- It is a plain column, not a foreign key: a cluster row may be replaced while its scattered objects stay.

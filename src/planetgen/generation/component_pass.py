@@ -416,6 +416,7 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
         if component.kind not in COMPONENT_KINDS or component_table.is_open_cluster(component):
             continue
         is_satellite = component.kind == "satellite"
+        cluster_id = component.id if component.kind == "cluster" else None
         here = (slices or {}).get((component.kind, component.key), (0, 1))
         for kind, subtype, rate in rates + (extra if is_satellite else []):
             rng = phenomenon_scatter.class_stream(
@@ -439,4 +440,4 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
                     continue
                 mass = None if masses is None else float(masses[index])
                 yield (*address, kind, subtype, *point, None, None, None, seed_here, mass,
-                       phenomenon_scatter.map_luminosity(mass))
+                       phenomenon_scatter.map_luminosity(mass), cluster_id)

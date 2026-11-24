@@ -93,6 +93,7 @@ PHENOMENON_SCATTER_COLUMNS = (
     "shell_index", "band_index", "wedge_index", "kind", "subtype",
     "position_x_mpc", "position_y_mpc", "position_z_mpc",
     "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar", "map_luminosity_sol",
+    "cluster_id",
 )
 """tuple: The `phenomenon_scatter` columns a scatter writes, in the order
 every row below carries them."""
@@ -111,7 +112,7 @@ def _row(shell_index, band_index, wedge, kind, point, rng, subtype=None, velocit
          mass_solar=None):
     """One object in `PHENOMENON_SCATTER_COLUMNS` order."""
     return (shell_index, band_index, wedge, kind, subtype, point[0], point[1], point[2],
-            velocity[0], velocity[1], velocity[2], rng.getrandbits(63), mass_solar, map_luminosity(mass_solar))
+            velocity[0], velocity[1], velocity[2], rng.getrandbits(63), mass_solar, map_luminosity(mass_solar), None)
 
 
 def map_luminosity(mass_solar):
@@ -428,7 +429,7 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
         for band, wedge_here, in_cell, seed, x, y, z, mass in zip(*columns):
             if in_cell and (shell_index, band, wedge_here) not in skip_addresses:
                 yield (shell_index, band, wedge_here, kind, subtype, x, y, z, None, None, None, seed, mass,
-                       map_luminosity(mass))
+                       map_luminosity(mass), None)
 
 
 def _masses(kind, subtype, min_mass_solar, uniform):
