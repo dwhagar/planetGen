@@ -78503,6 +78503,318 @@
       ],
       "slug": "6-327-stand-ins-of-a-comet-s-coma-gen-455",
       "title": "Stand-ins of a comet's coma (GEN.455)"
+    },
+    {
+      "key": "6.328",
+      "number": "6.328",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.PSD_PHOTON_FLUX_REFERENCE_CM2_S 2e15: the 250 to 400 nm photon flux at 1 AU from the Sun, scaled to another star by its light at the body and its blackbody share in that band"
+            ],
+            [
+              "The range it moves in",
+              "1e15 to 4e15 cm-2 s-1"
+            ],
+            [
+              "Where it holds",
+              "a body of any star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Na source of the Moon or Mercury outside a factor 3 of the one the flux and the 3e-20 cm2 cross section give"
+            ],
+            [
+              "What replaces it",
+              "a measured near-ultraviolet flux for the stars of other types and the band the desorption uses"
+            ],
+            [
+              "Evidence",
+              "the Moon's 5e10 and Mercury's 8e11 cm-2 of sodium; the flux is the paper's, the scaling to another star is a blackbody share"
+            ]
+          ],
+          "id": "EX1",
+          "key": "6.328:EX1",
+          "kind": "P",
+          "slug": "6-328-ex1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.PSD_PHOTON_FLUX_REFERENCE_CM2_S 2e15: the 250 to 400 nm photon flux at 1 AU from the Sun, scaled to another star by its light at the body and its blackbody share in that band"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.MIV_DISTANCE_EXPONENT 1.5: the micrometeoroid flux falls as the distance from the star to this power"
+            ],
+            [
+              "The range it moves in",
+              "1 to 2"
+            ],
+            [
+              "Where it holds",
+              "a body of any star, in a system with dust"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dust flux at Mercury and the Moon whose ratio is not 2 to 8"
+            ],
+            [
+              "What replaces it",
+              "a dust flux from the system's own belts and comets"
+            ],
+            [
+              "Evidence",
+              "the ratio of Mercury's (1.66 to 3.56)e-16 g cm-2 s-1 to the Moon's (5.1 to 8.4)e-17, a factor of 2 to 7 over a distance ratio of 2.6"
+            ]
+          ],
+          "id": "EX2",
+          "key": "6.328:EX2",
+          "kind": "P",
+          "slug": "6-328-ex2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.MIV_DISTANCE_EXPONENT 1.5: the micrometeoroid flux falls as the distance from the star to this power"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.VAPOUR_PER_IMPACTOR_RANGE (1, 4): the grams of rock vapourised per gram of dust at 14 to 20 km/s, drawn log-uniform per body"
+            ],
+            [
+              "The range it moves in",
+              "1 to 4"
+            ],
+            [
+              "Where it holds",
+              "an airless rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "a measured vapour yield of the dust outside a factor of 4"
+            ],
+            [
+              "What replaces it",
+              "an impact-speed law of the vapour yield"
+            ],
+            [
+              "Evidence",
+              "the vapour of impacts at the speeds of the inner Solar System, a few times the impactor's mass"
+            ]
+          ],
+          "id": "EX3",
+          "key": "6.328:EX3",
+          "kind": "P",
+          "slug": "6-328-ex3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.VAPOUR_PER_IMPACTOR_RANGE (1, 4): the grams of rock vapourised per gram of dust at 14 to 20 km/s, drawn log-uniform per body"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.SHIELDED_SPUTTER_SHARE 0.05: the share of the wind that reaches the surface of a body whose own field stands the wind off (the cusps)"
+            ],
+            [
+              "The range it moves in",
+              "0.02 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "a body with a magnetopause above its surface"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sputter source at a magnetised airless body outside 0.5 to 10 percent of the unshielded one"
+            ],
+            [
+              "What replaces it",
+              "a cusp area from the field's geometry"
+            ],
+            [
+              "Evidence",
+              "the polar cusps of a dipole cover a few percent of the surface"
+            ]
+          ],
+          "id": "EX4",
+          "key": "6.328:EX4",
+          "kind": "P",
+          "slug": "6-328-ex4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.SHIELDED_SPUTTER_SHARE 0.05: the share of the wind that reaches the surface of a body whose own field stands the wind off (the cusps)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.RETAINED_SPEED_SHARE 0.5: a sputtered or vapourised atom that stays flies its arc at this share of the escape speed (or the thermal speed if lower)"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "an airless body"
+            ],
+            [
+              "What would show it wrong",
+              "a measured scale height of a refractory exosphere inconsistent with a launch at a third to seven tenths of the escape speed"
+            ],
+            [
+              "What replaces it",
+              "a launch speed integrated over the Thompson law and the Maxwell tail"
+            ],
+            [
+              "Evidence",
+              "between the thermal speed and the escape speed, which the two tails of the speed laws bracket"
+            ]
+          ],
+          "id": "EX5",
+          "key": "6.328:EX5",
+          "kind": "P",
+          "slug": "6-328-ex5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.RETAINED_SPEED_SHARE 0.5: a sputtered or vapourised atom that stays flies its arc at this share of the escape speed (or the thermal speed if lower)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.WIND_FLUX_1AU_CM2_S 3.2e8: the ions of the wind on a square centimetre a second at 1 AU from the Sun, scaled to another star by its wind pressure at the body"
+            ],
+            [
+              "The range it moves in",
+              "1e8 to 1e9 cm-2 s-1"
+            ],
+            [
+              "Where it holds",
+              "a body of any star with a wind"
+            ],
+            [
+              "What would show it wrong",
+              "a measured wind particle flux that does not follow the pressure"
+            ],
+            [
+              "What replaces it",
+              "the star's own mass loss over its wind speed"
+            ],
+            [
+              "Evidence",
+              "the Moon's solar wind flux of 3.2e8 cm-2 s-1; the pressure scales a flux only when the speed is the Sun's"
+            ]
+          ],
+          "id": "EX6",
+          "key": "6.328:EX6",
+          "kind": "P",
+          "slug": "6-328-ex6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "exosphere.WIND_FLUX_1AU_CM2_S 3.2e8: the ions of the wind on a square centimetre a second at 1 AU from the Sun, scaled to another star by its wind pressure at the body"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.NA_IONISATION_RATE_1AU ((4500, 9.5e-7), (5772, 5.92e-6), (6800, 1.3e-5)): the rate of the photoionisation of Na at 1 AU for a K, a G and an F star, read in the logarithm of the temperature"
+            ],
+            [
+              "The range it moves in",
+              "the rows' own range"
+            ],
+            [
+              "Where it holds",
+              "a body of a star of 3,500 to 8,000 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Na rate of a star of another type off the line"
+            ],
+            [
+              "What replaces it",
+              "a spectrum-integrated rate"
+            ],
+            [
+              "Evidence",
+              "the three rates of Oza et al. (part 04 section 5.2); the interpolation between them is the stand-in"
+            ]
+          ],
+          "id": "EX7",
+          "key": "6.328:EX7",
+          "kind": "P",
+          "slug": "6-328-ex7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "exosphere.NA_IONISATION_RATE_1AU ((4500, 9.5e-7), (5772, 5.92e-6), (6800, 1.3e-5)): the rate of the photoionisation of Na at 1 AU for a K, a G and an F star, read in the logarithm of the temperature"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "exosphere.COLUMN_FLOOR_CM2 1e4: a column under this, atoms per cm2, is not recorded"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any exosphere"
+            ],
+            [
+              "What would show it wrong",
+              "a measured exospheric column under 1e4 cm-2 that matters to a count"
+            ],
+            [
+              "What replaces it",
+              "a detection limit"
+            ],
+            [
+              "Evidence",
+              "a presentation floor: nothing above a body's ground is measured under it"
+            ]
+          ],
+          "id": "EX8",
+          "key": "6.328:EX8",
+          "kind": "P",
+          "slug": "6-328-ex8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "exosphere.COLUMN_FLOOR_CM2 1e4: a column under this, atoms per cm2, is not recorded"
+        }
+      ],
+      "slug": "6-328-stand-ins-of-an-airless-body-s-exosphere-gen-455",
+      "title": "Stand-ins of an airless body's exosphere (GEN.455)"
     }
   ]
 }

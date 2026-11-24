@@ -1303,6 +1303,23 @@ moon_deposit_types = sa.Table(
 )
 
 
+moon_exosphere = sa.Table(
+    'moon_exosphere',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('entry_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('species', sa.String(16), nullable=False),
+    sa.Column('column_cm2', mysql.DOUBLE(), nullable=False),
+    sa.Column('source', sa.String(40), nullable=False),
+    sa.Column('scale_height_km', mysql.DOUBLE(), nullable=False),
+    sa.Index('idx_moon_exosphere_species', 'species', 'column_cm2'),
+    sa.Index('uq_moon_exosphere', 'moon_id', 'entry_number', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_exosphere_moon', ondelete='CASCADE'),
+    sa.CheckConstraint('(`entry_number` >= 1)', name='moon_exosphere_chk_1'),
+    sa.CheckConstraint('(`column_cm2` > 0)', name='moon_exosphere_chk_2'),
+    mysql_engine="InnoDB",
+)
 moon_gases = sa.Table(
     'moon_gases',
     metadata,
@@ -2426,6 +2443,23 @@ planet_deposit_types = sa.Table(
 )
 
 
+planet_exosphere = sa.Table(
+    'planet_exosphere',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('entry_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('species', sa.String(16), nullable=False),
+    sa.Column('column_cm2', mysql.DOUBLE(), nullable=False),
+    sa.Column('source', sa.String(40), nullable=False),
+    sa.Column('scale_height_km', mysql.DOUBLE(), nullable=False),
+    sa.Index('idx_planet_exosphere_species', 'species', 'column_cm2'),
+    sa.Index('uq_planet_exosphere', 'planet_id', 'entry_number', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_exosphere_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('(`entry_number` >= 1)', name='planet_exosphere_chk_1'),
+    sa.CheckConstraint('(`column_cm2` > 0)', name='planet_exosphere_chk_2'),
+    mysql_engine="InnoDB",
+)
 planet_gases = sa.Table(
     'planet_gases',
     metadata,
