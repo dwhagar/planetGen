@@ -6,7 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 Where tweaks go (Boss, 8:47 PM EST on 2026-11-16): a tweak toward a wanted outcome reshapes a registered stand-in that already exists (its value, its curve or its tier dial) rather than adding a modifier on top of sourced physics. Only when no registered stand-in carries the quantity is a new one added, with its tier and tweak level, and then it is the stand-in that bends, never the sourced law.
 
-There are 2005 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 2012 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,7 +42,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 21 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1978 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1985 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,15 +50,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 231 | 22 | 12 | 1 | 0 | 266 |
-| T2 | 184 | 75 | 4 | 0 | 0 | 263 |
-| T3 | 134 | 69 | 13 | 10 | 0 | 226 |
-| T4 | 91 | 17 | 10 | 25 | 13 | 156 |
-| T5 | 117 | 31 | 8 | 1 | 2 | 159 |
-| T6 | 253 | 142 | 40 | 85 | 8 | 528 |
+| T2 | 185 | 75 | 4 | 0 | 0 | 264 |
+| T3 | 135 | 69 | 13 | 10 | 0 | 227 |
+| T4 | 93 | 17 | 10 | 25 | 13 | 158 |
+| T5 | 119 | 31 | 8 | 1 | 2 | 161 |
+| T6 | 254 | 142 | 40 | 85 | 8 | 529 |
 | T7 | 76 | 44 | 10 | 31 | 0 | 161 |
 | T8 | 1 | 0 | 0 | 6 | 1 | 8 |
 | T9 | 54 | 20 | 6 | 116 | 42 | 238 |
-| All | 1141 | 420 | 103 | 275 | 66 | 2005 |
+| All | 1148 | 420 | 103 | 275 | 66 | 2012 |
 
 ## How the labels were given
 
@@ -3555,3 +3555,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | EF1 | P | T6 | L1 | `extinction_effects.RESET_RECURRENCE_MYR` 1000: an extinction resets the animals only if it is an impact the Earth has less often than once in 1 Gyr (an impactor of about 37 km on the size law of `air_events`; the kill curve gives it 0.65 like any event of 100 Myr or more) | 300 to 3000 Myr (impactors of about 21 to 62 km; the Big Five were 10 km or less) | a world with animals | a measured loss of animals after an extinction of the Phanerozoic size | a measured relation between the size of a shock and the complexity it removes | the Earth's animal record (540 Myr, five mass extinctions, no reset; the Big Five by number of genera, [R5320] for the curve); the cut is inferred | predicted only | - | - |
 | EF2 | P | T7 | L1 | `extinction_effects.REGROWTH_GYR` 0.020: the time the animals take to return after the origination lag (`air_events.RECOVERY_GYR`, 10 Myr, [R5321]); 30 Myr from the extinction | 0.010 to 0.050 | a world whose animals an extinction reset | a measured regrowth of the marine genera to their old number faster than 15 Myr or slower than 60 Myr after a Big Five extinction | the measured regrowth of the animal grades | educated guess from inferred physics; no source read | predicted only | - | - |
 | EF3 | P | T7 | L0 | `extinction_effects.regrown`: a civilization arises again the same hard-step wait after the returned animals as it did after the first (no new draw: the wait the schedule already has), whether it had come or not | none | a civilization that an extinction at or after the animals reset | a measured faster re-emergence of a technology-scale lineage after a collapse | a measured recovery of a lineage that had a civilization | the hard-step model of `life_timeline` [R4642]; the choice not to draw again is a design rule | predicted only | - | - |
+
+## 6.329 Stand-ins of the white dwarf binaries (GEN.707)
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| WK1 | B | T6 | L0 | tuning.CATACLYSMIC_DONOR_MASS_RANGE_SOL | 0.08 to 0.7 solar masses, uniform (a draw whose period is outside 1.3 to 10 h is made again; accepted donors 0.11 to 0.7, median 0.40) | white dwarf plus main-sequence donor, old and intermediate populations | test_white_dwarf_binaries::test_cataclysmic_variables_are_6_5_in_10000_white_dwarfs_with_periods_1_3_to_10_hours_and_accreting | a period distribution of a volume-limited sample [R3412] mapped through the donor sequence of [R5351], with the gap | the donor sequence of [R5351] puts a lobe-filling donor at 0.069 solar masses at the 82.4 min period minimum, 0.200 at 3.18 h and 0.700 at 5.914 h, so 0.08 to 0.7 spans the 1.3 to 10 h window the draw keeps; the shape (uniform in mass) is the stand-in: the drawn periods have a median of 3.0 h, no gap at 2 to 3 h and no pile-up at the minimum, while [R3412] finds a gap and 7 percent period bouncers | predicted only | - | - |
+| WK2 | B | T5 | L0 | tuning.AM_CVN_DONOR_MASS_RANGE_SOL | 0.009 to 0.13 solar masses, log-uniform | white dwarf plus helium donor, old population | test_white_dwarf_binaries::test_am_cvn_binaries_are_7_5_in_100000_white_dwarfs_with_a_helium_donor_and_periods_5_to_65_minutes | the measured donor masses and radii of the known AM CVn systems (the five eclipsing systems of [R4510] have them) | physics: a donor that fills its lobe has a period set by its mean density, so the helium donor mass follows from the 5 to 65 min window of [R4510] through the zero-temperature radius law (row AC11); 0.009 to 0.13 solar masses is the mass range that gives that window (accepted donors 0.009 to 0.129, median 0.033); the observed donor masses of the 60 known systems were not read | predicted only | - | - |
+| WK3 | P | T5 | L0 | tuning.ACCRETING_FILL_FACTOR | 1.05 (1.0 to 1.1) | a cataclysmic variable or an AM CVn binary | test_white_dwarf_binaries::test_a_cataclysmic_variable_has_the_donor_inside_its_lobe_to_the_fill_factor | none needed: the donor's orbit at filling 1 and the classification at 1.0 | physics: a donor fills its lobe at a filling of exactly 1; 1.05 is a numerical margin so that the geometry classifies the pair `accreting` (an interacting pair), a few percent past the lobe | predicted only | - | - |
+| WK4 | B | T4 | L0 | tuning.HOT_SUBDWARF_POST_CE_SHARE | 0.05 (0.02 to 0.10) | post-common-envelope white dwarf pairs (axis 0.005 to 2 AU) | test_white_dwarf_binaries::test_a_hot_subdwarf_is_the_stand_in_share_of_post_common_envelope_pairs | the ratio of hot subdwarf binaries to white dwarf plus main-sequence post-common-envelope binaries in one volume-limited sample | design note 13.3: the observed hot subdwarf (sdB and sdO) binaries with a white dwarf are a few percent of the white dwarf plus star pairs; [R1875] gives half to two thirds of hot subdwarfs in close binaries with mostly white dwarf companions but no count against the white dwarf plus main-sequence pairs, so the 5 percent has no source | predicted only | - | - |
+| WK5 | B | T3 | L0 | tuning.BARIUM_GIANT_MAX_INITIAL_MASS_SOL | 3.0 solar masses (barium 3 to 5; symbiotic up to 8) | giants of the intermediate and old populations | test_white_dwarf_binaries::test_a_g_or_k_giant_is_symbiotic_or_barium_at_the_rows_shares | the spectral type of the giant from its effective temperature and the mass of each class of companion in the catalogues | [R2198] reads the barium stars at 1 to 3 solar masses with a tail to 5, so 3.0 holds the stars it reads and cuts the tail; [R4993] gives symbiotic giants initial masses of 0.5 to 8, which the same limit cuts; the limit stands in for the G and K class the member does not carry, so the two sources do not agree on one edge | predicted only | - | - |
+| WK6 | B | T2 | L0 | tuning.BARIUM_PERIOD_DAYS | 80 to 1e4 d, log-uniform (the longest of the extrinsic S stars 4e4 d) | barium and CH giants with a white dwarf companion | test_white_dwarf_binaries::test_a_barium_or_symbiotic_giant_has_a_white_dwarf_companion_on_the_types_orbit | the period histogram of the 105 orbits of [R2198] as a distribution | [R2198]: the orbits of the barium and extrinsic S stars run from tens of days to tens of years, the longest of the extrinsic S stars 4e4 d (110 yr) and 56 UMa 45 yr; 80 to 1e4 d keeps the bulk and cuts the longest orbits; only part of the paper was read and no median or short edge was read | predicted only | - | - |
+| WK7 | B | T4 | L0 | tuning.SYMBIOTIC_PERIOD_DAYS | 200 to 2000 d, log-uniform | symbiotic giants with a white dwarf companion | test_white_dwarf_binaries::test_a_barium_or_symbiotic_giant_has_a_white_dwarf_companion_on_the_types_orbit | the orbital period distribution of the confirmed symbiotic stars (283 in the Galaxy, [R4993]) | the code's comment says 200 to 1,500 days; [R4993] gives no range (about 30 percent of symbiotic stars with periods under 1,000 d show tidal distortion), so the 200 to 2,000 d is not read from a source here | predicted only | - | - |
