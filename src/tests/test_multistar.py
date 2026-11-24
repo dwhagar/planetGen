@@ -15,7 +15,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import close_binary_trend, mass_ratio, multistar
 from planetgen.generation.phenomena import hosts
-from planetgen.physics import brown_dwarf, mass_boundaries, ms_lifetime, stability, stellar_evolution as evolution
+from planetgen.physics import brown_dwarf, mass_boundaries, ms_lifetime, remnant_progenitors, stability, stellar_evolution as evolution
 from planetgen.util import draw
 
 OLD = 8.0e9
@@ -306,7 +306,12 @@ def test_a_wide_companion_of_a_hole_that_did_not_collapse_directly_is_refused():
 def test_black_hole_trees_carry_wide_tertiaries_only_around_direct_collapse_holes(monkeypatch):
     _force(monkeypatch, "star")
     wide = {}
-    for label, birth in (("light", 30.0), ("direct", 40.0)):
+    # A progenitor that explodes (a light hole) and one that fails to (a direct collapse): the failure windows follow the IMF, so the light birth mass is the middle of the gap
+    # between the first two windows, never a fixed 30 (GEN.922 moved the upper window's edge from 31.7 to 28.1 solar masses)
+    windows = remnant_progenitors.failure_windows(None)
+    light = 0.5 * (windows[0][1] + windows[1][0])
+    assert not remnant_progenitors.fails(light) and remnant_progenitors.fails(40.0)
+    for label, birth in (("light", light), ("direct", 40.0)):
         placed = multistar.Placed("black-hole", 12.0, birth)
         axes = []
         for seed in range(1500):
